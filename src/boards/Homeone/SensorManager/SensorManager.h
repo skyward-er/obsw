@@ -40,7 +40,7 @@ using std::vector;
 // Forward declarations
 class TestSensor;
 
-template <typename BusI2C>
+template <typename BusI2C, typename BusyPin, typename CONVST>
 class AD7994;
 
 template <typename BusSPI>
@@ -56,7 +56,7 @@ class ADIS16405;
 namespace HomeoneBoard
 {
 // Type definitions
-typedef AD7994<busI2C1> AD7994Type;
+typedef AD7994<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
 typedef MPU9250<spiMPU9250> MPU9250Type;
 typedef MAX21105<spiMAX21105> MAX21105Type;
 // typedef ADIS16405<spiADIS16405> ADIS16405Type;
