@@ -22,7 +22,7 @@ build1:
     - master
   script:
     - echo "Do your build here"
-    - python sbs
+    - python skyward-boardcore/sbs
    
 test1:
   stage: test
@@ -33,9 +33,8 @@ test1:
 test2:
   stage: test
   script: 
-    - echo "Do another parallel test here"
-    - echo "For example run a lint test"
-    - ./scripts/linter.sh
+    - echo "Running Linter"
+    - skyward-boardcore/scripts/linter.sh
    
 deploy1:
   stage: deploy
