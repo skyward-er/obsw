@@ -12,7 +12,7 @@ To build, use `make` or `skyward-boardcore/sbs` (for more info, type `skyward-bo
 
 ## Folder Structure
 
-| src/                   | sources!                                            |
+| **src/**               | **sources!**                                        |
 | ---------------------- | --------------------------------------------------- |
 | boards/                | Classes source files, divided per board.            |
 | entrypoints/           | Each file here is a "*main*" to be built with SBS.  |
@@ -24,11 +24,7 @@ To build, use `make` or `skyward-boardcore/sbs` (for more info, type `skyward-bo
 
 ## Content
 
-This repo contains software components that are specific to R2A. Please refer to [R2A-OBSW-SDD](https://docs.google.com/document/d/1ZR1zA4Dz7wDNBRiWThYC5OAfe9hZfSOdGBmbz2ConWU/edit) and [R2A-OBSW-SRS](https://docs.google.com/document/d/1yGYri5w8BWR6EBI6hym_Pu-zaps5E749E4Xsp1WGpJw/edit) documents for details.
-
-The other common components (*EventBroker*, *Logger*, basic drivers etc...) are located in the `skyward-boardcore` repository, as well as the build system (SBS) and the operating system (MIOSIX). Please refer to that repo's documentation for more info.
-
-The Ignition Board software is developed in a [dedicated repository](https://git.skywarder.eu/r2a/skyward-r2x-ignition), for safety reasons.
+This repo contains software components that are specific to R2A-Mini a.k.a Hermes.
 
 ## Contributing
 
