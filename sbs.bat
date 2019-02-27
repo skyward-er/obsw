@@ -1,0 +1,1 @@
+python skyward-boardcore/sbs %*
