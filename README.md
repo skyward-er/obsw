@@ -4,9 +4,9 @@
 
 This repository contains the On-Board Software for Rocksanne2-Alpha. 
 
-To clone, use the `--recursive` option.
+To clone, use the `--recurse-submodules` option.
 
-To build, use `make` or `skyward-boardcore/sbs` (for more info, type `skyward-boardcore/sbs --help`).
+To build, use `sbs` (for more info, type `./sbs --help` on Linux or `sbs --help` on Windows).
 
 
 
