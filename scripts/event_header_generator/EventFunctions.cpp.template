@@ -35,7 +35,7 @@
 
 #include <map>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {{
 
 string getEventString(uint8_t event)

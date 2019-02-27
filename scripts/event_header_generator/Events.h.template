@@ -43,7 +43,7 @@
 using std::string;
 using std::map;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {{
 /**
  * Definition of all events in the Homeone Board software
