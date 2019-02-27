@@ -38,7 +38,7 @@
 using std::map;
 using std::string;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 /**
  * Definition of various event topics to use in the EventBroker
@@ -63,6 +63,6 @@ enum Topics : uint8_t
  */
 string getTopicString(uint8_t topic);
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_TOPICS_H_ */
