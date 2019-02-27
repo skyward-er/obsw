@@ -1,8 +1,8 @@
-# R2A OBSW [![pipeline status](https://git.skywarder.eu/r2a/skyward-boardcore/badges/master/pipeline.svg)](https://git.skywarder.eu/r2a/skyward-boardcore/commits/master)
+# R2A-HERMES OBSW [![pipeline status](https://git.skywarder.eu/r2a/skyward-boardcore/badges/master/pipeline.svg)](https://git.skywarder.eu/r2a/skyward-boardcore/commits/master)
 
-*Software for Rocksanne2-Alpha*
+*Software for R2A-Hermes*
 
-This repository contains the On-Board Software for Rocksanne2-Alpha. 
+This repository contains the On-Board Software for R2A-Hermes. 
 
 To clone, use the `--recurse-submodules` option.
 
