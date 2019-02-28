@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-02-27 21:54:37.388404
+// Autogen date:    2019-02-28 15:04:18.168141
 
 
 #include "Events.h"
@@ -58,6 +58,8 @@ string getEventString(uint8_t event)
         { EV_LAUNCH, "EV_LAUNCH" },
         { EV_LIFTOFF, "EV_LIFTOFF" },
         { EV_MOT_MIN_OPEN_TIME, "EV_MOT_MIN_OPEN_TIME" },
+        { EV_MOT_OPEN_LIMIT, "EV_MOT_OPEN_LIMIT" },
+        { EV_MOT_CLOSE_LIMIT, "EV_MOT_CLOSE_LIMIT" },
         { EV_NC_OPEN, "EV_NC_OPEN" },
         { EV_NC_DETACHED, "EV_NC_DETACHED" },
         { EV_NEW_CAN_MSG, "EV_NEW_CAN_MSG" },
