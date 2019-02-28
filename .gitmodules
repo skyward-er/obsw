@@ -3,4 +3,4 @@
 	url = ../skyward-boardcore.git
 [submodule "libs/mavlink_skyward_lib"]
 	path = libs/mavlink_skyward_lib
-	url = https://git.skywarder.eu/r2a/mavlink_skyward_lib.git
+	url = ../mavlink_skyward_lib.git
