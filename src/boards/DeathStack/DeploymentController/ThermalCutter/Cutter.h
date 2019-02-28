@@ -25,14 +25,14 @@
 
 #include <miosix.h>
 
-#include "boards/Homeone/configs/CutterConfig.h"
+#include "DeathStack/configs/CutterConfig.h"
 #include "drivers/pwm/pwm.h"
-#include "CutterStatus.h"
+#include "CutterData.h"
 
 using miosix::GpioPin;
 using miosix::Thread;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
     
 class Cutter
@@ -114,7 +114,7 @@ private:
         pwm.setDutyCycle(channel, 0.0f);  // Set duty cycle to 0 to leave the IN
                                           // pin of the Half-H bridge low
 
-        Thread::sleep(HBRIDGE_DISABLE_DELAY_MS);  // Wait a short delay
+        Thread::sleep(CUTTER_DISABLE_DELAY_MS);  // Wait a short delay
 
         ena_pin.low();  // Disable hbridge
     }

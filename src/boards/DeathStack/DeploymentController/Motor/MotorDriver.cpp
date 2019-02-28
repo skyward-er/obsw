@@ -21,17 +21,18 @@
  * THE SOFTWARE.
  */
 #include <Common.h>
+
 #include <events/EventBroker.h>
 
-#include <boards/Nosecone/Events.h>
-#include <boards/Nosecone/Topics.h>
+#include "DeathStack/Events.h"
 
 #include "MotorDriver.h"
-#include "MotorLimit.h"
+
+//#include "MotorLimit.h"
 
 using namespace miosix;
 
-namespace NoseconeBoard
+namespace DeathStackBoard
 {
 
 
@@ -49,7 +50,7 @@ MotorDriver::MotorDriver(PinObserver* pinObs): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENC
     pwm.start();
 
     /* Start observing motor limit pins */
-    MotorLimit::observeLimitPins(pinObs);
+    //MotorLimit::observeLimitPins(pinObs);
 
     /* Start sampling motor current */
     currentSensor.start();
@@ -73,7 +74,7 @@ bool MotorDriver::start(MotorDirection direction, float dutyCycle)
         return false;
 
     /* If it's not active, check the direction */
-    bool dir = (direction == MotorDirection::NORMAL_DIRECTION);
+    bool dir = (direction == MotorDirection::NORMAL);
 
     if(dir) {
         pwm.enableChannel(MOTOR_CH_RIGHT, dutyCycle, PWMMode::MODE_1, 
@@ -105,7 +106,7 @@ void MotorDriver::stop()
     pwm.setDutyCycle(MOTOR_CH_LEFT, 0.0f);   // Set duty cycle to 0
     pwm.setDutyCycle(MOTOR_CH_RIGHT, 0.0f);  // Set duty cycle to 0
 
-    Thread::sleep(HBRIDGE_DISABLE_DELAY_MS);  // Wait a short delay
+    Thread::sleep(MOTOR_DISABLE_DELAY_MS);  // Wait a short delay
 
     RightEnable::low();  // Disable hbridge
     LeftEnable::low(); 

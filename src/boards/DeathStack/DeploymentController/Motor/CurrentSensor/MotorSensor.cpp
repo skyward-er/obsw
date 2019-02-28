@@ -1,5 +1,6 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Benedetta Margrethe Cattani, Alvise de' Faveri Tron
+/*
+ * Copyright (c) 2018 Skyward Experimental Rocketry
+ * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,45 +20,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
-#include <events/FSM.h>
+#include "MotorSensor.h"
 
-#include <boards/Nosecone/Motor/MotorDriver.h>
-#include <boards/Nosecone/LogProxy/LogProxy.h>
-
-#include "NoseconeManagerStatus.h"
-
-namespace NoseconeBoard
-{
-/**
- * Implementation of the Nosecone Manager Finite State Machine
- */
-class NoseconeManager : public FSM<NoseconeManager>
+namespace DeathStackBoard
 {
 
-public:
-    NoseconeManager(MotorDriver& motor);
-    ~NoseconeManager() {}
+MotorSensor::MotorSensor() 
+{
+    status.max_current_sensed = 0;
+    status.min_current_sensed = 0xFFFF;
+    log();
 
-private:
-    MotorDriver& motor;
-    uint16_t delayedId;
-
-    NscMgrStatus status;
-
-    static const unsigned int OPEN_TIMEOUT = 15000;
-    static const unsigned int CLOSE_TIMEOUT = 10000;
-
-    /* States declarations */
-    void state_idle(const Event& e);
-    void state_opening(const Event& e);
-    void state_closing(const Event& e);
-
-    inline void log()
-    {
-        Singleton<LoggerProxy>::getInstance()->log(status);
-    }
-};
-
+    adc.init(); 
 }
+
+
+void MotorSensor::run()
+{
+    /* Sample sensor */
+    adc.updateParams();
+    uint16_t adcval = adc.getValue();
+
+    /* Update status */
+    if(adcval > status.max_current_sensed)
+        status.max_current_sensed = adcval;
+
+    if(adcval < status.min_current_sensed)
+        status.min_current_sensed = adcval;
+
+    status.last_current_sensed = adcval;
+    log();
+}
+
+
+float MotorSensor::adcToI(uint16_t adc_in)
+{
+    float v    = (adc_in * 3.3f) / 4096;
+    float iout = v / 525;
+    return (iout - 0.000030) * 10000;
+}
+
+} /* namespace NoseconeBoard */

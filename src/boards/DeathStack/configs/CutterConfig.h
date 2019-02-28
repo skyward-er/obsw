@@ -28,7 +28,7 @@
 #include "interfaces-impl/hwmapping.h"
 
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 // clang-format off
 
@@ -55,8 +55,8 @@ static const unsigned int CUTTER_PWM_FREQUENCY = 15000;
 static const float CUTTER_PWM_DUTY_CYCLE       = 48.0f / 256;
 
 // Period of time where the IN must be kept low before bringing ENA/INH low
-static const int HBRIDGE_DISABLE_DELAY_MS = 50;
+static const int CUTTER_DISABLE_DELAY_MS = 50;
  
-} // HomeoneBoard
+} // DeathStackBoard
 
 

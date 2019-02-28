@@ -24,14 +24,14 @@
 
 #include <Common.h>
 
-#include "MotorConfig.h"
+#include "DeathStack/configs/MotorConfig.h"
 #include "CurrentSensor/MotorSensor.h"
-#include "MotorStatus.h"
+#include "MotorData.h"
 
 #include <PinObserver.h>
-#include <boards/Nosecone/LogProxy/LogProxy.h>
+#include <DeathStack/LogProxy/LogProxy.h>
 
-namespace NoseconeBoard
+namespace DeathStackBoard
 {
 
 /**
@@ -39,7 +39,6 @@ namespace NoseconeBoard
  */
 class MotorDriver
 {
-
 public:
     /**
      * @brief Class constructor.

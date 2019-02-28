@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/*
+ * Copyright (c) 2018 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -16,13 +17,31 @@
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION\ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
-struct MotorStatus
+#ifndef SRC_SHARED_BOARDS_HELITEST_THERMALCUTTER_CUTTERSTATUS_H
+#define SRC_SHARED_BOARDS_HELITEST_THERMALCUTTER_CUTTERSTATUS_H
+
+#include <ostream>
+#include <string>
+
+namespace DeathStackBoard
 {
-    bool motor_active;          
-    bool motor_last_direction;
+    
+enum class CutterState : uint8_t
+{
+    IDLE,
+    CUTTING_DROGUE,
+    CUTTING_MAIN
 };
+
+struct CutterStatus
+{
+    unsigned int timestamp;
+    CutterState state = CutterState::IDLE;
+};
+}  // namespace DeathStackBoard
+
+#endif

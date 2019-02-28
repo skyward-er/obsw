@@ -1,4 +1,5 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
+/*
+ * Copyright (c) 2018 Skyward Experimental Rocketry
  * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,41 +23,60 @@
 #pragma once
 
 #include <miosix.h>
-#include <drivers/pwm/pwm.h>
-#include <drivers/HardwareTimer.h>
-#include <interfaces-impl/hwmapping.h>
 
-namespace NoseconeBoard {
+#include "ActiveObject.h"
+#include "drivers/adc/ADC.h"
+
+#include "CurrentStatus.h"
+
+#include <DeathStack/LogProxy/LogProxy.h>
+
+namespace DeathStackBoard
+{
+
+// typedef miosix::Gpio<GPIOF_BASE, 8> sensor_l;
+typedef miosix::Gpio<GPIOF_BASE, 6> hbridge_current_sensor;
+
+using ADC_t = SensorADC<1, 5, hbridge_current_sensor>;
+
+static const int SAMPLE_FREQ   = 10;
+static const int SAMPLE_PERIOD = 1000 / SAMPLE_FREQ;
+
+static ADC_t adc(SAMPLE_FREQ);
 
 /**
- * @brief PWM channel output polarity
- *
+ * Simple driver for reading the current value in the H-Bridge.
  */
-enum class MotorDirection: uint8_t
+class MotorSensor : public ActiveObject
 {
-    NORMAL_DIRECTION,
-    REVERSE_DIRECTION
+
+public:
+    /**
+     * @brief Init ADC to read the current value.
+     */
+    MotorSensor();
+
+    /**
+     * @brief Helper function to convert raw adc value, for debug pourposes.
+     */
+    float adcToI(uint16_t adc_in);
+
+protected:
+    /**
+     * @brief Sensor sampling function, inherited from ActiveObject. 
+     */
+    void run() override;
+
+private:
+    CurrentStatus status;
+
+    /**
+     * @brief Save the status.
+     */
+    inline void log()
+    {
+        Singleton<LoggerProxy>::getInstance()->log(status);
+    }
 };
 
-/* Struct required by the PWM driver to know the specifics of the timer to use */
-static const PWM::Timer MOTOR_TIM {
-    TIM4, 
-    &(RCC->APB1ENR), 
-    RCC_APB1ENR_TIM4EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)
-};
-
-/* Pins definition */
-static const PWMChannel MOTOR_CH_RIGHT = PWMChannel::CH1; // PD12
-static const PWMChannel MOTOR_CH_LEFT  = PWMChannel::CH2; // PD13
-typedef miosix::actuators::hbridger::ena RightEnable;     // PG2
-typedef miosix::actuators::hbridgel::ena LeftEnable;      // PD11
-
-/* PWM Frequency & duty-cycle */
-static const unsigned int MOTOR_PWM_FREQUENCY = 150;
-static constexpr float OPENING_DUTY_CYCLE = 0.5f;
-static constexpr float CLOSING_DUTY_CYCLE = 0.5f;
-/* Period of time where the IN must be kept low before bringing ENA/INH low */
-static const int HBRIDGE_DISABLE_DELAY_MS = 50;
-
-}
+} /* namespace NoseconeBoard */

@@ -24,10 +24,10 @@
 #include <Common.h>
 
 #include <events/EventBroker.h>
-#include <boards/Nosecone/Events.h>
-#include <boards/Nosecone/Topics.h>
 
-namespace NoseconeBoard
+#include "DeathStack/Events.h"
+
+namespace DeathStackBoard
 {
 namespace MotorLimit
 {
@@ -47,13 +47,13 @@ typedef miosix::Gpio<l_limit_port, l_limit_pin> LeftMotorLimit;
 static void r_finecorsaHandler(unsigned int p, unsigned char c) {
     UNUSED(p);
     UNUSED(c);
-    sEventBroker->post(Event{EV_R_MOTOR_LIMIT}, TOPIC_NOSECONE);
+    sEventBroker->post(Event{EV_MOT_OPEN_LIMIT}, TOPIC_DEPLOYMENT);
 }
 
 static void l_finecorsaHandler(unsigned int p, unsigned char c) {
     UNUSED(p);
     UNUSED(c);
-    sEventBroker->post(Event{EV_L_MOTOR_LIMIT}, TOPIC_NOSECONE);
+    sEventBroker->post(Event{EV_MOT_CLOSE_LIMIT}, TOPIC_DEPLOYMENT);
 }
 
 /**
@@ -73,4 +73,4 @@ static void observeLimitPins(PinObserver* pinObs)
 }
 
 } /* namespace MotorLimit */
-} /* namespace NoseconeBoard */
+} /* namespace DeathStackBoard */
