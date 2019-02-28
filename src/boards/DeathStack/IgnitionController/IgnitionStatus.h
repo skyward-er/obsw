@@ -23,9 +23,9 @@
 #pragma once
 
 #include <cstdint>
-#include "boards/CanInterfaces.h"
+#include "CanInterfaces.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 enum IgnitionControllerState : uint8_t

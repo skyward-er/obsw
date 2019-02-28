@@ -25,14 +25,14 @@
 #include "IgnitionStatus.h"
 #include "Singleton.h"
 #include "events/FSM.h"
-#include <boards/Homeone/LogProxy/LogProxy.h>
+#include "DeathStack/LogProxy/LogProxy.h"
 #include "drivers/canbus/CanManager.h"
 #include "drivers/canbus/CanUtils.h"
-#include "boards/Homeone/EventClasses.h"
+#include "DeathStack/EventClasses.h"
 
 class CanEventSocket;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 class IgnitionController : public FSM<IgnitionController>
@@ -65,4 +65,4 @@ private:
     CanBus* canbus;
 };
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard

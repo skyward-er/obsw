@@ -25,7 +25,7 @@
 
 
 // TODO: put these enums in the Status of the components?
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 enum fmmState_t

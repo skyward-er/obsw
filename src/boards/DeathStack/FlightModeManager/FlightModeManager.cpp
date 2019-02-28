@@ -20,16 +20,16 @@
  * THE SOFTWARE.
  */
 
-#include <boards/Homeone/FlightModeManager/FlightModeManager.h>
+#include <DeathStack/FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/configs/FMMConfig.h"
-#include "boards/Homeone/Topics.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/configs/FMMConfig.h"
+#include "DeathStack/Topics.h"
 
 #include "Debug.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 FlightModeManager::FlightModeManager() : FSM(&FlightModeManager::stateInit)
@@ -129,7 +129,6 @@ void FlightModeManager::stateDisarmed(const Event& ev)
             transition(&FlightModeManager::stateTesting);
             break;
 
-        case EV_NC_OFFLINE:
         case EV_IGN_OFFLINE:
         case EV_IGN_ABORTED:
             transition(&FlightModeManager::stateError);
@@ -168,7 +167,6 @@ void FlightModeManager::stateArmed(const Event& ev)
             sEventBroker->removeDelayed(delayed_event_id);
             break;
 
-        case EV_NC_OFFLINE:
         case EV_IGN_OFFLINE:
         case EV_IGN_ABORTED:
             transition(&FlightModeManager::stateError);
@@ -377,4 +375,4 @@ void FlightModeManager::stateLanded(const Event& ev)
     }
 }
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard

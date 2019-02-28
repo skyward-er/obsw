@@ -21,13 +21,13 @@
  */
 
 #include "Common.h"
-#include "boards/Homeone/Events.h"
+#include "DeathStack/Events.h"
 #include "events/EventBroker.h"
-#include "boards/Homeone/SensorManager/SensorManager.h"
+#include "DeathStack/SensorManager/SensorManager.h"
 #include "events/Scheduler.h"
 
 using namespace miosix;
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 
 int main()
 {

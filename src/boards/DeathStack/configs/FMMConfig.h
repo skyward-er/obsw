@@ -22,7 +22,7 @@
 #ifndef SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMM_CONFIG_H
 #define SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMM_CONFIG_H
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 // State timeouts

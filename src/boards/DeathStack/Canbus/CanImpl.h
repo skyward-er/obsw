@@ -26,13 +26,13 @@
 #include <drivers/canbus/CanManager.h>
 #include <drivers/canbus/CanUtils.h>
 
-#include "boards/CanInterfaces.h"
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/Topics.h"
+#include "CanInterfaces.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/Topics.h"
 
 #include <events/EventBroker.h>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 /**
@@ -70,4 +70,4 @@ void initCanbus(CanManager& c)
     TRACE("[CAN] Initialised CAN1 on PA11-12 \n");
 }
 
-} /* namespace HomeoneBoard */
+} /* namespace DeathStackBoard */

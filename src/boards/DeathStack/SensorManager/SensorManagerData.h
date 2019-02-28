@@ -26,7 +26,7 @@
 
 #include <cstdint>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 
@@ -56,5 +56,5 @@ struct SensorManagerStatus
     uint16_t problematic_sensors = 0x0000;
 };
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
 #endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGERDATA_H */

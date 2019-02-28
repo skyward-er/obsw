@@ -22,12 +22,12 @@
 
 #include <cstdio>
 
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/IgnitionController/IgnitionController.h"
-#include "boards/Homeone/Canbus/CanImpl.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/IgnitionController/IgnitionController.h"
+#include "DeathStack/Canbus/CanImpl.h"
 
 using namespace miosix;
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 
 int main()
 {

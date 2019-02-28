@@ -23,8 +23,8 @@
 #include "SensorManager.h"
 
 #include "TestSensor.h"
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/Topics.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/Topics.h"
 #include "events/EventBroker.h"
 
 #include "drivers/adc/AD7994.h"
@@ -39,7 +39,7 @@
 using miosix::FastMutex;
 using miosix::Lock;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 SensorManager::SensorManager()
@@ -203,4 +203,4 @@ void SensorManager::onDMA500HZCallback()
       log.log(*(imu_adis16405->tempDataPtr()));*/
 }
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard

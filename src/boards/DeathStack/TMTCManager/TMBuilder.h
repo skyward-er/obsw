@@ -25,7 +25,7 @@
 #include <Common.h>
 #include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 namespace TMBuilder
 {
@@ -66,4 +66,4 @@ static mavlink_message_t buildTelemetry(uint8_t requestedTelemetry)
 }
 
 } /* namespace TMBuilder */
-} /* namespace HomeoneBoard */
+} /* namespace DeathStackBoard */

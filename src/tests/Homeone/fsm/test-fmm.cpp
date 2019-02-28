@@ -10,13 +10,13 @@
 #include <string>
 #include <vector>
 
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/FlightModeManager/FlightModeManager.h"
-#include "boards/Homeone/Topics.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/FlightModeManager/FlightModeManager.h"
+#include "DeathStack/Topics.h"
 #include "drivers/HardwareTimer.h"
 #include "events/EventBroker.h"
 
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 
 using miosix::Thread;
 using std::string;

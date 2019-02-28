@@ -23,11 +23,11 @@
 #pragma once
 
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
     
 static const unsigned int INTERVAL_IGN_GET_STATUS = 2000;
 static const unsigned int TIMEOUT_IGN_OFFLINE = 7*1000; 
 
-} // HomeoneBoard
+} // DeathStackBoard
 

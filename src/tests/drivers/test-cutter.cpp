@@ -22,10 +22,10 @@
  */
 
 #include <miosix.h>
-#include "boards/Homeone/DeploymentController/ThermalCutter/Cutter.h"
+#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
 
 using namespace miosix;
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 
 int main()
 {

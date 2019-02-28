@@ -26,9 +26,9 @@
 #include "ActiveObject.h"
 #include "drivers/adc/ADC.h"
 
-#include "boards/Homeone/DeploymentController/ThermalCutter/Cutter.h"
+#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
 
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 using namespace miosix;
 
 typedef miosix::Gpio<GPIOA_BASE, 0> btn;

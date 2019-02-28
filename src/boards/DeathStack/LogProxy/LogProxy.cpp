@@ -22,6 +22,9 @@
 
 #include "LogProxy.h"
 
+namespace DeathStackBoard 
+{
+
 template <>
 LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
@@ -29,4 +32,6 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 
     lr_data.mpu9250_accel = t.accel;
     return logger.log(t);
+}
+
 }

@@ -21,10 +21,10 @@
  */
 
 #include "TMTCManager.h"
-#include "boards/Homeone/Topics.h"
+#include "DeathStack/Topics.h"
 #include "TCHandler.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
@@ -141,4 +141,4 @@ void TMTCManager::stateLowRateTM(const Event& ev)
     }
 }
 
-} /* namespace HomeoneBoard */
+} /* namespace DeathStackBoard */

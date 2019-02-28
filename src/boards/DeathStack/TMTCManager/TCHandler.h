@@ -26,12 +26,12 @@
 #include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
 
 #include "TMBuilder.h"
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/Topics.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/Topics.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 uint16_t g_gsOfflineEvId;
@@ -92,7 +92,7 @@ static void handleMavlinkMessage(MavSender* sender, const mavlink_message_t& msg
         {
             TRACE("[TMTC] Received NOARG command\n");
             uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
-            auto it = HomeoneBoard::TCHandler::noargCmdToEvt.find(commandId);
+            auto it = DeathStackBoard::TCHandler::noargCmdToEvt.find(commandId);
             
             if( it != noargCmdToEvt.end() ) 
                 sEventBroker->post( Event{it->second}, TOPIC_TC );
@@ -148,4 +148,4 @@ static void handleMavlinkMessage(MavSender* sender, const mavlink_message_t& msg
 }
 
 } /* namespace TCHandler */
-} /* namespace HomeoneBoard */
+} /* namespace DeathStackBoard */

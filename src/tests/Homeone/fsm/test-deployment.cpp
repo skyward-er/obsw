@@ -21,14 +21,15 @@
  * THE SOFTWARE.
  */
 
-#include "boards/Homeone/DeploymentController/Deployment.h"
-#include "boards/Homeone/Events.h"
+#include "DeathStack/DeploymentController/Deployment.h"
+#include "DeathStack/Events.h"
 
-using namespace HomeoneBoard;
+using namespace DeathStackBoard;
 
 int main()
 {
-    DeploymentController fsm;
+    PinObserver obs;
+    DeploymentController fsm(&obs);
 
     sEventBroker->start();
     fsm.start();

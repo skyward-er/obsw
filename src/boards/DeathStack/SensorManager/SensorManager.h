@@ -27,9 +27,9 @@
 #include "Singleton.h"
 #include "events/Scheduler.h"
 
-#include "boards/Homeone/configs/SensorManagerConfig.h"
+#include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
-#include <boards/Homeone/LogProxy/LogProxy.h>
+#include "DeathStack/LogProxy/LogProxy.h"
 #include "sensors/SensorSampling.h"
 
 #include "SensorManagerData.h"
@@ -53,7 +53,7 @@ template <typename BusSPI>
 class ADIS16405;
 
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 // Type definitions
 typedef AD7994<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
@@ -157,6 +157,6 @@ private:
     bool enable_sensor_logging = false;
 };
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGER_H */

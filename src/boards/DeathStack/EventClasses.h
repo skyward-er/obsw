@@ -27,7 +27,7 @@
 #include "Events.h"
 #include "events/Event.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 struct DeploymentPressureEvent : Event

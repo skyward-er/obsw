@@ -25,12 +25,12 @@
 #include "TMTCStatus.h"
 
 #include "events/FSM.h"
-#include "boards/Homeone/Events.h"
+#include "DeathStack/Events.h"
 
 #include <drivers/gamma868/Gamma868.h>
 #include <drivers/mavlink/MavManager.h>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 // Mavlink messages sysID and compID
@@ -60,7 +60,7 @@ private:
     Gamma868* device;
     MavManager* mavManager;
 
-    HomeoneBoard::TMTCStatus status;
+    DeathStackBoard::TMTCStatus status;
 
     /* State handlers */
     void stateIdle(const Event& ev);
@@ -74,4 +74,4 @@ private:
     static const unsigned int HR_TM_TIMEOUT = 250;
 };
 
-} /* namespace HomeoneBoard */
+} /* namespace DeathStackBoard */

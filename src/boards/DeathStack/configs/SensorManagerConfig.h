@@ -29,7 +29,7 @@
 
 using miosix::Gpio;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 // I2C 1
@@ -50,6 +50,6 @@ typedef miosix::sensors::ad7994::nconvst ad7994_nconvst;
 
 static const uint8_t AD7994_I2C_ADDRESS = 0x24;  // Todo: Update with real value
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGERCONFIG_H */

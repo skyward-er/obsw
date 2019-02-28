@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
+#include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 /*

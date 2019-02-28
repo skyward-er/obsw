@@ -21,11 +21,11 @@
  */
 
 #include "IgnitionController.h"
-#include "boards/Homeone/configs/IgnitionConfig.h"
+#include "DeathStack/configs/IgnitionConfig.h"
 #include "boards/CanInterfaces.h"
-#include "boards/Homeone/Events.h"
+#include "DeathStack/Events.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 IgnitionController::IgnitionController(CanBus* canbus)

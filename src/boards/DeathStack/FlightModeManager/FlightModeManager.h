@@ -27,14 +27,14 @@
 #include "FMMStatus.h"
 #include "events/Event.h"
 #include "events/FSM.h"
-#include <boards/Homeone/LogProxy/LogProxy.h>
+#include "DeathStack/LogProxy/LogProxy.h"
 
 #include <miosix.h>
 
 using miosix::FastMutex;
 using miosix::Lock;
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
 
 /**
@@ -80,6 +80,6 @@ private:
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 };
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FSM_H */

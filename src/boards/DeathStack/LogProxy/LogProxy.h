@@ -19,13 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_LOGGER_LOGPROXY_H
-#define SRC_SHARED_LOGGER_LOGPROXY_H
+
+#pragma once
 
 #include "logger/Logger.h"
 #include "Singleton.h"
-
 #include "sensors/MPU9250/MPU9250Data.h"
+
+namespace DeathStackBoard 
+{
 
 class LoggerProxy : public Singleton<LoggerProxy>
 {
@@ -76,4 +78,4 @@ private:
     Logger& logger;
 };
 
-#endif /* SRC_SHARED_LOGGER_LOGPROXY_H */
+}
