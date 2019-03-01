@@ -20,9 +20,12 @@
  * THE SOFTWARE.
  */
 
+#include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/r2a/mavlink.h>
+
 #include <Common.h>
 #include <drivers/gamma868/Gamma868.h>
-#include "drivers/mavlink/MavManager.h"
+#include <drivers/mavlink/MavManager.h>
+
 
 using namespace miosix;
 
