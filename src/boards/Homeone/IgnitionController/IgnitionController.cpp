@@ -25,6 +25,8 @@
 #include "boards/CanInterfaces.h"
 #include "boards/Homeone/Events.h"
 
+using namespace CanInterfaces;
+
 namespace HomeoneBoard
 {
 
@@ -35,7 +37,31 @@ IgnitionController::IgnitionController(CanBus* canbus)
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_CAN);
+
+    memset(&status, 0, sizeof(IgnCtrlStatus));
+    memset(&loggable_board_status, 0, sizeof(IgnBoardLoggableStatus));
 }
+
+/**
+ * Status getters & setters
+ */
+void IgnitionController::logStatus() {
+    status.timestamp = miosix::getTick();
+    logger.log(status);
+}
+
+IgnCtrlStatus IgnitionController::getStatus()
+{
+    miosix::FastInterruptDisableLock dLock;
+    return status;
+}
+
+IgnBoardLoggableStatus IgnitionController::getBoardStatus()
+{
+    miosix::FastInterruptDisableLock dLock;
+    return loggable_board_status;
+}
+
 
 bool IgnitionController::updateIgnBoardStatus(const Event& ev)
 {
@@ -43,30 +69,41 @@ bool IgnitionController::updateIgnBoardStatus(const Event& ev)
 
     if (cev.canTopic == CanInterfaces::CAN_TOPIC_IGNITION)
     {
-        memcpy(&status.board_status, cev.payload, sizeof(status.board_status));
+        // copy received struct
+        memcpy(&(loggable_board_status.board_status), cev.payload, sizeof(IgnitionBoardStatus));
+
+        // log the status
+        loggable_board_status.timestamp = miosix::getTick();
+        logger.log(loggable_board_status);
+
         return true;
     }
 
     return false;
 }
 
+
+/**
+ * States
+ */
 void IgnitionController::stateIdle(const Event& ev)
 {
+    status.last_event = ev.sig;
 
     switch (ev.sig)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateIdle\n");
-            status.ctrl_state = IgnitionControllerState::IDLE;
-            logger.log(status);
+            status.fsm_state = IgnitionControllerState::IDLE;
+            logStatus();
 
             ev_ign_offline_handle = sEventBroker->postDelayed(
                 {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS, TIMEOUT_IGN_OFFLINE);
 
             // Send first getstatus request
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
-
             break;
+
         case EV_EXIT:
             TRACE("IGNCTRL: Exiting stateIdle\n");
             sEventBroker->removeDelayed(ev_get_status_handle);
@@ -74,6 +111,7 @@ void IgnitionController::stateIdle(const Event& ev)
 
         case EV_IGN_GETSTATUS:
         {
+            status.n_sent_messages++;
             CanInterfaces::canSendHomeoneCommand(
                             canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
 
@@ -81,10 +119,13 @@ void IgnitionController::stateIdle(const Event& ev)
                 {EV_IGN_GETSTATUS}, TOPIC_IGNITION, INTERVAL_IGN_GET_STATUS);
             break;
         }
+
         case EV_NEW_CAN_MSG:
         {
             if (updateIgnBoardStatus(ev))
             {
+                status.n_rcv_messages++;
+
                 // Reset the ignition offline timeout
                 sEventBroker->removeDelayed(ev_ign_offline_handle);
 
@@ -92,16 +133,16 @@ void IgnitionController::stateIdle(const Event& ev)
                     {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS,
                     TIMEOUT_IGN_OFFLINE);
 
-                // Log ignition board status
-                logger.log(status);
-
-                if (status.board_status.u1_abort_cmd == 1 ||
-                    status.board_status.u2_abort_cmd == 1)
+                if (loggable_board_status.board_status.avr_abortCmd == 1 ||
+                    loggable_board_status.board_status.stm32_abortCmd == 1)
                 {
                     // We've had an abort.
+                    status.abort_rcv = 1;
                     transition(&IgnitionController::stateAborted);
-                    break;
                 }
+
+                // Log ignition controller status
+                logStatus();
             }
             break;
         }
@@ -113,16 +154,21 @@ void IgnitionController::stateIdle(const Event& ev)
         case EV_GS_OFFLINE:
         case EV_TC_ABORT_LAUNCH:
         {
+            status.n_sent_messages++;
+            status.abort_sent = 1;
             CanInterfaces::canSendHomeoneCommand(canbus, CanInterfaces::CAN_MSG_ABORT);
             break;
         }
+
         case EV_LAUNCH:
         {
             const LaunchEvent& lev = static_cast<const LaunchEvent&>(ev);
-
+            status.n_sent_messages++;
+            status.launch_sent = 1;
             CanInterfaces::canSendLaunch(canbus, lev.launchCode);
             break;
         }
+
         default:
             TRACE("IGNCTRL stateIdle: Event %d not handled.\n", ev.sig);
             break;
@@ -131,12 +177,14 @@ void IgnitionController::stateIdle(const Event& ev)
 
 void IgnitionController::stateAborted(const Event& ev)
 {
+    status.last_event = ev.sig;
+
     switch (ev.sig)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateAborted\n");
-            status.ctrl_state = IgnitionControllerState::ABORTED;
-            logger.log(status);
+            status.fsm_state = IgnitionControllerState::ABORTED;
+            logStatus();
 
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
             break;
@@ -146,6 +194,7 @@ void IgnitionController::stateAborted(const Event& ev)
 
         case EV_IGN_GETSTATUS:
         {
+            status.n_sent_messages++;
             CanInterfaces::canSendHomeoneCommand(
                             canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
             break;
@@ -153,6 +202,8 @@ void IgnitionController::stateAborted(const Event& ev)
         // Still handle the abort, just in case we want to send it again
         case EV_TC_ABORT_LAUNCH:
         {
+            status.n_sent_messages++;
+            status.abort_sent = 1;
             CanInterfaces::canSendHomeoneCommand(
                             canbus, CanInterfaces::CAN_MSG_ABORT);
             break;
@@ -162,6 +213,8 @@ void IgnitionController::stateAborted(const Event& ev)
         {
             if (updateIgnBoardStatus(ev))
             {
+                status.n_rcv_messages++;
+
                 // Reset the ignition offline timeout
                 sEventBroker->removeDelayed(ev_ign_offline_handle);
 
@@ -169,7 +222,7 @@ void IgnitionController::stateAborted(const Event& ev)
                     {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS,
                     TIMEOUT_IGN_OFFLINE);
 
-                logger.log(status);
+                logStatus();
             }
             break;
         }
@@ -182,12 +235,14 @@ void IgnitionController::stateAborted(const Event& ev)
 
 void IgnitionController::stateEnd(const Event& ev)
 {
+    status.last_event = ev.sig;
+
     switch (ev.sig)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateEnd\n");
-            status.ctrl_state = IgnitionControllerState::END;
-            logger.log(status);
+            status.fsm_state = IgnitionControllerState::END;
+            logStatus();
             break;
         case EV_EXIT:
             TRACE("IGNCTRL: Exiting stateEnd\n");
