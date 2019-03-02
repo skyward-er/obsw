@@ -24,14 +24,14 @@
 #include <Common.h>
 #include <drivers/canbus/CanManager.h>
 #include <drivers/canbus/CanUtils.h>
-#include "CanStatus.h"
+#include "NoseconeCanStatus.h"
 
 namespace NoseconeBoard
 {
 namespace CanImpl
 {
 
-static CanStatus canStatus;
+static NoseconeCanStatus canStatus;
 
 /**
  * @brief Canbus receiving function.
