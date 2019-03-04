@@ -54,13 +54,9 @@ public:
     /*
      * Getters
      */
-    LoggerProxy& getLogger() {
-        return logger;
-    }
-
-    CanBus* getBus() {
-        return bus;
-    }
+    LoggerProxy& getLogger() { return logger; }
+    CanBus* getBus() { return bus; }
+    CanStatus getStatus() { return bus->getStatus(); }
 
 private:
     LoggerProxy& logger = *(LoggerProxy::getInstance());
