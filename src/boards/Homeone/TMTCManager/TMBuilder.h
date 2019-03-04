@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Common.h>
-#include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
+#include <libs/mavlink_skyward_lib/mavlink_lib/r2a/mavlink.h>
 
 namespace HomeoneBoard
 {

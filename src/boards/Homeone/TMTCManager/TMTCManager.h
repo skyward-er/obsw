@@ -22,56 +22,40 @@
 
 #pragma once
 
-#include "TMTCStatus.h"
-
 #include "events/FSM.h"
 #include "boards/Homeone/Events.h"
 
 #include <drivers/gamma868/Gamma868.h>
-#include <drivers/mavlink/MavManager.h>
+#include <boards/Homeone/LogProxy/LogProxy.h>
+#include <libs/mavlink_skyward_lib/mavlink_lib/r2a/mavlink.h>
+#include <drivers/mavlink/MavChannel.h>
 
 namespace HomeoneBoard
 {
-
-// Mavlink messages sysID and compID
-static const unsigned int TMTC_MAV_SYSID    = 1;
-static const unsigned int TMTC_MAV_COMPID   = 1;
-
 /**
- * The TMTCManager class handles the communication with the Ground Station.
- * It uses a Gamma868 transceiver and implements the Mavlink protocol.
+ * @brief This class handles the communication with the Ground Station.
+ *        Uses Gamma868 transceiver with the Mavlink protocol.
  */
 class TMTCManager : public FSM<TMTCManager>
 {
+
 public:
     TMTCManager();
     ~TMTCManager();
 
-    /**
-     * Non-blocking send wrapper.
-     */
-    void send(mavlink_message_t& msg)
-    {
-        mavManager->getSender(0)->enqueueMsg(msg);
-    }
+    /* Non-blocking send, logs status on the logger*/
+    bool send(mavlink_message_t& msg);
 
-protected:
 private:
     Gamma868* device;
-    MavManager* mavManager;
+    MavChannel* channel;
 
-    HomeoneBoard::TMTCStatus status;
+    LoggerProxy& logger = *(LoggerProxy::getInstance());
 
     /* State handlers */
     void stateIdle(const Event& ev);
     void stateHighRateTM(const Event& ev);
     void stateLowRateTM(const Event& ev);
-
-    /* Minimum sleep time between sends */
-    static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
-
-    static const unsigned int LR_TM_TIMEOUT = 1000;
-    static const unsigned int HR_TM_TIMEOUT = 250;
 };
 
 } /* namespace HomeoneBoard */

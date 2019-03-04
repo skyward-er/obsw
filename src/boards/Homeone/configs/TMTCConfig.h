@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,23 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
-
-#include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
 
 namespace HomeoneBoard
 {
 
-/*
- * Status of the component, wraps the mavlink stats
- * which are updated at every byte reception.
- */
-struct TMTCStatus
-{
-    mavlink_status_t mavstatus;
-    uint8_t sendErrors;
-    uint8_t ackErrors;
-};
+static const unsigned int GS_OFFLINE_TIMEOUT = 1800000;
 
+/* Minimum sleep time between sends */
+static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
+
+/* Periodic telemetries periods */
+static const unsigned int LR_TM_TIMEOUT = 1000;
+static const unsigned int HR_TM_TIMEOUT = 250;
+
+/* Mavlink messages sysID and compID */
+static const unsigned int TMTC_MAV_SYSID    = 1;
+static const unsigned int TMTC_MAV_COMPID   = 1;
+
+/* Device name of Gamma module*/
+static const char* RF_DEV_NAME = "/dev/radio";
+
+/* Min guaranteed sleep time after a message is sent (milliseconds) */
+static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
 }

@@ -23,11 +23,13 @@
 #pragma once
 
 #include <Common.h>
-#include <libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
+#include <libs/mavlink_skyward_lib/mavlink_lib/r2a/mavlink.h>
 
 #include "TMBuilder.h"
 #include "boards/Homeone/Events.h"
 #include "boards/Homeone/Topics.h"
+#include <Homeone/configs/TMTCConfig.h>
+#include <Homeone/LogProxy/LogProxy.h>
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
 
@@ -35,7 +37,8 @@ namespace HomeoneBoard
 {
 
 uint16_t g_gsOfflineEvId;
-static const unsigned int GS_OFFLINE_TIMEOUT = 1800000;
+LoggerProxy& logger = *(LoggerProxy::getInstance());
+
 
 namespace TCHandler
 {
@@ -63,29 +66,35 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
 /**
  * Send an ACK to notify the sender that you received the given message.
  */
-static void sendAck(MavSender* sender, const mavlink_message_t& msg)
+static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
     mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg,
                                     msg.msgid, msg.seq);
 
     /* Send the message back to the sender */
-    sender->enqueueMsg(ackMsg);
+    channel->enqueueMsg(ackMsg);
     TRACE("[TMTC] Enqueued Ack\n");
 }
 
 /**
  *  Handle the Mavlink message, posting the corresponding event if needed.
  */
-static void handleMavlinkMessage(MavSender* sender, const mavlink_message_t& msg)
+static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& msg)
 {
-    sendAck(sender, msg);
+    /* Log Status */
+    MavStatus status = channel->getStatus();
+    logger.log(status);
+
+    /* Send acknowledge */
+    sendAck(channel, msg);
 
     /* Reschedule GS_OFFLINE event */
     sEventBroker->removeDelayed(g_gsOfflineEvId);
-    g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, 
+    g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, TOPIC_FLIGHT_EVENTS,
                                                             GS_OFFLINE_TIMEOUT);
     
+    /* Finally handle TC */
     switch (msg.msgid)
     {
         case MAV_TC(NOARG):
@@ -107,7 +116,7 @@ static void handleMavlinkMessage(MavSender* sender, const mavlink_message_t& msg
             TRACE("[TMTC] Received TM request\n");
             uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
             mavlink_message_t response = TMBuilder::buildTelemetry(tmId);
-            sender->enqueueMsg(response);
+            channel->enqueueMsg(response);
            
             break;
         }
