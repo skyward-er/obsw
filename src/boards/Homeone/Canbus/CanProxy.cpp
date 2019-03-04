@@ -20,11 +20,8 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
 #include <Common.h>
-#include <drivers/canbus/CanManager.h>
-#include <drivers/canbus/CanUtils.h>
+#include "CanProxy.h"
 
 #include "boards/CanInterfaces.h"
 #include "boards/Homeone/Events.h"
@@ -35,12 +32,14 @@
 namespace HomeoneBoard
 {
 
+using namespace std::placeholders;
+
 /**
  * Canbus receiving function.
  */
-void canRcv(CanMsg message) 
+static void canRcv(CanMsg message, CanProxy* proxy) 
 {
-    TRACE("[CAN] Received message with id %d\n", message.StdId);
+    TRACE("[CAN] Received message with id %lu\n", message.StdId);
 
     /* Create event */
     CanbusEvent ev;
@@ -49,6 +48,10 @@ void canRcv(CanMsg message)
     ev.len = message.DLC;
     memcpy(ev.payload, message.Data, 8);
 
+    /* Log stats */
+    CanStatus status = proxy->getBus()->getStatus();
+    proxy->getLogger().log(status);
+
     /* Post event */
     sEventBroker->post(ev, TOPIC_CAN);
 }
@@ -56,18 +59,34 @@ void canRcv(CanMsg message)
 /**
  * Initialise CAN1 on PA11, PA12, set filters and set receiver function.
  */
-void initCanbus(CanManager& c)
+CanProxy::CanProxy(CanManager* c)
 {
-    c.addHWFilter(CanInterfaces::CAN_TOPIC_IGNITION, 0);
-    c.addHWFilter(CanInterfaces::CAN_TOPIC_NOSECONE, 0);
+    c->addHWFilter(CanInterfaces::CAN_TOPIC_IGNITION, 0);
+    c->addHWFilter(CanInterfaces::CAN_TOPIC_NOSECONE, 0);
 
     canbus_init_t st = {
         CAN1, miosix::Mode::ALTERNATE, 9, {CAN1_RX0_IRQn, CAN1_RX1_IRQn}};
-    c.addBus<GPIOA_BASE, 11, 12>(st, &canRcv);
 
-    // CanBus *bus = c.getBus(0);
+    CanDispatcher rcv_fun = std::bind(&canRcv, _1, this);
+
+    c->addBus<GPIOA_BASE, 11, 12>(st, rcv_fun);
+    bus = c->getBus(0);
 
     TRACE("[CAN] Initialised CAN1 on PA11-12 \n");
+}
+
+/**
+ * Canbus receiving function.
+ */
+bool CanProxy::send(uint16_t id, const uint8_t* message, uint8_t len)
+{
+    bool ok = bus->send(id, message, len);
+
+    /* Log stats */
+    CanStatus status = bus->getStatus();
+    this->logger.log(status);
+
+    return ok;
 }
 
 } /* namespace HomeoneBoard */
