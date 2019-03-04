@@ -1,16 +1,16 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
- * 
+/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
+ * Authors: Alvise de'Faveri Tron
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -20,27 +20,30 @@
  * THE SOFTWARE.
  */
 
-#include <cstdio>
+#include <Common.h>
+#include <miosix.h>
 
-#include "boards/Homeone/Events.h"
-#include "boards/Homeone/IgnitionController/IgnitionController.h"
 #include "boards/Homeone/Canbus/CanProxy.h"
+#include "boards/CanInterfaces.h"
 
 using namespace miosix;
+using namespace CanInterfaces;
 using namespace HomeoneBoard;
 
 int main()
 {
-	CanManager* can_mgr = new CanManager(CAN1);
+    CanManager* can_mgr = new CanManager(CAN1);
     CanProxy* can   = new CanProxy(can_mgr);
 
-    IgnitionController* ctrl = new IgnitionController(can);
-    
-    ctrl->getStatus();
-    
-    for(;;)
+    while (1)
     {
-        printf("end\n");
+        ledOn();
+        const char *pkt = "TestMSG";
+        can->send(CAN_TOPIC_HOMEONE, (const uint8_t *)pkt, strlen(pkt));
+        //socket.receive(buf, 64);
+        Thread::sleep(50);
+        ledOff();
+
+        Thread::sleep(500);
     }
-	return 0;
 }

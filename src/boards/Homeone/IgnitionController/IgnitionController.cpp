@@ -30,7 +30,9 @@ using namespace CanInterfaces;
 namespace HomeoneBoard
 {
 
-IgnitionController::IgnitionController(CanBus* canbus)
+using namespace CanInterfaces;
+
+IgnitionController::IgnitionController(CanProxy* canbus)
     : FSM(&IgnitionController::stateIdle), canbus(canbus) 
 {
     sEventBroker->subscribe(this, TOPIC_IGNITION);
@@ -112,8 +114,9 @@ void IgnitionController::stateIdle(const Event& ev)
         case EV_IGN_GETSTATUS:
         {
             status.n_sent_messages++;
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
+
+            uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
+            canbus->send( CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
 
             ev_get_status_handle = sEventBroker->postDelayed(
                 {EV_IGN_GETSTATUS}, TOPIC_IGNITION, INTERVAL_IGN_GET_STATUS);
@@ -156,7 +159,9 @@ void IgnitionController::stateIdle(const Event& ev)
         {
             status.n_sent_messages++;
             status.abort_sent = 1;
-            CanInterfaces::canSendHomeoneCommand(canbus, CanInterfaces::CAN_MSG_ABORT);
+
+            uint8_t cmd = CAN_MSG_ABORT;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
 
@@ -165,7 +170,8 @@ void IgnitionController::stateIdle(const Event& ev)
             const LaunchEvent& lev = static_cast<const LaunchEvent&>(ev);
             status.n_sent_messages++;
             status.launch_sent = 1;
-            CanInterfaces::canSendLaunch(canbus, lev.launchCode);
+
+            canbus->send((uint16_t)CAN_TOPIC_LAUNCH, (uint8_t*)&(lev.launchCode), sizeof(uint64_t));
             break;
         }
 
@@ -195,8 +201,9 @@ void IgnitionController::stateAborted(const Event& ev)
         case EV_IGN_GETSTATUS:
         {
             status.n_sent_messages++;
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
+
+            uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
         // Still handle the abort, just in case we want to send it again
@@ -204,8 +211,9 @@ void IgnitionController::stateAborted(const Event& ev)
         {
             status.n_sent_messages++;
             status.abort_sent = 1;
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_ABORT);
+
+            uint8_t cmd = CAN_MSG_ABORT;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
 

@@ -32,6 +32,8 @@
 #include <boards/Homeone/EventClasses.h>
 #include <boards/CanInterfaces.h>
 #include <boards/Homeone/LogProxy/LogProxy.h>
+#include <boards/Homeone/Canbus/CanProxy.h>
+#include "boards/Homeone/EventClasses.h"
 
 class CanEventSocket;
 
@@ -42,7 +44,7 @@ class IgnitionController : public FSM<IgnitionController>
 {
 
 public:
-    explicit IgnitionController(CanBus* canbus);
+    IgnitionController(CanProxy* canbus);
     ~IgnitionController() {}
 
     /* @return this component's status */
@@ -75,7 +77,7 @@ private:
     uint16_t ev_ign_offline_handle = 0;
     uint16_t ev_get_status_handle  = 0;
 
-    CanBus* canbus;
+    CanProxy* canbus;
 };
 
 }  // namespace HomeoneBoard
