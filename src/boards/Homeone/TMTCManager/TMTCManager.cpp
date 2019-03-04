@@ -21,6 +21,7 @@
  */
 
 #include "TMTCManager.h"
+#include <Homeone/Events.h>
 #include <Homeone/Topics.h>
 #include <Homeone/configs/TMTCConfig.h>
 
@@ -141,8 +142,42 @@ void TMTCManager::stateLowRateTM(const Event& ev)
             break;
         }
 
+        case EV_LANDED:
+            TRACE("[TMTC] Landed signal received\n");
+            transition(&TMTCManager::stateLanded);
+            break;
+
         case EV_EXIT:
             TRACE("[TMTC] Exiting stateLowRateTM\n");
+            break;
+
+        default:
+            TRACE("[TMTC] Event not handled\n");
+            break;
+    }
+}
+
+void TMTCManager::stateLanded(const Event& ev)
+{
+    switch(ev.sig) 
+    {
+        case EV_ENTRY:
+            TRACE("[TMTC] Entering stateLanded\n");
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            break;
+
+        case EV_SEND_POS_TM: {
+            TRACE("[TMTC] Sending Position telemetry\n");
+
+            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_POS_TM_ID);
+            channel->enqueueMsg(telem);
+
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            break;
+        }
+
+        case EV_EXIT:
+            TRACE("[TMTC] Exiting stateLanded\n");
             break;
 
         default:

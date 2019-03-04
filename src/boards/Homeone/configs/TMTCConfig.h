@@ -32,6 +32,7 @@ static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 1000;
 static const unsigned int HR_TM_TIMEOUT = 250;
+static const unsigned int POS_TM_TIMEOUT = 250;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID    = 1;

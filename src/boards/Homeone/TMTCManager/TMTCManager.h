@@ -46,6 +46,9 @@ public:
     /* Non-blocking send, logs status on the logger*/
     bool send(mavlink_message_t& msg);
 
+    /* Status getter */
+    MavStatus getStatus() {return channel->getStatus();}
+
 private:
     Gamma868* device;
     MavChannel* channel;
@@ -56,6 +59,7 @@ private:
     void stateIdle(const Event& ev);
     void stateHighRateTM(const Event& ev);
     void stateLowRateTM(const Event& ev);
+    void stateLanded(const Event& ev);
 };
 
 } /* namespace HomeoneBoard */

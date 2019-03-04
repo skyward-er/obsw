@@ -75,6 +75,7 @@ enum Events : uint8_t
     EV_NEW_CAN_MSG,
     EV_SEND_HR_TM,
     EV_SEND_LR_TM,
+    EV_SEND_POS_TM,
     EV_TC_ABORT_LAUNCH,
     EV_TC_ARM,
     EV_TC_SET_DPL_PRESSURE,
