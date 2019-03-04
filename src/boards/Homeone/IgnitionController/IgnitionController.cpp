@@ -28,7 +28,9 @@
 namespace HomeoneBoard
 {
 
-IgnitionController::IgnitionController(CanBus* canbus)
+using namespace CanInterfaces;
+
+IgnitionController::IgnitionController(CanProxy* canbus)
     : FSM(&IgnitionController::stateIdle), canbus(canbus) 
 {
     sEventBroker->subscribe(this, TOPIC_IGNITION);
@@ -74,8 +76,8 @@ void IgnitionController::stateIdle(const Event& ev)
 
         case EV_IGN_GETSTATUS:
         {
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
+            uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
+            canbus->send( CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
 
             ev_get_status_handle = sEventBroker->postDelayed(
                 {EV_IGN_GETSTATUS}, TOPIC_IGNITION, INTERVAL_IGN_GET_STATUS);
@@ -113,14 +115,14 @@ void IgnitionController::stateIdle(const Event& ev)
         case EV_GS_OFFLINE:
         case EV_TC_ABORT_LAUNCH:
         {
-            CanInterfaces::canSendHomeoneCommand(canbus, CanInterfaces::CAN_MSG_ABORT);
+            uint8_t cmd = CAN_MSG_ABORT;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
         case EV_LAUNCH:
         {
             const LaunchEvent& lev = static_cast<const LaunchEvent&>(ev);
-
-            CanInterfaces::canSendLaunch(canbus, lev.launchCode);
+            canbus->send((uint16_t)CAN_TOPIC_LAUNCH, (uint8_t*)&(lev.launchCode), sizeof(uint64_t));
             break;
         }
         default:
@@ -146,15 +148,15 @@ void IgnitionController::stateAborted(const Event& ev)
 
         case EV_IGN_GETSTATUS:
         {
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_REQ_IGN_STATUS);
+            uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
         // Still handle the abort, just in case we want to send it again
         case EV_TC_ABORT_LAUNCH:
         {
-            CanInterfaces::canSendHomeoneCommand(
-                            canbus, CanInterfaces::CAN_MSG_ABORT);
+            uint8_t cmd = CAN_MSG_ABORT;
+            canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
         }
 

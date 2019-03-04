@@ -24,17 +24,17 @@
 
 #include "boards/Homeone/Events.h"
 #include "boards/Homeone/IgnitionController/IgnitionController.h"
-#include "boards/Homeone/Canbus/CanImpl.h"
+#include "boards/Homeone/Canbus/CanProxy.h"
 
 using namespace miosix;
 using namespace HomeoneBoard;
 
 int main()
 {
-	CanManager c(CAN1);
-   	initCanbus(c);
+	CanManager* can_mgr = new CanManager(CAN1);
+    CanProxy* can   = new CanProxy(can_mgr);
 
-    IgnitionController* ctrl = new IgnitionController(c.getBus(0));
+    IgnitionController* ctrl = new IgnitionController(can);
     
     ctrl->getStatus();
     
