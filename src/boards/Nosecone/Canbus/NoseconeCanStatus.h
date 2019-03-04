@@ -21,7 +21,7 @@
  */
 #pragma once
 
-struct CanStatus
+struct NoseconeCanStatus
 {
     bool homeone_not_connected;
 };

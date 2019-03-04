@@ -25,7 +25,7 @@
 #include <boards/Nosecone/FSM/NoseconeManagerStatus.h>
 #include <boards/Nosecone/Motor/MotorStatus.h>
 #include <boards/Nosecone/Motor/CurrentSensor/CurrentStatus.h>
-#include <boards/Nosecone/Canbus/CanStatus.h>
+#include <boards/Nosecone/Canbus/NoseconeCanStatus.h>
 
 template <>
 LogResult LoggerProxy::log<NscMgrStatus>(const NscMgrStatus& t)
@@ -68,7 +68,7 @@ LogResult LoggerProxy::log<CurrentStatus>(const CurrentStatus& t)
 }
 
 template <>
-LogResult LoggerProxy::log<CanStatus>(const CanStatus& t)
+LogResult LoggerProxy::log<NoseconeCanStatus>(const NoseconeCanStatus& t)
 {
     miosix::PauseKernelLock kLock;
 
