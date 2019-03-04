@@ -24,7 +24,7 @@
 
 #include <Common.h>
 #include <drivers/gamma868/Gamma868.h>
-#include <drivers/mavlink/MavManager.h>
+#include <drivers/mavlink/multi/MavManager.h>
 
 
 using namespace miosix;
