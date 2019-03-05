@@ -31,7 +31,7 @@ namespace DeathStackBoard
 /**
  * @brief Motor direction
  */
-enum class MotorDirection : int
+enum class MotorDirection : uint8_t
 {
     NORMAL,
     REVERSE

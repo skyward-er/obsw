@@ -21,6 +21,7 @@
  */
 
 #pragma once
+
 namespace DeathStackBoard
 {
 namespace ADA
