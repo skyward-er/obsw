@@ -19,13 +19,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGER_H
-#define SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGER_H
+
+#pragma once
 
 #include <vector>
+#include "Common.h"
 
-#include "Singleton.h"
-#include "events/Scheduler.h"
+#include "scheduler/TaskScheduler.h"
 
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
@@ -41,7 +41,7 @@ using std::vector;
 class TestSensor;
 
 template <typename BusI2C, typename BusyPin, typename CONVST>
-class AD7994;
+class AD7994Wrapper;
 
 template <typename BusSPI>
 class MPU9250;
@@ -56,10 +56,9 @@ class ADIS16405;
 namespace DeathStackBoard
 {
 // Type definitions
-typedef AD7994<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
+typedef AD7994Wrapper<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
 typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef MAX21105<spiMAX21105> MAX21105Type;
-// typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef ADIS16405<spiADIS16405> ADIS16405Type;
 
 /**
  * The SensorManager class manages all the sensors connected to the Homeone
@@ -71,11 +70,20 @@ typedef MAX21105<spiMAX21105> MAX21105Type;
  * After a SensorSampler has finished sampling its sensors, it will call a
  * callback, where these samples can be processed and dispatched.
  */
-class SensorManager : public FSM<SensorManager>, public Singleton<SensorManager>
+class SensorManager : public FSM<SensorManager>
 {
-    friend class Singleton<SensorManager>;
-
 public:
+
+    enum SensorSamplerId : uint8_t
+    {
+        ID_SIMPLE_20Hz = 0,
+        ID_DMA_250Hz,
+        ID_STATS
+    };
+    
+    SensorManager();
+    ~SensorManager(){};
+
     vector<TaskStatResult> getSchedulerStats()
     {
         PauseKernelLock l;  // Prevent any context-switch.
@@ -89,9 +97,6 @@ public:
     }
 
 private:
-    SensorManager();
-    ~SensorManager(){};
-
     /**
      * Initialize all the sensors.
      */
@@ -132,31 +137,33 @@ private:
     void onSimple20HZCallback();
 
     /**
-     * @brief DMA, 500 Hz SensorSampler Callback.
+     * @brief DMA, 250 Hz SensorSampler Callback.
      */
-    void onDMA500HZCallback();
+    void onDMA250HZCallback();
+    
+    TaskScheduler scheduler;
+    LoggerProxy& logger;
+    
+    bool enable_sensor_logging = false;
 
     // Sensor samplers
     SimpleSensorSampler sampler_20hz_simple;
-    DMASensorSampler sampler_500hz_dma;
+    DMASensorSampler sampler_250hz_dma;
 
     // Sensors
     TestSensor* sensor_test;  // TODO: Remove test sensor
     AD7994Type* adc_ad7994;
-    MAX21105Type* imu_max21105;
     MPU9250Type* imu_mpu9250;
-    // ADIS16405Type* imu_adis16405;
+    ADIS16405Type* imu_adis16405;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;
     SensorManagerStatus status;
 
     // Logger ref
-    LoggerProxy& logger;
-
-    bool enable_sensor_logging = false;
+    
 };
 
 }  // namespace DeathStackBoard
 
-#endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGER_H */
+#endif /* SRC_BOARDS_DEATHSTACK_SENSORMANAGER_SENSORMANAGER_H */

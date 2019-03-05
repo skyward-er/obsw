@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +23,29 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace DeathStackBoard
 {
-namespace ADA
+
+enum class ObservedPin : uint8_t
 {
-// All possible states of the ADA FMM
-enum class ADAState {
-    UNDEFINED,
-    CALIBRATING,
-    IDLE,
-    SHADOW_MODE,
-    ACTIVE,
-    FIRST_DESCENT_PHASE,
-    END
+    LAUNCH   = 0,
+    NOSECONE = 1
 };
 
-// Struct to log apogee detection
-struct ApogeeDetected {
-    ADAState state;
-    long long tick;
-};
-
-// Struct to log current state
-struct ADAStatus
+/**
+ * @brief Struct represeting the status of an observed pin
+ *
+ */
+struct PinStatus
 {
-    long long timestamp;
-    ADAState state = ADAState::UNDEFINED;
+    ObservedPin pin;
 
-    ApogeeDetected last_apogee;
+    long long last_triggered_time;
+    unsigned int num_triggered = 0;
 
-    long long last_dpl_pressure_tick;
+    PinStatus(ObservedPin pin) : pin(pin) {}
 };
 
-struct KalmanState
-{
-    float x0;
-    float x1;
-    float x2;
-};
-
-struct TargetDeploymentPressure
-{
-    uint16_t deployment_pressure;
-};
-
-// Struct of calibration data
-struct ADACalibrationData {
-    float   var        = 0.0;      // Sample variance
-    int     n_samples  = 0;        // Number of samples collected
-    float   avg        = 0.0;      // Average pressure
-};
-
-
-
-}
-}
+}  // namespace DeathStackBoard

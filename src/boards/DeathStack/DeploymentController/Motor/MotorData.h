@@ -19,7 +19,11 @@
  * OUT OF OR IN CONNECTION\ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+
 #pragma once
+
+#include <cstdint>
 
 namespace DeathStackBoard
 {
@@ -27,17 +31,16 @@ namespace DeathStackBoard
 /**
  * @brief Motor direction
  */
-enum class MotorDirection : uint8_t
+enum class MotorDirection : int
 {
     NORMAL,
     REVERSE
 };
 
-
 struct MotorStatus
 {
     bool motor_active;          
-    bool motor_last_direction;
+    MotorDirection motor_last_direction;
 };
 
 }

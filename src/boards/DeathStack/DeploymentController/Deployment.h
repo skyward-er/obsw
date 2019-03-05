@@ -58,8 +58,7 @@ class DeploymentController : public FSM<DeploymentController>
     void logStatus(DeploymentCTRLState current_state)
     {
         status.state = current_state;
-        status.timestamp = miosix::getTick();
-        logger.log(status);
+        logStatus();
     }
     /**
      * @brief Logs the DeploymentStatus struct updating the timestamp
@@ -67,6 +66,9 @@ class DeploymentController : public FSM<DeploymentController>
     void logStatus()
     {
         status.timestamp = miosix::getTick();
+        status.cutter_status = cutter.getStatus();
+        status.motor_status = motor.getStatus();
+        
         logger.log(status);
     }
 

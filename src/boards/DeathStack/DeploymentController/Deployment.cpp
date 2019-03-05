@@ -46,6 +46,7 @@ void DeploymentController::state_idle(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[DPL_CTRL] state_idle ENTRY\n");
+            logStatus(DeploymentCTRLState::IDLE);
             break;
         case EV_EXIT:
             break;
@@ -87,7 +88,6 @@ void DeploymentController::state_openingNosecone(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
-
             //Start the motor
             motor.start(MOTOR_OPEN_DIR, MOTOR_OPEN_DUTY_CYCLE);
 
@@ -100,6 +100,8 @@ void DeploymentController::state_openingNosecone(const Event& ev)
 
             delayed_ev_id_2 = sEventBroker->postDelayed(
                 Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT, NC_OPEN_TIMEOUT);
+            
+            logStatus(DeploymentCTRLState::OPENING_NC);
             break;
         }
         case EV_EXIT:
@@ -163,13 +165,15 @@ void DeploymentController::state_closingNosecone(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-        {
+        {           
             TRACE("[DPL_CTRL] state_closingNosecone ENTRY\n");
 
             motor.start(MOTOR_CLOSE_DIR, MOTOR_CLOSE_DUTY_CYCLE);
 
             delayed_ev_id_1 = sEventBroker->postDelayed(
                 Event{EV_TIMEOUT_MOT_CLOSE}, TOPIC_DEPLOYMENT, NC_CLOSE_TIMEOUT);
+            
+            logStatus(DeploymentCTRLState::CLOSING_NC);
             break;
         }
         case EV_EXIT:
@@ -199,6 +203,8 @@ void DeploymentController::state_cuttingDrogue(const Event& ev)
             delayed_ev_id_1 = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
+            
+            logStatus(DeploymentCTRLState::CUTTING_DROGUE);
             break;
         case EV_EXIT:
             cutter.stopCutDrogue();
@@ -231,11 +237,15 @@ void DeploymentController::state_cuttingMain(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
+            
             cut_main = false;
             cutter.startCutMainChute();
+            
             delayed_ev_id_1 = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
+            
+            logStatus(DeploymentCTRLState::CUTTING_MAIN);
             break;
         case EV_EXIT:
             cutter.stopCutMainChute();

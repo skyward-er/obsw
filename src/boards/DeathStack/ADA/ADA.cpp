@@ -20,19 +20,19 @@
  * THE SOFTWARE.
  */
 
-#include <boards/Homeone/ADA/ADA.h>
-#include <boards/Homeone/ADA/ADA_config.h>
+#include <DeathStack/ADA/ADA.h>
+#include <DeathStack/ADA/ADA_config.h>
 
 #include <events/EventBroker.h>
 
-#include <boards/Homeone/Events.h>
-#include <boards/Homeone/Topics.h>
+#include <DeathStack/Events.h>
+#include <DeathStack/Topics.h>
 
 #include "Debug.h"
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
-namespace FMM
+namespace ADA
 {
 
 /* --- LIFE CYCLE --- */
@@ -62,6 +62,17 @@ ADA::ADA()
     filter.Phi.set(Phi_data);
 }
 
+void ADA::updateFilter(float pressure)
+{
+    Matrix y{1, 1, &pressure};
+    filter.update(y);
+
+    last_kalman_state.x0 = filter.X(0);
+    last_kalman_state.x1 = filter.X(1);
+    last_kalman_state.x2 = filter.X(2);
+
+    logger.log(last_kalman_state);
+}
 /* --- INSTANCE METHODS --- */
 
 void ADA::update(float pressure)
@@ -99,16 +110,14 @@ void ADA::update(float pressure)
         case ADAState::SHADOW_MODE:
         {
             // Shadow mode state: update kalman, DO NOT send events
-            Matrix y{1, 1, &pressure};
-            filter.update(y);
+            updateFilter(pressure);
             // Check if the "pressure speed" (hence positive when decending) is
             // positive
             if (filter.X(1) > 0)
             {
-                ApogeeDetected apogee_det;
-                apogee_det.tick  = miosix::getTick();
-                apogee_det.state = status.state;
-                logger.log(apogee_det);
+                status.last_apogee.state = status.state;
+                status.last_apogee.tick = miosix::getTick();
+                logStatus();
             }
             break;
         }
@@ -116,17 +125,15 @@ void ADA::update(float pressure)
         case ADAState::ACTIVE:
         {
             // Active state send notifications for apogee
-            Matrix y{1, 1, &pressure};
-            filter.update(y);
+            updateFilter(pressure);
             // Check if the "pressure speed" (hence positive when decending) is
             // positive
             if (filter.X(1) > 0)
             {
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
-                ApogeeDetected apogee_det;
-                apogee_det.tick  = miosix::getTick();
-                apogee_det.state = status.state;
-                logger.log(apogee_det);
+                status.last_apogee.state = status.state;
+                status.last_apogee.tick = miosix::getTick();
+                logStatus();
             }
             break;
         }
@@ -134,14 +141,13 @@ void ADA::update(float pressure)
         case ADAState::FIRST_DESCENT_PHASE:
         {
             // Descent state: send notifications for target altitude reached
-            Matrix y{1, 1, &pressure};
-            filter.update(y);
+            updateFilter(pressure);
+            
             if (filter.X(0) >= dpl_target_pressure_v)
             {
                 sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_ADA);
-                DplPressureReached dpl_reached;
-                dpl_reached.tick = miosix::getTick();
-                logger.log(dpl_reached);
+                status.last_dpl_pressure_tick = miosix::getTick();
+                logStatus();
             }
             break;
         }
