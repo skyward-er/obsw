@@ -20,10 +20,16 @@
  * THE SOFTWARE.
  */
 
-#include <boards/Homeone/ADA/ADAStatus.h>
+#pragma once
+#include <DeathStack/ADA/ADAStatus.h>
 #include <events/FSM.h>
 #include <kalman/Kalman.h>
-#include "logger/LogProxy.h"
+#include "DeathStack/LogProxy/LogProxy.h"
+
+namespace DeathStackBoard
+{
+namespace ADA
+{
 
 class ADA : public FSM<ADA>
 {
@@ -33,6 +39,26 @@ public:
     ~ADA() {}
     void update(float pressure);
 
+    ADAStatus getStatus()
+    {
+        return status;
+    }
+
+    KalmanState getKalmanState()
+    {
+        return last_kalman_state;
+    }
+
+    ADACalibrationData getCalibrationData()
+    {
+        return calibrationData;
+    }
+
+    uint16_t getTargetDeploymentPressure()
+    {
+        return dpl_target_pressure_v;
+    }
+    
 private:
     void stateCalibrating(const Event& ev);
     void stateIdle(const Event& ev);
@@ -41,6 +67,26 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
+    void updateFilter(float pressure);
+
+    void logStatus(ADAState state)
+    {
+        status.state = state;
+        logStatus();
+    }
+
+    void logStatus()
+    {
+        status.timestamp = miosix::getTick();
+        logger.log(status);
+    }
+
+    void setTargetDPLPressure(uint16_t pressure_volts)
+    {
+        dpl_target_pressure_v = pressure_volts;
+        logger.log(TargetDeploymentPressure{pressure_volts});
+    }
+
     uint16_t cal_delayed_event_id = 0;      // Event id for calibration timeout
     ADAStatus status;                       // Variable to store state
 
@@ -48,6 +94,9 @@ private:
 
     // Calibration variables
     ADACalibrationData calibrationData;
+
+    // Last kalman state
+    KalmanState last_kalman_state;
 
     // Sum of all values squared divided by their number, to comupte variance
     float avg_of_squares = 0.0;
@@ -58,3 +107,6 @@ private:
     // Logger
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 };
+
+}
+}

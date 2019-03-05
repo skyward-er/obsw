@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +23,35 @@
 
 #pragma once
 
-namespace DeathStackBoard
+#include <drivers/adc/ADC.h>
+#include <sensors/Sensor.h>
+
+template <unsigned N, uint32_t CHANNEL, class GpioADC>
+class CurrentSensor
 {
-namespace ADA
-{
-// All possible states of the ADA FMM
-enum class ADAState {
-    UNDEFINED,
-    CALIBRATING,
-    IDLE,
-    SHADOW_MODE,
-    ACTIVE,
-    FIRST_DESCENT_PHASE,
-    END
+    using ADC = SensorADC<N, CHANNEL, GpioADC>;
+
+public:
+    CurrentSensor(uint32_t sample_time)
+        : sample_time(sample_time), adc(sample_time)
+    {
+        adc.init();
+    }
+
+    ~CurrentSensor() {}
+
+    float getCurrent();
+    {
+
+    }
+
+    uint16_t getRawVoltage();
+    {
+        adc.updateParams();
+        return adc.getValue();
+    }
+
+private:
+    uint32_t sample_time;
+    ADC adc;
 };
-
-// Struct to log apogee detection
-struct ApogeeDetected {
-    ADAState state;
-    long long tick;
-};
-
-// Struct to log current state
-struct ADAStatus
-{
-    long long timestamp;
-    ADAState state = ADAState::UNDEFINED;
-
-    ApogeeDetected last_apogee;
-
-    long long last_dpl_pressure_tick;
-};
-
-struct KalmanState
-{
-    float x0;
-    float x1;
-    float x2;
-};
-
-struct TargetDeploymentPressure
-{
-    uint16_t deployment_pressure;
-};
-
-// Struct of calibration data
-struct ADACalibrationData {
-    float   var        = 0.0;      // Sample variance
-    int     n_samples  = 0;        // Number of samples collected
-    float   avg        = 0.0;      // Average pressure
-};
-
-
-
-}
-}

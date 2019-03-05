@@ -22,14 +22,13 @@
 
 #include "SensorManager.h"
 
-#include "TestSensor.h"
 #include "DeathStack/Events.h"
 #include "DeathStack/Topics.h"
+#include "TestSensor.h"
 #include "events/EventBroker.h"
 
-#include "drivers/adc/AD7994.h"
-#include "sensors/ADIS16405.h"
-#include "sensors/MAX21105.h"
+#include "Sensors/AD7994Wrapper.h"
+#include "sensors/ADIS16405/ADIS16405.h"
 
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -43,13 +42,17 @@ namespace DeathStackBoard
 {
 
 SensorManager::SensorManager()
-    : FSM(&SensorManager::stateIdle), logger(*LoggerProxy::getInstance())
+    : FSM(&SensorManager::stateIdle), 
+    scheduler(2048, miosix::PRIORITY_MAX - 1), 
+    logger(*LoggerProxy::getInstance())
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
 
     initSensors();
     initSamplers();
+
+    scheduler.start();
 }
 
 void SensorManager::initSensors()
@@ -58,13 +61,6 @@ void SensorManager::initSensors()
 
     adc_ad7994 = new AD7994Type(AD7994_I2C_ADDRESS);
 
-    imu_max21105 =
-        new MAX21105Type(0, 0);  // TODO: Update with correct parameters
-    if (!imu_max21105->init())
-    {
-        status.problematic_sensors |= SENSOR_MAX21105;
-    }
-
     imu_mpu9250 =
         new MPU9250Type(0, 0);  // TODO: Update with correct parameters
     if (!imu_mpu9250->init())
@@ -72,8 +68,8 @@ void SensorManager::initSensors()
         status.problematic_sensors |= SENSOR_MPU9255;
     }
 
-    // imu_adis16405 = new ADIS16405Type();
-    // imu_adis16405->init();
+    imu_adis16405 = new ADIS16405Type();
+    imu_adis16405->init();
 }
 
 void SensorManager::initSamplers()
@@ -81,9 +77,9 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(sensor_test);
     sampler_20hz_simple.AddSensor(adc_ad7994);
 
-    /*sampler_500hz_dma.AddSensor(imu_max21105);
-    sampler_500hz_dma.AddSensor(imu_mpu9250);
-    sampler_500hz_dma.AddSensor(imu_adis16405);*/
+    /*sampler_250hz_dma.AddSensor(imu_max21105);
+    sampler_250hz_dma.AddSensor(imu_mpu9250);
+    sampler_250hz_dma.AddSensor(imu_adis16405);*/
 }
 
 void SensorManager::stateIdle(const Event& ev)
@@ -150,28 +146,27 @@ void SensorManager::startSampling()
         std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
                   simple_20hz_callback);
 
-    sEventScheduler->add(simple_20hz_sampler, 500,
-                         "simple_20hz");  // TODO: back to 50
+    scheduler.add(simple_20hz_sampler, 250, ID_SIMPLE_20Hz);  // TODO: back to 50
 
-    // DMA 500 Hz Sampler callback and scheduler function
-    std::function<void()> dma_500hz_callback =
-        std::bind(&SensorManager::onDMA500HZCallback, this);
-    std::function<void()> dma_500Hz_sampler =
-        std::bind(&DMASensorSampler::UpdateAndCallback, &sampler_500hz_dma,
-                  dma_500hz_callback);
+    // DMA 250 Hz Sampler callback and scheduler function
+    std::function<void()> dma_250hz_callback =
+        std::bind(&SensorManager::onDMA250HZCallback, this);
+    std::function<void()> dma_250Hz_sampler =
+        std::bind(&DMASensorSampler::UpdateAndCallback, &sampler_250hz_dma,
+                  dma_250hz_callback);
 
-    sEventScheduler->add(dma_500Hz_sampler, 1000,
-                         "dma_500hz");  // TODO: Back to 4 ms
+    scheduler.add(dma_250Hz_sampler, 1000,
+                         ID_DMA_250Hz);  // TODO: Back to 4 ms
 
     // Lambda expression callback to log scheduler stats, at 5 Hz
-    sEventScheduler->add(
+    scheduler.add(
         [&]() {
-            scheduler_stats = sEventScheduler->getTaskStats();
+            scheduler_stats = scheduler.getTaskStats();
 
             for (TaskStatResult stat : scheduler_stats)
                 logger.log(stat);
         },
-        200, "stats");
+        200, ID_STATS);
 
     TRACE("Scheduler initialization complete\n");
 }
@@ -185,7 +180,7 @@ void SensorManager::onSimple20HZCallback()
     // TODO: Send pressure samples to FMM
 }
 
-void SensorManager::onDMA500HZCallback()
+void SensorManager::onDMA250HZCallback()
 {
     printf("DMA: %f\n", *(sensor_test->testDataPtr()));
     /*MAX21105Data max21105_data{*(imu_max21105->accelDataPtr()),

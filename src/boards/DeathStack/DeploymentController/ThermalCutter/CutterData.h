@@ -21,8 +21,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef SRC_SHARED_BOARDS_HELITEST_THERMALCUTTER_CUTTERSTATUS_H
-#define SRC_SHARED_BOARDS_HELITEST_THERMALCUTTER_CUTTERSTATUS_H
+#pragma once
 
 #include <ostream>
 #include <string>
@@ -39,9 +38,6 @@ enum class CutterState : uint8_t
 
 struct CutterStatus
 {
-    unsigned int timestamp;
     CutterState state = CutterState::IDLE;
 };
 }  // namespace DeathStackBoard
-
-#endif
