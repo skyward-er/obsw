@@ -24,7 +24,6 @@
 #include "DeathStack/Events.h"
 #include "events/EventBroker.h"
 #include "DeathStack/SensorManager/SensorManager.h"
-#include "events/Scheduler.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -34,10 +33,11 @@ int main()
     TRACE("DEBUG\n");
     // Start active objects
     sEventBroker->start();
-    sEventScheduler->start();
 
-    SensorManager& mgr = *SensorManager::getInstance();
-    mgr.start();
+    SensorManager mgr{};
+
+    //mgr.start();
+
     printf("Current State: %d\n", mgr.getStatus().state);
     printf("Problematic sensors: %d\n\n", mgr.getStatus().problematic_sensors);
 
@@ -54,7 +54,7 @@ int main()
         std::vector<TaskStatResult> stats = mgr.getSchedulerStats();
         for (TaskStatResult stat : stats)
         {
-            printf("%s\n", stat.name.c_str());
+            printf("Stat id: %d\n", stat.id);
             printf("Activation:\tmax:%.2f,\tmin:%.2f,\tmean:%.2f\n",
                    stat.activationStats.maxValue, stat.activationStats.minValue,
                    stat.activationStats.mean);
