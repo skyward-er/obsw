@@ -165,5 +165,3 @@ private:
 };
 
 }  // namespace DeathStackBoard
-
-#endif /* SRC_BOARDS_DEATHSTACK_SENSORMANAGER_SENSORMANAGER_H */
