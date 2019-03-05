@@ -1,5 +1,5 @@
-/* Copyright (c) 2015-2016 Skyward Experimental Rocketry
- * Authors: Alain Carlucci
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,51 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#pragma once
 
-#ifndef BOARD_H
-#define BOARD_H
-
-#include <Common.h>
-#include <Singleton.h>
-#include <drivers/BusTemplate.h>
-#include <sensors/Sensor.h>
-
-enum DataType
+namespace DeathStackBoard
 {
-    DATA_VEC3  = 0,
-    DATA_QUAT  = 1,
-    DATA_FLOAT = 2,
-    DATA_INT   = 3,
-};
 
-struct SingleSensor
-{
-    uint16_t sensor;
-    DataType data;
-    const void* value;
+static const unsigned int GS_OFFLINE_TIMEOUT = 1800000;
 
-    SingleSensor() {}
-    SingleSensor(uint16_t sensor, DataType data, const void* value)
-        : sensor(sensor), data(data), value(value)
-    {
-    }
-};
+/* Minimum sleep time between sends */
+static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
 
-class Board
-{
-public:
-    Board() : mInited(false) {}
-    virtual bool init() = 0;
+/* Periodic telemetries periods */
+static const unsigned int LR_TM_TIMEOUT = 1000;
+static const unsigned int HR_TM_TIMEOUT = 250;
+static const unsigned int POS_TM_TIMEOUT = 250;
 
-protected:
-    bool mInited;
-    std::vector<SingleSensor> mSensorData;
-    std::vector<Sensor*> mRawSensors;
+/* Mavlink messages sysID and compID */
+static const unsigned int TMTC_MAV_SYSID    = 1;
+static const unsigned int TMTC_MAV_COMPID   = 1;
 
-    void AddSensor(uint16_t sensor, DataType data, const void* value)
-    {
-        mSensorData.push_back(SingleSensor(sensor, data, value));
-    }
-};
+/* Device name of Gamma module*/
+static const char* RF_DEV_NAME = "/dev/radio";
 
-#endif /* BOARD_H */
+/* Min guaranteed sleep time after a message is sent (milliseconds) */
+static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
+}

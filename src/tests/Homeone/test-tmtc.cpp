@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
  * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,22 +20,23 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <boards/DeathStack/TMTCManager/TMTCManager.h>
 
-#include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/skyward/mavlink.h>
 
-namespace DeathStackBoard
+using namespace miosix;
+using namespace DeathStackBoard;
+
+int main()
 {
+    TMTCManager* tmtc = new TMTCManager();
 
-/*
- * Status of the component, wraps the mavlink stats
- * which are updated at every byte reception.
- */
-struct TMTCStatus
-{
-    mavlink_status_t mavstatus;
-    uint8_t sendErrors;
-    uint8_t ackErrors;
-};
+    while(1)
+    {
+        mavlink_message_t pingMsg;
+        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
 
+        // Send the message
+        bool ok = tmtc->send(pingMsg);
+        Thread::sleep(500);
+    }
 }

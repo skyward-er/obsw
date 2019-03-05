@@ -21,7 +21,11 @@
  */
 
 #include "TMTCManager.h"
-#include "DeathStack/Topics.h"
+#include <DeathStack/Events.h>
+#include <DeathStack/Topics.h>
+#include <DeathStack/configs/TMTCConfig.h>
+
+/* If you need to change only the messages, you can change this include */
 #include "TCHandler.h"
 
 namespace DeathStackBoard
@@ -29,12 +33,9 @@ namespace DeathStackBoard
 
 TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 {
-    device   = new Gamma868("/dev/radio");
-
-    mavManager = new MavManager();
-    mavManager->addSender(device, 250);
-    mavManager->addReceiver(device, mavManager->getSender(0), 
-                                    &TCHandler::handleMavlinkMessage);
+    device  = new Gamma868(RF_DEV_NAME);
+    channel = new MavChannel(device,  &TCHandler::handleMavlinkMessage, 
+                                                    TMTC_SLEEP_AFTER_SEND);
 
     TRACE("[TMTC] Created TMTCManager\n");
 
@@ -42,22 +43,32 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
     sEventBroker->subscribe(this, TOPIC_TMTC);
 }
 
-
 TMTCManager::~TMTCManager()
 {
     delete device;
-    delete sender;
-    delete receiver;
+    delete channel;
 }
 
+bool TMTCManager::send(mavlink_message_t& msg)
+{
+    bool ok = channel->enqueueMsg(msg);
 
+    MavStatus status = channel->getStatus();
+    logger.log(status);
+
+    return ok;
+}
+
+/**
+ * States
+ */
 void TMTCManager::stateIdle(const Event& ev)
 {
     switch(ev.sig) 
     {
         case EV_ENTRY:
             TRACE("[TMTC] Entering stateIdle\n");
-            g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, 
+            g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, TOPIC_FLIGHT_EVENTS,
                                                             GS_OFFLINE_TIMEOUT);
             break;
 
@@ -90,7 +101,7 @@ void TMTCManager::stateHighRateTM(const Event& ev)
             TRACE("[TMTC] Sending HR telemetry\n");
 
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-            sender->enqueueMsg(telem);
+            channel->enqueueMsg(telem);
 
             sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
             break;
@@ -125,14 +136,48 @@ void TMTCManager::stateLowRateTM(const Event& ev)
             TRACE("[TMTC] Sending LR telemetry\n");
 
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
-            sender->enqueueMsg(telem);
+            channel->enqueueMsg(telem);
 
             sEventBroker->postDelayed(Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
             break;
         }
 
+        case EV_LANDED:
+            TRACE("[TMTC] Landed signal received\n");
+            transition(&TMTCManager::stateLanded);
+            break;
+
         case EV_EXIT:
             TRACE("[TMTC] Exiting stateLowRateTM\n");
+            break;
+
+        default:
+            TRACE("[TMTC] Event not handled\n");
+            break;
+    }
+}
+
+void TMTCManager::stateLanded(const Event& ev)
+{
+    switch(ev.sig) 
+    {
+        case EV_ENTRY:
+            TRACE("[TMTC] Entering stateLanded\n");
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            break;
+
+        case EV_SEND_POS_TM: {
+            TRACE("[TMTC] Sending Position telemetry\n");
+
+            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_POS_TM_ID);
+            channel->enqueueMsg(telem);
+
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            break;
+        }
+
+        case EV_EXIT:
+            TRACE("[TMTC] Exiting stateLanded\n");
             break;
 
         default:

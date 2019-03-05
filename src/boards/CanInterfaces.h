@@ -56,14 +56,24 @@ enum CanCommandID : uint8_t
 */
 struct __attribute__((packed)) IgnitionBoardStatus
 {
-    uint8_t u1_abort_cmd : 1;
-    uint8_t u1_abort_timeout : 1;
-    uint8_t u1_wrong_code : 1;
-    uint8_t u1_launch_done : 1;
-    uint8_t u2_abort_cmd : 1;
-    uint8_t u2_abort_timeout : 1;
-    uint8_t u2_wrong_code : 1;
-    uint8_t u2_launch_done : 1;
+    uint8_t avr_abortCmd: 1;           // abort after explicit command (LSB)
+    uint8_t avr_abortTimeout: 1;       // abort after timeout
+    uint8_t avr_abortWrongCode: 1;     // abort after wrong launch code received
+    uint8_t avr_launchDone: 1;
+    uint8_t avr_powerOnReset: 1;       // last AVR reset cause was power on
+    uint8_t avr_externalReset: 1;      // last AVR reset cause was reset pin
+    uint8_t avr_brownoutReset: 1;      // last AVR reset cause was brownout
+    uint8_t avr_watchdogReset: 1;      // last AVR reset cause was watchdog (MSB)
+    
+    uint8_t stm32_abortCmd: 1;           // abort after explicit command (LSB)
+    uint8_t stm32_abortTimeout: 1;       // abort after timeout
+    uint8_t stm32_abortWrongCode: 1;     // abort after wrong launch code received
+    uint8_t stm32_launchDone: 1;
+    uint8_t stm32_powerOnReset: 1;       // last STM32 reset cause was power on
+    uint8_t stm32_externalReset: 1;      // last STM32 reset cause was reset pin
+    uint8_t stm32_brownoutReset: 1;      // last STM32 reset cause was brownout
+    uint8_t stm32_watchdogReset: 1;      // last STM32 reset cause was watchdog (MSB)
+
 };
 
 struct __attribute__((packed)) NoseconeBoardStatus

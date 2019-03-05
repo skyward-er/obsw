@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 #pragma once
 
 #include <cstdint>
-#include "CanInterfaces.h"
+#include <CanInterfaces.h>
 
 namespace DeathStackBoard
 {
@@ -36,9 +36,22 @@ enum IgnitionControllerState : uint8_t
     END
 };
 
-struct IgnitionStatus
+struct __attribute__((packed)) IgnCtrlStatus
 {
-    IgnitionControllerState ctrl_state = IgnitionControllerState::UNKNOWN;
+    uint64_t   timestamp;
+    uint8_t    fsm_state;  
+    uint8_t    last_event;
+    uint16_t   n_sent_messages; 
+    uint16_t   n_rcv_messages; 
+    uint8_t    launch_sent : 1;
+    uint8_t    abort_sent  : 1; 
+    uint8_t    abort_rcv   : 1; 
+    uint8_t    padding     : 5; 
+};
+
+struct IgnBoardLoggableStatus
+{
+    uint64_t timestamp;
     CanInterfaces::IgnitionBoardStatus board_status;
 };
 

@@ -24,17 +24,17 @@
 
 #include "DeathStack/Events.h"
 #include "DeathStack/IgnitionController/IgnitionController.h"
-#include "DeathStack/Canbus/CanImpl.h"
+#include "DeathStack/Canbus/CanProxy.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
-	CanManager c(CAN1);
-   	initCanbus(c);
+	CanManager* can_mgr = new CanManager(CAN1);
+    CanProxy* can   = new CanProxy(can_mgr);
 
-    IgnitionController* ctrl = new IgnitionController(c.getBus(0));
+    IgnitionController* ctrl = new IgnitionController(can);
     
     ctrl->getStatus();
     

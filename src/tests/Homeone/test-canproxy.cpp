@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
+ * Authors: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,47 +20,30 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Common.h>
+#include <miosix.h>
 
-#include "events/FSM.h"
-#include "DeathStack/Events.h"
+#include "boards/DeathStack/Canbus/CanProxy.h"
+#include "boards/CanInterfaces.h"
 
-#include <mavlink.h>
+using namespace miosix;
+using namespace CanInterfaces;
+using namespace DeathStackBoard;
 
-#include <drivers/gamma868/Gamma868.h>
-#include <boards/DeathStack/LogProxy/LogProxy.h>
-#include <drivers/mavlink/MavChannel.h>
-
-namespace DeathStackBoard
+int main()
 {
-/**
- * @brief This class handles the communication with the Ground Station.
- *        Uses Gamma868 transceiver with the Mavlink protocol.
- */
-class TMTCManager : public FSM<TMTCManager>
-{
+    CanManager* can_mgr = new CanManager(CAN1);
+    CanProxy* can   = new CanProxy(can_mgr);
 
-public:
-    TMTCManager();
-    ~TMTCManager();
+    while (1)
+    {
+        ledOn();
+        const char *pkt = "TestMSG";
+        can->send(CAN_TOPIC_HOMEONE, (const uint8_t *)pkt, strlen(pkt));
+        //socket.receive(buf, 64);
+        Thread::sleep(50);
+        ledOff();
 
-    /* Non-blocking send, logs status on the logger*/
-    bool send(mavlink_message_t& msg);
-
-    /* Status getter */
-    MavStatus getStatus() {return channel->getStatus();}
-
-private:
-    Gamma868* device;
-    MavChannel* channel;
-
-    LoggerProxy& logger = *(LoggerProxy::getInstance());
-
-    /* State handlers */
-    void stateIdle(const Event& ev);
-    void stateHighRateTM(const Event& ev);
-    void stateLowRateTM(const Event& ev);
-    void stateLanded(const Event& ev);
-};
-
-} /* namespace DeathStackBoard */
+        Thread::sleep(500);
+    }
+}

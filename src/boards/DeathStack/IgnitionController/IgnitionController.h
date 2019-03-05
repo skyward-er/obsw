@@ -23,46 +23,52 @@
 #pragma once
 
 #include "IgnitionStatus.h"
-#include "Singleton.h"
-#include "events/FSM.h"
-#include "DeathStack/LogProxy/LogProxy.h"
-#include "drivers/canbus/CanManager.h"
-#include "drivers/canbus/CanUtils.h"
-#include "DeathStack/EventClasses.h"
 
-class CanEventSocket;
+#include <events/FSM.h>
+#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/Canbus/CanProxy.h>
 
 namespace DeathStackBoard
 {
 
 class IgnitionController : public FSM<IgnitionController>
 {
+
 public:
-    explicit IgnitionController(CanBus* canbus);
+    IgnitionController(CanProxy* canbus);
     ~IgnitionController() {}
 
-    IgnitionStatus getStatus() { return status; }
+    /* @return this component's status */
+    IgnCtrlStatus getStatus();
+    /* @return the last status received from the board */
+    IgnBoardLoggableStatus getBoardStatus();
+
 private:
     void stateIdle(const Event& ev);
     void stateAborted(const Event& ev);
     void stateEnd(const Event& ev);
 
+    /* Put timestamp and log the component's status */
+    void logStatus();
+
     /**
      * @brief Updates the status of the ignition board if received on the canbus
+     *        and logs it on the logger.
      *
      * @param ev ev The event notifying a new message on the canbus
      * @return Wether the board status was updated or not
      */
     bool updateIgnBoardStatus(const Event& ev);
 
-    IgnitionStatus status;
+    IgnCtrlStatus status;
+    IgnBoardLoggableStatus loggable_board_status;
 
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 
     uint16_t ev_ign_offline_handle = 0;
     uint16_t ev_get_status_handle  = 0;
 
-    CanBus* canbus;
+    CanProxy* canbus;
 };
 
 }  // namespace DeathStackBoard

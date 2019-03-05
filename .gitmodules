@@ -1,6 +1,3 @@
 [submodule "skyward-boardcore"]
 	path = skyward-boardcore
 	url = ../skyward-boardcore.git
-[submodule "libs/mavlink_skyward_lib"]
-	path = libs/mavlink_skyward_lib
-	url = ../mavlink_skyward_lib.git
