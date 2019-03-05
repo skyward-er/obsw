@@ -1,4 +1,5 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,33 +23,26 @@
 
 #pragma once
 
-#include <Common.h>
-#include <drivers/BusTemplate.h>
-#include <drivers/stm32f2_f4_i2c.h>
 #include <interfaces-impl/hwmapping.h>
-
-using miosix::Gpio;
+#include <miosix.h>
+#include "PinObserver.h"
 
 namespace DeathStackBoard
 {
 
-// I2C 1
-typedef ProtocolI2C<miosix::I2C1Driver> busI2C1;
+static const unsigned int PIN_POLL_INTERVAL = 20;  // ms
 
-// SPI1
-typedef BusSPI<1, miosix::interfaces::spi1::mosi,
-               miosix::interfaces::spi1::miso, miosix::interfaces::spi1::sck>
-    busSPI1;
+// Launch pin config
+static const unsigned int PORT_LAUNCH_PIN = GPIOA_BASE;
+static const unsigned char NUM_LAUNCH_PIN = 1;
+static const PinObserver::Trigger TRIGGER_LAUNCH_PIN =
+    PinObserver::Trigger::FALLING_EDGE;
+static const unsigned int THRESHOLD_LAUNCH_PIN = 2;
 
-// Spi protocol defs
-typedef ProtocolSPI<busSPI1, miosix::sensors::mpu9250::cs> spiMPU9250;
-typedef ProtocolSPI<busSPI1, miosix::sensors::max21105::cs> spiMAX21105;
-typedef ProtocolSPI<busSPI1, miosix::sensors::adis16405::cs> spiADIS16405;
-
-typedef miosix::sensors::ad7994::ab ad7994_busy_pin;
-typedef miosix::sensors::ad7994::nconvst ad7994_nconvst;
-
-static const uint8_t AD7994_I2C_ADDRESS = 0x24;  // Todo: Update with real value
+static const unsigned int PORT_NC_DETACH_PIN = GPIOA_BASE;
+static const unsigned char NUM_NC_DETACH_PIN = 2;
+static const PinObserver::Trigger TRIGGER_NC_DETACH_PIN =
+    PinObserver::Trigger::FALLING_EDGE;
+static const unsigned int THRESHOLD_NC_DETACH_PIN = 2;
 
 }  // namespace DeathStackBoard
-
