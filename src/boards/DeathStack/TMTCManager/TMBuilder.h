@@ -39,7 +39,7 @@ namespace TMBuilder
  */
 static mavlink_message_t buildTelemetry(uint8_t req_tm) 
 {
-	miosix::PauseKernelLock kLock;
+    miosix::PauseKernelLock kLock;
     return Status::getTM(req_tm, TMTC_MAV_SYSID, TMTC_MAV_SYSID);
 }
 
