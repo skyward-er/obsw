@@ -43,13 +43,10 @@ static mavlink_message_t buildTelemetry(uint8_t requestedTelemetry)
 
     switch(requestedTelemetry)
     {
-        case MavTMList::MAV_HOMEONE_TM_ID:
+        case MavTMList::MAV_HM1_TM_ID:
         break;
 
-        case MavTMList::MAV_IGNITION_TM_ID:
-        break;
-
-        case MavTMList::MAV_NOSECONE_TM_ID:
+        case MavTMList::MAV_IGN_TM_ID:
         break;
 
         case MavTMList::MAV_HR_TM_ID:
