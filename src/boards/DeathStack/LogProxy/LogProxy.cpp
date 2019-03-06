@@ -30,7 +30,13 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     miosix::PauseKernelLock kLock;
 
-    lr_data.mpu9250_accel = t.accel;
+    // lr_data.mpu9250_accel = t.accel;  OLD
+
+    /* TODO FILL THIS IN
+    mavlink_message_t ackMsg;    1. get pointer to the mav_message_t in the map
+    mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg,   2. pack the right message
+                                    msg.msgid, msg.seq);
+    */
     return logger.log(t);
 }
 

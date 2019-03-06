@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <mavlink.h>
+
 #include "logger/Logger.h"
 #include "Singleton.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -34,20 +36,8 @@ class LoggerProxy : public Singleton<LoggerProxy>
     friend class Singleton<LoggerProxy>;
 
 public:
-    struct LowRateData
-    {
-        Vec3 mpu9250_accel;
-    };
 
-    struct HighRateData
-    {
-        float pressure_sample;
-        uint8_t last_fmm_event;
-        uint8_t last_ign_event;
-        uint8_t last_nsc_event;
-    };
-
-    LoggerProxy() : lr_data(), hr_data(), logger(Logger::instance()) {}
+    LoggerProxy() : logger(Logger::instance()) {}
 
     template <typename T>
     inline LogResult log(const T& t)
@@ -55,27 +45,42 @@ public:
         return logger.log(t);
     }
 
-    inline LogResult log(const LowRateData& t)
+    /**
+     * Returns the last logged struct corresponding to a given telemetry
+     * @req_tm          required telemetry
+     * @return          packed mavlink telemetry
+     */
+    mavlink_message_t getTM(MavTMList req_tm)
     {
-        {
-            miosix::PauseKernelLock kLock;
-            lr_data = t;
-        }
-        return logger.log(t);
-    }
-
-    LowRateData getLowRateData() { return lr_data; }
-
-    HighRateData getHighRateData()
-    {
-        return hr_data;
+        // TODO search map
+        return m;
     }
 
 private:
-    LowRateData lr_data;
-    HighRateData hr_data;
+    // TODO remove m
+    mavlink_message_t m;
 
     Logger& logger;
+
+    const std::map<uint8_t, mavlink_message_t> status_map =
+{
+        { MAV_HM1_TM_ID,    {0} },
+        { MAV_IGN_TM_ID,    {0} },
+        { MAV_HR_TM_ID,     {0} },
+        { MAV_LR_TM_ID,     {0} },
+        { MAV_POS_TM_ID,    {0} },
+        { MAV_LOGGER_TM_ID, {0} },
+        { MAV_TMTC_TM_ID,   {0} },
+        { MAV_SM_TM_ID,     {0} },
+        { MAV_IGN_CTRL_TM_ID, {0} },
+        { MAV_DPL_CTRL_TM_ID, {0} },
+        { MAV_ADA_TM_ID,    {0} },
+        { MAV_CAN_TM_ID,    {0} },
+        { MAV_AD7994_TM_ID, {0} },
+        { MAV_ADC_TM_ID,    {0} },
+        { MAV_ADIS_TM_ID,   {0} },
+        { MAV_MPU_TM_ID,    {0} },
+        { MAV_GPS_TM_ID,    {0} }
 };
 
 }
