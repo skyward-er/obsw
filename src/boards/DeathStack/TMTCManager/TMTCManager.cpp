@@ -25,8 +25,7 @@
 #include <DeathStack/Topics.h>
 #include <DeathStack/configs/TMTCConfig.h>
 
-/* If you need to change only the messages, you can change this include */
-#include "TCHandler.h"
+#include "TCHandler.h" // Real message handling is here
 
 namespace DeathStackBoard
 {

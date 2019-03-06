@@ -21,6 +21,10 @@
  */
 
 #include "LogProxy.h"
+#include "DeathStack/Status.h"
+#include "sensors/MPU9250/MPU9250Data.h"
+
+using namespace Status;
 
 namespace DeathStackBoard 
 {
@@ -30,13 +34,12 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     miosix::PauseKernelLock kLock;
 
-    // lr_data.mpu9250_accel = t.accel;  OLD
+    // TODO aggiornare la status repo
 
-    /* TODO FILL THIS IN
-    mavlink_message_t ackMsg;    1. get pointer to the mav_message_t in the map
-    mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg,   2. pack the right message
-                                    msg.msgid, msg.seq);
-    */
+    tm_repository.mpu_tm.acc_x = t.accel.getX();
+    tm_repository.mpu_tm.acc_y = t.accel.getY();
+    tm_repository.mpu_tm.acc_z = t.accel.getZ();
+   
     return logger.log(t);
 }
 

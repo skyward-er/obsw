@@ -22,15 +22,18 @@
 
 #pragma once
 
-#include <mavlink.h>
-
 #include "logger/Logger.h"
 #include "Singleton.h"
-#include "sensors/MPU9250/MPU9250Data.h"
 
 namespace DeathStackBoard 
 {
 
+/**
+ * @brief This class is interposed between the OBSW and the Logger driver. 
+ * Status repository updating is done here: everytime a component 
+ * logs its status, the corresponding tm structs are updated before logging
+ * on SD card.
+ */
 class LoggerProxy : public Singleton<LoggerProxy>
 {
     friend class Singleton<LoggerProxy>;
@@ -39,48 +42,16 @@ public:
 
     LoggerProxy() : logger(Logger::instance()) {}
 
+    /* Generic log function, to be implemented for each loggable struct */
     template <typename T>
     inline LogResult log(const T& t)
     {
         return logger.log(t);
     }
 
-    /**
-     * Returns the last logged struct corresponding to a given telemetry
-     * @req_tm          required telemetry
-     * @return          packed mavlink telemetry
-     */
-    mavlink_message_t getTM(MavTMList req_tm)
-    {
-        // TODO search map
-        return m;
-    }
 
 private:
-    // TODO remove m
-    mavlink_message_t m;
-
-    Logger& logger;
-
-    const std::map<uint8_t, mavlink_message_t> status_map =
-{
-        { MAV_HM1_TM_ID,    {0} },
-        { MAV_IGN_TM_ID,    {0} },
-        { MAV_HR_TM_ID,     {0} },
-        { MAV_LR_TM_ID,     {0} },
-        { MAV_POS_TM_ID,    {0} },
-        { MAV_LOGGER_TM_ID, {0} },
-        { MAV_TMTC_TM_ID,   {0} },
-        { MAV_SM_TM_ID,     {0} },
-        { MAV_IGN_CTRL_TM_ID, {0} },
-        { MAV_DPL_CTRL_TM_ID, {0} },
-        { MAV_ADA_TM_ID,    {0} },
-        { MAV_CAN_TM_ID,    {0} },
-        { MAV_AD7994_TM_ID, {0} },
-        { MAV_ADC_TM_ID,    {0} },
-        { MAV_ADIS_TM_ID,   {0} },
-        { MAV_MPU_TM_ID,    {0} },
-        { MAV_GPS_TM_ID,    {0} }
+    Logger& logger; // SD logger
 };
 
 }

@@ -24,12 +24,11 @@
 
 #include "events/FSM.h"
 #include "DeathStack/Events.h"
-
-#include <mavlink.h>
+#include "DeathStack/configs/TMTCConfig.h"
 
 #include <drivers/gamma868/Gamma868.h>
-#include <boards/DeathStack/LogProxy/LogProxy.h>
 #include <drivers/mavlink/MavChannel.h>
+#include <DeathStack/LogProxy/LogProxy.h>
 
 namespace DeathStackBoard
 {

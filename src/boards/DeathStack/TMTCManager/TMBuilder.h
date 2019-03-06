@@ -23,8 +23,8 @@
 #pragma once
 
 #include <Common.h>
-#include <mavlink.h>
-#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/configs/TMTCConfig.h>
+#include <DeathStack/Status.h>
 
 namespace DeathStackBoard
 {
@@ -32,13 +32,15 @@ namespace TMBuilder
 {
 
 /**
- * Get the corresponding telemetry from the logger (= last logged struct)
+ * Synchronously read the corresponding telemetry from the statusRepo 
+ * (aka last logged struct).
  * @param req_tm     requested telemetry
  * @return           the telemetry as mavlink_message_t
  */
-static inline mavlink_message_t buildTelemetry(MavTMList req_tm) 
+static mavlink_message_t buildTelemetry(uint8_t req_tm) 
 {
-    return LoggerProxy::getInstance()->getTM(req_tm);
+	miosix::PauseKernelLock kLock;
+    return Status::getTM(req_tm, TMTC_MAV_SYSID, TMTC_MAV_SYSID);
 }
 
 } /* namespace TMBuilder */
