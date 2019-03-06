@@ -21,8 +21,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGERDATA_H
-#define SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGERDATA_H
+#pragma once
 
 #include <cstdint>
 
@@ -57,4 +56,4 @@ struct SensorManagerStatus
 };
 
 }  // namespace DeathStackBoard
-#endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_SENSORMANAGERDATA_H */
+

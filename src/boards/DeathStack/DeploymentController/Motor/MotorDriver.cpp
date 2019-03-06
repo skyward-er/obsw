@@ -57,7 +57,6 @@ MotorDriver::MotorDriver(PinObserver* pinObs): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENC
 
     /* Set status */
     status.motor_active = 0;
-    log();
 }
 
 
@@ -95,8 +94,7 @@ bool MotorDriver::start(MotorDirection direction, float dutyCycle)
 
     /* Update status */
     status.motor_active = true;
-    status.motor_last_direction = dir;
-    log();
+    status.motor_last_direction = direction;
 
     return true;
 }
@@ -112,7 +110,6 @@ void MotorDriver::stop()
     LeftEnable::low(); 
 
     status.motor_active = false;
-    log();
 }
 
 }

@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +23,55 @@
 
 #pragma once
 
+#include <PinObserver.h>
+#include "DeathStack/configs/PinObserverConfig.h"
+#include "PinObserverData.h"
+
 namespace DeathStackBoard
 {
-namespace ADA
+
+//Forward dec
+class LoggerProxy;
+
+class PinObserverWrapper
 {
-// All possible states of the ADA FMM
-enum class ADAState {
-    UNDEFINED,
-    CALIBRATING,
-    IDLE,
-    SHADOW_MODE,
-    ACTIVE,
-    FIRST_DESCENT_PHASE,
-    END
+public:
+    PinObserverWrapper();
+
+    /**
+     * @brief Starts the pin observer
+     * 
+     */
+    void start()
+    {
+        pin_obs.start();
+    }
+
+    /**
+     * @brief Function called by the pinobserver when a launch pin detachment is
+     * detected.
+     *
+     * @param p
+     * @param n
+     */
+    void callbackLaunchPin(unsigned int p, unsigned char n);
+
+    /**
+     * @brief Function called by the pinobserver when a nosecone pin detachment
+     * is detected.
+     *
+     * @param p
+     * @param n
+     */
+    void callbackNoseconePin(unsigned int p, unsigned char n);
+
+private:
+    PinStatus status_pin_launch{ObservedPin::LAUNCH};
+    PinStatus status_pin_nosecone{ObservedPin::NOSECONE};
+
+    PinObserver pin_obs;
+
+    LoggerProxy* logger;
 };
 
-// Struct to log apogee detection
-struct ApogeeDetected {
-    ADAState state;
-    long long tick;
-};
-
-// Struct to log current state
-struct ADAStatus
-{
-    long long timestamp;
-    ADAState state = ADAState::UNDEFINED;
-
-    ApogeeDetected last_apogee;
-
-    long long last_dpl_pressure_tick;
-};
-
-struct KalmanState
-{
-    float x0;
-    float x1;
-    float x2;
-};
-
-struct TargetDeploymentPressure
-{
-    uint16_t deployment_pressure;
-};
-
-// Struct of calibration data
-struct ADACalibrationData {
-    float   var        = 0.0;      // Sample variance
-    int     n_samples  = 0;        // Number of samples collected
-    float   avg        = 0.0;      // Average pressure
-};
-
-
-
-}
-}
+}  // namespace DeathStackBoard

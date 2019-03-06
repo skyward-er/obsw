@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
-#warning "ADA COSTANTS ARE ONLY PLACEHOLDER VALUES"
+#pragma once
 
-namespace HomeoneBoard
+namespace DeathStackBoard
 {
-namespace FMM
+namespace ADA
 {
 // TODO: Change with real values
 

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "ThermalCutter/CutterData.h"
+#include "Motor/MotorData.h"
 
 namespace DeathStackBoard 
 {
@@ -41,6 +42,8 @@ struct DeploymentStatus
 {
     long long timestamp;
     DeploymentCTRLState state;
+    MotorStatus motor_status;
+    CutterStatus cutter_status;
 };
 
 } // DeathStackBoard

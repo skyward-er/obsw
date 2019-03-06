@@ -67,12 +67,9 @@ public:
      */
     void stop();
 
-    /**
-     * @brief Save the status.
-     */
-    inline void log()
+    MotorStatus getStatus()
     {
-        Singleton<LoggerProxy>::getInstance()->log(status);
+        return status;
     }
 
 private:

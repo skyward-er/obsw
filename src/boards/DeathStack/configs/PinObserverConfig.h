@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +23,26 @@
 
 #pragma once
 
+#include <interfaces-impl/hwmapping.h>
+#include <miosix.h>
+#include "PinObserver.h"
+
 namespace DeathStackBoard
 {
-namespace ADA
-{
-// All possible states of the ADA FMM
-enum class ADAState {
-    UNDEFINED,
-    CALIBRATING,
-    IDLE,
-    SHADOW_MODE,
-    ACTIVE,
-    FIRST_DESCENT_PHASE,
-    END
-};
 
-// Struct to log apogee detection
-struct ApogeeDetected {
-    ADAState state;
-    long long tick;
-};
+static const unsigned int PIN_POLL_INTERVAL = 20;  // ms
 
-// Struct to log current state
-struct ADAStatus
-{
-    long long timestamp;
-    ADAState state = ADAState::UNDEFINED;
+// Launch pin config
+static const unsigned int PORT_LAUNCH_PIN = GPIOA_BASE;
+static const unsigned char NUM_LAUNCH_PIN = 1;
+static const PinObserver::Trigger TRIGGER_LAUNCH_PIN =
+    PinObserver::Trigger::FALLING_EDGE;
+static const unsigned int THRESHOLD_LAUNCH_PIN = 2;
 
-    ApogeeDetected last_apogee;
+static const unsigned int PORT_NC_DETACH_PIN = GPIOA_BASE;
+static const unsigned char NUM_NC_DETACH_PIN = 2;
+static const PinObserver::Trigger TRIGGER_NC_DETACH_PIN =
+    PinObserver::Trigger::FALLING_EDGE;
+static const unsigned int THRESHOLD_NC_DETACH_PIN = 2;
 
-    long long last_dpl_pressure_tick;
-};
-
-struct KalmanState
-{
-    float x0;
-    float x1;
-    float x2;
-};
-
-struct TargetDeploymentPressure
-{
-    uint16_t deployment_pressure;
-};
-
-// Struct of calibration data
-struct ADACalibrationData {
-    float   var        = 0.0;      // Sample variance
-    int     n_samples  = 0;        // Number of samples collected
-    float   avg        = 0.0;      // Average pressure
-};
-
-
-
-}
-}
+}  // namespace DeathStackBoard
