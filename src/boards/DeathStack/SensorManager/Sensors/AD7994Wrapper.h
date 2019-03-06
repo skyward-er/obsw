@@ -64,6 +64,7 @@ public:
             data.ch1_pressure = 0;
             data.ch2_pressure = 0;          
         }
+        return result;
     }
 
     bool selfTest() override
