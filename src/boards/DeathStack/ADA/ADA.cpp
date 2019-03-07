@@ -21,7 +21,7 @@
  */
 
 #include <DeathStack/ADA/ADA.h>
-#include <DeathStack/ADA/ADA_config.h>
+#include <DeathStack/configs/ADA_config.h>
 
 #include <events/EventBroker.h>
 
