@@ -48,7 +48,12 @@ typedef ProtocolSPI<busSPI1, miosix::sensors::adis16405::cs> spiADIS16405;
 typedef miosix::sensors::ad7994::ab ad7994_busy_pin;
 typedef miosix::sensors::ad7994::nconvst ad7994_nconvst;
 
-static const uint8_t AD7994_I2C_ADDRESS = 0x24;  // Todo: Update with real value
+static constexpr uint8_t AD7994_I2C_ADDRESS = 0x24;  // Todo: Update with real value
+
+static constexpr uint8_t INTERNAL_ADC_NUM = 3;
+static constexpr uint8_t ADC_CURRENT_SENSE_1_CHANNEL = 6;
+static constexpr uint8_t ADC_CURRENT_SENSE_2_CHANNEL = 4;
+static constexpr uint8_t ADC_BATTERY_VOLTAGE_CHANNEL = 5;
 
 }  // namespace DeathStackBoard
 

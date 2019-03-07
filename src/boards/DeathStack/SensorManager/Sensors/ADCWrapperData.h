@@ -25,13 +25,18 @@
 
 #include <cstdint>
 
-struct InternalADCWrapperData
+struct BatteryTensionData
 {
     uint32_t timestamp;
     
     uint16_t battery_tension_value;
+    uint16_t battery_tension_min = 0xFFFF;
+};
+
+struct CurrentSenseData
+{
+    uint32_t timestamp;
+    
     uint16_t current_1_value;
     uint16_t current_2_value;
-
-    uint16_t battery_tension_min;
 };
