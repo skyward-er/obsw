@@ -1,17 +1,17 @@
-/*
+/* 
  * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -23,35 +23,20 @@
 
 #pragma once
 
-#include <drivers/adc/ADC.h>
-#include <sensors/Sensor.h>
+#include <cstdint>
 
-template <unsigned N, uint32_t CHANNEL, class GpioADC>
-class CurrentSensor
+struct BatteryTensionData
 {
-    using ADC = SensorADC<N, CHANNEL, GpioADC>;
+    uint32_t timestamp;
+    
+    uint16_t battery_tension_value;
+    uint16_t battery_tension_min = 0xFFFF;
+};
 
-public:
-    CurrentSensor(uint32_t sample_time)
-        : sample_time(sample_time), adc(sample_time)
-    {
-        adc.init();
-    }
-
-    ~CurrentSensor() {}
-
-    float getCurrent();
-    {
-
-    }
-
-    uint16_t getRawVoltage();
-    {
-        adc.updateParams();
-        return adc.getValue();
-    }
-
-private:
-    uint32_t sample_time;
-    ADC adc;
+struct CurrentSenseData
+{
+    uint32_t timestamp;
+    
+    uint16_t current_1_value;
+    uint16_t current_2_value;
 };

@@ -43,6 +43,7 @@ public:
             adc.enableChannel(AD7994_t::Channel::CH2);
             //TODO: Enable required channels
         }
+        return success;
     }
 
     bool onSimpleUpdate() override
@@ -64,6 +65,7 @@ public:
             data.ch1_pressure = 0;
             data.ch2_pressure = 0;          
         }
+        return result;
     }
 
     bool selfTest() override

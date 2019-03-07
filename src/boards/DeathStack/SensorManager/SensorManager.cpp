@@ -28,6 +28,8 @@
 #include "events/EventBroker.h"
 
 #include "Sensors/AD7994Wrapper.h"
+#include "Sensors/ADCWrapper.h"
+
 #include "sensors/ADIS16405/ADIS16405.h"
 
 #include "sensors/MPU9250/MPU9250.h"
@@ -70,12 +72,17 @@ void SensorManager::initSensors()
 
     imu_adis16405 = new ADIS16405Type();
     imu_adis16405->init();
+
+    adc_internal = new ADCWrapper();
 }
 
 void SensorManager::initSamplers()
 {
     sampler_20hz_simple.AddSensor(sensor_test);
     sampler_20hz_simple.AddSensor(adc_ad7994);
+    sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
+
+    sampler_1hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
 
     /*sampler_250hz_dma.AddSensor(imu_max21105);
     sampler_250hz_dma.AddSensor(imu_mpu9250);
@@ -138,6 +145,14 @@ void SensorManager::startSampling()
      * std::bind syntax:
      * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
      */
+    // Simple 1 Hz Sampler callback and scheduler function
+    std::function<void()> simple_1hz_callback =
+        std::bind(&SensorManager::onSimple1HZCallback, this);
+    std::function<void()> simple_1hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_1hz_simple,
+                  simple_1hz_callback);
+
+    scheduler.add(simple_1hz_sampler, 1000, ID_SIMPLE_1HZ);
 
     // Simple 20 Hz Sampler callback and scheduler function
     std::function<void()> simple_20hz_callback =
@@ -146,7 +161,7 @@ void SensorManager::startSampling()
         std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
                   simple_20hz_callback);
 
-    scheduler.add(simple_20hz_sampler, 250, ID_SIMPLE_20Hz);  // TODO: back to 50
+    scheduler.add(simple_20hz_sampler, 250, ID_SIMPLE_20HZ);  // TODO: back to 50 ms
 
     // DMA 250 Hz Sampler callback and scheduler function
     std::function<void()> dma_250hz_callback =
@@ -156,9 +171,9 @@ void SensorManager::startSampling()
                   dma_250hz_callback);
 
     scheduler.add(dma_250Hz_sampler, 1000,
-                         ID_DMA_250Hz);  // TODO: Back to 4 ms
+                         ID_DMA_250HZ);  // TODO: Back to 4 ms
 
-    // Lambda expression callback to log scheduler stats, at 5 Hz
+    // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
         [&]() {
             scheduler_stats = scheduler.getTaskStats();
@@ -166,9 +181,18 @@ void SensorManager::startSampling()
             for (TaskStatResult stat : scheduler_stats)
                 logger.log(stat);
         },
-        200, ID_STATS);
+        1000, ID_STATS);
 
     TRACE("Scheduler initialization complete\n");
+}
+
+void SensorManager::onSimple1HZCallback()
+{
+    // Log the battery voltage level we just finished sampling.
+    logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
+
+    // TODO: Send samples to logger
+    // TODO: Send pressure samples to FMM
 }
 
 void SensorManager::onSimple20HZCallback()

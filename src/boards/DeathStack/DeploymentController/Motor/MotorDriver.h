@@ -25,7 +25,6 @@
 #include <Common.h>
 
 #include "DeathStack/configs/MotorConfig.h"
-#include "CurrentSensor/MotorSensor.h"
 #include "MotorData.h"
 
 #include <PinObserver.h>
@@ -74,7 +73,6 @@ public:
 
 private:
     PWM pwm;
-    MotorSensor currentSensor;
 
     MotorStatus status;
 };

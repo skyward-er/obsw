@@ -36,7 +36,7 @@ int main()
 
     SensorManager mgr{};
 
-    //mgr.start();
+    mgr.start();
 
     printf("Current State: %d\n", mgr.getStatus().state);
     printf("Problematic sensors: %d\n\n", mgr.getStatus().problematic_sensors);
