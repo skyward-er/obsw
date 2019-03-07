@@ -23,9 +23,9 @@
 #include <Common.h>
 #include "CanProxy.h"
 
-#include "boards/CanInterfaces.h"
-#include "boards/DeathStack/Events.h"
-#include "boards/DeathStack/Topics.h"
+#include "CanInterfaces.h"
+#include "DeathStack/Events.h"
+#include "DeathStack/Topics.h"
 
 #include <events/EventBroker.h>
 
@@ -44,7 +44,6 @@ static void canRcv(CanMsg message, CanProxy* proxy)
     TRACE("[CAN] Received message with id %lu\n", message.StdId);
 
     /* Create event */
-    CanbusEvent ev;
     CanbusEvent ev;
     ev.sig = EV_NEW_CAN_MSG;
     ev.canTopic = message.StdId;
