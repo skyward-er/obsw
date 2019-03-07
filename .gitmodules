@@ -1,3 +1,3 @@
 [submodule "skyward-boardcore"]
 	path = skyward-boardcore
-	url = ../skyward-boardcore.git
+	url = ../../r2a/skyward-boardcore.git
