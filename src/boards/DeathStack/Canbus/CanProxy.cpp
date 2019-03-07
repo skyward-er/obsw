@@ -45,7 +45,6 @@ static void canRcv(CanMsg message, CanProxy* proxy)
 
     /* Create event */
     CanbusEvent ev;
-    CanbusEvent ev;
     ev.sig = EV_NEW_CAN_MSG;
     ev.canTopic = message.StdId;
     ev.len = message.DLC;

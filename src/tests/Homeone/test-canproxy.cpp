@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
+/* Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,6 +25,7 @@
 
 #include "boards/DeathStack/Canbus/CanProxy.h"
 #include "boards/CanInterfaces.h"
+#include <events/EventBroker.h>
 
 using namespace miosix;
 using namespace CanInterfaces;
@@ -35,11 +36,13 @@ int main()
     CanManager* can_mgr = new CanManager(CAN1);
     CanProxy* can   = new CanProxy(can_mgr);
 
+    sEventBroker->start();
+
     while (1)
     {
         ledOn();
         const char *pkt = "TestMSG";
-        can->send(CAN_TOPIC_HOMEONE, (const uint8_t *)pkt, strlen(pkt));
+        can->send(CAN_TOPIC_IGNITION, (const uint8_t *)pkt, strlen(pkt));
         //socket.receive(buf, 64);
         Thread::sleep(50);
         ledOff();
