@@ -52,9 +52,6 @@ MotorDriver::MotorDriver(PinObserver* pinObs): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENC
     /* Start observing motor limit pins */
     //MotorLimit::observeLimitPins(pinObs);
 
-    /* Start sampling motor current */
-    currentSensor.start();
-
     /* Set status */
     status.motor_active = 0;
 }
