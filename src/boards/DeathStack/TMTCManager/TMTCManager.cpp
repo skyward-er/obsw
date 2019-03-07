@@ -32,7 +32,7 @@ namespace DeathStackBoard
 
 TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 {
-    device  = new Gamma868(RF_DEV_NAME);
+    device  = new Gamma868(RF_DEV_NAME, TMTC_SEND_MULTIPLIER);
     channel = new MavChannel(device,  &TCHandler::handleMavlinkMessage, 
                                                     TMTC_SLEEP_AFTER_SEND);
 

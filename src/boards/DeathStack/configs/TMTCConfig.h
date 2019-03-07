@@ -45,4 +45,6 @@ static const char* RF_DEV_NAME = "/dev/radio";
 
 /* Min guaranteed sleep time after a message is sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
+/* Delay that estimates the send time of each byte */
+static const uint16_t TMTC_SEND_MULTIPLIER = 10;
 }
