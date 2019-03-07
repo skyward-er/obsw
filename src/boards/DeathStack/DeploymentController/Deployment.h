@@ -37,7 +37,7 @@ namespace DeathStackBoard
 class DeploymentController : public FSM<DeploymentController>
 {
   public:
-    DeploymentController(PinObserver* pin_observer);
+    DeploymentController();
     ~DeploymentController();
 
     void state_idle(const Event &ev);

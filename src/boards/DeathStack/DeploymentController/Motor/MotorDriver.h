@@ -44,7 +44,7 @@ public:
      * 
      * @param pinObs    needed to observe the motor limit pins (finecorsa) 
      */
-    MotorDriver(PinObserver* pinObs);
+    MotorDriver();
 
     /**
      * @brief Class destructor.

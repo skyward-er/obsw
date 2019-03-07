@@ -36,7 +36,7 @@ namespace DeathStackBoard
 {
 
 
-MotorDriver::MotorDriver(PinObserver* pinObs): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENCY)
+MotorDriver::MotorDriver(): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENCY)
 {
     /* Enable pins */
     RightEnable::mode(Mode::OUTPUT);

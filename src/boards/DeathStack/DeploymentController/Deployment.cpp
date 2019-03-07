@@ -30,8 +30,9 @@
 
 namespace DeathStackBoard
 {
-DeploymentController::DeploymentController(PinObserver* pin_observer)
-    : FSM(&DeploymentController::state_idle), motor(pin_observer)
+
+DeploymentController::DeploymentController()
+    : FSM(&DeploymentController::state_idle), motor()
 {
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
