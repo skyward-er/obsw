@@ -40,7 +40,8 @@ static const int SAMPLE_PERIOD = 1000 / SAMPLE_FREQ;
 
 using miosix::Thread;
 
-using ADC_t = SensorADC<1, 5, csense>;
+using ADC_t = SensorADC<1>;
+
 float adcToI(uint16_t adc_in)
 {
     float v    = (adc_in * 3.3f) / 4096;
@@ -101,8 +102,8 @@ int main()
 {
     // csense::mode(Mode::INPUT_ANALOG);
 
-    ADC_t adc(SAMPLE_FREQ);
-    adc.init();
+    ADC_t adc;
+    csense::mode(Mode::INPUT_ANALOG);
 
     miosix::ledOff();
     btn::mode(miosix::Mode::INPUT);
@@ -112,8 +113,7 @@ int main()
 
     for (;;)
     {
-        adc.updateParams();
-        uint16_t adcval = adc.getValue();
+        uint16_t adcval = adc.convertChannel(ADC_t::Channel::CH1);
         float ival = adcToI(adcval);
 
         printf("%f,\t%d\n", ival, (int)adcval);
