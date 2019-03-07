@@ -27,9 +27,9 @@
 
 #include "scheduler/TaskScheduler.h"
 
+#include "DeathStack/LogProxy/LogProxy.h"
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
-#include "DeathStack/LogProxy/LogProxy.h"
 #include "sensors/SensorSampling.h"
 
 #include "SensorManagerData.h"
@@ -53,8 +53,11 @@ template <typename BusSPI>
 class ADIS16405;
 
 
+
 namespace DeathStackBoard
 {
+class ADCWrapper;
+
 // Type definitions
 typedef AD7994Wrapper<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
 typedef MPU9250<spiMPU9250> MPU9250Type;
@@ -73,14 +76,14 @@ typedef ADIS16405<spiADIS16405> ADIS16405Type;
 class SensorManager : public FSM<SensorManager>
 {
 public:
-
     enum SensorSamplerId : uint8_t
     {
-        ID_SIMPLE_20Hz = 0,
-        ID_DMA_250Hz,
+        ID_SIMPLE_1HZ,
+        ID_SIMPLE_20HZ,
+        ID_DMA_250HZ,
         ID_STATS
     };
-    
+
     SensorManager();
     ~SensorManager(){};
 
@@ -133,20 +136,33 @@ private:
 
     /**
      * @brief Simple, 20 Hz SensorSampler Callback.
+     * Called each time all the sensors in the 1hz sampler have been sampled (so
+     * 1 times per second)
+     */
+    void onSimple1HZCallback();
+
+    /**
+     * @brief Simple, 20 Hz SensorSampler Callback.
+     * Called each time all the sensors in the 20hz sampler have been sampled
+     * (so 20 times per second)
      */
     void onSimple20HZCallback();
 
     /**
      * @brief DMA, 250 Hz SensorSampler Callback.
+     * Called each time all the sensors in the 250hz sampler have been sampled
+     * (so 250 times per second)
      */
     void onDMA250HZCallback();
-    
+
     TaskScheduler scheduler;
+    // Logger ref
     LoggerProxy& logger;
-    
+
     bool enable_sensor_logging = false;
 
     // Sensor samplers
+    SimpleSensorSampler sampler_1hz_simple;
     SimpleSensorSampler sampler_20hz_simple;
     DMASensorSampler sampler_250hz_dma;
 
@@ -155,13 +171,11 @@ private:
     AD7994Type* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
+    ADCWrapper* adc_internal;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;
     SensorManagerStatus status;
-
-    // Logger ref
-    
 };
 
 }  // namespace DeathStackBoard
