@@ -43,6 +43,7 @@ public:
             adc.enableChannel(AD7994_t::Channel::CH2);
             //TODO: Enable required channels
         }
+        return success;
     }
 
     bool onSimpleUpdate() override
