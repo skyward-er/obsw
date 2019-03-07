@@ -21,6 +21,10 @@
  */
 
 #include "LogProxy.h"
+#include "DeathStack/Status.h"
+#include "sensors/MPU9250/MPU9250Data.h"
+
+using namespace Status;
 
 namespace DeathStackBoard 
 {
@@ -30,7 +34,12 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     miosix::PauseKernelLock kLock;
 
-    lr_data.mpu9250_accel = t.accel;
+    // TODO aggiornare la status repo
+
+    tm_repository.mpu_tm.acc_x = t.accel.getX();
+    tm_repository.mpu_tm.acc_y = t.accel.getY();
+    tm_repository.mpu_tm.acc_z = t.accel.getZ();
+   
     return logger.log(t);
 }
 

@@ -36,12 +36,15 @@ using namespace std::placeholders;
 
 /**
  * Canbus receiving function.
+ * @param message    the received message to be handled
+ * @param proxy      the object that has the reference to the bus
  */
 static void canRcv(CanMsg message, CanProxy* proxy) 
 {
     TRACE("[CAN] Received message with id %lu\n", message.StdId);
 
     /* Create event */
+    CanbusEvent ev;
     CanbusEvent ev;
     ev.sig = EV_NEW_CAN_MSG;
     ev.canTopic = message.StdId;
@@ -50,7 +53,7 @@ static void canRcv(CanMsg message, CanProxy* proxy)
 
     /* Log stats */
     CanStatus status = proxy->getBus()->getStatus();
-    proxy->getLogger().log(status);
+    LoggerProxy::getInstance()->log(status);
 
     /* Post event */
     sEventBroker->post(ev, TOPIC_CAN);
@@ -61,12 +64,15 @@ static void canRcv(CanMsg message, CanProxy* proxy)
  */
 CanProxy::CanProxy(CanManager* c)
 {
+    // Filters
     c->addHWFilter(CanInterfaces::CAN_TOPIC_IGNITION, 0);
     c->addHWFilter(CanInterfaces::CAN_TOPIC_NOSECONE, 0);
 
+    // Init structure (pins)
     canbus_init_t st = {
         CAN1, miosix::Mode::ALTERNATE, 9, {CAN1_RX0_IRQn, CAN1_RX1_IRQn}};
 
+    // Receiving function
     CanDispatcher rcv_fun = std::bind(&canRcv, _1, this);
 
     c->addBus<GPIOA_BASE, 11, 12>(st, rcv_fun);
@@ -80,11 +86,12 @@ CanProxy::CanProxy(CanManager* c)
  */
 bool CanProxy::send(uint16_t id, const uint8_t* message, uint8_t len)
 {
+    // Send
     bool ok = bus->send(id, message, len);
 
-    /* Log stats */
+    // Log stats
     CanStatus status = bus->getStatus();
-    this->logger.log(status);
+    LoggerProxy::getInstance()->log(status);
 
     return ok;
 }

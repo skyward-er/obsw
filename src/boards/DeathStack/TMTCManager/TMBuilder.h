@@ -23,7 +23,8 @@
 #pragma once
 
 #include <Common.h>
-#include <mavlink.h>
+#include <DeathStack/configs/TMTCConfig.h>
+#include <DeathStack/Status.h>
 
 namespace DeathStackBoard
 {
@@ -31,38 +32,15 @@ namespace TMBuilder
 {
 
 /**
- * Parses a corresponding packed telemetry.
+ * Synchronously read the corresponding telemetry from the statusRepo 
+ * (aka last logged struct).
+ * @param req_tm     requested telemetry
+ * @return           the telemetry as mavlink_message_t
  */
-static mavlink_message_t buildTelemetry(uint8_t requestedTelemetry) 
+static mavlink_message_t buildTelemetry(uint8_t req_tm) 
 {
-    mavlink_message_t responseMsg;
-
-    // TODO: tm builder
-    // mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg,
-    //                                 request.msgid, request.seq);
-
-    switch(requestedTelemetry)
-    {
-        case MavTMList::MAV_HOMEONE_TM_ID:
-        break;
-
-        case MavTMList::MAV_IGNITION_TM_ID:
-        break;
-
-        case MavTMList::MAV_NOSECONE_TM_ID:
-        break;
-
-        case MavTMList::MAV_HR_TM_ID:
-        break;
-
-        case MavTMList::MAV_LR_TM_ID:
-        break;
-
-        default:
-        break;
-    }
-
-    return responseMsg;
+    miosix::PauseKernelLock kLock;
+    return Status::getTM(req_tm, TMTC_MAV_SYSID, TMTC_MAV_SYSID);
 }
 
 } /* namespace TMBuilder */

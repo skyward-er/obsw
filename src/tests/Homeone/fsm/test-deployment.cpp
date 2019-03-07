@@ -65,4 +65,6 @@ int main()
     {
         Thread::sleep(10000);
     }
+
+    return 0;
 }

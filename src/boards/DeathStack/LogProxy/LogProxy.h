@@ -24,58 +24,34 @@
 
 #include "logger/Logger.h"
 #include "Singleton.h"
-#include "sensors/MPU9250/MPU9250Data.h"
 
 namespace DeathStackBoard 
 {
 
+/**
+ * @brief This class is interposed between the OBSW and the Logger driver. 
+ * Status repository updating is done here: everytime a component 
+ * logs its status, the corresponding tm structs are updated before logging
+ * on SD card.
+ */
 class LoggerProxy : public Singleton<LoggerProxy>
 {
     friend class Singleton<LoggerProxy>;
 
 public:
-    struct LowRateData
-    {
-        Vec3 mpu9250_accel;
-    };
 
-    struct HighRateData
-    {
-        float pressure_sample;
-        uint8_t last_fmm_event;
-        uint8_t last_ign_event;
-        uint8_t last_nsc_event;
-    };
+    LoggerProxy() : logger(Logger::instance()) {}
 
-    LoggerProxy() : lr_data(), hr_data(), logger(Logger::instance()) {}
-
+    /* Generic log function, to be implemented for each loggable struct */
     template <typename T>
     inline LogResult log(const T& t)
     {
         return logger.log(t);
     }
 
-    inline LogResult log(const LowRateData& t)
-    {
-        {
-            miosix::PauseKernelLock kLock;
-            lr_data = t;
-        }
-        return logger.log(t);
-    }
-
-    LowRateData getLowRateData() { return lr_data; }
-
-    HighRateData getHighRateData()
-    {
-        return hr_data;
-    }
 
 private:
-    LowRateData lr_data;
-    HighRateData hr_data;
-
-    Logger& logger;
+    Logger& logger; // SD logger
 };
 
 }

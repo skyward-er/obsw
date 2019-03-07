@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
+
 namespace DeathStackBoard
 {
 

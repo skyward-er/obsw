@@ -23,7 +23,6 @@
 #pragma once
 
 #include <Common.h>
-#include <mavlink.h>
 
 #include "TMBuilder.h"
 #include "DeathStack/Events.h"
