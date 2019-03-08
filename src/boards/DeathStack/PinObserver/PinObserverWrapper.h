@@ -48,6 +48,15 @@ public:
     }
 
     /**
+     * @brief Stops the pin observer
+     * 
+     */
+    void stop()
+    {
+        pin_obs.stop();
+    }
+
+    /**
      * @brief Function called by the pinobserver when a launch pin detachment is
      * detected.
      *
