@@ -47,7 +47,21 @@ public:
     bool send(mavlink_message_t& msg);
 
     /* Status getter */
-    MavStatus getStatus() {return channel->getStatus();}
+    MavStatus getStatus() { return channel->getStatus(); }
+
+    /* AO methods */
+    bool start() override 
+    {
+        bool ret = channel->start(); 
+        ret = (ret && FSM::start());
+        return ret;
+    }
+
+    void stop() override 
+    { 
+        channel->stop(); 
+        FSM::stop();
+    }
 
 private:
     Gamma868* device;
