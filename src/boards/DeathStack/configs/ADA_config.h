@@ -24,8 +24,6 @@
 
 namespace DeathStackBoard
 {
-namespace ADA
-{
 // TODO: Change with real values
 
 // State timeouts
@@ -37,5 +35,5 @@ float P_data[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covaria
 float R_data[1] = {10};                                 // Measurement variance  
 float Q_data[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
 float samplingPeriod = 0.01; // In seconds
-}
+
 }

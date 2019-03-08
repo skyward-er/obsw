@@ -29,8 +29,6 @@
 
 namespace DeathStackBoard
 {
-namespace ADA
-{
 
 class ADA : public FSM<ADA>
 {
@@ -109,5 +107,4 @@ private:
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 };
 
-}
 }

@@ -94,7 +94,7 @@ void IgnitionController::stateIdle(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateIdle\n");
-            status.fsm_state = IgnitionControllerState::IDLE;
+            status.fsm_state = IgnitionControllerState::IGN_IDLE;
             logStatus();
 
             ev_ign_offline_handle = sEventBroker->postDelayed(
@@ -187,7 +187,7 @@ void IgnitionController::stateAborted(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateAborted\n");
-            status.fsm_state = IgnitionControllerState::ABORTED;
+            status.fsm_state = IgnitionControllerState::IGN_ABORTED;
             logStatus();
 
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
@@ -247,7 +247,7 @@ void IgnitionController::stateEnd(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("IGNCTRL: Entering stateEnd\n");
-            status.fsm_state = IgnitionControllerState::END;
+            status.fsm_state = IgnitionControllerState::IGN_END;
             logStatus();
             break;
         case EV_EXIT:

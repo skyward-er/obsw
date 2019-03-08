@@ -31,7 +31,7 @@ namespace DeathStackBoard
 
 enum DeploymentCTRLState : uint8_t
 {
-    IDLE = 0,
+    DPL_IDLE = 0,
     CUTTING_DROGUE,
     CUTTING_MAIN,
     OPENING_NC,

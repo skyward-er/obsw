@@ -47,7 +47,7 @@ void DeploymentController::state_idle(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[DPL_CTRL] state_idle ENTRY\n");
-            logStatus(DeploymentCTRLState::IDLE);
+            logStatus(DeploymentCTRLState::DPL_IDLE);
             break;
         case EV_EXIT:
             break;

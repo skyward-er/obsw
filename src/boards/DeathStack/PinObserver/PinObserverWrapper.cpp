@@ -52,6 +52,8 @@ PinObserverWrapper::PinObserverWrapper()
 
 void PinObserverWrapper::callbackLaunchPin(unsigned int p, unsigned char n)
 {
+    UNUSED(p);
+    UNUSED(n);
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FMM);
 
     ++status_pin_launch.num_triggered;
@@ -60,6 +62,8 @@ void PinObserverWrapper::callbackLaunchPin(unsigned int p, unsigned char n)
 
 void PinObserverWrapper::callbackNoseconePin(unsigned int p, unsigned char n)
 {
+    UNUSED(p);
+    UNUSED(n);
     sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FMM);
 
     ++status_pin_nosecone.num_triggered;

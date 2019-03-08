@@ -30,10 +30,10 @@ namespace DeathStackBoard
 
 enum IgnitionControllerState : uint8_t
 {
-    UNKNOWN,
-    IDLE,
-    ABORTED,
-    END
+    IGN_UNKNOWN,
+    IGN_IDLE,
+    IGN_ABORTED,
+    IGN_END
 };
 
 struct __attribute__((packed)) IgnCtrlStatus

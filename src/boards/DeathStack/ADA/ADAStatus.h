@@ -22,10 +22,11 @@
 
 #pragma once
 
+#include <Common.h>
+
 namespace DeathStackBoard
 {
-namespace ADA
-{
+
 // All possible states of the ADA FMM
 enum class ADAState {
     UNDEFINED,
@@ -73,7 +74,4 @@ struct ADACalibrationData {
     float   avg        = 0.0;      // Average pressure
 };
 
-
-
-}
 }
