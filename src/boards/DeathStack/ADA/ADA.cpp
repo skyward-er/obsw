@@ -32,8 +32,6 @@
 
 namespace DeathStackBoard
 {
-namespace ADA
-{
 
 /* --- LIFE CYCLE --- */
 ADA::ADA()
@@ -355,5 +353,4 @@ void ADA::stateEnd(const Event& ev)
     }
 }
 
-}  // namespace FMM
 }  // namespace HomeoneBoard
