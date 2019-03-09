@@ -35,7 +35,7 @@
 #include <DeathStack/Canbus/CanProxy.h>
 #include <DeathStack/PinObserver/PinObserverWrapper.h>
 
-//#include <DeathStack/ADA/ADA.h>
+#include <DeathStack/ADA/ADA.h>
 #include <DeathStack/SensorManager/SensorManager.h>
 #include <DeathStack/TMTCManager/TMTCManager.h>
 //#include <DeathStack/PinObserver/PinObserverWrapper.h>
@@ -62,7 +62,7 @@ public:
     //PinObserverWrapper pinObs;
 
     // FSMs
-    //ADA ada;
+    ADA ada;
     SensorManager sensors;
     TMTCManager tmtc;
     FlightModeManager* fmm;
@@ -87,7 +87,7 @@ public:
         fmm = Singleton<FlightModeManager>::getInstance();
         fmm->start();
         sensors.start();
-        //ada.start();
+        ada.start();
         tmtc.start();
         ign.start();
         dpl.start();
@@ -104,7 +104,7 @@ public:
         /* State Machines */
         fmm->stop();
         sensors.stop();
-        //ada.stop();
+        ada.stop();
         tmtc.stop();
         ign.stop();
         dpl.stop();

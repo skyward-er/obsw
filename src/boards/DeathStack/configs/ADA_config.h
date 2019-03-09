@@ -22,6 +22,7 @@
 
 #pragma once
 #include <kalman/Matrix.hpp>
+
 namespace DeathStackBoard
 {
 // TODO: Change with real values
@@ -31,14 +32,14 @@ static const unsigned int TIMEOUT_MS_CALIBRATION      = 15 * 1000;
 static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
 
 // Kalman parameters
-float P_data[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covariance matrix
-float R_data[1] = {10};                                 // Measurement variance  
-float Q_data[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
-float H_data[3] = {1, 0, 0};
-float samplingPeriod = 0.01; // In seconds
+static const float P_DATA[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covariance matrix
+static const float R_DATA[1] = {10};                                 // Measurement variance  
+static const float Q_DATA[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
+static const float H_DATA[3] = {1, 0, 0};
+static const float SAMPLING_PERIOD = 0.01; // In seconds
 
-Matrix P_init = Matrix{3, 3, P_data};
-Matrix R_init = Matrix{1, 1, R_data};
-Matrix Q_init =  Matrix{3, 3, Q_data};
-Matrix H_init = Matrix{1, 3, H_data};
+static const Matrix P_INIT{3, 3, P_DATA};
+static const Matrix R_INIT{1, 1, R_DATA};
+static const Matrix Q_INIT{3, 3, Q_DATA};
+static const Matrix H_INIT{1, 3, H_DATA};
 }
