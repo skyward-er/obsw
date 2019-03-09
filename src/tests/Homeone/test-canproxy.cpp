@@ -38,10 +38,12 @@ int main()
 
     sEventBroker->start();
 
+    const char *pkt = "TestMSG";
+
     while (1)
     {
+        TRACE("[CAN] Sending \n");
         ledOn();
-        const char *pkt = "TestMSG";
         can->send(CAN_TOPIC_IGNITION, (const uint8_t *)pkt, strlen(pkt));
         //socket.receive(buf, 64);
         Thread::sleep(50);
