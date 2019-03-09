@@ -21,7 +21,7 @@
  */
 
 #pragma once
-
+#include <kalman/Matrix.hpp>
 namespace DeathStackBoard
 {
 // TODO: Change with real values
@@ -34,6 +34,11 @@ static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
 float P_data[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covariance matrix
 float R_data[1] = {10};                                 // Measurement variance  
 float Q_data[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
+float H_data[3] = {1, 0, 0};
 float samplingPeriod = 0.01; // In seconds
 
+Matrix P_init = Matrix{3, 3, P_data};
+Matrix R_init = Matrix{1, 1, R_data};
+Matrix Q_init =  Matrix{3, 3, Q_data};
+Matrix H_init = Matrix{1, 3, H_data};
 }
