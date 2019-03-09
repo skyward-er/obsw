@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Alessio Galluccio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,47 +13,25 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Common.h>
+#include <boards/DeathStack/LogProxy/LogProxy.h>
+#include <boards/DeathStack/Status.h>
 
-#pragma once
+using namespace miosix;
+using namespace DeathStackBoard;
 
-#include <cstdint>
-
-namespace DeathStackBoard
+int main()
 {
+    LoggerProxy* logger = LoggerProxy::getInstance();
 
-
-enum class SensorManagerState : uint8_t
-{
-    IDLE,
-    LOGGING
-};
-
-//Todo: Use bitmap?
-enum Sensor : uint8_t
-{
-    SENSOR_NONE             = 0x0000,
-    SENSOR_MPU9255          = 0x0001,
-    SENSOR_MAX21105         = 0x0002,
-    SENSOR_ADIS             = 0x0004,
-    SENSOR_AD7994           = 0x0008,
-    SENSOR_PRESSURE_DIGITAL = 0x0010
-};
-
-struct SensorManagerStatus
-{
-    uint64_t timestamp;
-    SensorManagerState state;
-
-    // Use the or operator to signal multiple problematic sensors:
-    // Ex: problematic_sensors |= SENSOR_1 | SENSOR_2;
-    uint16_t problematic_sensors = 0x0000;
-};
-
-}  // namespace DeathStackBoard
-
+    while(1)
+    {
+        TRACE("I'm alive bitches!\n");
+    }
+}

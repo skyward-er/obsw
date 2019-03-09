@@ -19,15 +19,154 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #include "LogProxy.h"
 #include "DeathStack/Status.h"
-#include "sensors/MPU9250/MPU9250Data.h"
+#include "DeathStack/ADA/ADAStatus.h"
+#include "DeathStack/DeploymentController/DeploymentData.h"
+#include "DeathStack/FlightModeManager/FMMStatus.h"
+#include "DeathStack/IgnitionController/IgnitionStatus.h"
+#include "DeathStack/PinObserver/PinObserverData.h"
+#include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
+#include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
+#include "DeathStack/SensorManager/SensorManagerData.h"
+
+#include "skyward-boardcore/src/shared/drivers/canbus/CanUtils.h"
+#include "skyward-boardcore/src/shared/drivers/mavlink/MavStatus.h"
 
 using namespace Status;
 
 namespace DeathStackBoard 
 {
+
+template <>
+LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<IgnBoardLoggableStatus>(const IgnBoardLoggableStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<LogStats>(const LogStats& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<KalmanState>(const KalmanState& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<CanStatus>(const CanStatus& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<BatteryTensionData>(const BatteryTensionData& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // TODO aggiornare la status repo
+   
+    return logger.log(t);
+}
 
 template <>
 LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
