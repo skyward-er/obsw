@@ -38,7 +38,7 @@
 #include <DeathStack/ADA/ADA.h>
 #include <DeathStack/SensorManager/SensorManager.h>
 #include <DeathStack/TMTCManager/TMTCManager.h>
-//#include <DeathStack/PinObserver/PinObserverWrapper.h>
+#include <DeathStack/PinObserver/PinObserverWrapper.h>
 #include <DeathStack/FlightModeManager/FlightModeManager.h>
 #include <DeathStack/IgnitionController/IgnitionController.h>
 #include <DeathStack/DeploymentController/Deployment.h>
