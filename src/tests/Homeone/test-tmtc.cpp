@@ -29,6 +29,8 @@ using namespace DeathStackBoard;
 int main()
 {
     TMTCManager* tmtc = new TMTCManager();
+    tmtc->start();
+    sEventBroker->start();
 
     while(1)
     {
@@ -37,6 +39,6 @@ int main()
 
         // Send the message
         bool ok = tmtc->send(pingMsg);
-        Thread::sleep(500);
+        Thread::sleep(5000);
     }
 }

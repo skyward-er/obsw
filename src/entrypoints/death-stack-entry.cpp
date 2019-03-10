@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,27 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Common.h>
+#include <DeathStack/DeathStack.h>
+#include <DeathStack/Status.h>
 
-#pragma once
-#include <kalman/Matrix.hpp>
+using namespace DeathStackBoard;
+using namespace miosix;
 
-namespace DeathStackBoard
+int main()
 {
-// TODO: Change with real values
+    DeathStack board;
+    mavlink_message_t ign_status;
 
-// State timeouts
-static const unsigned int TIMEOUT_MS_CALIBRATION      = 15 * 1000;
-static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
-
-// Kalman parameters
-static const float P_DATA[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covariance matrix
-static const float R_DATA[1] = {10};                                 // Measurement variance  
-static const float Q_DATA[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
-static const float H_DATA[3] = {1, 0, 0};
-static const float SAMPLING_PERIOD = 0.01; // In seconds
-
-static const Matrix P_INIT{3, 3, P_DATA};
-static const Matrix R_INIT{1, 1, R_DATA};
-static const Matrix Q_INIT{3, 3, Q_DATA};
-static const Matrix H_INIT{1, 3, H_DATA};
+    while(1)
+    {
+        TRACE("Alive");
+        board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+        ign_status = Status::getTM(MavTMList::MAV_IGN_CTRL_TM_ID, 1, 1);
+        Thread::sleep(100);
+    }
 }

@@ -34,10 +34,7 @@ namespace DeathStackBoard
 {
 
 /* --- LIFE CYCLE --- */
-ADA::ADA()
-    : FSM(&ADA::stateCalibrating),
-      filter(Matrix{3, 3, P_data}, Matrix{1, 1, R_data}, Matrix{3, 3, Q_data},
-             Matrix{1, 3, (float[]){1, 0, 0}})
+ADA::ADA(): FSM(&ADA::stateCalibrating),filter(P_INIT, R_INIT, Q_INIT, H_INIT)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -51,8 +48,8 @@ ADA::ADA()
 
     // clang-format off
     float Phi_data[9] =
-                {   1,  samplingPeriod, 0.5 * samplingPeriod * samplingPeriod,
-                    0,  1,              samplingPeriod,
+                {   1, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
+                    0,  1,             SAMPLING_PERIOD,
                     0,  0,              1
                 };
     // clang-format on
@@ -182,24 +179,34 @@ void ADA::stateCalibrating(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateCalibrating\n");
             status.state = ADAState::CALIBRATING;
             logger.log(status);
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateCalibrating\n");
             break;
+        }
         case EV_ADA_CALIBRATION_COMPLETE:
+        {
             transition(&ADA::stateIdle);
             break;
+        }
         case EV_TC_SET_DPL_PRESSURE:
+        {
             const DeploymentPressureEvent& dpl_ev =
                 static_cast<const DeploymentPressureEvent&>(ev);
             dpl_target_pressure_v = dpl_ev.dplPressure;
             break;
+        }
         default:
+        {
             TRACE("ADA stateCalibrating: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
@@ -215,28 +222,40 @@ void ADA::stateIdle(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateIdle\n");
             status.state = ADAState::IDLE;
             logger.log(status);
             filter.X(0) = calibrationData.avg;  // Initialize the state with the average
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateIdle\n");
             break;
+        }
         case EV_LIFTOFF:
+        {
             transition(&ADA::stateShadowMode);
             break;
+        }
         case EV_TC_SET_DPL_PRESSURE:
+        {
             const DeploymentPressureEvent& dpl_ev =
                 static_cast<const DeploymentPressureEvent&>(ev);
             dpl_target_pressure_v = dpl_ev.dplPressure;
             break;
+        }
         case EV_TC_RESET_CALIBRATION:
+        {
             transition(&ADA::stateCalibrating);
             break;
+        }
         default:
+        {
             TRACE("ADA stateIdle: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
@@ -253,19 +272,27 @@ void ADA::stateShadowMode(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateShadowMode\n");
             status.state = ADAState::SHADOW_MODE;
             logger.log(status);
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateShadowMode\n");
             break;
+        }
         case EV_TIMEOUT_SHADOW_MODE:
+        {
             transition(&ADA::stateActive);
             break;
+        }
         default:
+        {
             TRACE("ADA stateShadowMode: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
@@ -283,19 +310,27 @@ void ADA::stateActive(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateActive\n");
             status.state = ADAState::ACTIVE;
             logger.log(status);
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateActive\n");
             break;
+        }
         case EV_APOGEE:
+        {
             transition(&ADA::stateFirstDescentPhase);
             break;
+        }
         default:
+        {
             TRACE("ADA stateActive: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
@@ -313,19 +348,27 @@ void ADA::stateFirstDescentPhase(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateFirstDescentPhase\n");
             status.state = ADAState::FIRST_DESCENT_PHASE;
             logger.log(status);
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateFirstDescentPhase\n");
             break;
+        }
         case EV_DPL_ALTITUDE:
+        {
             transition(&ADA::stateEnd);
             break;
+        }
         default:
+        {
             TRACE("ADA stateFirstDescentPhase: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
@@ -340,16 +383,22 @@ void ADA::stateEnd(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
             TRACE("ADA: Entering stateEnd\n");
             status.state = ADAState::END;
             logger.log(status);
             break;
+        }
         case EV_EXIT:
+        {
             TRACE("ADA: Exiting stateEnd\n");
             break;
+        }
         default:
+        {
             TRACE("ADA stateEnd: %d event not handled", ev.sig);
             break;
+        }
     }
 }
 
