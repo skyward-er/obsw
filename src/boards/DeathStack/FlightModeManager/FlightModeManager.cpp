@@ -24,355 +24,622 @@
 #include <events/EventBroker.h>
 
 #include "DeathStack/Events.h"
-#include "DeathStack/configs/FMMConfig.h"
 #include "DeathStack/Topics.h"
+#include "DeathStack/configs/FMMConfig.h"
 
 #include "Debug.h"
 
 namespace DeathStackBoard
 {
 
-FlightModeManager::FlightModeManager() : FSM(&FlightModeManager::stateInit)
+FlightModeManager::FlightModeManager()
+    : HSM(&FlightModeManager::state_initialization),
+      logger(*(LoggerProxy::getInstance()))
 {
-    sEventBroker->subscribe(this, TOPIC_TC);
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_ADA);
-    sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
+    sEventBroker->subscribe(this, TOPIC_TC);
+    sEventBroker->subscribe(this, TOPIC_FMM);
+    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
 }
 
-void FlightModeManager::stateInit(const Event& ev)
+FlightModeManager::~FlightModeManager()
 {
+    // Unsubscribe from all topics
+    sEventBroker->unsubscribe(this);
+}
+
+void FlightModeManager::logState(FMMState current_state)
+{
+    status.timestamp = miosix::getTick();
+    status.state     = current_state;
+
+    logger.log(status);
+}
+
+State FlightModeManager::state_initialization(const Event& e)
+{
+    return transition(&FlightModeManager::state_startup);
+}
+
+State FlightModeManager::state_startup(const Event& ev)
+{
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateInit\n");
-            status.state = FMMState::INIT;
-            logger.log(status);
+        {
+            logState(FMMState::STARTUP);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateInit\n");
+        {
             break;
-
+        }
         case EV_INIT_ERROR:
-            transition(&FlightModeManager::stateError);
+        {
+            retState = transition(&FlightModeManager::state_error);
             break;
+        }
         case EV_INIT_OK:
-            transition(&FlightModeManager::stateDisarmed);
+        {
+            retState = transition(&FlightModeManager::state_online);
             break;
-
+        }
         default:
-            TRACE("FMM stateInit: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateTesting(const Event& ev)
+State FlightModeManager::state_error(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateTesting\n");
-            status.state = FMMState::TESTING;
-            logger.log(status);
+        {
+            logState(FMMState::ERROR);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateTesting\n");
+        {
             break;
-
+        }
         case EV_TC_BOARD_RESET:
-            // TODO: Reboot the board
+        {
+            //Reset the board
+            miosix::reboot();
             break;
-
+        }
         default:
-            TRACE("FMM stateTesting: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateError(const Event& ev)
+State FlightModeManager::state_online(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateError\n");
-            status.state = FMMState::ERROR;
-            logger.log(status);
+        {
+            logState(FMMState::ONLINE);
             break;
+        }
+        case EV_INIT:
+        {
+            retState = transition(&FlightModeManager::state_ADAConfig);
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateError\n");
+        {
             break;
-
+        }
         case EV_TC_BOARD_RESET:
-            // TODO: Reboot the board
+        {
+            //Reset the board
+            miosix::reboot();
             break;
-
-        default:
-            TRACE("FMM stateError: Event %d not handled.\n", ev.sig);
-            break;
-    }
-}
-
-void FlightModeManager::stateDisarmed(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-            TRACE("FMM: Entering stateDisarmed\n");
-            status.state = FMMState::DISARMED;
-            logger.log(status);
-            break;
-        case EV_EXIT:
-            TRACE("FMM: Exiting stateDisarmed\n");
-            break;
-
-        case EV_TC_TEST_MODE:
-            transition(&FlightModeManager::stateTesting);
-            break;
-
-        case EV_IGN_OFFLINE:
+        }
+        // Goto error state if one of these 2 events
         case EV_IGN_ABORTED:
-            transition(&FlightModeManager::stateError);
+        case EV_IGN_OFFLINE:
+        {
+            retState = transition(&FlightModeManager::state_error);
             break;
-
-        case EV_TC_ARM:
-            transition(&FlightModeManager::stateArmed);
+        }
+        case EV_TC_TEST_MODE:
+        {
+            retState = transition(&FlightModeManager::state_testing);
             break;
-
+        }
         default:
-            TRACE("FMM stateDisarmed: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateArmed(const Event& ev)
+State FlightModeManager::state_ADAConfig(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateArmed\n");
-            status.state = FMMState::ARMED;
-            logger.log(status);
-
-            // Notify everyone that we are armed.
-            sEventBroker->post({EV_ARMED}, TOPIC_FLIGHT_EVENTS);
-
-            // Automatically disarm after TIMEOUT_MS_AUTO_DISARM milliseconds.
-            delayed_event_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_ARM}, TOPIC_FMM, TIMEOUT_FMM_AUTO_DISARM);
+        {
+            logState(FMMState::ADA_CONFIG);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateArmed\n");
+        {
+            break;
+        }
+        case EV_ADA_READY:
+        {
+            retState = transition(&FlightModeManager::state_disarmed);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::state_online);
+            break;
+        }
+    }
+    return retState;
+}
 
-            // Remove disarm timeout
+State FlightModeManager::state_disarmed(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            logState(FMMState::DISARMED);
+            break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
+        case EV_EXIT:
+        {
+            break;
+        }
+        case EV_TC_ARM:
+        {
+            retState = transition(&FlightModeManager::state_armed);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::state_online);
+            break;
+        }
+    }
+    return retState;
+}
+
+State FlightModeManager::state_armed(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            logState(FMMState::ARMED);
+
+            sEventBroker->post(Event{EV_ARMED}, TOPIC_FLIGHT_EVENTS);
+            delayed_event_id = sEventBroker->postDelayed(
+                Event{EV_TIMEOUT_ARM}, TOPIC_FMM, TIMEOUT_FMM_AUTO_DISARM);
+            break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
+        case EV_EXIT:
+        {
             sEventBroker->removeDelayed(delayed_event_id);
             break;
-
-        case EV_IGN_OFFLINE:
-        case EV_IGN_ABORTED:
-            transition(&FlightModeManager::stateError);
-            break;
-
+        }
         case EV_TC_DISARM:
         case EV_TIMEOUT_ARM:
-            transition(&FlightModeManager::stateDisarmed);
+        {
+            retState = transition(&FlightModeManager::state_disarmed);
             break;
-
+        }
         case EV_TC_LAUNCH:
-            transition(&FlightModeManager::stateLaunching);
-            break;
+        {
+            //Convert event to EV_LAUNCH
+            LaunchEvent lev = static_cast<const LaunchEvent&>(ev);
+            lev.sig = EV_LAUNCH;
 
-        default:
-            TRACE("FMM stateArmed: Event %d not handled.\n", ev.sig);
+            // Post launch event to the ignition controller
+            sEventBroker->post(lev, TOPIC_IGNITION);
+
+            retState = transition(&FlightModeManager::state_launching);
             break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::state_online);
+            break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateLaunching(const Event& ev)
+State FlightModeManager::state_testing(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateLaunching\n");
-            status.state = FMMState::LAUNCHING;
-            logger.log(status);
+        {
+            logState(FMMState::TESTING);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateLaunching\n");
+        {
             break;
-
-        case EV_UMBILICAL_DETACHED:
-            transition(&FlightModeManager::stateAscending);
+        }
+        case EV_TC_BOARD_RESET:
+        {
+            //Reset the board
+            miosix::reboot();
             break;
+        }
+        case EV_TC_NC_OPEN:
+        {
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_NC_CLOSE:
+        {
+            sEventBroker->post(Event{EV_NC_CLOSE}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_NC_STOP:
+        {
+            sEventBroker->post(Event{EV_NC_STOP}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_CUT_FIRST_DROGUE:
+        {
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_CUT_MAIN:
+        {
+            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
+            break;
+        }
+    }
+    return retState;
+}
 
+State FlightModeManager::state_launching(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            logState(FMMState::LAUNCHING);
+            break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
+        case EV_EXIT:
+        {
+            break;
+        }
         case EV_TC_DISARM:
-            transition(&FlightModeManager::stateDisarmed);
+        {
+            retState = transition(&FlightModeManager::state_disarmed);
             break;
-
+        }
         case EV_IGN_ABORTED:
-            transition(&FlightModeManager::stateError);
+        {
+            retState = transition(&FlightModeManager::state_error);
             break;
+        }
+        case EV_UMBILICAL_DETACHED:
+        {
+            // Notify of LIFTOFF
+            sEventBroker->post(Event{EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
-        default:
-            TRACE("FMM stateLaunching: Event %d not handled.\n", ev.sig);
+            retState = transition(&FlightModeManager::state_flying);
             break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
+            break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateAscending(const Event& ev)
+State FlightModeManager::state_flying(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateAscending\n");
-            status.state = FMMState::ASCENDING;
-            logger.log(status);
-
-            // Notify liftoff
-            sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-
-            // Set apogee timeout
-            delayed_event_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_APOGEE}, TOPIC_FMM, TIMEOUT_FMM_APOGEE_DETECTION);
-
+        {
+            logState(FMMState::FLYING);
             break;
+        }
+        case EV_INIT:
+        {
+            retState = transition(&FlightModeManager::state_ascending);
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateAscending\n");
-
-            // Remove apogee timeout
-            sEventBroker->removeDelayed(delayed_event_id);
+        {
             break;
+        }
+        case EV_TC_NC_OPEN:
+        {
+            // Open nosecone override in case of problems during flight
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
+            break;
+        }
+    }
+    return retState;
+}
 
+State FlightModeManager::state_ascending(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            logState(FMMState::ASCENDING);
+            break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
+        case EV_EXIT:
+        {
+            break;
+        }
         case EV_ADA_APOGEE_DETECTED:
-        case EV_TIMEOUT_APOGEE:
-            transition(&FlightModeManager::stateFirstDescentPhase);
+        {
+            // Notify of apogee
+            sEventBroker->post(Event{EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
+            
+            retState = transition(&FlightModeManager::state_drogueDescent);
             break;
-
+        }
         default:
-            TRACE("FMM stateAscending: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::state_flying);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateFirstDescentPhase(const Event& ev)
+State FlightModeManager::state_drogueDescent(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateFirstDescentPhase\n");
-            status.state = FMMState::FIRST_DESCENT_PHASE;
-            logger.log(status);
+        {
+            //Open nosecone
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
 
-            // Generate apogee event
-            sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
-
-            // Set deployment timeut
-            delayed_event_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_DPL_ALT}, TOPIC_FMM, TIMEOUT_FMM_DPL_ALTITUDE);
+            logState(FMMState::DROGUE_DESCENT);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateFirstDescentPhase\n");
-
-            // Remove dpl timeout
-            sEventBroker->removeDelayed(delayed_event_id);
+        {
             break;
-
+        }
+        case EV_TC_MANUAL_MODE:
+        case EV_TC_ABORT_LAUNCH:
+        {
+            retState = transition(&FlightModeManager::state_manualDescent);
+            break;
+        }
         case EV_ADA_DPL_ALT_DETECTED:
         case EV_TIMEOUT_DPL_ALT:
-            transition(&FlightModeManager::stateSecondDescentPhase);
+        case EV_TC_CUT_FIRST_DROGUE:
+        {
+            retState = transition(&FlightModeManager::state_rogalloDescent);
             break;
-
-        case EV_TC_MANUAL_MODE:
-            transition(&FlightModeManager::stateManualDescent);
-            break;
-
+        }
         default:
-            TRACE("FMM stateFirstDescentPhase: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::state_flying);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateSecondDescentPhase(const Event& ev)
+State FlightModeManager::state_terminalDescent(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateSecondDescentPhase\n");
-            status.state = FMMState::SECOND_DESCENT_PHASE;
-            logger.log(status);
-
-            // Notify deploymnet altitude
-            sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
-
-            // Set landing timeout
-            delayed_event_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_END_MISSION}, TOPIC_FMM, TIMEOUT_FMM_END_MISSION);
+        {
+            logState(FMMState::TERMINAL_DESCENT);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateSecondDescentPhase\n");
-
-            // Remove end mission timeout
-            sEventBroker->removeDelayed(delayed_event_id);
+        {
             break;
-
+        }
+        case EV_TC_CUT_FIRST_DROGUE:
+        {
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_CUT_MAIN:
+        {
+            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
+            break;
+        }
         case EV_TC_END_MISSION:
         case EV_TIMEOUT_END_MISSION:
-            transition(&FlightModeManager::stateLanded);
+        {
+            retState = transition(&FlightModeManager::state_landed);
             break;
-
+        }
         default:
-            TRACE("FMM stateSecondDescentPhase: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::state_flying);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateManualDescent(const Event& ev)
+State FlightModeManager::state_rogalloDescent(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateManualDescent\n");
-            status.state = FMMState::MANUAL_DESCENT;
-            logger.log(status);
+        {
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
 
-            // Set landing timeout
-            delayed_event_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_END_MISSION}, TOPIC_FMM, TIMEOUT_FMM_END_MISSION);
+            logState(FMMState::ROGALLO_DESCENT);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateManualDescent\n");
+        {
             break;
-
-        case EV_TC_END_MISSION:
-        case EV_TIMEOUT_END_MISSION:
-            transition(&FlightModeManager::stateLanded);
-            break;
-
+        }
+        case EV_TC_ABORT_LAUNCH:
+        {
+            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
+        }
         default:
-            TRACE("FMM stateManualDescent: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::state_terminalDescent);
             break;
+        }
     }
+    return retState;
 }
 
-void FlightModeManager::stateLanded(const Event& ev)
+State FlightModeManager::state_manualDescent(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("FMM: Entering stateLanded\n");
-            status.state = FMMState::LANDED;
-            logger.log(status);
-
-            // Notify end of mission
-            sEventBroker->post({EV_LANDED}, TOPIC_FLIGHT_EVENTS);
+        {
+            logState(FMMState::MANUAL_DESCENT);
             break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
-            TRACE("FMM: Exiting stateLanded\n");
+        {
             break;
-
+        }
         default:
-            TRACE("FMM stateLanded: Event %d not handled.\n", ev.sig);
+        {
+            retState = tran_super(&FlightModeManager::state_terminalDescent);
             break;
+        }
     }
+    return retState;
+}
+
+State FlightModeManager::state_landed(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            sEventBroker->post(Event{EV_LANDED}, TOPIC_FLIGHT_EVENTS);
+
+            logState(FMMState::LANDED);    
+
+            // Stop the logger.
+            logger.stop();
+            break;
+        }
+        case EV_INIT:
+        {
+            break;
+        }
+        case EV_EXIT:
+        {
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&FlightModeManager::Hsm_top);
+            break;
+        }
+    }
+    return retState;
 }
 
 }  // namespace DeathStackBoard

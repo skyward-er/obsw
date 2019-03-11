@@ -27,23 +27,27 @@
 
 enum class FMMState : uint8_t
 {
-    UNDEFINED,
-    INIT,
-    TESTING,
+    STARTUP,
     ERROR,
+    ONLINE,
+    ADA_CONFIG,
     DISARMED,
     ARMED,
+    TESTING,
     LAUNCHING,
+    FLYING,
     ASCENDING,
-    FIRST_DESCENT_PHASE,
-    SECOND_DESCENT_PHASE,
+    DROGUE_DESCENT,
+    TERMINAL_DESCENT,
+    ROGALLO_DESCENT,
     MANUAL_DESCENT,
     LANDED
 };
 
 struct FMMStatus
 {
-    FMMState state = FMMState::UNDEFINED;
+    long long timestamp;
+    FMMState state = FMMState::STARTUP;
 };
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H */
