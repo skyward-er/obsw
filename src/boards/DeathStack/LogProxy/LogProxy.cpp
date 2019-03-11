@@ -43,8 +43,10 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
 {
     miosix::PauseKernelLock kLock;
 
-    // TODO aggiornare la status repo
-   
+    // TODO aggiornare pin_last_detection e pin_detection_count
+    tm_repository.hm1_tm.state = t.state;
+
+
     return logger.log(t);
 }
 
@@ -94,6 +96,20 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
     miosix::PauseKernelLock kLock;
 
     // TODO aggiornare la status repo
+    //manca abort_rcv, abort_sent
+
+    tm_repository.ign_ctrl_tm.timestamp = t.timestamp;
+    tm_repository.ign_ctrl_tm.fsm_state = t.fsm_state;
+    tm_repository.ign_ctrl_tm.last_event = t.last_event;
+    tm_repository.ign_ctrl_tm.n_rcv_messagen_rcv_message = t.n_rcv_messages;
+    tm_repository.ign_ctrl_tm.n_sent_messages = t.launch_sent;
+    //tm_repository.ign_ctrl_tm.abort = t.abort_rcv;
+    //tm_repository.ign_ctrl_tm. = t.abort_sent;
+    
+    
+    
+    t.n_sent_messages;
+    t.padding;
    
     return logger.log(t);
 }
