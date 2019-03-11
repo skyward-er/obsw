@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 #include <Common.h>
 
 #include <events/EventBroker.h>
@@ -59,13 +61,13 @@ public:
     LoggerProxy* logger;
     CanManager can_mgr;
     CanProxy can;
-    //PinObserverWrapper pinObs;
+    PinObserverWrapper pinObs;
 
     // FSMs
     ADA ada;
     SensorManager sensors;
     TMTCManager tmtc;
-    FlightModeManager* fmm;
+    FlightModeManager fmm;
     IgnitionController ign;
     DeploymentController dpl;
 
@@ -78,14 +80,22 @@ public:
         TRACE("Init shared components...");
         broker = sEventBroker;
         logger = Singleton<LoggerProxy>::getInstance();
+        
+        try{
+            logger->start();
+        }catch(const std::runtime_error& re)
+        {
+            //TODO: sent to telemetry, send INIT_ERROR, notify via LED.
+        }
+        
+
         broker->start();
-        //pinObs.start();
+        pinObs.start();
         TRACE(" Done\n");
 
         /* State Machines */
         TRACE("Init state machines...");
-        fmm = Singleton<FlightModeManager>::getInstance();
-        fmm->start();
+        fmm.start();
         sensors.start();
         ada.start();
         tmtc.start();
@@ -99,10 +109,10 @@ public:
     ~DeathStack()
     {
         sEventBroker->stop();
-        //pinObs.stop();
+        pinObs.stop();
 
         /* State Machines */
-        fmm->stop();
+        fmm.stop();
         sensors.stop();
         ada.stop();
         tmtc.stop();
