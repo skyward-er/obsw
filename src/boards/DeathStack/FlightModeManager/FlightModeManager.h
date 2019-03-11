@@ -67,6 +67,11 @@ public:
     State state_manualDescent(const Event& ev);
 
     State state_landed(const Event& ev);
+
+    FMMStatus getStatus()
+    {
+        return status;
+    }
 private:
     void logState(FMMState current_state);
 
