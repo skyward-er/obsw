@@ -63,10 +63,6 @@ static void canRcv(CanMsg message, CanProxy* proxy)
  */
 CanProxy::CanProxy(CanManager* c)
 {
-    // Filters
-    c->addHWFilter(CanInterfaces::CAN_TOPIC_IGNITION, 0);
-    c->addHWFilter(CanInterfaces::CAN_TOPIC_NOSECONE, 0);
-
     // Init structure (pins)
     canbus_init_t st = {
         CAN1, miosix::Mode::ALTERNATE, 9, {CAN1_RX0_IRQn, CAN1_RX1_IRQn}};
@@ -74,8 +70,13 @@ CanProxy::CanProxy(CanManager* c)
     // Receiving function
     CanDispatcher rcv_fun = std::bind(&canRcv, _1, this);
 
+    // Bus
     c->addBus<GPIOA_BASE, 11, 12>(st, rcv_fun);
     bus = c->getBus(0);
+
+    // Filters
+    c->addHWFilter(CanInterfaces::CAN_TOPIC_IGNITION, 0);
+    c->addHWFilter(CanInterfaces::CAN_TOPIC_NOSECONE, 0);
 
     TRACE("[CAN] Initialised CAN1 on PA11-12 \n");
 }

@@ -34,7 +34,7 @@ namespace DeathStackBoard
 {
 
 /* --- LIFE CYCLE --- */
-ADA::ADA(): FSM(&ADA::stateCalibrating),filter(P_init, R_init, Q_init, H_init)
+ADA::ADA(): FSM(&ADA::stateCalibrating),filter(P_INIT, R_INIT, Q_INIT, H_INIT)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -48,8 +48,8 @@ ADA::ADA(): FSM(&ADA::stateCalibrating),filter(P_init, R_init, Q_init, H_init)
 
     // clang-format off
     float Phi_data[9] =
-                {   1,  samplingPeriod, 0.5 * samplingPeriod * samplingPeriod,
-                    0,  1,              samplingPeriod,
+                {   1, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
+                    0,  1,             SAMPLING_PERIOD,
                     0,  0,              1
                 };
     // clang-format on
