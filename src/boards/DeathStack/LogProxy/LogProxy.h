@@ -49,6 +49,34 @@ public:
         return logger.log(t);
     }
 
+    /**
+     * Blocking call. May take a long time.
+     *
+     * Call this function to start the logger.
+     * When this function returns, the logger is started, and subsequent calls
+     * to log will actually log the data.
+     *
+     * \throws runtime_error if the log could not be opened
+     * \return log number
+     */
+    int start()
+    {
+        return logger.start();
+    }
+
+     /**
+     * Blocking call. May take a very long time (seconds).
+     *
+     * Call this function to stop the logger.
+     * When this function returns, all log buffers have been flushed to disk,
+     * and it is safe to power down the board without losing log data or
+     * corrupting the filesystem.
+     */
+    void stop()
+    {
+        logger.stop();
+    }
+
 
 private:
     Logger& logger; // SD logger

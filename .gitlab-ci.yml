@@ -15,3 +15,9 @@ build1:
   script:
     - echo "Building r2a-hermes-obsw..."
     - python skyward-boardcore/sbs
+   
+test1:
+  stage: test
+  script: 
+    - echo "Running Linter"
+    - skyward-boardcore/scripts/linter.sh

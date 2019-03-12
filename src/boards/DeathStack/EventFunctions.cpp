@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-02-28 15:04:18.168141
+// Autogen date:    2019-03-11 23:39:05.675432
 
 
 #include "Events.h"
@@ -44,9 +44,12 @@ string getEventString(uint8_t event)
         { EV_ADA_APOGEE_DETECTED, "EV_ADA_APOGEE_DETECTED" },
         { EV_ADA_CALIBRATION_COMPLETE, "EV_ADA_CALIBRATION_COMPLETE" },
         { EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED" },
+        { EV_ADA_READY, "EV_ADA_READY" },
         { EV_APOGEE, "EV_APOGEE" },
         { EV_ARMED, "EV_ARMED" },
+        { EV_CUT_ALL, "EV_CUT_ALL" },
         { EV_CUT_DROGUE, "EV_CUT_DROGUE" },
+        { EV_CUT_MAIN, "EV_CUT_MAIN" },
         { EV_DPL_ALTITUDE, "EV_DPL_ALTITUDE" },
         { EV_GS_OFFLINE, "EV_GS_OFFLINE" },
         { EV_IGN_ABORTED, "EV_IGN_ABORTED" },
@@ -60,11 +63,14 @@ string getEventString(uint8_t event)
         { EV_MOT_MIN_OPEN_TIME, "EV_MOT_MIN_OPEN_TIME" },
         { EV_MOT_OPEN_LIMIT, "EV_MOT_OPEN_LIMIT" },
         { EV_MOT_CLOSE_LIMIT, "EV_MOT_CLOSE_LIMIT" },
+        { EV_NC_CLOSE, "EV_NC_CLOSE" },
         { EV_NC_OPEN, "EV_NC_OPEN" },
         { EV_NC_DETACHED, "EV_NC_DETACHED" },
+        { EV_NC_STOP, "EV_NC_STOP" },
         { EV_NEW_CAN_MSG, "EV_NEW_CAN_MSG" },
         { EV_SEND_HR_TM, "EV_SEND_HR_TM" },
         { EV_SEND_LR_TM, "EV_SEND_LR_TM" },
+        { EV_SEND_POS_TM, "EV_SEND_POS_TM" },
         { EV_TC_ABORT_LAUNCH, "EV_TC_ABORT_LAUNCH" },
         { EV_TC_ARM, "EV_TC_ARM" },
         { EV_TC_SET_DPL_PRESSURE, "EV_TC_SET_DPL_PRESSURE" },

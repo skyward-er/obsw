@@ -41,7 +41,7 @@ static const unsigned int TMTC_MAV_SYSID    = 1;
 static const unsigned int TMTC_MAV_COMPID   = 1;
 
 /* Device name of Gamma module*/
-static const char* RF_DEV_NAME = "/dev/radio";
+static const char RF_DEV_NAME[] = "/dev/radio";
 
 /* Min guaranteed sleep time after a message is sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
