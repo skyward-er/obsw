@@ -21,7 +21,6 @@
  */
 #include <Common.h>
 #include <boards/DeathStack/LogProxy/LogProxy.h>
-#include <boards/DeathStack/Status.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;

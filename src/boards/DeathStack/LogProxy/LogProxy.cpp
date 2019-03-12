@@ -100,21 +100,18 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
 {
     miosix::PauseKernelLock kLock;
 
-    // TODO aggiornare la status repo
-    //manca abort_rcv, abort_sent
-
     tm_repository.ign_ctrl_tm.timestamp = t.timestamp;
     tm_repository.ign_ctrl_tm.fsm_state = t.fsm_state;
     tm_repository.ign_ctrl_tm.last_event = t.last_event;
     tm_repository.ign_ctrl_tm.n_rcv_message= t.n_rcv_messages;
-    tm_repository.ign_ctrl_tm.n_sent_messages = t.launch_sent;
-    //tm_repository.ign_ctrl_tm.abort = t.abort_rcv;
-    //tm_repository.ign_ctrl_tm. = t.abort_sent;
-    
-    
-    
-    t.n_sent_messages;
-    t.padding;
+    tm_repository.ign_ctrl_tm.n_sent_messages = t.n_sent_messages;
+    tm_repository.ign_ctrl_tm.last_event = t.last_event;
+
+    // Bitfield
+    tm_repository.ign_ctrl_tm.cmd_bitfield = 0;
+    tm_repository.ign_ctrl_tm.cmd_bitfield &= t.launch_sent;
+    tm_repository.ign_ctrl_tm.cmd_bitfield &= (t.abort_sent << 1);
+    tm_repository.ign_ctrl_tm.cmd_bitfield &= (t.abort_rcv << 2);
    
     return logger.log(t);
 }
@@ -266,11 +263,11 @@ LogResult LoggerProxy::log<GPSData>(const GPSData& t)
 
 // Sorry but it's much clearer without repeated code
 #define UPDATE_TASK(n) \
-			tm_repository.sm_task##n##_tm.task_##n##_id = t.id; \
-    		tm_repository.sm_task##n##_tm.task_##n##_min_value = t.activationStats.minValue; \
-    		tm_repository.sm_task##n##_tm.task_##n##_max_value = t.activationStats.maxValue; \
-    		tm_repository.sm_task##n##_tm.task_##n##_mean_value = t.activationStats.mean; \
-    		tm_repository.sm_task##n##_tm.task_##n##_stddev = t.activationStats.stdev;
+            tm_repository.sm_task##n##_tm.task_##n##_id = t.id; \
+            tm_repository.sm_task##n##_tm.task_##n##_min_value = t.activationStats.minValue; \
+            tm_repository.sm_task##n##_tm.task_##n##_max_value = t.activationStats.maxValue; \
+            tm_repository.sm_task##n##_tm.task_##n##_mean_value = t.activationStats.mean; \
+            tm_repository.sm_task##n##_tm.task_##n##_stddev = t.activationStats.stdev;
 
 template <>
 LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
@@ -279,23 +276,23 @@ LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
 
     switch (t.id)
     {
-    	case 1:
-    		UPDATE_TASK(1);
-    		break;
-    	case 2:
-    		UPDATE_TASK(2);
-    		break;
-    	case 3:
-    		UPDATE_TASK(4);
-    		break;
-    	case 4:
-    		UPDATE_TASK(4);
-    		break;
-    	case 5:
-    		UPDATE_TASK(5);
-    		break;
-    	default:
-    		break;
+        case 1:
+            UPDATE_TASK(1);
+            break;
+        case 2:
+            UPDATE_TASK(2);
+            break;
+        case 3:
+            UPDATE_TASK(3);
+            break;
+        case 4:
+            UPDATE_TASK(4);
+            break;
+        case 5:
+            UPDATE_TASK(5);
+            break;
+        default:
+            break;
     }
    
     return logger.log(t);
