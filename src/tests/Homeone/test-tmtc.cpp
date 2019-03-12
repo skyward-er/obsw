@@ -39,6 +39,7 @@ int main()
 
         // Send the message
         bool ok = tmtc->send(pingMsg);
+        TRACE("Sending %s\n", ok ? "ok" : "error");
         Thread::sleep(5000);
     }
 }
