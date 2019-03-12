@@ -35,6 +35,8 @@
 #include "skyward-boardcore/src/shared/drivers/mavlink/MavStatus.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
+#include "scheduler/TaskSchedulerData.h"
+#include "drivers/piksi/piksi_data.h"
 
 using namespace Status;
 
@@ -47,7 +49,7 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
     miosix::PauseKernelLock kLock;
 
     // TODO aggiornare pin_last_detection e pin_detection_count
-    tm_repository.hm1_tm.state = t.state;
+    tm_repository.hm1_tm.state = static_cast<uint8_t>(t.state);
 
 
     return logger.log(t);
@@ -104,7 +106,7 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
     tm_repository.ign_ctrl_tm.timestamp = t.timestamp;
     tm_repository.ign_ctrl_tm.fsm_state = t.fsm_state;
     tm_repository.ign_ctrl_tm.last_event = t.last_event;
-    tm_repository.ign_ctrl_tm.n_rcv_messagen_rcv_message = t.n_rcv_messages;
+    tm_repository.ign_ctrl_tm.n_rcv_message= t.n_rcv_messages;
     tm_repository.ign_ctrl_tm.n_sent_messages = t.launch_sent;
     //tm_repository.ign_ctrl_tm.abort = t.abort_rcv;
     //tm_repository.ign_ctrl_tm. = t.abort_sent;
@@ -241,7 +243,7 @@ LogResult LoggerProxy::log<GPSData>(const GPSData& t)
     // GPS_TM
     tm_repository.gps_tm.timestamp = t.timestamp;
     tm_repository.gps_tm.lat = t.latitude;
-    tm_repository.gps_tm.lon = t.logitude;
+    tm_repository.gps_tm.lon = t.longitude;
     tm_repository.gps_tm.altitude = t.height;
     tm_repository.gps_tm.vel_north = t.velocityNorth;
     tm_repository.gps_tm.vel_east = t.velocityEast;
@@ -257,36 +259,7 @@ LogResult LoggerProxy::log<GPSData>(const GPSData& t)
 
     // POS_TM
     tm_repository.pos_tm.lat = t.latitude;
-    tm_repository.pos_tm.lon = t.logitude;
-   
-    return logger.log(t);
-}
-
-template <>
-LogResult LoggerProxy::log<GPSData>(const GPSData& t)
-{
-    miosix::PauseKernelLock kLock;
-
-    // GPS_TM
-    tm_repository.gps_tm.timestamp = t.timestamp;
-    tm_repository.gps_tm.lat = t.latitude;
-    tm_repository.gps_tm.lon = t.logitude;
-    tm_repository.gps_tm.altitude = t.height;
-    tm_repository.gps_tm.vel_north = t.velocityNorth;
-    tm_repository.gps_tm.vel_east = t.velocityEast;
-    tm_repository.gps_tm.vel_down = t.velocityDown;
-    tm_repository.gps_tm.vel_mag = t.speed;
-
-    tm_repository.gps_tm.fix = (uint8_t) t.fix;
-    tm_repository.gps_tm.n_satellites = t.numSatellites;
-
-    // LR_TM
-    tm_repository.lr_tm.gps_alt = t.height;
-    tm_repository.lr_tm.gps_vel_mag = t.speed;
-
-    // POS_TM
-    tm_repository.pos_tm.lat = t.latitude;
-    tm_repository.pos_tm.lon = t.logitude;
+    tm_repository.pos_tm.lon = t.longitude;
    
     return logger.log(t);
 }
@@ -313,7 +286,7 @@ LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
     		UPDATE_TASK(2);
     		break;
     	case 3:
-    		UPDATE_TASK(3);
+    		UPDATE_TASK(4);
     		break;
     	case 4:
     		UPDATE_TASK(4);

@@ -30,6 +30,8 @@ int main()
 {
     LoggerProxy* logger = LoggerProxy::getInstance();
 
+    UNUSED(logger);
+
     while(1)
     {
         TRACE("I'm alive bitches!\n");
