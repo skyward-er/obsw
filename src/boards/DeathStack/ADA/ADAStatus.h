@@ -70,7 +70,7 @@ struct TargetDeploymentPressure
 // Struct of calibration data
 struct ADACalibrationData {
     float   var        = 0.0;      // Sample variance
-    int     n_samples  = 0;        // Number of samples collected
+    unsigned int     n_samples  = 0;        // Number of samples collected
     float   avg        = 0.0;      // Average pressure
 };
 

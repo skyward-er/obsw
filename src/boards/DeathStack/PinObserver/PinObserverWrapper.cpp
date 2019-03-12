@@ -31,19 +31,23 @@ using std::bind;
 
 namespace DeathStackBoard
 {
+
 PinObserverWrapper::PinObserverWrapper()
     : pin_obs(PIN_POLL_INTERVAL), logger(LoggerProxy::getInstance())
 {
-    // Callback function
+    // Used for _1, _2. See std::bind cpp reference
+    using namespace std::placeholders;
+
+    // Callback function: callback_launch(unsigned int, unsigned char)
     PinObserver::PinCallbackFn callback_launch =
-        bind(&PinObserverWrapper::callbackLaunchPin, this);
+        bind(&PinObserverWrapper::callbackLaunchPin, this, _1, _2);
 
     pin_obs.observePin(PORT_LAUNCH_PIN, NUM_LAUNCH_PIN, TRIGGER_LAUNCH_PIN,
                        callback_launch, THRESHOLD_LAUNCH_PIN);
 
-    // Callback function
+    // Callback function: callback_nosecone(unsigned int, unsigned char)
     PinObserver::PinCallbackFn callback_nosecone =
-        bind(&PinObserverWrapper::callbackNoseconePin, this);
+        bind(&PinObserverWrapper::callbackNoseconePin, this, _1, _2);
 
     pin_obs.observePin(PORT_NC_DETACH_PIN, NUM_NC_DETACH_PIN,
                        TRIGGER_NC_DETACH_PIN, callback_nosecone,

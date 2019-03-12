@@ -26,7 +26,7 @@
 
 #include "FMMStatus.h"
 #include "events/Event.h"
-#include "events/FSM.h"
+#include "events/HSM.h"
 #include "DeathStack/LogProxy/LogProxy.h"
 
 #include <miosix.h>
@@ -40,44 +40,46 @@ namespace DeathStackBoard
 /**
  * Implementation of the Flight Mode Manager Finite State Machine
  */
-class FlightModeManager : public FSM<FlightModeManager>,
-                          public Singleton<FlightModeManager>
+class FlightModeManager : public HSM<FlightModeManager>
 {
-    friend class Singleton<FlightModeManager>;
-
 public:
+    FlightModeManager();
+    ~FlightModeManager();
+
+    State state_initialization(const Event& ev);
+
+    State state_startup(const Event& ev);
+    State state_error(const Event& ev);
+
+    State state_online(const Event& ev);
+    State state_ADAConfig(const Event& ev);
+    State state_disarmed(const Event& ev);
+    State state_armed(const Event& ev);
+    State state_testing(const Event& ev);
+
+    State state_launching(const Event& ev);
+    State state_flying(const Event& ev);
+    State state_ascending(const Event& ev);
+    State state_drogueDescent(const Event& ev);
+
+    State state_terminalDescent(const Event& ev);
+    State state_rogalloDescent(const Event& ev);
+    State state_manualDescent(const Event& ev);
+
+    State state_landed(const Event& ev);
+
     FMMStatus getStatus()
     {
-        Lock<FastMutex> lock(mtx_status);
         return status;
     }
-
 private:
-    FlightModeManager();
-    ~FlightModeManager() {}
+    void logState(FMMState current_state);
 
-    // State declarations
-    void stateInit(const Event& ev);
-    void stateTesting(const Event& ev);
-    void stateError(const Event& ev);
-    void stateDisarmed(const Event& ev);
-    void stateArmed(const Event& ev);
-    void stateLaunching(const Event& ev);
-    void stateAscending(const Event& ev);
-    void stateFirstDescentPhase(const Event& ev);
-    void stateSecondDescentPhase(const Event& ev);
-    void stateManualDescent(const Event& ev);
-    void stateLanded(const Event& ev);
+    LoggerProxy& logger;
 
-    // Other methods
-
-    // State variables
-    uint16_t delayed_event_id = 0;
-
-    FastMutex mtx_status;
     FMMStatus status;
 
-    LoggerProxy& logger = *(LoggerProxy::getInstance());
+    uint16_t delayed_event_id;
 };
 
 }  // namespace DeathStackBoard

@@ -1,4 +1,5 @@
-/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,27 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Common.h>
+#include <DeathStack/DeathStack.h>
+#include <DeathStack/TMTCManager/TMBuilder.h>
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
-
-
-using namespace miosix;
 using namespace DeathStackBoard;
+using namespace miosix;
 
 int main()
 {
-    TMTCManager* tmtc = new TMTCManager();
-    tmtc->start();
-    sEventBroker->start();
+    DeathStack board;
+    mavlink_message_t ign_status;
 
     while(1)
     {
-        mavlink_message_t pingMsg;
-        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
-
-        // Send the message
-        bool ok = tmtc->send(pingMsg);
-        TRACE("Sending %s\n", ok ? "ok" : "error");
-        Thread::sleep(5000);
+        TRACE("Alive");
+        board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+        ign_status = TMBuilder::buildTelemetry(MavTMList::MAV_IGN_CTRL_TM_ID);
+        Thread::sleep(100);
     }
 }

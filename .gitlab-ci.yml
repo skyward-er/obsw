@@ -7,36 +7,17 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-before_script:
-  - echo "Before script section"
-  - echo "For example you might run an update here or install a build dependency"
-  - echo "Or perhaps you might print out some debugging details"
-   
-after_script:
-  - echo "After script section"
-  - echo "For example you might do some cleanup here"
    
 build1:
   stage: build
   only:
     - master
   script:
-    - echo "Do your build here"
+    - echo "Building r2a-hermes-obsw..."
     - python skyward-boardcore/sbs
    
 test1:
   stage: test
   script: 
-    - echo "Do a test here"
-    - echo "For example run a test suite"
-   
-test2:
-  stage: test
-  script: 
     - echo "Running Linter"
     - skyward-boardcore/scripts/linter.sh
-   
-deploy1:
-  stage: deploy
-  script:
-    - echo "Do your deploy here"

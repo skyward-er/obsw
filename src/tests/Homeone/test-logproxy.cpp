@@ -21,7 +21,6 @@
  */
 #include <Common.h>
 #include <boards/DeathStack/LogProxy/LogProxy.h>
-#include <boards/DeathStack/Status.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -29,6 +28,8 @@ using namespace DeathStackBoard;
 int main()
 {
     LoggerProxy* logger = LoggerProxy::getInstance();
+
+    UNUSED(logger);
 
     while(1)
     {
