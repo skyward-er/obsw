@@ -22,7 +22,7 @@
  */
 #include <Common.h>
 #include <DeathStack/DeathStack.h>
-#include <DeathStack/Status.h>
+#include <DeathStack/TMTCManager/TMBuilder.h>
 
 using namespace DeathStackBoard;
 using namespace miosix;
@@ -36,7 +36,7 @@ int main()
     {
         TRACE("Alive");
         board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
-        ign_status = Status::getTM(MavTMList::MAV_IGN_CTRL_TM_ID, 1, 1);
+        ign_status = TMBuilder::buildTelemetry(MavTMList::MAV_IGN_CTRL_TM_ID);
         Thread::sleep(100);
     }
 }
