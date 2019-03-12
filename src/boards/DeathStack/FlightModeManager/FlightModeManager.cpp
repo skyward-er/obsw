@@ -56,8 +56,9 @@ void FlightModeManager::logState(FMMState current_state)
     logger.log(status);
 }
 
-State FlightModeManager::state_initialization(const Event& e)
+State FlightModeManager::state_initialization(const Event& ev)
 {
+    (void)ev; // Avoid unused warning
     return transition(&FlightModeManager::state_startup);
 }
 
