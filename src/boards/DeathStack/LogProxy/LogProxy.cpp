@@ -21,6 +21,7 @@
  */
 #include "LogProxy.h"
 #include "DeathStack/Status.h"
+
 #include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
@@ -32,6 +33,8 @@
 
 #include "skyward-boardcore/src/shared/drivers/canbus/CanUtils.h"
 #include "skyward-boardcore/src/shared/drivers/mavlink/MavStatus.h"
+#include "sensors/MPU9250/MPU9250Data.h"
+#include "sensors/ADIS16405/ADIS16405Data.h"
 
 using namespace Status;
 
@@ -180,6 +183,30 @@ LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
     miosix::PauseKernelLock kLock;
 
     // TODO aggiornare la status repo
+
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    tm_repository.adis_tm.timestamp = miosix::getTick();
+
+    tm_repository.adis_tm.acc_x = t.xaccl_out;
+    tm_repository.adis_tm.acc_y = t.yaccl_out;
+    tm_repository.adis_tm.acc_z = t.zaccl_out;
+    tm_repository.adis_tm.gyro_x = t.xgyro_out;
+    tm_repository.adis_tm.gyro_y = t.ygyro_out;
+    tm_repository.adis_tm.gyro_z = t.zgyro_out;
+    tm_repository.adis_tm.compass_x = t.xmagn_out;
+    tm_repository.adis_tm.compass_y = t.ymagn_out;
+    tm_repository.adis_tm.compass_z = t.zmagn_out;
+
+    tm_repository.adis_tm.temp = t.temp_out;
+    tm_repository.adis_tm.supply_out = t.supply_out;
+    tm_repository.adis_tm.aux_adc = t.aux_adc;
    
     return logger.log(t);
 }
@@ -189,11 +216,114 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     miosix::PauseKernelLock kLock;
 
-    // TODO aggiornare la status repo
+    tm_repository.mpu_tm.timestamp = miosix::getTick();
 
     tm_repository.mpu_tm.acc_x = t.accel.getX();
     tm_repository.mpu_tm.acc_y = t.accel.getY();
     tm_repository.mpu_tm.acc_z = t.accel.getZ();
+    tm_repository.mpu_tm.gyro_x = t.gyro.getX();
+    tm_repository.mpu_tm.gyro_y = t.gyro.getY();
+    tm_repository.mpu_tm.gyro_z = t.gyro.getZ();
+    tm_repository.mpu_tm.compass_x = t.compass.getX();
+    tm_repository.mpu_tm.compass_y = t.compass.getY();
+    tm_repository.mpu_tm.compass_z = t.compass.getZ();
+
+    tm_repository.mpu_tm.temp = t.temp;
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<GPSData>(const GPSData& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // GPS_TM
+    tm_repository.gps_tm.timestamp = t.timestamp;
+    tm_repository.gps_tm.lat = t.latitude;
+    tm_repository.gps_tm.lon = t.logitude;
+    tm_repository.gps_tm.altitude = t.height;
+    tm_repository.gps_tm.vel_north = t.velocityNorth;
+    tm_repository.gps_tm.vel_east = t.velocityEast;
+    tm_repository.gps_tm.vel_down = t.velocityDown;
+    tm_repository.gps_tm.vel_mag = t.speed;
+
+    tm_repository.gps_tm.fix = (uint8_t) t.fix;
+    tm_repository.gps_tm.n_satellites = t.numSatellites;
+
+    // LR_TM
+    tm_repository.lr_tm.gps_alt = t.height;
+    tm_repository.lr_tm.gps_vel_mag = t.speed;
+
+    // POS_TM
+    tm_repository.pos_tm.lat = t.latitude;
+    tm_repository.pos_tm.lon = t.logitude;
+   
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerProxy::log<GPSData>(const GPSData& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    // GPS_TM
+    tm_repository.gps_tm.timestamp = t.timestamp;
+    tm_repository.gps_tm.lat = t.latitude;
+    tm_repository.gps_tm.lon = t.logitude;
+    tm_repository.gps_tm.altitude = t.height;
+    tm_repository.gps_tm.vel_north = t.velocityNorth;
+    tm_repository.gps_tm.vel_east = t.velocityEast;
+    tm_repository.gps_tm.vel_down = t.velocityDown;
+    tm_repository.gps_tm.vel_mag = t.speed;
+
+    tm_repository.gps_tm.fix = (uint8_t) t.fix;
+    tm_repository.gps_tm.n_satellites = t.numSatellites;
+
+    // LR_TM
+    tm_repository.lr_tm.gps_alt = t.height;
+    tm_repository.lr_tm.gps_vel_mag = t.speed;
+
+    // POS_TM
+    tm_repository.pos_tm.lat = t.latitude;
+    tm_repository.pos_tm.lon = t.logitude;
+   
+    return logger.log(t);
+}
+
+// Sorry but it's much clearer without repeated code
+#define UPDATE_TASK(n) \
+			tm_repository.sm_task##n##_tm.task_##n##_id = t.id; \
+    		tm_repository.sm_task##n##_tm.task_##n##_min_value = t.activationStats.minValue; \
+    		tm_repository.sm_task##n##_tm.task_##n##_max_value = t.activationStats.maxValue; \
+    		tm_repository.sm_task##n##_tm.task_##n##_mean_value = t.activationStats.mean; \
+    		tm_repository.sm_task##n##_tm.task_##n##_stddev = t.activationStats.stdev;
+
+template <>
+LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    switch (t.id)
+    {
+    	case 1:
+    		UPDATE_TASK(1);
+    		break;
+    	case 2:
+    		UPDATE_TASK(2);
+    		break;
+    	case 3:
+    		UPDATE_TASK(3);
+    		break;
+    	case 4:
+    		UPDATE_TASK(4);
+    		break;
+    	case 5:
+    		UPDATE_TASK(5);
+    		break;
+    	default:
+    		break;
+    }
    
     return logger.log(t);
 }
