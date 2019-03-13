@@ -60,6 +60,7 @@ void PinObserverWrapper::callbackLaunchPin(unsigned int p, unsigned char n)
     UNUSED(n);
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FMM);
 
+    status_pin_launch.last_triggered_time = miosix::getTick();
     ++status_pin_launch.num_triggered;
     logger->log(status_pin_launch);
 }
@@ -70,6 +71,7 @@ void PinObserverWrapper::callbackNoseconePin(unsigned int p, unsigned char n)
     UNUSED(n);
     sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FMM);
 
+    status_pin_nosecone.last_triggered_time = miosix::getTick();
     ++status_pin_nosecone.num_triggered;
     logger->log(status_pin_nosecone);
 }
