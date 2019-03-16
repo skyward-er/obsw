@@ -31,7 +31,7 @@ namespace DeathStackBoard
 using namespace CanInterfaces;
 
 IgnitionController::IgnitionController(CanProxy* canbus)
-    : FSM(&IgnitionController::stateIdle), canbus(canbus) 
+    : FSM(&IgnitionController::stateIdle), canbus(canbus)
 {
     sEventBroker->subscribe(this, TOPIC_IGNITION);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -52,13 +52,11 @@ void IgnitionController::logStatus() {
 
 IgnCtrlStatus IgnitionController::getStatus()
 {
-    miosix::FastInterruptDisableLock dLock;
     return status;
 }
 
 IgnBoardLoggableStatus IgnitionController::getBoardStatus()
 {
-    miosix::FastInterruptDisableLock dLock;
     return loggable_board_status;
 }
 

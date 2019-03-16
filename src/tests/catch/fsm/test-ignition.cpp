@@ -28,34 +28,58 @@
 // We need access to the handleEvent(...) function in state machines in order to
 // test them synchronously
 #define protected public
+#define private public
 
 
 #include <miosix.h>
 #include <catch.hpp>
 
-#include "DeathStack/configs/IgnitionConfig.h"
-#include "DeathStack/IgnitionController/IgnitionController.h"
+#include <boards/DeathStack/configs/IgnitionConfig.h>
+#include <boards/DeathStack/IgnitionController/IgnitionController.h>
 #include "state_machine_test_helper.h"
-#include "DeathStack/Events.h
-#include "DeathStack/EventClasses.h"
-#include "CanInterfaces.h"
+#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/EventClasses.h>
+#include <boards/CanInterfaces.h>
 
 using miosix::Thread;
 using namespace DeathStackBoard;
+using namespace CanInterfaces;
 
-TEST_CASE("Testing IDLE transitions")
+class IgnitionTestFicture {
+    public:
+      IgnitionTestFicture() {
+              can_mgr= new CanManager(CAN1);
+              can = new CanProxy(can_mgr);
+              ign = new IgnitionController(can);
+      }
+      ~IgnitionTestFicture(){
+              sEventBroker->unsubscribe(ign);
+              delete ign;
+              delete can;
+              delete can_mgr;
+      }
+    protected:
+      CanProxy* can;
+      CanManager* can_mgr;
+      IgnitionController* ign;
+
+};
+
+TEST_CASE_METHOD(IgnitionTestFicture, "Testing IDLE transitions")
 {
-    IgnitionController ign;
+    //printf("Sta compilando\n");
 
     SECTION("IDLE -> END")
     {
-        REQUIRE(testFSMTransition(ign, Event{EV_LIFTOFF}, &IgnitionController::stateIdle));
+        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF}, &IgnitionController::stateIdle));
     }
 
     SECTION("IDLE -> ABORT")
     {
       CanbusEvent ce;
 
+// In order to test the transition from idle to abort, the three abort cases must be
+// analyzed separately.
 
       SECTION("STM32 ABORTED CMD")
       {
@@ -63,27 +87,40 @@ TEST_CASE("Testing IDLE transitions")
         ibs.stm32_abortCmd=1;
         memcpy(ce.payload, &ibs, sizeof(ibs));
         ce.len=sizeof(ibs);
-        REQUIRE(testFSMTransition(ign, ce, &IgnitionController::stateAborted));
+        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
       }
 
       SECTION("STM32 ABORTED TIMEOUT")
       {
         IgnitionBoardStatus ibs;
-        ibs.stm32_abort=1;
+        ibs.stm32_abortTimeout=1;
+        memcpy(ce.payload, &ibs, sizeof(ibs));
+        ce.len=sizeof(ibs);
+        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+
       }
 
       SECTION("STM32 ABORTED WRONG CODE")
       {
         IgnitionBoardStatus ibs;
-        ibs.stm32_abortCmd=1;
+        ibs.stm32_abortWrongCode=1;
+        memcpy(ce.payload, &ibs, sizeof(ibs));
+        ce.len=sizeof(ibs);
+        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
       }
 
-      SECTION("AVR ABORTED")
-      {
-        IgnitionBoardStatus ibs;
-      }
 
-      ce.cantopic=0;
-      ce.
-      REQUIRE(testFSMTransition(ign, Event{EV_LIFTOFF}, &IgnitionControler::stateIdle));
+
+
     }
+
+  /* TEST_CASE("Testing IDLE functions")
+    {
+        IgnitionController ign;
+
+        SECTION("GET STATUS")
+        {
+
+        }
+        */
+      }
