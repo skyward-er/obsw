@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include <math/Stats.h>
 
 namespace DeathStackBoard
 {
