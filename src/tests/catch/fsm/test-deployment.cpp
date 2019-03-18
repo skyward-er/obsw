@@ -22,7 +22,7 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch1-tests-entry.cpp"
+#include "catch/catch-tests-entry.cpp"
 #endif
 
 // We need access to the handleEvent(...) function in state machines in order to
@@ -30,11 +30,11 @@
 #define protected public
 
 #include <miosix.h>
-#include <catch.hpp>
+#include <utils/catch.hpp>
 
 #include "DeathStack/DeploymentController/Deployment.h"
 #include "PinObserver.h"
-#include "state_machine_test_helper.h"
+#include "utils/SMTestHelper.h"
 #include "DeathStack/Events.h"
 
 using miosix::Thread;
