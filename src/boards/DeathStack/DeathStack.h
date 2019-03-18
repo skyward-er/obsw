@@ -74,7 +74,7 @@ public:
     /**
      * Initialize Everything
      */
-    DeathStack() : can_mgr(CAN1), can(&can_mgr), ign(&can)
+    DeathStack() : can_mgr(CAN1), can(&can_mgr), ign(&can), ada(), sensors(&ada)
     {
         /* Shared components */
         TRACE("Init shared components...");
@@ -130,7 +130,6 @@ public:
 
     inline Status::tm_repo_t getStatus()
     {
-        miosix::PauseKernelLock kLock;
         return Status::tm_repository;
     }
 };

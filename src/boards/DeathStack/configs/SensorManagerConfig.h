@@ -33,7 +33,7 @@ namespace DeathStackBoard
 {
 
 // I2C 1
-typedef ProtocolI2C<miosix::I2C1Driver> busI2C1;
+typedef ProtocolI2C<miosix::I2C1Driver> BusI2C1;
 
 // SPI1
 typedef BusSPI<1, miosix::interfaces::spi1::mosi,
@@ -48,7 +48,9 @@ typedef ProtocolSPI<busSPI1, miosix::sensors::adis16405::cs> spiADIS16405;
 typedef miosix::sensors::ad7994::ab ad7994_busy_pin;
 typedef miosix::sensors::ad7994::nconvst ad7994_nconvst;
 
-static constexpr uint8_t AD7994_I2C_ADDRESS = 0x24;  // Todo: Update with real value
+static constexpr uint8_t AD7994_I2C_ADDRESS = 0x22 << 1;
+static constexpr uint8_t AD7994_BARO_1_CHANNEL = 1;
+static constexpr uint8_t AD7994_BARO_2_CHANNEL = 3;
 
 static constexpr uint8_t INTERNAL_ADC_NUM = 3;
 static constexpr uint8_t ADC_CURRENT_SENSE_1_CHANNEL = 6;
