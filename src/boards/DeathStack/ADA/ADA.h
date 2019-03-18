@@ -72,7 +72,8 @@ private:
     {
         status.timestamp = miosix::getTick();
         status.state = state;
-        logStatus();
+        
+        logger.log(status);
     }
     
     void setTargetDPLPressure(uint16_t pressure_volts)
