@@ -90,6 +90,10 @@ void ADA::update(float pressure)
             float S   = S_1 + (pressure - old_avg)*(pressure - calibrationData.avg);
             calibrationData.var = S/calibrationData.n_samples;
 
+
+            // Log calibration data
+            logger.log(calibrationData);
+
             if (calibrationData.n_samples >= CALIBRATION_N_SAMPLES) {
                 sEventBroker->post({EV_ADA_CALIBRATION_COMPLETE}, TOPIC_ADA);
             }
@@ -110,9 +114,9 @@ void ADA::update(float pressure)
             // positive
             if (filter.X(1) > 0)
             {
-                status.last_apogee.state = status.state;
-                status.last_apogee.tick = miosix::getTick();
-                logStatus();
+                ApogeeDetected apogee{status.state, miosix::getTick()};
+                
+                logger.log(apogee);
             }
             break;
         }
@@ -126,9 +130,10 @@ void ADA::update(float pressure)
             if (filter.X(1) > 0)
             {
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
-                status.last_apogee.state = status.state;
-                status.last_apogee.tick = miosix::getTick();
-                logStatus();
+
+                ApogeeDetected apogee{status.state, miosix::getTick()};
+                
+                logger.log(apogee);
             }
             break;
         }
@@ -141,8 +146,9 @@ void ADA::update(float pressure)
             if (filter.X(0) >= dpl_target_pressure_v)
             {
                 sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_ADA);
-                status.last_dpl_pressure_tick = miosix::getTick();
-                logStatus();
+
+                DplPressureReached dpl_press{miosix::getTick()};
+                logger.log(dpl_press);
             }
             break;
         }
