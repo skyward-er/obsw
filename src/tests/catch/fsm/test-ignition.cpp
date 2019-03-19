@@ -30,97 +30,233 @@
 #define protected public
 #define private public
 
-
 #include <miosix.h>
 #include <catch.hpp>
 
-#include <boards/DeathStack/configs/IgnitionConfig.h>
-#include <boards/DeathStack/IgnitionController/IgnitionController.h>
-#include "state_machine_test_helper.h"
-#include <boards/DeathStack/Events.h>
-#include <boards/DeathStack/EventClasses.h>
 #include <boards/CanInterfaces.h>
+#include <boards/DeathStack/EventClasses.h>
+#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/IgnitionController/IgnitionController.h>
+#include <boards/DeathStack/configs/IgnitionConfig.h>
+#include "state_machine_test_helper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
 using namespace CanInterfaces;
 
-class IgnitionTestFicture {
-    public:
-      IgnitionTestFicture() {
-              can_mgr= new CanManager(CAN1);
-              can = new CanProxy(can_mgr);
-              ign = new IgnitionController(can);
-      }
-      ~IgnitionTestFicture(){
-              sEventBroker->unsubscribe(ign);
-              delete ign;
-              delete can;
-              delete can_mgr;
-      }
-    protected:
-      CanProxy* can;
-      CanManager* can_mgr;
-      IgnitionController* ign;
+class IgnitionTestFixture
+{
+public:
+    IgnitionTestFixture()
+    {
+        can_mgr = new CanManager(CAN1);
+        can     = new CanProxy(can_mgr);
+        ign     = new IgnitionController(can);
+    }
+    ~IgnitionTestFixture()
+    {
+        sEventBroker->unsubscribe(ign);
+        sEventBroker->clearDelayedEvents();
+        delete ign;
+        delete can;
+        delete can_mgr;
+    }
 
+protected:
+    CanProxy* can;
+    CanManager* can_mgr;
+    IgnitionController* ign;
 };
 
-TEST_CASE_METHOD(IgnitionTestFicture, "Testing IDLE transitions")
+TEST_CASE_METHOD(IgnitionTestFixture, "Testing IDLE transitions")
 {
-    //printf("Sta compilando\n");
 
     SECTION("IDLE -> END")
     {
-        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF}, &IgnitionController::stateIdle));
+        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+                                  &IgnitionController::stateEnd));
     }
 
     SECTION("IDLE -> ABORT")
     {
-      CanbusEvent ce;
+        CanbusEvent ce;
+        ce.canTopic = CanInterfaces::CAN_TOPIC_IGNITION;
+        ce.sig      = EV_NEW_CAN_MSG;
 
-// In order to test the transition from idle to abort, the three abort cases must be
-// analyzed separately.
+        // In order to test the transition from idle to abort, the three abort
+        // cases must be analyzed separately (for each processor).
 
-      SECTION("STM32 ABORTED CMD")
-      {
-        IgnitionBoardStatus ibs;
-        ibs.stm32_abortCmd=1;
-        memcpy(ce.payload, &ibs, sizeof(ibs));
-        ce.len=sizeof(ibs);
-        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
-      }
+        SECTION("STM32 ABORTED CMD")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.stm32_abortCmd = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
 
-      SECTION("STM32 ABORTED TIMEOUT")
-      {
-        IgnitionBoardStatus ibs;
-        ibs.stm32_abortTimeout=1;
-        memcpy(ce.payload, &ibs, sizeof(ibs));
-        ce.len=sizeof(ibs);
-        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        SECTION("STM32 ABORTED TIMEOUT")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.stm32_abortTimeout = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
 
-      }
+        SECTION("STM32 ABORTED WRONG CODE")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.stm32_abortWrongCode = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
 
-      SECTION("STM32 ABORTED WRONG CODE")
-      {
-        IgnitionBoardStatus ibs;
-        ibs.stm32_abortWrongCode=1;
-        memcpy(ce.payload, &ibs, sizeof(ibs));
-        ce.len=sizeof(ibs);
-        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
-      }
+        SECTION("AVR ABORTED CMD")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.avr_abortCmd = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
 
+        SECTION("AVR ABORTED TIMEOUT")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.avr_abortTimeout = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
 
+        SECTION("AVR ABORTED WRONG CODE")
+        {
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            ibs.avr_abortWrongCode = 1;
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+        }
+    }
+}
 
+class IgnitionTestFixture2
+{
+public:
+    IgnitionTestFixture2()
+    {
+        sEventBroker->start();
+        can_mgr = new CanManager(CAN1);
+        can     = new CanProxy(can_mgr);
+        ign     = new IgnitionController(can);
+        ign->start();
+    }
+    ~IgnitionTestFixture2()
+    {
+        ign->stop();
+        sEventBroker->unsubscribe(ign);
+        sEventBroker->clearDelayedEvents();
+        delete ign;
+        delete can;
+        delete can_mgr;
+    }
+
+protected:
+    CanProxy* can;
+    CanManager* can_mgr;
+    IgnitionController* ign;
+};
+
+TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
+{
+    SECTION("IGNITION OFFLINE")
+    {
+        SECTION("IGNITION OFFLINE 1")  // Wait for EV_IGN_OFFLINE when we do not
+                                       // post any ign status
+        {
+            EventCounter counter{*sEventBroker};
+            counter.subscribe(TOPIC_FLIGHT_EVENTS);
+
+            Thread::sleep(TIMEOUT_IGN_OFFLINE - 5);
+
+            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 0);
+
+            Thread::sleep(5500);
+
+            REQUIRE(ign->testState(&IgnitionController::stateIdle));
+
+            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 1);
+
+        }
+
+        SECTION("IGNITION OFFLINE 2")  // Wait for EV_IGN_OFFLINE after we post a NEW_CAN_MSG
+        {
+            TRACE("Beginning of section\n");
+
+            EventCounter counter{*sEventBroker};
+            counter.subscribe(TOPIC_FLIGHT_EVENTS);
+
+            // Sending ign status
+            CanbusEvent ce;
+            ce.canTopic = CanInterfaces::CAN_TOPIC_IGNITION;
+            ce.sig      = EV_NEW_CAN_MSG;
+
+            IgnitionBoardStatus ibs;
+            memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+            memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+            ce.len = sizeof(IgnitionBoardStatus);
+
+            Thread::sleep(TIMEOUT_IGN_OFFLINE/2);
+
+            REQUIRE(
+                testFSMTransition(*ign, ce, &IgnitionController::stateIdle));
+        
+
+            Thread::sleep(TIMEOUT_IGN_OFFLINE/2+5);
+
+            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 0);
+
+            Thread::sleep(TIMEOUT_IGN_OFFLINE-10);
+
+            REQUIRE(ign->testState(&IgnitionController::stateIdle));
+            
+            Thread::sleep(10);
+
+            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 1);
+
+        }
 
     }
 
-  /* TEST_CASE("Testing IDLE functions")
-    {
-        IgnitionController ign;
+    SECTION("TESTING GET STATUS"){
+            EventCounter counter{*sEventBroker};
+            counter.subscribe(TOPIC_IGNITION);
 
-        SECTION("GET STATUS")
-        {
+            Thread::sleep(INTERVAL_IGN_GET_STATUS-10);
 
-        }
-        */
-      }
+            int count = counter.getCount(EV_IGN_GETSTATUS);
+
+            Thread::sleep(10);
+
+            REQUIRE(counter.getCount(EV_IGN_GETSTATUS) == count+1);
+
+            Thread::sleep(INTERVAL_IGN_GET_STATUS);
+
+            REQUIRE(counter.getCount(EV_IGN_GETSTATUS) == count+2);
+
+    }
+}
