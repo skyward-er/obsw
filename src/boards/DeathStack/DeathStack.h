@@ -28,22 +28,24 @@
 #include <Common.h>
 
 #include <events/EventBroker.h>
-#include <boards/CanInterfaces.h>
-#include <DeathStack/Events.h>
-#include <DeathStack/Topics.h>
-#include <DeathStack/Status.h>
 
-#include <DeathStack/LogProxy/LogProxy.h>
-#include <DeathStack/Canbus/CanProxy.h>
-#include <DeathStack/PinObserver/PinObserverWrapper.h>
+#include "DeathStack/Events.h"
+#include "DeathStack/Status.h"
+#include "DeathStack/Topics.h"
+#include "DeathStackStatus.h"
+#include "boards/CanInterfaces.h"
 
-#include <DeathStack/ADA/ADA.h>
-#include <DeathStack/SensorManager/SensorManager.h>
-#include <DeathStack/TMTCManager/TMTCManager.h>
-#include <DeathStack/PinObserver/PinObserverWrapper.h>
-#include <DeathStack/FlightModeManager/FlightModeManager.h>
-#include <DeathStack/IgnitionController/IgnitionController.h>
-#include <DeathStack/DeploymentController/Deployment.h>
+#include "DeathStack/Canbus/CanProxy.h"
+#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/PinObserver/PinObserverWrapper.h"
+
+#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/DeploymentController/Deployment.h"
+#include "DeathStack/FlightModeManager/FlightModeManager.h"
+#include "DeathStack/IgnitionController/IgnitionController.h"
+#include "DeathStack/PinObserver/PinObserverWrapper.h"
+#include "DeathStack/SensorManager/SensorManager.h"
+#include "DeathStack/TMTCManager/TMTCManager.h"
 
 namespace DeathStackBoard
 {
@@ -74,33 +76,68 @@ public:
     /**
      * Initialize Everything
      */
-    DeathStack() : can_mgr(CAN1), can(&can_mgr), ign(&can), ada(), sensors(&ada)
+    DeathStack() : can_mgr(CAN1), can(&can_mgr), ada(), sensors(&ada), ign(&can)
     {
         /* Shared components */
         TRACE("Init shared components...");
         broker = sEventBroker;
         logger = Singleton<LoggerProxy>::getInstance();
-        
-        try{
-            logger->start();
-        }catch(const std::runtime_error& re)
-        {
-            //TODO: sent to telemetry, send INIT_ERROR, notify via LED.
-        }
-        
 
-        broker->start();
-        pinObs.start();
+        try
+        {
+            logger->start();
+        }
+        catch (const std::runtime_error& re)
+        {
+            status.setError(&DeathStackStatus::logger);
+        }
+
+        if (!broker->start())
+        {
+            status.setError(&DeathStackStatus::ev_broker);
+        }
+
+        if (!pinObs.start())
+        {
+            status.setError(&DeathStackStatus::pin_obs);
+        }
         TRACE(" Done\n");
 
         /* State Machines */
         TRACE("Init state machines...");
-        fmm.start();
-        sensors.start();
-        ada.start();
-        tmtc.start();
-        ign.start();
-        dpl.start();
+        if (!fmm.start())
+        {
+        }
+        if (!sensors.start())
+        {
+            status.setError(&DeathStackStatus::sensor_manager);
+        }
+        if (!ada.start())
+        {
+            status.setError(&DeathStackStatus::ada);
+        }
+        if (!tmtc.start())
+        {
+            status.setError(&DeathStackStatus::tmtc);
+        }
+        if (!ign.start())
+        {
+            status.setError(&DeathStackStatus::ign);
+        }
+        if (!dpl.start())
+        {
+            status.setError(&DeathStackStatus::dpl);
+        }
+
+        logger->log(status);
+
+        // If there was an error, signal it to the FMM and light a LED.
+        if (status.death_stack != COMP_OK)
+        {
+            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+            // TODO: Signal error led
+        }
+
         TRACE(" Done\n");
 
         TRACE("Init finished\n");
@@ -122,16 +159,13 @@ public:
 
     /**
      * Helpers for debugging purposes
-     */ 
-    inline void postEvent(Event ev, uint8_t topic) 
-    {
-        broker->post(ev, topic);
-    }
+     */
+    inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
 
-    inline Status::tm_repo_t getStatus()
-    {
-        return Status::tm_repository;
-    }
+    inline Status::tm_repo_t getStatus() { return Status::tm_repository; }
+
+private:
+    DeathStackStatus status;
 };
 
 } /* namespace DeathStackBoard */
