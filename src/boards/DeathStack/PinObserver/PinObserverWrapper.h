@@ -42,9 +42,9 @@ public:
      * @brief Starts the pin observer
      * 
      */
-    void start()
+    bool start()
     {
-        pin_obs.start();
+        return pin_obs.start();
     }
 
     /**
