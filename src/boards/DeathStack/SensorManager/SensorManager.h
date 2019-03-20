@@ -25,23 +25,21 @@
 #include <vector>
 #include "Common.h"
 
-#include "scheduler/TaskScheduler.h"
+#include <math/Stats.h>
+#include <sensors/SensorSampling.h>
+#include <scheduler/TaskScheduler.h>
 
 #include "DeathStack/LogProxy/LogProxy.h"
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
-#include "sensors/SensorSampling.h"
 
 #include "SensorManagerData.h"
+#include "DeathStack/ADA/ADA.h"
 
 using miosix::PauseKernelLock;
 using std::vector;
 
 // Forward declarations
-class TestSensor;
-
-template <typename BusI2C, typename BusyPin, typename CONVST>
-class AD7994Wrapper;
 
 template <typename BusSPI>
 class MPU9250;
@@ -57,9 +55,9 @@ class ADIS16405;
 namespace DeathStackBoard
 {
 class ADCWrapper;
+class AD7994Wrapper;
 
 // Type definitions
-typedef AD7994Wrapper<busI2C1, ad7994_busy_pin, ad7994_nconvst> AD7994Type;
 typedef MPU9250<spiMPU9250> MPU9250Type;
 typedef ADIS16405<spiADIS16405> ADIS16405Type;
 
@@ -84,18 +82,16 @@ public:
         ID_STATS
     };
 
-    SensorManager();
-    ~SensorManager(){};
+    SensorManager(ADA* ada);
+    ~SensorManager();
 
     vector<TaskStatResult> getSchedulerStats()
     {
-        PauseKernelLock l;  // Prevent any context-switch.
         return scheduler_stats;
     }
 
     SensorManagerStatus getStatus()
     {
-        PauseKernelLock l;  // Prevent any context-switch.
         return status;
     }
 
@@ -135,7 +131,7 @@ private:
      */
 
     /**
-     * @brief Simple, 20 Hz SensorSampler Callback.
+     * @brief Simple, 1 Hz SensorSampler Callback.
      * Called each time all the sensors in the 1hz sampler have been sampled (so
      * 1 times per second)
      */
@@ -167,11 +163,13 @@ private:
     DMASensorSampler sampler_250hz_dma;
 
     // Sensors
-    TestSensor* sensor_test;  // TODO: Remove test sensor
-    AD7994Type* adc_ad7994;
+    AD7994Wrapper* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
     ADCWrapper* adc_internal;
+
+    //ADA
+    ADA* ada;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;

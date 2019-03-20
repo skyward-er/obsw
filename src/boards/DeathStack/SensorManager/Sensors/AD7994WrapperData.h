@@ -27,17 +27,14 @@
 
 struct AD7994WrapperData
 {
-    uint32_t timestamp;
+    long long timestamp;
     
-    uint16_t ch1_volt;
-    uint16_t ch2_volt;
+    uint16_t baro_1_volt;
+    uint16_t baro_2_volt;
 
-    float ch1_pressure;
-    float ch2_pressure;
+    float baro_1_pressure;
+    float baro_2_pressure;
 
-    float ch1_mean;
-    float ch1_stddev;
-
-    bool ch1_flag;
-    bool ch2_flag;
+    bool baro_1_flag;
+    bool baro_2_flag;
 };

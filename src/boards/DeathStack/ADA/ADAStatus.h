@@ -44,15 +44,16 @@ struct ApogeeDetected {
     long long tick;
 };
 
+// Struct to log deployment pressure detection
+struct DplPressureReached {
+    long long tick;
+};
+
 // Struct to log current state
 struct ADAStatus
 {
     long long timestamp;
     ADAState state = ADAState::UNDEFINED;
-
-    ApogeeDetected last_apogee;
-
-    long long last_dpl_pressure_tick;
 };
 
 struct KalmanState

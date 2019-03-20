@@ -32,7 +32,7 @@ namespace DeathStackBoard
 {
 typedef ::SensorADC<INTERNAL_ADC_NUM> adc_t;
 /**
- * ADC wrapper to abstract reading of battery tension & current sense on
+ * ADC wrapper to abstract reading of battery voltage & current sense on
  * the R2A Hermes rocket.
  *
  * @tparam ADC_n
@@ -108,28 +108,28 @@ public:
          */
         bool onSimpleUpdate() override
         {
-            uint16_t battery_t =
+            uint16_t battery_volt =
                 parent.adc.convertChannel(BATTERY_VOLT_CHANNEL);
 
-            if (battery_t < battery_data.battery_tension_min)
+            if (battery_volt < battery_data.battery_voltage_min)
             {
-                battery_data.battery_tension_min = battery_t;
+                battery_data.battery_voltage_min = battery_volt;
             }
-            battery_data.battery_tension_value = battery_t;
+            battery_data.battery_voltage_value = battery_volt;
 
             return true;
         }
         /**
          * @brief Returns the pointer to the result of the last conversion.
          */
-        BatteryTensionData* getBatteryDataPtr() { return &battery_data; }
+        BatteryVoltageData* getBatteryDataPtr() { return &battery_data; }
 
     private:
         const adc_t::Channel BATTERY_VOLT_CHANNEL =
             static_cast<adc_t::Channel>(ADC_BATTERY_VOLTAGE_CHANNEL);
         ADCWrapper& parent;
 
-        BatteryTensionData battery_data;
+        BatteryVoltageData battery_data;
     };
 
     BatterySensor* getBatterySensorPtr() { return &battery_sensor; }

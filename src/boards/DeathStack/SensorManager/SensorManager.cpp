@@ -27,11 +27,11 @@
 #include "TestSensor.h"
 #include "events/EventBroker.h"
 
+#include <math/Stats.h>
+
 #include "Sensors/AD7994Wrapper.h"
 #include "Sensors/ADCWrapper.h"
-
 #include "sensors/ADIS16405/ADIS16405.h"
-
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 
@@ -43,10 +43,9 @@ using miosix::Lock;
 namespace DeathStackBoard
 {
 
-SensorManager::SensorManager()
-    : FSM(&SensorManager::stateIdle), 
-    scheduler(2048, miosix::PRIORITY_MAX - 1), 
-    logger(*LoggerProxy::getInstance())
+SensorManager::SensorManager(ADA* ada)
+    : FSM(&SensorManager::stateIdle), scheduler(4096, miosix::PRIORITY_MAX - 1),
+      logger(*LoggerProxy::getInstance()), ada(ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
@@ -57,11 +56,15 @@ SensorManager::SensorManager()
     scheduler.start();
 }
 
+SensorManager::~SensorManager()
+{
+    sEventBroker->unsubscribe(this);
+    scheduler.stop();
+}
+
 void SensorManager::initSensors()
 {
-    sensor_test = new TestSensor();  // TODO: Remove this
-
-    adc_ad7994 = new AD7994Type(AD7994_I2C_ADDRESS);
+    adc_ad7994 = new AD7994Wrapper(AD7994_I2C_ADDRESS);
 
     imu_mpu9250 =
         new MPU9250Type(0, 0);  // TODO: Update with correct parameters
@@ -74,19 +77,19 @@ void SensorManager::initSensors()
     imu_adis16405->init();
 
     adc_internal = new ADCWrapper();
+
+    // TODO: Self tests
 }
 
 void SensorManager::initSamplers()
 {
-    sampler_20hz_simple.AddSensor(sensor_test);
+    sampler_1hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
+
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
 
-    sampler_1hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
-
-    /*sampler_250hz_dma.AddSensor(imu_max21105);
     sampler_250hz_dma.AddSensor(imu_mpu9250);
-    sampler_250hz_dma.AddSensor(imu_adis16405);*/
+    sampler_250hz_dma.AddSensor(imu_adis16405);
 }
 
 void SensorManager::stateIdle(const Event& ev)
@@ -145,6 +148,7 @@ void SensorManager::startSampling()
      * std::bind syntax:
      * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
      */
+
     // Simple 1 Hz Sampler callback and scheduler function
     std::function<void()> simple_1hz_callback =
         std::bind(&SensorManager::onSimple1HZCallback, this);
@@ -161,7 +165,8 @@ void SensorManager::startSampling()
         std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
                   simple_20hz_callback);
 
-    scheduler.add(simple_20hz_sampler, 250, ID_SIMPLE_20HZ);  // TODO: back to 50 ms
+    scheduler.add(simple_20hz_sampler, 250,
+                  ID_SIMPLE_20HZ);  // TODO: back to 50 ms
 
     // DMA 250 Hz Sampler callback and scheduler function
     std::function<void()> dma_250hz_callback =
@@ -171,7 +176,7 @@ void SensorManager::startSampling()
                   dma_250hz_callback);
 
     scheduler.add(dma_250Hz_sampler, 1000,
-                         ID_DMA_250HZ);  // TODO: Back to 4 ms
+                  ID_DMA_250HZ);  // TODO: Back to 4 ms
 
     // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
@@ -189,37 +194,43 @@ void SensorManager::startSampling()
 void SensorManager::onSimple1HZCallback()
 {
     // Log the battery voltage level we just finished sampling.
-    logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
-
-    // TODO: Send samples to logger
-    // TODO: Send pressure samples to FMM
+    if (enable_sensor_logging)
+    {
+        logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
+    }
 }
 
 void SensorManager::onSimple20HZCallback()
 {
-    // This is just a test
-    printf("SIMPLE: %f\n", *(sensor_test->testDataPtr()));
+    AD7994WrapperData ad7994_data = adc_ad7994->getData();
 
-    // TODO: Send samples to logger
-    // TODO: Send pressure samples to FMM
+    if (enable_sensor_logging)
+    {
+        logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
+        logger.log(ad7994_data);
+    }
+
+    // TODO: Calculate & log barometer stats
+
+    // TODO: Choose which barometer to use
+    ada->update(adc_ad7994->getData().baro_1_volt);  
 }
 
 void SensorManager::onDMA250HZCallback()
 {
-    printf("DMA: %f\n", *(sensor_test->testDataPtr()));
-    /*MAX21105Data max21105_data{*(imu_max21105->accelDataPtr()),
-     *(imu_max21105->gyroDataPtr()),
-     *(imu_max21105->tempDataPtr())};*/
 
-    /* MPU9250Data mpu9255_data{
-     *(imu_mpu9250->accelDataPtr()), *(imu_mpu9250->gyroDataPtr()),
-     *(imu_mpu9250->compassDataPtr()), *(imu_mpu9250->tempDataPtr())};*/
+    MPU9250Data mpu9255_data{
+        *(imu_mpu9250->accelDataPtr()), *(imu_mpu9250->gyroDataPtr()),
+        *(imu_mpu9250->compassDataPtr()), *(imu_mpu9250->tempDataPtr())};
 
-    // logger.log(mpu9255_data);
+    if (enable_sensor_logging)
+    {
+        logger.log(mpu9255_data);
 
-    /*  log.log(*(imu_adis16405->gyroDataPtr()));
-      log.log(*(imu_adis16405->accelDataPtr()));
-      log.log(*(imu_adis16405->tempDataPtr()));*/
+        logger.log(*(imu_adis16405->gyroDataPtr()));
+        logger.log(*(imu_adis16405->accelDataPtr()));
+        logger.log(*(imu_adis16405->tempDataPtr()));
+    }
 }
 
 }  // namespace DeathStackBoard

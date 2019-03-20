@@ -70,16 +70,12 @@ private:
 
     void logStatus(ADAState state)
     {
-        status.state = state;
-        logStatus();
-    }
-
-    void logStatus()
-    {
         status.timestamp = miosix::getTick();
+        status.state = state;
+        
         logger.log(status);
     }
-
+    
     void setTargetDPLPressure(uint16_t pressure_volts)
     {
         dpl_target_pressure_v = pressure_volts;

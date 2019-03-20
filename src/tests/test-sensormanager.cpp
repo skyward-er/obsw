@@ -24,17 +24,19 @@
 #include "DeathStack/Events.h"
 #include "events/EventBroker.h"
 #include "DeathStack/SensorManager/SensorManager.h"
+#include "DeathStack/ADA/ADA.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    ADA ada;
     TRACE("DEBUG\n");
     // Start active objects
     sEventBroker->start();
 
-    SensorManager mgr{};
+    SensorManager mgr{&ada};
 
     mgr.start();
 

@@ -211,10 +211,30 @@ LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
 
     tm_repository.ada_tm.timestamp = t.timestamp;
     tm_repository.ada_tm.state = (uint8_t) t.state;
-    tm_repository.ada_tm.last_apogee_state = (uint8_t) t.last_apogee.state;
-    tm_repository.ada_tm.last_apogee_tick = t.last_apogee.tick;
-    tm_repository.ada_tm.last_dpl_pressure_tick = t.last_dpl_pressure_tick;
+   
+    return logger.log(t);
+}
 
+/* ADA apogee */
+template <>
+LogResult LoggerProxy::log<ApogeeDetected>(const ApogeeDetected& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    tm_repository.ada_tm.last_apogee_state = (uint8_t) t.state;
+    tm_repository.ada_tm.last_apogee_tick = t.tick;
+   
+    return logger.log(t);
+}
+
+/* ADA DplPressure */
+template <>
+LogResult LoggerProxy::log<DplPressureReached>(const DplPressureReached& t)
+{
+    miosix::PauseKernelLock kLock;
+
+    tm_repository.ada_tm.last_dpl_pressure_tick = t.tick;
+   
     return logger.log(t);
 }
 
@@ -266,14 +286,15 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
     // TODO manca val_ch1_min
     tm_repository.ad7994_tm.timestamp = t.timestamp;
-    tm_repository.ad7994_tm.val_ch1 = t.ch1_pressure;
+    tm_repository.ad7994_tm.val_ch1 = t.baro_1_pressure;
+    
     //t.val_ch1_min
-    tm_repository.ad7994_tm.mean_ch1 = t.ch1_mean;
-    tm_repository.ad7994_tm.stddev_ch1 = t.ch1_stddev;
-    tm_repository.ad7994_tm.val_ch2 = t.ch2_pressure;
+    //tm_repository.ad7994_tm.mean_ch1 = t.baro_1_mean;
+    //tm_repository.ad7994_tm.stddev_ch1 = t.baro_1_stddev;
+    tm_repository.ad7994_tm.val_ch2 = t.baro_2_pressure;
 
     // LR_TM
-    tm_repository.lr_tm.baro1_val = t.ch1_pressure;
+    tm_repository.lr_tm.baro1_val = t.baro_1_pressure;
     //tm_repository.lr_tm.baro1_min = t.val_ch1_min;
 
     return logger.log(t);
@@ -281,16 +302,16 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
 /* Battery status, sampled by internal ADC */
 template <>
-LogResult LoggerProxy::log<BatteryTensionData>(const BatteryTensionData& t)
+LogResult LoggerProxy::log<BatteryVoltageData>(const BatteryVoltageData& t)
 {
 
 
     tm_repository.adc_tm.timestamp = t.timestamp;
-    tm_repository.adc_tm.battery_tension = t.battery_tension_value;
-    tm_repository.adc_tm.battery_tension_min = t.battery_tension_min;
+    tm_repository.adc_tm.battery_tension = t.battery_voltage_value;
+    tm_repository.adc_tm.battery_tension_min = t.battery_voltage_min;
     // LR_TM
-    tm_repository.lr_tm.battery_tension_min = t.battery_tension_min;
-
+    tm_repository.lr_tm.battery_tension_min = t.battery_voltage_min;
+   
     return logger.log(t);
 }
 

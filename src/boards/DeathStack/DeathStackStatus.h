@@ -21,54 +21,43 @@
  * THE SOFTWARE.
  */
 
-#ifdef STANDALONE_CATCH1_TEST
-#include "catch/catch-tests-entry.cpp"
-#endif
+#pragma once
 
-// We need access to the handleEvent(...) function in state machines in order to
-// test them synchronously
-#define protected public
+#include <cstdint>
 
-#include <miosix.h>
-#include <utils/catch.hpp>
-
-#include "DeathStack/DeploymentController/Deployment.h"
-#include "PinObserver.h"
-#include "utils/SMTestHelper.h"
-#include "DeathStack/Events.h"
-
-using miosix::Thread;
-using namespace DeathStackBoard;
-
-TEST_CASE("Testing S1 transitions")
+namespace DeathStackBoard
 {
-    DeploymentController dpl;
 
-    SECTION("IDLE -> Opening Nosecone")
-    {
-        REQUIRE(testFSMTransition(dpl, Event{EV_TC_NC_OPEN}, &DeploymentController::state_openingNosecone));
-    }
-
-    SECTION("IDLE -> Opening Nosecone")
-    {
-        REQUIRE(testFSMTransition(dpl, Event{EV_TC_CUT_MAIN}, &DeploymentController::state_openingNosecone));
-    }
-}
-
-TEST_CASE("Testing S2 Transitions")
+enum DeathStackComponentStatus
 {
-     DeploymentController dpl;
-    // Transition here to the state you want to test    
-    //REQUIRE(testFSMTransition(...));
+    COMP_OK    = 0,
+    COMP_ERROR = 1
+};
 
-    // Test transitions starting from that state
-    SECTION("Example 1")
-    {
-        // REQUIRE ...
-    }
+struct DeathStackStatus
+{
+    //Logic OR of all components errors.
+    uint8_t death_stack = COMP_OK;
 
-    SECTION("Example 2")
+    uint8_t logger         = COMP_OK;
+    uint8_t ev_broker      = COMP_OK;
+    uint8_t pin_obs        = COMP_OK;
+    uint8_t fmm            = COMP_OK;
+    uint8_t sensor_manager = COMP_OK;
+    uint8_t ada            = COMP_OK;
+    uint8_t tmtc           = COMP_OK;
+    uint8_t ign            = COMP_OK;
+    uint8_t dpl            = COMP_OK;
+
+    /**
+     * @brief Helper method to signal an error in the DeathStackStatus struct.
+     * 
+     * @param component_status Pointer to a member of DeathStackStatus
+     */
+    void setError(uint8_t DeathStackStatus::*component_status)
     {
-        // REQUIRE ...
+        this->*component_status = COMP_ERROR;
+        death_stack = COMP_ERROR;
     }
-}
+};
+}  // namespace DeathStackBoard

@@ -23,25 +23,31 @@
 
 #pragma once
 
+#include "AD7994WrapperData.h"
+#include "DeathStack/configs/SensorManagerConfig.h"
 #include "drivers/adc/AD7994.h"
 #include "drivers/adc/AD7994Data.h"
-#include "AD7994WrapperData.h"
 
-template <typename BusI2C, typename BusyPin, typename CONVST>
-class AD7994Wrapper : public Sensor
+
+
+namespace DeathStackBoard
 {
-    using AD7994_t = AD7994<BusI2C, BusyPin, CONVST>;
+
+using AD7994_t = AD7994<BusI2C1, ad7994_busy_pin, ad7994_nconvst>;
+
+class AD7994Wrapper : public ::Sensor
+{
+
 public:
     AD7994Wrapper(uint8_t i2c_address) : adc(i2c_address) {}
 
     bool init() override
     {
         bool success = adc.init();
-        if(success)
+        if (success)
         {
-            adc.enableChannel(AD7994_t::Channel::CH1);
-            adc.enableChannel(AD7994_t::Channel::CH2);
-            //TODO: Enable required channels
+            adc.enableChannel(BARO_1_CHANNEL);
+            adc.enableChannel(BARO_2_CHANNEL);
         }
         return success;
     }
@@ -49,35 +55,38 @@ public:
     bool onSimpleUpdate() override
     {
         bool result = adc.onSimpleUpdate();
-        if(result)
+        if (result)
         {
-            AD7994Sample ch1 = adc.getLastSample(AD7994_t::Channel::CH1);
-            AD7994Sample ch2= adc.getLastSample(AD7994_t::Channel::CH2);
+            AD7994Sample baro_1 = adc.getLastSample(BARO_1_CHANNEL);
+            AD7994Sample baro_2 = adc.getLastSample(BARO_2_CHANNEL);
 
-            data.timestamp = ch1.timestamp;
-            data.ch1_volt = ch1.value;
-            data.ch1_flag = ch1.alert_flag;
+            data.timestamp = baro_1.timestamp;
+            data.baro_1_volt  = baro_1.value;
+            data.baro_1_flag  = baro_1.alert_flag;
 
-            data.ch2_volt = ch2.value;
-            data.ch2_flag = ch2.alert_flag;
+            data.baro_2_volt = baro_2.value;
+            data.baro_2_flag = baro_2.alert_flag;
 
-            //TODO: calculate pressures from adc value
-            data.ch1_pressure = 0;
-            data.ch2_pressure = 0;          
+            // TODO: calculate pressures from adc value
+            data.baro_1_pressure = 0;
+            data.baro_2_pressure = 0;
         }
         return result;
     }
 
-    bool selfTest() override
-    {
-        return adc.selfTest();
-    }
+    bool selfTest() override { return adc.selfTest(); }
 
-    AD7994WrapperData getData()
-    {
-        return data;
-    }
+    AD7994WrapperData getData() { return data; }
+
 private:
     AD7994_t adc;
     AD7994WrapperData data;
+
+    static constexpr AD7994_t::Channel BARO_1_CHANNEL =
+        static_cast<AD7994_t::Channel>(AD7994_BARO_1_CHANNEL);
+
+    static constexpr AD7994_t::Channel BARO_2_CHANNEL =
+        static_cast<AD7994_t::Channel>(AD7994_BARO_2_CHANNEL);
 };
+
+}  // namespace DeathStackBoard

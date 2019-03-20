@@ -25,12 +25,12 @@
 
 #include <cstdint>
 
-struct BatteryTensionData
+struct BatteryVoltageData
 {
     uint32_t timestamp;
     
-    uint16_t battery_tension_value;
-    uint16_t battery_tension_min = 0xFFFF;
+    uint16_t battery_voltage_value;
+    uint16_t battery_voltage_min = 0xFFFF;
 };
 
 struct CurrentSenseData

@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include <math/Stats.h>
 
 namespace DeathStackBoard
 {
@@ -54,6 +55,13 @@ struct SensorManagerStatus
     // Use the or operator to signal multiple problematic sensors:
     // Ex: problematic_sensors |= SENSOR_1 | SENSOR_2;
     uint16_t problematic_sensors = 0x0000;
+};
+
+struct AD7994Stats
+{
+    long long imestamp;
+    StatsResult baro_1_stats;
+    StatsResult baro_2_stats;
 };
 
 }  // namespace DeathStackBoard
