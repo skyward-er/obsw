@@ -22,7 +22,7 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch1-tests-entry.cpp"
+#include "catch/catch-tests-entry.cpp"
 #endif
 
 // We need access to the handleEvent(...) function in state machines in order to
@@ -31,14 +31,14 @@
 #define private public
 
 #include <miosix.h>
-#include <catch.hpp>
+#include <utils/catch.hpp>
 
 #include <boards/CanInterfaces.h>
 #include <boards/DeathStack/EventClasses.h>
 #include <boards/DeathStack/Events.h>
 #include <boards/DeathStack/IgnitionController/IgnitionController.h>
 #include <boards/DeathStack/configs/IgnitionConfig.h>
-#include "state_machine_test_helper.h"
+#include "utils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
@@ -200,10 +200,10 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
             REQUIRE(ign->testState(&IgnitionController::stateIdle));
 
             REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 1);
-
         }
 
-        SECTION("IGNITION OFFLINE 2")  // Wait for EV_IGN_OFFLINE after we post a NEW_CAN_MSG
+        SECTION("IGNITION OFFLINE 2")  // Wait for EV_IGN_OFFLINE after we post
+                                       // a NEW_CAN_MSG
         {
             TRACE("Beginning of section\n");
 
@@ -220,43 +220,35 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
             memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
             ce.len = sizeof(IgnitionBoardStatus);
 
-            Thread::sleep(TIMEOUT_IGN_OFFLINE/2);
+            Thread::sleep(TIMEOUT_IGN_OFFLINE / 2);
 
             REQUIRE(
                 testFSMTransition(*ign, ce, &IgnitionController::stateIdle));
-        
 
-            Thread::sleep(TIMEOUT_IGN_OFFLINE/2+5);
+            Thread::sleep(TIMEOUT_IGN_OFFLINE / 2 + 5);
 
             REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 0);
 
-            Thread::sleep(TIMEOUT_IGN_OFFLINE-10);
+            Thread::sleep(TIMEOUT_IGN_OFFLINE - 10);
 
             REQUIRE(ign->testState(&IgnitionController::stateIdle));
-            
+
             Thread::sleep(10);
 
             REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 1);
-
         }
-
     }
 
-    SECTION("TESTING GET STATUS"){
-            EventCounter counter{*sEventBroker};
-            counter.subscribe(TOPIC_IGNITION);
+    SECTION("TESTING GET STATUS")
+    {
+        long long start = miosix::getTick();
 
-            Thread::sleep(INTERVAL_IGN_GET_STATUS-10);
+        REQUIRE(expectEvent(EV_IGN_GETSTATUS, TOPIC_IGNITION, start, 5));
 
-            int count = counter.getCount(EV_IGN_GETSTATUS);
+        REQUIRE(expectEvent(EV_IGN_GETSTATUS, TOPIC_IGNITION,
+                            start + INTERVAL_IGN_GET_STATUS, 5));
 
-            Thread::sleep(10);
-
-            REQUIRE(counter.getCount(EV_IGN_GETSTATUS) == count+1);
-
-            Thread::sleep(INTERVAL_IGN_GET_STATUS);
-
-            REQUIRE(counter.getCount(EV_IGN_GETSTATUS) == count+2);
-
+        REQUIRE(expectEvent(EV_IGN_GETSTATUS, TOPIC_IGNITION,
+                            start + INTERVAL_IGN_GET_STATUS * 2, 5));
     }
 }
