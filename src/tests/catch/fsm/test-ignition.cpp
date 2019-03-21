@@ -251,4 +251,46 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
         REQUIRE(expectEvent(EV_IGN_GETSTATUS, TOPIC_IGNITION,
                             start + INTERVAL_IGN_GET_STATUS * 2, 5));
     }
+
+    SECTION(
+        "TESTING REMOVE DELAYED EV_IGN_OFFLINE")  // sending a liftoff command,
+                                                  // the dealayed ev_ign_offline
+                                                  // should be deleted
+    {
+        EventCounter counter{*sEventBroker};
+        counter.subscribe(TOPIC_FLIGHT_EVENTS);
+
+        Thread::sleep(TIMEOUT_IGN_OFFLINE / 2);
+
+        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+                                  &IgnitionController::stateEnd));
+
+        Thread::sleep(TIMEOUT_IGN_OFFLINE / 2 + 5);
+
+        REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 0);
+    }
+}
+
+TEST_CASE_METHOD(IgnitionTestFixture2, "Testing ABORT functions")
+{
+
+    CanbusEvent ce;
+    ce.canTopic = CanInterfaces::CAN_TOPIC_IGNITION;
+    ce.sig      = EV_NEW_CAN_MSG;
+
+    SECTION("TESTING IGN_ABORTED EVENT")
+    {
+
+        IgnitionBoardStatus ibs;
+        memset(&ibs, 0, sizeof(IgnitionBoardStatus));
+        ibs.stm32_abortCmd = 1;
+        memcpy(ce.payload, &ibs, sizeof(IgnitionBoardStatus));
+        ce.len = sizeof(IgnitionBoardStatus);
+
+        long long start = miosix::getTick();
+
+        REQUIRE(testFSMTransition(*ign, ce, &IgnitionController::stateAborted));
+
+        REQUIRE(expectEvent(EV_IGN_ABORTED, TOPIC_FLIGHT_EVENTS, start, 5));
+    }
 }
