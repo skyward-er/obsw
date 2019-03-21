@@ -34,7 +34,7 @@
 
 #include "DeathStack/DeploymentController/Deployment.h"
 #include "PinObserver.h"
-#include "utils/SestHelper.h"
+#include "utils/TestHelper.h"
 #include "DeathStack/Events.h"
 
 using miosix::Thread;
