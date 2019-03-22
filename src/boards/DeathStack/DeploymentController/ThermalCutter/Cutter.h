@@ -56,6 +56,8 @@ public:
 
     ~Cutter()
     {
+        stopCutDrogue();
+        stopCutMainChute();
         pwm.stop();
     }
 
