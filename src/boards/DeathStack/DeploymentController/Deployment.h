@@ -29,6 +29,7 @@
 #include "ThermalCutter/Cutter.h"
 #include "events/HSM.h"
 #include "utils/CircularBuffer.h"
+#include "DeathStack/configs/DeploymentConfig.h"
 
 class PinObserver;
 
@@ -86,9 +87,9 @@ private:
     void deferEvent(const Event &ev);
 
     Cutter cutter{};
-    DeploymentStatus status{};
-    MotorDriver motor{};
-
+    DeploymentStatus status;
+    MotorDriver motor;
+    
     LoggerProxy &logger = *(LoggerProxy::getInstance());
 
     CircularBuffer<Event, DEFERRED_EVENTS_BUFFER_SIZE> deferred_events;
