@@ -78,6 +78,10 @@ State DeploymentController::state_idle(const Event& ev)
             logStatus(DeploymentCTRLState::DPL_IDLE);
             break;
         }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
         {
             break;
@@ -121,6 +125,11 @@ State DeploymentController::state_openingNosecone(const Event& ev)
 
             TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
             logStatus(DeploymentCTRLState::OPENING_NC);
+            break;
+        }
+        case EV_INIT:
+        {
+            retState = transition(&DeploymentController::state_spinning);
             break;
         }
         case EV_EXIT:
@@ -171,6 +180,10 @@ State DeploymentController::state_spinning(const Event& ev)
             logStatus(DeploymentCTRLState::SPINNING);
             break;
         }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
         {
             break;
@@ -207,6 +220,10 @@ State DeploymentController::state_awaitingOpenTime(const Event& ev)
             logStatus(DeploymentCTRLState::AWAITING_MINOPENTIME);
             break;
         }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
         {
             break;
@@ -234,6 +251,10 @@ State DeploymentController::state_awaitingDetachment(const Event& ev)
         {
             TRACE("[DPL_CTRL] state_awaitingDetachment ENTRY\n");
             logStatus(DeploymentCTRLState::AWAITING_DETACHMENT);
+            break;
+        }
+        case EV_INIT:
+        {
             break;
         }
         case EV_EXIT:
@@ -272,6 +293,10 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
             logStatus(DeploymentCTRLState::CUTTING_DROGUE);
             break;
         }
+        case EV_INIT:
+        {
+            break;
+        }
         case EV_EXIT:
         {
             cutter.stopCutDrogue();
@@ -308,6 +333,10 @@ State DeploymentController::state_cuttingMain(const Event& ev)
 
             TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
             logStatus(DeploymentCTRLState::CUTTING_MAIN);
+            break;
+        }
+        case EV_INIT:
+        {
             break;
         }
         case EV_EXIT:
