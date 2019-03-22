@@ -35,7 +35,8 @@ enum DeploymentCTRLState : uint8_t
     CUTTING_DROGUE,
     CUTTING_MAIN,
     OPENING_NC,
-    CLOSING_NC
+    AWAITING_DETACHMENT,
+    AWAITING_MINOPENTIME
 };
 
 struct DeploymentStatus

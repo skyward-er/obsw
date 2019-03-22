@@ -21,87 +21,105 @@
  * THE SOFTWARE.
  */
 
-#include "Deployment.h"
+#include <stdexcept>
+
 #include "DeathStack/Events.h"
 #include "DeathStack/configs/DeploymentConfig.h"
-#include "events/EventBroker.h"
+#include "Deployment.h"
 #include "Motor/MotorDriver.h"
 #include "PinObserver.h"
+#include "events/EventBroker.h"
 
 namespace DeathStackBoard
 {
 
 DeploymentController::DeploymentController()
-    : FSM(&DeploymentController::state_idle), motor()
+    : HSM(&DeploymentController::state_initialization), motor()
 {
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
 }
 
-DeploymentController::~DeploymentController() {}
-
-void DeploymentController::state_idle(const Event& ev)
+DeploymentController::~DeploymentController()
 {
+    sEventBroker->unsubscribe(this);
+}
+
+State DeploymentController::state_initialization(const Event& ev)
+{
+    // Nothing to do during initialization
+
+    UNUSED(ev);
+    return transition(&DeploymentController::state_idle);
+}
+
+State DeploymentController::state_idle(const Event& ev)
+{
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
+        {
+            // Process deferred events
+            try
+            {
+                while (!deferred_events.isEmpty())
+                {
+                    postEvent(deferred_events.pop());
+                }
+            }
+            catch (...)
+            {
+                TRACE("Tried to pop empty circularbuffer!\n");
+            }
+
             TRACE("[DPL_CTRL] state_idle ENTRY\n");
             logStatus(DeploymentCTRLState::DPL_IDLE);
             break;
+        }
         case EV_EXIT:
+        {
             break;
+        }
         case EV_NC_OPEN:
-        case EV_TC_NC_OPEN:
         {
-            transition(&DeploymentController::state_openingNosecone);
+            retState = transition(&DeploymentController::state_openingNosecone);
             break;
         }
-        case EV_TC_NC_CLOSE:
+        case EV_CUT_MAIN:
         {
-            transition(&DeploymentController::state_closingNosecone);
+            retState = transition(&DeploymentController::state_cuttingMain);
             break;
         }
-        case EV_TC_CUT_MAIN:
-            transition(&DeploymentController::state_cuttingMain);
-            break;
-        case EV_TC_CUT_ALL:
-        {
-            TRACE("[DPL_CTRL] state_idle EV_TC_CUT_ALL\n");
-            cut_main = true;
-            // Continue below. No break!
-        }
-        case EV_TC_CUT_FIRST_DROGUE:
         case EV_CUT_DROGUE:
         {
-            transition(&DeploymentController::state_cuttingDrogue);
+            retState = transition(&DeploymentController::state_cuttingDrogue);
             break;
         }
         default:
+        {
+            retState = tran_super(&DeploymentController::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
-void DeploymentController::state_openingNosecone(const Event& ev)
+State DeploymentController::state_openingNosecone(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
-            //Start the motor
+            // Start the motor to open the nosecone
             motor.start(MOTOR_OPEN_DIR, MOTOR_OPEN_DUTY_CYCLE);
 
-            min_open_time_elapsed = false;
-            nc_detached           = false;
-
-            delayed_ev_id_1 = sEventBroker->postDelayed(
-                Event{EV_MOT_MIN_OPEN_TIME}, TOPIC_DEPLOYMENT,
-                NC_MINIMUM_OPENING_TIME);
-
-            delayed_ev_id_2 = sEventBroker->postDelayed(
+            ev_open_timeout_id = sEventBroker->postDelayed(
                 Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT, NC_OPEN_TIMEOUT);
-            
+
+            TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
             logStatus(DeploymentCTRLState::OPENING_NC);
             break;
         }
@@ -110,156 +128,206 @@ void DeploymentController::state_openingNosecone(const Event& ev)
             // Stop the motor
             motor.stop();
 
-            sEventBroker->removeDelayed(delayed_ev_id_1);
-            sEventBroker->removeDelayed(delayed_ev_id_2);
+            sEventBroker->removeDelayed(ev_min_open_time_id);
+            sEventBroker->removeDelayed(ev_open_timeout_id);
             break;
         }
-        case EV_MOT_MIN_OPEN_TIME:
+        case EV_TIMEOUT_MOT_OPEN:
         {
-            if (!nc_detached)
-            {
-                TRACE(
-                    "[DPL_CTRL] state_openingNosecone EV_MOT_MIN_OPEN_TIME "
-                    "elapsed.\n");
-                // We can now stop the motor when the nosecone detachment is
-                // detected.
-                min_open_time_elapsed = true;
-            }
-            else
-            {
-                // nc detachment already detected. stop the motor.
-                transition(&DeploymentController::state_idle);
-            }
+            retState = transition(&DeploymentController::state_idle);
+            break;
+        }
+        case EV_CUT_DROGUE:
+        {
+            deferred_events.put(ev);
+            break;
+        }
+        case EV_CUT_MAIN:
+        {
+            deferred_events.put(ev);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&DeploymentController::Hsm_top);
+            break;
+        }
+    }
+    return retState;
+}
+
+State DeploymentController::state_spinning(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            ev_min_open_time_id = sEventBroker->postDelayed(
+                Event{EV_MOT_MIN_OPEN_TIME}, TOPIC_DEPLOYMENT,
+                NC_MINIMUM_OPENING_TIME);
+
+            TRACE("[DPL_CTRL] state_spinning ENTRY\n");
+            logStatus(DeploymentCTRLState::SPINNING);
+            break;
+        }
+        case EV_EXIT:
+        {
             break;
         }
         case EV_NC_DETACHED:
         {
-            if (!min_open_time_elapsed)
-            {
-                TRACE(
-                    "[DPL_CTRL] state_openingNosecone EV_NC_DETACHED before "
-                    "min open time.\n");
-                // Minimum opening time not yet elapsed. Continue spinning the
-                // motor, but signal that a nosecone detachment has been
-                // detected.
-                nc_detached = true;
-            }
-            else
-            {
-                // Minimum opening time elapsed, we can stop opening
-                transition(&DeploymentController::state_idle);
-            }
+            retState =
+                transition(&DeploymentController::state_awaitingOpenTime);
             break;
         }
-        case EV_TC_NC_STOP:
-        case EV_TIMEOUT_MOT_OPEN:
+        case EV_MOT_MIN_OPEN_TIME:
         {
-            // Stop the motor unconditionally.
-            transition(&DeploymentController::state_idle);
+            retState =
+                transition(&DeploymentController::state_awaitingDetachment);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&DeploymentController::state_openingNosecone);
             break;
         }
     }
+    return retState;
 }
 
-void DeploymentController::state_closingNosecone(const Event& ev)
+State DeploymentController::state_awaitingOpenTime(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-        {           
-            TRACE("[DPL_CTRL] state_closingNosecone ENTRY\n");
-
-            motor.start(MOTOR_CLOSE_DIR, MOTOR_CLOSE_DUTY_CYCLE);
-
-            delayed_ev_id_1 = sEventBroker->postDelayed(
-                Event{EV_TIMEOUT_MOT_CLOSE}, TOPIC_DEPLOYMENT, NC_CLOSE_TIMEOUT);
-            
-            logStatus(DeploymentCTRLState::CLOSING_NC);
+        {
+            TRACE("[DPL_CTRL] state_awaitingOpenTime ENTRY\n");
+            logStatus(DeploymentCTRLState::AWAITING_MINOPENTIME);
             break;
         }
         case EV_EXIT:
         {
-            motor.stop();
-            
-            sEventBroker->removeDelayed(delayed_ev_id_1);
             break;
         }
-        case EV_TC_NC_STOP:
-        case EV_TIMEOUT_MOT_CLOSE:
+        case EV_MOT_MIN_OPEN_TIME:
         {
-            // stop the motor unconditionally.
-            transition(&DeploymentController::state_idle);
+            retState = transition(&DeploymentController::state_idle);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&DeploymentController::state_openingNosecone);
             break;
         }
     }
+    return retState;
 }
 
-void DeploymentController::state_cuttingDrogue(const Event& ev)
+State DeploymentController::state_awaitingDetachment(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("[DPL_CTRL] state_cuttingDrogue ENTRY\n");
+        {
+            TRACE("[DPL_CTRL] state_awaitingDetachment ENTRY\n");
+            logStatus(DeploymentCTRLState::AWAITING_DETACHMENT);
+            break;
+        }
+        case EV_EXIT:
+        {
+            break;
+        }
+        case EV_NC_DETACHED:
+        {
+            retState = transition(&DeploymentController::state_idle);
+            break;
+        }
+        default:
+        {
+            retState = tran_super(&DeploymentController::state_openingNosecone);
+            break;
+        }
+    }
+    return retState;
+}
+
+State DeploymentController::state_cuttingDrogue(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            // Cutting drogue
             cutter.startCutDrogue();
-            delayed_ev_id_1 = sEventBroker->postDelayed(
+
+            ev_cut_timeout_id = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
-            
+
+            TRACE("[DPL_CTRL] state_cuttingDrogue ENTRY\n");
             logStatus(DeploymentCTRLState::CUTTING_DROGUE);
             break;
+        }
         case EV_EXIT:
+        {
             cutter.stopCutDrogue();
 
-            sEventBroker->removeDelayed(delayed_ev_id_1);
+            sEventBroker->removeDelayed(ev_cut_timeout_id);
             break;
-        case EV_TC_CUT_MAIN:
-        case EV_TC_CUT_ALL:
-            cut_main = true;
-            break;
+        }
         case EV_TIMEOUT_CUTTING:
-            TRACE("[DPL_CTRL] state_cuttingDrogue TIMEOUT\n");
-            if (!cut_main)
-            {
-                transition(&DeploymentController::state_idle);
-            }
-            else
-            {
-                transition(&DeploymentController::state_cuttingMain);
-            }
-            break;
+        {
+            transition(&DeploymentController::state_idle);
+        }
         default:
+        {
+            retState = tran_super(&DeploymentController::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
-void DeploymentController::state_cuttingMain(const Event& ev)
+State DeploymentController::state_cuttingMain(const Event& ev)
 {
+    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
-            
-            cut_main = false;
+        {
+            // Cutting rogallina
             cutter.startCutMainChute();
-            
-            delayed_ev_id_1 = sEventBroker->postDelayed(
+
+            ev_cut_timeout_id = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
-            
+
+            TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
             logStatus(DeploymentCTRLState::CUTTING_MAIN);
             break;
+        }
         case EV_EXIT:
+        {
             cutter.stopCutMainChute();
 
-            sEventBroker->removeDelayed(delayed_ev_id_1);
+            sEventBroker->removeDelayed(ev_cut_timeout_id);
             break;
+        }
         case EV_TIMEOUT_CUTTING:
-            TRACE("[DPL_CTRL] state_cuttingMain TIMEOUT\n");
+        {
             transition(&DeploymentController::state_idle);
-            break;
+        }
         default:
+        {
+            retState = tran_super(&DeploymentController::Hsm_top);
             break;
+        }
     }
+    return retState;
 }
 
 }  // namespace DeathStackBoard
