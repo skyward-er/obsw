@@ -63,7 +63,7 @@ public:
      * @param p
      * @param n
      */
-    void callbackLaunchPin(unsigned int p, unsigned char n);
+    void onLaunchPinTransition(unsigned int p, unsigned char n);
 
     /**
      * @brief Function called by the pinobserver when a nosecone pin detachment
@@ -72,7 +72,12 @@ public:
      * @param p
      * @param n
      */
-    void callbackNoseconePin(unsigned int p, unsigned char n);
+    void onNCPinTransition(unsigned int p, unsigned char n);
+
+
+    void onLaunchPinStateChange(unsigned int p, unsigned char n, int state);
+    void onNCPinStateChange(unsigned int p, unsigned char n, int state);
+
 
 private:
     PinStatus status_pin_launch{ObservedPin::LAUNCH};

@@ -38,41 +38,70 @@ PinObserverWrapper::PinObserverWrapper()
     // Used for _1, _2. See std::bind cpp reference
     using namespace std::placeholders;
 
-    // Callback function: callback_launch(unsigned int, unsigned char)
-    PinObserver::PinCallbackFn callback_launch =
-        bind(&PinObserverWrapper::callbackLaunchPin, this, _1, _2);
+    // Launch pin callbacks registration
+    PinObserver::OnTransitionCallback launch_transition_cb =
+        bind(&PinObserverWrapper::onLaunchPinTransition, this, _1, _2);
+
+    PinObserver::OnStateChangeCallback launch_statechange_cb =
+        bind(&PinObserverWrapper::onLaunchPinStateChange, this, _1, _2, _3);
 
     pin_obs.observePin(PORT_LAUNCH_PIN, NUM_LAUNCH_PIN, TRIGGER_LAUNCH_PIN,
-                       callback_launch, THRESHOLD_LAUNCH_PIN);
+                       launch_transition_cb, THRESHOLD_LAUNCH_PIN,
+                       launch_statechange_cb);
 
-    // Callback function: callback_nosecone(unsigned int, unsigned char)
-    PinObserver::PinCallbackFn callback_nosecone =
-        bind(&PinObserverWrapper::callbackNoseconePin, this, _1, _2);
+    // Noseconse pin callbacks registration
+    PinObserver::OnTransitionCallback nc_transition_cb =
+        bind(&PinObserverWrapper::onNCPinTransition, this, _1, _2);
+
+    PinObserver::OnStateChangeCallback nc_statechange_cb =
+        bind(&PinObserverWrapper::onNCPinStateChange, this, _1, _2, _3);
 
     pin_obs.observePin(PORT_NC_DETACH_PIN, NUM_NC_DETACH_PIN,
-                       TRIGGER_NC_DETACH_PIN, callback_nosecone,
-                       THRESHOLD_NC_DETACH_PIN);
+                       TRIGGER_NC_DETACH_PIN, nc_transition_cb,
+                       THRESHOLD_NC_DETACH_PIN, nc_statechange_cb);
 }
 
-void PinObserverWrapper::callbackLaunchPin(unsigned int p, unsigned char n)
+void PinObserverWrapper::onLaunchPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FMM);
 
-    status_pin_launch.last_triggered_time = miosix::getTick();
-    ++status_pin_launch.num_triggered;
+    status_pin_launch.last_detection_time = miosix::getTick();
     logger->log(status_pin_launch);
 }
 
-void PinObserverWrapper::callbackNoseconePin(unsigned int p, unsigned char n)
+void PinObserverWrapper::onNCPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
     sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FMM);
 
-    status_pin_nosecone.last_triggered_time = miosix::getTick();
-    ++status_pin_nosecone.num_triggered;
+    status_pin_nosecone.last_detection_time = miosix::getTick();
+    logger->log(status_pin_nosecone);
+}
+
+void PinObserverWrapper::onLaunchPinStateChange(unsigned int p, unsigned char n,
+                                                int state)
+{
+    UNUSED(p);
+    UNUSED(n);
+
+    status_pin_launch.state             = (uint8_t)state;
+    status_pin_launch.last_state_change = miosix::getTick();
+    status_pin_launch.num_state_changes += 1;
+    logger->log(status_pin_launch);
+}
+
+void PinObserverWrapper::onNCPinStateChange(unsigned int p, unsigned char n,
+                                                int state)
+{
+    UNUSED(p);
+    UNUSED(n);
+
+    status_pin_nosecone.state             = (uint8_t)state;
+    status_pin_nosecone.last_state_change = miosix::getTick();
+    status_pin_nosecone.num_state_changes += 1;
     logger->log(status_pin_nosecone);
 }
 
