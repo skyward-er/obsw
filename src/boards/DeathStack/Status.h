@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include <libs/mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
+#include <mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
 
 namespace Status
 {
