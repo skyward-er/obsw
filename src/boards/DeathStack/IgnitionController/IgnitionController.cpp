@@ -52,7 +52,6 @@ void IgnitionController::logStatus() {
 
 IgnCtrlStatus IgnitionController::getStatus()
 {
-    miosix::FastInterruptDisableLock dLock;
     return status;
 }
 
