@@ -134,8 +134,10 @@ void IgnitionController::stateIdle(const Event& ev)
                     {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS,
                     TIMEOUT_IGN_OFFLINE);
 
-                if (loggable_board_status.board_status.avr_abortCmd == 1 ||
-                    loggable_board_status.board_status.stm32_abortCmd == 1)
+                static const uint16_t ABORT_BITMASK = 0x0707;
+                uint16_t status_bytes;
+                memcpy(&status_bytes, &loggable_board_status.board_status, sizeof(IgnitionBoardStatus));
+                if (status_bytes & ABORT_BITMASK)
                 {
                     // We've had an abort.
                     status.abort_rcv = 1;
@@ -190,6 +192,7 @@ void IgnitionController::stateAborted(const Event& ev)
             logStatus();
 
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+            sEventBroker->post({EV_IGN_ABORTED}, TOPIC_FLIGHT_EVENTS);
             TRACE("IGNCTRL: Entering stateAborted\n");
             break;
         case EV_EXIT:
@@ -246,6 +249,7 @@ void IgnitionController::stateEnd(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+            sEventBroker->removeDelayed(ev_ign_offline_handle);
             status.fsm_state = IgnitionControllerState::IGN_END;
             logStatus();
             TRACE("IGNCTRL: Entering stateEnd\n");

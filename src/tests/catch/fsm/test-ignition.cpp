@@ -239,7 +239,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
         }
     }
 
-    SECTION("TESTING GET STATUS")
+    SECTION("TESTING GET STATUS") //
     {
         long long start = miosix::getTick();
 
@@ -254,7 +254,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
 
     SECTION(
         "TESTING REMOVE DELAYED EV_IGN_OFFLINE")  // sending a liftoff command,
-                                                  // the dealayed ev_ign_offline
+                                                  // the delayed ev_ign_offline
                                                   // should be deleted
     {
         EventCounter counter{*sEventBroker};
