@@ -284,14 +284,14 @@ void ADA::stateShadowMode(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateShadowMode\n");
-            cal_delayed_event_id = ev_broker->postDelayed(EV_TIMEOUT_SHADOW_MODE, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
+            shadow_delayed_event_id = ev_broker->postDelayed(EV_TIMEOUT_SHADOW_MODE, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
             logStatus(ADAState::SHADOW_MODE);
             break;
         }
         case EV_EXIT:
         {
             TRACE("ADA: Exiting stateShadowMode\n");
-            ev_broker->removeDelayed(cal_delayed_event_id);
+            ev_broker->removeDelayed(shadow_delayed_event_id);
             break;
         }
         case EV_TIMEOUT_SHADOW_MODE:

@@ -100,7 +100,7 @@ private:
     void setTargetDPLAltitude(uint16_t altitude);
 
     // Event id to store calibration timeout
-    uint16_t cal_delayed_event_id = 0; 
+    uint16_t shadow_delayed_event_id = 0; 
 
     // Filter object
     Kalman<3,1> filter;  
