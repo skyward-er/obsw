@@ -21,25 +21,44 @@
  */
 
 #pragma once
-#include <kalman/Matrix.hpp>
+#include <skyward-boardcore/libs/simple-template-matrix/matrix.h>
 
 namespace DeathStackBoard
 {
 // TODO: Change with real values
 
+// Deployment altitude default value
+// Used if no set command is received
+static const uint16_t DEFAULT_DPL_ALTITUDE = 1000;
+
 // State timeouts
 static const unsigned int TIMEOUT_MS_CALIBRATION      = 15 * 1000;
 static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
 
-// Kalman parameters
-static const float P_DATA[9] = {0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    // Initial error covariance matrix
-static const float R_DATA[1] = {10};                                 // Measurement variance  
-static const float Q_DATA[9] = {0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01}; // Model variance matrix
-static const float H_DATA[3] = {1, 0, 0};
+
+// ------ Kalman parameters ------
+
 static const float SAMPLING_PERIOD = 0.01; // In seconds
 
-static const Matrix P_INIT{3, 3, P_DATA};
-static const Matrix R_INIT{1, 1, R_DATA};
-static const Matrix Q_INIT{3, 3, Q_DATA};
-static const Matrix H_INIT{1, 3, H_DATA};
+// State matrix
+// Note that sampling frequency is supposed to be constant and known at
+// compile time. If this is not the case the matrix has to be updated at
+// each iteration
+static const MatrixBase<float,3,3> A_INIT{
+    1, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
+    0,  1,             SAMPLING_PERIOD,
+    0,  0,              1
+};
+
+// Output matrix
+static const MatrixBase<float,1,3> C_INIT{1, 0, 0};
+
+// Initial error covariance matrix
+static const MatrixBase<float,3,3> P_INIT{0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    
+
+// Model variance matrix
+static const MatrixBase<float,3,3> V1_INIT{0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01};
+
+// Measurement variance 
+static const MatrixBase<float,1,1> V2_INIT{10};                                 
 }

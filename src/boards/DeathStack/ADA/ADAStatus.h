@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Common.h>
+#include <math/Stats.h>
 
 namespace DeathStackBoard
 {
@@ -54,6 +55,9 @@ struct ADAStatus
 {
     long long timestamp;
     ADAState state = ADAState::UNDEFINED;
+    bool dpl_altitude_set       = false;
+    bool apogee_reached         = false;
+    bool dpl_altitude_reached   = false;
 };
 
 struct KalmanState
@@ -63,16 +67,16 @@ struct KalmanState
     float x2;
 };
 
-struct TargetDeploymentPressure
+struct TargetDeploymentAltitude
 {
-    uint16_t deployment_pressure;
+    uint16_t deployment_altitude;
 };
 
 // Struct of calibration data
 struct ADACalibrationData {
-    float   var        = 0.0;      // Sample variance
-    unsigned int     n_samples  = 0;        // Number of samples collected
-    float   avg        = 0.0;      // Average pressure
+    StatsResult  stats;
+    unsigned int n_samples = 0;     // Number of samples collected
+    
 };
 
 }
