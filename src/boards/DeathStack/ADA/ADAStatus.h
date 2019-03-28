@@ -46,7 +46,7 @@ struct ApogeeDetected {
 };
 
 // Struct to log deployment pressure detection
-struct DplPressureReached {
+struct DplAltitudeReached {
     long long tick;
 };
 
@@ -74,9 +74,7 @@ struct TargetDeploymentAltitude
 
 // Struct of calibration data
 struct ADACalibrationData {
-    StatsResult  stats;
-    unsigned int n_samples = 0;     // Number of samples collected
-    
+    StatsResult  stats;    
 };
 
 }

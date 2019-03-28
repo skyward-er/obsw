@@ -30,9 +30,9 @@
 namespace DeathStackBoard
 {
 
-struct DeploymentPressureEvent : Event
+struct DeploymentAltitudeEvent : Event
 {
-    uint16_t dplPressure;  // Deployment pressure
+    uint16_t dplAltitude;  // Deployment altitude
 };
 
 struct PressureSampleEvent : Event

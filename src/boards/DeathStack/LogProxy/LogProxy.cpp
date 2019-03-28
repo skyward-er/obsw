@@ -229,7 +229,7 @@ LogResult LoggerProxy::log<ApogeeDetected>(const ApogeeDetected& t)
 
 /* ADA DplPressure */
 template <>
-LogResult LoggerProxy::log<DplPressureReached>(const DplPressureReached& t)
+LogResult LoggerProxy::log<DplAltitudeReached>(const DplAltitudeReached& t)
 {
     miosix::PauseKernelLock kLock;
 
@@ -240,11 +240,11 @@ LogResult LoggerProxy::log<DplPressureReached>(const DplPressureReached& t)
 
 /* ADA target dpl pressure */
 template <>
-LogResult LoggerProxy::log<TargetDeploymentPressure>(const TargetDeploymentPressure& t)
+LogResult LoggerProxy::log<TargetDeploymentAltitude>(const TargetDeploymentAltitude& t)
 {
     miosix::PauseKernelLock kLock;
 
-    tm_repository.ada_tm.target_dpl_pressure = t.deployment_pressure;
+    tm_repository.ada_tm.target_dpl_pressure = t.deployment_altitude;
    
     return logger.log(t);
 }

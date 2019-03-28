@@ -32,7 +32,7 @@ namespace DeathStackBoard
 static const uint16_t DEFAULT_DPL_ALTITUDE = 1000;
 
 // State timeouts
-static const unsigned int TIMEOUT_MS_CALIBRATION      = 15 * 1000;
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 1 * 1000; // ms
 static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
 
 
