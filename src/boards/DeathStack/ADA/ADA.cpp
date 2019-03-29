@@ -48,9 +48,9 @@ void ADA::updateFilter(float altitude)
     MatrixBase<float, 1, 1> y{altitude};
     filter.update(y);
 
-    last_kalman_state.x0 = filter.X(0);
-    last_kalman_state.x1 = filter.X(1);
-    last_kalman_state.x2 = filter.X(2);
+    last_kalman_state.x0 = filter.X(0,0);
+    last_kalman_state.x1 = filter.X(1,0);
+    last_kalman_state.x2 = filter.X(2,0);
 
     logger.log(last_kalman_state);
 }
@@ -70,15 +70,15 @@ void ADA::update(float altitude)
         case ADAState::CALIBRATING:
         {
             // Calibrating state: update calibration data
-            stats.add(altitude);
-            calibrationData.stats = calibrationData.getStats();
+            calibrationStats.add(altitude);
+            calibrationData.stats = calibrationStats.getStats();
 
             // Log calibration data
             logger.log(calibrationData);
 
             // Send event if calibration samples number is reached and
             // deployment altitude is set
-            if (calibrationData.n_samples >= CALIBRATION_N_SAMPLES &&
+            if (calibrationData.stats.nSamples >= CALIBRATION_N_SAMPLES &&
                 status.dpl_altitude_set)
             {
                 sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -98,7 +98,7 @@ void ADA::update(float altitude)
             updateFilter(altitude);
 
             // Check if the vertical speed is negative
-            if (filter.X(1) < 0)
+            if (filter.X(1,0) < 0)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -112,10 +112,10 @@ void ADA::update(float altitude)
             // Active state send notifications for apogee
             updateFilter(altitude);
             // Check if the vertical speed is negative
-            if (filter.X(1) < 0)
+            if (filter.X(1,0) < 0)
             {
 
-                EventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
+                sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
                 status.apogee_reached = true; 
 
                 // Log
@@ -130,7 +130,7 @@ void ADA::update(float altitude)
             // Descent state: send notifications for target altitude reached
             updateFilter(altitude);
 
-            if (filter.X(0) <= dpl_target_altitude)
+            if (filter.X(0,0) <= dpl_target_altitude)
             {
                 sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_ADA);
                 status.dpl_altitude_reached = true;
@@ -204,13 +204,14 @@ void ADA::stateCalibrating(const Event& ev)
             const DeploymentAltitudeEvent& dpl_ev =
                 static_cast<const DeploymentAltitudeEvent&>(ev);
             dpl_target_altitude = dpl_ev.dplAltitude;
-            dpl_altitude_set    = true;
+            status.dpl_altitude_set    = true;
 
             break;
         }
         case EV_TC_RESET_CALIBRATION:
         {
-            calibrationStats.stats.reset();
+            calibrationStats.reset();
+            calibrationData.stats = calibrationStats.getStats();
         }
         default:
         {
@@ -234,7 +235,7 @@ void ADA::stateIdle(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateIdle\n");
-            filter.X(0) = calibrationData.stats.mean;  // Initialize the state with the average
+            filter.X(0,0) = calibrationData.stats.mean;  // Initialize the state with the average
             logStatus(ADAState::IDLE);
             break;
         }
@@ -257,7 +258,8 @@ void ADA::stateIdle(const Event& ev)
         }
         case EV_TC_RESET_CALIBRATION:
         {
-            calibrationData.stats.reset();
+            calibrationStats.reset();
+            calibrationData.stats = calibrationStats.getStats();
             transition(&ADA::stateCalibrating);
             break;
         }
@@ -284,14 +286,14 @@ void ADA::stateShadowMode(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateShadowMode\n");
-            shadow_delayed_event_id = ev_broker->postDelayed(EV_TIMEOUT_SHADOW_MODE, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
+            shadow_delayed_event_id = sEventBroker->postDelayed({EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
             logStatus(ADAState::SHADOW_MODE);
             break;
         }
         case EV_EXIT:
         {
             TRACE("ADA: Exiting stateShadowMode\n");
-            ev_broker->removeDelayed(shadow_delayed_event_id);
+            sEventBroker->removeDelayed(shadow_delayed_event_id);
             break;
         }
         case EV_TIMEOUT_SHADOW_MODE:
@@ -360,7 +362,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateFirstDescentPhase\n");
-            logState(ADAState::FIRST_DESCENT_PHASE);
+            logStatus(ADAState::FIRST_DESCENT_PHASE);
             break;
         }
         case EV_EXIT:
@@ -394,7 +396,7 @@ void ADA::stateEnd(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateEnd\n");
-            logState(ADAState::END);
+            logStatus(ADAState::END);
             break;
         }
         case EV_EXIT:
