@@ -22,9 +22,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <cstring>
-
-#include <drivers/canbus/CanBus.h>
 
 namespace CanInterfaces
 {
@@ -75,49 +72,5 @@ struct __attribute__((packed)) IgnitionBoardStatus
     uint8_t stm32_watchdogReset: 1;      // last STM32 reset cause was watchdog (MSB)
 
 };
-
-struct __attribute__((packed)) NoseconeBoardStatus
-{
-    uint8_t motor_active: 1;          
-    uint8_t motor_last_direction: 1;  // if active=true means current direction
-    uint8_t homeone_not_connected: 1;
-    uint8_t padding: 5;
-    
-    uint8_t close_received: 1; // received at least a close command
-    uint8_t close_timeout: 1;  // last close terminated for a timeout
-    uint8_t close_stop: 1;     // last close terminated for a stop command
-    uint8_t close_limit: 1;    // last close terminated with motor limit event
-    uint8_t open_received: 1; // received at least an open command
-    uint8_t open_timeout: 1;  // last open terminated for a timeout
-    uint8_t open_stop: 1;     // last open terminated for a stop command
-    uint8_t open_limit: 1;    // last open terminated with motor limit event
-
-    uint16_t max_current_sensed;
-    uint16_t min_current_sensed;
-    uint16_t last_current_sensed;
-};
-
-/**
-* Helper functions for can messages packing.
-*/
-static inline bool canSendHomeoneCommand(CanBus* bus, CanCommandID id)
-{
-    return bus->send( CAN_TOPIC_HOMEONE, reinterpret_cast<uint8_t*>(&id), sizeof(uint8_t));
-}
-
-static inline bool canSendIgnitionStatus(CanBus* bus, IgnitionBoardStatus ign_status)
-{
-    return bus->send(CAN_TOPIC_IGNITION, reinterpret_cast<uint8_t*>(&ign_status), sizeof(IgnitionBoardStatus));
-}
-
-static inline bool canSendNoseconeStatus(CanBus* bus, NoseconeBoardStatus nsc_status)
-{
-    return bus->send(CAN_TOPIC_NOSECONE, reinterpret_cast<uint8_t*>(&nsc_status), sizeof(NoseconeBoardStatus));
-}
-
-static inline bool canSendLaunch(CanBus* bus, uint64_t launch_code)
-{
-    return bus->send(CAN_TOPIC_LAUNCH, reinterpret_cast<uint8_t*>(&launch_code), sizeof(uint64_t));
-}
 
 } /* namespace CanInterfaces */
