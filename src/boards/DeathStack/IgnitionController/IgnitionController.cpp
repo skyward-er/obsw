@@ -31,7 +31,7 @@ namespace DeathStackBoard
 using namespace CanInterfaces;
 
 IgnitionController::IgnitionController(CanProxy* canbus)
-    : FSM(&IgnitionController::stateIdle), canbus(canbus) 
+    : FSM(&IgnitionController::stateIdle), canbus(canbus)
 {
     sEventBroker->subscribe(this, TOPIC_IGNITION);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -57,7 +57,6 @@ IgnCtrlStatus IgnitionController::getStatus()
 
 IgnBoardLoggableStatus IgnitionController::getBoardStatus()
 {
-    miosix::FastInterruptDisableLock dLock;
     return loggable_board_status;
 }
 
@@ -92,7 +91,7 @@ void IgnitionController::stateIdle(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("IGNCTRL: Entering stateIdle\n");
+           
             status.fsm_state = IgnitionControllerState::IGN_IDLE;
             logStatus();
 
@@ -101,11 +100,13 @@ void IgnitionController::stateIdle(const Event& ev)
 
             // Send first getstatus request
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+
+            TRACE("IGNCTRL: Entering stateIdle\n");
             break;
 
         case EV_EXIT:
-            TRACE("IGNCTRL: Exiting stateIdle\n");
             sEventBroker->removeDelayed(ev_get_status_handle);
+            TRACE("IGNCTRL: Exiting stateIdle\n");
             break;
 
         case EV_IGN_GETSTATUS:
@@ -185,11 +186,11 @@ void IgnitionController::stateAborted(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("IGNCTRL: Entering stateAborted\n");
             status.fsm_state = IgnitionControllerState::IGN_ABORTED;
             logStatus();
 
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+            TRACE("IGNCTRL: Entering stateAborted\n");
             break;
         case EV_EXIT:
             TRACE("IGNCTRL: Exiting stateAborted\n");
@@ -245,9 +246,9 @@ void IgnitionController::stateEnd(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("IGNCTRL: Entering stateEnd\n");
             status.fsm_state = IgnitionControllerState::IGN_END;
             logStatus();
+            TRACE("IGNCTRL: Entering stateEnd\n");
             break;
         case EV_EXIT:
             TRACE("IGNCTRL: Exiting stateEnd\n");

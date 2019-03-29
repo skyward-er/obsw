@@ -39,7 +39,7 @@ using namespace std::placeholders;
  * @param message    the received message to be handled
  * @param proxy      the object that has the reference to the bus
  */
-static void canRcv(CanMsg message, CanProxy* proxy) 
+static void canRcv(const CanMsg& message, const CanStatus& status) 
 {
     TRACE("[CAN] Received message with id %lu\n", message.StdId);
 
@@ -48,10 +48,9 @@ static void canRcv(CanMsg message, CanProxy* proxy)
     ev.sig = EV_NEW_CAN_MSG;
     ev.canTopic = message.StdId;
     ev.len = message.DLC;
-    memcpy(ev.payload, message.Data, 8);
+    memcpy(ev.payload, message.Data, CAN_MAX_PAYLOAD);
 
     /* Log stats */
-    CanStatus status = proxy->getBus()->getStatus();
     LoggerProxy::getInstance()->log(status);
 
     /* Post event */
@@ -67,11 +66,8 @@ CanProxy::CanProxy(CanManager* c)
     canbus_init_t st = {
         CAN1, miosix::Mode::ALTERNATE, 9, {CAN1_RX0_IRQn, CAN1_RX1_IRQn}};
 
-    // Receiving function
-    CanDispatcher rcv_fun = std::bind(&canRcv, _1, this);
-
     // Bus
-    c->addBus<GPIOA_BASE, 11, 12>(st, rcv_fun);
+    c->addBus<GPIOA_BASE, 11, 12>(st, &canRcv);
     bus = c->getBus(0);
 
     // Filters
