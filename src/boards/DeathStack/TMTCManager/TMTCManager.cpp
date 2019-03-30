@@ -44,6 +44,7 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 
 TMTCManager::~TMTCManager()
 {
+    sEventBroker->unsubscribe(this);
     delete device;
     delete channel;
 }
@@ -102,7 +103,7 @@ void TMTCManager::stateHighRateTM(const Event& ev)
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_HR_TM_ID);
             channel->enqueueMsg(telem);
 
-            sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
+            delayed_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
             break;
         }
 
@@ -112,6 +113,7 @@ void TMTCManager::stateHighRateTM(const Event& ev)
             break;
 
         case EV_EXIT:
+            sEventBroker->removeDelayed(delayed_event_id);
             TRACE("[TMTC] Exiting stateHighRateTM\n");
             break;
 
