@@ -164,7 +164,7 @@ State FlightModeManager::state_online(const Event& ev)
             retState = transition(&FlightModeManager::state_error);
             break;
         }
-        case EV_TC_TEST_MODE:
+        case EV_TC_SETUP_MODE:
         {
             retState = transition(&FlightModeManager::state_testing);
             break;

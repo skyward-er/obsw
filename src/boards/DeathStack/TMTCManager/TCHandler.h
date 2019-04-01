@@ -54,7 +54,7 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
     { MAV_CMD_START_LOGGING,    EV_TC_START_LOGGING }, 
     { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_LOGGING }, 
-    { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE   }, 
+    { MAV_CMD_TEST_MODE,        EV_TC_SETUP_MODE   }, 
     { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
     { MAV_CMD_MANUAL_MODE,      EV_TC_MANUAL_MODE },
     { MAV_CMD_CUT_ALL,          EV_TC_CUT_ALL },
