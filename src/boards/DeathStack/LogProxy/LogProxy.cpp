@@ -56,7 +56,7 @@ namespace DeathStackBoard
 template <>
 LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.hm1_tm.state = static_cast<uint8_t>(t.state);
     tm_repository.lr_tm.fmm_state = static_cast<uint8_t>(t.state);
@@ -68,7 +68,7 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
 template <>
 LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     switch(t.pin)
     {
@@ -94,7 +94,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 template <>
 LogResult LoggerProxy::log<IgnBoardLoggableStatus>(const IgnBoardLoggableStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.ign_tm.timestamp = t.timestamp;
     uint8_t* bitfield_ptr = (uint8_t*)(&(t.board_status));
@@ -112,7 +112,7 @@ LogResult LoggerProxy::log<IgnBoardLoggableStatus>(const IgnBoardLoggableStatus&
 template <>
 LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.logger_tm.timestamp = t.timestamp;
     tm_repository.logger_tm.statTooLargeSamples = t.statTooLargeSamples;
@@ -132,7 +132,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 template <>
 LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     // mavchannel stats
     tm_repository.tmtc_tm.timestamp = t.timestamp;
@@ -157,7 +157,7 @@ LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
 template <>
 LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.sm_tm.timestamp = t.timestamp;
     tm_repository.sm_tm.sensor_init_state = t.problematic_sensors;
@@ -170,7 +170,7 @@ LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
 template <>
 LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.ign_ctrl_tm.timestamp = t.timestamp;
     tm_repository.ign_ctrl_tm.fsm_state = t.fsm_state;
@@ -192,7 +192,7 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
 template <>
 LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.dpl_ctrl_tm.timestamp = t.timestamp;
     tm_repository.dpl_ctrl_tm.fsm_state = (uint8_t) t.state;
@@ -207,7 +207,7 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
 template <>
 LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.ada_tm.timestamp = t.timestamp;
     tm_repository.ada_tm.state = (uint8_t) t.state;
@@ -229,7 +229,7 @@ LogResult LoggerProxy::log<ApogeeDetected>(const ApogeeDetected& t)
 
 /* ADA DplPressure */
 template <>
-LogResult LoggerProxy::log<DplPressureReached>(const DplPressureReached& t)
+LogResult LoggerProxy::log<DplAltitudeReached>(const DplAltitudeReached& t)
 {
     miosix::PauseKernelLock kLock;
 
@@ -240,12 +240,12 @@ LogResult LoggerProxy::log<DplPressureReached>(const DplPressureReached& t)
 
 /* ADA target dpl pressure */
 template <>
-LogResult LoggerProxy::log<TargetDeploymentPressure>(const TargetDeploymentPressure& t)
+LogResult LoggerProxy::log<TargetDeploymentAltitude>(const TargetDeploymentAltitude& t)
 {
+	miosix::PauseKernelLock kLock;
 
-
-    tm_repository.ada_tm.target_dpl_pressure = t.deployment_pressure;
-
+    tm_repository.ada_tm.target_dpl_pressure = t.deployment_altitude;
+   
     return logger.log(t);
 }
 
@@ -253,7 +253,7 @@ LogResult LoggerProxy::log<TargetDeploymentPressure>(const TargetDeploymentPress
 template <>
 LogResult LoggerProxy::log<KalmanState>(const KalmanState& t)
 {
-
+	miosix::PauseKernelLock kLock;
 
     tm_repository.ada_tm.kalman_x0 = t.x0;
     tm_repository.ada_tm.kalman_x1 = t.x1;

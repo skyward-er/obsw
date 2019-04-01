@@ -21,7 +21,6 @@
  */
 
 #include <DeathStack/ADA/ADA.h>
-#include <DeathStack/configs/ADA_config.h>
 
 #include <events/EventBroker.h>
 
@@ -34,68 +33,55 @@ namespace DeathStackBoard
 {
 
 /* --- LIFE CYCLE --- */
-ADA::ADA(): FSM(&ADA::stateCalibrating),filter(P_INIT, R_INIT, Q_INIT, H_INIT)
+ADA::ADA()
+    : FSM(&ADA::stateCalibrating),
+      filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_ADA);
-
-    // Set state propagation matrix
-    // Note that sampling frequency is supposed to be constant and known at
-    // compile time. If this is not the case the matrix has to be updated at
-    // each iteration
-
-    // clang-format off
-    float Phi_data[9] =
-                {   1, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
-                    0,  1,             SAMPLING_PERIOD,
-                    0,  0,              1
-                };
-    // clang-format on
-
-    filter.Phi.set(Phi_data);
 }
 
-void ADA::updateFilter(float pressure)
+void ADA::updateFilter(float altitude)
 {
-    Matrix y{1, 1, &pressure};
+    MatrixBase<float, 1, 1> y{altitude};
     filter.update(y);
 
-    last_kalman_state.x0 = filter.X(0);
-    last_kalman_state.x1 = filter.X(1);
-    last_kalman_state.x2 = filter.X(2);
+    last_kalman_state.x0 = filter.X(0,0);
+    last_kalman_state.x1 = filter.X(1,0);
+    last_kalman_state.x2 = filter.X(2,0);
 
     logger.log(last_kalman_state);
 }
+
+void ADA::setTargetDPLAltitude(uint16_t altitude)
+{
+    dpl_target_altitude = altitude;
+    logger.log(TargetDeploymentAltitude{altitude});
+}
+
 /* --- INSTANCE METHODS --- */
 
-void ADA::update(float pressure)
+void ADA::update(float altitude)
 {
     switch (status.state)
     {
         case ADAState::CALIBRATING:
         {
             // Calibrating state: update calibration data
-
-            // Save old avg to compute var
-            float old_avg = calibrationData.avg;
-
-            // Update avg
-            calibrationData.avg = (calibrationData.avg * calibrationData.n_samples + pressure) / (calibrationData.n_samples + 1);
-            calibrationData.n_samples = calibrationData.n_samples + 1;
-
-            // Update var
-            float S_1 = calibrationData.var*(calibrationData.n_samples-1);
-            float S   = S_1 + (pressure - old_avg)*(pressure - calibrationData.avg);
-            calibrationData.var = S/calibrationData.n_samples;
-
+            calibrationStats.add(altitude);
+            calibrationData.stats = calibrationStats.getStats();
 
             // Log calibration data
             logger.log(calibrationData);
 
-            if (calibrationData.n_samples >= CALIBRATION_N_SAMPLES) {
-                sEventBroker->post({EV_ADA_CALIBRATION_COMPLETE}, TOPIC_ADA);
+            // Send event if calibration samples number is reached and
+            // deployment altitude is set
+            if (calibrationData.stats.nSamples >= CALIBRATION_N_SAMPLES &&
+                status.dpl_altitude_set)
+            {
+                sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
             }
             break;
         }
@@ -109,13 +95,13 @@ void ADA::update(float pressure)
         case ADAState::SHADOW_MODE:
         {
             // Shadow mode state: update kalman, DO NOT send events
-            updateFilter(pressure);
-            // Check if the "pressure speed" (hence positive when decending) is
-            // positive
-            if (filter.X(1) > 0)
+            updateFilter(altitude);
+
+            // Check if the vertical speed is negative
+            if (filter.X(1,0) < 0)
             {
+                // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
-                
                 logger.log(apogee);
             }
             break;
@@ -124,15 +110,16 @@ void ADA::update(float pressure)
         case ADAState::ACTIVE:
         {
             // Active state send notifications for apogee
-            updateFilter(pressure);
-            // Check if the "pressure speed" (hence positive when decending) is
-            // positive
-            if (filter.X(1) > 0)
+            updateFilter(altitude);
+            // Check if the vertical speed is negative
+            if (filter.X(1,0) < 0)
             {
-                sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
 
+                sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
+                status.apogee_reached = true; 
+
+                // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
-                
                 logger.log(apogee);
             }
             break;
@@ -141,14 +128,16 @@ void ADA::update(float pressure)
         case ADAState::FIRST_DESCENT_PHASE:
         {
             // Descent state: send notifications for target altitude reached
-            updateFilter(pressure);
-            
-            if (filter.X(0) >= dpl_target_pressure_v)
+            updateFilter(altitude);
+
+            if (filter.X(0,0) <= dpl_target_altitude)
             {
                 sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_ADA);
+                status.dpl_altitude_reached = true;
 
-                DplPressureReached dpl_press{miosix::getTick()};
-                logger.log(dpl_press);
+                // Log
+                DplAltitudeReached dpl_alt{miosix::getTick()};
+                logger.log(dpl_alt);
             }
             break;
         }
@@ -171,14 +160,24 @@ void ADA::update(float pressure)
     }
 }
 
+void ADA::logStatus(ADAState state)
+{
+    status.timestamp = miosix::getTick();
+    status.state     = state;
+
+    logger.log(status);
+}
+
 /* --- STATES --- */
 /**
  * \brief Calibrating state: the ADA calibrates the initial state. This is the
  * initial state.
  *
- * In this state a call to update() will result in a pressure sample being added
+ * In this state a call to update() will result in a altitude sample being added
  * to the average.
- * The exiting transition to the idle state is triggered by a timeout event.
+ * The exiting transition to the idle state is triggered at the first sample
+ * update after having set the deployment altitude and having reached the
+ * minimum number of calibration samples.
  */
 void ADA::stateCalibrating(const Event& ev)
 {
@@ -187,8 +186,7 @@ void ADA::stateCalibrating(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateCalibrating\n");
-            status.state = ADAState::CALIBRATING;
-            logger.log(status);
+            logStatus(ADAState::CALIBRATING);
             break;
         }
         case EV_EXIT:
@@ -196,17 +194,24 @@ void ADA::stateCalibrating(const Event& ev)
             TRACE("ADA: Exiting stateCalibrating\n");
             break;
         }
-        case EV_ADA_CALIBRATION_COMPLETE:
+        case EV_ADA_READY:
         {
             transition(&ADA::stateIdle);
             break;
         }
-        case EV_TC_SET_DPL_PRESSURE:
+        case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentPressureEvent& dpl_ev =
-                static_cast<const DeploymentPressureEvent&>(ev);
-            dpl_target_pressure_v = dpl_ev.dplPressure;
+            const DeploymentAltitudeEvent& dpl_ev =
+                static_cast<const DeploymentAltitudeEvent&>(ev);
+            dpl_target_altitude = dpl_ev.dplAltitude;
+            status.dpl_altitude_set    = true;
+
             break;
+        }
+        case EV_TC_RESET_CALIBRATION:
+        {
+            calibrationStats.reset();
+            calibrationData.stats = calibrationStats.getStats();
         }
         default:
         {
@@ -230,9 +235,8 @@ void ADA::stateIdle(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateIdle\n");
-            status.state = ADAState::IDLE;
-            logger.log(status);
-            filter.X(0) = calibrationData.avg;  // Initialize the state with the average
+            filter.X(0,0) = calibrationData.stats.mean;  // Initialize the state with the average
+            logStatus(ADAState::IDLE);
             break;
         }
         case EV_EXIT:
@@ -245,15 +249,17 @@ void ADA::stateIdle(const Event& ev)
             transition(&ADA::stateShadowMode);
             break;
         }
-        case EV_TC_SET_DPL_PRESSURE:
+        case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentPressureEvent& dpl_ev =
-                static_cast<const DeploymentPressureEvent&>(ev);
-            dpl_target_pressure_v = dpl_ev.dplPressure;
+            const DeploymentAltitudeEvent& dpl_ev =
+                static_cast<const DeploymentAltitudeEvent&>(ev);
+            dpl_target_altitude = dpl_ev.dplAltitude;
             break;
         }
         case EV_TC_RESET_CALIBRATION:
         {
+            calibrationStats.reset();
+            calibrationData.stats = calibrationStats.getStats();
             transition(&ADA::stateCalibrating);
             break;
         }
@@ -280,13 +286,14 @@ void ADA::stateShadowMode(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateShadowMode\n");
-            status.state = ADAState::SHADOW_MODE;
-            logger.log(status);
+            shadow_delayed_event_id = sEventBroker->postDelayed({EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
+            logStatus(ADAState::SHADOW_MODE);
             break;
         }
         case EV_EXIT:
         {
             TRACE("ADA: Exiting stateShadowMode\n");
+            sEventBroker->removeDelayed(shadow_delayed_event_id);
             break;
         }
         case EV_TIMEOUT_SHADOW_MODE:
@@ -318,8 +325,7 @@ void ADA::stateActive(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateActive\n");
-            status.state = ADAState::ACTIVE;
-            logger.log(status);
+            logStatus(ADAState::ACTIVE);
             break;
         }
         case EV_EXIT:
@@ -342,10 +348,10 @@ void ADA::stateActive(const Event& ev)
 
 /**
  * \brief First descent phase state:  ADA is running and it generates an event
- * when a set pressure (pressure of parachute dpl altitude) is reached
+ * when a set altitude is reached
  *
  * In this state a call to update() will trigger a one step update of the kalman
- * filter followed by a check of the pressure.
+ * filter followed by a check of the altitude.
  * The exiting transition to the stop state is triggered by the parachute
  * deployment altitude reached event (NOT self generated!)
  */
@@ -356,8 +362,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateFirstDescentPhase\n");
-            status.state = ADAState::FIRST_DESCENT_PHASE;
-            logger.log(status);
+            logStatus(ADAState::FIRST_DESCENT_PHASE);
             break;
         }
         case EV_EXIT:
@@ -391,8 +396,7 @@ void ADA::stateEnd(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateEnd\n");
-            status.state = ADAState::END;
-            logger.log(status);
+            logStatus(ADAState::END);
             break;
         }
         case EV_EXIT:
@@ -408,4 +412,4 @@ void ADA::stateEnd(const Event& ev)
     }
 }
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard
