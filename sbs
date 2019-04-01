@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python skyward-boardcore/sbs "$@" -v
+python skyward-boardcore/sbs "$@"
