@@ -35,40 +35,49 @@ class IgnitionController : public FSM<IgnitionController>
 {
 
 public:
+    /**
+     * @brief Initialize the controller and subscribe to EventBroker topics
+     */
     IgnitionController(CanProxy* canbus);
     ~IgnitionController() {}
-
-    /* @return this component's status */
-    IgnCtrlStatus getStatus();
-    /* @return the last status received from the board */
-    IgnBoardLoggableStatus getBoardStatus();
 
 private:
     void stateIdle(const Event& ev);
     void stateAborted(const Event& ev);
     void stateEnd(const Event& ev);
 
-    /* Put timestamp and log the component's status */
+    /**
+     * @brief Put timestamp and log the component's status 
+     * @param None
+     * @return None
+     */
     void logStatus();
 
     /**
      * @brief Updates the status of the ignition board if received on the canbus
      *        and logs it on the logger.
      *
-     * @param ev ev The event notifying a new message on the canbus
-     * @return Wether the board status was updated or not
+     * @param ev     The NEW_CAN_MSG event received
+     * @return true  the received event contained an IGN_STATUS message: updated
+     *                internal board status struct
+     * @return false the received message was not directed to me: not handled
      */
     bool updateIgnBoardStatus(const Event& ev);
 
+    // Internal stats
     IgnCtrlStatus status;
+    // Status received from the board, with timestamp
     IgnBoardLoggableStatus loggable_board_status;
 
+    CanProxy* canbus;
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 
-    uint16_t ev_ign_offline_handle = 0;
-    uint16_t ev_get_status_handle  = 0;
-
-    CanProxy* canbus;
+    // Id of the IGN_OFFLINE delayed event posted in the Event Broker
+    // NOTE: this is needed to cancel the delayed event
+    uint16_t ign_offline_delayed_id = 0;
+    // Id of the GET_IGN_STATUS delayed event posted in the Event Broker'
+    // NOTE: this is needed to cancel the delayed event
+    uint16_t get_status_delayed_id  = 0;
 };
 
 }  // namespace DeathStackBoard

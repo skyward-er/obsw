@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include "mavlink.h"
+#include <boards/DeathStack/configs/TMTCConfig.h>
 
 #include <Common.h>
 #include <drivers/gamma868/Gamma868.h>
