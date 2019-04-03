@@ -28,6 +28,7 @@
 #include <DeathStack/Topics.h>
 
 #include "Debug.h"
+#include <iostream>
 
 namespace DeathStackBoard
 {
@@ -69,6 +70,7 @@ void ADA::update(float altitude)
     {
         case ADAState::CALIBRATING:
         {
+            std::cout << "CALIBRATING \n\n";
             // Calibrating state: update calibration data
             calibrationStats.add(altitude);
             calibrationData.stats = calibrationStats.getStats();
@@ -151,11 +153,13 @@ void ADA::update(float altitude)
         case ADAState::UNDEFINED:
         {
             TRACE("ADA Update: Undefined state value \n");
+            break;
         }
 
         default:
         {
             TRACE("ADA Update: Unexpected state value \n");
+            break;
         }
     }
 }
@@ -212,6 +216,8 @@ void ADA::stateCalibrating(const Event& ev)
         {
             calibrationStats.reset();
             calibrationData.stats = calibrationStats.getStats();
+            
+            break;
         }
         default:
         {
