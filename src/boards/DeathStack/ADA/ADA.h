@@ -24,6 +24,8 @@
 
 #include <DeathStack/ADA/ADAStatus.h>
 #include <events/FSM.h>
+
+#include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LogProxy/LogProxy.h"
 
@@ -34,31 +36,48 @@ class ADA : public FSM<ADA>
 {
 
 public:
+    /** Constructor
+     */
     ADA();
+
+    /** Destructor
+     */
     ~ADA() {}
-    void update(float pressure);
 
-    ADAStatus getStatus()
-    {
-        return status;
-    }
+    /** \brief Updates the algorithm with a new sample
+     * 
+     * It's critical that this method is called at regualar intervals during the flight. Call frequency is defined in ADA_config.h
+     * The behavior of this function changes depending on the ADA state
+     * \param height The altitude sample in meters
+     */
+    void update(float altitude);
 
-    KalmanState getKalmanState()
-    {
-        return last_kalman_state;
-    }
+    /**
+     * \brief ADA status
+     * \returns A struct containing the time stamp and the ADA state
+     */
+    ADAStatus getStatus() { return status; }
 
-    ADACalibrationData getCalibrationData()
-    {
-        return calibrationData;
-    }
+    /**
+     * \brief Get the latest state estimated by the Kalman filter
+     * \returns A struct containing three floats representing the three states
+     */
+    KalmanState getKalmanState() { return last_kalman_state; }
 
-    uint16_t getTargetDeploymentPressure()
-    {
-        return dpl_target_pressure_v;
-    }
-    
+    /**
+     * \brief Get the calibration parameters
+     * \returns A struct containing average, number and variance of the calibration samples
+     */
+    ADACalibrationData getCalibrationData() { return calibrationData; }
+
+    /**
+     * \brief Get the set parachute deployment altitude
+     * \returns The altitude at wich the parachute is deployed
+     */
+    uint16_t getTargetDeploymentAltitude() { return dpl_target_altitude; }
+
 private:
+    // FSM States
     void stateCalibrating(const Event& ev);
     void stateIdle(const Event& ev);
     void stateShadowMode(const Event& ev);
@@ -66,41 +85,41 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
-    void updateFilter(float pressure);
+    /** \brief Performs a state update
+     * \param altitude The altitude sample in meters
+     */
+    void updateFilter(float altitude);
 
-    void logStatus(ADAState state)
-    {
-        status.timestamp = miosix::getTick();
-        status.state = state;
-        
-        logger.log(status);
-    }
-    
-    void setTargetDPLPressure(uint16_t pressure_volts)
-    {
-        dpl_target_pressure_v = pressure_volts;
-        logger.log(TargetDeploymentPressure{pressure_volts});
-    }
+    /** \brief Log ADA state
+     */
+    void logStatus(ADAState state);
 
-    uint16_t cal_delayed_event_id = 0;      // Event id for calibration timeout
-    ADAStatus status;                       // Variable to store state
+    /** Set deployment altitude
+     * \param altitude Deployment altitude in meters
+     */
+    void setTargetDPLAltitude(uint16_t altitude);
 
-    Kalman filter;          // Filter object that perfroms the computations
+    // Event id to store calibration timeout
+    uint16_t shadow_delayed_event_id = 0; 
+
+    // Filter object
+    Kalman<3,1> filter;  
 
     // Calibration variables
     ADACalibrationData calibrationData;
+    Stats calibrationStats;
+
+    // ADA status: timestamp + state
+    ADAStatus status;         
 
     // Last kalman state
     KalmanState last_kalman_state;
 
-    // Sum of all values squared divided by their number, to comupte variance
-    float avg_of_squares = 0.0;
+    // Parachute deployment altitude in meters
+    uint16_t dpl_target_altitude = DEFAULT_DPL_ALTITUDE;
 
-    // Parachute deployment pressure volts
-    uint16_t   dpl_target_pressure_v = 5000; // Set default value here
-    
     // Logger
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 };
 
-}
+}  // namespace DeathStackBoard

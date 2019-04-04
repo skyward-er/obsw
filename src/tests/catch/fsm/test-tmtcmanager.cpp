@@ -69,6 +69,8 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
 
     SECTION("IDLE -> HIGH RATE TELEMETRY -> LOW RATE TELEMETRY -> LANDED")
     {
+
+        TRACE("test case 1");
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LIFTOFF},
                                   &TMTCManager::stateHighRateTM));
 
@@ -82,13 +84,14 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
 
 TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing IDLE functions")
 {
-
+    TRACE("test case 2");
     SECTION("testing EV_GS_OFFLINE")  // since the GS_OFFLINE_TIMEOUT equals to
                                       // 30 minutes this variable should be
                                       // changed in order to try these tests
     {
         SECTION("creating EV_GS_OFFLINE")  // creating delayed EV_GS_OFFLINE
         {
+            TRACE("section 3");
             long long start = miosix::getTick();
             REQUIRE(expectEvent(EV_GS_OFFLINE, TOPIC_FLIGHT_EVENTS,
                                 start + GS_OFFLINE_TIMEOUT));

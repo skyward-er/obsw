@@ -42,8 +42,11 @@ struct PinStatus
 {
     ObservedPin pin;
 
-    long long last_triggered_time;
-    unsigned int num_triggered = 0;
+    long long last_state_change; //Last time the pin changed state
+    uint8_t state; //Current state of the pin
+    unsigned int num_state_changes = 0; 
+
+    long long last_detection_time; //When a transition is detected
 
     PinStatus(ObservedPin pin) : pin(pin) {}
 };

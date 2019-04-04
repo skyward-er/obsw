@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-03-11 23:39:05.675432
+// Autogen date:    2019-03-28 18:05:33.644075
 
 
 #include "Events.h"
@@ -72,14 +72,16 @@ string getEventString(uint8_t event)
         { EV_SEND_LR_TM, "EV_SEND_LR_TM" },
         { EV_SEND_POS_TM, "EV_SEND_POS_TM" },
         { EV_TC_ABORT_LAUNCH, "EV_TC_ABORT_LAUNCH" },
+        { EV_TC_ABORT_ROGALLO, "EV_TC_ABORT_ROGALLO" },
         { EV_TC_ARM, "EV_TC_ARM" },
-        { EV_TC_SET_DPL_PRESSURE, "EV_TC_SET_DPL_PRESSURE" },
+        { EV_TC_SET_DPL_ALTITUDE, "EV_TC_SET_DPL_ALTITUDE" },
         { EV_TC_BOARD_RESET, "EV_TC_BOARD_RESET" },
         { EV_TC_CUT_MAIN, "EV_TC_CUT_MAIN" },
         { EV_TC_CUT_ALL, "EV_TC_CUT_ALL" },
         { EV_TC_CUT_FIRST_DROGUE, "EV_TC_CUT_FIRST_DROGUE" },
         { EV_TC_DISARM, "EV_TC_DISARM" },
         { EV_TC_END_MISSION, "EV_TC_END_MISSION" },
+        { EV_TC_FORCE_INIT, "EV_TC_FORCE_INIT" },
         { EV_TC_LAUNCH, "EV_TC_LAUNCH" },
         { EV_TC_MANUAL_MODE, "EV_TC_MANUAL_MODE" },
         { EV_TC_NC_CLOSE, "EV_TC_NC_CLOSE" },
@@ -88,7 +90,7 @@ string getEventString(uint8_t event)
         { EV_TC_START_LOGGING, "EV_TC_START_LOGGING" },
         { EV_TC_STOP_LOGGING, "EV_TC_STOP_LOGGING" },
         { EV_TC_RESET_CALIBRATION, "EV_TC_RESET_CALIBRATION" },
-        { EV_TC_TEST_MODE, "EV_TC_TEST_MODE" },
+        { EV_TC_SETUP_MODE, "EV_TC_SETUP_MODE" },
         { EV_TIMEOUT_APOGEE, "EV_TIMEOUT_APOGEE" },
         { EV_TIMEOUT_ARM, "EV_TIMEOUT_ARM" },
         { EV_TIMEOUT_CUTTING, "EV_TIMEOUT_CUTTING" },

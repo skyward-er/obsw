@@ -59,6 +59,7 @@ MotorDriver::MotorDriver(): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENCY)
 
 MotorDriver::~MotorDriver()
 {
+    stop();
     pwm.stop();
 }
 

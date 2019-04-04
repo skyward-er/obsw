@@ -21,21 +21,22 @@
  * THE SOFTWARE.
  */
 
-#ifndef SRC_SHARED_BOARDS_HOMEONE_DEPLOYMENTCONTROLLER_DEPLOYMENTCONFIG_H
-#define SRC_SHARED_BOARDS_HOMEONE_DEPLOYMENTCONTROLLER_DEPLOYMENTCONFIG_H
+#pragma once
 
-
+#include "DeathStack/DeploymentController/Motor/MotorData.h"
 
 namespace DeathStackBoard
 {
 
 // TODO: Update with correct values
 
-static const int MAXIMUM_CUTTING_DURATION = 1000;
+static constexpr unsigned int DEFERRED_EVENTS_BUFFER_SIZE = 10;
 
-static const int NC_MINIMUM_OPENING_TIME = 1000;
-static const int NC_OPEN_TIMEOUT         = 1000;
-static const int NC_CLOSE_TIMEOUT        = 1000;
+static constexpr int MAXIMUM_CUTTING_DURATION = 1000;
+
+static constexpr int NC_MINIMUM_OPENING_TIME = 1000;
+static constexpr int NC_OPEN_TIMEOUT         = 1000;
+static constexpr int NC_CLOSE_TIMEOUT        = 1000;
 
 static const MotorDirection MOTOR_OPEN_DIR = MotorDirection::NORMAL;
 static const MotorDirection MOTOR_CLOSE_DIR = MotorDirection::REVERSE;
@@ -44,5 +45,3 @@ static constexpr float MOTOR_OPEN_DUTY_CYCLE = 0.5f;
 static constexpr float MOTOR_CLOSE_DUTY_CYCLE = 0.5f;
 
 }  // namespace DeathStackBoard
-
-#endif

@@ -44,7 +44,7 @@ namespace DeathStackBoard
 {
 
 SensorManager::SensorManager(ADA* ada)
-    : FSM(&SensorManager::stateIdle), scheduler(4096, miosix::PRIORITY_MAX - 1),
+    : FSM(&SensorManager::stateIdle), scheduler(),
       logger(*LoggerProxy::getInstance()), ada(ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -213,7 +213,7 @@ void SensorManager::onSimple20HZCallback()
     // TODO: Calculate & log barometer stats
 
     // TODO: Choose which barometer to use
-    ada->update(adc_ad7994->getData().baro_1_volt);  
+    ada->update(adc_ad7994->getData().baro_1_volt);
 }
 
 void SensorManager::onDMA250HZCallback()
