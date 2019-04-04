@@ -39,14 +39,14 @@ enum IgnitionControllerState : uint8_t
 struct __attribute__((packed)) IgnCtrlStatus
 {
     uint64_t   timestamp;
-    uint8_t    fsm_state;  
+    uint8_t    fsm_state;
     uint8_t    last_event;
-    uint16_t   n_sent_messages; 
-    uint16_t   n_rcv_messages; 
+    uint16_t   n_sent_messages;
+    uint16_t   n_rcv_messages;
     uint8_t    launch_sent : 1;
-    uint8_t    abort_sent  : 1; 
-    uint8_t    abort_rcv   : 1; 
-    uint8_t    padding     : 5; 
+    uint8_t    abort_sent  : 1;
+    uint8_t    abort_rcv   : 1;
+    uint8_t    padding     : 5;
 };
 
 struct IgnBoardLoggableStatus
