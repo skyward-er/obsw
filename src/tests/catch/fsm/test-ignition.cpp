@@ -66,6 +66,8 @@ protected:
     CanProxy* can;
     CanManager* can_mgr;
     IgnitionController* ign;
+
+    int i = 0;
 };
 
 TEST_CASE_METHOD(IgnitionTestFixture, "Testing IDLE transitions")
@@ -188,18 +190,10 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
         SECTION("IGNITION OFFLINE 1")  // Wait for EV_IGN_OFFLINE when we do not
                                        // post any ign status
         {
-            EventCounter counter{*sEventBroker};
-            counter.subscribe(TOPIC_FLIGHT_EVENTS);
+            long long start = miosix::getTick();
 
-            Thread::sleep(TIMEOUT_IGN_OFFLINE - 5);
-
-            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 0);
-
-            Thread::sleep(5500);
-
-            REQUIRE(ign->testState(&IgnitionController::stateIdle));
-
-            REQUIRE(counter.getCount(EV_IGN_OFFLINE) == 1);
+            REQUIRE(expectEvent(EV_IGN_OFFLINE, TOPIC_FLIGHT_EVENTS,
+                                      start + TIMEOUT_IGN_OFFLINE));
         }
 
         SECTION("IGNITION OFFLINE 2")  // Wait for EV_IGN_OFFLINE after we post
@@ -239,7 +233,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
         }
     }
 
-    SECTION("TESTING GET STATUS") //
+    SECTION("TESTING GET STATUS")  //
     {
         long long start = miosix::getTick();
 
