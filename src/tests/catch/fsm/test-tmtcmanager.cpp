@@ -21,14 +21,15 @@
  * THE SOFTWARE.
  */
 
+#define protected public
+#define private public
+
 #ifdef STANDALONE_CATCH1_TEST
 #include "catch/catch-tests-entry.cpp"
 #endif
 
 // We need access to the handleEvent(...) function in state machines in order to
 // test them synchronously
-#define protected public
-#define private public
 
 #include <miosix.h>
 #include <utils/catch.hpp>
@@ -70,7 +71,7 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
     SECTION("IDLE -> HIGH RATE TELEMETRY -> LOW RATE TELEMETRY -> LANDED")
     {
 
-        TRACE("test case 1");
+        printf("Test 1 s\n");
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LIFTOFF},
                                   &TMTCManager::stateHighRateTM));
 
@@ -79,22 +80,25 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
 
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LANDED},
                                   &TMTCManager::stateLanded));
+        printf("Test 1 e\n");
     }
 }
 
 TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing IDLE functions")
 {
-    TRACE("test case 2");
+    printf("Test 2 s\n");
     SECTION("testing EV_GS_OFFLINE")  // since the GS_OFFLINE_TIMEOUT equals to
                                       // 30 minutes this variable should be
                                       // changed in order to try these tests
     {
         SECTION("creating EV_GS_OFFLINE")  // creating delayed EV_GS_OFFLINE
         {
+            printf("Test 2 s1 s\n");
             TRACE("section 3");
             long long start = miosix::getTick();
             REQUIRE(expectEvent(EV_GS_OFFLINE, TOPIC_FLIGHT_EVENTS,
                                 start + GS_OFFLINE_TIMEOUT));
+            printf("Test 1 s1 e\n");
         }
 
         SECTION("deleting EV_GS_OFFLINE")  // deleting delayed EV_GS_OFFLINE
@@ -183,12 +187,12 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing LowRateTM functions")
 
             REQUIRE(testFSMTransition(*tmtcm, Event{EV_LANDED},
                                       &TMTCManager::stateLanded));
-            
+
             EventCounter counter{*sEventBroker};
             counter.subscribe(TOPIC_TMTC);
 
-            Thread::sleep(LR_TM_TIMEOUT*2);
-            REQUIRE(counter.getCount(EV_SEND_LR_TM) == 0); 
+            Thread::sleep(LR_TM_TIMEOUT * 2);
+            REQUIRE(counter.getCount(EV_SEND_LR_TM) == 0);
         }
     }
 }
@@ -204,20 +208,19 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing LANDED functions")
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_APOGEE},
                                   &TMTCManager::stateLowRateTM));
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LANDED},
-                                      &TMTCManager::stateLanded));
-        
+                                  &TMTCManager::stateLanded));
 
-        SECTION("creating EV_SEND_POS_TM")  // creating delayed EV_SEND_POS_TM and
-                                           // cheking how it is reposted 3 times
+        SECTION(
+            "creating EV_SEND_POS_TM")  // creating delayed EV_SEND_POS_TM and
+                                        // cheking how it is reposted 3 times
         {
             long long start = miosix::getTick();
-            REQUIRE(
-                expectEvent(EV_SEND_POS_TM, TOPIC_TMTC, start + POS_TM_TIMEOUT));
+            REQUIRE(expectEvent(EV_SEND_POS_TM, TOPIC_TMTC,
+                                start + POS_TM_TIMEOUT));
             REQUIRE(expectEvent(EV_SEND_POS_TM, TOPIC_TMTC,
                                 start + POS_TM_TIMEOUT * 2));
             REQUIRE(expectEvent(EV_SEND_POS_TM, TOPIC_TMTC,
                                 start + POS_TM_TIMEOUT * 3));
         }
-
     }
 }

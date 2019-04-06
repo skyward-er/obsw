@@ -45,6 +45,8 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 TMTCManager::~TMTCManager()
 {
     sEventBroker->unsubscribe(this);
+
+    channel->stop();
     delete device;
     delete channel;
 }
