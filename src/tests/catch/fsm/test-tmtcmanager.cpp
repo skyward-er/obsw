@@ -71,7 +71,6 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
     SECTION("IDLE -> HIGH RATE TELEMETRY -> LOW RATE TELEMETRY -> LANDED")
     {
 
-        printf("Test 1 s\n");
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LIFTOFF},
                                   &TMTCManager::stateHighRateTM));
 
@@ -80,39 +79,21 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing all the transitions")
 
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LANDED},
                                   &TMTCManager::stateLanded));
-        printf("Test 1 e\n");
     }
 }
 
 TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing IDLE functions")
 {
-    printf("Test 2 s\n");
+    long long start = miosix::getTick();   
     SECTION("testing EV_GS_OFFLINE")  // since the GS_OFFLINE_TIMEOUT equals to
                                       // 30 minutes this variable should be
                                       // changed in order to try these tests
     {
         SECTION("creating EV_GS_OFFLINE")  // creating delayed EV_GS_OFFLINE
         {
-            printf("Test 2 s1 s\n");
-            TRACE("section 3");
-            long long start = miosix::getTick();
+            Thread::sleep(10);
             REQUIRE(expectEvent(EV_GS_OFFLINE, TOPIC_FLIGHT_EVENTS,
                                 start + GS_OFFLINE_TIMEOUT));
-            printf("Test 1 s1 e\n");
-        }
-
-        SECTION("deleting EV_GS_OFFLINE")  // deleting delayed EV_GS_OFFLINE
-                                           // after exiting IDLE status
-        {
-            EventCounter counter{*sEventBroker};
-            counter.subscribe(TOPIC_FLIGHT_EVENTS);
-
-            long long start = miosix::getTick();
-            REQUIRE(testFSMTransition(*tmtcm, Event{EV_LIFTOFF},
-                                      &TMTCManager::stateHighRateTM));
-
-            Thread::sleep(GS_OFFLINE_TIMEOUT);
-            REQUIRE(counter.getCount(EV_GS_OFFLINE) == 0);
         }
     }
 }
@@ -166,6 +147,7 @@ TEST_CASE_METHOD(tmtcmanagerTestFixture, "Testing LowRateTM functions")
 
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_LIFTOFF},
                                   &TMTCManager::stateHighRateTM));
+        Thread::sleep(1000);
         REQUIRE(testFSMTransition(*tmtcm, Event{EV_APOGEE},
                                   &TMTCManager::stateLowRateTM));
 
