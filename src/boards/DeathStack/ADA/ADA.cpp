@@ -1,5 +1,5 @@
 /* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+ * Authors: Luca Mozzarelli, Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,11 @@
 
 #include <DeathStack/Events.h>
 #include <DeathStack/Topics.h>
+#include <utils/aero/AeroUtils.h>
 
 #include "Debug.h"
+
+using miosix::Lock;
 
 namespace DeathStackBoard
 {
@@ -35,7 +38,7 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 ADA::ADA()
     : FSM(&ADA::stateCalibrating),
-      filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT)
+      filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -48,39 +51,58 @@ void ADA::updateFilter(float altitude)
     MatrixBase<float, 1, 1> y{altitude};
     filter.update(y);
 
-    last_kalman_state.x0 = filter.X(0,0);
-    last_kalman_state.x1 = filter.X(1,0);
-    last_kalman_state.x2 = filter.X(2,0);
+    last_kalman_state.x0 = filter.X(0, 0);
+    last_kalman_state.x1 = filter.X(1, 0);
+    last_kalman_state.x2 = filter.X(2, 0);
 
     logger.log(last_kalman_state);
 }
 
-void ADA::setTargetDPLAltitude(uint16_t altitude)
-{
-    dpl_target_altitude = altitude;
-    logger.log(TargetDeploymentAltitude{altitude});
-}
-
 /* --- INSTANCE METHODS --- */
 
-void ADA::update(float altitude)
+void ADA::updateGPS(double lat, double lon, bool hasFix)
+{
+    // Update gps regardless of the current state
+    rogallo_dts.updateGPS(lat, lon, hasFix);
+}
+
+void ADA::updateAltitude(float pressure, float temperature)
 {
     switch (status.state)
     {
         case ADAState::CALIBRATING:
         {
-            // Calibrating state: update calibration data
-            calibrationStats.add(altitude);
-            calibrationData.stats = calibrationStats.getStats();
+            Lock<FastMutex> l(calib_mutex);
 
-            // Log calibration data
-            logger.log(calibrationData);
-
-            // Send event if calibration samples number is reached and
-            // deployment altitude is set
-            if (calibrationData.stats.nSamples >= CALIBRATION_N_SAMPLES &&
-                status.dpl_altitude_set)
+            // Calibrating state: update calibration data if not enough values
+            if (calibrationData.pressure_calib.nSamples < CALIBRATION_N_SAMPLES)
             {
+                pressure_stats.add(pressure);
+                temperature_stats.add(temperature);
+
+                calibrationData.pressure_calib = pressure_stats.getStats();
+                calibrationData.temperature_calib =
+                    temperature_stats.getStats();
+
+                // Log calibration data
+                logger.log(calibrationData);
+            }
+            else if(status.dpl_altitude_set)
+            {
+                // Set reference to the calibration average
+                pressure_ref    = calibrationData.pressure_calib.mean;
+                temperature_ref = calibrationData.temperature_calib.mean;
+
+                // Calculat MSL values for altitude calculation
+                pressure_0 = aeroutils::mslPressure(
+                    pressure_ref, temperature_ref, REFERENCE_ALTITUDE);
+                temperature_0 = aeroutils::mslTemperature(temperature_ref,
+                                                          REFERENCE_ALTITUDE);
+
+                // Initialize kalman filter
+                filter.X(0, 0) = pressure_ref;
+
+                // Notify that we are ready
                 sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
             }
             break;
@@ -95,10 +117,10 @@ void ADA::update(float altitude)
         case ADAState::SHADOW_MODE:
         {
             // Shadow mode state: update kalman, DO NOT send events
-            updateFilter(altitude);
+            updateFilter(pressure);
 
             // Check if the vertical speed is negative
-            if (filter.X(1,0) < 0)
+            if (filter.X(1, 0) < 0)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -110,13 +132,13 @@ void ADA::update(float altitude)
         case ADAState::ACTIVE:
         {
             // Active state send notifications for apogee
-            updateFilter(altitude);
+            updateFilter(pressure);
             // Check if the vertical speed is negative
-            if (filter.X(1,0) < 0)
+            if (filter.X(1, 0) < 0)
             {
 
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
-                status.apogee_reached = true; 
+                status.apogee_reached = true;
 
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -126,28 +148,17 @@ void ADA::update(float altitude)
         }
 
         case ADAState::FIRST_DESCENT_PHASE:
+        case ADAState::END:  // Update rogallo DTS even when ada has completed
+                             // its job
         {
             // Descent state: send notifications for target altitude reached
-            updateFilter(altitude);
+            updateFilter(pressure);
 
-            if (filter.X(0,0) <= dpl_target_altitude)
-            {
-                sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_ADA);
-                status.dpl_altitude_reached = true;
-
-                // Log
-                DplAltitudeReached dpl_alt{miosix::getTick()};
-                logger.log(dpl_alt);
-            }
+            float altitude = aeroutils::relAltitude(filter.X(0, 0), pressure_0,
+                                                    temperature_0);
+            rogallo_dts.updateAltitude(altitude);
             break;
         }
-
-        case ADAState::END:
-        {
-            // End state: do nothing
-            break;
-        }
-
         case ADAState::UNDEFINED:
         {
             TRACE("ADA Update: Undefined state value \n");
@@ -164,6 +175,13 @@ void ADA::logStatus(ADAState state)
 {
     status.timestamp = miosix::getTick();
     status.state     = state;
+
+    logger.log(status);
+}
+
+void ADA::logStatus()
+{
+    status.timestamp = miosix::getTick();
 
     logger.log(status);
 }
@@ -203,15 +221,16 @@ void ADA::stateCalibrating(const Event& ev)
         {
             const DeploymentAltitudeEvent& dpl_ev =
                 static_cast<const DeploymentAltitudeEvent&>(ev);
-            dpl_target_altitude = dpl_ev.dplAltitude;
-            status.dpl_altitude_set    = true;
 
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            status.dpl_altitude_set = true;
+            logStatus();
             break;
         }
         case EV_TC_RESET_CALIBRATION:
         {
-            calibrationStats.reset();
-            calibrationData.stats = calibrationStats.getStats();
+            resetCalibration();
+            break;
         }
         default:
         {
@@ -235,7 +254,6 @@ void ADA::stateIdle(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateIdle\n");
-            filter.X(0,0) = calibrationData.stats.mean;  // Initialize the state with the average
             logStatus(ADAState::IDLE);
             break;
         }
@@ -253,13 +271,15 @@ void ADA::stateIdle(const Event& ev)
         {
             const DeploymentAltitudeEvent& dpl_ev =
                 static_cast<const DeploymentAltitudeEvent&>(ev);
-            dpl_target_altitude = dpl_ev.dplAltitude;
+
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            status.dpl_altitude_set = true;
+            logStatus();
             break;
         }
         case EV_TC_RESET_CALIBRATION:
         {
-            calibrationStats.reset();
-            calibrationData.stats = calibrationStats.getStats();
+            resetCalibration();
             transition(&ADA::stateCalibrating);
             break;
         }
@@ -286,7 +306,8 @@ void ADA::stateShadowMode(const Event& ev)
         case EV_ENTRY:
         {
             TRACE("ADA: Entering stateShadowMode\n");
-            shadow_delayed_event_id = sEventBroker->postDelayed({EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
+            shadow_delayed_event_id = sEventBroker->postDelayed(
+                {EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
             logStatus(ADAState::SHADOW_MODE);
             break;
         }
@@ -372,6 +393,12 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         }
         case EV_DPL_ALTITUDE:
         {
+            status.dpl_altitude_reached = true;
+            logStatus();
+            // Log
+            DplAltitudeReached dpl_alt{miosix::getTick()};
+            logger.log(dpl_alt);
+
             transition(&ADA::stateEnd);
             break;
         }
@@ -410,6 +437,17 @@ void ADA::stateEnd(const Event& ev)
             break;
         }
     }
+}
+
+void ADA::resetCalibration()
+{
+    Lock<FastMutex> l(calib_mutex);
+
+    pressure_stats.reset();
+    temperature_stats.reset();
+
+    calibrationData.pressure_calib    = pressure_stats.getStats();
+    calibrationData.temperature_calib = temperature_stats.getStats();
 }
 
 }  // namespace DeathStackBoard
