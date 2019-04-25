@@ -26,13 +26,14 @@
 #pragma once
 
 #include <cmath>
+#include <Debug.h>
 
 namespace launchhazard
 {
-double DEG2RAD = M_PI / 180.0;
+const double DEG2RAD = M_PI / 180.0;
 
 // Square of the radius of the earth at Roccaraso (WGS84)
-double EARTH_RADIUS_SQUARED = 40560046730329;
+const double EARTH_RADIUS_SQUARED = 40560046730329;
 /**
  * Launch Hazard Circle
  */

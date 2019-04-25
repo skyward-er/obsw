@@ -27,54 +27,82 @@
 
 #pragma once
 #include "ElevationMap.h"
+#include "DeathStack/configs/ADA_config.h"
 
 namespace DeathStackBoard
 {
-constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
+
+/**
+ * Rogallo Deployment and Termination System
+ * This class receives samples from GPS and Kalman (altitude) in order to deploy
+ * the rogallo only when it is safe. If the rogallo is deployed and safety
+ * conditions are not met, this class sends an abort event.
+ *
+ * It is safe to deploy the rogallo if the following conditions apply:
+ * - GPS has fix
+ * - GPS says we are inside the LHA
+ * - The altitude is below the target deployment altitude
+ *
+ * The rogallo is aborted if:
+ * - The rogallo was deployed
+ * - GPS says we are outside the LHA or has no fix for LHA_EGRESS_THRESHOLD
+ *   consecutive samples
+ */
 class RogalloDTS
 {
 public:
     RogalloDTS();
     ~RogalloDTS();
 
-    void updateGPS(float lat, float lon, bool hasFix);
+    void updateGPS(double lat, double lon, bool hasFix);
     void updateAltitude(float altitudeMSL);
 
-    void setDeploymentAltitude(float dpl_altitude);
-    float getDeploymentAltitude();
+    void setDeploymentAltitudeAgl(float dpl_altitude);
+    float getDeploymentAltitudeAgl();
+
 private:
     void update();
 
-    static bool isInsideLHA(float lat, float lon);
+    /**
+     * Are the provided coordinates inside the Launch Hazard Area?
+     * @param lat Latitude [degrees]
+     * @param lon Longitude [degrees]
+     * @return Whether the coordinates are inside the LHA
+     */
+    static bool isInsideLHA(double lat, double lon);
 
     /**
      * Is the rocket egressing from the Launch Hazard Area?
-     * An egression is detected when the rocket is outside the LHA for 
+     * An egression is detected when the rocket is outside the LHA for
      * LHA_EGRESS_THRESHOLD consecutive GPS samples.
-     * 
-     * @return Wether the rocket is egressing the LHA
+     *
+     * @return Whether the rocket is egressing the LHA
      */
     bool isEgressing();
 
     // States
-    bool deployed = false;
+    bool deployed   = false;
     bool terminated = false;
 
     // Deployment altitude
-    float deployment_altitude = -1000;
-    
-    // Last available data
-    float last_lat = 0;
-    float last_lon = 0;
-    bool last_fix = false;
+    bool deployment_altitude_set  = false;
+    float deployment_altitude_agl = -1000;
 
-    float last_altitude_msl = 0;
+    // Last available data
+    bool has_gps_sample = false;  // Do we have at least one sample?
+
+    double last_lat       = 0;
+    double last_lon       = 0;
+    bool last_fix        = false;
     int last_terran_elev = elevationmap::INVALID_ELEVATION;
 
+    bool has_altitude_sample = false;  // Do we have at least one sample?
+    float last_altitude_msl  = 0;
+
     // Array storing if the last N positions were inside the Launch Hazard
-    // Area.
+    // Area. Initialized at false.
     bool inside_LHA[LHA_EGRESS_THRESHOLD];
     unsigned int inside_lha_ptr = 0;
 };
 
-}
+}  // namespace DeathStackBoard

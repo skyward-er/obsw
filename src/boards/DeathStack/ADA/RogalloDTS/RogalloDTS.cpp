@@ -22,34 +22,35 @@
  */
 
 #include "RogalloDTS.h"
+#include <events/EventBroker.h>
 #include <cstring>
+#include "DeathStack/Events.h"
 #include "LHCircles.h"
 
 namespace DeathStackBoard
 {
 
-RogalloDTS::RogalloDTS() { memset(inside_LHA, true, LHA_EGRESS_THRESHOLD); }
+RogalloDTS::RogalloDTS() { memset(inside_LHA, false, LHA_EGRESS_THRESHOLD); }
 
 RogalloDTS::~RogalloDTS() {}
 
-void RogalloDTS::setDeploymentAltitude(float dpl_altitude)
+void RogalloDTS::setDeploymentAltitudeAgl(float dpl_altitude)
 {
-    deployment_altitude = dpl_altitude;
+    deployment_altitude_agl = dpl_altitude;
+    deployment_altitude_set = true;
 }
 
-float RogalloDTS::getDeploymentAltitude()
-{
-    return deployment_altitude;
-}
+float RogalloDTS::getDeploymentAltitudeAgl() { return deployment_altitude_agl; }
 
-void RogalloDTS::updateGPS(float lat, float lon, bool has_fix)
+void RogalloDTS::updateGPS(double lat, double lon, bool has_fix)
 {
-    last_fix = has_fix;
+    has_gps_sample = true;
+    last_fix       = has_fix;
 
     last_lat = lat;
     last_lon = lon;
 
-    last_terran_elev = elevationmap::getElevation((double)lat, (double)lon);
+    last_terran_elev = elevationmap::getElevation(lat, lon);
 
     // We consider ourselves inside the LHA only if we have fix AND our
     // coordinates are effectively inside
@@ -59,44 +60,64 @@ void RogalloDTS::updateGPS(float lat, float lon, bool has_fix)
     {
         inside_lha_ptr = 0;
     }
+  /*  TRACE("iLHA: ");
+    for(unsigned int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
+    {
+        TRACE("%d", inside_LHA[i] ? 1 : 0);
+    }
+    TRACE("\n");*/
 
     update();
 }
 
 void RogalloDTS::updateAltitude(float altitude_msl)
 {
-    last_altitude_msl = altitude_msl;
+    last_altitude_msl   = altitude_msl;
+    has_altitude_sample = true;
     update();
 }
 
 void RogalloDTS::update()
 {
-    float altitude_agl = last_altitude_msl - last_terran_elev;
-    // Deploy the rogallo wing
-    if (!deployed && !isEgressing())
+    // Do things only if we have at least 1 sample from each sensor and the dpl
+    // altitude has been set.
+    if (has_gps_sample && has_altitude_sample && deployment_altitude_set)
     {
-        if(altitude_agl < deployment_altitude)
+        float altitude_agl = last_altitude_msl - last_terran_elev;
+        // Deploy the rogallo wing
+        if (!deployed && !isEgressing())
         {
-            deployed = true;
-            // TODO: Deploy rogallo
+            if (altitude_agl <= deployment_altitude_agl)
+            {
+                deployed = true;
+                sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
+            }
         }
-    }
-    
-    // Cut the rogallo wing
-    if (deployed && isEgressing() && !terminated)
-    {
-        terminated = true;
-        // TODO: terminate rogallo
+
+        // Cut the rogallo wing
+        if (deployed && isEgressing() && !terminated)
+        {
+            terminated = true;
+            sEventBroker->post({EV_ABORT_ROGALLO}, TOPIC_ADA);
+        }
     }
 }
 
-bool RogalloDTS::isInsideLHA(float lat, float lon)
+bool RogalloDTS::isInsideLHA(double lat, double lon)
 {
     using namespace launchhazard;
+
+    // Assume we are always inside if no circles are specified
+    if (NUM_CIRCLES == 0)
+    {
+        return true;
+    }
+
     for (int i = 0; i < NUM_CIRCLES; i++)
     {
-        if (circles[i].isInside((double)lat, (double)lon))
+        if (circles[i].isInside(lat, lon))
         {
+            
             return true;
         }
     }
@@ -106,7 +127,7 @@ bool RogalloDTS::isInsideLHA(float lat, float lon)
 
 bool RogalloDTS::isEgressing()
 {
-    for (int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
+    for (unsigned int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
     {
         if (inside_LHA[i])
         {
