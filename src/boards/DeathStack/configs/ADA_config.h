@@ -32,23 +32,23 @@ namespace DeathStackBoard
 static const uint16_t DEFAULT_DPL_ALTITUDE = 1000;
 
 // State timeouts
-static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 1 * 1000; // ms
-static const unsigned int CALIBRATION_N_SAMPLES       = 5000;
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 250; // ms
+static const unsigned int CALIBRATION_N_SAMPLES       = 5;
 
 
 // ------ Kalman parameters ------
 
-static const float SAMPLING_PERIOD = 0.01; // In seconds
+static const float SAMPLING_PERIOD = 1/20.0f; // In seconds
 
 // State matrix
 // Note that sampling frequency is supposed to be constant and known at
 // compile time. If this is not the case the matrix has to be updated at
 // each iteration
-static const MatrixBase<float,3,3> A_INIT{
-    1, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
-    0,  1,             SAMPLING_PERIOD,
-    0,  0,              1
-};
+static const MatrixBase<float,3,3> A_INIT({
+    1.0f,   SAMPLING_PERIOD,     0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
+    0.0f,   1.0f,                SAMPLING_PERIOD,
+    0.0f,   0.0f,                1.0f
+});
 
 // Output matrix
 static const MatrixBase<float,1,3> C_INIT{1, 0, 0};

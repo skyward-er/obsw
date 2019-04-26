@@ -1,45 +1,107 @@
 
-#pragma once
-
 #include <iostream>
 #include "DeathStack/ADA/ADA.h"
 #include <events/FSM.h>
+#include <DeathStack/Events.h>
+#include <events/EventBroker.h>
+#include <DeathStack/EventClasses.h>
 #include <Common.h>
 #include <string>
 
 typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
+typedef miosix::Gpio<GPIOG_BASE, 14> redLed;
 using namespace DeathStackBoard;
-ADA a;
+ADA ada;
 void handleCommands(std::string line);
 
 int main()
 {
+    // Set led pin modes
     {
         miosix::FastInterruptDisableLock dLock;
         greenLed::mode(miosix::Mode::OUTPUT);
+        redLed::mode(miosix::Mode::OUTPUT);
     }
 
+    // Start event broker and ada
+    sEventBroker->start();
+    ada.start();
+
+    // Read serial
     std::string line;
     while ( std::getline(std::cin, line) )
     {
-        std::cout << "GOT LINE: " << line << "\n";
         if (line[0] == '#')
         {
             handleCommands(line);
         }
     }
-    std::cout << "END" << "\n";
-
 }
 
 void handleCommands(std::string line)
 {
-    std::cout << "HANDLE COMMAND: " << line << "\n";
-    if ( line.substr(1,12) == "INPUT_SAMPLE" )
+    // Extract command name
+    unsigned delimiterIndex = line.find_last_of("#");
+    std::string command = line.substr(1, delimiterIndex-1);
+
+    // TRACE("ADA HITL Test command: %s \n", command.c_str());
+    
+    // Blink green led: command received
+    greenLed::high(); 
+    miosix::Thread::sleep(50);
+    greenLed::low();
+
+    if ( command == "INPUT_SAMPLE" )
     {
         char* end;
-        float y = strtof(line.substr(12, std::string::npos).c_str(), &end );
-        a.update(y);
-        std::cout << "UPDATED WITH SAMPLE " << y << "\n";
+        std::string height = line.substr(delimiterIndex+1, std::string::npos);
+        float y = strtof(height.c_str(), &end);
+        std::cout << "y = " << height << " -> " << y << "\n";
+        ada.update(y);
     }
+    else if ( command == "GET_STATE" )
+    {
+        std::cout << "#X0#" << ada.getKalmanState().x0 << "\n";
+        std::cout << "#X1#" << ada.getKalmanState().x1 << "\n";
+        std::cout << "#X2#" << ada.getKalmanState().x2 << "\n";
+    }
+    else if ( command == "GET_CALIB" )
+    {
+        std::cout << "#N_SAMPLES#" << ada.getCalibrationData().stats.nSamples << "\n";
+        std::cout << "#AVG#" << ada.getCalibrationData().stats.mean << "\n";
+    }
+    else if ( command == "EV_TC_RESET_CALIBRATION")
+    {
+        sEventBroker->post({EV_TC_RESET_CALIBRATION}, TOPIC_ADA);
+    }
+    else if ( command == "EV_LIFTOFF")
+    {
+        sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    }
+    else if ( command == "EV_APOGEE")
+    {
+        sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
+    }
+    else if ( command == "EV_SET_DPL_ALTITUDE")
+    {
+        int alt = std::atoi(line.substr(20, std::string::npos).c_str());
+        DeploymentAltitudeEvent ev;
+        ev.dplAltitude = alt;
+        ev.sig = EV_TC_SET_DPL_ALTITUDE;
+        sEventBroker->post(ev, TOPIC_TC);
+    }
+    else if ( command == "EV_DPL_ALTITUDE")
+    {
+        sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
+    }
+    else
+    {
+        // Blink red led: command not recognized
+        redLed::high();
+        miosix::Thread::sleep(50);
+        redLed::low();
+    }
+    
+
+    
 }

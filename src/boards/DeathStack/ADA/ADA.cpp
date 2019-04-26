@@ -42,6 +42,11 @@ ADA::ADA()
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_ADA);
+
+    // Save the state
+    // Otherwise the update fcn will do nothing until first log
+    status.state = ADAState::CALIBRATING;
+
 }
 
 void ADA::updateFilter(float altitude)
@@ -70,7 +75,7 @@ void ADA::update(float altitude)
     {
         case ADAState::CALIBRATING:
         {
-            std::cout << "CALIBRATING \n\n";
+            TRACE("ADA Update: Calibrating \n");
             // Calibrating state: update calibration data
             calibrationStats.add(altitude);
             calibrationData.stats = calibrationStats.getStats();
@@ -91,11 +96,13 @@ void ADA::update(float altitude)
         case ADAState::IDLE:
         {
             // Idle state: do nothing
+            TRACE("ADA Update: Idle \n");
             break;
         }
 
         case ADAState::SHADOW_MODE:
         {
+            TRACE("ADA Update: Shadow mode \n");
             // Shadow mode state: update kalman, DO NOT send events
             updateFilter(altitude);
 
@@ -129,6 +136,7 @@ void ADA::update(float altitude)
 
         case ADAState::FIRST_DESCENT_PHASE:
         {
+            TRACE("ADA Update: First descent phase \n");
             // Descent state: send notifications for target altitude reached
             updateFilter(altitude);
 
@@ -146,6 +154,7 @@ void ADA::update(float altitude)
 
         case ADAState::END:
         {
+            TRACE("ADA Update: End \n");
             // End state: do nothing
             break;
         }
