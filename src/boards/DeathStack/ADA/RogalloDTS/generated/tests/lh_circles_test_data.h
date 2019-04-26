@@ -1,16 +1,17 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/**
+ * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -26,43 +27,44 @@
  ******************************************************************************
  */
 
-// Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-04-25 19:54:23.659867
+// Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
+// Autogen date:    2019-04-25 00:23:10.729340
 
-#ifndef SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
-#define SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
+#pragma once
 
-#include <stdint.h>
-#include <string>
+#include <cstddef>
 
-using std::map;
-using std::string;
-
-namespace DeathStackBoard
+namespace launchhazard
 {
-/**
- * Definition of various event topics to use in the EventBroker
- */
-enum Topics : uint8_t
+namespace test
 {
-    TOPIC_ADA,
-    TOPIC_DEPLOYMENT,
-    TOPIC_FLIGHT_EVENTS,
-    TOPIC_FMM,
-    TOPIC_IGNITION,
-    TOPIC_TC,
-    TOPIC_TMTC,
-    TOPIC_CAN
-};
 
-/**
- * @brief Returns the name of the provided event
- *
- * @param event
- * @return string
- */
-string getTopicString(uint8_t topic);
+static constexpr size_t TEST_DATA_SIZE = 10000;
 
-}  // namespace DeathStackBoard
+extern const double test_latitudes[TEST_DATA_SIZE];
+extern const double test_longitudes[TEST_DATA_SIZE];
 
-#endif /* SRC_SHARED_BOARDS_HOMEONE_TOPICS_H_ */
+extern const double test0_distance2[TEST_DATA_SIZE];
+
+extern const double test1_distance2[TEST_DATA_SIZE];
+
+extern const double test2_distance2[TEST_DATA_SIZE];
+
+extern const double test3_distance2[TEST_DATA_SIZE];
+
+
+extern const bool test0_inside[TEST_DATA_SIZE];
+
+extern const bool test1_inside[TEST_DATA_SIZE];
+
+extern const bool test2_inside[TEST_DATA_SIZE];
+
+extern const bool test3_inside[TEST_DATA_SIZE];
+
+
+
+static const double* const test_distances[] = {test0_distance2, test1_distance2, test2_distance2, test3_distance2};
+static const bool* const test_inside[] = {test0_inside, test1_inside, test2_inside, test3_inside};
+
+}
+} // namespace elevationmap

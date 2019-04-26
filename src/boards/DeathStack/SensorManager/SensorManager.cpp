@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#include <stdexcept>
+
 #include "SensorManager.h"
 
 #include "DeathStack/Events.h"
@@ -31,6 +33,7 @@
 
 #include "Sensors/AD7994Wrapper.h"
 #include "Sensors/ADCWrapper.h"
+#include "drivers/piksi/piksi.h"
 #include "sensors/ADIS16405/ADIS16405.h"
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -44,7 +47,7 @@ namespace DeathStackBoard
 {
 
 SensorManager::SensorManager(ADA* ada)
-    : FSM(&SensorManager::stateIdle), scheduler(4096, miosix::PRIORITY_MAX - 1),
+    : FSM(&SensorManager::stateIdle), scheduler(),
       logger(*LoggerProxy::getInstance()), ada(ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -78,6 +81,7 @@ void SensorManager::initSensors()
 
     adc_internal = new ADCWrapper();
 
+    piksi = new Piksi("/dev/gps");
     // TODO: Self tests
 }
 
@@ -90,6 +94,8 @@ void SensorManager::initSamplers()
 
     sampler_250hz_dma.AddSensor(imu_mpu9250);
     sampler_250hz_dma.AddSensor(imu_adis16405);
+
+    // Piksi does not inherit from Sensor, so we sample it in a different way
 }
 
 void SensorManager::stateIdle(const Event& ev)
@@ -178,6 +184,12 @@ void SensorManager::startSampling()
     scheduler.add(dma_250Hz_sampler, 1000,
                   ID_DMA_250HZ);  // TODO: Back to 4 ms
 
+    // Lambda expression to collect data from GPS at 10 Hz
+    std::function<void()> gps_callback =
+        std::bind(&SensorManager::onGPSCallback, this);
+
+    scheduler.add(gps_callback, 100, ID_GPS);
+
     // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
         [&]() {
@@ -212,8 +224,8 @@ void SensorManager::onSimple20HZCallback()
 
     // TODO: Calculate & log barometer stats
 
-    // TODO: Choose which barometer to use
-    ada->update(adc_ad7994->getData().baro_1_volt);  
+    // TODO: Choose which barometer to use, add temperature
+    ada->updateAltitude(ad7994_data.baro_1_pressure, 288.15f);
 }
 
 void SensorManager::onDMA250HZCallback()
@@ -231,6 +243,24 @@ void SensorManager::onDMA250HZCallback()
         logger.log(*(imu_adis16405->accelDataPtr()));
         logger.log(*(imu_adis16405->tempDataPtr()));
     }
+}
+
+void SensorManager::onGPSCallback()
+{
+    GPSData data;
+    try
+    {
+        data = piksi->getGpsData();
+    }
+    catch (std::runtime_error rterr)
+    {
+        data.fix       = false;
+        data.latitude  = 0;
+        data.longitude = 0;
+    }
+    // TODO: fix must correspond to the current state of the GPS fix, not be
+    // always true if the GPS fixed any time in the past
+    ada->updateGPS(data.latitude, data.longitude, data.fix);
 }
 
 }  // namespace DeathStackBoard

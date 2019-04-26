@@ -27,7 +27,7 @@
 
 struct BatteryVoltageData
 {
-    uint32_t timestamp;
+    long long timestamp;
     
     uint16_t battery_voltage_value;
     uint16_t battery_voltage_min = 0xFFFF;
@@ -35,7 +35,7 @@ struct BatteryVoltageData
 
 struct CurrentSenseData
 {
-    uint32_t timestamp;
+    long long timestamp;
     
     uint16_t current_1_value;
     uint16_t current_2_value;

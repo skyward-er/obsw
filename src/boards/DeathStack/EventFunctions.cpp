@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-03-28 18:05:33.644075
+// Autogen date:    2019-04-25 19:54:23.659867
 
 
 #include "Events.h"
@@ -41,6 +41,7 @@ namespace DeathStackBoard
 string getEventString(uint8_t event)
 {
     static const map<uint8_t, string> event_string_map {
+        { EV_ABORT_ROGALLO, "EV_ABORT_ROGALLO" },
         { EV_ADA_APOGEE_DETECTED, "EV_ADA_APOGEE_DETECTED" },
         { EV_ADA_CALIBRATION_COMPLETE, "EV_ADA_CALIBRATION_COMPLETE" },
         { EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED" },

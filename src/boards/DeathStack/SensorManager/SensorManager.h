@@ -40,7 +40,6 @@ using miosix::PauseKernelLock;
 using std::vector;
 
 // Forward declarations
-
 template <typename BusSPI>
 class MPU9250;
 
@@ -50,7 +49,7 @@ class MAX21105;
 template <typename BusSPI>
 class ADIS16405;
 
-
+class Piksi;
 
 namespace DeathStackBoard
 {
@@ -79,6 +78,7 @@ public:
         ID_SIMPLE_1HZ,
         ID_SIMPLE_20HZ,
         ID_DMA_250HZ,
+        ID_GPS,
         ID_STATS
     };
 
@@ -132,24 +132,23 @@ private:
 
     /**
      * @brief Simple, 1 Hz SensorSampler Callback.
-     * Called each time all the sensors in the 1hz sampler have been sampled (so
-     * 1 times per second)
+     * Called each time all the sensors in the 1hz sampler have been sampled
      */
     void onSimple1HZCallback();
 
     /**
      * @brief Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
-     * (so 20 times per second)
      */
     void onSimple20HZCallback();
 
     /**
      * @brief DMA, 250 Hz SensorSampler Callback.
      * Called each time all the sensors in the 250hz sampler have been sampled
-     * (so 250 times per second)
      */
     void onDMA250HZCallback();
+
+    void onGPSCallback();
 
     TaskScheduler scheduler;
     // Logger ref
@@ -167,6 +166,7 @@ private:
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
     ADCWrapper* adc_internal;
+    Piksi* piksi;
 
     //ADA
     ADA* ada;
