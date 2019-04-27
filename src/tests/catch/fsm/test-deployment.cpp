@@ -48,57 +48,80 @@ class DeploymentControllerFixture
 {
 public:
     // This is called at the beginning of each test / section
-    DeploymentControllerFixture() { dpl.start(); }
+    DeploymentControllerFixture()
+    { 
+        dpl = new DeploymentController();
+        sEventBroker->start();
+        dpl->start();
+    }
 
     // This is called at the end of each test / section
     ~DeploymentControllerFixture()
     {
-        dpl.stop();
-
-        // remove any pending delayed events, as not to interfere with other
-        // tests
+        dpl->stop();
+        sEventBroker->unsubscribe(dpl);
         sEventBroker->clearDelayedEvents();
+        delete dpl;
     }
 
 protected:
-    DeploymentController dpl{};
+    DeploymentController* dpl;
 };
 
 /**
  * TEST_CASE_METHOD(Foo, "...") can access all protected members of Foo. See the
  * catch framework reference on Github.
  */
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing S1 transitions")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Idle")
 {
+    
     SECTION("IDLE -> Opening Nosecone")
     {
         REQUIRE(
-            testHSMTransition(dpl, Event{EV_NC_OPEN},
+            testHSMTransition(*dpl, Event{EV_NC_OPEN},
                               &DeploymentController::state_openingNosecone));
     }
 
-    SECTION("IDLE -> Opening Nosecone")
+    SECTION("IDLE -> Cutting main")
     {
         REQUIRE(
-            testHSMTransition(dpl, Event{EV_CUT_MAIN},
-                              &DeploymentController::state_openingNosecone));
+            testHSMTransition(*dpl, Event{EV_CUT_MAIN},
+                            &DeploymentController::state_cuttingMain));
+    }
+
+    SECTION("IDLE -> Cutting drogue")
+    {
+        REQUIRE(
+            testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
+                              &DeploymentController::state_cuttingDrogue));
+    }
+
+}
+
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Cutting Main")
+{
+    REQUIRE(
+        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
+                            &DeploymentController::state_cuttingMain));
+
+    SECTION(" Cutting Main -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
+                            &DeploymentController::state_idle));
     }
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing S2 Transitions")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Cutting Drogue")
 {
-    DeploymentController dpl;
-    // Transition here to the state you want to test
-    // REQUIRE(testHSMTransition(...));
+    REQUIRE(
+        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
+                            &DeploymentController::state_cuttingDrogue));
 
-    // Test transitions starting from that state
-    SECTION("Example 1")
+    SECTION(" Cutting Main -> Idle")
     {
-        // REQUIRE ...
-    }
-
-    SECTION("Example 2")
-    {
-        // REQUIRE ...
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
+                            &DeploymentController::state_idle));
     }
 }
