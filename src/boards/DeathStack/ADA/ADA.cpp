@@ -36,7 +36,9 @@ using miosix::Lock;
 namespace DeathStackBoard
 {
 
+
 /* --- LIFE CYCLE --- */
+
 ADA::ADA()
     : FSM(&ADA::stateCalibrating),
       filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
@@ -52,6 +54,9 @@ ADA::ADA()
 
 }
 
+
+/* --- UPDATE METHODS --- */
+
 void ADA::updateFilter(float altitude)
 {
     MatrixBase<float, 1, 1> y{altitude};
@@ -63,8 +68,6 @@ void ADA::updateFilter(float altitude)
 
     logger.log(last_kalman_state);
 }
-
-/* --- INSTANCE METHODS --- */
 
 void ADA::updateGPS(double lat, double lon, bool hasFix)
 {
@@ -183,6 +186,20 @@ void ADA::updateAltitude(float pressure, float temperature)
     }
 }
 
+void ADA::resetCalibration()
+{
+    Lock<FastMutex> l(calib_mutex);
+
+    pressure_stats.reset();
+    temperature_stats.reset();
+
+    calibrationData.pressure_calib    = pressure_stats.getStats();
+    calibrationData.temperature_calib = temperature_stats.getStats();
+}
+
+
+/* --- LOG METHODS --- */
+
 void ADA::logStatus(ADAState state)
 {
     status.timestamp = miosix::getTick();
@@ -197,6 +214,7 @@ void ADA::logStatus()
 
     logger.log(status);
 }
+
 
 /* --- STATES --- */
 /**
@@ -449,17 +467,6 @@ void ADA::stateEnd(const Event& ev)
             break;
         }
     }
-}
-
-void ADA::resetCalibration()
-{
-    Lock<FastMutex> l(calib_mutex);
-
-    pressure_stats.reset();
-    temperature_stats.reset();
-
-    calibrationData.pressure_calib    = pressure_stats.getStats();
-    calibrationData.temperature_calib = temperature_stats.getStats();
 }
 
 }  // namespace DeathStackBoard

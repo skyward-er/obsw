@@ -16,6 +16,8 @@ void handleCommands(std::string line);
 
 int main()
 {
+    std::cout << "A_INIT: \n" << A_INIT;
+
     // Set led pin modes
     {
         miosix::FastInterruptDisableLock dLock;
