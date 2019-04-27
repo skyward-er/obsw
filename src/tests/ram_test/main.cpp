@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "sha1.h"
 #include <miosix.h>
+#include <stdexcept>
 
 const unsigned int ramBase=0x60000000; //Tune this to the right value
 const unsigned int ramSize=524288;     //Tune this to the right value
@@ -64,21 +65,50 @@ template<typename T> bool ramTest()
     return shaCmp(a,b);
 }
 
+
 typedef miosix::Gpio<GPIOG_BASE, 2> led1;
 
 int main()
 {
     led1::mode(miosix::Mode::OUTPUT);
     led1::low();
+
+    uint64_t n_attempts = 0, n_ok = 0, n_fails = 0;
+
+    FILE* file = fopen("/sd/log.txt","w");
+
+    if (file == NULL)
+        throw std::runtime_error("Error opening log file");
+
     for(;;)
     {
+        fprintf(file, "TEST STATUS: attempts: %llx, passed: %llx, failed %llx\n",
+                        n_attempts, n_ok, n_fails);
+        n_attempts++;
+
         iprintf("RAM test\nTesting word size transfers\n");
-        if(ramTest<unsigned int>()) return 1;
+        if(ramTest<unsigned int>()) {
+            n_fails++;
+            continue;
+        }
+
         iprintf("Testing halfword size transfers\n");
-        if(ramTest<unsigned short>()) return 1;
+        if(ramTest<unsigned short>()) {
+            n_fails++;
+            continue;
+        }
+
         iprintf("Testing byte size transfers\n");
-        if(ramTest<unsigned char>()) return 1;
+        if(ramTest<unsigned char>()) {
+            n_fails++;
+            continue;
+        }
+
+        n_ok++;
         iprintf("Ok\n");
+
         led1::high();
+        miosix::Thread::sleep(200);
+        led1::low();
     }
 }
