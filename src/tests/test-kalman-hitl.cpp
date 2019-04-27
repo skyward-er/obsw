@@ -53,11 +53,11 @@ void handleCommands(std::string line)
 
     if ( command == "INPUT_SAMPLE" )
     {
-        char* end;
-        std::string height = line.substr(delimiterIndex+1, std::string::npos);
-        float y = strtof(height.c_str(), &end);
-        std::cout << "y = " << height << " -> " << y << "\n";
-        ada.update(y);
+        // char* end;
+        // std::string height = line.substr(delimiterIndex+1, std::string::npos);
+        // float y = strtof(height.c_str(), &end);
+        // TODO: Change to accept temperature
+        // ada.updateAltitude(y);
     }
     else if ( command == "GET_STATE" )
     {
@@ -65,11 +65,12 @@ void handleCommands(std::string line)
         std::cout << "#X1#" << ada.getKalmanState().x1 << "\n";
         std::cout << "#X2#" << ada.getKalmanState().x2 << "\n";
     }
-    else if ( command == "GET_CALIB" )
-    {
-        std::cout << "#N_SAMPLES#" << ada.getCalibrationData().stats.nSamples << "\n";
-        std::cout << "#AVG#" << ada.getCalibrationData().stats.mean << "\n";
-    }
+    // TODO: Change to new version
+    // else if ( command == "GET_CALIB" )
+    // {
+    //     std::cout << "#N_SAMPLES#" << ada.getCalibrationData().stats.nSamples << "\n";
+    //     std::cout << "#AVG#" << ada.getCalibrationData().stats.mean << "\n";
+    // }
     else if ( command == "EV_TC_RESET_CALIBRATION")
     {
         sEventBroker->post({EV_TC_RESET_CALIBRATION}, TOPIC_ADA);
