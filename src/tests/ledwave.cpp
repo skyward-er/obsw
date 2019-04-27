@@ -29,8 +29,18 @@ int main()
     {
         printf("Working\n");
         led1::high();
+        led2::high();
+        led3::high();
+        led4::high();
+        led5::high();
+        led6::high();
         Thread::sleep(100);
         led1::low();
+        led2::low();
+        led3::low();
+        led4::low();
+        led5::low();
+        led6::low();
         Thread::sleep(100);
     }
         /*
