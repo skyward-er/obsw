@@ -60,6 +60,7 @@ TEST_CASE("[RogalloDTS] Test ground elevation function")
             REQUIRE(getElevation(lat, lon) == elev);
         }
     }
+    SUCCEED();
 }
 
 TEST_CASE("[RogalloDTS] Test Launch Hazard Circles")
@@ -91,6 +92,7 @@ TEST_CASE("[RogalloDTS] Test Launch Hazard Circles")
                 }
             }
         }
+        SUCCEED();
     }
 
     SECTION("Test inside circle")
@@ -116,6 +118,7 @@ TEST_CASE("[RogalloDTS] Test Launch Hazard Circles")
                 }
             }
         }
+        SUCCEED();
     }
 }
 
@@ -307,7 +310,7 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         {
             dts.updateGPS(out_lat, out_lon, true);
         }
-        
+
         // No abort event received
         REQUIRE(c.getTotalCount() == 1);
         REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 0);
@@ -319,7 +322,7 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         // Still nothing
         REQUIRE(c.getTotalCount() == 1);
         REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 0);
-        
+
         // Outside LHA for LHA_EGRESS_THRESHOLD samples
         for (unsigned int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
         {
@@ -352,7 +355,7 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         {
             dts.updateGPS(in_lat, in_lon, false);
         }
-        
+
         // No abort event received
         REQUIRE(c.getTotalCount() == 1);
         REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 0);
@@ -365,4 +368,3 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 1);
     }
 }
-
