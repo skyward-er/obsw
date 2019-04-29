@@ -74,7 +74,9 @@ struct TargetDeploymentAltitude
 
 // Struct of calibration data
 struct ADACalibrationData {
-    StatsResult  stats;    
+    StatsResult  pressure_calib;    
+    StatsResult  temperature_calib;   
+    StatsResult  gps_altitude_calib;     
 };
 
 }

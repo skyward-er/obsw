@@ -33,7 +33,7 @@
 namespace DeathStackBoard
 {
 
-using AD7994_t = AD7994<BusI2C1, ad7994_busy_pin, ad7994_nconvst>;
+using AD7994_t = AD7994<i2c1, ad7994_busy_pin, ad7994_nconvst>;
 
 class AD7994Wrapper : public ::Sensor
 {
@@ -46,8 +46,8 @@ public:
         bool success = adc.init();
         if (success)
         {
-            adc.enableChannel(BARO_1_CHANNEL);
-            adc.enableChannel(BARO_2_CHANNEL);
+            adc.enableChannel(NXP_BARO_CHANNEL);
+            adc.enableChannel(HONEYWELL_BARO_CHANNEL);
         }
         return success;
     }
@@ -57,36 +57,37 @@ public:
         bool result = adc.onSimpleUpdate();
         if (result)
         {
-            AD7994Sample baro_1 = adc.getLastSample(BARO_1_CHANNEL);
-            AD7994Sample baro_2 = adc.getLastSample(BARO_2_CHANNEL);
+            AD7994Sample nxp_baro = adc.getLastSample(NXP_BARO_CHANNEL);
+            AD7994Sample hw_baro = adc.getLastSample(HONEYWELL_BARO_CHANNEL);
 
-            data.timestamp = baro_1.timestamp;
-            data.baro_1_volt  = baro_1.value;
-            data.baro_1_flag  = baro_1.alert_flag;
+            data.timestamp = nxp_baro.timestamp;
 
-            data.baro_2_volt = baro_2.value;
-            data.baro_2_flag = baro_2.alert_flag;
+            data.nxp_baro_volt  = nxp_baro.value;
+            data.nxp_baro_flag  = nxp_baro.alert_flag;
+
+            data.honeywell_baro_volt = hw_baro.value;
+            data.honeywell_baro_flag = hw_baro.alert_flag;
 
             // TODO: calculate pressures from adc value
-            data.baro_1_pressure = 0;
-            data.baro_2_pressure = 0;
+            data.nxp_baro_pressure = 0;
+            data.honeywell_baro_pressure = 0;
         }
         return result;
     }
 
     bool selfTest() override { return adc.selfTest(); }
 
-    AD7994WrapperData getData() { return data; }
+    AD7994WrapperData* getDataPtr() { return &data; }
 
 private:
     AD7994_t adc;
     AD7994WrapperData data;
 
-    static constexpr AD7994_t::Channel BARO_1_CHANNEL =
-        static_cast<AD7994_t::Channel>(AD7994_BARO_1_CHANNEL);
+    static constexpr AD7994_t::Channel NXP_BARO_CHANNEL =
+        static_cast<AD7994_t::Channel>(AD7994_NXP_BARO_CHANNEL);
 
-    static constexpr AD7994_t::Channel BARO_2_CHANNEL =
-        static_cast<AD7994_t::Channel>(AD7994_BARO_2_CHANNEL);
+    static constexpr AD7994_t::Channel HONEYWELL_BARO_CHANNEL =
+        static_cast<AD7994_t::Channel>(AD7994_HONEYWELL_BARO_CHANNEL);
 };
 
 }  // namespace DeathStackBoard

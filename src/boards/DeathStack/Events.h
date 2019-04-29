@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-03-28 18:05:33.644075
+// Autogen date:    2019-04-25 19:54:23.659867
 
 #ifndef SRC_SHARED_BOARDS_HOMEONE_EVENTS_H
 #define SRC_SHARED_BOARDS_HOMEONE_EVENTS_H
@@ -51,7 +51,8 @@ namespace DeathStackBoard
  */
 enum Events : uint8_t
 {
-    EV_ADA_APOGEE_DETECTED = EV_FIRST_SIGNAL,
+    EV_ABORT_ROGALLO = EV_FIRST_SIGNAL,
+    EV_ADA_APOGEE_DETECTED,
     EV_ADA_CALIBRATION_COMPLETE,
     EV_ADA_DPL_ALT_DETECTED,
     EV_ADA_READY,

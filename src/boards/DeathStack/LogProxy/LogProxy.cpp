@@ -160,7 +160,7 @@ LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
 	miosix::PauseKernelLock kLock;
 
     tm_repository.sm_tm.timestamp = t.timestamp;
-    tm_repository.sm_tm.sensor_init_state = t.problematic_sensors;
+    tm_repository.sm_tm.sensor_init_state = t.sensor_status;
     tm_repository.sm_tm.state = (uint8_t) t.state;
 
     return logger.log(t);
@@ -286,15 +286,15 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
     // TODO manca val_ch1_min
     tm_repository.ad7994_tm.timestamp = t.timestamp;
-    tm_repository.ad7994_tm.val_ch1 = t.baro_1_pressure;
+    tm_repository.ad7994_tm.val_ch1 = t.nxp_baro_pressure;
     
     //t.val_ch1_min
     //tm_repository.ad7994_tm.mean_ch1 = t.baro_1_mean;
     //tm_repository.ad7994_tm.stddev_ch1 = t.baro_1_stddev;
-    tm_repository.ad7994_tm.val_ch2 = t.baro_2_pressure;
+    tm_repository.ad7994_tm.val_ch2 = t.honeywell_baro_pressure;
 
     // LR_TM
-    tm_repository.lr_tm.baro1_val = t.baro_1_pressure;
+    tm_repository.lr_tm.baro1_val = t.nxp_baro_pressure;
     //tm_repository.lr_tm.baro1_min = t.val_ch1_min;
 
     return logger.log(t);
