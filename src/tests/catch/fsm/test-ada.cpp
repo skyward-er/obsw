@@ -38,7 +38,7 @@
 #include <boards/DeathStack/EventClasses.h>
 #include <boards/DeathStack/Events.h>
 #include <boards/DeathStack/configs/ADA_config.h>
-#include "utils/TestHelper.h"
+#include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;

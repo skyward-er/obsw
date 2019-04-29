@@ -39,7 +39,7 @@
 #include <boards/DeathStack/Events.h>
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
 #include <boards/DeathStack/configs/TMTCConfig.h>
-#include "utils/TestHelper.h"
+#include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
