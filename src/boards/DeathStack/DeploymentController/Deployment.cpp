@@ -306,7 +306,12 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
         }
         case EV_TIMEOUT_CUTTING:
         {
-            transition(&DeploymentController::state_idle);
+            retState = transition(&DeploymentController::state_idle);
+        }
+        case EV_CUT_MAIN:
+        {
+            deferred_events.put(ev);
+            break;
         }
         default:
         {
@@ -346,9 +351,14 @@ State DeploymentController::state_cuttingMain(const Event& ev)
             sEventBroker->removeDelayed(ev_cut_timeout_id);
             break;
         }
+        case EV_CUT_DROGUE:
+        {
+            deferred_events.put(ev);
+            break;
+        }
         case EV_TIMEOUT_CUTTING:
         {
-            transition(&DeploymentController::state_idle);
+            retState = transition(&DeploymentController::state_idle);
         }
         default:
         {
