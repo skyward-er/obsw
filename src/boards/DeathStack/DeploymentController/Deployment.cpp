@@ -307,6 +307,7 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
         case EV_TIMEOUT_CUTTING:
         {
             retState = transition(&DeploymentController::state_idle);
+            break;
         }
         case EV_CUT_MAIN:
         {
@@ -359,6 +360,7 @@ State DeploymentController::state_cuttingMain(const Event& ev)
         case EV_TIMEOUT_CUTTING:
         {
             retState = transition(&DeploymentController::state_idle);
+            break;
         }
         default:
         {
