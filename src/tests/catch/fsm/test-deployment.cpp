@@ -72,14 +72,13 @@ protected:
  * TEST_CASE_METHOD(Foo, "...") can access all protected members of Foo. See the
  * catch framework reference on Github.
  */
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Idle")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from IDLE")
 {
-    
     SECTION("IDLE -> Opening Nosecone")
     {
         REQUIRE(
             testHSMTransition(*dpl, Event{EV_NC_OPEN},
-                              &DeploymentController::state_openingNosecone));
+                              &DeploymentController::state_spinning));
     }
 
     SECTION("IDLE -> Cutting main")
@@ -98,7 +97,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Idle")
 
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Cutting Main")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from CUTTING MAIN")
 {
     REQUIRE(
         testHSMTransition(*dpl, Event{EV_CUT_MAIN},
@@ -112,13 +111,13 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Cutting 
     }
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from Cutting Drogue")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from CUTTING DROGUE")
 {
     REQUIRE(
         testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
                             &DeploymentController::state_cuttingDrogue));
 
-    SECTION(" Cutting Main -> Idle")
+    SECTION(" Cutting Drogue -> Idle")
     {
         REQUIRE(
         testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
