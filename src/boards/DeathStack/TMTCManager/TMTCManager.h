@@ -74,6 +74,8 @@ private:
     void stateHighRateTM(const Event& ev);
     void stateLowRateTM(const Event& ev);
     void stateLanded(const Event& ev);
+
+    uint16_t delayed_event_id = 0;
 };
 
 } /* namespace DeathStackBoard */

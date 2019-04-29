@@ -26,7 +26,7 @@
 namespace DeathStackBoard
 {
 
-static const unsigned int GS_OFFLINE_TIMEOUT = 1800000;
+static const unsigned int GS_OFFLINE_TIMEOUT = 1000; //CHANGED 
 
 /* Minimum sleep time between sends */
 static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
