@@ -35,13 +35,18 @@
 #include "Sensors/ADCWrapper.h"
 #include "drivers/piksi/piksi.h"
 #include "sensors/ADIS16405/ADIS16405.h"
+#include "sensors/LM75B.h"
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 
 #include "Debug.h"
 
+#include "interfaces-impl/hwmapping.h"
+
 using miosix::FastMutex;
 using miosix::Lock;
+
+using namespace miosix;
 
 namespace DeathStackBoard
 {
@@ -52,6 +57,8 @@ SensorManager::SensorManager(ADA* ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
+
+    memset(&sensor_status, 1, sizeof(sensor_status));
 
     initSensors();
     initSamplers();
@@ -67,22 +74,52 @@ SensorManager::~SensorManager()
 
 void SensorManager::initSensors()
 {
-    adc_ad7994 = new AD7994Wrapper(AD7994_I2C_ADDRESS);
+    // Instantiation
+    adc_ad7994 = new AD7994Wrapper(sensors::ad7994::addr);
+    temp_lm75b = new LM75BType(sensors::lm75b_analog::addr);
 
     imu_mpu9250 =
         new MPU9250Type(0, 0);  // TODO: Update with correct parameters
-    if (!imu_mpu9250->init())
-    {
-        status.problematic_sensors |= SENSOR_MPU9255;
-    }
 
     imu_adis16405 = new ADIS16405Type();
-    imu_adis16405->init();
-
-    adc_internal = new ADCWrapper();
+    adc_internal  = new ADCWrapper();
 
     piksi = new Piksi("/dev/gps");
-    // TODO: Self tests
+
+    // Some sensors dont have init or self tests
+    sensor_status.piksi = 1;
+
+
+    // Initialization
+    sensor_status.mpu9250 = imu_mpu9250->init();
+    sensor_status.adis    = imu_adis16405->init();
+
+    sensor_status.lm75b = temp_lm75b->init();
+
+    // TODO: lsm6ds3h
+    // TODO: ms5803
+
+    sensor_status.ad7994 = adc_ad7994->init();
+
+    sensor_status.battery_sensor = adc_internal->getBatterySensorPtr()->init();
+    sensor_status.current_sensor = adc_internal->getCurrentSensorPtr()->init();
+
+    // Self tests
+    sensor_status.mpu9250 &= imu_mpu9250->selfTest();
+    sensor_status.adis &= imu_adis16405->selfTest();
+    sensor_status.lm75b &= temp_lm75b->selfTest();
+
+    sensor_status.ad7994 &= adc_ad7994->selfTest();
+
+    sensor_status.battery_sensor &=
+        adc_internal->getBatterySensorPtr()->selfTest();
+    sensor_status.current_sensor &=
+        adc_internal->getCurrentSensorPtr()->selfTest();
+
+    // TODO: lsm6ds3h
+    // TODO: ms5803
+
+    status.sensor_status = sensor_status.toNumeric();
 }
 
 void SensorManager::initSamplers()
@@ -91,6 +128,7 @@ void SensorManager::initSamplers()
 
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
+    sampler_20hz_simple.AddSensor(temp_lm75b);
 
     sampler_250hz_dma.AddSensor(imu_mpu9250);
     sampler_250hz_dma.AddSensor(imu_adis16405);
@@ -214,18 +252,18 @@ void SensorManager::onSimple1HZCallback()
 
 void SensorManager::onSimple20HZCallback()
 {
-    AD7994WrapperData ad7994_data = adc_ad7994->getData();
+    AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
+    LM75BData lm78b_data          = {miosix::getTick(), temp_lm75b->getTemp()};
 
     if (enable_sensor_logging)
     {
         logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
-        logger.log(ad7994_data);
+        logger.log(*(ad7994_data));
+        logger.log(lm78b_data);
     }
 
-    // TODO: Calculate & log barometer stats
-
     // TODO: Choose which barometer to use, add temperature
-    ada->updateAltitude(ad7994_data.baro_1_pressure, 288.15f);
+    ada->updateBaro(ad7994_data->nxp_baro_pressure, lm78b_data.temp);
 }
 
 void SensorManager::onDMA250HZCallback()
@@ -248,19 +286,27 @@ void SensorManager::onDMA250HZCallback()
 void SensorManager::onGPSCallback()
 {
     GPSData data;
+
     try
     {
         data = piksi->getGpsData();
+
+        // We have fix if this sample is different from the previous one and we
+        // have at least four satellites
+        data.fix =
+            data.timestamp != last_gps_timestamp && data.numSatellites >= 4;
+        last_gps_timestamp = data.timestamp;
     }
     catch (std::runtime_error rterr)
     {
-        data.fix       = false;
-        data.latitude  = 0;
-        data.longitude = 0;
     }
-    // TODO: fix must correspond to the current state of the GPS fix, not be
-    // always true if the GPS fixed any time in the past
-    ada->updateGPS(data.latitude, data.longitude, data.fix);
+
+    ada->updateGPS(data.latitude, data.longitude, data.height, data.fix);
+
+    if (enable_sensor_logging)
+    {
+        logger.log(data);
+    }
 }
 
 }  // namespace DeathStackBoard

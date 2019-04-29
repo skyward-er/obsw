@@ -41,7 +41,6 @@ void readWhoAmI() { printf("WHO AM I: %d\n", spiMPU9250::read(REG_WHO_AM_I)); }
 typedef MPU9250<spiMPU9250> MPU9250Type;
 int main()
 {
-    spiMAX21105::init();
     spiMPU9250::init();
 
     MPU9250Type imu{1, 1};
