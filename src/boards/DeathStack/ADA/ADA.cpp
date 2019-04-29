@@ -46,9 +46,9 @@ ADA::ADA()
     sEventBroker->subscribe(this, TOPIC_ADA);
 }
 
-void ADA::updateFilter(float altitude)
+void ADA::updateFilter(float pressure)
 {
-    MatrixBase<float, 1, 1> y{altitude};
+    MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
 
     last_kalman_state.x0 = filter.X(0, 0);
@@ -60,13 +60,36 @@ void ADA::updateFilter(float altitude)
 
 /* --- INSTANCE METHODS --- */
 
-void ADA::updateGPS(double lat, double lon, bool hasFix)
+void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
 {
     // Update gps regardless of the current state
     rogallo_dts.updateGPS(lat, lon, hasFix);
+
+    if (hasFix)
+    {
+        // Update calibration
+        if (status.state == ADAState::CALIBRATING)
+        {
+            Lock<FastMutex> l(calib_mutex);
+
+            if (calibration_data.gps_altitude_calib.nSamples <
+                CALIBRATION_GPS_N_SAMPLES)
+            {
+                gps_altitude_stats.add(z);
+                calibration_data.gps_altitude_calib =
+                    gps_altitude_stats.getStats();
+
+                logger.log(calibration_data);
+            }
+            else
+            {
+                updateCalibration();
+            }
+        }
+    }
 }
 
-void ADA::updateAltitude(float pressure, float temperature)
+void ADA::updateBaro(float pressure, float temperature)
 {
     switch (status.state)
     {
@@ -75,35 +98,22 @@ void ADA::updateAltitude(float pressure, float temperature)
             Lock<FastMutex> l(calib_mutex);
 
             // Calibrating state: update calibration data if not enough values
-            if (calibrationData.pressure_calib.nSamples < CALIBRATION_N_SAMPLES)
+            if (calibration_data.pressure_calib.nSamples <
+                CALIBRATION_BARO_N_SAMPLES)
             {
                 pressure_stats.add(pressure);
                 temperature_stats.add(temperature);
 
-                calibrationData.pressure_calib = pressure_stats.getStats();
-                calibrationData.temperature_calib =
+                calibration_data.pressure_calib = pressure_stats.getStats();
+                calibration_data.temperature_calib =
                     temperature_stats.getStats();
 
                 // Log calibration data
-                logger.log(calibrationData);
+                logger.log(calibration_data);
             }
-            else if(status.dpl_altitude_set)
+            else
             {
-                // Set reference to the calibration average
-                pressure_ref    = calibrationData.pressure_calib.mean;
-                temperature_ref = calibrationData.temperature_calib.mean;
-
-                // Calculat MSL values for altitude calculation
-                pressure_0 = aeroutils::mslPressure(
-                    pressure_ref, temperature_ref, REFERENCE_ALTITUDE);
-                temperature_0 = aeroutils::mslTemperature(temperature_ref,
-                                                          REFERENCE_ALTITUDE);
-
-                // Initialize kalman filter
-                filter.X(0, 0) = pressure_ref;
-
-                // Notify that we are ready
-                sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
+                updateCalibration();
             }
             break;
         }
@@ -168,6 +178,32 @@ void ADA::updateAltitude(float pressure, float temperature)
         {
             TRACE("ADA Update: Unexpected state value \n");
         }
+    }
+}
+
+void ADA::updateCalibration()
+{
+    // Set calibration only if we have enough samples
+    if (calibration_data.gps_altitude_calib.nSamples >=
+            CALIBRATION_GPS_N_SAMPLES &&
+        calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES)
+    {
+        // Set reference to the calibration average
+        pressure_ref    = calibration_data.pressure_calib.mean;
+        temperature_ref = calibration_data.temperature_calib.mean;
+
+        // Calculat MSL values for altitude calculation
+        pressure_0 =
+            aeroutils::mslPressure(pressure_ref, temperature_ref,
+                                   calibration_data.gps_altitude_calib.mean);
+        temperature_0 = aeroutils::mslTemperature(
+            temperature_ref, calibration_data.gps_altitude_calib.mean);
+
+        // Initialize kalman filter
+        filter.X(0, 0) = pressure_ref;
+
+        // Notify that we are ready
+        sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
     }
 }
 
@@ -445,9 +481,11 @@ void ADA::resetCalibration()
 
     pressure_stats.reset();
     temperature_stats.reset();
+    gps_altitude_stats.reset();
 
-    calibrationData.pressure_calib    = pressure_stats.getStats();
-    calibrationData.temperature_calib = temperature_stats.getStats();
+    calibration_data.pressure_calib     = pressure_stats.getStats();
+    calibration_data.temperature_calib  = temperature_stats.getStats();
+    calibration_data.gps_altitude_calib = gps_altitude_stats.getStats();
 }
 
 }  // namespace DeathStackBoard
