@@ -29,12 +29,12 @@ struct AD7994WrapperData
 {
     long long timestamp;
     
-    uint16_t baro_1_volt;
-    uint16_t baro_2_volt;
+    uint16_t honeywell_baro_volt;
+    uint16_t nxp_baro_volt;
 
-    float baro_1_pressure;
-    float baro_2_pressure;
+    float honeywell_baro_pressure;
+    float nxp_baro_pressure;
 
-    bool baro_1_flag;
-    bool baro_2_flag;
+    bool honeywell_baro_flag;
+    bool nxp_baro_flag;
 };
