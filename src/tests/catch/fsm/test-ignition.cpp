@@ -183,7 +183,7 @@ protected:
     IgnitionController* ign;
 };
 
-TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
+TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
 {
     SECTION("IGNITION OFFLINE")
     {
