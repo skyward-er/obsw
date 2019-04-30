@@ -124,3 +124,74 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from CUTTING 
                             &DeploymentController::state_idle));
     }
 }
+
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from SPINNING")
+{
+    REQUIRE(
+    testHSMTransition(*dpl, Event{EV_NC_OPEN},
+                      &DeploymentController::state_spinning));
+    SECTION("SPINNING -> Waiting Detachment")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
+                          &DeploymentController::state_awaitingDetachment));
+    }
+    SECTION("SPINNING -> Waiting Min Open Time")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
+                          &DeploymentController::state_awaitingOpenTime));
+    }
+    SECTION("OPENING NOSECONE -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
+                          &DeploymentController::state_idle));
+    }
+}
+
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING MIN OPEN TIME")
+{
+    REQUIRE(
+    testHSMTransition(*dpl, Event{EV_NC_OPEN},
+                      &DeploymentController::state_spinning));
+    REQUIRE(
+    testHSMTransition(*dpl, Event{EV_NC_DETACHED},
+                      &DeploymentController::state_awaitingOpenTime));
+    
+    SECTION("WAITING MIN OPEN TIME -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
+                          &DeploymentController::state_idle));
+    }
+    SECTION("OPENING NOSECONE -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
+                          &DeploymentController::state_idle));
+    }
+}
+
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING DETACHEMENT")
+{
+    REQUIRE(
+    testHSMTransition(*dpl, Event{EV_NC_OPEN},
+                      &DeploymentController::state_spinning));
+    REQUIRE(
+    testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
+                      &DeploymentController::state_awaitingDetachment));
+    
+    SECTION("WAITING DETACHEMENT -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
+                          &DeploymentController::state_idle));
+    }
+    SECTION("OPENING NOSECONE -> Idle")
+    {
+        REQUIRE(
+        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
+                          &DeploymentController::state_idle));
+    }
+}
