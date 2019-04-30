@@ -49,13 +49,14 @@ public:
     State state_initialization(const Event& ev);
 
     State state_startup(const Event& ev);
+    State state_testing(const Event& ev);
+
+    State state_onLaunchpad(const Event& ev);
     State state_error(const Event& ev);
 
-    State state_online(const Event& ev);
-    State state_ADAConfig(const Event& ev);
+    State state_calibration(const Event& ev);
     State state_disarmed(const Event& ev);
     State state_armed(const Event& ev);
-    State state_testing(const Event& ev);
 
     State state_launching(const Event& ev);
     State state_flying(const Event& ev);
@@ -79,7 +80,8 @@ private:
 
     FMMStatus status;
 
-    uint16_t delayed_event_id;
+    uint16_t id_delayed_arm_timeout = 0;
+    uint16_t id_delayed_dpl_timeout = 0;
 };
 
 }  // namespace DeathStackBoard
