@@ -40,17 +40,19 @@ using miosix::PauseKernelLock;
 using std::vector;
 
 // Forward declarations
-
-template <typename BusSPI>
+template <typename ProtocolSPI>
 class MPU9250;
 
-template <typename BusSPI>
-class MAX21105;
-
-template <typename BusSPI>
+template <typename ProtocolSPI>
 class ADIS16405;
 
+template <typename ProtocolI2C>
+class LM75B;
 
+template <typename ProtocolSPI>
+class MS580301BA07;
+
+class Piksi;
 
 namespace DeathStackBoard
 {
@@ -60,7 +62,9 @@ class AD7994Wrapper;
 // Type definitions
 typedef MPU9250<spiMPU9250> MPU9250Type;
 typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
+typedef LM75B<i2c1> LM75BType;
 /**
  * The SensorManager class manages all the sensors connected to the Homeone
  * Board.
@@ -79,6 +83,7 @@ public:
         ID_SIMPLE_1HZ,
         ID_SIMPLE_20HZ,
         ID_DMA_250HZ,
+        ID_GPS,
         ID_STATS
     };
 
@@ -132,24 +137,23 @@ private:
 
     /**
      * @brief Simple, 1 Hz SensorSampler Callback.
-     * Called each time all the sensors in the 1hz sampler have been sampled (so
-     * 1 times per second)
+     * Called each time all the sensors in the 1hz sampler have been sampled
      */
     void onSimple1HZCallback();
 
     /**
      * @brief Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
-     * (so 20 times per second)
      */
     void onSimple20HZCallback();
 
     /**
      * @brief DMA, 250 Hz SensorSampler Callback.
      * Called each time all the sensors in the 250hz sampler have been sampled
-     * (so 250 times per second)
      */
     void onDMA250HZCallback();
+
+    void onGPSCallback();
 
     TaskScheduler scheduler;
     // Logger ref
@@ -166,14 +170,20 @@ private:
     AD7994Wrapper* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
+    LM75BType* temp_lm75b;
     ADCWrapper* adc_internal;
+
+    Piksi* piksi;
+    long long last_gps_timestamp = 0;
 
     //ADA
     ADA* ada;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;
+
     SensorManagerStatus status;
+    SensorStatus sensor_status;
 };
 
 }  // namespace DeathStackBoard

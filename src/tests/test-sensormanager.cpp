@@ -41,7 +41,7 @@ int main()
     mgr.start();
 
     printf("Current State: %d\n", mgr.getStatus().state);
-    printf("Problematic sensors: %d\n\n", mgr.getStatus().problematic_sensors);
+    printf("Problematic sensors: %d\n\n", mgr.getStatus().sensor_status);
 
     Thread::sleep(2000);
     //sEventBroker->post({EV_TC_START_SAMPLING}, TOPIC_CONFIGURATION);

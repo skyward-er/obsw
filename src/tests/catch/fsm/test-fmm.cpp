@@ -1,5 +1,6 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta <luca.erbetta@skywarder.eu>
+/*
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,47 +21,48 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
-#include <interfaces-impl/hwmapping.h>
-#include "DeathStack/configs/SensorManagerConfig.h"
-#include "sensors/MPU9250/MPU9250.h"
+#ifdef STANDALONE_CATCH1_TEST
+#include "catch/catch-tests-entry.cpp"
+#endif
 
-using miosix::Thread;
+#include <events/EventBroker.h>
+#include <miosix.h>
+#include <utils/testutils/TestHelper.h>
+#include <utils/catch.hpp>
+
+// We need access to the handleEvent(...) function in state machines in order to
+// test them synchronously
+#define protected public
+
+#include "DeathStack/FlightModeManager/FlightModeManager.h"
+
 using namespace DeathStackBoard;
 
-enum REGS
+/**
+ * @brief Ensure cleanup in every test using RAII
+ */
+class FMMTestFixture
 {
-    REG_WHO_AM_I     = 117,
-    REG_USER_CONTROL = 106
+public:
+    // This is called at the beginning of each test / section
+    FMMTestFixture()
+    {
+        fmm.start();
+        sEventBroker->start();
+    }
+
+    // This is called at the end of each test / section
+    ~FMMTestFixture()
+    {
+        sEventBroker->clearDelayedEvents();
+        fmm.stop();
+    }
+
+protected:
+    FlightModeManager fmm{};
 };
 
-uint8_t who_am_i_value = 0x68;
-
-void readWhoAmI() { printf("WHO AM I: %d\n", spiMPU9250::read(REG_WHO_AM_I)); }
-
-typedef MPU9250<spiMPU9250> MPU9250Type;
-int main()
+TEST_CASE_METHOD(FMMTestFixture, "Test starting state")
 {
-    spiMPU9250::init();
-
-    MPU9250Type imu{1, 1};
-
-    // suint8;_t user_ctrl = spiMPU9250::read(REG_USER_CONTROL);
-    // spiMPU9250::write(REG_USER_CONTROL, 16);
-
-    Thread::sleep(500);
-
-    // MPU9250<spiMPU9250> mpu(1, 1);
-
-    while (true)
-    {
-        imu.init();
-        // readWhoAmI();
-        // mpu.init();
-        miosix::ledOn();
-        // printf("Serial is working!\n");
-        Thread::sleep(500);
-        miosix::ledOff();
-        Thread::sleep(500);
-    }
+    REQUIRE(fmm.testState(&FlightModeManager::state_startup));
 }

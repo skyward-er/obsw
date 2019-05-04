@@ -35,7 +35,7 @@
 #include "DeathStack/DeploymentController/Deployment.h"
 #include "DeathStack/Events.h"
 #include "PinObserver.h"
-#include "utils/TestHelper.h"
+#include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;

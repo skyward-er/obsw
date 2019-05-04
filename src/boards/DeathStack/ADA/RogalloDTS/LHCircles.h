@@ -1,16 +1,19 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta <luca.erbetta@skywarder.eu>
- *
+/**
+ * lha_circles.h 
+ * 
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -20,47 +23,7 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
-#include <interfaces-impl/hwmapping.h>
-#include "DeathStack/configs/SensorManagerConfig.h"
-#include "sensors/MPU9250/MPU9250.h"
+#pragma once
 
-using miosix::Thread;
-using namespace DeathStackBoard;
-
-enum REGS
-{
-    REG_WHO_AM_I     = 117,
-    REG_USER_CONTROL = 106
-};
-
-uint8_t who_am_i_value = 0x68;
-
-void readWhoAmI() { printf("WHO AM I: %d\n", spiMPU9250::read(REG_WHO_AM_I)); }
-
-typedef MPU9250<spiMPU9250> MPU9250Type;
-int main()
-{
-    spiMPU9250::init();
-
-    MPU9250Type imu{1, 1};
-
-    // suint8;_t user_ctrl = spiMPU9250::read(REG_USER_CONTROL);
-    // spiMPU9250::write(REG_USER_CONTROL, 16);
-
-    Thread::sleep(500);
-
-    // MPU9250<spiMPU9250> mpu(1, 1);
-
-    while (true)
-    {
-        imu.init();
-        // readWhoAmI();
-        // mpu.init();
-        miosix::ledOn();
-        // printf("Serial is working!\n");
-        Thread::sleep(500);
-        miosix::ledOff();
-        Thread::sleep(500);
-    }
-}
+#include "generated/lh_circles_data.h"
+#include "lh_circles_internal.h"

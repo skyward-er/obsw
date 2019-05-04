@@ -28,6 +28,12 @@
 #include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LogProxy/LogProxy.h"
+#include "RogalloDTS/RogalloDTS.h"
+
+#include <miosix.h>
+
+using miosix::Lock;
+using miosix::FastMutex;
 
 namespace DeathStackBoard
 {
@@ -48,9 +54,11 @@ public:
      * 
      * It's critical that this method is called at regualar intervals during the flight. Call frequency is defined in ADA_config.h
      * The behavior of this function changes depending on the ADA state
-     * \param height The altitude sample in meters
+     * \param pressure The pressure sample in pascals
+     * \param The temperature sample in kelvin
      */
-    void update(float altitude);
+    void updateBaro(float pressure, float temperature);
+    void updateGPS(double lat, double lon, double z, bool hasFix);
 
     /**
      * \brief ADA status
@@ -68,13 +76,12 @@ public:
      * \brief Get the calibration parameters
      * \returns A struct containing average, number and variance of the calibration samples
      */
-    ADACalibrationData getCalibrationData() { return calibrationData; }
+    ADACalibrationData getCalibrationData() { return calibration_data; }
 
-    /**
-     * \brief Get the set parachute deployment altitude
-     * \returns The altitude at wich the parachute is deployed
-     */
-    uint16_t getTargetDeploymentAltitude() { return dpl_target_altitude; }
+    const RogalloDTS& getRogalloDTS() const
+    {
+        return rogallo_dts;
+    }
 
 private:
     // FSM States
@@ -86,28 +93,41 @@ private:
     void stateEnd(const Event& ev);
 
     /** \brief Performs a state update
-     * \param altitude The altitude sample in meters
+     * \param pressure The pressure sample in pascal
      */
-    void updateFilter(float altitude);
+    void updateFilter(float pressure);
+
+    void updateCalibration();
 
     /** \brief Log ADA state
      */
     void logStatus(ADAState state);
+    void logStatus();
 
-    /** Set deployment altitude
-     * \param altitude Deployment altitude in meters
-     */
-    void setTargetDPLAltitude(uint16_t altitude);
+    void resetCalibration();
 
     // Event id to store calibration timeout
     uint16_t shadow_delayed_event_id = 0; 
+
+    // Reference pressure at current altitude
+    float pressure_ref = 0;
+    float temperature_ref = 0;
+
+    // Pressure at mean sea level for altitude calculation
+    float pressure_0 = 0;
+    float temperature_0 = 0;
 
     // Filter object
     Kalman<3,1> filter;  
 
     // Calibration variables
-    ADACalibrationData calibrationData;
-    Stats calibrationStats;
+    ADACalibrationData calibration_data;
+
+    Stats pressure_stats;
+    Stats temperature_stats;
+    Stats gps_altitude_stats;
+
+    FastMutex calib_mutex;
 
     // ADA status: timestamp + state
     ADAStatus status;         
@@ -115,8 +135,9 @@ private:
     // Last kalman state
     KalmanState last_kalman_state;
 
-    // Parachute deployment altitude in meters
-    uint16_t dpl_target_altitude = DEFAULT_DPL_ALTITUDE;
+    // Rogallo deployment and termination system
+    RogalloDTS rogallo_dts;
+
 
     // Logger
     LoggerProxy& logger = *(LoggerProxy::getInstance());
