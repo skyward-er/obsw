@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-04-25 19:54:23.659867
+// Autogen date:    2019-05-02 20:43:30.070377
 
 #ifndef SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
 #define SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
@@ -52,7 +52,8 @@ enum Topics : uint8_t
     TOPIC_IGNITION,
     TOPIC_TC,
     TOPIC_TMTC,
-    TOPIC_CAN
+    TOPIC_CAN,
+    TOPIC_STATS
 };
 
 /**
