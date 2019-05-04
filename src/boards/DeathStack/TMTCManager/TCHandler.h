@@ -45,11 +45,12 @@ namespace TCHandler
 /**
  * Map each noArg command to the corresponding event 
  */
+// clang-format off
 static const std::map<uint8_t, uint8_t> noargCmdToEvt = 
 {
     { MAV_CMD_ARM,              EV_TC_ARM    }, 
     { MAV_CMD_DISARM,           EV_TC_DISARM }, 
-    { MAV_CMD_ABORT,            EV_TC_ABORT_LAUNCH  }, 
+    { MAV_CMD_ABORT_LAUNCH,     EV_TC_ABORT_LAUNCH  }, 
     { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
     { MAV_CMD_START_LOGGING,    EV_TC_START_LOGGING }, 
@@ -57,10 +58,11 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
     { MAV_CMD_TEST_MODE,        EV_TC_SETUP_MODE   }, 
     { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
     { MAV_CMD_MANUAL_MODE,      EV_TC_MANUAL_MODE },
-    { MAV_CMD_CUT_ALL,          EV_TC_CUT_ALL },
-    { MAV_CMD_CUT_FIRST_DROGUE, EV_TC_CUT_FIRST_DROGUE },
+    { MAV_CMD_CUT_MAIN,         EV_TC_CUT_MAIN },
+    { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_FIRST_DROGUE },
     { MAV_CMD_END_MISSION,      EV_TC_END_MISSION }
 };
+// clang-format on
 
 /**
  * Send an ACK to notify the sender that you received the given message.

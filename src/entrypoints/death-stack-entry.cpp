@@ -30,13 +30,11 @@ using namespace miosix;
 int main()
 {
     DeathStack board;
-    mavlink_message_t ign_status;
 
     while(1)
     {
         TRACE("Alive");
         board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
-        ign_status = TMBuilder::buildTelemetry(MavTMList::MAV_IGN_CTRL_TM_ID);
         Thread::sleep(100);
     }
 }

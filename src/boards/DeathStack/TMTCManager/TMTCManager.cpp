@@ -181,7 +181,7 @@ void TMTCManager::stateLanded(const Event& ev)
                                                                 POS_TM_TIMEOUT);
             break;
 
-        case EV_SEND_POS_TM: 
+        /*case EV_SEND_POS_TM: 
         {
             TRACE("[TMTC] Sending Position telemetry\n");
 
@@ -191,7 +191,7 @@ void TMTCManager::stateLanded(const Event& ev)
             sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, 
                                                                 POS_TM_TIMEOUT);
             break;
-        }
+        }*/
 
         case EV_EXIT:
             TRACE("[TMTC] Exiting stateLanded\n");
