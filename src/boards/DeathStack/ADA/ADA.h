@@ -54,11 +54,11 @@ public:
      * 
      * It's critical that this method is called at regualar intervals during the flight. Call frequency is defined in ADA_config.h
      * The behavior of this function changes depending on the ADA state
-     * \param height The altitude sample in meters
+     * \param pressure The pressure sample in pascals
+     * \param The temperature sample in kelvin
      */
-    void updateAltitude(float altitude, float temperature);
-    void updateGPS(double lat, double lon, bool hasFix);
-    void updateTemperature(float temperature);
+    void updateBaro(float pressure, float temperature);
+    void updateGPS(double lat, double lon, double z, bool hasFix);
 
     /**
      * \brief ADA status
@@ -76,12 +76,8 @@ public:
      * \brief Get the calibration parameters
      * \returns A struct containing average, number and variance of the calibration samples
      */
-    ADACalibrationData getCalibrationData() { return calibrationData; }
+    ADACalibrationData getCalibrationData() { return calibration_data; }
 
-    /**
-     * \brief Get the set parachute deployment altitude
-     * \returns The altitude at wich the parachute is deployed
-     */
     const RogalloDTS& getRogalloDTS() const
     {
         return rogallo_dts;
@@ -97,9 +93,11 @@ private:
     void stateEnd(const Event& ev);
 
     /** \brief Performs a state update
-     * \param altitude The altitude sample in meters
+     * \param pressure The pressure sample in pascal
      */
-    void updateFilter(float altitude);
+    void updateFilter(float pressure);
+
+    void updateCalibration();
 
     /** \brief Log ADA state
      */
@@ -123,9 +121,12 @@ private:
     Kalman<3,1> filter;  
 
     // Calibration variables
-    ADACalibrationData calibrationData;
+    ADACalibrationData calibration_data;
+
     Stats pressure_stats;
     Stats temperature_stats;
+    Stats gps_altitude_stats;
+
     FastMutex calib_mutex;
 
     // ADA status: timestamp + state

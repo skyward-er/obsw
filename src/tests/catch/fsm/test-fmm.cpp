@@ -25,80 +25,44 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+#include <events/EventBroker.h>
+#include <miosix.h>
+#include <utils/testutils/TestHelper.h>
+#include <utils/catch.hpp>
+
 // We need access to the handleEvent(...) function in state machines in order to
 // test them synchronously
 #define protected public
 
-#include <miosix.h>
-#include <utils/catch.hpp>
+#include "DeathStack/FlightModeManager/FlightModeManager.h"
 
-#include "DeathStack/DeploymentController/Deployment.h"
-#include "DeathStack/Events.h"
-#include "PinObserver.h"
-#include "utils/testutils/TestHelper.h"
-
-using miosix::Thread;
 using namespace DeathStackBoard;
 
 /**
- * @brief Ensure cleanup in every test using RAIII
- *
+ * @brief Ensure cleanup in every test using RAII
  */
-class DeploymentControllerFixture
+class FMMTestFixture
 {
 public:
     // This is called at the beginning of each test / section
-    DeploymentControllerFixture() { dpl.start(); }
+    FMMTestFixture()
+    {
+        fmm.start();
+        sEventBroker->start();
+    }
 
     // This is called at the end of each test / section
-    ~DeploymentControllerFixture()
+    ~FMMTestFixture()
     {
-        dpl.stop();
-
-        // remove any pending delayed events, as not to interfere with other
-        // tests
         sEventBroker->clearDelayedEvents();
+        fmm.stop();
     }
 
 protected:
-    DeploymentController dpl{};
+    FlightModeManager fmm{};
 };
 
-/**
- * TEST_CASE_METHOD(Foo, "...") can access all protected members of Foo. See the
- * catch framework reference on Github.
- */
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing S1 transitions")
+TEST_CASE_METHOD(FMMTestFixture, "Test starting state")
 {
-    SECTION("IDLE -> Opening Nosecone")
-    {
-        REQUIRE(
-            testHSMTransition(dpl, Event{EV_NC_OPEN},
-                              &DeploymentController::state_openingNosecone));
-    }
-
-    SECTION("IDLE -> Opening Nosecone")
-    {
-        REQUIRE(
-            testHSMTransition(dpl, Event{EV_CUT_MAIN},
-                              &DeploymentController::state_openingNosecone));
-    }
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing S2 Transitions")
-{
-    DeploymentController dpl;
-    // Transition here to the state you want to test
-    // REQUIRE(testHSMTransition(...));
-
-    // Test transitions starting from that state
-    SECTION("Example 1")
-    {
-        // REQUIRE ...
-    }
-
-    SECTION("Example 2")
-    {
-        // REQUIRE ...
-    }
+    REQUIRE(fmm.testState(&FlightModeManager::state_startup));
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+ * Authors: Benedetta Margrethe Cattani & Luca Mozzarelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,4 +25,74 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+// We need access to the handleEvent(...) function in state machines in order to
+// test them synchronously
+#define protected public
+#define private public
+
+#include <miosix.h>
+#include <utils/catch.hpp>
+
+#include <boards/CanInterfaces.h>
 #include <boards/DeathStack/ADA/ADA.h>
+#include <boards/DeathStack/EventClasses.h>
+#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/configs/ADA_config.h>
+#include "utils/testutils/TestHelper.h"
+
+using miosix::Thread;
+using namespace DeathStackBoard;
+using namespace CanInterfaces;
+
+class ADATestFixture
+{
+public:
+    ADATestFixture() { ada = new ADA(); }
+    ~ADATestFixture()
+    {
+        sEventBroker->unsubscribe(ada);
+        sEventBroker->clearDelayedEvents();
+        delete ada;
+    }
+
+protected:
+    ADA* ada;
+};
+
+TEST_CASE_METHOD(ADATestFixture, "Testing all transitions")
+{
+    SECTION("Testing CALIBRATION transitions")
+    {
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+    }
+
+    SECTION("Testing IDLE transitions")
+    {
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+
+        SECTION("IDLE->CALIBRATION")
+        {
+            REQUIRE(testFSMTransition(*ada, Event{EV_TC_RESET_CALIBRATION},
+                                      &ADA::stateCalibrating));
+        }
+
+        SECTION("IDLE->SHADOW_MODE")
+        {
+            REQUIRE(testFSMTransition(*ada, Event{EV_LIFTOFF},
+                                      &ADA::stateShadowMode));
+        }
+    }
+
+    SECTION("Testing all the transition from SHADOW_MODE")
+    {
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+        REQUIRE(
+            testFSMTransition(*ada, Event{EV_LIFTOFF}, &ADA::stateShadowMode));
+        REQUIRE(testFSMTransition(*ada, Event{EV_TIMEOUT_SHADOW_MODE},
+                                  &ADA::stateActive));
+        REQUIRE(testFSMTransition(*ada, Event{EV_APOGEE},
+                                  &ADA::stateFirstDescentPhase));
+        REQUIRE(
+            testFSMTransition(*ada, Event{EV_DPL_ALTITUDE}, &ADA::stateEnd));
+    }
+}

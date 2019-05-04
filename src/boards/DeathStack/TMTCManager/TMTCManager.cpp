@@ -44,6 +44,9 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 
 TMTCManager::~TMTCManager()
 {
+    sEventBroker->unsubscribe(this);
+
+    channel->stop();
     delete device;
     delete channel;
 }
@@ -67,7 +70,8 @@ void TMTCManager::stateIdle(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[TMTC] Entering stateIdle\n");
-            g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, TOPIC_FLIGHT_EVENTS,
+            g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, 
+                                                            TOPIC_FLIGHT_EVENTS,
                                                             GS_OFFLINE_TIMEOUT);
             break;
 
@@ -93,7 +97,9 @@ void TMTCManager::stateHighRateTM(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[TMTC] Entering stateHighRateTM\n");
-            sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
+            delayed_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, 
+                                                            TOPIC_TMTC, 
+                                                            HR_TM_TIMEOUT);
             break;
 
         case EV_SEND_HR_TM: {
@@ -102,7 +108,9 @@ void TMTCManager::stateHighRateTM(const Event& ev)
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_HR_TM_ID);
             channel->enqueueMsg(telem);
 
-            sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
+            delayed_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM}, 
+                                                            TOPIC_TMTC, 
+                                                            HR_TM_TIMEOUT);
             break;
         }
 
@@ -112,6 +120,7 @@ void TMTCManager::stateHighRateTM(const Event& ev)
             break;
 
         case EV_EXIT:
+            sEventBroker->removeDelayed(delayed_event_id);
             TRACE("[TMTC] Exiting stateHighRateTM\n");
             break;
 
@@ -128,16 +137,21 @@ void TMTCManager::stateLowRateTM(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[TMTC] Entering stateLowRateTM\n");
-            sEventBroker->postDelayed(Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
+            delayed_event_id = sEventBroker->postDelayed(Event{EV_SEND_LR_TM}, 
+                                                            TOPIC_TMTC, 
+                                                            LR_TM_TIMEOUT);
             break;
 
-        case EV_SEND_LR_TM: {
+        case EV_SEND_LR_TM: 
+        {
             TRACE("[TMTC] Sending LR telemetry\n");
 
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
             channel->enqueueMsg(telem);
 
-            sEventBroker->postDelayed(Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
+            delayed_event_id = sEventBroker->postDelayed(Event{EV_SEND_LR_TM}, 
+                                                            TOPIC_TMTC, 
+                                                            LR_TM_TIMEOUT);
             break;
         }
 
@@ -147,6 +161,7 @@ void TMTCManager::stateLowRateTM(const Event& ev)
             break;
 
         case EV_EXIT:
+            sEventBroker->removeDelayed(delayed_event_id);
             TRACE("[TMTC] Exiting stateLowRateTM\n");
             break;
 
@@ -162,16 +177,19 @@ void TMTCManager::stateLanded(const Event& ev)
     {
         case EV_ENTRY:
             TRACE("[TMTC] Entering stateLanded\n");
-            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, 
+                                                                POS_TM_TIMEOUT);
             break;
 
-        case EV_SEND_POS_TM: {
+        case EV_SEND_POS_TM: 
+        {
             TRACE("[TMTC] Sending Position telemetry\n");
 
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_POS_TM_ID);
             channel->enqueueMsg(telem);
 
-            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, POS_TM_TIMEOUT);
+            sEventBroker->postDelayed(Event{EV_SEND_POS_TM}, TOPIC_TMTC, 
+                                                                POS_TM_TIMEOUT);
             break;
         }
 

@@ -40,14 +40,17 @@ using miosix::PauseKernelLock;
 using std::vector;
 
 // Forward declarations
-template <typename BusSPI>
+template <typename ProtocolSPI>
 class MPU9250;
 
-template <typename BusSPI>
-class MAX21105;
-
-template <typename BusSPI>
+template <typename ProtocolSPI>
 class ADIS16405;
+
+template <typename ProtocolI2C>
+class LM75B;
+
+template <typename ProtocolSPI>
+class MS580301BA07;
 
 class Piksi;
 
@@ -59,7 +62,9 @@ class AD7994Wrapper;
 // Type definitions
 typedef MPU9250<spiMPU9250> MPU9250Type;
 typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
+typedef LM75B<i2c1> LM75BType;
 /**
  * The SensorManager class manages all the sensors connected to the Homeone
  * Board.
@@ -165,15 +170,20 @@ private:
     AD7994Wrapper* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
+    LM75BType* temp_lm75b;
     ADCWrapper* adc_internal;
+
     Piksi* piksi;
+    long long last_gps_timestamp = 0;
 
     //ADA
     ADA* ada;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;
+
     SensorManagerStatus status;
+    SensorStatus sensor_status;
 };
 
 }  // namespace DeathStackBoard
