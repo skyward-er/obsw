@@ -1,5 +1,6 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/**
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,35 +20,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <miosix.h>
+#include "config.h"
 
-#include "drivers/pwm/pwm.h"
-#include "drivers/HardwareTimer.h"
-#include "interfaces-impl/hwmapping.h"
-#include "DeathStack/DeploymentController/Motor/MotorData.h"
+namespace DeathStackBoard
+{
+namespace FlightStatsConfig
+{
+    
+static constexpr long long TIMEOUT_STATE_LIFTOFF    = 1000;
+static constexpr long long TIMEOUT_STATE_DROGUE_DPL = 1000;
+static constexpr long long TIMEOUT_STATE_MAIN_DPL   = 1000;
+}  // namespace FlightStatsConfig
 
-namespace DeathStackBoard {
-
-
-/* Struct required by the PWM driver to know the specifics of the timer to use */
-/*static const PWM::Timer MOTOR_TIM {
-    TIM3, 
-    &(RCC->APB1ENR), 
-    RCC_APB1ENR_TIM3EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)
-};*/
-
-/* Pins definition */
-//static const PWMChannel MOTOR_PWM_CHANNEL = PWMChannel::CH2; // PB0 .. PC7
-
-
-/* PWM Frequency & duty-cycle */
-static const unsigned int MOTOR_PWM_FREQUENCY = 150;
-
-
-/* Period of time where the IN must be kept low before bringing ENA/INH low */
-static const int MOTOR_DISABLE_DELAY_MS = 50;
-
-}
+}  // namespace DeathStackBoard

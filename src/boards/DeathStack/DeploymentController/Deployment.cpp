@@ -118,7 +118,7 @@ State DeploymentController::state_openingNosecone(const Event& ev)
         case EV_ENTRY:
         {
             // Start the motor to open the nosecone
-            motor.start(MOTOR_OPEN_DIR, MOTOR_OPEN_DUTY_CYCLE);
+            motor.start(MOTOR_OPEN_DIR);
 
             ev_open_timeout_id = sEventBroker->postDelayed(
                 Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT, NC_OPEN_TIMEOUT);

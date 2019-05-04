@@ -44,11 +44,11 @@ static const PWM::Timer CUTTER_TIM{
 
 // DROGUE --> Right H-Bridge, THCUT1 on theboard
 static const PWMChannel CUTTER_CHANNEL_DROGUE = PWMChannel::CH1; // PD12
-typedef miosix::actuators::hbridger::ena DrogueCutterEna; // PG2
+typedef miosix::actuators::thCut1::ena DrogueCutterEna; // PG2
 
 // MAIN CHUTE --> Left H-Bridge, THCUT2 on theboard
 static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2; // PD13
-typedef miosix::actuators::hbridgel::ena MainChuteCutterEna; //PD11
+typedef miosix::actuators::thCut2::ena MainChuteCutterEna; //PD11
 
 // PWM Frequency & duty-cycle
 static const unsigned int CUTTER_PWM_FREQUENCY = 15000;

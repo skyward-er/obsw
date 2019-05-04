@@ -92,7 +92,7 @@ private:
     
     LoggerProxy &logger = *(LoggerProxy::getInstance());
 
-    CircularBuffer<Event, DEFERRED_EVENTS_BUFFER_SIZE> deferred_events;
+    CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 
     uint16_t ev_min_open_time_id = 0;
     uint16_t ev_open_timeout_id = 0;
