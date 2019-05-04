@@ -78,15 +78,6 @@ typedef LM75B<i2c1> LM75BType;
 class SensorManager : public FSM<SensorManager>
 {
 public:
-    enum SensorSamplerId : uint8_t
-    {
-        ID_SIMPLE_1HZ,
-        ID_SIMPLE_20HZ,
-        ID_DMA_250HZ,
-        ID_GPS,
-        ID_STATS
-    };
-
     SensorManager(ADA* ada);
     ~SensorManager();
 
