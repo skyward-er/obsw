@@ -23,18 +23,22 @@
 #include <Common.h>
 #include <DeathStack/DeathStack.h>
 #include <DeathStack/TMTCManager/TMBuilder.h>
+#include <DeathStack/XbeeInterrupt.h>
 
 using namespace DeathStackBoard;
 using namespace miosix;
 
+
 int main()
 {
-    DeathStack board;
+    enableXbeeInterrupt();
+
+    DeathStack board{};
 
     while(1)
     {
         TRACE("Alive");
-        board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
+        //board.postEvent(Event{EV_IGN_GETSTATUS}, TOPIC_IGNITION);
         Thread::sleep(100);
     }
 }
