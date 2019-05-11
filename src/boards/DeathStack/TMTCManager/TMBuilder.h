@@ -98,6 +98,7 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             break;
 
         case MavTMList::MAV_HR_TM_ID:
+            tm_repository.hr_tm.timestamp = miosix::getTick();
             mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.hr_tm));
             break;

@@ -21,25 +21,33 @@
  */
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
-
+#include "DeathStack/XbeeInterrupt.h"
+#include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    busSPI2::init();
+
+    // Enable SPI
+    xbee::cs::low();
+    Thread::sleep(10);
+    xbee::cs::high();
+    Thread::sleep(10);
+
+    enableXbeeInterrupt();
+
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
 
+    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    Thread::sleep(1000);
+
     while(1)
     {
-        mavlink_message_t pingMsg;
-        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
-
-        // Send the message
-        bool ok = tmtc->send(pingMsg);
-        TRACE("Sending %s\n", ok ? "ok" : "error");
         Thread::sleep(5000);
     }
 }

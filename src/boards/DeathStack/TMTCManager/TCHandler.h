@@ -50,7 +50,7 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
 {
     { MAV_CMD_ARM,              EV_TC_ARM    }, 
     { MAV_CMD_DISARM,           EV_TC_DISARM }, 
-    { MAV_CMD_ABORT_LAUNCH,     EV_TC_ABORT_LAUNCH  }, 
+    //{ MAV_CMD_ABORT_LAUNCH,     EV_TC_ABORT_LAUNCH  }, 
     { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
     { MAV_CMD_START_LOGGING,    EV_TC_START_LOGGING }, 
@@ -83,6 +83,7 @@ static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
  */
 static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& msg)
 {
+    TRACE("[TMTC] Handling command command\n");
     /* Log Status */
     MavStatus status = channel->getStatus();
     logger.log(status);
@@ -128,7 +129,7 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
             break;
         }
 
-        case MAV_TC(START_LAUNCH):
+       /* case MAV_TC(START_LAUNCH):
         {
             LaunchEvent startLaunchEvt;
             startLaunchEvt.sig = EV_TC_LAUNCH;
@@ -136,15 +137,13 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
 
             sEventBroker->post(startLaunchEvt, TOPIC_TC);
             break;
-        }
+        }*/
 
         case MAV_TC(RAW_EVENT):
         {
-#ifdef DEBUG
             /* Retrieve event from the message*/
             Event evt = {mavlink_msg_raw_event_tc_get_Event_id(&msg)};
             sEventBroker->post(evt, mavlink_msg_raw_event_tc_get_Topic_id(&msg));
-#endif
             break;
         }
 
