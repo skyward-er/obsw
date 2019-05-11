@@ -69,24 +69,6 @@ void init()
     piksi = new Piksi("/dev/gps");
 
     Thread::sleep(1000);
-
-    // Some sensors dont have init or self tests
-
-    // Initialization
-    printf("________                 __  .__        _________ __                 __    \n");
-    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
-    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
-    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
-    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
-    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
-    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
-    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
-    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
-    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
-    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
-    printf("\n\n");
 }
 
 void update()
@@ -110,13 +92,50 @@ void print()
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
     printf("HW Pressure:    \tP: %d\n", adc_ad7994->getDataPtr()->honeywell_baro_volt);
     printf("NXP Pressure:   \tP: %d\n", adc_ad7994->getDataPtr()->nxp_baro_volt);    
-    printf("Battery tension:\tV: %d\n", adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->battery_voltage_value);    
-    printf("Current sens 1: \tC: %d\n", adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value); 
-    printf("Current sens 2: \tC: %d\n\n", adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value);    
+    printf("Battery voltage:\tV: %d\n", 
+        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->battery_voltage_value);    
+    printf("Current sens 1: \tC: %d\n", 
+        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value); 
+    printf("Current sens 2: \tC: %d\n", 
+        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value);
+
+    try
+    {
+        auto gps = piksi.getGpsData();
+
+        printf("GPS Data:       \tLAT:   %f", gps.latitude);
+        printf("                \tLON:   %f", gps.longitude);
+        printf("                \tN_SAT: %d", gps.numSatellites);
+        printf("                \tALT:   %f", gps.height);
+    }
+    catch (...)
+    {
+         printf("GPS Data:       \tNO FIX!");
+    }
 }
+
+void banner()
+{
+    printf("________                 __  .__        _________ __                 __    \n");
+    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
+    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
+    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
+    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
+    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
+    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
+    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
+    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("\n\n");
+}
+
 
 int main()
 {
+    banner();
     init();
 
     printf("Press enter to start\n");
