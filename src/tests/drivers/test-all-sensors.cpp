@@ -37,7 +37,7 @@ using namespace DeathStackBoard;
 using namespace miosix;
 
 typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
 typedef LM75B<i2c1> LM75BType;
 
 AD7994Wrapper* adc_ad7994;
@@ -46,59 +46,55 @@ ADCWrapper* adc_internal;
 MPU9250Type* imu_mpu9250;
 ADIS16405Type* imu_adis16405;
 
-LM75BType* temp_lm75b;
+LM75BType* temp_lm75b_analog;
+LM75BType* temp_lm75b_imu;
 
 Piksi* piksi;
 
 void init()
 {
-    adc_ad7994 = new AD7994Wrapper(sensors::ad7994::addr);
-    temp_lm75b = new LM75BType(sensors::lm75b_analog::addr);
+    spiMPU9250::init();
+    spiADIS16405::init();
+
+    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
+    temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
+    temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
 
     imu_mpu9250 =
-        new MPU9250Type(0, 0);  // TODO: Update with correct parameters
+        new MPU9250Type(1, 1);  // TODO: Update with correct parameters
 
-    imu_adis16405 = new ADIS16405Type();
+    imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
     adc_internal  = new ADCWrapper();
 
     piksi = new Piksi("/dev/gps");
 
+    Thread::sleep(1000);
+
     // Some sensors dont have init or self tests
 
     // Initialization
-    if (!imu_mpu9250->init())
-    {
-        printf("MPU9250 Init Failed!\n");
-    }
-
-    if (!imu_adis16405->init())
-    {
-        printf("ADIS Init Failed!\n");
-    }
-    if (!temp_lm75b->init())
-    {
-        printf("LM75B Init Failed!\n");
-    }
-
-    if (!adc_ad7994->init())
-    {
-        printf("AD7994 Init Failed!\n");
-    }
-    if (!adc_internal->getBatterySensorPtr()->init())
-    {
-        printf("Battery voltage sensor Init Failed!\n");
-    }
-    if (!adc_internal->getCurrentSensorPtr()->init())
-    {
-        printf("Current sensor Init Failed!\n");
-    }
+    printf("________                 __  .__        _________ __                 __    \n");
+    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
+    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
+    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
+    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
+    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
+    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
+    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
+    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("\n\n");
 }
 
 void update()
 {
     imu_mpu9250->onSimpleUpdate();
     imu_adis16405->onSimpleUpdate();
-    temp_lm75b->onSimpleUpdate();
+    temp_lm75b_analog->onSimpleUpdate();
+    temp_lm75b_imu->onSimpleUpdate();
     adc_ad7994->onSimpleUpdate();
     adc_internal->getBatterySensorPtr()->onSimpleUpdate();
     adc_internal->getCurrentSensorPtr()->onSimpleUpdate();
@@ -110,22 +106,26 @@ void print()
            imu_mpu9250->compassDataPtr()->getX());
     printf("ADIS Acc:       \tZ: %.3f\n",
            imu_adis16405->accelDataPtr()->getZ());
-    printf("LM75B Temp:     \tT: %.3f\n", temp_lm75b->getTemp());
+    printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
+    printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
     printf("HW Pressure:    \tP: %d\n", adc_ad7994->getDataPtr()->honeywell_baro_volt);
     printf("NXP Pressure:   \tP: %d\n", adc_ad7994->getDataPtr()->nxp_baro_volt);    
     printf("Battery tension:\tV: %d\n", adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->battery_voltage_value);    
-    printf("Current sens:   \tC: %d\n", adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value);    
+    printf("Current sens 1: \tC: %d\n", adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value); 
+    printf("Current sens 2: \tC: %d\n\n", adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value);    
 }
 
 int main()
 {
     init();
-    printf("Initialization completed\n");
+
+    printf("Press enter to start\n");
+    char c = getchar();
 
     for (;;)
     {
         update();
         print();
-        Thread::sleep(2000);
+        Thread::sleep(1000);
     }
 }
