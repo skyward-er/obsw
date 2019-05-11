@@ -81,7 +81,7 @@ void SensorManager::initSensors()
     imu_mpu9250 =
         new MPU9250Type(0, 0);  // TODO: Update with correct parameters
 
-    imu_adis16405 = new ADIS16405Type();
+    imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
     adc_internal  = new ADCWrapper();
 
     piksi = new Piksi("/dev/gps");
