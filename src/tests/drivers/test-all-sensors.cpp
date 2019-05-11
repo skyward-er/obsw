@@ -30,6 +30,7 @@
 #include <sensors/ADIS16405/ADIS16405.h>
 #include <sensors/LM75B.h>
 #include <sensors/MPU9250/MPU9250.h>
+#include <sensors/SensorSampling.h>
 
 #include <interfaces-impl/hwmapping.h>
 
@@ -49,6 +50,8 @@ ADIS16405Type* imu_adis16405;
 LM75BType* temp_lm75b_analog;
 LM75BType* temp_lm75b_imu;
 
+DMASensorSampler imu_mpu9250_sampler;
+
 Piksi* piksi;
 
 void init()
@@ -59,12 +62,12 @@ void init()
     adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
-
-    imu_mpu9250 =
-        new MPU9250Type(1, 1);  // TODO: Update with correct parameters
-
     imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
     adc_internal  = new ADCWrapper();
+
+    imu_mpu9250 =
+        new MPU9250Type(MPU9250Type::GYRO_FS_2000, MPU9250Type::ACC_FS_16G);  // TODO: Update with correct parameters
+    imu_mpu9250_sampler.AddSensor(imu_mpu9250);
 
     piksi = new Piksi("/dev/gps");
 
@@ -73,7 +76,7 @@ void init()
 
 void update()
 {
-    imu_mpu9250->onSimpleUpdate();
+    imu_mpu9250_sampler.Update();
     imu_adis16405->onSimpleUpdate();
     temp_lm75b_analog->onSimpleUpdate();
     temp_lm75b_imu->onSimpleUpdate();
@@ -84,8 +87,8 @@ void update()
 
 void print()
 {
-    printf("MPU9255 Compass:\tX: %.3f\n",
-           imu_mpu9250->compassDataPtr()->getX());
+    printf("MPU9250 Accel:  \tZ: %.3f\n",
+           imu_mpu9250->accelDataPtr()->getZ());
     printf("ADIS Acc:       \tZ: %.3f\n",
            imu_adis16405->accelDataPtr()->getZ());
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
@@ -101,7 +104,7 @@ void print()
 
     try
     {
-        auto gps = piksi.getGpsData();
+        auto gps = piksi->getGpsData();
 
         printf("GPS Data:       \tLAT:   %f", gps.latitude);
         printf("                \tLON:   %f", gps.longitude);
@@ -135,11 +138,11 @@ void banner()
 
 int main()
 {
-    banner();
     init();
+    banner();
 
     printf("Press enter to start\n");
-    char c = getchar();
+    (void) getchar();
 
     for (;;)
     {
