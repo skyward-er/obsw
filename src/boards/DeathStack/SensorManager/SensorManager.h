@@ -43,7 +43,7 @@ using std::vector;
 template <typename ProtocolSPI>
 class MPU9250;
 
-template <typename ProtocolSPI>
+template <typename ProtocolSPI, typename RST>
 class ADIS16405;
 
 template <typename ProtocolI2C>
@@ -61,7 +61,7 @@ class AD7994Wrapper;
 
 // Type definitions
 typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef ADIS16405<spiADIS16405, miosix::sensors::adis16405::rst> ADIS16405Type;
 typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
 typedef LM75B<i2c1> LM75BType;
