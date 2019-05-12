@@ -33,6 +33,7 @@
 
 #include "Sensors/AD7994Wrapper.h"
 #include "Sensors/ADCWrapper.h"
+#include "Sensors/PiksiData.h"
 #include "drivers/piksi/piksi.h"
 #include "sensors/ADIS16405/ADIS16405.h"
 #include "sensors/LM75B.h"
@@ -82,7 +83,7 @@ void SensorManager::initSensors()
     imu_mpu9250 =
         new MPU9250Type(0, 0);  // TODO: Update with correct parameters
 
-    imu_adis16405 = new ADIS16405Type();
+    imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
     adc_internal  = new ADCWrapper();
 
     piksi = new Piksi("/dev/gps");
@@ -285,23 +286,23 @@ void SensorManager::onDMA250HZCallback()
 
 void SensorManager::onGPSCallback()
 {
-    GPSData data;
+    PiksiData data;
 
     try
     {
-        data = piksi->getGpsData();
+        data.gps_data = piksi->getGpsData();
 
         // We have fix if this sample is different from the previous one and we
         // have at least four satellites
         data.fix =
-            data.timestamp != last_gps_timestamp && data.numSatellites >= 4;
-        last_gps_timestamp = data.timestamp;
+            data.gps_data.timestamp != last_gps_timestamp && data.gps_data.numSatellites >= 4;
+        last_gps_timestamp = data.gps_data.timestamp;
     }
     catch (std::runtime_error rterr)
     {
     }
 
-    ada->updateGPS(data.latitude, data.longitude, data.height, data.fix);
+    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.gps_data.height, data.fix);
 
     if (enable_sensor_logging)
     {
