@@ -131,12 +131,13 @@ void TMTCManager::stateSendingTM(const Event& ev)
         }
 
         case EV_EXIT:
+        {
             sEventBroker->removeDelayed(lr_event_id);
             sEventBroker->removeDelayed(hr_event_id);
             
             TRACE("[TMTC] Exiting stateHighRateTM\n");
             break;
-
+        }
         default:
             TRACE("[TMTC] Event not handled\n");
             break;

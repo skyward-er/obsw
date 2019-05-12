@@ -26,8 +26,9 @@
 #include "DeathStack/configs/TMTCConfig.h"
 #include "events/FSM.h"
 
-#include <DeathStack/LogProxy/LogProxy.h>
 #include <drivers/mavlink/MavChannel.h>
+#include <DeathStack/LogProxy/LogProxy.h>
+#include <interfaces-impl/hwmapping.h>
 
 namespace Xbee
 {
