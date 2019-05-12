@@ -36,6 +36,8 @@
 #include "SensorManagerData.h"
 #include "DeathStack/ADA/ADA.h"
 
+#include <interfaces-impl/hwmapping.h>
+
 using miosix::PauseKernelLock;
 using std::vector;
 
