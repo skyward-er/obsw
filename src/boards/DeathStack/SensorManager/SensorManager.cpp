@@ -33,11 +33,13 @@
 
 #include "Sensors/AD7994Wrapper.h"
 #include "Sensors/ADCWrapper.h"
+#include "Sensors/PiksiData.h"
 #include "drivers/piksi/piksi.h"
 #include "sensors/ADIS16405/ADIS16405.h"
 #include "sensors/LM75B.h"
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
+#include "SensorManagerData.h"
 
 #include "Debug.h"
 
@@ -88,7 +90,6 @@ void SensorManager::initSensors()
 
     // Some sensors dont have init or self tests
     sensor_status.piksi = 1;
-
 
     // Initialization
     sensor_status.mpu9250 = imu_mpu9250->init();
@@ -200,7 +201,7 @@ void SensorManager::startSampling()
         std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_1hz_simple,
                   simple_1hz_callback);
 
-    scheduler.add(simple_1hz_sampler, 1000, ID_SIMPLE_1HZ);
+    scheduler.add(simple_1hz_sampler, 1000, static_cast<uint8_t>(SensorSamplerId::SIMPLE_1HZ));
 
     // Simple 20 Hz Sampler callback and scheduler function
     std::function<void()> simple_20hz_callback =
@@ -210,7 +211,7 @@ void SensorManager::startSampling()
                   simple_20hz_callback);
 
     scheduler.add(simple_20hz_sampler, 250,
-                  ID_SIMPLE_20HZ);  // TODO: back to 50 ms
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ));  // TODO: back to 50 ms
 
     // DMA 250 Hz Sampler callback and scheduler function
     std::function<void()> dma_250hz_callback =
@@ -220,23 +221,23 @@ void SensorManager::startSampling()
                   dma_250hz_callback);
 
     scheduler.add(dma_250Hz_sampler, 1000,
-                  ID_DMA_250HZ);  // TODO: Back to 4 ms
+                  static_cast<uint8_t>(SensorSamplerId::DMA_250HZ));  // TODO: Back to 4 ms
 
     // Lambda expression to collect data from GPS at 10 Hz
     std::function<void()> gps_callback =
         std::bind(&SensorManager::onGPSCallback, this);
 
-    scheduler.add(gps_callback, 100, ID_GPS);
+    scheduler.add(gps_callback, 100, static_cast<uint8_t>(SensorSamplerId::GPS));
 
     // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
         [&]() {
-            scheduler_stats = scheduler.getTaskStats();
+        scheduler_stats = scheduler.getTaskStats();
 
-            for (TaskStatResult stat : scheduler_stats)
-                logger.log(stat);
+        for (TaskStatResult stat : scheduler_stats)
+            logger.log(stat);
         },
-        1000, ID_STATS);
+        1000, static_cast<uint8_t>(SensorSamplerId::STATS));
 
     TRACE("Scheduler initialization complete\n");
 }
@@ -253,7 +254,7 @@ void SensorManager::onSimple1HZCallback()
 void SensorManager::onSimple20HZCallback()
 {
     AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
-    LM75BData lm78b_data          = {miosix::getTick(), temp_lm75b->getTemp()};
+    LM75BData lm78b_data           = {miosix::getTick(), temp_lm75b->getTemp()};
 
     if (enable_sensor_logging)
     {
@@ -285,23 +286,23 @@ void SensorManager::onDMA250HZCallback()
 
 void SensorManager::onGPSCallback()
 {
-    GPSData data;
+    PiksiData data;
 
     try
     {
-        data = piksi->getGpsData();
+        data.gps_data = piksi->getGpsData();
 
         // We have fix if this sample is different from the previous one and we
         // have at least four satellites
         data.fix =
-            data.timestamp != last_gps_timestamp && data.numSatellites >= 4;
-        last_gps_timestamp = data.timestamp;
+            data.gps_data.timestamp != last_gps_timestamp && data.gps_data.numSatellites >= 4;
+        last_gps_timestamp = data.gps_data.timestamp;
     }
     catch (std::runtime_error rterr)
     {
     }
 
-    ada->updateGPS(data.latitude, data.longitude, data.height, data.fix);
+    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.gps_data.height, data.fix);
 
     if (enable_sensor_logging)
     {

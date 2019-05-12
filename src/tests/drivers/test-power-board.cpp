@@ -1,5 +1,6 @@
-/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/*
+ * Copyright (c) 2018 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +21,54 @@
  * THE SOFTWARE.
  */
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
-#include "DeathStack/XbeeInterrupt.h"
+#include <miosix.h>
+#include <Common.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
-using namespace DeathStackBoard;
+//using namespace DeathStackBoard;
 
 int main()
 {
-    busSPI2::init();
 
-    // Enable SPI
-    xbee::cs::low();
-    Thread::sleep(10);
-    xbee::cs::high();
-    Thread::sleep(10);
+    using namespace actuators;
+    tcPwm::mode(Mode::OUTPUT);
 
-    enableXbeeInterrupt();
+    thCut1::ena::mode(Mode::OUTPUT);
+    thCut1::ena::low();
+    thCut1::csens::mode(Mode::INPUT_ANALOG);
 
-    TMTCManager* tmtc = new TMTCManager();
-    tmtc->start();
-    sEventBroker->start();
+    thCut2::ena::mode(Mode::OUTPUT);
+    thCut2::ena::low();
+    thCut2::csens::mode(Mode::INPUT_ANALOG);
 
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-    Thread::sleep(1000);
-
-    while(1)
+    char c;
+    while(true)
     {
-        Thread::sleep(5000);
+        scanf("%c", &c);
+
+        switch(c)
+        {
+            case 'a':
+                thCut1::ena::high();
+                printf("thCut1 ena\n");
+                break;
+            case 'b':
+                thCut2::ena::high();
+                printf("thCut2 ena\n");
+                break;
+            case 'c':
+                tcPwm::high();
+                printf("tcPwm\n");
+                break;
+            case 'd':
+                thCut1::ena::low();
+                thCut2::ena::low();
+                tcPwm::low();
+                printf("Closing everything\n");
+                break;
+            default:
+                 break;
+        }
     }
 }

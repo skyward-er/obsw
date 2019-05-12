@@ -120,7 +120,8 @@ void ADA::updateBaro(float pressure, float temperature)
 
         case ADAState::IDLE:
         {
-            // Idle state: do nothing
+            // Don't use kalman pressure while we are on the ramp
+            updateAltitude(pressure, 0);
             break;
         }
 
@@ -128,6 +129,7 @@ void ADA::updateBaro(float pressure, float temperature)
         {
             // Shadow mode state: update kalman, DO NOT send events
             updateFilter(pressure);
+            updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
             // Check if the vertical speed is negative
             if (filter.X(1, 0) < 0)
@@ -143,6 +145,8 @@ void ADA::updateBaro(float pressure, float temperature)
         {
             // Active state send notifications for apogee
             updateFilter(pressure);
+            updateAltitude(filter.X(0, 0), filter.X(1, 0));
+
             // Check if the vertical speed is negative
             if (filter.X(1, 0) < 0)
             {
@@ -164,8 +168,8 @@ void ADA::updateBaro(float pressure, float temperature)
             // Descent state: send notifications for target altitude reached
             updateFilter(pressure);
 
-            float altitude = aeroutils::relAltitude(filter.X(0, 0), pressure_0,
-                                                    temperature_0);
+            float altitude = updateAltitude(filter.X(0, 0), filter.X(1, 0));
+
             rogallo_dts.updateAltitude(altitude);
             break;
         }
@@ -192,15 +196,28 @@ void ADA::updateCalibration()
         pressure_ref    = calibration_data.pressure_calib.mean;
         temperature_ref = calibration_data.temperature_calib.mean;
 
+        //TODO: Calibration sanity check
+
         // Calculat MSL values for altitude calculation
         pressure_0 =
             aeroutils::mslPressure(pressure_ref, temperature_ref,
                                    calibration_data.gps_altitude_calib.mean);
+
         temperature_0 = aeroutils::mslTemperature(
             temperature_ref, calibration_data.gps_altitude_calib.mean);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
+
+        // Log reference values
+        ReferenceValues rf;
+        rf.msl_pressure = pressure_0;
+        rf.msl_temperature = temperature_0;
+        rf.ref_altitude = calibration_data.gps_altitude_calib.mean;
+        rf.ref_pressure = pressure_ref;
+        rf.ref_temperature = temperature_ref;
+
+        logger.log(rf);
 
         // Notify that we are ready
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -486,6 +503,25 @@ void ADA::resetCalibration()
     calibration_data.pressure_calib     = pressure_stats.getStats();
     calibration_data.temperature_calib  = temperature_stats.getStats();
     calibration_data.gps_altitude_calib = gps_altitude_stats.getStats();
+}
+
+float ADA::updateAltitude(float p, float dp_dt)
+{
+    if(p> 0)
+    {
+        KalmanAltitude kalt;
+        kalt.altitude = aeroutils::relAltitude(p, pressure_0,
+                                                    temperature_0);
+        
+        kalt.vert_speed = aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
+        
+        kalt.timestamp = miosix::getTick();
+
+        logger.log(kalt);
+
+        return kalt.altitude;
+    }  
+    return 0;
 }
 
 }  // namespace DeathStackBoard
