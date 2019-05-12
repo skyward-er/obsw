@@ -23,41 +23,77 @@
 
 #include <miosix.h>
 #include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
+#include <interfaces-impl/hwmapping.h>
+#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include <iostream>
 
+using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
+void wait()
+{
+    long long t = getTick();
+    long long target = t + 15000;
+    while(t < target && inputs::btn1::value() == 1)
+    {
+        Thread::sleep(50);
+        t += 50;
+    }
+}
+
+bool print = false;
+
+float vToI(uint16_t adc)
+{
+    return ((float)(adc - 109)) * 19500/510.0f;
+}
+
+void csense(void*)
+{
+    ADCWrapper adc;
+    adc.getCurrentSensorPtr()->init();
+    
+    for(;;)
+    {
+        adc.getCurrentSensorPtr()->onSimpleUpdate();
+        uint16_t current1 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value;
+        uint16_t current2 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value;
+        if(print)
+            printf("C1: %f\tC2: %d\n", vToI(current1), current1);
+        Thread::sleep(100);
+    }
+}
+
 int main()
 {
-    Cutter cutter;
-    Thread::sleep(500);
-
-    printf("Starting drogue cutter\n");
-    cutter.startCutDrogue();
-
-    Thread::sleep(500);
-    printf("Stopping drogue cutter\n");
-    cutter.stopCutDrogue();
-
-    Thread::sleep(500);
-    printf("Cutting main chute\n");
-    cutter.startCutMainChute();
-
-    Thread::sleep(500);
-    printf("Starting drogue cutter\n");
-    cutter.startCutDrogue();
-
-    Thread::sleep(500);
-    printf("Stop main chute\n");
-    cutter.stopCutMainChute();
-
-    Thread::sleep(500);
-    printf("Stop drogue\n");
-    cutter.stopCutDrogue();
+    Thread* t = Thread::create(csense, 2048);
 
     for (;;)
     {
-        printf("END\n");
-        Thread::sleep(10000);
+        print = false;
+
+        printf("What do you want to cut? (d, r)\n");
+        char c;
+        cin >> &c;
+        print = true;
+        
+        Cutter cutter;
+
+        if (c == 'D' || c == 'd')
+        {
+            cutter.startCutDrogue();
+            wait();
+            cutter.stopCutDrogue();
+        }
+        else if (c == 'R' || c == 'r')
+        {
+            cutter.startCutMainChute();
+            wait();
+            cutter.stopCutMainChute();
+        }
+
+        Thread::sleep(3000);
+        printf("Done!\n\n\n");
     }
 }
