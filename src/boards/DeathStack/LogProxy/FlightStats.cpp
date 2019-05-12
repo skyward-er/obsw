@@ -188,7 +188,7 @@ void FlightStats::update(const ADIS16405Data& t)
     }
 }
 
-void FlightStats::update(const GPSData& t)
+void FlightStats::update(const PiksiData& t)
 {
     switch (state)
     {
@@ -202,11 +202,11 @@ void FlightStats::update(const GPSData& t)
         }
         case State::APOGEE:
         {
-            if (t.height > apogee_stats.gps_max_altitude)
+            if (t.gps_data.height > apogee_stats.gps_max_altitude)
             {
-                apogee_stats.gps_max_altitude = t.height;
-                apogee_stats.lat_apogee       = static_cast<float>(t.latitude);
-                apogee_stats.lon_apogee       = static_cast<float>(t.longitude);
+                apogee_stats.gps_max_altitude = t.gps_data.height;
+                apogee_stats.lat_apogee       = static_cast<float>(t.gps_data.latitude);
+                apogee_stats.lon_apogee       = static_cast<float>(t.gps_data.longitude);
             }
             break;
         }

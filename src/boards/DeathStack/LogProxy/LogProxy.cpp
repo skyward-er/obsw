@@ -32,10 +32,10 @@
 #include "DeathStack/SensorManager/SensorManagerData.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
 #include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
+#include "DeathStack/SensorManager/Sensors/PiksiData.h"
 
 #include "drivers/canbus/CanUtils.h"
 #include "drivers/mavlink/MavStatus.h"
-#include "drivers/piksi/piksi_data.h"
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -473,27 +473,27 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 
 /* GPS */
 template <>
-LogResult LoggerProxy::log<GPSData>(const GPSData& t)
+LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
 {
     {
         miosix::PauseKernelLock kLock;
 
         // GPS_TM
-        tm_repository.gps_tm.timestamp = t.timestamp;
+        tm_repository.gps_tm.timestamp = t.gps_data.timestamp;
 
-        tm_repository.gps_tm.lat          = t.latitude;
-        tm_repository.gps_tm.lon          = t.longitude;
-        tm_repository.gps_tm.altitude     = t.height;
-        tm_repository.gps_tm.vel_north    = t.velocityNorth;
-        tm_repository.gps_tm.vel_east     = t.velocityEast;
-        tm_repository.gps_tm.vel_down     = t.velocityDown;
-        tm_repository.gps_tm.vel_mag      = t.speed;
+        tm_repository.gps_tm.lat          = t.gps_data.latitude;
+        tm_repository.gps_tm.lon          = t.gps_data.longitude;
+        tm_repository.gps_tm.altitude     = t.gps_data.height;
+        tm_repository.gps_tm.vel_north    = t.gps_data.velocityNorth;
+        tm_repository.gps_tm.vel_east     = t.gps_data.velocityEast;
+        tm_repository.gps_tm.vel_down     = t.gps_data.velocityDown;
+        tm_repository.gps_tm.vel_mag      = t.gps_data.speed;
         tm_repository.gps_tm.fix          = (uint8_t)t.fix;
-        tm_repository.gps_tm.n_satellites = t.numSatellites;
+        tm_repository.gps_tm.n_satellites = t.gps_data.numSatellites;
 
         // HR TM
-        tm_repository.hr_tm.gps_latitude  = t.latitude;
-        tm_repository.hr_tm.gps_longitude = t.longitude;
+        tm_repository.hr_tm.gps_latitude  = t.gps_data.latitude;
+        tm_repository.hr_tm.gps_longitude = t.gps_data.longitude;
 
         // HR TM
         // clear first 1 bits

@@ -31,7 +31,7 @@
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
 #include "DeathStack/configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
-#include "drivers/piksi/piksi_data.h"
+#include "DeathStack/SensorManager/Sensors/PiksiData.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
 #include "utils/CircularBuffer.h"
 
@@ -48,7 +48,7 @@ public:
     void update(const KalmanAltitude& t);
     void update(const AD7994WrapperData& t);
     void update(const ADIS16405Data& t);
-    void update(const GPSData& t);
+    void update(const PiksiData& t);
 
     void state_idle(const Event& ev);
     void state_liftOff(const Event& ev);
