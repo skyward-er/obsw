@@ -105,16 +105,16 @@ void print()
     try
     {
         auto gps = piksi->getGpsData();
-
-        printf("GPS Data:       \tLAT:   %f", gps.latitude);
-        printf("                \tLON:   %f", gps.longitude);
-        printf("                \tN_SAT: %d", gps.numSatellites);
-        printf("                \tALT:   %f", gps.height);
+        printf("GPS Data:       \tLAT:   %f\n", gps.latitude);
+        printf("                \tLON:   %f\n", gps.longitude);
+        printf("                \tN_SAT: %d\n", gps.numSatellites);
+        printf("                \tALT:   %f\n", gps.height);
     }
     catch (...)
     {
-         printf("GPS Data:       \tNO FIX!");
+        printf("GPS Data:      \tNO FIX!\n");
     }
+    printf("\n");
 }
 
 void banner()
