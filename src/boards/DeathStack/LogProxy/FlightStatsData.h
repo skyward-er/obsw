@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2018 Skyward Experimental Rocketry
+/**
+ * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,41 +22,46 @@
  */
 
 #pragma once
-
-#include "drivers/HardwareTimer.h"
-#include "drivers/pwm/pwm.h"
-#include "interfaces-impl/hwmapping.h"
-
-
 namespace DeathStackBoard
 {
-// clang-format off
+struct LiftOffStats
+{
+    uint32_t T_liftoff = 0;
 
-// Struct required by the PWM driver to know the specifics of the timer to use
-static const PWM::Timer CUTTER_TIM{
-    TIM9, 
-    &(RCC->APB2ENR), 
-    RCC_APB2ENR_TIM9EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)
-    };
+    uint32_t T_max_acc = 0;
+    float acc_max = 0.0f;
 
-// clang-format on
+    uint32_t T_max_speed = 0;
+    float vert_speed_max = 0.0f;
+    float altitude_max_speed = 0.0f;
+};
 
-// DROGUE --> Right H-Bridge, THCUT1 on theboard
-static const PWMChannel CUTTER_CHANNEL_DROGUE = PWMChannel::CH2; // PD12
-typedef miosix::actuators::thCut1::ena DrogueCutterEna; // PG2
+struct ApogeeStats
+{
+    uint32_t T_apogee = 0;
+    float nxp_min_pressure = 0.0f;
+    float hw_min_pressure = 0.0f;
+    float kalman_min_pressure = 0.0f;
+    float digital_min_pressure = 0.0f;
 
-// MAIN CHUTE --> Left H-Bridge, THCUT2 on theboard
-static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2; // PD13
-typedef miosix::actuators::thCut2::ena MainChuteCutterEna; //PD11
+    float baro_max_altitude = 0.0f;
+    float gps_max_altitude = 0.0f;
 
-// PWM Frequency & duty-cycle
-static const unsigned int CUTTER_PWM_FREQUENCY = 150000;
-static const float CUTTER_PWM_DUTY_CYCLE       = 1;
+    float lat_apogee = 0.0f;
+    float lon_apogee = 0.0f;
+};
 
-// Period of time where the IN must be kept low before bringing ENA/INH low
-static const int CUTTER_DISABLE_DELAY_MS = 50;
- 
-} // DeathStackBoard
+struct DrogueDPLStats
+{
+    uint32_t T_dpl = 0;
+    float max_dpl_acc = 0.0f;
+};
 
-
+struct MainDPLStats
+{
+    uint32_t T_dpl = 0;
+    float max_dpl_acc = 0.0f;
+    float altitude_dpl = 0.0f;
+    float vert_speed_dpl = 0.0f;
+};
+}  // namespace DeathStackBoard

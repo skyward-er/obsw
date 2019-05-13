@@ -30,6 +30,15 @@
 namespace DeathStackBoard
 {
 
+enum class SensorSamplerId : uint8_t
+{
+    STATS = 0,
+    SIMPLE_1HZ = 1,
+    GPS = 10,
+    SIMPLE_20HZ = 20,
+    DMA_250HZ = 250
+};
+
 enum class SensorManagerState : uint8_t
 {
     IDLE,

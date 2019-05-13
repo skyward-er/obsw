@@ -59,7 +59,7 @@ public:
      * @param dutyCycle     duty cycle of the PWM sent to the motor
      * @return              false if the motor is already started
      */
-    bool start(MotorDirection direction, float dutyCycle);
+    bool start(MotorDirection direction);
 
     /**
      * @brief Stop the motor
@@ -72,8 +72,6 @@ public:
     }
 
 private:
-    PWM pwm;
-
     MotorStatus status;
 };
 

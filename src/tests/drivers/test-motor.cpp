@@ -1,5 +1,7 @@
-/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/**
+ *
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +22,27 @@
  * THE SOFTWARE.
  */
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
-#include "DeathStack/XbeeInterrupt.h"
-#include <interfaces-impl/hwmapping.h>
-
-using namespace miosix;
+#include "DeathStack/DeploymentController/Motor/MotorDriver.h"
 using namespace DeathStackBoard;
 
 int main()
 {
-    busSPI2::init();
+    MotorDriver motor;
 
-    // Enable SPI
-    xbee::cs::low();
-    Thread::sleep(10);
-    xbee::cs::high();
-    Thread::sleep(10);
+    Thread::sleep(500);
 
-    enableXbeeInterrupt();
-
-    TMTCManager* tmtc = new TMTCManager();
-    tmtc->start();
-    sEventBroker->start();
-
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-    Thread::sleep(1000);
-
-    while(1)
+    for (;;)
     {
-        Thread::sleep(5000);
+        motor.start(MotorDirection::NORMAL);
+        Thread::sleep(1000);
+        motor.stop();
+
+        Thread::sleep(200);
+
+        motor.start(MotorDirection::REVERSE);
+        Thread::sleep(1000);
+        motor.stop();
+        
+        Thread::sleep(200);
     }
 }

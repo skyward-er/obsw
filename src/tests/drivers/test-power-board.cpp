@@ -21,42 +21,54 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
+#include <Common.h>
+#include <interfaces-impl/hwmapping.h>
 
-#include "drivers/HardwareTimer.h"
-#include "drivers/pwm/pwm.h"
-#include "interfaces-impl/hwmapping.h"
+using namespace miosix;
+//using namespace DeathStackBoard;
 
-
-namespace DeathStackBoard
+int main()
 {
-// clang-format off
 
-// Struct required by the PWM driver to know the specifics of the timer to use
-static const PWM::Timer CUTTER_TIM{
-    TIM9, 
-    &(RCC->APB2ENR), 
-    RCC_APB2ENR_TIM9EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)
-    };
+    using namespace actuators;
+    tcPwm::mode(Mode::OUTPUT);
 
-// clang-format on
+    thCut1::ena::mode(Mode::OUTPUT);
+    thCut1::ena::low();
+    thCut1::csens::mode(Mode::INPUT_ANALOG);
 
-// DROGUE --> Right H-Bridge, THCUT1 on theboard
-static const PWMChannel CUTTER_CHANNEL_DROGUE = PWMChannel::CH2; // PD12
-typedef miosix::actuators::thCut1::ena DrogueCutterEna; // PG2
+    thCut2::ena::mode(Mode::OUTPUT);
+    thCut2::ena::low();
+    thCut2::csens::mode(Mode::INPUT_ANALOG);
 
-// MAIN CHUTE --> Left H-Bridge, THCUT2 on theboard
-static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2; // PD13
-typedef miosix::actuators::thCut2::ena MainChuteCutterEna; //PD11
+    char c;
+    while(true)
+    {
+        scanf("%c", &c);
 
-// PWM Frequency & duty-cycle
-static const unsigned int CUTTER_PWM_FREQUENCY = 150000;
-static const float CUTTER_PWM_DUTY_CYCLE       = 1;
-
-// Period of time where the IN must be kept low before bringing ENA/INH low
-static const int CUTTER_DISABLE_DELAY_MS = 50;
- 
-} // DeathStackBoard
-
-
+        switch(c)
+        {
+            case 'a':
+                thCut1::ena::high();
+                printf("thCut1 ena\n");
+                break;
+            case 'b':
+                thCut2::ena::high();
+                printf("thCut2 ena\n");
+                break;
+            case 'c':
+                tcPwm::high();
+                printf("tcPwm\n");
+                break;
+            case 'd':
+                thCut1::ena::low();
+                thCut2::ena::low();
+                tcPwm::low();
+                printf("Closing everything\n");
+                break;
+            default:
+                 break;
+        }
+    }
+}
