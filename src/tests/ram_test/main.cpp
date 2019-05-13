@@ -75,14 +75,9 @@ int main()
 
     uint64_t n_attempts = 0, n_ok = 0, n_fails = 0;
 
-    FILE* file = fopen("/sd/log.txt","w");
-
-    if (file == NULL)
-        throw std::runtime_error("Error opening log file");
-
     for(;;)
     {
-        fprintf(file, "TEST STATUS: attempts: %llx, passed: %llx, failed %llx\n",
+        printf("TEST STATUS: attempts: %llx, passed: %llx, failed %llx\n",
                         n_attempts, n_ok, n_fails);
         n_attempts++;
 

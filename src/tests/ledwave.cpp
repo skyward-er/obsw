@@ -25,6 +25,11 @@ int main()
 
     printf("Started\n");
 
+    FILE* file = fopen("/sd/log.txt","w");
+
+    if (file == NULL)
+        printf("Error opening log file\n");
+
     while(1)
     {
         printf("Working\n");
