@@ -37,4 +37,15 @@ struct AD7994WrapperData
 
     bool honeywell_baro_flag;
     bool nxp_baro_flag;
+    
+    static std::string header()
+    {
+        return "timestamp,honeywell_baro_volt,nxp_baro_volt,honeywell_baro_pressure,nxp_baro_pressure,honeywell_baro_flag,nxp_baro_flag\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << honeywell_baro_volt << "," << nxp_baro_volt << ","
+           << honeywell_baro_pressure << "," << nxp_baro_pressure << "," << honeywell_baro_flag << "," << nxp_baro_flag << "\n";
+    }
 };

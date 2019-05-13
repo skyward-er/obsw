@@ -92,7 +92,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 
 /* Ignition Board */
 template <>
-LogResult LoggerProxy::log<IgnBoardLoggableStatus>(const IgnBoardLoggableStatus& t)
+LogResult LoggerProxy::log<IgnBoardLoggableStatus>(const IgnBoardLoggableStatus& t)//no funzione per loggarlo
 {
 	miosix::PauseKernelLock kLock;
 
@@ -130,7 +130,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
+LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)//da controllare l'enum nella MavStatus logger
 {
 	miosix::PauseKernelLock kLock;
 
@@ -156,7 +156,6 @@ LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
 /* Sensor Manager */
 template <>
 LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
-{
 	miosix::PauseKernelLock kLock;
 
     tm_repository.sm_tm.timestamp = t.timestamp;
@@ -168,7 +167,7 @@ LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
 
 /* Ignition Controller */
 template <>
-LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
+LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t) //no logger function
 {
 	miosix::PauseKernelLock kLock;
 
@@ -205,7 +204,7 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
 
 /* ADA state machine */
 template <>
-LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
+LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)//TODO ADAStatus logger function
 {
 	miosix::PauseKernelLock kLock;
 
@@ -217,7 +216,7 @@ LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
 
 /* ADA apogee */
 template <>
-LogResult LoggerProxy::log<ApogeeDetected>(const ApogeeDetected& t)
+LogResult LoggerProxy::log<ApogeeDetected>(const ApogeeDetected& t)//TODO ApogeeDetected logger function
 {
     miosix::PauseKernelLock kLock;
 
@@ -353,7 +352,7 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
 
 /* MPU imu */
 template <>
-LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
+LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)//no logger function
 {
 
 
