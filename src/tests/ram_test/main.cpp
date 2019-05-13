@@ -23,11 +23,9 @@
 #include <string.h>
 #include <unistd.h>
 #include "sha1.h"
-#include <miosix.h>
-#include <stdexcept>
 
-const unsigned int ramBase=0x60000000; //Tune this to the right value
-const unsigned int ramSize=524288;     //Tune this to the right value
+const unsigned int ramBase=0xd0000000; //Tune this to the right value
+const unsigned int ramSize=8*1024*1024;     //Tune this to the right value
 
 bool shaCmp(unsigned int a[5], unsigned int b[5])
 {
@@ -65,45 +63,23 @@ template<typename T> bool ramTest()
     return shaCmp(a,b);
 }
 
-
-typedef miosix::Gpio<GPIOG_BASE, 2> led1;
-
 int main()
 {
-    led1::mode(miosix::Mode::OUTPUT);
-    led1::low();
-
-    uint64_t n_attempts = 0, n_ok = 0, n_fails = 0;
+    printf("\nBEFORE YOU START:\n");
+    printf("1. Have you compiled with the right linker script (e.g. 2m+256k_rom)?\n");
+    printf("2. Have you set RamBase and RamSize correctly in this entrypoint?\n");
+    printf("3. Have you enable the RAM (aka compile with -D__ENABLE_XRAM)?\n");
+    printf("Press enter to start...");
+    char c = getchar();
 
     for(;;)
     {
-        printf("TEST STATUS: attempts: %llx, passed: %llx, failed %llx\n",
-                        n_attempts, n_ok, n_fails);
-        n_attempts++;
-
         iprintf("RAM test\nTesting word size transfers\n");
-        if(ramTest<unsigned int>()) {
-            n_fails++;
-            continue;
-        }
-
+        if(ramTest<unsigned int>()) return 1;
         iprintf("Testing halfword size transfers\n");
-        if(ramTest<unsigned short>()) {
-            n_fails++;
-            continue;
-        }
-
+        if(ramTest<unsigned short>()) return 1;
         iprintf("Testing byte size transfers\n");
-        if(ramTest<unsigned char>()) {
-            n_fails++;
-            continue;
-        }
-
-        n_ok++;
+        if(ramTest<unsigned char>()) return 1;
         iprintf("Ok\n");
-
-        led1::high();
-        miosix::Thread::sleep(200);
-        led1::low();
     }
 }
