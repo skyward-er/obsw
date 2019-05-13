@@ -72,6 +72,15 @@ void init()
     piksi = new Piksi("/dev/gps");
 
     Thread::sleep(1000);
+
+    printf("\nTesting imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
+    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
+    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("\n\n");
 }
 
 void update()
@@ -117,29 +126,10 @@ void print()
     printf("\n");
 }
 
-void banner()
-{
-    printf("________                 __  .__        _________ __                 __    \n");
-    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
-    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
-    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
-    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
-    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
-    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
-    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
-    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
-    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
-    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
-    printf("\n\n");
-}
-
 
 int main()
 {
     init();
-    banner();
 
     printf("Press enter to start\n");
     (void) getchar();
