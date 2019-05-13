@@ -23,12 +23,21 @@
 
 #pragma once
 
-#include <cstdint>
 #include <math/Stats.h>
+#include <cstdint>
+#include <cstring>
 
 namespace DeathStackBoard
 {
 
+enum class SensorSamplerId : uint8_t
+{
+    STATS = 0,
+    SIMPLE_1HZ = 1,
+    GPS = 10,
+    SIMPLE_20HZ = 20,
+    DMA_250HZ = 250
+};
 
 enum class SensorManagerState : uint8_t
 {
@@ -36,15 +45,45 @@ enum class SensorManagerState : uint8_t
     LOGGING
 };
 
-//Todo: Use bitmap?
-enum Sensor : uint8_t
+struct SensorStatus
 {
-    SENSOR_NONE             = 0x0000,
-    SENSOR_MPU9255          = 0x0001,
-    SENSOR_MAX21105         = 0x0002,
-    SENSOR_ADIS             = 0x0004,
-    SENSOR_AD7994           = 0x0008,
-    SENSOR_PRESSURE_DIGITAL = 0x0010
+    // Imus
+    uint16_t mpu9250 : 1;
+    uint16_t adis : 1;
+    uint16_t lsm6ds3h : 1;
+
+    // Temperature sensors
+    uint16_t lm75b : 1;
+
+    // GPS
+    uint16_t piksi : 1;
+
+    // Digital Pressure
+    uint16_t ms5803 : 1;
+
+    // Internal ADC
+    uint16_t current_sensor : 1;
+    uint16_t battery_sensor : 1;
+
+    // External ADC
+    uint16_t ad7994 : 1;
+
+    /**
+     * Converts data in the struct to a single uint16_t value
+     * @return uint16_t representing the struct
+     */
+    uint16_t toNumeric()
+    {
+        uint16_t out;
+        memcpy(&out, this, sizeof(out));
+        return out;
+    }
+};
+
+struct LM75BData
+{
+    long long timestamp;
+    float temp;
 };
 
 struct SensorManagerStatus
@@ -52,17 +91,7 @@ struct SensorManagerStatus
     uint64_t timestamp;
     SensorManagerState state;
 
-    // Use the or operator to signal multiple problematic sensors:
-    // Ex: problematic_sensors |= SENSOR_1 | SENSOR_2;
-    uint16_t problematic_sensors = 0x0000;
-};
-
-struct AD7994Stats
-{
-    long long imestamp;
-    StatsResult baro_1_stats;
-    StatsResult baro_2_stats;
+    uint16_t sensor_status;
 };
 
 }  // namespace DeathStackBoard
-

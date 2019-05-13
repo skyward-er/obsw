@@ -25,6 +25,7 @@
 #include "events/EventBroker.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "DeathStack/ADA/ADA.h"
+#include "DeathStack/LogProxy/LogProxy.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -33,6 +34,7 @@ int main()
 {
     ADA ada;
     TRACE("DEBUG\n");
+    LoggerProxy::getInstance()->start();
     // Start active objects
     sEventBroker->start();
 
@@ -40,15 +42,6 @@ int main()
 
     mgr.start();
 
-    printf("Current State: %d\n", mgr.getStatus().state);
-    printf("Problematic sensors: %d\n\n", mgr.getStatus().problematic_sensors);
-
-    Thread::sleep(2000);
-    //sEventBroker->post({EV_TC_START_SAMPLING}, TOPIC_CONFIGURATION);
-    Thread::sleep(500);
-    printf("Current State: %d\n\n", mgr.getStatus().state);
-
-    Thread::sleep(3000);
 
     for (;;)
     {

@@ -28,70 +28,48 @@
 
 #include "MotorDriver.h"
 
-//#include "MotorLimit.h"
+#include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 
 namespace DeathStackBoard
 {
 
-
-MotorDriver::MotorDriver(): pwm(MOTOR_TIM, MOTOR_PWM_FREQUENCY)
+MotorDriver::MotorDriver() 
 {
-    /* Enable pins */
-    RightEnable::mode(Mode::OUTPUT);
-    LeftEnable::mode(Mode::OUTPUT);
-    RightEnable::low();
-    LeftEnable::low();
-    
     /* Start PWM with 0 duty cycle to keep IN pins low */
-    pwm.enableChannel(MOTOR_CH_RIGHT, 0.0f);
-    pwm.enableChannel(MOTOR_CH_LEFT,  0.0f);
-    pwm.start();
+
 
     /* Start observing motor limit pins */
-    //MotorLimit::observeLimitPins(pinObs);
+    // MotorLimit::observeLimitPins(pinObs);
 
     /* Set status */
     status.motor_active = 0;
 }
 
-
 MotorDriver::~MotorDriver()
 {
     stop();
-    pwm.stop();
 }
 
-
-bool MotorDriver::start(MotorDirection direction, float dutyCycle)
-{   
-    /* Read from status if the motor is active */
-    if(status.motor_active == true) 
-        return false;
-
-    /* If it's not active, check the direction */
-    bool dir = (direction == MotorDirection::NORMAL);
-
-    if(dir) {
-        pwm.enableChannel(MOTOR_CH_RIGHT, dutyCycle, PWMMode::MODE_1, 
-                                                        PWMPolarity::ACTIVE_HIGH);
-        pwm.enableChannel(MOTOR_CH_LEFT,  dutyCycle, PWMMode::MODE_1, 
-                                                        PWMPolarity::ACTIVE_LOW);
-    } 
-    else {
-        pwm.enableChannel(MOTOR_CH_RIGHT, dutyCycle, PWMMode::MODE_1, 
-                                                        PWMPolarity::ACTIVE_LOW);
-        pwm.enableChannel(MOTOR_CH_LEFT,  dutyCycle, PWMMode::MODE_1, 
-                                                        PWMPolarity::ACTIVE_HIGH);
+bool MotorDriver::start(MotorDirection direction)
+{
+    if (direction == MotorDirection::NORMAL)
+    {
+        nosecone::motP1::high();
+        nosecone::motP2::low();
     }
-    
+    else
+    {
+        nosecone::motP1::low();
+        nosecone::motP2::high();
+    }
+
     /* Activate PWM on both half bridges */
-    RightEnable::high();
-    LeftEnable::high();
+    nosecone::motEn::high();
 
     /* Update status */
-    status.motor_active = true;
+    status.motor_active         = true;
     status.motor_last_direction = direction;
 
     return true;
@@ -99,15 +77,15 @@ bool MotorDriver::start(MotorDirection direction, float dutyCycle)
 
 void MotorDriver::stop()
 {
-    pwm.setDutyCycle(MOTOR_CH_LEFT, 0.0f);   // Set duty cycle to 0
-    pwm.setDutyCycle(MOTOR_CH_RIGHT, 0.0f);  // Set duty cycle to 0
+    nosecone::motP1::low();
+    nosecone::motP2::low();
+    
 
     Thread::sleep(MOTOR_DISABLE_DELAY_MS);  // Wait a short delay
 
-    RightEnable::low();  // Disable hbridge
-    LeftEnable::low(); 
+    nosecone::motEn::low();
 
     status.motor_active = false;
 }
 
-}
+}  // namespace DeathStackBoard

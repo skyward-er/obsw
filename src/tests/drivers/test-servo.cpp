@@ -1,5 +1,6 @@
-/* Copyright (c) 2015-2019 Skyward Experimental Rocketry
- * Authors: Benedetta Margrethe Cattani
+/**
+ * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,60 +21,40 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
-#include <interfaces-impl/hwmapping.h>
+#include <arch/common/drivers/servo_stm32.h>
+#include <miosix.h>
+#include <cstdio>
+
 using namespace miosix;
-using namespace interfaces;
-using namespace actuators;
 
-using rena   = Gpio<GPIOG_BASE, 2>;
+typedef Gpio<GPIOB_BASE, 8> ServoPin;
 
-void enable_reverse(){
-  hbridger::in::high();
-  hbridgel::in::low();
-  rena::high();
-  hbridgel::ena::high();
-}
-
-void enable_direct(){
-  hbridger::in::low();
-  hbridgel::in::high();
-  rena::high();
-  hbridgel::ena::high();
-}
-
-void disable(){
-  hbridger::in::low();
-  hbridgel::in::low();
-  rena::low();
-  hbridgel::ena::low();
-}
-
-
+static const int CHANNEL = 2;
 int main()
 {
-    rena::mode(Mode::OUTPUT);
-    hbridger::in::mode(Mode::OUTPUT);
-    hbridgel::in::mode(Mode::OUTPUT);
-
-
-    while (true)
     {
-printf("Serial is working!\n");
+        FastInterruptDisableLock l;
+        ServoPin::mode(Mode::ALTERNATE);
+        ServoPin::alternateFunction(2);
+    }
 
-      Thread::sleep(1000);
-      disable();
-      printf("Disabled\n");
-      Thread::sleep(2000);
-      enable_direct();
-      printf("Direct\n");
-      Thread::sleep(3000);
-      enable_reverse();
-      printf("Reverse\n");
-      Thread::sleep(3000);
-      disable();
-      printf("Disabled\n");
-
-
+    SynchronizedServo& s = SynchronizedServo::instance();
+    s.enable(CHANNEL);
+    s.setPosition(CHANNEL, 0);
+    s.start();
+    Thread::sleep(5000);
+    printf("Ready.\n");
+    for (;;)
+    {
+        printf("Set position:\n");
+        float p;
+        if (scanf("%f", &p) > 0)
+        {
+            s.setPosition(CHANNEL, p/100.0f);
+        }
+        else
+        {
+            printf("You dumb fuck.\n");
+        }
     }
 }

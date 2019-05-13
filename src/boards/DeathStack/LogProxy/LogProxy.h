@@ -22,15 +22,16 @@
 
 #pragma once
 
-#include "logger/Logger.h"
+#include "FlightStats.h"
 #include "Singleton.h"
+#include "logger/Logger.h"
 
-namespace DeathStackBoard 
+namespace DeathStackBoard
 {
 
 /**
- * @brief This class is interposed between the OBSW and the Logger driver. 
- * Status repository updating is done here: everytime a component 
+ * @brief This class is interposed between the OBSW and the Logger driver.
+ * Status repository updating is done here: everytime a component
  * logs its status, the corresponding tm structs are updated before logging
  * on SD card.
  */
@@ -39,8 +40,9 @@ class LoggerProxy : public Singleton<LoggerProxy>
     friend class Singleton<LoggerProxy>;
 
 public:
-
     LoggerProxy() : logger(Logger::instance()) {}
+
+    ~LoggerProxy() {}
 
     /* Generic log function, to be implemented for each loggable struct */
     template <typename T>
@@ -59,12 +61,9 @@ public:
      * \throws runtime_error if the log could not be opened
      * \return log number
      */
-    int start()
-    {
-        return logger.start();
-    }
+    int start() { return logger.start(); }
 
-     /**
+    /**
      * Blocking call. May take a very long time (seconds).
      *
      * Call this function to stop the logger.
@@ -72,14 +71,11 @@ public:
      * and it is safe to power down the board without losing log data or
      * corrupting the filesystem.
      */
-    void stop()
-    {
-        logger.stop();
-    }
-
+    void stop() { logger.stop(); }
 
 private:
-    Logger& logger; // SD logger
+    Logger& logger;  // SD logger
+    FlightStats flight_stats{};
 };
 
-}
+}  // namespace DeathStackBoard

@@ -38,7 +38,7 @@
 #include <boards/DeathStack/Events.h>
 #include <boards/DeathStack/IgnitionController/IgnitionController.h>
 #include <boards/DeathStack/configs/IgnitionConfig.h>
-#include "utils/TestHelper.h"
+#include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
@@ -183,7 +183,7 @@ protected:
     IgnitionController* ign;
 };
 
-TEST_CASE_METHOD(IgnitionTestFixture2, "Testing IDLE functions")
+TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
 {
     SECTION("IGNITION OFFLINE")
     {

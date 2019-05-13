@@ -67,6 +67,24 @@ struct KalmanState
     float x2;
 };
 
+struct KalmanAltitude
+{
+    long long timestamp;
+    float altitude;
+    float vert_speed;
+};
+
+struct ReferenceValues
+{
+    float ref_altitude;
+
+    float ref_pressure;
+    float ref_temperature;
+
+    float msl_pressure;
+    float msl_temperature;
+};
+
 struct TargetDeploymentAltitude
 {
     uint16_t deployment_altitude;
@@ -74,7 +92,9 @@ struct TargetDeploymentAltitude
 
 // Struct of calibration data
 struct ADACalibrationData {
-    StatsResult  stats;    
+    StatsResult  pressure_calib;    
+    StatsResult  temperature_calib;   
+    StatsResult  gps_altitude_calib;     
 };
 
 }
