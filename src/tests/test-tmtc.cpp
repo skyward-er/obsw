@@ -31,14 +31,6 @@ int main()
 {
     busSPI2::init();
 
-    // Enable SPI
-    xbee::cs::low();
-    Thread::sleep(10);
-    xbee::cs::high();
-    Thread::sleep(10);
-
-    enableXbeeInterrupt();
-
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();

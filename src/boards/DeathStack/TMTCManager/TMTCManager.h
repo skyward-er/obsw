@@ -30,12 +30,6 @@
 #include <DeathStack/LogProxy/LogProxy.h>
 #include <interfaces-impl/hwmapping.h>
 
-namespace Xbee
-{
-template <typename Bus, class CS, class ATTN>
-class Xbee;
-}
-
 namespace DeathStackBoard
 {
 /**
@@ -44,7 +38,6 @@ namespace DeathStackBoard
  */
 class TMTCManager : public FSM<TMTCManager>
 {
-typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn> Xbee_t;
 
 public:
     TMTCManager();
