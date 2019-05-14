@@ -83,7 +83,7 @@ static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
  */
 static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& msg)
 {
-    TRACE("[TMTC] Handling command command\n");
+    TRACE("[TMTC] Handling command\n");
     /* Log Status */
     MavStatus status = channel->getStatus();
     logger.log(status);
@@ -141,6 +141,7 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
 
         case MAV_TC(RAW_EVENT):
         {
+             TRACE("[TMTC] Received RAW_EVENT command\n");
             /* Retrieve event from the message*/
             Event evt = {mavlink_msg_raw_event_tc_get_Event_id(&msg)};
             sEventBroker->post(evt, mavlink_msg_raw_event_tc_get_Topic_id(&msg));
@@ -149,7 +150,7 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
 
         default:
         {
-            TRACE("%s", "[TMTC] Received message is not of a known type\n");
+            TRACE("[TMTC] Received message is not of a known type\n");
             // TODO: fault counter?
             break;
         }
