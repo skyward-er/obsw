@@ -29,6 +29,7 @@ using namespace DeathStackBoard;
 
 int main()
 {
+    enableXbeeInterrupt();
     busSPI2::init();
 
     // Enable SPI
@@ -36,8 +37,6 @@ int main()
     Thread::sleep(10);
     xbee::cs::high();
     Thread::sleep(10);
-
-    enableXbeeInterrupt();
 
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();

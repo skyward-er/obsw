@@ -26,17 +26,25 @@
 #include <math/Stats.h>
 #include <cstdint>
 #include <cstring>
+#include <ostream>
 
 namespace DeathStackBoard
 {
 
 enum class SensorSamplerId : uint8_t
 {
-    STATS = 0,
-    SIMPLE_1HZ = 1,
-    GPS = 10,
-    SIMPLE_20HZ = 20,
-    DMA_250HZ = 250
+    STATS        = 0,
+    SIMPLE_1HZ   = 1,
+    GPS          = 10,
+    SIMPLE_20HZ  = 20,
+    SIMPLE_250HZ = 250,
+    DMA_250HZ    = 251
+};
+
+enum class TempSensorId : uint8_t
+{
+    LM75B_ANALOG = 0,
+    LM75B_IMU    = 1
 };
 
 enum class SensorManagerState : uint8_t
@@ -53,7 +61,8 @@ struct SensorStatus
     uint16_t lsm6ds3h : 1;
 
     // Temperature sensors
-    uint16_t lm75b : 1;
+    uint16_t lm75b_imu : 1;
+    uint16_t lm75b_analog : 1;
 
     // GPS
     uint16_t piksi : 1;
@@ -78,12 +87,34 @@ struct SensorStatus
         memcpy(&out, this, sizeof(out));
         return out;
     }
+
+    static std::string header()
+    {
+        return "mpu,adis,lsm6ds3h,lm75b_imu,lm75b_analog,piksi,m5803,current_"
+               "sensor,battery_"
+               "sensor,ad7994\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << mpu9250 << "," << adis << "," << lsm6ds3h << "," << lm75b_imu
+           << "," << lm75b_analog << "," << piksi << "," << ms5803 << ","
+           << current_sensor << "," << battery_sensor << "," << ad7994 << "\n";
+    }
 };
 
 struct LM75BData
 {
+    TempSensorId id;
     long long timestamp;
     float temp;
+
+    static std::string header() { return "id,timestamp,temp\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << (int)id << "," << timestamp << "," << temp << "\n";
+    }
 };
 
 struct SensorManagerStatus
@@ -92,6 +123,13 @@ struct SensorManagerStatus
     SensorManagerState state;
 
     uint16_t sensor_status;
+
+    static std::string header() { return "timestamp,state,sensor_status\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "," << sensor_status << "\n";
+    }
 };
 
 }  // namespace DeathStackBoard

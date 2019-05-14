@@ -111,10 +111,6 @@ public:
             uint16_t battery_volt =
                 parent.adc.convertChannel(BATTERY_VOLT_CHANNEL);
 
-            if (battery_volt < battery_data.battery_voltage_min)
-            {
-                battery_data.battery_voltage_min = battery_volt;
-            }
             battery_data.battery_voltage_value = battery_volt;
 
             return true;

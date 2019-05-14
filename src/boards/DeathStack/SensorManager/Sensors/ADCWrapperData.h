@@ -1,17 +1,17 @@
-/* 
+/*
  * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -24,19 +24,39 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
 
 struct BatteryVoltageData
 {
     long long timestamp;
-    
+
     uint16_t battery_voltage_value;
-    uint16_t battery_voltage_min = 0xFFFF;
+
+    static std::string header()
+    {
+        return "timestamp,battery_volt\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)battery_voltage_value << "\n";
+    }
 };
 
 struct CurrentSenseData
 {
     long long timestamp;
-    
+
     uint16_t current_1_value;
     uint16_t current_2_value;
+
+    static std::string header()
+    {
+        return "timestamp,current_1,current_2\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << current_1_value << "," << current_2_value << "\n";
+    }
 };

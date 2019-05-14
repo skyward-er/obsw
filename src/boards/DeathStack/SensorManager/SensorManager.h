@@ -139,6 +139,7 @@ private:
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
     void onSimple20HZCallback();
+    void onSimple250HZCallback();
 
     /**
      * @brief DMA, 250 Hz SensorSampler Callback.
@@ -158,12 +159,14 @@ private:
     SimpleSensorSampler sampler_1hz_simple;
     SimpleSensorSampler sampler_20hz_simple;
     DMASensorSampler sampler_250hz_dma;
+    SimpleSensorSampler sampler_250hz_simple;
 
     // Sensors
     AD7994Wrapper* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
-    LM75BType* temp_lm75b;
+    LM75BType* temp_lm75b_imu;
+    LM75BType* temp_lm75b_analog;
     ADCWrapper* adc_internal;
 
     Piksi* piksi;

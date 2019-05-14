@@ -31,15 +31,23 @@ using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
+static constexpr int CUT_TIME = 15000;
+
+long long measured_cut_time = 0;
 void wait()
 {
-    long long t = getTick();
-    long long target = t + 15000;
-    while(t < target && inputs::btn1::value() == 1)
+    long long t0 = getTick();
+    for(long long t = t0; t < t0 + CUT_TIME; t+= 50)
     {
+        if(inputs::btn1::value() == 0)
+        {
+            break;
+        }
         Thread::sleep(50);
-        t += 50;
     }
+    measured_cut_time = getTick() - t0;
+    printf("Stopped!\n");
+    
 }
 
 bool print = false;
@@ -60,7 +68,7 @@ void csense(void*)
         uint16_t current1 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value;
         uint16_t current2 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value;
         if(print)
-            printf("C1: %f\tC2: %d\n", vToI(current1), current1);
+            printf("C1: %f\tC2: %d\n", current1, current2);
         Thread::sleep(100);
     }
 }
@@ -72,7 +80,7 @@ int main()
     for (;;)
     {
         print = false;
-
+        printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
         printf("What do you want to cut? (d, r)\n");
         char c;
         cin >> &c;
@@ -94,6 +102,9 @@ int main()
         }
 
         Thread::sleep(3000);
+        print = false;
+        Thread::sleep(500);
+        printf("Cut Time: %.2f s\n", (measured_cut_time)/1000.0f);
         printf("Done!\n\n\n");
     }
 }
