@@ -98,30 +98,56 @@ int main()
 
         char c;
         scanf("%c", &c);
+
+        while(getchar() != '\n');
+
         switch(c)
         {
             case 's':
+            {
                 sensortest::main();
                 break;
+            }
             case 't':
+            {
                 thermotest::main();
                 break;
+            }
             case 'm':
+            {
                 motortest::main();
                 break;
+            }
             case 'x':
+            {
                 xbeetest::main();
                 break;
+            }
             case 'l':
+            {
                 loggertest::main();
                 break;
+            }
             case 'r':
+            {
                 printf("Rebooting\n");
                 miosix::reboot();
                 break;
+            }
             case 'f':
-                printf("\n\n\n\n\nRespect\n\n\n\n\n\n\n");
+            {
+                printf("....................../´¯/) \n");
+                printf("....................,/¯../ \n");
+                printf(".................../..../ \n");
+                printf("............./´¯/'...'/´¯¯`·¸ \n");
+                printf("........../'/.../..../......./¨¯\\ \n");
+                printf("........('(...´...´.... ¯~/'...') \n");
+                printf(".........\\.................'...../ \n");
+                printf("..........''...\\.......... _.·´ \n");
+                printf("............\\..............( \n");
+                printf("..............\\.............\\...\n\n");
                 break;
+            }
             default:
                 break;
         }
