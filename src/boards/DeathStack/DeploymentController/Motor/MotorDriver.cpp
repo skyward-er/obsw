@@ -21,14 +21,11 @@
  * THE SOFTWARE.
  */
 #include <Common.h>
+#include <interfaces-impl/hwmapping.h>
 
 #include <events/EventBroker.h>
-
 #include "DeathStack/Events.h"
-
 #include "MotorDriver.h"
-
-#include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 
@@ -37,13 +34,6 @@ namespace DeathStackBoard
 
 MotorDriver::MotorDriver() 
 {
-    /* Start PWM with 0 duty cycle to keep IN pins low */
-
-
-    /* Start observing motor limit pins */
-    // MotorLimit::observeLimitPins(pinObs);
-
-    /* Set status */
     status.motor_active = 0;
 }
 
@@ -79,7 +69,6 @@ void MotorDriver::stop()
 {
     nosecone::motP1::low();
     nosecone::motP2::low();
-    
 
     Thread::sleep(MOTOR_DISABLE_DELAY_MS);  // Wait a short delay
 
