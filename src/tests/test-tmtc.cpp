@@ -34,12 +34,18 @@ int main()
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
-    char c;
-    // printf("Press enter to post liftoff\n");
-    // scanf("%c", &c);
+
+    Thread::sleep(1000);
+
+    printf("\nOk, press open to post liftoff...\n");
+    while(inputs::btn_open::value());
+
+    Thread::sleep(100);
+
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-    while(1)
-    {
-        Thread::sleep(5000);
-    }
+
+    printf("Press close to reboot...\n");
+    while(inputs::btn_close::value());
+
+    miosix::reboot();
 }

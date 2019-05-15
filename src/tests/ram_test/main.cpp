@@ -70,7 +70,7 @@ int main()
     printf("2. Have you set RamBase and RamSize correctly in this entrypoint?\n");
     printf("3. Have you enable the RAM (aka compile with -D__ENABLE_XRAM)?\n");
     printf("Press enter to start...");
-    char c = getchar();
+    getchar();
 
     for(;;)
     {

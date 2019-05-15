@@ -155,4 +155,6 @@ int main()
         print();
         Thread::sleep(1000);
     }
+
+    return 0;
 }

@@ -39,7 +39,7 @@ void wait()
     long long t0 = getTick();
     for (long long t = t0; t < t0 + CUT_TIME; t += 50)
     {
-        if (inputs::btn1::value() == 0)
+        if (inputs::btn_open::value() == 0)
         {
             break;
         }
@@ -66,14 +66,14 @@ void csense(void*)
         uint16_t current2 =
             adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2;
         if (print)
-            printf("C1: %f\tC2: %d\n", current1, current2);
+            printf("C1: %d\tC2: %d\n", current1, current2);
         Thread::sleep(100);
     }
 }
 
 int main()
 {
-    Thread* t = Thread::create(csense, 2048);
+    Thread::create(csense, 2048);
 
     for (;;)
     {
@@ -106,4 +106,6 @@ int main()
         printf("Cut Time: %.2f s\n", (measured_cut_time) / 1000.0f);
         printf("Done!\n\n\n");
     }
+
+    return 0;
 }

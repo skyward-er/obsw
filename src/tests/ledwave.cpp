@@ -1,10 +1,8 @@
 #include <miosix.h>
 #include <stdio.h>
 
-using namespace miosix;
-
-typedef miosix::Gpio<GPIOG_BASE, 2> led1;
-typedef miosix::Gpio<GPIOG_BASE, 3> led2;
+typedef miosix::Gpio<GPIOG_BASE, 2>  led1;
+typedef miosix::Gpio<GPIOG_BASE, 3>  led2;
 typedef miosix::Gpio<GPIOD_BASE, 11> led3;
 
 typedef miosix::Gpio<GPIOB_BASE, 1> led4;
@@ -13,13 +11,13 @@ typedef miosix::Gpio<GPIOA_BASE, 4> led6;
 
 int main()
 {
-     //   DeathStack board;
-    led1::mode(Mode::OUTPUT);
-    led2::mode(Mode::OUTPUT);
-    led3::mode(Mode::OUTPUT);
-    led4::mode(Mode::OUTPUT);
-    led5::mode(Mode::OUTPUT);
-    led6::mode(Mode::OUTPUT);
+    // DeathStack board;
+    led1::mode(miosix::Mode::OUTPUT);
+    led2::mode(miosix::Mode::OUTPUT);
+    led3::mode(miosix::Mode::OUTPUT);
+    led4::mode(miosix::Mode::OUTPUT);
+    led5::mode(miosix::Mode::OUTPUT);
+    led6::mode(miosix::Mode::OUTPUT);
     int counter=0;
     int direction=0;
 
@@ -39,14 +37,14 @@ int main()
         led4::high();
         led5::high();
         led6::high();
-        Thread::sleep(100);
+        miosix::Thread::sleep(100);
         led1::low();
         led2::low();
         led3::low();
         led4::low();
         led5::low();
         led6::low();
-        Thread::sleep(100);
+        miosix::Thread::sleep(100);
     }
         /*
         if(counter==1)

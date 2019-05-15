@@ -84,6 +84,13 @@ static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
 static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& msg)
 {
     TRACE("[TMTC] Handling command\n");
+
+    #ifdef DEBUG
+    miosix::ledOn();
+    miosix::delayMs(100);
+    miosix::ledOff();
+    #endif
+
     /* Log Status */
     MavStatus status = channel->getStatus();
     logger.log(status);
