@@ -23,14 +23,12 @@
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
 
 #include <interfaces-impl/hwmapping.h>
-#include "DeathStack/XbeeInterrupt.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
-    enableXbeeInterrupt();
     busSPI2::init();
 
     TMTCManager* tmtc = new TMTCManager();

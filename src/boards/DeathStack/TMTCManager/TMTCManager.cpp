@@ -25,6 +25,7 @@
 #include <DeathStack/Topics.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include <drivers/Xbee/Xbee.h>
+#include "DeathStack/XbeeInterrupt.h"
 
 #include "TCHandler.h"  // Real message handling is here
 
@@ -33,6 +34,8 @@ namespace DeathStackBoard
 
 TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
 {
+    enableXbeeInterrupt();
+
     device  = new Xbee_t();
     channel = new MavChannel(device, &TCHandler::handleMavlinkMessage,
                              TMTC_SLEEP_AFTER_SEND);
