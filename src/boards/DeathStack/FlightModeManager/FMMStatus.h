@@ -24,6 +24,7 @@
 #define SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H
 
 #include <cstdint>
+#include <ostream>
 
 enum class FMMState : uint8_t
 {
@@ -48,6 +49,13 @@ struct FMMStatus
 {
     long long timestamp;
     FMMState state = FMMState::STARTUP;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H */

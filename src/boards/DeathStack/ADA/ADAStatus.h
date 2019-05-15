@@ -24,12 +24,14 @@
 
 #include <Common.h>
 #include <math/Stats.h>
+#include <ostream>
 
 namespace DeathStackBoard
 {
 
 // All possible states of the ADA FMM
-enum class ADAState {
+enum class ADAState
+{
     UNDEFINED,
     CALIBRATING,
     IDLE,
@@ -40,24 +42,48 @@ enum class ADAState {
 };
 
 // Struct to log apogee detection
-struct ApogeeDetected {
+struct ApogeeDetected
+{
     ADAState state;
     long long tick;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << tick << "," << (int)state << "\n";
+    }
 };
 
 // Struct to log deployment pressure detection
-struct DplAltitudeReached {
+struct DplAltitudeReached
+{
     long long tick;
+    static std::string header() { return "tick\n"; }
+
+    void print(std::ostream& os) const { os << tick << "\n"; }
 };
 
 // Struct to log current state
 struct ADAStatus
 {
     long long timestamp;
-    ADAState state = ADAState::UNDEFINED;
-    bool dpl_altitude_set       = false;
-    bool apogee_reached         = false;
-    bool dpl_altitude_reached   = false;
+    ADAState state            = ADAState::UNDEFINED;
+    bool dpl_altitude_set     = false;
+    bool apogee_reached       = false;
+    bool dpl_altitude_reached = false;
+
+    static std::string header()
+    {
+        return "timestamp,state,dpl_altitude_set,apogee_reached,dpl_altitude_"
+               "reached\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "," << dpl_altitude_set << ","
+           << apogee_reached << "," << dpl_altitude_reached << "\n";
+    }
 };
 
 struct KalmanState
@@ -65,6 +91,13 @@ struct KalmanState
     float x0;
     float x1;
     float x2;
+
+    static std::string header() { return "x0,x1,x2\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << x0 << "," << x1 << "," << x2 << "\n";
+    }
 };
 
 struct KalmanAltitude
@@ -72,6 +105,13 @@ struct KalmanAltitude
     long long timestamp;
     float altitude;
     float vert_speed;
+
+    static std::string header() { return "timestamp,altitude,vert_speed\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << altitude << "," << vert_speed << "\n";
+    }
 };
 
 struct ReferenceValues
@@ -83,18 +123,58 @@ struct ReferenceValues
 
     float msl_pressure;
     float msl_temperature;
+
+    static std::string header()
+    {
+        return "ref_altitude,ref_pressure,ref_temperature,msl_pressure,msl_"
+               "temperature\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << ref_altitude << "," << ref_pressure << "," << ref_temperature
+           << "," << msl_pressure << "," << msl_temperature << "\n";
+    }
 };
 
 struct TargetDeploymentAltitude
 {
     uint16_t deployment_altitude;
+    static std::string header() { return "deployment_altitude\n"; }
+
+    void print(std::ostream& os) const { os << deployment_altitude << "\n"; }
 };
 
 // Struct of calibration data
-struct ADACalibrationData {
-    StatsResult  pressure_calib;    
-    StatsResult  temperature_calib;   
-    StatsResult  gps_altitude_calib;     
+struct ADACalibrationData
+{
+    StatsResult pressure_calib;
+    StatsResult temperature_calib;
+    StatsResult gps_altitude_calib;
+
+    static std::string header()
+    {
+        return "pressure_calib.minValue,pressure_calib.maxValue,pressure_calib."
+               "mean,pressure_calib.stdev,pressure_calib.nSamples,temperature_"
+               "calib.minValue,temperature_calib.maxValue,"
+               "temperature_calib.mean,temperature_calib.stdev,"
+               "temperature_calib.nSamples,gps_altitude_calib.minValue,"
+               "gps_altitude_calib.maxValue,gps_altitude_calib.mean,"
+               "gps_altitude_calib.stdev,gps_altitude_calib.nSamples\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << pressure_calib.minValue << "," << pressure_calib.maxValue << ","
+           << pressure_calib.mean << "," << pressure_calib.stdev << ","
+           << pressure_calib.nSamples << "," << temperature_calib.minValue
+           << "," << temperature_calib.maxValue << "," << temperature_calib.mean
+           << "," << temperature_calib.stdev << ","
+           << temperature_calib.nSamples << "," << gps_altitude_calib.minValue
+           << "," << gps_altitude_calib.maxValue << ","
+           << gps_altitude_calib.mean << "," << gps_altitude_calib.stdev << ","
+           << gps_altitude_calib.nSamples << "\n";
+    }
 };
 
-}
+}  // namespace DeathStackBoard

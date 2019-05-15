@@ -192,7 +192,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
+LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)//da controllare l'enum nella MavStatus logger
 {
     {
         miosix::PauseKernelLock kLock;
@@ -396,8 +396,7 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 template <>
 LogResult LoggerProxy::log<BatteryVoltageData>(const BatteryVoltageData& t)
 {
-    tm_repository.adc_tm.battery_voltage = t.battery_voltage_value;
-    ;
+    tm_repository.adc_tm.battery_voltage = t.volt;
 
     return logger.log(t);
 }
@@ -409,8 +408,8 @@ LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.adc_tm.current_sense_1 = t.current_1_value;
-        tm_repository.adc_tm.current_sense_2 = t.current_2_value;
+        tm_repository.adc_tm.current_sense_1 = t.current_1;
+        tm_repository.adc_tm.current_sense_2 = t.current_2;
     }
     return logger.log(t);
 }
@@ -450,7 +449,7 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
 
 /* MPU imu */
 template <>
-LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
+LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)//no logger function
 {
     {
         miosix::PauseKernelLock kLock;
@@ -531,7 +530,7 @@ LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
                 tm_repository.sm_tm.task_10hz_mean   = t.periodStats.mean;
                 tm_repository.sm_tm.task_10hz_stddev = t.periodStats.stdev;
                 break;
-            case static_cast<uint8_t>(SensorSamplerId::DMA_250HZ):
+            case static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ):
                 tm_repository.sm_tm.task_250hz_max    = t.periodStats.maxValue;
                 tm_repository.sm_tm.task_250hz_min    = t.periodStats.minValue;
                 tm_repository.sm_tm.task_250hz_mean   = t.periodStats.mean;
