@@ -30,6 +30,7 @@
 #include "events/EventBroker.h"
 
 #include <math/Stats.h>
+#include <iostream>
 
 #include "SensorManagerData.h"
 #include "Sensors/AD7994Wrapper.h"
@@ -65,6 +66,7 @@ SensorManager::SensorManager(ADA* ada)
     initSensors();
     initSamplers();
 
+    startSampling();
     scheduler.start();
 }
 
@@ -76,29 +78,34 @@ SensorManager::~SensorManager()
 
 void SensorManager::initSensors()
 {
+    spiMPU9250::init();
+
     // Instantiation
-    adc_ad7994 = new AD7994Wrapper(sensors::ad7994::addr);
-    temp_lm75b = new LM75BType(sensors::lm75b_analog::addr);
+    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
+    temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
+    temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
 
     imu_mpu9250 =
-        new MPU9250Type(0, 0);  // TODO: Update with correct parameters
+        new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
 
-    imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
-    adc_internal  = new ADCWrapper();
+    // imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
+    adc_internal = new ADCWrapper();
 
     piksi = new Piksi("/dev/gps");
 
-    // Some sensors dont have init or self tests
+    // // Some sensors dont have init or self tests
     sensor_status.piksi = 1;
 
     // Initialization
     sensor_status.mpu9250 = imu_mpu9250->init();
-    sensor_status.adis    = imu_adis16405->init();
 
-    sensor_status.lm75b = temp_lm75b->init();
+    // sensor_status.adis    = imu_adis16405->init();
 
-    // TODO: lsm6ds3h
-    // TODO: ms5803
+    sensor_status.lm75b_imu    = temp_lm75b_imu->init();
+    sensor_status.lm75b_analog = temp_lm75b_analog->init();
+
+    // // TODO: lsm6ds3h
+    // // TODO: ms5803
 
     sensor_status.ad7994 = adc_ad7994->init();
 
@@ -106,21 +113,26 @@ void SensorManager::initSensors()
     sensor_status.current_sensor = adc_internal->getCurrentSensorPtr()->init();
 
     // Self tests
-    sensor_status.mpu9250 &= imu_mpu9250->selfTest();
-    sensor_status.adis &= imu_adis16405->selfTest();
-    sensor_status.lm75b &= temp_lm75b->selfTest();
+    // sensor_status.mpu9250 &= imu_mpu9250->selfTest();
+    // sensor_status.adis &= imu_adis16405->selfTest();
+    sensor_status.lm75b_imu &= temp_lm75b_imu->selfTest();
+    sensor_status.lm75b_analog &= temp_lm75b_analog->selfTest();
 
-    sensor_status.ad7994 &= adc_ad7994->selfTest();
+    // sensor_status.ad7994 &= adc_ad7994->selfTest();
 
-    sensor_status.battery_sensor &=
-        adc_internal->getBatterySensorPtr()->selfTest();
-    sensor_status.current_sensor &=
-        adc_internal->getCurrentSensorPtr()->selfTest();
+    // sensor_status.battery_sensor &=
+    //     adc_internal->getBatterySensorPtr()->selfTest();
+    // sensor_status.current_sensor &=
+    //     adc_internal->getCurrentSensorPtr()->selfTest();
 
     // TODO: lsm6ds3h
     // TODO: ms5803
 
+    std::cout << SensorStatus::header();
+    sensor_status.print(std::cout);
     status.sensor_status = sensor_status.toNumeric();
+
+    TRACE("Sensor init done\n");
 }
 
 void SensorManager::initSamplers()
@@ -129,12 +141,13 @@ void SensorManager::initSamplers()
 
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
-    sampler_20hz_simple.AddSensor(temp_lm75b);
-
-    sampler_250hz_dma.AddSensor(imu_mpu9250);
-    sampler_250hz_dma.AddSensor(imu_adis16405);
+    sampler_20hz_simple.AddSensor(temp_lm75b_imu);
+    sampler_20hz_simple.AddSensor(temp_lm75b_analog);
+    sampler_250hz_simple.AddSensor(imu_mpu9250);
 
     // Piksi does not inherit from Sensor, so we sample it in a different way
+
+    TRACE("Sampler init done\n");
 }
 
 void SensorManager::stateIdle(const Event& ev)
@@ -204,27 +217,25 @@ void SensorManager::startSampling()
     scheduler.add(simple_1hz_sampler, 1000,
                   static_cast<uint8_t>(SensorSamplerId::SIMPLE_1HZ));
 
-    // Simple 20 Hz Sampler callback and scheduler function
     std::function<void()> simple_20hz_callback =
         std::bind(&SensorManager::onSimple20HZCallback, this);
     std::function<void()> simple_20hz_sampler =
         std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
                   simple_20hz_callback);
 
-    scheduler.add(simple_20hz_sampler, 250,
+    scheduler.add(simple_20hz_sampler, 50,
                   static_cast<uint8_t>(
                       SensorSamplerId::SIMPLE_20HZ));  // TODO: back to 50 ms
 
-    // DMA 250 Hz Sampler callback and scheduler function
-    std::function<void()> dma_250hz_callback =
-        std::bind(&SensorManager::onDMA250HZCallback, this);
-    std::function<void()> dma_250Hz_sampler =
-        std::bind(&DMASensorSampler::UpdateAndCallback, &sampler_250hz_dma,
-                  dma_250hz_callback);
+    std::function<void()> simple_250hz_callback =
+        std::bind(&SensorManager::onSimple250HZCallback, this);
+    std::function<void()> simple_250hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback,
+                  &sampler_250hz_simple, simple_250hz_callback);
 
-    scheduler.add(dma_250Hz_sampler, 1000,
+    scheduler.add(simple_250hz_sampler, 4,
                   static_cast<uint8_t>(
-                      SensorSamplerId::DMA_250HZ));  // TODO: Back to 4 ms
+                      SensorSamplerId::SIMPLE_250HZ));  // TODO: back to 50 ms
 
     // Lambda expression to collect data from GPS at 10 Hz
     std::function<void()> gps_callback =
@@ -258,17 +269,35 @@ void SensorManager::onSimple1HZCallback()
 void SensorManager::onSimple20HZCallback()
 {
     AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
-    LM75BData lm78b_data           = {miosix::getTick(), temp_lm75b->getTemp()};
+    LM75BData lm78b_analog_data    = {TempSensorId::LM75B_ANALOG,
+                                   miosix::getTick(),
+                                   temp_lm75b_analog->getTemp()};
+    LM75BData lm78b_imu_data = {TempSensorId::LM75B_IMU, miosix::getTick(),
+                                temp_lm75b_imu->getTemp()};
 
     if (enable_sensor_logging)
     {
         logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
         logger.log(*(ad7994_data));
-        logger.log(lm78b_data);
+        logger.log(lm78b_imu_data);
+        logger.log(lm78b_analog_data);
     }
 
     // TODO: Choose which barometer to use, add temperature
-    ada->updateBaro(ad7994_data->nxp_baro_pressure, lm78b_data.temp);
+    // ada->updateBaro(ad7994_data->nxp_baro_pressure, lm78b_imu_data.temp);
+}
+
+void SensorManager::onSimple250HZCallback()
+{
+    MPU9250Data mpu9255_data{miosix::getTick(), *(imu_mpu9250->accelDataPtr()),
+                             *(imu_mpu9250->gyroDataPtr()),
+                             *(imu_mpu9250->compassDataPtr()),
+                             *(imu_mpu9250->tempDataPtr())};
+
+    if (enable_sensor_logging)
+    {
+        logger.log(mpu9255_data);
+    }
 }
 
 void SensorManager::onDMA250HZCallback()
@@ -283,9 +312,9 @@ void SensorManager::onDMA250HZCallback()
     {
         logger.log(mpu9255_data);
 
-        logger.log(*(imu_adis16405->gyroDataPtr()));
-        logger.log(*(imu_adis16405->accelDataPtr()));
-        logger.log(*(imu_adis16405->tempDataPtr()));
+        // logger.log(*(imu_adis16405->gyroDataPtr()));
+        // logger.log(*(imu_adis16405->accelDataPtr()));
+        // logger.log(*(imu_adis16405->tempDataPtr()));
     }
 }
 
@@ -305,10 +334,11 @@ void SensorManager::onGPSCallback()
     }
     catch (std::runtime_error rterr)
     {
+        data.fix = true;
     }
 
-    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
-                   data.gps_data.height, data.fix);
+    // ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
+    //                data.gps_data.height, data.fix);
 
     if (enable_sensor_logging)
     {

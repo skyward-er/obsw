@@ -408,6 +408,8 @@ void ADA::stateActive(const Event& ev)
             break;
         }
         case EV_APOGEE:
+        case EV_ADA_APOGEE_DETECTED: // TODO: Remove this
+        #warning "Remove EV_ADA_APOGEE_DETECTED in ADA stateActive"
         {
             transition(&ADA::stateFirstDescentPhase);
             break;

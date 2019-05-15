@@ -28,10 +28,9 @@
 #include "drivers/adc/AD7994.h"
 #include "drivers/adc/AD7994Data.h"
 
-
-
 namespace DeathStackBoard
 {
+static constexpr float AD7994_V_REF = 4.17f;
 
 using AD7994_t = AD7994<i2c1, ad7994_busy_pin, ad7994_nconvst>;
 
@@ -58,19 +57,20 @@ public:
         if (result)
         {
             AD7994Sample nxp_baro = adc.getLastSample(NXP_BARO_CHANNEL);
-            AD7994Sample hw_baro = adc.getLastSample(HONEYWELL_BARO_CHANNEL);
+            AD7994Sample hw_baro  = adc.getLastSample(HONEYWELL_BARO_CHANNEL);
 
             data.timestamp = nxp_baro.timestamp;
 
-            data.nxp_baro_volt  = nxp_baro.value;
-            data.nxp_baro_flag  = nxp_baro.alert_flag;
+            data.nxp_baro_volt = nxp_baro.value;
+            data.nxp_baro_flag = nxp_baro.alert_flag;
 
             data.honeywell_baro_volt = hw_baro.value;
             data.honeywell_baro_flag = hw_baro.alert_flag;
 
             // TODO: calculate pressures from adc value
-            data.nxp_baro_pressure = 0;
-            data.honeywell_baro_pressure = 0;
+            data.nxp_baro_pressure = nxpRaw2Pressure(data.nxp_baro_volt);
+            data.honeywell_baro_pressure =
+                hwRaw2Pressure(data.honeywell_baro_volt);
         }
         return result;
     }
@@ -80,6 +80,17 @@ public:
     AD7994WrapperData* getDataPtr() { return &data; }
 
 private:
+    float hwRaw2Pressure(uint16_t raw_val)
+    {
+        return (raw_val * AD7994_V_REF / (4096 * 5.0f) + 0.07739f) * 1000 /
+               0.007826f;
+    }
+    float nxpRaw2Pressure(uint16_t raw_val)
+    {
+        return (1.25f * raw_val * AD7994_V_REF / (4096 * 5.0f) - 0.125f) *
+               100000.0f;
+    }
+
     AD7994_t adc;
     AD7994WrapperData data;
 

@@ -50,8 +50,6 @@ ADIS16405Type* imu_adis16405;
 LM75BType* temp_lm75b_analog;
 LM75BType* temp_lm75b_imu;
 
-DMASensorSampler imu_mpu9250_sampler;
-
 Piksi* piksi;
 
 void init()
@@ -66,8 +64,7 @@ void init()
     adc_internal  = new ADCWrapper();
 
     imu_mpu9250 =
-        new MPU9250Type(MPU9250Type::GYRO_FS_2000, MPU9250Type::ACC_FS_16G);  // TODO: Update with correct parameters
-    imu_mpu9250_sampler.AddSensor(imu_mpu9250);
+        new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
 
     piksi = new Piksi("/dev/gps");
 
@@ -85,7 +82,7 @@ void init()
 
 void update()
 {
-    imu_mpu9250_sampler.Update();
+    imu_mpu9250->onSimpleUpdate();
     imu_adis16405->onSimpleUpdate();
     temp_lm75b_analog->onSimpleUpdate();
     temp_lm75b_imu->onSimpleUpdate();
@@ -102,14 +99,14 @@ void print()
            imu_adis16405->accelDataPtr()->getZ());
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
-    printf("HW Pressure:    \tP: %d\n", adc_ad7994->getDataPtr()->honeywell_baro_volt);
-    printf("NXP Pressure:   \tP: %d\n", adc_ad7994->getDataPtr()->nxp_baro_volt);    
-    printf("Battery voltage:\tV: %d\n", 
-        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->battery_voltage_value);    
-    printf("Current sens 1: \tC: %d\n", 
-        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value); 
-    printf("Current sens 2: \tC: %d\n", 
-        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value);
+    printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
+    printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);    
+    printf("Battery voltage:\tV: %f\n", 
+        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);    
+    printf("Current sens 1: \tC: %f\n", 
+        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1); 
+    printf("Current sens 2: \tC: %f\n", 
+        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
 
     try
     {
@@ -124,6 +121,24 @@ void print()
         printf("GPS Data:      \tNO FIX!\n");
     }
     printf("\n");
+}
+
+void banner()
+{
+    printf("________                 __  .__        _________ __                 __    \n");
+    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
+    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
+    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
+    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
+    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
+    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
+    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
+    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("\n\n");
 }
 
 

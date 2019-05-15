@@ -21,46 +21,52 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
-#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
 #include <interfaces-impl/hwmapping.h>
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include <miosix.h>
 #include <iostream>
+#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
+#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
 
 using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
+static constexpr int CUT_TIME = 15000;
+
+long long measured_cut_time = 0;
 void wait()
 {
-    long long t = getTick();
-    long long target = t + 15000;
-    while(t < target && inputs::btn1::value() == 1)
+    long long t0 = getTick();
+    for (long long t = t0; t < t0 + CUT_TIME; t += 50)
     {
+        if (inputs::btn1::value() == 0)
+        {
+            break;
+        }
         Thread::sleep(50);
-        t += 50;
     }
+    measured_cut_time = getTick() - t0;
+    printf("Stopped!\n");
 }
 
 bool print = false;
 
-float vToI(uint16_t adc)
-{
-    return ((float)(adc - 109)) * 19500/510.0f;
-}
+float vToI(uint16_t adc) { return ((float)(adc - 109)) * 19500 / 510.0f; }
 
 void csense(void*)
 {
     ADCWrapper adc;
     adc.getCurrentSensorPtr()->init();
-    
-    for(;;)
+
+    for (;;)
     {
         adc.getCurrentSensorPtr()->onSimpleUpdate();
-        uint16_t current1 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1_value;
-        uint16_t current2 = adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2_value;
-        if(print)
-            printf("C1: %f\tC2: %d\n", vToI(current1), current1);
+        uint16_t current1 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1;
+        uint16_t current2 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2;
+        if (print)
+            printf("C1: %f\tC2: %d\n", current1, current2);
         Thread::sleep(100);
     }
 }
@@ -72,12 +78,13 @@ int main()
     for (;;)
     {
         print = false;
-
+        printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY,
+               CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
         printf("What do you want to cut? (d, r)\n");
         char c;
         cin >> &c;
         print = true;
-        
+
         Cutter cutter;
 
         if (c == 'D' || c == 'd')
@@ -94,6 +101,9 @@ int main()
         }
 
         Thread::sleep(3000);
+        print = false;
+        Thread::sleep(500);
+        printf("Cut Time: %.2f s\n", (measured_cut_time) / 1000.0f);
         printf("Done!\n\n\n");
     }
 }

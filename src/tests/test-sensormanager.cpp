@@ -21,45 +21,49 @@
  */
 
 #include "Common.h"
-#include "DeathStack/Events.h"
-#include "events/EventBroker.h"
-#include "DeathStack/SensorManager/SensorManager.h"
 #include "DeathStack/ADA/ADA.h"
+#include "DeathStack/Events.h"
 #include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/SensorManager/SensorManager.h"
+#include "diagnostic/CpuMeter.h"
+#include "events/EventBroker.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    Stats s;
     ADA ada;
-    TRACE("DEBUG\n");
-    LoggerProxy::getInstance()->start();
-    // Start active objects
-    sEventBroker->start();
-
     SensorManager mgr{&ada};
-
+    // ada.start();
+    LoggerProxy::getInstance()->start();
+    sEventBroker->start();
     mgr.start();
 
+    sEventBroker->post({EV_TC_START_LOGGING}, TOPIC_TC);
 
-    for (;;)
+    DeploymentAltitudeEvent dpl_ev;
+    dpl_ev.dplAltitude = 1000;
+    dpl_ev.sig         = EV_TC_SET_DPL_ALTITUDE;
+    // sEventBroker->post(dpl_ev, TOPIC_TC);
+
+    printf("Wait for calibration to complete.\n");
+
+    Thread::sleep(500);
+
+    // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+
+    for (int i = 0; i < 60*5*10; i++)
     {
-        printf("**STATS**\n");
-        std::vector<TaskStatResult> stats = mgr.getSchedulerStats();
-        for (TaskStatResult stat : stats)
-        {
-            printf("Stat id: %d\n", stat.id);
-            printf("Activation:\tmax:%.2f,\tmin:%.2f,\tmean:%.2f\n",
-                   stat.activationStats.maxValue, stat.activationStats.minValue,
-                   stat.activationStats.mean);
-            printf("Period:   \tmax:%.2f,\tmin:%.2f,\tmean:%.2f\n",
-                   stat.periodStats.maxValue, stat.periodStats.minValue,
-                   stat.periodStats.mean);
-            printf("Workload:\tmax:%.2f,\tmin:%.2f,\tmean:%.2f\n\n",
-                   stat.workloadStats.maxValue, stat.workloadStats.minValue,
-                   stat.workloadStats.mean);
-        }
-        Thread::sleep(10000);
+        s.add(averageCpuUtilization());
+        Thread::sleep(100);
     }
+
+    printf("CPU: %f%%, min: %f max: %f\n", s.getStats().mean,
+           s.getStats().minValue, s.getStats().maxValue);
+    LoggerProxy::getInstance()->stop();
+    printf("End\n");
+    for (;;)
+        Thread::sleep(10000);
 }
