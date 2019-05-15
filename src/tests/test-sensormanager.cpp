@@ -37,7 +37,18 @@ int main()
     ADA ada;
     SensorManager mgr{&ada};
     // ada.start();
-    LoggerProxy::getInstance()->start();
+    try
+    {
+        LoggerProxy::getInstance()->start();
+    }
+    catch(const std::exception& e)
+    {
+        printf("SDCARD MISSING\n");
+        for(;;)
+            Thread::sleep(10000);
+    }
+    
+    
     sEventBroker->start();
     mgr.start();
 
@@ -54,7 +65,7 @@ int main()
 
     // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
-    for (int i = 0; i < 60*5*10; i++)
+    for (int i = 0; i < 60*2*10; i++)
     {
         s.add(averageCpuUtilization());
         Thread::sleep(100);

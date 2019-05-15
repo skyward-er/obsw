@@ -52,6 +52,7 @@ public:
     /* AO methods */
     bool start() override
     {
+        device->start();
         bool ret = channel->start();
         ret      = (ret && FSM::start());
         return ret;

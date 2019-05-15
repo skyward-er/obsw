@@ -30,10 +30,12 @@
 
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/mavlink/multi/MavManager.h>
-#include "DeathStack/XbeeInterrupt.h"
 
 #include "DeathStack/Events.h"
 #include "events/FSM.h"
+
+
+#include "DeathStack/XbeeInterrupt.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -67,25 +69,25 @@ int main()
     busSPI2::init();
 
     device = new Xbee_t();
-    device->start();
-
     channel = new MavChannel(device, &onReceive, 250);
+
+    device->start();
     channel->start();
 
     // Send function: enqueue a ping every second
     while(1)
     {
-        TRACE("[TmtcTest] Enqueueing ping\n");
+        //TRACE("[TmtcTest] Enqueueing ping\n");
 
         // Create a Mavlink message
-        mavlink_message_t pingMsg;
-        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
+        // mavlink_message_t pingMsg;
+        // mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
 
-        // Send the message
-        bool ackSent = channel->enqueueMsg(pingMsg);
+        // // Send the message
+        // bool ackSent = channel->enqueueMsg(pingMsg);
 
-        if(!ackSent)
-            TRACE("[TmtcTest] Could not enqueue ping\n");
+        // if(!ackSent)
+        //     TRACE("[TmtcTest] Could not enqueue ping\n");
 
         // ledOn();
         // miosix::delayMs(200);

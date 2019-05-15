@@ -36,13 +36,10 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
     device  = new Xbee_t();
     channel = new MavChannel(device, &TCHandler::handleMavlinkMessage,
                              TMTC_SLEEP_AFTER_SEND);
-
     TRACE("[TMTC] Created TMTCManager\n");
 
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TMTC);
-
-    device->start();
 }
 
 TMTCManager::~TMTCManager()

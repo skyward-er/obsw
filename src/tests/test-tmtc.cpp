@@ -15,29 +15,31 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
-#include "DeathStack/XbeeInterrupt.h"
+
 #include <interfaces-impl/hwmapping.h>
+#include "DeathStack/XbeeInterrupt.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    enableXbeeInterrupt();
     busSPI2::init();
 
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
-
+    char c;
+    // printf("Press enter to post liftoff\n");
+    // scanf("%c", &c);
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-    Thread::sleep(1000);
-
     while(1)
     {
         Thread::sleep(5000);
