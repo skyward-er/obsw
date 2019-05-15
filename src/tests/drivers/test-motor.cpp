@@ -23,11 +23,16 @@
  */
 
 #include "DeathStack/DeploymentController/Motor/MotorDriver.h"
+#include <interfaces-impl/hwmapping.h>
+
+using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
     MotorDriver motor;
+
+    while(inputs::btn_open::value());
 
     Thread::sleep(500);
 
@@ -45,4 +50,6 @@ int main()
         
         Thread::sleep(200);
     }
+
+    return 0;
 }
