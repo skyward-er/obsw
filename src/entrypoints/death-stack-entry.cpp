@@ -23,7 +23,7 @@
 #include <Common.h>
 #include <DeathStack/DeathStack.h>
 #include <DeathStack/TMTCManager/TMBuilder.h>
-#include <DeathStack/XbeeInterrupt.h>
+#include <DeathStack/TMTCManager/XbeeInterrupt.h>
 
 using namespace DeathStackBoard;
 using namespace miosix;

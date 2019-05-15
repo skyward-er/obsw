@@ -21,6 +21,10 @@
  */
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
+#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
+
+#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/Topics.h>
 
 #include <interfaces-impl/hwmapping.h>
 
@@ -34,6 +38,10 @@ int main()
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
+
+    EventSniffer* sniffer = new EventSniffer(*sEventBroker, 
+                                              getEventString, 
+                                              getTopicString);
 
     Thread::sleep(1000);
 

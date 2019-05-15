@@ -35,7 +35,7 @@
 #include "events/FSM.h"
 
 
-#include "DeathStack/XbeeInterrupt.h"
+#include "DeathStack/TMTCManager/XbeeInterrupt.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;

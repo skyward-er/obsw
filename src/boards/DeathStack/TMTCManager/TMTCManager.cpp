@@ -25,7 +25,7 @@
 #include <DeathStack/Topics.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include <drivers/Xbee/Xbee.h>
-#include "DeathStack/XbeeInterrupt.h"
+#include "XbeeInterrupt.h"
 
 #include "TCHandler.h"  // Real message handling is here
 

@@ -25,7 +25,7 @@
 #include <Common.h>
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/mavlink/multi/MavManager.h>
-#include "DeathStack/XbeeInterrupt.h"
+#include "DeathStack/TMTCManager/XbeeInterrupt.h"
 
 #include "DeathStack/Events.h"
 #include "events/FSM.h"
