@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
 
 struct AD7994WrapperData
 {

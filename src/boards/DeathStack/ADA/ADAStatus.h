@@ -24,6 +24,7 @@
 
 #include <Common.h>
 #include <math/Stats.h>
+#include <ostream>
 
 namespace DeathStackBoard
 {
@@ -46,10 +47,7 @@ struct ApogeeDetected
     ADAState state;
     long long tick;
 
-    static std::string header()
-    {
-        return "timestamp,state\n";
-    }
+    static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
@@ -135,7 +133,7 @@ struct ReferenceValues
     void print(std::ostream& os) const
     {
         os << ref_altitude << "," << ref_pressure << "," << ref_temperature
-           << "," << msl_pressure "," << msl_temperature << "\n";
+           << "," << msl_pressure << "," << msl_temperature << "\n";
     }
 };
 
@@ -171,12 +169,11 @@ struct ADACalibrationData
            << pressure_calib.mean << "," << pressure_calib.stdev << ","
            << pressure_calib.nSamples << "," << temperature_calib.minValue
            << "," << temperature_calib.maxValue << "," << temperature_calib.mean
-           << "," << temperature_calib.stdev < <
-            "," << temperature_calib.nSamples << ","
-                << gps_altitude_calib.minValue << ","
-                << gps_altitude_calib.maxValue << "," << gps_altitude_calib.mean
-                << "," << gps_altitude_calib.stdev << ","
-                << gps_altitude_calib.nSamples << "\n";
+           << "," << temperature_calib.stdev << ","
+           << temperature_calib.nSamples << "," << gps_altitude_calib.minValue
+           << "," << gps_altitude_calib.maxValue << ","
+           << gps_altitude_calib.mean << "," << gps_altitude_calib.stdev << ","
+           << gps_altitude_calib.nSamples << "\n";
     }
 };
 
