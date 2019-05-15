@@ -37,8 +37,11 @@ TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
     enableXbeeInterrupt();
 
     device  = new Xbee_t();
-    channel = new MavChannel(device, &TCHandler::handleMavlinkMessage,
-                             TMTC_SLEEP_AFTER_SEND);
+    channel = new MavChannel(device, 
+                             &TCHandler::handleMavlinkMessage, // rcv function
+                             TMTC_SLEEP_AFTER_SEND, 
+                             MAV_OUT_BUFFER_SIZE,
+                             MAV_OUT_BUFFER_MAX_AGE);
     TRACE("[TMTC] Created TMTCManager\n");
 
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);

@@ -32,13 +32,9 @@ namespace DeathStackBoard
 static const unsigned int GS_OFFLINE_TIMEOUT = 1000;  // CHANGED
 
 /* Minimum sleep time between sends */
-static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
-
-/*
-typedef BusSPI<2, miosix::interfaces::spi2::mosi,
-               miosix::interfaces::spi2::miso,
-               miosix::interfaces::spi2::sck>
-    busSPI2;  // Creo la SPI2*/
+static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250; // sleep between sends
+static constexpr size_t MAV_OUT_BUFFER_SIZE         = 256;
+static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 1000;
 
 // SPI 2 does not work on stm32f4 discovery, use SPI1
 typedef BusSPI<2, miosix::interfaces::spi2::mosi,
