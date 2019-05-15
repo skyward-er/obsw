@@ -49,6 +49,16 @@ struct PinStatus
     long long last_detection_time; //When a transition is detected
 
     PinStatus(ObservedPin pin) : pin(pin) {}
+     static std::string header()
+    {
+        return "pin,last_state_change,state,num_state_changes,last_detection_time\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << (int)pin << "," << last_state_change << "," << (int)state << ","
+           << num_state_changes << "," << last_detection_time << "\n";
+    }
 };
 
 }  // namespace DeathStackBoard

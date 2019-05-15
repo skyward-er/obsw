@@ -31,6 +31,15 @@ struct BatteryVoltageData
     
     uint16_t battery_voltage_value;
     uint16_t battery_voltage_min = 0xFFFF;
+    static std::string header()
+    {
+        return "timestamp,battery_voltage_value,battery_voltage_min\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << battery_voltage_value << "," << battery_voltage_min << "\n";
+    }
 };
 
 struct CurrentSenseData
@@ -39,4 +48,13 @@ struct CurrentSenseData
     
     uint16_t current_1_value;
     uint16_t current_2_value;
+    static std::string header()
+    {
+        return "timestamp,current_1_value,current_2_value\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << current_1_value << "," << current_2_value << "\n";
+    }
 };

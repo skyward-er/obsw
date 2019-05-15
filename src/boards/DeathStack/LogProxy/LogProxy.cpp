@@ -192,7 +192,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)
+LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)//da controllare l'enum nella MavStatus logger
 {
     {
         miosix::PauseKernelLock kLock;
@@ -450,7 +450,7 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
 
 /* MPU imu */
 template <>
-LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
+LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)//no logger function
 {
     {
         miosix::PauseKernelLock kLock;

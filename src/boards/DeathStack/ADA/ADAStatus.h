@@ -48,6 +48,15 @@ struct ApogeeDetected {
 // Struct to log deployment pressure detection
 struct DplAltitudeReached {
     long long tick;
+    static std::string header()
+    {
+        return "tick\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << tick << "\n";
+    }
 };
 
 // Struct to log current state
@@ -65,6 +74,15 @@ struct KalmanState
     float x0;
     float x1;
     float x2;
+    static std::string header()
+    {
+        return "x0,x1,x2\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << x0 << "," << x1 << "," << x2 << "\n";
+    }
 };
 
 struct KalmanAltitude
@@ -88,13 +106,35 @@ struct ReferenceValues
 struct TargetDeploymentAltitude
 {
     uint16_t deployment_altitude;
+     static std::string header()
+    {
+        return "deployment_altitude\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << deployment_altitude << "\n";
+    }
 };
 
 // Struct of calibration data
 struct ADACalibrationData {
     StatsResult  pressure_calib;    
     StatsResult  temperature_calib;   
-    StatsResult  gps_altitude_calib;     
+    StatsResult  gps_altitude_calib;   
+    /*static std::string header()
+    {
+        return "pressure_calib.minValue,pressure_calib.maxValue,pressure_calib.mean,pressure_calib.stdev,pressure_calib.nSamples,
+                temperature_calib.minValue,temperature_calib.maxValue,temperature_calib.mean,temperature_calib.stdev,temperature_calib.nSamples,
+                gps_altitude_calib.minValue,gps_altitude_calib.maxValue,gps_altitude_calib.mean,gps_altitude_calib.stdev,gps_altitude_calib.nSamples\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << pressure_calib.minValue <<","<< pressure_calib.maxValue << "," << pressure_calib.mean << "," << pressure_calib.stdev << "," << pressure_calib.nSamples << ","
+               << temperature_calib.minValue << "," << temperature_calib.maxValue << "," << temperature_calib.mean << "," << temperature_calib.stdev< < "," << temperature_calib.nSamples << ","
+                << gps_altitude_calib.minValue << "," << gps_altitude_calib.maxValue << "," << gps_altitude_calib.mean << "," << gps_altitude_calib.stdev << "," << gps_altitude_calib.nSamples << "\n";
+    } */ 
 };
 
 }
