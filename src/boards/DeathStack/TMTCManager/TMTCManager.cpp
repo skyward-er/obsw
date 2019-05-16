@@ -116,7 +116,7 @@ void TMTCManager::stateSendingTM(const Event& ev)
             hr_event_id = sEventBroker->postDelayed(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
 
-            TRACE("[TMTC] Sending HR telemetry\n");            
+            // TRACE("[TMTC] Sending HR telemetry\n");            
             break;
         }
 
@@ -128,7 +128,7 @@ void TMTCManager::stateSendingTM(const Event& ev)
             lr_event_id = sEventBroker->postDelayed(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
 
-            TRACE("[TMTC] Sending LR telemetry\n");
+            // TRACE("[TMTC] Sending LR telemetry\n");
 
             break;
         }

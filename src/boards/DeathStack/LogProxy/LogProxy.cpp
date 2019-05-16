@@ -388,6 +388,7 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
         tm_repository.hr_tm.pressure = t.nxp_baro_pressure;
     }
 
+    printf("LOGPROXY %f\n", tm_repository.hr_tm.pressure);
     flight_stats.update(t);
     return logger.log(t);
 }
