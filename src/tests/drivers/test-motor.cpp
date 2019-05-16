@@ -28,27 +28,44 @@
 using namespace miosix;
 using namespace DeathStackBoard;
 
+enum motorState
+{
+    STOPPED,
+    NORMAL,
+    REVERSE
+};
+
 int main()
 {
     MotorDriver motor;
-
-    while(inputs::btn_open::value());
+    motorState state = STOPPED;
 
     Thread::sleep(500);
 
-    for (;;)
+    while(true)
     {
-        motor.start(MotorDirection::NORMAL);
-        Thread::sleep(1000);
-        motor.stop();
+        if(inputs::btn_open::value() == 0);
+        {
+            Thread::sleep(10);
 
-        Thread::sleep(200);
+            motor.start(MotorDirection::NORMAL);
 
-        motor.start(MotorDirection::REVERSE);
-        Thread::sleep(1000);
-        motor.stop();
-        
-        Thread::sleep(200);
+            while(!inputs::btn_open::value());
+
+            motor.stop();
+        }
+
+        if(inputs::btn_close::value() == 0);
+        {
+            Thread::sleep(10);
+
+            motor.start(MotorDirection::REVERSE);
+
+            while(!inputs::btn_close::value());
+
+            motor.stop();
+        }
+
     }
 
     return 0;
