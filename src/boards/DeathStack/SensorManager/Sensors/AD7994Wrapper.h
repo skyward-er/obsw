@@ -80,12 +80,12 @@ public:
     AD7994WrapperData* getDataPtr() { return &data; }
 
 private:
-    float hwRaw2Pressure(uint16_t raw_val)
+    float nxpRaw2Pressure(uint16_t raw_val)
     {
         return (raw_val * AD7994_V_REF / (4096 * 5.0f) + 0.07739f) * 1000 /
                0.007826f;
     }
-    float nxpRaw2Pressure(uint16_t raw_val)
+    float hwRaw2Pressure(uint16_t raw_val)
     {
         return (1.25f * raw_val * AD7994_V_REF / (4096 * 5.0f) - 0.125f) *
                100000.0f;
