@@ -109,7 +109,7 @@ public:
                 parent.adc.convertChannel(BATTERY_VOLT_CHANNEL);
 
             battery_data.raw_value = battery_volt;
-            battery_data.volt      = battery_volt / 224.0f;
+            battery_data.volt      = battery_volt * 12 / 1353.0f;
 
             return true;
         }
