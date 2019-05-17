@@ -112,6 +112,8 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             break;
     }
 
+    //printf("%f\n", tm_repository.hr_tm.pressure);
+
     return m;
 }
 
