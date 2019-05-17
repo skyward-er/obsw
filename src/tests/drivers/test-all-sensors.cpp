@@ -54,6 +54,7 @@ Piksi* piksi;
 
 void init()
 {
+    i2c1::init();
     spiMPU9250::init();
     spiADIS16405::init();
 

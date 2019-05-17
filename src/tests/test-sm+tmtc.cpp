@@ -15,9 +15,9 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
@@ -39,6 +39,9 @@ using namespace DeathStackBoard;
 
 int main()
 {
+    i2c1::init();
+    busSPI2::init();
+    led2::low();
     /******************
      * SENSOR MANAGER *
      ******************/
@@ -50,13 +53,20 @@ int main()
     {
         LoggerProxy::getInstance()->start();
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
         printf("SDCARD MISSING\n");
-        for(;;)
-            Thread::sleep(10000);
+        led2::low();
+        for (;;)
+        {
+            led1::high();
+            Thread::sleep(200);
+            led1::low();
+            Thread::sleep(200);
+        }
     }
-    
+    led2::high();
+
     sEventBroker->start();
     mgr.start();
 
@@ -74,26 +84,33 @@ int main()
     /******************
      *  TMTC MANAGER  *
      ******************/
-    busSPI2::init();
 
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
 
-    Thread::sleep(1000);
+    Thread::sleep(5000);
 
     printf("\nOk, press open to post liftoff...\n");
-    while(inputs::btn_open::value())
-    {
-        Thread::sleep(100);
-    }
+    // while(inputs::btn_open::value())
+    // {
+    //     Thread::sleep(100);
+    // }
 
     Thread::sleep(100);
 
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
+    for (;;)
+    {
+        led1::high();
+        Thread::sleep(1000);
+        led1::low();
+        Thread::sleep(1000);
+    }
+
     printf("Press close to reboot...\n");
-    while(inputs::btn_close::value())
+    while (inputs::btn_close::value())
     {
         Thread::sleep(100);
     }

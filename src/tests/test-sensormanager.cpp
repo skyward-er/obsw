@@ -41,14 +41,20 @@ int main()
     {
         LoggerProxy::getInstance()->start();
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
         printf("SDCARD MISSING\n");
-        for(;;)
-            Thread::sleep(10000);
+        led2::low();
+        for (;;)
+        {
+            led1::high();
+            Thread::sleep(200);
+            led1::low();
+            Thread::sleep(200);
+        }
     }
-    
-    
+    led2::high();
+
     sEventBroker->start();
     mgr.start();
 
@@ -59,13 +65,13 @@ int main()
     dpl_ev.sig         = EV_TC_SET_DPL_ALTITUDE;
     // sEventBroker->post(dpl_ev, TOPIC_TC);
 
-    printf("Wait for calibration to complete.\n");
+    // printf("Wait for calibration to complete.\n");
 
     Thread::sleep(500);
 
     // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
-    for (int i = 0; i < 60*2*10; i++)
+    for (int i = 0; i < 60 * 3 * 10; i++)
     {
         s.add(averageCpuUtilization());
         Thread::sleep(100);
@@ -75,6 +81,12 @@ int main()
            s.getStats().minValue, s.getStats().maxValue);
     LoggerProxy::getInstance()->stop();
     printf("End\n");
+
     for (;;)
-        Thread::sleep(10000);
+    {
+        led1::high();
+        Thread::sleep(1000);
+        led1::low();
+        Thread::sleep(1000);
+    }
 }
