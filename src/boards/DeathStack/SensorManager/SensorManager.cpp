@@ -78,6 +78,7 @@ SensorManager::~SensorManager()
 
 void SensorManager::initSensors()
 {
+    i2c1::init();
     spiMPU9250::init();
 
     // Instantiation
@@ -137,7 +138,7 @@ void SensorManager::initSensors()
 
 void SensorManager::initSamplers()
 {
-    sampler_1hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
+    sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
 
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());

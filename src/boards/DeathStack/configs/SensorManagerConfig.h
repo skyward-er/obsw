@@ -26,6 +26,7 @@
 #include <drivers/BusTemplate.h>
 #include <drivers/stm32f2_f4_i2c.h>
 #include <interfaces-impl/hwmapping.h>
+#include <drivers/SoftwareI2CAdapter.h>
 
 using miosix::Gpio;
 
@@ -33,7 +34,7 @@ namespace DeathStackBoard
 {
 
 // I2C 1
-typedef ProtocolI2C<miosix::I2C1Driver> i2c1;
+typedef SoftwareI2CAdapter<miosix::interfaces::i2c::sda, miosix::interfaces::i2c::scl> i2c1;
 
 // SPI1
 typedef BusSPI<1, miosix::interfaces::spi1::mosi,
