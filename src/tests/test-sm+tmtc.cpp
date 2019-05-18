@@ -116,4 +116,6 @@ int main()
     }
 
     miosix::reboot();
+
+    return 0;
 }

@@ -105,9 +105,9 @@ int main()
         printf(" s - sensors\n");
         printf(" t - thermocutters\n");
         printf(" m - nosecone motor\n");
+        printf(" g - gs (sm+tmtc)\n");
         printf(" x - xbee send/rcv\n");
         printf(" l - logger\n");
-        printf(" g - gs (sm+tmtc)\n");
         printf(" r - reboot\n");
         printf(" f - pay respect\n");
 

@@ -38,14 +38,14 @@ using namespace DeathStackBoard;
 using namespace miosix;
 
 typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
+//typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
 typedef LM75B<i2c1> LM75BType;
 
 AD7994Wrapper* adc_ad7994;
 ADCWrapper* adc_internal;
 
 MPU9250Type* imu_mpu9250;
-ADIS16405Type* imu_adis16405;
+//ADIS16405Type* imu_adis16405;
 
 LM75BType* temp_lm75b_analog;
 LM75BType* temp_lm75b_imu;
@@ -61,7 +61,7 @@ void init()
     adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
-    imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
+    //imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
     adc_internal  = new ADCWrapper();
 
     imu_mpu9250 =
@@ -72,7 +72,7 @@ void init()
     Thread::sleep(1000);
 
     printf("\nTesting imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
-    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... RIP\n"); // \n", imu_adis16405->init() ? "Ok" : "Failed");
     printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
     printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
     printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
@@ -84,7 +84,7 @@ void init()
 void update()
 {
     imu_mpu9250->onSimpleUpdate();
-    imu_adis16405->onSimpleUpdate();
+    // imu_adis16405->onSimpleUpdate();
     temp_lm75b_analog->onSimpleUpdate();
     temp_lm75b_imu->onSimpleUpdate();
     adc_ad7994->onSimpleUpdate();
@@ -96,8 +96,8 @@ void print()
 {
     printf("MPU9250 Accel:  \tZ: %.3f\n",
            imu_mpu9250->accelDataPtr()->getZ());
-    printf("ADIS Acc:       \tZ: %.3f\n",
-           imu_adis16405->accelDataPtr()->getZ());
+    /* printf("ADIS Acc:       \tZ: %.3f\n",
+           imu_adis16405->accelDataPtr()->getZ()); */
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
     printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
@@ -108,7 +108,7 @@ void print()
         adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1); 
     printf("Current sens 2: \tC: %f\n", 
         adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
-
+    printf("Pins: LP: %d, MC: %d\n", inputs::lp_dtch::value(), nosecone::nc_dtch::value());
     try
     {
         auto gps = piksi->getGpsData();
@@ -123,25 +123,6 @@ void print()
     }
     printf("\n");
 }
-
-void banner()
-{
-    printf("________                 __  .__        _________ __                 __    \n");
-    printf("\\______ \\   ____ _____ _/  |_|  |__    /   _____//  |______    ____ |  | __\n");
-    printf(" |    |  \\_/ __ \\__  \\   __\\  |  \\   \\_____  \\   __\\__  \\ _/ ___\\|  |/ /\n");
-    printf(" |    `   \\  ___/ / __ \\|  | |   Y  \\  /        \\|  |  / __ \\  \\___|    < \n");
-    printf("/_______  /\\___  >____  /__| |___|  / /_______  /|__| (____  /\\___  >__|_ \\\n");
-    printf("        \\/     \\/     \\/          \\/          \\/           \\/     \\/     \\/\n\n");
-    printf("Testing imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
-    printf("Testing imu_adis16405... %s\n", imu_adis16405->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
-    printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
-    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
-    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
-    printf("\n\n");
-}
-
 
 int main()
 {
