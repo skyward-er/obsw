@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include "events/FSM.h"
 #include "DeathStack/Events.h"
 #include "DeathStack/configs/TMTCConfig.h"
+#include "events/FSM.h"
 
-#include <drivers/gamma868/Gamma868.h>
 #include <drivers/mavlink/MavChannel.h>
 #include <DeathStack/LogProxy/LogProxy.h>
+#include <interfaces-impl/hwmapping.h>
 
 namespace DeathStackBoard
 {
@@ -50,32 +50,32 @@ public:
     MavStatus getStatus() { return channel->getStatus(); }
 
     /* AO methods */
-    bool start() override 
+    bool start() override
     {
-        bool ret = channel->start(); 
-        ret = (ret && FSM::start());
+        device->start();
+        bool ret = channel->start();
+        ret      = (ret && FSM::start());
         return ret;
     }
 
-    void stop() override 
-    { 
-        channel->stop(); 
+    void stop() override
+    {
+        channel->stop();
         FSM::stop();
     }
 
 private:
-    Gamma868* device;
+    Xbee_t* device;
     MavChannel* channel;
 
     LoggerProxy& logger = *(LoggerProxy::getInstance());
 
     /* State handlers */
     void stateIdle(const Event& ev);
-    void stateHighRateTM(const Event& ev);
-    void stateLowRateTM(const Event& ev);
-    void stateLanded(const Event& ev);
+    void stateSendingTM(const Event& ev);
 
-    uint16_t delayed_event_id = 0;
+    uint16_t lr_event_id = 0;
+    uint16_t hr_event_id = 0;
 };
 
 } /* namespace DeathStackBoard */

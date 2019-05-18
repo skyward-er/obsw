@@ -15,31 +15,45 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
+#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
 
+#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/Topics.h>
+
+#include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    busSPI2::init();
+
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
     sEventBroker->start();
 
-    while(1)
-    {
-        mavlink_message_t pingMsg;
-        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
+    EventSniffer* sniffer = new EventSniffer(*sEventBroker, 
+                                              getEventString, 
+                                              getTopicString);
 
-        // Send the message
-        bool ok = tmtc->send(pingMsg);
-        TRACE("Sending %s\n", ok ? "ok" : "error");
-        Thread::sleep(5000);
-    }
+    Thread::sleep(1000);
+
+    printf("\nOk, press open to post liftoff...\n");
+    while(inputs::btn_open::value());
+
+    Thread::sleep(100);
+
+    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+
+    printf("Press close to reboot...\n");
+    while(inputs::btn_close::value());
+
+    miosix::reboot();
 }

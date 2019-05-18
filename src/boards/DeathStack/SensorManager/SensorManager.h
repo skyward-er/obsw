@@ -36,6 +36,8 @@
 #include "SensorManagerData.h"
 #include "DeathStack/ADA/ADA.h"
 
+#include <interfaces-impl/hwmapping.h>
+
 using miosix::PauseKernelLock;
 using std::vector;
 
@@ -43,7 +45,7 @@ using std::vector;
 template <typename ProtocolSPI>
 class MPU9250;
 
-template <typename ProtocolSPI>
+template <typename ProtocolSPI, typename RST>
 class ADIS16405;
 
 template <typename ProtocolI2C>
@@ -65,7 +67,7 @@ class MockPressureSensor;
 
 // Type definitions
 typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef ADIS16405<spiADIS16405> ADIS16405Type;
+typedef ADIS16405<spiADIS16405, miosix::sensors::adis16405::rst> ADIS16405Type;
 typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
 typedef LM75B<i2c1> LM75BType;
@@ -82,15 +84,6 @@ typedef LM75B<i2c1> LM75BType;
 class SensorManager : public FSM<SensorManager>
 {
 public:
-    enum SensorSamplerId : uint8_t
-    {
-        ID_SIMPLE_1HZ,
-        ID_SIMPLE_20HZ,
-        ID_DMA_250HZ,
-        ID_GPS,
-        ID_STATS
-    };
-
     SensorManager(ADA* ada);
     ~SensorManager();
 
@@ -150,6 +143,7 @@ private:
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
     void onSimple20HZCallback();
+    void onSimple250HZCallback();
 
     /**
      * @brief DMA, 250 Hz SensorSampler Callback.
@@ -168,13 +162,14 @@ private:
     // Sensor samplers
     SimpleSensorSampler sampler_1hz_simple;
     SimpleSensorSampler sampler_20hz_simple;
-    DMASensorSampler sampler_250hz_dma;
+    SimpleSensorSampler sampler_250hz_simple;
 
     // Sensors
     AD7994Wrapper* adc_ad7994;
     MPU9250Type* imu_mpu9250;
     ADIS16405Type* imu_adis16405;
-    LM75BType* temp_lm75b;
+    LM75BType* temp_lm75b_imu;
+    LM75BType* temp_lm75b_analog;
     ADCWrapper* adc_internal;
     #ifdef DEBUG
     MockPressureSensor* mock_pressure_sensor;

@@ -21,33 +21,7 @@
  */
 #pragma once
 
-#include <miosix.h>
-
-#include "drivers/pwm/pwm.h"
-#include "drivers/HardwareTimer.h"
-#include "interfaces-impl/hwmapping.h"
-#include "DeathStack/DeploymentController/Motor/MotorData.h"
-
 namespace DeathStackBoard {
-
-
-/* Struct required by the PWM driver to know the specifics of the timer to use */
-static const PWM::Timer MOTOR_TIM {
-    TIM4, 
-    &(RCC->APB1ENR), 
-    RCC_APB1ENR_TIM4EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)
-};
-
-/* Pins definition */
-static const PWMChannel MOTOR_CH_RIGHT = PWMChannel::CH1; // PD12
-static const PWMChannel MOTOR_CH_LEFT  = PWMChannel::CH2; // PD13
-
-typedef miosix::actuators::hbridger::ena RightEnable;     // PG2
-typedef miosix::actuators::hbridgel::ena LeftEnable;      // PD11
-
-/* PWM Frequency & duty-cycle */
-static const unsigned int MOTOR_PWM_FREQUENCY = 150;
 
 /* Period of time where the IN must be kept low before bringing ENA/INH low */
 static const int MOTOR_DISABLE_DELAY_MS = 50;

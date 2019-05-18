@@ -46,6 +46,16 @@ struct DeploymentStatus
     DeploymentCTRLState state;
     MotorStatus motor_status;
     CutterStatus cutter_status;
+    static std::string header()
+    {
+        return "timestamp,state,motor_status.motor_active,motor_status.motor_last_direction,cutter_status.state\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "," << motor_status.motor_active << ","
+           << (int)motor_status.motor_last_direction << "," << (int)cutter_status.state << "\n";
+    }
 };
 
 } // DeathStackBoard

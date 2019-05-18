@@ -99,6 +99,17 @@ private:
 
     void updateCalibration();
 
+    /**
+     * Calculates altitude and vertical speed based on the current kalman state.
+     * Then logs the data and return the current altitude
+     * @return Altitude MSL [m]
+     *
+     * @param p Pressure [Pa]
+     * @param dp_dt  Variation of pressure [Pa / s]
+     * @return Altitude msl [m]
+     */
+    float updateAltitude(float p, float dp_dt);
+
     /** \brief Log ADA state
      */
     void logStatus(ADAState state);

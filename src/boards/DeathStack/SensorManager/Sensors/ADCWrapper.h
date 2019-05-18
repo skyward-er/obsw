@@ -59,11 +59,13 @@ public:
          */
         bool onSimpleUpdate() override
         {
-            current_data.current_1_value =
-                parent.adc.convertChannel(CS_1_CHANNEL);
-                
-            current_data.current_2_value =
-                parent.adc.convertChannel(CS_2_CHANNEL);
+            current_data.raw_value_1 = parent.adc.convertChannel(CS_1_CHANNEL);
+
+            current_data.raw_value_2 = parent.adc.convertChannel(CS_2_CHANNEL);
+
+            current_data.current_1 = adcToCurrent(current_data.raw_value_1);
+            current_data.current_2 = adcToCurrent(current_data.raw_value_2);
+
             return true;
         }
 
@@ -73,12 +75,7 @@ public:
         CurrentSenseData* getCurrentDataPtr() { return &current_data; }
 
     private:
-        /*float adcToCurrent(uint16_t adc_in)
-        {
-            float v    = (adc_in * 3.3f) / 4096;
-            float iout = v / 525;
-            return (iout - 0.000030) * 10000;
-        }*/
+        float adcToCurrent(uint16_t adc_in) { return (adc_in - 107) / 32.4f; }
 
         const adc_t::Channel CS_1_CHANNEL =
             static_cast<adc_t::Channel>(ADC_CURRENT_SENSE_1_CHANNEL);
@@ -111,11 +108,8 @@ public:
             uint16_t battery_volt =
                 parent.adc.convertChannel(BATTERY_VOLT_CHANNEL);
 
-            if (battery_volt < battery_data.battery_voltage_min)
-            {
-                battery_data.battery_voltage_min = battery_volt;
-            }
-            battery_data.battery_voltage_value = battery_volt;
+            battery_data.raw_value = battery_volt;
+            battery_data.volt      = battery_volt * 12 / 1353.0f;
 
             return true;
         }

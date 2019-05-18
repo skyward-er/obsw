@@ -23,53 +23,46 @@
 #include <boards/DeathStack/configs/TMTCConfig.h>
 
 #include <Common.h>
-#include <drivers/gamma868/Gamma868.h>
+#include <drivers/Xbee/Xbee.h>
 #include <drivers/mavlink/multi/MavManager.h>
+#include "DeathStack/TMTCManager/XbeeInterrupt.h"
 
+#include "DeathStack/Events.h"
+#include "events/FSM.h"
 
 using namespace miosix;
+using namespace DeathStackBoard;
 
-Gamma868* gamma868;
-MavManager* mavManager;
-
-static void onReceive(MavSender* sender, const mavlink_message_t& msg) 
-{
-    if (msg.msgid != MAVLINK_MSG_ID_ACK_TM) 
-    {
-        TRACE("[TmtcTest] Sending ack\n");
-
-        mavlink_message_t ackMsg;
-        mavlink_msg_ack_tm_pack(1, 1, &ackMsg, msg.msgid, msg.seq);
-
-        /* Send the message back to the sender */
-        bool ackSent = sender->enqueueMsg(ackMsg);
-
-        if(!ackSent)
-            TRACE("[Receiver] Could not enqueue ack\n");
-    }
-}
+Xbee_t* device;
 
 int main()
 {
-    gamma868 = new Gamma868("/dev/radio");
+    enableXbeeInterrupt();
+    busSPI2::init();
 
-    mavManager = new MavManager();
-    mavManager->addSender(gamma868, 250);
-    mavManager->addReceiver(gamma868, mavManager->getSender(0), &onReceive);
+    device = new Xbee_t();
+    device->start();
 
     while(1)
     {
-        TRACE("[TmtcTest] Enqueueing ping\n");
+        TRACE("[TmtcTest] Sending ping\n");
 
         // Create a Mavlink message
         mavlink_message_t pingMsg;
         mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
 
-        // Send the message
-        bool ackSent = mavManager->getSender(0)->enqueueMsg(pingMsg);
+        uint8_t buff[100];
+        int msgLen = mavlink_msg_to_send_buffer(buff, &pingMsg);
 
-        if(!ackSent)
-            TRACE("[TmtcTest] Could not enqueue ping\n");
+        for(int i = 0; i < msgLen; i++)
+        {
+            printf("Sending 0x%2x\n", buff[i]);
+        }
+        
+        //uint8_t buff[5] = {'A', 'B', 'C', 'D', 'E'};
+
+        // Send the message
+        device->send(buff, msgLen);
 
         // ledOn();
         // miosix::delayMs(200);

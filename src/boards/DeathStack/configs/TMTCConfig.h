@@ -21,30 +21,40 @@
  */
 #pragma once
 
+#include <drivers/BusTemplate.h>
+#include <interfaces-impl/hwmapping.h>
 #include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
+#include "drivers/Xbee/Xbee.h"
 
 namespace DeathStackBoard
 {
 
-static const unsigned int GS_OFFLINE_TIMEOUT = 1000; //CHANGED 
+static const unsigned int GS_OFFLINE_TIMEOUT = 1000;  // CHANGED
 
 /* Minimum sleep time between sends */
-static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250;
+static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250; // sleep between sends
+static constexpr size_t MAV_OUT_BUFFER_SIZE         = 256;
+static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 1000;
+
+// SPI 2 does not work on stm32f4 discovery, use SPI1
+typedef BusSPI<2, miosix::interfaces::spi2::mosi,
+               miosix::interfaces::spi2::miso, miosix::interfaces::spi2::sck>
+    busSPI2;
+
+typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn,
+                   miosix::xbee::reset>
+    Xbee_t;
 
 /* Periodic telemetries periods */
-static const unsigned int LR_TM_TIMEOUT = 1000;
-static const unsigned int HR_TM_TIMEOUT = 250;
-static const unsigned int POS_TM_TIMEOUT = 250;
+static const unsigned int LR_TM_TIMEOUT = 10000;
+static const unsigned int HR_TM_TIMEOUT = 200;
 
 /* Mavlink messages sysID and compID */
-static const unsigned int TMTC_MAV_SYSID    = 1;
-static const unsigned int TMTC_MAV_COMPID   = 1;
-
-/* Device name of Gamma module*/
-static const char RF_DEV_NAME[] = "/dev/radio";
+static const unsigned int TMTC_MAV_SYSID  = 1;
+static const unsigned int TMTC_MAV_COMPID = 1;
 
 /* Min guaranteed sleep time after a message is sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
 /* Delay that estimates the send time of each byte */
 static const uint16_t TMTC_SEND_MULTIPLIER = 10;
-}
+}  // namespace DeathStackBoard

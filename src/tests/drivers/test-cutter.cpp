@@ -21,43 +21,91 @@
  * THE SOFTWARE.
  */
 
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
+#include <iostream>
 #include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
+#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
 
+using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
-int main()
+static constexpr int CUT_TIME = 15000;
+
+long long measured_cut_time = 0;
+void wait()
 {
-    Cutter cutter;
-    Thread::sleep(500);
+    long long t0 = getTick();
+    for (long long t = t0; t < t0 + CUT_TIME; t += 50)
+    {
+        if (inputs::btn_open::value() == 0)
+        {
+            break;
+        }
+        Thread::sleep(50);
+    }
+    measured_cut_time = getTick() - t0;
+    printf("Stopped!\n");
+}
 
-    printf("Starting drogue cutter\n");
-    cutter.startCutDrogue();
+bool print = false;
 
-    Thread::sleep(500);
-    printf("Stopping drogue cutter\n");
-    cutter.stopCutDrogue();
+float vToI(uint16_t adc) { return ((float)(adc - 109)) * 19500 / 510.0f; }
 
-    Thread::sleep(500);
-    printf("Cutting main chute\n");
-    cutter.startCutMainChute();
-
-    Thread::sleep(500);
-    printf("Starting drogue cutter\n");
-    cutter.startCutDrogue();
-
-    Thread::sleep(500);
-    printf("Stop main chute\n");
-    cutter.stopCutMainChute();
-
-    Thread::sleep(500);
-    printf("Stop drogue\n");
-    cutter.stopCutDrogue();
+void csense(void*)
+{
+    ADCWrapper adc;
+    adc.getCurrentSensorPtr()->init();
 
     for (;;)
     {
-        printf("END\n");
-        Thread::sleep(10000);
+        adc.getCurrentSensorPtr()->onSimpleUpdate();
+        uint16_t current1 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1;
+        uint16_t current2 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2;
+        if (print)
+            printf("C1: %d\tC2: %d\n", current1, current2);
+        Thread::sleep(100);
     }
+}
+
+int main()
+{
+    Thread::create(csense, 2048);
+
+    for (;;)
+    {
+        print = false;
+        printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY,
+               CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
+        printf("What do you want to cut? (d, r)\n");
+        char c;
+        cin >> &c;
+        print = true;
+
+        Cutter cutter;
+
+        if (c == 'D' || c == 'd')
+        {
+            cutter.startCutDrogue();
+            wait();
+            cutter.stopCutDrogue();
+        }
+        else if (c == 'R' || c == 'r')
+        {
+            cutter.startCutMainChute();
+            wait();
+            cutter.stopCutMainChute();
+        }
+
+        Thread::sleep(3000);
+        print = false;
+        Thread::sleep(500);
+        printf("Cut Time: %.2f s\n", (measured_cut_time) / 1000.0f);
+        printf("Done!\n\n\n");
+    }
+
+    return 0;
 }

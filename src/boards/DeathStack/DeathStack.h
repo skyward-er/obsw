@@ -18,7 +18,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
  */
 
 #pragma once
@@ -30,7 +29,7 @@
 #include <events/EventBroker.h>
 
 #include "DeathStack/Events.h"
-#include "DeathStack/Status.h"
+#include "DeathStack/LogProxy/Telemetries.h"
 #include "DeathStack/Topics.h"
 #include "DeathStackStatus.h"
 #include "boards/CanInterfaces.h"
@@ -78,6 +77,8 @@ public:
      */
     DeathStack() : can_mgr(CAN1), can(&can_mgr), ada(), sensors(&ada), ign(&can)
     {
+        initTelemetries();
+        
         /* Shared components */
         TRACE("Init shared components...");
         broker = sEventBroker;
@@ -161,8 +162,6 @@ public:
      * Helpers for debugging purposes
      */
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
-
-    inline Status::tm_repo_t getStatus() { return Status::tm_repository; }
 
 private:
     DeathStackStatus status;

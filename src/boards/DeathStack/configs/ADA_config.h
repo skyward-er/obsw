@@ -33,8 +33,8 @@ constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 1 * 1000; // ms
 
-static const unsigned int CALIBRATION_BARO_N_SAMPLES       = 5;
-static const unsigned int CALIBRATION_GPS_N_SAMPLES       = 2;
+static const unsigned int CALIBRATION_BARO_N_SAMPLES       = 200;
+static const unsigned int CALIBRATION_GPS_N_SAMPLES       = 100;
 
 // ------ Kalman parameters ------
 
