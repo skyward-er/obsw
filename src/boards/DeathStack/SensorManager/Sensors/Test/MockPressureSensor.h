@@ -23,6 +23,7 @@
 #include <Common.h>
 #include <sensors/Sensor.h>
 #include <tests/catch/ada/test-ada-data.h>
+#include <random>
 
 namespace DeathStackBoard
 {
@@ -41,11 +42,33 @@ namespace DeathStackBoard
 
         bool onSimpleUpdate()
         {
-            mLastPressure = SIMULATED_NOISY_PRESSURE[i];
+            if (before_liftoff)
+            {
+                 mLastPressure = addNoise(SIMULATED_PRESSURE[0]);
+            }
+            else
+            {
+                mLastPressure = addNoise(SIMULATED_PRESSURE[i]);
+            }
             i++;
             return true;
         }
+
+        bool before_liftoff = true;
+        
         private:
         int i = 0;      // Last index
+        std::default_random_engine generator{12345};
+        std::normal_distribution<float> distribution{0.0f,50.0f};
+
+        float addNoise(float sample)
+        {
+            return quantization(sample+distribution(generator));
+        }
+
+        float quantization(float sample)
+        {
+            return round(sample/30)*30;
+        }
     };
 }

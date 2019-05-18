@@ -44,16 +44,16 @@
 
 using namespace DeathStackBoard;
 
-constexpr float NOISE_VAR = 5;                               // Noise varaince
+constexpr float NOISE_STD_DEV = 50;                                 // Noise varaince
 constexpr float LSB = 30;
  
 ADA *ada;
-unsigned seed = 1234567;                                        // Seed for noise generation
+unsigned seed = 1234567;                                            // Seed for noise generation
 
-float addNoise(float sample);                                   // Function to add noise
+float addNoise(float sample);                                       // Function to add noise
 float quantization(float sample);
-std::default_random_engine generator(seed);                     // Noise generator
-std::normal_distribution<float> distribution(0.0, NOISE_VAR);   // Noise generator distribution
+std::default_random_engine generator(seed);                         // Noise generator
+std::normal_distribution<float> distribution(0.0, NOISE_STD_DEV);   // Noise generator distribution
 
 typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
 
@@ -123,14 +123,14 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     for (unsigned i = 0; i < DATA_SIZE/2; i++)
     {
         greenLed::high();
-        ada->updateBaro(SIMULATED_NOISY_PRESSURE[i], 15+273.15);
+        ada->updateBaro(addNoise(SIMULATED_PRESSURE[i]), 15+273.15);
         Thread::sleep(100);
         KalmanState state = ada->getKalmanState();
         // std::cout << state.x1 << ", ";
         // TRACE("%d\n", i); // == Approx(383).margin(10);
         if (i > 300)
         {
-            if ( state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(20) )
+            if ( state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70) )
                 SUCCEED();
             else
                 FAIL("i = " << i << "\t\t" << state.x0 << " != " << SIMULATED_PRESSURE[i]);

@@ -201,7 +201,11 @@ void SensorManager::stateLogging(const Event& ev)
             break;
         case EV_EXIT:
             break;
-
+#ifdef DEBUG
+        case EV_LIFTOFF:
+            mock_pressure_sensor->before_liftoff = false;
+            break;
+#endif
         // Go back to idle in both cases
         case EV_TC_STOP_LOGGING:
         case EV_LANDED:

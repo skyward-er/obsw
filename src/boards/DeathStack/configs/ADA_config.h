@@ -57,8 +57,8 @@ static const MatrixBase<float,1,3> C_INIT{1, 0, 0};
 static const MatrixBase<float,3,3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};    
 
 // Model variance matrix
-static const MatrixBase<float,3,3> V1_INIT{1, 0, 0, 0, 100, 0, 0, 0, 100};
+static const MatrixBase<float,3,3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 10};
 
 // Measurement variance 
-static const MatrixBase<float,1,1> V2_INIT{50};                                 
+static const MatrixBase<float,1,1> V2_INIT{2500};                                 
 }
