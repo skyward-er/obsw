@@ -35,6 +35,15 @@
 #include <diagnostic/CpuMeter.h>
 #include "skyward-boardcore/src/tests/logger/test-logger.h"
 
+#include "Common.h"
+#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/SensorManager/SensorManager.h"
+#include "diagnostic/CpuMeter.h"
+#include "events/EventBroker.h"
+
+#include <boards/DeathStack/TMTCManager/TMTCManager.h>
+
 using namespace std;
 using namespace miosix;
 
@@ -70,6 +79,11 @@ namespace xbeetest
     #include "skyward-boardcore/src/tests/misc/xbee-send-rcv.cpp"
 }
 
+namespace sm_tmtc
+{
+    #include "../tests/test-sm+tmtc.cpp"
+}
+
 
 void banner()
 {
@@ -93,6 +107,7 @@ int main()
         printf(" m - nosecone motor\n");
         printf(" x - xbee send/rcv\n");
         printf(" l - logger\n");
+        printf(" g - gs (sm+tmtc)\n");
         printf(" r - reboot\n");
         printf(" f - pay respect\n");
 
@@ -126,6 +141,11 @@ int main()
             case 'l':
             {
                 loggertest::main();
+                break;
+            }
+            case 'g':
+            {
+                sm_tmtc::main();
                 break;
             }
             case 'r':
