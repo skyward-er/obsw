@@ -59,6 +59,10 @@ namespace DeathStackBoard
 class ADCWrapper;
 class AD7994Wrapper;
 
+#ifdef DEBUG
+class MockPressureSensor;
+#endif
+
 // Type definitions
 typedef MPU9250<spiMPU9250> MPU9250Type;
 typedef ADIS16405<spiADIS16405> ADIS16405Type;
@@ -172,6 +176,9 @@ private:
     ADIS16405Type* imu_adis16405;
     LM75BType* temp_lm75b;
     ADCWrapper* adc_internal;
+    #ifdef DEBUG
+    MockPressureSensor* mock_pressure_sensor;
+    #endif
 
     Piksi* piksi;
     long long last_gps_timestamp = 0;

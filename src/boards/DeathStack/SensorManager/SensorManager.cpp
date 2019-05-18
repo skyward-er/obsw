@@ -39,6 +39,10 @@
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 
+#ifdef DEBUG
+#include "sensors/Test/MockPressureSensor.h"
+#endif
+
 #include "Debug.h"
 
 #include "interfaces-impl/hwmapping.h"
@@ -86,6 +90,10 @@ void SensorManager::initSensors()
 
     piksi = new Piksi("/dev/gps");
 
+    #ifdef DEBUG
+    mock_pressure_sensor = new MockPressureSensor();
+    #endif
+
     // Some sensors dont have init or self tests
     sensor_status.piksi = 1;
 
@@ -129,6 +137,9 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
     sampler_20hz_simple.AddSensor(temp_lm75b);
+    #ifdef DEBUG
+    sampler_20hz_simple.AddSensor(mock_pressure_sensor);
+    #endif
 
     sampler_250hz_dma.AddSensor(imu_mpu9250);
     sampler_250hz_dma.AddSensor(imu_adis16405);
@@ -254,6 +265,10 @@ void SensorManager::onSimple20HZCallback()
 {
     AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
     LM75BData lm78b_data          = {miosix::getTick(), temp_lm75b->getTemp()};
+
+    #ifdef DEBUG
+    ad7994_data->nxp_baro_pressure = *(mock_pressure_sensor->pressureDataPtr());
+    #endif
 
     if (enable_sensor_logging)
     {
