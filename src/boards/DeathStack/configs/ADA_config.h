@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2018,2019 Skyward Experimental Rocketry
  * Authors: Luca Mozzarelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,8 +33,8 @@ constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 1 * 1000; // ms
 
-static const unsigned int CALIBRATION_BARO_N_SAMPLES       = 5000;
-static const unsigned int CALIBRATION_GPS_N_SAMPLES       = 2500;
+static const unsigned int CALIBRATION_BARO_N_SAMPLES       = 5;
+static const unsigned int CALIBRATION_GPS_N_SAMPLES       = 2;
 
 // ------ Kalman parameters ------
 
@@ -54,11 +54,11 @@ static const MatrixBase<float,3,3> A_INIT({
 static const MatrixBase<float,1,3> C_INIT{1, 0, 0};
 
 // Initial error covariance matrix
-static const MatrixBase<float,3,3> P_INIT{0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1};    
+static const MatrixBase<float,3,3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};    
 
 // Model variance matrix
-static const MatrixBase<float,3,3> V1_INIT{0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01};
+static const MatrixBase<float,3,3> V1_INIT{1, 0, 0, 0, 100, 0, 0, 0, 100};
 
 // Measurement variance 
-static const MatrixBase<float,1,1> V2_INIT{10};                                 
+static const MatrixBase<float,1,1> V2_INIT{50};                                 
 }

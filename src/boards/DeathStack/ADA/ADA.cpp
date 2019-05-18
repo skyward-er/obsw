@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2018,2019 Skyward Experimental Rocketry
  * Authors: Luca Mozzarelli, Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,7 +30,6 @@
 
 #include "Debug.h"
 #include <iostream>
-
 using miosix::Lock;
 
 namespace DeathStackBoard
@@ -48,10 +47,12 @@ ADA::ADA()
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_ADA);
 
-    // Save the state
-    // Otherwise the update fcn will do nothing until first log
     status.state = ADAState::CALIBRATING;
 
+    Lock<FastMutex> l(calib_mutex);
+    calibration_data.pressure_calib.nSamples = 0; 
+    calibration_data.temperature_calib.nSamples = 0;
+    calibration_data.gps_altitude_calib.nSamples = 0;
 }
 
 void ADA::updateFilter(float pressure)
@@ -72,12 +73,13 @@ void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
 {
     // Update gps regardless of the current state
     rogallo_dts.updateGPS(lat, lon, hasFix);
-
+    TRACE("ADA Update GPS\n");
     if (hasFix)
     {
         // Update calibration
         if (status.state == ADAState::CALIBRATING)
         {
+            TRACE("ADA UPDATING GPS CALIB\n");
             Lock<FastMutex> l(calib_mutex);
 
             if (calibration_data.gps_altitude_calib.nSamples <
@@ -91,6 +93,7 @@ void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
             }
             else
             {
+                TRACE("ADA Update GPS: sample not used\n");
                 updateCalibration();
             }
         }
@@ -103,13 +106,14 @@ void ADA::updateBaro(float pressure, float temperature)
     {
         case ADAState::CALIBRATING:
         {
-            TRACE("ADA Update: Calibrating \n");
+            TRACE("ADA Update Baro: Calibrating \n");
             Lock<FastMutex> l(calib_mutex);
 
             // Calibrating state: update calibration data if not enough values
             if (calibration_data.pressure_calib.nSamples <
                 CALIBRATION_BARO_N_SAMPLES)
             {
+                TRACE("UPDATING BARO CALIB\n");
                 pressure_stats.add(pressure);
                 temperature_stats.add(temperature);
 
@@ -123,6 +127,7 @@ void ADA::updateBaro(float pressure, float temperature)
             else
             {
                 updateCalibration();
+                TRACE("BARO CALIB SAMPLE NOT USED\n");
             }
             break;
         }
@@ -130,18 +135,18 @@ void ADA::updateBaro(float pressure, float temperature)
         case ADAState::IDLE:
         {
             // Idle state: do nothing
-            TRACE("ADA Update: Idle \n");
+            TRACE("ADA Update Baro: Idle \n");
             break;
         }
 
         case ADAState::SHADOW_MODE:
         {
-            TRACE("ADA Update: Shadow mode \n");
+            TRACE("ADA Update Baro: Shadow mode \n");
             // Shadow mode state: update kalman, DO NOT send events
             updateFilter(pressure);
 
             // Check if the vertical speed is negative
-            if (filter.X(1, 0) < 0)
+            if (filter.X(1, 0) > 0)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -155,7 +160,7 @@ void ADA::updateBaro(float pressure, float temperature)
             // Active state send notifications for apogee
             updateFilter(pressure);
             // Check if the vertical speed is negative
-            if (filter.X(1, 0) < 0)
+            if (filter.X(1, 0) > 0)
             {
 
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
@@ -172,7 +177,7 @@ void ADA::updateBaro(float pressure, float temperature)
         case ADAState::END:  // Update rogallo DTS even when ada has completed
                              // its job
         {
-            TRACE("ADA Update: First descent phase \n");
+            TRACE("ADA Update Baro: First descent phase \n");
             // Descent state: send notifications for target altitude reached
             updateFilter(pressure);
 
@@ -183,13 +188,13 @@ void ADA::updateBaro(float pressure, float temperature)
         }
         case ADAState::UNDEFINED:
         {
-            TRACE("ADA Update: Undefined state value \n");
+            TRACE("ADA Update Baro: Undefined state value \n");
             break;
         }
 
         default:
         {
-            TRACE("ADA Update: Unexpected state value \n");
+            TRACE("ADA Update Baro: Unexpected state value \n");
             break;
         }
     }
@@ -200,7 +205,7 @@ void ADA::updateCalibration()
     // Set calibration only if we have enough samples
     if (calibration_data.gps_altitude_calib.nSamples >=
             CALIBRATION_GPS_N_SAMPLES &&
-        calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES)
+        calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES && status.dpl_altitude_set)
     {
         // Set reference to the calibration average
         pressure_ref    = calibration_data.pressure_calib.mean;
@@ -215,6 +220,8 @@ void ADA::updateCalibration()
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
+        filter.X(1, 0) = 0;
+        filter.X(2, 0) = 0;
 
         // Notify that we are ready
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -276,6 +283,7 @@ void ADA::stateCalibrating(const Event& ev)
             rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
             status.dpl_altitude_set = true;
             logStatus();
+            TRACE("DPL ALTITUDE SET \n");
             break;
         }
         case EV_TC_RESET_CALIBRATION:
@@ -285,7 +293,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateCalibrating: %d event not handled", ev.sig);
+            TRACE("ADA stateCalibrating: %d event not handled\n\n", ev.sig);
             break;
         }
     }
@@ -336,7 +344,7 @@ void ADA::stateIdle(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateIdle: %d event not handled", ev.sig);
+            TRACE("ADA stateIdle: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -375,7 +383,7 @@ void ADA::stateShadowMode(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateShadowMode: %d event not handled", ev.sig);
+            TRACE("ADA stateShadowMode: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -412,7 +420,7 @@ void ADA::stateActive(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateActive: %d event not handled", ev.sig);
+            TRACE("ADA stateActive: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -455,7 +463,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateFirstDescentPhase: %d event not handled", ev.sig);
+            TRACE("ADA stateFirstDescentPhase: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -484,7 +492,7 @@ void ADA::stateEnd(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateEnd: %d event not handled", ev.sig);
+            TRACE("ADA stateEnd: %d event not handled\n", ev.sig);
             break;
         }
     }
