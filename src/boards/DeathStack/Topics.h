@@ -26,16 +26,17 @@
  ******************************************************************************
  */
 
-// Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-05-02 20:43:30.070377
+// Generated from:
+// https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
+// Autogen date:    2019-05-19 16:49:52.026455
 
 #ifndef SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
 #define SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
-using std::map;
 using std::string;
 
 namespace DeathStackBoard
@@ -55,6 +56,11 @@ enum Topics : uint8_t
     TOPIC_CAN,
     TOPIC_STATS
 };
+
+const std::vector<uint8_t> TOPIC_LIST{
+    TOPIC_ADA,  TOPIC_DEPLOYMENT, TOPIC_FLIGHT_EVENTS,
+    TOPIC_FMM,  TOPIC_IGNITION,   TOPIC_TC,
+    TOPIC_TMTC, TOPIC_CAN,        TOPIC_STATS};
 
 /**
  * @brief Returns the name of the provided event
