@@ -80,7 +80,7 @@ int main()
         print = false;
         printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY,
                CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
-        printf("What do you want to cut? (d, r)\n");
+        printf("What do you want to cut?  \n d - drogue \n r - rogallo\n");
         char c;
         cin >> &c;
         print = true;

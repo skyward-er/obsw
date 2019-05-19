@@ -35,16 +35,14 @@ enum motorState
     REVERSE
 };
 
-int main()
+MotorDriver motor;
+motorState state = STOPPED;
+
+void buttonMode()
 {
-    MotorDriver motor;
-    motorState state = STOPPED;
-
-    Thread::sleep(500);
-
     while(true)
     {
-        if(inputs::btn_open::value() == 0);
+        if(inputs::btn_open::value() == 0)
         {
             Thread::sleep(10);
 
@@ -55,7 +53,7 @@ int main()
             motor.stop();
         }
 
-        if(inputs::btn_close::value() == 0);
+        if(inputs::btn_close::value() == 0)
         {
             Thread::sleep(10);
 
@@ -64,6 +62,45 @@ int main()
             while(!inputs::btn_close::value());
 
             motor.stop();
+        }
+    }
+}
+
+int main()
+{
+
+    Thread::sleep(500);
+
+    while(true)
+    {
+        printf("\nOptions:\n");
+        printf(" o - open\n");
+        printf(" c - close\n");
+        printf(" s - stop\n");
+        printf(" b - use buttons\n");
+        printf(" q - quit\n");
+
+        char c = getchar();
+
+        switch(c)
+        {
+            case 'o':
+                motor.start(MotorDirection::NORMAL);
+                break;
+            case 'c':
+                motor.start(MotorDirection::REVERSE);
+                break;
+            case 's':
+                motor.stop();
+                break;
+            case 'b':
+                buttonMode();
+                break;
+            case 'q':
+                return 0;
+                break;
+            default:
+                break;                
         }
 
     }

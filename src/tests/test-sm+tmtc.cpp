@@ -91,11 +91,13 @@ int main()
 
     Thread::sleep(5000);
 
-    printf("\nOk, press open to post liftoff...\n");
+    //printf("\nOk, press open to post liftoff...\n");
     // while(inputs::btn_open::value())
     // {
     //     Thread::sleep(100);
     // }
+
+    printf("Spamming HR_TM\n");
 
     Thread::sleep(100);
 
@@ -116,4 +118,6 @@ int main()
     }
 
     miosix::reboot();
+
+    return 0;
 }
