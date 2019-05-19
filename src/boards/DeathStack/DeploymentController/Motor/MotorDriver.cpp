@@ -32,18 +32,19 @@ using namespace miosix;
 namespace DeathStackBoard
 {
 
-MotorDriver::MotorDriver() 
-{
-    status.motor_active = 0;
-}
+MotorDriver::MotorDriver() { status.motor_active = 0; }
 
-MotorDriver::~MotorDriver()
-{
-    stop();
-}
+MotorDriver::~MotorDriver() { stop(); }
 
 bool MotorDriver::start(MotorDirection direction)
 {
+    // Ensure the pins are configured in output mode. (The rogallo controller
+    // may set these pins to "alternate mode" to use PWM to drive the servos)
+    nosecone::motP1::mode(Mode::OUTPUT);
+    nosecone::motP2::mode(Mode::OUTPUT);
+    nosecone::motP1::low();
+    nosecone::motP2::low();
+
     if (direction == MotorDirection::NORMAL)
     {
         nosecone::motP1::high();
