@@ -34,8 +34,8 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
-using std::map;
 using std::string;
 
 namespace DeathStackBoard
@@ -47,6 +47,8 @@ enum Topics : uint8_t
 {{
 {enum_data}
 }};
+
+const std::vector<uint8_t> TOPIC_LIST {{{topic_list}}};
 
 /**
  * @brief Returns the name of the provided event
