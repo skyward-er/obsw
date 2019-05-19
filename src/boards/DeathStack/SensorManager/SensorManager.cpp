@@ -177,7 +177,7 @@ void SensorManager::stateIdle(const Event& ev)
 
         // Perform the transition in both cases
         case EV_TC_START_LOGGING:
-        case EV_ARMED:
+        case EV_LIFTOFF:
             transition(&SensorManager::stateLogging);
             break;
 

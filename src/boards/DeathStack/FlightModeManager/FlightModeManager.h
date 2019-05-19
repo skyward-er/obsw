@@ -46,27 +46,47 @@ public:
     FlightModeManager();
     ~FlightModeManager();
 
-    State state_initialization(const Event& ev);
+    /// ON-GROUND 
 
-    State state_startup(const Event& ev);
+    /* Handle TC_BOARD_RESET and TC_FORCE_LIFTOFF (super-state) */
+    State state_onGround(const Event& ev);
+
+    /* First state, wait for sensors and objects initialization */
+    State state_init(const Event& ev);
+    /* "Low power" state, log only if requested by TC */
+    State state_initDone(const Event& ev);
+    /* Init error, get stuck */
+    State state_initError(const Event& ev);
+
+    /* Test mode, listen to serial and print stuff on serial */
     State state_testing(const Event& ev);
 
-    State state_onLaunchpad(const Event& ev);
-    State state_error(const Event& ev);
-
-    State state_calibration(const Event& ev);
+    /* Calibrating ADA with pressure samples */
+    State state_calibrating(const Event& ev);
+    /* All good, waiting for arm */
     State state_disarmed(const Event& ev);
+    /* Ready to launch, listening detachment pin (or command) */
     State state_armed(const Event& ev);
 
-    State state_launching(const Event& ev);
-    State state_flying(const Event& ev);
+    /// FLYING 
+
+    /* Handle TC_OPEN and END_MISSION (super-state) */
+    State state_flying(const Event& ev);                // super-state
+    /* Liftoff */
     State state_ascending(const Event& ev);
+    /* Apogee reached, deploy drogue and wait half altitude (or manual mode) */
     State state_drogueDescent(const Event& ev);
 
-    State state_terminalDescent(const Event& ev);
-    State state_rogalloDescent(const Event& ev);
+    /* Descent super-state */
+    State state_terminalDescent(const Event& ev);       // super-state
+    /* We don't trust the software: prevent ADA to deploy rogallo */
     State state_manualDescent(const Event& ev);
+    /* We trust the software */
+    State state_rogalloDescent(const Event& ev);
 
+    /// LANDED
+
+    /* Close file descriptors */
     State state_landed(const Event& ev);
 
     FMMStatus getStatus()
