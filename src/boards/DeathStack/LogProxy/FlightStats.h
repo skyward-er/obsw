@@ -52,7 +52,7 @@ public:
 
     void state_idle(const Event& ev);
     void state_liftOff(const Event& ev);
-    void state_apogee(const Event& ev);
+    void state_ascending(const Event& ev);
     void state_drogueDeployment(const Event& ev);
     void state_mainDeployment(const Event& ev);
 
@@ -61,7 +61,7 @@ private:
     {
         IDLE,
         LIFTOFF,
-        APOGEE,
+        ASCENDING,
         DROGUE_DPL,
         MAIN_DPL
     };
