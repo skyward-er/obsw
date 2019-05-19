@@ -59,7 +59,7 @@ public:
     State state_initError(const Event& ev);
 
     /* Test mode, listen to serial and print stuff on serial */
-    State state_testMode(const Event& ev);
+    State state_testing(const Event& ev);
 
     /* Calibrating ADA with pressure samples */
     State state_calibrating(const Event& ev);

@@ -28,14 +28,14 @@
 
 enum class FMMState : uint8_t
 {
-    STARTUP,
-    ERROR,
-    ONLINE,
-    ADA_CONFIG,
+    ON_GROUND,
+    INIT,
+    INIT_DONE,
+    INIT_ERROR,
+    CALIBRATING,
     DISARMED,
     ARMED,
     TESTING,
-    LAUNCHING,
     FLYING,
     ASCENDING,
     DROGUE_DESCENT,
@@ -48,7 +48,7 @@ enum class FMMState : uint8_t
 struct FMMStatus
 {
     long long timestamp;
-    FMMState state = FMMState::STARTUP;
+    FMMState state = FMMState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
 
