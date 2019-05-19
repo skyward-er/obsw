@@ -85,8 +85,11 @@ public:
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event
-        sniffer = new EventSniffer(*broker, TOPIC_LIST,
-                                   bind(&DeathStack::logEvent, this));
+        {
+            using namespace std::placeholders;
+            sniffer = new EventSniffer(
+                *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
+        }
 
         ada            = new ADA();
         sensor_manager = new SensorManager(ada);
