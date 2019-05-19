@@ -92,7 +92,8 @@ public:
     {
         return status;
     }
-
+    
+    bool start() override;
 private:
     /**
      * Initialize all the sensors.
@@ -119,7 +120,7 @@ private:
     /**
      * Adds all the SensorSamplers to the scheduler and begins sampling.
      */
-    void startSampling();
+    void initScheduler();
 
     /*
      * Callbacks. These functions are called each time the corresponding
