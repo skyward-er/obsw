@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
@@ -24,41 +24,19 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
+#include <string>
 
-namespace DeathStackBoard
+struct EventLog
 {
+    long long timestamp;
+    uint8_t event;
+    uint8_t topic;
 
-enum DeathStackComponentStatus
-{
-    COMP_OK    = 0,
-    COMP_ERROR = 1
-};
+    static std::string header() { return "timestamp,event,topic\n"; }
 
-struct DeathStackStatus
-{
-    //Logic OR of all components errors.
-    uint8_t death_stack = COMP_OK;
-
-    uint8_t logger         = COMP_OK;
-    uint8_t ev_broker      = COMP_OK;
-    uint8_t pin_obs        = COMP_OK;
-    uint8_t fmm            = COMP_OK;
-    uint8_t sensor_manager = COMP_OK;
-    uint8_t ada            = COMP_OK;
-    uint8_t tmtc           = COMP_OK;
-    uint8_t ign            = COMP_OK;
-    uint8_t dpl            = COMP_OK;
-
-    /**
-     * @brief Helper method to signal an error in the DeathStackStatus struct.
-     * 
-     * @param component_status Pointer to a member of DeathStackStatus
-     * Eg: setError(&DeathStackStatus::dpl)
-     */
-    void setError(uint8_t DeathStackStatus::*component_status)
+    void print(std::ostream& os) const
     {
-        this->*component_status = COMP_ERROR;
-        death_stack = COMP_ERROR;
+        os << timestamp << "," << (int)event << "," << (int)topic << "\n";
     }
 };
-}  // namespace DeathStackBoard
