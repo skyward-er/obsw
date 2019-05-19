@@ -108,7 +108,8 @@ void print()
         adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1); 
     printf("Current sens 2: \tC: %f\n", 
         adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
-    printf("Pins: LP: %d, MC: %d\n", inputs::lp_dtch::value(), nosecone::nc_dtch::value());
+    printf("Pins:           \tLP: %d, MC: %d\n", inputs::lp_dtch::value(), nosecone::nc_dtch::value());
+    
     try
     {
         auto gps = piksi->getGpsData();
