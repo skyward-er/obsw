@@ -32,7 +32,7 @@
 namespace DeathStackBoard
 {
 
-TMTCManager::TMTCManager() : FSM(&TMTCManager::stateIdle)
+TMTCManager::TMTCManager() : FSM(&TMTCManager::stateSendingTM)
 {
     enableXbeeInterrupt();
 
@@ -104,31 +104,26 @@ void TMTCManager::stateSendingTM(const Event& ev)
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
             hr_event_id = sEventBroker->postDelayed(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
-            
-            TRACE("[TMTC] Entering stateHighRateTM\n");            
+         
             break;
 
         case EV_SEND_HR_TM:
         {
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-            channel->enqueueMsg(telem);
+            send(telem);
 
             hr_event_id = sEventBroker->postDelayed(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);
-
-            // TRACE("[TMTC] Sending HR telemetry\n");            
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC, HR_TM_TIMEOUT);          
             break;
         }
 
         case EV_SEND_LR_TM:
         {
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
-            channel->enqueueMsg(telem);
+            send(telem);
 
             lr_event_id = sEventBroker->postDelayed(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC, LR_TM_TIMEOUT);
-
-            // TRACE("[TMTC] Sending LR telemetry\n");
 
             break;
         }
