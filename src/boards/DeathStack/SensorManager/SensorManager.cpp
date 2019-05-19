@@ -322,10 +322,6 @@ void SensorManager::onDMA250HZCallback()
     if (enable_sensor_logging)
     {
         logger.log(mpu9255_data);
-
-        // logger.log(*(imu_adis16405->gyroDataPtr()));
-        // logger.log(*(imu_adis16405->accelDataPtr()));
-        // logger.log(*(imu_adis16405->tempDataPtr()));
     }
 }
 
