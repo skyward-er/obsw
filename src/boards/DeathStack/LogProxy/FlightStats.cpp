@@ -145,7 +145,7 @@ void FlightStats::update(const AD7994WrapperData& t)
         }
     }
 }
-void FlightStats::update(const ADIS16405Data& t)
+void FlightStats::update(const MPU9250Data& t)
 {
     switch (state)
     {
@@ -155,11 +155,11 @@ void FlightStats::update(const ADIS16405Data& t)
         }
         case State::LIFTOFF:
         {
-            if (fabs(t.zaccl_out) > liftoff_stats.acc_max)
+            if (fabs(t.accel.getZ()) > liftoff_stats.acc_max)
             {
                 liftoff_stats.T_max_acc =
                     static_cast<uint32_t>(miosix::getTick());
-                liftoff_stats.acc_max = fabs(t.zaccl_out);
+                liftoff_stats.acc_max = fabs(t.accel.getZ());
             }
             break;
         }
@@ -169,9 +169,9 @@ void FlightStats::update(const ADIS16405Data& t)
         }
         case State::DROGUE_DPL:
         {
-            if (fabs(t.zaccl_out) > drogue_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > drogue_dpl_stats.max_dpl_acc)
             {
-                drogue_dpl_stats.max_dpl_acc = fabs(t.zaccl_out);
+                drogue_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
                 drogue_dpl_stats.T_dpl =
                     static_cast<uint32_t>(miosix::getTick());
             }
@@ -179,9 +179,9 @@ void FlightStats::update(const ADIS16405Data& t)
         }
         case State::MAIN_DPL:
         {
-            if (fabs(t.zaccl_out) > main_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > main_dpl_stats.max_dpl_acc)
             {
-                main_dpl_stats.max_dpl_acc = fabs(t.zaccl_out);
+                main_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
             }
             break;
         }

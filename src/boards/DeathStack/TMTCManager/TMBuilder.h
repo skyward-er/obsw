@@ -106,13 +106,14 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.lr_tm));
             break;
-
+        case MavTMList::MAV_TEST_TM_ID:
+            mavlink_msg_test_tm_encode(sys_id, comp_id, &m,
+                                       &(tm_repository.test_tm));
+            break;
         default:
             // TODO: manage error
             break;
     }
-
-    //printf("%f\n", tm_repository.hr_tm.pressure);
 
     return m;
 }

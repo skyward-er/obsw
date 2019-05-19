@@ -32,7 +32,7 @@
 #include "DeathStack/configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
-#include "sensors/ADIS16405/ADIS16405Data.h"
+#include "sensors/MPU9250/MPU9250Data.h"
 #include "utils/CircularBuffer.h"
 
 namespace DeathStackBoard
@@ -47,7 +47,7 @@ public:
     void update(const KalmanState& t);
     void update(const KalmanAltitude& t);
     void update(const AD7994WrapperData& t);
-    void update(const ADIS16405Data& t);
+    void update(const MPU9250Data& t);
     void update(const PiksiData& t);
 
     void state_idle(const Event& ev);

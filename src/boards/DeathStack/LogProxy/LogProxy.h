@@ -185,6 +185,10 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t);
 template <>
 LogResult LoggerProxy::log<PiksiData>(const PiksiData& t);
 
+/* LM75b temperature */
+template <>
+LogResult LoggerProxy::log<LM75BData>(const LM75BData& t);
+
 template <>
 LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t);
 

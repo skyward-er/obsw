@@ -42,7 +42,6 @@
 
 namespace DeathStackBoard
 {
-
 /**
  * Each function here is an implementation of the log() method for a
  * specific status struct or class.
@@ -85,9 +84,22 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
         tm_repository.fmm_tm.state     = static_cast<uint8_t>(t.state);
 
         // HR TM
-        // clear first 5 bits
-        tm_repository.hr_tm.bitfield_1 &= 0xE0;
-        tm_repository.hr_tm.bitfield_1 |= static_cast<uint8_t>(t.state) & 0x1F;
+        // bitfield_1 is a decimal digit field: every decimal digit has
+        // a different meaning. We can not use normal bitfield
+        // operations such as 'and', 'or' or shifting because we are
+        // working in decimal. This is done to make the values clearer
+        // in the ground station.
+
+        // Decompose the decimal number in its 2 number of 2 digits and 1 digit
+        // each Example: 123 = 12 * 10 + 3
+        uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
+        uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
+
+        // Update digit 0 with the new value
+        d12 = (uint8_t)t.state;
+
+        // Write back
+        tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
     }
     return logger.log(t);
 }
@@ -108,6 +120,26 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 tm_repository.fmm_tm.pin_launch_num_changes =
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_launch_state = t.state;
+
+                // Test TM
+                tm_repository.test_tm.pin_launch = t.state;
+
+                // HR TM
+                // bitfield_2 is a decimal digit field: every decimal digit has
+                // a different meaning. We can not use normal bitfield
+                // operations such as 'and', 'or' or shifting because we are
+                // working in decimal. This is done to make the values clearer
+                // in the ground station.
+
+                // Decompose the decimal number in its 3 digits
+                uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
+                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
+
+                // Update digit 0 with the new value
+                uint8_t d0 = t.state;
+
+                // Write back
+                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
                 break;
             case ObservedPin::NOSECONE:
                 tm_repository.fmm_tm.pin_nosecone_last_change =
@@ -116,10 +148,27 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_nosecone_state = t.state;
 
-                // clear second ls bit
-                tm_repository.hr_tm.bitfield_2 &= 0xFD;
-                tm_repository.hr_tm.bitfield_2 |=
-                    (static_cast<uint8_t>(t.state) >> 1) & 0x02;
+                // Test TM
+                tm_repository.test_tm.pin_nosecone = t.state;
+
+                // HR TM
+                // bitfield_2 is a decimal digit field: every decimal digit has
+                // a different meaning. We can not use normal bitfield
+                // operations such as 'and', 'or' or shifting because we are
+                // working in decimal. This is done to make the values clearer
+                // in the ground station.
+
+                // Decompose the decimal number in its 3 digits
+                uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
+                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
+                uint8_t d0 =
+                    (tm_repository.hr_tm.bitfield_2 - d1 * 100 - d2 * 10);
+
+                // Update digit 1 with the new value
+                d1 = t.state * 10;
+
+                // Write back
+                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
                 break;
             default:
                 break;
@@ -192,7 +241,8 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerProxy::log<MavStatus>(const MavStatus& t)//da controllare l'enum nella MavStatus logger
+LogResult LoggerProxy::log<MavStatus>(
+    const MavStatus& t)  // da controllare l'enum nella MavStatus logger
 {
     {
         miosix::PauseKernelLock kLock;
@@ -244,6 +294,24 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
         tm_repository.dpl_tm.motor_last_direction =
             (uint8_t)t.motor_status.motor_last_direction;
         tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
+
+        // HR TM
+        // bitfield_1 is a decimal digit field: every decimal digit has
+        // a different meaning. We can not use normal bitfield
+        // operations such as 'and', 'or' or shifting because we are
+        // working in decimal. This is done to make the values clearer
+        // in the ground station.
+
+        // Decompose the decimal number in its 2 number of 2 digits and 1 digit
+        // each Example: 123 = 12 * 10 + 3
+        uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
+        uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
+
+        // Update digit 0 with the new value
+        d0 = (uint8_t)t.state;
+
+        // Write back
+        tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
     }
     return logger.log(t);
 }
@@ -303,8 +371,8 @@ LogResult LoggerProxy::log<KalmanAltitude>(const KalmanAltitude& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.hr_tm.kalman_altitude = static_cast<int16_t>(t.altitude);
-        tm_repository.hr_tm.kalman_v_speed = static_cast<int16_t>(t.vert_speed);
+        tm_repository.hr_tm.kal_alt     = static_cast<int16_t>(t.altitude);
+        tm_repository.hr_tm.kal_v_speed = static_cast<int16_t>(t.vert_speed);
     }
     flight_stats.update(t);
 
@@ -386,6 +454,10 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
         // HR TM
         tm_repository.hr_tm.pressure = t.nxp_baro_pressure;
+
+        // Test tm
+        tm_repository.test_tm.pressure_nxp = t.nxp_baro_pressure;
+        tm_repository.test_tm.pressure_hw  = t.honeywell_baro_pressure;
     }
 
     flight_stats.update(t);
@@ -397,6 +469,7 @@ template <>
 LogResult LoggerProxy::log<BatteryVoltageData>(const BatteryVoltageData& t)
 {
     tm_repository.adc_tm.battery_voltage = t.volt;
+    tm_repository.test_tm.battery_volt   = t.volt;
 
     return logger.log(t);
 }
@@ -410,6 +483,9 @@ LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
 
         tm_repository.adc_tm.current_sense_1 = t.current_1;
         tm_repository.adc_tm.current_sense_2 = t.current_2;
+
+        tm_repository.test_tm.th_cut_1 = t.current_1;
+        tm_repository.test_tm.th_cut_2 = t.current_2;
     }
     return logger.log(t);
 }
@@ -437,19 +513,15 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
         tm_repository.adis_tm.aux_adc    = t.aux_adc;
 
         // HR TM
-        tm_repository.hr_tm.timestamp =
-            static_cast<uint32_t>(miosix::getTick());
-        tm_repository.hr_tm.adis_z_acc = t.zaccl_out;
+        tm_repository.hr_tm.z_acc = t.zaccl_out;
     }
-
-    flight_stats.update(t);
 
     return logger.log(t);
 }
 
 /* MPU imu */
 template <>
-LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)//no logger function
+LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -466,7 +538,42 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)//no logger functio
         tm_repository.mpu_tm.compass_y = t.compass.getY();
         tm_repository.mpu_tm.compass_z = t.compass.getZ();
         tm_repository.mpu_tm.temp      = t.temp;
+
+        // HR TM
+        tm_repository.hr_tm.z_acc = t.accel.getZ();
+
+        // Test TM
+        tm_repository.test_tm.x_acc = t.accel.getX();
     }
+
+    flight_stats.update(t);
+
+    return logger.log(t);
+}
+
+/* LM75b temperature */
+template <>
+LogResult LoggerProxy::log<LM75BData>(const LM75BData& t)
+{
+    {
+        miosix::PauseKernelLock kLock;
+        switch (t.id)
+        {
+            case TempSensorId::LM75B_ANALOG:
+            {
+                tm_repository.test_tm.temp_analog = t.temp;
+                break;
+            }
+            case TempSensorId::LM75B_IMU:
+            {
+                tm_repository.test_tm.temp_imu = t.temp;
+
+                tm_repository.hr_tm.temperature = static_cast<uint8_t>(t.temp);
+                break;
+            }
+        }
+    }
+
     return logger.log(t);
 }
 
@@ -491,13 +598,31 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         tm_repository.gps_tm.n_satellites = t.gps_data.numSatellites;
 
         // HR TM
-        tm_repository.hr_tm.gps_latitude  = t.gps_data.latitude;
-        tm_repository.hr_tm.gps_longitude = t.gps_data.longitude;
+        tm_repository.hr_tm.gps_lat = t.gps_data.latitude;
+        tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
 
         // HR TM
-        // clear first 1 bits
-        tm_repository.hr_tm.bitfield_2 &= 0xFE;
-        tm_repository.hr_tm.bitfield_2 |= static_cast<uint8_t>(t.fix) & 0x01;
+        // bitfield_2 is a decimal digit field: every decimal digit has
+        // a different meaning. We can not use normal bitfield
+        // operations such as 'and', 'or' or shifting because we are
+        // working in decimal. This is done to make the values clearer
+        // in the ground station.
+
+        // Decompose the decimal number in its 3 digits
+        uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
+        uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
+        uint8_t d0 = (tm_repository.hr_tm.bitfield_2 - d1 * 100 - d2 * 10);
+
+        // Update digit 2 with the new value
+        d2 = (int)t.fix * 10;
+
+        // Write back
+        tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
+
+        // Test TM
+        tm_repository.test_tm.gps_altitude = t.gps_data.height;
+        tm_repository.test_tm.gps_nsats    = t.gps_data.numSatellites;
+        tm_repository.test_tm.gps_fix      = t.fix;
     }
 
     flight_stats.update(t);
@@ -555,9 +680,9 @@ LogResult LoggerProxy::log<LiftOffStats>(const LiftOffStats& t)
         tm_repository.lr_tm.t_max_acc = t.T_max_acc;
         tm_repository.lr_tm.acc_pf    = t.acc_max;
 
-        tm_repository.lr_tm.t_max_speed        = t.T_max_speed;
-        tm_repository.lr_tm.v_speed_max        = t.vert_speed_max;
-        tm_repository.lr_tm.altitude_max_speed = t.altitude_max_speed;
+        tm_repository.lr_tm.t_max_speed   = t.T_max_speed;
+        tm_repository.lr_tm.v_speed_max   = t.vert_speed_max;
+        tm_repository.lr_tm.alt_max_speed = t.altitude_max_speed;
     }
 
     return logger.log(t);
@@ -569,16 +694,15 @@ LogResult LoggerProxy::log<ApogeeStats>(const ApogeeStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_apogee             = t.T_apogee;
-        tm_repository.lr_tm.nxp_min_pressure     = t.nxp_min_pressure;
-        tm_repository.lr_tm.hw_min_pressure      = t.hw_min_pressure;
-        tm_repository.lr_tm.kalman_min_pressure  = t.kalman_min_pressure;
-        tm_repository.lr_tm.digital_min_pressure = t.digital_min_pressure;
-        tm_repository.lr_tm.kalman_max_altitude  = t.baro_max_altitude;
-        tm_repository.lr_tm.gps_max_altitude     = t.gps_max_altitude;
+        tm_repository.lr_tm.t_apogee      = t.T_apogee;
+        tm_repository.lr_tm.nxp_min_press = t.nxp_min_pressure;
+        tm_repository.lr_tm.hw_min_press  = t.hw_min_pressure;
+        tm_repository.lr_tm.kal_min_press = t.kalman_min_pressure;
+        tm_repository.lr_tm.kal_max_alt   = t.baro_max_altitude;
+        tm_repository.lr_tm.gps_max_alt   = t.gps_max_altitude;
 
-        tm_repository.lr_tm.latitude_apogee  = t.lat_apogee;
-        tm_repository.lr_tm.longitude_apogee = t.lon_apogee;
+        tm_repository.lr_tm.lat_apogee = t.lat_apogee;
+        tm_repository.lr_tm.lon_apogee = t.lon_apogee;
     }
 
     return logger.log(t);
@@ -603,10 +727,10 @@ LogResult LoggerProxy::log<MainDPLStats>(const MainDPLStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_main_dpl        = t.T_dpl;
-        tm_repository.lr_tm.max_main_acc      = t.max_dpl_acc;
-        tm_repository.lr_tm.altitude_main_dpl = t.altitude_dpl;
-        tm_repository.lr_tm.v_speed_main_dpl  = t.vert_speed_dpl;
+        tm_repository.lr_tm.t_main_dpl       = t.T_dpl;
+        tm_repository.lr_tm.max_main_acc     = t.max_dpl_acc;
+        tm_repository.lr_tm.alt_main_dpl     = t.altitude_dpl;
+        tm_repository.lr_tm.v_speed_main_dpl = t.vert_speed_dpl;
     }
 
     return logger.log(t);
