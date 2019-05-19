@@ -99,16 +99,19 @@ struct DrogueDPLStats
 struct MainDPLStats
 {
     uint32_t T_dpl       = 0;
-    float T_dpl          = 0.0f;
-    float T_dpl          = 0.0f;
+    float max_dpl_acc    = 0.0f;
+    float altitude_dpl   = 0.0f;
     float vert_speed_dpl = 0.0f;
 
-    static std::string header() { return "T_dpl,T_dpl,T_dpl,vert_speed_dpl\n"; }
+    static std::string header()
+    {
+        return "T_dpl,max_dpl_acc,altitude_dpl,vert_speed_dpl\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << T_dpl << "," << T_dpl << "," << T_dpl << "," << vert_speed_dpl
-           << "\n";
+        os << T_dpl << "," << max_dpl_acc << "," << altitude_dpl << ","
+           << vert_speed_dpl << "\n";
     }
 };
 }  // namespace DeathStackBoard
