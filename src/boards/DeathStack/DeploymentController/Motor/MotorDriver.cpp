@@ -23,7 +23,6 @@
 #include <Common.h>
 #include <interfaces-impl/hwmapping.h>
 
-#include <events/EventBroker.h>
 #include "DeathStack/Events.h"
 #include "MotorDriver.h"
 
@@ -36,7 +35,7 @@ MotorDriver::MotorDriver() { status.motor_active = 0; }
 
 MotorDriver::~MotorDriver() { stop(); }
 
-bool MotorDriver::start(MotorDirection direction)
+void MotorDriver::start(MotorDirection direction)
 {
     // Ensure the pins are configured in output mode. (The rogallo controller
     // may set these pins to "alternate mode" to use PWM to drive the servos)
@@ -62,8 +61,6 @@ bool MotorDriver::start(MotorDirection direction)
     /* Update status */
     status.motor_active         = true;
     status.motor_last_direction = direction;
-
-    return true;
 }
 
 void MotorDriver::stop()
