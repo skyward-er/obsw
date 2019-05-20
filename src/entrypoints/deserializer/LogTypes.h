@@ -26,14 +26,22 @@
 #include <fstream>
 #include <iostream>
 
+#include "DeathStack/ADA/ADAStatus.h"
+#include "DeathStack/CpuData.h"
+#include "DeathStack/DeploymentController/DeploymentData.h"
+#include "DeathStack/FlightModeManager/FMMStatus.h"
+#include "DeathStack/LogProxy/FlightStatsData.h"
+#include "DeathStack/PinObserver/PinObserverData.h"
 #include "DeathStack/SensorManager/SensorManagerData.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
 #include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
+#include "DeathStack/System/EventLog.h"
+#include "drivers/mavlink/MavStatus.h"
 #include "logger/Deserializer.h"
 #include "logger/LogStats.h"
-#include "sensors/MPU9250/MPU9250Data.h"
 #include "scheduler/TaskSchedulerData.h"
+#include "sensors/MPU9250/MPU9250Data.h"
 
 using std::ofstream;
 
@@ -47,7 +55,6 @@ void print(T& t, ostream& os)
 
 void registerTypes(Deserializer& ds)
 {
-    // LogStats
     ds.registerType<LogStats>(print<LogStats>, LogStats::header());
     ds.registerType<SensorManagerStatus>(print<SensorManagerStatus>,
                                          SensorManagerStatus::header());
@@ -65,9 +72,40 @@ void registerTypes(Deserializer& ds)
     ds.registerType<MPU9250Data>(print<MPU9250Data>, MPU9250Data::header());
 
     ds.registerType<PiksiData>(print<PiksiData>, PiksiData::header());
-    ds.registerType<TaskStatResult>(print<TaskStatResult>, TaskStatResult::header());
+    ds.registerType<TaskStatResult>(print<TaskStatResult>,
+                                    TaskStatResult::header());
 
-    
+    ds.registerType<CpuUsageData>(print<CpuUsageData>, CpuUsageData::header());
+
+    ds.registerType<ApogeeDetected>(print<ApogeeDetected>,
+                                    ApogeeDetected::header());
+    ds.registerType<DplAltitudeReached>(print<DplAltitudeReached>,
+                                        DplAltitudeReached::header());
+    ds.registerType<ADAStatus>(print<ADAStatus>, ADAStatus::header());
+    ds.registerType<KalmanState>(print<KalmanState>, KalmanState::header());
+    ds.registerType<KalmanAltitude>(print<KalmanAltitude>,
+                                    KalmanAltitude::header());
+    ds.registerType<TargetDeploymentAltitude>(
+        print<TargetDeploymentAltitude>, TargetDeploymentAltitude::header());
+    ds.registerType<ADACalibrationData>(print<ADACalibrationData>,
+                                        ADACalibrationData::header());
+
+    ds.registerType<DeploymentStatus>(print<DeploymentStatus>,
+                                      DeploymentStatus::header());
+
+    ds.registerType<FMMStatus>(print<FMMStatus>, FMMStatus::header());
+
+    ds.registerType<LiftOffStats>(print<LiftOffStats>, LiftOffStats::header());
+    ds.registerType<ApogeeStats>(print<ApogeeStats>, ApogeeStats::header());
+    ds.registerType<DrogueDPLStats>(print<DrogueDPLStats>,
+                                    DrogueDPLStats::header());
+    ds.registerType<MainDPLStats>(print<MainDPLStats>, MainDPLStats::header());
+
+    ds.registerType<PinStatus>(print<PinStatus>, PinStatus::header());
+
+    ds.registerType<MavStatus>(print<MavStatus>, MavStatus::header());
+
+    ds.registerType<EventLog>(print<EventLog>, EventLog::header());
 }
 
 #endif

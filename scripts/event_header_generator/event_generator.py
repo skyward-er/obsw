@@ -139,6 +139,7 @@ print("{} topics loaded.".format(len(topics)))
 
 enum_str = ""
 event_map_str = ""
+event_list_str = ""
 
 date = datetime.datetime.now()
 link = "https://docs.google.com/spreadsheets/d/{id}".format(id=SPREADSHEET_ID)
@@ -154,12 +155,13 @@ for e in events:
         (" = EV_FIRST_SIGNAL" if e == events[0] else "") + endl
     event_map_str += "        {{ {event}, {string} }}{endl}".format(
         event=e, string='"' + e + '"', endl=endl)
+    event_list_str += e + (", " if e != events[-1] else "")
 
 with open('Events.h.template', 'r') as template_file:
     template = template_file.read()
 
 template = template.format(sheet_link=link, date=date,
-                           enum_data=enum_str)
+                           enum_data=enum_str,event_list=event_list_str)
 
 with open(join(OUTPUT_FOLDER, 'Events.h'), 'w') as header_file:
     header_file.write(template)
@@ -170,18 +172,20 @@ print("Events.h successfully generated.")
 print("Generating Topics.h...")
 enum_str = ""
 topic_map_str = ""
+topic_list_str = ""
 
 for t in topics:
     endl = ",\n" if t != topics[-1] else ""
     enum_str += "    " + t + endl
     topic_map_str += "        {{ {topics}, {string} }}{endl}".format(
         topics=t, string='"' + t + '"', endl=endl)
+    topic_list_str += t + (", " if t != topics[-1] else "")
 
 with open('Topics.h.template', 'r') as template_file:
     template = template_file.read()
 
 template = template.format(sheet_link=link, date=date,
-                           enum_data=enum_str)
+                           enum_data=enum_str, topic_list=topic_list_str)
 
 with open(join(OUTPUT_FOLDER, 'Topics.h'), 'w') as header_file:
     header_file.write(template)

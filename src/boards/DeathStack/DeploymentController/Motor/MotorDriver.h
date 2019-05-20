@@ -28,7 +28,6 @@
 #include "MotorData.h"
 
 #include <PinObserver.h>
-#include <DeathStack/LogProxy/LogProxy.h>
 
 namespace DeathStackBoard
 {
@@ -41,8 +40,6 @@ class MotorDriver
 public:
     /**
      * @brief Class constructor.
-     * 
-     * @param pinObs    needed to observe the motor limit pins (finecorsa) 
      */
     MotorDriver();
 
@@ -52,14 +49,11 @@ public:
     ~MotorDriver();
 
     /**
-     * @brief Activates the H-Bridge to start the motor. The motor will send an
-     *        event when the limit is reached.
+     * @brief Activates the H-Bridge to start the motor.
      *
      * @param direction     direction of activation (normal or reverse)
-     * @param dutyCycle     duty cycle of the PWM sent to the motor
-     * @return              false if the motor is already started
      */
-    bool start(MotorDirection direction);
+    void start(MotorDirection direction);
 
     /**
      * @brief Stop the motor

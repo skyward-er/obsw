@@ -22,29 +22,32 @@
 
 #pragma once
 
+#include <functional>
 #include <stdexcept>
 
 #include <Common.h>
 
 #include <events/EventBroker.h>
+#include <utils/EventSniffer.h>
 
 #include "DeathStack/Events.h"
 #include "DeathStack/LogProxy/Telemetries.h"
 #include "DeathStack/Topics.h"
 #include "DeathStackStatus.h"
-#include "boards/CanInterfaces.h"
 
-#include "DeathStack/Canbus/CanProxy.h"
 #include "DeathStack/LogProxy/LogProxy.h"
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 
 #include "DeathStack/ADA/ADA.h"
 #include "DeathStack/DeploymentController/Deployment.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
-#include "DeathStack/IgnitionController/IgnitionController.h"
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
+
+#include "DeathStack/System/EventLog.h"
+
+using std::bind;
 
 namespace DeathStackBoard
 {
@@ -60,30 +63,41 @@ public:
     // Shared Components
     EventBroker* broker;
     LoggerProxy* logger;
-    CanManager can_mgr;
-    CanProxy can;
-    PinObserverWrapper pinObs;
+    PinObserverWrapper* pin_observer;
+    EventSniffer* sniffer;
 
     // FSMs
-    ADA ada;
-    SensorManager sensors;
-    TMTCManager tmtc;
-    FlightModeManager fmm;
-    IgnitionController ign;
-    DeploymentController dpl;
+    ADA* ada;
+    SensorManager* sensor_manager;
+    TMTCManager* tmtc;
+    FlightModeManager* fmm;
+    DeploymentController* dpl;
 
     /**
      * Initialize Everything
      */
-    DeathStack() : can_mgr(CAN1), can(&can_mgr), ada(), sensors(&ada), ign(&can)
+    DeathStack()
     {
-        initTelemetries();
-        
         /* Shared components */
-        TRACE("Init shared components...");
-        broker = sEventBroker;
-        logger = Singleton<LoggerProxy>::getInstance();
+        broker       = sEventBroker;
+        logger       = Singleton<LoggerProxy>::getInstance();
+        pin_observer = new PinObserverWrapper();
 
+        // Bind the logEvent function to the event sniffer in order to log every
+        // event
+        {
+            using namespace std::placeholders;
+            sniffer = new EventSniffer(
+                *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
+        }
+
+        ada            = new ADA();
+        sensor_manager = new SensorManager(ada);
+        tmtc           = new TMTCManager();
+        fmm            = new FlightModeManager();
+        dpl            = new DeploymentController();
+
+        // Start threads
         try
         {
             logger->start();
@@ -98,36 +112,31 @@ public:
             status.setError(&DeathStackStatus::ev_broker);
         }
 
-        if (!pinObs.start())
+        if (!pin_observer->start())
         {
             status.setError(&DeathStackStatus::pin_obs);
         }
-        TRACE(" Done\n");
 
         /* State Machines */
-        TRACE("Init state machines...");
-        if (!fmm.start())
+        if (!fmm->start())
         {
+            status.setError(&DeathStackStatus::fmm);
         }
-        if (!sensors.start())
-        {
-            status.setError(&DeathStackStatus::sensor_manager);
-        }
-        if (!ada.start())
-        {
-            status.setError(&DeathStackStatus::ada);
-        }
-        if (!tmtc.start())
+        if (!tmtc->start())
         {
             status.setError(&DeathStackStatus::tmtc);
         }
-        if (!ign.start())
-        {
-            status.setError(&DeathStackStatus::ign);
-        }
-        if (!dpl.start())
+        if (!dpl->start())
         {
             status.setError(&DeathStackStatus::dpl);
+        }
+        if (!ada->start())
+        {
+            status.setError(&DeathStackStatus::ada);
+        }
+        if (!sensor_manager->start())
+        {
+            status.setError(&DeathStackStatus::sensor_manager);
         }
 
         logger->log(status);
@@ -136,26 +145,38 @@ public:
         if (status.death_stack != COMP_OK)
         {
             sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
-            // TODO: Signal error led
         }
-
-        TRACE(" Done\n");
-
         TRACE("Init finished\n");
     }
 
     ~DeathStack()
     {
-        sEventBroker->stop();
-        pinObs.stop();
+        fmm->stop();
+        sensor_manager->stop();
+        ada->stop();
+        tmtc->stop();
+        dpl->stop();
 
-        /* State Machines */
-        fmm.stop();
-        sensors.stop();
-        ada.stop();
-        tmtc.stop();
-        ign.stop();
-        dpl.stop();
+        sEventBroker->stop();
+        pin_observer->stop();
+        logger->stop();
+
+        delete dpl;
+        delete fmm;
+        delete tmtc;
+        delete sensor_manager;
+        delete ada;
+        delete pin_observer;
+        delete sniffer;
+    }
+
+    void logEvent(uint8_t event, uint8_t topic)
+    {
+        EventLog ev{miosix::getTick(), event, topic};
+        logger->log(ev);
+
+        TRACE("%s on %s\n", getEventString(event).c_str(),
+              getTopicString(topic).c_str());
     }
 
     /**

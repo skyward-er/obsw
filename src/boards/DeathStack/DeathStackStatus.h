@@ -53,6 +53,7 @@ struct DeathStackStatus
      * @brief Helper method to signal an error in the DeathStackStatus struct.
      * 
      * @param component_status Pointer to a member of DeathStackStatus
+     * Eg: setError(&DeathStackStatus::dpl)
      */
     void setError(uint8_t DeathStackStatus::*component_status)
     {

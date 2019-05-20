@@ -60,7 +60,7 @@ class LoggerProxy : public Singleton<LoggerProxy>
     friend class Singleton<LoggerProxy>;
 
 public:
-    LoggerProxy() : logger(Logger::instance()) {}
+    LoggerProxy() : logger(Logger::instance()) { initTelemetries(); }
 
     ~LoggerProxy() {}
 
@@ -97,7 +97,6 @@ private:
     Logger& logger;  // SD logger
     FlightStats flight_stats{};
 };
-
 
 template <>
 LogResult LoggerProxy::log<DeathStackStatus>(const DeathStackStatus& t);

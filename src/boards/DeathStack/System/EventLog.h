@@ -1,6 +1,6 @@
-/*
+/**
  * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <Common.h>
-#include <DeathStack/DeathStack.h>
-#include <DeathStack/TMTCManager/TMBuilder.h>
-#include <DeathStack/TMTCManager/XbeeInterrupt.h>
-#include <diagnostic/CpuMeter.h>
-#include "DeathStack/CpuData.h"
 
-using namespace DeathStackBoard;
-using namespace miosix;
+#pragma once
 
-DeathStack* board;
+#include <cstdint>
+#include <ostream>
+#include <string>
 
-int main()
+struct EventLog
 {
-    board = new DeathStack();
+    long long timestamp;
+    uint8_t event;
+    uint8_t topic;
 
+    static std::string header() { return "timestamp,event,topic\n"; }
 
-    // Log CPU Usage
-    CpuUsageData cpu_data;   
-    while(1)
+    void print(std::ostream& os) const
     {
-        cpu_data.timestamp = miosix::getTick();
-        cpu_data.cpu_usage = averageCpuUtilization();
-
-        board->logger->log(cpu_data);
-
-        Thread::sleep(1000);
+        os << timestamp << "," << (int)event << "," << (int)topic << "\n";
     }
-}
+};

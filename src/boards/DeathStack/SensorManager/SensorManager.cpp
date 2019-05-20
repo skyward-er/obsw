@@ -70,14 +70,24 @@ SensorManager::SensorManager(ADA* ada)
     initSensors();
     initSamplers();
 
-    startSampling();
-    scheduler.start();
+    initScheduler();
 }
 
 SensorManager::~SensorManager()
 {
     sEventBroker->unsubscribe(this);
     scheduler.stop();
+}
+
+bool SensorManager::start()
+{
+    // Start the parent FSM
+    bool ok = FSM<SensorManager>::start();
+
+    // Start the scheduler
+    ok = ok && scheduler.start();
+    
+    return ok;
 }
 
 void SensorManager::initSensors()
@@ -217,7 +227,7 @@ void SensorManager::stateLogging(const Event& ev)
     }
 }
 
-void SensorManager::startSampling()
+void SensorManager::initScheduler()
 {
     /*
      * std::bind syntax:

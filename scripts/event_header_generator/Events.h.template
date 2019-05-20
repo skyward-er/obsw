@@ -34,6 +34,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "events/Event.h"
 #include "events/EventBroker.h"
@@ -41,7 +42,6 @@
 #include "Topics.h"
 
 using std::string;
-using std::map;
 
 namespace DeathStackBoard
 {{
@@ -53,6 +53,8 @@ enum Events : uint8_t
 {{
 {enum_data}
 }};
+
+const std::vector<uint8_t> EVENT_LIST {{{event_list}}};
 
 /**
  * @brief Returns the name of the provided event
