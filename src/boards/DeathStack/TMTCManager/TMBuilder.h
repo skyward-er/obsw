@@ -30,7 +30,7 @@ namespace DeathStackBoard
 {
 namespace TMBuilder
 {
-
+static mavlink_nack_tm_t nack_tm;
 /**
  * Retrieve one of the telemetry structs
  * @param req_tm    required telemetry
@@ -112,8 +112,10 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
                                        &(tm_repository.test_tm));
             break;
         default:
-            // TODO: manage error
+        {
+            mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
             break;
+    }
     }
 
     return m;
