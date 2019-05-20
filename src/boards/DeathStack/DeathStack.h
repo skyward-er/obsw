@@ -142,6 +142,12 @@ public:
         {
             status.setError(&DeathStackStatus::sensor_manager);
         }
+        if (sensor_manager->getStatus().sensor_status !=
+            NOMINAL_SENSOR_INIT_VALUE)
+        {
+            status.setError(&DeathStackStatus::sensor_manager);
+        }
+
         if (!rogallo->start())
         {
             status.setError(&DeathStackStatus::rogallo);
@@ -154,7 +160,12 @@ public:
         {
             sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
         }
-        TRACE("Init finished\n");
+        else
+        {
+            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+        }
+
+        TRACE("[DS] Init finished\n");
     }
 
     ~DeathStack()
