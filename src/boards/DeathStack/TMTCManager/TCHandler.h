@@ -24,11 +24,11 @@
 
 #include <Common.h>
 
-#include "TMBuilder.h"
+#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/configs/TMTCConfig.h>
 #include "DeathStack/Events.h"
 #include "DeathStack/Topics.h"
-#include <DeathStack/configs/TMTCConfig.h>
-#include <DeathStack/LogProxy/LogProxy.h>
+#include "TMBuilder.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
 
@@ -38,29 +38,46 @@ namespace DeathStackBoard
 uint16_t g_gsOfflineEvId;
 LoggerProxy& logger = *(LoggerProxy::getInstance());
 
-
 namespace TCHandler
 {
 
 /**
- * Map each noArg command to the corresponding event 
+ * Map each noArg command to the corresponding event
  */
 // clang-format off
 static const std::map<uint8_t, uint8_t> noargCmdToEvt = 
 {
     { MAV_CMD_ARM,              EV_TC_ARM    }, 
     { MAV_CMD_DISARM,           EV_TC_DISARM }, 
-    //{ MAV_CMD_ABORT_LAUNCH,     EV_TC_ABORT_LAUNCH  }, 
+    { MAV_CMD_CALIBRATE_ADA,    EV_TC_CALIBRATE_ADA},
+    // { MAV_CMD_ABORT_LAUNCH, EV_TC_ABORT_LAUNCH},
+    { MAV_CMD_ABORT_ROGALLO,    EV_TC_ABORT_ROGALLO},
+    { MAV_CMD_FORCE_INIT,       EV_TC_FORCE_INIT},
+
     { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
-    { MAV_CMD_START_LOGGING,    EV_TC_START_LOGGING }, 
-    { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_LOGGING }, 
-    { MAV_CMD_TEST_MODE,        EV_TC_SETUP_MODE   }, 
-    { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
-    { MAV_CMD_MANUAL_MODE,      EV_TC_MANUAL_MODE },
     { MAV_CMD_CUT_MAIN,         EV_TC_CUT_MAIN },
     { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_FIRST_DROGUE },
+    { MAV_CMD_START_ROGALLO_CONTROL, EV_TC_START_ROGALLO_CONTROL},
+
+    { MAV_CMD_START_LOGGING,    EV_TC_START_SENSOR_LOGGING }, 
+    { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_SENSOR_LOGGING }, 
+    { MAV_CMD_CLOSE_LOG,        EV_TC_CLOSE_LOG }, 
+
+    { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE  }, 
+    { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
+    { MAV_CMD_MANUAL_MODE,      EV_TC_MANUAL_MODE },
+
     { MAV_CMD_END_MISSION,      EV_TC_END_MISSION }
+};
+// clang-format on
+
+// clang-format off
+static const std::map<uint8_t, uint8_t> settingCmdToEvt = 
+{
+    { MAV_SET_DEPLOYMENT_ALTITUDE,      EV_TC_SET_DPL_ALTITUDE    }, 
+    { MAV_SET_REFERENCE_ALTITUDE,       EV_TC_SET_REFERENCE_ALTITUDE }, 
+    { MAV_SET_REFERENCE_TEMP,           EV_TC_SET_REFERENCE_TEMP }
 };
 // clang-format on
 
@@ -70,8 +87,8 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
 static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
-    mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg,
-                                    msg.msgid, msg.seq);
+    mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg, msg.msgid,
+                            msg.seq);
 
     /* Send the message back to the sender */
     channel->enqueueMsg(ackMsg);
@@ -81,15 +98,16 @@ static void sendAck(MavChannel* channel, const mavlink_message_t& msg)
 /**
  *  Handle the Mavlink message, posting the corresponding event if needed.
  */
-static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& msg)
+static void handleMavlinkMessage(MavChannel* channel,
+                                 const mavlink_message_t& msg)
 {
     TRACE("[TMTC] Handling command\n");
 
-    #ifdef DEBUG
+#ifdef DEBUG
     miosix::ledOn();
     miosix::delayMs(100);
     miosix::ledOff();
-    #endif
+#endif
 
     /* Log Status */
     MavStatus status = channel->getStatus();
@@ -98,11 +116,6 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
     /* Send acknowledge */
     sendAck(channel, msg);
 
-    /* Reschedule GS_OFFLINE event */
-    sEventBroker->removeDelayed(g_gsOfflineEvId);
-    g_gsOfflineEvId = sEventBroker->postDelayed(Event{EV_GS_OFFLINE}, TOPIC_FLIGHT_EVENTS,
-                                                            GS_OFFLINE_TIMEOUT);
-    
     /* Finally handle TC */
     switch (msg.msgid)
     {
@@ -111,10 +124,10 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
             TRACE("[TMTC] Received NOARG command\n");
             uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
             auto it = DeathStackBoard::TCHandler::noargCmdToEvt.find(commandId);
-            
-            if( it != noargCmdToEvt.end() ) 
-                sEventBroker->post( Event{it->second}, TOPIC_TC );
-            else 
+
+            if (it != noargCmdToEvt.end())
+                sEventBroker->post(Event{it->second}, TOPIC_TC);
+            else
                 TRACE("[TMTC] Unkown NOARG command %d\n", commandId);
 
             break;
@@ -126,7 +139,7 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
             uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
             mavlink_message_t response = TMBuilder::buildTelemetry(tmId);
             channel->enqueueMsg(response);
-           
+
             break;
         }
 
@@ -135,23 +148,44 @@ static void handleMavlinkMessage(MavChannel* channel, const mavlink_message_t& m
             TRACE("[TMTC] Ping received\n");
             break;
         }
-
-       /* case MAV_TC(START_LAUNCH):
+        case MAV_TC(UPLOAD_SETTING):
         {
-            LaunchEvent startLaunchEvt;
-            startLaunchEvt.sig = EV_TC_LAUNCH;
-            startLaunchEvt.launchCode = mavlink_msg_start_launch_tc_get_launch_code(&msg);
+            uint8_t id    = mavlink_msg_upload_setting_tc_get_setting_id(&msg);
+            float setting = mavlink_msg_upload_setting_tc_get_setting(&msg);
+            ConfigurationEvent cfgev;
 
-            sEventBroker->post(startLaunchEvt, TOPIC_TC);
+            auto it = DeathStackBoard::TCHandler::settingCmdToEvt.find(id);
+
+            if (it != noargCmdToEvt.end())
+            {
+                cfgev.sig    = it->second;
+                cfgev.config = setting;
+                sEventBroker->post(cfgev, TOPIC_TC);
+            }
+            else
+            {
+                TRACE("[TMTC] Unkown SETTING command %d\n", id);
+            }
             break;
-        }*/
+        }
+            /* case MAV_TC(START_LAUNCH):
+                {
+                    LaunchEvent startLaunchEvt;
+                    startLaunchEvt.sig = EV_TC_LAUNCH;
+                    startLaunchEvt.launchCode =
+                mavlink_msg_start_launch_tc_get_launch_code(&msg);
+
+                    sEventBroker->post(startLaunchEvt, TOPIC_TC);
+                    break;
+                }*/
 
         case MAV_TC(RAW_EVENT):
         {
-             TRACE("[TMTC] Received RAW_EVENT command\n");
+            TRACE("[TMTC] Received RAW_EVENT command\n");
             /* Retrieve event from the message*/
             Event evt = {mavlink_msg_raw_event_tc_get_Event_id(&msg)};
-            sEventBroker->post(evt, mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+            sEventBroker->post(evt,
+                               mavlink_msg_raw_event_tc_get_Topic_id(&msg));
             break;
         }
 

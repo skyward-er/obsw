@@ -72,7 +72,7 @@ TEST_CASE_METHOD(ADATestFixture, "Testing all transitions")
 
         SECTION("IDLE->CALIBRATION")
         {
-            REQUIRE(testFSMTransition(*ada, Event{EV_TC_RESET_CALIBRATION},
+            REQUIRE(testFSMTransition(*ada, Event{EV_TC_CALIBRATE_ADA},
                                       &ADA::stateCalibrating));
         }
 

@@ -44,7 +44,7 @@
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
-
+#include "DeathStack/DeploymentController/RogalloController.h"
 #include "DeathStack/System/EventLog.h"
 
 using std::bind;
@@ -73,6 +73,8 @@ public:
     FlightModeManager* fmm;
     DeploymentController* dpl;
 
+    RogalloController* rogallo;
+
     /**
      * Initialize Everything
      */
@@ -96,6 +98,8 @@ public:
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
         dpl            = new DeploymentController();
+
+        rogallo = new RogalloController();
 
         // Start threads
         try
@@ -137,6 +141,10 @@ public:
         if (!sensor_manager->start())
         {
             status.setError(&DeathStackStatus::sensor_manager);
+        }
+        if (!rogallo->start())
+        {
+            status.setError(&DeathStackStatus::rogallo);
         }
 
         logger->log(status);

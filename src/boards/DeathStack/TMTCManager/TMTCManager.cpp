@@ -84,7 +84,11 @@ void TMTCManager::stateIdle(const Event& ev)
             TRACE("[TMTC] Liftoff signal received\n");
             transition(&TMTCManager::stateSendingTM);
             break;
-
+        case EV_TEST_MODE:
+        {
+            transition(&TMTCManager::stateSendingTestTM);
+            break;
+        }
         case EV_EXIT:
             TRACE("[TMTC] Exiting stateIdle\n");
             break;
@@ -127,6 +131,11 @@ void TMTCManager::stateSendingTM(const Event& ev)
 
             break;
         }
+        case EV_TEST_MODE:
+        {
+            transition(&TMTCManager::stateSendingTestTM);
+            break;
+        }
 
         case EV_EXIT:
         {
@@ -134,6 +143,40 @@ void TMTCManager::stateSendingTM(const Event& ev)
             sEventBroker->removeDelayed(hr_event_id);
             
             TRACE("[TMTC] Exiting stateHighRateTM\n");
+            break;
+        }
+        default:
+            TRACE("[TMTC] Event not handled\n");
+            break;
+    }
+}
+
+void TMTCManager::stateSendingTestTM(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+            test_tm_event_id = sEventBroker->postDelayed(
+                Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);    
+
+            TRACE("[TMTC] Entering stateTestTM\n");
+            break;
+
+        case EV_SEND_TEST_TM:
+        {
+            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
+            send(telem);
+
+            test_tm_event_id = sEventBroker->postDelayed(
+                Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);          
+            break;
+        }
+
+        case EV_EXIT:
+        {
+            sEventBroker->removeDelayed(test_tm_event_id);
+            
+            TRACE("[TMTC] Exiting stateTestTM\n");
             break;
         }
         default:

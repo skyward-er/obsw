@@ -188,8 +188,8 @@ void SensorManager::stateIdle(const Event& ev)
             break;
 
         // Perform the transition in both cases
-        case EV_TC_START_LOGGING:
-        case EV_ARMED:
+        case EV_TC_START_SENSOR_LOGGING:
+        case EV_LIFTOFF:
             transition(&SensorManager::stateLogging);
             break;
 
@@ -217,7 +217,7 @@ void SensorManager::stateLogging(const Event& ev)
             break;
 #endif
         // Go back to idle in both cases
-        case EV_TC_STOP_LOGGING:
+        case EV_TC_STOP_SENSOR_LOGGING:
         case EV_LANDED:
             transition(&SensorManager::stateIdle);
             break;
@@ -342,10 +342,6 @@ void SensorManager::onDMA250HZCallback()
     if (enable_sensor_logging)
     {
         logger.log(mpu9255_data);
-
-        // logger.log(*(imu_adis16405->gyroDataPtr()));
-        // logger.log(*(imu_adis16405->accelDataPtr()));
-        // logger.log(*(imu_adis16405->tempDataPtr()));
     }
 }
 

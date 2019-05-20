@@ -259,27 +259,27 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentAltitudeEvent& dpl_ev =
-                static_cast<const DeploymentAltitudeEvent&>(ev);
+            const ConfigurationEvent& dpl_ev =
+                static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
             TRACE("ADA: Deployment altitude set\n");
             break;
         }
-        case EV_TC_RESET_CALIBRATION:
+        case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
             break;
         }
-        case EV_SET_REF_TEMP:
+        case EV_TC_SET_REFERENCE_TEMP:
         {
             // TRACE("ADA: Reference temperature set\n");
             // TODO: Implement event
             break;
         }
-        case EV_SET_REF_ALT:
+        case EV_TC_SET_REFERENCE_ALTITUDE:
         {
             // TRACE("ADA: Reference altitude set\n");
             // TODO: Implement event
@@ -322,15 +322,15 @@ void ADA::stateIdle(const Event& ev)
         }
         case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentAltitudeEvent& dpl_ev =
-                static_cast<const DeploymentAltitudeEvent&>(ev);
+            const ConfigurationEvent& dpl_ev =
+                static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
             break;
         }
-        case EV_TC_RESET_CALIBRATION:
+        case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
             transition(&ADA::stateCalibrating);

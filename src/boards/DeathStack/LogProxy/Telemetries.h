@@ -76,6 +76,8 @@ struct Telemetries
 
     mavlink_hr_tm_t hr_tm;
     mavlink_lr_tm_t lr_tm;
+
+    mavlink_test_tm_t test_tm;
 };
 
 extern Telemetries tm_repository;

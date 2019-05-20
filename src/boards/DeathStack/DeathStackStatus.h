@@ -24,6 +24,8 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
+#include <string>
 
 namespace DeathStackBoard
 {
@@ -36,7 +38,7 @@ enum DeathStackComponentStatus
 
 struct DeathStackStatus
 {
-    //Logic OR of all components errors.
+    // Logic OR of all components errors.
     uint8_t death_stack = COMP_OK;
 
     uint8_t logger         = COMP_OK;
@@ -48,17 +50,31 @@ struct DeathStackStatus
     uint8_t tmtc           = COMP_OK;
     uint8_t ign            = COMP_OK;
     uint8_t dpl            = COMP_OK;
+    uint8_t rogallo        = COMP_OK;
 
     /**
      * @brief Helper method to signal an error in the DeathStackStatus struct.
-     * 
+     *
      * @param component_status Pointer to a member of DeathStackStatus
      * Eg: setError(&DeathStackStatus::dpl)
      */
     void setError(uint8_t DeathStackStatus::*component_status)
     {
         this->*component_status = COMP_ERROR;
-        death_stack = COMP_ERROR;
+        death_stack             = COMP_ERROR;
+    }
+
+    static std::string header()
+    {
+        return "logger,ev_broker,pin_obs,fmm,sensor_manager,ada,tmtc,ign,dpl,"
+               "rogallo\n";
+    }
+
+    void print(std::ostream& os)
+    {
+        os << logger << "," << ev_broker << "," << pin_obs << "," << fmm << ","
+           << sensor_manager << "," << ada << "," << tmtc << "," << ign << ","
+           << dpl << "," << rogallo << "\n";
     }
 };
 }  // namespace DeathStackBoard

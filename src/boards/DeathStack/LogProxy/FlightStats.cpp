@@ -50,7 +50,7 @@ void FlightStats::update(const KalmanState& t)
         {
             break;
         }
-        case State::APOGEE:
+        case State::ASCENDING:
         {
             if (t.x0 < apogee_stats.kalman_min_pressure)
             {
@@ -87,7 +87,7 @@ void FlightStats::update(const KalmanAltitude& t)
             }
             break;
         }
-        case State::APOGEE:
+        case State::ASCENDING:
         {
             if (t.altitude > apogee_stats.baro_max_altitude)
             {
@@ -123,7 +123,7 @@ void FlightStats::update(const AD7994WrapperData& t)
         {
             break;
         }
-        case State::APOGEE:
+        case State::ASCENDING:
         {
             if (t.nxp_baro_pressure < apogee_stats.nxp_min_pressure)
             {
@@ -145,7 +145,7 @@ void FlightStats::update(const AD7994WrapperData& t)
         }
     }
 }
-void FlightStats::update(const ADIS16405Data& t)
+void FlightStats::update(const MPU9250Data& t)
 {
     switch (state)
     {
@@ -155,23 +155,23 @@ void FlightStats::update(const ADIS16405Data& t)
         }
         case State::LIFTOFF:
         {
-            if (fabs(t.zaccl_out) > liftoff_stats.acc_max)
+            if (fabs(t.accel.getZ()) > liftoff_stats.acc_max)
             {
                 liftoff_stats.T_max_acc =
                     static_cast<uint32_t>(miosix::getTick());
-                liftoff_stats.acc_max = fabs(t.zaccl_out);
+                liftoff_stats.acc_max = fabs(t.accel.getZ());
             }
             break;
         }
-        case State::APOGEE:
+        case State::ASCENDING:
         {
             break;
         }
         case State::DROGUE_DPL:
         {
-            if (fabs(t.zaccl_out) > drogue_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > drogue_dpl_stats.max_dpl_acc)
             {
-                drogue_dpl_stats.max_dpl_acc = fabs(t.zaccl_out);
+                drogue_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
                 drogue_dpl_stats.T_dpl =
                     static_cast<uint32_t>(miosix::getTick());
             }
@@ -179,9 +179,9 @@ void FlightStats::update(const ADIS16405Data& t)
         }
         case State::MAIN_DPL:
         {
-            if (fabs(t.zaccl_out) > main_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > main_dpl_stats.max_dpl_acc)
             {
-                main_dpl_stats.max_dpl_acc = fabs(t.zaccl_out);
+                main_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
             }
             break;
         }
@@ -200,7 +200,7 @@ void FlightStats::update(const PiksiData& t)
         {
             break;
         }
-        case State::APOGEE:
+        case State::ASCENDING:
         {
             if (t.gps_data.height > apogee_stats.gps_max_altitude)
             {
@@ -227,6 +227,7 @@ void FlightStats::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
+            TRACE("[FlightStats] Entering IDLE state\n");
             state = State::IDLE;
             try
             {
@@ -243,6 +244,8 @@ void FlightStats::state_idle(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[FlightStats] Exiting IDLE state\n");
+
             break;
         }
         case EV_LIFTOFF:
@@ -267,10 +270,11 @@ void FlightStats::state_liftOff(const Event& ev)
     {
         case EV_ENTRY:
         {
+            TRACE("[FlightStats] Entering LIFTOFF state\n");
             state = State::LIFTOFF;
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_LIFTOFF);
 
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
@@ -278,13 +282,15 @@ void FlightStats::state_liftOff(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[FlightStats] Exiting LIFTOFF state\n");
+
             LoggerProxy::getInstance()->log(liftoff_stats);
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_STATS_TIMEOUT:
+        case EV_FLIGHTSTATS_TIMEOUT:
         {
-            transition(&FlightStats::state_apogee);
+            transition(&FlightStats::state_ascending);
             break;
         }
         default:
@@ -293,17 +299,21 @@ void FlightStats::state_liftOff(const Event& ev)
         }
     }
 }
-void FlightStats::state_apogee(const Event& ev)
+void FlightStats::state_ascending(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            state = State::APOGEE;
+            TRACE("[FlightStats] Entering ASCENDING state\n");
+
+            state = State::ASCENDING;
             break;
         }
         case EV_EXIT:
         {
+            TRACE("[FlightStats] Exiting ASCENDING state\n");
+
             LoggerProxy::getInstance()->log(apogee_stats);
             break;
         }
@@ -326,21 +336,25 @@ void FlightStats::state_drogueDeployment(const Event& ev)
     {
         case EV_ENTRY:
         {
+            TRACE("[FlightStats] Entering DROGUE_DPL state\n");
+
             state = State::DROGUE_DPL;
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_DROGUE_DPL);
             break;
         }
         case EV_EXIT:
         {
+            TRACE("[FlightStats] Entering EXITING state\n");
+
             LoggerProxy::getInstance()->log(drogue_dpl_stats);
 
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_STATS_TIMEOUT:
+        case EV_FLIGHTSTATS_TIMEOUT:
         {
             transition(&FlightStats::state_idle);
             break;
@@ -363,18 +377,28 @@ void FlightStats::state_mainDeployment(const Event& ev)
     {
         case EV_ENTRY:
         {
+            TRACE("[FlightStats] Entering MAIN DPL state\n");
+
             state                = State::MAIN_DPL;
             main_dpl_stats.T_dpl = static_cast<uint32_t>(miosix::getTick());
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_MAIN_DPL);
             break;
         }
         case EV_EXIT:
         {
+            TRACE("[FlightStats] Exiting MAIN DPL state\n");
+
             LoggerProxy::getInstance()->log(main_dpl_stats);
+
             sEventBroker->removeDelayed(ev_timeout_id);
+            break;
+        }
+        case EV_FLIGHTSTATS_TIMEOUT:
+        {
+            transition(&FlightStats::state_idle);
             break;
         }
         default:

@@ -28,6 +28,7 @@
 
 #include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/CpuData.h"
+#include "DeathStack/DeathStackStatus.h"
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
 #include "DeathStack/LogProxy/FlightStatsData.h"
@@ -106,6 +107,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<MavStatus>(print<MavStatus>, MavStatus::header());
 
     ds.registerType<EventLog>(print<EventLog>, EventLog::header());
+    ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
+                                      DeathStackStatus::header());
 }
 
 #endif

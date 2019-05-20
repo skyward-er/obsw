@@ -65,7 +65,7 @@ void PinObserverWrapper::onLaunchPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
-    sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FMM);
+    sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     status_pin_launch.last_detection_time = miosix::getTick();
     logger->log(status_pin_launch);
@@ -75,7 +75,7 @@ void PinObserverWrapper::onNCPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
-    sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FMM);
+    sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     status_pin_nosecone.last_detection_time = miosix::getTick();
     logger->log(status_pin_nosecone);

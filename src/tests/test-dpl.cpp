@@ -12,8 +12,8 @@ using namespace DeathStackBoard;
 
 void onEventReceived(uint8_t event, uint8_t topic)
 {
-    TRACE("%s on %s\n", getEventString(event).c_str(),
-          getTopicString(topic).c_str());
+    TRACE("[%.3f] %s on %s\n", (miosix::getTick() / 1000.0f),
+          getEventString(event).c_str(), getTopicString(topic).c_str());
 }
 
 int main()
