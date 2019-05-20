@@ -129,24 +129,14 @@ private:
      * performing non-critical and intensive tasks.
      */
 
-    /**
-     * @brief Simple, 1 Hz SensorSampler Callback.
-     * Called each time all the sensors in the 1hz sampler have been sampled
-     */
-    void onSimple1HZCallback();
 
     /**
-     * @brief Simple, 20 Hz SensorSampler Callback.
+     * Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
     void onSimple20HZCallback();
     void onSimple250HZCallback();
 
-    /**
-     * @brief DMA, 250 Hz SensorSampler Callback.
-     * Called each time all the sensors in the 250hz sampler have been sampled
-     */
-    void onDMA250HZCallback();
 
     void onGPSCallback();
 

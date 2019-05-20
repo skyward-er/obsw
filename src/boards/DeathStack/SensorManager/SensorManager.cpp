@@ -123,33 +123,14 @@ void SensorManager::initSensors()
     sensor_status.battery_sensor = adc_internal->getBatterySensorPtr()->init();
     sensor_status.current_sensor = adc_internal->getCurrentSensorPtr()->init();
 
-    // Self tests
-    // sensor_status.mpu9250 &= imu_mpu9250->selfTest();
-    // sensor_status.adis &= imu_adis16405->selfTest();
-    sensor_status.lm75b_imu &= temp_lm75b_imu->selfTest();
-    sensor_status.lm75b_analog &= temp_lm75b_analog->selfTest();
-
-    // sensor_status.ad7994 &= adc_ad7994->selfTest();
-
-    // sensor_status.battery_sensor &=
-    //     adc_internal->getBatterySensorPtr()->selfTest();
-    // sensor_status.current_sensor &=
-    //     adc_internal->getCurrentSensorPtr()->selfTest();
-
-    // TODO: lsm6ds3h
-    // TODO: ms5803
-
-    std::cout << SensorStatus::header();
-    sensor_status.print(std::cout);
     status.sensor_status = sensor_status.toNumeric();
 
-    TRACE("Sensor init done\n");
+    TRACE("[SM] Sensor init done\n");
 }
 
 void SensorManager::initSamplers()
 {
     sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
-
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
     sampler_20hz_simple.AddSensor(temp_lm75b_imu);
@@ -158,7 +139,55 @@ void SensorManager::initSamplers()
 
     // Piksi does not inherit from Sensor, so we sample it in a different way
 
-    TRACE("Sampler init done\n");
+    TRACE("[SM] Sampler init done\n");
+}
+
+void SensorManager::initScheduler()
+{
+    /*
+     * std::bind syntax:
+     * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
+     */
+
+
+    std::function<void()> simple_20hz_callback =
+        std::bind(&SensorManager::onSimple20HZCallback, this);
+    std::function<void()> simple_20hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
+                  simple_20hz_callback);
+
+    scheduler.add(simple_20hz_sampler, 50,
+                  static_cast<uint8_t>(
+                      SensorSamplerId::SIMPLE_20HZ)); 
+
+    std::function<void()> simple_250hz_callback =
+        std::bind(&SensorManager::onSimple250HZCallback, this);
+    std::function<void()> simple_250hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback,
+                  &sampler_250hz_simple, simple_250hz_callback);
+
+    scheduler.add(simple_250hz_sampler, 4,
+                  static_cast<uint8_t>(
+                      SensorSamplerId::SIMPLE_250HZ));
+
+    // Lambda expression to collect data from GPS at 10 Hz
+    std::function<void()> gps_callback =
+        std::bind(&SensorManager::onGPSCallback, this);
+
+    scheduler.add(gps_callback, 100,
+                  static_cast<uint8_t>(SensorSamplerId::GPS));
+
+    // Lambda expression callback to log scheduler stats, at 1 Hz
+    scheduler.add(
+        [&]() {
+            scheduler_stats = scheduler.getTaskStats();
+
+            for (TaskStatResult stat : scheduler_stats)
+                logger.log(stat);
+        },
+        1000, static_cast<uint8_t>(SensorSamplerId::STATS));
+
+    TRACE("[SM] Scheduler initialization complete\n");
 }
 
 void SensorManager::stateIdle(const Event& ev)
@@ -168,11 +197,14 @@ void SensorManager::stateIdle(const Event& ev)
         case EV_ENTRY:
             enable_sensor_logging = false;
 
-            TRACE("SM: Entering stateIdle\n");
             status.state = SensorManagerState::IDLE;
             logger.log(status);
+            TRACE("[SM] Entering stateIdle\n");
+
             break;
         case EV_EXIT:
+            TRACE("[SM] Exiting stateIdle\n");
+
             break;
 
         // Perform the transition in both cases
@@ -193,11 +225,16 @@ void SensorManager::stateLogging(const Event& ev)
         case EV_ENTRY:
             enable_sensor_logging = true;
 
-            TRACE("SM: Entering stateLogging\n");
+            
             status.state = SensorManagerState::LOGGING;
             logger.log(status);
+
+            TRACE("[SM] Entering stateLogging\n");
             break;
         case EV_EXIT:
+
+            TRACE("[SM] Exiting stateLogging\n");
+
             break;
 
         // Go back to idle in both cases
@@ -208,72 +245,6 @@ void SensorManager::stateLogging(const Event& ev)
 
         default:
             break;
-    }
-}
-
-void SensorManager::initScheduler()
-{
-    /*
-     * std::bind syntax:
-     * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
-     */
-
-    // Simple 1 Hz Sampler callback and scheduler function
-    std::function<void()> simple_1hz_callback =
-        std::bind(&SensorManager::onSimple1HZCallback, this);
-    std::function<void()> simple_1hz_sampler =
-        std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_1hz_simple,
-                  simple_1hz_callback);
-
-    scheduler.add(simple_1hz_sampler, 1000,
-                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_1HZ));
-
-    std::function<void()> simple_20hz_callback =
-        std::bind(&SensorManager::onSimple20HZCallback, this);
-    std::function<void()> simple_20hz_sampler =
-        std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_20hz_simple,
-                  simple_20hz_callback);
-
-    scheduler.add(simple_20hz_sampler, 50,
-                  static_cast<uint8_t>(
-                      SensorSamplerId::SIMPLE_20HZ));  // TODO: back to 50 ms
-
-    std::function<void()> simple_250hz_callback =
-        std::bind(&SensorManager::onSimple250HZCallback, this);
-    std::function<void()> simple_250hz_sampler =
-        std::bind(&SimpleSensorSampler::UpdateAndCallback,
-                  &sampler_250hz_simple, simple_250hz_callback);
-
-    scheduler.add(simple_250hz_sampler, 4,
-                  static_cast<uint8_t>(
-                      SensorSamplerId::SIMPLE_250HZ));  // TODO: back to 50 ms
-
-    // Lambda expression to collect data from GPS at 10 Hz
-    std::function<void()> gps_callback =
-        std::bind(&SensorManager::onGPSCallback, this);
-
-    scheduler.add(gps_callback, 100,
-                  static_cast<uint8_t>(SensorSamplerId::GPS));
-
-    // Lambda expression callback to log scheduler stats, at 1 Hz
-    scheduler.add(
-        [&]() {
-            scheduler_stats = scheduler.getTaskStats();
-
-            for (TaskStatResult stat : scheduler_stats)
-                logger.log(stat);
-        },
-        1000, static_cast<uint8_t>(SensorSamplerId::STATS));
-
-    TRACE("Scheduler initialization complete\n");
-}
-
-void SensorManager::onSimple1HZCallback()
-{
-    // Log the battery voltage level we just finished sampling.
-    if (enable_sensor_logging)
-    {
-        logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
     }
 }
 
@@ -288,6 +259,7 @@ void SensorManager::onSimple20HZCallback()
 
     if (enable_sensor_logging)
     {
+        logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
         logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
         logger.log(*(ad7994_data));
         logger.log(lm78b_imu_data);
@@ -311,20 +283,6 @@ void SensorManager::onSimple250HZCallback()
     }
 }
 
-void SensorManager::onDMA250HZCallback()
-{
-
-    MPU9250Data mpu9255_data{miosix::getTick(), *(imu_mpu9250->accelDataPtr()),
-                             *(imu_mpu9250->gyroDataPtr()),
-                             *(imu_mpu9250->compassDataPtr()),
-                             *(imu_mpu9250->tempDataPtr())};
-
-    if (enable_sensor_logging)
-    {
-        logger.log(mpu9255_data);
-    }
-}
-
 void SensorManager::onGPSCallback()
 {
     PiksiData data;
@@ -337,11 +295,12 @@ void SensorManager::onGPSCallback()
         // have at least four satellites
         data.fix = data.gps_data.timestamp != last_gps_timestamp &&
                    data.gps_data.numSatellites >= 4;
+
         last_gps_timestamp = data.gps_data.timestamp;
     }
     catch (std::runtime_error rterr)
     {
-        data.fix = true;
+        data.fix = false;
     }
 
     // ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
