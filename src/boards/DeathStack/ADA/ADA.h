@@ -54,27 +54,27 @@ public:
      * 
      * It's critical that this method is called at regualar intervals during the flight. Call frequency is defined in ADA_config.h
      * The behavior of this function changes depending on the ADA state
-     * \param pressure The pressure sample in pascals
-     * \param The temperature sample in kelvin
+     * 
+     * @param pressure The pressure sample in pascals
      */
-    void updateBaro(float pressure, float temperature);
+    void updateBaro(float pressure);
     void updateGPS(double lat, double lon, double z, bool hasFix);
 
     /**
-     * \brief ADA status
-     * \returns A struct containing the time stamp and the ADA state
+     * ADA status
+     * @returns A struct containing the time stamp, the ADA FSM state and several flags
      */
     ADAStatus getStatus() { return status; }
 
     /**
-     * \brief Get the latest state estimated by the Kalman filter
-     * \returns A struct containing three floats representing the three states
+     * Get the latest state estimated by the Kalman filter
+     * @returns A struct containing three floats representing the three states
      */
     KalmanState getKalmanState() { return last_kalman_state; }
 
     /**
-     * \brief Get the calibration parameters
-     * \returns A struct containing average, number and variance of the calibration samples
+     * Get the calibration parameters
+     * @returns A struct containing average, number and variance of the calibration samples
      */
     ADACalibrationData getCalibrationData() { return calibration_data; }
 
@@ -92,11 +92,13 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
-    /** \brief Performs a state update
-     * \param pressure The pressure sample in pascal
+    /** Performs a Kalman state update
+     * @param pressure The pressure sample in pascal
      */
     void updateFilter(float pressure);
 
+    /** Checks if calibration is complete and if this is the case sends the ADA_READY event.
+     */
     void updateCalibration();
 
     /**
@@ -110,9 +112,12 @@ private:
      */
     float updateAltitude(float p, float dp_dt);
 
-    /** \brief Log ADA state
+    /** Update and log ADA FSM state
      */
     void logStatus(ADAState state);
+
+    /** Log the ADA FSM state without updating it
+     */
     void logStatus();
 
     void resetCalibration();
@@ -122,7 +127,10 @@ private:
 
     // Reference pressure at current altitude
     float pressure_ref = 0;
-    float temperature_ref = 0;
+
+    // References for pressure to altitude conversion
+    float temperature_ref = 0;  // Reference temperature in K at launchpad
+    float altitude_ref = 0;     // Reference altitude at launchpad
 
     // Pressure at mean sea level for altitude calculation
     float pressure_0 = 0;
@@ -133,12 +141,8 @@ private:
 
     // Calibration variables
     ADACalibrationData calibration_data;
-
     Stats pressure_stats;
-    Stats temperature_stats;
-    Stats gps_altitude_stats;
-
-    FastMutex calib_mutex;
+    FastMutex calib_mutex; // Mutex for pressure_stats
 
     // ADA status: timestamp + state
     ADAStatus status;         

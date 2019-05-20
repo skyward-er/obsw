@@ -70,6 +70,8 @@ struct ADAStatus
     long long timestamp;
     ADAState state            = ADAState::UNDEFINED;
     bool dpl_altitude_set     = false;
+    bool ref_altitude_set     = false;
+    bool ref_temp_set         = false;
     bool apogee_reached       = false;
     bool dpl_altitude_reached = false;
 
@@ -149,31 +151,18 @@ struct TargetDeploymentAltitude
 struct ADACalibrationData
 {
     StatsResult pressure_calib;
-    StatsResult temperature_calib;
-    StatsResult gps_altitude_calib;
 
     static std::string header()
     {
         return "pressure_calib.minValue,pressure_calib.maxValue,pressure_calib."
-               "mean,pressure_calib.stdev,pressure_calib.nSamples,temperature_"
-               "calib.minValue,temperature_calib.maxValue,"
-               "temperature_calib.mean,temperature_calib.stdev,"
-               "temperature_calib.nSamples,gps_altitude_calib.minValue,"
-               "gps_altitude_calib.maxValue,gps_altitude_calib.mean,"
-               "gps_altitude_calib.stdev,gps_altitude_calib.nSamples\n";
+               "mean,pressure_calib.stdev,pressure_calib.nSamples\n";
     }
 
     void print(std::ostream& os) const
     {
         os << pressure_calib.minValue << "," << pressure_calib.maxValue << ","
            << pressure_calib.mean << "," << pressure_calib.stdev << ","
-           << pressure_calib.nSamples << "," << temperature_calib.minValue
-           << "," << temperature_calib.maxValue << "," << temperature_calib.mean
-           << "," << temperature_calib.stdev << ","
-           << temperature_calib.nSamples << "," << gps_altitude_calib.minValue
-           << "," << gps_altitude_calib.maxValue << ","
-           << gps_altitude_calib.mean << "," << gps_altitude_calib.stdev << ","
-           << gps_altitude_calib.nSamples << "\n";
+           << pressure_calib.nSamples << "\n";
     }
 };
 

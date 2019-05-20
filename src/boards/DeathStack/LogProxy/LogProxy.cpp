@@ -397,19 +397,9 @@ LogResult LoggerProxy::log<ADACalibrationData>(const ADACalibrationData& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.ada_tm.ref_altitude_mean   = t.gps_altitude_calib.mean;
-        tm_repository.ada_tm.ref_altitude_stddev = t.gps_altitude_calib.stdev;
-        tm_repository.ada_tm.ref_altitude_nsamples =
-            t.gps_altitude_calib.nSamples;
-
         tm_repository.ada_tm.ref_pressure_mean     = t.pressure_calib.mean;
         tm_repository.ada_tm.ref_pressure_stddev   = t.pressure_calib.stdev;
         tm_repository.ada_tm.ref_pressure_nsamples = t.pressure_calib.nSamples;
-
-        tm_repository.ada_tm.ref_temperature_mean   = t.temperature_calib.mean;
-        tm_repository.ada_tm.ref_temperature_stddev = t.temperature_calib.stdev;
-        tm_repository.ada_tm.ref_temperature_nsamples =
-            t.temperature_calib.nSamples;
     }
     return logger.log(t);
 }

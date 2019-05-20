@@ -42,6 +42,10 @@
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 
+#ifdef USE_MOCK_SENSORS
+#include "Sensors/Test/MockPressureSensor.h"
+#endif
+
 #include "Debug.h"
 
 #include "interfaces-impl/hwmapping.h"
@@ -82,7 +86,7 @@ bool SensorManager::start()
 
     // Start the scheduler
     ok = ok && scheduler.start();
-    
+
     return ok;
 }
 
@@ -104,7 +108,11 @@ void SensorManager::initSensors()
 
     piksi = new Piksi("/dev/gps");
 
-    // // Some sensors dont have init or self tests
+#ifdef USE_MOCK_SENSORS
+    mock_pressure_sensor = new MockPressureSensor();
+#endif
+
+    // Some sensors dont have init or self tests
     sensor_status.piksi = 1;
 
     // Initialization
@@ -133,6 +141,10 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
+#ifdef USE_MOCK_SENSORS
+    sampler_20hz_simple.AddSensor(mock_pressure_sensor);
+#endif
+
     sampler_20hz_simple.AddSensor(temp_lm75b_imu);
     sampler_20hz_simple.AddSensor(temp_lm75b_analog);
     sampler_250hz_simple.AddSensor(imu_mpu9250);
@@ -149,7 +161,6 @@ void SensorManager::initScheduler()
      * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
      */
 
-
     std::function<void()> simple_20hz_callback =
         std::bind(&SensorManager::onSimple20HZCallback, this);
     std::function<void()> simple_20hz_sampler =
@@ -157,8 +168,7 @@ void SensorManager::initScheduler()
                   simple_20hz_callback);
 
     scheduler.add(simple_20hz_sampler, 50,
-                  static_cast<uint8_t>(
-                      SensorSamplerId::SIMPLE_20HZ)); 
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ));
 
     std::function<void()> simple_250hz_callback =
         std::bind(&SensorManager::onSimple250HZCallback, this);
@@ -167,8 +177,7 @@ void SensorManager::initScheduler()
                   &sampler_250hz_simple, simple_250hz_callback);
 
     scheduler.add(simple_250hz_sampler, 4,
-                  static_cast<uint8_t>(
-                      SensorSamplerId::SIMPLE_250HZ));
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ));
 
     // Lambda expression to collect data from GPS at 10 Hz
     std::function<void()> gps_callback =
@@ -199,8 +208,8 @@ void SensorManager::stateIdle(const Event& ev)
 
             status.state = SensorManagerState::IDLE;
             logger.log(status);
-            TRACE("[SM] Entering stateIdle\n");
 
+            TRACE("[SM] Entering stateIdle\n");
             break;
         case EV_EXIT:
             TRACE("[SM] Exiting stateIdle\n");
@@ -210,6 +219,16 @@ void SensorManager::stateIdle(const Event& ev)
         // Perform the transition in both cases
         case EV_TC_START_SENSOR_LOGGING:
         case EV_LIFTOFF:
+
+#ifdef USE_MOCK_SENSORS
+            // Signal to the mock pressure sensor that we have liftoff in order
+            // to start simulating flight pressures
+            if (ev.sig == EV_LIFTOFF)
+            {
+                mock_pressure_sensor->before_liftoff = false;
+            }
+            break;
+#endif
             transition(&SensorManager::stateLogging);
             break;
 
@@ -225,7 +244,6 @@ void SensorManager::stateLogging(const Event& ev)
         case EV_ENTRY:
             enable_sensor_logging = true;
 
-            
             status.state = SensorManagerState::LOGGING;
             logger.log(status);
 
@@ -236,7 +254,13 @@ void SensorManager::stateLogging(const Event& ev)
             TRACE("[SM] Exiting stateLogging\n");
 
             break;
-
+#ifdef USE_MOCK_SENSORS
+        // Signal to the mock pressure sensor that we have liftoff in order
+        // to start simulating flight pressures
+        case EV_LIFTOFF:
+            mock_pressure_sensor->before_liftoff = false;
+            break;
+#endif
         // Go back to idle in both cases
         case EV_TC_STOP_SENSOR_LOGGING:
         case EV_LANDED:
@@ -256,6 +280,10 @@ void SensorManager::onSimple20HZCallback()
                                    temp_lm75b_analog->getTemp()};
     LM75BData lm78b_imu_data = {TempSensorId::LM75B_IMU, miosix::getTick(),
                                 temp_lm75b_imu->getTemp()};
+
+#ifdef USE_MOCK_SENSORS
+    ad7994_data->nxp_baro_pressure = *(mock_pressure_sensor->pressureDataPtr());
+#endif
 
     if (enable_sensor_logging)
     {

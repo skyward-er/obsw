@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2018,2019 Skyward Experimental Rocketry
  * Authors: Luca Mozzarelli, Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,14 +28,15 @@
 #include <DeathStack/Topics.h>
 #include <utils/aero/AeroUtils.h>
 
+#include <iostream>
 #include "Debug.h"
-
 using miosix::Lock;
 
 namespace DeathStackBoard
 {
 
 /* --- LIFE CYCLE --- */
+
 ADA::ADA()
     : FSM(&ADA::stateCalibrating),
       filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
@@ -44,69 +45,40 @@ ADA::ADA()
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_ADA);
+
+    status.state = ADAState::CALIBRATING;
+
+    Lock<FastMutex> l(calib_mutex);
+    calibration_data.pressure_calib.nSamples = 0;
 }
 
-void ADA::updateFilter(float pressure)
-{
-    MatrixBase<float, 1, 1> y{pressure};
-    filter.update(y);
-
-    last_kalman_state.x0 = filter.X(0, 0);
-    last_kalman_state.x1 = filter.X(1, 0);
-    last_kalman_state.x2 = filter.X(2, 0);
-
-    logger.log(last_kalman_state);
-}
-
-/* --- INSTANCE METHODS --- */
+/* --- SENSOR UPDATE METHODS --- */
 
 void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
 {
     // Update gps regardless of the current state
+    UNUSED(z);
     rogallo_dts.updateGPS(lat, lon, hasFix);
-
-    if (hasFix)
-    {
-        // Update calibration
-        if (status.state == ADAState::CALIBRATING)
-        {
-            Lock<FastMutex> l(calib_mutex);
-
-            if (calibration_data.gps_altitude_calib.nSamples <
-                CALIBRATION_GPS_N_SAMPLES)
-            {
-                gps_altitude_stats.add(z);
-                calibration_data.gps_altitude_calib =
-                    gps_altitude_stats.getStats();
-
-                logger.log(calibration_data);
-            }
-            else
-            {
-                updateCalibration();
-            }
-        }
-    }
+    TRACE("ADA Update GPS\n");
 }
 
-void ADA::updateBaro(float pressure, float temperature)
+void ADA::updateBaro(float pressure)
 {
     switch (status.state)
     {
         case ADAState::CALIBRATING:
         {
+            TRACE("ADA Update Baro: Calibrating \n");
             Lock<FastMutex> l(calib_mutex);
 
             // Calibrating state: update calibration data if not enough values
             if (calibration_data.pressure_calib.nSamples <
                 CALIBRATION_BARO_N_SAMPLES)
             {
+                TRACE("UPDATING BARO CALIB\n");
                 pressure_stats.add(pressure);
-                temperature_stats.add(temperature);
 
                 calibration_data.pressure_calib = pressure_stats.getStats();
-                calibration_data.temperature_calib =
-                    temperature_stats.getStats();
 
                 // Log calibration data
                 logger.log(calibration_data);
@@ -114,6 +86,7 @@ void ADA::updateBaro(float pressure, float temperature)
             else
             {
                 updateCalibration();
+                TRACE("BARO CALIB SAMPLE NOT USED\n");
             }
             break;
         }
@@ -121,18 +94,20 @@ void ADA::updateBaro(float pressure, float temperature)
         case ADAState::IDLE:
         {
             // Don't use kalman pressure while we are on the ramp
+            TRACE("ADA Update Baro: Idle \n");
             updateAltitude(pressure, 0);
             break;
         }
 
         case ADAState::SHADOW_MODE:
         {
+            TRACE("ADA Update Baro: Shadow mode \n");
             // Shadow mode state: update kalman, DO NOT send events
             updateFilter(pressure);
             updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
             // Check if the vertical speed is negative
-            if (filter.X(1, 0) < 0)
+            if (filter.X(1, 0) > 0)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -148,7 +123,7 @@ void ADA::updateBaro(float pressure, float temperature)
             updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
             // Check if the vertical speed is negative
-            if (filter.X(1, 0) < 0)
+            if (filter.X(1, 0) > 0)
             {
 
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
@@ -165,6 +140,7 @@ void ADA::updateBaro(float pressure, float temperature)
         case ADAState::END:  // Update rogallo DTS even when ada has completed
                              // its job
         {
+            TRACE("ADA Update Baro: First descent phase \n");
             // Descent state: send notifications for target altitude reached
             updateFilter(pressure);
 
@@ -175,12 +151,14 @@ void ADA::updateBaro(float pressure, float temperature)
         }
         case ADAState::UNDEFINED:
         {
-            TRACE("ADA Update: Undefined state value \n");
+            TRACE("ADA Update Baro: Undefined state value \n");
+            break;
         }
 
         default:
         {
-            TRACE("ADA Update: Unexpected state value \n");
+            TRACE("ADA Update Baro: Unexpected state value \n");
+            break;
         }
     }
 }
@@ -188,32 +166,30 @@ void ADA::updateBaro(float pressure, float temperature)
 void ADA::updateCalibration()
 {
     // Set calibration only if we have enough samples
-    if (calibration_data.gps_altitude_calib.nSamples >=
-            CALIBRATION_GPS_N_SAMPLES &&
-        calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES)
+    if (calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES
+            && status.dpl_altitude_set && status.ref_altitude_set && status.ref_temp_set)
     {
-        // Set reference to the calibration average
-        pressure_ref    = calibration_data.pressure_calib.mean;
-        temperature_ref = calibration_data.temperature_calib.mean;
-
         // TODO: Calibration sanity check
+
+        pressure_ref = pressure_stats.getStats().mean;
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
-            aeroutils::mslPressure(pressure_ref, temperature_ref,
-                                   calibration_data.gps_altitude_calib.mean);
+            aeroutils::mslPressure(pressure_ref, temperature_ref, altitude_ref);
 
         temperature_0 = aeroutils::mslTemperature(
-            temperature_ref, calibration_data.gps_altitude_calib.mean);
+            temperature_ref, altitude_ref);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
+        filter.X(1, 0) = 0;
+        filter.X(2, 0) = 0;
 
         // Log reference values
         ReferenceValues rf;
         rf.msl_pressure    = pressure_0;
         rf.msl_temperature = temperature_0;
-        rf.ref_altitude    = calibration_data.gps_altitude_calib.mean;
+        rf.ref_altitude    = altitude_ref;
         rf.ref_pressure    = pressure_ref;
         rf.ref_temperature = temperature_ref;
 
@@ -223,6 +199,48 @@ void ADA::updateCalibration()
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
     }
 }
+
+void ADA::updateFilter(float pressure)
+{
+    MatrixBase<float, 1, 1> y{pressure};
+    filter.update(y);
+
+    last_kalman_state.x0 = filter.X(0, 0);
+    last_kalman_state.x1 = filter.X(1, 0);
+    last_kalman_state.x2 = filter.X(2, 0);
+
+    logger.log(last_kalman_state);
+}
+
+void ADA::resetCalibration()
+{
+    Lock<FastMutex> l(calib_mutex);
+
+    pressure_stats.reset();
+
+    calibration_data.pressure_calib     = pressure_stats.getStats();
+}
+
+float ADA::updateAltitude(float p, float dp_dt)
+{
+    if (p > 0)
+    {
+        KalmanAltitude kalt;
+        kalt.altitude = aeroutils::relAltitude(p, pressure_0, temperature_0);
+
+        kalt.vert_speed =
+            aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
+
+        kalt.timestamp = miosix::getTick();
+
+        logger.log(kalt);
+
+        return kalt.altitude;
+    }
+    return 0;
+}
+
+/* --- LOGGER HELPERS --- */
 
 void ADA::logStatus(ADAState state)
 {
@@ -278,6 +296,27 @@ void ADA::stateCalibrating(const Event& ev)
             rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
+            TRACE("ADA: Deployment altitude set\n");
+            break;
+        }
+        case EV_TC_SET_REFERENCE_TEMP:
+        {
+            const ConfigurationEvent& temp_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            temperature_ref = temp_ev.config;
+            status.ref_temp_set = true;
+            logStatus();
+            TRACE("ADA: Reference temperature set\n");
+            break;
+        }
+        case EV_TC_SET_REFERENCE_ALTITUDE:
+        {
+            const ConfigurationEvent& alt_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            altitude_ref = alt_ev.config;
+            status.ref_altitude_set = true;
+            logStatus();
+            TRACE("ADA: Reference altitude set\n");
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -287,7 +326,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateCalibrating: %d event not handled", ev.sig);
+            TRACE("ADA stateCalibrating: %d event not handled\n\n", ev.sig);
             break;
         }
     }
@@ -330,6 +369,25 @@ void ADA::stateIdle(const Event& ev)
             logStatus();
             break;
         }
+        case EV_TC_SET_REFERENCE_TEMP:
+        {
+            const ConfigurationEvent& temp_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            temperature_ref = temp_ev.config;
+            status.ref_temp_set = true;
+            logStatus();
+            TRACE("ADA: Reference temperature set\n");
+            break;
+        }
+        case EV_TC_SET_REFERENCE_ALTITUDE:
+        {
+            const ConfigurationEvent& alt_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            altitude_ref = alt_ev.config;
+            status.ref_altitude_set = true;
+            TRACE("ADA: Reference altitude set\n");
+            break;
+        }
         case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
@@ -338,7 +396,7 @@ void ADA::stateIdle(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateIdle: %d event not handled", ev.sig);
+            TRACE("ADA stateIdle: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -377,7 +435,7 @@ void ADA::stateShadowMode(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateShadowMode: %d event not handled", ev.sig);
+            TRACE("ADA stateShadowMode: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -416,7 +474,7 @@ void ADA::stateActive(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateActive: %d event not handled", ev.sig);
+            TRACE("ADA stateActive: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -459,7 +517,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateFirstDescentPhase: %d event not handled", ev.sig);
+            TRACE("ADA stateFirstDescentPhase: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -488,42 +546,10 @@ void ADA::stateEnd(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateEnd: %d event not handled", ev.sig);
+            TRACE("ADA stateEnd: %d event not handled\n", ev.sig);
             break;
         }
     }
-}
-
-void ADA::resetCalibration()
-{
-    Lock<FastMutex> l(calib_mutex);
-
-    pressure_stats.reset();
-    temperature_stats.reset();
-    gps_altitude_stats.reset();
-
-    calibration_data.pressure_calib     = pressure_stats.getStats();
-    calibration_data.temperature_calib  = temperature_stats.getStats();
-    calibration_data.gps_altitude_calib = gps_altitude_stats.getStats();
-}
-
-float ADA::updateAltitude(float p, float dp_dt)
-{
-    if (p > 0)
-    {
-        KalmanAltitude kalt;
-        kalt.altitude = aeroutils::relAltitude(p, pressure_0, temperature_0);
-
-        kalt.vert_speed =
-            aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
-
-        kalt.timestamp = miosix::getTick();
-
-        logger.log(kalt);
-
-        return kalt.altitude;
-    }
-    return 0;
 }
 
 }  // namespace DeathStackBoard
