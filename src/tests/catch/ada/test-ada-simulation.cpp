@@ -80,7 +80,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     // Send baro calibration samples 
     for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES+5; i++)
     {
-        ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]), 15+273.15);
+        ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     }
 
     // Should still be in calibrating
@@ -88,8 +88,8 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     CHECK(ada->testState(&ADA::stateCalibrating));
 
     // Send set deployment altitude
-    DeploymentAltitudeEvent ev;
-    ev.dplAltitude = 100;
+    ConfigurationEvent ev;
+    ev.config = 100;
     ev.sig = EV_TC_SET_DPL_ALTITUDE;
     sEventBroker->post(ev, TOPIC_TC);
 
@@ -97,11 +97,19 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     Thread::sleep(100);
     CHECK(ada->testState(&ADA::stateCalibrating));
 
-    // Send gps calibration samples
-    for (unsigned i = 0; i < CALIBRATION_GPS_N_SAMPLES+5; i++)
-    {
-        ada->updateGPS(0,0,0, true);
-    }
+    // Send set altitude ref
+    ev.config = 100;
+    ev.sig = EV_TC_SET_REFERENCE_ALTITUDE;
+    sEventBroker->post(ev, TOPIC_TC);
+
+    // Should still be in calibrating
+    Thread::sleep(100);
+    CHECK(ada->testState(&ADA::stateCalibrating));
+
+    // Send set temperature ref
+    ev.config = 15.0f + 273.15f;
+    ev.sig = EV_TC_SET_REFERENCE_TEMP;
+    sEventBroker->post(ev, TOPIC_TC);
 
     // Now we should be in idle
     Thread::sleep(100);
@@ -123,7 +131,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     for (unsigned i = 0; i < DATA_SIZE/2; i++)
     {
         greenLed::high();
-        ada->updateBaro(addNoise(SIMULATED_PRESSURE[i]), 15+273.15);
+        ada->updateBaro(addNoise(SIMULATED_PRESSURE[i]));
         Thread::sleep(100);
         KalmanState state = ada->getKalmanState();
         // std::cout << state.x1 << ", ";
