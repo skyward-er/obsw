@@ -24,6 +24,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <vector>
 
 #include <Common.h>
 
@@ -40,18 +41,21 @@
 
 #include "DeathStack/ADA/ADA.h"
 #include "DeathStack/DeploymentController/Deployment.h"
+#include "DeathStack/DeploymentController/RogalloController.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 #include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/TMTCManager/TMTCManager.h"
-#include "DeathStack/DeploymentController/RogalloController.h"
 #include "DeathStack/System/EventLog.h"
+#include "DeathStack/TMTCManager/TMTCManager.h"
 
 using std::bind;
 
 namespace DeathStackBoard
 {
 
+// Add heres the event that you don't want to be TRACEd in DeathStack.logEvent()
+static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{EV_SEND_HR_TM,
+                                                        EV_SEND_LR_TM};
 /**
  * This file provides a simplified way to initialize and monitor all
  * the components of the DeathStack.
@@ -189,18 +193,31 @@ public:
         delete sniffer;
     }
 
+private:
+    /**
+     * Helpers for debugging purposes
+     */
+
     void logEvent(uint8_t event, uint8_t topic)
     {
         EventLog ev{miosix::getTick(), event, topic};
         logger->log(ev);
 
-        TRACE("%s on %s\n", getEventString(event).c_str(),
-              getTopicString(topic).c_str());
+#ifdef DEBUG
+        // Don't TRACE if event is in the blacklist to avoid cluttering the
+        // serial terminal
+        for (uint8_t bl_ev : TRACE_EVENT_BLACKLIST)
+        {
+            if (bl_ev == event)
+            {
+                return;
+            }
+        }
+        TRACE("[%.3f] %s on %s\n", (miosix::getTick() / 1000.0f),
+              getEventString(event).c_str(), getTopicString(topic).c_str());
+#endif
     }
 
-    /**
-     * Helpers for debugging purposes
-     */
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
 
 private:
