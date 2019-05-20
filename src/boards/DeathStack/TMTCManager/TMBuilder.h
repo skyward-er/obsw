@@ -45,34 +45,42 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
     switch (req_tm)
     {
         case MavTMList::MAV_SYS_TM_ID:
+            tm_repository.sys_tm.timestamp = miosix::getTick();
             mavlink_msg_sys_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.sys_tm));
             break;
         case MavTMList::MAV_FMM_TM_ID:
+            tm_repository.fmm_tm.timestamp = miosix::getTick();
             mavlink_msg_fmm_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.fmm_tm));
             break;
         case MavTMList::MAV_LOGGER_TM_ID:
+            tm_repository.logger_tm.timestamp = miosix::getTick();
             mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
                                          &(tm_repository.logger_tm));
             break;
         case MavTMList::MAV_TMTC_TM_ID:
+            tm_repository.tmtc_tm.timestamp = miosix::getTick();
             mavlink_msg_tmtc_tm_encode(sys_id, comp_id, &m,
                                        &(tm_repository.tmtc_tm));
             break;
         case MavTMList::MAV_SM_TM_ID:
+            tm_repository.sm_tm.timestamp = miosix::getTick();
             mavlink_msg_sm_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.sm_tm));
             break;
         case MavTMList::MAV_DPL_TM_ID:
+            tm_repository.dpl_tm.timestamp = miosix::getTick();
             mavlink_msg_dpl_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.dpl_tm));
             break;
         case MavTMList::MAV_IGN_TM_ID:
+            tm_repository.ign_tm.timestamp = miosix::getTick();
             mavlink_msg_ign_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.ign_tm));
             break;
         case MavTMList::MAV_ADA_TM_ID:
+            tm_repository.ada_tm.timestamp = miosix::getTick();
             mavlink_msg_ada_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.ada_tm));
             break;
@@ -81,18 +89,22 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
                                       &(tm_repository.can_tm));
             break;
         case MavTMList::MAV_ADC_TM_ID:
+            tm_repository.adc_tm.timestamp = miosix::getTick();
             mavlink_msg_adc_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.adc_tm));
             break;
         case MavTMList::MAV_ADIS_TM_ID:
+            tm_repository.adis_tm.timestamp = miosix::getTick();
             mavlink_msg_adis_tm_encode(sys_id, comp_id, &m,
                                        &(tm_repository.adis_tm));
             break;
         case MavTMList::MAV_MPU_TM_ID:
+            tm_repository.mpu_tm.timestamp = miosix::getTick();
             mavlink_msg_mpu_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.mpu_tm));
             break;
         case MavTMList::MAV_GPS_TM_ID:
+            tm_repository.gps_tm.timestamp = miosix::getTick();
             mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.gps_tm));
             break;
@@ -115,7 +127,7 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
         {
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
             break;
-    }
+        }
     }
 
     return m;
