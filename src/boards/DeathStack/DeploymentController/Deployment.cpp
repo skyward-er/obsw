@@ -84,6 +84,8 @@ State DeploymentController::state_idle(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[DPL_CTRL] state_idle EXIT\n");
+
             break;
         }
         case EV_NC_OPEN:
@@ -129,7 +131,10 @@ State DeploymentController::state_openingNosecone(const Event& ev)
         }
         case EV_INIT:
         {
+            TRACE("[DPL_CTRL] state_openingNosecone INIT\n");
+
             retState = transition(&DeploymentController::state_spinning);
+
             break;
         }
         case EV_EXIT:
@@ -139,6 +144,9 @@ State DeploymentController::state_openingNosecone(const Event& ev)
 
             sEventBroker->removeDelayed(ev_min_open_time_id);
             sEventBroker->removeDelayed(ev_open_timeout_id);
+
+            TRACE("[DPL_CTRL] state_openingNosecone EXIT\n");
+
             break;
         }
         case EV_TIMEOUT_MOT_OPEN:
@@ -186,6 +194,8 @@ State DeploymentController::state_spinning(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[DPL_CTRL] state_spinning EXIT\n");
+
             break;
         }
         case EV_NC_DETACHED:
@@ -226,6 +236,8 @@ State DeploymentController::state_awaitingOpenTime(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[DPL_CTRL] state_awaitingOpenTime EXIT\n");
+
             break;
         }
         case EV_MOT_MIN_OPEN_TIME:
@@ -259,6 +271,8 @@ State DeploymentController::state_awaitingDetachment(const Event& ev)
         }
         case EV_EXIT:
         {
+            TRACE("[DPL_CTRL] state_awaitingOpenTime EXIT\n");
+
             break;
         }
         case EV_NC_DETACHED:
