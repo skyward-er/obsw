@@ -102,6 +102,7 @@ private:
 
     uint16_t id_delayed_arm_timeout = 0;
     uint16_t id_delayed_dpl_timeout = 0;
+    uint16_t id_delayed_end_mission_timeout = 0;
 };
 
 }  // namespace DeathStackBoard

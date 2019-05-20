@@ -56,24 +56,21 @@ void FlightModeManager::logState(FMMState current_state)
     logger.log(status);
 }
 
-
 /* Handle TC_BOARD_RESET and TC_FORCE_LIFTOFF (super-state) */
 State FlightModeManager::state_onGround(const Event& ev)
 {
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ON_GROUND);
             TRACE("Entering state_onGround\n");
             break;
         }
-        case EV_INIT:  /* This is a super-state, so move to the first sub-state */
+        case EV_INIT: /* This is a super-state, so move to the first sub-state
+                       */
         {
-            // Announce liftoff to all components
-            sEventBroker->post(Event{EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-
             retState = transition(&FlightModeManager::state_init);
             break;
         }
@@ -91,7 +88,7 @@ State FlightModeManager::state_onGround(const Event& ev)
             retState = transition(&FlightModeManager::state_ascending);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             // Since this is an outer super-state, the parent is HSM_top
             retState = tran_super(&FlightModeManager::Hsm_top);
@@ -107,17 +104,17 @@ State FlightModeManager::state_init(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT);
             TRACE("Entering state_init\n");
             break;
         }
-        case EV_INIT:  /* No sub-states */
+        case EV_INIT: /* No sub-states */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -131,7 +128,7 @@ State FlightModeManager::state_init(const Event& ev)
             retState = transition(&FlightModeManager::state_initDone);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -145,7 +142,7 @@ State FlightModeManager::state_initError(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT_ERROR);
             TRACE("Entering state_initError\n");
@@ -155,7 +152,7 @@ State FlightModeManager::state_initError(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -164,7 +161,7 @@ State FlightModeManager::state_initError(const Event& ev)
             retState = transition(&FlightModeManager::state_initDone);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -173,14 +170,12 @@ State FlightModeManager::state_initError(const Event& ev)
     return retState;
 }
 
-
-
 State FlightModeManager::state_initDone(const Event& ev)
 {
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT_DONE);
             TRACE("Entering state_initDone\n");
@@ -190,11 +185,11 @@ State FlightModeManager::state_initDone(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        case EV_TC_START_CALIB:
+        case EV_TC_CALIBRATE_ADA:
         {
             retState = transition(&FlightModeManager::state_calibrating);
             break;
@@ -204,7 +199,7 @@ State FlightModeManager::state_initDone(const Event& ev)
             retState = transition(&FlightModeManager::state_testing);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -219,17 +214,20 @@ State FlightModeManager::state_calibrating(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::CALIBRATING);
+
+            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+
             TRACE("Entering calibration\n");
             break;
         }
-        case EV_INIT:  /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -238,7 +236,7 @@ State FlightModeManager::state_calibrating(const Event& ev)
             retState = transition(&FlightModeManager::state_disarmed);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -252,21 +250,21 @@ State FlightModeManager::state_disarmed(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::DISARMED);
             TRACE("Entering disarmed\n");
             break;
         }
-        case EV_INIT:  /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        case EV_TC_RESET_CALIB:
+        case EV_TC_CALIBRATE_ADA:
         {
             retState = transition(&FlightModeManager::state_calibrating);
             break;
@@ -276,7 +274,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
             retState = transition(&FlightModeManager::state_armed);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -290,21 +288,18 @@ State FlightModeManager::state_armed(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ARMED);
-
-            // Announce liftoff to all components
-            sEventBroker->post(Event{EV_ARMED}, TOPIC_FLIGHT_EVENTS);
 
             TRACE("Entering armed\n");
             break;
         }
-        case EV_INIT:  /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -313,13 +308,12 @@ State FlightModeManager::state_armed(const Event& ev)
             retState = transition(&FlightModeManager::state_disarmed);
             break;
         }
-        // TODO controllare polarità
         case EV_UMBILICAL_DETACHED:
         {
             retState = transition(&FlightModeManager::state_ascending);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -335,17 +329,20 @@ State FlightModeManager::state_testing(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::TESTING);
+
+            sEventBroker->post({EV_TEST_MODE}, TOPIC_FLIGHT_EVENTS);
+
             TRACE("Entering testing\n");
             break;
         }
-        case EV_INIT:   /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -369,12 +366,17 @@ State FlightModeManager::state_testing(const Event& ev)
             sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
             break;
         }
-        case EV_TC_TEST_SERVO:
+        case EV_TC_START_ROGALLO_CONTROL:
         {
-            // TODO test servo!
+            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL}, TOPIC_DEPLOYMENT);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        case EV_TC_CLOSE_LOG:
+        {
+            logger.stop();
+            break;
+        }
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_onGround);
             break;
@@ -388,29 +390,31 @@ State FlightModeManager::state_flying(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::FLYING);
 
+            sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
             // Start timeout for closing file descriptors
-            sEventBroker->postDelayed({EV_TIMEOUT_END_MISSION}, TOPIC_FMM,
-                                      TIMEOUT_FMM_END_MISSION);
+            id_delayed_end_mission_timeout = sEventBroker->postDelayed(
+                {EV_TIMEOUT_END_MISSION}, TOPIC_FMM, TIMEOUT_FMM_END_MISSION);
 
             TRACE("Entering flying\n");
             break;
         }
-        case EV_INIT: 
+        case EV_INIT:
         {
             retState = transition(&FlightModeManager::state_ascending);
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
+            sEventBroker->removeDelayed(id_delayed_end_mission_timeout);
             break;
         }
         case EV_TC_NC_OPEN:
         {
-            // Open nosecone command sent by GS in case of problems 
+            // Open nosecone command sent by GS in case of problems
             // during flight
             sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
             break;
@@ -421,7 +425,7 @@ State FlightModeManager::state_flying(const Event& ev)
             retState = transition(&FlightModeManager::state_landed);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::Hsm_top);
             break;
@@ -435,17 +439,17 @@ State FlightModeManager::state_ascending(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ASCENDING);
             TRACE("Entering ascending\n");
             break;
         }
-        case EV_INIT:  /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
@@ -458,7 +462,7 @@ State FlightModeManager::state_ascending(const Event& ev)
             retState = transition(&FlightModeManager::state_drogueDescent);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_flying);
             break;
@@ -472,7 +476,7 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::DROGUE_DESCENT);
 
@@ -482,16 +486,18 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
             TRACE("Entering drogueDescent\n");
             break;
         }
-        case EV_INIT:  /* No sub-state */
+        case EV_INIT: /* No sub-state */
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        case EV_TC_MANUAL_MODE:  // Manual mode = we don't trust ADA for deployment
-        case EV_TC_ABORT_ROGALLO: // Abort rogallo = don't deploy, or cut if deployed
+        case EV_TC_MANUAL_MODE:    // Manual mode = we don't trust ADA for
+                                   // deployment
+        case EV_TC_ABORT_ROGALLO:  // Abort rogallo = don't deploy, or cut if
+                                   // deployed
         {
             retState = transition(&FlightModeManager::state_manualDescent);
             break;
@@ -502,7 +508,7 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
             retState = transition(&FlightModeManager::state_rogalloDescent);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_flying);
             break;
@@ -516,7 +522,7 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::TERMINAL_DESCENT);
 
@@ -527,21 +533,27 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        case EV_TC_CUT_FIRST_DROGUE: // if you want to repeat cutting
+        case EV_TC_CUT_FIRST_DROGUE:  // if you want to repeat cutting
         {
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
             break;
         }
-        case EV_TC_CUT_MAIN:       // remove rogallo
+        case EV_TC_CUT_MAIN:  // remove rogallo
         {
             sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        case EV_TC_START_ROGALLO_CONTROL:
+        {
+            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL}, TOPIC_DEPLOYMENT);
+
+            break;
+        }
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_flying);
             break;
@@ -555,7 +567,7 @@ State FlightModeManager::state_rogalloDescent(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ROGALLO_DESCENT);
 
@@ -569,16 +581,15 @@ State FlightModeManager::state_rogalloDescent(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
         case EV_TC_ABORT_ROGALLO:  // GS doesn't trust rogallo
-        case EV_ABORT_ROGALLO:     // We are not in safe area
         {
             sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_terminalDescent);
             break;
@@ -593,7 +604,7 @@ State FlightModeManager::state_manualDescent(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::MANUAL_DESCENT);
 
@@ -604,11 +615,11 @@ State FlightModeManager::state_manualDescent(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::state_terminalDescent);
             break;
@@ -622,7 +633,7 @@ State FlightModeManager::state_landed(const Event& ev)
     State retState = HANDLED;
     switch (ev.sig)
     {
-        case EV_ENTRY:  /* Executed everytime state is entered */
+        case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::LANDED);
 
@@ -637,11 +648,11 @@ State FlightModeManager::state_landed(const Event& ev)
         {
             break;
         }
-        case EV_EXIT:  /* Executed everytime state is exited */
+        case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
         }
-        default:       /* If an event is not handled here, try with super-state */
+        default: /* If an event is not handled here, try with super-state */
         {
             retState = tran_super(&FlightModeManager::Hsm_top);
             break;
