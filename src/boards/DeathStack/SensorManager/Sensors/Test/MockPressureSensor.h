@@ -27,48 +27,39 @@
 
 namespace DeathStackBoard
 {
-    class MockPressureSensor : public ::PressureSensor
+class MockPressureSensor : public ::PressureSensor
+{
+public:
+    bool init() { return true; }
+
+    bool selfTest() { return true; }
+
+    bool onSimpleUpdate()
     {
-        public:
-        bool init()
+        if (before_liftoff)
         {
-            return true;
+            mLastPressure = addNoise(SIMULATED_PRESSURE[0]);
         }
-
-        bool selfTest()
+        else
         {
-            return true;
+            mLastPressure = addNoise(SIMULATED_PRESSURE[i]);
         }
+        i++;
+        return true;
+    }
 
-        bool onSimpleUpdate()
-        {
-            if (before_liftoff)
-            {
-                 mLastPressure = addNoise(SIMULATED_PRESSURE[0]);
-            }
-            else
-            {
-                mLastPressure = addNoise(SIMULATED_PRESSURE[i]);
-            }
-            i++;
-            return true;
-        }
+    bool before_liftoff = true;
 
-        bool before_liftoff = true;
-        
-        private:
-        int i = 0;      // Last index
-        std::default_random_engine generator{12345};
-        std::normal_distribution<float> distribution{0.0f,50.0f};
+private:
+    int i = 0;  // Last index
+    std::default_random_engine generator{12345};
+    std::normal_distribution<float> distribution{0.0f, 50.0f};
 
-        float addNoise(float sample)
-        {
-            return quantization(sample+distribution(generator));
-        }
+    float addNoise(float sample)
+    {
+        return quantization(sample + distribution(generator));
+    }
 
-        float quantization(float sample)
-        {
-            return round(sample/30)*30;
-        }
-    };
-}
+    float quantization(float sample) { return round(sample / 30) * 30; }
+};
+}  // namespace DeathStackBoard
