@@ -49,9 +49,7 @@ ADA::ADA()
     status.state = ADAState::CALIBRATING;
 
     Lock<FastMutex> l(calib_mutex);
-    calibration_data.pressure_calib.nSamples     = 0;
-    calibration_data.temperature_calib.nSamples  = 0;
-    calibration_data.gps_altitude_calib.nSamples = 0;
+    calibration_data.pressure_calib.nSamples = 0;
 }
 
 void ADA::updateFilter(float pressure)
@@ -71,35 +69,12 @@ void ADA::updateFilter(float pressure)
 void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
 {
     // Update gps regardless of the current state
+    UNUSED(z);
     rogallo_dts.updateGPS(lat, lon, hasFix);
     TRACE("ADA Update GPS\n");
-    if (hasFix)
-    {
-        // Update calibration
-        if (status.state == ADAState::CALIBRATING)
-        {
-            TRACE("ADA UPDATING GPS CALIB\n");
-            Lock<FastMutex> l(calib_mutex);
-
-            if (calibration_data.gps_altitude_calib.nSamples <
-                CALIBRATION_GPS_N_SAMPLES)
-            {
-                gps_altitude_stats.add(z);
-                calibration_data.gps_altitude_calib =
-                    gps_altitude_stats.getStats();
-
-                logger.log(calibration_data);
-            }
-            else
-            {
-                TRACE("ADA Update GPS: sample not used\n");
-                updateCalibration();
-            }
-        }
-    }
 }
 
-void ADA::updateBaro(float pressure, float temperature)
+void ADA::updateBaro(float pressure)
 {
     switch (status.state)
     {
@@ -114,11 +89,8 @@ void ADA::updateBaro(float pressure, float temperature)
             {
                 TRACE("UPDATING BARO CALIB\n");
                 pressure_stats.add(pressure);
-                temperature_stats.add(temperature);
 
                 calibration_data.pressure_calib = pressure_stats.getStats();
-                calibration_data.temperature_calib =
-                    temperature_stats.getStats();
 
                 // Log calibration data
                 logger.log(calibration_data);
@@ -206,25 +178,18 @@ void ADA::updateBaro(float pressure, float temperature)
 void ADA::updateCalibration()
 {
     // Set calibration only if we have enough samples
-    if (calibration_data.gps_altitude_calib.nSamples >=
-            CALIBRATION_GPS_N_SAMPLES &&
-        calibration_data.pressure_calib.nSamples >=
+    if (calibration_data.pressure_calib.nSamples >=
             CALIBRATION_BARO_N_SAMPLES &&
         status.dpl_altitude_set)
     {
-        // Set reference to the calibration average
-        pressure_ref    = calibration_data.pressure_calib.mean;
-        temperature_ref = calibration_data.temperature_calib.mean;
-
         // TODO: Calibration sanity check
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
-            aeroutils::mslPressure(pressure_ref, temperature_ref,
-                                   calibration_data.gps_altitude_calib.mean);
+            aeroutils::mslPressure(pressure_ref, temperature_ref, altitude_ref);
 
         temperature_0 = aeroutils::mslTemperature(
-            temperature_ref, calibration_data.gps_altitude_calib.mean);
+            temperature_ref, altitude_ref);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
@@ -235,7 +200,7 @@ void ADA::updateCalibration()
         ReferenceValues rf;
         rf.msl_pressure    = pressure_0;
         rf.msl_temperature = temperature_0;
-        rf.ref_altitude    = calibration_data.gps_altitude_calib.mean;
+        rf.ref_altitude    = altitude_ref;
         rf.ref_pressure    = pressure_ref;
         rf.ref_temperature = temperature_ref;
 
@@ -300,12 +265,24 @@ void ADA::stateCalibrating(const Event& ev)
             rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
             status.dpl_altitude_set = true;
             logStatus();
-            TRACE("DPL ALTITUDE SET \n");
+            TRACE("ADA: Deployment altitude set\n");
             break;
         }
         case EV_TC_RESET_CALIBRATION:
         {
             resetCalibration();
+            break;
+        }
+        case EV_SET_REF_TEMP:
+        {
+            // TRACE("ADA: Reference temperature set\n");
+            // TODO: Implement event
+            break;
+        }
+        case EV_SET_REF_ALT:
+        {
+            // TRACE("ADA: Reference altitude set\n");
+            // TODO: Implement event
             break;
         }
         default:
@@ -522,12 +499,8 @@ void ADA::resetCalibration()
     Lock<FastMutex> l(calib_mutex);
 
     pressure_stats.reset();
-    temperature_stats.reset();
-    gps_altitude_stats.reset();
 
     calibration_data.pressure_calib     = pressure_stats.getStats();
-    calibration_data.temperature_calib  = temperature_stats.getStats();
-    calibration_data.gps_altitude_calib = gps_altitude_stats.getStats();
 }
 
 float ADA::updateAltitude(float p, float dp_dt)
