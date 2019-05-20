@@ -196,7 +196,7 @@ void ADA::updateCalibration()
         pressure_ref    = calibration_data.pressure_calib.mean;
         temperature_ref = calibration_data.temperature_calib.mean;
 
-        //TODO: Calibration sanity check
+        // TODO: Calibration sanity check
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
@@ -211,10 +211,10 @@ void ADA::updateCalibration()
 
         // Log reference values
         ReferenceValues rf;
-        rf.msl_pressure = pressure_0;
+        rf.msl_pressure    = pressure_0;
         rf.msl_temperature = temperature_0;
-        rf.ref_altitude = calibration_data.gps_altitude_calib.mean;
-        rf.ref_pressure = pressure_ref;
+        rf.ref_altitude    = calibration_data.gps_altitude_calib.mean;
+        rf.ref_pressure    = pressure_ref;
         rf.ref_temperature = temperature_ref;
 
         logger.log(rf);
@@ -272,15 +272,15 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentAltitudeEvent& dpl_ev =
-                static_cast<const DeploymentAltitudeEvent&>(ev);
+            const ConfigurationEvent& dpl_ev =
+                static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
             break;
         }
-        case EV_TC_RESET_CALIBRATION:
+        case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
             break;
@@ -322,15 +322,15 @@ void ADA::stateIdle(const Event& ev)
         }
         case EV_TC_SET_DPL_ALTITUDE:
         {
-            const DeploymentAltitudeEvent& dpl_ev =
-                static_cast<const DeploymentAltitudeEvent&>(ev);
+            const ConfigurationEvent& dpl_ev =
+                static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.dplAltitude);
+            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
             break;
         }
-        case EV_TC_RESET_CALIBRATION:
+        case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
             transition(&ADA::stateCalibrating);
@@ -408,8 +408,8 @@ void ADA::stateActive(const Event& ev)
             break;
         }
         case EV_APOGEE:
-        case EV_ADA_APOGEE_DETECTED: // TODO: Remove this
-        #warning "Remove EV_ADA_APOGEE_DETECTED in ADA stateActive"
+        case EV_ADA_APOGEE_DETECTED:  // TODO: Remove this
+#warning "Remove EV_ADA_APOGEE_DETECTED in ADA stateActive"
         {
             transition(&ADA::stateFirstDescentPhase);
             break;
@@ -509,20 +509,20 @@ void ADA::resetCalibration()
 
 float ADA::updateAltitude(float p, float dp_dt)
 {
-    if(p> 0)
+    if (p > 0)
     {
         KalmanAltitude kalt;
-        kalt.altitude = aeroutils::relAltitude(p, pressure_0,
-                                                    temperature_0);
-        
-        kalt.vert_speed = aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
-        
+        kalt.altitude = aeroutils::relAltitude(p, pressure_0, temperature_0);
+
+        kalt.vert_speed =
+            aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
+
         kalt.timestamp = miosix::getTick();
 
         logger.log(kalt);
 
         return kalt.altitude;
-    }  
+    }
     return 0;
 }
 

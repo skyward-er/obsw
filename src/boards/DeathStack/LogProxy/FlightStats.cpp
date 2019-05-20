@@ -274,7 +274,7 @@ void FlightStats::state_liftOff(const Event& ev)
             state = State::LIFTOFF;
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_LIFTOFF);
 
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
@@ -288,7 +288,7 @@ void FlightStats::state_liftOff(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_STATS_TIMEOUT:
+        case EV_FLIGHTSTATS_TIMEOUT:
         {
             transition(&FlightStats::state_ascending);
             break;
@@ -341,7 +341,7 @@ void FlightStats::state_drogueDeployment(const Event& ev)
             state = State::DROGUE_DPL;
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_DROGUE_DPL);
             break;
         }
@@ -354,7 +354,7 @@ void FlightStats::state_drogueDeployment(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_STATS_TIMEOUT:
+        case EV_FLIGHTSTATS_TIMEOUT:
         {
             transition(&FlightStats::state_idle);
             break;
@@ -383,7 +383,7 @@ void FlightStats::state_mainDeployment(const Event& ev)
             main_dpl_stats.T_dpl = static_cast<uint32_t>(miosix::getTick());
 
             ev_timeout_id = sEventBroker->postDelayed(
-                {EV_STATS_TIMEOUT}, TOPIC_STATS,
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_STATE_MAIN_DPL);
             break;
         }
@@ -396,7 +396,7 @@ void FlightStats::state_mainDeployment(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_STATS_TIMEOUT:
+        case EV_FLIGHTSTATS_TIMEOUT:
         {
             transition(&FlightStats::state_idle);
             break;

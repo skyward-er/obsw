@@ -70,12 +70,7 @@ int main()
     sEventBroker->start();
     mgr.start();
 
-    sEventBroker->post({EV_TC_START_LOGGING}, TOPIC_TC);
-
-    DeploymentAltitudeEvent dpl_ev;
-    dpl_ev.dplAltitude = 1000;
-    dpl_ev.sig         = EV_TC_SET_DPL_ALTITUDE;
-    // sEventBroker->post(dpl_ev, TOPIC_TC);
+    sEventBroker->post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
 
     printf("Wait for calibration to complete.\n");
 
