@@ -57,8 +57,6 @@ LogResult LoggerProxy::log<DeathStackStatus>(const DeathStackStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.sys_tm.timestamp = miosix::getTick();
-
         tm_repository.sys_tm.death_stack    = t.death_stack;
         tm_repository.sys_tm.logger         = t.logger;
         tm_repository.sys_tm.ev_broker      = t.ev_broker;
@@ -80,8 +78,7 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.fmm_tm.timestamp = t.timestamp;
-        tm_repository.fmm_tm.state     = static_cast<uint8_t>(t.state);
+        tm_repository.fmm_tm.state = static_cast<uint8_t>(t.state);
 
         // HR TM
         // bitfield_1 is a decimal digit field: every decimal digit has
@@ -140,7 +137,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 uint8_t d0 = t.state;
 
                 // Write back
-                tm_repository.hr_tm.bitfield_2 = d0 + d1* 10 + d2 * 100;
+                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
                 break;
             }
             case ObservedPin::NOSECONE:
@@ -206,7 +203,6 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.ign_tm.timestamp  = t.timestamp;
         tm_repository.ign_tm.fsm_state  = t.fsm_state;
         tm_repository.ign_tm.last_event = t.last_event;
 
@@ -229,7 +225,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.logger_tm.timestamp           = t.timestamp;
+        tm_repository.logger_tm.statLogNumber       = t.logNumber;
         tm_repository.logger_tm.statTooLargeSamples = t.statTooLargeSamples;
         tm_repository.logger_tm.statDroppedSamples  = t.statDroppedSamples;
         tm_repository.logger_tm.statQueuedSamples   = t.statQueuedSamples;
@@ -252,7 +248,6 @@ LogResult LoggerProxy::log<MavStatus>(
         miosix::PauseKernelLock kLock;
 
         // mavchannel stats
-        tm_repository.tmtc_tm.timestamp      = t.timestamp;
         tm_repository.tmtc_tm.n_send_queue   = t.n_send_queue;
         tm_repository.tmtc_tm.max_send_queue = t.max_send_queue;
         tm_repository.tmtc_tm.n_send_errors  = t.n_send_errors;
@@ -279,7 +274,6 @@ LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.sm_tm.timestamp    = t.timestamp;
         tm_repository.sm_tm.sensor_state = t.sensor_status;
         tm_repository.sm_tm.state        = (uint8_t)t.state;
     }
@@ -292,7 +286,6 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.dpl_tm.timestamp    = t.timestamp;
         tm_repository.dpl_tm.fsm_state    = (uint8_t)t.state;
         tm_repository.dpl_tm.motor_active = t.motor_status.motor_active;
         tm_repository.dpl_tm.motor_last_direction =
@@ -327,8 +320,7 @@ LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.ada_tm.timestamp = t.timestamp;
-        tm_repository.ada_tm.state     = (uint8_t)t.state;
+        tm_repository.ada_tm.state = (uint8_t)t.state;
 
         // HR TM
         // clear most signigicant 3 bits
@@ -446,8 +438,6 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.adc_tm.timestamp = t.timestamp;
-
         tm_repository.adc_tm.nxp_baro_volt     = t.nxp_baro_volt;
         tm_repository.adc_tm.nxp_baro_flag     = t.nxp_baro_flag;
         tm_repository.adc_tm.nxp_baro_pressure = t.nxp_baro_pressure;
@@ -501,8 +491,6 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.adis_tm.timestamp = miosix::getTick();
-
         tm_repository.adis_tm.acc_x      = t.xaccl_out;
         tm_repository.adis_tm.acc_y      = t.yaccl_out;
         tm_repository.adis_tm.acc_z      = t.zaccl_out;
@@ -529,8 +517,6 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 {
     {
         miosix::PauseKernelLock kLock;
-
-        tm_repository.mpu_tm.timestamp = miosix::getTick();
 
         tm_repository.mpu_tm.acc_x     = t.accel.getX();
         tm_repository.mpu_tm.acc_y     = t.accel.getY();
@@ -590,8 +576,6 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         miosix::PauseKernelLock kLock;
 
         // GPS_TM
-        tm_repository.gps_tm.timestamp = t.gps_data.timestamp;
-
         tm_repository.gps_tm.lat          = t.gps_data.latitude;
         tm_repository.gps_tm.lon          = t.gps_data.longitude;
         tm_repository.gps_tm.altitude     = t.gps_data.height;
