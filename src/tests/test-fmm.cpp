@@ -29,15 +29,17 @@
 using namespace miosix;
 using namespace DeathStackBoard;
 
+void printEvent(uint8_t event, uint8_t topic)
+{
+    TRACE("%s on %s\n", getEventString(event).c_str(), getTopicString(topic).c_str());
+}
 int main()
 {
     FlightModeManager* fmm = new FlightModeManager();
     fmm->start();
     sEventBroker->start();
 
-    EventSniffer* sniffer = new EventSniffer(*sEventBroker, 
-                                              getEventString, 
-                                              getTopicString);
+    EventSniffer* sniffer = new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
 
     printf("\nOk\n");
 
