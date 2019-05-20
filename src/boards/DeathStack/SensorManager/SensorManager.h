@@ -26,15 +26,15 @@
 #include "Common.h"
 
 #include <math/Stats.h>
-#include <sensors/SensorSampling.h>
 #include <scheduler/TaskScheduler.h>
+#include <sensors/SensorSampling.h>
 
 #include "DeathStack/LogProxy/LogProxy.h"
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
 
-#include "SensorManagerData.h"
 #include "DeathStack/ADA/ADA.h"
+#include "SensorManagerData.h"
 
 #include <interfaces-impl/hwmapping.h>
 
@@ -61,7 +61,7 @@ namespace DeathStackBoard
 class ADCWrapper;
 class AD7994Wrapper;
 
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
 class MockPressureSensor;
 #endif
 
@@ -87,17 +87,12 @@ public:
     SensorManager(ADA* ada);
     ~SensorManager();
 
-    vector<TaskStatResult> getSchedulerStats()
-    {
-        return scheduler_stats;
-    }
+    vector<TaskStatResult> getSchedulerStats() { return scheduler_stats; }
 
-    SensorManagerStatus getStatus()
-    {
-        return status;
-    }
-    
+    SensorManagerStatus getStatus() { return status; }
+
     bool start() override;
+
 private:
     /**
      * Initialize all the sensors.
@@ -133,14 +128,12 @@ private:
      * performing non-critical and intensive tasks.
      */
 
-
     /**
      * Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
     void onSimple20HZCallback();
     void onSimple250HZCallback();
-
 
     void onGPSCallback();
 
@@ -162,14 +155,14 @@ private:
     LM75BType* temp_lm75b_imu;
     LM75BType* temp_lm75b_analog;
     ADCWrapper* adc_internal;
-    #ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
     MockPressureSensor* mock_pressure_sensor;
-    #endif
+#endif
 
     Piksi* piksi;
     long long last_gps_timestamp = 0;
 
-    //ADA
+    // ADA
     ADA* ada;
 
     // Stats & status

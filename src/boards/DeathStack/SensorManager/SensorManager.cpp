@@ -294,8 +294,7 @@ void SensorManager::onSimple20HZCallback()
         logger.log(lm78b_analog_data);
     }
 
-    // TODO: Choose which barometer to use, add temperature
-    // ada->updateBaro(ad7994_data->nxp_baro_pressure, lm78b_imu_data.temp);
+    ada->updateBaro(ad7994_data->nxp_baro_pressure);
 }
 
 void SensorManager::onSimple250HZCallback()
@@ -331,8 +330,8 @@ void SensorManager::onGPSCallback()
         data.fix = false;
     }
 
-    // ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
-    //                data.gps_data.height, data.fix);
+    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
+                   data.gps_data.height, data.fix);
 
     if (enable_sensor_logging)
     {
