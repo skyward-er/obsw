@@ -299,11 +299,6 @@ void ADA::stateCalibrating(const Event& ev)
             TRACE("ADA: Deployment altitude set\n");
             break;
         }
-        case EV_TC_CALIBRATE_ADA:
-        {
-            resetCalibration();
-            break;
-        }
         case EV_TC_SET_REFERENCE_TEMP:
         {
             const ConfigurationEvent& temp_ev =
@@ -320,7 +315,13 @@ void ADA::stateCalibrating(const Event& ev)
                 static_cast<const ConfigurationEvent&>(ev);
             altitude_ref = alt_ev.config;
             status.ref_altitude_set = true;
+            logStatus();
             TRACE("ADA: Reference altitude set\n");
+            break;
+        }
+        case EV_TC_CALIBRATE_ADA:
+        {
+            resetCalibration();
             break;
         }
         default:

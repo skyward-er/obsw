@@ -92,6 +92,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     ev.config = 100;
     ev.sig = EV_TC_SET_DPL_ALTITUDE;
     sEventBroker->post(ev, TOPIC_TC);
+    ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
     // Should still be in calibrating
     Thread::sleep(100);
@@ -101,6 +102,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     ev.config = 100;
     ev.sig = EV_TC_SET_REFERENCE_ALTITUDE;
     sEventBroker->post(ev, TOPIC_TC);
+    ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
     // Should still be in calibrating
     Thread::sleep(100);
@@ -110,6 +112,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     ev.config = 15.0f + 273.15f;
     ev.sig = EV_TC_SET_REFERENCE_TEMP;
     sEventBroker->post(ev, TOPIC_TC);
+    ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
     // Now we should be in idle
     Thread::sleep(100);
