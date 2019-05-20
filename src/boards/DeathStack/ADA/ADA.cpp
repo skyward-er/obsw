@@ -52,19 +52,7 @@ ADA::ADA()
     calibration_data.pressure_calib.nSamples = 0;
 }
 
-void ADA::updateFilter(float pressure)
-{
-    MatrixBase<float, 1, 1> y{pressure};
-    filter.update(y);
-
-    last_kalman_state.x0 = filter.X(0, 0);
-    last_kalman_state.x1 = filter.X(1, 0);
-    last_kalman_state.x2 = filter.X(2, 0);
-
-    logger.log(last_kalman_state);
-}
-
-/* --- INSTANCE METHODS --- */
+/* --- SENSOR UPDATE METHODS --- */
 
 void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
 {
@@ -178,11 +166,12 @@ void ADA::updateBaro(float pressure)
 void ADA::updateCalibration()
 {
     // Set calibration only if we have enough samples
-    if (calibration_data.pressure_calib.nSamples >=
-            CALIBRATION_BARO_N_SAMPLES &&
-        status.dpl_altitude_set)
+    if (calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES
+            && status.dpl_altitude_set && status.ref_altitude_set && status.ref_temp_set)
     {
         // TODO: Calibration sanity check
+
+        pressure_ref = pressure_stats.getStats().mean;
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
@@ -210,6 +199,48 @@ void ADA::updateCalibration()
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
     }
 }
+
+void ADA::updateFilter(float pressure)
+{
+    MatrixBase<float, 1, 1> y{pressure};
+    filter.update(y);
+
+    last_kalman_state.x0 = filter.X(0, 0);
+    last_kalman_state.x1 = filter.X(1, 0);
+    last_kalman_state.x2 = filter.X(2, 0);
+
+    logger.log(last_kalman_state);
+}
+
+void ADA::resetCalibration()
+{
+    Lock<FastMutex> l(calib_mutex);
+
+    pressure_stats.reset();
+
+    calibration_data.pressure_calib     = pressure_stats.getStats();
+}
+
+float ADA::updateAltitude(float p, float dp_dt)
+{
+    if (p > 0)
+    {
+        KalmanAltitude kalt;
+        kalt.altitude = aeroutils::relAltitude(p, pressure_0, temperature_0);
+
+        kalt.vert_speed =
+            aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
+
+        kalt.timestamp = miosix::getTick();
+
+        logger.log(kalt);
+
+        return kalt.altitude;
+    }
+    return 0;
+}
+
+/* --- LOGGER HELPERS --- */
 
 void ADA::logStatus(ADAState state)
 {
@@ -275,14 +306,21 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_TC_SET_REFERENCE_TEMP:
         {
-            // TRACE("ADA: Reference temperature set\n");
-            // TODO: Implement event
+            const ConfigurationEvent& temp_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            temperature_ref = temp_ev.config;
+            status.ref_temp_set = true;
+            logStatus();
+            TRACE("ADA: Reference temperature set\n");
             break;
         }
         case EV_TC_SET_REFERENCE_ALTITUDE:
         {
-            // TRACE("ADA: Reference altitude set\n");
-            // TODO: Implement event
+            const ConfigurationEvent& alt_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            altitude_ref = alt_ev.config;
+            status.ref_altitude_set = true;
+            TRACE("ADA: Reference altitude set\n");
             break;
         }
         default:
@@ -328,6 +366,25 @@ void ADA::stateIdle(const Event& ev)
             rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
             status.dpl_altitude_set = true;
             logStatus();
+            break;
+        }
+        case EV_TC_SET_REFERENCE_TEMP:
+        {
+            const ConfigurationEvent& temp_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            temperature_ref = temp_ev.config;
+            status.ref_temp_set = true;
+            logStatus();
+            TRACE("ADA: Reference temperature set\n");
+            break;
+        }
+        case EV_TC_SET_REFERENCE_ALTITUDE:
+        {
+            const ConfigurationEvent& alt_ev =
+                static_cast<const ConfigurationEvent&>(ev);
+            altitude_ref = alt_ev.config;
+            status.ref_altitude_set = true;
+            TRACE("ADA: Reference altitude set\n");
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -492,34 +549,6 @@ void ADA::stateEnd(const Event& ev)
             break;
         }
     }
-}
-
-void ADA::resetCalibration()
-{
-    Lock<FastMutex> l(calib_mutex);
-
-    pressure_stats.reset();
-
-    calibration_data.pressure_calib     = pressure_stats.getStats();
-}
-
-float ADA::updateAltitude(float p, float dp_dt)
-{
-    if (p > 0)
-    {
-        KalmanAltitude kalt;
-        kalt.altitude = aeroutils::relAltitude(p, pressure_0, temperature_0);
-
-        kalt.vert_speed =
-            aeroutils::verticalSpeed(p, dp_dt, pressure_0, temperature_0);
-
-        kalt.timestamp = miosix::getTick();
-
-        logger.log(kalt);
-
-        return kalt.altitude;
-    }
-    return 0;
 }
 
 }  // namespace DeathStackBoard
