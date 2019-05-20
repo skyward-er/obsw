@@ -32,8 +32,9 @@
 namespace DeathStackBoard
 {
 
-TMTCManager::TMTCManager() : FSM(&TMTCManager::stateSendingTM)
+TMTCManager::TMTCManager() :FSM(&TMTCManager::stateSendingTM)
 {
+    busSPI2::init();
     enableXbeeInterrupt();
 
     device  = new Xbee_t();
