@@ -26,9 +26,8 @@
  ******************************************************************************
  */
 
-// Generated from:
-// https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-05-19 16:49:52.026455
+// Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
+// Autogen date:    2019-05-20 16:15:05.731880
 
 #ifndef SRC_SHARED_BOARDS_HOMEONE_EVENTS_H
 #define SRC_SHARED_BOARDS_HOMEONE_EVENTS_H
@@ -37,10 +36,10 @@
 #include <string>
 #include <vector>
 
-#include "EventClasses.h"
-#include "Topics.h"
 #include "events/Event.h"
 #include "events/EventBroker.h"
+#include "EventClasses.h"
+#include "Topics.h"
 
 using std::string;
 
@@ -52,51 +51,42 @@ namespace DeathStackBoard
  */
 enum Events : uint8_t
 {
-    EV_ABORT_ROGALLO = EV_FIRST_SIGNAL,
-    EV_ADA_APOGEE_DETECTED,
-    EV_ADA_CALIBRATION_COMPLETE,
+    EV_ADA_APOGEE_DETECTED = EV_FIRST_SIGNAL,
     EV_ADA_DPL_ALT_DETECTED,
     EV_ADA_READY,
-    EV_APOGEE,
-    EV_ARMED,
-    EV_BUTTON_DOWN,
-    EV_BUTTON_UP,
-    EV_BUTTON_SHORT_PRESS,
-    EV_BUTTON_LONG_PRESS,
-    EV_BUTTON_VERY_LONG_PRESS,
+    EV_CALIBRATE_ADA,
     EV_CUT_ALL,
     EV_CUT_DROGUE,
     EV_CUT_MAIN,
-    EV_DPL_ALTITUDE,
-    EV_GS_OFFLINE,
-    EV_IGN_ABORTED,
-    EV_IGN_GETSTATUS,
-    EV_IGN_OFFLINE,
-    EV_INIT_ERROR,
-    EV_INIT_OK,
-    EV_LANDED,
-    EV_LAUNCH,
-    EV_LIFTOFF,
     EV_MOT_MIN_OPEN_TIME,
     EV_MOT_OPEN_LIMIT,
     EV_MOT_CLOSE_LIMIT,
     EV_NC_CLOSE,
     EV_NC_OPEN,
-    EV_NC_DETACHED,
     EV_NC_STOP,
-    EV_NEW_CAN_MSG,
-    EV_STATS_TIMEOUT,
-    EV_SEND_HR_TM,
-    EV_SEND_LR_TM,
-    EV_SEND_POS_TM,
-    EV_TC_ABORT_LAUNCH,
+    EV_APOGEE,
+    EV_DPL_ALTITUDE,
+    EV_INIT_ERROR,
+    EV_INIT_OK,
+    EV_LANDED,
+    EV_LIFTOFF,
+    EV_NC_DETACHED,
+    EV_TEST_MODE,
+    EV_FLIGHTSTATS_TIMEOUT,
+    EV_BUTTON_DOWN,
+    EV_BUTTON_UP,
+    EV_BUTTON_SHORT_PRESS,
+    EV_BUTTON_LONG_PRESS,
+    EV_BUTTON_VERY_LONG_PRESS,
     EV_TC_ABORT_ROGALLO,
+    EV_TC_START_ROGALLO_CONTROL,
     EV_TC_ARM,
     EV_TC_SET_DPL_ALTITUDE,
     EV_TC_BOARD_RESET,
     EV_TC_CUT_MAIN,
     EV_TC_CUT_ALL,
     EV_TC_CUT_FIRST_DROGUE,
+    EV_TC_CLOSE_LOG,
     EV_TC_DISARM,
     EV_TC_END_MISSION,
     EV_TC_FORCE_INIT,
@@ -105,98 +95,37 @@ enum Events : uint8_t
     EV_TC_NC_CLOSE,
     EV_TC_NC_OPEN,
     EV_TC_NC_STOP,
-    EV_TC_START_LOGGING,
-    EV_TC_STOP_LOGGING,
-    EV_TC_RESET_CALIBRATION,
-    EV_TC_SETUP_MODE,
+    EV_TC_START_SENSOR_LOGGING,
+    EV_TC_STOP_SENSOR_LOGGING,
+    EV_TC_SET_REFERENCE_ALTITUDE,
+    EV_TC_SET_REFERENCE_TEMP,
+    EV_TC_CALIBRATE_ADA,
+    EV_TC_TEST_MODE,
+    EV_TC_TEST_SERVO,
     EV_TIMEOUT_APOGEE,
     EV_TIMEOUT_ARM,
     EV_TIMEOUT_CUTTING,
-    EV_TIMEOUT_DPL_ALT,
     EV_TIMEOUT_END_MISSION,
     EV_TIMEOUT_MOT_CLOSE,
     EV_TIMEOUT_MOT_OPEN,
     EV_TIMEOUT_SHADOW_MODE,
     EV_UMBILICAL_DETACHED,
-    EV_TIMEOUT_ADA_CALIBRATION
+    EV_SEND_HR_TM,
+    EV_SEND_LR_TM,
+    EV_SEND_TEST_TM,
+    EV_START_ROGALLO_CONTROL
 };
 
-const std::vector<uint8_t> EVENT_LIST{EV_ABORT_ROGALLO,
-                                      EV_ADA_APOGEE_DETECTED,
-                                      EV_ADA_CALIBRATION_COMPLETE,
-                                      EV_ADA_DPL_ALT_DETECTED,
-                                      EV_ADA_READY,
-                                      EV_APOGEE,
-                                      EV_ARMED,
-                                      EV_BUTTON_DOWN,
-                                      EV_BUTTON_UP,
-                                      EV_BUTTON_SHORT_PRESS,
-                                      EV_BUTTON_LONG_PRESS,
-                                      EV_BUTTON_VERY_LONG_PRESS,
-                                      EV_CUT_ALL,
-                                      EV_CUT_DROGUE,
-                                      EV_CUT_MAIN,
-                                      EV_DPL_ALTITUDE,
-                                      EV_GS_OFFLINE,
-                                      EV_IGN_ABORTED,
-                                      EV_IGN_GETSTATUS,
-                                      EV_IGN_OFFLINE,
-                                      EV_INIT_ERROR,
-                                      EV_INIT_OK,
-                                      EV_LANDED,
-                                      EV_LAUNCH,
-                                      EV_LIFTOFF,
-                                      EV_MOT_MIN_OPEN_TIME,
-                                      EV_MOT_OPEN_LIMIT,
-                                      EV_MOT_CLOSE_LIMIT,
-                                      EV_NC_CLOSE,
-                                      EV_NC_OPEN,
-                                      EV_NC_DETACHED,
-                                      EV_NC_STOP,
-                                      EV_NEW_CAN_MSG,
-                                      EV_STATS_TIMEOUT,
-                                      EV_SEND_HR_TM,
-                                      EV_SEND_LR_TM,
-                                      EV_SEND_POS_TM,
-                                      EV_TC_ABORT_LAUNCH,
-                                      EV_TC_ABORT_ROGALLO,
-                                      EV_TC_ARM,
-                                      EV_TC_SET_DPL_ALTITUDE,
-                                      EV_TC_BOARD_RESET,
-                                      EV_TC_CUT_MAIN,
-                                      EV_TC_CUT_ALL,
-                                      EV_TC_CUT_FIRST_DROGUE,
-                                      EV_TC_DISARM,
-                                      EV_TC_END_MISSION,
-                                      EV_TC_FORCE_INIT,
-                                      EV_TC_LAUNCH,
-                                      EV_TC_MANUAL_MODE,
-                                      EV_TC_NC_CLOSE,
-                                      EV_TC_NC_OPEN,
-                                      EV_TC_NC_STOP,
-                                      EV_TC_START_LOGGING,
-                                      EV_TC_STOP_LOGGING,
-                                      EV_TC_RESET_CALIBRATION,
-                                      EV_TC_SETUP_MODE,
-                                      EV_TIMEOUT_APOGEE,
-                                      EV_TIMEOUT_ARM,
-                                      EV_TIMEOUT_CUTTING,
-                                      EV_TIMEOUT_DPL_ALT,
-                                      EV_TIMEOUT_END_MISSION,
-                                      EV_TIMEOUT_MOT_CLOSE,
-                                      EV_TIMEOUT_MOT_OPEN,
-                                      EV_TIMEOUT_SHADOW_MODE,
-                                      EV_UMBILICAL_DETACHED,
-                                      EV_TIMEOUT_ADA_CALIBRATION};
+const std::vector<uint8_t> EVENT_LIST {EV_ADA_APOGEE_DETECTED, EV_ADA_DPL_ALT_DETECTED, EV_ADA_READY, EV_CALIBRATE_ADA, EV_CUT_ALL, EV_CUT_DROGUE, EV_CUT_MAIN, EV_MOT_MIN_OPEN_TIME, EV_MOT_OPEN_LIMIT, EV_MOT_CLOSE_LIMIT, EV_NC_CLOSE, EV_NC_OPEN, EV_NC_STOP, EV_APOGEE, EV_DPL_ALTITUDE, EV_INIT_ERROR, EV_INIT_OK, EV_LANDED, EV_LIFTOFF, EV_NC_DETACHED, EV_TEST_MODE, EV_FLIGHTSTATS_TIMEOUT, EV_BUTTON_DOWN, EV_BUTTON_UP, EV_BUTTON_SHORT_PRESS, EV_BUTTON_LONG_PRESS, EV_BUTTON_VERY_LONG_PRESS, EV_TC_ABORT_ROGALLO, EV_TC_START_ROGALLO_CONTROL, EV_TC_ARM, EV_TC_SET_DPL_ALTITUDE, EV_TC_BOARD_RESET, EV_TC_CUT_MAIN, EV_TC_CUT_ALL, EV_TC_CUT_FIRST_DROGUE, EV_TC_CLOSE_LOG, EV_TC_DISARM, EV_TC_END_MISSION, EV_TC_FORCE_INIT, EV_TC_LAUNCH, EV_TC_MANUAL_MODE, EV_TC_NC_CLOSE, EV_TC_NC_OPEN, EV_TC_NC_STOP, EV_TC_START_SENSOR_LOGGING, EV_TC_STOP_SENSOR_LOGGING, EV_TC_SET_REFERENCE_ALTITUDE, EV_TC_SET_REFERENCE_TEMP, EV_TC_CALIBRATE_ADA, EV_TC_TEST_MODE, EV_TC_TEST_SERVO, EV_TIMEOUT_APOGEE, EV_TIMEOUT_ARM, EV_TIMEOUT_CUTTING, EV_TIMEOUT_END_MISSION, EV_TIMEOUT_MOT_CLOSE, EV_TIMEOUT_MOT_OPEN, EV_TIMEOUT_SHADOW_MODE, EV_UMBILICAL_DETACHED, EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM, EV_START_ROGALLO_CONTROL};
 
 /**
  * @brief Returns the name of the provided event
- *
- * @param event
- * @return string
+ * 
+ * @param event 
+ * @return string 
  */
 string getEventString(uint8_t event);
 
-}  // namespace DeathStackBoard
+}
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_EVENTS_H */
