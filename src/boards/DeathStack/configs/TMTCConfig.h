@@ -47,6 +47,7 @@ typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn,
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 5000;
 static const unsigned int HR_TM_TIMEOUT = 200;
+static const unsigned int TEST_TM_TIMEOUT = 1000;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID  = 1;
