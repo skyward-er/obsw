@@ -330,7 +330,7 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         }
 
         // Now we should have aborted
-        REQUIRE(c.getTotalCount() == 2);
+        REQUIRE(c.getTotalCount() == 1);
         // REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 1);
     }
 
@@ -364,7 +364,7 @@ TEST_CASE("[Rogallo DTS] Test deployment altitude")
         dts.updateGPS(in_lat, in_lon, false);
 
         // Now we should have aborted
-        REQUIRE(c.getTotalCount() == 2);
+        REQUIRE(c.getTotalCount() == 1);
         // REQUIRE(c.getCount(EV_ABORT_ROGALLO) == 1);
     }
 }
