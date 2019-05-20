@@ -94,12 +94,12 @@ void RogalloDTS::update()
             }
         }
 
-        // Cut the rogallo wing
-        if (deployed && isEgressing() && !terminated)
-        {
-            terminated = true;
-            sEventBroker->post({EV_ABORT_ROGALLO}, TOPIC_ADA);
-        }
+        // // Cut the rogallo wing
+        // if (deployed && isEgressing() && !terminated)
+        // {
+        //     terminated = true;
+        //     sEventBroker->post({EV_ABORT_ROGALLO}, TOPIC_ADA);
+        // }
     }
 }
 
