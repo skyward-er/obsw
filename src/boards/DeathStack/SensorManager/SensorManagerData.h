@@ -52,12 +52,14 @@ enum class SensorManagerState : uint8_t
     LOGGING
 };
 
+// Nominal value returned by SensorStatus.toNumeric() when every sensor was
+// initialized successfully.
+static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127;
+
 struct SensorStatus
 {
     // Imus
     uint16_t mpu9250 : 1;
-    uint16_t adis : 1;
-    uint16_t lsm6ds3h : 1;
 
     // Temperature sensors
     uint16_t lm75b_imu : 1;
@@ -65,9 +67,6 @@ struct SensorStatus
 
     // GPS
     uint16_t piksi : 1;
-
-    // Digital Pressure
-    uint16_t ms5803 : 1;
 
     // Internal ADC
     uint16_t current_sensor : 1;
@@ -85,20 +84,6 @@ struct SensorStatus
         uint16_t out;
         memcpy(&out, this, sizeof(out));
         return out;
-    }
-
-    static std::string header()
-    {
-        return "mpu,adis,lsm6ds3h,lm75b_imu,lm75b_analog,piksi,m5803,current_"
-               "sensor,battery_"
-               "sensor,ad7994\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << mpu9250 << "," << adis << "," << lsm6ds3h << "," << lm75b_imu
-           << "," << lm75b_analog << "," << piksi << "," << ms5803 << ","
-           << current_sensor << "," << battery_sensor << "," << ad7994 << "\n";
     }
 };
 
