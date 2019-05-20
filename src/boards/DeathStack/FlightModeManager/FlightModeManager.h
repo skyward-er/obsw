@@ -46,6 +46,8 @@ public:
     FlightModeManager();
     ~FlightModeManager();
 
+    State state_initialization(const Event& ev);
+    
     /// ON-GROUND 
 
     /* Handle TC_BOARD_RESET and TC_FORCE_LIFTOFF (super-state) */
