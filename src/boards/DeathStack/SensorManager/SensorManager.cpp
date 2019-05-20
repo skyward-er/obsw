@@ -42,7 +42,7 @@
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
 #include "Sensors/Test/MockPressureSensor.h"
 #endif
 
@@ -108,7 +108,7 @@ void SensorManager::initSensors()
 
     piksi = new Piksi("/dev/gps");
 
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
     mock_pressure_sensor = new MockPressureSensor();
 #endif
 
@@ -160,7 +160,7 @@ void SensorManager::initSamplers()
 
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
     sampler_20hz_simple.AddSensor(mock_pressure_sensor);
 #endif
 
@@ -211,7 +211,7 @@ void SensorManager::stateLogging(const Event& ev)
             break;
         case EV_EXIT:
             break;
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
         case EV_LIFTOFF:
             mock_pressure_sensor->before_liftoff = false;
             break;
@@ -302,7 +302,7 @@ void SensorManager::onSimple20HZCallback()
     LM75BData lm78b_imu_data = {TempSensorId::LM75B_IMU, miosix::getTick(),
                                 temp_lm75b_imu->getTemp()};
 
-#ifdef DEBUG
+#ifdef USE_MOCK_SENSORS
     ad7994_data->nxp_baro_pressure = *(mock_pressure_sensor->pressureDataPtr());
 #endif
 
