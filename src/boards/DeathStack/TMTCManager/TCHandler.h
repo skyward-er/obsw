@@ -49,28 +49,35 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
 {
     { MAV_CMD_ARM,              EV_TC_ARM    }, 
     { MAV_CMD_DISARM,           EV_TC_DISARM }, 
-    { MAV_CMD_RESET_CALIBRATION, EV_TC_RESET_CALIBRATION},
+    { MAV_CMD_CALIBRATE_ADA,    EV_TC_CALIBRATE_ADA},
     // { MAV_CMD_ABORT_LAUNCH, EV_TC_ABORT_LAUNCH},
-    { MAV_CMD_ABORT_ROGALLO, EV_TC_ABORT_ROGALLO},
-    { MAV_CMD_FORCE_INIT, EV_TC_FORCE_INIT},
-    
-    // { MAV_CMD_FORCE_APOGEE, EV_TC_ABORT_ROGALLO},
+    { MAV_CMD_ABORT_ROGALLO,    EV_TC_ABORT_ROGALLO},
+    { MAV_CMD_FORCE_INIT,       EV_TC_FORCE_INIT},
 
     { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
     { MAV_CMD_CUT_MAIN,         EV_TC_CUT_MAIN },
     { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_FIRST_DROGUE },
-    // { MAV_CMD_START_ROGALLO_CONTROL, EV_TC_ABORT_ROGALLO},
+    { MAV_CMD_START_ROGALLO_CONTROL, EV_TC_START_ROGALLO_CONTROL},
 
-    { MAV_CMD_START_LOGGING,    EV_TC_START_LOGGING }, 
-    { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_LOGGING }, 
-    // { MAV_CMD_CLOSE_LOG,     EV_TC_STOP_LOGGING }, 
+    { MAV_CMD_START_LOGGING,    EV_TC_START_SENSOR_LOGGING }, 
+    { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_SENSOR_LOGGING }, 
+    { MAV_CMD_CLOSE_LOG,        EV_TC_CLOSE_LOG }, 
 
-    { MAV_CMD_TEST_MODE,        EV_TC_SETUP_MODE   }, 
+    { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE  }, 
     { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
     { MAV_CMD_MANUAL_MODE,      EV_TC_MANUAL_MODE },
 
     { MAV_CMD_END_MISSION,      EV_TC_END_MISSION }
+};
+// clang-format on
+
+// clang-format off
+static const std::map<uint8_t, uint8_t> settingCmdToEvt = 
+{
+    { MAV_SET_DEPLOYMENT_ALTITUDE,      EV_TC_SET_DPL_ALTITUDE    }, 
+    { MAV_SET_REFERENCE_ALTITUDE,       EV_TC_SET_REFERENCE_ALTITUDE }, 
+    { MAV_SET_REFERENCE_TEMP,           EV_TC_SET_REFERENCE_TEMP }
 };
 // clang-format on
 
@@ -109,11 +116,6 @@ static void handleMavlinkMessage(MavChannel* channel,
     /* Send acknowledge */
     sendAck(channel, msg);
 
-    /* Reschedule GS_OFFLINE event */
-    sEventBroker->removeDelayed(g_gsOfflineEvId);
-    g_gsOfflineEvId = sEventBroker->postDelayed(
-        Event{EV_GS_OFFLINE}, TOPIC_FLIGHT_EVENTS, GS_OFFLINE_TIMEOUT);
-
     /* Finally handle TC */
     switch (msg.msgid)
     {
@@ -148,8 +150,22 @@ static void handleMavlinkMessage(MavChannel* channel,
         }
         case MAV_TC(UPLOAD_SETTING):
         {
+            uint8_t id    = mavlink_msg_upload_setting_tc_get_setting_id(&msg);
             float setting = mavlink_msg_upload_setting_tc_get_setting(&msg);
-            
+            ConfigurationEvent cfgev;
+
+            auto it = DeathStackBoard::TCHandler::settingCmdToEvt.find(id);
+
+            if (it != noargCmdToEvt.end())
+            {
+                cfgev.sig    = it->second;
+                cfgev.config = setting;
+                sEventBroker->post(cfgev, TOPIC_TC);
+            }
+            else
+            {
+                TRACE("[TMTC] Unkown SETTING command %d\n", id);
+            }
             break;
         }
             /* case MAV_TC(START_LAUNCH):

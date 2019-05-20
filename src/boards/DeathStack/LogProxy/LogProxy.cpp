@@ -115,6 +115,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
         {
 
             case ObservedPin::LAUNCH:
+            {
                 tm_repository.fmm_tm.pin_launch_last_change =
                     t.last_state_change;
                 tm_repository.fmm_tm.pin_launch_num_changes =
@@ -133,15 +134,17 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 
                 // Decompose the decimal number in its 3 digits
                 uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
+                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
 
                 // Update digit 0 with the new value
                 uint8_t d0 = t.state;
 
                 // Write back
-                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
+                tm_repository.hr_tm.bitfield_2 = d0 + d1* 10 + d2 * 100;
                 break;
+            }
             case ObservedPin::NOSECONE:
+            {
                 tm_repository.fmm_tm.pin_nosecone_last_change =
                     t.last_state_change;
                 tm_repository.fmm_tm.pin_nosecone_num_changes =
@@ -160,9 +163,9 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 
                 // Decompose the decimal number in its 3 digits
                 uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
+                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
                 uint8_t d0 =
-                    (tm_repository.hr_tm.bitfield_2 - d1 * 100 - d2 * 10);
+                    (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
 
                 // Update digit 1 with the new value
                 d1 = t.state * 10;
@@ -170,6 +173,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 // Write back
                 tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
                 break;
+            }
             default:
                 break;
         }
@@ -544,6 +548,7 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 
         // Test TM
         tm_repository.test_tm.x_acc = t.accel.getX();
+        tm_repository.test_tm.z_acc = t.accel.getZ();
     }
 
     flight_stats.update(t);
@@ -610,8 +615,8 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
 
         // Decompose the decimal number in its 3 digits
         uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-        uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d1 * 100) / 10;
-        uint8_t d0 = (tm_repository.hr_tm.bitfield_2 - d1 * 100 - d2 * 10);
+        uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
+        uint8_t d0 = (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
 
         // Update digit 2 with the new value
         d2 = (int)t.fix * 10;
@@ -623,6 +628,8 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         tm_repository.test_tm.gps_altitude = t.gps_data.height;
         tm_repository.test_tm.gps_nsats    = t.gps_data.numSatellites;
         tm_repository.test_tm.gps_fix      = t.fix;
+        tm_repository.test_tm.gps_lat      = t.gps_data.latitude;
+        tm_repository.test_tm.gps_lon      = t.gps_data.longitude;
     }
 
     flight_stats.update(t);

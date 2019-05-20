@@ -73,9 +73,11 @@ private:
     /* State handlers */
     void stateIdle(const Event& ev);
     void stateSendingTM(const Event& ev);
+    void stateSendingTestTM(const Event& ev);
 
     uint16_t lr_event_id = 0;
     uint16_t hr_event_id = 0;
+    uint16_t test_tm_event_id = 0;
 };
 
 } /* namespace DeathStackBoard */
