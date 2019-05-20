@@ -134,6 +134,9 @@ if has_duplicates(topics):
     print("Duplicate topics found! Terminating.")
     exit()
 
+events.sort()
+topics.sort()
+
 print("{} events loaded.".format(len(events)))
 print("{} topics loaded.".format(len(topics)))
 
