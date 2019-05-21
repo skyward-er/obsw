@@ -330,8 +330,7 @@ void SensorManager::onGPSCallback()
         data.fix = false;
     }
 
-    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
-                   data.gps_data.height, data.fix);
+    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.fix);
 
     if (enable_sensor_logging)
     {
