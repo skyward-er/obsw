@@ -165,7 +165,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                     (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
 
                 // Update digit 1 with the new value
-                d1 = t.state * 10;
+                d1 = t.state;
 
                 // Write back
                 tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
@@ -593,7 +593,7 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         uint8_t d0 = (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
 
         // Update digit 2 with the new value
-        d2 = (int)t.fix * 10;
+        d2 = (int)t.fix;
 
         // Write back
         tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
