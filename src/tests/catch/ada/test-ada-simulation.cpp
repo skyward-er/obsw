@@ -151,8 +151,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
         ada->updateBaro(addNoise(SIMULATED_PRESSURE[i]));
         Thread::sleep(100);
         KalmanState state = ada->getKalmanState();
-        // std::cout << state.x1 << ", ";
-        // TRACE("%d\n", i); // == Approx(383).margin(10);
+
         if (i > 300)
         {
             if ( state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70) )
@@ -169,7 +168,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
         { 
             sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
             Thread::sleep(100);
-            if (i == Approx(383).margin(10))
+            if (i == Approx(383+APOGEE_N_SAMPLES).margin(10))
                 FAIL("Apogee error: " << i << " samples");
             else
                 SUCCEED();
