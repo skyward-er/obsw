@@ -60,12 +60,6 @@ void RogalloDTS::updateGPS(double lat, double lon, bool has_fix)
     {
         inside_lha_ptr = 0;
     }
-  /*  TRACE("iLHA: ");
-    for(unsigned int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
-    {
-        TRACE("%d", inside_LHA[i] ? 1 : 0);
-    }
-    TRACE("\n");*/
 
     update();
 }
@@ -116,8 +110,7 @@ bool RogalloDTS::isInsideLHA(double lat, double lon)
     for (int i = 0; i < NUM_CIRCLES; i++)
     {
         if (circles[i].isInside(lat, lon))
-        {
-            
+        {   
             return true;
         }
     }
