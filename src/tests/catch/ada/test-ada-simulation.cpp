@@ -75,6 +75,11 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Startup: we should be in calibrating
     Thread::sleep(100);
+    CHECK(ada->testState(&ADA::stateIdle));
+
+    // Enter Calibrating and check
+    sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_TC);
+    Thread::sleep(100);
     CHECK(ada->testState(&ADA::stateCalibrating));
 
     // Send baro calibration samples 
@@ -82,6 +87,13 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     {
         ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     }
+
+    float mean = ada->pressure_stats.getStats().mean;
+    if (mean == Approx(SIMULATED_PRESSURE[0]))
+        FAIL("Calibration value");
+    else
+        SUCCEED();
+    
 
     // Should still be in calibrating
     Thread::sleep(100);
@@ -116,7 +128,9 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Now we should be in idle
     Thread::sleep(100);
-    CHECK( ada->testState(&ADA::stateIdle) );
+    ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
+    Thread::sleep(100);
+    CHECK( ada->testState(&ADA::stateReady) );
 
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 

@@ -36,7 +36,7 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADA::ADA()
-    : FSM(&ADA::stateCalibrating),
+    : FSM(&ADA::stateIdle),
       filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
 {
     // Subscribe to topics
@@ -342,7 +342,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_ADA_READY:
         {
-            transition(&ADA::stateIdle);
+            transition(&ADA::stateReady);
             break;
         }
         case EV_TC_SET_DPL_ALTITUDE:
