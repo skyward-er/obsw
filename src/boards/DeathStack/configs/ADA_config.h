@@ -31,34 +31,32 @@ namespace DeathStackBoard
 constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 
 // State timeouts
-static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 1 * 1000; // ms
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 10 * 1000;  // ms
 
-static const unsigned int CALIBRATION_BARO_N_SAMPLES       = 200;
-static const unsigned int CALIBRATION_GPS_N_SAMPLES       = 100;
+// Number of samples used to calibrate the kalman initial state
+static const unsigned int CALIBRATION_BARO_N_SAMPLES = 1200;
 
 // ------ Kalman parameters ------
 
-static const float SAMPLING_PERIOD = 1/20.0f; // In seconds
+static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds
 
 // State matrix
 // Note that sampling frequency is supposed to be constant and known at
 // compile time. If this is not the case the matrix has to be updated at
 // each iteration
-static const MatrixBase<float,3,3> A_INIT({
-    1.0f,   SAMPLING_PERIOD,     0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
-    0.0f,   1.0f,                SAMPLING_PERIOD,
-    0.0f,   0.0f,                1.0f
-});
+static const MatrixBase<float, 3, 3> A_INIT(
+    {1.0f, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD* SAMPLING_PERIOD, 0.0f, 1.0f,
+     SAMPLING_PERIOD, 0.0f, 0.0f, 1.0f});
 
 // Output matrix
-static const MatrixBase<float,1,3> C_INIT{1, 0, 0};
+static const MatrixBase<float, 1, 3> C_INIT{1, 0, 0};
 
 // Initial error covariance matrix
-static const MatrixBase<float,3,3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};    
+static const MatrixBase<float, 3, 3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // Model variance matrix
-static const MatrixBase<float,3,3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 10};
+static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 10};
 
-// Measurement variance 
-static const MatrixBase<float,1,1> V2_INIT{2500};                                 
-}
+// Measurement variance
+static const MatrixBase<float, 1, 1> V2_INIT{2500};
+}  // namespace DeathStackBoard
