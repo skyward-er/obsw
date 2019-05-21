@@ -54,7 +54,8 @@ enum class SensorManagerState : uint8_t
 
 // Nominal value returned by SensorStatus.toNumeric() when every sensor was
 // initialized successfully.
-static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127;
+// 127 = 1 in every bit of the SensorStatus struct
+static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127; 
 
 struct SensorStatus
 {
