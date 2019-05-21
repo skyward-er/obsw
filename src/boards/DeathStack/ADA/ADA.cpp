@@ -24,8 +24,6 @@
 
 #include <events/EventBroker.h>
 
-#include <DeathStack/Events.h>
-#include <DeathStack/Topics.h>
 #include <utils/aero/AeroUtils.h>
 
 #include <iostream>
@@ -54,28 +52,28 @@ ADA::ADA()
 
 /* --- SENSOR UPDATE METHODS --- */
 
-void ADA::updateGPS(double lat, double lon, double z, bool hasFix)
+void ADA::updateGPS(double lat, double lon, bool hasFix)
 {
     // Update gps regardless of the current state
-    UNUSED(z);
     rogallo_dts.updateGPS(lat, lon, hasFix);
-    TRACE("ADA Update GPS\n");
 }
 
 void ADA::updateBaro(float pressure)
 {
     switch (status.state)
     {
+        case ADAState::IDLE:
+        {
+            break;
+        }
         case ADAState::CALIBRATING:
         {
-            TRACE("ADA Update Baro: Calibrating \n");
             Lock<FastMutex> l(calib_mutex);
 
             // Calibrating state: update calibration data if not enough values
             if (calibration_data.pressure_calib.nSamples <
                 CALIBRATION_BARO_N_SAMPLES)
             {
-                TRACE("UPDATING BARO CALIB\n");
                 pressure_stats.add(pressure);
 
                 calibration_data.pressure_calib = pressure_stats.getStats();
@@ -85,28 +83,27 @@ void ADA::updateBaro(float pressure)
             }
             else
             {
-                updateCalibration();
-                TRACE("BARO CALIB SAMPLE NOT USED\n");
+                finalizeCalibration();
             }
             break;
         }
 
-        case ADAState::IDLE:
+        case ADAState::READY:
         {
-            // Don't use kalman pressure while we are on the ramp
-            TRACE("ADA Update Baro: Idle \n");
+            // Log the altitude & vertical speed but don't use kalman pressure
+            // while we are on the ramp
             updateAltitude(pressure, 0);
             break;
         }
 
         case ADAState::SHADOW_MODE:
         {
-            TRACE("ADA Update Baro: Shadow mode \n");
             // Shadow mode state: update kalman, DO NOT send events
             updateFilter(pressure);
             updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
-            // Check if the vertical speed is negative
+            // Check if the vertical speed is negative (so when the derivative
+            // of the pressure is > 0)
             if (filter.X(1, 0) > 0)
             {
                 // Log
@@ -122,10 +119,10 @@ void ADA::updateBaro(float pressure)
             updateFilter(pressure);
             updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
-            // Check if the vertical speed is negative
+            // Check if the vertical speed is negative (so when the derivative
+            // of the pressure is > 0)
             if (filter.X(1, 0) > 0)
             {
-
                 sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
                 status.apogee_reached = true;
 
@@ -137,48 +134,78 @@ void ADA::updateBaro(float pressure)
         }
 
         case ADAState::FIRST_DESCENT_PHASE:
-        case ADAState::END:  // Update rogallo DTS even when ada has completed
-                             // its job
+
         {
-            TRACE("ADA Update Baro: First descent phase \n");
             // Descent state: send notifications for target altitude reached
             updateFilter(pressure);
-
             float altitude = updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
             rogallo_dts.updateAltitude(altitude);
             break;
         }
+        case ADAState::END:
+        {
+            // Continue updating the filter for logging & telemetry purposes
+            updateFilter(pressure);
+            updateAltitude(filter.X(0, 0), filter.X(1, 0));
+            break;
+        }
         case ADAState::UNDEFINED:
         {
-            TRACE("ADA Update Baro: Undefined state value \n");
+            TRACE("[ADA] Update Baro: Undefined state value \n");
             break;
         }
 
         default:
         {
-            TRACE("ADA Update Baro: Unexpected state value \n");
+            TRACE("[ADA] Update Baro: Unexpected state value \n");
             break;
         }
     }
 }
 
-void ADA::updateCalibration()
+void ADA::setReferenceTemperature(const ConfigurationEvent& ev_ref_temp)
+{
+    // Sanity check: Obey to the laws of thermodynamics
+    if (ev_ref_temp.config + 273.15 > 0)
+    {
+        temperature_ref     = ev_ref_temp.config + 273.15;  // Celsius to Kelvin
+        status.ref_temp_set = true;
+        logStatus();
+    }
+}
+
+void ADA::setReferenceAltitude(const ConfigurationEvent& ev_ref_alt)
+{
+    altitude_ref            = ev_ref_alt.config;
+    status.ref_altitude_set = true;
+    logStatus();
+}
+
+void ADA::setDeploymentAltitude(const ConfigurationEvent& ev_dpl_alt)
+{
+    rogallo_dts.setDeploymentAltitudeAgl(ev_dpl_alt.config);
+
+    status.dpl_altitude_set = true;
+    logStatus();
+}
+
+void ADA::finalizeCalibration()
 {
     // Set calibration only if we have enough samples
-    if (calibration_data.pressure_calib.nSamples >= CALIBRATION_BARO_N_SAMPLES
-            && status.dpl_altitude_set && status.ref_altitude_set && status.ref_temp_set)
+    if (calibration_data.pressure_calib.nSamples >=
+            CALIBRATION_BARO_N_SAMPLES &&
+        status.dpl_altitude_set && status.ref_altitude_set &&
+        status.ref_temp_set)
     {
-        // TODO: Calibration sanity check
-
         pressure_ref = pressure_stats.getStats().mean;
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
             aeroutils::mslPressure(pressure_ref, temperature_ref, altitude_ref);
 
-        temperature_0 = aeroutils::mslTemperature(
-            temperature_ref, altitude_ref);
+        temperature_0 =
+            aeroutils::mslTemperature(temperature_ref, altitude_ref);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
@@ -218,7 +245,7 @@ void ADA::resetCalibration()
 
     pressure_stats.reset();
 
-    calibration_data.pressure_calib     = pressure_stats.getStats();
+    calibration_data.pressure_calib = pressure_stats.getStats();
 }
 
 float ADA::updateAltitude(float p, float dp_dt)
@@ -241,7 +268,6 @@ float ADA::updateAltitude(float p, float dp_dt)
 }
 
 /* --- LOGGER HELPERS --- */
-
 void ADA::logStatus(ADAState state)
 {
     status.timestamp = miosix::getTick();
@@ -259,8 +285,39 @@ void ADA::logStatus()
 
 /* --- STATES --- */
 /**
- * \brief Calibrating state: the ADA calibrates the initial state. This is the
- * initial state.
+ * \brief Idle state: the ADA waits for a command to start calibration. This is
+ * the initial state.
+ */
+void ADA::stateIdle(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            TRACE("[ADA] Entering stateIdle\n");
+            logStatus(ADAState::IDLE);
+            break;
+        }
+        case EV_EXIT:
+        {
+            TRACE("[ADA] Exiting stateIdle\n");
+            break;
+        }
+        case EV_CALIBRATE_ADA:
+        {
+            transition(&ADA::stateCalibrating);
+            break;
+        }
+        default:
+        {
+            TRACE("[ADA] stateIdle: %d event not handled\n", ev.sig);
+            break;
+        }
+    }
+}
+
+/**
+ * \brief Calibrating state: the ADA calibrates the initial Kalman state.
  *
  * In this state a call to update() will result in a altitude sample being added
  * to the average.
@@ -274,13 +331,13 @@ void ADA::stateCalibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateCalibrating\n");
+            TRACE("[ADA] Entering stateCalibrating\n");
             logStatus(ADAState::CALIBRATING);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateCalibrating\n");
+            TRACE("[ADA] Exiting stateCalibrating\n");
             break;
         }
         case EV_ADA_READY:
@@ -293,30 +350,24 @@ void ADA::stateCalibrating(const Event& ev)
             const ConfigurationEvent& dpl_ev =
                 static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
-            status.dpl_altitude_set = true;
-            logStatus();
-            TRACE("ADA: Deployment altitude set\n");
+            setDeploymentAltitude(dpl_ev);
+            TRACE("[ADA] Deployment altitude set\n");
             break;
         }
         case EV_TC_SET_REFERENCE_TEMP:
         {
             const ConfigurationEvent& temp_ev =
                 static_cast<const ConfigurationEvent&>(ev);
-            temperature_ref = temp_ev.config;
-            status.ref_temp_set = true;
-            logStatus();
-            TRACE("ADA: Reference temperature set\n");
+            setReferenceTemperature(temp_ev);
+            TRACE("[ADA] Reference temperature set\n");
             break;
         }
         case EV_TC_SET_REFERENCE_ALTITUDE:
         {
             const ConfigurationEvent& alt_ev =
                 static_cast<const ConfigurationEvent&>(ev);
-            altitude_ref = alt_ev.config;
-            status.ref_altitude_set = true;
-            logStatus();
-            TRACE("ADA: Reference altitude set\n");
+            setReferenceAltitude(alt_ev);
+            TRACE("[ADA] Reference altitude set\n");
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -326,32 +377,32 @@ void ADA::stateCalibrating(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateCalibrating: %d event not handled\n\n", ev.sig);
+            TRACE("ADA stateCalibrating: %d event not handled\n", ev.sig);
             break;
         }
     }
 }
 
 /**
- * \brief Idle state:  ADA is ready and waiting for liftoff
+ * \brief Ready state:  ADA is ready and waiting for liftoff
  *
  * In this state a call to update() will have no effect.
  * The exiting transition to the shadow mode state is triggered by the liftoff
  * event.
  */
-void ADA::stateIdle(const Event& ev)
+void ADA::stateReady(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateIdle\n");
-            logStatus(ADAState::IDLE);
+            logStatus(ADAState::READY);
+            TRACE("[ADA] Entering stateReady\n");
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateIdle\n");
+            TRACE("[ADA] Exiting stateReady\n");
             break;
         }
         case EV_LIFTOFF:
@@ -364,28 +415,34 @@ void ADA::stateIdle(const Event& ev)
             const ConfigurationEvent& dpl_ev =
                 static_cast<const ConfigurationEvent&>(ev);
 
-            rogallo_dts.setDeploymentAltitudeAgl(dpl_ev.config);
-            status.dpl_altitude_set = true;
-            logStatus();
+            setDeploymentAltitude(dpl_ev);
+
+            // Update the values set during the calibration phase
+            finalizeCalibration();
             break;
         }
         case EV_TC_SET_REFERENCE_TEMP:
         {
             const ConfigurationEvent& temp_ev =
                 static_cast<const ConfigurationEvent&>(ev);
-            temperature_ref = temp_ev.config;
-            status.ref_temp_set = true;
-            logStatus();
-            TRACE("ADA: Reference temperature set\n");
+            setReferenceTemperature(temp_ev);
+
+            // Update the values set during the calibration phase
+            finalizeCalibration();
+
+            TRACE("[ADA] Reference temperature set\n");
             break;
         }
         case EV_TC_SET_REFERENCE_ALTITUDE:
         {
             const ConfigurationEvent& alt_ev =
                 static_cast<const ConfigurationEvent&>(ev);
-            altitude_ref = alt_ev.config;
-            status.ref_altitude_set = true;
-            TRACE("ADA: Reference altitude set\n");
+            setReferenceAltitude(alt_ev);
+
+            // Update the values set during the calibration phase
+            finalizeCalibration();
+
+            TRACE("[ADA] Reference altitude set\n");
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -416,16 +473,16 @@ void ADA::stateShadowMode(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateShadowMode\n");
             shadow_delayed_event_id = sEventBroker->postDelayed(
                 {EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA, TIMEOUT_ADA_SHADOW_MODE);
             logStatus(ADAState::SHADOW_MODE);
+            TRACE("[ADA] Entering stateShadowMode\n");
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateShadowMode\n");
             sEventBroker->removeDelayed(shadow_delayed_event_id);
+            TRACE("[ADA] Exiting stateShadowMode\n");
             break;
         }
         case EV_TIMEOUT_SHADOW_MODE:
@@ -456,18 +513,16 @@ void ADA::stateActive(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateActive\n");
             logStatus(ADAState::ACTIVE);
+            TRACE("[ADA] Entering stateActive\n");
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateActive\n");
+            TRACE("[ADA] Exiting stateActive\n");
             break;
         }
-        case EV_APOGEE:
-        case EV_ADA_APOGEE_DETECTED:  // TODO: Remove this
-#warning "Remove EV_ADA_APOGEE_DETECTED in ADA stateActive"
+        case EV_ADA_APOGEE_DETECTED:
         {
             transition(&ADA::stateFirstDescentPhase);
             break;
@@ -495,19 +550,20 @@ void ADA::stateFirstDescentPhase(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateFirstDescentPhase\n");
+            TRACE("[ADA] Entering stateFirstDescentPhase\n");
             logStatus(ADAState::FIRST_DESCENT_PHASE);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateFirstDescentPhase\n");
+            TRACE("[ADA] Exiting stateFirstDescentPhase\n");
             break;
         }
-        case EV_DPL_ALTITUDE:
+        case EV_ADA_DPL_ALT_DETECTED:
         {
             status.dpl_altitude_reached = true;
             logStatus();
+
             // Log
             DplAltitudeReached dpl_alt{miosix::getTick()};
             logger.log(dpl_alt);
@@ -535,13 +591,13 @@ void ADA::stateEnd(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("ADA: Entering stateEnd\n");
+            TRACE("[ADA] Entering stateEnd\n");
             logStatus(ADAState::END);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("ADA: Exiting stateEnd\n");
+            TRACE("[ADA] Exiting stateEnd\n");
             break;
         }
         default:

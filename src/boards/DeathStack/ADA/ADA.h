@@ -29,11 +29,12 @@
 #include <kalman/Kalman.h>
 #include "DeathStack/LogProxy/LogProxy.h"
 #include "RogalloDTS/RogalloDTS.h"
+#include <DeathStack/Events.h>
 
 #include <miosix.h>
 
-using miosix::Lock;
 using miosix::FastMutex;
+using miosix::Lock;
 
 namespace DeathStackBoard
 {
@@ -51,18 +52,20 @@ public:
     ~ADA() {}
 
     /** \brief Updates the algorithm with a new sample
-     * 
-     * It's critical that this method is called at regualar intervals during the flight. Call frequency is defined in ADA_config.h
-     * The behavior of this function changes depending on the ADA state
-     * 
+     *
+     * It's critical that this method is called at regualar intervals during the
+     * flight. Call frequency is defined in ADA_config.h The behavior of this
+     * function changes depending on the ADA state
+     *
      * @param pressure The pressure sample in pascals
      */
     void updateBaro(float pressure);
-    void updateGPS(double lat, double lon, double z, bool hasFix);
+    void updateGPS(double lat, double lon, bool hasFix);
 
     /**
      * ADA status
-     * @returns A struct containing the time stamp, the ADA FSM state and several flags
+     * @returns A struct containing the time stamp, the ADA FSM state and
+     * several flags
      */
     ADAStatus getStatus() { return status; }
 
@@ -74,19 +77,18 @@ public:
 
     /**
      * Get the calibration parameters
-     * @returns A struct containing average, number and variance of the calibration samples
+     * @returns A struct containing average, number and variance of the
+     * calibration samples
      */
     ADACalibrationData getCalibrationData() { return calibration_data; }
 
-    const RogalloDTS& getRogalloDTS() const
-    {
-        return rogallo_dts;
-    }
+    const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
 
 private:
     // FSM States
-    void stateCalibrating(const Event& ev);
     void stateIdle(const Event& ev);
+    void stateCalibrating(const Event& ev);
+    void stateReady(const Event& ev);
     void stateShadowMode(const Event& ev);
     void stateActive(const Event& ev);
     void stateFirstDescentPhase(const Event& ev);
@@ -97,9 +99,14 @@ private:
      */
     void updateFilter(float pressure);
 
-    /** Checks if calibration is complete and if this is the case sends the ADA_READY event.
+    void setReferenceTemperature(const ConfigurationEvent& ev_ref_temp);
+    void setReferenceAltitude(const ConfigurationEvent& ev_ref_alt);
+    void setDeploymentAltitude(const ConfigurationEvent& ev_dpl_alt);
+
+    /** Checks if calibration is complete and if this is the case sends the
+     * ADA_READY event.
      */
-    void updateCalibration();
+    void finalizeCalibration();
 
     /**
      * Calculates altitude and vertical speed based on the current kalman state.
@@ -123,36 +130,35 @@ private:
     void resetCalibration();
 
     // Event id to store calibration timeout
-    uint16_t shadow_delayed_event_id = 0; 
+    uint16_t shadow_delayed_event_id = 0;
 
     // Reference pressure at current altitude
     float pressure_ref = 0;
 
     // References for pressure to altitude conversion
     float temperature_ref = 0;  // Reference temperature in K at launchpad
-    float altitude_ref = 0;     // Reference altitude at launchpad
+    float altitude_ref    = 0;  // Reference altitude at launchpad
 
     // Pressure at mean sea level for altitude calculation
-    float pressure_0 = 0;
+    float pressure_0    = 0;
     float temperature_0 = 0;
 
     // Filter object
-    Kalman<3,1> filter;  
+    Kalman<3, 1> filter;
 
     // Calibration variables
     ADACalibrationData calibration_data;
     Stats pressure_stats;
-    FastMutex calib_mutex; // Mutex for pressure_stats
+    FastMutex calib_mutex;  // Mutex for pressure_stats
 
     // ADA status: timestamp + state
-    ADAStatus status;         
+    ADAStatus status;
 
     // Last kalman state
     KalmanState last_kalman_state;
 
     // Rogallo deployment and termination system
     RogalloDTS rogallo_dts;
-
 
     // Logger
     LoggerProxy& logger = *(LoggerProxy::getInstance());

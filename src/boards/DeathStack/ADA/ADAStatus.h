@@ -33,8 +33,9 @@ namespace DeathStackBoard
 enum class ADAState
 {
     UNDEFINED,
-    CALIBRATING,
     IDLE,
+    CALIBRATING,
+    READY,
     SHADOW_MODE,
     ACTIVE,
     FIRST_DESCENT_PHASE,
