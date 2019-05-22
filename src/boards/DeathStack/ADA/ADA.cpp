@@ -123,7 +123,7 @@ void ADA::updateBaro(float pressure)
             if (filter.X(1, 0) > 0)
             {
                 n_samples_going_down = n_samples_going_down + 1;
-                if (n_samples_going_down <= APOGEE_N_SAMPLES)
+                if (n_samples_going_down >= APOGEE_N_SAMPLES)
                 {
                     sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
                     status.apogee_reached = true;
