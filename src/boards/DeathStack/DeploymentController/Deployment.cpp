@@ -34,8 +34,8 @@ namespace DeathStackBoard
 {
 
 DeploymentController::DeploymentController()
-    : servo_rk(TIM4_DATA), servo_l(TIM8_DATA),
-      HSM(&DeploymentController::state_initialization), motor()
+    : HSM(&DeploymentController::state_initialization), motor(),
+      servo_rk(TIM4_DATA), servo_l(TIM8_DATA)
 {
     // No conflicts on TIM4, enable PWM immediately
     configureTIM4Servos();

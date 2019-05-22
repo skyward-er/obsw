@@ -41,7 +41,6 @@
 
 #include "DeathStack/ADA/ADA.h"
 #include "DeathStack/DeploymentController/Deployment.h"
-#include "DeathStack/DeploymentController/RogalloController.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 #include "DeathStack/SensorManager/SensorManager.h"
