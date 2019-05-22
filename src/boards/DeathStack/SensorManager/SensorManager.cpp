@@ -65,7 +65,7 @@ SensorManager::SensorManager(ADA* ada)
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
 
-    memset(&sensor_status, 1, sizeof(sensor_status));
+    memset(&sensor_status, 0, sizeof(sensor_status));
 
     initSensors();
     initSamplers();
@@ -206,6 +206,7 @@ void SensorManager::stateIdle(const Event& ev)
         case EV_ENTRY:
             enable_sensor_logging = false;
 
+            status.timestamp = miosix::getTick();
             status.state = SensorManagerState::IDLE;
             logger.log(status);
 
@@ -243,7 +244,7 @@ void SensorManager::stateLogging(const Event& ev)
     {
         case EV_ENTRY:
             enable_sensor_logging = true;
-
+            status.timestamp = miosix::getTick();
             status.state = SensorManagerState::LOGGING;
             logger.log(status);
 
@@ -313,6 +314,7 @@ void SensorManager::onSimple250HZCallback()
 void SensorManager::onGPSCallback()
 {
     PiksiData data;
+    memset(&data, 0, sizeof(data));
 
     try
     {
@@ -327,6 +329,7 @@ void SensorManager::onGPSCallback()
     }
     catch (std::runtime_error rterr)
     {
+        data.gps_data.timestamp = miosix::getTick();
         data.fix = false;
     }
 
