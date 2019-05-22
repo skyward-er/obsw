@@ -21,23 +21,25 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <cstdint>
+#include <miosix.h>
+#include "DeathStack/LogProxy/LogProxy.h"
+#include "SystemData.h"
 
-#include <ostream>
-#include <string>
-
-struct CpuUsageData
+namespace DeathStackBoard
 {
-    long long timestamp = 0;
-    float cpu_usage = 0.0f;
 
-    static std::string header()
-    {
-        return "timestamp,cpu_usage\n";
-    }
+inline void logStack(ThreadID id)
+{
+    using namespace miosix;
+    StackData d;
+    d.timestamp = getTick();
+    d.thread_id = id;
+    d.min_stack = MemoryProfiling::getAbsoluteFreeStack();
+    d.current_stack = MemoryProfiling::getCurrentFreeStack();
+    d.stack_size = MemoryProfiling::getStackSize();
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << cpu_usage << "\n";
-    }
-};
+    LoggerProxy::getInstance()->log(d);
+}
+
+}

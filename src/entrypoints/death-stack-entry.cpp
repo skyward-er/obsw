@@ -25,26 +25,39 @@
 #include <DeathStack/TMTCManager/TMBuilder.h>
 #include <DeathStack/TMTCManager/XbeeInterrupt.h>
 #include <diagnostic/CpuMeter.h>
-#include "DeathStack/CpuData.h"
+#include "DeathStack/System/SystemData.h"
+#include <math/Stats.h>
 
 using namespace DeathStackBoard;
 using namespace miosix;
 
 DeathStack* board;
 
+StatsResult cpu_stat_res;
+
 int main()
 {
+    Stats cpu_stat;
     board = new DeathStack();
 
 
     // Log CPU Usage
-    CpuUsageData cpu_data;   
+    SystemData system_data;   
     while(1)
     {
-        cpu_data.timestamp = miosix::getTick();
-        cpu_data.cpu_usage = averageCpuUtilization();
+        system_data.timestamp = miosix::getTick();
+        system_data.cpu_usage = averageCpuUtilization();
+        cpu_stat.add(system_data.cpu_usage);
+        
+        cpu_stat_res = cpu_stat.getStats();
+        system_data.cpu_usage_min = cpu_stat_res.minValue;
+        system_data.cpu_usage_max = cpu_stat_res.maxValue;
+        system_data.cpu_usage_mean = cpu_stat_res.mean;
 
-        board->logger->log(cpu_data);
+        system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
+        system_data.free_heap = MemoryProfiling::getCurrentFreeHeap();
+
+        board->logger->log(system_data);
 
         Thread::sleep(1000);
     }

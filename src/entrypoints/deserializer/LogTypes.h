@@ -27,7 +27,7 @@
 #include <iostream>
 
 #include "DeathStack/ADA/ADAStatus.h"
-#include "DeathStack/CpuData.h"
+#include "DeathStack//System/SystemData.h"
 #include "DeathStack/DeathStackStatus.h"
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
@@ -76,7 +76,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<TaskStatResult>(print<TaskStatResult>,
                                     TaskStatResult::header());
 
-    ds.registerType<CpuUsageData>(print<CpuUsageData>, CpuUsageData::header());
+    ds.registerType<SystemData>(print<SystemData>, SystemData::header());
 
     ds.registerType<ApogeeDetected>(print<ApogeeDetected>,
                                     ApogeeDetected::header());
@@ -109,6 +109,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<EventLog>(print<EventLog>, EventLog::header());
     ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
                                       DeathStackStatus::header());
+
+    ds.registerType<StackData>(print<StackData>, StackData::header());
 }
 
 #endif

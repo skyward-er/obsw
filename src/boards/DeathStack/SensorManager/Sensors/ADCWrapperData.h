@@ -57,7 +57,7 @@ struct CurrentSenseData
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << raw_value_1 << "," << raw_value_2 << current_1
+        os << timestamp << "," << raw_value_1 << "," << raw_value_2 << "," << current_1
            << "," << current_2 << "\n";
     }
 };

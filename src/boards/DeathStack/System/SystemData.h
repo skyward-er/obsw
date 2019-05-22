@@ -23,28 +23,55 @@
 
 #pragma once
 
-#include <drivers/piksi/piksi_data.h>
 #include <ostream>
+#include <string>
 
-namespace DeathStackBoard
+struct SystemData
 {
-struct PiksiData
-{
-    GPSData gps_data;
-    bool fix = false;
+    long long timestamp  = 0;
+    float cpu_usage      = 0.0f;
+    float cpu_usage_min  = 0.0f;
+    float cpu_usage_max  = 0.0f;
+    float cpu_usage_mean = 0.0f;
+
+    float free_heap     = 0.0f;
+    float min_free_heap = 0.0f;
 
     static std::string header()
     {
-        return "timestamp,lat,lon,alt,vel_n,vel_e,vel_d,speed,num_sat,fix\n";
+        return "timestamp,cpu_usage,cpu_usage_min,cpu_usage_max,cpu_usage_mean,"
+               "free_heap,min_free_heap\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << gps_data.timestamp << "," << gps_data.latitude << ","
-           << gps_data.longitude << "," << gps_data.height << ","
-           << gps_data.velocityNorth << "," << gps_data.velocityEast << ","
-           << gps_data.velocityDown << "," << gps_data.speed << ","
-           << gps_data.numSatellites << "," << (int)fix << "\n";
+        os << timestamp << "," << cpu_usage << "," << cpu_usage_min << ","
+           << cpu_usage_max << "," << cpu_usage_mean << "," << free_heap << ","
+           << min_free_heap << "\n";
     }
 };
-}  // namespace DeathStackBoard
+
+enum class ThreadID : uint8_t
+{
+    UNKNONW
+};
+
+struct StackData
+{
+    long long timestamp;
+    ThreadID thread_id = ThreadID::UNKNONW;
+    unsigned int current_stack;
+    unsigned int min_stack;
+    unsigned int stack_size;
+
+    static std::string header()
+    {
+        return "timestamp,thread_id,current_stack,min_stack,stack_size\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)thread_id << "," << current_stack << ","
+           << min_stack << "," << stack_size << "\n";
+    }
+};
