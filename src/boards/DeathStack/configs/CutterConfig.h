@@ -42,16 +42,16 @@ static const PWM::Timer CUTTER_TIM{
 
 // clang-format on
 
-// DROGUE --> Right H-Bridge, THCUT1 on theboard
-static const PWMChannel CUTTER_CHANNEL_DROGUE = PWMChannel::CH2; // PD12
-typedef miosix::actuators::thCut1::ena DrogueCutterEna; // PG2
+// DROGUE --> THCUT1 on theboard
+static const PWMChannel CUTTER_CHANNEL_DROGUE = PWMChannel::CH2;
+typedef miosix::actuators::thCut1::ena DrogueCutterEna;
 
-// MAIN CHUTE --> Left H-Bridge, THCUT2 on theboard
-static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2; // PD13
-typedef miosix::actuators::thCut2::ena MainChuteCutterEna; //PD11
+// MAIN CHUTE --> THCUT2 on theboard
+static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2;
+typedef miosix::actuators::thCut2::ena MainChuteCutterEna; 
 
 // PWM Frequency & duty-cycle
-static const unsigned int CUTTER_PWM_FREQUENCY = 15000;
+static const unsigned int CUTTER_PWM_FREQUENCY = 1500;
 // FREQ: 15k
 // 0.3: 2.2 s cut -> ni-cr wire broken
 // 0.15: 8.5 s cut, too slow
