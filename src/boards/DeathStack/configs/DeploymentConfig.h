@@ -34,14 +34,11 @@ namespace DeathStackBoard
 {
 
 // TODO: Update with correct values
-static constexpr int MAXIMUM_CUTTING_DURATION = 1000;
+static constexpr int MAXIMUM_CUTTING_DURATION = 10000;
 
-static constexpr int NC_MINIMUM_OPENING_TIME = 1000;
-static constexpr int NC_OPEN_TIMEOUT         = 1000;
-static constexpr int NC_CLOSE_TIMEOUT        = 1000;
-
-// How long to wait before resetting the positions of the servo after deployment
-static constexpr int SERVO_POSITION_RESET_DELAY = 1000;
+static constexpr int NC_MINIMUM_OPENING_TIME = 4000;
+static constexpr int NC_OPEN_TIMEOUT         = 10000;
+static constexpr int NC_CLOSE_TIMEOUT        = 10000;
 
 static const MotorDirection MOTOR_OPEN_DIR  = MotorDirection::NORMAL;
 static const MotorDirection MOTOR_CLOSE_DIR = MotorDirection::REVERSE;
@@ -54,7 +51,23 @@ static const PWM::Timer TIM8_DATA{
     TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
-static constexpr PWMChannel SERVO_LEFT_CH  = PWMChannel::CH1;
+static constexpr PWMChannel SERVO_LEFT_CH  = PWMChannel::CH2;
 static constexpr PWMChannel SERVO_RIGHT_CH = PWMChannel::CH2;
-static constexpr PWMChannel SERVO_BACK_CH  = PWMChannel::CH2;
+static constexpr PWMChannel SERVO_KEEL_CH  = PWMChannel::CH1;
+
+// Right servo reset position
+static constexpr float SERVO_R_RESET_POS = 0.875f;
+// Right servo control position
+static constexpr float SERVO_R_CONTROL_POS = 0.80f;
+
+// Keel servo reset position
+static constexpr float SERVO_K_RESET_POS = 0.875f;
+// Keel servo control position
+static constexpr float SERVO_K_CONTROL_POS = 0.80f;
+
+// Left servo reset position
+static constexpr float SERVO_L_RESET_POS = 0.125f;
+// Left servo control position
+static constexpr float SERVO_L_CONTROL_POS = 0.20f;
+
 }  // namespace DeathStackBoard

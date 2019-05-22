@@ -33,8 +33,8 @@ namespace DeathStackBoard
 static const unsigned int PIN_POLL_INTERVAL = 20;  // ms
 
 // Launch pin config
-static const unsigned int PORT_LAUNCH_PIN = GPIOA_BASE;
-static const unsigned char NUM_LAUNCH_PIN = 1;
+static const unsigned int PORT_LAUNCH_PIN = GPIOC_BASE;
+static const unsigned char NUM_LAUNCH_PIN = 6;
 
 static const PinObserver::Transition TRIGGER_LAUNCH_PIN =
     PinObserver::Transition::FALLING_EDGE;
@@ -43,8 +43,8 @@ static const PinObserver::Transition TRIGGER_LAUNCH_PIN =
 // before triggering a launch event.
 static const unsigned int THRESHOLD_LAUNCH_PIN = 10;
 
-static const unsigned int PORT_NC_DETACH_PIN = GPIOA_BASE;
-static const unsigned char NUM_NC_DETACH_PIN = 2;
+static const unsigned int PORT_NC_DETACH_PIN = GPIOB_BASE;
+static const unsigned char NUM_NC_DETACH_PIN = 7;
 static const PinObserver::Transition TRIGGER_NC_DETACH_PIN =
     PinObserver::Transition::FALLING_EDGE;
 
