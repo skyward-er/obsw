@@ -36,7 +36,7 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADA::ADA()
-    : FSM(&ADA::stateCalibrating),
+    : FSM(&ADA::stateIdle),
       filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
 {
     // Subscribe to topics
@@ -310,7 +310,7 @@ void ADA::stateIdle(const Event& ev)
         }
         default:
         {
-            TRACE("[ADA] stateIdle: %d event not handled\n", ev.sig);
+            // TRACE("[ADA] stateIdle: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -377,7 +377,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateCalibrating: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateCalibrating: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -453,7 +453,7 @@ void ADA::stateReady(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateIdle: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateIdle: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -492,7 +492,7 @@ void ADA::stateShadowMode(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateShadowMode: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateShadowMode: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -529,7 +529,7 @@ void ADA::stateActive(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateActive: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateActive: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -573,7 +573,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateFirstDescentPhase: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateFirstDescentPhase: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -602,7 +602,7 @@ void ADA::stateEnd(const Event& ev)
         }
         default:
         {
-            TRACE("ADA stateEnd: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateEnd: %d event not handled\n", ev.sig);
             break;
         }
     }
