@@ -26,7 +26,6 @@
 
 #include <utils/aero/AeroUtils.h>
 
-#include <iostream>
 #include "Debug.h"
 using miosix::Lock;
 
@@ -123,12 +122,20 @@ void ADA::updateBaro(float pressure)
             // of the pressure is > 0)
             if (filter.X(1, 0) > 0)
             {
-                sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
-                status.apogee_reached = true;
+                n_samples_going_down = n_samples_going_down + 1;
+                if (n_samples_going_down <= APOGEE_N_SAMPLES)
+                {
+                    sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
+                    status.apogee_reached = true;
+                }
 
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
                 logger.log(apogee);
+            }
+            else if (n_samples_going_down != 0)
+            {
+                n_samples_going_down = 0;
             }
             break;
         }
@@ -342,7 +349,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_ADA_READY:
         {
-            transition(&ADA::stateIdle);
+            transition(&ADA::stateReady);
             break;
         }
         case EV_TC_SET_DPL_ALTITUDE:

@@ -146,6 +146,9 @@ private:
     // Filter object
     Kalman<3, 1> filter;
 
+    // Number of consecutive samples in which the speed was negative
+    unsigned int n_samples_going_down = 0;
+
     // Calibration variables
     ADACalibrationData calibration_data;
     Stats pressure_stats;
