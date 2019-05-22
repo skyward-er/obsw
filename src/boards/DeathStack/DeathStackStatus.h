@@ -50,7 +50,6 @@ struct DeathStackStatus
     uint8_t tmtc           = COMP_OK;
     uint8_t ign            = COMP_OK;
     uint8_t dpl            = COMP_OK;
-    uint8_t rogallo        = COMP_OK;
 
     /**
      * @brief Helper method to signal an error in the DeathStackStatus struct.
@@ -66,15 +65,14 @@ struct DeathStackStatus
 
     static std::string header()
     {
-        return "logger,ev_broker,pin_obs,fmm,sensor_manager,ada,tmtc,ign,dpl,"
-               "rogallo\n";
+        return "logger,ev_broker,pin_obs,fmm,sensor_manager,ada,tmtc,ign,dpl\n";
     }
 
     void print(std::ostream& os)
     {
-        os << logger << "," << ev_broker << "," << pin_obs << "," << fmm << ","
-           << sensor_manager << "," << ada << "," << tmtc << "," << ign << ","
-           << dpl << "," << rogallo << "\n";
+        os << (int)logger << "," << (int)ev_broker << "," << (int)pin_obs << "," << (int)fmm << ","
+           << (int)sensor_manager << "," << (int)ada << "," << (int)tmtc << "," << (int)ign << ","
+           << (int)dpl << "\n";
     }
 };
 }  // namespace DeathStackBoard

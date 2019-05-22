@@ -34,8 +34,12 @@ namespace DeathStackBoard
 {
 
 DeploymentController::DeploymentController()
-    : HSM(&DeploymentController::state_initialization), motor()
+    : servo_rk(TIM4_DATA), servo_l(TIM8_DATA),
+      HSM(&DeploymentController::state_initialization), motor()
 {
+    // No conflicts on TIM4, enable PWM immediately
+    configureTIM4Servos();
+
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
@@ -61,6 +65,7 @@ State DeploymentController::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
+            logStatus(DeploymentCTRLState::DPL_IDLE);
             // Process deferred events
             try
             {
@@ -75,7 +80,6 @@ State DeploymentController::state_idle(const Event& ev)
             }
 
             TRACE("[DPL_CTRL] state_idle ENTRY\n");
-            logStatus(DeploymentCTRLState::DPL_IDLE);
             break;
         }
         case EV_INIT:
@@ -101,6 +105,19 @@ State DeploymentController::state_idle(const Event& ev)
         case EV_CUT_DROGUE:
         {
             retState = transition(&DeploymentController::state_cuttingDrogue);
+            break;
+        }
+        case EV_DPL_ALTITUDE:
+        {
+            // TIM8 Pins are conflicting with the motor driver pins, don't
+            // configure them until necessary
+            configureTIM8Servos();
+            break;
+        }
+        case EV_START_ROGALLO_CONTROL:
+        {
+            TRACE("Controlling rogallo\n");
+            controlRogallo();
             break;
         }
         default:
@@ -316,6 +333,8 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
             cutter.stopCutDrogue();
 
             sEventBroker->removeDelayed(ev_cut_timeout_id);
+            TRACE("[DPL_CTRL] state_cuttingDrogue EXIT\n");
+
             break;
         }
         case EV_TIMEOUT_CUTTING:
@@ -364,6 +383,9 @@ State DeploymentController::state_cuttingMain(const Event& ev)
             cutter.stopCutMainChute();
 
             sEventBroker->removeDelayed(ev_cut_timeout_id);
+
+            TRACE("[DPL_CTRL] state_cuttingMain EXIT\n");
+
             break;
         }
         case EV_CUT_DROGUE:
@@ -383,6 +405,70 @@ State DeploymentController::state_cuttingMain(const Event& ev)
         }
     }
     return retState;
+}
+
+void DeploymentController::configureTIM4Servos()
+{
+    {
+        miosix::FastInterruptDisableLock dLock;
+        miosix::nosecone::rogP1::mode(miosix::Mode::ALTERNATE);
+        miosix::nosecone::rogP2::mode(miosix::Mode::ALTERNATE);
+
+        miosix::nosecone::rogP1::alternateFunction(2);
+        miosix::nosecone::rogP2::alternateFunction(2);
+    }
+    servo_rk.enable(SERVO_RIGHT_CH);
+    servo_rk.enable(SERVO_KEEL_CH);
+
+    servo_rk.setPosition(SERVO_RIGHT_CH, SERVO_R_RESET_POS);
+    servo_rk.setPosition(SERVO_KEEL_CH, SERVO_K_RESET_POS);
+
+    servo_rk.start();
+}
+
+// The pins connected to TIM8 are shared with the nosecone driver. Don't
+// enable the timer until we have to drive the servos
+void DeploymentController::configureTIM8Servos()
+{
+    {
+        miosix::FastInterruptDisableLock dLock;
+        miosix::nosecone::motP1::mode(miosix::Mode::ALTERNATE);
+        miosix::nosecone::motP1::alternateFunction(3);
+    }
+    servo_l.enable(SERVO_LEFT_CH);
+    servo_l.setPosition(SERVO_LEFT_CH, SERVO_L_RESET_POS);
+
+    servo_l.start();
+}
+
+void DeploymentController::controlRogallo()
+{
+    // Ensure TIM8 is correctly configured
+    configureTIM8Servos();
+
+    // Wait for TIM8 servo to go to position
+    Thread::sleep(2000);
+
+    // Drive the left servo
+    servo_l.setPosition(SERVO_LEFT_CH, SERVO_L_CONTROL_POS);
+    // Wait then reset position
+    Thread::sleep(4000);
+    servo_l.setPosition(SERVO_LEFT_CH, SERVO_L_RESET_POS);
+    Thread::sleep(4000);
+
+    // Drive the keel servo
+    servo_rk.setPosition(SERVO_KEEL_CH, SERVO_K_CONTROL_POS);
+    // Wait then reset position
+    Thread::sleep(4000);
+    servo_rk.setPosition(SERVO_KEEL_CH, SERVO_K_RESET_POS);
+    Thread::sleep(4000);
+
+    // Drive the keel servo
+    servo_rk.setPosition(SERVO_RIGHT_CH, SERVO_R_CONTROL_POS);
+    // Wait then reset position
+    Thread::sleep(4000);
+    servo_rk.setPosition(SERVO_RIGHT_CH, SERVO_R_RESET_POS);
+    Thread::sleep(4000);
 }
 
 }  // namespace DeathStackBoard

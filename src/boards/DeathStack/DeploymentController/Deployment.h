@@ -24,12 +24,13 @@
 #pragma once
 
 #include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/configs/DeploymentConfig.h"
 #include "DeploymentData.h"
 #include "Motor/MotorDriver.h"
 #include "ThermalCutter/Cutter.h"
 #include "events/HSM.h"
 #include "utils/CircularBuffer.h"
-#include "DeathStack/configs/DeploymentConfig.h"
+#include <drivers/servo/servo.h>
 
 class PinObserver;
 
@@ -53,6 +54,8 @@ public:
     State state_spinning(const Event &ev);
     State state_awaitingDetachment(const Event &ev);
     State state_awaitingOpenTime(const Event &ev);
+
+    State state_controlRogallo(const Event &ev);
 
 private:
     /**
@@ -78,6 +81,11 @@ private:
         logger.log(status);
     }
 
+    void configureTIM4Servos();
+    void configureTIM8Servos();
+
+    void controlRogallo();
+
     /**
      * Defer an event to be processed when the state machine goes back to
      * state_idle
@@ -89,14 +97,17 @@ private:
     Cutter cutter{};
     DeploymentStatus status;
     MotorDriver motor;
-    
+
     LoggerProxy &logger = *(LoggerProxy::getInstance());
 
     CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 
     uint16_t ev_min_open_time_id = 0;
-    uint16_t ev_open_timeout_id = 0;
-    uint16_t ev_cut_timeout_id = 0;
+    uint16_t ev_open_timeout_id  = 0;
+    uint16_t ev_cut_timeout_id   = 0;
+
+    Servo servo_rk;
+    Servo servo_l;
 };
 
 }  // namespace DeathStackBoard

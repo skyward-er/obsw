@@ -77,13 +77,13 @@ public:
     FlightModeManager* fmm;
     DeploymentController* dpl;
 
-    RogalloController* rogallo;
-
     /**
      * Initialize Everything
      */
     DeathStack()
     {
+        memset(&status, 0, sizeof(status));
+
         /* Shared components */
         broker       = sEventBroker;
         logger       = Singleton<LoggerProxy>::getInstance();
@@ -102,8 +102,6 @@ public:
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
         dpl            = new DeploymentController();
-
-        rogallo = new RogalloController();
 
         // Start threads
         try
@@ -146,15 +144,13 @@ public:
         {
             status.setError(&DeathStackStatus::sensor_manager);
         }
+        TRACE("[DS] Sensor init status: %02X %d\n",
+              sensor_manager->getStatus().sensor_status,
+              sensor_manager->getStatus().sensor_status);
         if (sensor_manager->getStatus().sensor_status !=
             NOMINAL_SENSOR_INIT_VALUE)
         {
             status.setError(&DeathStackStatus::sensor_manager);
-        }
-
-        if (!rogallo->start())
-        {
-            status.setError(&DeathStackStatus::rogallo);
         }
 
         logger->log(status);

@@ -37,7 +37,8 @@ enum DeploymentCTRLState : uint8_t
     OPENING_NC,
     SPINNING,
     AWAITING_DETACHMENT,
-    AWAITING_MINOPENTIME
+    AWAITING_MINOPENTIME,
+    CONTROL_ROGALLO
 };
 
 struct DeploymentStatus
