@@ -35,18 +35,17 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADA::ADA()
-    : FSM(&ADA::stateIdle),
-      filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
+    : FSM(&ADA::stateIdle), filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
+      rogallo_dts()
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_ADA);
 
-    status.state = ADAState::CALIBRATING;
+    status.state = ADAState::IDLE;
 
-    Lock<FastMutex> l(calib_mutex);
-    calibration_data.pressure_calib.nSamples = 0;
+    memset(&calibration_data, 0, sizeof(ADACalibrationData));
 }
 
 /* --- SENSOR UPDATE METHODS --- */
@@ -171,30 +170,81 @@ void ADA::updateBaro(float pressure)
     }
 }
 
-void ADA::setReferenceTemperature(const ConfigurationEvent& ev_ref_temp)
+void ADA::setReferenceTemperature(float ref_temp)
 {
-    // Sanity check: Obey to the laws of thermodynamics
-    if (ev_ref_temp.config + 273.15 > 0)
+    if (status.state == ADAState::CALIBRATING ||
+        status.state == ADAState::READY)
     {
-        temperature_ref     = ev_ref_temp.config + 273.15;  // Celsius to Kelvin
-        status.ref_temp_set = true;
-        logStatus();
+        Lock<FastMutex> l(calib_mutex);
+
+        // Sanity check: Obey to the laws of thermodynamics
+        if (ref_temp + 273.15 > 0)
+        {
+            temperature_ref     = ref_temp + 273.15;  // Celsius to Kelvin
+            status.ref_temp_set = true;
+
+            TRACE("[ADA] Reference temperature set to %.3f K\n",
+                  temperature_ref);
+
+            logStatus();
+        }
+
+        if (status.state == ADAState::READY)
+        {
+            // Update the calibration parameters if a calibration has already
+            // been completed
+            finalizeCalibration();
+        }
     }
 }
 
-void ADA::setReferenceAltitude(const ConfigurationEvent& ev_ref_alt)
+void ADA::setReferenceAltitude(float ref_alt)
 {
-    altitude_ref            = ev_ref_alt.config;
-    status.ref_altitude_set = true;
-    logStatus();
+    if (status.state == ADAState::CALIBRATING ||
+        status.state == ADAState::READY)
+    {
+        Lock<FastMutex> l(calib_mutex);
+
+        altitude_ref            = ref_alt;
+        status.ref_altitude_set = true;
+
+        TRACE("[ADA] Reference altitude set to %.3f m\n", altitude_ref);
+
+        logStatus();
+
+        if (status.state == ADAState::READY)
+        {
+            // Update the calibration parameters if a calibration has already
+            // been completed
+            finalizeCalibration();
+        }
+    }
 }
 
-void ADA::setDeploymentAltitude(const ConfigurationEvent& ev_dpl_alt)
+void ADA::setDeploymentAltitude(float dpl_alt)
 {
-    rogallo_dts.setDeploymentAltitudeAgl(ev_dpl_alt.config);
+    if (status.state == ADAState::CALIBRATING ||
+        status.state == ADAState::READY)
+    {
+        Lock<FastMutex> l(calib_mutex);
 
-    status.dpl_altitude_set = true;
-    logStatus();
+        rogallo_dts.setDeploymentAltitudeAgl(dpl_alt);
+        TargetDeploymentAltitude tda;
+        tda.deployment_altitude = dpl_alt;
+        status.dpl_altitude_set = true;
+
+        TRACE("[ADA] Deployment altitude set to %.3f m\n",
+              tda.deployment_altitude);
+
+        logStatus();
+
+        if (status.state == ADAState::READY)
+        {
+            // Update the calibration parameters if a calibration has already
+            // been completed
+            finalizeCalibration();
+        }
+    }
 }
 
 void ADA::finalizeCalibration()
@@ -205,7 +255,7 @@ void ADA::finalizeCalibration()
         status.dpl_altitude_set && status.ref_altitude_set &&
         status.ref_temp_set)
     {
-        pressure_ref = pressure_stats.getStats().mean;
+        float pressure_ref = pressure_stats.getStats().mean;
 
         // Calculat MSL values for altitude calculation
         pressure_0 =
@@ -213,6 +263,9 @@ void ADA::finalizeCalibration()
 
         temperature_0 =
             aeroutils::mslTemperature(temperature_ref, altitude_ref);
+
+        TRACE("[ADA] Finalized calibration. p0: %.3f, t0: %.3f\n", pressure_0,
+              temperature_0);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
@@ -253,6 +306,8 @@ void ADA::resetCalibration()
     pressure_stats.reset();
 
     calibration_data.pressure_calib = pressure_stats.getStats();
+
+    logger.log(calibration_data);
 }
 
 float ADA::updateAltitude(float p, float dp_dt)
@@ -352,31 +407,6 @@ void ADA::stateCalibrating(const Event& ev)
             transition(&ADA::stateReady);
             break;
         }
-        case EV_TC_SET_DPL_ALTITUDE:
-        {
-            const ConfigurationEvent& dpl_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-
-            setDeploymentAltitude(dpl_ev);
-            TRACE("[ADA] Deployment altitude set\n");
-            break;
-        }
-        case EV_TC_SET_REFERENCE_TEMP:
-        {
-            const ConfigurationEvent& temp_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-            setReferenceTemperature(temp_ev);
-            TRACE("[ADA] Reference temperature set\n");
-            break;
-        }
-        case EV_TC_SET_REFERENCE_ALTITUDE:
-        {
-            const ConfigurationEvent& alt_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-            setReferenceAltitude(alt_ev);
-            TRACE("[ADA] Reference altitude set\n");
-            break;
-        }
         case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
@@ -415,41 +445,6 @@ void ADA::stateReady(const Event& ev)
         case EV_LIFTOFF:
         {
             transition(&ADA::stateShadowMode);
-            break;
-        }
-        case EV_TC_SET_DPL_ALTITUDE:
-        {
-            const ConfigurationEvent& dpl_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-
-            setDeploymentAltitude(dpl_ev);
-
-            // Update the values set during the calibration phase
-            finalizeCalibration();
-            break;
-        }
-        case EV_TC_SET_REFERENCE_TEMP:
-        {
-            const ConfigurationEvent& temp_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-            setReferenceTemperature(temp_ev);
-
-            // Update the values set during the calibration phase
-            finalizeCalibration();
-
-            TRACE("[ADA] Reference temperature set\n");
-            break;
-        }
-        case EV_TC_SET_REFERENCE_ALTITUDE:
-        {
-            const ConfigurationEvent& alt_ev =
-                static_cast<const ConfigurationEvent&>(ev);
-            setReferenceAltitude(alt_ev);
-
-            // Update the values set during the calibration phase
-            finalizeCalibration();
-
-            TRACE("[ADA] Reference altitude set\n");
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -580,7 +575,8 @@ void ADA::stateFirstDescentPhase(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA stateFirstDescentPhase: %d event not handled\n", ev.sig);
+            // TRACE("ADA stateFirstDescentPhase: %d event not handled\n",
+            // ev.sig);
             break;
         }
     }

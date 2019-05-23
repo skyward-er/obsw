@@ -25,11 +25,11 @@
 #include <DeathStack/ADA/ADAStatus.h>
 #include <events/FSM.h>
 
+#include <DeathStack/Events.h>
 #include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LogProxy/LogProxy.h"
 #include "RogalloDTS/RogalloDTS.h"
-#include <DeathStack/Events.h>
 
 #include <miosix.h>
 
@@ -84,6 +84,24 @@ public:
 
     const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
 
+    /**
+     * Sets the reference temperature to be used to calibrate the altimeter
+     * @param ref_temp Reference temperature in degrees Celsisus
+     */
+    void setReferenceTemperature(float ref_temp);
+
+    /**
+     * Sets the reference altitude to be used to calibrate the altimeter
+     * @param ref_alt Reference altitude in meters above mean sea level
+     */
+    void setReferenceAltitude(float ref_alt);
+
+    /**
+     * Sets the deployment altitude 
+     * @param dpl_alt Deployment altitude in meters above GROUND level
+     */
+    void setDeploymentAltitude(float dpl_alt);
+
 private:
     // FSM States
     void stateIdle(const Event& ev);
@@ -98,10 +116,6 @@ private:
      * @param pressure The pressure sample in pascal
      */
     void updateFilter(float pressure);
-
-    void setReferenceTemperature(const ConfigurationEvent& ev_ref_temp);
-    void setReferenceAltitude(const ConfigurationEvent& ev_ref_alt);
-    void setDeploymentAltitude(const ConfigurationEvent& ev_dpl_alt);
 
     /** Checks if calibration is complete and if this is the case sends the
      * ADA_READY event.
@@ -132,16 +146,17 @@ private:
     // Event id to store calibration timeout
     uint16_t shadow_delayed_event_id = 0;
 
-    // Reference pressure at current altitude
-    float pressure_ref = 0;
-
     // References for pressure to altitude conversion
-    float temperature_ref = 0;  // Reference temperature in K at launchpad
-    float altitude_ref    = 0;  // Reference altitude at launchpad
+    float temperature_ref =
+        DEFUALT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
+                                        // launchpad
+    float altitude_ref =
+        DEFUALT_REFERENCE_ALTITUDE;  // Reference altitude at launchpad
 
-    // Pressure at mean sea level for altitude calculation
-    float pressure_0    = 0;
-    float temperature_0 = 0;
+    // Pressure at mean sea level for altitude calculation, to be updated with
+    // launch-day calibration
+    float pressure_0    = DEFUALT_MSL_PRESSURE;
+    float temperature_0 = DEFUALT_MSL_TEMPERATURE;
 
     // Filter object
     Kalman<3, 1> filter;
