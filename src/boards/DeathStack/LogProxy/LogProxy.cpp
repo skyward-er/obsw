@@ -549,7 +549,7 @@ LogResult LoggerProxy::log<LM75BData>(const LM75BData& t)
             {
                 tm_repository.test_tm.temp_imu = t.temp;
 
-                tm_repository.hr_tm.temperature = static_cast<uint8_t>(t.temp);
+                tm_repository.hr_tm.temperature = static_cast<int8_t>(t.temp);
                 break;
             }
         }
@@ -618,12 +618,6 @@ LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
         miosix::PauseKernelLock kLock;
         switch (t.id)
         {
-            case static_cast<uint8_t>(SensorSamplerId::SIMPLE_1HZ):
-                tm_repository.sm_tm.task_1hz_max    = t.periodStats.maxValue;
-                tm_repository.sm_tm.task_1hz_min    = t.periodStats.minValue;
-                tm_repository.sm_tm.task_1hz_mean   = t.periodStats.mean;
-                tm_repository.sm_tm.task_1hz_stddev = t.periodStats.stdev;
-                break;
             case static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ):
                 tm_repository.sm_tm.task_20hz_max    = t.periodStats.maxValue;
                 tm_repository.sm_tm.task_20hz_min    = t.periodStats.minValue;
