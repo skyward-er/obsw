@@ -26,10 +26,10 @@ namespace DeathStackBoard
 {
 
 // State timeouts
-static const unsigned int TIMEOUT_FMM_AUTO_DISARM      = 5 * 1000;
-static const unsigned int TIMEOUT_FMM_APOGEE_DETECTION = 5 * 1000;
-static const unsigned int TIMEOUT_FMM_DPL_ALTITUDE     = 5 * 1000;
-static const unsigned int TIMEOUT_FMM_END_MISSION      = 5 * 1000;
-}
+// Automatically end the mission after a very long time, in order to safely
+// close the logs if radio comms have been lost
+static const unsigned int TIMEOUT_FMM_END_MISSION = 30 * 60 * 1000;
+
+}  // namespace DeathStackBoard
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMM_CONFIG_H */
