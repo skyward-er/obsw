@@ -34,11 +34,11 @@ namespace DeathStackBoard
 {
 
 // TODO: Update with correct values
-static constexpr int MAXIMUM_CUTTING_DURATION = 10000;
+static constexpr int MAXIMUM_CUTTING_DURATION = 15 * 1000;
 
 static constexpr int NC_MINIMUM_OPENING_TIME = 4000;
-static constexpr int NC_OPEN_TIMEOUT         = 10000;
-static constexpr int NC_CLOSE_TIMEOUT        = 10000;
+static constexpr int NC_OPEN_TIMEOUT         = 15000;
+static constexpr int NC_CLOSE_TIMEOUT        = 15000;
 
 static const MotorDirection MOTOR_OPEN_DIR  = MotorDirection::NORMAL;
 static const MotorDirection MOTOR_CLOSE_DIR = MotorDirection::REVERSE;

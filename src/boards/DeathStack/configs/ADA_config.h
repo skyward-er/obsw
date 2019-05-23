@@ -30,9 +30,6 @@ namespace DeathStackBoard
 // How many problematic gps samples to trigger an abort
 constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 
-// Altitude at which the rogallo wing deploys even if there is no GPS fix or we
-// are outside the launch safety area
-constexpr unsigned int ROGALLO_UNCONDITIONAL_DPL_ALTITUDE = 100;
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
