@@ -1,5 +1,5 @@
 /* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+ * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,53 +20,39 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
-#include <sensors/Sensor.h>
-#include <tests/catch/ada/test-ada-data.h>
-#include <random>
-
 namespace DeathStackBoard
 {
-class MockPressureSensor : public ::PressureSensor
+class MockGPS
 {
 public:
-    bool init() { return true; }
+    MockGPS() : lat(lat_inside), lon(lon_inside) {}
 
-    bool selfTest() { return true; }
-
-    bool onSimpleUpdate()
+    bool updateCoordinates()
     {
-        if (before_liftoff)
+        if (inside_lha)
         {
-            mLastPressure = addNoise(SIMULATED_PRESSURE[0]);
+            lat = lat_inside;
+            lon = lon_inside;
         }
         else
         {
-            if (i < DATA_SIZE)
-            {
-                mLastPressure = addNoise(SIMULATED_PRESSURE[i]);
-            }
-            else
-            {
-                mLastPressure = addNoise(SIMULATED_PRESSURE[DATA_SIZE - 1]);
-            }
+            lat = lat_outside;
+            lon = lon_outside;
         }
-        i++;
         return true;
     }
 
-    bool before_liftoff = true;
+    bool inside_lha = true;
 
+    double lat, lon;
+    bool fix = true;
 private:
-    int i = 0;  // Last index
-    std::default_random_engine generator{12345};
-    std::normal_distribution<float> distribution{0.0f, 50.0f};
+    // Set of coordinates inside the Launch Hazard Area
+    const double lat_inside = 41.810368;
+    const double lon_inside = 14.053301;
 
-    float addNoise(float sample)
-    {
-        return quantization(sample + distribution(generator));
-    }
-
-    float quantization(float sample) { return round(sample / 30) * 30; }
+    // Set of coordinates outside the Launch Hazard Area
+    const double lat_outside = 41.840794;
+    const double lon_outside = 14.003920;
 };
 }  // namespace DeathStackBoard
