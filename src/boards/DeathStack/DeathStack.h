@@ -59,8 +59,9 @@ static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{EV_SEND_HR_TM,
  * This file provides a simplified way to initialize and monitor all
  * the components of the DeathStack.
  */
-class DeathStack
+class DeathStack : public Singleton<DeathStack>
 {
+    friend class Singleton<DeathStack>;
 
 public:
     // Shared Components
@@ -76,6 +77,7 @@ public:
     FlightModeManager* fmm;
     DeploymentController* dpl;
 
+private:
     /**
      * Initialize Everything
      */
@@ -109,6 +111,7 @@ public:
         }
         catch (const std::runtime_error& re)
         {
+            TRACE("Logger init error\n");
             status.setError(&DeathStackStatus::logger);
         }
 
@@ -166,29 +169,6 @@ public:
 
         TRACE("[DS] Init finished\n");
     }
-
-    ~DeathStack()
-    {
-        fmm->stop();
-        sensor_manager->stop();
-        ada->stop();
-        tmtc->stop();
-        dpl->stop();
-
-        sEventBroker->stop();
-        pin_observer->stop();
-        logger->stop();
-
-        delete dpl;
-        delete fmm;
-        delete tmtc;
-        delete sensor_manager;
-        delete ada;
-        delete pin_observer;
-        delete sniffer;
-    }
-
-private:
     /**
      * Helpers for debugging purposes
      */
