@@ -73,7 +73,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     EventCounter counter{*sEventBroker};
     counter.subscribe(TOPIC_ADA);
 
-    // Startup: we should be in calibrating
+    // Startup: we should be in idle
     Thread::sleep(100);
     CHECK(ada->testState(&ADA::stateIdle));
 
@@ -100,10 +100,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     CHECK(ada->testState(&ADA::stateCalibrating));
 
     // Send set deployment altitude
-    ConfigurationEvent ev;
-    ev.config = 100;
-    ev.sig = EV_TC_SET_DPL_ALTITUDE;
-    sEventBroker->post(ev, TOPIC_TC);
+    ada->setDeploymentAltitude(100);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
     // Should still be in calibrating
@@ -111,9 +108,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     CHECK(ada->testState(&ADA::stateCalibrating));
 
     // Send set altitude ref
-    ev.config = 100;
-    ev.sig = EV_TC_SET_REFERENCE_ALTITUDE;
-    sEventBroker->post(ev, TOPIC_TC);
+    ada->setReferenceAltitude(1300);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
     // Should still be in calibrating
@@ -121,12 +116,10 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     CHECK(ada->testState(&ADA::stateCalibrating));
 
     // Send set temperature ref
-    ev.config = 15.0f + 273.15f;
-    ev.sig = EV_TC_SET_REFERENCE_TEMP;
-    sEventBroker->post(ev, TOPIC_TC);
+    ada->setReferenceTemperature(15);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
 
-    // Now we should be in idle
+    // Now we should be in ready
     Thread::sleep(100);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     Thread::sleep(100);
@@ -164,6 +157,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
             else
                 FAIL("i = " << i << "\t\t" << state.x1 << " != " << SIMULATED_PRESSURE_SPEED[i]);
         }
+        
         if (counter.getCount({EV_ADA_APOGEE_DETECTED}) == 1 && ada->testState(&ADA::stateActive))
         { 
             sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
