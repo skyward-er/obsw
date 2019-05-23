@@ -59,7 +59,7 @@ public:
          */
         bool onSimpleUpdate() override
         {
-            current_data.timestamp = miosix::getTick();
+            current_data.timestamp   = miosix::getTick();
             current_data.raw_value_1 = parent.adc.convertChannel(CS_1_CHANNEL);
 
             current_data.raw_value_2 = parent.adc.convertChannel(CS_2_CHANNEL);
@@ -111,7 +111,7 @@ public:
 
             battery_data.timestamp = miosix::getTick();
             battery_data.raw_value = battery_volt;
-            battery_data.volt      = battery_volt * 12 / 2686.0f;
+            battery_data.volt      = battery_volt * 12.1f / 2130;
 
             return true;
         }
