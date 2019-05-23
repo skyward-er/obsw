@@ -284,7 +284,7 @@ void SensorManager::onSimple20HZCallback()
                                 temp_lm75b_imu->getTemp()};
 
 #ifdef USE_MOCK_SENSORS
-    ad7994_data->nxp_baro_pressure = *(mock_pressure_sensor->pressureDataPtr());
+    ad7994_data->nxp_baro_pressure = mock_pressure_sensor->getPressure();
 #endif
 
     if (enable_sensor_logging)

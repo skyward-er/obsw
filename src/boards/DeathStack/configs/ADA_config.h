@@ -37,6 +37,12 @@ constexpr unsigned int ROGALLO_UNCONDITIONAL_DPL_ALTITUDE = 100;
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
+// When the derivative of the pressure with respect to time is greater than this
+// value, an apogee is detected.
+// 0: Exact apogee
+// < 0: Detects apogee ahead of time
+constexpr unsigned int APOGEE_PRESSURE_VARIATION_TARGET = -110;  // 1 second ahead
+
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
 

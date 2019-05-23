@@ -28,38 +28,39 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
-#include <utils/catch.hpp>
-#include <sstream>
-#include <iostream>
+#include <Common.h>
 #include <DeathStack/ADA/ADA.h>
-#include <events/FSM.h>
+#include <DeathStack/EventClasses.h>
 #include <DeathStack/Events.h>
 #include <events/EventBroker.h>
-#include <DeathStack/EventClasses.h>
-#include <Common.h>
-#include <random>
-#include <algorithm>
+#include <events/FSM.h>
 #include <utils/EventCounter.h>
+#include <algorithm>
+#include <iostream>
+#include <random>
+#include <sstream>
+#include <utils/catch.hpp>
 #include "test-ada-data.h"
 
 using namespace DeathStackBoard;
 
-constexpr float NOISE_STD_DEV = 50;                                 // Noise varaince
-constexpr float LSB = 30;
- 
-ADA *ada;
-unsigned seed = 1234567;                                            // Seed for noise generation
+constexpr float NOISE_STD_DEV = 50;  // Noise varaince
+constexpr float LSB           = 30;
 
-float addNoise(float sample);                                       // Function to add noise
+ADA *ada;
+unsigned seed = 1234567;  // Seed for noise generation
+
+float addNoise(float sample);  // Function to add noise
 float quantization(float sample);
-std::default_random_engine generator(seed);                         // Noise generator
-std::normal_distribution<float> distribution(0.0, NOISE_STD_DEV);   // Noise generator distribution
+std::default_random_engine generator(seed);  // Noise generator
+std::normal_distribution<float> distribution(
+    0.0, NOISE_STD_DEV);  // Noise generator distribution
 
 typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
 
 TEST_CASE("Testing ADA from calibration to first descent phase")
 {
-        // Setting pin mode for signaling ADA status
+    // Setting pin mode for signaling ADA status
     {
         miosix::FastInterruptDisableLock dLock;
         greenLed::mode(miosix::Mode::OUTPUT);
@@ -82,8 +83,8 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     Thread::sleep(100);
     CHECK(ada->testState(&ADA::stateCalibrating));
 
-    // Send baro calibration samples 
-    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES+5; i++)
+    // Send baro calibration samples
+    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
     {
         ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     }
@@ -93,7 +94,6 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
         FAIL("Calibration value");
     else
         SUCCEED();
-    
 
     // Should still be in calibrating
     Thread::sleep(100);
@@ -123,63 +123,57 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     Thread::sleep(100);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     Thread::sleep(100);
-    CHECK( ada->testState(&ADA::stateReady) );
+    CHECK(ada->testState(&ADA::stateReady));
 
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     // Send liftoff event: should be in shadow mode
     Thread::sleep(100);
-    CHECK( ada->testState(&ADA::stateShadowMode) );
+    CHECK(ada->testState(&ADA::stateShadowMode));
 
     // Wait timeout
     Thread::sleep(TIMEOUT_ADA_SHADOW_MODE);
     // Should be active now
-    CHECK( ada->testState(&ADA::stateActive) );
+    CHECK(ada->testState(&ADA::stateActive));
 
     Thread::sleep(100);
     // Send samples
-    for (unsigned i = 0; i < DATA_SIZE/2; i++)
+    for (unsigned i = 0; i < DATA_SIZE / 2; i++)
     {
         greenLed::high();
         ada->updateBaro(addNoise(SIMULATED_PRESSURE[i]));
-        Thread::sleep(100);
+        // Thread::sleep(100);
         KalmanState state = ada->getKalmanState();
 
-        if (i > 300)
+        if (i > 200)
         {
-            if ( state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70) )
+            if (state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70))
                 SUCCEED();
             else
-                FAIL("i = " << i << "\t\t" << state.x0 << " != " << SIMULATED_PRESSURE[i]);
+                FAIL("i = " << i << "\t\t" << state.x0
+                            << " != " << SIMULATED_PRESSURE[i]);
 
-            if ( state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80) )
+            if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
                 SUCCEED();
             else
-                FAIL("i = " << i << "\t\t" << state.x1 << " != " << SIMULATED_PRESSURE_SPEED[i]);
+                FAIL("i = " << i << "\t\t" << state.x1
+                            << " != " << SIMULATED_PRESSURE_SPEED[i]);
         }
-        
-        if (counter.getCount({EV_ADA_APOGEE_DETECTED}) == 1 && ada->testState(&ADA::stateActive))
-        { 
-            sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
-            Thread::sleep(100);
-            if (i == Approx(383+APOGEE_N_SAMPLES).margin(10))
-                FAIL("Apogee error: " << i << " samples");
+        if (ada->getStatus().apogee_reached == true)
+        {
+            if (i != Approx(383.0f + APOGEE_N_SAMPLES).margin(10))
+                FAIL("Apogee error: " << i - 383 << " samples");
             else
                 SUCCEED();
-            REQUIRE(ada->testState(&ADA::stateFirstDescentPhase));
         }
         greenLed::low();
     }
-    
 }
 
 float addNoise(float sample)
 {
     float noise = distribution(generator);
-    return quantization(sample+noise);
+    return quantization(sample + noise);
 }
 
-float quantization(float sample)
-{
-    return round(sample/LSB)*LSB;
-}
+float quantization(float sample) { return round(sample / LSB) * LSB; }

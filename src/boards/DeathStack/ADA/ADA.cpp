@@ -102,7 +102,7 @@ void ADA::updateBaro(float pressure)
 
             // Check if the vertical speed is negative (so when the derivative
             // of the pressure is > 0)
-            if (filter.X(1, 0) > 0)
+            if (filter.X(1, 0) > APOGEE_PRESSURE_VARIATION_TARGET)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -117,9 +117,8 @@ void ADA::updateBaro(float pressure)
             updateFilter(pressure);
             updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
-            // Check if the vertical speed is negative (so when the derivative
-            // of the pressure is > 0)
-            if (filter.X(1, 0) > 0)
+            // Check if we reached apogee
+            if (filter.X(1, 0) > APOGEE_PRESSURE_VARIATION_TARGET)
             {
                 n_samples_going_down = n_samples_going_down + 1;
                 if (n_samples_going_down >= APOGEE_N_SAMPLES)
@@ -264,8 +263,8 @@ void ADA::finalizeCalibration()
         temperature_0 =
             aeroutils::mslTemperature(temperature_ref, altitude_ref);
 
-        TRACE("[ADA] Finalized calibration. p0: %.3f, t0: %.3f\n", pressure_0,
-              temperature_0);
+        TRACE("[ADA] Finalized calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
+              pressure_ref, pressure_0, temperature_0);
 
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
