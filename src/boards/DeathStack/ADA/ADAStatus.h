@@ -141,7 +141,8 @@ struct ReferenceValues
 
 struct TargetDeploymentAltitude
 {
-    uint16_t deployment_altitude;
+    float deployment_altitude;
+    
     static std::string header() { return "deployment_altitude\n"; }
 
     void print(std::ostream& os) const { os << deployment_altitude << "\n"; }
