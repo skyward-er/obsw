@@ -26,6 +26,7 @@
 
 #include <DeathStack/LogProxy/LogProxy.h>
 #include <DeathStack/configs/TMTCConfig.h>
+#include "DeathStack/DeathStack.h"
 #include "DeathStack/Events.h"
 #include "DeathStack/Topics.h"
 #include "TMBuilder.h"
@@ -72,15 +73,6 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
 };
 // clang-format on
 
-// clang-format off
-static const std::map<uint8_t, uint8_t> settingCmdToEvt = 
-{
-    { MAV_SET_DEPLOYMENT_ALTITUDE,      EV_TC_SET_DPL_ALTITUDE    }, 
-    { MAV_SET_REFERENCE_ALTITUDE,       EV_TC_SET_REFERENCE_ALTITUDE }, 
-    { MAV_SET_REFERENCE_TEMP,           EV_TC_SET_REFERENCE_TEMP }
-};
-// clang-format on
-
 /**
  * Send an ACK to notify the sender that you received the given message.
  */
@@ -102,12 +94,6 @@ static void handleMavlinkMessage(MavChannel* channel,
                                  const mavlink_message_t& msg)
 {
     TRACE("[TMTC] Handling command\n");
-
-#ifdef DEBUG
-    miosix::ledOn();
-    miosix::delayMs(100);
-    miosix::ledOff();
-#endif
 
     /* Log Status */
     MavStatus status = channel->getStatus();
@@ -152,33 +138,30 @@ static void handleMavlinkMessage(MavChannel* channel,
         {
             uint8_t id    = mavlink_msg_upload_setting_tc_get_setting_id(&msg);
             float setting = mavlink_msg_upload_setting_tc_get_setting(&msg);
-            ConfigurationEvent cfgev;
 
-            auto it = DeathStackBoard::TCHandler::settingCmdToEvt.find(id);
-
-            if (it != noargCmdToEvt.end())
+            switch (id)
             {
-                cfgev.sig    = it->second;
-                cfgev.config = setting;
-                sEventBroker->post(cfgev, TOPIC_TC);
-            }
-            else
-            {
-                TRACE("[TMTC] Unkown SETTING command %d\n", id);
+                case MAV_SET_DEPLOYMENT_ALTITUDE:
+                {
+                    DeathStack::getInstance()->ada->setDeploymentAltitude(
+                        setting);
+                    break;
+                }
+                case MAV_SET_REFERENCE_ALTITUDE:
+                {
+                    DeathStack::getInstance()->ada->setReferenceAltitude(
+                        setting);
+                    break;
+                }
+                case MAV_SET_REFERENCE_TEMP:
+                {
+                    DeathStack::getInstance()->ada->setReferenceTemperature(
+                        setting);
+                    break;
+                }
             }
             break;
         }
-            /* case MAV_TC(START_LAUNCH):
-                {
-                    LaunchEvent startLaunchEvt;
-                    startLaunchEvt.sig = EV_TC_LAUNCH;
-                    startLaunchEvt.launchCode =
-                mavlink_msg_start_launch_tc_get_launch_code(&msg);
-
-                    sEventBroker->post(startLaunchEvt, TOPIC_TC);
-                    break;
-                }*/
-
         case MAV_TC(RAW_EVENT):
         {
             TRACE("[TMTC] Received RAW_EVENT command\n");
