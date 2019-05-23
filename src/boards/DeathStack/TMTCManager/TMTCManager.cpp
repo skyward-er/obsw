@@ -43,10 +43,12 @@ TMTCManager::TMTCManager() :FSM(&TMTCManager::stateSendingTM)
                              TMTC_SLEEP_AFTER_SEND, 
                              MAV_OUT_BUFFER_SIZE,
                              MAV_OUT_BUFFER_MAX_AGE);
-    TRACE("[TMTC] Created TMTCManager\n");
 
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TMTC);
+
+    TRACE("[TMTC] Created TMTCManager\n");
+
 }
 
 TMTCManager::~TMTCManager()
@@ -95,7 +97,6 @@ void TMTCManager::stateIdle(const Event& ev)
             break;
 
         default:
-            TRACE("[TMTC] Event not handled\n");
             break;
     }
 }
@@ -147,7 +148,6 @@ void TMTCManager::stateSendingTM(const Event& ev)
             break;
         }
         default:
-            TRACE("[TMTC] Event not handled\n");
             break;
     }
 }
@@ -181,7 +181,6 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
             break;
         }
         default:
-            TRACE("[TMTC] Event not handled\n");
             break;
     }
 }
