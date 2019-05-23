@@ -41,7 +41,6 @@ int main()
 {
     i2c1::init();
     busSPI2::init();
-    led2::low();
     /******************
      * SENSOR MANAGER *
      ******************/
@@ -55,8 +54,7 @@ int main()
     }
     catch (const std::exception& e)
     {
-        printf("SDCARD MISSING\n");
-        led2::low();
+        printf("SDCARD MISSING\n");;
         for (;;)
         {
             led1::high();
@@ -65,7 +63,7 @@ int main()
             Thread::sleep(200);
         }
     }
-    led2::high();
+    led1::high();
 
     sEventBroker->start();
     mgr.start();

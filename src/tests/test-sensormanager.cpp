@@ -44,7 +44,6 @@ int main()
     catch (const std::exception& e)
     {
         printf("SDCARD MISSING\n");
-        led2::low();
         for (;;)
         {
             led1::high();
@@ -53,7 +52,7 @@ int main()
             Thread::sleep(200);
         }
     }
-    led2::high();
+    led1::high();
 
     sEventBroker->start();
     mgr.start();

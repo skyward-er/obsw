@@ -143,9 +143,6 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
-#ifdef USE_MOCK_SENSORS
-    sampler_20hz_simple.AddSensor(mock_pressure_sensor);
-#endif
 
     sampler_20hz_simple.AddSensor(temp_lm75b_imu);
     sampler_20hz_simple.AddSensor(temp_lm75b_analog);
