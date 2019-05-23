@@ -63,6 +63,7 @@ class AD7994Wrapper;
 
 #ifdef USE_MOCK_SENSORS
 class MockPressureSensor;
+class MockGPS;
 #endif
 
 // Type definitions
@@ -157,6 +158,7 @@ private:
     ADCWrapper* adc_internal;
 #ifdef USE_MOCK_SENSORS
     MockPressureSensor* mock_pressure_sensor;
+    MockGPS* mock_gps;
 #endif
 
     Piksi* piksi;

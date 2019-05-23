@@ -43,6 +43,7 @@
 #include "sensors/MPU9250/MPU9250Data.h"
 
 #ifdef USE_MOCK_SENSORS
+#include "Sensors/Test/MockGPS.h"
 #include "Sensors/Test/MockPressureSensor.h"
 #endif
 
@@ -110,6 +111,7 @@ void SensorManager::initSensors()
 
 #ifdef USE_MOCK_SENSORS
     mock_pressure_sensor = new MockPressureSensor();
+    mock_gps             = new MockGPS();
 #endif
 
     // Some sensors dont have init or self tests
@@ -207,7 +209,7 @@ void SensorManager::stateIdle(const Event& ev)
             enable_sensor_logging = false;
 
             status.timestamp = miosix::getTick();
-            status.state = SensorManagerState::IDLE;
+            status.state     = SensorManagerState::IDLE;
             logger.log(status);
 
             TRACE("[SM] Entering stateIdle\n");
@@ -228,7 +230,6 @@ void SensorManager::stateIdle(const Event& ev)
             {
                 mock_pressure_sensor->before_liftoff = false;
             }
-            break;
 #endif
             transition(&SensorManager::stateLogging);
             break;
@@ -244,8 +245,8 @@ void SensorManager::stateLogging(const Event& ev)
     {
         case EV_ENTRY:
             enable_sensor_logging = true;
-            status.timestamp = miosix::getTick();
-            status.state = SensorManagerState::LOGGING;
+            status.timestamp      = miosix::getTick();
+            status.state          = SensorManagerState::LOGGING;
             logger.log(status);
 
             TRACE("[SM] Entering stateLogging\n");
@@ -330,8 +331,15 @@ void SensorManager::onGPSCallback()
     catch (std::runtime_error rterr)
     {
         data.gps_data.timestamp = miosix::getTick();
-        data.fix = false;
+        data.fix                = false;
     }
+
+#ifdef USE_MOCK_SENSORS
+    data.gps_data.timestamp = miosix::getTick();
+    data.gps_data.latitude  = mock_gps->lat;
+    data.gps_data.longitude = mock_gps->lon;
+    data.fix                = mock_gps->fix;
+#endif
 
     ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.fix);
 
