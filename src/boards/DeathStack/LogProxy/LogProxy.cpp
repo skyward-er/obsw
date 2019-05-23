@@ -92,7 +92,7 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
         uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
         uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
 
-        // Update digit 0 with the new value
+        // Update digit 1 & 2 with the new value
         d12 = (uint8_t)t.state;
 
         // Write back
@@ -306,6 +306,10 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
 
         // Update digit 0 with the new value
         d0 = (uint8_t)t.state;
+        if(d0 > 9)
+        {
+            TRACE("Wrong DPL State\n");
+        }
 
         // Write back
         tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
