@@ -71,15 +71,6 @@ private:
      */
     static bool isInsideLHA(double lat, double lon);
 
-    /**
-     * Is the rocket egressing from the Launch Hazard Area?
-     * An egression is detected when the rocket is outside the LHA for
-     * LHA_EGRESS_THRESHOLD consecutive GPS samples.
-     *
-     * @return Whether the rocket is egressing the LHA
-     */
-    bool isEgressing();
-
     // States
     bool deployed   = false;
     bool terminated = false;
@@ -98,11 +89,6 @@ private:
 
     bool has_altitude_sample = false;  // Do we have at least one sample?
     float last_altitude_msl  = 0;
-
-    // Array storing if the last N positions were inside the Launch Hazard
-    // Area. Initialized at false.
-    bool inside_LHA[LHA_EGRESS_THRESHOLD];
-    unsigned int inside_lha_ptr = 0;
 };
 
 }  // namespace DeathStackBoard

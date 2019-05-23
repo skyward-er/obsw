@@ -30,7 +30,7 @@
 namespace DeathStackBoard
 {
 
-RogalloDTS::RogalloDTS() { memset(inside_LHA, false, LHA_EGRESS_THRESHOLD); }
+RogalloDTS::RogalloDTS() { }
 
 RogalloDTS::~RogalloDTS() {}
 
@@ -44,22 +44,14 @@ float RogalloDTS::getDeploymentAltitudeAgl() { return deployment_altitude_agl; }
 
 void RogalloDTS::updateGPS(double lat, double lon, bool has_fix)
 {
-    has_gps_sample = true;
-    last_fix       = has_fix;
+    last_fix = has_fix;
 
     last_lat = lat;
     last_lon = lon;
 
     last_terran_elev = elevationmap::getElevation(lat, lon);
 
-    // We consider ourselves inside the LHA only if we have fix AND our
-    // coordinates are effectively inside
-    inside_LHA[inside_lha_ptr++] = isInsideLHA(lat, lon) && has_fix;
-
-    if (inside_lha_ptr >= LHA_EGRESS_THRESHOLD)
-    {
-        inside_lha_ptr = 0;
-    }
+    has_gps_sample = true;
 
     update();
 }
@@ -76,24 +68,22 @@ void RogalloDTS::update()
     // Do things only if we have at least 1 sample from each sensor and the dpl
     // altitude has been set.
     if (has_gps_sample && has_altitude_sample && deployment_altitude_set)
-    {
-        float altitude_agl = last_altitude_msl - last_terran_elev;
-        // Deploy the rogallo wing
-        if (!deployed && !isEgressing())
+    {    
+        // We deploy only if we have fix and we are inside the launch hazard
+        // area
+        bool can_deploy = last_fix && isInsideLHA(last_lat, last_lon);
+
+        if (!deployed && can_deploy)
         {
+            float altitude_agl = last_altitude_msl - last_terran_elev;
+
             if (altitude_agl <= deployment_altitude_agl)
             {
                 deployed = true;
+
                 sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
             }
         }
-
-        // // Cut the rogallo wing
-        // if (deployed && isEgressing() && !terminated)
-        // {
-        //     terminated = true;
-        //     sEventBroker->post({EV_ABORT_ROGALLO}, TOPIC_ADA);
-        // }
     }
 }
 
@@ -110,25 +100,12 @@ bool RogalloDTS::isInsideLHA(double lat, double lon)
     for (int i = 0; i < NUM_CIRCLES; i++)
     {
         if (circles[i].isInside(lat, lon))
-        {   
+        {
             return true;
         }
     }
 
     return false;
-}
-
-bool RogalloDTS::isEgressing()
-{
-    for (unsigned int i = 0; i < LHA_EGRESS_THRESHOLD; i++)
-    {
-        if (inside_LHA[i])
-        {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 }  // namespace DeathStackBoard
