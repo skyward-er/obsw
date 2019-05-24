@@ -59,6 +59,12 @@ int main()
 
         board->logger->log(system_data);
 
+        // Log logger stats
+        LogStats stats  = Logger::instance().getLogStats();
+        stats.timestamp = miosix::getTick();
+        board->logger->log(stats);
+
+        printf("CPU: %.2f\n", system_data.cpu_usage);
         Thread::sleep(1000);
     }
 }
