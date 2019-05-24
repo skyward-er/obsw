@@ -26,7 +26,6 @@
 #include <functional>
 #include "DeathStack/Events.h"
 #include "DeathStack/LogProxy/LogProxy.h"
-#include "DeathStack/System/StackLogger.h"
 
 using std::bind;
 
@@ -93,11 +92,11 @@ void PinObserverWrapper::onLaunchPinStateChange(unsigned int p, unsigned char n,
     status_pin_launch.num_state_changes += 1;
     logger->log(status_pin_launch);
 
-    logStack(ThreadID::PIN_OBS);
+    LOG_STACK("PinObserver");
 }
 
 void PinObserverWrapper::onNCPinStateChange(unsigned int p, unsigned char n,
-                                                int state)
+                                            int state)
 {
     UNUSED(p);
     UNUSED(n);
@@ -107,7 +106,7 @@ void PinObserverWrapper::onNCPinStateChange(unsigned int p, unsigned char n,
     status_pin_nosecone.num_state_changes += 1;
     logger->log(status_pin_nosecone);
 
-    logStack(ThreadID::PIN_OBS);
+    LOG_STACK("PinObserver");
 }
 
 }  // namespace DeathStackBoard

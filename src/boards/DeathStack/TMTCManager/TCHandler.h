@@ -28,7 +28,6 @@
 #include <DeathStack/configs/TMTCConfig.h>
 #include "DeathStack/DeathStack.h"
 #include "DeathStack/Events.h"
-#include "DeathStack/System/StackLogger.h"
 #include "DeathStack/Topics.h"
 #include "TMBuilder.h"
 
@@ -182,8 +181,6 @@ static void handleMavlinkMessage(MavChannel* channel,
             break;
         }
     }
-    
-    logStack(ThreadID::MAV_RECEIVER);
 }
 
 } /* namespace TCHandler */

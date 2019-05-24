@@ -30,7 +30,6 @@
 #include "ThermalCutter/Cutter.h"
 #include "events/HSM.h"
 #include "utils/CircularBuffer.h"
-#include "DeathStack/System/StackLogger.h"
 #include <drivers/servo/servo.h>
 
 class PinObserver;
@@ -80,7 +79,7 @@ private:
         status.motor_status  = motor.getStatus();
 
         logger.log(status);
-        logStack(ThreadID::FSM_DEPLOYMENT);
+        LOG_STACK("DplFSM");
     }
 
     void configureTIM4Servos();

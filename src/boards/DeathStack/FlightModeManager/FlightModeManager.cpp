@@ -26,7 +26,6 @@
 #include "DeathStack/Events.h"
 #include "DeathStack/Topics.h"
 #include "DeathStack/configs/FMMConfig.h"
-#include "DeathStack/System/StackLogger.h"
 
 #include "Debug.h"
 
@@ -55,7 +54,7 @@ void FlightModeManager::logState(FMMState current_state)
     status.state     = current_state;
 
     logger.log(status);
-    logStack(ThreadID::FSM_FMM);
+    LOG_STACK("FMM FSM");
 }
 
 State FlightModeManager::state_initialization(const Event& ev)

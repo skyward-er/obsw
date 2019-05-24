@@ -50,36 +50,3 @@ struct SystemData
            << min_free_heap << "\n";
     }
 };
-
-enum class ThreadID : uint8_t
-{
-    FSM_ADA,
-    FSM_DEPLOYMENT,
-    FSM_FMM,
-    FSM_FLIGHT_STATS,
-    FSM_SENSOR_MANAGER,
-    FSM_TMTC,
-    TASK_SENSOR_MANAGER,
-    PIN_OBS,
-    MAV_RECEIVER
-};
-
-struct StackData
-{
-    long long timestamp;
-    ThreadID thread_id;
-    unsigned int current_stack;
-    unsigned int min_stack;
-    unsigned int stack_size;
-
-    static std::string header()
-    {
-        return "timestamp,thread_id,current_stack,min_stack,stack_size\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)thread_id << "," << current_stack << ","
-           << min_stack << "," << stack_size << "\n";
-    }
-};

@@ -41,8 +41,6 @@
 #include "sensors/LM75B.h"
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
-#include "DeathStack/System/StackLogger.h"
-
 
 #ifdef USE_MOCK_SENSORS
 #include "Sensors/Test/MockGPS.h"
@@ -194,8 +192,8 @@ void SensorManager::initScheduler()
 
             for (TaskStatResult stat : scheduler_stats)
                 logger.log(stat);
-            
-            logStack(ThreadID::TASK_SENSOR_MANAGER);
+
+            LOG_STACK("SensorScheduler");
         },
         1000, static_cast<uint8_t>(SensorSamplerId::STATS));
 
@@ -215,7 +213,7 @@ void SensorManager::stateIdle(const Event& ev)
 
             TRACE("[SM] Entering stateIdle\n");
 
-            logStack(ThreadID::FSM_SENSOR_MANAGER);
+            LOG_STACK("SensorManager");
 
             break;
         case EV_EXIT:
@@ -255,7 +253,8 @@ void SensorManager::stateLogging(const Event& ev)
 
             TRACE("[SM] Entering stateLogging\n");
 
-            logStack(ThreadID::FSM_SENSOR_MANAGER);
+            LOG_STACK("SensorManager");
+
             break;
         case EV_EXIT:
 

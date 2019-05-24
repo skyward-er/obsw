@@ -25,7 +25,6 @@
 #include <DeathStack/Topics.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include <drivers/Xbee/Xbee.h>
-#include "DeathStack/System/StackLogger.h"
 #include "TCHandler.h"  // Real message handling is here
 #include "XbeeInterrupt.h"
 
@@ -77,8 +76,8 @@ void TMTCManager::stateIdle(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("[TMTC] Entering stateIdle\n");
-            logStack(ThreadID::FSM_TMTC);
+            TRACE("[TMTC] Entering stateIdle\n"); 
+            LOG_STACK("TmtcFMM");
 
             break;
 
@@ -109,7 +108,7 @@ void TMTCManager::stateSendingTM(const Event& ev)
                                                     TOPIC_TMTC, LR_TM_TIMEOUT);
             hr_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM},
                                                     TOPIC_TMTC, HR_TM_TIMEOUT);
-            logStack(ThreadID::FSM_TMTC);
+            LOG_STACK("TmtcFMM");         
 
             break;
 
@@ -161,7 +160,7 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);
 
             TRACE("[TMTC] Entering stateTestTM\n");
-            logStack(ThreadID::FSM_TMTC);
+            LOG_STACK("TmtcFMM");
             break;
 
         case EV_SEND_TEST_TM:

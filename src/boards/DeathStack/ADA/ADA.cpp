@@ -23,7 +23,6 @@
 #include <DeathStack/ADA/ADA.h>
 #include <events/EventBroker.h>
 #include <utils/aero/AeroUtils.h>
-#include "DeathStack/System/StackLogger.h"
 #include "Debug.h"
 
 using miosix::Lock;
@@ -346,7 +345,7 @@ void ADA::logStatus()
     status.timestamp = miosix::getTick();
     logger.log(status);
 
-    logStack(ThreadID::FSM_ADA);
+    LOG_STACK("AdaFSM");
 }
 
 /* --- STATES --- */

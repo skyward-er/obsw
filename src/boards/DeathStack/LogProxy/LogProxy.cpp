@@ -81,21 +81,8 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
         tm_repository.fmm_tm.state = static_cast<uint8_t>(t.state);
 
         // HR TM
-        // bitfield_1 is a decimal digit field: every decimal digit has
-        // a different meaning. We can not use normal bitfield
-        // operations such as 'and', 'or' or shifting because we are
-        // working in decimal. This is done to make the values clearer
-        // in the ground station.
-
-        // Decompose the decimal number in its 2 number of 2 digits and 1 digit
-        // each Example: 123 = 12 * 10 + 3
-        uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
-        uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
-
-        // Update digit 1 & 2 with the new value
-        d12 = (uint8_t)t.state;
-        // Write back
-        tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
+        tm_repository.hr_tm.bitfield_1 &= 0x0F;
+        tm_repository.hr_tm.bitfield_1 |= ((uint8_t)t.state & 0x0F) << 4;
     }
     return logger.log(t);
 }
@@ -122,21 +109,8 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 tm_repository.test_tm.pin_launch = t.state;
 
                 // HR TM
-                // bitfield_2 is a decimal digit field: every decimal digit has
-                // a different meaning. We can not use normal bitfield
-                // operations such as 'and', 'or' or shifting because we are
-                // working in decimal. This is done to make the values clearer
-                // in the ground station.
-
-                // Decompose the decimal number in its 3 digits
-                uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
-
-                // Update digit 0 with the new value
-                uint8_t d0 = t.state;
-
-                // Write back
-                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
+                tm_repository.hr_tm.bitfield_2 &= 0xFE;
+                tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.state & 0x01;
                 break;
             }
             case ObservedPin::NOSECONE:
@@ -158,16 +132,10 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 // in the ground station.
 
                 // Decompose the decimal number in its 3 digits
-                uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-                uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
-                uint8_t d0 =
-                    (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
-
-                // Update digit 1 with the new value
-                d1 = t.state;
-
-                // Write back
-                tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
+                // HR TM
+                tm_repository.hr_tm.bitfield_2 &= 0xFD;
+                tm_repository.hr_tm.bitfield_2 |= ((uint8_t)t.state & 0x01)
+                                                  << 1;
                 break;
             }
             default:
@@ -292,22 +260,8 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
         tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
 
         // HR TM
-        // bitfield_1 is a decimal digit field: every decimal digit has
-        // a different meaning. We can not use normal bitfield
-        // operations such as 'and', 'or' or shifting because we are
-        // working in decimal. This is done to make the values clearer
-        // in the ground station.
-
-        // Decompose the decimal number in two different numbers of 2 digits and
-        // 1 digit each. Example: 123 = 12 * 10 + 3
-        uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
-        uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
-
-        // Update digit 0 with the new value
-        d0 = (uint8_t)t.state;
-
-        // Write back
-        tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
+        tm_repository.hr_tm.bitfield_1 &= 0xF0;
+        tm_repository.hr_tm.bitfield_1 |= ((uint8_t)t.state & 0x0F);
     }
     return logger.log(t);
 }
@@ -575,22 +529,8 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
 
         // HR TM
-        // bitfield_2 is a decimal digit field: every decimal digit has
-        // a different meaning. We can not use normal bitfield
-        // operations such as 'and', 'or' or shifting because we are
-        // working in decimal. This is done to make the values clearer
-        // in the ground station.
-
-        // Decompose the decimal number in its 3 digits
-        uint8_t d2 = tm_repository.hr_tm.bitfield_2 / 100;
-        uint8_t d1 = (tm_repository.hr_tm.bitfield_2 - d2 * 100) / 10;
-        uint8_t d0 = (tm_repository.hr_tm.bitfield_2 - d2 * 100 - d1 * 10);
-
-        // Update digit 2 with the new value
-        d2 = (int)t.fix;
-
-        // Write back
-        tm_repository.hr_tm.bitfield_2 = d0 + d1 * 10 + d2 * 100;
+                tm_repository.hr_tm.bitfield_2 &= 0xFB;
+                tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.fix << 3;
 
         // Test TM
         tm_repository.test_tm.gps_altitude = t.gps_data.height;
