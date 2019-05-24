@@ -94,7 +94,6 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
 
         // Update digit 1 & 2 with the new value
         d12 = (uint8_t)t.state;
-
         // Write back
         tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
     }
@@ -299,17 +298,13 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
         // working in decimal. This is done to make the values clearer
         // in the ground station.
 
-        // Decompose the decimal number in its 2 number of 2 digits and 1 digit
-        // each Example: 123 = 12 * 10 + 3
+        // Decompose the decimal number in two different numbers of 2 digits and
+        // 1 digit each. Example: 123 = 12 * 10 + 3
         uint8_t d12 = tm_repository.hr_tm.bitfield_1 / 10;
         uint8_t d0  = tm_repository.hr_tm.bitfield_1 - d12 * 10;
 
         // Update digit 0 with the new value
         d0 = (uint8_t)t.state;
-        if(d0 > 9)
-        {
-            TRACE("Wrong DPL State\n");
-        }
 
         // Write back
         tm_repository.hr_tm.bitfield_1 = d0 + d12 * 10;
@@ -325,11 +320,6 @@ LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
         miosix::PauseKernelLock kLock;
 
         tm_repository.ada_tm.state = (uint8_t)t.state;
-
-        // HR TM
-        // clear most signigicant 3 bits
-        tm_repository.hr_tm.bitfield_1 &= 0x1F;
-        tm_repository.hr_tm.bitfield_1 |= static_cast<uint8_t>(t.state) & 0xE0;
     }
     return logger.log(t);
 }
@@ -385,7 +375,7 @@ LogResult LoggerProxy::log<ReferenceValues>(const ReferenceValues& t)
     {
         miosix::PauseKernelLock kLock;
         tm_repository.ada_tm.msl_pressure    = t.msl_pressure;
-        tm_repository.ada_tm.msl_temperature = t.msl_pressure;
+        tm_repository.ada_tm.msl_temperature = t.msl_temperature;
 
         tm_repository.ada_tm.ref_altitude    = t.ref_altitude;
         tm_repository.ada_tm.ref_pressure    = t.ref_pressure;

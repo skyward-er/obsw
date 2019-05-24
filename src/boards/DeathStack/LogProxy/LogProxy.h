@@ -60,7 +60,11 @@ class LoggerProxy : public Singleton<LoggerProxy>
     friend class Singleton<LoggerProxy>;
 
 public:
-    LoggerProxy() : logger(Logger::instance()) { initTelemetries(); }
+    LoggerProxy() : logger(Logger::instance())
+    {
+        initTelemetries();
+        flight_stats.start();
+    }
 
     ~LoggerProxy() {}
 
