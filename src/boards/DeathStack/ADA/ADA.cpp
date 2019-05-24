@@ -21,12 +21,11 @@
  */
 
 #include <DeathStack/ADA/ADA.h>
-
 #include <events/EventBroker.h>
-
 #include <utils/aero/AeroUtils.h>
-
+#include "DeathStack/System/StackLogger.h"
 #include "Debug.h"
+
 using miosix::Lock;
 
 namespace DeathStackBoard
@@ -338,17 +337,16 @@ float ADA::updateAltitude(float p, float dp_dt)
 /* --- LOGGER HELPERS --- */
 void ADA::logStatus(ADAState state)
 {
-    status.timestamp = miosix::getTick();
     status.state     = state;
-
-    logger.log(status);
+    logStatus();
 }
 
 void ADA::logStatus()
 {
     status.timestamp = miosix::getTick();
-
     logger.log(status);
+
+    logStack(ThreadID::FSM_ADA);
 }
 
 /* --- STATES --- */

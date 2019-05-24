@@ -53,13 +53,21 @@ struct SystemData
 
 enum class ThreadID : uint8_t
 {
-    UNKNONW
+    FSM_ADA,
+    FSM_DEPLOYMENT,
+    FSM_FMM,
+    FSM_FLIGHT_STATS,
+    FSM_SENSOR_MANAGER,
+    FSM_TMTC,
+    TASK_SENSOR_MANAGER,
+    PIN_OBS,
+    MAV_RECEIVER
 };
 
 struct StackData
 {
     long long timestamp;
-    ThreadID thread_id = ThreadID::UNKNONW;
+    ThreadID thread_id;
     unsigned int current_stack;
     unsigned int min_stack;
     unsigned int stack_size;
