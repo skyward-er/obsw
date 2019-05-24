@@ -185,6 +185,8 @@ void ADA::setReferenceTemperature(float ref_temp)
             TRACE("[ADA] Reference temperature set to %.3f K\n",
                   temperature_ref);
 
+            reference_values.ref_temperature = ref_temp;
+            logger.log(reference_values);
             logStatus();
         }
 
@@ -209,6 +211,8 @@ void ADA::setReferenceAltitude(float ref_alt)
 
         TRACE("[ADA] Reference altitude set to %.3f m\n", altitude_ref);
 
+        reference_values.ref_altitude = ref_alt;
+        logger.log(reference_values);
         logStatus();
 
         if (status.state == ADAState::READY)
@@ -232,10 +236,11 @@ void ADA::setDeploymentAltitude(float dpl_alt)
         tda.deployment_altitude = dpl_alt;
         status.dpl_altitude_set = true;
 
+        logger.log(tda);
+        logStatus();
+
         TRACE("[ADA] Deployment altitude set to %.3f m\n",
               tda.deployment_altitude);
-
-        logStatus();
 
         if (status.state == ADAState::READY)
         {
@@ -271,15 +276,17 @@ void ADA::finalizeCalibration()
         filter.X(1, 0) = 0;
         filter.X(2, 0) = 0;
 
-        // Log reference values
-        ReferenceValues rf;
-        rf.msl_pressure    = pressure_0;
-        rf.msl_temperature = temperature_0;
-        rf.ref_altitude    = altitude_ref;
-        rf.ref_pressure    = pressure_ref;
-        rf.ref_temperature = temperature_ref;
+        // Log updated filter & reference values
+        reference_values.ref_pressure = pressure_ref;
+        reference_values.msl_pressure = pressure_0;
+        reference_values.msl_temperature = temperature_0;
+        logger.log(reference_values);
 
-        logger.log(rf);
+        last_kalman_state.x0 = filter.X(0, 0);
+        last_kalman_state.x1 = filter.X(1, 0);
+        last_kalman_state.x2 = filter.X(2, 0);
+
+        logger.log(last_kalman_state);
 
         // Notify that we are ready
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);

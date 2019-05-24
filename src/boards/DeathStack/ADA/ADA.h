@@ -147,7 +147,8 @@ private:
     uint16_t shadow_delayed_event_id = 0;
 
     // References for pressure to altitude conversion
-    float temperature_ref =
+    ReferenceValues reference_values;
+      float temperature_ref =
         DEFUALT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
                                         // launchpad
     float altitude_ref =
