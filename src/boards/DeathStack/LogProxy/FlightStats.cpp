@@ -326,7 +326,7 @@ void FlightStats::state_ascending(const Event& ev)
         }
         case EV_FLIGHTSTATS_TIMEOUT:
         {
-            // Drouge deployment occurs immediately after apogee
+            // Drogue deployment occurs just after apogee
             transition(&FlightStats::state_drogueDeployment);
             break;
         }
