@@ -21,6 +21,8 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <cstdint>
 #include <miosix.h>
 #include "DeathStack/LogProxy/LogProxy.h"
@@ -29,7 +31,7 @@
 namespace DeathStackBoard
 {
 
-inline void logStack(ThreadID id)
+static inline void logStack(ThreadID id)
 {
     using namespace miosix;
     StackData d;
