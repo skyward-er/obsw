@@ -159,6 +159,16 @@ void SensorManager::initScheduler()
      * std::bind syntax:
      * std::bind(&MyClass::someFunction, &myclass_instance, [someFunction args])
      */
+    long long start_time = miosix::getTick() + 10;
+
+    std::function<void()> simple_250hz_callback =
+        std::bind(&SensorManager::onSimple250HZCallback, this);
+    std::function<void()> simple_250hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback,
+                  &sampler_250hz_simple, simple_250hz_callback);
+
+    scheduler.add(simple_250hz_sampler, 2,
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ), start_time);
 
     std::function<void()> simple_20hz_callback =
         std::bind(&SensorManager::onSimple20HZCallback, this);
@@ -167,23 +177,14 @@ void SensorManager::initScheduler()
                   simple_20hz_callback);
 
     scheduler.add(simple_20hz_sampler, 50,
-                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ));
-
-    std::function<void()> simple_250hz_callback =
-        std::bind(&SensorManager::onSimple250HZCallback, this);
-    std::function<void()> simple_250hz_sampler =
-        std::bind(&SimpleSensorSampler::UpdateAndCallback,
-                  &sampler_250hz_simple, simple_250hz_callback);
-
-    scheduler.add(simple_250hz_sampler, 4,
-                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ));
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ), start_time);
 
     // Lambda expression to collect data from GPS at 10 Hz
     std::function<void()> gps_callback =
         std::bind(&SensorManager::onGPSCallback, this);
 
     scheduler.add(gps_callback, 100,
-                  static_cast<uint8_t>(SensorSamplerId::GPS));
+                  static_cast<uint8_t>(SensorSamplerId::GPS), start_time);
 
     // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
@@ -195,7 +196,7 @@ void SensorManager::initScheduler()
 
             LOG_STACK("SensorScheduler");
         },
-        1000, static_cast<uint8_t>(SensorSamplerId::STATS));
+        1000, static_cast<uint8_t>(SensorSamplerId::STATS), start_time);
 
     TRACE("[SM] Scheduler initialization complete\n");
 }
