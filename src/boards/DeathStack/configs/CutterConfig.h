@@ -55,7 +55,8 @@ static const unsigned int CUTTER_PWM_FREQUENCY = 450;
 // FREQ: 15k
 // 0.3: 2.2 s cut -> ni-cr wire broken
 // 0.15: 8.5 s cut, too slow
-static const float CUTTER_PWM_DUTY_CYCLE       = 0.1;
+static const float CUTTER_PWM_DUTY_CYCLE       = 0.04;
+
 
 // Period of time where the IN must be kept low before bringing ENA/INH low
 static const int CUTTER_DISABLE_DELAY_MS = 50;

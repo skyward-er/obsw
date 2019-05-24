@@ -38,7 +38,7 @@ constexpr unsigned int APOGEE_N_SAMPLES = 5;
 // value, an apogee is detected.
 // 0: Exact apogee
 // < 0: Detects apogee ahead of time
-constexpr unsigned int APOGEE_PRESSURE_VARIATION_TARGET = -110;  // 1 second ahead
+constexpr float APOGEE_PRESSURE_VARIATION_TARGET = -110.0f;  // 1 second ahead
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
