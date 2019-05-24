@@ -205,8 +205,10 @@ void FlightStats::update(const PiksiData& t)
             if (t.gps_data.height > apogee_stats.gps_max_altitude)
             {
                 apogee_stats.gps_max_altitude = t.gps_data.height;
-                apogee_stats.lat_apogee       = static_cast<float>(t.gps_data.latitude);
-                apogee_stats.lon_apogee       = static_cast<float>(t.gps_data.longitude);
+                apogee_stats.lat_apogee =
+                    static_cast<float>(t.gps_data.latitude);
+                apogee_stats.lon_apogee =
+                    static_cast<float>(t.gps_data.longitude);
             }
             break;
         }
@@ -229,17 +231,6 @@ void FlightStats::state_idle(const Event& ev)
         {
             TRACE("[FlightStats] Entering IDLE state\n");
             state = State::IDLE;
-            try
-            {
-                while (!deferred_events.isEmpty())
-                {
-                    postEvent(deferred_events.pop());
-                }
-            }
-            catch (...)
-            {
-                TRACE("Tried to pop empty circularbuffer!\n");
-            }
             break;
         }
         case EV_EXIT:
@@ -273,10 +264,12 @@ void FlightStats::state_liftOff(const Event& ev)
             TRACE("[FlightStats] Entering LIFTOFF state\n");
             state = State::LIFTOFF;
 
+            // Collect liftoff stats until this event is received
             ev_timeout_id = sEventBroker->postDelayed(
                 {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_STATE_LIFTOFF);
+                FlightStatsConfig::TIMEOUT_LIFTOFF_STATS);
 
+            // Save liftoff time
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
             break;
         }
@@ -315,11 +308,25 @@ void FlightStats::state_ascending(const Event& ev)
             TRACE("[FlightStats] Exiting ASCENDING state\n");
 
             LoggerProxy::getInstance()->log(apogee_stats);
+
+            sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
         case EV_APOGEE:
         {
+            // We reached apogee
             apogee_stats.T_apogee = static_cast<uint32_t>(miosix::getTick());
+
+            // We detect apogee a little bit ahead of time, so wait a few
+            // seconds in order to record the maximum altitude.
+            ev_timeout_id = sEventBroker->postDelayed(
+                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
+                FlightStatsConfig::TIMEOUT_APOGEE_STATS);
+            break;
+        }
+        case EV_FLIGHTSTATS_TIMEOUT:
+        {
+            // Drouge deployment occurs immediately after apogee
             transition(&FlightStats::state_drogueDeployment);
             break;
         }
@@ -340,9 +347,10 @@ void FlightStats::state_drogueDeployment(const Event& ev)
 
             state = State::DROGUE_DPL;
 
+            // Collect stats until this event is received
             ev_timeout_id = sEventBroker->postDelayed(
                 {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_STATE_DROGUE_DPL);
+                FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS);
             break;
         }
         case EV_EXIT:
@@ -357,11 +365,6 @@ void FlightStats::state_drogueDeployment(const Event& ev)
         case EV_FLIGHTSTATS_TIMEOUT:
         {
             transition(&FlightStats::state_idle);
-            break;
-        }
-        case EV_DPL_ALTITUDE:
-        {
-            deferred_events.put(ev);
             break;
         }
         default:
@@ -380,11 +383,14 @@ void FlightStats::state_mainDeployment(const Event& ev)
             TRACE("[FlightStats] Entering MAIN DPL state\n");
 
             state                = State::MAIN_DPL;
+
+            // Save deployment timestamp
             main_dpl_stats.T_dpl = static_cast<uint32_t>(miosix::getTick());
 
+            // Record stats until this event occurs
             ev_timeout_id = sEventBroker->postDelayed(
                 {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_STATE_MAIN_DPL);
+                FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS);
             break;
         }
         case EV_EXIT:

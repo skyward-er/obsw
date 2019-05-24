@@ -29,15 +29,20 @@
 
 #include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
+#include "DeathStack/SensorManager/Sensors/PiksiData.h"
 #include "DeathStack/configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
-#include "DeathStack/SensorManager/Sensors/PiksiData.h"
 #include "sensors/MPU9250/MPU9250Data.h"
-#include "utils/CircularBuffer.h"
 
 namespace DeathStackBoard
 {
 
+/**
+ * Records statistics about the flight such as maximum acceleration during
+ * liftoff, maximum altitude, maximum speed etc. In order to do so, we need to
+ * know in which stage of the flight we are in, and we do so using a state
+ * machine and receiving events from the topic FLIGHT_EVENTS
+ */
 class FlightStats : public FSM<FlightStats>
 {
 public:
@@ -50,10 +55,19 @@ public:
     void update(const MPU9250Data& t);
     void update(const PiksiData& t);
 
+    // Wait for liftoff or deployment
     void state_idle(const Event& ev);
+
+    // Record stats of the first few seconds of flight
     void state_liftOff(const Event& ev);
+
+    // Record stats for the apogee part of the flight
     void state_ascending(const Event& ev);
+
+    // Record stats during drogue deployment
     void state_drogueDeployment(const Event& ev);
+
+    // Stats during main deployment
     void state_mainDeployment(const Event& ev);
 
 private:
@@ -75,8 +89,6 @@ private:
     long long T_liftoff = 0;
 
     uint16_t ev_timeout_id = 0;
-
-    CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 };
 
 }  // namespace DeathStackBoard
