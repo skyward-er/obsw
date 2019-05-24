@@ -125,14 +125,6 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
                 tm_repository.test_tm.pin_nosecone = t.state;
 
                 // HR TM
-                // bitfield_2 is a decimal digit field: every decimal digit has
-                // a different meaning. We can not use normal bitfield
-                // operations such as 'and', 'or' or shifting because we are
-                // working in decimal. This is done to make the values clearer
-                // in the ground station.
-
-                // Decompose the decimal number in its 3 digits
-                // HR TM
                 tm_repository.hr_tm.bitfield_2 &= 0xFD;
                 tm_repository.hr_tm.bitfield_2 |= ((uint8_t)t.state & 0x01)
                                                   << 1;
@@ -529,8 +521,8 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
 
         // HR TM
-                tm_repository.hr_tm.bitfield_2 &= 0xFB;
-                tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.fix << 3;
+        tm_repository.hr_tm.bitfield_2 &= 0xFB;
+        tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.fix << 2;
 
         // Test TM
         tm_repository.test_tm.gps_altitude = t.gps_data.height;

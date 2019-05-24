@@ -45,7 +45,7 @@ public:
     bool inside_lha = true;
 
     double lat, lon;
-    bool fix = false;
+    bool fix = true;
 private:
     // Set of coordinates inside the Launch Hazard Area
     const double lat_inside = 41.810368;

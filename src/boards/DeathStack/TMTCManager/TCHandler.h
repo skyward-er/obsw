@@ -36,8 +36,6 @@
 namespace DeathStackBoard
 {
 
-uint16_t g_gsOfflineEvId;
-LoggerProxy& logger = *(LoggerProxy::getInstance());
 
 namespace TCHandler
 {
@@ -97,7 +95,7 @@ static void handleMavlinkMessage(MavChannel* channel,
 
     /* Log Status */
     MavStatus status = channel->getStatus();
-    logger.log(status);
+    LoggerProxy::getInstance()->log(status);
 
     /* Send acknowledge */
     sendAck(channel, msg);
