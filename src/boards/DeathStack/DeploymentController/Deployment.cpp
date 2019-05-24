@@ -40,6 +40,8 @@ DeploymentController::DeploymentController()
     // No conflicts on TIM4, enable PWM immediately
     configureTIM4Servos();
 
+    memset(&status, 0, sizeof(DeploymentStatus));
+
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
@@ -138,12 +140,12 @@ State DeploymentController::state_openingNosecone(const Event& ev)
         {
             // Start the motor to open the nosecone
             motor.start(MOTOR_OPEN_DIR);
+            logStatus(DeploymentCTRLState::OPENING_NC);
 
             ev_open_timeout_id = sEventBroker->postDelayed(
                 Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT, NC_OPEN_TIMEOUT);
 
             TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
-            logStatus(DeploymentCTRLState::OPENING_NC);
             break;
         }
         case EV_INIT:
@@ -315,13 +317,13 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
         {
             // Cutting drogue
             cutter.startCutDrogue();
+            logStatus(DeploymentCTRLState::CUTTING_DROGUE);
 
             ev_cut_timeout_id = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
 
             TRACE("[DPL_CTRL] state_cuttingDrogue ENTRY\n");
-            logStatus(DeploymentCTRLState::CUTTING_DROGUE);
             break;
         }
         case EV_INIT:
@@ -365,13 +367,13 @@ State DeploymentController::state_cuttingMain(const Event& ev)
         {
             // Cutting rogallina
             cutter.startCutMainChute();
+            logStatus(DeploymentCTRLState::CUTTING_MAIN);
 
             ev_cut_timeout_id = sEventBroker->postDelayed(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
                 MAXIMUM_CUTTING_DURATION);
 
             TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
-            logStatus(DeploymentCTRLState::CUTTING_MAIN);
             break;
         }
         case EV_INIT:
