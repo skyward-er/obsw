@@ -332,6 +332,7 @@ void SensorManager::onGPSCallback()
     }
 
 #ifdef USE_MOCK_SENSORS
+    mock_gps->updateCoordinates();
     data.gps_data.timestamp = miosix::getTick();
     data.gps_data.latitude  = mock_gps->lat;
     data.gps_data.longitude = mock_gps->lon;
