@@ -39,8 +39,8 @@ enum class MotorDirection : uint8_t
 
 struct MotorStatus
 {
-    bool motor_active;          
-    MotorDirection motor_last_direction;
+    bool motor_active = false;          
+    MotorDirection motor_last_direction = MotorDirection::NORMAL;
 };
 
 }
