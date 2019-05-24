@@ -60,7 +60,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<SensorManagerStatus>(print<SensorManagerStatus>,
                                          SensorManagerStatus::header());
     ds.registerType<LM75BData>(print<LM75BData>, LM75BData::header());
-    ds.registerType<SensorStatus>(print<SensorStatus>, SensorStatus::header());
+    // ds.registerType<SensorStatus>(print<SensorStatus>, SensorStatus::header());
 
     ds.registerType<AD7994WrapperData>(print<AD7994WrapperData>,
                                        AD7994WrapperData::header());
@@ -111,6 +111,7 @@ void registerTypes(Deserializer& ds)
                                       DeathStackStatus::header());
 
     ds.registerType<StackData>(print<StackData>, StackData::header());
+    ds.registerType<ReferenceValues>(print<ReferenceValues>, ReferenceValues::header());
 }
 
 #endif
