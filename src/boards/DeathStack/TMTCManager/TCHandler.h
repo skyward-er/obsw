@@ -54,7 +54,7 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
     // { MAV_CMD_ABORT_LAUNCH, EV_TC_ABORT_LAUNCH},
     { MAV_CMD_ABORT_ROGALLO,    EV_TC_ABORT_ROGALLO},
     { MAV_CMD_FORCE_INIT,       EV_TC_FORCE_INIT},
-
+    { MAV_CMD_FORCE_LAUNCH,     EV_TC_LAUNCH},
     { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
     { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
     { MAV_CMD_CUT_MAIN,         EV_TC_CUT_MAIN },
@@ -138,6 +138,8 @@ static void handleMavlinkMessage(MavChannel* channel,
         {
             uint8_t id    = mavlink_msg_upload_setting_tc_get_setting_id(&msg);
             float setting = mavlink_msg_upload_setting_tc_get_setting(&msg);
+
+            TRACE("[TMTC] Upload setting: %d, %f\n", (int)id, setting);
 
             switch (id)
             {
