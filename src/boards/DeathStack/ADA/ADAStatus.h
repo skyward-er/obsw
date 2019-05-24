@@ -118,13 +118,13 @@ struct KalmanAltitude
 
 struct ReferenceValues
 {
-    float ref_altitude;
+    float ref_altitude = 0;
 
-    float ref_pressure;
-    float ref_temperature;
+    float ref_pressure = 0;
+    float ref_temperature = 0;
 
-    float msl_pressure;
-    float msl_temperature;
+    float msl_pressure = 0;
+    float msl_temperature = 0;
 
     static std::string header()
     {
