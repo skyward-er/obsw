@@ -28,26 +28,26 @@
  */
 
 // Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
-// Autogen date:    2019-04-25 00:23:09.408740
+// Autogen date:    2019-05-25 03:24:16.345419
 
 #pragma once
 
 namespace elevationmap
 {
 
-static constexpr int MAP_SIZE = 10000;
-static constexpr int RESOLUTION = 100;
+static constexpr int MAP_SIZE = 32400;
+static constexpr int RESOLUTION = 180;
 
 extern const int elevations[MAP_SIZE];
 
-static constexpr double NORTH = 41.837;
-static constexpr double EAST = 14.0854;
-static constexpr double SOUTH = 41.7829;
-static constexpr double WEST = 14.0175;
+static constexpr double NORTH = 41.8299;
+static constexpr double EAST = 14.0799;
+static constexpr double SOUTH = 41.7901;
+static constexpr double WEST = 14.0301;
 
-static constexpr double LAT_DELTA = 0.054100000000005;
-static constexpr double LON_DELTA = 0.0679;
+static constexpr double LAT_DELTA = 0.0398;
+static constexpr double LON_DELTA = 0.049800000000001;
 
-static constexpr int INVALID_ELEVATION = -1000;
+static constexpr int INVALID_ELEVATION = -10000;
 
 } // namespace elevationmap

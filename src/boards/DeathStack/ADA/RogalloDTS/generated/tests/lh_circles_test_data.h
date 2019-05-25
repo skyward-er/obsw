@@ -28,7 +28,7 @@
  */
 
 // Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
-// Autogen date:    2019-04-25 00:23:10.729340
+// Autogen date:    2019-05-25 03:24:18.032348
 
 #pragma once
 
@@ -39,7 +39,7 @@ namespace launchhazard
 namespace test
 {
 
-static constexpr size_t TEST_DATA_SIZE = 10000;
+static constexpr size_t TEST_DATA_SIZE = 32400;
 
 extern const double test_latitudes[TEST_DATA_SIZE];
 extern const double test_longitudes[TEST_DATA_SIZE];
@@ -48,23 +48,15 @@ extern const double test0_distance2[TEST_DATA_SIZE];
 
 extern const double test1_distance2[TEST_DATA_SIZE];
 
-extern const double test2_distance2[TEST_DATA_SIZE];
-
-extern const double test3_distance2[TEST_DATA_SIZE];
-
 
 extern const bool test0_inside[TEST_DATA_SIZE];
 
 extern const bool test1_inside[TEST_DATA_SIZE];
 
-extern const bool test2_inside[TEST_DATA_SIZE];
-
-extern const bool test3_inside[TEST_DATA_SIZE];
 
 
-
-static const double* const test_distances[] = {test0_distance2, test1_distance2, test2_distance2, test3_distance2};
-static const bool* const test_inside[] = {test0_inside, test1_inside, test2_inside, test3_inside};
+static const double* const test_distances[] = {test0_distance2, test1_distance2};
+static const bool* const test_inside[] = {test0_inside, test1_inside};
 
 }
 } // namespace elevationmap
