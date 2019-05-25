@@ -28,6 +28,7 @@
 #include <math/Stats.h>
 #include "DeathStack/System/ManualEvent.h"
 #include "DeathStack/System/SystemData.h"
+#include "DeathStack/System/StackLogger.h"
 
 using namespace DeathStackBoard;
 using namespace miosix;
@@ -48,7 +49,7 @@ int main()
     SystemData system_data;
     while (1)
     {
-        LOG_STACK("main");
+        StackLogger::getInstance()->updateStack(THID_ENTRYPOINT);
 
         system_data.timestamp = miosix::getTick();
         system_data.cpu_usage = averageCpuUtilization();
@@ -69,6 +70,8 @@ int main()
         stats.timestamp = miosix::getTick();
         board->logger->log(stats);
 
+        // Log threads stack data
+        StackLogger::getInstance()->log();
         // printf("CPU: %.2f\n", system_data.cpu_usage);
         Thread::sleep(1000);
     }

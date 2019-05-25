@@ -149,15 +149,15 @@ private:
     // References for pressure to altitude conversion
     ReferenceValues reference_values;
       float temperature_ref =
-        DEFUALT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
+        DEFAULT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
                                         // launchpad
     float altitude_ref =
-        DEFUALT_REFERENCE_ALTITUDE;  // Reference altitude at launchpad
+        DEFAULT_REFERENCE_ALTITUDE;  // Reference altitude at launchpad
 
     // Pressure at mean sea level for altitude calculation, to be updated with
     // launch-day calibration
-    float pressure_0    = DEFUALT_MSL_PRESSURE;
-    float temperature_0 = DEFUALT_MSL_TEMPERATURE;
+    float pressure_0    = DEFAULT_MSL_PRESSURE;
+    float temperature_0 = DEFAULT_MSL_TEMPERATURE;
 
     // Filter object
     Kalman<3, 1> filter;

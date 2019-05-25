@@ -25,6 +25,7 @@
 #include "SensorManager.h"
 
 #include "DeathStack/Events.h"
+#include "DeathStack/System/StackLogger.h"
 #include "DeathStack/Topics.h"
 #include "TestSensor.h"
 #include "events/EventBroker.h"
@@ -202,7 +203,7 @@ void SensorManager::initScheduler()
             for (TaskStatResult stat : scheduler_stats)
                 logger.log(stat);
 
-            LOG_STACK("SensorScheduler");
+            StackLogger::getInstance()->updateStack(THID_SENSOR_SAMPLER);
         },
         1000, static_cast<uint8_t>(SensorSamplerId::STATS), start_time);
 
@@ -222,7 +223,7 @@ void SensorManager::stateIdle(const Event& ev)
 
             TRACE("[SM] Entering stateIdle\n");
 
-            LOG_STACK("SensorManager");
+            StackLogger::getInstance()->updateStack(THID_SENSOR_MANAGER);
 
             break;
         case EV_EXIT:
@@ -262,7 +263,7 @@ void SensorManager::stateLogging(const Event& ev)
 
             TRACE("[SM] Entering stateLogging\n");
 
-            LOG_STACK("SensorManager");
+            StackLogger::getInstance()->updateStack(THID_SENSOR_MANAGER);
 
             break;
         case EV_EXIT:

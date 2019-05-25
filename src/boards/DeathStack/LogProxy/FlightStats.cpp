@@ -24,6 +24,7 @@
 #include "FlightStats.h"
 #include <cmath>
 #include "DeathStack/Events.h"
+#include "DeathStack/System/StackLogger.h"
 #include "LogProxy.h"
 #include "events/EventBroker.h"
 
@@ -237,7 +238,7 @@ void FlightStats::state_idle(const Event& ev)
             TRACE("[FlightStats] Entering IDLE state\n");
             state = State::IDLE;
 
-            LOG_STACK("FlightStatsFSM");
+            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
@@ -279,8 +280,7 @@ void FlightStats::state_liftOff(const Event& ev)
             // Save liftoff time
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
 
-            LOG_STACK("FlightStatsFSM");
-
+            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
@@ -312,9 +312,7 @@ void FlightStats::state_ascending(const Event& ev)
             TRACE("[FlightStats] Entering ASCENDING state\n");
 
             state = State::ASCENDING;
-
-            LOG_STACK("FlightStatsFSM");
-
+            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
@@ -366,8 +364,7 @@ void FlightStats::state_drogueDeployment(const Event& ev)
                 {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS);
 
-            LOG_STACK("FlightStatsFSM");
-
+            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
@@ -409,8 +406,7 @@ void FlightStats::state_mainDeployment(const Event& ev)
                 {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
                 FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS);
 
-            LOG_STACK("FlightStatsFSM");
-
+            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:

@@ -48,16 +48,16 @@ static const unsigned int CALIBRATION_BARO_N_SAMPLES = 1200;
 
 // Default reference values settings
 // Standard atmosphere values @ Roccaraso
-static const float DEFUALT_REFERENCE_TEMPERATURE = 279.700f;
-static const float DEFUALT_REFERENCE_ALTITUDE    = 1300.0f;
+static const float DEFAULT_REFERENCE_TEMPERATURE = 279.700f;
+static const float DEFAULT_REFERENCE_ALTITUDE    = 1300.0f;
 
-static const float DEFUALT_MSL_TEMPERATURE = 288.15f;
-static const float DEFUALT_MSL_PRESSURE    = 101325.0f;
+static const float DEFAULT_MSL_TEMPERATURE = 288.15f;
+static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
 
 // Deployment altitude AGL
 // Set it under the ground level: don't deploy the Rogallo wing if we somehow
 // forget to set the deployment altitude via telecommand
-static const float DEFUALT_DEPLOYMENT_ALTITUDE = -100;
+static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
 
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds

@@ -76,9 +76,8 @@ void TMTCManager::stateIdle(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("[TMTC] Entering stateIdle\n"); 
-            LOG_STACK("TmtcFMM");
-
+            TRACE("[TMTC] Entering stateIdle\n");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_LIFTOFF:
@@ -108,8 +107,8 @@ void TMTCManager::stateSendingTM(const Event& ev)
                                                     TOPIC_TMTC, LR_TM_TIMEOUT);
             hr_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM},
                                                     TOPIC_TMTC, HR_TM_TIMEOUT);
-            LOG_STACK("TmtcFMM");         
 
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_HR_TM:
@@ -160,7 +159,7 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);
 
             TRACE("[TMTC] Entering stateTestTM\n");
-            LOG_STACK("TmtcFMM");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_TEST_TM:

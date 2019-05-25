@@ -36,7 +36,7 @@ namespace DeathStackBoard
 // TODO: Update with correct values
 static constexpr int MAXIMUM_CUTTING_DURATION = 15 * 1000;
 
-static constexpr int NC_MINIMUM_OPENING_TIME = 4000;
+static constexpr int NC_MINIMUM_OPENING_TIME = 5000;
 static constexpr int NC_OPEN_TIMEOUT         = 15000;
 static constexpr int NC_CLOSE_TIMEOUT        = 15000;
 

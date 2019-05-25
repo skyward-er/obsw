@@ -23,14 +23,15 @@
 
 #pragma once
 
+#include <drivers/servo/servo.h>
 #include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/System/StackLogger.h"
 #include "DeathStack/configs/DeploymentConfig.h"
 #include "DeploymentData.h"
 #include "Motor/MotorDriver.h"
 #include "ThermalCutter/Cutter.h"
 #include "events/HSM.h"
 #include "utils/CircularBuffer.h"
-#include <drivers/servo/servo.h>
 
 class PinObserver;
 
@@ -79,7 +80,7 @@ private:
         status.motor_status  = motor.getStatus();
 
         logger.log(status);
-        LOG_STACK("DplFSM");
+        StackLogger::getInstance()->updateStack(THID_DPL_FSM);
     }
 
     void configureTIM4Servos();
