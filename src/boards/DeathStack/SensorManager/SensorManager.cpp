@@ -168,7 +168,14 @@ void SensorManager::initScheduler()
                   &sampler_250hz_simple, simple_250hz_callback);
 
     scheduler.add(simple_250hz_sampler, 2,
-                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ), start_time);
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ),
+                  start_time);
+
+    std::function<void()> simple_100hz_callback =
+        std::bind(&SensorManager::onSimple100HZCallback, this);
+
+    scheduler.add(simple_100hz_callback, 10,
+                  static_cast<uint8_t>(SensorSamplerId::MAGN), start_time);
 
     std::function<void()> simple_20hz_callback =
         std::bind(&SensorManager::onSimple20HZCallback, this);
@@ -177,14 +184,15 @@ void SensorManager::initScheduler()
                   simple_20hz_callback);
 
     scheduler.add(simple_20hz_sampler, 50,
-                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ), start_time);
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ),
+                  start_time);
 
     // Lambda expression to collect data from GPS at 10 Hz
     std::function<void()> gps_callback =
         std::bind(&SensorManager::onGPSCallback, this);
 
-    scheduler.add(gps_callback, 100,
-                  static_cast<uint8_t>(SensorSamplerId::GPS), start_time);
+    scheduler.add(gps_callback, 100, static_cast<uint8_t>(SensorSamplerId::GPS),
+                  start_time);
 
     // Lambda expression callback to log scheduler stats, at 1 Hz
     scheduler.add(
@@ -303,6 +311,14 @@ void SensorManager::onSimple20HZCallback()
     }
 
     ada->updateBaro(ad7994_data->nxp_baro_pressure);
+}
+
+void SensorManager::onSimple100HZCallback()
+{
+    imu_mpu9250->updateMagneto();
+
+    // Don't log here, magnetometer data will be logged in the 250 hz task with
+    // the accel & gyro data.
 }
 
 void SensorManager::onSimple250HZCallback()

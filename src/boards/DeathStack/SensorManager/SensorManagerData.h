@@ -35,6 +35,7 @@ enum class SensorSamplerId : uint8_t
 {
     STATS        = 0,
     GPS          = 10,
+    MAGN         = 100,
     SIMPLE_20HZ  = 20,
     SIMPLE_250HZ = 250
 };
@@ -54,7 +55,7 @@ enum class SensorManagerState : uint8_t
 // Nominal value returned by SensorStatus.toNumeric() when every sensor was
 // initialized successfully.
 // 127 = 1 in every bit of the SensorStatus struct
-static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127; 
+static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127;
 
 struct SensorStatus
 {
@@ -88,12 +89,14 @@ struct SensorStatus
 
     static std::string header()
     {
-        return "mpu9250,lm75b_imu,lm75b_analog,piksi,current_sensor,battery_sensor,ad7994";
+        return "mpu9250,lm75b_imu,lm75b_analog,piksi,current_sensor,battery_"
+               "sensor,ad7994";
     }
 
     void print(std::ostream& os) const
     {
-        os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi << "," << current_sensor << "," << battery_sensor << "," << ad7994;
+        os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi
+           << "," << current_sensor << "," << battery_sensor << "," << ad7994;
     }
 };
 
