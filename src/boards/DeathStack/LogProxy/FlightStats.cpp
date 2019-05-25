@@ -34,6 +34,7 @@ FlightStats::FlightStats() : FSM(&FlightStats::state_idle)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
+    sEventBroker->subscribe(this, TOPIC_STATS);
 }
 
 FlightStats::~FlightStats() { sEventBroker->unsubscribe(this); }
@@ -48,6 +49,7 @@ void FlightStats::update(const KalmanState& t)
         }
         case State::LIFTOFF:
         {
+            apogee_stats.kalman_min_pressure = t.x0;
             break;
         }
         case State::ASCENDING:
@@ -121,6 +123,9 @@ void FlightStats::update(const AD7994WrapperData& t)
         }
         case State::LIFTOFF:
         {
+            apogee_stats.nxp_min_pressure = t.nxp_baro_pressure;
+            apogee_stats.hw_min_pressure  = t.honeywell_baro_pressure;
+
             break;
         }
         case State::ASCENDING:
@@ -283,6 +288,7 @@ void FlightStats::state_liftOff(const Event& ev)
             TRACE("[FlightStats] Exiting LIFTOFF state\n");
 
             LoggerProxy::getInstance()->log(liftoff_stats);
+
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }

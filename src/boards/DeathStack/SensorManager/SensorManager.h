@@ -133,8 +133,9 @@ private:
      * Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
-    void onSimple20HZCallback();
-    void onSimple250HZCallback();
+    void onSimple20HZCallback();  // ADCs
+    void onSimple100HZCallback(); // Mpu Magnetometer
+    void onSimple250HZCallback(); // Mpu accel & gyro
 
     void onGPSCallback();
 

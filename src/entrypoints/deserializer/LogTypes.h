@@ -110,7 +110,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
                                       DeathStackStatus::header());
 
-    ds.registerType<StackData>(print<StackData>, StackData::header());
+    // ds.registerType<StackData>(print<StackData>, StackData::header());
     ds.registerType<ReferenceValues>(print<ReferenceValues>, ReferenceValues::header());
 }
 

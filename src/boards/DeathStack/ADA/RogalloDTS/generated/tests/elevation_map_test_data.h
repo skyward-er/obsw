@@ -28,7 +28,7 @@
  */
 
 // Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
-// Autogen date:    2019-04-25 00:23:09.578737
+// Autogen date:    2019-05-25 03:24:16.725453
 
 #pragma once
 
@@ -39,7 +39,7 @@ namespace elevationmap
 namespace test
 {
 
-static constexpr size_t TEST_DATA_SIZE = 10000;
+static constexpr size_t TEST_DATA_SIZE = 32400;
 
 extern const double test_latitudes[TEST_DATA_SIZE];
 extern const double test_longitudes[TEST_DATA_SIZE];
