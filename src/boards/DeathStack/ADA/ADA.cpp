@@ -273,7 +273,7 @@ void ADA::finalizeCalibration()
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
         filter.X(1, 0) = 0;
-        filter.X(2, 0) = 0;
+        filter.X(2, 0) = KALMAN_INITIAL_ACCELERATION;
 
         // Log updated filter & reference values
         reference_values.ref_pressure    = pressure_ref;

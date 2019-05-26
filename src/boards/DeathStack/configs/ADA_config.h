@@ -30,7 +30,6 @@ namespace DeathStackBoard
 // How many problematic gps samples to trigger an abort
 constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 
-
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
@@ -77,8 +76,12 @@ static const MatrixBase<float, 1, 3> C_INIT{1, 0, 0};
 static const MatrixBase<float, 3, 3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // Model variance matrix
-static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 10};
+static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 100};
 
 // Measurement variance
-static const MatrixBase<float, 1, 1> V2_INIT{2500};
+static const MatrixBase<float, 1, 1> V2_INIT{800};
+
+// Initialize the Kalman filter with a negative (pressure) acceleration in order
+// to make it more respondive during the propulsive phase
+static const float KALMAN_INITIAL_ACCELERATION = -500;
 }  // namespace DeathStackBoard
