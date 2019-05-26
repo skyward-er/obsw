@@ -54,8 +54,8 @@ enum class SensorManagerState : uint8_t
 
 // Nominal value returned by SensorStatus.toNumeric() when every sensor was
 // initialized successfully.
-// 127 = 1 in every bit of the SensorStatus struct
-static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 127;
+// 255 = 1 in every bit of the SensorStatus struct
+static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 255;
 
 struct SensorStatus
 {
@@ -76,6 +76,9 @@ struct SensorStatus
     // External ADC
     uint16_t ad7994 : 1;
 
+    // Digital pressure sensor
+    uint16_t ms5803 : 1;
+
     /**
      * Converts data in the struct to a single uint16_t value
      * @return uint16_t representing the struct
@@ -90,13 +93,14 @@ struct SensorStatus
     static std::string header()
     {
         return "mpu9250,lm75b_imu,lm75b_analog,piksi,current_sensor,battery_"
-               "sensor,ad7994";
+               "sensor,ad7994, ms5803\n";
     }
 
     void print(std::ostream& os) const
     {
         os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi
-           << "," << current_sensor << "," << battery_sensor << "," << ad7994;
+           << "," << current_sensor << "," << battery_sensor << "," << ad7994
+           << "," << ms5803 <<"\n";
     }
 };
 

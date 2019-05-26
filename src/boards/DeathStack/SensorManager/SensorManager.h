@@ -157,6 +157,7 @@ private:
     LM75BType* temp_lm75b_imu;
     LM75BType* temp_lm75b_analog;
     ADCWrapper* adc_internal;
+    MS580301BA07Type* pressure_ms5803;
 #ifdef USE_MOCK_SENSORS
     MockPressureSensor* mock_pressure_sensor;
     MockGPS* mock_gps;

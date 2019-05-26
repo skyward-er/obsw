@@ -41,6 +41,7 @@
 #include "sensors/LM75B.h"
 #include "sensors/MPU9250/MPU9250.h"
 #include "sensors/MPU9250/MPU9250Data.h"
+#include "sensors/MS580301BA07/MS580301BA07.h"
 
 #ifdef USE_MOCK_SENSORS
 #include "Sensors/Test/MockGPS.h"
@@ -95,11 +96,13 @@ void SensorManager::initSensors()
 {
     i2c1::init();
     spiMPU9250::init();
+    spiMS5803::init();
 
     // Instantiation
     adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
+    pressure_ms5803  =  new MS580301BA07Type();
 
     imu_mpu9250 =
         new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
@@ -126,7 +129,7 @@ void SensorManager::initSensors()
     sensor_status.lm75b_analog = temp_lm75b_analog->init();
 
     // // TODO: lsm6ds3h
-    // // TODO: ms5803
+    sensor_status.ms5803 = pressure_ms5803->init();
 
     sensor_status.ad7994 = adc_ad7994->init();
 
@@ -143,6 +146,7 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
+    sampler_20hz_simple.AddSensor(pressure_ms5803);
 
     sampler_20hz_simple.AddSensor(temp_lm75b_imu);
     sampler_20hz_simple.AddSensor(temp_lm75b_analog);
@@ -308,6 +312,8 @@ void SensorManager::onSimple20HZCallback()
         logger.log(*(ad7994_data));
         logger.log(lm78b_imu_data);
         logger.log(lm78b_analog_data);
+        logger.log(lm78b_analog_data);
+        logger.log(pressure_ms5803->getData());
     }
 
     ada->updateBaro(ad7994_data->nxp_baro_pressure);

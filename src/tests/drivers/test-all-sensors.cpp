@@ -30,6 +30,7 @@
 #include <sensors/ADIS16405/ADIS16405.h>
 #include <sensors/LM75B.h>
 #include <sensors/MPU9250/MPU9250.h>
+#include "sensors/MS580301BA07/MS580301BA07.h"
 #include <sensors/SensorSampling.h>
 
 #include <interfaces-impl/hwmapping.h>
@@ -40,6 +41,7 @@ using namespace miosix;
 typedef MPU9250<spiMPU9250> MPU9250Type;
 //typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
 typedef LM75B<i2c1> LM75BType;
+typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
 AD7994Wrapper* adc_ad7994;
 ADCWrapper* adc_internal;
@@ -49,6 +51,7 @@ MPU9250Type* imu_mpu9250;
 
 LM75BType* temp_lm75b_analog;
 LM75BType* temp_lm75b_imu;
+MS580301BA07Type* pressure_ms5803;
 
 Piksi* piksi;
 
@@ -67,6 +70,8 @@ void init()
     imu_mpu9250 =
         new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
 
+    pressure_ms5803  =  new MS580301BA07Type();
+
     piksi = new Piksi("/dev/gps");
 
     Thread::sleep(1000);
@@ -78,6 +83,7 @@ void init()
     printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
     printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
     printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing digital pressure sensor... %s\n", pressure_ms5803->init() ? "Ok" : "Failed");
     printf("\n\n");
 }
 
@@ -90,6 +96,7 @@ void update()
     adc_ad7994->onSimpleUpdate();
     adc_internal->getBatterySensorPtr()->onSimpleUpdate();
     adc_internal->getCurrentSensorPtr()->onSimpleUpdate();
+    pressure_ms5803->onSimpleUpdate();
 }
 
 void print()
@@ -100,8 +107,10 @@ void print()
            imu_adis16405->accelDataPtr()->getZ()); */
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
+    printf("Digital temp:   \tP: %f\n", pressure_ms5803->getData().temp); 
     printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
     printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);    
+    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure*100);  
     printf("Battery voltage:\tV: %f\n", 
         adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);    
     printf("Current sens 1: \tC: %f\n", 
