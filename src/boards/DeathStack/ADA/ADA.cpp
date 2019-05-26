@@ -23,6 +23,7 @@
 #include <DeathStack/ADA/ADA.h>
 #include <events/EventBroker.h>
 #include <utils/aero/AeroUtils.h>
+#include "DeathStack/System/StackLogger.h"
 #include "Debug.h"
 
 using miosix::Lock;
@@ -33,7 +34,7 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADA::ADA()
-    : FSM(&ADA::stateIdle), filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
+    : FSM(&ADA::stateIdle, 4096, 2), filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
       rogallo_dts()
 {
     // Subscribe to topics
@@ -272,11 +273,11 @@ void ADA::finalizeCalibration()
         // Initialize kalman filter
         filter.X(0, 0) = pressure_ref;
         filter.X(1, 0) = 0;
-        filter.X(2, 0) = 0;
+        filter.X(2, 0) = KALMAN_INITIAL_ACCELERATION;
 
         // Log updated filter & reference values
-        reference_values.ref_pressure = pressure_ref;
-        reference_values.msl_pressure = pressure_0;
+        reference_values.ref_pressure    = pressure_ref;
+        reference_values.msl_pressure    = pressure_0;
         reference_values.msl_temperature = temperature_0;
         logger.log(reference_values);
 
@@ -336,7 +337,7 @@ float ADA::updateAltitude(float p, float dp_dt)
 /* --- LOGGER HELPERS --- */
 void ADA::logStatus(ADAState state)
 {
-    status.state     = state;
+    status.state = state;
     logStatus();
 }
 
@@ -344,8 +345,7 @@ void ADA::logStatus()
 {
     status.timestamp = miosix::getTick();
     logger.log(status);
-
-    LOG_STACK("AdaFSM");
+    StackLogger::getInstance()->updateStack(THID_ADA_FSM);
 }
 
 /* --- STATES --- */

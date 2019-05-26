@@ -24,6 +24,7 @@
 #include <events/EventBroker.h>
 
 #include "DeathStack/Events.h"
+#include "DeathStack/System/StackLogger.h"
 #include "DeathStack/Topics.h"
 #include "DeathStack/configs/FMMConfig.h"
 
@@ -33,7 +34,7 @@ namespace DeathStackBoard
 {
 
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_initialization),
+    : HSM(&FlightModeManager::state_initialization, 4096, 2),
       logger(*(LoggerProxy::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
@@ -54,7 +55,7 @@ void FlightModeManager::logState(FMMState current_state)
     status.state     = current_state;
 
     logger.log(status);
-    LOG_STACK("FMM FSM");
+    StackLogger::getInstance()->updateStack(THID_FMM_FSM);
 }
 
 State FlightModeManager::state_initialization(const Event& ev)
@@ -83,7 +84,7 @@ State FlightModeManager::state_onGround(const Event& ev)
             TRACE("[FMM] Init state_onGround\n");
 
             retState = transition(&FlightModeManager::state_init);
-            
+
             break;
         }
         case EV_EXIT: /* Executed everytime state is exited */
@@ -397,7 +398,8 @@ State FlightModeManager::state_testing(const Event& ev)
         }
         case EV_TC_START_ROGALLO_CONTROL:
         {
-            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL},
+                               TOPIC_DEPLOYMENT);
             break;
         }
         case EV_TC_CLOSE_LOG:
@@ -586,7 +588,8 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         }
         case EV_TC_START_ROGALLO_CONTROL:
         {
-            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL},
+                               TOPIC_DEPLOYMENT);
 
             break;
         }

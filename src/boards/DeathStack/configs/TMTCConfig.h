@@ -29,10 +29,10 @@
 namespace DeathStackBoard
 {
 
-static const unsigned int GS_OFFLINE_TIMEOUT = 1000;  // CHANGED
+// static const unsigned int GS_OFFLINE_TIMEOUT = 1000;  // CHANGED
 
 /* Minimum sleep time between sends */
-static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250; // sleep between sends
+// static const unsigned int TMTC_MIN_GUARANTEED_SLEEP = 250; // sleep between sends
 static constexpr size_t MAV_OUT_BUFFER_SIZE         = 256;
 static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 1000;
 
@@ -47,7 +47,7 @@ typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn,
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 5000;
 static const unsigned int HR_TM_TIMEOUT = 200;
-static const unsigned int TEST_TM_TIMEOUT = 1000;
+static const unsigned int TEST_TM_TIMEOUT = 500;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID  = 1;
@@ -56,5 +56,5 @@ static const unsigned int TMTC_MAV_COMPID = 1;
 /* Min guaranteed sleep time after a message is sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
 /* Delay that estimates the send time of each byte */
-static const uint16_t TMTC_SEND_MULTIPLIER = 10;
+// static const uint16_t TMTC_SEND_MULTIPLIER = 10;
 }  // namespace DeathStackBoard

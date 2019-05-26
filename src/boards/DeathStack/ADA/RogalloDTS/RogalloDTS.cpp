@@ -30,7 +30,7 @@
 namespace DeathStackBoard
 {
 
-RogalloDTS::RogalloDTS() { }
+RogalloDTS::RogalloDTS() {}
 
 RogalloDTS::~RogalloDTS() {}
 
@@ -67,8 +67,9 @@ void RogalloDTS::update()
 {
     // Do things only if we have at least 1 sample from each sensor and the dpl
     // altitude has been set.
-    if (has_gps_sample && has_altitude_sample && deployment_altitude_set)
-    {    
+    if (has_gps_sample && has_altitude_sample && deployment_altitude_set &&
+        deployment_altitude_agl > 0)
+    {
         // We deploy only if we have fix and we are inside the launch hazard
         // area
         bool can_deploy = last_fix && isInsideLHA(last_lat, last_lon);

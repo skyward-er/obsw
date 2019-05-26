@@ -30,7 +30,7 @@
 namespace DeathStackBoard
 {
 
-static const unsigned int PIN_POLL_INTERVAL = 20;  // ms
+static const unsigned int PIN_POLL_INTERVAL = 10;  // ms
 
 // Launch pin config
 static const unsigned int PORT_LAUNCH_PIN = GPIOC_BASE;
