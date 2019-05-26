@@ -43,6 +43,7 @@
 #include "logger/LogStats.h"
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/MPU9250/MPU9250Data.h"
+#include <diagnostic/StackData.h>
 
 using std::ofstream;
 
@@ -112,6 +113,9 @@ void registerTypes(Deserializer& ds)
 
     // ds.registerType<StackData>(print<StackData>, StackData::header());
     ds.registerType<ReferenceValues>(print<ReferenceValues>, ReferenceValues::header());
+    ds.registerType<StackData>(print<StackData>, StackData::header());
+
+
 }
 
 #endif
