@@ -44,8 +44,8 @@
 
 using namespace DeathStackBoard;
 
-constexpr float NOISE_STD_DEV = 50;  // Noise varaince
-constexpr float LSB           = 30;
+constexpr float NOISE_STD_DEV = 5;  // Noise varaince
+constexpr float LSB           = 28;
 
 ADA *ada;
 unsigned seed = 1234567;  // Seed for noise generation
@@ -138,6 +138,9 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     Thread::sleep(100);
     // Send samples
+
+    printf("%d\n", DATA_SIZE);
+
     for (unsigned i = 0; i < DATA_SIZE / 2; i++)
     {
         greenLed::high();
@@ -159,10 +162,11 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
                 FAIL("i = " << i << "\t\t" << state.x1
                             << " != " << SIMULATED_PRESSURE_SPEED[i]);
         }
+
         if (ada->getStatus().apogee_reached == true)
         {
-            if (i != Approx(383.0f + APOGEE_N_SAMPLES).margin(10))
-                FAIL("Apogee error: " << i - 383 << " samples");
+            if (i != Approx(367.0f).margin(20))
+                FAIL("Apogee error: " << (int)i - 367 << " samples");
             else
                 SUCCEED();
         }
