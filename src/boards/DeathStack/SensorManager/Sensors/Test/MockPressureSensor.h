@@ -54,7 +54,7 @@ public:
 private:
     volatile unsigned int i = 0;  // Last index
     std::default_random_engine generator{1234567};
-    std::normal_distribution<float> distribution{0.0f, 50.0f};
+    std::normal_distribution<float> distribution{0.0f, 5.0f};
 
     float addNoise(float sample)
     {

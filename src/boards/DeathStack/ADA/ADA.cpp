@@ -300,6 +300,7 @@ void ADA::updateFilter(float pressure)
     last_kalman_state.x0 = filter.X(0, 0);
     last_kalman_state.x1 = filter.X(1, 0);
     last_kalman_state.x2 = filter.X(2, 0);
+    last_kalman_state.timestamp = miosix::getTick();
 
     logger.log(last_kalman_state);
 }
