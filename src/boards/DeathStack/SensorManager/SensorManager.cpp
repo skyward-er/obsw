@@ -103,7 +103,7 @@ void SensorManager::initSensors()
     adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
-    pressure_ms5803  =  new MS580301BA07Type();
+    pressure_ms5803   = new MS580301BA07Type();
 
     imu_mpu9250 =
         new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
@@ -147,10 +147,12 @@ void SensorManager::initSamplers()
     sampler_20hz_simple.AddSensor(adc_internal->getBatterySensorPtr());
     sampler_20hz_simple.AddSensor(adc_ad7994);
     sampler_20hz_simple.AddSensor(adc_internal->getCurrentSensorPtr());
-    sampler_20hz_simple.AddSensor(pressure_ms5803);
 
     sampler_20hz_simple.AddSensor(temp_lm75b_imu);
     sampler_20hz_simple.AddSensor(temp_lm75b_analog);
+
+    sampler_50hz_simple.AddSensor(pressure_ms5803);
+
     sampler_250hz_simple.AddSensor(imu_mpu9250);
 
     // Piksi does not inherit from Sensor, so we sample it in a different way
@@ -166,6 +168,7 @@ void SensorManager::initScheduler()
      */
     long long start_time = miosix::getTick() + 10;
 
+    // 250 Hz sensor sampler
     std::function<void()> simple_250hz_callback =
         std::bind(&SensorManager::onSimple250HZCallback, this);
     std::function<void()> simple_250hz_sampler =
@@ -176,12 +179,26 @@ void SensorManager::initScheduler()
                   static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ),
                   start_time);
 
+    // 100 Hz Calback ( MPU Magnetometer )
     std::function<void()> simple_100hz_callback =
         std::bind(&SensorManager::onSimple100HZCallback, this);
 
     scheduler.add(simple_100hz_callback, 10,
-                  static_cast<uint8_t>(SensorSamplerId::MAGN), start_time);
+                  static_cast<uint8_t>(SensorSamplerId::MPU_MAGN_100HZ),
+                  start_time);
 
+    // 50 Hz sensor sampler
+    std::function<void()> simple_50hz_callback =
+        std::bind(&SensorManager::onSimple50HZCallback, this);
+    std::function<void()> simple_50hz_sampler =
+        std::bind(&SimpleSensorSampler::UpdateAndCallback, &sampler_50hz_simple,
+                  simple_50hz_callback);
+
+    scheduler.add(simple_50hz_sampler, 20,
+                  static_cast<uint8_t>(SensorSamplerId::SIMPLE_50HZ),
+                  start_time);
+
+    // 20 Hz sensor sampler
     std::function<void()> simple_20hz_callback =
         std::bind(&SensorManager::onSimple20HZCallback, this);
     std::function<void()> simple_20hz_sampler =
@@ -314,10 +331,23 @@ void SensorManager::onSimple20HZCallback()
         logger.log(lm78b_imu_data);
         logger.log(lm78b_analog_data);
         logger.log(lm78b_analog_data);
-        logger.log(pressure_ms5803->getData());
     }
 
     ada->updateBaro(ad7994_data->nxp_baro_pressure);
+}
+
+void SensorManager::onSimple50HZCallback()
+{
+    if (enable_sensor_logging)
+    {
+        // Since sampling both temps & pressure on the ms5803 takes two calls of
+        // onSimpleUpdate(), log only once every 2
+        if (pressure_ms5803->getState() ==
+            MS580301BA07Type::STATE_SAMPLED_PRESSURE)
+        {
+            logger.log(pressure_ms5803->getData());
+        }
+    }
 }
 
 void SensorManager::onSimple100HZCallback()

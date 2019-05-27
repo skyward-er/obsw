@@ -134,7 +134,8 @@ private:
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
     void onSimple20HZCallback();  // ADCs
-    void onSimple100HZCallback(); // Mpu Magnetometer
+    void onSimple50HZCallback(); // MS5803
+    void onSimple100HZCallback(); // Mpu magneto
     void onSimple250HZCallback(); // Mpu accel & gyro
 
     void onGPSCallback();
@@ -146,8 +147,8 @@ private:
     bool enable_sensor_logging = false;
 
     // Sensor samplers
-    SimpleSensorSampler sampler_1hz_simple;
     SimpleSensorSampler sampler_20hz_simple;
+    SimpleSensorSampler sampler_50hz_simple;
     SimpleSensorSampler sampler_250hz_simple;
 
     // Sensors

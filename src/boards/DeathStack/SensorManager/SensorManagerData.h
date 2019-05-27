@@ -33,11 +33,12 @@ namespace DeathStackBoard
 
 enum class SensorSamplerId : uint8_t
 {
-    STATS        = 0,
-    GPS          = 10,
-    MAGN         = 100,
-    SIMPLE_20HZ  = 20,
-    SIMPLE_250HZ = 250
+    STATS          = 0,
+    GPS            = 10,
+    SIMPLE_20HZ    = 20,
+    SIMPLE_50HZ    = 50,
+    MPU_MAGN_100HZ = 100,
+    SIMPLE_250HZ   = 250
 };
 
 enum class TempSensorId : uint8_t
@@ -100,7 +101,7 @@ struct SensorStatus
     {
         os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi
            << "," << current_sensor << "," << battery_sensor << "," << ad7994
-           << "," << ms5803 <<"\n";
+           << "," << ms5803 << "\n";
     }
 };
 
