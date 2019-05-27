@@ -115,7 +115,7 @@ void registerTypes(Deserializer& ds)
     // ds.registerType<StackData>(print<StackData>, StackData::header());
     ds.registerType<ReferenceValues>(print<ReferenceValues>, ReferenceValues::header());
 
-     ds.registerType<MS580301BA07Data>(print<MS580301BA07Data>, MS580301BA07Data::header());
+     ds.registerType<MS5803Data>(print<MS5803Data>, MS5803Data::header());
     ds.registerType<StackData>(print<StackData>, StackData::header());
 }
 

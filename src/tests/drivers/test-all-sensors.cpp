@@ -110,7 +110,7 @@ void print()
     printf("Digital temp:   \tP: %f\n", pressure_ms5803->getData().temp); 
     printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
     printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);    
-    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure*100);  
+    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure);  
     printf("Battery voltage:\tV: %f\n", 
         adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);    
     printf("Current sens 1: \tC: %f\n", 
