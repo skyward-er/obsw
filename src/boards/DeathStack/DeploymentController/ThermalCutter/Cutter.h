@@ -65,7 +65,7 @@ public:
     {
         if (status.state == CutterState::IDLE)
         {
-            enableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue);
+            enableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue, false);
             status.state = CutterState::CUTTING_DROGUE;
         }
     }
@@ -83,7 +83,7 @@ public:
     {
         if (status.state == CutterState::IDLE)
         {
-            enableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute);
+            enableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute, true);
             status.state = CutterState::CUTTING_MAIN;
         }
     }
@@ -102,10 +102,19 @@ public:
         return status;
     }
 private:
-    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin)
+    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin, bool rogallo)
     {
         // Enable PWM Generation
-        pwm.setDutyCycle(channel, CUTTER_PWM_DUTY_CYCLE);
+        float duty;
+        if(rogallo)
+        {
+            duty = ROG_CUTTER_PWM_DUTY_CYCLE;
+        }else{
+
+            duty = DROGUE_CUTTER_PWM_DUTY_CYCLE;
+        }
+
+        pwm.setDutyCycle(channel, duty);
 
         // enable hbridge
         ena_pin.high();
