@@ -48,8 +48,8 @@ public:
     bool fix = true;
 private:
     // Set of coordinates inside the Launch Hazard Area
-    const double lat_inside = 41.810368;
-    const double lon_inside = 14.053301;
+    const double lat_inside = 41.807487124105;
+    const double lon_inside = 14.0551665469291;
 
     // Set of coordinates outside the Launch Hazard Area
     const double lat_outside = 41.840794;
