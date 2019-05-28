@@ -31,7 +31,7 @@ using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
-static constexpr int CUT_TIME = 1000;
+static constexpr int CUT_TIME = 10000;
 
 long long measured_cut_time = 0;
 void wait()
@@ -79,7 +79,7 @@ int main()
     {
         print = false;
         printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY,
-               CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
+               DROGUE_CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
         printf("What do you want to cut?  \n d - drogue \n r - rogallo\n");
         char c;
         cin >> &c;
