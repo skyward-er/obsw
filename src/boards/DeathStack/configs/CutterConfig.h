@@ -51,11 +51,11 @@ static const PWMChannel CUTTER_CHANNEL_MAIN_CHUTE = PWMChannel::CH2;
 typedef miosix::actuators::thCut2::ena MainChuteCutterEna; 
 
 // PWM Frequency & duty-cycle
-static const unsigned int CUTTER_PWM_FREQUENCY = 450;
+static const unsigned int CUTTER_PWM_FREQUENCY = 1500;
 // FREQ: 15k
 // 0.3: 2.2 s cut -> ni-cr wire broken
 // 0.15: 8.5 s cut, too slow
-static const float CUTTER_PWM_DUTY_CYCLE       = 0.04;
+static const float CUTTER_PWM_DUTY_CYCLE       = 0.08;
 
 
 // Period of time where the IN must be kept low before bringing ENA/INH low
