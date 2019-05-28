@@ -31,7 +31,7 @@ using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
-static constexpr int CUT_TIME = 3000;
+static constexpr int CUT_TIME = 1000;
 
 long long measured_cut_time = 0;
 void wait()
