@@ -28,7 +28,7 @@
  */
 
 // Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
-// Autogen date:    2019-05-25 03:24:18.032348
+// Autogen date:    2019-05-28 06:34:55.869618
 
 #pragma once
 
@@ -48,15 +48,31 @@ extern const double test0_distance2[TEST_DATA_SIZE];
 
 extern const double test1_distance2[TEST_DATA_SIZE];
 
+extern const double test2_distance2[TEST_DATA_SIZE];
+
+extern const double test3_distance2[TEST_DATA_SIZE];
+
+extern const double test4_distance2[TEST_DATA_SIZE];
+
+extern const double test5_distance2[TEST_DATA_SIZE];
+
 
 extern const bool test0_inside[TEST_DATA_SIZE];
 
 extern const bool test1_inside[TEST_DATA_SIZE];
 
+extern const bool test2_inside[TEST_DATA_SIZE];
+
+extern const bool test3_inside[TEST_DATA_SIZE];
+
+extern const bool test4_inside[TEST_DATA_SIZE];
+
+extern const bool test5_inside[TEST_DATA_SIZE];
 
 
-static const double* const test_distances[] = {test0_distance2, test1_distance2};
-static const bool* const test_inside[] = {test0_inside, test1_inside};
+
+static const double* const test_distances[] = {test0_distance2, test1_distance2, test2_distance2, test3_distance2, test4_distance2, test5_distance2};
+static const bool* const test_inside[] = {test0_inside, test1_inside, test2_inside, test3_inside, test4_inside, test5_inside};
 
 }
 } // namespace elevationmap

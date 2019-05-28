@@ -28,7 +28,7 @@
  */
 
 // Generated from:  https://git.skywarder.eu/r2a-mini/elevation-map
-// Autogen date:    2019-05-25 03:24:16.355882
+// Autogen date:    2019-05-28 06:34:52.308286
 
 #pragma once
 
@@ -37,7 +37,7 @@
 namespace launchhazard
 {
 
-static constexpr int NUM_CIRCLES = 2;
-static const LHCircle circles[NUM_CIRCLES] = {{41.81036816188608, 14.052699576842612, 562500}, {41.80703689224577, 14.056550393786695, 202500}};
+static constexpr int NUM_CIRCLES = 6;
+static const LHCircle circles[NUM_CIRCLES] = {{41.807487124105, 14.0551665469291, 1600}, {41.8058665196139, 14.0536623505443, 18225}, {41.8064967237486, 14.0514963133799, 12100}, {41.8076671263685, 14.0502928903977, 12100}, {41.8087475127372, 14.0498114665458, 14400}, {41.807036957659, 14.0548657004072, 2500}};
 
 }
