@@ -31,7 +31,7 @@ using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
-static constexpr int CUT_TIME = 15000;
+static constexpr int CUT_TIME = 3000;
 
 long long measured_cut_time = 0;
 void wait()
@@ -62,9 +62,9 @@ void csense(void*)
     {
         adc.getCurrentSensorPtr()->onSimpleUpdate();
         uint16_t current1 =
-            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1;
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->raw_value_1;
         uint16_t current2 =
-            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2;
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->raw_value_2;
         if (print)
             printf("C1: %d\tC2: %d\n", current1, current2);
         Thread::sleep(100);
