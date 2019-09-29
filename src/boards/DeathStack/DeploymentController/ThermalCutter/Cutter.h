@@ -25,33 +25,36 @@
 
 #include <miosix.h>
 
+#include "CutterData.h"
 #include "DeathStack/configs/CutterConfig.h"
 #include "drivers/pwm/pwm.h"
-#include "CutterData.h"
 
 using miosix::GpioPin;
 using miosix::Thread;
 
 namespace DeathStackBoard
 {
-    
+
 class Cutter
 {
 public:
-    Cutter()
-        : pwm(CUTTER_TIM, CUTTER_PWM_FREQUENCY),
+    Cutter(unsigned int frequency = CUTTER_PWM_FREQUENCY,
+           float duty_cycle       = DROGUE_CUTTER_PWM_DUTY_CYCLE)
+        : pwm(CUTTER_TIM, frequency),
           pin_enable_drogue(DrogueCutterEna::getPin()),
-          pin_enable_main_chute(MainChuteCutterEna::getPin())
+          pin_enable_main_chute(MainChuteCutterEna::getPin()),
+          duty_cycle(duty_cycle)
     {
         pin_enable_drogue.low();
         pin_enable_main_chute.low();
-
 
         // Start PWM with 0 duty cycle to keep IN pins low
         pwm.enableChannel(CUTTER_CHANNEL_DROGUE, 0.0f);
         pwm.enableChannel(CUTTER_CHANNEL_MAIN_CHUTE, 0.0f);
 
         pwm.start();
+
+        TRACE("PWM Instantiated. Freq: %d, duty: %f\n", frequency, duty_cycle);
     }
 
     ~Cutter()
@@ -65,7 +68,7 @@ public:
     {
         if (status.state == CutterState::IDLE)
         {
-            enableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue, false);
+            enableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue);
             status.state = CutterState::CUTTING_DROGUE;
         }
     }
@@ -83,7 +86,7 @@ public:
     {
         if (status.state == CutterState::IDLE)
         {
-            enableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute, true);
+            enableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute);
             status.state = CutterState::CUTTING_MAIN;
         }
     }
@@ -97,24 +100,14 @@ public:
         }
     }
 
-    CutterStatus getStatus()
-    {
-        return status;
-    }
+    CutterStatus getStatus() { return status; }
+
 private:
-    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin, bool rogallo)
+    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin)
     {
         // Enable PWM Generation
-        float duty;
-        if(rogallo)
-        {
-            duty = ROG_CUTTER_PWM_DUTY_CYCLE;
-        }else{
 
-            duty = DROGUE_CUTTER_PWM_DUTY_CYCLE;
-        }
-
-        pwm.setDutyCycle(channel, duty);
+        pwm.setDutyCycle(channel, duty_cycle);
 
         // enable hbridge
         ena_pin.high();
@@ -134,7 +127,8 @@ private:
     GpioPin pin_enable_drogue;
     GpioPin pin_enable_main_chute;
 
+    float duty_cycle;
     CutterStatus status;
 };
 
-}
+}  // namespace DeathStackBoard
