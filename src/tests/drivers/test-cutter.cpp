@@ -24,6 +24,8 @@
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <iostream>
+#include <sstream>
+
 #include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
 #include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
 
@@ -46,7 +48,7 @@ void wait()
         Thread::sleep(50);
     }
     measured_cut_time = getTick() - t0;
-    printf("Stopped!\n");
+    //printf("Stopped!\n");
 }
 
 bool print = false;
@@ -61,12 +63,20 @@ void csense(void*)
     for (;;)
     {
         adc.getCurrentSensorPtr()->onSimpleUpdate();
-        uint16_t current1 =
+        uint16_t raw1 =
             adc.getCurrentSensorPtr()->getCurrentDataPtr()->raw_value_1;
-        uint16_t current2 =
+        uint16_t raw2 =
             adc.getCurrentSensorPtr()->getCurrentDataPtr()->raw_value_2;
+
+        float current1 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_1;
+        float current2 =
+            adc.getCurrentSensorPtr()->getCurrentDataPtr()->current_2;
         if (print)
-            printf("C1: %d\tC2: %d\n", current1, current2);
+        {
+            printf("%d,%d,%d,%f,%f\n", (int)miosix::getTick(), (int)raw1,
+                   (int)raw2, current1, current2);
+        }
         Thread::sleep(100);
     }
 }
@@ -78,29 +88,48 @@ int main()
     for (;;)
     {
         print = false;
-        printf("F: %d, DC: %f, T: %d\n", CUTTER_PWM_FREQUENCY,
-               DROGUE_CUTTER_PWM_DUTY_CYCLE, CUT_TIME);
-        printf("What do you want to cut?  \n d - drogue \n r - rogallo\n");
-        char c;
-        cin >> &c;
+
+        printf("What do you want to cut? (1 / 2)\n");
+        unsigned int c, freq = 0;
+        float duty = 0;
+        string temp;
+        getline(cin, temp);
+        stringstream(temp) >> c;
+        cout << "Frequency (Hz): \n";
+        getline(cin, temp);
+        stringstream(temp) >> freq;
+
+        cout << "Duty (%): \n";
+        getline(cin, temp);
+        stringstream(temp) >> duty;
+
+        printf("Cut %d, freq: %d, duty: %f\n", c, freq, duty);
+
+
+        if (!(freq > 1 && freq < 20000 && duty > 0.0f && duty <= 100.0f))
+        {
+            printf("Wrong inputs!\n");
+            continue;
+        }
+
         print = true;
 
-        Cutter cutter;
+        Cutter cutter{freq, duty / 100};
 
-        if (c == 'D' || c == 'd')
+        if (c == 1)
         {
             cutter.startCutDrogue();
             wait();
             cutter.stopCutDrogue();
         }
-        else if (c == 'R' || c == 'r')
+        else if (c == 2)
         {
             cutter.startCutMainChute();
             wait();
             cutter.stopCutMainChute();
         }
 
-        Thread::sleep(3000);
+        Thread::sleep(2000);
         print = false;
         Thread::sleep(500);
         printf("Cut Time: %.2f s\n", (measured_cut_time) / 1000.0f);
