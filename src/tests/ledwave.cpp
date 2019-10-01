@@ -18,8 +18,6 @@ int main()
     led4::mode(miosix::Mode::OUTPUT);
     led5::mode(miosix::Mode::OUTPUT);
     led6::mode(miosix::Mode::OUTPUT);
-    int counter=0;
-    int direction=0;
 
     printf("Started\n");
 
@@ -46,70 +44,4 @@ int main()
         led6::low();
         miosix::Thread::sleep(100);
     }
-        /*
-        if(counter==1)
-        {
-            led1::high();
-            led2::low();
-            led3::low();
-            led4::low();
-            led5::low();
-            led6::low();
-            direction=0;
-        }
-        else if(counter==2)
-        {
-            led1::low();
-            led2::high();
-            led3::low();
-            led4::low();
-            led5::low();
-            led6::low();
-        }
-        else if(counter==3)
-        {
-            led1::low();
-            led2::low();
-            led3::high();
-            led4::low();
-            led5::low();
-            led6::low();
-        }
-        else if(counter==4)
-        {
-            led1::low();
-            led2::low();
-            led3::low();
-            led4::high();
-            led5::low();
-            led6::low();
-        }
-        else if(counter==5)
-        {
-            led1::low();
-            led2::low();
-            led3::low();
-            led4::low();
-            led5::high();
-            led6::low();
-        }
-        else if(counter==6)
-        {
-            led1::low();
-            led2::low();
-            led3::low();
-            led4::low();
-            led5::low();
-            led6::high();
-            direction=1;
-        }
-
-        if(direction)
-            counter--;
-        else
-            counter++;
-
-        Thread::sleep(100);
-    }
-    */
 }

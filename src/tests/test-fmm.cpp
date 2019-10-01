@@ -26,6 +26,8 @@
 #include <boards/DeathStack/Events.h>
 #include <boards/DeathStack/Topics.h>
 
+#include <inttypes.h>
+
 using namespace miosix;
 using namespace DeathStackBoard;
 
@@ -40,6 +42,7 @@ int main()
     sEventBroker->start();
 
     EventSniffer* sniffer = new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
+    UNUSED(sniffer); // The sniffer's handler will be called by evBroker
 
     printf("\nOk\n");
 
@@ -50,7 +53,7 @@ int main()
     {
         printf("Choose an event\n");
         printf("ID:\n");
-        scanf("%d", &(ev.sig));
+        scanf("%hu", &(ev.sig));
         printf("TOPIC:\n");
         scanf("%d", &topic);
 
