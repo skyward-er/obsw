@@ -27,8 +27,8 @@
 #include <DeathStack/LoggerService/LoggerService.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include "DeathStack/DeathStack.h"
-#include "DeathStack/Events.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/events/Topics.h"
 #include "TMBuilder.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC

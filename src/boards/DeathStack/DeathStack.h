@@ -31,9 +31,9 @@
 #include <events/EventBroker.h>
 #include <utils/EventSniffer.h>
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/TmRepository.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Topics.h"
 #include "DeathStackStatus.h"
 
 #include "DeathStack/LoggerService/LoggerService.h"

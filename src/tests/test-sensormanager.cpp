@@ -22,7 +22,7 @@
 
 #include "Common.h"
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"

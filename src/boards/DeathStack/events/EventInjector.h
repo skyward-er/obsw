@@ -25,10 +25,9 @@
 #include <events/EventBroker.h>
 #include <iostream>
 #include "DeathStack/DeathStack.h"
-#include "DeathStack/EventClasses.h"
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 
-class ManualEvent : public ActiveObject
+class EventInjector : public ActiveObject
 {
 public:
 protected:

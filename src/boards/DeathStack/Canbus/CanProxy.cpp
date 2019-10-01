@@ -24,8 +24,8 @@
 #include "CanProxy.h"
 
 #include "CanInterfaces.h"
-#include "DeathStack/Events.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/events/Topics.h"
 
 #include <events/EventBroker.h>
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/configs/TMTCConfig.h"
 #include "events/FSM.h"
 

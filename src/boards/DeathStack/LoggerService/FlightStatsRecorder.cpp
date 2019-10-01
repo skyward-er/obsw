@@ -24,7 +24,7 @@
 #include <cmath>
 #include "FlightStatsRecorder.h"
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
 #include "LoggerService.h"
 #include "events/EventBroker.h"

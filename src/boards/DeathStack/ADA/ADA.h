@@ -25,7 +25,7 @@
 #include <DeathStack/ADA/ADAStatus.h>
 #include <events/FSM.h>
 
-#include <DeathStack/Events.h>
+#include <DeathStack/events/Events.h>
 #include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LoggerService/LoggerService.h"

@@ -23,8 +23,8 @@
 #include <boards/DeathStack/FlightModeManager/FlightModeManager.h>
 #include <skyward-boardcore/src/shared/utils/EventSniffer.h>
 
-#include <boards/DeathStack/Events.h>
-#include <boards/DeathStack/Topics.h>
+#include <boards/DeathStack/events/Events.h>
+#include <boards/DeathStack/events/Topics.h>
 
 #include <inttypes.h>
 

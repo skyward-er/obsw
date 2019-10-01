@@ -24,7 +24,7 @@
 #include "PinHandler.h"
 #include <events/EventBroker.h>
 #include <functional>
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/LoggerService.h"
 
 using std::bind;

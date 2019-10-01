@@ -21,8 +21,8 @@
  */
 
 #include "TMTCManager.h"
-#include <DeathStack/Events.h>
-#include <DeathStack/Topics.h>
+#include <DeathStack/events/Events.h>
+#include <DeathStack/events/Topics.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include <drivers/Xbee/Xbee.h>
 #include "TCHandler.h"  // Real message handling is here

@@ -30,8 +30,7 @@
 
 #include <Common.h>
 #include <DeathStack/ADA/ADA.h>
-#include <DeathStack/EventClasses.h>
-#include <DeathStack/Events.h>
+#include <DeathStack/events/Events.h>
 #include <events/EventBroker.h>
 #include <events/FSM.h>
 #include <utils/EventCounter.h>
