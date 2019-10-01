@@ -1,1 +1,1 @@
-python skyward-boardcore/sbs %*
+python -u skyward-boardcore/sbs -n %*
