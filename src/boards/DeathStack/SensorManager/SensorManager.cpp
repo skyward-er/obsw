@@ -27,7 +27,7 @@
 #include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
 #include "DeathStack/events/Topics.h"
-#include "TestSensor.h"
+#include "Sensors/Test/TestSensor.h"
 #include "events/EventBroker.h"
 
 #include <math/Stats.h>
