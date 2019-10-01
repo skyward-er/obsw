@@ -37,7 +37,7 @@ protected:
         using namespace std;
         using namespace DeathStackBoard;
 
-        int ev, topic;
+        uint8_t ev, topic;
         for (;;)
         {
             cout << "Insert Event & Topic:\n";
