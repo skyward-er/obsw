@@ -27,7 +27,10 @@
 #include <ostream>
 #include <string>
 
-struct EventLog
+/**
+ * @brief Loggable struct for each event posted.
+ */
+struct EventData
 {
     long long timestamp;
     uint8_t event;

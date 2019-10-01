@@ -43,7 +43,7 @@
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinHandler/PinHandler.h"
 #include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/System/EventLog.h"
+#include "DeathStack/events/EventData.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
 
 using std::bind;
@@ -174,7 +174,7 @@ private:
 
     void logEvent(uint8_t event, uint8_t topic)
     {
-        EventLog ev{miosix::getTick(), event, topic};
+        EventData ev{miosix::getTick(), event, topic};
         logger->log(ev);
 
 #ifdef DEBUG

@@ -23,10 +23,13 @@
 
 #pragma once
 
+// The StackLogger is an active object!
 #include <diagnostic/StackLogger.h>
 
 namespace DeathStackBoard
 {
+
+// define thread ids to be used by the StackLogger
 enum HermesThreadIds : uint8_t
 {
     THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
