@@ -51,7 +51,7 @@ static void canRcv(const CanMsg& message, const CanStatus& status)
     memcpy(ev.payload, message.Data, CAN_MAX_PAYLOAD);
 
     /* Log stats */
-    LoggerProxy::getInstance()->log(status);
+    LoggerService::getInstance()->log(status);
 
     /* Post event */
     sEventBroker->post(ev, TOPIC_CAN);
@@ -87,7 +87,7 @@ bool CanProxy::send(uint16_t id, const uint8_t* message, uint8_t len)
 
     // Log stats
     CanStatus status = bus->getStatus();
-    LoggerProxy::getInstance()->log(status);
+    LoggerService::getInstance()->log(status);
 
     return ok;
 }

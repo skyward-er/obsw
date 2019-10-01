@@ -4,7 +4,7 @@
 
 This repository contains the On-Board Software for R2A-Hermes. 
 
-To clone, use the `--recurse-submodules` option.
+To clone, use the `git clone --recurse-submodules` option.
 
 To build, use `sbs` (for more info, type `./sbs --help` on Linux or `sbs --help` on Windows).
 
@@ -12,9 +12,10 @@ To build, use `sbs` (for more info, type `./sbs --help` on Linux or `sbs --help`
 
 ## Folder Structure
 
-| **src/**               | **sources!**                                        |
+|   Folder               |   Content                                           |
 | ---------------------- | --------------------------------------------------- |
-| boards/                | Classes source files, divided per board.            |
+| **src/**               | **sources!**                                        |
+| boards/                | Classes and components, divided by board.            |
 | entrypoints/           | Each file here is a "*main*" to be built with SBS.  |
 | tests/                 | Tests that can be built with SBS.                   |
 | **skyward-boardcore/** | Provides the build system (SBS) and common drivers. |

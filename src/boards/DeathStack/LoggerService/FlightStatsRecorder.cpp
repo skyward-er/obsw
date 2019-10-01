@@ -21,26 +21,27 @@
  * THE SOFTWARE.
  */
 
-#include "FlightStats.h"
 #include <cmath>
+#include "FlightStatsRecorder.h"
+
 #include "DeathStack/Events.h"
 #include "DeathStack/System/StackLogger.h"
-#include "LogProxy.h"
+#include "LoggerService.h"
 #include "events/EventBroker.h"
 
 namespace DeathStackBoard
 {
 
-FlightStats::FlightStats() : FSM(&FlightStats::state_idle)
+FlightStatsRecorder::FlightStatsRecorder() : FSM(&FlightStatsRecorder::state_idle)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
     sEventBroker->subscribe(this, TOPIC_STATS);
 }
 
-FlightStats::~FlightStats() { sEventBroker->unsubscribe(this); }
+FlightStatsRecorder::~FlightStatsRecorder() { sEventBroker->unsubscribe(this); }
 
-void FlightStats::update(const KalmanState& t)
+void FlightStatsRecorder::update(const KalmanState& t)
 {
     switch (state)
     {
@@ -71,7 +72,7 @@ void FlightStats::update(const KalmanState& t)
         }
     }
 }
-void FlightStats::update(const KalmanAltitude& t)
+void FlightStatsRecorder::update(const KalmanAltitude& t)
 {
     switch (state)
     {
@@ -114,7 +115,7 @@ void FlightStats::update(const KalmanAltitude& t)
         }
     }
 }
-void FlightStats::update(const AD7994WrapperData& t)
+void FlightStatsRecorder::update(const AD7994WrapperData& t)
 {
     switch (state)
     {
@@ -151,7 +152,7 @@ void FlightStats::update(const AD7994WrapperData& t)
         }
     }
 }
-void FlightStats::update(const MPU9250Data& t)
+void FlightStatsRecorder::update(const MPU9250Data& t)
 {
     switch (state)
     {
@@ -194,7 +195,7 @@ void FlightStats::update(const MPU9250Data& t)
     }
 }
 
-void FlightStats::update(const PiksiData& t)
+void FlightStatsRecorder::update(const PiksiData& t)
 {
     switch (state)
     {
@@ -229,7 +230,7 @@ void FlightStats::update(const PiksiData& t)
     }
 }
 
-void FlightStats::state_idle(const Event& ev)
+void FlightStatsRecorder::state_idle(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -249,12 +250,12 @@ void FlightStats::state_idle(const Event& ev)
         }
         case EV_LIFTOFF:
         {
-            transition(&FlightStats::state_liftOff);
+            transition(&FlightStatsRecorder::state_liftOff);
             break;
         }
         case EV_DPL_ALTITUDE:
         {
-            transition(&FlightStats::state_mainDeployment);
+            transition(&FlightStatsRecorder::state_mainDeployment);
             break;
         }
         default:
@@ -263,7 +264,7 @@ void FlightStats::state_idle(const Event& ev)
         }
     }
 }
-void FlightStats::state_liftOff(const Event& ev)
+void FlightStatsRecorder::state_liftOff(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -287,14 +288,14 @@ void FlightStats::state_liftOff(const Event& ev)
         {
             TRACE("[FlightStats] Exiting LIFTOFF state\n");
 
-            LoggerProxy::getInstance()->log(liftoff_stats);
+            LoggerService::getInstance()->log(liftoff_stats);
 
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
         case EV_FLIGHTSTATS_TIMEOUT:
         {
-            transition(&FlightStats::state_ascending);
+            transition(&FlightStatsRecorder::state_ascending);
             break;
         }
         default:
@@ -303,7 +304,7 @@ void FlightStats::state_liftOff(const Event& ev)
         }
     }
 }
-void FlightStats::state_ascending(const Event& ev)
+void FlightStatsRecorder::state_ascending(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -319,7 +320,7 @@ void FlightStats::state_ascending(const Event& ev)
         {
             TRACE("[FlightStats] Exiting ASCENDING state\n");
 
-            LoggerProxy::getInstance()->log(apogee_stats);
+            LoggerService::getInstance()->log(apogee_stats);
 
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
@@ -339,7 +340,7 @@ void FlightStats::state_ascending(const Event& ev)
         case EV_FLIGHTSTATS_TIMEOUT:
         {
             // Drogue deployment occurs just after apogee
-            transition(&FlightStats::state_drogueDeployment);
+            transition(&FlightStatsRecorder::state_drogueDeployment);
             break;
         }
         default:
@@ -349,7 +350,7 @@ void FlightStats::state_ascending(const Event& ev)
     }
 }
 
-void FlightStats::state_drogueDeployment(const Event& ev)
+void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -371,14 +372,14 @@ void FlightStats::state_drogueDeployment(const Event& ev)
         {
             TRACE("[FlightStats] Entering EXITING state\n");
 
-            LoggerProxy::getInstance()->log(drogue_dpl_stats);
+            LoggerService::getInstance()->log(drogue_dpl_stats);
 
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
         case EV_FLIGHTSTATS_TIMEOUT:
         {
-            transition(&FlightStats::state_idle);
+            transition(&FlightStatsRecorder::state_idle);
             break;
         }
         default:
@@ -388,7 +389,7 @@ void FlightStats::state_drogueDeployment(const Event& ev)
     }
 }
 
-void FlightStats::state_mainDeployment(const Event& ev)
+void FlightStatsRecorder::state_mainDeployment(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -413,14 +414,14 @@ void FlightStats::state_mainDeployment(const Event& ev)
         {
             TRACE("[FlightStats] Exiting MAIN DPL state\n");
 
-            LoggerProxy::getInstance()->log(main_dpl_stats);
+            LoggerService::getInstance()->log(main_dpl_stats);
 
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
         case EV_FLIGHTSTATS_TIMEOUT:
         {
-            transition(&FlightStats::state_idle);
+            transition(&FlightStatsRecorder::state_idle);
             break;
         }
         default:

@@ -32,11 +32,11 @@
 #include <utils/EventSniffer.h>
 
 #include "DeathStack/Events.h"
-#include "DeathStack/LogProxy/Telemetries.h"
+#include "DeathStack/LoggerService/TmRepository.h"
 #include "DeathStack/Topics.h"
 #include "DeathStackStatus.h"
 
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/PinObserver/PinObserverWrapper.h"
 
 #include "DeathStack/ADA/ADA.h"
@@ -66,7 +66,7 @@ class DeathStack : public Singleton<DeathStack>
 public:
     // Shared Components
     EventBroker* broker;
-    LoggerProxy* logger;
+    LoggerService* logger;
     PinObserverWrapper* pin_observer;
     EventSniffer* sniffer;
 
@@ -87,7 +87,7 @@ private:
 
         /* Shared components */
         broker       = sEventBroker;
-        logger       = Singleton<LoggerProxy>::getInstance();
+        logger       = Singleton<LoggerService>::getInstance();
         pin_observer = new PinObserverWrapper();
 
         // Bind the logEvent function to the event sniffer in order to log every

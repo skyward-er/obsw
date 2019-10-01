@@ -31,7 +31,7 @@ namespace DeathStackBoard
 {
 
 //Forward dec
-class LoggerProxy;
+class LoggerService;
 
 class PinObserverWrapper
 {
@@ -85,7 +85,7 @@ private:
 
     PinObserver pin_obs;
 
-    LoggerProxy* logger;
+    LoggerService* logger;
 };
 
 }  // namespace DeathStackBoard

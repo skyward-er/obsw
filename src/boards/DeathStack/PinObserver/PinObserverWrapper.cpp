@@ -25,7 +25,7 @@
 #include <events/EventBroker.h>
 #include <functional>
 #include "DeathStack/Events.h"
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 
 using std::bind;
 
@@ -33,7 +33,7 @@ namespace DeathStackBoard
 {
 
 PinObserverWrapper::PinObserverWrapper()
-    : pin_obs(PIN_POLL_INTERVAL), logger(LoggerProxy::getInstance())
+    : pin_obs(PIN_POLL_INTERVAL), logger(LoggerService::getInstance())
 {
     // Used for _1, _2. See std::bind cpp reference
     using namespace std::placeholders;

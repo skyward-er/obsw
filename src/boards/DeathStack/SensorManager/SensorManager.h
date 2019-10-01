@@ -29,7 +29,7 @@
 #include <scheduler/TaskScheduler.h>
 #include <sensors/SensorSampling.h>
 
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
 
@@ -142,7 +142,7 @@ private:
 
     TaskScheduler scheduler;
     // Logger ref
-    LoggerProxy& logger;
+    LoggerService& logger;
 
     bool enable_sensor_logging = false;
 

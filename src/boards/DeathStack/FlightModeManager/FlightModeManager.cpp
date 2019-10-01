@@ -35,7 +35,7 @@ namespace DeathStackBoard
 
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_initialization, 4096, 2),
-      logger(*(LoggerProxy::getInstance()))
+      logger(*(LoggerService::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
     sEventBroker->subscribe(this, TOPIC_TC);

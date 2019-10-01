@@ -29,7 +29,7 @@
 
 #include "Common.h"
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
@@ -50,7 +50,7 @@ int main()
     // ada.start();
     try
     {
-        LoggerProxy::getInstance()->start();
+        LoggerService::getInstance()->start();
     }
     catch (const std::exception& e)
     {

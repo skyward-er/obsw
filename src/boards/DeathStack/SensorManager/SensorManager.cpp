@@ -63,7 +63,7 @@ namespace DeathStackBoard
 
 SensorManager::SensorManager(ADA* ada)
     : FSM(&SensorManager::stateIdle), scheduler(),
-      logger(*LoggerProxy::getInstance()), ada(ada)
+      logger(*LoggerService::getInstance()), ada(ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);

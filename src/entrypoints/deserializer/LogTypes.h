@@ -31,7 +31,7 @@
 #include "DeathStack/DeathStackStatus.h"
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
-#include "DeathStack/LogProxy/FlightStatsData.h"
+#include "DeathStack/LoggerService/FlightStatsData.h"
 #include "DeathStack/PinObserver/PinObserverData.h"
 #include "DeathStack/SensorManager/SensorManagerData.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"

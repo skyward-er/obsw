@@ -27,7 +27,7 @@
 #include "events/FSM.h"
 
 #include <drivers/mavlink/MavChannel.h>
-#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/LoggerService/LoggerService.h>
 #include <interfaces-impl/hwmapping.h>
 
 namespace DeathStackBoard
@@ -68,7 +68,7 @@ private:
     Xbee_t* device;
     MavChannel* channel;
 
-    LoggerProxy& logger = *(LoggerProxy::getInstance());
+    LoggerService& logger = *(LoggerService::getInstance());
 
     /* State handlers */
     void stateIdle(const Event& ev);

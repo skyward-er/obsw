@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "LogProxy.h"
-#include "FlightStats.h"
-#include "Telemetries.h"
+#include "LoggerService.h"
+#include "FlightStatsRecorder.h"
+#include "TmRepository.h"
 
 #include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/DeathStackStatus.h"
@@ -43,7 +43,7 @@
 namespace DeathStackBoard
 {
 /**
- * Each function here is an implementation of the log() method for a
+ * @brief Each function here is an implementation of the log() method for a
  * specific status struct or class.
  * The rationale is that, whenever a status struct is logged, the corresponding
  * telemetry struct is updated synchronously in the telemetry repo.
@@ -52,7 +52,7 @@ namespace DeathStackBoard
  */
 
 template <>
-LogResult LoggerProxy::log<DeathStackStatus>(const DeathStackStatus& t)
+LogResult LoggerService::log<DeathStackStatus>(const DeathStackStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -73,7 +73,7 @@ LogResult LoggerProxy::log<DeathStackStatus>(const DeathStackStatus& t)
 
 /* Flight Mode Manager */
 template <>
-LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
+LogResult LoggerService::log<FMMStatus>(const FMMStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -89,7 +89,7 @@ LogResult LoggerProxy::log<FMMStatus>(const FMMStatus& t)
 
 /* Launch and Nosecone detachment pins */
 template <>
-LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
+LogResult LoggerService::log<PinStatus>(const PinStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -139,7 +139,7 @@ LogResult LoggerProxy::log<PinStatus>(const PinStatus& t)
 
 /* Ignition Board */
 template <>
-LogResult LoggerProxy::log<IgnBoardLoggableStatus>(
+LogResult LoggerService::log<IgnBoardLoggableStatus>(
     const IgnBoardLoggableStatus& t)
 {
     {
@@ -157,7 +157,7 @@ LogResult LoggerProxy::log<IgnBoardLoggableStatus>(
 
 /* Ignition Controller */
 template <>
-LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
+LogResult LoggerService::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -179,7 +179,7 @@ LogResult LoggerProxy::log<IgnCtrlStatus>(const IgnCtrlStatus& t)
 
 /* Logger */
 template <>
-LogResult LoggerProxy::log<LogStats>(const LogStats& t)
+LogResult LoggerService::log<LogStats>(const LogStats& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -200,7 +200,7 @@ LogResult LoggerProxy::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerProxy::log<MavStatus>(
+LogResult LoggerService::log<MavStatus>(
     const MavStatus& t)  // da controllare l'enum nella MavStatus logger
 {
     {
@@ -228,7 +228,7 @@ LogResult LoggerProxy::log<MavStatus>(
 
 /* Sensor Manager */
 template <>
-LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
+LogResult LoggerService::log<SensorManagerStatus>(const SensorManagerStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -240,7 +240,7 @@ LogResult LoggerProxy::log<SensorManagerStatus>(const SensorManagerStatus& t)
 }
 /* Deployment Controller */
 template <>
-LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
+LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -260,7 +260,7 @@ LogResult LoggerProxy::log<DeploymentStatus>(const DeploymentStatus& t)
 
 /* ADA state machine */
 template <>
-LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
+LogResult LoggerService::log<ADAStatus>(const ADAStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -272,7 +272,7 @@ LogResult LoggerProxy::log<ADAStatus>(const ADAStatus& t)
 
 /* ADA target dpl pressure */
 template <>
-LogResult LoggerProxy::log<TargetDeploymentAltitude>(
+LogResult LoggerService::log<TargetDeploymentAltitude>(
     const TargetDeploymentAltitude& t)
 {
     {
@@ -285,7 +285,7 @@ LogResult LoggerProxy::log<TargetDeploymentAltitude>(
 
 /* ADA kalman filter values */
 template <>
-LogResult LoggerProxy::log<KalmanState>(const KalmanState& t)
+LogResult LoggerService::log<KalmanState>(const KalmanState& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -302,7 +302,7 @@ LogResult LoggerProxy::log<KalmanState>(const KalmanState& t)
 
 /* ADA kalman altitude values */
 template <>
-LogResult LoggerProxy::log<KalmanAltitude>(const KalmanAltitude& t)
+LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -316,7 +316,7 @@ LogResult LoggerProxy::log<KalmanAltitude>(const KalmanAltitude& t)
 }
 
 template <>
-LogResult LoggerProxy::log<ReferenceValues>(const ReferenceValues& t)
+LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -332,7 +332,7 @@ LogResult LoggerProxy::log<ReferenceValues>(const ReferenceValues& t)
 }
 
 template <>
-LogResult LoggerProxy::log<ADACalibrationData>(const ADACalibrationData& t)
+LogResult LoggerService::log<ADACalibrationData>(const ADACalibrationData& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -346,7 +346,7 @@ LogResult LoggerProxy::log<ADACalibrationData>(const ADACalibrationData& t)
 
 /* Canbus stats */
 template <>
-LogResult LoggerProxy::log<CanStatus>(const CanStatus& t)
+LogResult LoggerService::log<CanStatus>(const CanStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -363,7 +363,7 @@ LogResult LoggerProxy::log<CanStatus>(const CanStatus& t)
 
 /* Main Barometer */
 template <>
-LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
+LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -390,7 +390,7 @@ LogResult LoggerProxy::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
 /* Battery status, sampled by internal ADC */
 template <>
-LogResult LoggerProxy::log<BatteryVoltageData>(const BatteryVoltageData& t)
+LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t)
 {
     tm_repository.adc_tm.battery_voltage = t.volt;
     tm_repository.test_tm.battery_volt   = t.volt;
@@ -400,7 +400,7 @@ LogResult LoggerProxy::log<BatteryVoltageData>(const BatteryVoltageData& t)
 
 /* Motor current sense, sampled by internal ADC */
 template <>
-LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
+LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -416,7 +416,7 @@ LogResult LoggerProxy::log<CurrentSenseData>(const CurrentSenseData& t)
 
 /* ADIS imu */
 template <>
-LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
+LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -443,7 +443,7 @@ LogResult LoggerProxy::log<ADIS16405Data>(const ADIS16405Data& t)
 
 /* MPU imu */
 template <>
-LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
+LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -474,7 +474,7 @@ LogResult LoggerProxy::log<MPU9250Data>(const MPU9250Data& t)
 
 /* LM75b temperature */
 template <>
-LogResult LoggerProxy::log<LM75BData>(const LM75BData& t)
+LogResult LoggerService::log<LM75BData>(const LM75BData& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -500,7 +500,7 @@ LogResult LoggerProxy::log<LM75BData>(const LM75BData& t)
 
 /* GPS */
 template <>
-LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
+LogResult LoggerService::log<PiksiData>(const PiksiData& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -538,7 +538,7 @@ LogResult LoggerProxy::log<PiksiData>(const PiksiData& t)
 }
 
 template <>
-LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
+LogResult LoggerService::log<TaskStatResult>(const TaskStatResult& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -571,7 +571,7 @@ LogResult LoggerProxy::log<TaskStatResult>(const TaskStatResult& t)
 }
 
 template <>
-LogResult LoggerProxy::log<LiftOffStats>(const LiftOffStats& t)
+LogResult LoggerService::log<LiftOffStats>(const LiftOffStats& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -590,7 +590,7 @@ LogResult LoggerProxy::log<LiftOffStats>(const LiftOffStats& t)
 }
 
 template <>
-LogResult LoggerProxy::log<ApogeeStats>(const ApogeeStats& t)
+LogResult LoggerService::log<ApogeeStats>(const ApogeeStats& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -610,7 +610,7 @@ LogResult LoggerProxy::log<ApogeeStats>(const ApogeeStats& t)
 }
 
 template <>
-LogResult LoggerProxy::log<DrogueDPLStats>(const DrogueDPLStats& t)
+LogResult LoggerService::log<DrogueDPLStats>(const DrogueDPLStats& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -623,7 +623,7 @@ LogResult LoggerProxy::log<DrogueDPLStats>(const DrogueDPLStats& t)
 }
 
 template <>
-LogResult LoggerProxy::log<MainDPLStats>(const MainDPLStats& t)
+LogResult LoggerService::log<MainDPLStats>(const MainDPLStats& t)
 {
     {
         miosix::PauseKernelLock kLock;
