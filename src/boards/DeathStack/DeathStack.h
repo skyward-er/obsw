@@ -37,12 +37,11 @@
 #include "DeathStackStatus.h"
 
 #include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/PinObserver/PinObserverWrapper.h"
 
 #include "DeathStack/ADA/ADA.h"
 #include "DeathStack/DeploymentController/Deployment.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
-#include "DeathStack/PinObserver/PinObserverWrapper.h"
+#include "DeathStack/PinHandler/PinHandler.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "DeathStack/System/EventLog.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
@@ -67,7 +66,7 @@ public:
     // Shared Components
     EventBroker* broker;
     LoggerService* logger;
-    PinObserverWrapper* pin_observer;
+    PinHandler* pin_observer;
     EventSniffer* sniffer;
 
     // FSMs
@@ -88,7 +87,7 @@ private:
         /* Shared components */
         broker       = sEventBroker;
         logger       = Singleton<LoggerService>::getInstance();
-        pin_observer = new PinObserverWrapper();
+        pin_observer = new PinHandler();
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event

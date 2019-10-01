@@ -16,7 +16,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * LIABILITY, WHETFHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
@@ -25,7 +25,7 @@
 
 #include <PinObserver.h>
 #include "DeathStack/configs/PinObserverConfig.h"
-#include "PinObserverData.h"
+#include "PinHandlerData.h"
 
 namespace DeathStackBoard
 {
@@ -33,10 +33,17 @@ namespace DeathStackBoard
 //Forward dec
 class LoggerService;
 
-class PinObserverWrapper
+
+/**
+ * @brief This class contains the handlers for both the launch pin (umbilical) 
+ * and the nosecone detachment pin.
+ * It uses boardcore's PinObserver to bind these functions to the GPIO pins.
+ * The handlers post an event on the EventBroker.
+ */
+class PinHandler
 {
 public:
-    PinObserverWrapper();
+    PinHandler();
 
     /**
      * @brief Starts the pin observer

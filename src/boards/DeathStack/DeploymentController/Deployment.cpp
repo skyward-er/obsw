@@ -27,7 +27,6 @@
 #include "DeathStack/configs/DeploymentConfig.h"
 #include "Deployment.h"
 #include "Motor/MotorDriver.h"
-#include "PinObserver.h"
 #include "events/EventBroker.h"
 
 namespace DeathStackBoard

@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "PinObserverWrapper.h"
+#include "PinHandler.h"
 #include <events/EventBroker.h>
 #include <functional>
 #include "DeathStack/Events.h"
@@ -32,7 +32,7 @@ using std::bind;
 namespace DeathStackBoard
 {
 
-PinObserverWrapper::PinObserverWrapper()
+PinHandler::PinHandler()
     : pin_obs(PIN_POLL_INTERVAL), logger(LoggerService::getInstance())
 {
     // Used for _1, _2. See std::bind cpp reference
@@ -40,10 +40,10 @@ PinObserverWrapper::PinObserverWrapper()
 
     // Launch pin callbacks registration
     PinObserver::OnTransitionCallback launch_transition_cb =
-        bind(&PinObserverWrapper::onLaunchPinTransition, this, _1, _2);
+        bind(&PinHandler::onLaunchPinTransition, this, _1, _2);
 
     PinObserver::OnStateChangeCallback launch_statechange_cb =
-        bind(&PinObserverWrapper::onLaunchPinStateChange, this, _1, _2, _3);
+        bind(&PinHandler::onLaunchPinStateChange, this, _1, _2, _3);
 
     pin_obs.observePin(PORT_LAUNCH_PIN, NUM_LAUNCH_PIN, TRIGGER_LAUNCH_PIN,
                        launch_transition_cb, THRESHOLD_LAUNCH_PIN,
@@ -51,17 +51,17 @@ PinObserverWrapper::PinObserverWrapper()
 
     // Noseconse pin callbacks registration
     PinObserver::OnTransitionCallback nc_transition_cb =
-        bind(&PinObserverWrapper::onNCPinTransition, this, _1, _2);
+        bind(&PinHandler::onNCPinTransition, this, _1, _2);
 
     PinObserver::OnStateChangeCallback nc_statechange_cb =
-        bind(&PinObserverWrapper::onNCPinStateChange, this, _1, _2, _3);
+        bind(&PinHandler::onNCPinStateChange, this, _1, _2, _3);
 
     pin_obs.observePin(PORT_NC_DETACH_PIN, NUM_NC_DETACH_PIN,
                        TRIGGER_NC_DETACH_PIN, nc_transition_cb,
                        THRESHOLD_NC_DETACH_PIN, nc_statechange_cb);
 }
 
-void PinObserverWrapper::onLaunchPinTransition(unsigned int p, unsigned char n)
+void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
@@ -71,7 +71,7 @@ void PinObserverWrapper::onLaunchPinTransition(unsigned int p, unsigned char n)
     logger->log(status_pin_launch);
 }
 
-void PinObserverWrapper::onNCPinTransition(unsigned int p, unsigned char n)
+void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
@@ -81,7 +81,7 @@ void PinObserverWrapper::onNCPinTransition(unsigned int p, unsigned char n)
     logger->log(status_pin_nosecone);
 }
 
-void PinObserverWrapper::onLaunchPinStateChange(unsigned int p, unsigned char n,
+void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
                                                 int state)
 {
     UNUSED(p);
@@ -93,7 +93,7 @@ void PinObserverWrapper::onLaunchPinStateChange(unsigned int p, unsigned char n,
     logger->log(status_pin_launch);   
 }
 
-void PinObserverWrapper::onNCPinStateChange(unsigned int p, unsigned char n,
+void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n,
                                             int state)
 {
     UNUSED(p);

@@ -33,7 +33,7 @@
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
 #include "DeathStack/IgnitionController/IgnitionStatus.h"
-#include "DeathStack/PinObserver/PinObserverData.h"
+#include "DeathStack/PinHandler/PinHandlerData.h"
 #include "DeathStack/SensorManager/SensorManagerData.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
 #include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
