@@ -427,8 +427,9 @@ State FlightModeManager::state_flying(const Event& ev)
 
             sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
             // Start timeout for closing file descriptors
-            id_delayed_end_mission_timeout = sEventBroker->postDelayed(
-                {EV_TIMEOUT_END_MISSION}, TOPIC_FMM, TIMEOUT_FMM_END_MISSION);
+            id_delayed_end_mission_timeout =
+                sEventBroker->postDelayed<TIMEOUT_FMM_END_MISSION>(
+                    {EV_TIMEOUT_END_MISSION}, TOPIC_FMM);
 
             TRACE("[FMM] Entering flying\n");
             break;

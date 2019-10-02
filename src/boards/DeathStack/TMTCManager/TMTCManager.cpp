@@ -103,10 +103,10 @@ void TMTCManager::stateSendingTM(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            lr_event_id = sEventBroker->postDelayed(Event{EV_SEND_LR_TM},
-                                                    TOPIC_TMTC, LR_TM_TIMEOUT);
-            hr_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM},
-                                                    TOPIC_TMTC, HR_TM_TIMEOUT);
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(Event{EV_SEND_LR_TM},
+                                                    TOPIC_TMTC);
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(Event{EV_SEND_HR_TM},
+                                                    TOPIC_TMTC);
 
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
@@ -116,8 +116,8 @@ void TMTCManager::stateSendingTM(const Event& ev)
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_HR_TM_ID);
             send(telem);
 
-            hr_event_id = sEventBroker->postDelayed(Event{EV_SEND_HR_TM},
-                                                    TOPIC_TMTC, HR_TM_TIMEOUT);
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(Event{EV_SEND_HR_TM},
+                                                    TOPIC_TMTC);
             break;
         }
 
@@ -126,8 +126,8 @@ void TMTCManager::stateSendingTM(const Event& ev)
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
             send(telem);
 
-            lr_event_id = sEventBroker->postDelayed(Event{EV_SEND_LR_TM},
-                                                    TOPIC_TMTC, LR_TM_TIMEOUT);
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(Event{EV_SEND_LR_TM},
+                                                    TOPIC_TMTC);
 
             break;
         }
@@ -155,8 +155,8 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
-            test_tm_event_id = sEventBroker->postDelayed(
-                Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);
+            test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
+                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
             TRACE("[TMTC] Entering stateTestTM\n");
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -167,8 +167,8 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
             send(telem);
 
-            test_tm_event_id = sEventBroker->postDelayed(
-                Event{EV_SEND_TEST_TM}, TOPIC_TMTC, TEST_TM_TIMEOUT);
+            test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
+                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
             break;
         }
 
