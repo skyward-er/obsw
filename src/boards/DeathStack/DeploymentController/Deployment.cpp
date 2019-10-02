@@ -142,8 +142,8 @@ State DeploymentController::state_openingNosecone(const Event& ev)
             motor.start(MOTOR_OPEN_DIR);
             logStatus(DeploymentCTRLState::OPENING_NC);
 
-            ev_open_timeout_id = sEventBroker->postDelayed(
-                Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT, NC_OPEN_TIMEOUT);
+            ev_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
+                Event{EV_TIMEOUT_MOT_OPEN}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_openingNosecone ENTRY\n");
             break;
@@ -199,9 +199,9 @@ State DeploymentController::state_spinning(const Event& ev)
     {
         case EV_ENTRY:
         {
-            ev_min_open_time_id = sEventBroker->postDelayed(
-                Event{EV_MOT_MIN_OPEN_TIME}, TOPIC_DEPLOYMENT,
-                NC_MINIMUM_OPENING_TIME);
+            ev_min_open_time_id =
+                sEventBroker->postDelayed<NC_MINIMUM_OPENING_TIME>(
+                    Event{EV_MOT_MIN_OPEN_TIME}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_spinning ENTRY\n");
             logStatus(DeploymentCTRLState::SPINNING);
@@ -319,9 +319,9 @@ State DeploymentController::state_cuttingDrogue(const Event& ev)
             cutter.startCutDrogue();
             logStatus(DeploymentCTRLState::CUTTING_DROGUE);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
-                MAXIMUM_CUTTING_DURATION);
+            ev_cut_timeout_id =
+                sEventBroker->postDelayed<MAXIMUM_CUTTING_DURATION>(
+                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_cuttingDrogue ENTRY\n");
             break;
@@ -369,9 +369,9 @@ State DeploymentController::state_cuttingMain(const Event& ev)
             cutter.startCutMainChute();
             logStatus(DeploymentCTRLState::CUTTING_MAIN);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT,
-                MAXIMUM_CUTTING_DURATION);
+            ev_cut_timeout_id =
+                sEventBroker->postDelayed<MAXIMUM_CUTTING_DURATION>(
+                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_cuttingMain ENTRY\n");
             break;
