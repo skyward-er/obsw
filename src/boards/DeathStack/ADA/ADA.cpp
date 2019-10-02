@@ -34,8 +34,8 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADA::ADA()
-    : FSM(&ADA::stateIdle, 4096, 2), filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
-      rogallo_dts()
+    : FSM(&ADA::stateIdle, 4096, 2),
+      filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -297,9 +297,9 @@ void ADA::updateFilter(float pressure)
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
 
-    last_kalman_state.x0 = filter.X(0, 0);
-    last_kalman_state.x1 = filter.X(1, 0);
-    last_kalman_state.x2 = filter.X(2, 0);
+    last_kalman_state.x0        = filter.X(0, 0);
+    last_kalman_state.x1        = filter.X(1, 0);
+    last_kalman_state.x2        = filter.X(2, 0);
     last_kalman_state.timestamp = miosix::getTick();
 
     logger.log(last_kalman_state);

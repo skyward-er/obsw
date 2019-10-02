@@ -18,8 +18,8 @@ int main()
     led4::mode(miosix::Mode::OUTPUT);
     led5::mode(miosix::Mode::OUTPUT);
     led6::mode(miosix::Mode::OUTPUT);
-    int counter=0;
-    int direction=0;
+    // int counter=0;
+    // int direction=0;
 
     printf("Started\n");
 
