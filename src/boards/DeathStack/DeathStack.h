@@ -39,7 +39,7 @@
 #include "DeathStack/LoggerService/LoggerService.h"
 
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/DeploymentController/Deployment.h"
+#include "DeathStack/DeploymentController/DeploymentController.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinHandler/PinHandler.h"
 #include "DeathStack/SensorManager/SensorManager.h"

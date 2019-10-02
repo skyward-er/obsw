@@ -25,7 +25,8 @@
 
 #include "DeathStack/events/Events.h"
 #include "DeathStack/configs/DeploymentConfig.h"
-#include "Deployment.h"
+#include "DeploymentController.h"
+
 #include "Motor/MotorDriver.h"
 #include "events/EventBroker.h"
 
