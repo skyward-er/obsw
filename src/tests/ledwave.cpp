@@ -1,8 +1,8 @@
 #include <miosix.h>
 #include <stdio.h>
 
-typedef miosix::Gpio<GPIOG_BASE, 2>  led1;
-typedef miosix::Gpio<GPIOG_BASE, 3>  led2;
+typedef miosix::Gpio<GPIOG_BASE, 2> led1;
+typedef miosix::Gpio<GPIOG_BASE, 3> led2;
 typedef miosix::Gpio<GPIOD_BASE, 11> led3;
 
 typedef miosix::Gpio<GPIOB_BASE, 1> led4;
@@ -20,13 +20,12 @@ int main()
     led6::mode(miosix::Mode::OUTPUT);
 
     printf("Started\n");
-
-    FILE* file = fopen("/sd/log.txt","w");
+    FILE* file = fopen("/sd/log.txt", "w");
 
     if (file == NULL)
         printf("Error opening log file\n");
 
-    while(1)
+    while (1)
     {
         printf("Working\n");
         led1::high();
