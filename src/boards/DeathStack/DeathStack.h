@@ -31,20 +31,19 @@
 #include <events/EventBroker.h>
 #include <utils/EventSniffer.h>
 
-#include "DeathStack/Events.h"
-#include "DeathStack/LogProxy/Telemetries.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/LoggerService/TmRepository.h"
+#include "DeathStack/events/Topics.h"
 #include "DeathStackStatus.h"
 
-#include "DeathStack/LogProxy/LogProxy.h"
-#include "DeathStack/PinObserver/PinObserverWrapper.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/DeploymentController/Deployment.h"
+#include "DeathStack/DeploymentController/DeploymentController.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
-#include "DeathStack/PinObserver/PinObserverWrapper.h"
+#include "DeathStack/PinHandler/PinHandler.h"
 #include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/System/EventLog.h"
+#include "DeathStack/events/EventData.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
 
 using std::bind;
@@ -66,8 +65,8 @@ class DeathStack : public Singleton<DeathStack>
 public:
     // Shared Components
     EventBroker* broker;
-    LoggerProxy* logger;
-    PinObserverWrapper* pin_observer;
+    LoggerService* logger;
+    PinHandler* pin_observer;
     EventSniffer* sniffer;
 
     // FSMs
@@ -87,8 +86,8 @@ private:
 
         /* Shared components */
         broker       = sEventBroker;
-        logger       = Singleton<LoggerProxy>::getInstance();
-        pin_observer = new PinObserverWrapper();
+        logger       = Singleton<LoggerService>::getInstance();
+        pin_observer = new PinHandler();
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event
@@ -175,7 +174,7 @@ private:
 
     void logEvent(uint8_t event, uint8_t topic)
     {
-        EventLog ev{miosix::getTick(), event, topic};
+        EventData ev{miosix::getTick(), event, topic};
         logger->log(ev);
 
 #ifdef DEBUG

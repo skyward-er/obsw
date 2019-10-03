@@ -38,16 +38,12 @@
 
 #include "events/Event.h"
 #include "events/EventBroker.h"
-#include "EventClasses.h"
 #include "Topics.h"
-
-using std::string;
 
 namespace DeathStackBoard
 {
 /**
  * Definition of all events in the Homeone Board software
- * Refer to section 5.1.1 of the Software Design Document.
  */
 enum Events : uint8_t
 {
@@ -124,8 +120,7 @@ const std::vector<uint8_t> EVENT_LIST {EV_ADA_APOGEE_DETECTED, EV_ADA_DPL_ALT_DE
  * @param event 
  * @return string 
  */
-string getEventString(uint8_t event);
-
+std::string getEventString(uint8_t event);
 }
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_EVENTS_H */

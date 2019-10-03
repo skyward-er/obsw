@@ -27,7 +27,7 @@
 #include "FMMStatus.h"
 #include "events/Event.h"
 #include "events/HSM.h"
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 
 #include <miosix.h>
 
@@ -98,7 +98,7 @@ public:
 private:
     void logState(FMMState current_state);
 
-    LoggerProxy& logger;
+    LoggerService& logger;
 
     FMMStatus status;
 

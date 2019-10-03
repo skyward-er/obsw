@@ -25,10 +25,9 @@
 #include <events/EventBroker.h>
 #include <iostream>
 #include "DeathStack/DeathStack.h"
-#include "DeathStack/EventClasses.h"
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 
-class ManualEvent : public ActiveObject
+class EventInjector : public ActiveObject
 {
 public:
 protected:
@@ -37,7 +36,7 @@ protected:
         using namespace std;
         using namespace DeathStackBoard;
 
-        int ev, topic;
+        uint8_t ev, topic;
         for (;;)
         {
             cout << "Insert Event & Topic:\n";

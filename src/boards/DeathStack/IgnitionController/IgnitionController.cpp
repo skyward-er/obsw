@@ -23,7 +23,7 @@
 #include "IgnitionController.h"
 #include "DeathStack/configs/IgnitionConfig.h"
 #include "boards/CanInterfaces.h"
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 
 namespace DeathStackBoard
 {

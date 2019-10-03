@@ -24,7 +24,7 @@
 #include "RogalloDTS.h"
 #include <events/EventBroker.h>
 #include <cstring>
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "LHCircles.h"
 
 namespace DeathStackBoard

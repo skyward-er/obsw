@@ -2,9 +2,9 @@
 #include <utils/catch.hpp>
 
 #include <skyward-boardcore/src/shared/utils/EventSniffer.h>
-#include "DeathStack/DeploymentController/Deployment.h"
-#include "DeathStack/Events.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/DeploymentController/DeploymentController.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/events/Topics.h"
 #include "PinObserver.h"
 
 using miosix::Thread;

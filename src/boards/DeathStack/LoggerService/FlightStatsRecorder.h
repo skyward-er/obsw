@@ -25,7 +25,7 @@
 
 #include <events/FSM.h>
 
-#include "Telemetries.h"
+#include "TmRepository.h"
 
 #include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
@@ -38,16 +38,16 @@ namespace DeathStackBoard
 {
 
 /**
- * Records statistics about the flight such as maximum acceleration during
+ * @brief Records statistics about the flight such as maximum acceleration during
  * liftoff, maximum altitude, maximum speed etc. In order to do so, we need to
  * know in which stage of the flight we are in, and we do so using a state
  * machine and receiving events from the topic FLIGHT_EVENTS
  */
-class FlightStats : public FSM<FlightStats>
+class FlightStatsRecorder : public FSM<FlightStatsRecorder>
 {
 public:
-    FlightStats();
-    ~FlightStats();
+    FlightStatsRecorder();
+    ~FlightStatsRecorder();
 
     void update(const KalmanState& t);
     void update(const KalmanAltitude& t);

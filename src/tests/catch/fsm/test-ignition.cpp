@@ -35,7 +35,7 @@
 
 #include <boards/CanInterfaces.h>
 #include <boards/DeathStack/EventClasses.h>
-#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/events/Events.h>
 #include <boards/DeathStack/IgnitionController/IgnitionController.h>
 #include <boards/DeathStack/configs/IgnitionConfig.h>
 #include "utils/testutils/TestHelper.h"

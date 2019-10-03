@@ -23,11 +23,11 @@
 
 #include <stdexcept>
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/configs/DeploymentConfig.h"
-#include "Deployment.h"
+#include "DeploymentController.h"
+
 #include "Motor/MotorDriver.h"
-#include "PinObserver.h"
 #include "events/EventBroker.h"
 
 namespace DeathStackBoard

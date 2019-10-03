@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2018 Skyward Experimental Rocketry
+/**
+ * Copyright (c) 2019 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -14,27 +14,32 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-#ifndef SRC_SHARED_BOARDS_HOMEONE_EVENTCLASSES_H
-#define SRC_SHARED_BOARDS_HOMEONE_EVENTCLASSES_H
+#pragma once
 
-#include "Events.h"
-#include "events/Event.h"
+#include <cstdint>
+#include <ostream>
+#include <string>
 
-namespace DeathStackBoard
+/**
+ * @brief Loggable struct for each event posted.
+ */
+struct EventData
 {
+    long long timestamp;
+    uint8_t event;
+    uint8_t topic;
 
-struct ConfigurationEvent : public Event
-{
-    float config;
+    static std::string header() { return "timestamp,event,topic\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)event << "," << (int)topic << "\n";
+    }
 };
-
-}
-
-#endif /* EVENTCLASSES_H */

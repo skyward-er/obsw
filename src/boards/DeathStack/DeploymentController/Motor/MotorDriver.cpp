@@ -23,7 +23,7 @@
 #include <Common.h>
 #include <interfaces-impl/hwmapping.h>
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "MotorDriver.h"
 
 using namespace miosix;

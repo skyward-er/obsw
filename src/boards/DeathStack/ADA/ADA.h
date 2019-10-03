@@ -25,10 +25,10 @@
 #include <DeathStack/ADA/ADAStatus.h>
 #include <events/FSM.h>
 
-#include <DeathStack/Events.h>
+#include <DeathStack/events/Events.h>
 #include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "RogalloDTS/RogalloDTS.h"
 
 #include <miosix.h>
@@ -180,7 +180,7 @@ private:
     RogalloDTS rogallo_dts;
 
     // Logger
-    LoggerProxy& logger = *(LoggerProxy::getInstance());
+    LoggerService& logger = *(LoggerService::getInstance());
 };
 
 }  // namespace DeathStackBoard

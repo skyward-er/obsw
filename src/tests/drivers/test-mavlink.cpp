@@ -27,7 +27,7 @@
 #include <drivers/mavlink/multi/MavManager.h>
 #include "DeathStack/TMTCManager/XbeeInterrupt.h"
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "events/FSM.h"
 
 using namespace miosix;
