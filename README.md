@@ -27,6 +27,24 @@ To build, use `sbs` (for more info, type `./sbs --help` on Linux or `sbs --help`
 
 This repo contains software components that are specific to R2A-Mini a.k.a Hermes.
 
+## Useful entrypoints
+
+### Death Stack Test Suite
+`src/entrypoints/death-stack-testsuite.cpp`  
+Interactive entrypoint to test various aspects of the Death Stack hardware / software:  
+
+| Test | Description |
+| ----- | ----- |
+| Test All Sensors | Reads and displays values from all the sensors |
+| Thermal Cutter Test | Test the cutters with user-configurable parameters | 
+| Nosecone motor | Test nosecone motor opening / closing (Hermes V0) |
+| Sensors + TMTC | Sample all the sensor with flight parameters and sends high rate telemetry, while also listening for telecommands |
+| XBee send/receive | Sends and receives data trough the XBee module |
+| Logger | Tests the SDCARD / logger |
+
+### Death Stack Entry
+Main entrypoint to be used for flight
+
 ## Contributing
 
 If you are developing new features, branch off from the `testing` branch and then merge back.
