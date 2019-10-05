@@ -138,6 +138,7 @@ int main()
 {
     init();
 
+    printf("** SENSORS TEST SUITE **\n");
     printf("Press enter to start\n");
     (void) getchar();
 

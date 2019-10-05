@@ -12,9 +12,10 @@ build1:
   stage: build
   only:
     - master
+    - testing
   script:
     - echo "Building r2a-hermes-obsw..."
-    - python skyward-boardcore/sbs
+    - python3 skyward-boardcore/sbs
    
 test1:
   stage: test

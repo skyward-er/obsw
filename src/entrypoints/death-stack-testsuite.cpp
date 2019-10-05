@@ -102,14 +102,15 @@ int main()
     while(true)
     {
         printf("Choose a test:\n");
-        printf(" s - sensors\n");
-        printf(" t - thermocutters\n");
-        printf(" m - nosecone motor\n");
-        printf(" g - gs (sm+tmtc)\n");
-        printf(" x - xbee send/rcv\n");
-        printf(" l - logger\n");
-        printf(" r - reboot\n");
-        printf(" f - pay respect\n");
+        printf(" s - Test All Sensors\n");
+        printf(" t - Thermal Cutter test\n");
+        printf(" m - Nosecone Motor\n");
+        printf(" g - Ground Station (sensors+telemetry/telecommands)\n");
+        printf(" x - XBee send/rcv\n");
+        printf(" l - Logger\n");
+        printf("\nOther:\n");
+        printf(" r - Reboot\n");
+        printf(" f - Pay Respect\n");
 
         char c;
         scanf("%c", &c);

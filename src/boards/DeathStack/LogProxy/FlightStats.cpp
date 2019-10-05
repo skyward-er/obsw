@@ -273,9 +273,10 @@ void FlightStats::state_liftOff(const Event& ev)
             state = State::LIFTOFF;
 
             // Collect liftoff stats until this event is received
-            ev_timeout_id = sEventBroker->postDelayed(
-                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_LIFTOFF_STATS);
+            ev_timeout_id =
+                sEventBroker
+                    ->postDelayed<FlightStatsConfig::TIMEOUT_LIFTOFF_STATS>(
+                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
 
             // Save liftoff time
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
@@ -331,9 +332,10 @@ void FlightStats::state_ascending(const Event& ev)
 
             // We detect apogee a little bit ahead of time, so wait a few
             // seconds in order to record the maximum altitude.
-            ev_timeout_id = sEventBroker->postDelayed(
-                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_APOGEE_STATS);
+            ev_timeout_id =
+                sEventBroker
+                    ->postDelayed<FlightStatsConfig::TIMEOUT_APOGEE_STATS>(
+                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
             break;
         }
         case EV_FLIGHTSTATS_TIMEOUT:
@@ -360,9 +362,10 @@ void FlightStats::state_drogueDeployment(const Event& ev)
             state = State::DROGUE_DPL;
 
             // Collect stats until this event is received
-            ev_timeout_id = sEventBroker->postDelayed(
-                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS);
+            ev_timeout_id =
+                sEventBroker
+                    ->postDelayed<FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS>(
+                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
@@ -402,9 +405,10 @@ void FlightStats::state_mainDeployment(const Event& ev)
             main_dpl_stats.T_dpl = static_cast<uint32_t>(miosix::getTick());
 
             // Record stats until this event occurs
-            ev_timeout_id = sEventBroker->postDelayed(
-                {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS,
-                FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS);
+            ev_timeout_id =
+                sEventBroker
+                    ->postDelayed<FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS>(
+                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
