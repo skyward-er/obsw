@@ -106,7 +106,7 @@ int main()
         printf(" s - Test All Sensors\n");
         printf(" t - Thermal Cutter test\n");
         printf(" m - Nosecone Motor\n");
-        printf(" g - Ground Station (sensors+telemetry/telecommands)\n");
+        printf(" g - Sensors + TMTC (telemetry/telecommands)\n");
         printf(" x - XBee send/rcv\n");
         printf(" l - Logger\n");
         printf("\nOther:\n");

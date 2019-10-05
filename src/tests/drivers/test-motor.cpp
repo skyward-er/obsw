@@ -24,9 +24,13 @@
 
 #include "DeathStack/DeploymentController/Motor/MotorDriver.h"
 #include <interfaces-impl/hwmapping.h>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 using namespace miosix;
 using namespace DeathStackBoard;
+using namespace std;
 
 enum motorState
 {
