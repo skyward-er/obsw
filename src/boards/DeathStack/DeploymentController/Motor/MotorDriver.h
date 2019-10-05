@@ -27,8 +27,6 @@
 #include "DeathStack/configs/MotorConfig.h"
 #include "MotorData.h"
 
-#include <PinObserver.h>
-
 namespace DeathStackBoard
 {
 

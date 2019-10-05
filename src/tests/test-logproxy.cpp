@@ -20,14 +20,14 @@
  * THE SOFTWARE.
  */
 #include <Common.h>
-#include <boards/DeathStack/LogProxy/LogProxy.h>
+#include <boards/DeathStack/LoggerService/LoggerService.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
-    LoggerProxy* logger = LoggerProxy::getInstance();
+    LoggerService* logger = LoggerService::getInstance();
 
     UNUSED(logger);
 

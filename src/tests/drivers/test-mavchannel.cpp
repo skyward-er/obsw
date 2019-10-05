@@ -31,7 +31,7 @@
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/mavlink/multi/MavManager.h>
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "events/FSM.h"
 
 

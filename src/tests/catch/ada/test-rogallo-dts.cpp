@@ -38,7 +38,7 @@
 #include "DeathStack/ADA/RogalloDTS/RogalloDTS.h"
 
 #include <utils/EventCounter.h>
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 
 using namespace DeathStackBoard;
 

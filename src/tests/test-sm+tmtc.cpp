@@ -22,14 +22,14 @@
 
 #include <boards/DeathStack/TMTCManager/TMTCManager.h>
 
-#include <boards/DeathStack/Events.h>
-#include <boards/DeathStack/Topics.h>
+#include <boards/DeathStack/events/Events.h>
+#include <boards/DeathStack/events/Topics.h>
 
 #include <interfaces-impl/hwmapping.h>
 
 #include "Common.h"
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
@@ -51,7 +51,7 @@ int main()
     // ada.start();
     try
     {
-        LoggerProxy::getInstance()->start();
+        LoggerService::getInstance()->start();
     }
     catch (const std::exception& e)
     {

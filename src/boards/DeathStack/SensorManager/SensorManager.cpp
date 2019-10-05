@@ -24,10 +24,10 @@
 
 #include "SensorManager.h"
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
-#include "DeathStack/Topics.h"
-#include "TestSensor.h"
+#include "DeathStack/events/Topics.h"
+#include "Sensors/Test/TestSensor.h"
 #include "events/EventBroker.h"
 
 #include <math/Stats.h>
@@ -63,7 +63,7 @@ namespace DeathStackBoard
 
 SensorManager::SensorManager(ADA* ada)
     : FSM(&SensorManager::stateIdle), scheduler(),
-      logger(*LoggerProxy::getInstance()), ada(ada)
+      logger(*LoggerService::getInstance()), ada(ada)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);

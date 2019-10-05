@@ -24,11 +24,11 @@
 
 #include <Common.h>
 
-#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/LoggerService/LoggerService.h>
 #include <DeathStack/configs/TMTCConfig.h>
 #include "DeathStack/DeathStack.h"
-#include "DeathStack/Events.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/events/Topics.h"
 #include "TMBuilder.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
@@ -95,7 +95,7 @@ static void handleMavlinkMessage(MavChannel* channel,
 
     /* Log Status */
     MavStatus status = channel->getStatus();
-    LoggerProxy::getInstance()->log(status);
+    LoggerService::getInstance()->log(status);
 
     /* Send acknowledge */
     sendAck(channel, msg);

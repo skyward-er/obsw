@@ -28,13 +28,14 @@
 
 // Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
 // Autogen date:    2019-05-20 17:09:34.002542
-
+#include <map>
+#include <cstring>
 
 #include "Events.h"
 #include "Topics.h"
 
-#include <map>
 using std::map;
+using std::string;
 
 namespace DeathStackBoard
 {

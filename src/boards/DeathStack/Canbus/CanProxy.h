@@ -25,7 +25,7 @@
 #include <Common.h>
 #include <drivers/canbus/CanManager.h>
 #include <drivers/canbus/CanUtils.h>
-#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/LoggerService/LoggerService.h>
 
 namespace DeathStackBoard
 {

@@ -22,8 +22,8 @@
 
 #include "Common.h"
 #include "DeathStack/ADA/ADA.h"
-#include "DeathStack/Events.h"
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
@@ -39,7 +39,7 @@ int main()
     // ada.start();
     try
     {
-        LoggerProxy::getInstance()->start();
+        LoggerService::getInstance()->start();
     }
     catch (const std::exception& e)
     {
@@ -74,7 +74,7 @@ int main()
 
     printf("CPU: %f%%, min: %f max: %f\n", s.getStats().mean,
            s.getStats().minValue, s.getStats().maxValue);
-    LoggerProxy::getInstance()->stop();
+    LoggerService::getInstance()->stop();
     printf("End\n");
 
     for (;;)

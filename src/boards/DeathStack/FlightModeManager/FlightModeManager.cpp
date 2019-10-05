@@ -23,9 +23,9 @@
 #include <DeathStack/FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
-#include "DeathStack/Events.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
-#include "DeathStack/Topics.h"
+#include "DeathStack/events/Topics.h"
 #include "DeathStack/configs/FMMConfig.h"
 
 #include "Debug.h"
@@ -35,7 +35,7 @@ namespace DeathStackBoard
 
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_initialization, 4096, 2),
-      logger(*(LoggerProxy::getInstance()))
+      logger(*(LoggerService::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
     sEventBroker->subscribe(this, TOPIC_TC);

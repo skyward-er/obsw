@@ -24,7 +24,7 @@
 #pragma once
 
 #include <drivers/servo/servo.h>
-#include "DeathStack/LogProxy/LogProxy.h"
+#include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/System/StackLogger.h"
 #include "DeathStack/configs/DeploymentConfig.h"
 #include "DeploymentData.h"
@@ -100,7 +100,7 @@ private:
     DeploymentStatus status;
     MotorDriver motor;
 
-    LoggerProxy &logger = *(LoggerProxy::getInstance());
+    LoggerService &logger = *(LoggerService::getInstance());
 
     CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 

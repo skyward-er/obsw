@@ -25,18 +25,25 @@
 
 #include <PinObserver.h>
 #include "DeathStack/configs/PinObserverConfig.h"
-#include "PinObserverData.h"
+#include "PinHandlerData.h"
 
 namespace DeathStackBoard
 {
 
 //Forward dec
-class LoggerProxy;
+class LoggerService;
 
-class PinObserverWrapper
+
+/**
+ * @brief This class contains the handlers for both the launch pin (umbilical) 
+ * and the nosecone detachment pin.
+ * It uses boardcore's PinObserver to bind these functions to the GPIO pins.
+ * The handlers post an event on the EventBroker.
+ */
+class PinHandler
 {
 public:
-    PinObserverWrapper();
+    PinHandler();
 
     /**
      * @brief Starts the pin observer
@@ -85,7 +92,7 @@ private:
 
     PinObserver pin_obs;
 
-    LoggerProxy* logger;
+    LoggerService* logger;
 };
 
 }  // namespace DeathStackBoard

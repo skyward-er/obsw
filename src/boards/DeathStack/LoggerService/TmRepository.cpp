@@ -1,9 +1,10 @@
-#include "Telemetries.h"
+#include "TmRepository.h"
 
 namespace DeathStackBoard
 {
 
-Telemetries tm_repository;
+/* Global struct containing all telemetry packets. */
+TmRepository_t tm_repository;
 
 void initTelemetries()
 {

@@ -36,8 +36,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
-
 namespace DeathStackBoard
 {
 /**
@@ -64,7 +62,7 @@ const std::vector<uint8_t> TOPIC_LIST {TOPIC_ADA, TOPIC_CAN, TOPIC_DEPLOYMENT, T
  * @param event
  * @return string
  */
-string getTopicString(uint8_t topic);
+std::string getTopicString(uint8_t topic);
 
 }  // namespace DeathStackBoard
 

@@ -35,8 +35,7 @@
 
 #include <boards/CanInterfaces.h>
 #include <boards/DeathStack/ADA/ADA.h>
-#include <boards/DeathStack/EventClasses.h>
-#include <boards/DeathStack/Events.h>
+#include <boards/DeathStack/events/Events.h>
 #include <boards/DeathStack/configs/ADA_config.h>
 #include "utils/testutils/TestHelper.h"
 

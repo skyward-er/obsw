@@ -25,7 +25,7 @@
 #include "IgnitionStatus.h"
 
 #include <events/FSM.h>
-#include <DeathStack/LogProxy/LogProxy.h>
+#include <DeathStack/LoggerService/LoggerService.h>
 #include <DeathStack/Canbus/CanProxy.h>
 
 namespace DeathStackBoard
@@ -70,7 +70,7 @@ private:
     IgnBoardLoggableStatus loggable_board_status;
 
     CanProxy* canbus;
-    LoggerProxy& logger = *(LoggerProxy::getInstance());
+    LoggerService& logger = *(LoggerService::getInstance());
 
     // Id of the IGN_OFFLINE delayed event posted in the Event Broker
     // NOTE: this is needed to cancel the delayed event

@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Common.h>
-#include <DeathStack/LogProxy/Telemetries.h>
+#include <DeathStack/LoggerService/TmRepository.h>
 #include <DeathStack/configs/TMTCConfig.h>
 
 namespace DeathStackBoard

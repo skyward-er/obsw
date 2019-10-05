@@ -25,37 +25,19 @@
 
 #include <mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
 
+
+/**
+ * @brief This file contains all telemetry packets in the form of mavlink structs.
+ * These packets are updated by the LoggerService and read by the TMTCManager.
+ * 
+ * Notice that, if the LoggerService is not active, the value inside tm packets WILL
+ * NOT BE UPDATED.
+ */
 namespace DeathStackBoard
 {
-/* Enumeration of all possible TMs
-enum MavTMList: uint8_t
-{
-    MAV_HM1_TM_ID,
-    MAV_IGN_TM_ID,
-    MAV_HR_TM_ID,
-    MAV_LR_TM_ID,
-    MAV_LOGGER_TM_ID,
-    MAV_TMTC_TM_ID,
-    MAV_SM_TM_ID,
-    MAV_IGN_CTRL_TM_ID,
-    MAV_DPL_CTRL_TM_ID,
-    MAV_ADA_TM_ID,
-    MAV_CAN_TM_ID,
-    MAV_AD7994_TM_ID,
-    MAV_ADC_TM_ID,
-    MAV_ADIS_TM_ID,
-    MAV_MPU_TM_ID,
-    MAV_GPS_TM_ID,
-    MAV_POS_TM_ID,
-    MAV_SM_TASK1_TM_ID,
-    MAV_SM_TASK2_TM_ID,
-    MAV_SM_TASK3_TM_ID,
-    MAV_SM_TASK4_TM_ID,
-    MAV_SM_TASK5_TM_ID,
-}; */
 
 /* Struct containing all tms in the form of mavlink structs */
-struct Telemetries
+struct TmRepository_t
 {
     mavlink_sys_tm_t sys_tm;
     mavlink_fmm_tm_t fmm_tm;
@@ -80,8 +62,12 @@ struct Telemetries
     mavlink_test_tm_t test_tm;
 };
 
-extern Telemetries tm_repository;
+/* Forward declaration of the global struct. */
+extern TmRepository_t tm_repository;
 
+/**
+ * @brief This function initializes all the packets with 0s.
+ */
 void initTelemetries();
 
-}  // namespace Status
+}  // namespace DeathStackBoard
