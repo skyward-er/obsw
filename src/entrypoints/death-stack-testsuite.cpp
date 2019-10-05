@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "drivers/HardwareTimer.h"
 #include "drivers/Xbee/Xbee.h"
@@ -112,8 +113,11 @@ int main()
         printf(" r - Reboot\n");
         printf(" f - Pay Respect\n");
 
+        // Do not directly use cin -- use getline
         char c;
-        scanf("%c", &c);
+        string temp;
+        getline(cin, temp);
+        stringstream(temp) >> c;
 
         while(getchar() != '\n');
 

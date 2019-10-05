@@ -80,7 +80,11 @@ int main()
         printf(" b - use buttons\n");
         printf(" q - quit\n");
 
-        char c = getchar();
+        // Do not directly use cin -- use getline
+        char c;
+        string temp;
+        getline(cin, temp);
+        stringstream(temp) >> c;
 
         switch(c)
         {

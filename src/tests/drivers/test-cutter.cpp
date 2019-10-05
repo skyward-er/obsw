@@ -48,7 +48,7 @@ void wait()
         Thread::sleep(50);
     }
     measured_cut_time = getTick() - t0;
-    //printf("Stopped!\n");
+    // printf("Stopped!\n");
 }
 
 bool print = false;
@@ -88,23 +88,24 @@ int main()
     for (;;)
     {
         print = false;
-
+        printf(
+            "Info: To stop cutting (and to stop the cut timer) press the OPEN "
+            "button\n");
         printf("What do you want to cut? (1 / 2)\n");
         unsigned int c, freq = 0;
         float duty = 0;
         string temp;
         getline(cin, temp);
         stringstream(temp) >> c;
-        cout << "Frequency (Hz): \n";
+        cout << "Insert frequency (Hz): \n";
         getline(cin, temp);
         stringstream(temp) >> freq;
 
-        cout << "Duty (%): \n";
+        cout << "Insert duty  cycle(%): \n";
         getline(cin, temp);
         stringstream(temp) >> duty;
 
-        printf("Cut %d, freq: %d, duty: %f\n", c, freq, duty);
-
+        printf("Cutting %d, freq: %d, duty: %f\n", c, freq, duty);
 
         if (!(freq > 1 && freq < 20000 && duty > 0.0f && duty <= 100.0f))
         {

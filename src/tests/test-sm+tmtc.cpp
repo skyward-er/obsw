@@ -39,6 +39,7 @@ using namespace DeathStackBoard;
 
 int main()
 {
+    printf("** Sensor manager & TMTC test **\n");
     i2c1::init();
     busSPI2::init();
     /******************
