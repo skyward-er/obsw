@@ -119,8 +119,6 @@ int main()
         getline(cin, temp);
         stringstream(temp) >> c;
 
-        while(getchar() != '\n');
-
         switch(c)
         {
             case 's':
