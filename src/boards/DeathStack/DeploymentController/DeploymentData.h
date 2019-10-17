@@ -32,33 +32,31 @@ namespace DeathStackBoard
 enum DeploymentCTRLState : uint8_t
 {
     DPL_IDLE = 0,
-    CUTTING_DROGUE,
-    CUTTING_MAIN,
-    OPENING_NC,
-    SPINNING,
-    AWAITING_DETACHMENT,
-    AWAITING_MINOPENTIME
+    CUTTING_PRIMARY,
+    CUTTING_BACKUP,
+    EJECTING_NC,
+    MOVING_SERVO,
+    RESETTING_SERVO,
+    TESTING_PRIMARY,
+    TESTING_BACKUP
 };
 
 struct DeploymentStatus
 {
     long long timestamp;
     DeploymentCTRLState state;
-    MotorStatus motor_status;
     CutterStatus cutter_status;
+    float servo_position;
 
     static std::string header()
     {
-        return "timestamp,state,motor_active,motor_last_direction,cutter_"
-               "state\n";
+        return "timestamp,state,cutter_state,servo_position\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << ","
-           << (int)motor_status.motor_active << ","
-           << (int)motor_status.motor_last_direction << ","
-           << (int)cutter_status.state << "\n";
+        os << timestamp << "," << (int)state << "," << (int)cutter_status.state
+           << "," << servo_position << "\n";
     }
 };
 

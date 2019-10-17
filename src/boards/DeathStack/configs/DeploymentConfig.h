@@ -33,41 +33,25 @@
 namespace DeathStackBoard
 {
 
-// TODO: Update with correct values
-static constexpr int MAXIMUM_CUTTING_DURATION = 15 * 1000;
+namespace DeploymentConfigs
+{
 
-static constexpr int NC_MINIMUM_OPENING_TIME = 5000;
-static constexpr int NC_OPEN_TIMEOUT         = 15000;
-static constexpr int NC_CLOSE_TIMEOUT        = 15000;
+static constexpr uint8_t MAX_EJECTION_ATTEMPTS = 1;
 
-static const MotorDirection MOTOR_OPEN_DIR  = MotorDirection::NORMAL;
-static const MotorDirection MOTOR_CLOSE_DIR = MotorDirection::REVERSE;
+static constexpr int NC_OPEN_TIMEOUT     = 10000;
+static constexpr int SERVO_RESET_TIMEOUT = 1000;
 
-static const PWM::Timer TIM4_DATA{
+static const PWM::Timer SERVO_TIMER{
     TIM4, &(RCC->APB1ENR), RCC_APB1ENR_TIM4EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)};
 
-static const PWM::Timer TIM8_DATA{
-    TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
+static constexpr PWMChannel SERVO_CHANNEL = PWMChannel::CH1;
 
-static constexpr PWMChannel SERVO_LEFT_CH  = PWMChannel::CH2;
-static constexpr PWMChannel SERVO_RIGHT_CH = PWMChannel::CH2;
-static constexpr PWMChannel SERVO_KEEL_CH  = PWMChannel::CH1;
+// Servo rest position
+static constexpr float SERVO_RESET_POS = 1.0f;
+// Servo position when ejecting the nosecone
+static constexpr float SERVO_EJECT_POS = 0.30f;
 
-// Right servo reset position
-static constexpr float SERVO_R_RESET_POS = 0.875f;
-// Right servo control position
-static constexpr float SERVO_R_CONTROL_POS = 0.80f;
-
-// Keel servo reset position
-static constexpr float SERVO_K_RESET_POS = 0.875f;
-// Keel servo control position
-static constexpr float SERVO_K_CONTROL_POS = 0.80f;
-
-// Left servo reset position
-static constexpr float SERVO_L_RESET_POS = 0.125f;
-// Left servo control position
-static constexpr float SERVO_L_CONTROL_POS = 0.20f;
+}  // namespace DeploymentConfigs
 
 }  // namespace DeathStackBoard

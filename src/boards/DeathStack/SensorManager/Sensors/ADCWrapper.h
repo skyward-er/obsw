@@ -76,7 +76,7 @@ public:
         CurrentSenseData* getCurrentDataPtr() { return &current_data; }
 
     private:
-        float adcToCurrent(uint16_t adc_in) { return (adc_in - 107) / 32.4f; }
+        float adcToCurrent(uint16_t adc_in) { return (adc_in - 107) / 23.8f; }
 
         const adc_t::Channel CS_1_CHANNEL =
             static_cast<adc_t::Channel>(ADC_CURRENT_SENSE_1_CHANNEL);

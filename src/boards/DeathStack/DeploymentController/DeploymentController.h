@@ -38,25 +38,28 @@ class PinObserver;
 namespace DeathStackBoard
 {
 
+/**
+ * @brief Deployment Controller State Machine
+ */
 class DeploymentController : public HSM<DeploymentController>
 {
 public:
-    DeploymentController();
+    DeploymentController(Cutter &cutter, Servo &ejection_servo);
     ~DeploymentController();
 
     State state_initialization(const Event &ev);
 
     State state_idle(const Event &ev);
 
-    State state_cuttingDrogue(const Event &ev);
-    State state_cuttingMain(const Event &ev);
+    State state_cuttingPrimary(const Event &ev);
+    State state_cuttingBackup(const Event &ev);
 
-    State state_openingNosecone(const Event &ev);
-    State state_spinning(const Event &ev);
-    State state_awaitingDetachment(const Event &ev);
-    State state_awaitingOpenTime(const Event &ev);
+    State state_testingPrimary(const Event &ev);
+    State state_testingBackup(const Event &ev);
 
-    State state_controlRogallo(const Event &ev);
+    State state_ejectingNosecone(const Event &ev);
+    State state_movingServo(const Event &ev);
+    State state_resettingServo(const Event &ev);
 
 private:
     /**
@@ -76,17 +79,18 @@ private:
     void logStatus()
     {
         status.timestamp     = miosix::getTick();
-        status.cutter_status = cutter.getStatus();
-        status.motor_status  = motor.getStatus();
+        status.cutter_status = cutters.getStatus();
+        status.servo_position =
+            ejection_servo.getPosition(DeploymentConfigs::SERVO_CHANNEL);
 
         logger.log(status);
         StackLogger::getInstance()->updateStack(THID_DPL_FSM);
     }
 
-    void configureTIM4Servos();
-    void configureTIM8Servos();
-
-    void controlRogallo();
+    void initServo();
+    void resetServo();
+    void ejectNosecone();
+    void disableServo();
 
     /**
      * Defer an event to be processed when the state machine goes back to
@@ -96,20 +100,20 @@ private:
      */
     void deferEvent(const Event &ev);
 
-    Cutter cutter{};
+    Cutter &cutters;
+    Servo &ejection_servo;
+
     DeploymentStatus status;
-    MotorDriver motor;
 
     LoggerService &logger = *(LoggerService::getInstance());
 
     CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 
-    uint16_t ev_min_open_time_id = 0;
-    uint16_t ev_open_timeout_id  = 0;
-    uint16_t ev_cut_timeout_id   = 0;
+    uint8_t ejection_retry_count = 0;
 
-    Servo servo_rk;
-    Servo servo_l;
+    uint16_t ev_open_timeout_id  = 0;
+    uint16_t ev_reset_timeout_id = 0;
+    uint16_t ev_cut_timeout_id   = 0;
 };
 
 }  // namespace DeathStackBoard

@@ -24,37 +24,48 @@
 #include <arch/common/drivers/servo_stm32.h>
 #include <miosix.h>
 #include <cstdio>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "drivers/servo/servo.h"
+#include "DeathStack/configs/DeploymentConfig.h"
 
 using namespace miosix;
+using namespace std;
+using namespace DeathStackBoard;
 
-typedef Gpio<GPIOB_BASE, 8> ServoPin;
+static const PWMChannel CHANNEL = PWMChannel::CH1;
 
-static const int CHANNEL = 2;
 int main()
 {
-    {
-        FastInterruptDisableLock l;
-        ServoPin::mode(Mode::ALTERNATE);
-        ServoPin::alternateFunction(2);
-    }
-
-    SynchronizedServo& s = SynchronizedServo::instance();
+    Servo s{DeploymentConfigs::SERVO_TIMER};
+    s.setMinPulseWidth(800);
+    s.setMaxPulseWidth(2200);
+    s.setPosition(CHANNEL, 0.77f);
     s.enable(CHANNEL);
-    s.setPosition(CHANNEL, 0);
+    
     s.start();
-    Thread::sleep(5000);
+    // Thread::sleep(5000);
+    string temp;
     printf("Ready.\n");
+    int pos;
     for (;;)
     {
-        printf("Set position:\n");
-        float p;
-        if (scanf("%f", &p) > 0)
+        temp = "";
+        printf("Insert position: \n");
+        getline(cin, temp);
+        
+        stringstream(temp) >> pos;
+
+        if (pos >= 0 && pos <= 100)
         {
-            s.setPosition(CHANNEL, p/100.0f);
+            printf("Position set to %d\n", pos);
+            s.setPosition(CHANNEL, pos / 100.0f);
         }
         else
         {
             printf("You dumb fuck.\n");
         }
+        Thread::sleep(100);
     }
 }

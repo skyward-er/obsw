@@ -26,16 +26,15 @@
  ******************************************************************************
  */
 
-// Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-05-20 17:09:34.002542
-#include <map>
-#include <cstring>
+// Generated from:  https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
+// Autogen date:    2019-10-10 19:39:23.107904
+
 
 #include "Events.h"
 #include "Topics.h"
 
+#include <map>
 using std::map;
-using std::string;
 
 namespace DeathStackBoard
 {
@@ -53,57 +52,45 @@ string getEventString(uint8_t event)
         { EV_BUTTON_UP, "EV_BUTTON_UP" },
         { EV_BUTTON_VERY_LONG_PRESS, "EV_BUTTON_VERY_LONG_PRESS" },
         { EV_CALIBRATE_ADA, "EV_CALIBRATE_ADA" },
-        { EV_CUT_ALL, "EV_CUT_ALL" },
         { EV_CUT_DROGUE, "EV_CUT_DROGUE" },
-        { EV_CUT_MAIN, "EV_CUT_MAIN" },
         { EV_DPL_ALTITUDE, "EV_DPL_ALTITUDE" },
         { EV_FLIGHTSTATS_TIMEOUT, "EV_FLIGHTSTATS_TIMEOUT" },
         { EV_INIT_ERROR, "EV_INIT_ERROR" },
         { EV_INIT_OK, "EV_INIT_OK" },
         { EV_LANDED, "EV_LANDED" },
         { EV_LIFTOFF, "EV_LIFTOFF" },
-        { EV_MOT_CLOSE_LIMIT, "EV_MOT_CLOSE_LIMIT" },
-        { EV_MOT_MIN_OPEN_TIME, "EV_MOT_MIN_OPEN_TIME" },
-        { EV_MOT_OPEN_LIMIT, "EV_MOT_OPEN_LIMIT" },
-        { EV_NC_CLOSE, "EV_NC_CLOSE" },
         { EV_NC_DETACHED, "EV_NC_DETACHED" },
         { EV_NC_OPEN, "EV_NC_OPEN" },
-        { EV_NC_STOP, "EV_NC_STOP" },
         { EV_SEND_HR_TM, "EV_SEND_HR_TM" },
         { EV_SEND_LR_TM, "EV_SEND_LR_TM" },
         { EV_SEND_TEST_TM, "EV_SEND_TEST_TM" },
-        { EV_START_ROGALLO_CONTROL, "EV_START_ROGALLO_CONTROL" },
-        { EV_TC_ABORT_ROGALLO, "EV_TC_ABORT_ROGALLO" },
         { EV_TC_ARM, "EV_TC_ARM" },
         { EV_TC_BOARD_RESET, "EV_TC_BOARD_RESET" },
         { EV_TC_CALIBRATE_ADA, "EV_TC_CALIBRATE_ADA" },
         { EV_TC_CLOSE_LOG, "EV_TC_CLOSE_LOG" },
-        { EV_TC_CUT_ALL, "EV_TC_CUT_ALL" },
-        { EV_TC_CUT_FIRST_DROGUE, "EV_TC_CUT_FIRST_DROGUE" },
-        { EV_TC_CUT_MAIN, "EV_TC_CUT_MAIN" },
+        { EV_TC_CUT_DROGUE, "EV_TC_CUT_DROGUE" },
         { EV_TC_DISARM, "EV_TC_DISARM" },
         { EV_TC_END_MISSION, "EV_TC_END_MISSION" },
         { EV_TC_FORCE_INIT, "EV_TC_FORCE_INIT" },
         { EV_TC_LAUNCH, "EV_TC_LAUNCH" },
-        { EV_TC_MANUAL_MODE, "EV_TC_MANUAL_MODE" },
         { EV_TC_NC_CLOSE, "EV_TC_NC_CLOSE" },
         { EV_TC_NC_OPEN, "EV_TC_NC_OPEN" },
-        { EV_TC_NC_STOP, "EV_TC_NC_STOP" },
         { EV_TC_SET_DPL_ALTITUDE, "EV_TC_SET_DPL_ALTITUDE" },
         { EV_TC_SET_REFERENCE_ALTITUDE, "EV_TC_SET_REFERENCE_ALTITUDE" },
         { EV_TC_SET_REFERENCE_TEMP, "EV_TC_SET_REFERENCE_TEMP" },
         { EV_TC_START_ROGALLO_CONTROL, "EV_TC_START_ROGALLO_CONTROL" },
         { EV_TC_START_SENSOR_LOGGING, "EV_TC_START_SENSOR_LOGGING" },
         { EV_TC_STOP_SENSOR_LOGGING, "EV_TC_STOP_SENSOR_LOGGING" },
+        { EV_TC_TEST_CUTTER_BACKUP, "EV_TC_TEST_CUTTER_BACKUP" },
+        { EV_TC_TEST_CUTTER_PRIMARY, "EV_TC_TEST_CUTTER_PRIMARY" },
         { EV_TC_TEST_MODE, "EV_TC_TEST_MODE" },
-        { EV_TC_TEST_SERVO, "EV_TC_TEST_SERVO" },
+        { EV_TEST_CUTTER_BACKUP, "EV_TEST_CUTTER_BACKUP" },
+        { EV_TEST_CUTTER_PRIMARY, "EV_TEST_CUTTER_PRIMARY" },
         { EV_TEST_MODE, "EV_TEST_MODE" },
-        { EV_TIMEOUT_APOGEE, "EV_TIMEOUT_APOGEE" },
-        { EV_TIMEOUT_ARM, "EV_TIMEOUT_ARM" },
         { EV_TIMEOUT_CUTTING, "EV_TIMEOUT_CUTTING" },
         { EV_TIMEOUT_END_MISSION, "EV_TIMEOUT_END_MISSION" },
-        { EV_TIMEOUT_MOT_CLOSE, "EV_TIMEOUT_MOT_CLOSE" },
-        { EV_TIMEOUT_MOT_OPEN, "EV_TIMEOUT_MOT_OPEN" },
+        { EV_TIMEOUT_NC_OPEN, "EV_TIMEOUT_NC_OPEN" },
+        { EV_TIMEOUT_SERVO_RESET, "EV_TIMEOUT_SERVO_RESET" },
         { EV_TIMEOUT_SHADOW_MODE, "EV_TIMEOUT_SHADOW_MODE" },
         { EV_UMBILICAL_DETACHED, "EV_UMBILICAL_DETACHED" }
     };
