@@ -33,7 +33,7 @@ using namespace std;
 using namespace miosix;
 using namespace DeathStackBoard;
 
-static constexpr int CUT_TIME = 10000;
+static constexpr int CUT_TIME = 60 * 1000;
 
 long long measured_cut_time = 0;
 void wait()
@@ -52,8 +52,6 @@ void wait()
 }
 
 bool print = false;
-
-float vToI(uint16_t adc) { return ((float)(adc - 109)) * 19500 / 510.0f; }
 
 void csense(void*)
 {
@@ -91,12 +89,17 @@ int main()
         printf(
             "Info: To stop cutting (and to stop the cut timer) press the OPEN "
             "button\n");
-        printf("What do you want to cut? (1 / 2)\n");
+        printf("What do you want to cut? (1 - primary / 2 - backup)\n");
         unsigned int c, freq = 0;
         float duty = 0;
         string temp;
         getline(cin, temp);
         stringstream(temp) >> c;
+        if (c != 1 && c != 2)
+        {
+            printf("Choose 1 or 2\n");
+            continue;
+        }
         cout << "Insert frequency (Hz): \n";
         getline(cin, temp);
         stringstream(temp) >> freq;
@@ -107,29 +110,36 @@ int main()
 
         printf("Cutting %d, freq: %d, duty: %f\n", c, freq, duty);
 
-        if (!(freq > 1 && freq < 20000 && duty > 0.0f && duty <= 100.0f))
+        if (!(freq > 1 && freq <= 30000 && duty >= 0.0f && duty <= 100.0f))
         {
             printf("Wrong inputs!\n");
             continue;
         }
 
-        print = true;
-
-        Cutter cutter{freq, duty / 100};
-
-        if (c == 1)
+        do
         {
-            cutter.startCutDrogue();
-            wait();
-            cutter.stopCutDrogue();
-        }
-        else if (c == 2)
-        {
-            cutter.startCutMainChute();
-            wait();
-            cutter.stopCutMainChute();
-        }
+            cout << "READY!\nWrite 'yeet' to begin:\n";
+            getline(cin, temp);
+        } while (temp != "yeet");
 
+        {
+            print = true;
+
+            Cutter cutter{freq, duty / 100, CUTTER_TEST_PWM_DUTY_CYCLE};
+
+            if (c == 1)
+            {
+                cutter.enablePrimaryCutter();
+                wait();
+                cutter.disablePrimaryCutter();
+            }
+            else if (c == 2)
+            {
+                cutter.enableBackupCutter();
+                wait();
+                cutter.disableBackupCutter();
+            }
+        }
         Thread::sleep(2000);
         print = false;
         Thread::sleep(500);

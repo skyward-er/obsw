@@ -26,15 +26,16 @@
  ******************************************************************************
  */
 
-// Generated from:  https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-// Autogen date:    2019-05-20 17:09:34.002542
+// Generated from:  https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
+// Autogen date:    2019-10-10 19:39:23.107904
 
-#ifndef SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
-#define SRC_SHARED_BOARDS_HOMEONE_TOPICS_H
+#pragma once
 
 #include <stdint.h>
 #include <string>
 #include <vector>
+
+using std::string;
 
 namespace DeathStackBoard
 {
@@ -62,8 +63,7 @@ const std::vector<uint8_t> TOPIC_LIST {TOPIC_ADA, TOPIC_CAN, TOPIC_DEPLOYMENT, T
  * @param event
  * @return string
  */
-std::string getTopicString(uint8_t topic);
+string getTopicString(uint8_t topic);
 
 }  // namespace DeathStackBoard
 
-#endif /* SRC_SHARED_BOARDS_HOMEONE_TOPICS_H_ */
