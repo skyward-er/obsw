@@ -31,8 +31,8 @@
 #include <events/EventBroker.h>
 #include <utils/EventSniffer.h>
 
-#include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/TmRepository.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/events/Topics.h"
 #include "DeathStackStatus.h"
 
@@ -43,8 +43,8 @@
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinHandler/PinHandler.h"
 #include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/events/EventData.h"
 #include "DeathStack/TMTCManager/TMTCManager.h"
+#include "DeathStack/events/EventData.h"
 
 using std::bind;
 
@@ -74,6 +74,9 @@ public:
     SensorManager* sensor_manager;
     TMTCManager* tmtc;
     FlightModeManager* fmm;
+
+    Cutter* cutter;
+    Servo* servo;
     DeploymentController* dpl;
 
 private:
@@ -101,7 +104,10 @@ private:
         sensor_manager = new SensorManager(ada);
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
-        dpl            = new DeploymentController();
+        cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
+                            CUTTER_TEST_PWM_DUTY_CYCLE);
+        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);
+        dpl            = new DeploymentController(*cutter, *servo);
 
         // Start threads
         try

@@ -32,8 +32,10 @@ namespace DeathStackBoard
 enum class CutterState : uint8_t
 {
     IDLE,
-    CUTTING_DROGUE,
-    CUTTING_MAIN
+    CUTTING_PRIMARY,
+    CUTTING_BACKUP,
+    TESTING_PRIMARY,
+    TESTING_BACKUP
 };
 
 struct CutterStatus

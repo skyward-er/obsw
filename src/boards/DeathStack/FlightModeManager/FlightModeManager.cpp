@@ -23,10 +23,10 @@
 #include <DeathStack/FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
-#include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
-#include "DeathStack/events/Topics.h"
 #include "DeathStack/configs/FMMConfig.h"
+#include "DeathStack/events/Events.h"
+#include "DeathStack/events/Topics.h"
 
 #include "Debug.h"
 
@@ -381,25 +381,9 @@ State FlightModeManager::state_testing(const Event& ev)
             sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
             break;
         }
-        case EV_TC_NC_CLOSE:
-        {
-            sEventBroker->post(Event{EV_NC_CLOSE}, TOPIC_DEPLOYMENT);
-            break;
-        }
-        case EV_TC_CUT_FIRST_DROGUE:
+        case EV_TC_CUT_DROGUE:
         {
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
-            break;
-        }
-        case EV_TC_CUT_MAIN:
-        {
-            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
-            break;
-        }
-        case EV_TC_START_ROGALLO_CONTROL:
-        {
-            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL},
-                               TOPIC_DEPLOYMENT);
             break;
         }
         case EV_TC_CLOSE_LOG:
@@ -534,16 +518,8 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
 
             break;
         }
-        case EV_TC_MANUAL_MODE:    // Manual mode = we don't trust ADA for
-                                   // deployment
-        case EV_TC_ABORT_ROGALLO:  // Abort rogallo = don't deploy, or cut if
-                                   // deployed
-        {
-            retState = transition(&FlightModeManager::state_manualDescent);
-            break;
-        }
         case EV_ADA_DPL_ALT_DETECTED:
-        case EV_TC_CUT_FIRST_DROGUE:
+        case EV_TC_CUT_DROGUE:
         {
             retState = transition(&FlightModeManager::state_rogalloDescent);
             break;
@@ -577,21 +553,9 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         {
             break;
         }
-        case EV_TC_CUT_FIRST_DROGUE:  // if you want to repeat cutting
+        case EV_TC_CUT_DROGUE:  // if you want to repeat cutting
         {
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
-            break;
-        }
-        case EV_TC_CUT_MAIN:  // remove rogallo
-        {
-            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
-            break;
-        }
-        case EV_TC_START_ROGALLO_CONTROL:
-        {
-            sEventBroker->post(Event{EV_START_ROGALLO_CONTROL},
-                               TOPIC_DEPLOYMENT);
-
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -625,10 +589,6 @@ State FlightModeManager::state_rogalloDescent(const Event& ev)
         case EV_EXIT: /* Executed everytime state is exited */
         {
             break;
-        }
-        case EV_TC_ABORT_ROGALLO:  // GS doesn't trust rogallo
-        {
-            sEventBroker->post(Event{EV_CUT_MAIN}, TOPIC_DEPLOYMENT);
         }
         default: /* If an event is not handled here, try with super-state */
         {

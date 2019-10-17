@@ -39,10 +39,10 @@ service = None
 
 # Spreadsheet file used to generate the events. The can be found in the link 
 # to the spreadsheet, for example:
-# https://docs.google.com/spreadsheets/d/1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4/
+# https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0/
 # -->
-# 1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4
-SPREADSHEET_ID = '1msICDqJtSseSP_JAoAPoKIzpKlI6bI2n8lwws1X2hz4'
+# 184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
+SPREADSHEET_ID = '184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0'
 EVENTS_RANGE_NAME = 'EventList!A2:A'
 TOPICS_RANGE_NAME = 'Topics!B3:B'
 
@@ -108,7 +108,7 @@ def has_duplicates(lst):
 
 
 
-print("Homeone on-board software event header generator v0.2")
+print("Skyward on-board software event header generator v0.2")
 print("Google sheets API auth in progress...")
 
 if auth():
@@ -120,7 +120,7 @@ else:
 if not os.path.exists(OUTPUT_FOLDER):
     os.mkdir(OUTPUT_FOLDER)
 
-print("Reading from: https://docs.google.com/spreadsheets/d/12TecOmDd7Uot-MvXkCbhDJRU48-XO6s5ChKDlr4AOvI")
+print("Reading from: https://docs.google.com/spreadsheets/d/" + SPREADSHEET_ID)
 
 events = load_events()
 topics = load_topics()
@@ -193,17 +193,17 @@ template = template.format(sheet_link=link, date=date,
 with open(join(OUTPUT_FOLDER, 'Topics.h'), 'w') as header_file:
     header_file.write(template)
 
-with open('EventFunctions.cpp.template', 'r') as cpp_template_file:
+with open('EventStrings.cpp.template', 'r') as cpp_template_file:
     cpp = cpp_template_file.read()
 
 cpp = cpp.format(sheet_link=link, date=date,
                  event_map_data=event_map_str, topic_map_data=topic_map_str)
 
-with open(join(OUTPUT_FOLDER, 'EventFunctions.cpp'), 'w') as cpp_file:
+with open(join(OUTPUT_FOLDER, 'EventStrings.cpp'), 'w') as cpp_file:
     cpp_file.write(cpp)
 
 print("Topics.h successfully generated.")
 
 print()
-print("All files successfully generated. Please move Events.h, Topics.h, EventFunction.cpp into your project sources.")
+print("All files successfully generated. Please move Events.h, Topics.h, EventStrings.cpp into your project sources.")
 print(".... Done.")

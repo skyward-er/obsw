@@ -35,82 +35,129 @@ using miosix::Thread;
 namespace DeathStackBoard
 {
 
+/**
+ * @brief Interface class to operate the thermal cutters on the Hermev V1
+ * rocket.
+ *
+ * Provides the ability to enable a cutter using the "nominal" duty cycle or
+ * using a "test" duty cycle (lower duty cycle that does not cut the parachute
+ * but is used to check if current is flowing)
+ */
 class Cutter
 {
 public:
-    Cutter(unsigned int frequency = CUTTER_PWM_FREQUENCY,
-           float duty_cycle       = DROGUE_CUTTER_PWM_DUTY_CYCLE)
+    /**
+     * @brief Create a new Cutter
+     *
+     * @param    frequency          Frequency of the PWM driving the cutters
+     * @param    duty_cycle         Duty cycle of the PWM driving the cutters
+     * @param    test_duty_cycle    Duty cycle to be used when testing the
+     *                              cutters for continuity
+     */
+    Cutter(unsigned int frequency, float duty_cycle, float test_duty_cycle)
         : pwm(CUTTER_TIM, frequency),
-          pin_enable_drogue(DrogueCutterEna::getPin()),
-          pin_enable_main_chute(MainChuteCutterEna::getPin()),
-          duty_cycle(duty_cycle)
+          pin_enable_primary(PrimaryCutterEna::getPin()),
+          pin_enable_backup(BackupCutterEna::getPin()),
+          cut_duty_cycle(duty_cycle), test_duty_cycle(test_duty_cycle)
     {
-        pin_enable_drogue.low();
-        pin_enable_main_chute.low();
+        pin_enable_primary.low();
+        pin_enable_backup.low();
 
         // Start PWM with 0 duty cycle to keep IN pins low
-        pwm.enableChannel(CUTTER_CHANNEL_DROGUE, 0.0f);
-        pwm.enableChannel(CUTTER_CHANNEL_MAIN_CHUTE, 0.0f);
+        pwm.enableChannel(CUTTER_CHANNEL_PRIMARY, 0.0f);
+        pwm.enableChannel(CUTTER_CHANNEL_BACKUP, 0.0f);
 
         pwm.start();
-
-        TRACE("PWM Instantiated. Freq: %d, duty: %f\n", frequency, duty_cycle);
     }
 
     ~Cutter()
     {
-        stopCutDrogue();
-        stopCutMainChute();
+        disablePrimaryCutter();
+        disableBackupCutter();
+
         pwm.stop();
     }
 
-    void startCutDrogue()
+    /**
+     * @brief Activates the primary cutter.
+     */
+    void enablePrimaryCutter()
     {
-        if (status.state == CutterState::IDLE)
-        {
-            enableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue);
-            status.state = CutterState::CUTTING_DROGUE;
-        }
+        enableCutter(CUTTER_CHANNEL_PRIMARY, pin_enable_primary,
+                     cut_duty_cycle);
+        status.state = CutterState::CUTTING_PRIMARY;
     }
 
-    void stopCutDrogue()
+    /**
+     * @brief Deactivates the primary cutter
+     */
+    void disablePrimaryCutter()
     {
-        if (status.state == CutterState::CUTTING_DROGUE)
+        if (status.state == CutterState::CUTTING_PRIMARY)
         {
-            disableCutter(CUTTER_CHANNEL_DROGUE, pin_enable_drogue);
+            disableCutter(CUTTER_CHANNEL_PRIMARY, pin_enable_primary);
             status.state = CutterState::IDLE;
         }
     }
 
-    void startCutMainChute()
+    /**
+     * @brief Activates the backup cutter.
+     */
+    void enableBackupCutter()
     {
-        if (status.state == CutterState::IDLE)
+        enableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup, cut_duty_cycle);
+        status.state = CutterState::CUTTING_BACKUP;
+    }
+
+    /**
+     * @brief Deactivates the pbackup cutter
+     */
+    void disableBackupCutter()
+    {
+        if (status.state == CutterState::CUTTING_BACKUP)
         {
-            enableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute);
-            status.state = CutterState::CUTTING_MAIN;
+            disableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup);
+            status.state = CutterState::IDLE;
         }
     }
 
-    void stopCutMainChute()
+    /**
+     * @brief Enables the primary cutter using the "test" duty cycle
+     *
+     * call disablePrimaryCutter() to disable
+     */
+    void enableTestPrimaryCutter()
     {
-        if (status.state == CutterState::CUTTING_MAIN)
-        {
-            disableCutter(CUTTER_CHANNEL_MAIN_CHUTE, pin_enable_main_chute);
-            status.state = CutterState::IDLE;
-        }
+        enableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup, test_duty_cycle);
+        status.state = CutterState::TESTING_PRIMARY;
+    }
+
+    /**
+     * @brief Enables the backup cutter using the "test" duty cycle
+     *
+     * call disableBackupCutter() to disable
+     */
+    void enableTestBackupCutter()
+    {
+        enableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup, test_duty_cycle);
+        status.state = CutterState::TESTING_PRIMARY;
     }
 
     CutterStatus getStatus() { return status; }
 
 private:
-    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin)
+    void enableCutter(PWMChannel channel, miosix::GpioPin& ena_pin,
+                      float duty_cycle)
     {
-        // Enable PWM Generation
+        // Only enable if the cutter is currently idle
+        if (status.state == CutterState::IDLE)
+        {
+            // Enable PWM Generation
+            pwm.setDutyCycle(channel, duty_cycle);
 
-        pwm.setDutyCycle(channel, duty_cycle);
-
-        // enable hbridge
-        ena_pin.high();
+            // enable 
+            ena_pin.high();
+        }
     }
 
     void disableCutter(PWMChannel channel, miosix::GpioPin& ena_pin)
@@ -123,11 +170,14 @@ private:
         ena_pin.low();  // Disable hbridge
     }
 
-    PWM pwm;
-    GpioPin pin_enable_drogue;
-    GpioPin pin_enable_main_chute;
+    Cutter(const Cutter& c) = delete;
 
-    float duty_cycle;
+    PWM pwm;
+    GpioPin pin_enable_primary;
+    GpioPin pin_enable_backup;
+
+    float cut_duty_cycle;
+    float test_duty_cycle;
     CutterStatus status;
 };
 
