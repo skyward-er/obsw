@@ -37,7 +37,7 @@
 #include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
 #include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
-#include "DeathStack/System/EventLog.h"
+#include "DeathStack/events/EventData.h"
 #include "drivers/mavlink/MavStatus.h"
 #include "logger/Deserializer.h"
 #include "logger/LogStats.h"
@@ -108,7 +108,7 @@ void registerTypes(Deserializer& ds)
 
     ds.registerType<MavStatus>(print<MavStatus>, MavStatus::header());
 
-    ds.registerType<EventLog>(print<EventLog>, EventLog::header());
+    ds.registerType<EventData>(print<EventData>, EventData::header());
     ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
                                       DeathStackStatus::header());
 
