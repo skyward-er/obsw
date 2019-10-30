@@ -29,7 +29,7 @@
 #endif
 
 #include <Common.h>
-#include <DeathStack/ADA/ADA.h>
+#include <DeathStack/ADA/ADAController.h>
 #include <DeathStack/events/Events.h>
 #include <events/EventBroker.h>
 #include <events/FSM.h>
@@ -46,7 +46,7 @@ using namespace DeathStackBoard;
 constexpr float NOISE_STD_DEV = 5;  // Noise varaince
 constexpr float LSB           = 28;
 
-ADA *ada;
+ADAController *ada;
 unsigned seed = 1234567;  // Seed for noise generation
 
 float addNoise(float sample);  // Function to add noise
@@ -65,7 +65,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
         greenLed::mode(miosix::Mode::OUTPUT);
     }
 
-    ada = new ADA();
+    ada = new ADAController();
 
     // Start event broker and ada
     sEventBroker->start();
@@ -75,12 +75,12 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Startup: we should be in idle
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateIdle));
+    CHECK(ada->testState(&ADAController::stateIdle));
 
     // Enter Calibrating and check
     sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_TC);
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateCalibrating));
+    CHECK(ada->testState(&ADAController::stateCalibrating));
 
     // Send baro calibration samples
     for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
@@ -96,7 +96,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateCalibrating));
+    CHECK(ada->testState(&ADAController::stateCalibrating));
 
     // Send set deployment altitude
     ada->setDeploymentAltitude(100);
@@ -104,7 +104,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateCalibrating));
+    CHECK(ada->testState(&ADAController::stateCalibrating));
 
     // Send set altitude ref
     ada->setReferenceAltitude(1300);
@@ -112,7 +112,7 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateCalibrating));
+    CHECK(ada->testState(&ADAController::stateCalibrating));
 
     // Send set temperature ref
     ada->setReferenceTemperature(15);
@@ -122,18 +122,18 @@ TEST_CASE("Testing ADA from calibration to first descent phase")
     Thread::sleep(100);
     ada->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateReady));
+    CHECK(ada->testState(&ADAController::stateReady));
 
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     // Send liftoff event: should be in shadow mode
     Thread::sleep(100);
-    CHECK(ada->testState(&ADA::stateShadowMode));
+    CHECK(ada->testState(&ADAController::stateShadowMode));
 
     // Wait timeout
     Thread::sleep(TIMEOUT_ADA_SHADOW_MODE);
     // Should be active now
-    CHECK(ada->testState(&ADA::stateActive));
+    CHECK(ada->testState(&ADAController::stateActive));
 
     Thread::sleep(100);
     // Send samples

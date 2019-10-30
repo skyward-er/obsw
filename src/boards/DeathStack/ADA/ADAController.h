@@ -39,17 +39,17 @@ using miosix::Lock;
 namespace DeathStackBoard
 {
 
-class ADA : public FSM<ADA>
+class ADAController : public FSM<ADAController>
 {
 
 public:
     /** Constructor
      */
-    ADA();
+    ADAController();
 
     /** Destructor
      */
-    ~ADA() {}
+    ~ADAController() {}
 
     /** \brief Updates the algorithm with a new sample
      *

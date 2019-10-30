@@ -61,7 +61,7 @@ using namespace miosix;
 namespace DeathStackBoard
 {
 
-SensorManager::SensorManager(ADA* ada)
+SensorManager::SensorManager(ADAController* ada)
     : FSM(&SensorManager::stateIdle), scheduler(),
       logger(*LoggerService::getInstance()), ada(ada)
 {

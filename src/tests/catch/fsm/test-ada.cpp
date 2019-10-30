@@ -34,7 +34,7 @@
 #include <utils/catch.hpp>
 
 #include <boards/CanInterfaces.h>
-#include <boards/DeathStack/ADA/ADA.h>
+#include <boards/DeathStack/ADA/ADAController.h>
 #include <boards/DeathStack/events/Events.h>
 #include <boards/DeathStack/configs/ADA_config.h>
 #include "utils/testutils/TestHelper.h"
@@ -46,7 +46,7 @@ using namespace CanInterfaces;
 class ADATestFixture
 {
 public:
-    ADATestFixture() { ada = new ADA(); }
+    ADATestFixture() { ada = new ADAController(); }
     ~ADATestFixture()
     {
         sEventBroker->unsubscribe(ada);
@@ -55,43 +55,43 @@ public:
     }
 
 protected:
-    ADA* ada;
+    ADAController* ada;
 };
 
 TEST_CASE_METHOD(ADATestFixture, "Testing all transitions")
 {
     SECTION("Testing CALIBRATION transitions")
     {
-        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADAController::stateIdle));
     }
 
     SECTION("Testing IDLE transitions")
     {
-        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADAController::stateIdle));
 
         SECTION("IDLE->CALIBRATION")
         {
             REQUIRE(testFSMTransition(*ada, Event{EV_TC_CALIBRATE_ADA},
-                                      &ADA::stateCalibrating));
+                                      &ADAController::stateCalibrating));
         }
 
         SECTION("IDLE->SHADOW_MODE")
         {
             REQUIRE(testFSMTransition(*ada, Event{EV_LIFTOFF},
-                                      &ADA::stateShadowMode));
+                                      &ADAController::stateShadowMode));
         }
     }
 
     SECTION("Testing all the transition from SHADOW_MODE")
     {
-        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADA::stateIdle));
+        REQUIRE(testFSMTransition(*ada, Event{EV_ADA_READY}, &ADAController::stateIdle));
         REQUIRE(
-            testFSMTransition(*ada, Event{EV_LIFTOFF}, &ADA::stateShadowMode));
+            testFSMTransition(*ada, Event{EV_LIFTOFF}, &ADAController::stateShadowMode));
         REQUIRE(testFSMTransition(*ada, Event{EV_TIMEOUT_SHADOW_MODE},
-                                  &ADA::stateActive));
+                                  &ADAController::stateActive));
         REQUIRE(testFSMTransition(*ada, Event{EV_APOGEE},
-                                  &ADA::stateFirstDescentPhase));
+                                  &ADAController::stateFirstDescentPhase));
         REQUIRE(
-            testFSMTransition(*ada, Event{EV_DPL_ALTITUDE}, &ADA::stateEnd));
+            testFSMTransition(*ada, Event{EV_DPL_ALTITUDE}, &ADAController::stateEnd));
     }
 }

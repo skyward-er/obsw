@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <DeathStack/ADA/ADA.h>
+#include <DeathStack/ADA/ADAController.h>
 #include <events/EventBroker.h>
 #include <utils/aero/AeroUtils.h>
 #include "DeathStack/System/StackLogger.h"
@@ -33,8 +33,8 @@ namespace DeathStackBoard
 
 /* --- LIFE CYCLE --- */
 
-ADA::ADA()
-    : FSM(&ADA::stateIdle, 4096, 2),
+ADAController::ADAController()
+    : FSM(&ADAController::stateIdle, 4096, 2),
       filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT), rogallo_dts()
 {
     // Subscribe to topics
@@ -49,13 +49,13 @@ ADA::ADA()
 
 /* --- SENSOR UPDATE METHODS --- */
 
-void ADA::updateGPS(double lat, double lon, bool hasFix)
+void ADAController::updateGPS(double lat, double lon, bool hasFix)
 {
     // Update gps regardless of the current state
     rogallo_dts.updateGPS(lat, lon, hasFix);
 }
 
-void ADA::updateBaro(float pressure)
+void ADAController::updateBaro(float pressure)
 {
     switch (status.state)
     {
@@ -168,7 +168,7 @@ void ADA::updateBaro(float pressure)
     }
 }
 
-void ADA::setReferenceTemperature(float ref_temp)
+void ADAController::setReferenceTemperature(float ref_temp)
 {
     if (status.state == ADAState::CALIBRATING ||
         status.state == ADAState::READY)
@@ -198,7 +198,7 @@ void ADA::setReferenceTemperature(float ref_temp)
     }
 }
 
-void ADA::setReferenceAltitude(float ref_alt)
+void ADAController::setReferenceAltitude(float ref_alt)
 {
     if (status.state == ADAState::CALIBRATING ||
         status.state == ADAState::READY)
@@ -223,7 +223,7 @@ void ADA::setReferenceAltitude(float ref_alt)
     }
 }
 
-void ADA::setDeploymentAltitude(float dpl_alt)
+void ADAController::setDeploymentAltitude(float dpl_alt)
 {
     if (status.state == ADAState::CALIBRATING ||
         status.state == ADAState::READY)
@@ -250,7 +250,7 @@ void ADA::setDeploymentAltitude(float dpl_alt)
     }
 }
 
-void ADA::finalizeCalibration()
+void ADAController::finalizeCalibration()
 {
     // Set calibration only if we have enough samples
     if (calibration_data.pressure_calib.nSamples >=
@@ -292,7 +292,7 @@ void ADA::finalizeCalibration()
     }
 }
 
-void ADA::updateFilter(float pressure)
+void ADAController::updateFilter(float pressure)
 {
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
@@ -305,7 +305,7 @@ void ADA::updateFilter(float pressure)
     logger.log(last_kalman_state);
 }
 
-void ADA::resetCalibration()
+void ADAController::resetCalibration()
 {
     Lock<FastMutex> l(calib_mutex);
 
@@ -316,7 +316,7 @@ void ADA::resetCalibration()
     logger.log(calibration_data);
 }
 
-float ADA::updateAltitude(float p, float dp_dt)
+float ADAController::updateAltitude(float p, float dp_dt)
 {
     if (p > 0)
     {
@@ -336,13 +336,13 @@ float ADA::updateAltitude(float p, float dp_dt)
 }
 
 /* --- LOGGER HELPERS --- */
-void ADA::logStatus(ADAState state)
+void ADAController::logStatus(ADAState state)
 {
     status.state = state;
     logStatus();
 }
 
-void ADA::logStatus()
+void ADAController::logStatus()
 {
     status.timestamp = miosix::getTick();
     logger.log(status);
@@ -354,7 +354,7 @@ void ADA::logStatus()
  * \brief Idle state: the ADA waits for a command to start calibration. This is
  * the initial state.
  */
-void ADA::stateIdle(const Event& ev)
+void ADAController::stateIdle(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -371,7 +371,7 @@ void ADA::stateIdle(const Event& ev)
         }
         case EV_CALIBRATE_ADA:
         {
-            transition(&ADA::stateCalibrating);
+            transition(&ADAController::stateCalibrating);
             break;
         }
         default:
@@ -391,7 +391,7 @@ void ADA::stateIdle(const Event& ev)
  * update after having set the deployment altitude and having reached the
  * minimum number of calibration samples.
  */
-void ADA::stateCalibrating(const Event& ev)
+void ADAController::stateCalibrating(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -408,7 +408,7 @@ void ADA::stateCalibrating(const Event& ev)
         }
         case EV_ADA_READY:
         {
-            transition(&ADA::stateReady);
+            transition(&ADAController::stateReady);
             break;
         }
         case EV_TC_CALIBRATE_ADA:
@@ -431,7 +431,7 @@ void ADA::stateCalibrating(const Event& ev)
  * The exiting transition to the shadow mode state is triggered by the liftoff
  * event.
  */
-void ADA::stateReady(const Event& ev)
+void ADAController::stateReady(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -448,13 +448,13 @@ void ADA::stateReady(const Event& ev)
         }
         case EV_LIFTOFF:
         {
-            transition(&ADA::stateShadowMode);
+            transition(&ADAController::stateShadowMode);
             break;
         }
         case EV_TC_CALIBRATE_ADA:
         {
             resetCalibration();
-            transition(&ADA::stateCalibrating);
+            transition(&ADAController::stateCalibrating);
             break;
         }
         default:
@@ -473,7 +473,7 @@ void ADA::stateReady(const Event& ev)
  * filter followed by a check of vertical speed sign.
  * The exiting transition to the active state is triggered by a timeout event.
  */
-void ADA::stateShadowMode(const Event& ev)
+void ADAController::stateShadowMode(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -494,7 +494,7 @@ void ADA::stateShadowMode(const Event& ev)
         }
         case EV_TIMEOUT_SHADOW_MODE:
         {
-            transition(&ADA::stateActive);
+            transition(&ADAController::stateActive);
             break;
         }
         default:
@@ -514,7 +514,7 @@ void ADA::stateShadowMode(const Event& ev)
  * The exiting transition to the descent state is triggered by the apogee
  * reached event (NOT self generated!)
  */
-void ADA::stateActive(const Event& ev)
+void ADAController::stateActive(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -531,7 +531,7 @@ void ADA::stateActive(const Event& ev)
         }
         case EV_ADA_APOGEE_DETECTED:
         {
-            transition(&ADA::stateFirstDescentPhase);
+            transition(&ADAController::stateFirstDescentPhase);
             break;
         }
         default:
@@ -551,7 +551,7 @@ void ADA::stateActive(const Event& ev)
  * The exiting transition to the stop state is triggered by the parachute
  * deployment altitude reached event (NOT self generated!)
  */
-void ADA::stateFirstDescentPhase(const Event& ev)
+void ADAController::stateFirstDescentPhase(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -575,7 +575,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
             DplAltitudeReached dpl_alt{miosix::getTick()};
             logger.log(dpl_alt);
 
-            transition(&ADA::stateEnd);
+            transition(&ADAController::stateEnd);
             break;
         }
         default:
@@ -593,7 +593,7 @@ void ADA::stateFirstDescentPhase(const Event& ev)
  * In this state a call to update() will have no effect.
  * This is the final state
  */
-void ADA::stateEnd(const Event& ev)
+void ADAController::stateEnd(const Event& ev)
 {
     switch (ev.sig)
     {
