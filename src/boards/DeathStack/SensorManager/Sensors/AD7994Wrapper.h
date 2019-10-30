@@ -30,7 +30,6 @@
 
 namespace DeathStackBoard
 {
-static constexpr float AD7994_V_REF = 4.17f;
 
 using AD7994_t = AD7994<i2c1, ad7994_busy_pin, ad7994_nconvst>;
 
@@ -38,7 +37,7 @@ class AD7994Wrapper : public ::Sensor
 {
 
 public:
-    AD7994Wrapper(uint8_t i2c_address) : adc(i2c_address) {}
+    AD7994Wrapper(uint8_t i2c_address, float v_ref) : adc(i2c_address), v_ref(v_ref) {}
 
     bool init() override
     {
@@ -82,17 +81,18 @@ public:
 private:
     float nxpRaw2Pressure(uint16_t raw_val)
     {
-        return (raw_val * AD7994_V_REF / (4096 * 5.0f) + 0.07739f) * 1000 /
+        return (raw_val * v_ref / (4096 * 5.0f) + 0.07739f) * 1000 /
                0.007826f;
     }
     float hwRaw2Pressure(uint16_t raw_val)
     {
-        return (1.25f * raw_val * AD7994_V_REF / (4096 * 5.0f) - 0.125f) *
+        return (1.25f * raw_val * v_ref / (4096 * 5.0f) - 0.125f) *
                100000.0f;
     }
 
     AD7994_t adc;
     AD7994WrapperData data;
+    float v_ref;
 
     static constexpr AD7994_t::Channel NXP_BARO_CHANNEL =
         static_cast<AD7994_t::Channel>(AD7994_NXP_BARO_CHANNEL);

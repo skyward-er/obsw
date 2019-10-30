@@ -58,5 +58,14 @@ static constexpr uint8_t ADC_CURRENT_SENSE_1_CHANNEL = 6;
 static constexpr uint8_t ADC_CURRENT_SENSE_2_CHANNEL = 4;
 static constexpr uint8_t ADC_BATTERY_VOLTAGE_CHANNEL = 5;
 
+
+#ifdef DEATH_STACK_2
+static constexpr float AD7994_V_REF = 4.29f;
+#elif DEATH_STACK_1
+static constexpr float AD7994_V_REF = 4.21f;
+#else
+#error "You have not specified which stack you are using! (-DDEATH_STACK_1 OR -DDEATH_STACK_2)"
+#endif
+
 }  // namespace DeathStackBoard
 

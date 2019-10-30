@@ -61,7 +61,7 @@ void init()
     spiMPU9250::init();
     spiADIS16405::init();
 
-    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
+    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr, AD7994_V_REF);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
     //imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
