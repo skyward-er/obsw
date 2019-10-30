@@ -24,6 +24,7 @@
 
 #include <math/Stats.h>
 #include <ostream>
+#include <boards/DeathStack/configs/ADA_config.h>
 
 namespace DeathStackBoard
 {
@@ -39,6 +40,17 @@ enum class ADAState
     ACTIVE,
     FIRST_DESCENT_PHASE,
     END
+};
+
+struct ADASetupData
+{
+    StatsResult pressure_stats_results;
+
+    float ref_alt       = DEFAULT_REFERENCE_ALTITUDE;
+    float ref_temp      = DEFAULT_REFERENCE_TEMPERATURE;
+
+    bool ref_alt_set    = false;
+    bool ref_temp_set   = false;
 };
 
 // Struct to log apogee detection
@@ -69,21 +81,18 @@ struct ADAStatus
 {
     long long timestamp;
     ADAState state            = ADAState::UNDEFINED;
-    bool dpl_altitude_set     = false;
-    bool ref_altitude_set     = false;
-    bool ref_temp_set         = false;
     bool apogee_reached       = false;
     bool dpl_altitude_reached = false;
 
     static std::string header()
     {
-        return "timestamp,state,dpl_altitude_set,apogee_reached,dpl_altitude_"
+        return "timestamp,state,apogee_reached,dpl_altitude_"
                "reached\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "," << dpl_altitude_set << ","
+        os << timestamp << "," << (int)state << ","
            << apogee_reached << "," << dpl_altitude_reached << "\n";
     }
 };
@@ -119,13 +128,13 @@ struct KalmanAltitude
 
 struct ReferenceValues
 {
-    float ref_altitude = 0;
+    float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
 
     float ref_pressure = 0;
-    float ref_temperature = 0;
+    float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
-    float msl_pressure = 0;
-    float msl_temperature = 0;
+    float msl_pressure = DEFAULT_MSL_PRESSURE;
+    float msl_temperature = DEFAULT_MSL_TEMPERATURE;
 
     static std::string header()
     {

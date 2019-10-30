@@ -100,7 +100,7 @@ void SensorManager::initSensors()
     spiMS5803::init();
 
     // Instantiation
-    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
+    // adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
     pressure_ms5803   = new MS580301BA07Type();

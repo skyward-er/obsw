@@ -23,6 +23,8 @@
 #pragma once
 
 #include <DeathStack/ADA/ADAStatus.h>
+#include "ADACalibrator.h"
+#include "ADA.h"
 #include <events/FSM.h>
 
 #include <DeathStack/events/Events.h>
@@ -75,13 +77,6 @@ public:
      */
     KalmanState getKalmanState() { return last_kalman_state; }
 
-    /**
-     * Get the calibration parameters
-     * @returns A struct containing average, number and variance of the
-     * calibration samples
-     */
-    ADACalibrationData getCalibrationData() { return calibration_data; }
-
     const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
 
     /**
@@ -111,6 +106,12 @@ private:
     void stateActive(const Event& ev);
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
+
+    /* --- CALIBRATION --- */
+    FastMutex calibrator_mutex;
+    ADACalibrator calibrator;
+
+    std::unique_ptr<ADA> ada;
 
     /** Performs a Kalman state update
      * @param pressure The pressure sample in pascal
@@ -146,29 +147,8 @@ private:
     // Event id to store calibration timeout
     uint16_t shadow_delayed_event_id = 0;
 
-    // References for pressure to altitude conversion
-    ReferenceValues reference_values;
-      float temperature_ref =
-        DEFAULT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
-                                        // launchpad
-    float altitude_ref =
-        DEFAULT_REFERENCE_ALTITUDE;  // Reference altitude at launchpad
-
-    // Pressure at mean sea level for altitude calculation, to be updated with
-    // launch-day calibration
-    float pressure_0    = DEFAULT_MSL_PRESSURE;
-    float temperature_0 = DEFAULT_MSL_TEMPERATURE;
-
-    // Filter object
-    Kalman<3, 1> filter;
-
     // Number of consecutive samples in which the speed was negative
     unsigned int n_samples_going_down = 0;
-
-    // Calibration variables
-    ADACalibrationData calibration_data;
-    Stats pressure_stats;
-    FastMutex calib_mutex;  // Mutex for pressure_stats
 
     // ADA status: timestamp + state
     ADAStatus status;

@@ -60,6 +60,8 @@ public:
     void setDeploymentAltitudeAgl(float dpl_altitude);
     float getDeploymentAltitudeAgl();
 
+    bool dtsIsReady() {return deployment_altitude_set; }
+
 private:
     void update();
 
