@@ -62,12 +62,18 @@ void ADAController::updateBaro(float pressure)
         }
         case ADAState::CALIBRATING:
         {
-            Lock<FastMutex> l(calibrator_mutex);
+            bool end_calib = false;
+            {
+                Lock<FastMutex> l(calibrator_mutex);
+                
+                // Add samples to the calibration
+                calibrator.addBaroSample(pressure);
 
-            // Add samples to the calibration
-            calibrator.addBaroSample(pressure);
+                // Save the state of calibration to release mutex
+                end_calib = calibrator.calibIsComplete();
+            }
 
-            if (calibrator.calibIsComplete())
+            if (end_calib)
             {
                 // If samples are enough and dpl altitude has been set init ada
                 finalizeCalibration();
@@ -87,6 +93,7 @@ void ADAController::updateBaro(float pressure)
         {
             // Shadow mode state: update kalman, DO NOT send events
             ada->updateBaro(pressure);
+            last_kalman_state = ada->getKalmanState();
 
             // updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
@@ -104,6 +111,7 @@ void ADAController::updateBaro(float pressure)
         case ADAState::ACTIVE:
         {
             ada->updateBaro(pressure);
+            last_kalman_state = ada->getKalmanState();
             // Active state send notifications for apogee
             // updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
@@ -133,6 +141,7 @@ void ADAController::updateBaro(float pressure)
         {
             // Descent state: send notifications for target altitude reached
             ada->updateBaro(pressure);
+            last_kalman_state = ada->getKalmanState();
 
             rogallo_dts.updateAltitude(ada->getAltitude());
             break;
@@ -141,6 +150,8 @@ void ADAController::updateBaro(float pressure)
         {
             // Continue updating the filter for logging & telemetry purposes
             ada->updateBaro(pressure);
+            last_kalman_state = ada->getKalmanState();
+            
             // updateAltitude(filter.X(0, 0), filter.X(1, 0));
             break;
         }
@@ -223,6 +234,7 @@ void ADAController::finalizeCalibration()
     {
         // If samples are enough and dpl altitude has been set init ada
         ada.reset(new ADA(calibrator.getSetupData()));
+        last_kalman_state = ada->getKalmanState();
     }
 }
 

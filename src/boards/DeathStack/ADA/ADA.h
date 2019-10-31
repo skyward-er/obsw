@@ -36,6 +36,8 @@ public:
     void updateBaro(float pressure);
     float getAltitude();
     float getVerticalSpeed();
+
+    KalmanState getKalmanState();
 private:
     Kalman<3, 1> filter;    // Filter object
 

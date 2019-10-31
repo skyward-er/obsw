@@ -58,6 +58,8 @@ void ADA::updateBaro(float pressure)
 {
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
+    TRACE("[ADA] Updated filter with %f\n", pressure);
+    TRACE("[ADA] New state: %f, %f, %f\n", filter.X(0,0), filter.X(1,0), filter.X(2,0));
 }
 
 float ADA::getAltitude()
@@ -68,5 +70,14 @@ float ADA::getAltitude()
 float ADA::getVerticalSpeed()
 {
     return aeroutils::verticalSpeed(filter.X(1,0), filter.X(2,0), ref_values.msl_pressure, ref_values.msl_temperature);
+}
+
+KalmanState ADA::getKalmanState()
+{
+    KalmanState state;
+    state.x0 = filter.X(0,0);
+    state.x1 = filter.X(1,0);
+    state.x2 = filter.X(2,0);
+    return state;
 }
 }  // namespace DeathStackBoard
