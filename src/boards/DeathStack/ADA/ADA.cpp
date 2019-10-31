@@ -59,7 +59,6 @@ void ADA::updateBaro(float pressure)
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
     TRACE("[ADA] Updated filter with %f\n", pressure);
-    TRACE("[ADA] New state: %f, %f, %f\n", filter.X(0,0), filter.X(1,0), filter.X(2,0));
 }
 
 float ADA::getAltitude()
