@@ -53,7 +53,7 @@ void init()
 {
     i2c1::init();
 
-    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr);
+    adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr, AD7994_V_REF);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
 
@@ -85,7 +85,7 @@ void update()
 
 void print()
 {
-    printf("%d,%f,%f,%f,%f,%f,%f\n", miosix::getTick(), temp_lm75b_imu->getTemp(),
+    printf("%d,%f,%f,%f,%f,%f,%f\n", (int)miosix::getTick(), temp_lm75b_imu->getTemp(),
            temp_lm75b_analog->getTemp(), pressure_ms5803->getData().temp,
            adc_ad7994->getDataPtr()->honeywell_baro_pressure,
            adc_ad7994->getDataPtr()->nxp_baro_pressure,

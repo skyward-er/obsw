@@ -64,7 +64,11 @@ static constexpr float AD7994_V_REF = 4.29f;
 #elif DEATH_STACK_1
 static constexpr float AD7994_V_REF = 4.21f;
 #else
-#error "You have not specified which stack you are using! (-DDEATH_STACK_1 OR -DDEATH_STACK_2)"
+static constexpr float AD7994_V_REF = 4.21f;
+
+#ifdef _BOARD_STM32F429ZI_SKYWARD_DEATHST
+#warning "You have not specified which stack you are using! (-DDEATH_STACK_1 OR -DDEATH_STACK_2)"
+#endif
 #endif
 
 }  // namespace DeathStackBoard
