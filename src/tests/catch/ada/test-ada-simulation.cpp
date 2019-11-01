@@ -134,6 +134,8 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     REQUIRE(ada_controller->testState(&ADAController::stateShadowMode));
     long long shadow_mode_start = miosix::getTick();
 
+    // Perform some checks while in shadow mode (to avoid triggering a false
+    // apogee)
     for (unsigned i = 0; i < SHADOW_MODE_END_INDEX; i++)
     {
         greenLed::high();
@@ -195,7 +197,7 @@ void checkState(unsigned int i, KalmanState state)
             FAIL("i = " << i << "\t\t" << state.x0
                         << " != " << SIMULATED_PRESSURE[i]);
 
-        //Flying under the chutes the speed estimation is not very precise
+        // Flying under the chutes the speed estimation is not very precise
         if (i < 3000)
         {
             if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
