@@ -99,7 +99,7 @@ void ADAController::updateBaro(float pressure)
 
             // Check if the vertical speed is negative (so when the derivative
             // of the pressure is > 0)
-            if (ada->getVerticalSpeed() > APOGEE_PRESSURE_VARIATION_TARGET)
+            if (ada->getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
@@ -116,7 +116,7 @@ void ADAController::updateBaro(float pressure)
             // updateAltitude(filter.X(0, 0), filter.X(1, 0));
 
             // Check if we reached apogee
-            if (ada->getVerticalSpeed() > APOGEE_PRESSURE_VARIATION_TARGET)
+            if (ada->getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 n_samples_going_down = n_samples_going_down + 1;
                 if (n_samples_going_down >= APOGEE_N_SAMPLES)
@@ -137,7 +137,6 @@ void ADAController::updateBaro(float pressure)
         }
 
         case ADAState::FIRST_DESCENT_PHASE:
-
         {
             // Descent state: send notifications for target altitude reached
             ada->updateBaro(pressure);

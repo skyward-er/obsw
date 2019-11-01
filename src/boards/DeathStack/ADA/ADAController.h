@@ -147,7 +147,7 @@ private:
     // Event id to store calibration timeout
     uint16_t shadow_delayed_event_id = 0;
 
-    // Number of consecutive samples in which the speed was negative
+    // Number of consecutive samples in which the vertical speed was negative
     unsigned int n_samples_going_down = 0;
 
     // ADA status: timestamp + state

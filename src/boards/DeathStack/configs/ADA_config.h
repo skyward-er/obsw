@@ -33,11 +33,10 @@ constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
-// When the derivative of the pressure with respect to time is greater than this
-// value, an apogee is detected.
+// When the vertical speed is smaller than this value, apogee is detected.
 // 0: Exact apogee
-// < 0: Detects apogee ahead of time
-constexpr float APOGEE_PRESSURE_VARIATION_TARGET = -260.0f;  // 3 second ahead
+// > 0: Apogee detected ahead of time (still going up)
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 30;
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms

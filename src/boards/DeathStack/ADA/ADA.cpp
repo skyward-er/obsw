@@ -58,17 +58,17 @@ void ADA::updateBaro(float pressure)
 {
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
-    TRACE("[ADA] Updated filter with %f\n", pressure);
+    // TRACE("[ADA] Updated filter with %f\n", pressure);
 }
 
 float ADA::getAltitude()
 {
-    return aeroutils::relAltitude(filter.X(1,0), ref_values.msl_pressure, ref_values.msl_temperature);
+    return aeroutils::relAltitude(filter.X(0,0), ref_values.msl_pressure, ref_values.msl_temperature);
 }
 
 float ADA::getVerticalSpeed()
 {
-    return aeroutils::verticalSpeed(filter.X(1,0), filter.X(2,0), ref_values.msl_pressure, ref_values.msl_temperature);
+    return aeroutils::verticalSpeed(filter.X(0,0), filter.X(1,0), ref_values.msl_pressure, ref_values.msl_temperature);
 }
 
 KalmanState ADA::getKalmanState()

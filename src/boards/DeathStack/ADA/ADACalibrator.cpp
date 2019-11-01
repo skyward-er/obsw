@@ -45,10 +45,10 @@ void ADACalibrator::resetStats()
 
 void ADACalibrator::setReferenceTemperature(float ref_temp)
 {
-    float pressure_ref = ref_temp + 273.15; // Celsius to Kelvin
+    float temperature_ref = ref_temp + 273.15; // Celsius to Kelvin
 
     // Sanity check: Obey to the laws of thermodynamics
-    if (pressure_ref > 0)
+    if (temperature_ref > 0)
     {
         setup_data.ref_temp     = ref_temp + 273.15;
         setup_data.ref_temp_set = true;

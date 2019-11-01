@@ -35,6 +35,7 @@
 #include <events/FSM.h>
 #include <utils/EventCounter.h>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -43,14 +44,16 @@
 
 using namespace DeathStackBoard;
 
-constexpr float NOISE_STD_DEV = 5;  // Noise varaince
-constexpr float LSB           = 28;
-
+constexpr float NOISE_STD_DEV                = 5;  // Noise varaince
+constexpr float LSB                          = 28;
+constexpr unsigned int SHADOW_MODE_END_INDEX = 30;
 ADAController *ada_controller;
 unsigned seed = 1234567;  // Seed for noise generation
 
 float addNoise(float sample);  // Function to add noise
 float quantization(float sample);
+void checkState(unsigned int i, KalmanState state);
+
 std::default_random_engine generator(seed);  // Noise generator
 std::normal_distribution<float> distribution(
     0.0, NOISE_STD_DEV);  // Noise generator distribution
@@ -75,12 +78,12 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
 
     // Startup: we should be in idle
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateIdle));
+    REQUIRE(ada_controller->testState(&ADAController::stateIdle));
 
-    // Enter Calibrating and check
+    // Enter Calibrating and REQUIRE
     sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_TC);
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateCalibrating));
+    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
 
     // Send baro calibration samples
     for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
@@ -96,7 +99,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateCalibrating));
+    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
 
     // Send set deployment altitude
     ada_controller->setDeploymentAltitude(100);
@@ -104,7 +107,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateCalibrating));
+    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
 
     // Send set altitude ref
     ada_controller->setReferenceAltitude(1300);
@@ -112,7 +115,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
 
     // Should still be in calibrating
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateCalibrating));
+    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
 
     // Send set temperature ref
     ada_controller->setReferenceTemperature(15);
@@ -122,54 +125,80 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     Thread::sleep(100);
     ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateReady));
+    REQUIRE(ada_controller->testState(&ADAController::stateReady));
 
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     // Send liftoff event: should be in shadow mode
     Thread::sleep(100);
-    CHECK(ada_controller->testState(&ADAController::stateShadowMode));
+    REQUIRE(ada_controller->testState(&ADAController::stateShadowMode));
+    long long shadow_mode_start = miosix::getTick();
 
+    for (unsigned i = 0; i < SHADOW_MODE_END_INDEX; i++)
+    {
+        greenLed::high();
+        float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        ada_controller->updateBaro(noisy_p);
+        // Thread::sleep(100);
+        KalmanState state = ada_controller->getKalmanState();
+        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
+               ada_controller->ada->getVerticalSpeed());
+        checkState(i, state);
+        greenLed::low();
+    }
     // Wait timeout
-    Thread::sleep(TIMEOUT_ADA_SHADOW_MODE);
+    Thread::sleepUntil(shadow_mode_start + TIMEOUT_ADA_SHADOW_MODE);
     // Should be active now
-    CHECK(ada_controller->testState(&ADAController::stateActive));
+    REQUIRE(ada_controller->testState(&ADAController::stateActive));
 
     Thread::sleep(100);
     // Send samples
 
     printf("%d\n", DATA_SIZE);
 
-    for (unsigned i = 0; i < DATA_SIZE / 2; i++)
+    for (unsigned i = SHADOW_MODE_END_INDEX; i < DATA_SIZE; i++)
     {
         greenLed::high();
-        ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[i]));
+        float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        ada_controller->updateBaro(noisy_p);
         // Thread::sleep(100);
         KalmanState state = ada_controller->getKalmanState();
-
-        if (i > 200)
-        {
-            if (state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70))
-                SUCCEED();
-            else
-                FAIL("i = " << i << "\t\t" << state.x0
-                            << " != " << SIMULATED_PRESSURE[i]);
-
-            if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
-                SUCCEED();
-            else
-                FAIL("i = " << i << "\t\t" << state.x1
-                            << " != " << SIMULATED_PRESSURE_SPEED[i]);
-        }
+        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
+               ada_controller->ada->getVerticalSpeed());
+        checkState(i, state);
 
         if (ada_controller->getStatus().apogee_reached == true)
         {
-            if (i != Approx(367.0f).margin(20))
-                FAIL("Apogee error: " << (int)i - 367 << " samples");
+            if (abs(i - 382) > 10)
+            {
+                FAIL("Apogee error: " << (int)i - 382 << " samples");
+            }
             else
+            {
+                printf("Apogee error: %d samples\n", (int)(i - 382));
                 SUCCEED();
+            }
+            break;
         }
         greenLed::low();
+    }
+}
+
+void checkState(unsigned int i, KalmanState state)
+{
+    if (i > 200)
+    {
+        if (state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70))
+            SUCCEED();
+        else
+            FAIL("i = " << i << "\t\t" << state.x0
+                        << " != " << SIMULATED_PRESSURE[i]);
+
+        if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
+            SUCCEED();
+        else
+            FAIL("i = " << i << "\t\t" << state.x1
+                        << " != " << SIMULATED_PRESSURE_SPEED[i]);
     }
 }
 
