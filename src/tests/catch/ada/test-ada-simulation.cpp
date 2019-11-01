@@ -155,7 +155,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     // Send samples
 
     printf("%d\n", DATA_SIZE);
-
+    bool apogee_checked = false;
     for (unsigned i = SHADOW_MODE_END_INDEX; i < DATA_SIZE; i++)
     {
         greenLed::high();
@@ -167,8 +167,10 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
                ada_controller->ada->getVerticalSpeed());
         checkState(i, state);
 
-        if (ada_controller->getStatus().apogee_reached == true)
+        if (ada_controller->getStatus().apogee_reached == true &&
+            !apogee_checked)
         {
+            apogee_checked = true;
             if (abs(i - 382) > 10)
             {
                 FAIL("Apogee error: " << (int)i - 382 << " samples");
@@ -178,7 +180,6 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
                 printf("Apogee error: %d samples\n", (int)(i - 382));
                 SUCCEED();
             }
-            break;
         }
         greenLed::low();
     }
@@ -194,11 +195,15 @@ void checkState(unsigned int i, KalmanState state)
             FAIL("i = " << i << "\t\t" << state.x0
                         << " != " << SIMULATED_PRESSURE[i]);
 
-        if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
-            SUCCEED();
-        else
-            FAIL("i = " << i << "\t\t" << state.x1
-                        << " != " << SIMULATED_PRESSURE_SPEED[i]);
+        //Flying under the chutes the speed estimation is not very precise
+        if (i < 3000)
+        {
+            if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
+                SUCCEED();
+            else
+                FAIL("i = " << i << "\t\t" << state.x1
+                            << " != " << SIMULATED_PRESSURE_SPEED[i]);
+        }
     }
 }
 

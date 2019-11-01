@@ -36,7 +36,7 @@ constexpr unsigned int APOGEE_N_SAMPLES = 5;
 // When the vertical speed is smaller than this value, apogee is detected.
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (still going up)
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 30;
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 0;
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
