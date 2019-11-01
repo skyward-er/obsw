@@ -42,13 +42,17 @@ enum class ADAState
     END
 };
 
+// Struct created by calibrator and passed to the ADA constructor
 struct ADASetupData
 {
+    // Pressure calibration results
     StatsResult pressure_stats_results;
 
+    // References for Pa/m conversion
     float ref_alt       = DEFAULT_REFERENCE_ALTITUDE;
     float ref_temp      = DEFAULT_REFERENCE_TEMPERATURE;
 
+    // Refernece flags
     bool ref_alt_set    = false;
     bool ref_temp_set   = false;
 };
@@ -77,6 +81,7 @@ struct DplAltitudeReached
 };
 
 // Struct to log current state
+// Also used to keep track of current state
 struct ADAStatus
 {
     long long timestamp;
@@ -97,21 +102,27 @@ struct ADAStatus
     }
 };
 
+// Struct to log the two Kalman states
 struct KalmanState
 {
     long long timestamp;
     float x0;
     float x1;
     float x2;
+    float x0_acc;
+    float x1_acc;
+    float x2_acc;
 
-    static std::string header() { return "timestamp,x0,x1,x2\n"; }
+    static std::string header() { return "timestamp,x0,x1,x2,x0_acc,x1_acc,x2_acc\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "\n";
+        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "," << x0_acc << "," << x1_acc << "," << x2_acc << "\n";
     }
 };
 
+// Struct to log altitude and vertical speed of first Kalman
+// (state after conversion)
 struct KalmanAltitude
 {
     long long timestamp;
@@ -126,13 +137,19 @@ struct KalmanAltitude
     }
 };
 
+// Struct to log Pa/m reference values
+// Also used in ADA to store the values
 struct ReferenceValues
 {
+    // Launch site altitude
     float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
 
+    // Launch site pressure and temperature
     float ref_pressure = 0;
     float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
+    // Pressure at mean sea level for altitude calculation, to be updated with
+    // launch-day calibration
     float msl_pressure = DEFAULT_MSL_PRESSURE;
     float msl_temperature = DEFAULT_MSL_TEMPERATURE;
 
@@ -149,6 +166,7 @@ struct ReferenceValues
     }
 };
 
+// Struct to log dpl altitude
 struct TargetDeploymentAltitude
 {
     float deployment_altitude;
@@ -156,25 +174,6 @@ struct TargetDeploymentAltitude
     static std::string header() { return "deployment_altitude\n"; }
 
     void print(std::ostream& os) const { os << deployment_altitude << "\n"; }
-};
-
-// Struct of calibration data
-struct ADACalibrationData
-{
-    StatsResult pressure_calib;
-
-    static std::string header()
-    {
-        return "pressure_calib.minValue,pressure_calib.maxValue,pressure_calib."
-               "mean,pressure_calib.stdev,pressure_calib.nSamples\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << pressure_calib.minValue << "," << pressure_calib.maxValue << ","
-           << pressure_calib.mean << "," << pressure_calib.stdev << ","
-           << pressure_calib.nSamples << "\n";
-    }
 };
 
 }  // namespace DeathStackBoard

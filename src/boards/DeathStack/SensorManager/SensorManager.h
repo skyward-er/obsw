@@ -168,7 +168,7 @@ private:
     long long last_gps_timestamp = 0;
 
     // ADA
-    ADAController* ada;
+    ADAController* ada_controller;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;

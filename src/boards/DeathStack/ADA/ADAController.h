@@ -45,40 +45,20 @@ class ADAController : public FSM<ADAController>
 {
 
 public:
-    /** Constructor
-     */
     ADAController();
-
-    /** Destructor
-     */
     ~ADAController() {}
 
-    /** \brief Updates the algorithm with a new sample
-     *
-     * It's critical that this method is called at regualar intervals during the
+    /* --- SENSOR UPDATE METHODS --- */
+    /*
+     * It's critical that this methods are called at regualar intervals during the
      * flight. Call frequency is defined in ADA_config.h The behavior of this
-     * function changes depending on the ADA state
-     *
-     * @param pressure The pressure sample in pascals
+     * functions changes depending on the ADA state
      */
     void updateBaro(float pressure);
     void updateGPS(double lat, double lon, bool hasFix);
+    void updateAcc(float ax);
 
-    /**
-     * ADA status
-     * @returns A struct containing the time stamp, the ADA FSM state and
-     * several flags
-     */
-    ADAStatus getStatus() { return status; }
-
-    /**
-     * Get the latest state estimated by the Kalman filter
-     * @returns A struct containing three floats representing the three states
-     */
-    KalmanState getKalmanState() { return last_kalman_state; }
-
-    const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
-
+    /* --- TC --- */
     /**
      * Sets the reference temperature to be used to calibrate the altimeter
      * @param ref_temp Reference temperature in degrees Celsisus
@@ -97,8 +77,23 @@ public:
      */
     void setDeploymentAltitude(float dpl_alt);
 
+    /**
+     * ADA status
+     * @returns A struct containing the time stamp, the ADA FSM state and
+     * several flags
+     */
+    ADAStatus getStatus() { return status; }
+
+    /**
+     * Get the latest state estimated by the Kalman filter
+     * @returns A struct containing three floats representing the three states
+     */
+    KalmanState getKalmanState() { return last_kalman_state; }
+
+    const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
+
 private:
-    // FSM States
+    /* --- FSM STATES --- */
     void stateIdle(const Event& ev);
     void stateCalibrating(const Event& ev);
     void stateReady(const Event& ev);
@@ -107,21 +102,34 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
+    uint16_t shadow_delayed_event_id = 0; // Event id to store calibration timeout
+
+    ADAStatus status;   // ADA status: timestamp + state
+
+
     /* --- CALIBRATION --- */
     FastMutex calibrator_mutex;
     ADACalibrator calibrator;
 
-    std::unique_ptr<ADA> ada;
-
-    /** Performs a Kalman state update
-     * @param pressure The pressure sample in pascal
-     */
-    void updateFilter(float pressure);
-
-    /** Checks if calibration is complete and if this is the case sends the
-     * ADA_READY event.
-     */
     void finalizeCalibration();
+    void resetCalibration();
+
+
+    /* --- ALGORITHM --- */
+    std::unique_ptr<ADA> ada;
+    RogalloDTS rogallo_dts;                 // Rogallo deployment and termination system
+        
+    unsigned int n_samples_going_down = 0;  // Number of consecutive samples in which the vertical speed was negative
+
+    KalmanState  last_kalman_state;         // Last kalman state
+
+    /* --- LOGGER --- */
+    LoggerService& logger = *(LoggerService::getInstance()); // Logger
+
+    void logStatus(ADAState state);     // Update and log ADA FSM state
+    void logStatus();                   // Log the ADA FSM state without updating it
+
+
 
     /**
      * Calculates altitude and vertical speed based on the current kalman state.
@@ -133,34 +141,6 @@ private:
      * @return Altitude msl [m]
      */
     float updateAltitude(float p, float dp_dt);
-
-    /** Update and log ADA FSM state
-     */
-    void logStatus(ADAState state);
-
-    /** Log the ADA FSM state without updating it
-     */
-    void logStatus();
-
-    void resetCalibration();
-
-    // Event id to store calibration timeout
-    uint16_t shadow_delayed_event_id = 0;
-
-    // Number of consecutive samples in which the vertical speed was negative
-    unsigned int n_samples_going_down = 0;
-
-    // ADA status: timestamp + state
-    ADAStatus status;
-
-    // Last kalman state
-    KalmanState last_kalman_state;
-
-    // Rogallo deployment and termination system
-    RogalloDTS rogallo_dts;
-
-    // Logger
-    LoggerService& logger = *(LoggerService::getInstance());
 };
 
 }  // namespace DeathStackBoard

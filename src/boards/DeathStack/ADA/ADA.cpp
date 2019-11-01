@@ -20,17 +20,18 @@
  * THE SOFTWARE.
  */
 #include "ADA.h"
+#include <DeathStack/events/Events.h>
+#include <Debug.h>
 #include <boards/DeathStack/configs/ADA_config.h>
+#include <events/EventBroker.h>
 #include <libs/simple-template-matrix/matrix.h>
 #include <utils/aero/AeroUtils.h>
-#include <Debug.h>
-#include <events/EventBroker.h>
-#include <DeathStack/events/Events.h>
 
 namespace DeathStackBoard
 {
 ADA::ADA(ADASetupData setup_data)
-    : filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT)
+    : filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
+    filter_acc(A_INIT,C_INIT_ACC, V1_INIT_ACC, V2_INIT_ACC, P_INIT_ACC)
 {
     float pressure_ref = setup_data.pressure_stats_results.mean;
 
@@ -38,6 +39,10 @@ ADA::ADA(ADASetupData setup_data)
     filter.X(0, 0) = pressure_ref;
     filter.X(1, 0) = 0;
     filter.X(2, 0) = KALMAN_INITIAL_ACCELERATION;
+
+    filter_acc.X(0, 0) = ref_values.ref_altitude;
+    filter_acc.X(1, 0) = 0;
+    filter_acc.X(2, 0) = 0;
 
     // Calculat MSL values for altitude calculation
     ref_values.msl_pressure = aeroutils::mslPressure(
@@ -48,35 +53,56 @@ ADA::ADA(ADASetupData setup_data)
 
     TRACE("[ADA] Finalized calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
           pressure_ref, ref_values.msl_pressure, ref_values.msl_temperature);
-    
+
+    // ADA READY!
     sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
 }
 
-ADA::~ADA(){}
+ADA::~ADA() {}
 
 void ADA::updateBaro(float pressure)
 {
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
+
+    float z  = aeroutils::relAltitude(pressure, ref_values.msl_pressure,
+                                     ref_values.msl_temperature);
+    float ax = (acc_stats.getStats().mean - 1) *
+               9.81;  // Remove graviti vector and convert gs to m/s^2
+    MatrixBase<float, 2, 1> y_acc{z, ax};
+    filter_acc.update(y_acc);
+
+    acc_stats.reset();
     // TRACE("[ADA] Updated filter with %f\n", pressure);
 }
 
+void ADA::updateAcc(float ax) { acc_stats.add(ax); }
+
 float ADA::getAltitude()
 {
-    return aeroutils::relAltitude(filter.X(0,0), ref_values.msl_pressure, ref_values.msl_temperature);
+    return aeroutils::relAltitude(filter.X(0, 0), ref_values.msl_pressure,
+                                  ref_values.msl_temperature);
 }
 
 float ADA::getVerticalSpeed()
 {
-    return aeroutils::verticalSpeed(filter.X(0,0), filter.X(1,0), ref_values.msl_pressure, ref_values.msl_temperature);
+    return aeroutils::verticalSpeed(filter.X(0, 0), filter.X(1, 0),
+                                    ref_values.msl_pressure,
+                                    ref_values.msl_temperature);
 }
 
 KalmanState ADA::getKalmanState()
 {
     KalmanState state;
-    state.x0 = filter.X(0,0);
-    state.x1 = filter.X(1,0);
-    state.x2 = filter.X(2,0);
+
+    state.x0 = filter.X(0, 0);
+    state.x1 = filter.X(1, 0);
+    state.x2 = filter.X(2, 0);
+
+    state.x0_acc = filter_acc.X(0, 0);
+    state.x1_acc = filter_acc.X(1, 0);
+    state.x2_acc = filter_acc.X(2, 0);
+
     return state;
 }
 }  // namespace DeathStackBoard

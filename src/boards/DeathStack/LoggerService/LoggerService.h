@@ -157,9 +157,6 @@ LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t);
 template <>
 LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t);
 
-template <>
-LogResult LoggerService::log<ADACalibrationData>(const ADACalibrationData& t);
-
 /* Canbus stats */
 template <>
 LogResult LoggerService::log<CanStatus>(const CanStatus& t);

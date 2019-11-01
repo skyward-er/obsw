@@ -328,18 +328,18 @@ LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t)
     return logger.log(t);
 }
 
-template <>
-LogResult LoggerService::log<ADACalibrationData>(const ADACalibrationData& t)
-{
-    {
-        miosix::PauseKernelLock kLock;
+// template <>
+// LogResult LoggerService::log<ADACalibrationData>(const ADACalibrationData& t)
+// {
+//     {
+//         miosix::PauseKernelLock kLock;
 
-        tm_repository.ada_tm.ref_pressure_mean     = t.pressure_calib.mean;
-        tm_repository.ada_tm.ref_pressure_stddev   = t.pressure_calib.stdev;
-        tm_repository.ada_tm.ref_pressure_nsamples = t.pressure_calib.nSamples;
-    }
-    return logger.log(t);
-}
+//         tm_repository.ada_tm.ref_pressure_mean     = t.pressure_calib.mean;
+//         tm_repository.ada_tm.ref_pressure_stddev   = t.pressure_calib.stdev;
+//         tm_repository.ada_tm.ref_pressure_nsamples = t.pressure_calib.nSamples;
+//     }
+//     return logger.log(t);
+// }
 
 /* Canbus stats */
 template <>

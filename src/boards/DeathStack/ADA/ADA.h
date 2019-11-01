@@ -24,6 +24,7 @@
 
 #include "ADAStatus.h"
 #include <kalman/Kalman.h>
+#include <math/Stats.h>
 
 namespace DeathStackBoard
 {
@@ -34,19 +35,20 @@ public:
     ~ADA();
 
     void updateBaro(float pressure);
+    void updateAcc(float ax);
+
     float getAltitude();
     float getVerticalSpeed();
 
     KalmanState getKalmanState();
 private:
     Kalman<3, 1> filter;    // Filter object
+    Kalman<3, 2> filter_acc; // Filter with accelerometer
+
+    // Stats for acceleration averaging
+    Stats acc_stats;
 
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
-
-    // Pressure at mean sea level for altitude calculation, to be updated with
-    // launch-day calibration
-    float pressure_0    = DEFAULT_MSL_PRESSURE;
-    float temperature_0 = DEFAULT_MSL_TEMPERATURE;
 };
 }

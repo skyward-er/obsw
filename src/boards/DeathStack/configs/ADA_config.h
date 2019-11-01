@@ -70,15 +70,19 @@ static const MatrixBase<float, 3, 3> A_INIT(
 
 // Output matrix
 static const MatrixBase<float, 1, 3> C_INIT{1, 0, 0};
+static const MatrixBase<float, 2, 3> C_INIT_ACC{1, 0, 0, 0, 0, 1};
 
 // Initial error covariance matrix
 static const MatrixBase<float, 3, 3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
+static const MatrixBase<float, 3, 3> P_INIT_ACC{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // Model variance matrix
 static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 100};
+static const MatrixBase<float, 3, 3> V1_INIT_ACC{1, 0, 0, 0, 10, 0, 0, 0, 100};
 
 // Measurement variance
 static const MatrixBase<float, 1, 1> V2_INIT{800};
+static const MatrixBase<float, 2, 2> V2_INIT_ACC{800,0,0,1000};
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
 // to make it more respondive during the propulsive phase
