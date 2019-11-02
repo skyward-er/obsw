@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include <boards/DeathStack/configs/ADA_config.h>
 #include <math/Stats.h>
 #include <ostream>
-#include <boards/DeathStack/configs/ADA_config.h>
 
 namespace DeathStackBoard
 {
@@ -49,12 +49,12 @@ struct ADASetupData
     StatsResult pressure_stats_results;
 
     // References for Pa/m conversion
-    float ref_alt       = DEFAULT_REFERENCE_ALTITUDE;
-    float ref_temp      = DEFAULT_REFERENCE_TEMPERATURE;
+    float ref_alt  = DEFAULT_REFERENCE_ALTITUDE;
+    float ref_temp = DEFAULT_REFERENCE_TEMPERATURE;
 
     // Refernece flags
-    bool ref_alt_set    = false;
-    bool ref_temp_set   = false;
+    bool ref_alt_set  = false;
+    bool ref_temp_set = false;
 };
 
 // Struct to log apogee detection
@@ -97,8 +97,8 @@ struct ADAStatus
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << ","
-           << apogee_reached << "," << dpl_altitude_reached << "\n";
+        os << timestamp << "," << (int)state << "," << apogee_reached << ","
+           << dpl_altitude_reached << "\n";
     }
 };
 
@@ -113,11 +113,15 @@ struct KalmanState
     float x1_acc;
     float x2_acc;
 
-    static std::string header() { return "timestamp,x0,x1,x2,x0_acc,x1_acc,x2_acc\n"; }
+    static std::string header()
+    {
+        return "timestamp,x0,x1,x2,x0_acc,x1_acc,x2_acc\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "," << x0_acc << "," << x1_acc << "," << x2_acc << "\n";
+        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "," << x0_acc
+           << "," << x1_acc << "," << x2_acc << "\n";
     }
 };
 
@@ -145,12 +149,12 @@ struct ReferenceValues
     float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
 
     // Launch site pressure and temperature
-    float ref_pressure = 0;
+    float ref_pressure    = 0;
     float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
     // Pressure at mean sea level for altitude calculation, to be updated with
     // launch-day calibration
-    float msl_pressure = DEFAULT_MSL_PRESSURE;
+    float msl_pressure    = DEFAULT_MSL_PRESSURE;
     float msl_temperature = DEFAULT_MSL_TEMPERATURE;
 
     static std::string header()
@@ -170,7 +174,7 @@ struct ReferenceValues
 struct TargetDeploymentAltitude
 {
     float deployment_altitude;
-    
+
     static std::string header() { return "deployment_altitude\n"; }
 
     void print(std::ostream& os) const { os << deployment_altitude << "\n"; }

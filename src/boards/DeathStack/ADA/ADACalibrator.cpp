@@ -33,11 +33,12 @@ void ADACalibrator::addBaroSample(float p)
 
 bool ADACalibrator::calibIsComplete()
 {
-    return setup_data.pressure_stats_results.nSamples >= CALIBRATION_BARO_N_SAMPLES &&
+    return setup_data.pressure_stats_results.nSamples >=
+               CALIBRATION_BARO_N_SAMPLES &&
            setup_data.ref_alt_set && setup_data.ref_temp_set;
 }
 
-void ADACalibrator::resetStats()
+void ADACalibrator::resetBaro()
 {
     pressure_stats.reset();
     setup_data.pressure_stats_results = pressure_stats.getStats();
@@ -45,14 +46,15 @@ void ADACalibrator::resetStats()
 
 void ADACalibrator::setReferenceTemperature(float ref_temp)
 {
-    float temperature_ref = ref_temp + 273.15; // Celsius to Kelvin
+    float temperature_ref = ref_temp + 273.15;  // Celsius to Kelvin
 
     // Sanity check: Obey to the laws of thermodynamics
     if (temperature_ref > 0)
     {
         setup_data.ref_temp     = ref_temp + 273.15;
         setup_data.ref_temp_set = true;
-        TRACE("[ADA] Reference temperature set to %.3f K\n", setup_data.ref_temp);
+        TRACE("[ADA] Reference temperature set to %.3f K\n",
+              setup_data.ref_temp);
     }
 }
 
@@ -63,5 +65,4 @@ void ADACalibrator::setReferenceAltitude(float ref_alt)
     TRACE("[ADA] Reference altitude set to %.3f m\n", ref_alt);
 }
 
-
-}
+}  // namespace DeathStackBoard

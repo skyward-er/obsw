@@ -23,12 +23,12 @@
 #pragma once
 
 #include <DeathStack/ADA/ADAStatus.h>
-#include "ADACalibrator.h"
-#include "ADA.h"
 #include <events/FSM.h>
+#include "ADA.h"
+#include "ADACalibrator.h"
 
-#include <DeathStack/events/Events.h>
 #include <DeathStack/configs/ADA_config.h>
+#include <DeathStack/events/Events.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LoggerService/LoggerService.h"
 #include "RogalloDTS/RogalloDTS.h"
@@ -50,9 +50,9 @@ public:
 
     /* --- SENSOR UPDATE METHODS --- */
     /*
-     * It's critical that this methods are called at regualar intervals during the
-     * flight. Call frequency is defined in ADA_config.h The behavior of this
-     * functions changes depending on the ADA state
+     * It's critical that this methods are called at regualar intervals during
+     * the flight. Call frequency is defined in ADA_config.h The behavior of
+     * this functions changes depending on the ADA state
      */
     void updateBaro(float pressure);
     void updateGPS(double lat, double lon, bool hasFix);
@@ -72,7 +72,7 @@ public:
     void setReferenceAltitude(float ref_alt);
 
     /**
-     * Sets the deployment altitude 
+     * Sets the deployment altitude
      * @param dpl_alt Deployment altitude in meters above GROUND level
      */
     void setDeploymentAltitude(float dpl_alt);
@@ -102,10 +102,10 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
-    uint16_t shadow_delayed_event_id = 0; // Event id to store calibration timeout
+    uint16_t shadow_delayed_event_id =
+        0;  // Event id to store calibration timeout
 
-    ADAStatus status;   // ADA status: timestamp + state
-
+    ADAStatus status;  // ADA status: timestamp + state
 
     /* --- CALIBRATION --- */
     FastMutex calibrator_mutex;
@@ -114,22 +114,21 @@ private:
     void finalizeCalibration();
     void resetCalibration();
 
-
     /* --- ALGORITHM --- */
     std::unique_ptr<ADA> ada;
-    RogalloDTS rogallo_dts;                 // Rogallo deployment and termination system
-        
-    unsigned int n_samples_going_down = 0;  // Number of consecutive samples in which the vertical speed was negative
+    RogalloDTS rogallo_dts;  // Rogallo deployment and termination system
 
-    KalmanState  last_kalman_state;         // Last kalman state
+    unsigned int n_samples_going_down =
+        0;  // Number of consecutive samples in which the vertical speed was
+            // negative
+
+    KalmanState last_kalman_state;  // Last kalman state
 
     /* --- LOGGER --- */
-    LoggerService& logger = *(LoggerService::getInstance()); // Logger
+    LoggerService& logger = *(LoggerService::getInstance());  // Logger
 
-    void logStatus(ADAState state);     // Update and log ADA FSM state
-    void logStatus();                   // Log the ADA FSM state without updating it
-
-
+    void logStatus(ADAState state);  // Update and log ADA FSM state
+    void logStatus();  // Log the ADA FSM state without updating it
 
     /**
      * Calculates altitude and vertical speed based on the current kalman state.

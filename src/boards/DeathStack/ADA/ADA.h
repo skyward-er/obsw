@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "ADAStatus.h"
 #include <kalman/Kalman.h>
 #include <math/Stats.h>
+#include "ADAStatus.h"
 
 namespace DeathStackBoard
 {
@@ -41,9 +41,10 @@ public:
     float getVerticalSpeed();
 
     KalmanState getKalmanState();
+
 private:
-    Kalman<3, 1> filter;    // Filter object
-    Kalman<3, 2> filter_acc; // Filter with accelerometer
+    Kalman<3, 1> filter;      // Filter object
+    Kalman<3, 2> filter_acc;  // Filter with accelerometer
 
     // Stats for acceleration averaging
     Stats acc_stats;
@@ -51,4 +52,4 @@ private:
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
 };
-}
+}  // namespace DeathStackBoard

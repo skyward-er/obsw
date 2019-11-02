@@ -109,7 +109,6 @@ void ADAController::updateBaro(float pressure)
         {
             ada->updateBaro(pressure);
             last_kalman_state = ada->getKalmanState();
-            
 
             // Check if we reached apogee
             if (ada->getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)

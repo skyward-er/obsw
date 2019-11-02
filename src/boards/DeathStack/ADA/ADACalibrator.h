@@ -22,11 +22,11 @@
 
 #pragma once
 
+#include <Common.h>
+#include <Debug.h>
 #include <math/Stats.h>
 #include <miosix.h>
 #include "ADAStatus.h"
-#include <Common.h>
-#include <Debug.h>
 
 namespace DeathStackBoard
 {
@@ -40,12 +40,11 @@ private:
     ADASetupData setup_data;
 
 public:
-
     /* --- CALIBRATION --- */
-    ADASetupData getSetupData(){return setup_data;};
+    ADASetupData getSetupData() { return setup_data; };
     bool calibIsComplete();
     void addBaroSample(float p);
-    void resetStats();
+    void resetBaro();
 
     /* --- TC ---*/
     /**

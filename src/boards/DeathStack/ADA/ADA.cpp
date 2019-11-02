@@ -31,7 +31,7 @@ namespace DeathStackBoard
 {
 ADA::ADA(ADASetupData setup_data)
     : filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
-    filter_acc(A_INIT,C_INIT_ACC, V1_INIT_ACC, V2_INIT_ACC, P_INIT_ACC)
+      filter_acc(A_INIT, C_INIT_ACC, V1_INIT_ACC, V2_INIT_ACC, P_INIT_ACC)
 {
     float pressure_ref = setup_data.pressure_stats_results.mean;
 
