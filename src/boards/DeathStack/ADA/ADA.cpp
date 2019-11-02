@@ -26,17 +26,17 @@
 #include <events/EventBroker.h>
 #include <libs/simple-template-matrix/matrix.h>
 #include <utils/aero/AeroUtils.h>
+#include "DeploymentUtils/elevation_map.h"
 
 namespace DeathStackBoard
 {
-ADA::ADA(ADASetupData setup_data)
+ADA::ADA(ReferenceValues ref_values)
     : filter(A_INIT, C_INIT, V1_INIT, V2_INIT, P_INIT),
-      filter_acc(A_INIT, C_INIT_ACC, V1_INIT_ACC, V2_INIT_ACC, P_INIT_ACC)
+      filter_acc(A_INIT, C_INIT_ACC, V1_INIT_ACC, V2_INIT_ACC, P_INIT_ACC),
+      ref_values(ref_values)
 {
-    float pressure_ref = setup_data.pressure_stats_results.mean;
-
     // Initialize Kalman filter
-    filter.X(0, 0) = pressure_ref;
+    filter.X(0, 0) = ref_values.ref_pressure;
     filter.X(1, 0) = 0;
     filter.X(2, 0) = KALMAN_INITIAL_ACCELERATION;
 
@@ -44,18 +44,9 @@ ADA::ADA(ADASetupData setup_data)
     filter_acc.X(1, 0) = 0;
     filter_acc.X(2, 0) = 0;
 
-    // Calculat MSL values for altitude calculation
-    ref_values.msl_pressure = aeroutils::mslPressure(
-        pressure_ref, ref_values.ref_temperature, ref_values.ref_altitude);
-
-    ref_values.msl_temperature = aeroutils::mslTemperature(
-        ref_values.ref_temperature, ref_values.ref_altitude);
-
     TRACE("[ADA] Finalized calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
-          pressure_ref, ref_values.msl_pressure, ref_values.msl_temperature);
-
-    // ADA READY!
-    sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
+          ref_values.ref_pressure, ref_values.msl_pressure,
+          ref_values.msl_temperature);
 }
 
 ADA::~ADA() {}
@@ -65,33 +56,72 @@ void ADA::updateBaro(float pressure)
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
 
-    float z  = aeroutils::relAltitude(pressure, ref_values.msl_pressure,
-                                     ref_values.msl_temperature);
+    float z  = pressureToAltitude(pressure);
     float ax = (acc_stats.getStats().mean - 1) *
-               9.81;  // Remove graviti vector and convert gs to m/s^2
+               9.81;  // Remove gravity vector and convert gs to m/s^2
+
     MatrixBase<float, 2, 1> y_acc{z, ax};
     filter_acc.update(y_acc);
 
     acc_stats.reset();
-    // TRACE("[ADA] Updated filter with %f\n", pressure);
+
+    // Convert filter data to altitudes & speeds
+    ada_data.timestamp    = miosix::getTick();
+    ada_data.msl_altitude = pressureToAltitude(filter.X(0, 0));
+
+    AltitudeDPL ad               = altitudeMSLtoDPL(ada_data.msl_altitude);
+    ada_data.dpl_altitude        = ad.altitude;
+    ada_data.is_dpl_altitude_agl = ad.is_agl;
+
+    ada_data.vert_speed = aeroutils::verticalSpeed(
+        filter.X(0, 0), filter.X(1, 0), ref_values.msl_pressure,
+        ref_values.msl_temperature);
+
+    // Filter with accelerometer
+    ada_data.acc_msl_altitude = pressureToAltitude(filter_acc.X(0, 0));
+    ada_data.acc_vert_speed   = aeroutils::verticalSpeed(
+        filter_acc.X(0, 0), filter_acc.X(1, 0), ref_values.msl_pressure,
+        ref_values.msl_temperature);
 }
 
 void ADA::updateAcc(float ax) { acc_stats.add(ax); }
 
-float ADA::getAltitude()
+void ADA::updateGPS(double lat, double lon, bool has_fix)
 {
-    return aeroutils::relAltitude(filter.X(0, 0), ref_values.msl_pressure,
+    last_lat = lat;
+    last_lon = lon;
+    last_fix = has_fix;
+}
+
+float ADA::getAltitudeMsl() const { return ada_data.msl_altitude; }
+
+ADA::AltitudeDPL ADA::getAltitudeForDeployment() const
+{
+    return AltitudeDPL{ada_data.dpl_altitude, ada_data.is_dpl_altitude_agl};
+}
+
+float ADA::getVerticalSpeed() const { return ada_data.vert_speed; }
+
+float ADA::pressureToAltitude(float pressure) const
+{
+    return aeroutils::relAltitude(pressure, ref_values.msl_pressure,
                                   ref_values.msl_temperature);
 }
 
-float ADA::getVerticalSpeed()
+ADA::AltitudeDPL ADA::altitudeMSLtoDPL(float altitude_msl) const
 {
-    return aeroutils::verticalSpeed(filter.X(0, 0), filter.X(1, 0),
-                                    ref_values.msl_pressure,
-                                    ref_values.msl_temperature);
+    float elev = elevationmap::getElevation(last_lat, last_lon);
+    if (last_fix)
+    {
+        return {altitude_msl - elev, true};
+    }
+    else
+    {
+        return {altitude_msl - ref_values.ref_altitude, false};
+    }
 }
 
-KalmanState ADA::getKalmanState()
+KalmanState ADA::getKalmanState() const
 {
     KalmanState state;
 

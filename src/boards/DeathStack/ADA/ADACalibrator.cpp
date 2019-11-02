@@ -21,28 +21,19 @@
  */
 
 #include "ADACalibrator.h"
-
+#include <utils/aero/AeroUtils.h>
 namespace DeathStackBoard
 {
 
-void ADACalibrator::addBaroSample(float p)
-{
-    pressure_stats.add(p);
-    setup_data.pressure_stats_results = pressure_stats.getStats();
-}
+void ADACalibrator::addBaroSample(float p) { pressure_stats.add(p); }
 
 bool ADACalibrator::calibIsComplete()
 {
-    return setup_data.pressure_stats_results.nSamples >=
-               CALIBRATION_BARO_N_SAMPLES &&
-           setup_data.ref_alt_set && setup_data.ref_temp_set;
+    return pressure_stats.getStats().nSamples >= CALIBRATION_BARO_N_SAMPLES &&
+           ref_alt_set && ref_temp_set;
 }
 
-void ADACalibrator::resetBaro()
-{
-    pressure_stats.reset();
-    setup_data.pressure_stats_results = pressure_stats.getStats();
-}
+void ADACalibrator::resetBaro() { pressure_stats.reset(); }
 
 void ADACalibrator::setReferenceTemperature(float ref_temp)
 {
@@ -51,18 +42,39 @@ void ADACalibrator::setReferenceTemperature(float ref_temp)
     // Sanity check: Obey to the laws of thermodynamics
     if (temperature_ref > 0)
     {
-        setup_data.ref_temp     = ref_temp + 273.15;
-        setup_data.ref_temp_set = true;
-        TRACE("[ADA] Reference temperature set to %.3f K\n",
-              setup_data.ref_temp);
+        ref_values.ref_temperature = temperature_ref;
+        ref_temp_set               = true;
+        TRACE("[ADA] Reference temperature set to %.3f K\n", temperature_ref);
     }
 }
 
 void ADACalibrator::setReferenceAltitude(float ref_alt)
 {
-    setup_data.ref_alt     = ref_alt;
-    setup_data.ref_alt_set = true;
+    ref_values.ref_altitude = ref_alt;
+    ref_alt_set             = true;
     TRACE("[ADA] Reference altitude set to %.3f m\n", ref_alt);
 }
 
+ReferenceValues ADACalibrator::getReferenceValues()
+{
+    if (calibIsComplete())
+    {
+        ref_values.ref_pressure = pressure_stats.getStats().mean;
+
+        // Calculat MSL values for altitude calculation
+    }
+    else
+    {
+        ref_values.ref_pressure = DEFAULT_REFERENCE_PRESSURE;
+    }
+
+    ref_values.msl_pressure = aeroutils::mslPressure(ref_values.ref_pressure,
+                                                     ref_values.ref_temperature,
+                                                     ref_values.ref_altitude);
+
+    ref_values.msl_temperature = aeroutils::mslTemperature(
+        ref_values.ref_temperature, ref_values.ref_altitude);
+
+    return ref_values;
+};
 }  // namespace DeathStackBoard

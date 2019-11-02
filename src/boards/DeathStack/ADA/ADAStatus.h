@@ -42,21 +42,6 @@ enum class ADAState
     END
 };
 
-// Struct created by calibrator and passed to the ADA constructor
-struct ADASetupData
-{
-    // Pressure calibration results
-    StatsResult pressure_stats_results;
-
-    // References for Pa/m conversion
-    float ref_alt  = DEFAULT_REFERENCE_ALTITUDE;
-    float ref_temp = DEFAULT_REFERENCE_TEMPERATURE;
-
-    // Refernece flags
-    bool ref_alt_set  = false;
-    bool ref_temp_set = false;
-};
-
 // Struct to log apogee detection
 struct ApogeeDetected
 {
@@ -82,7 +67,7 @@ struct DplAltitudeReached
 
 // Struct to log current state
 // Also used to keep track of current state
-struct ADAStatus
+struct ADAControllerStatus
 {
     long long timestamp;
     ADAState state            = ADAState::UNDEFINED;
@@ -127,21 +112,30 @@ struct KalmanState
 
 // Struct to log altitude and vertical speed of first Kalman
 // (state after conversion)
-struct KalmanAltitude
+struct ADAData
 {
     long long timestamp;
-    float altitude;
+    float msl_altitude;
+    float dpl_altitude;
+    bool is_dpl_altitude_agl;
     float vert_speed;
-
-    static std::string header() { return "timestamp,altitude,vert_speed\n"; }
+    
+    float acc_msl_altitude;
+    float acc_vert_speed;
+    
+    static std::string header()
+    {
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << altitude << "," << vert_speed << "\n";
+        os << timestamp << "," << msl_altitude << "," << dpl_altitude
+           << "," << (int)is_dpl_altitude_agl << "," << vert_speed << "\n";
     }
 };
 
-// Struct to log Pa/m reference values
+// Struct to log altimeter reference values
 // Also used in ADA to store the values
 struct ReferenceValues
 {
@@ -149,7 +143,7 @@ struct ReferenceValues
     float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
 
     // Launch site pressure and temperature
-    float ref_pressure    = 0;
+    float ref_pressure    = DEFAULT_REFERENCE_PRESSURE;
     float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
     // Pressure at mean sea level for altitude calculation, to be updated with

@@ -34,7 +34,7 @@ namespace DeathStackBoard
 /* --- LIFE CYCLE --- */
 
 ADAController::ADAController()
-    : FSM(&ADAController::stateIdle, 4096, 2), rogallo_dts()
+    : FSM(&ADAController::stateIdle, 4096, 2), ada(ReferenceValues{})
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -49,12 +49,14 @@ ADAController::ADAController()
 void ADAController::updateGPS(double lat, double lon, bool hasFix)
 {
     // Update gps regardless of the current state
-    rogallo_dts.updateGPS(lat, lon, hasFix);
+    ada.updateGPS(lat, lon, hasFix);
 }
 
 void ADAController::updateBaro(float pressure)
 {
-    switch (status.state)
+    ADAState state = status.state;
+
+    switch (state)
     {
         case ADAState::IDLE:
         {
@@ -85,33 +87,46 @@ void ADAController::updateBaro(float pressure)
         {
             // Log the altitude & vertical speed but don't use kalman pressure
             // while we are on the ramp
+            ADAData d;
+            d.timestamp = miosix::getTick();
+
+            d.msl_altitude = ada.pressureToAltitude(pressure);
+            d.vert_speed   = 0;
+
+            d.acc_msl_altitude = 0;
+            d.acc_vert_speed   = 0;
+
+            ADA::AltitudeDPL ad   = ada.altitudeMSLtoDPL(d.msl_altitude);
+            d.dpl_altitude        = ad.altitude;
+            d.is_dpl_altitude_agl = ad.is_agl;
+
+            logger.log(d);
             break;
         }
 
         case ADAState::SHADOW_MODE:
         {
             // Shadow mode state: update kalman, DO NOT send events
-            ada->updateBaro(pressure);
-            last_kalman_state = ada->getKalmanState();
+            ada.updateBaro(pressure);
 
-            // Check if the vertical speed is negative (so when the derivative
-            // of the pressure is > 0)
-            if (ada->getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
+            // Check if the vertical speed smaller than the target apogee speed
+            if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
                 ApogeeDetected apogee{status.state, miosix::getTick()};
                 logger.log(apogee);
             }
+
+            logData(ada.getKalmanState(), ada.getADAData());
+
             break;
         }
 
         case ADAState::ACTIVE:
         {
-            ada->updateBaro(pressure);
-            last_kalman_state = ada->getKalmanState();
-
+            ada.updateBaro(pressure);
             // Check if we reached apogee
-            if (ada->getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
+            if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 n_samples_going_down = n_samples_going_down + 1;
                 if (n_samples_going_down >= APOGEE_N_SAMPLES)
@@ -129,23 +144,30 @@ void ADAController::updateBaro(float pressure)
             {
                 n_samples_going_down = 0;
             }
+
+            logData(ada.getKalmanState(), ada.getADAData());
             break;
         }
 
         case ADAState::FIRST_DESCENT_PHASE:
         {
             // Descent state: send notifications for target altitude reached
-            ada->updateBaro(pressure);
-            last_kalman_state = ada->getKalmanState();
+            ada.updateBaro(pressure);
 
-            rogallo_dts.updateAltitude(ada->getAltitude());
+            if (ada.getAltitudeForDeployment().altitude <= deployment_altitude)
+            {
+                // TODO: DEPLOY!
+            }
+
+            logData(ada.getKalmanState(), ada.getADAData());
             break;
         }
         case ADAState::END:
         {
             // Continue updating the filter for logging & telemetry purposes
-            ada->updateBaro(pressure);
-            last_kalman_state = ada->getKalmanState();
+            ada.updateBaro(pressure);
+
+            logData(ada.getKalmanState(), ada.getADAData());
             break;
         }
         case ADAState::UNDEFINED:
@@ -169,7 +191,7 @@ void ADAController::updateAcc(float ax)
         status.state == ADAState::FIRST_DESCENT_PHASE ||
         status.state == ADAState::END)
     {
-        ada->updateAcc(ax);
+        ada.updateAcc(ax);
     }
 }
 
@@ -217,7 +239,10 @@ void ADAController::setDeploymentAltitude(float dpl_alt)
     if (status.state == ADAState::CALIBRATING ||
         status.state == ADAState::READY)
     {
-        rogallo_dts.setDeploymentAltitudeAgl(dpl_alt);
+        deployment_altitude     = dpl_alt;
+        deployment_altitude_set = true;
+
+        logger.log(TargetDeploymentAltitude{dpl_alt});
 
         TRACE("[ADA] Deployment altitude set to %.3f m\n", dpl_alt);
 
@@ -234,18 +259,24 @@ void ADAController::setDeploymentAltitude(float dpl_alt)
 void ADAController::finalizeCalibration()
 {
     Lock<FastMutex> l(calibrator_mutex);
-    if (calibrator.calibIsComplete() && rogallo_dts.dtsIsReady())
+
+    if (calibrator.calibIsComplete() && deployment_altitude_set)
     {
         // If samples are enough and dpl altitude has been set init ada
-        ada.reset(new ADA(calibrator.getSetupData()));
-        last_kalman_state = ada->getKalmanState();
+        ada = ADA{calibrator.getReferenceValues()};
+
+        // ADA READY!
+        sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
+
+        logger.log(calibrator.getReferenceValues());
+        logger.log(ada.getKalmanState());
     }
 }
 
 void ADAController::resetCalibration()
 {
     Lock<FastMutex> l(calibrator_mutex);
-    calibrator.resetStats();
+    calibrator.resetBaro();
 }
 
 /* --- STATES --- */
@@ -526,6 +557,14 @@ void ADAController::logStatus()
 {
     status.timestamp = miosix::getTick();
     logger.log(status);
+
     StackLogger::getInstance()->updateStack(THID_ADA_FSM);
 }
+
+void ADAController::logData(KalmanState s, ADAData d)
+{
+    logger.log(s);
+    logger.log(d);
+}
+
 }  // namespace DeathStackBoard

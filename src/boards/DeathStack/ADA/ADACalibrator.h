@@ -34,14 +34,17 @@ class ADACalibrator
 {
 private:
     /* --- CALIBRATION --- */
+    ReferenceValues ref_values{};
+
     Stats pressure_stats;  // Computes mean std dev etc for calibration of
                            // pressure conversion
 
-    ADASetupData setup_data;
-
+    // Refernece flags
+    bool ref_alt_set  = false;
+    bool ref_temp_set = false;
 public:
     /* --- CALIBRATION --- */
-    ADASetupData getSetupData() { return setup_data; };
+    ReferenceValues getReferenceValues();
     bool calibIsComplete();
     void addBaroSample(float p);
     void resetBaro();

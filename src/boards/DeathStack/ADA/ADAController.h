@@ -31,7 +31,6 @@
 #include <DeathStack/events/Events.h>
 #include <kalman/Kalman.h>
 #include "DeathStack/LoggerService/LoggerService.h"
-#include "RogalloDTS/RogalloDTS.h"
 
 #include <miosix.h>
 
@@ -82,15 +81,7 @@ public:
      * @returns A struct containing the time stamp, the ADA FSM state and
      * several flags
      */
-    ADAStatus getStatus() { return status; }
-
-    /**
-     * Get the latest state estimated by the Kalman filter
-     * @returns A struct containing three floats representing the three states
-     */
-    KalmanState getKalmanState() { return last_kalman_state; }
-
-    const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
+    ADAControllerStatus getStatus() { return status; }
 
 private:
     /* --- FSM STATES --- */
@@ -102,44 +93,37 @@ private:
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
+    void finalizeCalibration();
+    void resetCalibration();
+
+    void logStatus(ADAState state);  // Update and log ADA FSM state
+    void logStatus();  // Log the ADA FSM state without updating it
+
+    void logData(KalmanState s, ADAData d);
+
     uint16_t shadow_delayed_event_id =
         0;  // Event id to store calibration timeout
 
-    ADAStatus status;  // ADA status: timestamp + state
+    ADAControllerStatus status;  // ADA status: timestamp + state
 
     /* --- CALIBRATION --- */
     FastMutex calibrator_mutex;
     ADACalibrator calibrator;
 
-    void finalizeCalibration();
-    void resetCalibration();
-
     /* --- ALGORITHM --- */
-    std::unique_ptr<ADA> ada;
-    RogalloDTS rogallo_dts;  // Rogallo deployment and termination system
+    ADA ada;
+
+    float deployment_altitude = DEFAULT_DEPLOYMENT_ALTITUDE;
+    bool deployment_altitude_set = false;
 
     unsigned int n_samples_going_down =
         0;  // Number of consecutive samples in which the vertical speed was
             // negative
 
-    KalmanState last_kalman_state;  // Last kalman state
-
     /* --- LOGGER --- */
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
 
-    void logStatus(ADAState state);  // Update and log ADA FSM state
-    void logStatus();  // Log the ADA FSM state without updating it
-
-    /**
-     * Calculates altitude and vertical speed based on the current kalman state.
-     * Then logs the data and return the current altitude
-     * @return Altitude MSL [m]
-     *
-     * @param p Pressure [Pa]
-     * @param dp_dt  Variation of pressure [Pa / s]
-     * @return Altitude msl [m]
-     */
-    float updateAltitude(float p, float dp_dt);
+    
 };
 
 }  // namespace DeathStackBoard
