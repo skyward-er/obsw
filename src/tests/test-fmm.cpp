@@ -21,7 +21,7 @@
  */
 
 #include <boards/DeathStack/FlightModeManager/FlightModeManager.h>
-#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
+#include <events/utils/EventSniffer.h>
 
 #include <boards/DeathStack/events/Events.h>
 #include <boards/DeathStack/events/Topics.h>
@@ -59,6 +59,6 @@ int main()
 
         sEventBroker->post(ev, topic);
     }
-    
+
     return 0;
 }

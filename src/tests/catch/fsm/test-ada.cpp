@@ -31,7 +31,7 @@
 #define private public
 
 #include <miosix.h>
-#include <utils/catch.hpp>
+#include <utils/testutils/catch.hpp>
 
 #include <boards/CanInterfaces.h>
 #include <boards/DeathStack/ADA/ADA.h>

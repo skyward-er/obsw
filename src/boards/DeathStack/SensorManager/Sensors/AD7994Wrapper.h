@@ -66,7 +66,6 @@ public:
             data.honeywell_baro_volt = hw_baro.value;
             data.honeywell_baro_flag = hw_baro.alert_flag;
 
-            // TODO: calculate pressures from adc value
             data.nxp_baro_pressure = nxpRaw2Pressure(data.nxp_baro_volt);
             data.honeywell_baro_pressure =
                 hwRaw2Pressure(data.honeywell_baro_volt);

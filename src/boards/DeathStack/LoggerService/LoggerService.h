@@ -40,7 +40,7 @@
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
 
 #include "drivers/canbus/CanUtils.h"
-#include "drivers/mavlink/MavStatus.h"
+#include "drivers/mavlink/MavlinkStatus.h"
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -127,7 +127,7 @@ LogResult LoggerService::log<LogStats>(const LogStats& t);
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerService::log<MavStatus>(const MavStatus& t);
+LogResult LoggerService::log<MavlinkStatus>(const MavlinkStatus& t);
 
 /* Sensor Manager */
 template <>

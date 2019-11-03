@@ -20,20 +20,49 @@
  * THE SOFTWARE.
  */
 
-#include <boards/DeathStack/configs/TMTCConfig.h>
+#include <libs/mavlink_skyward_lib/mavlink_lib/r2a/mavlink.h>
 
 #include <Common.h>
+#include <drivers/gamma868/Gamma868.h>
+#include <drivers/mavlink/MavlinkDriver.h>
+
+#include <boards/DeathStack/configs/TMTCConfig.h>
+
 #include <drivers/Xbee/Xbee.h>
-#include <drivers/mavlink/multi/MavManager.h>
-#include "DeathStack/TMTCManager/XbeeInterrupt.h"
 
 #include "DeathStack/events/Events.h"
 #include "events/FSM.h"
 
+
+#include "DeathStack/TMTCManager/XbeeInterrupt.h"
+
 using namespace miosix;
 using namespace DeathStackBoard;
 
+using MavChannel = MavlinkDriver<256,10>;
+
 Xbee_t* device;
+MavChannel* channel;
+
+// Receive function: sends an ACK back
+static void onReceive(MavChannel* channel, const mavlink_message_t& msg)
+{
+    if (msg.msgid != MAVLINK_MSG_ID_ACK_TM)
+    {
+        TRACE("[TmtcTest] Sending ack\n");
+
+        mavlink_message_t ackMsg;
+        mavlink_msg_ack_tm_pack(1, 1, &ackMsg, msg.msgid, msg.seq);
+
+        /* Send the message back to the sender */
+        bool ackSent = channel->enqueueMsg(ackMsg);
+
+        if(!ackSent)
+            TRACE("[Receiver] Could not enqueue ack\n");
+    }
+}
+
+
 
 int main()
 {
@@ -41,28 +70,25 @@ int main()
     busSPI2::init();
 
     device = new Xbee_t();
-    device->start();
+    channel = new MavChannel(device, &onReceive, 250);
 
+    device->start();
+    channel->start();
+
+    // Send function: enqueue a ping every second
     while(1)
     {
-        TRACE("[TmtcTest] Sending ping\n");
+        //TRACE("[TmtcTest] Enqueueing ping\n");
 
         // Create a Mavlink message
-        mavlink_message_t pingMsg;
-        mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
+        // mavlink_message_t pingMsg;
+        // mavlink_msg_ping_tc_pack(1, 1, &pingMsg, miosix::getTick());
 
-        uint8_t buff[100];
-        int msgLen = mavlink_msg_to_send_buffer(buff, &pingMsg);
+        // // Send the message
+        // bool ackSent = channel->enqueueMsg(pingMsg);
 
-        for(int i = 0; i < msgLen; i++)
-        {
-            printf("Sending 0x%2x\n", buff[i]);
-        }
-        
-        //uint8_t buff[5] = {'A', 'B', 'C', 'D', 'E'};
-
-        // Send the message
-        device->send(buff, msgLen);
+        // if(!ackSent)
+        //     TRACE("[TmtcTest] Could not enqueue ping\n");
 
         // ledOn();
         // miosix::delayMs(200);

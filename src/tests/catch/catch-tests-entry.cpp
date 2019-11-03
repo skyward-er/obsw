@@ -55,7 +55,7 @@
 #define CATCH_CONFIG_NO_POSIX_SIGNALS
 
 #include <miosix.h>
-#include <utils/catch.hpp>
+#include <utils/testutils/catch.hpp>
 #include <cstring>
 #include <string>
 #include <vector>
