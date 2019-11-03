@@ -65,8 +65,6 @@ void ADA::updateBaro(float pressure)
     MatrixBase<float, 2, 1> y_acc{z, ax};
     filter_acc.update(y_acc);
 
-    acc_stats.reset();
-
     // Convert filter data to altitudes & speeds
     ada_data.timestamp    = miosix::getTick();
     ada_data.msl_altitude = pressureToAltitude(filter.X(0, 0));
@@ -86,7 +84,15 @@ void ADA::updateBaro(float pressure)
         ref_values.msl_temperature);
 }
 
-void ADA::updateAcc(float ax) { acc_stats.add(ax); }
+void ADA::updateAcc(float ax)
+{
+    acc_stats.add(ax);
+    if (acc_stats.getStats().nSamples >= ACCELERATION_AVERAGE_N_SAMPLES)
+    {
+        last_acc_average = acc_stats.getStats().mean;
+        acc_stats.reset();
+    }
+}
 
 void ADA::updateGPS(double lat, double lon, bool has_fix)
 {

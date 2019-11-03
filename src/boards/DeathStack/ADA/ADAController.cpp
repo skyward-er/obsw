@@ -128,8 +128,7 @@ void ADAController::updateBaro(float pressure)
             // Check if we reached apogee
             if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
-                n_samples_going_down = n_samples_going_down + 1;
-                if (n_samples_going_down >= APOGEE_N_SAMPLES)
+                if (++n_samples_apogee_detected >= APOGEE_N_SAMPLES)
                 {
                     // Active state send notifications for apogee
                     sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
@@ -140,9 +139,9 @@ void ADAController::updateBaro(float pressure)
                 ApogeeDetected apogee{status.state, miosix::getTick()};
                 logger.log(apogee);
             }
-            else if (n_samples_going_down != 0)
+            else if (n_samples_apogee_detected != 0)
             {
-                n_samples_going_down = 0;
+                n_samples_apogee_detected = 0;
             }
 
             logData(ada.getKalmanState(), ada.getADAData());
@@ -156,7 +155,14 @@ void ADAController::updateBaro(float pressure)
 
             if (ada.getAltitudeForDeployment().altitude <= deployment_altitude)
             {
-                // TODO: DEPLOY!
+                if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
+                {
+                    sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
+                }
+            }
+            else if (n_samples_deployment_detected != 0)
+            {
+                n_samples_deployment_detected = 0;
             }
 
             logData(ada.getKalmanState(), ada.getADAData());
@@ -186,13 +192,8 @@ void ADAController::updateBaro(float pressure)
 
 void ADAController::updateAcc(float ax)
 {
-    if (status.state == ADAState::SHADOW_MODE ||
-        status.state == ADAState::ACTIVE ||
-        status.state == ADAState::FIRST_DESCENT_PHASE ||
-        status.state == ADAState::END)
-    {
-        ada.updateAcc(ax);
-    }
+    // Update acceleration unconditionally
+    ada.updateAcc(ax);
 }
 
 /* --- TC --- */
@@ -206,12 +207,7 @@ void ADAController::setReferenceTemperature(float ref_temp)
             calibrator.setReferenceTemperature(ref_temp);
         }
 
-        if (status.state == ADAState::READY)
-        {
-            // Update the calibration parameters if a calibration has already
-            // been completed
-            finalizeCalibration();
-        }
+        finalizeCalibration();
     }
 }
 
@@ -225,12 +221,7 @@ void ADAController::setReferenceAltitude(float ref_alt)
             calibrator.setReferenceAltitude(ref_alt);
         }
 
-        if (status.state == ADAState::READY)
-        {
-            // Update the calibration parameters if a calibration has already
-            // been completed
-            finalizeCalibration();
-        }
+        finalizeCalibration();
     }
 }
 
@@ -239,19 +230,17 @@ void ADAController::setDeploymentAltitude(float dpl_alt)
     if (status.state == ADAState::CALIBRATING ||
         status.state == ADAState::READY)
     {
-        deployment_altitude     = dpl_alt;
-        deployment_altitude_set = true;
+        {
+            Lock<FastMutex> l(calibrator_mutex);
 
+            deployment_altitude     = dpl_alt;
+            deployment_altitude_set = true;
+        }
         logger.log(TargetDeploymentAltitude{dpl_alt});
 
         TRACE("[ADA] Deployment altitude set to %.3f m\n", dpl_alt);
 
-        if (status.state == ADAState::READY)
-        {
-            // Update the calibration parameters if a calibration has already
-            // been completed
-            finalizeCalibration();
-        }
+        finalizeCalibration();
     }
 }
 
@@ -487,8 +476,8 @@ void ADAController::stateFirstDescentPhase(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[ADA] Entering stateFirstDescentPhase\n");
             logStatus(ADAState::FIRST_DESCENT_PHASE);
+            TRACE("[ADA] Entering stateFirstDescentPhase\n");
             break;
         }
         case EV_EXIT:
