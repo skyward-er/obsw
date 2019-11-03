@@ -4,7 +4,7 @@
 
 using namespace miosix;
 
-void __attribute__((used)) EXTI10_IRQHandlerImpl() { Xbee::handleInterrupt(); }
+void __attribute__((used)) EXTI10_IRQHandlerImpl() { Xbee::handleATTNInterrupt(); }
 
 namespace DeathStackBoard
 {

@@ -26,7 +26,7 @@
 #ifdef STANDALONE_CATCH1_TEST
 #include "catch/catch-tests-entry.cpp"
 #endif
-#include <utils/catch.hpp>
+#include <utils/testutils/catch.hpp>
 
 #include <algorithm>
 

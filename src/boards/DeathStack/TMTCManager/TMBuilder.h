@@ -25,7 +25,6 @@
 #include <Common.h>
 #include <DeathStack/LoggerService/TmRepository.h>
 #include <DeathStack/configs/TMTCConfig.h>
-
 namespace DeathStackBoard
 {
 namespace TMBuilder
@@ -110,13 +109,14 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             break;
 
         case MavTMList::MAV_HR_TM_ID:
-            tm_repository.hr_tm.timestamp = miosix::getTick();
+        {          
             mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
-                                     &(tm_repository.hr_tm));
+                                     &(tm_repository.hr_tm_packet));
             break;
+        }
         case MavTMList::MAV_LR_TM_ID:
-            mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
-                                     &(tm_repository.lr_tm));
+            // mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
+            //                          &(tm_repository.lr_tm));
             break;
         case MavTMList::MAV_TEST_TM_ID:
             tm_repository.test_tm.timestamp = miosix::getTick();

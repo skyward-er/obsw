@@ -35,7 +35,7 @@
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
 
 #include "drivers/canbus/CanUtils.h"
-#include "drivers/mavlink/MavStatus.h"
+#include "drivers/mavlink/MavlinkStatus.h"
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
 #include "sensors/MPU9250/MPU9250Data.h"
@@ -79,10 +79,7 @@ LogResult LoggerService::log<FMMStatus>(const FMMStatus& t)
         miosix::PauseKernelLock kLock;
 
         tm_repository.fmm_tm.state = static_cast<uint8_t>(t.state);
-
-        // HR TM
-        tm_repository.hr_tm.bitfield_1 &= 0x0F;
-        tm_repository.hr_tm.bitfield_1 |= ((uint8_t)t.state & 0x0F) << 4;
+        tm_repository.hr_tm.fmm_state = static_cast<uint8_t>(t.state);
     }
     return logger.log(t);
 }
@@ -109,8 +106,7 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
                 tm_repository.test_tm.pin_launch = t.state;
 
                 // HR TM
-                tm_repository.hr_tm.bitfield_2 &= 0xFE;
-                tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.state & 0x01;
+                tm_repository.hr_tm.pin_launch = t.state;
                 break;
             }
             case ObservedPin::NOSECONE:
@@ -125,9 +121,7 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
                 tm_repository.test_tm.pin_nosecone = t.state;
 
                 // HR TM
-                tm_repository.hr_tm.bitfield_2 &= 0xFD;
-                tm_repository.hr_tm.bitfield_2 |= ((uint8_t)t.state & 0x01)
-                                                  << 1;
+                tm_repository.hr_tm.pin_nosecone = t.state;
                 break;
             }
             default:
@@ -200,8 +194,8 @@ LogResult LoggerService::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerService::log<MavStatus>(
-    const MavStatus& t)  // da controllare l'enum nella MavStatus logger
+LogResult LoggerService::log<MavlinkStatus>(
+    const MavlinkStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -249,8 +243,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
         tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
 
         // HR TM
-        tm_repository.hr_tm.bitfield_1 &= 0xF0;
-        tm_repository.hr_tm.bitfield_1 |= ((uint8_t)t.state & 0x0F);
+        tm_repository.hr_tm.dpl_state = t.state;
     }
     return logger.log(t);
 }
@@ -303,9 +296,8 @@ LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t)
 {
     {
         miosix::PauseKernelLock kLock;
-
-        tm_repository.hr_tm.kal_alt     = static_cast<int16_t>(t.altitude);
-        tm_repository.hr_tm.kal_v_speed = static_cast<int16_t>(t.vert_speed);
+        tm_repository.hr_tm.msl_altitude = t.altitude;
+        tm_repository.hr_tm.vert_speed = t.vert_speed;
     }
     flight_stats.update(t);
 
@@ -374,7 +366,7 @@ LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t)
         tm_repository.adc_tm.hw_baro_pressure = t.honeywell_baro_pressure;
 
         // HR TM
-        tm_repository.hr_tm.pressure = t.nxp_baro_pressure;
+        tm_repository.hr_tm.pressure_ada = t.nxp_baro_pressure;
 
         // Test tm
         tm_repository.test_tm.pressure_nxp = t.nxp_baro_pressure;
@@ -432,7 +424,7 @@ LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t)
         tm_repository.adis_tm.aux_adc    = t.aux_adc;
 
         // HR TM
-        tm_repository.hr_tm.z_acc = t.zaccl_out;
+        // tm_repository.hr_tm.z_acc = t.zaccl_out;
     }
 
     return logger.log(t);
@@ -457,7 +449,9 @@ LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
         tm_repository.mpu_tm.temp      = t.temp;
 
         // HR TM
-        tm_repository.hr_tm.z_acc = t.accel.getZ();
+        tm_repository.hr_tm.acc_x = t.accel.getX();
+        tm_repository.hr_tm.acc_y = t.accel.getY();
+        tm_repository.hr_tm.acc_z = t.accel.getZ();
 
         // Test TM
         tm_repository.test_tm.x_acc = t.accel.getX();
@@ -485,8 +479,6 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
             case TempSensorId::LM75B_IMU:
             {
                 tm_repository.test_tm.temp_imu = t.temp;
-
-                tm_repository.hr_tm.temperature = static_cast<int8_t>(t.temp);
                 break;
             }
         }
@@ -516,10 +508,8 @@ LogResult LoggerService::log<PiksiData>(const PiksiData& t)
         // HR TM
         tm_repository.hr_tm.gps_lat = t.gps_data.latitude;
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
-
-        // HR TM
-        tm_repository.hr_tm.bitfield_2 &= 0xFB;
-        tm_repository.hr_tm.bitfield_2 |= (uint8_t)t.fix << 2;
+        tm_repository.hr_tm.gps_alt = t.gps_data.height;
+        tm_repository.hr_tm.gps_fix = t.fix;
 
         // Test TM
         tm_repository.test_tm.gps_altitude = t.gps_data.height;
@@ -573,14 +563,14 @@ LogResult LoggerService::log<LiftOffStats>(const LiftOffStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_liftoff = t.T_liftoff;
+        tm_repository.lr_tm.liftoff_ts = t.T_liftoff;
 
-        tm_repository.lr_tm.t_max_acc = t.T_max_acc;
-        tm_repository.lr_tm.acc_pf    = t.acc_max;
+        tm_repository.lr_tm.liftoff_max_acc_ts = t.T_max_acc;
+        tm_repository.lr_tm.liftoff_max_acc    = t.acc_max;
 
-        tm_repository.lr_tm.t_max_speed   = t.T_max_speed;
-        tm_repository.lr_tm.v_speed_max   = t.vert_speed_max;
-        tm_repository.lr_tm.alt_max_speed = t.altitude_max_speed;
+        tm_repository.lr_tm.max_zspeed_ts   = t.T_max_speed;
+        tm_repository.lr_tm.max_zspeed   = t.vert_speed_max;
+        tm_repository.lr_tm.max_speed_altitude = t.altitude_max_speed;
     }
 
     return logger.log(t);
@@ -592,15 +582,15 @@ LogResult LoggerService::log<ApogeeStats>(const ApogeeStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_apogee      = t.T_apogee;
-        tm_repository.lr_tm.nxp_min_press = t.nxp_min_pressure;
-        tm_repository.lr_tm.hw_min_press  = t.hw_min_pressure;
-        tm_repository.lr_tm.kal_min_press = t.kalman_min_pressure;
-        tm_repository.lr_tm.kal_max_alt   = t.baro_max_altitude;
-        tm_repository.lr_tm.gps_max_alt   = t.gps_max_altitude;
+        tm_repository.lr_tm.apogee_ts      = t.T_apogee;
+        tm_repository.lr_tm.nxp_min_pressure = t.nxp_min_pressure;
+        tm_repository.lr_tm.hw_min_pressure  = t.hw_min_pressure;
+        tm_repository.lr_tm.kalman_min_pressure = t.kalman_min_pressure;
+        tm_repository.lr_tm.baro_max_altitutde   = t.baro_max_altitude;
+        tm_repository.lr_tm.gps_max_altitude   = t.gps_max_altitude;
 
-        tm_repository.lr_tm.lat_apogee = t.lat_apogee;
-        tm_repository.lr_tm.lon_apogee = t.lon_apogee;
+        tm_repository.lr_tm.apogee_lat = t.lat_apogee;
+        tm_repository.lr_tm.apogee_lon = t.lon_apogee;
     }
 
     return logger.log(t);
@@ -612,8 +602,8 @@ LogResult LoggerService::log<DrogueDPLStats>(const DrogueDPLStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_drogue_dpl   = t.T_dpl;
-        tm_repository.lr_tm.max_drogue_acc = t.max_dpl_acc;
+        tm_repository.lr_tm.drogue_dpl_ts   = t.T_dpl;
+        tm_repository.lr_tm.drogue_dpl_max_acc = t.max_dpl_acc;
     }
 
     return logger.log(t);
@@ -625,10 +615,10 @@ LogResult LoggerService::log<MainDPLStats>(const MainDPLStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.t_main_dpl       = t.T_dpl;
-        tm_repository.lr_tm.max_main_acc     = t.max_dpl_acc;
-        tm_repository.lr_tm.alt_main_dpl     = t.altitude_dpl;
-        tm_repository.lr_tm.v_speed_main_dpl = t.vert_speed_dpl;
+        tm_repository.lr_tm.main_dpl_ts       = t.T_dpl;
+        tm_repository.lr_tm.main_dpl_acc     = t.max_dpl_acc;
+        tm_repository.lr_tm.main_dpl_altitude     = t.altitude_dpl;
+        tm_repository.lr_tm.main_dpl_zspeed = t.vert_speed_dpl;
     }
 
     return logger.log(t);
