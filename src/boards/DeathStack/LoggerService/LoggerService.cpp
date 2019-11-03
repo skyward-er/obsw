@@ -78,7 +78,7 @@ LogResult LoggerService::log<FMMStatus>(const FMMStatus& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.fmm_tm.state = static_cast<uint8_t>(t.state);
+        tm_repository.fmm_tm.state    = static_cast<uint8_t>(t.state);
         tm_repository.hr_tm.fmm_state = static_cast<uint8_t>(t.state);
     }
     return logger.log(t);
@@ -194,8 +194,7 @@ LogResult LoggerService::log<LogStats>(const LogStats& t)
 
 /* TMTCManager (Mavlink) */
 template <>
-LogResult LoggerService::log<MavlinkStatus>(
-    const MavlinkStatus& t)
+LogResult LoggerService::log<MavlinkStatus>(const MavlinkStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -232,6 +231,7 @@ LogResult LoggerService::log<SensorManagerStatus>(const SensorManagerStatus& t)
     }
     return logger.log(t);
 }
+
 /* Deployment Controller */
 template <>
 LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
@@ -250,7 +250,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
 
 /* ADA state machine */
 template <>
-LogResult LoggerService::log<ADAStatus>(const ADAStatus& t)
+LogResult LoggerService::log<ADAControllerStatus>(const ADAControllerStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -292,12 +292,14 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t)
 
 /* ADA kalman altitude values */
 template <>
-LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t)
+LogResult LoggerService::log<ADAData>(const ADAData& t)
 {
     {
         miosix::PauseKernelLock kLock;
-        tm_repository.hr_tm.msl_altitude = t.altitude;
-        tm_repository.hr_tm.vert_speed = t.vert_speed;
+        tm_repository.hr_tm.msl_altitude = t.msl_altitude;
+        tm_repository.hr_tm.agl_altitude = t.dpl_altitude;
+        tm_repository.hr_tm.vert_speed   = t.vert_speed;
+        tm_repository.hr_tm.vert_speed_2 = t.acc_vert_speed;
     }
     flight_stats.update(t);
 
@@ -328,7 +330,8 @@ LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t)
 
 //         tm_repository.ada_tm.ref_pressure_mean     = t.pressure_calib.mean;
 //         tm_repository.ada_tm.ref_pressure_stddev   = t.pressure_calib.stdev;
-//         tm_repository.ada_tm.ref_pressure_nsamples = t.pressure_calib.nSamples;
+//         tm_repository.ada_tm.ref_pressure_nsamples =
+//         t.pressure_calib.nSamples;
 //     }
 //     return logger.log(t);
 // }
@@ -387,7 +390,7 @@ LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t)
     return logger.log(t);
 }
 
-/* Motor current sense, sampled by internal ADC */
+/* Current sense, sampled by internal ADC */
 template <>
 LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t)
 {
@@ -399,6 +402,17 @@ LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t)
 
         tm_repository.test_tm.th_cut_1 = t.current_1;
         tm_repository.test_tm.th_cut_2 = t.current_2;
+    }
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerService::log<MS5803Data>(const MS5803Data& t)
+{
+    {
+        miosix::PauseKernelLock kLock;
+
+        tm_repository.hr_tm.pressure_digi = t.pressure;
     }
     return logger.log(t);
 }
@@ -452,6 +466,10 @@ LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
         tm_repository.hr_tm.acc_x = t.accel.getX();
         tm_repository.hr_tm.acc_y = t.accel.getY();
         tm_repository.hr_tm.acc_z = t.accel.getZ();
+
+        tm_repository.hr_tm.gyro_x = t.gyro.getX();
+        tm_repository.hr_tm.gyro_y = t.gyro.getY();
+        tm_repository.hr_tm.gyro_z = t.gyro.getZ();
 
         // Test TM
         tm_repository.test_tm.x_acc = t.accel.getX();
@@ -568,8 +586,8 @@ LogResult LoggerService::log<LiftOffStats>(const LiftOffStats& t)
         tm_repository.lr_tm.liftoff_max_acc_ts = t.T_max_acc;
         tm_repository.lr_tm.liftoff_max_acc    = t.acc_max;
 
-        tm_repository.lr_tm.max_zspeed_ts   = t.T_max_speed;
-        tm_repository.lr_tm.max_zspeed   = t.vert_speed_max;
+        tm_repository.lr_tm.max_zspeed_ts      = t.T_max_speed;
+        tm_repository.lr_tm.max_zspeed         = t.vert_speed_max;
         tm_repository.lr_tm.max_speed_altitude = t.altitude_max_speed;
     }
 
@@ -582,12 +600,15 @@ LogResult LoggerService::log<ApogeeStats>(const ApogeeStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.apogee_ts      = t.T_apogee;
-        tm_repository.lr_tm.nxp_min_pressure = t.nxp_min_pressure;
-        tm_repository.lr_tm.hw_min_pressure  = t.hw_min_pressure;
+        tm_repository.lr_tm.apogee_ts           = t.T_apogee;
+        
+        tm_repository.lr_tm.nxp_min_pressure    = t.nxp_min_pressure;
+        tm_repository.lr_tm.hw_min_pressure     = t.hw_min_pressure;
         tm_repository.lr_tm.kalman_min_pressure = t.kalman_min_pressure;
-        tm_repository.lr_tm.baro_max_altitutde   = t.baro_max_altitude;
-        tm_repository.lr_tm.gps_max_altitude   = t.gps_max_altitude;
+        tm_repository.lr_tm.digital_min_pressure = t.digital_min_pressure;
+
+        tm_repository.lr_tm.baro_max_altitutde  = t.baro_max_altitude;
+        tm_repository.lr_tm.gps_max_altitude    = t.gps_max_altitude;
 
         tm_repository.lr_tm.apogee_lat = t.lat_apogee;
         tm_repository.lr_tm.apogee_lon = t.lon_apogee;
@@ -602,7 +623,7 @@ LogResult LoggerService::log<DrogueDPLStats>(const DrogueDPLStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.drogue_dpl_ts   = t.T_dpl;
+        tm_repository.lr_tm.drogue_dpl_ts      = t.T_dpl;
         tm_repository.lr_tm.drogue_dpl_max_acc = t.max_dpl_acc;
     }
 
@@ -616,9 +637,9 @@ LogResult LoggerService::log<MainDPLStats>(const MainDPLStats& t)
         miosix::PauseKernelLock kLock;
 
         tm_repository.lr_tm.main_dpl_ts       = t.T_dpl;
-        tm_repository.lr_tm.main_dpl_acc     = t.max_dpl_acc;
-        tm_repository.lr_tm.main_dpl_altitude     = t.altitude_dpl;
-        tm_repository.lr_tm.main_dpl_zspeed = t.vert_speed_dpl;
+        tm_repository.lr_tm.main_dpl_acc      = t.max_dpl_acc;
+        tm_repository.lr_tm.main_dpl_altitude = t.altitude_dpl;
+        tm_repository.lr_tm.main_dpl_zspeed   = t.vert_speed_dpl;
     }
 
     return logger.log(t);

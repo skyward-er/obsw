@@ -44,12 +44,9 @@ public:
     void updateAcc(float ax);
     void updateGPS(double lat, double lon, bool has_fix);
 
-    inline KalmanState getKalmanState() const;
+    KalmanState getKalmanState() const;
 
-    ADAData getADAData() const
-    {
-        return ada_data;
-    }
+    ADAData getADAData() const { return ada_data; }
 
     /**
      * @brief Current altitude above mean sea level
@@ -94,8 +91,8 @@ public:
 private:
     Kalman<3, 1> filter;      // Filter object
     Kalman<3, 2> filter_acc;  // Filter with accelerometer
-    // Stats for acceleration averaging
-    Stats acc_stats;
+    Stats acc_stats;  // Stats for acceleration averaging: accelerometer is
+                      // sampled faster than barometer
 
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
@@ -106,6 +103,6 @@ private:
     
     double last_lat = 0;
     double last_lon = 0;
-    bool last_fix = false;
+    bool last_fix   = false;
 };
 }  // namespace DeathStackBoard

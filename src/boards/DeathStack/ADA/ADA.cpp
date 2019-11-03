@@ -53,9 +53,11 @@ ADA::~ADA() {}
 
 void ADA::updateBaro(float pressure)
 {
+    // First kalman (pressure only)
     MatrixBase<float, 1, 1> y{pressure};
     filter.update(y);
 
+    // Second kalman (pressure and acceleration)
     float z  = pressureToAltitude(pressure);
     float ax = (acc_stats.getStats().mean - 1) *
                9.81;  // Remove gravity vector and convert gs to m/s^2

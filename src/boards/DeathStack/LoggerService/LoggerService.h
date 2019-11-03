@@ -44,6 +44,7 @@
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/ADIS16405/ADIS16405Data.h"
 #include "sensors/MPU9250/MPU9250Data.h"
+#include "sensors/MS580301BA07/MS580301BA07Data.h"
 
 namespace DeathStackBoard
 {
@@ -139,7 +140,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t);
 
 /* ADA state machine */
 template <>
-LogResult LoggerService::log<ADAStatus>(const ADAStatus& t);
+LogResult LoggerService::log<ADAControllerStatus>(const ADAControllerStatus& t);
 
 /* ADA target dpl pressure */
 template <>
@@ -152,7 +153,7 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t);
 
 /* ADA kalman altitude values */
 template <>
-LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t);
+LogResult LoggerService::log<ADAData>(const ADAData& t);
 
 template <>
 LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t);
@@ -172,6 +173,9 @@ LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t);
 /* Motor current sense, sampled by internal ADC */
 template <>
 LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t);
+
+template <>
+LogResult LoggerService::log<MS5803Data>(const MS5803Data& t);
 
 /* ADIS imu */
 template <>
