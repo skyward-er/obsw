@@ -153,7 +153,9 @@ void ADAController::updateBaro(float pressure)
             // Descent state: send notifications for target altitude reached
             ada.updateBaro(pressure);
 
-            if (ada.getAltitudeForDeployment().altitude <= deployment_altitude)
+            if (ada.getAltitudeForDeployment().altitude <=
+                    deployment_altitude &&
+                ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
