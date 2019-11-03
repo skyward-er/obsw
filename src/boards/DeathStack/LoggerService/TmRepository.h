@@ -25,16 +25,66 @@
 
 #include <mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
 
-
 /**
- * @brief This file contains all telemetry packets in the form of mavlink structs.
- * These packets are updated by the LoggerService and read by the TMTCManager.
- * 
- * Notice that, if the LoggerService is not active, the value inside tm packets WILL
- * NOT BE UPDATED.
+ * @brief This file contains all telemetry packets in the form of mavlink
+ * structs. These packets are updated by the LoggerService and read by the
+ * TMTCManager.
+ *
+ * Notice that, if the LoggerService is not active, the value inside tm packets
+ * WILL NOT BE UPDATED.
  */
 namespace DeathStackBoard
 {
+
+struct HighRateTM_t
+{
+    long long timestamp;
+    float pressure_ada;
+    float pressure_digi;
+    float msl_altitude;
+    float agl_altitude;
+    float vert_speed;
+    float vert_speed_2;
+    float acc_x;
+    float acc_y;
+    float acc_z;
+    float gyro_x;
+    float gyro_y;
+    float gyro_z;
+    float gps_lat;
+    float gps_lon;
+    float gps_alt;
+    uint8_t fmm_state;
+    uint8_t dpl_state;
+    uint8_t pin_launch;
+    uint8_t pin_nosecone;
+    uint8_t gps_fix;
+};
+
+struct LowRateTM_t
+{
+    long long liftoff_ts;
+    long long liftoff_max_acc_ts;
+    float liftoff_max_acc;
+    long long max_zspeed_ts;
+    float max_zspeed;
+    float max_speed_altitude;
+    long long apogee_ts;
+    float nxp_min_pressure;
+    float hw_min_pressure;
+    float kalman_min_pressure;
+    float digital_min_pressure;
+    float baro_max_altitutde;
+    float gps_max_altitude;
+    float apogee_lat;
+    float apogee_lon;
+    long long drogue_dpl_ts;
+    float drogue_dpl_max_acc;
+    long long main_dpl_ts;
+    float main_dpl_altitude;
+    float main_dpl_zspeed;
+    float main_dpl_acc;
+};
 
 /* Struct containing all tms in the form of mavlink structs */
 struct TmRepository_t
@@ -56,10 +106,13 @@ struct TmRepository_t
     mavlink_mpu_tm_t mpu_tm;
     mavlink_gps_tm_t gps_tm;
 
-    mavlink_hr_tm_t hr_tm;
-    mavlink_lr_tm_t lr_tm;
+    HighRateTM_t hr_tm;
+    LowRateTM_t lr_tm;
 
     mavlink_test_tm_t test_tm;
+
+    mavlink_hr_tm_t hr_tm_packet;
+    mavlink_lr_tm_t lr_tm_packet;
 };
 
 /* Forward declaration of the global struct. */

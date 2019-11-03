@@ -31,7 +31,7 @@
 #include "Motor/MotorDriver.h"
 #include "ThermalCutter/Cutter.h"
 #include "events/HSM.h"
-#include "utils/CircularBuffer.h"
+#include "utils/collections/CircularBuffer.h"
 
 class PinObserver;
 

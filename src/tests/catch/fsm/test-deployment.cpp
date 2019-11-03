@@ -30,11 +30,11 @@
 #define protected public
 
 #include <miosix.h>
-#include <utils/catch.hpp>
+#include <utils/testutils/catch.hpp>
 
 #include "DeathStack/DeploymentController/DeploymentController.h"
 #include "DeathStack/events/Events.h"
-#include "PinObserver.h"
+#include "utils/PinObserver.h"
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
@@ -49,7 +49,7 @@ class DeploymentControllerFixture
 public:
     // This is called at the beginning of each test / section
     DeploymentControllerFixture()
-    { 
+    {
         dpl = new DeploymentController();
         sEventBroker->start();
         dpl->start();
@@ -291,7 +291,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING 
     REQUIRE(
     testHSMTransition(*dpl, Event{EV_NC_DETACHED},
                       &DeploymentController::state_awaitingOpenTime));
-    
+
     SECTION("WAITING MIN OPEN TIME -> Idle")
     {
         REQUIRE(
@@ -374,7 +374,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING 
     REQUIRE(
     testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
                       &DeploymentController::state_awaitingDetachment));
-    
+
     SECTION("WAITING DETACHEMENT -> Idle")
     {
         REQUIRE(

@@ -33,13 +33,13 @@
 #include <DeathStack/events/Events.h>
 #include <events/EventBroker.h>
 #include <events/FSM.h>
-#include <utils/EventCounter.h>
+#include <events/utils/EventCounter.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <utils/catch.hpp>
+#include <utils/testutils/catch.hpp>
 #include "test-ada-data.h"
 
 using namespace DeathStackBoard;

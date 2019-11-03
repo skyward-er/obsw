@@ -29,7 +29,7 @@
 #include <Common.h>
 
 #include <events/EventBroker.h>
-#include <utils/EventSniffer.h>
+#include <events/utils/EventSniffer.h>
 
 #include "DeathStack/LoggerService/TmRepository.h"
 #include "DeathStack/events/Events.h"

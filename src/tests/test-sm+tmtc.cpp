@@ -49,22 +49,22 @@ int main()
     ADAController ada;
     SensorManager mgr{&ada};
     // ada.start();
-    try
-    {
-        LoggerService::getInstance()->start();
-    }
-    catch (const std::exception& e)
-    {
-        printf("SDCARD MISSING\n");;
-        for (;;)
-        {
-            led1::high();
-            Thread::sleep(200);
-            led1::low();
-            Thread::sleep(200);
-        }
-    }
-    led1::high();
+    // try
+    // {
+    //     LoggerService::getInstance()->start();
+    // }
+    // catch (const std::exception& e)
+    // {
+    //     printf("SDCARD MISSING\n");;
+    //     for (;;)
+    //     {
+    //         led1::high();
+    //         Thread::sleep(200);
+    //         led1::low();
+    //         Thread::sleep(200);
+    //     }
+    // }
+    // led1::high();
 
     sEventBroker->start();
     mgr.start();
@@ -83,7 +83,7 @@ int main()
     tmtc->start();
     sEventBroker->start();
 
-    Thread::sleep(5000);
+    Thread::sleep(1000);
 
     //printf("\nOk, press open to post liftoff...\n");
     // while(inputs::btn_open::value())

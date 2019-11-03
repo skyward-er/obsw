@@ -26,7 +26,7 @@
 #include "DeathStack/configs/TMTCConfig.h"
 #include "events/FSM.h"
 
-#include <drivers/mavlink/MavChannel.h>
+#include <drivers/mavlink/MavlinkDriver.h>
 #include <DeathStack/LoggerService/LoggerService.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -38,7 +38,7 @@ namespace DeathStackBoard
  */
 class TMTCManager : public FSM<TMTCManager>
 {
-
+    using Mav = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
 public:
     TMTCManager();
     ~TMTCManager();
@@ -47,7 +47,7 @@ public:
     bool send(mavlink_message_t& msg);
 
     /* Status getter */
-    MavStatus getStatus() { return channel->getStatus(); }
+    MavlinkStatus getStatus() { return channel->getStatus(); }
 
     /* AO methods */
     bool start() override
@@ -66,7 +66,7 @@ public:
 
 private:
     Xbee_t* device;
-    MavChannel* channel;
+    Mav* channel;
 
     LoggerService& logger = *(LoggerService::getInstance());
 
@@ -75,9 +75,14 @@ private:
     void stateSendingTM(const Event& ev);
     void stateSendingTestTM(const Event& ev);
 
+    inline void packHRTelemetry(uint8_t* packet, unsigned int index);
+    inline void packLRTelemetry(uint8_t* packet);
+
     uint16_t lr_event_id = 0;
     uint16_t hr_event_id = 0;
     uint16_t test_tm_event_id = 0;
+
+    uint8_t hr_tm_index = 0;
 };
 
 } /* namespace DeathStackBoard */
