@@ -116,9 +116,11 @@ private:
     float deployment_altitude = DEFAULT_DEPLOYMENT_ALTITUDE;
     bool deployment_altitude_set = false;
 
-    unsigned int n_samples_going_down =
-        0;  // Number of consecutive samples in which the vertical speed was
-            // negative
+    // Number of consecutive samples in which apogee is detected
+    unsigned int n_samples_apogee_detected = 0;  
+
+    // Number of consecutive samples in which dpl altitude is detected
+    unsigned int n_samples_deployment_detected = 0;  
 
     /* --- LOGGER --- */
     LoggerService& logger = *(LoggerService::getInstance());  // Logger

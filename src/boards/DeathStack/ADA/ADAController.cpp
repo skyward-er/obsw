@@ -156,7 +156,14 @@ void ADAController::updateBaro(float pressure)
 
             if (ada.getAltitudeForDeployment().altitude <= deployment_altitude)
             {
-                // TODO: DEPLOY!
+                if (++n_samples_deployment_detected == DEPLOYMENT_N_SAMPLES)
+                {
+                    sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
+            }
+            }
+            else if (n_samples_deployment_detected != 0)
+            {
+                n_samples_deployment_detected = 0;
             }
 
             logData(ada.getKalmanState(), ada.getADAData());

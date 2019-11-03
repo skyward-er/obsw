@@ -33,6 +33,9 @@ constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
+// Number of consecutive samples after which Deployment is triggered
+constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
+
 // When the vertical speed is smaller than this value, apogee is detected.
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (still going up)
