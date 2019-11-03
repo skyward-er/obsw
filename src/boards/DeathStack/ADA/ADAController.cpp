@@ -318,8 +318,9 @@ void ADAController::stateCalibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[ADA] Entering stateCalibrating\n");
+            resetCalibration();
             logStatus(ADAState::CALIBRATING);
+            TRACE("[ADA] Entering stateCalibrating\n");
             break;
         }
         case EV_EXIT:
@@ -334,7 +335,7 @@ void ADAController::stateCalibrating(const Event& ev)
         }
         case EV_TC_CALIBRATE_ADA:
         {
-            resetCalibration();
+            transition(&ADAController::stateCalibrating);
             break;
         }
         default:
@@ -374,7 +375,6 @@ void ADAController::stateReady(const Event& ev)
         }
         case EV_TC_CALIBRATE_ADA:
         {
-            resetCalibration();
             transition(&ADAController::stateCalibrating);
             break;
         }
