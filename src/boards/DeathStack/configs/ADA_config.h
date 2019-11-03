@@ -25,8 +25,6 @@
 
 namespace DeathStackBoard
 {
-// TODO: Change with real values
-
 // How many problematic gps samples to trigger an abort
 constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 
@@ -86,7 +84,7 @@ static const MatrixBase<float, 3, 3> V1_INIT_ACC{1, 0, 0, 0, 10, 0, 0, 0, 100};
 
 // Measurement variance
 static const MatrixBase<float, 1, 1> V2_INIT{800};
-static const MatrixBase<float, 2, 2> V2_INIT_ACC{800,0,0,1000};
+static const MatrixBase<float, 2, 2> V2_INIT_ACC{800, 0, 0, 1000};
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
 // to make it more respondive during the propulsive phase
