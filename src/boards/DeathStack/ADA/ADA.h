@@ -102,6 +102,8 @@ private:
 
     ADAData ada_data;
 
+    float last_acc_average = 0;
+    
     double last_lat = 0;
     double last_lon = 0;
     bool last_fix = false;

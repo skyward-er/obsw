@@ -193,14 +193,9 @@ void ADAController::updateBaro(float pressure)
 
 void ADAController::updateAcc(float ax)
 {
-    if (status.state == ADAState::SHADOW_MODE ||
-        status.state == ADAState::ACTIVE ||
-        status.state == ADAState::FIRST_DESCENT_PHASE ||
-        status.state == ADAState::END)
-    {
+    // Update acceleration unconditionally
         ada.updateAcc(ax);
     }
-}
 
 /* --- TC --- */
 void ADAController::setReferenceTemperature(float ref_temp)
