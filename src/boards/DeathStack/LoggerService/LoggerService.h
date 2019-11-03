@@ -139,7 +139,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t);
 
 /* ADA state machine */
 template <>
-LogResult LoggerService::log<ADAStatus>(const ADAStatus& t);
+LogResult LoggerService::log<ADAControllerStatus>(const ADAControllerStatus& t);
 
 /* ADA target dpl pressure */
 template <>
@@ -152,7 +152,7 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t);
 
 /* ADA kalman altitude values */
 template <>
-LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t);
+LogResult LoggerService::log<ADAData>(const ADAData& t);
 
 template <>
 LogResult LoggerService::log<ReferenceValues>(const ReferenceValues& t);

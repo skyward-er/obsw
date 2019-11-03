@@ -257,7 +257,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
 
 /* ADA state machine */
 template <>
-LogResult LoggerService::log<ADAStatus>(const ADAStatus& t)
+LogResult LoggerService::log<ADAControllerStatus>(const ADAControllerStatus& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -299,12 +299,12 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t)
 
 /* ADA kalman altitude values */
 template <>
-LogResult LoggerService::log<KalmanAltitude>(const KalmanAltitude& t)
+LogResult LoggerService::log<ADAData>(const ADAData& t)
 {
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.hr_tm.kal_alt     = static_cast<int16_t>(t.altitude);
+        tm_repository.hr_tm.kal_alt     = static_cast<int16_t>(t.msl_altitude);
         tm_repository.hr_tm.kal_v_speed = static_cast<int16_t>(t.vert_speed);
     }
     flight_stats.update(t);

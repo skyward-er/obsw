@@ -29,6 +29,8 @@ void ADACalibrator::addBaroSample(float p) { pressure_stats.add(p); }
 
 bool ADACalibrator::calibIsComplete()
 {
+    // Calibration is complete if enough samples were collected and reference
+    // altitude and temperature were set
     return pressure_stats.getStats().nSamples >= CALIBRATION_BARO_N_SAMPLES &&
            ref_alt_set && ref_temp_set;
 }
@@ -57,17 +59,17 @@ void ADACalibrator::setReferenceAltitude(float ref_alt)
 
 ReferenceValues ADACalibrator::getReferenceValues()
 {
+    // If calibration is not compete use default values
     if (calibIsComplete())
     {
         ref_values.ref_pressure = pressure_stats.getStats().mean;
-
-        // Calculat MSL values for altitude calculation
     }
     else
     {
         ref_values.ref_pressure = DEFAULT_REFERENCE_PRESSURE;
     }
 
+    // Calculate MSL values for altitude Pa/m conversion
     ref_values.msl_pressure = aeroutils::mslPressure(ref_values.ref_pressure,
                                                      ref_values.ref_temperature,
                                                      ref_values.ref_altitude);
@@ -76,5 +78,5 @@ ReferenceValues ADACalibrator::getReferenceValues()
         ref_values.ref_temperature, ref_values.ref_altitude);
 
     return ref_values;
-};
+}
 }  // namespace DeathStackBoard

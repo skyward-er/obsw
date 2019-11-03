@@ -46,8 +46,8 @@ public:
     /* --- CALIBRATION --- */
     ReferenceValues getReferenceValues();
     bool calibIsComplete();
-    void addBaroSample(float p);
-    void resetBaro();
+    void addBaroSample(float p);            // Adds a pressure sample to the stats
+    void resetBaro();                       // Resets only pressure stats
 
     /* --- TC ---*/
     /**
