@@ -142,9 +142,9 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
         float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
         ada_controller->updateBaro(noisy_p);
         // Thread::sleep(100);
-        KalmanState state = ada_controller->getKalmanState();
-        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
-               ada_controller->ada->getVerticalSpeed());
+        KalmanState state = ada_controller->ada.getKalmanState() printf(
+            "%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
+            ada_controller->ada.getVerticalSpeed());
         checkState(i, state);
         greenLed::low();
     }
@@ -164,9 +164,9 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
         float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
         ada_controller->updateBaro(noisy_p);
         // Thread::sleep(100);
-        KalmanState state = ada_controller->getKalmanState();
+        KalmanState state = ada_controller->ada.getKalmanState();
         printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
-               ada_controller->ada->getVerticalSpeed());
+               ada_controller->ada.getVerticalSpeed());
         checkState(i, state);
 
         if (ada_controller->getStatus().apogee_reached == true &&
