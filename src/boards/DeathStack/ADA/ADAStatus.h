@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <boards/DeathStack/configs/ADA_config.h>
 #include <math/Stats.h>
 #include <ostream>
 
@@ -65,67 +66,90 @@ struct DplAltitudeReached
 };
 
 // Struct to log current state
-struct ADAStatus
+// Also used to keep track of current state
+struct ADAControllerStatus
 {
     long long timestamp;
     ADAState state            = ADAState::UNDEFINED;
-    bool dpl_altitude_set     = false;
-    bool ref_altitude_set     = false;
-    bool ref_temp_set         = false;
     bool apogee_reached       = false;
     bool dpl_altitude_reached = false;
 
     static std::string header()
     {
-        return "timestamp,state,dpl_altitude_set,apogee_reached,dpl_altitude_"
+        return "timestamp,state,apogee_reached,dpl_altitude_"
                "reached\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "," << dpl_altitude_set << ","
-           << apogee_reached << "," << dpl_altitude_reached << "\n";
+        os << timestamp << "," << (int)state << "," << apogee_reached << ","
+           << dpl_altitude_reached << "\n";
     }
 };
 
+// Struct to log the two Kalman states
 struct KalmanState
 {
     long long timestamp;
     float x0;
     float x1;
     float x2;
+    float x0_acc;
+    float x1_acc;
+    float x2_acc;
 
-    static std::string header() { return "timestamp,x0,x1,x2\n"; }
+    static std::string header()
+    {
+        return "timestamp,x0,x1,x2,x0_acc,x1_acc,x2_acc\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "\n";
+        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "," << x0_acc
+           << "," << x1_acc << "," << x2_acc << "\n";
     }
 };
 
-struct KalmanAltitude
+// Struct to log altitude and vertical speed of first Kalman
+// (state after conversion)
+struct ADAData
 {
     long long timestamp;
-    float altitude;
+    float msl_altitude;
+    float dpl_altitude;
+    bool is_dpl_altitude_agl;
     float vert_speed;
-
-    static std::string header() { return "timestamp,altitude,vert_speed\n"; }
+    
+    float acc_msl_altitude;
+    float acc_vert_speed;
+    
+    static std::string header()
+    {
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << altitude << "," << vert_speed << "\n";
+        os << timestamp << "," << msl_altitude << "," << dpl_altitude
+           << "," << (int)is_dpl_altitude_agl << "," << vert_speed << "\n";
     }
 };
 
+// Struct to log altimeter reference values
+// Also used in ADA to store the values
 struct ReferenceValues
 {
-    float ref_altitude = 0;
+    // Launch site altitude
+    float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
 
-    float ref_pressure = 0;
-    float ref_temperature = 0;
+    // Launch site pressure and temperature
+    float ref_pressure    = DEFAULT_REFERENCE_PRESSURE;
+    float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
-    float msl_pressure = 0;
-    float msl_temperature = 0;
+    // Pressure at mean sea level for altitude calculation, to be updated with
+    // launch-day calibration
+    float msl_pressure    = DEFAULT_MSL_PRESSURE;
+    float msl_temperature = DEFAULT_MSL_TEMPERATURE;
 
     static std::string header()
     {
@@ -140,32 +164,14 @@ struct ReferenceValues
     }
 };
 
+// Struct to log dpl altitude
 struct TargetDeploymentAltitude
 {
     float deployment_altitude;
-    
+
     static std::string header() { return "deployment_altitude\n"; }
 
     void print(std::ostream& os) const { os << deployment_altitude << "\n"; }
-};
-
-// Struct of calibration data
-struct ADACalibrationData
-{
-    StatsResult pressure_calib;
-
-    static std::string header()
-    {
-        return "pressure_calib.minValue,pressure_calib.maxValue,pressure_calib."
-               "mean,pressure_calib.stdev,pressure_calib.nSamples\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << pressure_calib.minValue << "," << pressure_calib.maxValue << ","
-           << pressure_calib.mean << "," << pressure_calib.stdev << ","
-           << pressure_calib.nSamples << "\n";
-    }
 };
 
 }  // namespace DeathStackBoard

@@ -33,7 +33,7 @@
 #include "DeathStack/configs/SensorManagerConfig.h"
 #include "events/FSM.h"
 
-#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/ADA/ADAController.h"
 #include "SensorManagerData.h"
 
 #include <interfaces-impl/hwmapping.h>
@@ -85,7 +85,7 @@ typedef LM75B<i2c1> LM75BType;
 class SensorManager : public FSM<SensorManager>
 {
 public:
-    SensorManager(ADA* ada);
+    SensorManager(ADAController* ada);
     ~SensorManager();
 
     vector<TaskStatResult> getSchedulerStats() { return scheduler_stats; }
@@ -168,7 +168,7 @@ private:
     long long last_gps_timestamp = 0;
 
     // ADA
-    ADA* ada;
+    ADAController* ada_controller;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;

@@ -21,7 +21,7 @@
  */
 
 #include "Common.h"
-#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/ADA/ADAController.h"
 #include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
@@ -34,7 +34,7 @@ using namespace DeathStackBoard;
 int main()
 {
     Stats s;
-    ADA ada;
+    ADAController ada;
     SensorManager mgr{&ada};
     // ada.start();
     try

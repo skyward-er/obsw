@@ -72,7 +72,7 @@ void FlightStatsRecorder::update(const KalmanState& t)
         }
     }
 }
-void FlightStatsRecorder::update(const KalmanAltitude& t)
+void FlightStatsRecorder::update(const ADAData& t)
 {
     switch (state)
     {
@@ -87,15 +87,15 @@ void FlightStatsRecorder::update(const KalmanAltitude& t)
                 liftoff_stats.vert_speed_max = t.vert_speed;
                 liftoff_stats.T_max_speed =
                     static_cast<uint32_t>(miosix::getTick());
-                liftoff_stats.altitude_max_speed = t.altitude;
+                liftoff_stats.altitude_max_speed = t.msl_altitude;
             }
             break;
         }
         case State::ASCENDING:
         {
-            if (t.altitude > apogee_stats.baro_max_altitude)
+            if (t.msl_altitude > apogee_stats.baro_max_altitude)
             {
-                apogee_stats.baro_max_altitude = t.altitude;
+                apogee_stats.baro_max_altitude = t.msl_altitude;
             }
             break;
         }
@@ -108,7 +108,7 @@ void FlightStatsRecorder::update(const KalmanAltitude& t)
             // Only set it one time
             if (main_dpl_stats.altitude_dpl == 0)
             {
-                main_dpl_stats.altitude_dpl   = t.altitude;
+                main_dpl_stats.altitude_dpl   = t.msl_altitude;
                 main_dpl_stats.vert_speed_dpl = t.vert_speed;
             }
             break;

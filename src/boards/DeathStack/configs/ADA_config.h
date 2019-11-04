@@ -25,30 +25,32 @@
 
 namespace DeathStackBoard
 {
-// TODO: Change with real values
-
 // How many problematic gps samples to trigger an abort
 constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
-// When the derivative of the pressure with respect to time is greater than this
-// value, an apogee is detected.
+// Number of consecutive samples after which Deployment is triggered
+constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
+
+// When the vertical speed is smaller than this value, apogee is detected.
 // 0: Exact apogee
-// < 0: Detects apogee ahead of time
-constexpr float APOGEE_PRESSURE_VARIATION_TARGET = -260.0f;  // 3 second ahead
+// > 0: Apogee detected ahead of time (while still going up)
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 0;
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
 
 // Number of samples used to calibrate the kalman initial state
 static const unsigned int CALIBRATION_BARO_N_SAMPLES = 1200;
+static const unsigned int ACCELERATION_AVERAGE_N_SAMPLES = 25;
 
 // Default reference values settings
 // Standard atmosphere values @ Roccaraso
-static const float DEFAULT_REFERENCE_TEMPERATURE = 279.700f;
-static const float DEFAULT_REFERENCE_ALTITUDE    = 1300.0f;
+static const float DEFAULT_REFERENCE_TEMPERATURE = 278.920f;
+static const float DEFAULT_REFERENCE_ALTITUDE    = 1420.0f;
+static const float DEFAULT_REFERENCE_PRESSURE    = 85389.4f;
 
 static const float DEFAULT_MSL_TEMPERATURE = 288.15f;
 static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
@@ -57,6 +59,9 @@ static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
 // Set it under the ground level: don't deploy the Rogallo wing if we somehow
 // forget to set the deployment altitude via telecommand
 static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
+
+// Do cut the drogue above this altitude
+static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1800;
 
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds
@@ -71,15 +76,19 @@ static const MatrixBase<float, 3, 3> A_INIT(
 
 // Output matrix
 static const MatrixBase<float, 1, 3> C_INIT{1, 0, 0};
+static const MatrixBase<float, 2, 3> C_INIT_ACC{1, 0, 0, 0, 0, 1};
 
 // Initial error covariance matrix
 static const MatrixBase<float, 3, 3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
+static const MatrixBase<float, 3, 3> P_INIT_ACC{0.1, 0, 0, 0, 10, 0, 0, 0, 100};
 
 // Model variance matrix
 static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 100};
+static const MatrixBase<float, 3, 3> V1_INIT_ACC{0.1, 0, 0, 0, 80, 1, 0, 1, 10};
 
 // Measurement variance
 static const MatrixBase<float, 1, 1> V2_INIT{800};
+static const MatrixBase<float, 2, 2> V2_INIT_ACC{800,0,0,10};
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
 // to make it more respondive during the propulsive phase
