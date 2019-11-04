@@ -38,7 +38,7 @@
 #include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
 #include "DeathStack/SensorManager/Sensors/PiksiData.h"
 #include "DeathStack/events/EventData.h"
-#include "drivers/mavlink/MavStatus.h"
+#include "drivers/mavlink/MavlinkStatus.h"
 #include "logger/Deserializer.h"
 #include "logger/LogStats.h"
 #include "scheduler/TaskSchedulerData.h"
@@ -84,14 +84,14 @@ void registerTypes(Deserializer& ds)
                                     ApogeeDetected::header());
     ds.registerType<DplAltitudeReached>(print<DplAltitudeReached>,
                                         DplAltitudeReached::header());
-    ds.registerType<ADAStatus>(print<ADAStatus>, ADAStatus::header());
+    ds.registerType<ADAControllerStatus>(print<ADAControllerStatus>, ADAControllerStatus::header());
     ds.registerType<KalmanState>(print<KalmanState>, KalmanState::header());
-    ds.registerType<KalmanAltitude>(print<KalmanAltitude>,
-                                    KalmanAltitude::header());
+    ds.registerType<ADAData>(print<ADAData>,
+                                    ADAData::header());
     ds.registerType<TargetDeploymentAltitude>(
         print<TargetDeploymentAltitude>, TargetDeploymentAltitude::header());
-    ds.registerType<ADACalibrationData>(print<ADACalibrationData>,
-                                        ADACalibrationData::header());
+    ds.registerType<ReferenceValues>(print<ReferenceValues>,
+                                        ReferenceValues::header());
 
     ds.registerType<DeploymentStatus>(print<DeploymentStatus>,
                                       DeploymentStatus::header());
@@ -106,7 +106,7 @@ void registerTypes(Deserializer& ds)
 
     ds.registerType<PinStatus>(print<PinStatus>, PinStatus::header());
 
-    ds.registerType<MavStatus>(print<MavStatus>, MavStatus::header());
+    ds.registerType<MavlinkStatus>(print<MavlinkStatus>, MavlinkStatus::header());
 
     ds.registerType<EventData>(print<EventData>, EventData::header());
     ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
