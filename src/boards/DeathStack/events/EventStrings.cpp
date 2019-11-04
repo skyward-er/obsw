@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
-// Autogen date:    2019-10-10 19:39:23.107904
+// Autogen date:    2019-11-04 11:55:37.746521
 
 
 #include "Events.h"
@@ -46,13 +46,17 @@ string getEventString(uint8_t event)
         { EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED" },
         { EV_ADA_READY, "EV_ADA_READY" },
         { EV_APOGEE, "EV_APOGEE" },
+        { EV_ARMED, "EV_ARMED" },
         { EV_BUTTON_DOWN, "EV_BUTTON_DOWN" },
         { EV_BUTTON_LONG_PRESS, "EV_BUTTON_LONG_PRESS" },
         { EV_BUTTON_SHORT_PRESS, "EV_BUTTON_SHORT_PRESS" },
         { EV_BUTTON_UP, "EV_BUTTON_UP" },
         { EV_BUTTON_VERY_LONG_PRESS, "EV_BUTTON_VERY_LONG_PRESS" },
         { EV_CALIBRATE_ADA, "EV_CALIBRATE_ADA" },
+        { EV_CUT_BACKUP, "EV_CUT_BACKUP" },
         { EV_CUT_DROGUE, "EV_CUT_DROGUE" },
+        { EV_CUT_PRIMARY, "EV_CUT_PRIMARY" },
+        { EV_DISARMED, "EV_DISARMED" },
         { EV_DPL_ALTITUDE, "EV_DPL_ALTITUDE" },
         { EV_FLIGHTSTATS_TIMEOUT, "EV_FLIGHTSTATS_TIMEOUT" },
         { EV_INIT_ERROR, "EV_INIT_ERROR" },
@@ -61,6 +65,7 @@ string getEventString(uint8_t event)
         { EV_LIFTOFF, "EV_LIFTOFF" },
         { EV_NC_DETACHED, "EV_NC_DETACHED" },
         { EV_NC_OPEN, "EV_NC_OPEN" },
+        { EV_RESET_SERVO, "EV_RESET_SERVO" },
         { EV_SEND_HR_TM, "EV_SEND_HR_TM" },
         { EV_SEND_LR_TM, "EV_SEND_LR_TM" },
         { EV_SEND_TEST_TM, "EV_SEND_TEST_TM" },
@@ -68,13 +73,16 @@ string getEventString(uint8_t event)
         { EV_TC_BOARD_RESET, "EV_TC_BOARD_RESET" },
         { EV_TC_CALIBRATE_ADA, "EV_TC_CALIBRATE_ADA" },
         { EV_TC_CLOSE_LOG, "EV_TC_CLOSE_LOG" },
+        { EV_TC_CUT_BACKUP, "EV_TC_CUT_BACKUP" },
         { EV_TC_CUT_DROGUE, "EV_TC_CUT_DROGUE" },
+        { EV_TC_CUT_PRIMARY, "EV_TC_CUT_PRIMARY" },
         { EV_TC_DISARM, "EV_TC_DISARM" },
         { EV_TC_END_MISSION, "EV_TC_END_MISSION" },
         { EV_TC_FORCE_INIT, "EV_TC_FORCE_INIT" },
         { EV_TC_LAUNCH, "EV_TC_LAUNCH" },
         { EV_TC_NC_CLOSE, "EV_TC_NC_CLOSE" },
         { EV_TC_NC_OPEN, "EV_TC_NC_OPEN" },
+        { EV_TC_RESET_SERVO, "EV_TC_RESET_SERVO" },
         { EV_TC_SET_DPL_ALTITUDE, "EV_TC_SET_DPL_ALTITUDE" },
         { EV_TC_SET_REFERENCE_ALTITUDE, "EV_TC_SET_REFERENCE_ALTITUDE" },
         { EV_TC_SET_REFERENCE_TEMP, "EV_TC_SET_REFERENCE_TEMP" },
