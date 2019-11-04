@@ -102,6 +102,13 @@ void TMTCManager::stateSendingTM(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+            hr_tm_index = 0;
+            // Clear the array
+            memset(tm_repository.hr_tm_packet.payload, 0,
+                    MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
+            memset(tm_repository.lr_tm_packet.payload, 0,
+                   MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
+
             lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC);
             hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
@@ -175,6 +182,8 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
     switch (ev.sig)
     {
         case EV_ENTRY:
+            hr_tm_index = 0;
+
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
@@ -184,8 +193,26 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
 
         case EV_SEND_TEST_TM:
         {
-            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
-            send(telem);
+            // Send both HR_TM and TEST_TM
+
+            // Pack the current data in tm_repository.hr_tm_packet.payload
+            packHRTelemetry(tm_repository.hr_tm_packet.payload, hr_tm_index);
+
+            // Send HR telemetry once 4 packets are filled
+            if (hr_tm_index == 3)
+            {
+                mavlink_message_t telem =
+                    TMBuilder::buildTelemetry(MAV_HR_TM_ID);
+                send(telem);
+            }
+
+            // Two TEST_TM every one HR_TM
+            if(hr_tm_index % 2 == 0)
+            {
+                mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
+                send(telem);
+            }
+            hr_tm_index = (hr_tm_index + 1) % 4;         
 
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
@@ -231,6 +258,8 @@ void TMTCManager::packHRTelemetry(uint8_t* packet, unsigned int index)
     packer.packGpsLon(tm_repository.hr_tm.gps_lon, index);
     packer.packGpsAlt(tm_repository.hr_tm.gps_alt, index);
     packer.packGpsFix(tm_repository.hr_tm.gps_fix, index);
+
+    packer.packTemperature(tm_repository.hr_tm.temperature, index);
 
     packer.packFmmState(tm_repository.hr_tm.fmm_state, index);
     packer.packDplState(tm_repository.hr_tm.dpl_state, index);

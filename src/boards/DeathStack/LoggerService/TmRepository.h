@@ -54,6 +54,7 @@ struct HighRateTM_t
     float gps_lat;
     float gps_lon;
     float gps_alt;
+    float temperature;
     uint8_t fmm_state;
     uint8_t dpl_state;
     uint8_t pin_launch;
