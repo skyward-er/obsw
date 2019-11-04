@@ -61,9 +61,9 @@ using namespace miosix;
 namespace DeathStackBoard
 {
 
-SensorManager::SensorManager(ADA* ada)
+SensorManager::SensorManager(ADAController* ada_controller)
     : FSM(&SensorManager::stateIdle), scheduler(),
-      logger(*LoggerService::getInstance()), ada(ada)
+      logger(*LoggerService::getInstance()), ada_controller(ada_controller)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
@@ -333,7 +333,7 @@ void SensorManager::onSimple20HZCallback()
         logger.log(lm78b_analog_data);
     }
 
-    ada->updateBaro(ad7994_data->nxp_baro_pressure);
+    ada_controller->updateBaro(ad7994_data->nxp_baro_pressure);
 }
 
 void SensorManager::onSimple50HZCallback()
@@ -369,6 +369,8 @@ void SensorManager::onSimple250HZCallback()
     {
         logger.log(mpu9255_data);
     }
+
+    ada_controller->updateAcc(mpu9255_data.accel.getZ());
 }
 
 void SensorManager::onGPSCallback()
@@ -401,7 +403,7 @@ void SensorManager::onGPSCallback()
     data.fix                = mock_gps->fix;
 #endif
 
-    ada->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.fix);
+    ada_controller->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.fix);
 
     if (enable_sensor_logging)
     {

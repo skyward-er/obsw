@@ -38,7 +38,7 @@
 
 #include "DeathStack/LoggerService/LoggerService.h"
 
-#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/ADA/ADAController.h"
 #include "DeathStack/DeploymentController/DeploymentController.h"
 #include "DeathStack/FlightModeManager/FlightModeManager.h"
 #include "DeathStack/PinHandler/PinHandler.h"
@@ -70,7 +70,7 @@ public:
     EventSniffer* sniffer;
 
     // FSMs
-    ADA* ada;
+    ADAController* ada;
     SensorManager* sensor_manager;
     TMTCManager* tmtc;
     FlightModeManager* fmm;
@@ -100,7 +100,7 @@ private:
                 *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
         }
 
-        ada            = new ADA();
+        ada            = new ADAController();
         sensor_manager = new SensorManager(ada);
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
