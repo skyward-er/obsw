@@ -53,6 +53,23 @@ struct LiftOffStats
     }
 };
 
+struct CutterTestStats
+{
+    uint32_t timestamp = 0;
+    float cutter_1_avg = 0;
+    float cutter_2_avg = 0;
+    uint32_t n_samples = 0;
+    static std::string header()
+    {
+        return "timestamp,cutter_1_avg,cutter_2_avg\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << cutter_1_avg << "," << cutter_2_avg << "\n";
+    }
+};
+
 struct ApogeeStats
 {
     uint32_t T_apogee          = 0;
