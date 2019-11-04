@@ -48,9 +48,9 @@ static const PWM::Timer SERVO_TIMER{
 static constexpr PWMChannel SERVO_CHANNEL = PWMChannel::CH1;
 
 // Servo rest position
-static constexpr float SERVO_RESET_POS = 1.0f;
+static constexpr float SERVO_RESET_POS = 0.77f;
 // Servo position when ejecting the nosecone
-static constexpr float SERVO_EJECT_POS = 0.30f;
+static constexpr float SERVO_EJECT_POS = 0.45f;
 
 }  // namespace DeploymentConfigs
 
