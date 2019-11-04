@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/ADA/ADAController.h"
 #include <events/FSM.h>
 #include <DeathStack/events/Events.h>
 #include <events/EventBroker.h>
@@ -11,7 +11,7 @@
 typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
 typedef miosix::Gpio<GPIOG_BASE, 14> redLed;
 using namespace DeathStackBoard;
-ADA ada;
+ADAController ada;
 void handleCommands(std::string line);
 
 int main()

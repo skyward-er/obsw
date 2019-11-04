@@ -28,7 +28,7 @@
 #include <interfaces-impl/hwmapping.h>
 
 #include "Common.h"
-#include "DeathStack/ADA/ADA.h"
+#include "DeathStack/ADA/ADAController.h"
 #include "DeathStack/LoggerService/LoggerService.h"
 #include "DeathStack/SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
@@ -46,7 +46,7 @@ int main()
      * SENSOR MANAGER *
      ******************/
     Stats s;
-    ADA ada;
+    ADAController ada;
     SensorManager mgr{&ada};
     // ada.start();
     // try

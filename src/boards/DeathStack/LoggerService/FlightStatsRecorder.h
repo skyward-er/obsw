@@ -52,7 +52,7 @@ public:
 
     void update(const KalmanState& t);
     void update(const CurrentSenseData& t);
-    void update(const KalmanAltitude& t);
+    void update(const ADAData& t);
     void update(const AD7994WrapperData& t);
     void update(const MPU9250Data& t);
     void update(const PiksiData& t);

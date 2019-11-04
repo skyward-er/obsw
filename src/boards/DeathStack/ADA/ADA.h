@@ -22,165 +22,87 @@
 
 #pragma once
 
-#include <DeathStack/ADA/ADAStatus.h>
-#include <events/FSM.h>
-
-#include <DeathStack/events/Events.h>
-#include <DeathStack/configs/ADA_config.h>
 #include <kalman/Kalman.h>
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "RogalloDTS/RogalloDTS.h"
-
-#include <miosix.h>
-
-using miosix::FastMutex;
-using miosix::Lock;
+#include <math/Stats.h>
+#include "ADAStatus.h"
 
 namespace DeathStackBoard
 {
-
-class ADA : public FSM<ADA>
+class ADA
 {
-
 public:
-    /** Constructor
-     */
-    ADA();
+    struct AltitudeDPL
+    {
+        float altitude;
+        bool is_agl;
+    };
 
-    /** Destructor
-     */
-    ~ADA() {}
+    ADA(ReferenceValues setup_data);
+    ~ADA();
 
-    /** \brief Updates the algorithm with a new sample
-     *
-     * It's critical that this method is called at regualar intervals during the
-     * flight. Call frequency is defined in ADA_config.h The behavior of this
-     * function changes depending on the ADA state
-     *
-     * @param pressure The pressure sample in pascals
-     */
     void updateBaro(float pressure);
-    void updateGPS(double lat, double lon, bool hasFix);
+    void updateAcc(float ax);
+    void updateGPS(double lat, double lon, bool has_fix);
+
+    KalmanState getKalmanState() const;
+
+    ADAData getADAData() const { return ada_data; }
 
     /**
-     * ADA status
-     * @returns A struct containing the time stamp, the ADA FSM state and
-     * several flags
+     * @brief Current altitude above mean sea level
+     *
+     * @return Altitude in meters (MSL)
      */
-    ADAStatus getStatus() { return status; }
+    float getAltitudeMsl() const;
 
     /**
-     * Get the latest state estimated by the Kalman filter
-     * @returns A struct containing three floats representing the three states
+     * @brief Returns altitude for main chute deployment altitude check:
+     * if last gps sample has fix, returns altitude above ground level
+     * if not, returns QFE altitude relative to the elevation of the launch
+     * site
+     *
+     * @return Altitude in meters
      */
-    KalmanState getKalmanState() { return last_kalman_state; }
+    AltitudeDPL getAltitudeForDeployment() const;
 
     /**
-     * Get the calibration parameters
-     * @returns A struct containing average, number and variance of the
-     * calibration samples
+     * @brief Current vertical speed in m/s, positive upwards
      */
-    ADACalibrationData getCalibrationData() { return calibration_data; }
-
-    const RogalloDTS& getRogalloDTS() const { return rogallo_dts; }
+    float getVerticalSpeed() const;
 
     /**
-     * Sets the reference temperature to be used to calibrate the altimeter
-     * @param ref_temp Reference temperature in degrees Celsisus
+     * @brief Converts an atmospheric pressure to altitude based on the provided
+     * reference values.
+     *
+     * @param    pressure Atmospheric pressure in Pa
+     * @return Corresponding altitude above mean sea level (m)
      */
-    void setReferenceTemperature(float ref_temp);
+    float pressureToAltitude(float pressure) const;
 
     /**
-     * Sets the reference altitude to be used to calibrate the altimeter
-     * @param ref_alt Reference altitude in meters above mean sea level
+     * @brief Converts an altitude above mean sea level to altitude for chute
+     * deployment (see getAltitudeForDeployment())
+     *
      */
-    void setReferenceAltitude(float ref_alt);
+    AltitudeDPL altitudeMSLtoDPL(float altitude_msl) const;
 
-    /**
-     * Sets the deployment altitude 
-     * @param dpl_alt Deployment altitude in meters above GROUND level
-     */
-    void setDeploymentAltitude(float dpl_alt);
+    ReferenceValues getReferenceValues() const { return ref_values; }
 
 private:
-    // FSM States
-    void stateIdle(const Event& ev);
-    void stateCalibrating(const Event& ev);
-    void stateReady(const Event& ev);
-    void stateShadowMode(const Event& ev);
-    void stateActive(const Event& ev);
-    void stateFirstDescentPhase(const Event& ev);
-    void stateEnd(const Event& ev);
-
-    /** Performs a Kalman state update
-     * @param pressure The pressure sample in pascal
-     */
-    void updateFilter(float pressure);
-
-    /** Checks if calibration is complete and if this is the case sends the
-     * ADA_READY event.
-     */
-    void finalizeCalibration();
-
-    /**
-     * Calculates altitude and vertical speed based on the current kalman state.
-     * Then logs the data and return the current altitude
-     * @return Altitude MSL [m]
-     *
-     * @param p Pressure [Pa]
-     * @param dp_dt  Variation of pressure [Pa / s]
-     * @return Altitude msl [m]
-     */
-    float updateAltitude(float p, float dp_dt);
-
-    /** Update and log ADA FSM state
-     */
-    void logStatus(ADAState state);
-
-    /** Log the ADA FSM state without updating it
-     */
-    void logStatus();
-
-    void resetCalibration();
-
-    // Event id to store calibration timeout
-    uint16_t shadow_delayed_event_id = 0;
+    Kalman<3, 1> filter;      // Filter object
+    Kalman<3, 2> filter_acc;  // Filter with accelerometer
+    Stats acc_stats;  // Stats for acceleration averaging: accelerometer is
+                      // sampled faster than barometer
 
     // References for pressure to altitude conversion
-    ReferenceValues reference_values;
-      float temperature_ref =
-        DEFAULT_REFERENCE_TEMPERATURE;  // Reference temperature in K at
-                                        // launchpad
-    float altitude_ref =
-        DEFAULT_REFERENCE_ALTITUDE;  // Reference altitude at launchpad
+    ReferenceValues ref_values;
 
-    // Pressure at mean sea level for altitude calculation, to be updated with
-    // launch-day calibration
-    float pressure_0    = DEFAULT_MSL_PRESSURE;
-    float temperature_0 = DEFAULT_MSL_TEMPERATURE;
+    ADAData ada_data;
 
-    // Filter object
-    Kalman<3, 1> filter;
-
-    // Number of consecutive samples in which the speed was negative
-    unsigned int n_samples_going_down = 0;
-
-    // Calibration variables
-    ADACalibrationData calibration_data;
-    Stats pressure_stats;
-    FastMutex calib_mutex;  // Mutex for pressure_stats
-
-    // ADA status: timestamp + state
-    ADAStatus status;
-
-    // Last kalman state
-    KalmanState last_kalman_state;
-
-    // Rogallo deployment and termination system
-    RogalloDTS rogallo_dts;
-
-    // Logger
-    LoggerService& logger = *(LoggerService::getInstance());
+    float last_acc_average = 0;
+    
+    double last_lat = 0;
+    double last_lon = 0;
+    bool last_fix   = false;
 };
-
 }  // namespace DeathStackBoard
