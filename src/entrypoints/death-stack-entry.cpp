@@ -36,11 +36,11 @@ using namespace miosix;
 DeathStack* board;
 
 StatsResult cpu_stat_res;
-// EventInjector debug_console;
+EventInjector debug_console;
 
 int main()
 {
-    // debug_console.start();
+    debug_console.start();
         
     Stats cpu_stat;
     board = DeathStack::getInstance();

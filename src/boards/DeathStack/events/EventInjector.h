@@ -24,9 +24,13 @@
 #include <ActiveObject.h>
 #include <events/EventBroker.h>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include "DeathStack/DeathStack.h"
 #include "DeathStack/events/Events.h"
 
+using std::string;
+using std::stringstream;
 class EventInjector : public ActiveObject
 {
 public:
@@ -36,12 +40,14 @@ protected:
         using namespace std;
         using namespace DeathStackBoard;
 
-        uint8_t ev, topic;
+        int ev, topic;
         for (;;)
         {
             cout << "Insert Event & Topic:\n";
 
-            cin >> ev >> topic;
+            string temp;
+            getline(cin, temp);
+            stringstream(temp) >> ev >> topic;
 
             switch (ev)
             {
@@ -49,7 +55,8 @@ protected:
                 {
                     float in;
                     cout << "Payload:\n";
-                    cin >> in;
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
                     DeathStack::getInstance()->ada->setDeploymentAltitude(in);
                     break;
@@ -58,7 +65,8 @@ protected:
                 {
                     float in;
                     cout << "Payload:\n";
-                    cin >> in;
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
                     DeathStack::getInstance()->ada->setReferenceAltitude(in);
                     break;
@@ -67,7 +75,8 @@ protected:
                 {
                     float in;
                     cout << "Payload:\n";
-                    cin >> in;
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
                     DeathStack::getInstance()->ada->setReferenceTemperature(in);
                     break;

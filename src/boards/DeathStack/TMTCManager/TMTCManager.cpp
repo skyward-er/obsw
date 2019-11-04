@@ -113,8 +113,9 @@ void TMTCManager::stateSendingTM(const Event& ev)
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC);
             hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            
+            TRACE("[TMTC] Entering stateSendingTM\n");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_HR_TM:
@@ -139,6 +140,7 @@ void TMTCManager::stateSendingTM(const Event& ev)
             // Schedule the next HR telemetry
             hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+
             break;
         }
 
@@ -169,7 +171,7 @@ void TMTCManager::stateSendingTM(const Event& ev)
             sEventBroker->removeDelayed(lr_event_id);
             sEventBroker->removeDelayed(hr_event_id);
 
-            TRACE("[TMTC] Exiting stateHighRateTM\n");
+            TRACE("[TMTC] Exiting stateSendingTM\n");
             break;
         }
         default:
@@ -188,7 +190,7 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
             TRACE("[TMTC] Entering stateTestTM\n");
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_TEST_TM:
@@ -207,7 +209,7 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
             }
 
             // Two TEST_TM every one HR_TM
-            if(hr_tm_index % 2 == 0)
+            if(hr_tm_index % 2 == 1)
             {
                 mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
                 send(telem);

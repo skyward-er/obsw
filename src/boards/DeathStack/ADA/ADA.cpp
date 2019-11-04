@@ -44,7 +44,7 @@ ADA::ADA(ReferenceValues ref_values)
     filter_acc.X(1, 0) = 0;
     filter_acc.X(2, 0) = 0;
 
-    TRACE("[ADA] Finalized calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
+    TRACE("[ADA] Initialized with calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
           ref_values.ref_pressure, ref_values.msl_pressure,
           ref_values.msl_temperature);
 }

@@ -54,7 +54,7 @@ DeploymentController::~DeploymentController()
 
 State DeploymentController::state_initialization(const Event& ev)
 {
-    // Nothing to do during initialization
+    initServo();
 
     UNUSED(ev);
     return transition(&DeploymentController::state_idle);
@@ -67,8 +67,6 @@ State DeploymentController::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            initServo();
-
             logStatus(DeploymentCTRLState::DPL_IDLE);
             // Process deferred events
             try
@@ -232,8 +230,7 @@ State DeploymentController::state_cuttingPrimary(const Event& ev)
             }
             else
             {
-                retState =
-                    transition(&DeploymentController::state_idle);
+                retState = transition(&DeploymentController::state_idle);
             }
             break;
         }
