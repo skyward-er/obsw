@@ -207,9 +207,8 @@ void ADAController::setReferenceTemperature(float ref_temp)
         {
             Lock<FastMutex> l(calibrator_mutex);
             calibrator.setReferenceTemperature(ref_temp);
+            logger.log(calibrator.getReferenceValues());
         }
-
-        logger.log(calibrator.getReferenceValues());
 
         finalizeCalibration();
     }
@@ -223,9 +222,8 @@ void ADAController::setReferenceAltitude(float ref_alt)
         {
             Lock<FastMutex> l(calibrator_mutex);
             calibrator.setReferenceAltitude(ref_alt);
+            logger.log(calibrator.getReferenceValues());
         }
-
-        logger.log(calibrator.getReferenceValues());
 
         finalizeCalibration();
     }
@@ -265,13 +263,10 @@ void ADAController::finalizeCalibration()
 
         logger.log(calibrator.getReferenceValues());
         logger.log(ada.getKalmanState());
-    }
-}
 
-void ADAController::resetCalibration()
-{
-    Lock<FastMutex> l(calibrator_mutex);
-    calibrator.resetBaro();
+        // No need for old calibrations
+        calibrator.resetBaro();
+    }
 }
 
 /* --- STATES --- */
@@ -322,7 +317,10 @@ void ADAController::stateCalibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            resetCalibration();
+            {
+                Lock<FastMutex> l(calibrator_mutex);
+                calibrator.resetBaro();
+            }
             logStatus(ADAState::CALIBRATING);
             TRACE("[ADA] Entering stateCalibrating\n");
             break;
