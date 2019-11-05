@@ -83,6 +83,11 @@ private:
     uint16_t test_tm_event_id = 0;
 
     uint8_t hr_tm_index = 0;
+
+    mavlink_hr_tm_t hr_tm_packet;
+    mavlink_lr_tm_t lr_tm_packet;
+
+    mavlink_message_t auto_telemetry_msg;
 };
 
 } /* namespace DeathStackBoard */

@@ -104,35 +104,38 @@ void TMTCManager::stateSendingTM(const Event& ev)
         case EV_ENTRY:
             hr_tm_index = 0;
             // Clear the array
-            memset(tm_repository.hr_tm_packet.payload, 0,
-                    MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
-            memset(tm_repository.lr_tm_packet.payload, 0,
-                   MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
+            // memset(hr_tm_packet.payload, 0,
+            //         MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
+            // memset(lr_tm_packet.payload, 0,
+            //        MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
 
             lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC);
             hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            
+
             TRACE("[TMTC] Entering stateSendingTM\n");
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_HR_TM:
         {
-            // Pack the current data in tm_repository.hr_tm_packet.payload
-            packHRTelemetry(tm_repository.hr_tm_packet.payload, hr_tm_index);
+            // Pack the current data in hr_tm_packet.payload
+            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
 
             // Send HR telemetry once 4 packets are filled
             if (hr_tm_index == 3)
             {
-                mavlink_message_t telem =
-                    TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-                send(telem);
+                // mavlink_message_t telem =
+                //     TMBuilder::buildTelemetry(MAV_HR_TM_ID);
 
-                // Clear the array
-                memset(tm_repository.hr_tm_packet.payload, 0,
-                       MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
+                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                         &auto_telemetry_msg, &(hr_tm_packet));
+                send(auto_telemetry_msg);
+
+                // // Clear the array
+                // memset(hr_tm_packet.payload, 0,
+                //        MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
             }
 
             hr_tm_index = (hr_tm_index + 1) % 4;
@@ -146,14 +149,14 @@ void TMTCManager::stateSendingTM(const Event& ev)
 
         case EV_SEND_LR_TM:
         {
-            packLRTelemetry(tm_repository.lr_tm_packet.payload);
+            packLRTelemetry(lr_tm_packet.payload);
 
             mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
             send(telem);
 
             // Clear the array
-            memset(tm_repository.lr_tm_packet.payload, 0,
-                   MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
+            // memset(lr_tm_packet.payload, 0,
+            //        MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
 
             // Schedule the next HR telemetry
             lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
@@ -197,8 +200,8 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
         {
             // Send both HR_TM and TEST_TM
 
-            // Pack the current data in tm_repository.hr_tm_packet.payload
-            packHRTelemetry(tm_repository.hr_tm_packet.payload, hr_tm_index);
+            // Pack the current data in hr_tm_packet.payload
+            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
 
             // Send HR telemetry once 4 packets are filled
             if (hr_tm_index == 3)
@@ -209,12 +212,13 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
             }
 
             // Two TEST_TM every one HR_TM
-            if(hr_tm_index % 2 == 1)
+            if (hr_tm_index % 2 == 1)
             {
-                mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
+                mavlink_message_t telem =
+                    TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
                 send(telem);
             }
-            hr_tm_index = (hr_tm_index + 1) % 4;         
+            hr_tm_index = (hr_tm_index + 1) % 4;
 
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
