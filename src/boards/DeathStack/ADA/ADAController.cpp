@@ -209,6 +209,8 @@ void ADAController::setReferenceTemperature(float ref_temp)
             calibrator.setReferenceTemperature(ref_temp);
         }
 
+        logger.log(calibrator.getReferenceValues());
+
         finalizeCalibration();
     }
 }
@@ -222,6 +224,8 @@ void ADAController::setReferenceAltitude(float ref_alt)
             Lock<FastMutex> l(calibrator_mutex);
             calibrator.setReferenceAltitude(ref_alt);
         }
+
+        logger.log(calibrator.getReferenceValues());
 
         finalizeCalibration();
     }
