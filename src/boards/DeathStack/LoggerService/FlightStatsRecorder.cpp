@@ -46,10 +46,6 @@ void FlightStatsRecorder::update(const KalmanState& t)
 {
     switch (state)
     {
-        case State::IDLE:
-        {
-            break;
-        }
         case State::LIFTOFF:
         {
             apogee_stats.kalman_min_pressure = t.x0;
@@ -63,14 +59,8 @@ void FlightStatsRecorder::update(const KalmanState& t)
             }
             break;
         }
-        case State::DROGUE_DPL:
-        {
+        default:
             break;
-        }
-        case State::MAIN_DPL:
-        {
-            break;
-        }
     }
 }
 
@@ -94,15 +84,11 @@ void FlightStatsRecorder::update(const ADAData& t)
 {
     switch (state)
     {
-        case State::IDLE:
-        {
-            break;
-        }
         case State::LIFTOFF:
         {
-            if (t.vert_speed > liftoff_stats.vert_speed_max)
+            if (t.acc_vert_speed > liftoff_stats.vert_speed_max)
             {
-                liftoff_stats.vert_speed_max = t.vert_speed;
+                liftoff_stats.vert_speed_max = t.acc_vert_speed;
                 liftoff_stats.T_max_speed =
                     static_cast<uint32_t>(miosix::getTick());
                 liftoff_stats.altitude_max_speed = t.msl_altitude;
@@ -117,10 +103,6 @@ void FlightStatsRecorder::update(const ADAData& t)
             }
             break;
         }
-        case State::DROGUE_DPL:
-        {
-            break;
-        }
         case State::MAIN_DPL:
         {
             // Only set it one time
@@ -131,23 +113,15 @@ void FlightStatsRecorder::update(const ADAData& t)
             }
             break;
         }
+        default:
+            break;
     }
 }
+
 void FlightStatsRecorder::update(const AD7994WrapperData& t)
 {
     switch (state)
     {
-        case State::IDLE:
-        {
-            break;
-        }
-        case State::LIFTOFF:
-        {
-            apogee_stats.nxp_min_pressure = t.nxp_baro_pressure;
-            apogee_stats.hw_min_pressure  = t.honeywell_baro_pressure;
-
-            break;
-        }
         case State::ASCENDING:
         {
             if (t.nxp_baro_pressure < apogee_stats.nxp_min_pressure)
@@ -160,24 +134,14 @@ void FlightStatsRecorder::update(const AD7994WrapperData& t)
             }
             break;
         }
-        case State::DROGUE_DPL:
-        {
+        default:
             break;
-        }
-        case State::MAIN_DPL:
-        {
-            break;
-        }
     }
 }
 void FlightStatsRecorder::update(const MPU9250Data& t)
 {
     switch (state)
     {
-        case State::IDLE:
-        {
-            break;
-        }
         case State::LIFTOFF:
         {
             if (fabs(t.accel.getZ()) > liftoff_stats.acc_max)
@@ -188,15 +152,11 @@ void FlightStatsRecorder::update(const MPU9250Data& t)
             }
             break;
         }
-        case State::ASCENDING:
-        {
-            break;
-        }
         case State::DROGUE_DPL:
         {
-            if (fabs(t.accel.getZ()) > drogue_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > fabs(drogue_dpl_stats.max_dpl_acc))
             {
-                drogue_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
+                drogue_dpl_stats.max_dpl_acc = t.accel.getZ();
                 drogue_dpl_stats.T_dpl =
                     static_cast<uint32_t>(miosix::getTick());
             }
@@ -204,12 +164,14 @@ void FlightStatsRecorder::update(const MPU9250Data& t)
         }
         case State::MAIN_DPL:
         {
-            if (fabs(t.accel.getZ()) > main_dpl_stats.max_dpl_acc)
+            if (fabs(t.accel.getZ()) > fabs(main_dpl_stats.max_dpl_acc))
             {
-                main_dpl_stats.max_dpl_acc = fabs(t.accel.getZ());
+                main_dpl_stats.max_dpl_acc = t.accel.getZ();
             }
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -217,14 +179,6 @@ void FlightStatsRecorder::update(const PiksiData& t)
 {
     switch (state)
     {
-        case State::IDLE:
-        {
-            break;
-        }
-        case State::LIFTOFF:
-        {
-            break;
-        }
         case State::ASCENDING:
         {
             if (t.gps_data.height > apogee_stats.gps_max_altitude)
@@ -237,14 +191,8 @@ void FlightStatsRecorder::update(const PiksiData& t)
             }
             break;
         }
-        case State::DROGUE_DPL:
-        {
+        default:
             break;
-        }
-        case State::MAIN_DPL:
-        {
-            break;
-        }
     }
 }
 

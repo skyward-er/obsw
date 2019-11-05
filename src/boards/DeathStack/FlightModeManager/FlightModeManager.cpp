@@ -565,6 +565,8 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
+            sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
+            
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
 
             logState(FMMState::TERMINAL_DESCENT);

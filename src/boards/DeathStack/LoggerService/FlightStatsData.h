@@ -73,10 +73,10 @@ struct CutterTestStats
 struct ApogeeStats
 {
     uint32_t T_apogee          = 0;
-    float nxp_min_pressure     = 0.0f;
-    float hw_min_pressure      = 0.0f;
-    float kalman_min_pressure  = 0.0f;
-    float digital_min_pressure = 0.0f;
+    float nxp_min_pressure     = 200000.0f;
+    float hw_min_pressure      = 200000.0f;
+    float kalman_min_pressure  = 200000.0f;
+    float digital_min_pressure = 200000.0f;
 
     float baro_max_altitude = 0.0f;
     float gps_max_altitude  = 0.0f;
