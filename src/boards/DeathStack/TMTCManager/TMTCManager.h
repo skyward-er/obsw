@@ -71,9 +71,10 @@ private:
     LoggerService& logger = *(LoggerService::getInstance());
 
     /* State handlers */
-    void stateIdle(const Event& ev);
-    void stateSendingTM(const Event& ev);
-    void stateSendingTestTM(const Event& ev);
+    // void stateIdle(const Event& ev);
+    void stateGroundTM(const Event& ev);
+    void stateFlightTM(const Event& ev);
+    void stateTestTM(const Event& ev);
 
     inline void packHRTelemetry(uint8_t* packet, unsigned int index);
     inline void packLRTelemetry(uint8_t* packet);

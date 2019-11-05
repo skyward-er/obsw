@@ -31,7 +31,7 @@
 namespace DeathStackBoard
 {
 
-TMTCManager::TMTCManager() : FSM(&TMTCManager::stateSendingTM)
+TMTCManager::TMTCManager() : FSM(&TMTCManager::stateGroundTM)
 {
     busSPI2::init();
     enableXbeeInterrupt();
@@ -67,128 +67,11 @@ bool TMTCManager::send(mavlink_message_t& msg)
     return ok;
 }
 
-/**
- * States
- */
-void TMTCManager::stateIdle(const Event& ev)
+void TMTCManager::stateGroundTM(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
-            TRACE("[TMTC] Entering stateIdle\n");
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-
-        case EV_LIFTOFF:
-            TRACE("[TMTC] Liftoff signal received\n");
-            transition(&TMTCManager::stateSendingTM);
-            break;
-        case EV_TEST_MODE:
-        {
-            transition(&TMTCManager::stateSendingTestTM);
-            break;
-        }
-        case EV_EXIT:
-            TRACE("[TMTC] Exiting stateIdle\n");
-            break;
-
-        default:
-            break;
-    }
-}
-
-void TMTCManager::stateSendingTM(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-            hr_tm_index = 0;
-            // Clear the array
-            // memset(hr_tm_packet.payload, 0,
-            //         MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
-            // memset(lr_tm_packet.payload, 0,
-            //        MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
-
-            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
-            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
-            TRACE("[TMTC] Entering stateSendingTM\n");
-            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-
-        case EV_SEND_HR_TM:
-        {
-            // Pack the current data in hr_tm_packet.payload
-            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
-
-            // Send HR telemetry once 4 packets are filled
-            if (hr_tm_index == 3)
-            {
-                // mavlink_message_t telem =
-                //     TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-
-                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
-                                         &auto_telemetry_msg, &(hr_tm_packet));
-                send(auto_telemetry_msg);
-
-                // // Clear the array
-                // memset(hr_tm_packet.payload, 0,
-                //        MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
-            }
-
-            hr_tm_index = (hr_tm_index + 1) % 4;
-
-            // Schedule the next HR telemetry
-            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
-            break;
-        }
-
-        case EV_SEND_LR_TM:
-        {
-            packLRTelemetry(lr_tm_packet.payload);
-
-            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
-            send(telem);
-
-            // Clear the array
-            // memset(lr_tm_packet.payload, 0,
-            //        MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
-
-            // Schedule the next HR telemetry
-            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
-            break;
-        }
-        case EV_TEST_MODE:
-        {
-            transition(&TMTCManager::stateSendingTestTM);
-            break;
-        }
-
-        case EV_EXIT:
-        {
-            sEventBroker->removeDelayed(lr_event_id);
-            sEventBroker->removeDelayed(hr_event_id);
-
-            TRACE("[TMTC] Exiting stateSendingTM\n");
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void TMTCManager::stateSendingTestTM(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-            hr_tm_index = 0;
-
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
@@ -224,12 +107,85 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
             break;
         }
+        case EV_ARMED:
+        case EV_LIFTOFF:
+        {
+            transition(&TMTCManager::stateFlightTM);
+            break;
+        }
 
         case EV_EXIT:
         {
             sEventBroker->removeDelayed(test_tm_event_id);
 
             TRACE("[TMTC] Exiting stateTestTM\n");
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void TMTCManager::stateFlightTM(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
+                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+
+            TRACE("[TMTC] Entering stateFlightTM\n");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            break;
+
+        case EV_SEND_HR_TM:
+        {
+            // Pack the current data in hr_tm_packet.payload
+            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
+
+            // Send HR telemetry once 4 packets are filled
+            if (hr_tm_index == 3)
+            {
+                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                         &auto_telemetry_msg, &(hr_tm_packet));
+                send(auto_telemetry_msg);
+
+            }
+
+            hr_tm_index = (hr_tm_index + 1) % 4;
+
+            // Schedule the next HR telemetry
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+
+            break;
+        }
+
+        case EV_SEND_LR_TM:
+        {
+            packLRTelemetry(lr_tm_packet.payload);
+
+            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
+            send(telem);
+
+            // Schedule the next HR telemetry
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
+                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+            break;
+        }
+        case EV_DISARMED:
+        {
+            transition(&TMTCManager::stateGroundTM);
+            break;
+        }
+        case EV_EXIT:
+        {
+            sEventBroker->removeDelayed(lr_event_id);
+            sEventBroker->removeDelayed(hr_event_id);
+
+            TRACE("[TMTC] Exiting stateFlightTM\n");
             break;
         }
         default:
