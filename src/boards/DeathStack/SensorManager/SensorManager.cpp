@@ -330,7 +330,6 @@ void SensorManager::onSimple20HZCallback()
         logger.log(*(ad7994_data));
         logger.log(lm78b_imu_data);
         logger.log(lm78b_analog_data);
-        logger.log(lm78b_analog_data);
     }
 
     ada_controller->updateBaro(ad7994_data->nxp_baro_pressure);
