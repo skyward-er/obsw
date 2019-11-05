@@ -26,8 +26,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "DeathStack/ADA/ADAStatus.h"
+#include <diagnostic/StackData.h>
 #include "DeathStack//System/SystemData.h"
+#include "DeathStack/ADA/ADAStatus.h"
 #include "DeathStack/DeathStackStatus.h"
 #include "DeathStack/DeploymentController/DeploymentData.h"
 #include "DeathStack/FlightModeManager/FMMStatus.h"
@@ -44,7 +45,6 @@
 #include "scheduler/TaskSchedulerData.h"
 #include "sensors/MPU9250/MPU9250Data.h"
 #include "sensors/MS580301BA07/MS580301BA07Data.h"
-#include <diagnostic/StackData.h>
 
 using std::ofstream;
 
@@ -62,7 +62,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<SensorManagerStatus>(print<SensorManagerStatus>,
                                          SensorManagerStatus::header());
     ds.registerType<LM75BData>(print<LM75BData>, LM75BData::header());
-    // ds.registerType<SensorStatus>(print<SensorStatus>, SensorStatus::header());
+    // ds.registerType<SensorStatus>(print<SensorStatus>,
+    // SensorStatus::header());
 
     ds.registerType<AD7994WrapperData>(print<AD7994WrapperData>,
                                        AD7994WrapperData::header());
@@ -84,14 +85,14 @@ void registerTypes(Deserializer& ds)
                                     ApogeeDetected::header());
     ds.registerType<DplAltitudeReached>(print<DplAltitudeReached>,
                                         DplAltitudeReached::header());
-    ds.registerType<ADAControllerStatus>(print<ADAControllerStatus>, ADAControllerStatus::header());
+    ds.registerType<ADAControllerStatus>(print<ADAControllerStatus>,
+                                         ADAControllerStatus::header());
     ds.registerType<KalmanState>(print<KalmanState>, KalmanState::header());
-    ds.registerType<ADAData>(print<ADAData>,
-                                    ADAData::header());
+    ds.registerType<ADAData>(print<ADAData>, ADAData::header());
     ds.registerType<TargetDeploymentAltitude>(
         print<TargetDeploymentAltitude>, TargetDeploymentAltitude::header());
     ds.registerType<ReferenceValues>(print<ReferenceValues>,
-                                        ReferenceValues::header());
+                                     ReferenceValues::header());
 
     ds.registerType<DeploymentStatus>(print<DeploymentStatus>,
                                       DeploymentStatus::header());
@@ -106,17 +107,21 @@ void registerTypes(Deserializer& ds)
 
     ds.registerType<PinStatus>(print<PinStatus>, PinStatus::header());
 
-    ds.registerType<MavlinkStatus>(print<MavlinkStatus>, MavlinkStatus::header());
+    ds.registerType<MavlinkStatus>(print<MavlinkStatus>,
+                                   MavlinkStatus::header());
 
     ds.registerType<EventData>(print<EventData>, EventData::header());
     ds.registerType<DeathStackStatus>(print<DeathStackStatus>,
                                       DeathStackStatus::header());
 
     // ds.registerType<StackData>(print<StackData>, StackData::header());
-    ds.registerType<ReferenceValues>(print<ReferenceValues>, ReferenceValues::header());
+    ds.registerType<ReferenceValues>(print<ReferenceValues>,
+                                     ReferenceValues::header());
 
-     ds.registerType<MS5803Data>(print<MS5803Data>, MS5803Data::header());
+    ds.registerType<MS5803Data>(print<MS5803Data>, MS5803Data::header());
     ds.registerType<StackData>(print<StackData>, StackData::header());
+    ds.registerType<CutterTestStats>(print<CutterTestStats>,
+                                     CutterTestStats::header());
 }
 
 #endif
