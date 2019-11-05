@@ -300,7 +300,7 @@ State DeploymentController::state_testingPrimary(const Event& ev)
 
             logStatus(DeploymentCTRLState::TESTING_PRIMARY);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_testingPrimary ENTRY\n");
@@ -346,7 +346,7 @@ State DeploymentController::state_testingBackup(const Event& ev)
 
             logStatus(DeploymentCTRLState::TESTING_BACKUP);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
                 {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_testingBackup ENTRY\n");
