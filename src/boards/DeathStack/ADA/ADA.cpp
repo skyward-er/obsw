@@ -27,6 +27,7 @@
 #include <libs/simple-template-matrix/matrix.h>
 #include <utils/aero/AeroUtils.h>
 #include "DeploymentUtils/elevation_map.h"
+#include <iostream>
 
 namespace DeathStackBoard
 {
@@ -59,8 +60,19 @@ void ADA::updateBaro(float pressure)
 
     // Second kalman (pressure and acceleration)
     float z  = pressureToAltitude(pressure);
-    float ax = (acc_stats.getStats().mean - 1) *
-               9.81;  // Remove gravity vector and convert gs to m/s^2
+    float ax = last_acc_average;
+    if (ax != NAN)
+    {
+        ax = 0;
+    }
+    // if (acc_stats.getStats().nSamples > 0)
+    // {
+    //     ax = (acc_stats.getStats().mean - 1) *
+    //            9.81;  // Remove gravity vector and convert gs to m/s^2
+    //     acc_stats.reset();
+    // }
+
+    // std::cout << ax << "\n";
 
     MatrixBase<float, 2, 1> y_acc{z, ax};
     filter_acc.update(y_acc);
