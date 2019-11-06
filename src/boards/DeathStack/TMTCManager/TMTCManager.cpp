@@ -89,9 +89,9 @@ void TMTCManager::stateGroundTM(const Event& ev)
             // Send HR telemetry once 4 packets are filled
             if (hr_tm_index == 3)
             {
-                mavlink_message_t telem =
-                    TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-                send(telem);
+                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                         &auto_telemetry_msg, &(hr_tm_packet));
+                send(auto_telemetry_msg);
             }
 
             // Two TEST_TM every one HR_TM
@@ -151,7 +151,6 @@ void TMTCManager::stateFlightTM(const Event& ev)
                 mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
                                          &auto_telemetry_msg, &(hr_tm_packet));
                 send(auto_telemetry_msg);
-
             }
 
             hr_tm_index = (hr_tm_index + 1) % 4;
@@ -167,8 +166,9 @@ void TMTCManager::stateFlightTM(const Event& ev)
         {
             packLRTelemetry(lr_tm_packet.payload);
 
-            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
-            send(telem);
+            mavlink_msg_lr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                     &auto_telemetry_msg, &(lr_tm_packet));
+            send(auto_telemetry_msg);
 
             // Schedule the next HR telemetry
             lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(

@@ -125,6 +125,7 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             break;
         default:
         {
+            TRACE("[MAV] Unknown telemetry  requested: %d\n", req_tm);
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
             break;
         }
