@@ -122,16 +122,24 @@ void SensorManager::initSensors()
     sensor_status.piksi = 1;
 
     // Initialization
+    TRACE("Mpu init\n");
     sensor_status.mpu9250 = imu_mpu9250->init();
 
     // sensor_status.adis    = imu_adis16405->init();
+    TRACE("LM75b IMU init\n");
 
     sensor_status.lm75b_imu    = temp_lm75b_imu->init();
+
+    TRACE("LM75b ANAL init\n");
+
     sensor_status.lm75b_analog = temp_lm75b_analog->init();
 
     // // TODO: lsm6ds3h
-    sensor_status.ms5803 = pressure_ms5803->init();
+    TRACE("MS5803 init\n");
 
+    sensor_status.ms5803 = pressure_ms5803->init();
+    TRACE("AD7994 init\n");
+    
     sensor_status.ad7994 = adc_ad7994->init();
 
     sensor_status.battery_sensor = adc_internal->getBatterySensorPtr()->init();
@@ -254,16 +262,7 @@ void SensorManager::stateIdle(const Event& ev)
 
         // Perform the transition in both cases
         case EV_TC_START_SENSOR_LOGGING:
-        case EV_LIFTOFF:
-
-#ifdef USE_MOCK_SENSORS
-            // Signal to the mock pressure sensor that we have liftoff in order
-            // to start simulating flight pressures
-            if (ev.sig == EV_LIFTOFF)
-            {
-                mock_pressure_sensor->before_liftoff = false;
-            }
-#endif
+        case EV_ARMED:
             transition(&SensorManager::stateLogging);
             break;
 
@@ -329,7 +328,6 @@ void SensorManager::onSimple20HZCallback()
         logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
         logger.log(*(ad7994_data));
         logger.log(lm78b_imu_data);
-        logger.log(lm78b_analog_data);
         logger.log(lm78b_analog_data);
     }
 

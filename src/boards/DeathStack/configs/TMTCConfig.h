@@ -31,10 +31,10 @@ namespace DeathStackBoard
 
 /* Mavlink Driver queue settings */
 static constexpr unsigned int MAV_OUT_QUEUE_LEN = 10;
-static constexpr unsigned int MAV_PKT_SIZE      = 256;
-static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 1000;
+static constexpr unsigned int MAV_PKT_SIZE      = 255;
+static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 200;
 /* Min guaranteed sleep time after each packet sent(milliseconds) */
-static const uint16_t TMTC_SLEEP_AFTER_SEND = 250;
+static const uint16_t TMTC_SLEEP_AFTER_SEND = 0;
 
 /* Device */
 typedef BusSPI<2, miosix::interfaces::spi2::mosi,
@@ -46,9 +46,10 @@ typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn,
     Xbee_t;
 
 /* Periodic telemetries periods */
-static const unsigned int LR_TM_TIMEOUT = 5000;
-static const unsigned int HR_TM_TIMEOUT = 250;
-static const unsigned int TEST_TM_TIMEOUT = 500;
+static const unsigned int LR_TM_TIMEOUT = 1000;
+static const unsigned int HR_TM_TIMEOUT = 63;
+
+static const unsigned int TEST_TM_TIMEOUT = 250;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID  = 1;

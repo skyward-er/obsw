@@ -52,8 +52,8 @@ namespace DeathStackBoard
 {
 
 // Add heres the event that you don't want to be TRACEd in DeathStack.logEvent()
-static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{EV_SEND_HR_TM,
-                                                        EV_SEND_LR_TM};
+static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
+    EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM};
 /**
  * This file provides a simplified way to initialize and monitor all
  * the components of the DeathStack.

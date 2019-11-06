@@ -33,6 +33,7 @@
 #include "DeathStack/configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
 #include "sensors/MPU9250/MPU9250Data.h"
+#include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
 
 namespace DeathStackBoard
 {
@@ -50,6 +51,7 @@ public:
     ~FlightStatsRecorder();
 
     void update(const KalmanState& t);
+    void update(const CurrentSenseData& t);
     void update(const ADAData& t);
     void update(const AD7994WrapperData& t);
     void update(const MPU9250Data& t);
@@ -57,6 +59,8 @@ public:
 
     // Wait for liftoff or deployment
     void state_idle(const Event& ev);
+
+    void state_testing_cutters(const Event& ev);
 
     // Record stats of the first few seconds of flight
     void state_liftOff(const Event& ev);
@@ -74,6 +78,7 @@ private:
     enum class State
     {
         IDLE,
+        TESTING_CUTTER,
         LIFTOFF,
         ASCENDING,
         DROGUE_DPL,
@@ -84,7 +89,7 @@ private:
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
-
+    CutterTestStats cutter_stats{};
     State state         = State::IDLE;
     long long T_liftoff = 0;
 

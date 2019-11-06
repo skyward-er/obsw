@@ -208,4 +208,7 @@ LogResult LoggerService::log<DrogueDPLStats>(const DrogueDPLStats& t);
 template <>
 LogResult LoggerService::log<MainDPLStats>(const MainDPLStats& t);
 
+template <>
+LogResult LoggerService::log<CutterTestStats>(const CutterTestStats& t);
+
 }  // namespace DeathStackBoard

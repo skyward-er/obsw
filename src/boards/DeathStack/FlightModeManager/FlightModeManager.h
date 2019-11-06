@@ -67,6 +67,8 @@ public:
     State state_calibrating(const Event& ev);
     /* All good, waiting for arm */
     State state_disarmed(const Event& ev);
+
+    // ARMED
     /* Ready to launch, listening detachment pin (or command) */
     State state_armed(const Event& ev);
 
@@ -80,14 +82,9 @@ public:
     State state_drogueDescent(const Event& ev);
 
     /* Descent super-state */
-    State state_terminalDescent(const Event& ev);       // super-state
-    /* We don't trust the software: prevent ADA to deploy rogallo */
-    State state_manualDescent(const Event& ev);
-    /* We trust the software */
-    State state_rogalloDescent(const Event& ev);
+    State state_terminalDescent(const Event& ev);
 
     /// LANDED
-
     /* Close file descriptors */
     State state_landed(const Event& ev);
 
@@ -102,9 +99,7 @@ private:
 
     FMMStatus status;
 
-    uint16_t id_delayed_arm_timeout = 0;
-    uint16_t id_delayed_dpl_timeout = 0;
-    uint16_t id_delayed_end_mission_timeout = 0;
+    uint16_t end_mission_d_event_id = 0;
 };
 
 }  // namespace DeathStackBoard

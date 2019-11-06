@@ -58,8 +58,6 @@ public:
     State state_testingBackup(const Event &ev);
 
     State state_ejectingNosecone(const Event &ev);
-    State state_movingServo(const Event &ev);
-    State state_resettingServo(const Event &ev);
 
 private:
     /**
@@ -93,6 +91,12 @@ private:
     void disableServo();
 
     /**
+     * @brief Wiggle the servo just a bit around the reset position to show it's
+     * working
+     */
+    void wiggleServo();
+
+    /**
      * Defer an event to be processed when the state machine goes back to
      * state_idle
      *
@@ -109,7 +113,7 @@ private:
 
     CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
 
-    uint8_t ejection_retry_count = 0;
+    bool cut_backup = true;
 
     uint16_t ev_open_timeout_id  = 0;
     uint16_t ev_reset_timeout_id = 0;

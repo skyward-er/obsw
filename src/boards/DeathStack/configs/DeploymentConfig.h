@@ -38,8 +38,7 @@ namespace DeploymentConfigs
 
 static constexpr uint8_t MAX_EJECTION_ATTEMPTS = 1;
 
-static constexpr int NC_OPEN_TIMEOUT     = 10000;
-static constexpr int SERVO_RESET_TIMEOUT = 1000;
+static constexpr int NC_OPEN_TIMEOUT     = 5000;
 
 static const PWM::Timer SERVO_TIMER{
     TIM4, &(RCC->APB1ENR), RCC_APB1ENR_TIM4EN,
@@ -48,9 +47,11 @@ static const PWM::Timer SERVO_TIMER{
 static constexpr PWMChannel SERVO_CHANNEL = PWMChannel::CH1;
 
 // Servo rest position
-static constexpr float SERVO_RESET_POS = 1.0f;
+static constexpr float SERVO_RESET_POS = 0.77f;
+static constexpr float SERVO_WIGGLE_AMPLITUDE = 0.02f;
+
 // Servo position when ejecting the nosecone
-static constexpr float SERVO_EJECT_POS = 0.30f;
+static constexpr float SERVO_EJECT_POS = 0.45f;
 
 }  // namespace DeploymentConfigs
 

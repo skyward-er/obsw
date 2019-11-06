@@ -71,9 +71,9 @@ private:
     LoggerService& logger = *(LoggerService::getInstance());
 
     /* State handlers */
-    void stateIdle(const Event& ev);
-    void stateSendingTM(const Event& ev);
-    void stateSendingTestTM(const Event& ev);
+    // void stateIdle(const Event& ev);
+    void stateGroundTM(const Event& ev);
+    void stateFlightTM(const Event& ev);
 
     inline void packHRTelemetry(uint8_t* packet, unsigned int index);
     inline void packLRTelemetry(uint8_t* packet);
@@ -83,6 +83,11 @@ private:
     uint16_t test_tm_event_id = 0;
 
     uint8_t hr_tm_index = 0;
+
+    mavlink_hr_tm_t hr_tm_packet;
+    mavlink_lr_tm_t lr_tm_packet;
+
+    mavlink_message_t auto_telemetry_msg;
 };
 
 } /* namespace DeathStackBoard */

@@ -26,17 +26,16 @@
 
 #include <DeathStack/LoggerService/LoggerService.h>
 #include <DeathStack/configs/TMTCConfig.h>
-// #include "DeathStack/DeathStack.h"
+#include "DeathStack/DeathStack.h"
+#include <drivers/mavlink/MavlinkDriver.h>
 #include "DeathStack/events/Events.h"
 #include "DeathStack/events/Topics.h"
-#include <drivers/mavlink/MavlinkDriver.h>
 #include "TMBuilder.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
 
 namespace DeathStackBoard
 {
-
 
 namespace TCHandler
 {
@@ -52,18 +51,23 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
     { MAV_CMD_ARM,              EV_TC_ARM    },
     { MAV_CMD_DISARM,           EV_TC_DISARM },
     { MAV_CMD_CALIBRATE_ADA,    EV_TC_CALIBRATE_ADA},
-    // { MAV_CMD_ABORT_LAUNCH, EV_TC_ABORT_LAUNCH},
+
     { MAV_CMD_FORCE_INIT,       EV_TC_FORCE_INIT},
     { MAV_CMD_FORCE_LAUNCH,     EV_TC_LAUNCH},
-    { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN }, 
-    { MAV_CMD_NOSECONE_CLOSE,   EV_TC_NC_CLOSE }, 
-    { MAV_CMD_START_ROGALLO_CONTROL, EV_TC_START_ROGALLO_CONTROL},
+    { MAV_CMD_NOSECONE_OPEN,    EV_TC_NC_OPEN },
+    { MAV_CMD_RESET_SERVO,      EV_TC_RESET_SERVO },
+    { MAV_CMD_WIGGLE_SERVO,     EV_TC_WIGGLE_SERVO },
 
     { MAV_CMD_START_LOGGING,    EV_TC_START_SENSOR_LOGGING },
     { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_SENSOR_LOGGING },
     { MAV_CMD_CLOSE_LOG,        EV_TC_CLOSE_LOG },
 
     { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE  }, 
+    { MAV_CMD_TEST_PRIMARY_CUTTER,     EV_TC_TEST_CUTTER_PRIMARY  }, 
+    { MAV_CMD_TEST_BACKUP_CUTTER,      EV_TC_TEST_CUTTER_BACKUP  }, 
+    { MAV_CMD_CUT_PRIMARY,      EV_TC_CUT_PRIMARY  }, 
+    { MAV_CMD_CUT_BACKUP,       EV_TC_CUT_BACKUP  }, 
+    { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_DROGUE  }, 
     { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
 
     { MAV_CMD_END_MISSION,      EV_TC_END_MISSION }
@@ -87,8 +91,7 @@ static void sendAck(Mav* channel, const mavlink_message_t& msg)
 /**
  *  Handle the Mavlink message, posting the corresponding event if needed.
  */
-static void handleMavlinkMessage(Mav* channel,
-                                 const mavlink_message_t& msg)
+static void handleMavlinkMessage(Mav* channel, const mavlink_message_t& msg)
 {
     TRACE("[TMTC] Handling command\n");
 
@@ -104,14 +107,15 @@ static void handleMavlinkMessage(Mav* channel,
     {
         case MAV_TC(NOARG):
         {
-            // TRACE("[TMTC] Received NOARG command\n");
-            // uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
-            // auto it = DeathStackBoard::TCHandler::noargCmdToEvt.find(commandId);
+            TRACE("[TMTC] Received NOARG command\n");
+            uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
+            auto it =
+            DeathStackBoard::TCHandler::noargCmdToEvt.find(commandId);
 
-            // if (it != noargCmdToEvt.end())
-            //     sEventBroker->post(Event{it->second}, TOPIC_TC);
-            // else
-            //     TRACE("[TMTC] Unkown NOARG command %d\n", commandId);
+            if (it != noargCmdToEvt.end())
+                sEventBroker->post(Event{it->second}, TOPIC_TC);
+            else
+                TRACE("[TMTC] Unknown NOARG command %d\n", commandId);
 
             break;
         }
@@ -138,27 +142,27 @@ static void handleMavlinkMessage(Mav* channel,
 
             TRACE("[TMTC] Upload setting: %d, %f\n", (int)id, setting);
 
-            // switch (id)
-            // {
-            //     case MAV_SET_DEPLOYMENT_ALTITUDE:
-            //     {
-            //         DeathStack::getInstance()->ada->setDeploymentAltitude(
-            //             setting);
-            //         break;
-            //     }
-            //     case MAV_SET_REFERENCE_ALTITUDE:
-            //     {
-            //         DeathStack::getInstance()->ada->setReferenceAltitude(
-            //             setting);
-            //         break;
-            //     }
-            //     case MAV_SET_REFERENCE_TEMP:
-            //     {
-            //         DeathStack::getInstance()->ada->setReferenceTemperature(
-            //             setting);
-            //         break;
-            //     }
-            // }
+            switch (id)
+            {
+                case MAV_SET_DEPLOYMENT_ALTITUDE:
+                {
+                    DeathStack::getInstance()->ada->setDeploymentAltitude(
+                        setting);
+                    break;
+                }
+                case MAV_SET_REFERENCE_ALTITUDE:
+                {
+                    DeathStack::getInstance()->ada->setReferenceAltitude(
+                        setting);
+                    break;
+                }
+                case MAV_SET_REFERENCE_TEMP:
+                {
+                    DeathStack::getInstance()->ada->setReferenceTemperature(
+                        setting);
+                    break;
+                }
+            }
             break;
         }
         case MAV_TC(RAW_EVENT):
@@ -174,7 +178,6 @@ static void handleMavlinkMessage(Mav* channel,
         default:
         {
             TRACE("[TMTC] Received message is not of a known type\n");
-            // TODO: fault counter?
             break;
         }
     }
