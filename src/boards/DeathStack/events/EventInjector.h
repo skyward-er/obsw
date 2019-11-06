@@ -83,7 +83,7 @@ protected:
                 }
                 default:
                 {
-                    sEventBroker->post({ev}, topic);
+                    sEventBroker->post({(uint8_t)ev}, topic);
                     break;
                 }
             }
