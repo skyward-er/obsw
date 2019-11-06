@@ -148,6 +148,29 @@ void ADAController::updateBaro(float pressure)
             break;
         }
 
+        case ADAState::PRESSURE_STABILIZATION:
+        {
+            // Stabilization state: do not send notifications for target altitude reached, log it
+            ada.updateBaro(pressure);
+
+            if (ada.getAltitudeForDeployment().altitude <=
+                    deployment_altitude &&
+                ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
+            {
+                if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
+                {
+                    logger.log(DplAltitudeReached{miosix::getTick()});
+                }
+            }
+            else if (n_samples_deployment_detected != 0)
+            {
+                n_samples_deployment_detected = 0;
+            }
+
+            logData(ada.getKalmanState(), ada.getADAData());
+            break;
+        }
+
         case ADAState::FIRST_DESCENT_PHASE:
         {
             // Descent state: send notifications for target altitude reached
@@ -159,6 +182,7 @@ void ADAController::updateBaro(float pressure)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
+                    logger.log(DplAltitudeReached{miosix::getTick()});
                     sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
                 }
             }
@@ -452,12 +476,44 @@ void ADAController::stateActive(const Event& ev)
         }
         case EV_ADA_APOGEE_DETECTED:
         {
-            transition(&ADAController::stateFirstDescentPhase);
+            transition(&ADAController::statePressureStabilization);
             break;
         }
         default:
         {
             // TRACE("ADA stateActive: %d event not handled\n", ev.sig);
+            break;
+        }
+    }
+}
+
+void ADAController::statePressureStabilization(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            pressure_delayed_event_id =
+                sEventBroker->postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
+                    {EV_TIMEOUT_P_STABILIZATION}, TOPIC_ADA);
+            logStatus(ADAState::PRESSURE_STABILIZATION);
+            TRACE("[ADA] Entering statePressureStabilization\n");
+            break;
+        }
+        case EV_EXIT:
+        {
+            sEventBroker->removeDelayed(pressure_delayed_event_id);
+            TRACE("[ADA] Exiting statePressureStabilization\n");
+            break;
+        }
+        case EV_TIMEOUT_P_STABILIZATION:
+        {
+            transition(&ADAController::stateFirstDescentPhase);
+            break;
+        }
+        default:
+        {
+            // TRACE("ADA statePressureStabilization: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -480,6 +536,7 @@ void ADAController::stateFirstDescentPhase(const Event& ev)
         {
             logStatus(ADAState::FIRST_DESCENT_PHASE);
             TRACE("[ADA] Entering stateFirstDescentPhase\n");
+            n_samples_deployment_detected = 0;
             break;
         }
         case EV_EXIT:

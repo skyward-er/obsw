@@ -90,6 +90,7 @@ private:
     void stateReady(const Event& ev);
     void stateShadowMode(const Event& ev);
     void stateActive(const Event& ev);
+    void statePressureStabilization(const Event& ev);
     void stateFirstDescentPhase(const Event& ev);
     void stateEnd(const Event& ev);
 
@@ -102,7 +103,10 @@ private:
     void logData(KalmanState s, ADAData d);
 
     uint16_t shadow_delayed_event_id =
-        0;  // Event id to store calibration timeout
+        0;  // Event id to store shadow mode timeout
+
+    uint16_t pressure_delayed_event_id =
+        0;  // Event id to store pressure stabilization timeout
 
     ADAControllerStatus status;  // ADA status: timestamp + state
 

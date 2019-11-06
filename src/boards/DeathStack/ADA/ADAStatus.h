@@ -38,6 +38,7 @@ enum class ADAState
     READY,
     SHADOW_MODE,
     ACTIVE,
+    PRESSURE_STABILIZATION,
     FIRST_DESCENT_PHASE,
     END
 };

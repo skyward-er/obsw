@@ -182,7 +182,11 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
                 printf("Apogee error: %d samples\n", (int)(i - 382));
                 SUCCEED();
             }
+            REQUIRE(ada_controller->testState(&ADAController::statePressureStabilization));
+            Thread::sleep(TIMEOUT_ADA_P_STABILIZATION + 1000);
+            REQUIRE(ada_controller->testState(&ADAController::stateFirstDescentPhase));
         }
+
         greenLed::low();
     }
 }
