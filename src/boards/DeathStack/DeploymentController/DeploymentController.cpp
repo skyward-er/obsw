@@ -132,7 +132,7 @@ State DeploymentController::state_idle(const Event& ev)
             resetServo();
             break;
         }
-        case EV_WIGGLE_SERVO
+        case EV_WIGGLE_SERVO:
         {
             wiggleServo();
             break;
