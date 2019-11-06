@@ -339,6 +339,7 @@ State FlightModeManager::state_armed(const Event& ev)
             break;
         }
         case EV_UMBILICAL_DETACHED:
+        case EV_TC_LAUNCH:
         {
             retState = transition(&FlightModeManager::state_ascending);
             break;
@@ -410,6 +411,11 @@ State FlightModeManager::state_testing(const Event& ev)
         case EV_TC_RESET_SERVO:
         {
             sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DEPLOYMENT);
+            break;
+        }
+        case EV_TC_WIGGLE_SERVO:
+        {
+            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DEPLOYMENT);
             break;
         }
         case EV_TC_CLOSE_LOG:

@@ -75,7 +75,7 @@ void TMTCManager::stateGroundTM(const Event& ev)
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
-            TRACE("[TMTC] Entering stateTestTM\n");
+            TRACE("[TMTC] Entering stateGroundTM\n");
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
@@ -118,7 +118,7 @@ void TMTCManager::stateGroundTM(const Event& ev)
         {
             sEventBroker->removeDelayed(test_tm_event_id);
 
-            TRACE("[TMTC] Exiting stateTestTM\n");
+            TRACE("[TMTC] Exiting stateGroundTM\n");
             break;
         }
         default:

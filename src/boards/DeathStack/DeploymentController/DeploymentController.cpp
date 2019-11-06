@@ -132,6 +132,11 @@ State DeploymentController::state_idle(const Event& ev)
             resetServo();
             break;
         }
+        case EV_WIGGLE_SERVO
+        {
+            wiggleServo();
+            break;
+        }
         default:
         {
             retState = tran_super(&DeploymentController::Hsm_top);
@@ -405,6 +410,19 @@ void DeploymentController::disableServo()
 
     ejection_servo.stop();
     ejection_servo.disable(SERVO_CHANNEL);
+}
+
+void DeploymentController::wiggleServo()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS + SERVO_WIGGLE_AMPLITUDE);
+        Thread::sleep(500);
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS - SERVO_WIGGLE_AMPLITUDE);
+        Thread::sleep(500);
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS);
+        Thread::sleep(500);
+    }
 }
 
 }  // namespace DeathStackBoard

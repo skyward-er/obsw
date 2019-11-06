@@ -91,6 +91,12 @@ private:
     void disableServo();
 
     /**
+     * @brief Wiggle the servo just a bit around the reset position to show it's
+     * working
+     */
+    void wiggleServo();
+
+    /**
      * Defer an event to be processed when the state machine goes back to
      * state_idle
      *
