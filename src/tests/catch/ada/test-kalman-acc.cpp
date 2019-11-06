@@ -52,7 +52,6 @@ TEST_CASE("Testing Kalman with accelerometer")
     {
         {
             miosix::Lock<miosix::FastMutex> l(ada_mutex);
-            ada->updateAcc(SIMULATED_AX[0]);
             ada->updateBaro(SIMULATED_PRESSURE[i]);
             state = ada->getKalmanState();
         }
