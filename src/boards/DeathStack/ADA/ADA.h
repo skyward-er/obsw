@@ -91,8 +91,6 @@ public:
 private:
     Kalman<3, 1> filter;      // Filter object
     Kalman<3, 2> filter_acc;  // Filter with accelerometer
-    Stats acc_stats;  // Stats for acceleration averaging: accelerometer is
-                      // sampled faster than barometer
 
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
