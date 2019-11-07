@@ -101,10 +101,6 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
                 tm_repository.fmm_tm.pin_launch_num_changes =
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_launch_state = t.state;
-
-                // Test TM
-                tm_repository.test_tm.pin_launch = t.state;
-
                 // HR TM
                 tm_repository.hr_tm.pin_launch = t.state;
                 break;
@@ -116,9 +112,6 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
                 tm_repository.fmm_tm.pin_nosecone_num_changes =
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_nosecone_state = t.state;
-
-                // Test TM
-                tm_repository.test_tm.pin_nosecone = t.state;
 
                 // HR TM
                 tm_repository.hr_tm.pin_nosecone = t.state;
@@ -283,6 +276,12 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t)
         tm_repository.ada_tm.kalman_x0 = t.x0;
         tm_repository.ada_tm.kalman_x1 = t.x1;
         tm_repository.ada_tm.kalman_x2 = t.x2;
+
+        //TODO: Acceleration kalman
+
+        // tm_repository.ada_tm.kalman_acc_x0 = t.x0;
+        // tm_repository.ada_tm.kalman_acc_x1 = t.x1;
+        // tm_repository.ada_tm.kalman_acc_x2 = t.x2;
     }
 
     flight_stats.update(t);
@@ -372,7 +371,6 @@ LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t)
         tm_repository.hr_tm.pressure_ada = t.nxp_baro_pressure;
 
         // Test tm
-        tm_repository.test_tm.pressure_nxp = t.nxp_baro_pressure;
         tm_repository.test_tm.pressure_hw  = t.honeywell_baro_pressure;
     }
 
@@ -470,14 +468,9 @@ LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
         tm_repository.hr_tm.gyro_x = t.gyro.getX();
         tm_repository.hr_tm.gyro_y = t.gyro.getY();
         tm_repository.hr_tm.gyro_z = t.gyro.getZ();
-
-        // Test TM
-        tm_repository.test_tm.x_acc = t.accel.getX();
-        tm_repository.test_tm.z_acc = t.accel.getZ();
     }
 
     flight_stats.update(t);
-
     return logger.log(t);
 }
 
@@ -492,6 +485,7 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
             case TempSensorId::LM75B_ANALOG:
             {
                 tm_repository.test_tm.temp_analog = t.temp;
+                tm_repository.hr_tm.temperature = t.temp;
                 break;
             }
             case TempSensorId::LM75B_IMU:
@@ -528,13 +522,6 @@ LogResult LoggerService::log<PiksiData>(const PiksiData& t)
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
         tm_repository.hr_tm.gps_alt = t.gps_data.height;
         tm_repository.hr_tm.gps_fix = t.fix;
-
-        // Test TM
-        tm_repository.test_tm.gps_altitude = t.gps_data.height;
-        tm_repository.test_tm.gps_nsats    = t.gps_data.numSatellites;
-        tm_repository.test_tm.gps_fix      = t.fix;
-        tm_repository.test_tm.gps_lat      = t.gps_data.latitude;
-        tm_repository.test_tm.gps_lon      = t.gps_data.longitude;
     }
 
     flight_stats.update(t);
@@ -640,6 +627,18 @@ LogResult LoggerService::log<MainDPLStats>(const MainDPLStats& t)
         tm_repository.lr_tm.main_dpl_acc      = t.max_dpl_acc;
         tm_repository.lr_tm.main_dpl_altitude = t.altitude_dpl;
         tm_repository.lr_tm.main_dpl_zspeed   = t.vert_speed_dpl;
+    }
+    return logger.log(t);
+}
+
+template <>
+LogResult LoggerService::log<CutterTestStats>(const CutterTestStats& t)
+{
+    {
+        miosix::PauseKernelLock kLock;
+
+        tm_repository.dpl_tm.cutter_1_test_current = t.cutter_1_avg;
+        tm_repository.dpl_tm.cutter_2_test_current = t.cutter_2_avg;
     }
 
     return logger.log(t);

@@ -27,7 +27,7 @@
  */
 
 // Generated from:  https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
-// Autogen date:    2019-11-06 14:46:13.574146
+// Autogen date:    2019-11-06 23:09:09.820014
 
 
 #include "Events.h"
@@ -92,16 +92,18 @@ string getEventString(uint8_t event)
         { EV_TC_TEST_CUTTER_BACKUP, "EV_TC_TEST_CUTTER_BACKUP" },
         { EV_TC_TEST_CUTTER_PRIMARY, "EV_TC_TEST_CUTTER_PRIMARY" },
         { EV_TC_TEST_MODE, "EV_TC_TEST_MODE" },
+        { EV_TC_WIGGLE_SERVO, "EV_TC_WIGGLE_SERVO" },
         { EV_TEST_CUTTER_BACKUP, "EV_TEST_CUTTER_BACKUP" },
         { EV_TEST_CUTTER_PRIMARY, "EV_TEST_CUTTER_PRIMARY" },
         { EV_TEST_MODE, "EV_TEST_MODE" },
         { EV_TIMEOUT_CUTTING, "EV_TIMEOUT_CUTTING" },
         { EV_TIMEOUT_END_MISSION, "EV_TIMEOUT_END_MISSION" },
         { EV_TIMEOUT_NC_OPEN, "EV_TIMEOUT_NC_OPEN" },
-        { EV_TIMEOUT_P_STABILIZATION, "EV_TIMEOUT_P_STABILIZATION" },
+        { EV_TIMEOUT_PRESS_STABILIZATION, "EV_TIMEOUT_PRESS_STABILIZATION" },
         { EV_TIMEOUT_SERVO_RESET, "EV_TIMEOUT_SERVO_RESET" },
         { EV_TIMEOUT_SHADOW_MODE, "EV_TIMEOUT_SHADOW_MODE" },
-        { EV_UMBILICAL_DETACHED, "EV_UMBILICAL_DETACHED" }
+        { EV_UMBILICAL_DETACHED, "EV_UMBILICAL_DETACHED" },
+        { EV_WIGGLE_SERVO, "EV_WIGGLE_SERVO" }
     };
     auto   it  = event_string_map.find(event);
     return it == event_string_map.end() ? "EV_UNKNOWN" : it->second;

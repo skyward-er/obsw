@@ -31,7 +31,7 @@
 namespace DeathStackBoard
 {
 
-TMTCManager::TMTCManager() : FSM(&TMTCManager::stateSendingTM)
+TMTCManager::TMTCManager() : FSM(&TMTCManager::stateGroundTM)
 {
     busSPI2::init();
     enableXbeeInterrupt();
@@ -67,110 +67,7 @@ bool TMTCManager::send(mavlink_message_t& msg)
     return ok;
 }
 
-/**
- * States
- */
-void TMTCManager::stateIdle(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-            TRACE("[TMTC] Entering stateIdle\n");
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-
-        case EV_LIFTOFF:
-            TRACE("[TMTC] Liftoff signal received\n");
-            transition(&TMTCManager::stateSendingTM);
-            break;
-        case EV_TEST_MODE:
-        {
-            transition(&TMTCManager::stateSendingTestTM);
-            break;
-        }
-        case EV_EXIT:
-            TRACE("[TMTC] Exiting stateIdle\n");
-            break;
-
-        default:
-            break;
-    }
-}
-
-void TMTCManager::stateSendingTM(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
-            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-
-        case EV_SEND_HR_TM:
-        {
-            // Pack the current data in tm_repository.hr_tm_packet.payload
-            packHRTelemetry(tm_repository.hr_tm_packet.payload, hr_tm_index);
-
-            // Send HR telemetry once 4 packets are filled
-            if (hr_tm_index == 3)
-            {
-                mavlink_message_t telem =
-                    TMBuilder::buildTelemetry(MAV_HR_TM_ID);
-                send(telem);
-
-                // Clear the array
-                memset(tm_repository.hr_tm_packet.payload, 0,
-                       MAVLINK_MSG_HR_TM_FIELD_PAYLOAD_LEN);
-            }
-
-            hr_tm_index = (hr_tm_index + 1) % 4;
-
-            // Schedule the next HR telemetry
-            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            break;
-        }
-
-        case EV_SEND_LR_TM:
-        {
-            packLRTelemetry(tm_repository.lr_tm_packet.payload);
-
-            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_LR_TM_ID);
-            send(telem);
-
-            // Clear the array
-            memset(tm_repository.lr_tm_packet.payload, 0,
-                   MAVLINK_MSG_LR_TM_FIELD_PAYLOAD_LEN);
-
-            // Schedule the next HR telemetry
-            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
-            break;
-        }
-        case EV_TEST_MODE:
-        {
-            transition(&TMTCManager::stateSendingTestTM);
-            break;
-        }
-
-        case EV_EXIT:
-        {
-            sEventBroker->removeDelayed(lr_event_id);
-            sEventBroker->removeDelayed(hr_event_id);
-
-            TRACE("[TMTC] Exiting stateHighRateTM\n");
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void TMTCManager::stateSendingTestTM(const Event& ev)
+void TMTCManager::stateGroundTM(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -178,17 +75,42 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
-            TRACE("[TMTC] Entering stateTestTM\n");
-            // StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            TRACE("[TMTC] Entering stateGroundTM\n");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
 
         case EV_SEND_TEST_TM:
         {
-            mavlink_message_t telem = TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
-            send(telem);
+            // Send both HR_TM and TEST_TM
+
+            // Pack the current data in hr_tm_packet.payload
+            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
+
+            // Send HR telemetry once 4 packets are filled
+            if (hr_tm_index == 3)
+            {
+                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                         &auto_telemetry_msg, &(hr_tm_packet));
+                send(auto_telemetry_msg);
+            }
+
+            // Two TEST_TM every one HR_TM
+            if (hr_tm_index % 2 == 1)
+            {
+                mavlink_message_t telem =
+                    TMBuilder::buildTelemetry(MAV_TEST_TM_ID);
+                send(telem);
+            }
+            hr_tm_index = (hr_tm_index + 1) % 4;
 
             test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
                 Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
+            break;
+        }
+        case EV_ARMED:
+        case EV_LIFTOFF:
+        {
+            transition(&TMTCManager::stateFlightTM);
             break;
         }
 
@@ -196,7 +118,74 @@ void TMTCManager::stateSendingTestTM(const Event& ev)
         {
             sEventBroker->removeDelayed(test_tm_event_id);
 
-            TRACE("[TMTC] Exiting stateTestTM\n");
+            TRACE("[TMTC] Exiting stateGroundTM\n");
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void TMTCManager::stateFlightTM(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
+                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+
+            TRACE("[TMTC] Entering stateFlightTM\n");
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            break;
+
+        case EV_SEND_HR_TM:
+        {
+            // Pack the current data in hr_tm_packet.payload
+            packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
+
+            // Send HR telemetry once 4 packets are filled
+            if (hr_tm_index == 3)
+            {
+                mavlink_msg_hr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                         &auto_telemetry_msg, &(hr_tm_packet));
+                send(auto_telemetry_msg);
+            }
+
+            hr_tm_index = (hr_tm_index + 1) % 4;
+
+            // Schedule the next HR telemetry
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+
+            break;
+        }
+
+        case EV_SEND_LR_TM:
+        {
+            packLRTelemetry(lr_tm_packet.payload);
+
+            mavlink_msg_lr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
+                                     &auto_telemetry_msg, &(lr_tm_packet));
+            send(auto_telemetry_msg);
+
+            // Schedule the next HR telemetry
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
+                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+            break;
+        }
+        case EV_DISARMED:
+        {
+            transition(&TMTCManager::stateGroundTM);
+            break;
+        }
+        case EV_EXIT:
+        {
+            sEventBroker->removeDelayed(lr_event_id);
+            sEventBroker->removeDelayed(hr_event_id);
+
+            TRACE("[TMTC] Exiting stateFlightTM\n");
             break;
         }
         default:
@@ -231,6 +220,8 @@ void TMTCManager::packHRTelemetry(uint8_t* packet, unsigned int index)
     packer.packGpsLon(tm_repository.hr_tm.gps_lon, index);
     packer.packGpsAlt(tm_repository.hr_tm.gps_alt, index);
     packer.packGpsFix(tm_repository.hr_tm.gps_fix, index);
+
+    packer.packTemperature(tm_repository.hr_tm.temperature, index);
 
     packer.packFmmState(tm_repository.hr_tm.fmm_state, index);
     packer.packDplState(tm_repository.hr_tm.dpl_state, index);

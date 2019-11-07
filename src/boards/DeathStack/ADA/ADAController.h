@@ -95,7 +95,6 @@ private:
     void stateEnd(const Event& ev);
 
     void finalizeCalibration();
-    void resetCalibration();
 
     void logStatus(ADAState state);  // Update and log ADA FSM state
     void logStatus();  // Log the ADA FSM state without updating it

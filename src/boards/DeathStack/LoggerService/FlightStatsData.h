@@ -53,13 +53,30 @@ struct LiftOffStats
     }
 };
 
+struct CutterTestStats
+{
+    uint32_t timestamp = 0;
+    float cutter_1_avg = 0;
+    float cutter_2_avg = 0;
+    uint32_t n_samples = 0;
+    static std::string header()
+    {
+        return "timestamp,cutter_1_avg,cutter_2_avg\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << cutter_1_avg << "," << cutter_2_avg << "\n";
+    }
+};
+
 struct ApogeeStats
 {
     uint32_t T_apogee          = 0;
-    float nxp_min_pressure     = 0.0f;
-    float hw_min_pressure      = 0.0f;
-    float kalman_min_pressure  = 0.0f;
-    float digital_min_pressure = 0.0f;
+    float nxp_min_pressure     = 200000.0f;
+    float hw_min_pressure      = 200000.0f;
+    float kalman_min_pressure  = 200000.0f;
+    float digital_min_pressure = 200000.0f;
 
     float baro_max_altitude = 0.0f;
     float gps_max_altitude  = 0.0f;

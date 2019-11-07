@@ -54,7 +54,7 @@ DeploymentController::~DeploymentController()
 
 State DeploymentController::state_initialization(const Event& ev)
 {
-    // Nothing to do during initialization
+    initServo();
 
     UNUSED(ev);
     return transition(&DeploymentController::state_idle);
@@ -67,8 +67,6 @@ State DeploymentController::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            initServo();
-            
             logStatus(DeploymentCTRLState::DPL_IDLE);
             // Process deferred events
             try
@@ -104,7 +102,19 @@ State DeploymentController::state_idle(const Event& ev)
         }
         case EV_CUT_DROGUE:
         {
+            cut_backup = true;
             retState = transition(&DeploymentController::state_cuttingPrimary);
+            break;
+        }
+        case EV_CUT_PRIMARY:
+        {
+            cut_backup = false;
+            retState = transition(&DeploymentController::state_cuttingPrimary);
+            break;
+        }
+        case EV_CUT_BACKUP:
+        {
+            retState = transition(&DeploymentController::state_cuttingBackup);
             break;
         }
         case EV_TEST_CUTTER_PRIMARY:
@@ -115,6 +125,16 @@ State DeploymentController::state_idle(const Event& ev)
         case EV_TEST_CUTTER_BACKUP:
         {
             retState = transition(&DeploymentController::state_testingBackup);
+            break;
+        }
+        case EV_RESET_SERVO:
+        {
+            resetServo();
+            break;
+        }
+        case EV_WIGGLE_SERVO:
+        {
+            wiggleServo();
             break;
         }
         default:
@@ -133,22 +153,23 @@ State DeploymentController::state_ejectingNosecone(const Event& ev)
     {
         case EV_ENTRY:
         {
-            logStatus(DeploymentCTRLState::EJECTING_NC);
+            ejectNosecone();
+            ev_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
+                Event{EV_TIMEOUT_NC_OPEN}, TOPIC_DEPLOYMENT);
 
+            logStatus(DeploymentCTRLState::EJECTING_NC);
             TRACE("[DPL_CTRL] state_ejectingNosecone ENTRY\n");
             break;
         }
         case EV_INIT:
         {
             TRACE("[DPL_CTRL] state_ejectingNosecone INIT\n");
-
-            retState = transition(&DeploymentController::state_movingServo);
-
             break;
         }
         case EV_EXIT:
         {
-            disableServo();
+            // disableServo();
+            sEventBroker->removeDelayed(ev_open_timeout_id);
 
             TRACE("[DPL_CTRL] state_openingNosecone EXIT\n");
 
@@ -160,6 +181,7 @@ State DeploymentController::state_ejectingNosecone(const Event& ev)
             break;
         }
         case EV_NC_DETACHED:
+        case EV_TIMEOUT_NC_OPEN:
         {
             retState = transition(&DeploymentController::state_idle);
             break;
@@ -167,106 +189,6 @@ State DeploymentController::state_ejectingNosecone(const Event& ev)
         default:
         {
             retState = tran_super(&DeploymentController::Hsm_top);
-            break;
-        }
-    }
-    return retState;
-}
-
-State DeploymentController::state_movingServo(const Event& ev)
-{
-    State retState = HANDLED;
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            ejectNosecone();
-
-            ev_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
-                Event{EV_TIMEOUT_NC_OPEN}, TOPIC_DEPLOYMENT);
-
-            TRACE("[DPL_CTRL] state_movingServo ENTRY\n");
-            logStatus(DeploymentCTRLState::MOVING_SERVO);
-            break;
-        }
-        case EV_INIT:
-        {
-            break;
-        }
-        case EV_EXIT:
-        {
-            sEventBroker->removeDelayed(ev_open_timeout_id);
-
-            TRACE("[DPL_CTRL] state_movingServo EXIT\n");
-
-            break;
-        }
-        case EV_TIMEOUT_NC_OPEN:
-        {
-            // Increment retry counter
-            ++ejection_retry_count;
-
-            if (ejection_retry_count == MAX_EJECTION_ATTEMPTS)
-            {
-                // We've tried enough, the nosecone cannot be ejected, RIP
-                retState = transition(&DeploymentController::state_idle);
-            }
-            else
-            {
-                // Reset the servo and try again
-                retState =
-                    transition(&DeploymentController::state_resettingServo);
-            }
-
-            break;
-        }
-        default:
-        {
-            retState =
-                tran_super(&DeploymentController::state_ejectingNosecone);
-            break;
-        }
-    }
-    return retState;
-}
-
-State DeploymentController::state_resettingServo(const Event& ev)
-{
-    State retState = HANDLED;
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            resetServo();
-
-            ev_reset_timeout_id =
-                sEventBroker->postDelayed<SERVO_RESET_TIMEOUT>(
-                    Event{EV_TIMEOUT_SERVO_RESET}, TOPIC_DEPLOYMENT);
-
-            TRACE("[DPL_CTRL] state_resettingServo ENTRY\n");
-            logStatus(DeploymentCTRLState::RESETTING_SERVO);
-            break;
-        }
-        case EV_INIT:
-        {
-            break;
-        }
-        case EV_EXIT:
-        {
-            sEventBroker->removeDelayed(ev_reset_timeout_id);
-
-            TRACE("[DPL_CTRL] state_resettingServo EXIT\n");
-            break;
-        }
-        case EV_TIMEOUT_SERVO_RESET:
-        {
-            retState = transition(&DeploymentController::state_movingServo);
-            break;
-        }
-        default:
-        {
-            retState =
-                tran_super(&DeploymentController::state_ejectingNosecone);
             break;
         }
     }
@@ -285,9 +207,8 @@ State DeploymentController::state_cuttingPrimary(const Event& ev)
 
             logStatus(DeploymentCTRLState::CUTTING_PRIMARY);
 
-            ev_cut_timeout_id =
-                sEventBroker->postDelayed<CUT_DURATION>(
-                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_cuttingPrimary ENTRY\n");
             break;
@@ -307,7 +228,15 @@ State DeploymentController::state_cuttingPrimary(const Event& ev)
         }
         case EV_TIMEOUT_CUTTING:
         {
-            retState = transition(&DeploymentController::state_cuttingBackup);
+            if (cut_backup)
+            {
+                retState =
+                    transition(&DeploymentController::state_cuttingBackup);
+            }
+            else
+            {
+                retState = transition(&DeploymentController::state_idle);
+            }
             break;
         }
         default:
@@ -331,9 +260,8 @@ State DeploymentController::state_cuttingBackup(const Event& ev)
 
             logStatus(DeploymentCTRLState::CUTTING_BACKUP);
 
-            ev_cut_timeout_id =
-                sEventBroker->postDelayed<CUT_DURATION>(
-                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_cuttingBackup ENTRY\n");
             break;
@@ -373,14 +301,12 @@ State DeploymentController::state_testingPrimary(const Event& ev)
     {
         case EV_ENTRY:
         {
-            // Cutting rogallina
             cutters.enableTestPrimaryCutter();
 
             logStatus(DeploymentCTRLState::TESTING_PRIMARY);
 
-            ev_cut_timeout_id =
-                sEventBroker->postDelayed<CUT_DURATION>(
-                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
+                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_testingPrimary ENTRY\n");
             break;
@@ -425,9 +351,8 @@ State DeploymentController::state_testingBackup(const Event& ev)
 
             logStatus(DeploymentCTRLState::TESTING_BACKUP);
 
-            ev_cut_timeout_id =
-                sEventBroker->postDelayed<CUT_DURATION>(
-                    {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
+                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
 
             TRACE("[DPL_CTRL] state_testingBackup ENTRY\n");
             break;
@@ -485,6 +410,19 @@ void DeploymentController::disableServo()
 
     ejection_servo.stop();
     ejection_servo.disable(SERVO_CHANNEL);
+}
+
+void DeploymentController::wiggleServo()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS + SERVO_WIGGLE_AMPLITUDE);
+        Thread::sleep(500);
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS - SERVO_WIGGLE_AMPLITUDE);
+        Thread::sleep(500);
+        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS);
+        Thread::sleep(500);
+    }
 }
 
 }  // namespace DeathStackBoard

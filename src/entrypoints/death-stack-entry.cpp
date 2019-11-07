@@ -26,9 +26,9 @@
 #include <DeathStack/TMTCManager/XbeeInterrupt.h>
 #include <diagnostic/CpuMeter.h>
 #include <math/Stats.h>
-#include "DeathStack/events/EventInjector.h"
-#include "DeathStack/System/SystemData.h"
 #include "DeathStack/System/StackLogger.h"
+#include "DeathStack/System/SystemData.h"
+#include "DeathStack/events/EventInjector.h"
 
 using namespace DeathStackBoard;
 using namespace miosix;
@@ -36,12 +36,14 @@ using namespace miosix;
 DeathStack* board;
 
 StatsResult cpu_stat_res;
-// EventInjector debug_console;
+
+
+D(EventInjector debug_console);
 
 int main()
 {
-    // debug_console.start();
-        
+    D(debug_console.start());
+
     Stats cpu_stat;
     board = DeathStack::getInstance();
 

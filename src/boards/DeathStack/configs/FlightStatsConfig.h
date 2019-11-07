@@ -24,16 +24,18 @@
 #pragma once
 
 #include "config.h"
+#include "CutterConfig.h"
 
 namespace DeathStackBoard
 {
 namespace FlightStatsConfig
 {
 
-static constexpr long long TIMEOUT_LIFTOFF_STATS    = 6000;
-static constexpr long long TIMEOUT_APOGEE_STATS     = 2000;
-static constexpr long long TIMEOUT_DROGUE_DPL_STATS = 15000;
-static constexpr long long TIMEOUT_MAIN_DPL_STATS   = 15000;
+static constexpr long long TIMEOUT_CUTTER_TEST_STATS = CUT_TEST_DURATION;
+static constexpr long long TIMEOUT_LIFTOFF_STATS     = 6000;
+static constexpr long long TIMEOUT_APOGEE_STATS      = 3000;
+static constexpr long long TIMEOUT_DROGUE_DPL_STATS  = 15000;
+static constexpr long long TIMEOUT_MAIN_DPL_STATS    = 15000;
 }  // namespace FlightStatsConfig
 
 }  // namespace DeathStackBoard

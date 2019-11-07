@@ -27,7 +27,6 @@
 #include <libs/simple-template-matrix/matrix.h>
 #include <utils/aero/AeroUtils.h>
 #include "DeploymentUtils/elevation_map.h"
-#include <iostream>
 
 namespace DeathStackBoard
 {
@@ -61,6 +60,7 @@ void ADA::updateBaro(float pressure)
     // Second kalman (pressure and acceleration)
     float z  = pressureToAltitude(pressure);
     float ax = last_acc_average;
+    
     if (ax != NAN)
     {
         ax = 0;

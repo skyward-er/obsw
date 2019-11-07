@@ -54,6 +54,7 @@ struct HighRateTM_t
     float gps_lat;
     float gps_lon;
     float gps_alt;
+    float temperature;
     uint8_t fmm_state;
     uint8_t dpl_state;
     uint8_t pin_launch;
@@ -110,9 +111,6 @@ struct TmRepository_t
     LowRateTM_t lr_tm;
 
     mavlink_test_tm_t test_tm;
-
-    mavlink_hr_tm_t hr_tm_packet;
-    mavlink_lr_tm_t lr_tm_packet;
 };
 
 /* Forward declaration of the global struct. */

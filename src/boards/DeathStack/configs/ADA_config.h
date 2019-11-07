@@ -21,7 +21,7 @@
  */
 
 #pragma once
-#include <skyward-boardcore/libs/simple-template-matrix/matrix.h>
+#include "skyward-boardcore/libs/simple-template-matrix/matrix.h"
 
 namespace DeathStackBoard
 {
