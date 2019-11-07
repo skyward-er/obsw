@@ -60,11 +60,7 @@ void ADA::updateBaro(float pressure)
     // Second kalman (pressure and acceleration)
     float z  = pressureToAltitude(pressure);
     float ax = last_acc_average;
-    
-    if (ax != NAN)
-    {
-        ax = 0;
-    }
+
     // if (acc_stats.getStats().nSamples > 0)
     // {
     //     ax = (acc_stats.getStats().mean - 1) *
@@ -99,9 +95,9 @@ void ADA::updateBaro(float pressure)
 void ADA::updateAcc(float ax)
 {
     acc_stats.add(ax);
-    if (acc_stats.getStats().nSamples >= ACCELERATION_AVERAGE_N_SAMPLES)
+    if (acc_stats.n_samples >= ACCELERATION_AVERAGE_N_SAMPLES)
     {
-        last_acc_average = acc_stats.getStats().mean;
+        last_acc_average = acc_stats.getAverage();
         acc_stats.reset();
     }
 }

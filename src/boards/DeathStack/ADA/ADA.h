@@ -99,8 +99,25 @@ private:
 
     ADAData ada_data;
 
+    struct AccAverage
+    {
+        float accumulator      = 0;
+        unsigned int n_samples = 0;
+
+        void add(float acc) { accumulator += acc; }
+
+        float getAverage() { return accumulator / n_samples; }
+
+        void reset()
+        {
+            n_samples = 0;
+            accumulator = 0;
+        }
+    };
+
     float last_acc_average = 0;
-    
+    AccAverage acc_stats;
+
     double last_lat = 0;
     double last_lon = 0;
     bool last_fix   = false;
