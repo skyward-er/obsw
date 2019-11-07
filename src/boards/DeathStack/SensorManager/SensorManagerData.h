@@ -107,15 +107,15 @@ struct SensorStatus
 
 struct LM75BData
 {
-    TempSensorId id;
     long long timestamp;
-    float temp;
+    float temp_imu;
+    float temp_analog;
 
-    static std::string header() { return "id,timestamp,temp\n"; }
+    static std::string header() { return "timestamp,temp_imu,temp_analog\n"; }
 
     void print(std::ostream& os) const
     {
-        os << (int)id << "," << timestamp << "," << temp << "\n";
+        os << timestamp << "," << temp_imu << "," << temp_analog << "\n";
     }
 };
 
