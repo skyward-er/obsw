@@ -38,9 +38,9 @@ enum class ADAState
     READY,
     SHADOW_MODE,
     ACTIVE,
-    PRESSURE_STABILIZATION,
     FIRST_DESCENT_PHASE,
-    END
+    END,
+    PRESSURE_STABILIZATION
 };
 
 // Struct to log apogee detection

@@ -183,6 +183,7 @@ void ADAController::updateBaro(float pressure)
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
                     logger.log(DplAltitudeReached{miosix::getTick()});
+
                     sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
                 }
             }
@@ -550,10 +551,6 @@ void ADAController::stateFirstDescentPhase(const Event& ev)
         {
             status.dpl_altitude_reached = true;
             logStatus();
-
-            // Log
-            DplAltitudeReached dpl_alt{miosix::getTick()};
-            logger.log(dpl_alt);
 
             transition(&ADAController::stateEnd);
             break;
