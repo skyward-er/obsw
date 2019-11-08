@@ -131,7 +131,8 @@ ADA::AltitudeDPL ADA::altitudeMSLtoDPL(float altitude_msl) const
 KalmanState ADA::getKalmanState() const
 {
     KalmanState state;
-
+    state.timestamp = miosix::getTick();
+    
     state.x0 = filter.X(0, 0);
     state.x1 = filter.X(1, 0);
     state.x2 = filter.X(2, 0);

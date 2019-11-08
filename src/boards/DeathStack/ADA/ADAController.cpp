@@ -150,7 +150,8 @@ void ADAController::updateBaro(float pressure)
 
         case ADAState::PRESSURE_STABILIZATION:
         {
-            // Stabilization state: do not send notifications for target altitude reached, log it
+            // Stabilization state: do not send notifications for target
+            // altitude reached, log it
             ada.updateBaro(pressure);
 
             if (ada.getAltitudeForDeployment().altitude <=
@@ -278,7 +279,8 @@ void ADAController::finalizeCalibration()
 {
     Lock<FastMutex> l(calibrator_mutex);
 
-    if (calibrator.calibIsComplete() && deployment_altitude_set)
+    if (calibrator.calibIsComplete() && deployment_altitude_set &&
+        ada.getReferenceValues() != calibrator.getReferenceValues())
     {
         // If samples are enough and dpl altitude has been set init ada
         ada = ADA{calibrator.getReferenceValues()};
@@ -513,7 +515,8 @@ void ADAController::statePressureStabilization(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA statePressureStabilization: %d event not handled\n", ev.sig);
+            // TRACE("ADA statePressureStabilization: %d event not handled\n",
+            // ev.sig);
             break;
         }
     }

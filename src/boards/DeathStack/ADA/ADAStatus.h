@@ -120,19 +120,21 @@ struct ADAData
     float dpl_altitude;
     bool is_dpl_altitude_agl;
     float vert_speed;
-    
+
     float acc_msl_altitude;
     float acc_vert_speed;
-    
+
     static std::string header()
     {
-        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed,acc_msl_altitude,acc_vert_speed\n";
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed,acc_msl_"
+               "altitude,acc_vert_speed\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << msl_altitude << "," << dpl_altitude
-           << "," << (int)is_dpl_altitude_agl << "," << vert_speed  << "," << acc_msl_altitude  << "," << acc_vert_speed << "\n";
+        os << timestamp << "," << msl_altitude << "," << dpl_altitude << ","
+           << (int)is_dpl_altitude_agl << "," << vert_speed << ","
+           << acc_msl_altitude << "," << acc_vert_speed << "\n";
     }
 };
 
@@ -162,6 +164,20 @@ struct ReferenceValues
     {
         os << ref_altitude << "," << ref_pressure << "," << ref_temperature
            << "," << msl_pressure << "," << msl_temperature << "\n";
+    }
+
+    bool operator==(const ReferenceValues& other) const
+    {
+        return ref_altitude == other.ref_altitude &&
+               ref_pressure == other.ref_pressure &&
+               ref_temperature == other.ref_temperature &&
+               msl_pressure == other.msl_pressure &&
+               msl_temperature == other.msl_temperature;
+    }
+
+    bool operator!=(const ReferenceValues& other) const
+    {
+        return !(*this == other);
     }
 };
 
