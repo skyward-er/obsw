@@ -85,7 +85,7 @@ void ADA::updateBaro(float pressure)
 
 void ADA::updateAcc(float ax)
 {
-    acc_stats.add( 9.81*(ax-1) );
+    acc_stats.add(ax - 9.81f);
     if (acc_stats.n_samples >= ACCELERATION_AVERAGE_N_SAMPLES)
     {
         last_acc_average = acc_stats.getAverage();
