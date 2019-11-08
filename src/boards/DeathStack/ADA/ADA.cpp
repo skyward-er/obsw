@@ -61,15 +61,6 @@ void ADA::updateBaro(float pressure)
     float z  = pressureToAltitude(pressure);
     float ax = last_acc_average;
 
-    // if (acc_stats.getStats().nSamples > 0)
-    // {
-    //     ax = (acc_stats.getStats().mean - 1) *
-    //            9.81;  // Remove gravity vector and convert gs to m/s^2
-    //     acc_stats.reset();
-    // }
-
-    // std::cout << ax << "\n";
-
     MatrixBase<float, 2, 1> y_acc{z, ax};
     filter_acc.update(y_acc);
 
@@ -94,7 +85,7 @@ void ADA::updateBaro(float pressure)
 
 void ADA::updateAcc(float ax)
 {
-    acc_stats.add(ax);
+    acc_stats.add( 9.81*(ax-1) );
     if (acc_stats.n_samples >= ACCELERATION_AVERAGE_N_SAMPLES)
     {
         last_acc_average = acc_stats.getAverage();
