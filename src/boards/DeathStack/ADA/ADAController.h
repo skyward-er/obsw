@@ -99,7 +99,7 @@ private:
     void logStatus(ADAState state);  // Update and log ADA FSM state
     void logStatus();  // Log the ADA FSM state without updating it
 
-    void logData(KalmanState s, ADAData d);
+    void logData(const KalmanState& s, const ADAData& d);
 
     uint16_t shadow_delayed_event_id =
         0;  // Event id to store shadow mode timeout

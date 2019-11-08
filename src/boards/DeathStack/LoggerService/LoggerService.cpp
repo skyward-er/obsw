@@ -277,7 +277,7 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t)
         tm_repository.ada_tm.kalman_x1 = t.x1;
         tm_repository.ada_tm.kalman_x2 = t.x2;
 
-        //TODO: Acceleration kalman
+        // TODO: Acceleration kalman
 
         // tm_repository.ada_tm.kalman_acc_x0 = t.x0;
         // tm_repository.ada_tm.kalman_acc_x1 = t.x1;
@@ -371,7 +371,7 @@ LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t)
         tm_repository.hr_tm.pressure_ada = t.nxp_baro_pressure;
 
         // Test tm
-        tm_repository.test_tm.pressure_hw  = t.honeywell_baro_pressure;
+        tm_repository.test_tm.pressure_hw = t.honeywell_baro_pressure;
     }
 
     flight_stats.update(t);
@@ -480,20 +480,9 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
 {
     {
         miosix::PauseKernelLock kLock;
-        switch (t.id)
-        {
-            case TempSensorId::LM75B_ANALOG:
-            {
-                tm_repository.test_tm.temp_analog = t.temp;
-                tm_repository.hr_tm.temperature = t.temp;
-                break;
-            }
-            case TempSensorId::LM75B_IMU:
-            {
-                tm_repository.test_tm.temp_imu = t.temp;
-                break;
-            }
-        }
+        tm_repository.test_tm.temp_analog = t.temp_analog;
+        tm_repository.hr_tm.temperature   = t.temp_analog;
+        tm_repository.test_tm.temp_imu    = t.temp_imu;
     }
 
     return logger.log(t);
@@ -587,15 +576,15 @@ LogResult LoggerService::log<ApogeeStats>(const ApogeeStats& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.lr_tm.apogee_ts           = t.T_apogee;
-        
-        tm_repository.lr_tm.nxp_min_pressure    = t.nxp_min_pressure;
-        tm_repository.lr_tm.hw_min_pressure     = t.hw_min_pressure;
-        tm_repository.lr_tm.kalman_min_pressure = t.kalman_min_pressure;
+        tm_repository.lr_tm.apogee_ts = t.T_apogee;
+
+        tm_repository.lr_tm.nxp_min_pressure     = t.nxp_min_pressure;
+        tm_repository.lr_tm.hw_min_pressure      = t.hw_min_pressure;
+        tm_repository.lr_tm.kalman_min_pressure  = t.kalman_min_pressure;
         tm_repository.lr_tm.digital_min_pressure = t.digital_min_pressure;
 
-        tm_repository.lr_tm.baro_max_altitutde  = t.baro_max_altitude;
-        tm_repository.lr_tm.gps_max_altitude    = t.gps_max_altitude;
+        tm_repository.lr_tm.baro_max_altitutde = t.baro_max_altitude;
+        tm_repository.lr_tm.gps_max_altitude   = t.gps_max_altitude;
 
         tm_repository.lr_tm.apogee_lat = t.lat_apogee;
         tm_repository.lr_tm.apogee_lon = t.lon_apogee;

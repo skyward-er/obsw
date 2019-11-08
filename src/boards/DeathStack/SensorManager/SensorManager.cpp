@@ -312,11 +312,10 @@ void SensorManager::stateLogging(const Event& ev)
 void SensorManager::onSimple20HZCallback()
 {
     AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
-    LM75BData lm78b_analog_data    = {TempSensorId::LM75B_ANALOG,
-                                   miosix::getTick(),
-                                   temp_lm75b_analog->getTemp()};
-    LM75BData lm78b_imu_data = {TempSensorId::LM75B_IMU, miosix::getTick(),
-                                temp_lm75b_imu->getTemp()};
+    LM75BData temp_data;
+    temp_data.timestamp = miosix::getTick();
+    temp_data.temp_analog = temp_lm75b_analog->getTemp();
+    temp_data.temp_imu = temp_lm75b_imu->getTemp();
 
 #ifdef USE_MOCK_SENSORS
     ad7994_data->nxp_baro_pressure = mock_pressure_sensor->getPressure();
@@ -327,8 +326,8 @@ void SensorManager::onSimple20HZCallback()
         logger.log(*(adc_internal->getBatterySensorPtr()->getBatteryDataPtr()));
         logger.log(*(adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()));
         logger.log(*(ad7994_data));
-        logger.log(lm78b_imu_data);
-        logger.log(lm78b_analog_data);
+
+        logger.log(temp_data);
     }
 
     ada_controller->updateBaro(ad7994_data->nxp_baro_pressure);

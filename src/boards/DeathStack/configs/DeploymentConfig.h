@@ -51,7 +51,7 @@ static constexpr float SERVO_RESET_POS = 0.77f;
 static constexpr float SERVO_WIGGLE_AMPLITUDE = 0.02f;
 
 // Servo position when ejecting the nosecone
-static constexpr float SERVO_EJECT_POS = 0.45f;
+static constexpr float SERVO_EJECT_POS = 0.35f;
 
 }  // namespace DeploymentConfigs
 
