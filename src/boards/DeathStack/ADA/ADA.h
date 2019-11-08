@@ -102,7 +102,11 @@ private:
         float accumulator      = 0;
         unsigned int n_samples = 0;
 
-        void add(float acc) { accumulator += acc; }
+        void add(float acc)
+        {
+            accumulator += acc;
+            n_samples++;   
+        }
 
         float getAverage() { return accumulator / n_samples; }
 
