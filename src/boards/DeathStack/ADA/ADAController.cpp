@@ -263,9 +263,6 @@ void ADAController::finalizeCalibration()
 
         logger.log(calibrator.getReferenceValues());
         logger.log(ada.getKalmanState());
-
-        // No need for old calibrations
-        calibrator.resetBaro();
     }
 }
 
@@ -554,7 +551,7 @@ void ADAController::logStatus()
     StackLogger::getInstance()->updateStack(THID_ADA_FSM);
 }
 
-void ADAController::logData(KalmanState s, ADAData d)
+void ADAController::logData(const KalmanState& s, const ADAData& d)
 {
     logger.log(s);
     logger.log(d);

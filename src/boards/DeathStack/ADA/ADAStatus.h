@@ -125,13 +125,13 @@ struct ADAData
     
     static std::string header()
     {
-        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n";
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed,acc_msl_altitude,acc_vert_speed\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << msl_altitude << "," << dpl_altitude
-           << "," << (int)is_dpl_altitude_agl << "," << vert_speed << "\n";
+           << "," << (int)is_dpl_altitude_agl << "," << vert_speed  << "," << acc_msl_altitude  << "," << acc_vert_speed << "\n";
     }
 };
 
