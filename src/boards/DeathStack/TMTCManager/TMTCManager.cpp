@@ -82,6 +82,8 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_SEND_TEST_TM:
         {
             // Send both HR_TM and TEST_TM
+            test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
+                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
 
             // Pack the current data in hr_tm_packet.payload
             packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
@@ -103,8 +105,6 @@ void TMTCManager::stateGroundTM(const Event& ev)
             }
             hr_tm_index = (hr_tm_index + 1) % 4;
 
-            test_tm_event_id = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
-                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
             break;
         }
         case EV_ARMED:
@@ -142,6 +142,10 @@ void TMTCManager::stateFlightTM(const Event& ev)
 
         case EV_SEND_HR_TM:
         {
+            // Schedule the next HR telemetry
+            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+            
             // Pack the current data in hr_tm_packet.payload
             packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
 
@@ -154,25 +158,21 @@ void TMTCManager::stateFlightTM(const Event& ev)
             }
 
             hr_tm_index = (hr_tm_index + 1) % 4;
-
-            // Schedule the next HR telemetry
-            hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
             break;
         }
 
         case EV_SEND_LR_TM:
         {
+            // Schedule the next HR telemetry
+            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
+                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+
             packLRTelemetry(lr_tm_packet.payload);
 
             mavlink_msg_lr_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_SYSID,
                                      &auto_telemetry_msg, &(lr_tm_packet));
             send(auto_telemetry_msg);
 
-            // Schedule the next HR telemetry
-            lr_event_id = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
             break;
         }
         case EV_DISARMED:

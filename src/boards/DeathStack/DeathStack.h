@@ -88,8 +88,9 @@ private:
         memset(&status, 0, sizeof(status));
 
         /* Shared components */
-        broker       = sEventBroker;
         logger       = Singleton<LoggerService>::getInstance();
+        
+        broker       = sEventBroker;
         pin_observer = new PinHandler();
 
         // Bind the logEvent function to the event sniffer in order to log every
