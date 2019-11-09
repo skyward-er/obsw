@@ -24,8 +24,8 @@
 
 #include "SensorManager.h"
 
-#include "DeathStack/events/Events.h"
 #include "DeathStack/System/StackLogger.h"
+#include "DeathStack/events/Events.h"
 #include "DeathStack/events/Topics.h"
 #include "Sensors/Test/TestSensor.h"
 #include "events/EventBroker.h"
@@ -128,7 +128,7 @@ void SensorManager::initSensors()
     // sensor_status.adis    = imu_adis16405->init();
     TRACE("LM75b IMU init\n");
 
-    sensor_status.lm75b_imu    = temp_lm75b_imu->init();
+    sensor_status.lm75b_imu = temp_lm75b_imu->init();
 
     TRACE("LM75b ANAL init\n");
 
@@ -139,7 +139,7 @@ void SensorManager::initSensors()
 
     sensor_status.ms5803 = pressure_ms5803->init();
     TRACE("AD7994 init\n");
-    
+
     sensor_status.ad7994 = adc_ad7994->init();
 
     sensor_status.battery_sensor = adc_internal->getBatterySensorPtr()->init();
@@ -313,9 +313,9 @@ void SensorManager::onSimple20HZCallback()
 {
     AD7994WrapperData* ad7994_data = adc_ad7994->getDataPtr();
     LM75BData temp_data;
-    temp_data.timestamp = miosix::getTick();
+    temp_data.timestamp   = miosix::getTick();
     temp_data.temp_analog = temp_lm75b_analog->getTemp();
-    temp_data.temp_imu = temp_lm75b_imu->getTemp();
+    temp_data.temp_imu    = temp_lm75b_imu->getTemp();
 
 #ifdef USE_MOCK_SENSORS
     ad7994_data->nxp_baro_pressure = mock_pressure_sensor->getPressure();
@@ -362,6 +362,11 @@ void SensorManager::onSimple250HZCallback()
                              *(imu_mpu9250->compassDataPtr()),
                              *(imu_mpu9250->tempDataPtr())};
 
+    // Correct bias
+    mpu9255_data.accel = Vec3(mpu9255_data.accel.getX() + OFFSET_MPU_ACC_X,
+                              mpu9255_data.accel.getY() + OFFSET_MPU_ACC_Y,
+                              mpu9255_data.accel.getZ() + OFFSET_MPU_ACC_Z);
+
     if (enable_sensor_logging)
     {
         logger.log(mpu9255_data);
@@ -400,7 +405,8 @@ void SensorManager::onGPSCallback()
     data.fix                = mock_gps->fix;
 #endif
 
-    ada_controller->updateGPS(data.gps_data.latitude, data.gps_data.longitude, data.fix);
+    ada_controller->updateGPS(data.gps_data.latitude, data.gps_data.longitude,
+                              data.fix);
 
     if (enable_sensor_logging)
     {

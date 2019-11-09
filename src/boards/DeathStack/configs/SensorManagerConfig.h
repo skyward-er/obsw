@@ -61,13 +61,23 @@ static constexpr uint8_t ADC_BATTERY_VOLTAGE_CHANNEL = 5;
 
 #ifdef DEATH_STACK_2
 static constexpr float AD7994_V_REF = 4.29f;
-#elif DEATH_STACK_1
-static constexpr float AD7994_V_REF = 4.21f;
+
+
+static constexpr float OFFSET_MPU_ACC_X = -0.37f;
+static constexpr float OFFSET_MPU_ACC_Y = 0.29f;
+static constexpr float OFFSET_MPU_ACC_Z = 2.92f;
+
 #else
 static constexpr float AD7994_V_REF = 4.21f;
 
+static constexpr float OFFSET_MPU_ACC_X = 0.0f;
+static constexpr float OFFSET_MPU_ACC_Y = 0.0f;
+static constexpr float OFFSET_MPU_ACC_Z = 0.0f;
+
+#ifndef DEATH_STACK_1
 #ifdef _BOARD_STM32F429ZI_SKYWARD_DEATHST
 #warning "You have not specified which stack you are using! (-DDEATH_STACK_1 OR -DDEATH_STACK_2)"
+#endif
 #endif
 #endif
 
