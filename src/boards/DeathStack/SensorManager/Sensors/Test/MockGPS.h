@@ -41,7 +41,12 @@ public:
         //     lat = lat_outside;
         //     lon = lon_outside;
         // }
-        if (i < DATA_SIZE)
+        if (before_liftoff)
+        {
+            lat = SIMULATED_LAT[0];
+            lon = SIMULATED_LON[0];
+        }
+        else if (i < DATA_SIZE)
         {
             lat = SIMULATED_LAT[i];
             lon = SIMULATED_LON[i];
@@ -49,6 +54,8 @@ public:
         }
         return true;
     }
+
+    volatile bool before_liftoff = true;
 
     bool inside_lha = true;
 
