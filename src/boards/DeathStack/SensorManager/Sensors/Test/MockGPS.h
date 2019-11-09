@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#include <tests/mock_sensors/test-mock-data.h>
+
 namespace DeathStackBoard
 {
 class MockGPS
@@ -29,15 +31,21 @@ public:
 
     bool updateCoordinates()
     {
-        if (inside_lha)
+        // if (inside_lha)
+        // {
+        //     lat = lat_inside;
+        //     lon = lon_inside;
+        // }
+        // else
+        // {
+        //     lat = lat_outside;
+        //     lon = lon_outside;
+        // }
+        if (i < DATA_SIZE)
         {
-            lat = lat_inside;
-            lon = lon_inside;
-        }
-        else
-        {
-            lat = lat_outside;
-            lon = lon_outside;
+            lat = SIMULATED_LAT[i];
+            lon = SIMULATED_LON[i];
+            i++;
         }
         return true;
     }
@@ -48,11 +56,13 @@ public:
     bool fix = true;
 private:
     // Set of coordinates inside the Launch Hazard Area
-    const double lat_inside = 41.807487124105;
-    const double lon_inside = 14.0551665469291;
+    // const double lat_inside = 41.807487124105;
+    // const double lon_inside = 14.0551665469291;
 
     // Set of coordinates outside the Launch Hazard Area
-    const double lat_outside = 41.840794;
-    const double lon_outside = 14.003920;
+    // const double lat_outside = 41.840794;
+    // const double lon_outside = 14.003920;
+
+    unsigned int i = 0;
 };
 }  // namespace DeathStackBoard

@@ -22,7 +22,8 @@
 
 #include <Common.h>
 #include <sensors/Sensor.h>
-#include <tests/catch/ada/test-ada-data.h>
+// #include <tests/catch/ada/test-ada-data.h>
+#include <tests/mock_sensors/test-mock-data.h>
 #include <random>
 
 namespace DeathStackBoard
