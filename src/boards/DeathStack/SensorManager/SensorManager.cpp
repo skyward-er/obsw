@@ -296,6 +296,7 @@ void SensorManager::stateLogging(const Event& ev)
         // to start simulating flight pressures
         case EV_LIFTOFF:
             mock_pressure_sensor->before_liftoff = false;
+            mock_gps->before_liftoff = false;
             break;
 #endif
         // Go back to idle in both cases
