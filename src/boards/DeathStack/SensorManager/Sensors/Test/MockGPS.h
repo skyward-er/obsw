@@ -27,7 +27,7 @@ namespace DeathStackBoard
 class MockGPS
 {
 public:
-    MockGPS() : lat(lat_inside), lon(lon_inside) {}
+    MockGPS(){}
 
     bool updateCoordinates()
     {
