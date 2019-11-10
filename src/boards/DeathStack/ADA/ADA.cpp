@@ -77,10 +77,8 @@ void ADA::updateBaro(float pressure)
         ref_values.msl_temperature);
 
     // Filter with accelerometer
-    ada_data.acc_msl_altitude = pressureToAltitude(filter_acc.X(0, 0));
-    ada_data.acc_vert_speed   = aeroutils::verticalSpeed(
-        filter_acc.X(0, 0), filter_acc.X(1, 0), ref_values.msl_pressure,
-        ref_values.msl_temperature);
+    ada_data.acc_msl_altitude = filter_acc.X(0, 0);
+    ada_data.acc_vert_speed   = filter_acc.X(1, 0);
 }
 
 void ADA::updateAcc(float ax)

@@ -3,6 +3,8 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+#define private public
+
 #include <Common.h>
 #include <DeathStack/ADA/ADA.h>
 #include <iostream>
@@ -20,10 +22,8 @@ constexpr float NOISE_STD_DEV_A = 7;  // Noise varaince
 constexpr float LSB_A           = 0.0048;
 
 ADA *ada;
-miosix::FastMutex ada_mutex;
-void accelerometerThread(void* args);
 
-unsigned seed = 1234567;  // Seed for noise generation
+unsigned seed = 1234567;                     // Seed for noise generation
 std::default_random_engine generator(seed);  // Noise generator
 
 float addNoise_a(float sample);
@@ -41,59 +41,48 @@ TEST_CASE("Testing Kalman with accelerometer")
     ReferenceValues ref_values;
     ref_values.ref_pressure = SIMULATED_PRESSURE[1];
     ref_values.ref_altitude = 0;
-    {
-        miosix::Lock<miosix::FastMutex> l(ada_mutex);
-        ada = new ADA(ref_values);
-    }
+    ref_values.msl_pressure = SIMULATED_PRESSURE[1];
 
-    miosix::Thread* t_acc = miosix::Thread::create(accelerometerThread,1024);
+    ada = new ADA(ref_values);
+
     KalmanState state;
-    for (unsigned int i = 0; i < DATA_SIZE_P; i++)
-    {
-        {
-            miosix::Lock<miosix::FastMutex> l(ada_mutex);
-            ada->updateBaro(SIMULATED_PRESSURE[i]);
-            state = ada->getKalmanState();
-        }
-        // std::cout << state.x0_acc << "\n";
-        if(i>100)
-        {
-            if (state.x0_acc == Approx(SIMULATED_Z[i]).margin(50))
-            {
-                SUCCEED();
-            }
-            else
-            {
-                FAIL("i = " << i << "\t\t" << state.x0_acc
-                            << " != " << SIMULATED_Z[i]);
-            }
-        }
-        if (i>100)
-        {
-            if (state.x1_acc == Approx(SIMULATED_VZ[i]).margin(20))
-            {
-                SUCCEED();
-            }
-            else
-            {
-                FAIL("i = " << i << "\t\t" << state.x1_acc
-                            << " != " << SIMULATED_VZ[i]);
-            }
-        }
-        
-        miosix::Thread::sleep(50); // 20 Hz
-    }
-}
-
-void accelerometerThread(void* args)
-{
+    unsigned int j = 0;
     for (unsigned int i = 0; i < DATA_SIZE_AX; i++)
     {
-        miosix::Lock<miosix::FastMutex> l(ada_mutex);
-        ada->updateAcc((SIMULATED_AX[i]-1)*9.81);
-        miosix::Thread::sleep(2); // 500 Hz
+        // Send accelerometer data
+        ada->updateAcc(addNoise_a(SIMULATED_AX[i]));
+
+        // Send barometer data and check state at reduced rate
+        if (i % 25 == 0 && j < DATA_SIZE_P - 1)
+        {
+            ada->updateBaro(addNoise_p(SIMULATED_PRESSURE[j]));
+            j++;
+
+            state = ada->getKalmanState();
+            std::cout << state.x0_acc << ", " << state.x1_acc << ", "
+                      << state.x2_acc << ", " << SIMULATED_PRESSURE[i] << ", "
+                      << ada->last_acc_average << "\n";
+            if (state.x0_acc == Approx(SIMULATED_Z[j]).margin(10))
+            {
+                SUCCEED();
+            }
+            else
+            {
+                FAIL("i = " << j << "\t\t" << state.x0_acc
+                            << " != " << SIMULATED_Z[j]);
+            }
+
+            if (state.x1_acc == Approx(SIMULATED_VZ[j]).margin(10))
+            {
+                SUCCEED();
+            }
+            else
+            {
+                FAIL("i = " << j << "\t\t" << state.x1_acc
+                            << " != " << SIMULATED_VZ[j]);
+            }
+        }
     }
-    
 }
 
 float addNoise_p(float sample)

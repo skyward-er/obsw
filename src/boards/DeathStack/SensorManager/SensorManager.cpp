@@ -296,6 +296,7 @@ void SensorManager::stateLogging(const Event& ev)
         // to start simulating flight pressures
         case EV_LIFTOFF:
             mock_pressure_sensor->before_liftoff = false;
+            mock_gps->before_liftoff             = false;
             break;
 #endif
         // Go back to idle in both cases
@@ -384,10 +385,11 @@ void SensorManager::onGPSCallback()
     {
         data.gps_data = piksi->getGpsData();
 
-        // We have fix if this sample is different from the previous one and we
-        // have at least four satellites
-        data.fix = data.gps_data.timestamp != last_gps_timestamp &&
-                   data.gps_data.numSatellites >= 4;
+        long long fix_age = getTick() - data.gps_data.timestamp;
+        // We have fix if the GPS sample is not too old and the number of
+        // satellites is at least 4
+        data.fix =
+            fix_age <= MAX_GPS_FIX_AGE && data.gps_data.numSatellites >= 4;
 
         last_gps_timestamp = data.gps_data.timestamp;
     }
