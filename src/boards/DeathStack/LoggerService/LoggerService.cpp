@@ -511,6 +511,9 @@ LogResult LoggerService::log<PiksiData>(const PiksiData& t)
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
         tm_repository.hr_tm.gps_alt = t.gps_data.height;
         tm_repository.hr_tm.gps_fix = t.fix;
+
+        //TEST TM
+        tm_repository.test_tm.gps_nsats = t.gps_data.numSatellites;
     }
 
     flight_stats.update(t);
