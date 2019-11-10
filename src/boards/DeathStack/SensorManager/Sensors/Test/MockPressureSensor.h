@@ -45,7 +45,7 @@ public:
             }
             else
             {
-                return addNoise(SIMULATED_PRESSURE[DATA_SIZE - 1]);
+                return addNoise(SIMULATED_PRESSURE[PRESSURE_DATA_SIZE - 1]);
             }
         }
     }
