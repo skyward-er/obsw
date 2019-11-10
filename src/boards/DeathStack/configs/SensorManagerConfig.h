@@ -58,6 +58,8 @@ static constexpr uint8_t ADC_CURRENT_SENSE_1_CHANNEL = 6;
 static constexpr uint8_t ADC_CURRENT_SENSE_2_CHANNEL = 4;
 static constexpr uint8_t ADC_BATTERY_VOLTAGE_CHANNEL = 5;
 
+//Time after which a gps location is no longer valid in milliseconds
+static constexpr long long MAX_GPS_FIX_AGE = 500;
 
 #ifdef DEATH_STACK_2
 static constexpr float AD7994_V_REF = 4.29f;
