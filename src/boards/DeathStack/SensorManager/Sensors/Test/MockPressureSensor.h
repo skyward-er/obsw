@@ -39,7 +39,7 @@ public:
         }
         else
         {
-            if (i < DATA_SIZE)
+            if (i < PRESSURE_DATA_SIZE)
             {
                 return addNoise(SIMULATED_PRESSURE[i++]);
             }

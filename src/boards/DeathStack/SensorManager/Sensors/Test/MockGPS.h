@@ -46,7 +46,7 @@ public:
             lat = SIMULATED_LAT[0];
             lon = SIMULATED_LON[0];
         }
-        else if (i < DATA_SIZE)
+        else if (i < GPS_DATA_SIZE)
         {
             lat = SIMULATED_LAT[i];
             lon = SIMULATED_LON[i];
