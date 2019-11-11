@@ -277,11 +277,9 @@ LogResult LoggerService::log<KalmanState>(const KalmanState& t)
         tm_repository.ada_tm.kalman_x1 = t.x1;
         tm_repository.ada_tm.kalman_x2 = t.x2;
 
-        // TODO: Acceleration kalman
-
-        // tm_repository.ada_tm.kalman_acc_x0 = t.x0;
-        // tm_repository.ada_tm.kalman_acc_x1 = t.x1;
-        // tm_repository.ada_tm.kalman_acc_x2 = t.x2;
+        tm_repository.ada_tm.kalman_acc_x0 = t.x0_acc;
+        tm_repository.ada_tm.kalman_acc_x1 = t.x1_acc;
+        tm_repository.ada_tm.kalman_acc_x2 = t.x2_acc;
     }
 
     flight_stats.update(t);
