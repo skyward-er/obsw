@@ -25,9 +25,6 @@
 
 namespace DeathStackBoard
 {
-// How many problematic gps samples to trigger an abort
-constexpr unsigned int LHA_EGRESS_THRESHOLD = 10;
-
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
@@ -37,7 +34,7 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 // When the vertical speed is smaller than this value, apogee is detected.
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (while still going up)
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 0;
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
