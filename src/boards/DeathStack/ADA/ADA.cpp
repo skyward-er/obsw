@@ -116,7 +116,8 @@ float ADA::pressureToAltitude(float pressure) const
 ADA::AltitudeDPL ADA::altitudeMSLtoDPL(float altitude_msl) const
 {
     float elev = elevationmap::getElevation(last_lat, last_lon);
-    if (last_fix)
+
+    if (last_fix && elev >= 0)
     {
         return {altitude_msl - elev, true};
     }
