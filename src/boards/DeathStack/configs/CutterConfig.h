@@ -55,7 +55,7 @@ typedef miosix::actuators::thCut2::ena BackupCutterEna;
 // PWM Frequency & duty-cycle
 static const unsigned int CUTTER_PWM_FREQUENCY = 15000;  // Hz
 // Duty cycle to be used during flight to cut the chord
-static constexpr float CUTTER_PWM_DUTY_CYCLE = 0.31f;
+static constexpr float CUTTER_PWM_DUTY_CYCLE = 0.30f;
 
 // Duty cycle to be used during integration, to perform a a non-destructive
 // continuity check
