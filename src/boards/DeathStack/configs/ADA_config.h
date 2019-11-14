@@ -59,7 +59,7 @@ static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
 static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
 
 // Do cut the drogue above this altitude
-static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1800;
+static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1700;
 
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds
