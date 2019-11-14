@@ -97,7 +97,7 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
             case ObservedPin::LAUNCH:
             {
                 tm_repository.fmm_tm.pin_launch_last_change =
-                    t.last_state_change;
+                    t.last_state_change / 1000;
                 tm_repository.fmm_tm.pin_launch_num_changes =
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_launch_state = t.state;
@@ -108,7 +108,7 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
             case ObservedPin::NOSECONE:
             {
                 tm_repository.fmm_tm.pin_nosecone_last_change =
-                    t.last_state_change;
+                    t.last_state_change / 1000;
                 tm_repository.fmm_tm.pin_nosecone_num_changes =
                     t.num_state_changes;
                 tm_repository.fmm_tm.pin_nosecone_state = t.state;
