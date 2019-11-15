@@ -111,7 +111,7 @@ public:
 
             battery_data.timestamp = miosix::getTick();
             battery_data.raw_value = battery_volt;
-            battery_data.volt      = battery_volt * 12.1f / 2130;
+            battery_data.volt      = battery_volt * 0.005324f;
 
             return true;
         }
