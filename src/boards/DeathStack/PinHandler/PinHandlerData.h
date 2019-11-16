@@ -33,7 +33,8 @@ namespace DeathStackBoard
 enum class ObservedPin : uint8_t
 {
     LAUNCH   = 0,
-    NOSECONE = 1
+    NOSECONE = 1,
+    MOTOR = 2
 };
 
 /**
