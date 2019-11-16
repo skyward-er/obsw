@@ -26,6 +26,7 @@
 #include <functional>
 #include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/LoggerService.h"
+#include "Debug.h"
 
 using std::bind;
 
@@ -68,8 +69,8 @@ PinHandler::PinHandler()
         bind(&PinHandler::onMotorPinStateChange, this, _1, _2, _3);
     
 
-    pin_obs.observePin(PORT_LAUNCH_PIN, NUM_LAUNCH_PIN, TRIGGER_LAUNCH_PIN,
-                       motor_transition_cb, THRESHOLD_LAUNCH_PIN,
+    pin_obs.observePin(PORT_MOTOR_PIN, NUM_MOTOR_PIN, TRIGGER_MOTOR_PIN,
+                       motor_transition_cb, THRESHOLD_MOTOR_PIN,
                        motor_statechange_cb);
 }
 
@@ -97,7 +98,7 @@ void PinHandler::onMotorPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
-
+    
     status_pin_motor.last_detection_time = miosix::getTick();
     logger->log(status_pin_motor);
 }
@@ -131,7 +132,6 @@ void PinHandler::onMotorPinStateChange(unsigned int p, unsigned char n,
 {
     UNUSED(p);
     UNUSED(n);
-
     status_pin_motor.state             = (uint8_t)state;
     status_pin_motor.last_state_change = miosix::getTick();
     status_pin_motor.num_state_changes += 1;
