@@ -117,6 +117,15 @@ LogResult LoggerService::log<PinStatus>(const PinStatus& t)
                 tm_repository.hr_tm.pin_nosecone = t.state;
                 break;
             }
+            case ObservedPin::MOTOR:
+            {
+                // No time to change telemetries, since we have no GPS use gps
+                // telemetry to send motor pin state.
+                tm_repository.gps_tm.n_satellites = t.num_state_changes;
+                tm_repository.gps_tm.lat          = t.last_state_change / 1000;
+                tm_repository.hr_tm.gps_fix       = t.state;
+                break;
+            }
             default:
                 break;
         }
@@ -479,7 +488,7 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
     {
         miosix::PauseKernelLock kLock;
         tm_repository.test_tm.temp_analog = t.temp_analog;
-        tm_repository.hr_tm.temperature   = t.temp_analog;
+        tm_repository.hr_tm.temperature   = t.temp_imu;
         tm_repository.test_tm.temp_imu    = t.temp_imu;
     }
 
@@ -494,23 +503,23 @@ LogResult LoggerService::log<PiksiData>(const PiksiData& t)
         miosix::PauseKernelLock kLock;
 
         // GPS_TM
-        tm_repository.gps_tm.lat          = t.gps_data.latitude;
-        tm_repository.gps_tm.lon          = t.gps_data.longitude;
-        tm_repository.gps_tm.altitude     = t.gps_data.height;
-        tm_repository.gps_tm.vel_north    = t.gps_data.velocityNorth;
-        tm_repository.gps_tm.vel_east     = t.gps_data.velocityEast;
-        tm_repository.gps_tm.vel_down     = t.gps_data.velocityDown;
-        tm_repository.gps_tm.vel_mag      = t.gps_data.speed;
-        tm_repository.gps_tm.fix          = (uint8_t)t.fix;
-        tm_repository.gps_tm.n_satellites = t.gps_data.numSatellites;
+        // tm_repository.gps_tm.lat          = t.gps_data.latitude;
+        // tm_repository.gps_tm.lon          = t.gps_data.longitude;
+        // tm_repository.gps_tm.altitude     = t.gps_data.height;
+        // tm_repository.gps_tm.vel_north    = t.gps_data.velocityNorth;
+        // tm_repository.gps_tm.vel_east     = t.gps_data.velocityEast;
+        // tm_repository.gps_tm.vel_down     = t.gps_data.velocityDown;
+        // tm_repository.gps_tm.vel_mag      = t.gps_data.speed;
+        // tm_repository.gps_tm.fix          = (uint8_t)t.fix;
+        // tm_repository.gps_tm.n_satellites = t.gps_data.numSatellites;
 
         // HR TM
         tm_repository.hr_tm.gps_lat = t.gps_data.latitude;
         tm_repository.hr_tm.gps_lon = t.gps_data.longitude;
         tm_repository.hr_tm.gps_alt = t.gps_data.height;
-        tm_repository.hr_tm.gps_fix = t.fix;
+        // tm_repository.hr_tm.gps_fix = t.fix;
 
-        //TEST TM
+        // TEST TM
         tm_repository.test_tm.gps_nsats = t.gps_data.numSatellites;
     }
 

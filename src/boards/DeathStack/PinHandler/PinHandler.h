@@ -81,14 +81,24 @@ public:
      */
     void onNCPinTransition(unsigned int p, unsigned char n);
 
+    /**
+     * @brief Function called by the pinobserver when a motor pin detachment
+     * is detected.
+     *
+     * @param p
+     * @param n
+     */
+    void onMotorPinTransition(unsigned int p, unsigned char n);
 
     void onLaunchPinStateChange(unsigned int p, unsigned char n, int state);
     void onNCPinStateChange(unsigned int p, unsigned char n, int state);
+    void onMotorPinStateChange(unsigned int p, unsigned char n, int state);
 
 
 private:
     PinStatus status_pin_launch{ObservedPin::LAUNCH};
     PinStatus status_pin_nosecone{ObservedPin::NOSECONE};
+    PinStatus status_pin_motor{ObservedPin::MOTOR};
 
     PinObserver pin_obs;
 

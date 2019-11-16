@@ -64,10 +64,9 @@ static constexpr long long MAX_GPS_FIX_AGE = 300;
 #ifdef DEATH_STACK_2
 static constexpr float AD7994_V_REF = 4.29f;
 
-
-static constexpr float OFFSET_MPU_ACC_X = -0.37f;
-static constexpr float OFFSET_MPU_ACC_Y = 0.29f;
-static constexpr float OFFSET_MPU_ACC_Z = 2.92f;
+static constexpr float OFFSET_MPU_ACC_X = 0.0f;
+static constexpr float OFFSET_MPU_ACC_Y = 0.0f;
+static constexpr float OFFSET_MPU_ACC_Z = 0.0f;
 
 #else
 static constexpr float AD7994_V_REF = 4.21f;

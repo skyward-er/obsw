@@ -381,23 +381,23 @@ void SensorManager::onGPSCallback()
     PiksiData data;
     memset(&data, 0, sizeof(data));
 
-    try
-    {
-        data.gps_data = piksi->getGpsData();
+    // try
+    // {
+    //     data.gps_data = piksi->getGpsData();
 
-        long long fix_age = getTick() - data.gps_data.timestamp;
-        // We have fix if the GPS sample is not too old and the number of
-        // satellites is at least 4
-        data.fix =
-            fix_age <= MAX_GPS_FIX_AGE && data.gps_data.numSatellites >= 4;
+    //     long long fix_age = getTick() - data.gps_data.timestamp;
+    //     // We have fix if the GPS sample is not too old and the number of
+    //     // satellites is at least 4
+    //     data.fix =
+    //         fix_age <= MAX_GPS_FIX_AGE && data.gps_data.numSatellites >= 4;
 
-        last_gps_timestamp = data.gps_data.timestamp;
-    }
-    catch (std::runtime_error rterr)
-    {
-        data.gps_data.timestamp = miosix::getTick();
-        data.fix                = false;
-    }
+    //     last_gps_timestamp = data.gps_data.timestamp;
+    // }
+    // catch (std::runtime_error rterr)
+    // {
+    //     data.gps_data.timestamp = miosix::getTick();
+    //     data.fix                = false;
+    // }
 
 #ifdef USE_MOCK_SENSORS
     mock_gps->updateCoordinates();

@@ -48,6 +48,15 @@ static const unsigned char NUM_NC_DETACH_PIN = 7;
 static const PinObserver::Transition TRIGGER_NC_DETACH_PIN =
     PinObserver::Transition::FALLING_EDGE;
 
+static const unsigned int PORT_MOTOR_PIN = GPIOE_BASE;
+static const unsigned char NUM_MOTOR_PIN = 3;
+
+static const unsigned int THRESHOLD_MOTOR_PIN = 1;
+
+
+static const PinObserver::Transition TRIGGER_MOTOR_PIN =
+    PinObserver::Transition::FALLING_EDGE;
+
 // How many consecutive times the nosecone pin should be detected as detached
 // before triggering a nosecone detach event.
 static const unsigned int THRESHOLD_NC_DETACH_PIN = 10;

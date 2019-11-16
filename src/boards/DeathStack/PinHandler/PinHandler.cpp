@@ -26,6 +26,7 @@
 #include <functional>
 #include "DeathStack/events/Events.h"
 #include "DeathStack/LoggerService/LoggerService.h"
+#include "Debug.h"
 
 using std::bind;
 
@@ -59,6 +60,18 @@ PinHandler::PinHandler()
     pin_obs.observePin(PORT_NC_DETACH_PIN, NUM_NC_DETACH_PIN,
                        TRIGGER_NC_DETACH_PIN, nc_transition_cb,
                        THRESHOLD_NC_DETACH_PIN, nc_statechange_cb);
+
+    // Motor pin callbacks registration
+    PinObserver::OnTransitionCallback motor_transition_cb =
+        bind(&PinHandler::onMotorPinTransition, this, _1, _2);
+
+    PinObserver::OnStateChangeCallback motor_statechange_cb =
+        bind(&PinHandler::onMotorPinStateChange, this, _1, _2, _3);
+    
+
+    pin_obs.observePin(PORT_MOTOR_PIN, NUM_MOTOR_PIN, TRIGGER_MOTOR_PIN,
+                       motor_transition_cb, THRESHOLD_MOTOR_PIN,
+                       motor_statechange_cb);
 }
 
 void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
@@ -79,6 +92,15 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
 
     status_pin_nosecone.last_detection_time = miosix::getTick();
     logger->log(status_pin_nosecone);
+}
+
+void PinHandler::onMotorPinTransition(unsigned int p, unsigned char n)
+{
+    UNUSED(p);
+    UNUSED(n);
+    
+    status_pin_motor.last_detection_time = miosix::getTick();
+    logger->log(status_pin_motor);
 }
 
 void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
@@ -103,6 +125,17 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n,
     status_pin_nosecone.last_state_change = miosix::getTick();
     status_pin_nosecone.num_state_changes += 1;
     logger->log(status_pin_nosecone);
+}
+
+void PinHandler::onMotorPinStateChange(unsigned int p, unsigned char n,
+                                                int state)
+{
+    UNUSED(p);
+    UNUSED(n);
+    status_pin_motor.state             = (uint8_t)state;
+    status_pin_motor.last_state_change = miosix::getTick();
+    status_pin_motor.num_state_changes += 1;
+    logger->log(status_pin_motor);   
 }
 
 }  // namespace DeathStackBoard
