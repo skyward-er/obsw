@@ -23,8 +23,8 @@
 
 #pragma once
 
-static const unsigned PRESSURE_DATA_SIZE = 4295;
-static const unsigned GPS_DATA_SIZE = 2148;
+static const unsigned PRESSURE_DATA_SIZE = 665;
+static const unsigned GPS_DATA_SIZE = 333;
 
 extern const float SIMULATED_PRESSURE[PRESSURE_DATA_SIZE];
 extern const float SIMULATED_LAT[GPS_DATA_SIZE];
