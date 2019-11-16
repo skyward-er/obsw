@@ -41,7 +41,7 @@ static const PinObserver::Transition TRIGGER_LAUNCH_PIN =
 
 // How many consecutive times the launch pin should be detected as detached
 // before triggering a launch event.
-static const unsigned int THRESHOLD_LAUNCH_PIN = 5;
+static const unsigned int THRESHOLD_LAUNCH_PIN = 10;
 
 static const unsigned int PORT_NC_DETACH_PIN = GPIOB_BASE;
 static const unsigned char NUM_NC_DETACH_PIN = 7;
