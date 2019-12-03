@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceFolder}/bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.elf",
+            "name": "ST-LINK V2 (current entrypoint)",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32F429ZI",
+            "configFiles": [
+                "/home/luca/test.cfg"
+            ]
+        },
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceFolder}/bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.elf",
+            "name": "ST-LINK V1 (current entrypoint)",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32F429ZI",
+            "configFiles": [
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack/death_stack.cfg"
+            ]
+        }
+    ]
+}
