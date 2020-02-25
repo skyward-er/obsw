@@ -21,9 +21,9 @@
  */
 
 #include "IgnitionController.h"
-#include "DeathStack/configs/IgnitionConfig.h"
+#include "configs/IgnitionConfig.h"
 #include "boards/CanInterfaces.h"
-#include "DeathStack/events/Events.h"
+#include "events/Events.h"
 
 namespace DeathStackBoard
 {
@@ -49,7 +49,7 @@ IgnitionController::IgnitionController(CanProxy* canbus)
 /**
  * Status
  */
-void IgnitionController::logStatus() 
+void IgnitionController::logStatus()
 {
     status.timestamp = miosix::getTick();
     logger.log(status);
@@ -61,11 +61,11 @@ bool IgnitionController::updateIgnBoardStatus(const Event& ev)
     const CanbusEvent& cev = static_cast<const CanbusEvent&>(ev);
 
     // Check event
-    if (cev.canTopic == CAN_TOPIC_IGNITION && 
+    if (cev.canTopic == CAN_TOPIC_IGNITION &&
             cev.len == sizeof(IgnitionBoardStatus))
     {
         // Update internal board status struct
-        memcpy(&(loggable_board_status.board_status), cev.payload, 
+        memcpy(&(loggable_board_status.board_status), cev.payload,
                                                     sizeof(IgnitionBoardStatus));
 
         // Log internal board status struct
@@ -281,7 +281,7 @@ void IgnitionController::stateEnd(const Event& ev)
             break;
 
         // No event handled here
-        
+
         default:
             TRACE("IGNCTRL stateEnd: Event %d not handled.\n", ev.sig);
             break;

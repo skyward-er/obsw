@@ -29,11 +29,11 @@
 #include <scheduler/TaskScheduler.h>
 #include <sensors/SensorSampling.h>
 
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "LoggerService/LoggerService.h"
+#include "configs/SensorManagerConfig.h"
 #include "events/FSM.h"
 
-#include "DeathStack/ADA/ADAController.h"
+#include "ADA/ADAController.h"
 #include "SensorManagerData.h"
 
 #include <interfaces-impl/hwmapping.h>

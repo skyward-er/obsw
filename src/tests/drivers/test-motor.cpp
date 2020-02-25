@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-#include "DeathStack/DeploymentController/Motor/MotorDriver.h"
+#include "DeploymentController/Motor/MotorDriver.h"
 #include <interfaces-impl/hwmapping.h>
 #include <iostream>
 #include <string>
@@ -108,7 +108,7 @@ int main()
                 return 0;
                 break;
             default:
-                break;                
+                break;
         }
 
     }

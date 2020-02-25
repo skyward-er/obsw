@@ -24,9 +24,9 @@
 
 #include "SensorManager.h"
 
-#include "DeathStack/System/StackLogger.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
+#include "System/StackLogger.h"
+#include "events/Events.h"
+#include "events/Topics.h"
 #include "Sensors/Test/TestSensor.h"
 #include "events/EventBroker.h"
 

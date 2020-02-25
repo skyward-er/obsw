@@ -23,7 +23,7 @@
 #pragma once
 
 #include <cstdint>
-#include <CanInterfaces.h>
+#include "../../CanInterfaces.h"
 
 namespace DeathStackBoard
 {

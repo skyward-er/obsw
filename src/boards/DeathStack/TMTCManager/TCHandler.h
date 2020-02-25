@@ -24,12 +24,12 @@
 
 #include <Common.h>
 
-#include <DeathStack/LoggerService/LoggerService.h>
-#include <DeathStack/configs/TMTCConfig.h>
-#include "DeathStack/DeathStack.h"
+#include <LoggerService/LoggerService.h>
+#include <configs/TMTCConfig.h>
+#include "DeathStack.h"
 #include <drivers/mavlink/MavlinkDriver.h>
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
+#include "events/Events.h"
+#include "events/Topics.h"
 #include "TMBuilder.h"
 
 #define MAV_TC(X) MAVLINK_MSG_ID_##X##_TC
@@ -62,13 +62,13 @@ static const std::map<uint8_t, uint8_t> noargCmdToEvt =
     { MAV_CMD_STOP_LOGGING,     EV_TC_STOP_SENSOR_LOGGING },
     { MAV_CMD_CLOSE_LOG,        EV_TC_CLOSE_LOG },
 
-    { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE  }, 
-    { MAV_CMD_TEST_PRIMARY_CUTTER,     EV_TC_TEST_CUTTER_PRIMARY  }, 
-    { MAV_CMD_TEST_BACKUP_CUTTER,      EV_TC_TEST_CUTTER_BACKUP  }, 
-    { MAV_CMD_CUT_PRIMARY,      EV_TC_CUT_PRIMARY  }, 
-    { MAV_CMD_CUT_BACKUP,       EV_TC_CUT_BACKUP  }, 
-    { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_DROGUE  }, 
-    { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET }, 
+    { MAV_CMD_TEST_MODE,        EV_TC_TEST_MODE  },
+    { MAV_CMD_TEST_PRIMARY_CUTTER,     EV_TC_TEST_CUTTER_PRIMARY  },
+    { MAV_CMD_TEST_BACKUP_CUTTER,      EV_TC_TEST_CUTTER_BACKUP  },
+    { MAV_CMD_CUT_PRIMARY,      EV_TC_CUT_PRIMARY  },
+    { MAV_CMD_CUT_BACKUP,       EV_TC_CUT_BACKUP  },
+    { MAV_CMD_CUT_DROGUE,       EV_TC_CUT_DROGUE  },
+    { MAV_CMD_BOARD_RESET,      EV_TC_BOARD_RESET },
 
     { MAV_CMD_END_MISSION,      EV_TC_END_MISSION }
 };

@@ -25,8 +25,8 @@
 #include "IgnitionStatus.h"
 
 #include <events/FSM.h>
-#include <DeathStack/LoggerService/LoggerService.h>
-#include <DeathStack/Canbus/CanProxy.h>
+#include <LoggerService/LoggerService.h>
+#include <Canbus/CanProxy.h>
 
 namespace DeathStackBoard
 {
@@ -47,7 +47,7 @@ private:
     void stateEnd(const Event& ev);
 
     /**
-     * @brief Put timestamp and log the component's status 
+     * @brief Put timestamp and log the component's status
      * @param None
      * @return None
      */

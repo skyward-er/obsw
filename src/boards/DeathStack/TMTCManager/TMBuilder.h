@@ -23,8 +23,8 @@
 #pragma once
 
 #include <Common.h>
-#include <DeathStack/LoggerService/TmRepository.h>
-#include <DeathStack/configs/TMTCConfig.h>
+#include <LoggerService/TmRepository.h>
+#include <configs/TMTCConfig.h>
 namespace DeathStackBoard
 {
 namespace TMBuilder
@@ -109,7 +109,7 @@ static mavlink_message_t getTM(uint8_t req_tm, uint8_t sys_id, uint8_t comp_id)
             break;
 
         // case MavTMList::MAV_HR_TM_ID:
-        // {          
+        // {
         //     mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
         //                              &(tm_repository.hr_tm_packet));
         //     break;

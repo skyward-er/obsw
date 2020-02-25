@@ -23,8 +23,8 @@
 
 #include <stdexcept>
 
-#include "DeathStack/configs/DeploymentConfig.h"
-#include "DeathStack/events/Events.h"
+#include "configs/DeploymentConfig.h"
+#include "events/Events.h"
 #include "DeploymentController.h"
 
 #include "Motor/MotorDriver.h"

@@ -26,8 +26,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "DeathStack/DeathStack.h"
-#include "DeathStack/events/Events.h"
+#include "DeathStack.h"
+#include "events/Events.h"
 
 using std::string;
 using std::stringstream;

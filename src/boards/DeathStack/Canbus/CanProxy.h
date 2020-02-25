@@ -25,13 +25,13 @@
 #include <Common.h>
 #include <drivers/canbus/CanManager.h>
 #include <drivers/canbus/CanUtils.h>
-#include <DeathStack/LoggerService/LoggerService.h>
+#include <LoggerService/LoggerService.h>
 
 namespace DeathStackBoard
 {
 
 /**
- * This class is interposed between the OBSW and the Canbus driver. 
+ * This class is interposed between the OBSW and the Canbus driver.
  * Canbus initialization and status logging is done here.
  */
 class CanProxy

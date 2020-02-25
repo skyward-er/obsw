@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <boards/DeathStack/configs/ADA_config.h>
+#include <configs/ADA_config.h>
 #include <math/Stats.h>
 #include <ostream>
 

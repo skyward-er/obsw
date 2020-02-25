@@ -22,15 +22,15 @@
 
 #pragma once
 
-#include <DeathStack/ADA/ADAStatus.h>
+#include <ADA/ADAStatus.h>
 #include <events/FSM.h>
 #include "ADA.h"
 #include "ADACalibrator.h"
 
-#include <DeathStack/configs/ADA_config.h>
-#include <DeathStack/events/Events.h>
+#include <configs/ADA_config.h>
+#include <events/Events.h>
 #include <kalman/Kalman.h>
-#include "DeathStack/LoggerService/LoggerService.h"
+#include "LoggerService/LoggerService.h"
 
 #include <miosix.h>
 
@@ -120,15 +120,15 @@ private:
     bool deployment_altitude_set = false;
 
     // Number of consecutive samples in which apogee is detected
-    unsigned int n_samples_apogee_detected = 0;  
+    unsigned int n_samples_apogee_detected = 0;
 
     // Number of consecutive samples in which dpl altitude is detected
-    unsigned int n_samples_deployment_detected = 0;  
+    unsigned int n_samples_deployment_detected = 0;
 
     /* --- LOGGER --- */
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
 
-    
+
 };
 
 }  // namespace DeathStackBoard

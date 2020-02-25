@@ -24,8 +24,8 @@
 #include "FlightStatsRecorder.h"
 #include <cmath>
 
-#include "DeathStack/System/StackLogger.h"
-#include "DeathStack/events/Events.h"
+#include "System/StackLogger.h"
+#include "events/Events.h"
 #include "LoggerService.h"
 #include "events/EventBroker.h"
 
@@ -262,7 +262,7 @@ void FlightStatsRecorder::state_testing_cutters(const Event& ev)
                 cutter_stats.cutter_1_avg / cutter_stats.n_samples;
             cutter_stats.cutter_2_avg =
                 cutter_stats.cutter_2_avg / cutter_stats.n_samples;
-            
+
             LoggerService::getInstance()->log(cutter_stats);
             sEventBroker->removeDelayed(ev_timeout_id);
 

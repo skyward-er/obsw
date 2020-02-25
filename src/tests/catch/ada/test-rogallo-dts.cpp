@@ -30,15 +30,15 @@
 
 #include <algorithm>
 
-#include "DeathStack/ADA/RogalloDTS/ElevationMap.h"
-#include "DeathStack/ADA/RogalloDTS/LHCircles.h"
-#include "DeathStack/ADA/RogalloDTS/generated/tests/elevation_map_test_data.h"
-#include "DeathStack/ADA/RogalloDTS/generated/tests/lh_circles_test_data.h"
+#include "ADA/RogalloDTS/ElevationMap.h"
+#include "ADA/RogalloDTS/LHCircles.h"
+#include "ADA/RogalloDTS/generated/tests/elevation_map_test_data.h"
+#include "ADA/RogalloDTS/generated/tests/lh_circles_test_data.h"
 
-#include "DeathStack/ADA/RogalloDTS/RogalloDTS.h"
+#include "ADA/RogalloDTS/RogalloDTS.h"
 
 #include <utils/EventCounter.h>
-#include "DeathStack/events/Events.h"
+#include "events/Events.h"
 
 using namespace DeathStackBoard;
 

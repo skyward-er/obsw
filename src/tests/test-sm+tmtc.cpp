@@ -20,17 +20,17 @@
  * IN THE SOFTWARE.
  */
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
+#include <TMTCManager/TMTCManager.h>
 
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/events/Topics.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 
 #include <interfaces-impl/hwmapping.h>
 
 #include "Common.h"
-#include "DeathStack/ADA/ADAController.h"
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/SensorManager/SensorManager.h"
+#include "ADA/ADAController.h"
+#include "LoggerService/LoggerService.h"
+#include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
 

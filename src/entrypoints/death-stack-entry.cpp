@@ -21,14 +21,14 @@
  * THE SOFTWARE.
  */
 #include <Common.h>
-#include <DeathStack/DeathStack.h>
-#include <DeathStack/TMTCManager/TMBuilder.h>
-#include <DeathStack/TMTCManager/XbeeInterrupt.h>
+#include <DeathStack.h>
+#include <TMTCManager/TMBuilder.h>
+#include <TMTCManager/XbeeInterrupt.h>
 #include <diagnostic/CpuMeter.h>
 #include <math/Stats.h>
-#include "DeathStack/System/StackLogger.h"
-#include "DeathStack/System/SystemData.h"
-#include "DeathStack/events/EventInjector.h"
+#include "System/StackLogger.h"
+#include "System/SystemData.h"
+#include "events/EventInjector.h"
 
 using namespace DeathStackBoard;
 using namespace miosix;

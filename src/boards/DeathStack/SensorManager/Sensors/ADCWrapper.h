@@ -25,7 +25,7 @@
 
 #include <drivers/adc/ADC.h>
 #include "ADCWrapperData.h"
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 #include "sensors/Sensor.h"
 
 namespace DeathStackBoard

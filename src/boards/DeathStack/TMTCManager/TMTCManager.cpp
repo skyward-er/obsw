@@ -21,9 +21,9 @@
  */
 
 #include "TMTCManager.h"
-#include <DeathStack/configs/TMTCConfig.h>
-#include <DeathStack/events/Events.h>
-#include <DeathStack/events/Topics.h>
+#include <configs/TMTCConfig.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 #include <drivers/Xbee/Xbee.h>
 #include "TCHandler.h"  // Real message handling is here
 #include "XbeeInterrupt.h"
@@ -145,7 +145,7 @@ void TMTCManager::stateFlightTM(const Event& ev)
             // Schedule the next HR telemetry
             hr_event_id = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            
+
             // Pack the current data in hr_tm_packet.payload
             packHRTelemetry(hr_tm_packet.payload, hr_tm_index);
 

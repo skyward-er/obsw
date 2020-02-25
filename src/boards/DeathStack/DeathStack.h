@@ -31,20 +31,20 @@
 #include <events/EventBroker.h>
 #include <events/utils/EventSniffer.h>
 
-#include "DeathStack/LoggerService/TmRepository.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
+#include "LoggerService/TmRepository.h"
+#include "events/Events.h"
+#include "events/Topics.h"
 #include "DeathStackStatus.h"
 
-#include "DeathStack/LoggerService/LoggerService.h"
+#include "LoggerService/LoggerService.h"
 
-#include "DeathStack/ADA/ADAController.h"
-#include "DeathStack/DeploymentController/DeploymentController.h"
-#include "DeathStack/FlightModeManager/FlightModeManager.h"
-#include "DeathStack/PinHandler/PinHandler.h"
-#include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/TMTCManager/TMTCManager.h"
-#include "DeathStack/events/EventData.h"
+#include "ADA/ADAController.h"
+#include "DeploymentController/DeploymentController.h"
+#include "FlightModeManager/FlightModeManager.h"
+#include "PinHandler/PinHandler.h"
+#include "SensorManager/SensorManager.h"
+#include "TMTCManager/TMTCManager.h"
+#include "events/EventData.h"
 
 using std::bind;
 
@@ -89,7 +89,7 @@ private:
 
         /* Shared components */
         logger       = Singleton<LoggerService>::getInstance();
-        
+
         broker       = sEventBroker;
         pin_observer = new PinHandler();
 

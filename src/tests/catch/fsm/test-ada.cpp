@@ -33,10 +33,9 @@
 #include <miosix.h>
 #include <utils/testutils/catch.hpp>
 
-#include <boards/CanInterfaces.h>
-#include <boards/DeathStack/ADA/ADAController.h>
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/configs/ADA_config.h>
+#include <ADA/ADAController.h>
+#include <events/Events.h>
+#include <configs/ADA_config.h>
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;

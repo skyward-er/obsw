@@ -20,13 +20,13 @@
  * THE SOFTWARE.
  */
 
-#include <DeathStack/FlightModeManager/FlightModeManager.h>
+#include <FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
-#include "DeathStack/System/StackLogger.h"
-#include "DeathStack/configs/FMMConfig.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
+#include "System/StackLogger.h"
+#include "configs/FMMConfig.h"
+#include "events/Events.h"
+#include "events/Topics.h"
 
 #include "Debug.h"
 
@@ -572,7 +572,7 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
-            
+
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
 
             logState(FMMState::TERMINAL_DESCENT);

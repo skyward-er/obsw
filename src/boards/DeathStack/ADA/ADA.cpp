@@ -20,9 +20,9 @@
  * THE SOFTWARE.
  */
 #include "ADA.h"
-#include <DeathStack/events/Events.h>
+#include <events/Events.h>
 #include <Debug.h>
-#include <boards/DeathStack/configs/ADA_config.h>
+#include <configs/ADA_config.h>
 #include <events/EventBroker.h>
 #include <libs/simple-template-matrix/matrix.h>
 #include <utils/aero/AeroUtils.h>
@@ -131,7 +131,7 @@ KalmanState ADA::getKalmanState() const
 {
     KalmanState state;
     state.timestamp = miosix::getTick();
-    
+
     state.x0 = filter.X(0, 0);
     state.x1 = filter.X(1, 0);
     state.x2 = filter.X(2, 0);

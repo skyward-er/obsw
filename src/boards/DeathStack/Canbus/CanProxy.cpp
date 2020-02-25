@@ -24,8 +24,8 @@
 #include "CanProxy.h"
 
 #include "CanInterfaces.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
+#include "events/Events.h"
+#include "events/Topics.h"
 
 #include <events/EventBroker.h>
 
@@ -39,7 +39,7 @@ using namespace std::placeholders;
  * @param message    the received message to be handled
  * @param proxy      the object that has the reference to the bus
  */
-static void canRcv(const CanMsg& message, const CanStatus& status) 
+static void canRcv(const CanMsg& message, const CanStatus& status)
 {
     TRACE("[CAN] Received message with id %lu\n", message.StdId);
 

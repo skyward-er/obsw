@@ -33,11 +33,11 @@
 #include <miosix.h>
 #include <utils/testutils/catch.hpp>
 
-#include <boards/CanInterfaces.h>
-#include <boards/DeathStack/EventClasses.h>
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/IgnitionController/IgnitionController.h>
-#include <boards/DeathStack/configs/IgnitionConfig.h>
+#include <CanInterfaces.h>
+#include <EventClasses.h>
+#include <events/Events.h>
+#include <IgnitionController/IgnitionController.h>
+#include <configs/IgnitionConfig.h>
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;

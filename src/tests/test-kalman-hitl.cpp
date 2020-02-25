@@ -1,10 +1,10 @@
 
 #include <iostream>
-#include "DeathStack/ADA/ADAController.h"
+#include "ADA/ADAController.h"
 #include <events/FSM.h>
-#include <DeathStack/events/Events.h>
+#include <events/Events.h>
 #include <events/EventBroker.h>
-#include <DeathStack/EventClasses.h>
+#include <EventClasses.h>
 #include <Common.h>
 #include <string>
 
@@ -47,9 +47,9 @@ void handleCommands(std::string line)
     std::string command = line.substr(1, delimiterIndex-1);
 
     // TRACE("ADA HITL Test command: %s \n", command.c_str());
-    
+
     // Blink green led: command received
-    greenLed::high(); 
+    greenLed::high();
     miosix::Thread::sleep(50);
     greenLed::low();
 
@@ -104,7 +104,7 @@ void handleCommands(std::string line)
         miosix::Thread::sleep(50);
         redLed::low();
     }
-    
 
-    
+
+
 }

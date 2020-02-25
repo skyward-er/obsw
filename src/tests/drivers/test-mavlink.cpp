@@ -26,15 +26,15 @@
 #include <drivers/gamma868/Gamma868.h>
 #include <drivers/mavlink/MavlinkDriver.h>
 
-#include <boards/DeathStack/configs/TMTCConfig.h>
+#include <configs/TMTCConfig.h>
 
 #include <drivers/Xbee/Xbee.h>
 
-#include "DeathStack/events/Events.h"
+#include "events/Events.h"
 #include "events/FSM.h"
 
 
-#include "DeathStack/TMTCManager/XbeeInterrupt.h"
+#include "TMTCManager/XbeeInterrupt.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;

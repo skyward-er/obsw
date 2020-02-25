@@ -21,10 +21,10 @@
  */
 
 #include "Common.h"
-#include "DeathStack/ADA/ADAController.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/SensorManager/SensorManager.h"
+#include "ADA/ADAController.h"
+#include "events/Events.h"
+#include "LoggerService/LoggerService.h"
+#include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
 

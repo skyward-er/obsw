@@ -20,11 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
+#include <TMTCManager/TMTCManager.h>
 #include <skyward-boardcore/src/shared/utils/EventSniffer.h>
 
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/events/Topics.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 
 #include <interfaces-impl/hwmapping.h>
 

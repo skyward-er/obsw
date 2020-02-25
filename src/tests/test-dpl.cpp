@@ -27,12 +27,12 @@
 #include <sstream>
 #include <string>
 
-#include "DeathStack/DeploymentController/DeploymentController.h"
-#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
-#include "DeathStack/configs/CutterConfig.h"
-#include "DeathStack/events/EventInjector.h"
-#include "DeathStack/events/Events.h"
+#include "DeploymentController/DeploymentController.h"
+#include "DeploymentController/ThermalCutter/Cutter.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
+#include "configs/CutterConfig.h"
+#include "events/EventInjector.h"
+#include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
 using namespace DeathStackBoard;

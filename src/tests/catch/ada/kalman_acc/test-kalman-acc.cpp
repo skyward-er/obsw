@@ -6,7 +6,7 @@
 #define private public
 
 #include <Common.h>
-#include <DeathStack/ADA/ADA.h>
+#include <ADA/ADA.h>
 #include <iostream>
 #include <random>
 #include <sstream>

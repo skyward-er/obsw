@@ -24,7 +24,7 @@
 #pragma once
 
 #include <utils/PinObserver.h>
-#include "DeathStack/configs/PinObserverConfig.h"
+#include "configs/PinObserverConfig.h"
 #include "PinHandlerData.h"
 
 namespace DeathStackBoard

@@ -1,7 +1,7 @@
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 
-#include "DeathStack/SensorManager/Sensors/AD7994Wrapper.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include "SensorManager/Sensors/AD7994Wrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
 
 #include <drivers/piksi/piksi.h>
 #include <sensors/ADIS16405/ADIS16405.h>
@@ -24,12 +24,12 @@
 #include <drivers/BusTemplate.h>
 
 #include <miosix.h>
-#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
+#include "DeploymentController/ThermalCutter/Cutter.h"
 #include <interfaces-impl/hwmapping.h>
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
 #include <iostream>
 
-#include "DeathStack/DeploymentController/Motor/MotorDriver.h"
+#include "DeploymentController/Motor/MotorDriver.h"
 
 #include <cstdio>
 #include <logger/Logger.h>
@@ -37,13 +37,13 @@
 #include "skyward-boardcore/src/tests/logger/test-logger.h"
 
 #include "Common.h"
-#include "DeathStack/ADA/ADA.h"
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/SensorManager/SensorManager.h"
+#include "ADA/ADA.h"
+#include "LoggerService/LoggerService.h"
+#include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
+#include <TMTCManager/TMTCManager.h>
 
 using namespace std;
 using namespace miosix;

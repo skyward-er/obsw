@@ -32,8 +32,8 @@
 #include <miosix.h>
 #include <utils/testutils/catch.hpp>
 
-#include "DeathStack/DeploymentController/DeploymentController.h"
-#include "DeathStack/events/Events.h"
+#include "DeploymentController/DeploymentController.h"
+#include "events/Events.h"
 #include "utils/PinObserver.h"
 #include "utils/testutils/TestHelper.h"
 

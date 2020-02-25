@@ -26,7 +26,7 @@
 #include <miosix.h>
 
 #include "CutterData.h"
-#include "DeathStack/configs/CutterConfig.h"
+#include "configs/CutterConfig.h"
 #include "drivers/pwm/pwm.h"
 
 using miosix::GpioPin;
@@ -155,7 +155,7 @@ private:
             // Enable PWM Generation
             pwm.setDutyCycle(channel, duty_cycle);
 
-            // enable 
+            // enable
             ena_pin.high();
         }
     }

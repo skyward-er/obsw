@@ -26,8 +26,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "DeathStack/DeploymentController/ThermalCutter/Cutter.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include "DeploymentController/ThermalCutter/Cutter.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
 
 using namespace std;
 using namespace miosix;

@@ -28,7 +28,7 @@
 #include <sstream>
 #include <string>
 #include "drivers/servo/servo.h"
-#include "DeathStack/configs/DeploymentConfig.h"
+#include "configs/DeploymentConfig.h"
 
 using namespace miosix;
 using namespace std;
@@ -43,7 +43,7 @@ int main()
     s.setMaxPulseWidth(2200);
     s.setPosition(CHANNEL, 0.77f);
     s.enable(CHANNEL);
-    
+
     s.start();
     // Thread::sleep(5000);
     string temp;
@@ -54,7 +54,7 @@ int main()
         temp = "";
         printf("Insert position: \n");
         getline(cin, temp);
-        
+
         stringstream(temp) >> pos;
 
         if (pos >= 0 && pos <= 100)

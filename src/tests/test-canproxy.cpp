@@ -23,8 +23,8 @@
 #include <Common.h>
 #include <miosix.h>
 
-#include "boards/DeathStack/Canbus/CanProxy.h"
-#include "boards/CanInterfaces.h"
+#include "Canbus/CanProxy.h"
+#include "CanInterfaces.h"
 #include <events/EventBroker.h>
 
 using namespace miosix;

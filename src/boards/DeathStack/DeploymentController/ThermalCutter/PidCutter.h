@@ -27,7 +27,7 @@
 
 #include "ActiveObject.h"
 #include "CutterData.h"
-#include "DeathStack/configs/CutterConfig.h"
+#include "configs/CutterConfig.h"
 #include "drivers/pwm/pwm.h"
 
 using miosix::GpioPin;
@@ -100,7 +100,7 @@ private:
     bool cut_main    = false;
 
     PWM pwm;
-    
+
     GpioPin pin_enable_drogue;
     GpioPin pin_enable_main_chute;
 

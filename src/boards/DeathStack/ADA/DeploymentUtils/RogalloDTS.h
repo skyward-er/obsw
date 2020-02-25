@@ -27,7 +27,7 @@
 
 #pragma once
 #include "elevation_map.h"
-#include "DeathStack/configs/ADA_config.h"
+#include "configs/ADA_config.h"
 
 namespace DeathStackBoard
 {

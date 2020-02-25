@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "DeathStack/events/Events.h"
-#include "DeathStack/configs/TMTCConfig.h"
+#include "events/Events.h"
+#include "configs/TMTCConfig.h"
 #include "events/FSM.h"
 
 #include <drivers/mavlink/MavlinkDriver.h>
-#include <DeathStack/LoggerService/LoggerService.h>
+#include <LoggerService/LoggerService.h>
 #include <interfaces-impl/hwmapping.h>
 
 namespace DeathStackBoard

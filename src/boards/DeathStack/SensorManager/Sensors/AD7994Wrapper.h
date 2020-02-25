@@ -24,7 +24,7 @@
 #pragma once
 
 #include "AD7994WrapperData.h"
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 #include "drivers/adc/AD7994.h"
 #include "drivers/adc/AD7994Data.h"
 

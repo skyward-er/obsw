@@ -21,10 +21,10 @@
  * THE SOFTWARE.
  */
 
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 
-#include "DeathStack/SensorManager/Sensors/AD7994Wrapper.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include "SensorManager/Sensors/AD7994Wrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
 
 #include <drivers/piksi/piksi.h>
 #include <sensors/ADIS16405/ADIS16405.h>

@@ -21,10 +21,10 @@
  * THE SOFTWARE.
  */
 
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 
-#include "DeathStack/SensorManager/Sensors/AD7994Wrapper.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapper.h"
+#include "SensorManager/Sensors/AD7994Wrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
 
 #include <drivers/piksi/piksi.h>
 #include <sensors/ADIS16405/ADIS16405.h>
@@ -107,18 +107,18 @@ void print()
            imu_adis16405->accelDataPtr()->getZ()); */
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
-    printf("Digital temp:   \tP: %f\n", pressure_ms5803->getData().temp); 
+    printf("Digital temp:   \tP: %f\n", pressure_ms5803->getData().temp);
     printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
-    printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);    
-    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure);  
-    printf("Battery voltage:\tV: %f\n", 
-        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);    
-    printf("Current sens 1: \tC: %f\n", 
-        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1); 
-    printf("Current sens 2: \tC: %f\n", 
+    printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);
+    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure);
+    printf("Battery voltage:\tV: %f\n",
+        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);
+    printf("Current sens 1: \tC: %f\n",
+        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1);
+    printf("Current sens 2: \tC: %f\n",
         adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
     printf("Pins:           \tLP: %d, MC: %d\n", inputs::lp_dtch::value(), nosecone::nc_dtch::value());
-    
+
     try
     {
         auto gps = piksi->getGpsData();

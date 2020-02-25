@@ -24,8 +24,8 @@
 #include "PinHandler.h"
 #include <events/EventBroker.h>
 #include <functional>
-#include "DeathStack/events/Events.h"
-#include "DeathStack/LoggerService/LoggerService.h"
+#include "events/Events.h"
+#include "LoggerService/LoggerService.h"
 
 using std::bind;
 
@@ -90,7 +90,7 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     status_pin_launch.state             = (uint8_t)state;
     status_pin_launch.last_state_change = miosix::getTick();
     status_pin_launch.num_state_changes += 1;
-    logger->log(status_pin_launch);   
+    logger->log(status_pin_launch);
 }
 
 void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n,

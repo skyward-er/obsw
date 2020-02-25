@@ -27,13 +27,13 @@
 
 #include "TmRepository.h"
 
-#include "DeathStack/ADA/ADAStatus.h"
-#include "DeathStack/SensorManager/Sensors/AD7994WrapperData.h"
-#include "DeathStack/SensorManager/Sensors/PiksiData.h"
-#include "DeathStack/configs/FlightStatsConfig.h"
+#include "ADA/ADAStatus.h"
+#include "SensorManager/Sensors/AD7994WrapperData.h"
+#include "SensorManager/Sensors/PiksiData.h"
+#include "configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
 #include "sensors/MPU9250/MPU9250Data.h"
-#include "DeathStack/SensorManager/Sensors/ADCWrapperData.h"
+#include "SensorManager/Sensors/ADCWrapperData.h"
 
 namespace DeathStackBoard
 {

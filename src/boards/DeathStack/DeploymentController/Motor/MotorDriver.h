@@ -24,7 +24,7 @@
 
 #include <Common.h>
 
-#include "DeathStack/configs/MotorConfig.h"
+#include "configs/MotorConfig.h"
 #include "MotorData.h"
 
 namespace DeathStackBoard

@@ -27,7 +27,7 @@
 #include <drivers/pwm/pwm.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-#include "DeathStack/DeploymentController/Motor/MotorData.h"
+#include "DeploymentController/Motor/MotorData.h"
 #include "config.h"
 
 namespace DeathStackBoard

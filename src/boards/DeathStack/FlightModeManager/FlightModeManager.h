@@ -27,7 +27,7 @@
 #include "FMMStatus.h"
 #include "events/Event.h"
 #include "events/HSM.h"
-#include "DeathStack/LoggerService/LoggerService.h"
+#include "LoggerService/LoggerService.h"
 
 #include <miosix.h>
 
@@ -47,8 +47,8 @@ public:
     ~FlightModeManager();
 
     State state_initialization(const Event& ev);
-    
-    /// ON-GROUND 
+
+    /// ON-GROUND
 
     /* Handle TC_BOARD_RESET and TC_FORCE_LIFTOFF (super-state) */
     State state_onGround(const Event& ev);
@@ -72,7 +72,7 @@ public:
     /* Ready to launch, listening detachment pin (or command) */
     State state_armed(const Event& ev);
 
-    /// FLYING 
+    /// FLYING
 
     /* Handle TC_OPEN and END_MISSION (super-state) */
     State state_flying(const Event& ev);                // super-state

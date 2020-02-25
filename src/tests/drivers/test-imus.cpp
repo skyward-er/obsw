@@ -22,7 +22,7 @@
 
 #include <Common.h>
 #include <interfaces-impl/hwmapping.h>
-#include "DeathStack/configs/SensorManagerConfig.h"
+#include "configs/SensorManagerConfig.h"
 #include "sensors/MPU9250/MPU9250.h"
 
 using miosix::Thread;

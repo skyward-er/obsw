@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <boards/DeathStack/FlightModeManager/FlightModeManager.h>
+#include <FlightModeManager/FlightModeManager.h>
 #include <events/utils/EventSniffer.h>
 
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/events/Topics.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 
 #include <inttypes.h>
 

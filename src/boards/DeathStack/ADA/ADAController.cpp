@@ -20,10 +20,10 @@
  * THE SOFTWARE.
  */
 
-#include <DeathStack/ADA/ADAController.h>
+#include <ADA/ADAController.h>
 #include <events/EventBroker.h>
 #include <utils/aero/AeroUtils.h>
-#include "DeathStack/System/StackLogger.h"
+#include "System/StackLogger.h"
 #include "Debug.h"
 
 using miosix::Lock;

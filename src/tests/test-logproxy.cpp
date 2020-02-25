@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 #include <Common.h>
-#include <boards/DeathStack/LoggerService/LoggerService.h>
+#include <LoggerService/LoggerService.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;

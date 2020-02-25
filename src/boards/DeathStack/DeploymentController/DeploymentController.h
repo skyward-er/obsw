@@ -24,9 +24,9 @@
 #pragma once
 
 #include <drivers/servo/servo.h>
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/System/StackLogger.h"
-#include "DeathStack/configs/DeploymentConfig.h"
+#include "LoggerService/LoggerService.h"
+#include "System/StackLogger.h"
+#include "configs/DeploymentConfig.h"
 #include "DeploymentData.h"
 #include "Motor/MotorDriver.h"
 #include "ThermalCutter/Cutter.h"

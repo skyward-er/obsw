@@ -29,8 +29,8 @@
 #endif
 
 #include <Common.h>
-#include <DeathStack/ADA/ADAController.h>
-#include <DeathStack/events/Events.h>
+#include <ADA/ADAController.h>
+#include <events/Events.h>
 #include <events/EventBroker.h>
 #include <events/FSM.h>
 #include <events/utils/EventCounter.h>
@@ -182,7 +182,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
                 printf("Apogee error: %d samples\n", (int)(i - 382));
                 SUCCEED();
             }
-            
+
             REQUIRE(ada_controller->testState(&ADAController::statePressureStabilization));
             Thread::sleep(EV_TIMEOUT_PRESS_STABILIZATION + 1000);
             REQUIRE(ada_controller->testState(&ADAController::stateFirstDescentPhase));
