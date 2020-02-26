@@ -128,7 +128,7 @@ public:
      */
     void enableTestPrimaryCutter()
     {
-        enableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup, test_duty_cycle);
+        enableCutter(CUTTER_CHANNEL_PRIMARY, pin_enable_primary, test_duty_cycle);
         status.state = CutterState::TESTING_PRIMARY;
     }
 
@@ -140,7 +140,7 @@ public:
     void enableTestBackupCutter()
     {
         enableCutter(CUTTER_CHANNEL_BACKUP, pin_enable_backup, test_duty_cycle);
-        status.state = CutterState::TESTING_PRIMARY;
+        status.state = CutterState::TESTING_BACKUP;
     }
 
     CutterStatus getStatus() { return status; }
