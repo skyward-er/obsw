@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 
 DIRNAME="$(dirname $0)"
-$DIRNAME/../skyward-boardcore/scripts/generators/eventgen.py $@
+$DIRNAME/../skyward-boardcore/scripts/generators/fsmgen.py $@
