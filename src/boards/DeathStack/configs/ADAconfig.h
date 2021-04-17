@@ -1,5 +1,5 @@
-/* Copyright (c) 2018,2019 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/* Copyright (c) 2018-2021 Skyward Experimental Rocketry
+ * Authors: Luca Mozzarelli, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,24 @@
  */
 
 #pragma once
-#include "skyward-boardcore/libs/simple-template-matrix/matrix.h"
+
+#include <Eigen/Dense>
+
+#include "kalman/KalmanEigen.h"
 
 namespace DeathStackBoard
 {
+
+namespace ADAConfigs
+{
+
+static const unsigned int ADA_STACK_SIZE = 4096;
+static const unsigned int ADA_PRIORITY   = 2; // high
+
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
-// Number of consecutive samples after which Deployment is triggered
+// Number of consecutive samples after which the main Deployment is triggered
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 
 // When the vertical speed is smaller than this value, apogee is detected.
@@ -37,11 +47,11 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
 
 // State timeouts
-static const unsigned int TIMEOUT_ADA_SHADOW_MODE = 6.5 * 1000;  // ms
-static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;  // ms
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 6.5 * 1000;  // ms
+static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 
 // Number of samples used to calibrate the kalman initial state
-static const unsigned int CALIBRATION_BARO_N_SAMPLES = 1200;
+static const unsigned int CALIBRATION_BARO_N_SAMPLES     = 50;  // 1200
 static const unsigned int ACCELERATION_AVERAGE_N_SAMPLES = 25;
 
 // Default reference values settings
@@ -54,8 +64,6 @@ static const float DEFAULT_MSL_TEMPERATURE = 288.15f;
 static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
 
 // Deployment altitude AGL
-// Set it under the ground level: don't deploy the Rogallo wing if we somehow
-// forget to set the deployment altitude via telecommand
 static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
 
 // Do cut the drogue above this altitude
@@ -64,31 +72,63 @@ static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1800;
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds
 
-// State matrix
-// Note that sampling frequency is supposed to be constant and known at
-// compile time. If this is not the case the matrix has to be updated at
-// each iteration
-static const MatrixBase<float, 3, 3> A_INIT(
-    {1.0f, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD* SAMPLING_PERIOD, 0.0f, 1.0f,
-     SAMPLING_PERIOD, 0.0f, 0.0f, 1.0f});
-
-// Output matrix
-static const MatrixBase<float, 1, 3> C_INIT{1, 0, 0};
-static const MatrixBase<float, 2, 3> C_INIT_ACC{1, 0, 0, 0, 0, 1};
-
-// Initial error covariance matrix
-static const MatrixBase<float, 3, 3> P_INIT{0.1, 0, 0, 0, 0, 0, 0, 0, 0};
-static const MatrixBase<float, 3, 3> P_INIT_ACC{0.1, 0, 0, 0, 0, 0, 0, 0, 100};
-
-// Model variance matrix
-static const MatrixBase<float, 3, 3> V1_INIT{1, 0, 0, 0, 10, 0, 0, 0, 100};
-static const MatrixBase<float, 3, 3> V1_INIT_ACC{0.1, 0, 0, 0, 80, 1, 0, 1, 10};
-
-// Measurement variance
-static const MatrixBase<float, 1, 1> V2_INIT{800};
-static const MatrixBase<float, 2, 2> V2_INIT_ACC{1000,0,0,100};
-
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
 // to make it more respondive during the propulsive phase
 static const float KALMAN_INITIAL_ACCELERATION = -500;
+
+// kalman dimensions
+static const uint8_t KALMAN_STATES_NUM  = 3;
+static const uint8_t KALMAN_OUTPUTS_NUM = 1;
+
+using MatrixNN = Matrix<float, KALMAN_STATES_NUM, KALMAN_STATES_NUM>;
+using MatrixPN = Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_STATES_NUM>;
+using MatrixNP = Matrix<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>;
+using MatrixPP = Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_OUTPUTS_NUM>;
+using CVectorN = Matrix<float, KALMAN_STATES_NUM, 1>;
+using CVectorP = Matrix<float, KALMAN_OUTPUTS_NUM, 1>;
+
+// kalman matrices
+static const MatrixNN F_INIT =
+    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 1.0f, SAMPLING_PERIOD,
+     0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD, 0.0f, 1.0f, SAMPLING_PERIOD,
+     0.0f, 0.0f, 1.0f)
+        .finished();
+
+// Output matrix
+static const MatrixPN H_INIT{1, 0, 0};
+
+// Initial error covariance matrix
+static const MatrixNN P_INIT =
+    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 0.1, 0, 0, 0, 0, 0, 0, 0,
+     0)
+        .finished();
+
+// Model variance matrix
+static const MatrixNN Q_INIT =
+    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 1, 0, 0, 0, 10, 0, 0, 0,
+     100)
+        .finished();
+
+// Measurement variance
+static const MatrixPP R_INIT{800};
+
+// method to initialize the kalman configuration structure
+static const KalmanEigen<float, KALMAN_STATES_NUM,
+                         KALMAN_OUTPUTS_NUM>::KalmanConfig
+getKalmanConfig(const float ref_pressure)
+{
+    KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>::KalmanConfig
+        config;
+    config.F = F_INIT;
+    config.H = H_INIT;
+    config.Q = Q_INIT;
+    config.R = R_INIT;
+    config.P = P_INIT;
+    config.x = CVectorN(ref_pressure, 0, KALMAN_INITIAL_ACCELERATION);
+
+    return config;
+}
+
+}  // namespace ADAConfigs
+
 }  // namespace DeathStackBoard

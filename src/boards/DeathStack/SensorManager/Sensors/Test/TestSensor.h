@@ -23,33 +23,45 @@
 #define SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_TESTSENSOR_H
 
 #include <cmath>
+
 #include "Common.h"
 #include "sensors/Sensor.h"
 
 using miosix::getTick;
 using miosix::TICK_FREQ;
 
-class TestSensor : public Sensor
+struct TestSensorData : public TimestampData
+{
+    float value;
+
+    TestSensorData()
+        : TimestampData{0}, value(0.0)
+    {
+    }
+
+    TestSensorData(uint64_t timestamp, float value)
+        : TimestampData{timestamp}, value(value)
+    {
+    }
+};
+
+class TestSensor : public Sensor<TestSensorData>
 {
 public:
-    TestSensor() : mLastSample(0) {}
+    TestSensor() {}
     virtual ~TestSensor() {}
 
     bool init() { return true; }
-    bool onSimpleUpdate()
-    {
-        // printf("onSimpleUpdate\n");
-        mLastSample = 10 * sin(PI * static_cast<float>(getTick()) /
-                               static_cast<float>(TICK_FREQ));
-        return true;
-    }
 
     bool selfTest() { return true; }
 
-    float* testDataPtr() { return &mLastSample; }
+    TestSensorData sampleImpl()
+    {
+        float v = 10 * sin(PI * static_cast<float>(getTick()) /
+                               static_cast<float>(TICK_FREQ));
 
-private:
-    float mLastSample;
+        return TestSensorData(static_cast<uint64_t>(getTick()), v);
+    }
 };
 
 #endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_TESTSENSOR_H */

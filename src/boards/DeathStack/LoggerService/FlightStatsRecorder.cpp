@@ -42,7 +42,7 @@ FlightStatsRecorder::FlightStatsRecorder()
 
 FlightStatsRecorder::~FlightStatsRecorder() { sEventBroker->unsubscribe(this); }
 
-void FlightStatsRecorder::update(const KalmanState& t)
+void FlightStatsRecorder::update(const ADAKalmanState& t)
 {
     switch (state)
     {
@@ -64,7 +64,7 @@ void FlightStatsRecorder::update(const KalmanState& t)
     }
 }
 
-void FlightStatsRecorder::update(const CurrentSenseData& t)
+void FlightStatsRecorder::update(const CurrentSenseDataWrapper& t)
 {
     switch (state)
     {
@@ -86,13 +86,13 @@ void FlightStatsRecorder::update(const ADAData& t)
     {
         case State::LIFTOFF:
         {
-            if (t.acc_vert_speed > liftoff_stats.vert_speed_max)
+            /*if (t.acc_vert_speed > liftoff_stats.vert_speed_max)
             {
                 liftoff_stats.vert_speed_max = t.acc_vert_speed;
                 liftoff_stats.T_max_speed =
                     static_cast<uint32_t>(miosix::getTick());
                 liftoff_stats.altitude_max_speed = t.msl_altitude;
-            }
+            }*/
             break;
         }
         case State::ASCENDING:
@@ -138,6 +138,8 @@ void FlightStatsRecorder::update(const AD7994WrapperData& t)
             break;
     }
 }
+
+/*
 void FlightStatsRecorder::update(const MPU9250Data& t)
 {
     switch (state)
@@ -174,7 +176,9 @@ void FlightStatsRecorder::update(const MPU9250Data& t)
             break;
     }
 }
+*/
 
+/*
 void FlightStatsRecorder::update(const PiksiData& t)
 {
     switch (state)
@@ -195,6 +199,7 @@ void FlightStatsRecorder::update(const PiksiData& t)
             break;
     }
 }
+*/
 
 void FlightStatsRecorder::state_idle(const Event& ev)
 {

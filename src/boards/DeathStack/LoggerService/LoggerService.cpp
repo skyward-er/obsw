@@ -32,13 +32,14 @@
 #include "SensorManager/SensorManagerData.h"
 #include "SensorManager/Sensors/AD7994WrapperData.h"
 #include "SensorManager/Sensors/ADCWrapperData.h"
-#include "SensorManager/Sensors/PiksiData.h"
+//#include "SensorManager/Sensors/PiksiData.h"
+#include "sensors/Sensor.h"
 
 #include "drivers/canbus/CanUtils.h"
 #include "drivers/mavlink/MavlinkStatus.h"
 #include "scheduler/TaskSchedulerData.h"
-#include "sensors/ADIS16405/ADIS16405Data.h"
-#include "sensors/MPU9250/MPU9250Data.h"
+//#include "sensors/ADIS16405/ADIS16405Data.h"
+//#include "sensors/MPU9250/MPU9250Data.h"
 
 namespace DeathStackBoard
 {
@@ -268,7 +269,7 @@ LogResult LoggerService::log<TargetDeploymentAltitude>(
 
 /* ADA kalman filter values */
 template <>
-LogResult LoggerService::log<KalmanState>(const KalmanState& t)
+LogResult LoggerService::log<ADAKalmanState>(const ADAKalmanState& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -298,7 +299,7 @@ LogResult LoggerService::log<ADAData>(const ADAData& t)
         tm_repository.hr_tm.msl_altitude = t.msl_altitude;
         tm_repository.hr_tm.agl_altitude = t.dpl_altitude;
         tm_repository.hr_tm.vert_speed   = t.vert_speed;
-        tm_repository.hr_tm.vert_speed_2 = t.acc_vert_speed;
+        //tm_repository.hr_tm.vert_speed_2 = t.acc_vert_speed;
     }
     flight_stats.update(t);
 
@@ -380,7 +381,7 @@ LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t)
 
 /* Battery status, sampled by internal ADC */
 template <>
-LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t)
+LogResult LoggerService::log<BatteryVoltageDataWrapper>(const BatteryVoltageDataWrapper& t)
 {
     tm_repository.adc_tm.battery_voltage = t.volt;
     tm_repository.test_tm.battery_volt   = t.volt;
@@ -390,7 +391,7 @@ LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t)
 
 /* Current sense, sampled by internal ADC */
 template <>
-LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t)
+LogResult LoggerService::log<CurrentSenseDataWrapper>(const CurrentSenseDataWrapper& t)
 {
     {
         miosix::PauseKernelLock kLock;
@@ -410,12 +411,13 @@ LogResult LoggerService::log<MS5803Data>(const MS5803Data& t)
     {
         miosix::PauseKernelLock kLock;
 
-        tm_repository.hr_tm.pressure_digi = t.pressure;
+        tm_repository.hr_tm.pressure_digi = t.press;
     }
     return logger.log(t);
 }
 
 /* ADIS imu */
+/*
 template <>
 LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t)
 {
@@ -441,8 +443,10 @@ LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t)
 
     return logger.log(t);
 }
+*/
 
 /* MPU imu */
+/*
 template <>
 LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
 {
@@ -473,6 +477,7 @@ LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
     flight_stats.update(t);
     return logger.log(t);
 }
+*/
 
 /* LM75b temperature */
 template <>
@@ -489,7 +494,7 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
 }
 
 /* GPS */
-template <>
+/*template <>
 LogResult LoggerService::log<PiksiData>(const PiksiData& t)
 {
     {
@@ -520,6 +525,7 @@ LogResult LoggerService::log<PiksiData>(const PiksiData& t)
 
     return logger.log(t);
 }
+*/
 
 template <>
 LogResult LoggerService::log<TaskStatResult>(const TaskStatResult& t)

@@ -29,10 +29,10 @@
 
 #include "ADA/ADAStatus.h"
 #include "SensorManager/Sensors/AD7994WrapperData.h"
-#include "SensorManager/Sensors/PiksiData.h"
+//#include "SensorManager/Sensors/PiksiData.h"
 #include "configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
-#include "sensors/MPU9250/MPU9250Data.h"
+//#include "sensors/MPU9250/MPU9250Data.h"
 #include "SensorManager/Sensors/ADCWrapperData.h"
 
 namespace DeathStackBoard
@@ -50,12 +50,12 @@ public:
     FlightStatsRecorder();
     ~FlightStatsRecorder();
 
-    void update(const KalmanState& t);
-    void update(const CurrentSenseData& t);
+    void update(const ADAKalmanState& t);
+    void update(const CurrentSenseDataWrapper& t);
     void update(const ADAData& t);
     void update(const AD7994WrapperData& t);
-    void update(const MPU9250Data& t);
-    void update(const PiksiData& t);
+    //void update(const MPU9250Data& t);
+    //void update(const PiksiData& t);
 
     // Wait for liftoff or deployment
     void state_idle(const Event& ev);

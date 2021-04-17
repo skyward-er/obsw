@@ -28,7 +28,8 @@
 
 #include <drivers/mavlink/MavlinkDriver.h>
 #include <LoggerService/LoggerService.h>
-#include <interfaces-impl/hwmapping.h>
+#include "configs/TMTCConfig.h"
+#include "drivers/Xbee/Xbee.h"
 
 namespace DeathStackBoard
 {
@@ -65,7 +66,7 @@ public:
     }
 
 private:
-    Xbee_t* device;
+    Xbee::Xbee* device;
     Mav* channel;
 
     LoggerService& logger = *(LoggerService::getInstance());
@@ -77,6 +78,8 @@ private:
 
     inline void packHRTelemetry(uint8_t* packet, unsigned int index);
     inline void packLRTelemetry(uint8_t* packet);
+
+    SPIBus xbee_bus;
 
     uint16_t lr_event_id = 0;
     uint16_t hr_event_id = 0;

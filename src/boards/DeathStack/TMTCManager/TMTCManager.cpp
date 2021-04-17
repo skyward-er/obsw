@@ -21,22 +21,23 @@
  */
 
 #include "TMTCManager.h"
-#include <configs/TMTCConfig.h>
+
 #include <events/Events.h>
 #include <events/Topics.h>
-#include <drivers/Xbee/Xbee.h>
+
 #include "TCHandler.h"  // Real message handling is here
 #include "XbeeInterrupt.h"
 #include "bitpacking/hermes/HermesPackets.h"
+
 namespace DeathStackBoard
 {
 
-TMTCManager::TMTCManager() : FSM(&TMTCManager::stateGroundTM)
+TMTCManager::TMTCManager() : FSM(&TMTCManager::stateGroundTM), xbee_bus(SPI2)
 {
-    busSPI2::init();
     enableXbeeInterrupt();
 
-    device  = new Xbee_t();
+    device  = new Xbee::Xbee(xbee_bus, XbeeCS::getPin(), XbeeATTN::getPin(),
+                            XbeeRST::getPin());
     channel = new Mav(device,
                       &TCHandler::handleMavlinkMessage,  // rcv function
                       TMTC_SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);

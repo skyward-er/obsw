@@ -21,15 +21,22 @@
  */
 
 #include <tests/mock_sensors/test-mock-data.h>
+#include "TimestampTimer.h"
+#include "sensors/Sensor.h"
 
 namespace DeathStackBoard
 {
-class MockGPS
+
+class MockGPS : public Sensor<GPSData>
 {
 public:
-    MockGPS(){}
+    MockGPS() { }
 
-    bool updateCoordinates()
+    bool init() override { return true; }
+
+    bool selfTest() override { return true; }
+
+    GPSData sampleImpl() override
     {
         // if (inside_lha)
         // {
@@ -41,26 +48,31 @@ public:
         //     lat = lat_outside;
         //     lon = lon_outside;
         // }
+
+        GPSData data;
+
+        data.gps_timestamp = TimestampTimer::getTimestamp();
+        data.fix = true;
+
         if (before_liftoff)
         {
-            lat = SIMULATED_LAT[0];
-            lon = SIMULATED_LON[0];
+            data.latitude = SIMULATED_LAT[0];
+            data.longitude = SIMULATED_LON[0];
+            //data.height = SIMULATED_HEIGHT[0];
         }
         else if (i < GPS_DATA_SIZE)
         {
-            lat = SIMULATED_LAT[i];
-            lon = SIMULATED_LON[i];
+            data.latitude = SIMULATED_LAT[i];
+            data.longitude = SIMULATED_LON[i];
+            //data.height = SIMULATED_HEIGHT[i];
             i++;
         }
-        return true;
+
+        return data;
     }
 
-    volatile bool before_liftoff = true;
+    void signalLiftoff() { before_liftoff = false; }
 
-    bool inside_lha = true;
-
-    double lat, lon;
-    bool fix = true;
 private:
     // Set of coordinates inside the Launch Hazard Area
     // const double lat_inside = 41.807487124105;
@@ -69,6 +81,9 @@ private:
     // Set of coordinates outside the Launch Hazard Area
     // const double lat_outside = 41.840794;
     // const double lon_outside = 14.003920;
+
+    volatile bool before_liftoff = true;
+    bool inside_lha              = true;
 
     unsigned int i = 0;
 };

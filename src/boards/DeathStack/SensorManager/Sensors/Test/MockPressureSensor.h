@@ -22,38 +22,50 @@
 
 #include <Common.h>
 #include <sensors/Sensor.h>
-// #include <tests/catch/ada/test-ada-data.h>
-#include <tests/mock_sensors/test-mock-data.h>
+#include <tests/catch/ada/ada_kalman_p/test-ada-data.h>
+//#include <tests/mock_sensors/test-mock-data.h>
 #include <random>
 
 namespace DeathStackBoard
 {
-class MockPressureSensor
+
+class MockPressureSensor : public Sensor<PressureData>
 {
 public:
-    float getPressure()
+    MockPressureSensor() {}
+
+    bool init() override { return true; }
+
+    bool selfTest() override { return true; }
+
+    PressureData sampleImpl() override
     {
+        float press = 0.0;
+
         if (before_liftoff)
         {
-            return addNoise(SIMULATED_PRESSURE[0]);
+            press = addNoise(SIMULATED_PRESSURE[0]);
         }
         else
         {
             if (i < PRESSURE_DATA_SIZE)
             {
-                return addNoise(SIMULATED_PRESSURE[i++]);
+                press = addNoise(SIMULATED_PRESSURE[i++]);
             }
             else
             {
-                return addNoise(SIMULATED_PRESSURE[PRESSURE_DATA_SIZE - 1]);
+                press = addNoise(SIMULATED_PRESSURE[PRESSURE_DATA_SIZE - 1]);
             }
         }
+
+        return PressureData{TimestampTimer::getTimestamp(), press};
     }
 
-    volatile bool before_liftoff = true;
+    void signalLiftoff() { before_liftoff = false; }
 
 private:
-    volatile unsigned int i = 0;  // Last index
+    volatile bool before_liftoff = true;
+    volatile unsigned int i      = 0;  // Last index
     std::default_random_engine generator{1234567};
     std::normal_distribution<float> distribution{0.0f, 5.0f};
 
@@ -62,6 +74,7 @@ private:
         return quantization(sample + distribution(generator));
     }
 
-    float quantization(float sample) { return round(sample / 30) * 30; }
+    float quantization(float sample) { return round(sample / 30.0) * 30.0; }
 };
+
 }  // namespace DeathStackBoard

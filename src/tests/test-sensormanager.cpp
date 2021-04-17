@@ -34,9 +34,8 @@ using namespace DeathStackBoard;
 int main()
 {
     Stats s;
-    ADAController ada;
-    SensorManager mgr{&ada};
-    // ada.start();
+    SensorManager mgr;
+    
     try
     {
         LoggerService::getInstance()->start();

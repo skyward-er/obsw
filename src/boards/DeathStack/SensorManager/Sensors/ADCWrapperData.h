@@ -26,7 +26,7 @@
 #include <cstdint>
 #include <ostream>
 
-struct BatteryVoltageData
+struct BatteryVoltageDataWrapper
 {
     long long timestamp;
 
@@ -41,7 +41,7 @@ struct BatteryVoltageData
     }
 };
 
-struct CurrentSenseData
+struct CurrentSenseDataWrapper
 {
     long long timestamp;
     uint16_t raw_value_1;

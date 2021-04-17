@@ -21,9 +21,12 @@
  */
 
 #include "ADACalibrator.h"
+
 #include <utils/aero/AeroUtils.h>
 namespace DeathStackBoard
 {
+
+using namespace ADAConfigs;
 
 void ADACalibrator::addBaroSample(float p) { pressure_stats.add(p); }
 
@@ -31,6 +34,9 @@ bool ADACalibrator::calibIsComplete()
 {
     // Calibration is complete if enough samples were collected and reference
     // altitude and temperature were set
+
+    //TRACE("Calibrator : n samples = %d \n", pressure_stats.getStats().nSamples);
+    
     return pressure_stats.getStats().nSamples >= CALIBRATION_BARO_N_SAMPLES &&
            ref_alt_set && ref_temp_set;
 }

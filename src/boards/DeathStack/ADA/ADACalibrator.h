@@ -26,28 +26,20 @@
 #include <Debug.h>
 #include <math/Stats.h>
 #include <miosix.h>
+
 #include "ADAStatus.h"
 
 namespace DeathStackBoard
 {
 class ADACalibrator
 {
-private:
-    /* --- CALIBRATION --- */
-    ReferenceValues ref_values{};
 
-    Stats pressure_stats;  // Computes mean std dev etc for calibration of
-                           // pressure conversion
-
-    // Refernece flags
-    bool ref_alt_set  = false;
-    bool ref_temp_set = false;
 public:
     /* --- CALIBRATION --- */
     ReferenceValues getReferenceValues();
     bool calibIsComplete();
-    void addBaroSample(float p);            // Adds a pressure sample to the stats
-    void resetBaro();                       // Resets only pressure stats
+    void addBaroSample(float p);  // Adds a pressure sample to the stats
+    void resetBaro();             // Resets only pressure stats
 
     /* --- TC ---*/
     /**
@@ -61,5 +53,16 @@ public:
      * @param ref_alt Reference altitude in meters above mean sea level
      */
     void setReferenceAltitude(float ref_alt);
+
+private:
+    /* --- CALIBRATION --- */
+    ReferenceValues ref_values{};
+
+    Stats pressure_stats;  // Computes mean std dev etc for calibration of
+                           // pressure conversion
+
+    // Refernece flags
+    bool ref_alt_set  = false;
+    bool ref_temp_set = false;
 };
 }  // namespace DeathStackBoard

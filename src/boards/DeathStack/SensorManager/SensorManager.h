@@ -22,56 +22,31 @@
 
 #pragma once
 
-#include <vector>
-#include "Common.h"
-
+#include <interfaces-impl/hwmapping.h>
 #include <math/Stats.h>
 #include <scheduler/TaskScheduler.h>
-#include <sensors/SensorSampling.h>
+#include <sensors/SensorSampler.h>
 
-#include "LoggerService/LoggerService.h"
-#include "configs/SensorManagerConfig.h"
-#include "events/FSM.h"
+#include <vector>
 
 #include "ADA/ADAController.h"
+#include "Common.h"
+#include "LoggerService/LoggerService.h"
 #include "SensorManagerData.h"
-
-#include <interfaces-impl/hwmapping.h>
+#include "configs/SensorManagerConfig.h"
+#include "events/FSM.h"
 
 using miosix::PauseKernelLock;
 using std::vector;
 
-// Forward declarations
-template <typename ProtocolSPI>
-class MPU9250;
-
-template <typename ProtocolSPI, typename RST>
-class ADIS16405;
-
-template <typename ProtocolI2C>
-class LM75B;
-
-template <typename ProtocolSPI>
-class MS580301BA07;
-
-class Piksi;
-
 namespace DeathStackBoard
 {
-class ADCWrapper;
-class AD7994Wrapper;
 
 #ifdef USE_MOCK_SENSORS
 class MockPressureSensor;
 class MockGPS;
 #endif
 
-// Type definitions
-typedef MPU9250<spiMPU9250> MPU9250Type;
-typedef ADIS16405<spiADIS16405, miosix::sensors::adis16405::rst> ADIS16405Type;
-typedef MS580301BA07<spiMS5803> MS580301BA07Type;
-
-typedef LM75B<i2c1> LM75BType;
 /**
  * The SensorManager class manages all the sensors connected to the Homeone
  * Board.
@@ -85,7 +60,7 @@ typedef LM75B<i2c1> LM75BType;
 class SensorManager : public FSM<SensorManager>
 {
 public:
-    SensorManager(ADAController* ada);
+    SensorManager();
     ~SensorManager();
 
     vector<TaskStatResult> getSchedulerStats() { return scheduler_stats; }
@@ -101,9 +76,9 @@ private:
     void initSensors();
 
     /**
-     * Initialize the samplers.
+     * Adds all the SensorSamplers to the scheduler and begins sampling.
      */
-    void initSamplers();
+    void initScheduler();
 
     /**
      * @brief Sensor manager state machine entry state
@@ -117,11 +92,6 @@ private:
      */
     void stateLogging(const Event& ev);
 
-    /**
-     * Adds all the SensorSamplers to the scheduler and begins sampling.
-     */
-    void initScheduler();
-
     /*
      * Callbacks. These functions are called each time the corresponding
      * SensorSampler has acquired new samples.
@@ -133,10 +103,10 @@ private:
      * Simple, 20 Hz SensorSampler Callback.
      * Called each time all the sensors in the 20hz sampler have been sampled
      */
-    void onSimple20HZCallback();  // ADCs
-    void onSimple50HZCallback(); // MS5803
-    void onSimple100HZCallback(); // Mpu magneto
-    void onSimple250HZCallback(); // Mpu accel & gyro
+    void onSimple20HZCallback();   // ADCs
+    void onSimple50HZCallback();   // MS5803
+    void onSimple100HZCallback();  // Mpu magneto
+    void onSimple250HZCallback();  // Mpu accel & gyro
 
     void onGPSCallback();
 
@@ -146,29 +116,13 @@ private:
 
     bool enable_sensor_logging = false;
 
-    // Sensor samplers
-    SimpleSensorSampler sampler_20hz_simple;
-    SimpleSensorSampler sampler_50hz_simple;
-    SimpleSensorSampler sampler_250hz_simple;
-
     // Sensors
-    AD7994Wrapper* adc_ad7994;
-    MPU9250Type* imu_mpu9250;
-    ADIS16405Type* imu_adis16405;
-    LM75BType* temp_lm75b_imu;
-    LM75BType* temp_lm75b_analog;
-    ADCWrapper* adc_internal;
-    MS580301BA07Type* pressure_ms5803;
 #ifdef USE_MOCK_SENSORS
     MockPressureSensor* mock_pressure_sensor;
     MockGPS* mock_gps;
 #endif
 
-    Piksi* piksi;
     long long last_gps_timestamp = 0;
-
-    // ADA
-    ADAController* ada_controller;
 
     // Stats & status
     vector<TaskStatResult> scheduler_stats;

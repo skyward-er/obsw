@@ -73,7 +73,7 @@ public:
         /**
          * @brief Returns a pointer to the last conveted current sense value
          */
-        CurrentSenseData* getCurrentDataPtr() { return &current_data; }
+        CurrentSenseDataWrapper* getCurrentDataPtr() { return &current_data; }
 
     private:
         float adcToCurrent(uint16_t adc_in) { return (adc_in - 107) / 23.8f; }
@@ -85,7 +85,7 @@ public:
             static_cast<adc_t::Channel>(ADC_CURRENT_SENSE_2_CHANNEL);
 
         ADCWrapper& parent;
-        CurrentSenseData current_data;
+        CurrentSenseDataWrapper current_data;
     };
 
     /**
@@ -118,14 +118,14 @@ public:
         /**
          * @brief Returns the pointer to the result of the last conversion.
          */
-        BatteryVoltageData* getBatteryDataPtr() { return &battery_data; }
+        BatteryVoltageDataWrapper* getBatteryDataPtr() { return &battery_data; }
 
     private:
         const adc_t::Channel BATTERY_VOLT_CHANNEL =
             static_cast<adc_t::Channel>(ADC_BATTERY_VOLTAGE_CHANNEL);
         ADCWrapper& parent;
 
-        BatteryVoltageData battery_data;
+        BatteryVoltageDataWrapper battery_data;
     };
 
     BatterySensor* getBatterySensorPtr() { return &battery_sensor; }

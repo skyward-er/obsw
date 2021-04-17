@@ -33,8 +33,8 @@ namespace DeathStackBoard
 
 // Struct required by the PWM driver to know the specifics of the timer to use
 static const PWM::Timer CUTTER_TIM{
-    TIM9, 
-    &(RCC->APB2ENR), 
+    TIM9,
+    &(RCC->APB2ENR),
     RCC_APB2ENR_TIM9EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)
     };
@@ -45,7 +45,7 @@ static constexpr int CUT_DURATION = 5 * 1000;
 static constexpr int CUT_TEST_DURATION = 3 * 1000;
 
 // PRIMARY --> THCUT1 on theboard
-static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2; 
+static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2;
 typedef miosix::actuators::thCut1::ena PrimaryCutterEna;
 
 // BACKUP --> THCUT2 on theboard

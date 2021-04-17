@@ -6,7 +6,7 @@
 namespace elevationmap
 {
 
-int getElevation(double lat, double lon)
+int getElevation(float lat, float lon)
 {
     if (lat < SOUTH || lat >= NORTH || lon < WEST || lon >= EAST)
     {
