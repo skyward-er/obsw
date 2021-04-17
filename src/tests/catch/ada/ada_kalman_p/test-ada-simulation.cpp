@@ -72,17 +72,17 @@ public:
 
         if (before_liftoff)
         {
-            press = addNoise(SIMULATED_PRESSURE[0]);
+            press = addNoise(ADA_SIMULATED_PRESSURE[0]);
         }
         else
         {
             if (i < DATA_SIZE)
             {
-                press = addNoise(SIMULATED_PRESSURE[i++]);
+                press = addNoise(ADA_SIMULATED_PRESSURE[i++]);
             }
             else
             {
-                press = addNoise(SIMULATED_PRESSURE[DATA_SIZE - 1]);
+                press = addNoise(ADA_SIMULATED_PRESSURE[DATA_SIZE - 1]);
             }
         }
 
@@ -123,20 +123,20 @@ void checkState(unsigned int i, ADAKalmanState state)
 {
     if (i > 200)
     {
-        if (state.x0 == Approx(SIMULATED_PRESSURE[i]).margin(70))
+        if (state.x0 == Approx(ADA_SIMULATED_PRESSURE[i]).margin(70))
             SUCCEED();
         else
             FAIL("i = " << i << "\t\t" << state.x0
-                        << " != " << SIMULATED_PRESSURE[i]);
+                        << " != " << ADA_SIMULATED_PRESSURE[i]);
 
         // Flying under the chutes the speed estimation is not very precise
         if (i < 3000)
         {
-            if (state.x1 == Approx(SIMULATED_PRESSURE_SPEED[i]).margin(80))
+            if (state.x1 == Approx(ADA_SIMULATED_PRESSURE_SPEED[i]).margin(80))
                 SUCCEED();
             else
                 FAIL("i = " << i << "\t\t" << state.x1
-                            << " != " << SIMULATED_PRESSURE_SPEED[i]);
+                            << " != " << ADA_SIMULATED_PRESSURE_SPEED[i]);
         }
     }
 }
@@ -173,7 +173,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     }
 
     float mean = ada_controller->calibrator.getReferenceValues().ref_pressure;
-    if (mean == Approx(SIMULATED_PRESSURE[0]))
+    if (mean == Approx(ADA_SIMULATED_PRESSURE[0]))
         FAIL("Calibration value");
     else
         SUCCEED();
@@ -227,7 +227,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     // false apogee)
     for (unsigned i = 0; i < SHADOW_MODE_END_INDEX; i++)
     {
-        // float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        // float noisy_p = addNoise(ADA_SIMULATED_PRESSURE[i]);
         mock_baro.sample();
         Thread::sleep(5);
         ada_controller->update();
@@ -249,7 +249,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     bool apogee_checked = false;
     for (unsigned i = SHADOW_MODE_END_INDEX; i < DATA_SIZE; i++)
     {
-        // float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        // float noisy_p = addNoise(ADA_SIMULATED_PRESSURE[i]);
         mock_baro.sample();
         Thread::sleep(5);
         ada_controller->update();
