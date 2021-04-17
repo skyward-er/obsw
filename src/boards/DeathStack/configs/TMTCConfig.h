@@ -21,29 +21,26 @@
  */
 #pragma once
 
-#include <drivers/BusTemplate.h>
 #include <interfaces-impl/hwmapping.h>
 #include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
+
 #include "drivers/Xbee/Xbee.h"
+#include "drivers/spi/SPIDriver.h"
 
 namespace DeathStackBoard
 {
 
 /* Mavlink Driver queue settings */
-static constexpr unsigned int MAV_OUT_QUEUE_LEN = 10;
-static constexpr unsigned int MAV_PKT_SIZE      = 255;
-static constexpr long long MAV_OUT_BUFFER_MAX_AGE   = 200;
+static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
+static constexpr unsigned int MAV_PKT_SIZE        = 255;
+static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
 /* Min guaranteed sleep time after each packet sent(milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 0;
 
-/* Device */
-typedef BusSPI<2, miosix::interfaces::spi2::mosi,
-               miosix::interfaces::spi2::miso, miosix::interfaces::spi2::sck>
-    busSPI2;
-
-typedef Xbee::Xbee<busSPI2, miosix::xbee::cs, miosix::xbee::attn,
-                   miosix::xbee::reset>
-    Xbee_t;
+/* Xbee */
+typedef miosix::xbee::cs XbeeCS;
+typedef miosix::xbee::attn XbeeATTN;
+typedef miosix::xbee::reset XbeeRST;
 
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 1000;

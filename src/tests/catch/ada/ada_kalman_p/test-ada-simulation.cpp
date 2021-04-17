@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+ * Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Mozzarelli, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,178 +21,105 @@
  * THE SOFTWARE.
  */
 
-#define private public
-#define protected public
-
 #ifdef STANDALONE_CATCH1_TEST
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+#define EIGEN_NO_MALLOC
+
 #include <Common.h>
-#include <ADA/ADAController.h>
-#include <events/Events.h>
 #include <events/EventBroker.h>
+#include <events/Events.h>
 #include <events/FSM.h>
 #include <events/utils/EventCounter.h>
+
+#define private public
+#define protected public
+
+#include <ADA/ADA.h>
+#include <ADA/ADAController.h>
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <sstream>
 #include <utils/testutils/catch.hpp>
+
 #include "test-ada-data.h"
 
 using namespace DeathStackBoard;
+using namespace ADAConfigs;
 
 constexpr float NOISE_STD_DEV                = 5;  // Noise varaince
 constexpr float LSB                          = 28;
 constexpr unsigned int SHADOW_MODE_END_INDEX = 30;
-ADAController *ada_controller;
-unsigned seed = 1234567;  // Seed for noise generation
+constexpr unsigned int APOGEE_SAMPLE         = 382;
 
-float addNoise(float sample);  // Function to add noise
-float quantization(float sample);
-void checkState(unsigned int i, KalmanState state);
-
-std::default_random_engine generator(seed);  // Noise generator
-std::normal_distribution<float> distribution(
-    0.0, NOISE_STD_DEV);  // Noise generator distribution
-
-typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
-
-TEST_CASE("Testing ada_controller from calibration to first descent phase")
+// Mock sensors for testing purposes
+class MockPressureSensor : public Sensor<PressureData>
 {
-    // Setting pin mode for signaling ada_controller status
+public:
+    MockPressureSensor() {}
+
+    bool init() override { return true; }
+
+    bool selfTest() override { return true; }
+
+    PressureData sampleImpl() override
     {
-        miosix::FastInterruptDisableLock dLock;
-        greenLed::mode(miosix::Mode::OUTPUT);
-    }
+        float press = 0.0;
 
-    ada_controller = new ADAController();
-
-    // Start event broker and ada_controller
-    sEventBroker->start();
-    ada_controller->start();
-    EventCounter counter{*sEventBroker};
-    counter.subscribe(TOPIC_ADA);
-
-    // Startup: we should be in idle
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateIdle));
-
-    // Enter Calibrating and REQUIRE
-    sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_TC);
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
-
-    // Send baro calibration samples
-    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
-    {
-        ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
-    }
-
-    // float mean = ada_controller->calibrator
-    // if (mean == Approx(SIMULATED_PRESSURE[0]))
-    //     FAIL("Calibration value");
-    // else
-    //     SUCCEED();
-
-    // Should still be in calibrating
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
-
-    // Send set deployment altitude
-    ada_controller->setDeploymentAltitude(100);
-    ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
-
-    // Should still be in calibrating
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
-
-    // Send set altitude ref
-    ada_controller->setReferenceAltitude(1300);
-    ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
-
-    // Should still be in calibrating
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateCalibrating));
-
-    // Send set temperature ref
-    ada_controller->setReferenceTemperature(15);
-    ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
-
-    // Now we should be in ready
-    Thread::sleep(100);
-    ada_controller->updateBaro(addNoise(SIMULATED_PRESSURE[0]));
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateReady));
-
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-
-    // Send liftoff event: should be in shadow mode
-    Thread::sleep(100);
-    REQUIRE(ada_controller->testState(&ADAController::stateShadowMode));
-    long long shadow_mode_start = miosix::getTick();
-
-    // Perform some checks while in shadow mode (to avoid triggering a false
-    // apogee)
-    for (unsigned i = 0; i < SHADOW_MODE_END_INDEX; i++)
-    {
-        greenLed::high();
-        float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
-        ada_controller->updateBaro(noisy_p);
-        // Thread::sleep(100);
-        KalmanState state = ada_controller->ada.getKalmanState();
-        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
-               ada_controller->ada.getVerticalSpeed());
-        checkState(i, state);
-        greenLed::low();
-    }
-    // Wait timeout
-    Thread::sleepUntil(shadow_mode_start + TIMEOUT_ADA_SHADOW_MODE);
-    // Should be active now
-    REQUIRE(ada_controller->testState(&ADAController::stateActive));
-
-    Thread::sleep(100);
-    // Send samples
-
-    printf("%d\n", DATA_SIZE);
-    bool apogee_checked = false;
-    for (unsigned i = SHADOW_MODE_END_INDEX; i < DATA_SIZE; i++)
-    {
-        greenLed::high();
-        float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
-        ada_controller->updateBaro(noisy_p);
-        // Thread::sleep(100);
-        KalmanState state = ada_controller->ada.getKalmanState();
-        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
-               ada_controller->ada.getVerticalSpeed());
-        checkState(i, state);
-
-        if (ada_controller->getStatus().apogee_reached == true &&
-            !apogee_checked)
+        if (before_liftoff)
         {
-            apogee_checked = true;
-            if (abs(i - 382) > 10)
+            press = addNoise(SIMULATED_PRESSURE[0]);
+        }
+        else
+        {
+            if (i < DATA_SIZE)
             {
-                FAIL("Apogee error: " << (int)i - 382 << " samples");
+                press = addNoise(SIMULATED_PRESSURE[i++]);
             }
             else
             {
-                printf("Apogee error: %d samples\n", (int)(i - 382));
-                SUCCEED();
+                press = addNoise(SIMULATED_PRESSURE[DATA_SIZE - 1]);
             }
-
-            REQUIRE(ada_controller->testState(&ADAController::statePressureStabilization));
-            Thread::sleep(EV_TIMEOUT_PRESS_STABILIZATION + 1000);
-            REQUIRE(ada_controller->testState(&ADAController::stateFirstDescentPhase));
         }
 
-        greenLed::low();
+        return PressureData{TimestampTimer::getTimestamp(), press};
     }
-}
 
-void checkState(unsigned int i, KalmanState state)
+    void signalLiftoff() { before_liftoff = false; }
+
+private:
+    volatile bool before_liftoff = true;
+    volatile unsigned int i      = 0;  // Last index
+    std::default_random_engine generator{1234567};
+    std::normal_distribution<float> distribution{0.0f, NOISE_STD_DEV};
+
+    float addNoise(float sample)
+    {
+        return quantization(sample + distribution(generator));
+    }
+
+    float quantization(float sample) { return round(sample / LSB) * LSB; }
+};
+
+class MockGPSSensor : public Sensor<GPSData>
+{
+public:
+    bool init() { return true; }
+    bool selfTest() { return true; }
+    GPSData sampleImpl() { return GPSData{}; }
+};
+
+MockPressureSensor mock_baro;
+MockGPSSensor mock_gps;
+
+using ADACtrl = ADAController<PressureData, GPSData>;
+ADACtrl *ada_controller;
+
+void checkState(unsigned int i, ADAKalmanState state)
 {
     if (i > 200)
     {
@@ -214,10 +141,144 @@ void checkState(unsigned int i, KalmanState state)
     }
 }
 
-float addNoise(float sample)
+TEST_CASE("Testing ada_controller from calibration to first descent phase")
 {
-    float noise = distribution(generator);
-    return quantization(sample + noise);
-}
+    TimestampTimer::enableTimestampTimer();
 
-float quantization(float sample) { return round(sample / LSB) * LSB; }
+    ada_controller = new ADACtrl(mock_baro, mock_gps);
+    TRACE("ada init : %d \n", ada_controller->start());
+
+    // Start event broker and ada_controller
+    sEventBroker->start();
+    EventCounter counter{*sEventBroker};
+    counter.subscribe(TOPIC_ADA);
+
+    // Startup: we should be in idle
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_idle));
+
+    // Enter Calibrating and REQUIRE
+    sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
+
+    // Send baro calibration samples
+    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
+    {
+        mock_baro.sample();
+        Thread::sleep(10);
+        ada_controller->update();
+
+        // TRACE("%d \n", i);
+    }
+
+    float mean = ada_controller->calibrator.getReferenceValues().ref_pressure;
+    if (mean == Approx(SIMULATED_PRESSURE[0]))
+        FAIL("Calibration value");
+    else
+        SUCCEED();
+
+    // Should still be in calibrating
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
+
+    // Send set deployment altitude
+    ada_controller->setDeploymentAltitude(100);
+    mock_baro.sample();
+    Thread::sleep(10);
+    ada_controller->update();
+
+    // Should still be in calibrating
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
+
+    // Send set altitude ref
+    ada_controller->setReferenceAltitude(1300);
+    mock_baro.sample();
+    Thread::sleep(10);
+    ada_controller->update();
+
+    // Should still be in calibrating
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
+
+    // Send set temperature ref
+    ada_controller->setReferenceTemperature(15);
+    mock_baro.sample();
+    Thread::sleep(10);
+    ada_controller->update();
+
+    // Now we should be in ready
+    Thread::sleep(100);
+    mock_baro.sample();
+    Thread::sleep(10);
+    ada_controller->update();
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_ready));
+
+    // Send liftoff event: should be in shadow mode
+    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    mock_baro.signalLiftoff();
+    Thread::sleep(100);
+    REQUIRE(ada_controller->testState(&ADACtrl::state_shadowMode));
+    long long shadow_mode_start = miosix::getTick();
+
+    // Perform some chcmathecks while in shadow mode (to avoid triggering a
+    // false apogee)
+    for (unsigned i = 0; i < SHADOW_MODE_END_INDEX; i++)
+    {
+        // float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        mock_baro.sample();
+        Thread::sleep(5);
+        ada_controller->update();
+        float noisy_p = mock_baro.getLastSample().press;
+        // Thread::sleep(100);
+        ADAKalmanState state = ada_controller->ada.getKalmanState();
+        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
+               ada_controller->ada.getVerticalSpeed());
+        checkState(i, state);
+    }
+
+    // Wait timeout
+    Thread::sleepUntil(shadow_mode_start + TIMEOUT_ADA_SHADOW_MODE);
+    // Should be active now
+    REQUIRE(ada_controller->testState(&ADACtrl::state_active));
+
+    Thread::sleep(100);
+    // Send samples
+    bool apogee_checked = false;
+    for (unsigned i = SHADOW_MODE_END_INDEX; i < DATA_SIZE; i++)
+    {
+        // float noisy_p = addNoise(SIMULATED_PRESSURE[i]);
+        mock_baro.sample();
+        Thread::sleep(5);
+        ada_controller->update();
+        float noisy_p = mock_baro.getLastSample().press;
+        // Thread::sleep(100);
+        ADAKalmanState state = ada_controller->ada.getKalmanState();
+        printf("%d,%f,%f,%f\n", (int)i, noisy_p, state.x0,
+               ada_controller->ada.getVerticalSpeed());
+        checkState(i, state);
+
+        if (ada_controller->getStatus().apogee_reached == true &&
+            !apogee_checked)
+        {
+            apogee_checked = true;
+            if (fabs(i - APOGEE_SAMPLE) > 10)
+            {
+                FAIL("Apogee error: " << (int)i - APOGEE_SAMPLE << " samples");
+            }
+            else
+            {
+                printf("Apogee error: %d samples\n", (int)(i - APOGEE_SAMPLE));
+                SUCCEED();
+            }
+
+            Thread::sleep(1000);
+            REQUIRE(ada_controller->testState(
+                &ADACtrl::state_pressureStabilization));
+            Thread::sleep(EV_TIMEOUT_PRESS_STABILIZATION + 1000);
+            REQUIRE(ada_controller->testState(&ADACtrl::state_drogueDescent));
+        }
+    }
+}

@@ -41,7 +41,7 @@ using namespace DeathStackBoard;
 
 using MavChannel = MavlinkDriver<256,10>;
 
-Xbee_t* device;
+Xbee::Xbee* device;
 MavChannel* channel;
 
 // Receive function: sends an ACK back
@@ -67,9 +67,10 @@ static void onReceive(MavChannel* channel, const mavlink_message_t& msg)
 int main()
 {
     enableXbeeInterrupt();
-    busSPI2::init();
 
-    device = new Xbee_t();
+    SPIBus xbee_bus(SPI2);
+    device = new Xbee::Xbee(xbee_bus, XbeeCS::getPin(), XbeeATTN::getPin(),
+                            XbeeRST::getPin());
     channel = new MavChannel(device, &onReceive, 250);
 
     device->start();

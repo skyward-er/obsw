@@ -29,7 +29,7 @@
 
 #include "DeploymentController/DeploymentController.h"
 #include "DeploymentController/ThermalCutter/Cutter.h"
-#include "SensorManager/Sensors/ADCWrapper.h"
+//#include "SensorManager/Sensors/ADCWrapper.h"
 #include "configs/CutterConfig.h"
 #include "events/EventInjector.h"
 #include "events/Events.h"
@@ -85,6 +85,7 @@ int main()
 
 bool print = false;
 
+/*
 void csense(void*)
 {
     ADCWrapper adc;
@@ -110,6 +111,7 @@ void csense(void*)
         Thread::sleep(100);
     }
 }
+*/ 
 
 void cuttingSequence()
 {
