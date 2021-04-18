@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,51 @@
 
 #pragma once
 
-#include "Motor/MotorData.h"
-#include "ThermalCutter/CutterData.h"
+#include <stdint.h>
+
+#include <iostream>
+#include <string>
+
+#include "drivers/hbridge/HBridgeData.h"
 
 namespace DeathStackBoard
 {
 
-enum DeploymentCTRLState : uint8_t
+/**
+ * Enum defining the possibile FSM states.
+ */
+enum DeploymentControllerState : uint8_t
 {
-    DPL_IDLE = 0,
+    IDLE = 0,
+    NOSECONE_EJECTION,
     CUTTING_PRIMARY,
     CUTTING_BACKUP,
-    EJECTING_NC,
-    TESTING_PRIMARY,
-    TESTING_BACKUP
+    TEST_CUTTING_PRIMARY,
+    TEST_CUTTING_BACKUP,
 };
 
+/**
+ * Structure defining the overall controller status.
+ */
 struct DeploymentStatus
 {
-    long long timestamp;
-    DeploymentCTRLState state;
-    CutterStatus cutter_status;
+    uint64_t timestamp;
+    DeploymentControllerState state;
+    HBridgeStatus primary_cutter_state;
+    HBridgeStatus backup_cutter_state;
     float servo_position;
 
     static std::string header()
     {
-        return "timestamp,state,cutter_state,servo_position\n";
+        return "timestamp,state,primary_cutter_state,backup_cutter_state,servo_"
+               "position\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "," << (int)cutter_status.state
-           << "," << servo_position << "\n";
+        os << timestamp << "," << (int)state << ","
+           << (int)primary_cutter_state.state << ","
+           << (int)backup_cutter_state.state << "," << servo_position << "\n";
     }
 };
 

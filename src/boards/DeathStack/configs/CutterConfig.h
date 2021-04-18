@@ -29,39 +29,32 @@
 
 namespace DeathStackBoard
 {
-// clang-format off
 
-// Struct required by the PWM driver to know the specifics of the timer to use
+namespace CutterConfig
+{
+
 static const PWM::Timer CUTTER_TIM{
-    TIM9,
-    &(RCC->APB2ENR),
-    RCC_APB2ENR_TIM9EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)
-    };
-
-// clang-format on
-
-static constexpr int CUT_DURATION = 5 * 1000;
-static constexpr int CUT_TEST_DURATION = 3 * 1000;
+    TIM9, &(RCC->APB2ENR), RCC_APB2ENR_TIM9EN,
+    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
 // PRIMARY --> THCUT1 on theboard
 static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2;
-typedef miosix::actuators::thCut1::ena PrimaryCutterEna;
+typedef miosix::actuators::nosecone::thCut1::ena PrimaryCutterEna;
 
 // BACKUP --> THCUT2 on theboard
 static const PWMChannel CUTTER_CHANNEL_BACKUP = PWMChannel::CH2;
-typedef miosix::actuators::thCut2::ena BackupCutterEna;
+typedef miosix::actuators::nosecone::thCut2::ena BackupCutterEna;
 
-// PWM Frequency & duty-cycle
-static const unsigned int CUTTER_PWM_FREQUENCY = 15000;  // Hz
-// Duty cycle to be used during flight to cut the chord
-static constexpr float CUTTER_PWM_DUTY_CYCLE = 0.31f;
+static constexpr int CUT_DURATION      = 5 * 1000;
+static constexpr int CUT_TEST_DURATION = 3 * 1000;
 
-// Duty cycle to be used during integration, to perform a a non-destructive
-// continuity check
-static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE = 0.05f;
+static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 15000;  // Hz
+static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.31f;
+static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 15000;  // Hz
+static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.31f;
+static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE =
+    PRIMARY_CUTTER_PWM_DUTY_CYCLE / 100.0f;
 
-// Period of time where the IN must be kept low before bringing ENA/INH low
-static const int CUTTER_DISABLE_DELAY_MS = 50;
+}  // namespace CutterConfig
 
 }  // namespace DeathStackBoard

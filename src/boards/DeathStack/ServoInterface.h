@@ -27,7 +27,7 @@ namespace DeathStackBoard
 {
 
 /**
- * @brief Class for interfacing with 180° servo motors.
+ * @brief Class for interfacing with 180° servo motors, works in degrees.
  *
  * This class provides all the methods for enabling/disabling servo
  * communication as well as methods for testing it (like reset, setMaxPosition

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Skyward Experimental Rocketry
+ * Copyright (c) 2019-2021 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

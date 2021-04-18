@@ -380,42 +380,42 @@ State FlightModeManager::state_testing(const Event& ev)
         }
         case EV_TC_NC_OPEN:
         {
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_DROGUE:
         {
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_PRIMARY:
         {
-            sEventBroker->post(Event{EV_CUT_PRIMARY}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_CUT_PRIMARY}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_BACKUP:
         {
-            sEventBroker->post(Event{EV_CUT_BACKUP}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_CUT_BACKUP}, TOPIC_DPL);
             break;
         }
         case EV_TC_TEST_CUTTER_PRIMARY:
         {
-            sEventBroker->post(Event{EV_TEST_CUTTER_PRIMARY}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_TEST_CUTTER_PRIMARY}, TOPIC_DPL);
             break;
         }
         case EV_TC_TEST_CUTTER_BACKUP:
         {
-            sEventBroker->post(Event{EV_TEST_CUTTER_BACKUP}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_TEST_CUTTER_BACKUP}, TOPIC_DPL);
             break;
         }
         case EV_TC_RESET_SERVO:
         {
-            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
             break;
         }
         case EV_TC_WIGGLE_SERVO:
         {
-            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DPL);
             break;
         }
         case EV_TC_CLOSE_LOG:
@@ -468,7 +468,7 @@ State FlightModeManager::state_flying(const Event& ev)
         {
             // Open nosecone command sent by GS in case of problems
             // during flight
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
             break;
         }
         case EV_TC_END_MISSION:
@@ -533,7 +533,7 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             // Open nosecone
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
 
             logState(FMMState::DROGUE_DESCENT);
             TRACE("[FMM] Entering drogueDescent\n");
@@ -573,7 +573,7 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         {
             sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
 
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
 
             logState(FMMState::TERMINAL_DESCENT);
 
@@ -590,7 +590,7 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
         }
         case EV_TC_CUT_DROGUE:  // if you want to repeat cutting
         {
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DEPLOYMENT);
+            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
             break;
         }
         default: /* If an event is not handled here, try with super-state */

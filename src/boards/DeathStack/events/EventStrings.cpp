@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-03-13 22:05:05.465532
+// Autogen date: 2021-04-17 23:09:11.522877
 
 #include <map>
 using std::map;
@@ -37,72 +37,42 @@ using std::map;
 string getEventString(uint8_t event)
 {
     static const map<uint8_t, string> event_string_map{
-        {EV_LIFTOFF, "EV_LIFTOFF"},
-        {EV_WIGGLE_SERVO, "EV_WIGGLE_SERVO"},
+        {EV_CALIBRATE, "EV_CALIBRATE"},
+        {EV_CALIBRATE_SENSORS, "EV_CALIBRATE_SENSORS"},
+        {EV_ARMED, "EV_ARMED"},
+        {EV_TC_START_SENSOR_LOGGING, "EV_TC_START_SENSOR_LOGGING"},
+        {EV_SM_READY, "EV_SM_READY"},
+        {EV_LANDED, "EV_LANDED"},
+        {EV_TC_STOP_SENSOR_LOGGING, "EV_TC_STOP_SENSOR_LOGGING"},
         {EV_RESET_SERVO, "EV_RESET_SERVO"},
+        {EV_WIGGLE_SERVO, "EV_WIGGLE_SERVO"},
+        {EV_NC_OPEN, "EV_NC_OPEN"},
+        {EV_CUT_DROGUE, "EV_CUT_DROGUE"},
+        {EV_TEST_CUT_PRIMARY, "EV_TEST_CUT_PRIMARY"},
+        {EV_TEST_CUT_BACKUP, "EV_TEST_CUT_BACKUP"},
+        {EV_NC_DETACHED, "EV_NC_DETACHED"},
+        {EV_NC_OPEN_TIMEOUT, "EV_NC_OPEN_TIMEOUT"},
+        {EV_CUTTING_TIMEOUT, "EV_CUTTING_TIMEOUT"},
+        {EV_LIFTOFF, "EV_LIFTOFF"},
         {EV_TEST_ABK, "EV_TEST_ABK"},
         {EV_SHADOW_MODE_TIMEOUT, "EV_SHADOW_MODE_TIMEOUT"},
         {EV_DISABLE_ABK, "EV_DISABLE_ABK"},
         {EV_APOGEE, "EV_APOGEE"},
         {EV_TEST_TIMEOUT, "EV_TEST_TIMEOUT"},
-        {EV_ADA_APOGEE_DETECTED, "EV_ADA_APOGEE_DETECTED"},
-        {EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED"},
-        {EV_ADA_READY, "EV_ADA_READY"},
-        {EV_ARMED, "EV_ARMED"},
-        {EV_BUTTON_DOWN, "EV_BUTTON_DOWN"},
-        {EV_BUTTON_LONG_PRESS, "EV_BUTTON_LONG_PRESS"},
-        {EV_BUTTON_SHORT_PRESS, "EV_BUTTON_SHORT_PRESS"},
-        {EV_BUTTON_UP, "EV_BUTTON_UP"},
-        {EV_BUTTON_VERY_LONG_PRESS, "EV_BUTTON_VERY_LONG_PRESS"},
-        {EV_CALIBRATE_ADA, "EV_CALIBRATE_ADA"},
-        {EV_CUT_BACKUP, "EV_CUT_BACKUP"},
-        {EV_CUT_DROGUE, "EV_CUT_DROGUE"},
-        {EV_CUT_PRIMARY, "EV_CUT_PRIMARY"},
-        {EV_DISARMED, "EV_DISARMED"},
-        {EV_DPL_ALTITUDE, "EV_DPL_ALTITUDE"},
-        {EV_FLIGHTSTATS_TIMEOUT, "EV_FLIGHTSTATS_TIMEOUT"},
-        {EV_INIT_ERROR, "EV_INIT_ERROR"},
-        {EV_INIT_OK, "EV_INIT_OK"},
-        {EV_LANDED, "EV_LANDED"},
-        {EV_NC_DETACHED, "EV_NC_DETACHED"},
-        {EV_NC_OPEN, "EV_NC_OPEN"},
+        {EV_CALIBRATE_NAS, "EV_CALIBRATE_NAS"},
+        {EV_NAS_READY, "EV_NAS_READY"},
+        {EV_SEND_TEST_TM, "EV_SEND_TEST_TM"},
         {EV_SEND_HR_TM, "EV_SEND_HR_TM"},
         {EV_SEND_LR_TM, "EV_SEND_LR_TM"},
-        {EV_SEND_TEST_TM, "EV_SEND_TEST_TM"},
-        {EV_TC_ARM, "EV_TC_ARM"},
-        {EV_TC_BOARD_RESET, "EV_TC_BOARD_RESET"},
-        {EV_TC_CALIBRATE_ADA, "EV_TC_CALIBRATE_ADA"},
-        {EV_TC_CLOSE_LOG, "EV_TC_CLOSE_LOG"},
-        {EV_TC_CUT_BACKUP, "EV_TC_CUT_BACKUP"},
-        {EV_TC_CUT_DROGUE, "EV_TC_CUT_DROGUE"},
-        {EV_TC_CUT_PRIMARY, "EV_TC_CUT_PRIMARY"},
-        {EV_TC_DISARM, "EV_TC_DISARM"},
-        {EV_TC_END_MISSION, "EV_TC_END_MISSION"},
-        {EV_TC_FORCE_INIT, "EV_TC_FORCE_INIT"},
-        {EV_TC_LAUNCH, "EV_TC_LAUNCH"},
-        {EV_TC_NC_CLOSE, "EV_TC_NC_CLOSE"},
-        {EV_TC_NC_OPEN, "EV_TC_NC_OPEN"},
-        {EV_TC_RESET_SERVO, "EV_TC_RESET_SERVO"},
-        {EV_TC_SET_DPL_ALTITUDE, "EV_TC_SET_DPL_ALTITUDE"},
-        {EV_TC_SET_REFERENCE_ALTITUDE, "EV_TC_SET_REFERENCE_ALTITUDE"},
-        {EV_TC_SET_REFERENCE_TEMP, "EV_TC_SET_REFERENCE_TEMP"},
-        {EV_TC_START_ROGALLO_CONTROL, "EV_TC_START_ROGALLO_CONTROL"},
-        {EV_TC_START_SENSOR_LOGGING, "EV_TC_START_SENSOR_LOGGING"},
-        {EV_TC_STOP_SENSOR_LOGGING, "EV_TC_STOP_SENSOR_LOGGING"},
-        {EV_TC_TEST_CUTTER_BACKUP, "EV_TC_TEST_CUTTER_BACKUP"},
-        {EV_TC_TEST_CUTTER_PRIMARY, "EV_TC_TEST_CUTTER_PRIMARY"},
-        {EV_TC_TEST_MODE, "EV_TC_TEST_MODE"},
-        {EV_TC_WIGGLE_SERVO, "EV_TC_WIGGLE_SERVO"},
-        {EV_TEST_CUTTER_BACKUP, "EV_TEST_CUTTER_BACKUP"},
-        {EV_TEST_CUTTER_PRIMARY, "EV_TEST_CUTTER_PRIMARY"},
-        {EV_TEST_MODE, "EV_TEST_MODE"},
-        {EV_TIMEOUT_CUTTING, "EV_TIMEOUT_CUTTING"},
-        {EV_TIMEOUT_END_MISSION, "EV_TIMEOUT_END_MISSION"},
-        {EV_TIMEOUT_NC_OPEN, "EV_TIMEOUT_NC_OPEN"},
-        {EV_TIMEOUT_PRESS_STABILIZATION, "EV_TIMEOUT_PRESS_STABILIZATION"},
-        {EV_TIMEOUT_SERVO_RESET, "EV_TIMEOUT_SERVO_RESET"},
+        {EV_DISARMED, "EV_DISARMED"},
+        {EV_DPL_ALTITUDE, "EV_DPL_ALTITUDE"},
+        {EV_STATS_TIMEOUT, "EV_STATS_TIMEOUT"},
+        {EV_CALIBRATE_ADA, "EV_CALIBRATE_ADA"},
+        {EV_ADA_READY, "EV_ADA_READY"},
         {EV_TIMEOUT_SHADOW_MODE, "EV_TIMEOUT_SHADOW_MODE"},
-        {EV_UMBILICAL_DETACHED, "EV_UMBILICAL_DETACHED"},
+        {EV_ADA_APOGEE_DETECTED, "EV_ADA_APOGEE_DETECTED"},
+        {EV_TIMEOUT_PRESS_STABILIZATION, "EV_TIMEOUT_PRESS_STABILIZATION"},
+        {EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED"},
     };
     auto it = event_string_map.find(event);
     return it == event_string_map.end() ? "EV_UNKNOWN" : it->second;
@@ -110,10 +80,17 @@ string getEventString(uint8_t event)
 
 string getTopicString(uint8_t topic)
 {
-    static const map<uint8_t, string> topic_string_map{
+	static const map<uint8_t, string> topic_string_map{
         {TOPIC_FLIGHT_EVENTS, "TOPIC_FLIGHT_EVENTS"},
+        {TOPIC_SM, "TOPIC_SM"},
+        {TOPIC_TC, "TOPIC_TC"},
+        {TOPIC_DPL, "TOPIC_DPL"},
         {TOPIC_ABK, "TOPIC_ABK"},
-    };
-    auto it = topic_string_map.find(topic);
-    return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
+        {TOPIC_NAS, "TOPIC_NAS"},
+        {TOPIC_TMTC, "TOPIC_TMTC"},
+        {TOPIC_STATS, "TOPIC_STATS"},
+        {TOPIC_ADA, "TOPIC_ADA"},
+	};
+	auto it = topic_string_map.find(topic);
+	return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
 }

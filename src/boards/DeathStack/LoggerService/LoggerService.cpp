@@ -234,7 +234,7 @@ LogResult LoggerService::log<DeploymentStatus>(const DeploymentStatus& t)
         miosix::PauseKernelLock kLock;
 
         tm_repository.dpl_tm.fsm_state    = (uint8_t)t.state;
-        tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
+        //tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
 
         // HR TM
         tm_repository.hr_tm.dpl_state = t.state;

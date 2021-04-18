@@ -77,8 +77,8 @@ public:
     DeploymentController* dpl;
 
     // actuators
-    Cutter* cutter;
-    Servo* servo;
+    //Cutter* cutter;
+    //Servo* servo;
 
 private:
     /**
@@ -106,10 +106,10 @@ private:
         sensor_manager = new SensorManager();
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
-        cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
+        /*cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
                             CUTTER_TEST_PWM_DUTY_CYCLE);
-        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);
-        dpl            = new DeploymentController(*cutter, *servo);
+        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);*/
+        dpl            = new DeploymentController(); //*cutter, *servo);
 
         // Start threads
         try

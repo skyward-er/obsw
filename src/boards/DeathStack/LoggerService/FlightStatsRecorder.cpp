@@ -36,7 +36,7 @@ FlightStatsRecorder::FlightStatsRecorder()
     : FSM(&FlightStatsRecorder::state_idle)
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
+    sEventBroker->subscribe(this, TOPIC_DPL);
     sEventBroker->subscribe(this, TOPIC_STATS);
 }
 
@@ -255,7 +255,7 @@ void FlightStatsRecorder::state_testing_cutters(const Event& ev)
             ev_timeout_id =
                 sEventBroker
                     ->postDelayed<FlightStatsConfig::TIMEOUT_CUTTER_TEST_STATS>(
-                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
+                        {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             TRACE("[FlightStats] Entering CUTTER_TEST state\n");
@@ -274,7 +274,7 @@ void FlightStatsRecorder::state_testing_cutters(const Event& ev)
             TRACE("[FlightStats] Exiting CUTTER_TEST state\n");
             break;
         }
-        case EV_FLIGHTSTATS_TIMEOUT:
+        case EV_STATS_TIMEOUT:
         {
             transition(&FlightStatsRecorder::state_idle);
             break;
@@ -299,7 +299,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
             ev_timeout_id =
                 sEventBroker
                     ->postDelayed<FlightStatsConfig::TIMEOUT_LIFTOFF_STATS>(
-                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
+                        {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             // Save liftoff time
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
@@ -316,7 +316,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_FLIGHTSTATS_TIMEOUT:
+        case EV_STATS_TIMEOUT:
         {
             transition(&FlightStatsRecorder::state_ascending);
             break;
@@ -358,10 +358,10 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
             ev_timeout_id =
                 sEventBroker
                     ->postDelayed<FlightStatsConfig::TIMEOUT_APOGEE_STATS>(
-                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
+                        {EV_STATS_TIMEOUT}, TOPIC_STATS);
             break;
         }
-        case EV_FLIGHTSTATS_TIMEOUT:
+        case EV_STATS_TIMEOUT:
         {
             // Drogue deployment occurs just after apogee
             transition(&FlightStatsRecorder::state_drogueDeployment);
@@ -388,7 +388,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
             ev_timeout_id =
                 sEventBroker
                     ->postDelayed<FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS>(
-                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
+                        {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
@@ -402,7 +402,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_FLIGHTSTATS_TIMEOUT:
+        case EV_STATS_TIMEOUT:
         {
             transition(&FlightStatsRecorder::state_idle);
             break;
@@ -431,7 +431,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
             ev_timeout_id =
                 sEventBroker
                     ->postDelayed<FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS>(
-                        {EV_FLIGHTSTATS_TIMEOUT}, TOPIC_STATS);
+                        {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
@@ -445,7 +445,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
             sEventBroker->removeDelayed(ev_timeout_id);
             break;
         }
-        case EV_FLIGHTSTATS_TIMEOUT:
+        case EV_STATS_TIMEOUT:
         {
             transition(&FlightStatsRecorder::state_idle);
             break;
