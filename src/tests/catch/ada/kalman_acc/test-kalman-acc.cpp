@@ -5,15 +5,19 @@
 
 #define private public
 
-#include <Common.h>
 #include <ADA/ADA.h>
+#include <Common.h>
+#include <configs/ADAconfig.h>
+
 #include <iostream>
 #include <random>
 #include <sstream>
 #include <utils/testutils/catch.hpp>
+
 #include "test-kalman-acc-data.h"
 
 using namespace DeathStackBoard;
+using namespace ADAConfigs;
 
 constexpr float NOISE_STD_DEV_P = 5;  // Noise varaince
 constexpr float LSB_P           = 28;
@@ -34,7 +38,7 @@ float addNoise_p(float sample);
 float quantization_p(float sample);
 std::normal_distribution<float> distribution_p(0.0, NOISE_STD_DEV_P);
 
-typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
+typedef miosix::Gpio<GPIOA_BASE, 5> greenLed;
 
 TEST_CASE("Testing Kalman with accelerometer")
 {
@@ -43,9 +47,9 @@ TEST_CASE("Testing Kalman with accelerometer")
     ref_values.ref_altitude = 0;
     ref_values.msl_pressure = SIMULATED_PRESSURE[1];
 
-    ada = new ADA(ref_values);
+    ada = new ADA(ref_values, getKalmanConfig(), getKalmanAccConfig());
 
-    KalmanState state;
+    ADAKalmanState state;
     unsigned int j = 0;
     for (unsigned int i = 0; i < DATA_SIZE_AX; i++)
     {
@@ -58,7 +62,7 @@ TEST_CASE("Testing Kalman with accelerometer")
             ada->updateBaro(addNoise_p(SIMULATED_PRESSURE[j]));
             j++;
 
-            state = ada->getKalmanState();
+            state = ada->getADAKalmanState();
             std::cout << state.x0_acc << ", " << state.x1_acc << ", "
                       << state.x2_acc << ", " << SIMULATED_PRESSURE[i] << ", "
                       << ada->last_acc_average << "\n";

@@ -22,14 +22,17 @@
 
 #pragma once
 
-#include <configs/ADA_config.h>
+#include <configs/ADAconfig.h>
 #include <math/Stats.h>
+
 #include <ostream>
 
 namespace DeathStackBoard
 {
 
-// All possible states of the ADA FMM
+using namespace ADAConfigs;
+
+// All possible states of the ADA
 enum class ADAState
 {
     UNDEFINED,
@@ -38,16 +41,16 @@ enum class ADAState
     READY,
     SHADOW_MODE,
     ACTIVE,
-    FIRST_DESCENT_PHASE,
-    END,
-    PRESSURE_STABILIZATION
+    PRESSURE_STABILIZATION,
+    DROGUE_DESCENT,
+    END
 };
 
 // Struct to log apogee detection
 struct ApogeeDetected
 {
     ADAState state;
-    long long tick;
+    uint64_t tick;
 
     static std::string header() { return "timestamp,state\n"; }
 
@@ -60,7 +63,7 @@ struct ApogeeDetected
 // Struct to log deployment pressure detection
 struct DplAltitudeReached
 {
-    long long tick;
+    uint64_t tick;
     static std::string header() { return "tick\n"; }
 
     void print(std::ostream& os) const { os << tick << "\n"; }
@@ -70,7 +73,7 @@ struct DplAltitudeReached
 // Also used to keep track of current state
 struct ADAControllerStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     ADAState state            = ADAState::UNDEFINED;
     bool apogee_reached       = false;
     bool dpl_altitude_reached = false;
@@ -89,25 +92,21 @@ struct ADAControllerStatus
 };
 
 // Struct to log the two Kalman states
-struct KalmanState
+struct ADAKalmanState
 {
-    long long timestamp;
+    uint64_t timestamp;
     float x0;
     float x1;
     float x2;
-    float x0_acc;
-    float x1_acc;
-    float x2_acc;
 
     static std::string header()
     {
-        return "timestamp,x0,x1,x2,x0_acc,x1_acc,x2_acc\n";
+        return "timestamp,x0,x1,x2\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "," << x0_acc
-           << "," << x1_acc << "," << x2_acc << "\n";
+        os << timestamp << "," << x0 << "," << x1 << "," << x2 << "\n";
     }
 };
 
@@ -115,26 +114,21 @@ struct KalmanState
 // (state after conversion)
 struct ADAData
 {
-    long long timestamp;
+    uint64_t timestamp;
     float msl_altitude;
     float dpl_altitude;
     bool is_dpl_altitude_agl;
     float vert_speed;
 
-    float acc_msl_altitude;
-    float acc_vert_speed;
-
     static std::string header()
     {
-        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed,acc_msl_"
-               "altitude,acc_vert_speed\n";
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n"; 
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << msl_altitude << "," << dpl_altitude << ","
-           << (int)is_dpl_altitude_agl << "," << vert_speed << ","
-           << acc_msl_altitude << "," << acc_vert_speed << "\n";
+           << (int)is_dpl_altitude_agl << "," << vert_speed << "\n";
     }
 };
 

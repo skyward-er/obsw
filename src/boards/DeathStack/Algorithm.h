@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/* Copyright (c) 2020 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -16,31 +16,55 @@
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION\ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-
 #pragma once
-
-#include <cstdint>
 
 namespace DeathStackBoard
 {
-    
-/**
- * @brief Motor direction
- */
-enum class MotorDirection : uint8_t
+
+class Algorithm
 {
-    NORMAL,
-    REVERSE
+public:
+    /**
+     * @brief Initializes the Algorithm object, must be called as soon as the
+     * object is created.
+     * */
+    virtual bool init() = 0;
+
+    /**
+     * @brief Starts the execution of the algorithm and set the running flag to
+     * true.
+     * */
+    void begin() { running = true; }
+
+    /**
+     * @brief Terminates the algorithm's execution and sets the running flag to
+     * false.
+     * */
+    void end() { running = false; }
+
+    /**
+     * @brief Checks wether the algorithm is in a running state or not, and
+     * eventually calls the @see{step} routine.
+     * */
+    void update()
+    {
+        if (running)
+        {
+            step();
+        }
+    }
+
+protected:
+    /**
+     * @brief The actual algorithm step.
+     */
+    virtual void step() = 0;
+
+    bool running = false;
 };
 
-struct MotorStatus
-{
-    bool motor_active = false;          
-    MotorDirection motor_last_direction = MotorDirection::NORMAL;
-};
-
-}
+}  // namespace DeathStackBoard

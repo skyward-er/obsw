@@ -30,7 +30,7 @@ namespace DeathStackBoard
 {
 struct PiksiData
 {
-    GPSData gps_data;
+    //GPSData gps_data;
     bool fix = false;
 
     static std::string header()
@@ -40,11 +40,11 @@ struct PiksiData
 
     void print(std::ostream& os) const
     {
-        os << gps_data.timestamp << "," << gps_data.latitude << ","
+        /*os << gps_data.timestamp << "," << gps_data.latitude << ","
            << gps_data.longitude << "," << gps_data.height << ","
            << gps_data.velocityNorth << "," << gps_data.velocityEast << ","
            << gps_data.velocityDown << "," << gps_data.speed << ","
-           << gps_data.numSatellites << "," << (int)fix << "\n";
+           << gps_data.numSatellites << "," << (int)fix << "\n";*/
     }
 };
 }  // namespace DeathStackBoard

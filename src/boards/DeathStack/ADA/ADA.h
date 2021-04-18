@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/* Copyright (c) 2018-2021 Skyward Experimental Rocketry
+ * Authors: Luca Mozzarelli, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,15 @@
 
 #pragma once
 
-#include <kalman/Kalman.h>
+#include <kalman/KalmanEigen.h>
 #include <math/Stats.h>
+
 #include "ADAStatus.h"
+#include "sensors/Sensor.h"
 
 namespace DeathStackBoard
 {
+
 class ADA
 {
 public:
@@ -37,14 +40,15 @@ public:
         bool is_agl;
     };
 
-    ADA(ReferenceValues setup_data);
+    ADA(ReferenceValues ref_values);
+
     ~ADA();
 
     void updateBaro(float pressure);
-    void updateAcc(float ax);
-    void updateGPS(double lat, double lon, bool has_fix);
 
-    KalmanState getKalmanState() const;
+    void updateGPS(float lat, float lon, bool fix);
+
+    ADAKalmanState getKalmanState();
 
     ADAData getADAData() const { return ada_data; }
 
@@ -77,7 +81,7 @@ public:
      * @param    pressure Atmospheric pressure in Pa
      * @return Corresponding altitude above mean sea level (m)
      */
-    float pressureToAltitude(float pressure) const;
+    float pressureToAltitude(float pressure);
 
     /**
      * @brief Converts an altitude above mean sea level to altitude for chute
@@ -89,39 +93,17 @@ public:
     ReferenceValues getReferenceValues() const { return ref_values; }
 
 private:
-    Kalman<3, 1> filter;      // Filter object
-    Kalman<3, 2> filter_acc;  // Filter with accelerometer
+    void updatePressureKalman(float pressure);
 
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
 
+    KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM> filter;
+
     ADAData ada_data;
 
-    struct AccAverage
-    {
-        float accumulator      = 0;
-        unsigned int n_samples = 0;
-
-        void add(float acc)
-        {
-            accumulator += acc;
-            n_samples++;   
-        }
-
-        float getAverage() { return accumulator / n_samples; }
-
-        void reset()
-        {
-            n_samples = 0;
-            accumulator = 0;
-        }
-    };
-
-    float last_acc_average = 0;
-    AccAverage acc_stats;
-
-    double last_lat = 0;
-    double last_lon = 0;
-    bool last_fix   = false;
+    float last_lat = 0;
+    float last_lon = 0;
+    bool last_fix  = false;
 };
 }  // namespace DeathStackBoard

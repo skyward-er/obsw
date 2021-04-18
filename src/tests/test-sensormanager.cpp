@@ -34,9 +34,8 @@ using namespace DeathStackBoard;
 int main()
 {
     Stats s;
-    ADAController ada;
-    SensorManager mgr{&ada};
-    // ada.start();
+    SensorManager mgr;
+    
     try
     {
         LoggerService::getInstance()->start();
@@ -46,13 +45,13 @@ int main()
         printf("SDCARD MISSING\n");
         for (;;)
         {
-            led1::high();
+            ledOn();
             Thread::sleep(200);
-            led1::low();
+            ledOff();
             Thread::sleep(200);
         }
     }
-    led1::high();
+    ledOn();
 
     sEventBroker->start();
     mgr.start();
@@ -79,9 +78,9 @@ int main()
 
     for (;;)
     {
-        led1::high();
+        ledOn();
         Thread::sleep(1000);
-        led1::low();
+        ledOff();
         Thread::sleep(1000);
     }
 }

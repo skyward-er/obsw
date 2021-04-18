@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Authors: Luca Erbetta, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,6 @@
 
 #include <drivers/HardwareTimer.h>
 #include <drivers/pwm/pwm.h>
-#include <interfaces-impl/hwmapping.h>
-#include <miosix.h>
-#include "DeploymentController/Motor/MotorData.h"
-#include "config.h"
 
 namespace DeathStackBoard
 {
@@ -36,22 +32,22 @@ namespace DeathStackBoard
 namespace DeploymentConfigs
 {
 
-static constexpr uint8_t MAX_EJECTION_ATTEMPTS = 1;
-
-static constexpr int NC_OPEN_TIMEOUT     = 5000;
-
 static const PWM::Timer SERVO_TIMER{
     TIM4, &(RCC->APB1ENR), RCC_APB1ENR_TIM4EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)};
 
-static constexpr PWMChannel SERVO_CHANNEL = PWMChannel::CH1;
+static constexpr PWMChannel SERVO_PWM_CH = PWMChannel::CH1;
 
-// Servo rest position
-static constexpr float SERVO_RESET_POS = 0.77f;
-static constexpr float SERVO_WIGGLE_AMPLITUDE = 0.02f;
+static constexpr int NC_OPEN_TIMEOUT = 5000;
 
-// Servo position when ejecting the nosecone
-static constexpr float SERVO_EJECT_POS = 0.35f;
+// Angles in degrees
+static constexpr float SERVO_MIN_POS          = 63;
+static constexpr float SERVO_MAX_POS          = 138.6;
+static constexpr float SERVO_RESET_POS        = 138.6;
+static constexpr float SERVO_EJECT_POS        = 63;
+static constexpr float SERVO_WIGGLE_AMPLITUDE = 5;
+
+static constexpr float UPDATE_TIME = 0.1 * 1000;  // ms
 
 }  // namespace DeploymentConfigs
 

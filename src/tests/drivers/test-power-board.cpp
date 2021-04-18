@@ -31,8 +31,8 @@ using namespace miosix;
 int main()
 {
 
-    using namespace actuators;
-    tcPwm::mode(Mode::OUTPUT);
+    using namespace actuators::nosecone;
+    th_cut_pwm::mode(Mode::OUTPUT);
 
     thCut1::ena::mode(Mode::OUTPUT);
     thCut1::ena::low();
@@ -58,13 +58,13 @@ int main()
                 printf("thCut2 ena\n");
                 break;
             case 'c':
-                tcPwm::high();
+                th_cut_pwm::high();
                 printf("tcPwm\n");
                 break;
             case 'd':
                 thCut1::ena::low();
                 thCut2::ena::low();
-                tcPwm::low();
+                th_cut_pwm::low();
                 printf("Closing everything\n");
                 break;
             default:
