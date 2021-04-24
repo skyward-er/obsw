@@ -80,7 +80,7 @@ string getEventString(uint8_t event)
 
 string getTopicString(uint8_t topic)
 {
-	static const map<uint8_t, string> topic_string_map{
+        static const map<uint8_t, string> topic_string_map{
         {TOPIC_FLIGHT_EVENTS, "TOPIC_FLIGHT_EVENTS"},
         {TOPIC_SM, "TOPIC_SM"},
         {TOPIC_TC, "TOPIC_TC"},
@@ -90,7 +90,7 @@ string getTopicString(uint8_t topic)
         {TOPIC_TMTC, "TOPIC_TMTC"},
         {TOPIC_STATS, "TOPIC_STATS"},
         {TOPIC_ADA, "TOPIC_ADA"},
-	};
-	auto it = topic_string_map.find(topic);
-	return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
+        };
+        auto it = topic_string_map.find(topic);
+        return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
 }
