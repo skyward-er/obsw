@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,100 +24,57 @@
 #pragma once
 
 #include <drivers/servo/servo.h>
-#include "LoggerService/LoggerService.h"
-#include "System/StackLogger.h"
-#include "configs/DeploymentConfig.h"
-#include "DeploymentData.h"
-#include "Motor/MotorDriver.h"
-#include "ThermalCutter/Cutter.h"
-#include "events/HSM.h"
-#include "utils/collections/CircularBuffer.h"
 
-class PinObserver;
+#include "DeploymentData.h"
+#include "DeploymentServo.h"
+#include "configs/CutterConfig.h"
+#include "drivers/hbridge/HBridge.h"
+#include "events/FSM.h"
+#include "events/Events.h"
+
+using namespace DeathStackBoard::DeploymentConfigs;
+using namespace DeathStackBoard::CutterConfig;
 
 namespace DeathStackBoard
 {
 
 /**
- * @brief Deployment Controller State Machine
+ * @brief Deployment state machine
  */
-class DeploymentController : public HSM<DeploymentController>
+class DeploymentController : public FSM<DeploymentController>
 {
 public:
-    DeploymentController(Cutter &cutter, Servo &ejection_servo);
+    DeploymentController(
+        HBridge* primaryCutter         = new HBridge(PrimaryCutterEna::getPin(),
+                                             CUTTER_TIM, CUTTER_CHANNEL_PRIMARY,
+                                             PRIMARY_CUTTER_PWM_FREQUENCY,
+                                             PRIMARY_CUTTER_PWM_DUTY_CYCLE),
+        HBridge* backupCutter          = new HBridge(BackupCutterEna::getPin(),
+                                            CUTTER_TIM, CUTTER_CHANNEL_PRIMARY,
+                                            BACKUP_CUTTER_PWM_FREQUENCY,
+                                            BACKUP_CUTTER_PWM_DUTY_CYCLE),
+        ServoInterface* ejection_servo = new DeploymentServo());
     ~DeploymentController();
 
-    State state_initialization(const Event &ev);
-
-    State state_idle(const Event &ev);
-
-    State state_cuttingPrimary(const Event &ev);
-    State state_cuttingBackup(const Event &ev);
-
-    State state_testingPrimary(const Event &ev);
-    State state_testingBackup(const Event &ev);
-
-    State state_ejectingNosecone(const Event &ev);
+    void state_initialization(const Event& ev);
+    void state_idle(const Event& ev);
+    void state_noseconeEjection(const Event& ev);
+    void state_cuttingPrimary(const Event& ev);
+    void state_cuttingBackup(const Event& ev);
+    void state_testCuttingPrimary(const Event& ev);
+    void state_testCuttingBackup(const Event& ev);
 
 private:
-    /**
-     * @brief Logs the DeploymentStatus struct updating the timestamp and the
-     * current state
-     *
-     * @param current_state
-     */
-    void logStatus(DeploymentCTRLState current_state)
-    {
-        status.state = current_state;
-        logStatus();
-    }
-    /**
-     * @brief Logs the DeploymentStatus struct updating the timestamp
-     */
-    void logStatus()
-    {
-        status.timestamp     = miosix::getTick();
-        status.cutter_status = cutters.getStatus();
-        status.servo_position =
-            ejection_servo.getPosition(DeploymentConfigs::SERVO_CHANNEL);
-
-        logger.log(status);
-        StackLogger::getInstance()->updateStack(THID_DPL_FSM);
-    }
-
-    void initServo();
-    void resetServo();
-    void ejectNosecone();
-    void disableServo();
-
-    /**
-     * @brief Wiggle the servo just a bit around the reset position to show it's
-     * working
-     */
-    void wiggleServo();
-
-    /**
-     * Defer an event to be processed when the state machine goes back to
-     * state_idle
-     *
-     * @param ev The event to be defered.
-     */
-    void deferEvent(const Event &ev);
-
-    Cutter &cutters;
-    Servo &ejection_servo;
-
     DeploymentStatus status;
 
-    LoggerService &logger = *(LoggerService::getInstance());
+    HBridge* primaryCutter;
+    HBridge* backupCutter;
+    ServoInterface* ejection_servo;
 
-    CircularBuffer<Event, DEFERRED_EVENTS_QUEUE_SIZE> deferred_events;
+    uint16_t ev_nc_open_timeout_id    = 0;
+    uint16_t ev_nc_cutting_timeout_id = 0;
 
-    bool cut_backup = true;
-
-    uint16_t ev_open_timeout_id  = 0;
-    uint16_t ev_reset_timeout_id = 0;
-    uint16_t ev_cut_timeout_id   = 0;
+    void logStatus(DeploymentControllerState current_state);
 };
 
 }  // namespace DeathStackBoard

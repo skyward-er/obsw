@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2018-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,36 +26,45 @@
  ******************************************************************************
  */
 
-// Generated from:  https://docs.google.com/spreadsheets/d/184kR2OAD7yWV0fYJdiGUDmHmy5_prY3nr-XgNA0Uge0
-// Autogen date:    2019-11-06 23:09:09.820014
+// Autogen date: 2021-04-17 23:09:11.522877
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <vector>
 
 using std::string;
 
-namespace DeathStackBoard
-{
 /**
  * Definition of various event topics to use in the EventBroker
  */
 enum Topics : uint8_t
 {
-    TOPIC_ADA,
-    TOPIC_CAN,
-    TOPIC_DEPLOYMENT,
     TOPIC_FLIGHT_EVENTS,
     TOPIC_FMM,
-    TOPIC_IGNITION,
-    TOPIC_STATS,
+    TOPIC_SM,
     TOPIC_TC,
-    TOPIC_TMTC
+    TOPIC_DPL,
+    TOPIC_ABK,
+    TOPIC_NAS,
+    TOPIC_TMTC,
+    TOPIC_STATS,
+    TOPIC_ADA,
 };
 
-const std::vector<uint8_t> TOPIC_LIST {TOPIC_ADA, TOPIC_CAN, TOPIC_DEPLOYMENT, TOPIC_FLIGHT_EVENTS, TOPIC_FMM, TOPIC_IGNITION, TOPIC_STATS, TOPIC_TC, TOPIC_TMTC};
+const std::vector<uint8_t> TOPIC_LIST{
+    TOPIC_FLIGHT_EVENTS,
+    TOPIC_FMM,
+    TOPIC_SM,
+    TOPIC_TC,
+    TOPIC_DPL,
+    TOPIC_ABK,
+    TOPIC_NAS,
+    TOPIC_TMTC,
+    TOPIC_STATS,
+    TOPIC_ADA,
+};
 
 /**
  * @brief Returns the name of the provided event
@@ -64,6 +73,3 @@ const std::vector<uint8_t> TOPIC_LIST {TOPIC_ADA, TOPIC_CAN, TOPIC_DEPLOYMENT, T
  * @return string
  */
 string getTopicString(uint8_t topic);
-
-}  // namespace DeathStackBoard
-

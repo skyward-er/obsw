@@ -65,10 +65,11 @@ template<typename T> bool ramTest()
 
 int main()
 {
-    printf("\nBEFORE YOU START:\n");
-    printf("1. Have you compiled with the right linker script (e.g. 2m+256k_rom)?\n");
-    printf("2. Have you set RamBase and RamSize correctly in this entrypoint?\n");
-    printf("3. Have you enable the RAM (aka compile with -D__ENABLE_XRAM)?\n");
+    printf("\n------- BEFORE YOU START: ------- \n");
+    printf("1. Have you read the README.md contained in this same folder?\n");
+    printf("2. Have you compiled with the right linker script (e.g. 2m+256k_rom)?\n");
+    printf("3. Have you set RamBase and RamSize correctly in this entrypoint?\n");
+    printf("4. Have you enabled the RAM (aka compile with -D__ENABLE_XRAM)?\n");
     printf("Press enter to start...");
     getchar();
 
@@ -80,6 +81,6 @@ int main()
         if(ramTest<unsigned short>()) return 1;
         iprintf("Testing byte size transfers\n");
         if(ramTest<unsigned char>()) return 1;
-        iprintf("Ok\n");
+        iprintf("Ok\n\n");
     }
 }

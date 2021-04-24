@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,14 @@
 #pragma once
 
 #include <utils/PinObserver.h>
-#include "configs/PinObserverConfig.h"
 #include "PinHandlerData.h"
+#include "configs/PinObserverConfig.h"
 
 namespace DeathStackBoard
 {
 
-//Forward dec
+// Forward dec
 class LoggerService;
-
 
 /**
  * @brief This class contains the handlers for both the launch pin (umbilical)
@@ -49,19 +48,13 @@ public:
      * @brief Starts the pin observer
      *
      */
-    bool start()
-    {
-        return pin_obs.start();
-    }
+    bool start() { return pin_obs.start(); }
 
     /**
      * @brief Stops the pin observer
      *
      */
-    void stop()
-    {
-        pin_obs.stop();
-    }
+    void stop() { pin_obs.stop(); }
 
     /**
      * @brief Function called by the pinobserver when a launch pin detachment is
@@ -81,14 +74,23 @@ public:
      */
     void onNCPinTransition(unsigned int p, unsigned char n);
 
+    /**
+     * @brief Function called by the pinobserver when a deployment servo
+     * actuation is detected via the optical sensor.
+     *
+     * @param p
+     * @param n
+     */
+    void onDPLServoPinTransition(unsigned int p, unsigned char n);
 
     void onLaunchPinStateChange(unsigned int p, unsigned char n, int state);
     void onNCPinStateChange(unsigned int p, unsigned char n, int state);
-
+    void onDPLServoPinStateChange(unsigned int p, unsigned char n, int state);
 
 private:
     PinStatus status_pin_launch{ObservedPin::LAUNCH};
     PinStatus status_pin_nosecone{ObservedPin::NOSECONE};
+    PinStatus status_pin_dpl_servo{ObservedPin::DPL_SERVO};
 
     PinObserver pin_obs;
 

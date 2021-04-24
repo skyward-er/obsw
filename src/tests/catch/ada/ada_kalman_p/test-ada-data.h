@@ -24,6 +24,6 @@
 #pragma once
 
 static const unsigned DATA_SIZE = 4840;
-extern const float SIMULATED_PRESSURE[DATA_SIZE];
-extern const float SIMULATED_PRESSURE_SPEED[DATA_SIZE];
-// extern const float SIMULATED_NOISY_PRESSURE[DATA_SIZE];
+extern const float ADA_SIMULATED_PRESSURE[DATA_SIZE];
+extern const float ADA_SIMULATED_PRESSURE_SPEED[DATA_SIZE];
+// extern const float ADA_SIMULATED_NOISY_PRESSURE[DATA_SIZE];

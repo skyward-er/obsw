@@ -38,7 +38,7 @@ DeathStack* board;
 StatsResult cpu_stat_res;
 
 
-D(EventInjector debug_console);
+D(EventInjector debug_console)
 
 int main()
 {

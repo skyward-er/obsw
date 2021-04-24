@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,38 @@
 
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <math.h>
 
 namespace DeathStackBoard
 {
-    
-enum class CutterState : uint8_t
+
+class TrajectoryPoint
 {
-    IDLE,
-    CUTTING_PRIMARY,
-    CUTTING_BACKUP,
-    TESTING_PRIMARY,
-    TESTING_BACKUP
+public:
+    TrajectoryPoint() : TrajectoryPoint(0, 0) {}
+    TrajectoryPoint(float z, float vz) : z(z), vz(vz) {}
+
+    float getZ() { return z; }
+    float getVz() { return vz; }
+
+    static float distance(TrajectoryPoint a, TrajectoryPoint b)
+    {
+        return powf(a.getZ() - b.getZ(), 2) + powf(a.getVz() - b.getVz(), 2);
+    }
+
+    static float zDistance(TrajectoryPoint a, TrajectoryPoint b)
+    {
+        return abs(a.getZ() - b.getZ());
+    }
+
+    static float vzDistance(TrajectoryPoint a, TrajectoryPoint b)
+    {
+        return abs(a.getVz() - b.getVz());
+    }
+
+private:
+    float z;
+    float vz;
 };
 
-struct CutterStatus
-{
-    CutterState state = CutterState::IDLE;
-};
 }  // namespace DeathStackBoard

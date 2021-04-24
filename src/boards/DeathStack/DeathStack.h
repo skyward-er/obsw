@@ -70,14 +70,15 @@ public:
     EventSniffer* sniffer;
 
     // FSMs
-    ADAController* ada;
+    ADAController<PressureData, GPSData>* ada;
     SensorManager* sensor_manager;
     TMTCManager* tmtc;
     FlightModeManager* fmm;
-
-    Cutter* cutter;
-    Servo* servo;
     DeploymentController* dpl;
+
+    // actuators
+    //Cutter* cutter;
+    //Servo* servo;
 
 private:
     /**
@@ -101,14 +102,14 @@ private:
                 *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
         }
 
-        ada            = new ADAController();
-        sensor_manager = new SensorManager(ada);
+        //ada            = new ADAController<PressureData, GPSData>(mock_barometer, mock_gps);
+        sensor_manager = new SensorManager();
         tmtc           = new TMTCManager();
         fmm            = new FlightModeManager();
-        cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
+        /*cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
                             CUTTER_TEST_PWM_DUTY_CYCLE);
-        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);
-        dpl            = new DeploymentController(*cutter, *servo);
+        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);*/
+        dpl            = new DeploymentController(); //*cutter, *servo);
 
         // Start threads
         try

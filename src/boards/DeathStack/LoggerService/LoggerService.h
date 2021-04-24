@@ -37,13 +37,13 @@
 #include "SensorManager/SensorManagerData.h"
 #include "SensorManager/Sensors/AD7994WrapperData.h"
 #include "SensorManager/Sensors/ADCWrapperData.h"
-#include "SensorManager/Sensors/PiksiData.h"
+//#include "SensorManager/Sensors/PiksiData.h"
 
 #include "drivers/canbus/CanUtils.h"
 #include "drivers/mavlink/MavlinkStatus.h"
 #include "scheduler/TaskSchedulerData.h"
-#include "sensors/ADIS16405/ADIS16405Data.h"
-#include "sensors/MPU9250/MPU9250Data.h"
+//#include "sensors/ADIS16405/ADIS16405Data.h"
+//#include "sensors/MPU9250/MPU9250Data.h"
 #include "sensors/MS580301BA07/MS580301BA07Data.h"
 
 namespace DeathStackBoard
@@ -149,7 +149,7 @@ LogResult LoggerService::log<TargetDeploymentAltitude>(
 
 /* ADA kalman filter values */
 template <>
-LogResult LoggerService::log<KalmanState>(const KalmanState& t);
+LogResult LoggerService::log<ADAKalmanState>(const ADAKalmanState& t);
 
 /* ADA kalman altitude values */
 template <>
@@ -168,26 +168,26 @@ LogResult LoggerService::log<AD7994WrapperData>(const AD7994WrapperData& t);
 
 /* Battery status, sampled by internal ADC */
 template <>
-LogResult LoggerService::log<BatteryVoltageData>(const BatteryVoltageData& t);
+LogResult LoggerService::log<BatteryVoltageDataWrapper>(const BatteryVoltageDataWrapper& t);
 
 /* Motor current sense, sampled by internal ADC */
 template <>
-LogResult LoggerService::log<CurrentSenseData>(const CurrentSenseData& t);
+LogResult LoggerService::log<CurrentSenseDataWrapper>(const CurrentSenseDataWrapper& t);
 
 template <>
 LogResult LoggerService::log<MS5803Data>(const MS5803Data& t);
 
 /* ADIS imu */
-template <>
-LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t);
+//template <>
+//LogResult LoggerService::log<ADIS16405Data>(const ADIS16405Data& t);
 
 /* MPU imu */
-template <>
-LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t);
+//template <>
+//LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t);
 
 /* GPS */
-template <>
-LogResult LoggerService::log<PiksiData>(const PiksiData& t);
+//template <>
+//LogResult LoggerService::log<PiksiData>(const PiksiData& t);
 
 /* LM75b temperature */
 template <>

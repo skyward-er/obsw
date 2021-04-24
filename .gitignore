@@ -23,7 +23,9 @@ build
 *.sublime-project
 
 .vscode/*
-
 store.json
 scripts/event_header_generator/generated/
 scripts/event_header_generator/venv/
+
+**/generated
+**/scxmls

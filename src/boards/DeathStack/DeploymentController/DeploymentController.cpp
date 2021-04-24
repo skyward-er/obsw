@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,24 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
-
-#include "configs/DeploymentConfig.h"
-#include "events/Events.h"
 #include "DeploymentController.h"
 
-#include "Motor/MotorDriver.h"
+#include "TimestampTimer.h"
+#include "configs/DeploymentConfig.h"
 #include "events/EventBroker.h"
+#include "events/Events.h"
 
 namespace DeathStackBoard
 {
 
-using namespace DeploymentConfigs;
-
-DeploymentController::DeploymentController(Cutter& cutter,
-                                           Servo& ejection_servo)
-    : HSM(&DeploymentController::state_initialization, 4096, 2),
-      cutters(cutter), ejection_servo(ejection_servo)
+DeploymentController::DeploymentController(HBridge* primaryCutter,
+                                           HBridge* backupCutter,
+                                           ServoInterface* ejection_servo)
+    : FSM(&DeploymentController::state_initialization),
+      primaryCutter{primaryCutter}, backupCutter{backupCutter},
+      ejection_servo{ejection_servo}
 {
-    memset(&status, 0, sizeof(DeploymentStatus));
-
-    sEventBroker->subscribe(this, TOPIC_DEPLOYMENT);
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_TC);
+    sEventBroker->subscribe(this, TOPIC_DPL);
 }
 
 DeploymentController::~DeploymentController()
@@ -52,374 +46,289 @@ DeploymentController::~DeploymentController()
     sEventBroker->unsubscribe(this);
 }
 
-State DeploymentController::state_initialization(const Event& ev)
+void DeploymentController::logStatus(DeploymentControllerState current_state)
 {
-    initServo();
+    status.timestamp            = TimestampTimer::getTimestamp();
+    status.state                = current_state;
+    status.servo_position       = ejection_servo->getCurrentPosition();
+    status.primary_cutter_state = primaryCutter->getStatus();
+    status.backup_cutter_state  = backupCutter->getStatus();
 
-    UNUSED(ev);
-    return transition(&DeploymentController::state_idle);
+    // logger.log(status);
+
+    // StackLogger::getInstance()->updateStack(THID_DPL_FSM);
 }
 
-State DeploymentController::state_idle(const Event& ev)
+void DeploymentController::state_initialization(const Event& ev)
 {
-    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            logStatus(DeploymentCTRLState::DPL_IDLE);
-            // Process deferred events
-            try
-            {
-                while (!deferred_events.isEmpty())
-                {
-                    postEvent(deferred_events.pop());
-                }
-            }
-            catch (...)
-            {
-                TRACE("Tried to pop empty circularbuffer!\n");
-            }
+            ejection_servo->enable();
+            ejection_servo->reset();
 
-            TRACE("[DPL_CTRL] state_idle ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
+            transition(&DeploymentController::state_idle);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[DPL_CTRL] state_idle EXIT\n");
+            break;
+        }
 
+        default:
+        {
             break;
         }
-        case EV_NC_OPEN:
+    }
+}
+
+void DeploymentController::state_idle(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
         {
-            retState =
-                transition(&DeploymentController::state_ejectingNosecone);
+            logStatus(DeploymentControllerState::IDLE);
+
+            TRACE("[DPL] entering state idle\n");
             break;
         }
-        case EV_CUT_DROGUE:
+        case EV_EXIT:
         {
-            cut_backup = true;
-            retState = transition(&DeploymentController::state_cuttingPrimary);
-            break;
-        }
-        case EV_CUT_PRIMARY:
-        {
-            cut_backup = false;
-            retState = transition(&DeploymentController::state_cuttingPrimary);
-            break;
-        }
-        case EV_CUT_BACKUP:
-        {
-            retState = transition(&DeploymentController::state_cuttingBackup);
-            break;
-        }
-        case EV_TEST_CUTTER_PRIMARY:
-        {
-            retState = transition(&DeploymentController::state_testingPrimary);
-            break;
-        }
-        case EV_TEST_CUTTER_BACKUP:
-        {
-            retState = transition(&DeploymentController::state_testingBackup);
+            TRACE("[DPL] exiting state idle\n");
             break;
         }
         case EV_RESET_SERVO:
         {
-            resetServo();
+            TRACE("[DPL] reset servo \n");
+            ejection_servo->reset();
             break;
         }
         case EV_WIGGLE_SERVO:
         {
-            wiggleServo();
+            TRACE("[DPL] wiggle servo \n");
+            ejection_servo->selfTest();
             break;
         }
-        default:
+        case EV_NC_OPEN:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
-            break;
-        }
-    }
-    return retState;
-}
-
-State DeploymentController::state_ejectingNosecone(const Event& ev)
-{
-    State retState = HANDLED;
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            ejectNosecone();
-            ev_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
-                Event{EV_TIMEOUT_NC_OPEN}, TOPIC_DEPLOYMENT);
-
-            logStatus(DeploymentCTRLState::EJECTING_NC);
-            TRACE("[DPL_CTRL] state_ejectingNosecone ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
-            TRACE("[DPL_CTRL] state_ejectingNosecone INIT\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            // disableServo();
-            sEventBroker->removeDelayed(ev_open_timeout_id);
-
-            TRACE("[DPL_CTRL] state_openingNosecone EXIT\n");
-
+            TRACE("[DPL] nosecone open event \n");
+            transition(&DeploymentController::state_noseconeEjection);
             break;
         }
         case EV_CUT_DROGUE:
         {
-            deferred_events.put(ev);
+            TRACE("[DPL] cut drogue event \n");
+            transition(&DeploymentController::state_cuttingPrimary);
+            break;
+        }
+        case EV_TEST_CUT_PRIMARY:
+        {
+            transition(&DeploymentController::state_testCuttingPrimary);
+            break;
+        }
+        case EV_TEST_CUT_BACKUP:
+        {
+            transition(&DeploymentController::state_testCuttingBackup);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
+void DeploymentController::state_noseconeEjection(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            TRACE("[DPL] entering state nosecone_ejection\n");
+
+            ejection_servo->set(SERVO_EJECT_POS);
+
+            ev_nc_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
+                Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
+
+            logStatus(DeploymentControllerState::NOSECONE_EJECTION);
+            break;
+        }
+        case EV_EXIT:
+        {
+            TRACE("[DPL] exiting state nosecone_ejection\n");
             break;
         }
         case EV_NC_DETACHED:
-        case EV_TIMEOUT_NC_OPEN:
         {
-            retState = transition(&DeploymentController::state_idle);
+            TRACE("[DPL] nosecone detached event \n");
+            sEventBroker->removeDelayed(ev_nc_open_timeout_id);
+            transition(&DeploymentController::state_idle);
+            break;
+        }
+        case EV_NC_OPEN_TIMEOUT:
+        {
+            TRACE("[DPL] nosecone opening timeout \n");
+            transition(&DeploymentController::state_idle);
             break;
         }
         default:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
             break;
         }
     }
-    return retState;
 }
 
-State DeploymentController::state_cuttingPrimary(const Event& ev)
+void DeploymentController::state_cuttingPrimary(const Event& ev)
 {
-    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            // Cutting drogue
-            cutters.enablePrimaryCutter();
+            TRACE("[DPL] entering state cutting_primary\n");
 
-            logStatus(DeploymentCTRLState::CUTTING_PRIMARY);
+            primaryCutter->enable();
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_nc_cutting_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+                Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
-            TRACE("[DPL_CTRL] state_cuttingPrimary ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
+            logStatus(DeploymentControllerState::CUTTING_PRIMARY);
+
             break;
         }
         case EV_EXIT:
         {
-            cutters.disablePrimaryCutter();
+            TRACE("[DPL] exiting state cutting_primary\n");
 
-            sEventBroker->removeDelayed(ev_cut_timeout_id);
-            TRACE("[DPL_CTRL] state_cuttingPrimary EXIT\n");
+            primaryCutter->disable();
 
             break;
         }
-        case EV_TIMEOUT_CUTTING:
+        case EV_CUTTING_TIMEOUT:
         {
-            if (cut_backup)
-            {
-                retState =
-                    transition(&DeploymentController::state_cuttingBackup);
-            }
-            else
-            {
-                retState = transition(&DeploymentController::state_idle);
-            }
+            TRACE("[DPL] primary cutter timeout \n");
+            transition(&DeploymentController::state_cuttingBackup);
             break;
         }
         default:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
             break;
         }
     }
-    return retState;
 }
 
-State DeploymentController::state_cuttingBackup(const Event& ev)
+void DeploymentController::state_cuttingBackup(const Event& ev)
 {
-    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            // Cutting rogallina
-            cutters.enableBackupCutter();
+            TRACE("[DPL] entering state cutting_backup\n");
 
-            logStatus(DeploymentCTRLState::CUTTING_BACKUP);
+            backupCutter->enable();
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_nc_cutting_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+                Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
-            TRACE("[DPL_CTRL] state_cuttingBackup ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
+            logStatus(DeploymentControllerState::CUTTING_BACKUP);
+
             break;
         }
         case EV_EXIT:
         {
-            cutters.disableBackupCutter();
+            TRACE("[DPL] exiting state cutting_backup\n");
 
-            sEventBroker->removeDelayed(ev_cut_timeout_id);
-
-            TRACE("[DPL_CTRL] state_cuttingBackup EXIT\n");
+            backupCutter->disable();
 
             break;
         }
-        case EV_TIMEOUT_CUTTING:
+        case EV_CUTTING_TIMEOUT:
         {
-            retState = transition(&DeploymentController::state_idle);
+            TRACE("[DPL] backup cutter timeout \n");
+            transition(&DeploymentController::state_idle);
             break;
         }
         default:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
             break;
         }
     }
-    return retState;
 }
 
-State DeploymentController::state_testingPrimary(const Event& ev)
+void DeploymentController::state_testCuttingPrimary(const Event& ev)
 {
-    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            cutters.enableTestPrimaryCutter();
+            TRACE("[DPL] entering state test_cutting_primary\n");
 
-            logStatus(DeploymentCTRLState::TESTING_PRIMARY);
+            primaryCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            ev_nc_cutting_timeout_id =
+                sEventBroker->postDelayed<CUT_TEST_DURATION>(
+                    Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
-            TRACE("[DPL_CTRL] state_testingPrimary ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
+            logStatus(DeploymentControllerState::TEST_CUTTING_PRIMARY);
             break;
         }
         case EV_EXIT:
         {
-            cutters.disablePrimaryCutter();
+            TRACE("[DPL] exiting state test_cutting_primary\n");
 
-            sEventBroker->removeDelayed(ev_cut_timeout_id);
-
-            TRACE("[DPL_CTRL] state_testingPrimary EXIT\n");
-
+            primaryCutter->disable();
+            
             break;
         }
-        case EV_TIMEOUT_CUTTING:
+        case EV_CUTTING_TIMEOUT:
         {
-            retState = transition(&DeploymentController::state_idle);
+            TRACE("[DPL] test primary cutter timeout \n");
+            transition(&DeploymentController::state_idle);
             break;
         }
         default:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
             break;
         }
     }
-    return retState;
 }
 
-State DeploymentController::state_testingBackup(const Event& ev)
+void DeploymentController::state_testCuttingBackup(const Event& ev)
 {
-    State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            // Cutting rogallina
-            cutters.enableTestBackupCutter();
+            backupCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
 
-            logStatus(DeploymentCTRLState::TESTING_BACKUP);
+            ev_nc_cutting_timeout_id =
+                sEventBroker->postDelayed<CUT_TEST_DURATION>(
+                    Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
-            ev_cut_timeout_id = sEventBroker->postDelayed<CUT_TEST_DURATION>(
-                {EV_TIMEOUT_CUTTING}, TOPIC_DEPLOYMENT);
+            logStatus(DeploymentControllerState::TEST_CUTTING_BACKUP);
 
-            TRACE("[DPL_CTRL] state_testingBackup ENTRY\n");
-            break;
-        }
-        case EV_INIT:
-        {
+            TRACE("[DPL] entering state test_cutting_backup\n");
             break;
         }
         case EV_EXIT:
         {
-            cutters.disableBackupCutter();
+            backupCutter->disable();
 
-            sEventBroker->removeDelayed(ev_cut_timeout_id);
-
-            TRACE("[DPL_CTRL] state_testingBackup EXIT\n");
-
+            TRACE("[DPL] exiting state test_cutting_backup\n");
             break;
         }
-        case EV_TIMEOUT_CUTTING:
+        case EV_CUTTING_TIMEOUT:
         {
-            retState = transition(&DeploymentController::state_idle);
+            TRACE("[DPL] test backup cutter timeout \n");
+            transition(&DeploymentController::state_idle);
             break;
         }
         default:
         {
-            retState = tran_super(&DeploymentController::Hsm_top);
             break;
         }
-    }
-    return retState;
-}
-
-void DeploymentController::initServo()
-{
-    ejection_servo.enable(SERVO_CHANNEL);
-
-    ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS);
-
-    ejection_servo.start();
-}
-
-void DeploymentController::resetServo()
-{
-    ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS);
-}
-
-void DeploymentController::ejectNosecone()
-{
-    ejection_servo.setPosition(SERVO_CHANNEL, SERVO_EJECT_POS);
-}
-
-void DeploymentController::disableServo()
-{
-    // Do not reset the position to 0
-
-    ejection_servo.stop();
-    ejection_servo.disable(SERVO_CHANNEL);
-}
-
-void DeploymentController::wiggleServo()
-{
-    for (int i = 0; i < 3; i++)
-    {
-        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS - SERVO_WIGGLE_AMPLITUDE);
-        Thread::sleep(500);
-        ejection_servo.setPosition(SERVO_CHANNEL, SERVO_RESET_POS);
-        Thread::sleep(500);
     }
 }
 

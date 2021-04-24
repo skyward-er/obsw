@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Alvise de'Faveri Tron
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,51 +20,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <Common.h>
-
-#include "configs/MotorConfig.h"
-#include "MotorData.h"
+#include "Trajectories_data.h"
+#include "TrajectoryPoint.h"
 
 namespace DeathStackBoard
 {
 
-/**
- * This class gives access to the H-Bridge that controls the DC motor of the nosecone.
- */
-class MotorDriver
+class Trajectory
 {
+private:
+    uint32_t index;
+
 public:
-    /**
-     * @brief Class constructor.
-     */
-    MotorDriver();
+    Trajectory(uint32_t index) : index(index) {}
+    Trajectory() : index(0) {}
 
-    /**
-     * @brief Class destructor.
-     */
-    ~MotorDriver();
-
-    /**
-     * @brief Activates the H-Bridge to start the motor.
-     *
-     * @param direction     direction of activation (normal or reverse)
-     */
-    void start(MotorDirection direction);
-
-    /**
-     * @brief Stop the motor
-     */
-    void stop();
-
-    MotorStatus getStatus()
+    Trajectory& operator=(const Trajectory& other)
     {
-        return status;
+        this->index = other.index;
+        return *this;
     }
 
-private:
-    MotorStatus status;
+    uint32_t length() { return TRAJECTORIES_DATA[index].length; }
+
+    TrajectoryPoint get(uint32_t idx)
+    {
+        point_t point = TRAJECTORIES_DATA[index].data[idx];
+        return TrajectoryPoint(point.z, point.vz);
+    }
 };
 
-} /* namespace  */
+}  // namespace DeathStackBoard
