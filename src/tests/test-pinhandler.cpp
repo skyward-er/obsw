@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,49 +20,27 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "Common.h"
+#include "PinHandler/PinHandler.h"
 
-#include <cstdint>
-#include <ostream>
+using namespace DeathStackBoard;
 
-namespace DeathStackBoard
+int main()
 {
+    TimestampTimer::enableTimestampTimer();
 
-enum class ObservedPin : uint8_t
-{
-    LAUNCH    = 0,
-    NOSECONE  = 1,
-    DPL_SERVO = 2
-};
+    PinHandler pin_handler;
 
-/**
- * @brief Struct represeting the status of an observed pin
- *
- */
-struct PinStatus
-{
-    ObservedPin pin;
-
-    uint64_t last_state_change     = 0;  // Last time the pin changed state
-    uint8_t state                  = 0;  // Current state of the pin
-    unsigned int num_state_changes = 0;
-
-    uint64_t last_detection_time = 0;  // When a transition is detected
-
-    PinStatus(){};
-    PinStatus(ObservedPin pin) : pin(pin) {}
-
-    static std::string header()
+    if (!pin_handler.start())
     {
-        return "pin,last_state_change,state,num_state_changes,last_detection_"
-               "time\n";
+        printf("Error starting pin handler");
+        return -1;
     }
 
-    void print(std::ostream& os) const
+    while (true)
     {
-        os << (int)pin << "," << last_state_change << "," << (int)state << ","
-           << num_state_changes << "," << last_detection_time << "\n";
+        Thread::sleep(1000);
     }
-};
 
-}  // namespace DeathStackBoard
+    return 0;
+}
