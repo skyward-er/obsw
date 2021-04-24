@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Skyward Experimental Rocketry
+ * Copyright (c) 2018-2021 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,36 +32,46 @@ int main()
 {
 
     using namespace actuators::nosecone;
-    th_cut_pwm::mode(Mode::OUTPUT);
-
-    thCut1::ena::mode(Mode::OUTPUT);
-    thCut1::ena::low();
-    thCut1::csens::mode(Mode::INPUT_ANALOG);
-
-    thCut2::ena::mode(Mode::OUTPUT);
-    thCut2::ena::low();
-    thCut2::csens::mode(Mode::INPUT_ANALOG);
+    using namespace actuators::airbrakes;
 
     char c;
+
     while(true)
     {
+        printf("1 - Nosecone servo PWM \n");
+        printf("2 - Thermal cutter PWM \n");
+        printf("3 - Thermal cutter 1 enable \n");
+        printf("4 - Thermal cutter 2 enable \n");
+        printf("5 - Aerobrakes servo PWM \n");
+        printf("6 - Turn-off everything \n");
+        printf(">> ");
+
         scanf("%c", &c);
 
         switch(c)
         {
-            case 'a':
+            case '1':
+                nc_servo_pwm::high();
+                printf("nosecone servo pwm\n");
+                break;
+            case '2':
+                th_cut_pwm::high();
+                printf("thermal cutter pwm\n");
+                break;
+            case '3':
                 thCut1::ena::high();
                 printf("thCut1 ena\n");
                 break;
-            case 'b':
+            case '4':
                 thCut2::ena::high();
                 printf("thCut2 ena\n");
                 break;
-            case 'c':
-                th_cut_pwm::high();
-                printf("tcPwm\n");
+            case '5':
+                airbrakes_servo_pwm::high();
+                printf("aerobrakes servo pwm\n");
                 break;
-            case 'd':
+            case '6':
+                nc_servo_pwm::high();
                 thCut1::ena::low();
                 thCut2::ena::low();
                 th_cut_pwm::low();
