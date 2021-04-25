@@ -47,6 +47,8 @@ public:
 
     void enable() override
     {
+        servo.setMaxPulseWidth(2500);
+        servo.setMinPulseWidth(500);
         servo.enable(SERVO_PWM_CH);
         servo.start();
     }
@@ -99,16 +101,19 @@ protected:
     {
         angle = ServoInterface::preprocessPosition(angle);
 
-        float rate = (angle - currentPosition) / UPDATE_TIME;
+        float update_time_seconds = UPDATE_TIME / 1000;
+        float rate = (angle - currentPosition) / update_time_seconds;
 
         if (rate > SERVO_MAX_RATE)
         {
-            angle = UPDATE_TIME * SERVO_MAX_RATE + currentPosition;
+            angle = update_time_seconds * SERVO_MAX_RATE + currentPosition;
         }
         else if (rate < SERVO_MIN_RATE)
         {
-            angle = UPDATE_TIME * SERVO_MIN_RATE + currentPosition;
+            angle = update_time_seconds * SERVO_MIN_RATE + currentPosition;
         }
+
+        angle = FILTER_COEFF*angle + (1-FILTER_COEFF)*getCurrentPosition();
 
         return angle;
     }

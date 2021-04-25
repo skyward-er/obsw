@@ -45,7 +45,7 @@ static constexpr float D                      = 0.15; /**< rocket's diameter */
 static constexpr float S0                     = (PI * D * D) / 4;
 static constexpr float RHO                    = 1.225;
 static constexpr float Hn                     = 10400;
-static constexpr float Kp                     = 77;
+static constexpr float Kp                     = 55;  // 77;
 static constexpr float Ki                     = 5;
 static constexpr float Co                     = 340.3;
 static constexpr float ALPHA                  = -3.871e-3;
@@ -57,15 +57,17 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
-static constexpr float SERVO_MAX_POS          = 50.99;      // deg, 0.89 in radians
-static constexpr float SERVO_MIN_POS          = 0;          // deg
+static constexpr float SERVO_MAX_POS          = 50.99;  // deg, 0.89 in radians
+static constexpr float SERVO_MIN_POS          = 0;      // deg
 static constexpr float SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
 static constexpr float SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
-static constexpr float SERVO_WIGGLE_AMPLITUDE = 10;         // deg, 0.17 in radians
+static constexpr float SERVO_WIGGLE_AMPLITUDE = 10;  // deg, 0.17 in radians
+
+static constexpr float FILTER_COEFF = 0.9;
 
 static constexpr float UPDATE_TIME = 0.05 * 1000;  // ms -> 20 Hz
 
-static constexpr int SHADOW_MODE_DURATION = 7500;
+static constexpr int SHADOW_MODE_DURATION = 1000;
 
 }  // namespace AeroBrakesConfigs
 

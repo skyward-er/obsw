@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Authors: Alberto Nidasio, Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -233,12 +233,12 @@ void wiggleServo()
 
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
+    servo.reset();
 
-    cout << "Wiggling ... \n";
+    cout << "Wiggling ...\n";
     servo.selfTest();
-    Thread::sleep(10000);
+    Thread::sleep(1000);    
     servo.disable();
-
     cout << "\n\tDone!\n";
 }
 
@@ -252,7 +252,7 @@ void setServoFullyOpen()
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
     servo.setMaxPosition();
-    Thread::sleep(10000);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
@@ -268,7 +268,7 @@ void setServoFullyClosed()
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
     servo.setMinPosition();
-    Thread::sleep(10000);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
@@ -311,7 +311,7 @@ void manualServoControl()
         servo.set(angle);
         Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
     }
-    Thread::sleep(100);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
