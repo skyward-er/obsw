@@ -24,9 +24,6 @@
 
 #include <math/Stats.h>
 
-#include <iostream>
-#include <stdexcept>
-
 #include "SensorManagerData.h"
 #include "System/StackLogger.h"
 #include "events/EventBroker.h"
