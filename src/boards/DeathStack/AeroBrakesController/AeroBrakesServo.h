@@ -25,9 +25,10 @@
 
 #include "../ServoInterface.h"
 #include "../configs/AeroBrakesConfig.h"
+#include "AeroBrakesData.h"
+#include "LoggerService/LoggerService.h"
 #include "drivers/servo/servo.h"
 #include "miosix.h"
-
 using namespace DeathStackBoard::AeroBrakesConfigs;
 
 namespace DeathStackBoard
@@ -40,6 +41,7 @@ public:
         : ServoInterface(minPosition, maxPosition)
     {
     }
+
     AeroBrakesServo(float minPosition, float maxPosition, float resetPosition)
         : ServoInterface(minPosition, maxPosition, resetPosition)
     {
@@ -92,7 +94,7 @@ private:
 protected:
     /**
      * @brief Set servo position.
-     * 
+     *
      * @param angle servo position (in degrees)
      */
     void setPosition(float angle) override
@@ -100,6 +102,12 @@ protected:
         currentPosition = angle;
         // map position to [0;1] interval for the servo driver
         servo.setPosition(AeroBrakesConfigs::SERVO_PWM_CH, angle / 180.0f);
+
+        AeroBrakesData abdata;
+        abdata.timestamp = miosix::getTick();
+        abdata.servo_position =
+            servo.getPosition(AeroBrakesConfigs::SERVO_PWM_CH);
+        LoggerService::getInstance()->log(abdata);
     }
 
     float preprocessPosition(float angle) override
@@ -118,7 +126,8 @@ protected:
             angle = update_time_seconds * SERVO_MIN_RATE + currentPosition;
         }
 
-        angle = FILTER_COEFF*angle + (1-FILTER_COEFF)*getCurrentPosition();
+        angle =
+            FILTER_COEFF * angle + (1 - FILTER_COEFF) * getCurrentPosition();
 
         return angle;
     }
