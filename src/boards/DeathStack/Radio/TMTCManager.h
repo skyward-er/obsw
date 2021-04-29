@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
+/* Copyright (c) 2018-2020 Skyward Experimental Rocketry
  * Authors: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,75 +22,55 @@
 
 #pragma once
 
-#include "events/Events.h"
-#include "configs/TMTCConfig.h"
-#include "events/FSM.h"
+#include "DeathStack.h"
 
-#include <drivers/mavlink/MavlinkDriver.h>
-#include <LoggerService/LoggerService.h>
 #include "configs/TMTCConfig.h"
-#include "drivers/Xbee/Xbee.h"
+#include "events/Events.h"
+#include "events/FSM.h"
+#include "DeathStack.h"
+
+#include "LoggerService/LoggerService.h"
 
 namespace DeathStackBoard
 {
+
 /**
- * @brief This class handles the communication with the Ground Station.
- *        Uses Gamma868 transceiver with the Mavlink protocol.
+ * @brief This class handles the communication with the Ground Station via the
+ * Mavlink protocol. It is responsible of:
+ *
+ * - sending periodic telemetries to GS
+ * - receiving and handling commands coming from GS
+ * - fetching the last logged values when sending telemetries
  */
 class TMTCManager : public FSM<TMTCManager>
 {
-    using Mav = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
 public:
+    /* Constructor */
     TMTCManager();
+
+    /* Destructor */
     ~TMTCManager();
-
-    /* Non-blocking send, logs status on the logger*/
-    bool send(mavlink_message_t& msg);
-
-    /* Status getter */
-    MavlinkStatus getStatus() { return channel->getStatus(); }
-
-    /* AO methods */
-    bool start() override
-    {
-        device->start();
-        bool ret = channel->start();
-        ret      = (ret && FSM::start());
-        return ret;
-    }
-
-    void stop() override
-    {
-        channel->stop();
-        FSM::stop();
-    }
-
 private:
-    Xbee::Xbee* device;
-    Mav* channel;
+/**
+     * Non-blocking send. Adds the message to an out queue and logs the status.
+     *
+     * @param tm_id  the id of the TM to be sent. Sends a NACK if the tm was
+     *               not found.
+     * @return false if the message could not be enqueued for sending
+     */
+    bool send(const uint8_t tm_id);
 
     LoggerService& logger = *(LoggerService::getInstance());
 
+    uint16_t periodicHrEvId = 0;
+    uint16_t periodicLrEvId = 0;
+    uint16_t periodicTunnelEvId = 0;
+    uint8_t hrPktCounter    = 0;
+
     /* State handlers */
-    // void stateIdle(const Event& ev);
     void stateGroundTM(const Event& ev);
     void stateFlightTM(const Event& ev);
-
-    inline void packHRTelemetry(uint8_t* packet, unsigned int index);
-    inline void packLRTelemetry(uint8_t* packet);
-
-    SPIBus xbee_bus;
-
-    uint16_t lr_event_id = 0;
-    uint16_t hr_event_id = 0;
-    uint16_t test_tm_event_id = 0;
-
-    uint8_t hr_tm_index = 0;
-
-    mavlink_hr_tm_t hr_tm_packet;
-    mavlink_lr_tm_t lr_tm_packet;
-
-    mavlink_message_t auto_telemetry_msg;
+    void stateWindTunnelTM(const Event& ev);
 };
 
 } /* namespace DeathStackBoard */
