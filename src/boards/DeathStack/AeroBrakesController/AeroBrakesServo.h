@@ -45,6 +45,11 @@ public:
     {
     }
 
+    virtual ~AeroBrakesServo()
+    {
+        
+    }
+
     void enable() override
     {
         servo.setMaxPulseWidth(2500);

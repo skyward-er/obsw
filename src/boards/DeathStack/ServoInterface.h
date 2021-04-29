@@ -63,7 +63,12 @@ public:
         : MIN_POS(minPosition), MAX_POS(maxPosition), RESET_POS(resetPosition)
     {
     }
+ 
+    virtual ~ServoInterface()
+    {
 
+    }
+    
     /**
      * @brief Enables the communication with the servo and sets it to its reset
      * position.
