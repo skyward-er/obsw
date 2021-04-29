@@ -73,6 +73,7 @@ string getEventString(uint8_t event)
         {EV_ADA_APOGEE_DETECTED, "EV_ADA_APOGEE_DETECTED"},
         {EV_TIMEOUT_PRESS_STABILIZATION, "EV_TIMEOUT_PRESS_STABILIZATION"},
         {EV_ADA_DPL_ALT_DETECTED, "EV_ADA_DPL_ALT_DETECTED"},
+        {EV_SEND_TUNNEL_TM, "EV_SEND_TUNNEL_TM"}
     };
     auto it = event_string_map.find(event);
     return it == event_string_map.end() ? "EV_UNKNOWN" : it->second;

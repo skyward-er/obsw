@@ -73,6 +73,7 @@ enum Events : uint8_t
     EV_SEND_TEST_TM,
     EV_SEND_HR_TM,
     EV_SEND_LR_TM,
+    EV_SEND_TUNNEL_TM,
     EV_DISARMED,
     EV_DPL_ALTITUDE,
     EV_STATS_TIMEOUT,
@@ -110,7 +111,7 @@ enum Events : uint8_t
     EV_TIMEOUT_SHADOW_MODE,
     EV_ADA_APOGEE_DETECTED,
     EV_TIMEOUT_PRESS_STABILIZATION,
-    EV_ADA_DPL_ALT_DETECTED,
+    EV_ADA_DPL_ALT_DETECTED
 };
 
 const std::vector<uint8_t> EVENT_LIST{
