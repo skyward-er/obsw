@@ -172,7 +172,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SET_WIND_TUNNEL_WIND_SPEED:
         {
             WindData d;
-            d.wind = mavlink_msg_windtunnel_tm_get_wind_speed(&msg);
+            d.wind = mavlink_msg_set_wind_tunnel_wind_speed_get_wind_speed(&msg);
             d.timestamp = miosix::getTick();
             logger->log(d);
             TRACE("[TMTC] Received wind data: %.2f m/s\n", d.wind);
