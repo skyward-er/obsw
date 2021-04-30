@@ -24,6 +24,8 @@
 #include "Radio.h"
 
 #include <drivers/Xbee/APIFramesLog.h>
+
+#include <drivers/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -55,7 +57,8 @@ namespace DeathStackBoard
 Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
 {
     SPIBusConfig xbee_cfg{};
-    xbee_cfg.clock_div = SPIClockDivider::DIV8;
+
+    xbee_cfg.clock_div = SPIClockDivider::DIV16;
 
     xbee = new Xbee::Xbee(xbee_bus, xbee_cfg, miosix::xbee::cs::getPin(),
                           miosix::xbee::attn::getPin(),
@@ -63,6 +66,8 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
     xbee->setOnFrameReceivedListener(
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
+    Xbee::setDataRate(*xbee, true, 5000);
+    
     mav_driver = new MavDriver(xbee, handleMavlinkMessage, 0,
                                1000);  // TODO: Use settings
 
