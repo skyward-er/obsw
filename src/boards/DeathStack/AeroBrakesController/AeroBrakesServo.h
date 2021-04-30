@@ -47,10 +47,7 @@ public:
     {
     }
 
-    virtual ~AeroBrakesServo()
-    {
-        
-    }
+    virtual ~AeroBrakesServo() {}
 
     void enable() override
     {
@@ -104,9 +101,8 @@ protected:
         servo.setPosition(AeroBrakesConfigs::SERVO_PWM_CH, angle / 180.0f);
 
         AeroBrakesData abdata;
-        abdata.timestamp = miosix::getTick();
-        abdata.servo_position =
-            servo.getPosition(AeroBrakesConfigs::SERVO_PWM_CH);
+        abdata.timestamp      = miosix::getTick();
+        abdata.servo_position = currentPosition;
         LoggerService::getInstance()->log(abdata);
     }
 
