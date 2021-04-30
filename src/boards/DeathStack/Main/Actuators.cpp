@@ -31,6 +31,8 @@ Actuators::Actuators()
 {
     aerobrakes = new AeroBrakesServo(AeroBrakesConfigs::SERVO_MIN_POS,
                                      AeroBrakesConfigs::SERVO_MAX_POS);
+    
+    aerobrakes->enable();
 }
 
 Actuators::~Actuators() { delete aerobrakes; }
