@@ -57,7 +57,7 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
-static constexpr float SERVO_MAX_POS          = 50.99;  // deg, 0.89 in radians
+static constexpr float SERVO_MAX_POS          = 55;  // deg
 static constexpr float SERVO_MIN_POS          = 0;      // deg
 static constexpr float SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
 static constexpr float SERVO_MIN_RATE         = -60 / 0.2;  // deg/s

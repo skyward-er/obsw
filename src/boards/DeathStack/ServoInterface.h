@@ -88,7 +88,26 @@ public:
      *
      * @param angle The input to be sent to the Servo
      * */
-    void set(float angle) { setPosition(preprocessPosition(angle)); }
+    void set(float angle, bool preprocess = false)
+    {
+        if (angle > MAX_POS)
+        {
+            angle = MAX_POS;
+        }
+        else if (angle < MIN_POS)
+        {
+            angle = MIN_POS;
+        }
+        
+        if (preprocess)
+        {
+            setPosition(preprocessPosition(angle));
+        }
+        else
+        {
+            setPosition(angle);
+        }
+    }
 
     /**
      * @brief Sends the Servo the highest input possible
@@ -108,10 +127,7 @@ public:
     /**
      * @return current actuator position (in degrees)
      */
-    float getCurrentPosition()
-    {
-        return currentPosition;
-    }
+    float getCurrentPosition() { return currentPosition; }
 
     virtual void selfTest() = 0;
 
@@ -135,19 +151,7 @@ protected:
      *
      * @returns Normalized input position
      * */
-    virtual float preprocessPosition(float angle)
-    {
-        if (angle > MAX_POS)
-        {
-            angle = MAX_POS;
-        }
-        else if (angle < MIN_POS)
-        {
-            angle = MIN_POS;
-        }
-
-        return angle;
-    };
+    virtual float preprocessPosition(float angle) { return angle; };
 
     /**
      * @brief Actuator's current position.

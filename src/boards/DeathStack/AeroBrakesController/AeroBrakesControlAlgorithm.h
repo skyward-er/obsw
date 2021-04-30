@@ -216,7 +216,7 @@ void AeroBrakesControlAlgorithm<T>::begin()
     ts = (sensor.getLastSample()).timestamp;
 
     alpha = computeAlpha(true);
-    actuator->set(alpha);
+    actuator->set(alpha, true);
 }
 
 template <class T>
@@ -228,7 +228,7 @@ void AeroBrakesControlAlgorithm<T>::step()
         alpha = computeAlpha(false);
     }
 
-    actuator->set(alpha);
+    actuator->set(alpha, true);
 
     logData();
 }
