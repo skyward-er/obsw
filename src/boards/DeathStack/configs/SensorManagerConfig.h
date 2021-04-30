@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Common.h>
+#include <drivers/adc/ADS1118/ADS1118.h>
 #include <interfaces-impl/hwmapping.h>
 
 using miosix::Gpio;
@@ -30,7 +30,21 @@ using miosix::Gpio;
 namespace DeathStackBoard
 {
 
+namespace SensorConfigs
+{
+static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
+static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
+static constexpr ADS1118::ADS1118Mux ADC_CH_DPL_PORT    = ADS1118::MUX_AIN2_GND;
 
+static constexpr ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT = ADS1118::DR_860;
+static constexpr ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT  = ADS1118::DR_860;
+static constexpr ADS1118::ADS1118DataRate ADC_DR_DPL_PORT    = ADS1118::DR_860;
+
+static constexpr ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT = ADS1118::FSR_6_144;
+static constexpr ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT  = ADS1118::FSR_6_144;
+static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
+
+static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
+}  // namespace SensorConfigs
 
 }  // namespace DeathStackBoard
-

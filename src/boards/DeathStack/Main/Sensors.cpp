@@ -30,11 +30,13 @@
 
 #include "LoggerService/LoggerService.h"
 
+#include "configs/SensorManagerConfig.h"
 using std::bind;
 using std::function;
 
 namespace DeathStackBoard
 {
+using namespace SensorConfigs;
 
 Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
 {
@@ -81,15 +83,22 @@ void Sensors::pressDigiCallback()
 
 void Sensors::ADS1118Init()
 {
-    SPIBusConfig spi_cfg{};
-    spi_cfg.clock_div = SPIClockDivider::DIV32;
-    spi_cfg.mode      = SPIMode::MODE1;
+    SPIBusConfig spi_cfg = ADS1118::getDefaultSPIConfig();
+    spi_cfg.clock_div    = SPIClockDivider::DIV64;
+
+    ADS1118::ADS1118Config ads1118Config = ADS1118::ADS1118_DEFAULT_CONFIG;
+    ads1118Config.bits.mode = ADS1118::ADS1118Mode::CONTIN_CONV_MODE;
 
     adc_ads1118 = new ADS1118(spi1_bus, miosix::sensors::ads1118::cs::getPin(),
-                              ADS1118::ADS1118_DEFAULT_CONFIG, spi_cfg);
+                              ads1118Config, spi_cfg);
 
-    SensorInfo info(50, bind(&Sensors::ADS1118Callback, this), false, true);
-
+    adc_ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
+                             ADC_PGA_STATIC_PORT);
+    adc_ads1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
+                             ADC_PGA_PITOT_PORT);
+    adc_ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT,
+                             ADC_PGA_DPL_PORT);
+    SensorInfo info(150, bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 }
 
@@ -100,10 +109,10 @@ void Sensors::ADS1118Callback()
 
 void Sensors::pressPitotInit()
 {
-    constexpr ADS1118::ADS1118Mux channel = ADS1118::ADS1118Mux::MUX_AIN2_GND;
 
-    function<ADCData()> voltage_fun(bind(&ADS1118::getVoltage, adc_ads1118, channel));
-    press_pitot = new SSCDRRN015PDA(voltage_fun);
+    function<ADCData()> voltage_fun(
+        bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_PITOT_PORT));
+    press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE);
 
     SensorInfo info(50, bind(&Sensors::pressPitotCallback, this), false, true);
 
@@ -112,17 +121,20 @@ void Sensors::pressPitotInit()
 
 void Sensors::pressPitotCallback()
 {
-    LoggerService::getInstance()->log(adc_ads1118->getLastSample());
+
+    // TRACE("PITOT Callback: %f\n", press_pitot->getLastSample().press);
+    LoggerService::getInstance()->log(press_pitot->getLastSample());
 }
 
 void Sensors::pressDPLVaneInit()
 {
-    constexpr ADS1118::ADS1118Mux channel = ADS1118::ADS1118Mux::MUX_AIN2_GND;
 
-    function<ADCData()> voltage_fun(bind(&ADS1118::getVoltage, adc_ads1118, channel));
-    press_dpl_vane = new SSCDANN030PAA(voltage_fun);
+    function<ADCData()> voltage_fun(
+        bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_DPL_PORT));
+    press_dpl_vane = new SSCDANN030PAA(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(50, bind(&Sensors::pressDPLVaneCallback, this), false, true);
+    SensorInfo info(50, bind(&Sensors::pressDPLVaneCallback, this), false,
+                    true);
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 }
@@ -134,20 +146,23 @@ void Sensors::pressDPLVaneCallback()
 
 void Sensors::pressStaticInit()
 {
-    constexpr ADS1118::ADS1118Mux channel = ADS1118::ADS1118Mux::MUX_AIN2_GND;
 
-    function<ADCData()> voltage_fun(bind(&ADS1118::getVoltage, adc_ads1118, channel));
-    press_static_port = new MPXHZ6130A(voltage_fun);
+    function<ADCData()> voltage_fun(
+        bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_STATIC_PORT));
+    press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(50, bind(&Sensors::pressDPLVaneCallback, this), false, true);
+    SensorInfo info(50, bind(&Sensors::pressStaticCallback, this), false,
+                    true);
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 }
 
 void Sensors::pressStaticCallback()
 {
+
+    // TRACE("Static Callback: %f\n", press_static_port->getLastSample().press);
+
     LoggerService::getInstance()->log(press_static_port->getLastSample());
 }
-
 
 }  // namespace DeathStackBoard
