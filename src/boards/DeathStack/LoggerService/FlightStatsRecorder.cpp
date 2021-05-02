@@ -224,8 +224,8 @@ void FlightStatsRecorder::state_idle(const Event& ev)
             transition(&FlightStatsRecorder::state_liftOff);
             break;
         }
-        case EV_TEST_CUTTER_BACKUP:
-        case EV_TEST_CUTTER_PRIMARY:
+        case EV_TEST_CUT_BACKUP:
+        case EV_TEST_CUT_PRIMARY:
         {
             transition(&FlightStatsRecorder::state_testing_cutters);
             break;

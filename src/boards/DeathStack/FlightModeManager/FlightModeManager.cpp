@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2018-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ namespace DeathStackBoard
 {
 
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_initialization, 4096, 2),
+    : HSM(&FlightModeManager::state_initialization, FMM_STACK_SIZE,
+          FMM_PRIORITY),
       logger(*(LoggerService::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
@@ -51,7 +52,7 @@ FlightModeManager::~FlightModeManager()
 
 void FlightModeManager::logState(FMMState current_state)
 {
-    status.timestamp = miosix::getTick();
+    status.timestamp = TimestampTimer::getTimestamp();
     status.state     = current_state;
 
     logger.log(status);
@@ -93,7 +94,7 @@ State FlightModeManager::state_onGround(const Event& ev)
 
             break;
         }
-        case EV_TC_BOARD_RESET:
+        case EV_TC_RESET_BOARD:
         {
             logger.stop();
             miosix::reboot();
@@ -101,7 +102,7 @@ State FlightModeManager::state_onGround(const Event& ev)
         }
         case EV_TC_LAUNCH:
         {
-            retState = transition(&FlightModeManager::state_ascending);
+            retState = transition(&FlightModeManager::state_flying);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -211,14 +212,14 @@ State FlightModeManager::state_initDone(const Event& ev)
 
             break;
         }
-        case EV_TC_CALIBRATE_ADA:
+        case EV_TC_CALIBRATE:
         {
             retState = transition(&FlightModeManager::state_calibrating);
             break;
         }
         case EV_TC_TEST_MODE:
         {
-            retState = transition(&FlightModeManager::state_testing);
+            retState = transition(&FlightModeManager::state_testMode);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -230,7 +231,7 @@ State FlightModeManager::state_initDone(const Event& ev)
     return retState;
 }
 
-/* Just wait the ADA event */
+/* Just wait the ADA, NAS and SM events */
 State FlightModeManager::state_calibrating(const Event& ev)
 {
     State retState = HANDLED;
@@ -238,9 +239,13 @@ State FlightModeManager::state_calibrating(const Event& ev)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
+            ada_ready = false;
+            nas_ready = false;
+            sm_ready  = false;
+
             logState(FMMState::CALIBRATING);
 
-            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+            sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
 
             TRACE("[FMM] Entering calibration\n");
             break;
@@ -255,9 +260,36 @@ State FlightModeManager::state_calibrating(const Event& ev)
 
             break;
         }
+        case EV_TC_CALIBRATE:
+        {
+            retState = transition(&FlightModeManager::state_calibrating);
+            break;
+        }
         case EV_ADA_READY:
         {
-            retState = transition(&FlightModeManager::state_disarmed);
+            ada_ready = true;
+            if (nas_ready && sm_ready)
+            {
+                retState = transition(&FlightModeManager::state_disarmed);
+            }
+            break;
+        }
+        case EV_NAS_READY:
+        {
+            nas_ready = true;
+            if (ada_ready && sm_ready)
+            {
+                retState = transition(&FlightModeManager::state_disarmed);
+            }
+            break;
+        }
+        case EV_SM_READY:
+        {
+            sm_ready = true;
+            if (ada_ready && nas_ready)
+            {
+                retState = transition(&FlightModeManager::state_disarmed);
+            }
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -291,8 +323,31 @@ State FlightModeManager::state_disarmed(const Event& ev)
 
             break;
         }
+        case EV_TC_CALIBRATE:
+        {
+            sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
+
+            retState = transition(&FlightModeManager::state_calibrating);
+            break;
+        }
         case EV_TC_CALIBRATE_ADA:
         {
+            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+
+            retState = transition(&FlightModeManager::state_calibrating);
+            break;
+        }
+        case EV_TC_CALIBRATE_NAS:
+        {
+            sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
+
+            retState = transition(&FlightModeManager::state_calibrating);
+            break;
+        }
+        case EV_TC_CALIBRATE_SENSORS:
+        {
+            sEventBroker->post({EV_CALIBRATE_SENSORS}, TOPIC_SM);
+
             retState = transition(&FlightModeManager::state_calibrating);
             break;
         }
@@ -354,7 +409,7 @@ State FlightModeManager::state_armed(const Event& ev)
 }
 
 // ACTUATORS test
-State FlightModeManager::state_testing(const Event& ev)
+State FlightModeManager::state_testMode(const Event& ev)
 {
     State retState = HANDLED;
     switch (ev.sig)
@@ -383,39 +438,44 @@ State FlightModeManager::state_testing(const Event& ev)
             sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
             break;
         }
+        case EV_TC_DPL_WIGGLE_SERVO:
+        {
+            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DPL);
+            break;
+        }
+        case EV_TC_DPL_RESET_SERVO:
+        {
+            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
+            break;
+        }
+        case EV_TC_TEST_CUT_PRIMARY:
+        {
+            sEventBroker->post(Event{EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
+            break;
+        }
+        case EV_TC_TEST_CUT_BACKUP:
+        {
+            sEventBroker->post(Event{EV_TEST_CUT_BACKUP}, TOPIC_DPL);
+            break;
+        }
         case EV_TC_CUT_DROGUE:
         {
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
             break;
         }
-        case EV_TC_CUT_PRIMARY:
+        case EV_TC_ABK_WIGGLE_SERVO:
         {
-            sEventBroker->post(Event{EV_CUT_PRIMARY}, TOPIC_DPL);
+            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_ABK);
             break;
         }
-        case EV_TC_CUT_BACKUP:
+        case EV_TC_ABK_RESET_SERVO:
         {
-            sEventBroker->post(Event{EV_CUT_BACKUP}, TOPIC_DPL);
+            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_ABK);
             break;
         }
-        case EV_TC_TEST_CUTTER_PRIMARY:
+        case EV_TC_TEST_ABK:
         {
-            sEventBroker->post(Event{EV_TEST_CUTTER_PRIMARY}, TOPIC_DPL);
-            break;
-        }
-        case EV_TC_TEST_CUTTER_BACKUP:
-        {
-            sEventBroker->post(Event{EV_TEST_CUTTER_BACKUP}, TOPIC_DPL);
-            break;
-        }
-        case EV_TC_RESET_SERVO:
-        {
-            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
-            break;
-        }
-        case EV_TC_WIGGLE_SERVO:
-        {
-            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DPL);
+            sEventBroker->post(Event{EV_TEST_ABK}, TOPIC_ABK);
             break;
         }
         case EV_TC_CLOSE_LOG:
@@ -444,7 +504,7 @@ State FlightModeManager::state_flying(const Event& ev)
             sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
             // Start timeout for closing file descriptors
             end_mission_d_event_id =
-                sEventBroker->postDelayed<TIMEOUT_FMM_END_MISSION>(
+                sEventBroker->postDelayed<TIMEOUT_END_MISSION>(
                     {EV_TIMEOUT_END_MISSION}, TOPIC_FMM);
 
             TRACE("[FMM] Entering flying\n");
@@ -469,6 +529,13 @@ State FlightModeManager::state_flying(const Event& ev)
             // Open nosecone command sent by GS in case of problems
             // during flight
             sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
+            break;
+        }
+        case EV_TC_ABK_DISABLE:
+        {
+            // Disable aerobrakes command sent by GS in case of problems
+            // during flight
+            sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
             break;
         }
         case EV_TC_END_MISSION:
