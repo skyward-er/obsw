@@ -37,9 +37,9 @@ void printEvent(uint8_t event, uint8_t topic)
 }
 int main()
 {
+    sEventBroker->start();
     FlightModeManager* fmm = new FlightModeManager();
     fmm->start();
-    sEventBroker->start();
 
     EventSniffer* sniffer = new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
     UNUSED(sniffer); // The sniffer's handler will be called by evBroker
