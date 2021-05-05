@@ -39,6 +39,8 @@ FlightModeManager::FlightModeManager()
       logger(*(LoggerService::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
+    sEventBroker->subscribe(this, TOPIC_NAS);
+    sEventBroker->subscribe(this, TOPIC_SM);
     sEventBroker->subscribe(this, TOPIC_TC);
     sEventBroker->subscribe(this, TOPIC_FMM);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
