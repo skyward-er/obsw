@@ -47,7 +47,7 @@ enum class FMMState : uint8_t
 
 struct FMMStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     FMMState state = FMMState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
