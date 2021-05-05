@@ -1,0 +1,74 @@
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" initial="OnGround">
+ <state id="OnGround"> <!-- Super-state -->
+  <transition event="TMTC.EV_TC_RESET_BOARD" target="OnGround">logger.stop(); reboot();</transition>
+  <transition event="TMTC.EV_TC_LAUNCH" target="Flying"/>
+  <state id="Init">
+   <transition event="FMM.EV_INIT_OK" target="InitDone"></transition>
+   <transition event="FMM.EV_INIT_ERROR" target="InitError"></transition>
+  </state>
+  <state id="InitError">
+   <transition event="TMTC.EV_TC_FORCE_INIT" target="InitDone"></transition>
+  </state>
+  <state id="InitDone">
+   <transition event="TMTC.EV_TC_TEST_MODE" target="TestMode"></transition>
+   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating"></transition>
+  </state>
+  <state id="TestMode">
+   <onentry>post(FLIGHT_EVENTS.EV_TEST_MODE)</onentry>
+   <transition event="TMTC.EV_TC_NC_OPEN" target="TestMode">post(DPL.EV_NC_OPEN)</transition>
+   <transition event="TMTC.EV_TC_DPL_WIGGLE_SERVO" target="TestMode">post(DPL.EV_WIGGLE_SERVO)</transition>
+   <transition event="TMTC.EV_TC_DPL_RESET_SERVO" target="TestMode">post(DPL.EV_RESET_SERVO)</transition>
+   <transition event="TMTC.EV_TC_TEST_CUT_PRIMARY" target="TestMode">post(DPL.EV_TEST_CUT_PRIMARY)</transition>
+   <transition event="TMTC.EV_TC_TEST_CUT_BACKUP" target="TestMode">post(DPL.EV_TEST_CUT_BACKUP)</transition>
+   <transition event="TMTC.EV_TC_CUT_DROGUE" target="TestMode">post(DPL.EV_CUT_DROGUE)</transition>
+   <transition event="TMTC.EV_TC_ABK_WIGGLE_SERVO" target="TestMode">post(ABK.EV_WIGGLE_SERVO)</transition>
+   <transition event="TMTC.EV_TC_ABK_RESET_SERVO" target="TestMode">post(ABK.EV_RESET_SERVO)</transition>
+   <transition event="TMTC.EV_TC_TEST_ABK" target="TestMode">post(ABK.EV_TEST_ABK)</transition>
+   <transition event="TMTC.EV_TC_CLOSE_LOG" target="TestMode">logger.stop()</transition>
+  </state>
+  <state id="Calibrating">
+   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating">ada_ready = true</transition>
+   <transition event="ADA.EV_ADA_READY" target="Calibrating">nas_ready = true</transition>
+   <transition event="NAS.EV_NAS_READY" target="Calibrating">sm_ready = true</transition>
+   <transition event="SM.EV_SM_READY" target="Calibrating"></transition>
+   <transition event="FMM.EV_CALIBRATION_OK" target="Disarmed"></transition>
+  </state>
+  <state id="Disarmed">
+   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating">post(ADA.EV_CALIBRATE)</transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_ADA" target="Calibrating">post(ADA.EV_CALIBRATE_ADA)</transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_NAS" target="Calibrating">post(NAS.EV_CALIBRATE_NAS)</transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_SENSORS" target="Calibrating">post(SM.EV_CALIBRATE_SENSORS)</transition>
+   <transition event="TMTC.EV_TC_ARM" target="Armed"></transition>
+  </state>
+ </state>
+ <state id="Armed">
+  <onentry>post(FLIGHT_EVENTS.EV_ARMED)</onentry>
+  <transition event="TMTC.EV_TC_DISARM" target="Disarmed"></transition>
+  <transition event="FLIGHT_EVENTS.EV_UMBILICAL_DETACHED" target="Ascending"></transition>
+  <transition event="TMTC.EV_TC_LAUNCH" target="Ascending"></transition>
+ </state>
+ <state id="Flying"> <!-- Super-state -->
+  <onentry>postD(FMM.EV_TIMEOUT_END_MISSION); post(FLIGHT_EVENTS.EV_LIFTOFF)</onentry>
+  <transition event="TMTC.EV_TC_END_MISSION" target="Landed"></transition>
+  <transition event="FMM.EV_TIMEOUT_END_MISSION" target="Landed"></transition>
+  <transition event="TMTC.EV_TC_NC_OPEN" target="Flying">post(DPL.EV_NC_OPEN)</transition>
+  <transition event="TMTC.EV_TC_ABK_DISABLE" target="Flying">post(ABK.EV_DISABLE_ABK)</transition>
+  <state id="Ascending">
+   <transition event="ADA.EV_ADA_APOGEE_DETECTED" target="Descending">post(FLIGHT_EVENTS.EV_APOGEE)</transition>
+   <transition event="TMTC.EV_TC_NC_OPEN" target="Descending">post(FLIGHT_EVENTS.EV_APOGEE)</transition>
+  </state>
+  <state id="DrogueDescent">
+   <onentry>post(DPL.EV_NC_OPEN)</onentry>
+   <transition event="ADA.EV_ADA_DPL_ALT_DETECTED" target="TerminalDescent"></transition>
+   <transition event="TMTC.EV_TC_CUT_DROGUE" target="TerminalDescent"></transition>
+   <transition event="FLIGHT_EVENTS.EV_NC_DETACHED" target="DrogueDescent">post(FLIGHT_EVENTS.EV_NC_DETACHED)</transition>
+  </state>
+  <state id="TerminalDescent">
+   <onentry>post(FLIGHT_EVENTS.EV_DPL_ALTITUDE); post(DPL.EV_CUT_DROGUE)</onentry>
+   <transition event="TMTC.EV_TC_CUT_DROGUE" target="TerminalDescent">post(DPL.EV_CUT_DROGUE)</transition>
+  </state>
+ </state>
+ <state id="Landed">
+  <onentry>logger.stop(); post(FLIGHT_EVENTS.EV_LANDED);</onentry>
+ </state>
+</scxml>
