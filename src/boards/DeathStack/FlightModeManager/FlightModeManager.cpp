@@ -420,8 +420,6 @@ State FlightModeManager::state_testMode(const Event& ev)
         {
             logState(FMMState::TESTING);
 
-            sEventBroker->post({EV_TEST_MODE}, TOPIC_FLIGHT_EVENTS);
-
             TRACE("[FMM] Entering testing\n");
             break;
         }
