@@ -29,8 +29,8 @@
 #include <utility>
 
 #include "LoggerService/LoggerService.h"
-
 #include "configs/SensorManagerConfig.h"
+
 using std::bind;
 using std::function;
 
@@ -71,7 +71,7 @@ void Sensors::pressDigiInit()
     press_digital = new MS580301BA07(
         spi1_bus, miosix::sensors::ms5803::cs::getPin(), spi_cfg);
 
-    SensorInfo info(50, bind(&Sensors::pressDigiCallback, this), false, true);
+    SensorInfo info(SP_DIGITAL_PRESS, bind(&Sensors::pressDigiCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_digital, info));
 }
@@ -94,11 +94,15 @@ void Sensors::ADS1118Init()
 
     adc_ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
                              ADC_PGA_STATIC_PORT);
+
     adc_ads1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
                              ADC_PGA_PITOT_PORT);
     adc_ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT,
                              ADC_PGA_DPL_PORT);
-    SensorInfo info(150, bind(&Sensors::ADS1118Callback, this), false, true);
+
+    adc_ads1118->enableInput(ADC_CH_VREF, ADC_DR_VREF, ADC_PGA_VREF);
+
+    SensorInfo info(SP_ADC, bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 }
 
@@ -114,7 +118,8 @@ void Sensors::pressPitotInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_PITOT_PORT));
     press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(50, bind(&Sensors::pressPitotCallback, this), false, true);
+    SensorInfo info(SP_PITOT_PRESS, bind(&Sensors::pressPitotCallback, this),
+                    false, true);
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 }
@@ -122,7 +127,6 @@ void Sensors::pressPitotInit()
 void Sensors::pressPitotCallback()
 {
 
-    // TRACE("PITOT Callback: %f\n", press_pitot->getLastSample().press);
     LoggerService::getInstance()->log(press_pitot->getLastSample());
 }
 
@@ -133,8 +137,8 @@ void Sensors::pressDPLVaneInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_DPL_PORT));
     press_dpl_vane = new SSCDANN030PAA(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(50, bind(&Sensors::pressDPLVaneCallback, this), false,
-                    true);
+    SensorInfo info(SP_DPL_PRESS, bind(&Sensors::pressDPLVaneCallback, this),
+                    false, true);
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 }
@@ -151,17 +155,14 @@ void Sensors::pressStaticInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_STATIC_PORT));
     press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(50, bind(&Sensors::pressStaticCallback, this), false,
-                    true);
+    SensorInfo info(SP_STATIC_PRESS, bind(&Sensors::pressStaticCallback, this),
+                    false, true);
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 }
 
 void Sensors::pressStaticCallback()
 {
-
-    // TRACE("Static Callback: %f\n", press_static_port->getLastSample().press);
-
     LoggerService::getInstance()->log(press_static_port->getLastSample());
 }
 

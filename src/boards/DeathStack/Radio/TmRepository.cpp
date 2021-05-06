@@ -27,7 +27,7 @@
 #include <configs/TMTCConfig.h>
 
 #include "LoggerService/LoggerService.h"
-
+#include "configs/SensorManagerConfig.h"
 namespace DeathStackBoard
 {
 /* Periodic TM updaters */
@@ -198,6 +198,13 @@ void TmRepository::update<WindData>(const WindData& t)
 }
 
 template <>
+void TmRepository::update<ADS1118Data>(const ADS1118Data& t) 
+{
+    if(t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
+        tm_repository.wind_tm.pressure_dpl = t.voltage;
+}
+
+template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t)
 {
     tm_repository.wind_tm.pressure_digital = t.press;
@@ -314,7 +321,7 @@ void TmRepository::update<LogStats>(const LogStats& t)
     tm_repository.logger_tm.statMaxWriteTime    = t.statMaxWriteTime;
 
     tm_repository.wind_tm.log_num = t.logNumber;
-    tm_repository.wind_tm.log_status = t.opened ? t.statWriteError : 1000;
+    tm_repository.wind_tm.log_status = t.opened ? t.statWriteError : -1000;
 }
 
 // /* TMTCManager (Mavlink) */

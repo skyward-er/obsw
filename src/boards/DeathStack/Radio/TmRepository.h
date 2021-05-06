@@ -25,6 +25,7 @@
 
 #include <Singleton.h>
 #include <drivers/Xbee/APIFramesLog.h>
+#include <drivers/adc/ADS1118/ADS1118Data.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
@@ -179,6 +180,9 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 
 template <>
 void TmRepository::update<WindData>(const WindData& t);
+
+template <>
+void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
 
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t);
