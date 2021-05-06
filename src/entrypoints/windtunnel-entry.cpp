@@ -24,22 +24,33 @@
 #include <miosix.h>
 
 #include "DeathStack.h"
+// #include "Main/GlobalBuffers.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
+// using namespace GlobalBuffers;
 
 int main()
 {
     TRACE("Starting windtunnel test....\n");
     // Instantiate the stack
     DeathStack::getInstance()->start();
-
-
-
     TRACE("Running\n");
 
+    // bool printed = false;
     for (;;)
     {
         Thread::sleep(1000);
+        LoggerService::getInstance()->log(
+            LoggerService::getInstance()->getLogger().getLogStats());
+        // if(buf_adc_pitot.size() >= GLOBAL_BUF_LEN && !printed)
+        // {
+        //     printed = true;
+        //     printf("timestamp,voltage_pitot\n");
+        //     for(auto v : buf_adc_pitot)
+        //     {
+        //         printf("%llu,%f\n", v.adc_timestamp, v.voltage);
+        //     }
+        // }
     }
 }
