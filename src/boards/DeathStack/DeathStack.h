@@ -72,17 +72,6 @@ public:
 
     void start()
     {
-        // Start threads
-        try
-        {
-            logger->start();
-        }
-        catch (const std::runtime_error& re)
-        {
-            TRACE("Logger init error\n");
-            status.setError(&DeathStackStatus::logger);
-        }
-
         logger->log(logger->getLogger().getLogStats());
 
         if (!broker->start())
@@ -114,6 +103,17 @@ private:
     {
         /* Shared components */
         logger = Singleton<LoggerService>::getInstance();
+         // Start threads
+        try
+        {
+            logger->start();
+        }
+        catch (const std::runtime_error& re)
+        {
+            TRACE("Logger init error\n");
+            status.setError(&DeathStackStatus::logger);
+        }
+        
         broker = sEventBroker;
 
         // Bind the logEvent function to the event sniffer in order to log every
@@ -129,6 +129,7 @@ private:
         sensors   = new Sensors(*bus->spi1);
         actuators = new Actuators();
 
+        TimestampTimer::enableTimestampTimer();
         TRACE("[DS] Init finished\n");
     }
 
