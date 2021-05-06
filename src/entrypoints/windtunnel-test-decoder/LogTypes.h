@@ -35,9 +35,15 @@
 #include "sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h"
 #include "sensors/analog/pressure/honeywell/SSCDANN030PAAData.h"
 #include "sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h"
+#include "DeathStackStatus.h"
+#include "drivers/mavlink/MavlinkStatus.h"
+#include "AeroBrakesController/AeroBrakesData.h"
+#include "AeroBrakesController/WindData.h"
 
 // Serialized classes
 using std::ofstream;
+
+using namespace DeathStackBoard;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -70,6 +76,11 @@ void registerTypes(Deserializer& ds)
     registerType<Xbee::TXStatusFrameLog>(ds);
     registerType<Xbee::RXPacketFrameLog>(ds);
     registerType<Xbee::XbeeStatus>(ds);
+    registerType<Xbee::XbeeStatus>(ds);
 
     registerType<Xbee::XbeeStatus>(ds);
+    registerType<DeathStackBoard::DeathStackStatus>(ds);
+    registerType<MavlinkStatus>(ds);
+    registerType<AeroBrakesData>(ds);
+    registerType<WindData>(ds);
 }
