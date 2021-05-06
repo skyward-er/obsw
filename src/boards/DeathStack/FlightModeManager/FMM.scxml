@@ -14,7 +14,6 @@
    <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating"></transition>
   </state>
   <state id="TestMode">
-   <onentry>post(FLIGHT_EVENTS.EV_TEST_MODE)</onentry>
    <transition event="TMTC.EV_TC_NC_OPEN" target="TestMode">post(DPL.EV_NC_OPEN)</transition>
    <transition event="TMTC.EV_TC_DPL_WIGGLE_SERVO" target="TestMode">post(DPL.EV_WIGGLE_SERVO)</transition>
    <transition event="TMTC.EV_TC_DPL_RESET_SERVO" target="TestMode">post(DPL.EV_RESET_SERVO)</transition>
