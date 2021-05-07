@@ -30,7 +30,7 @@ using miosix::Gpio;
 namespace DeathStackBoard
 {
 
-
+constexpr char const* Bmx160CorrectionParametersFile = "/sd/bmx160_params.csv";
 
 }  // namespace DeathStackBoard
 
