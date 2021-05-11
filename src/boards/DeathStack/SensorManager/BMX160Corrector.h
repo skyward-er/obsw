@@ -26,6 +26,7 @@
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/Sensor.h>
 #include <sensors/calibration/Calibration.h>
+#include <sensors/calibration/SensorDataExtra.h>
 #include <sensors/calibration/SixParameterCalibration.h>
 #include <sensors/calibration/SoftIronCalibration.h>
 
@@ -50,13 +51,14 @@ struct BMX160CorrectionParameters
                 (which == 0) ? accelParams
                              : (which == 1) ? magnetoParams : gyroParams;
 
-            for(int i = 0; i < 2; i++){
-                for(int j = 0; j < 3; j++){
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
                     is >> mat(j, i);
 
                     if (i != 1 || j != 2 || which != 2)
                         is.ignore(1, ',');
-
                 }
             }
         }
@@ -93,6 +95,13 @@ public:
 
     bool selfTest() override { return driver->selfTest(); }
 
+    static void setAccel(BMX160Data& lhs, const BMX160Data& rhs)
+    {
+        lhs.accel_x = rhs.accel_x;
+        lhs.accel_y = rhs.accel_y;
+        lhs.accel_x = rhs.accel_x;
+    }
+
     BMX160Data sampleImpl() override
     {
         if (!driver)
@@ -101,104 +110,91 @@ public:
             return {};
         }
 
-        BMX160Data avg   = {}, fifoElem;
-        uint8_t fifoSize, numAccel, numMag, numGyro;
-        uint64_t accelTimestamp, magTimestamp, gyroTimestamp;
+        Vector3f avgAccel = {0, 0, 0}, avgMag = {0, 0, 0}, avgGyro = {0, 0, 0}, vec = {0, 0, 0};
+        uint64_t accelTimestamp = 0, magTimestamp = 0, gyroTimestamp = 0;
+        uint8_t numAccel = 0, numMag = 0, numGyro = 0, fifoSize;
+        BMX160Data res, fifoElem;
 
-        std::array<BMX160Data, 200> fifo = driver->getLastFifo(); 
         fifoSize = driver->getLastFifoSize();
-
-        numAccel = numMag = numGyro = 0;
-        accelTimestamp = magTimestamp = gyroTimestamp = 0;
 
         // Get average values for measurements on each axis
         for (int i = 0; i < fifoSize; i++)
         {
-            if(fifo[i].accel_timestamp != accelTimestamp){
-                avg.accel_x += fifo[i].accel_x;
-                avg.accel_y += fifo[i].accel_y;
-                avg.accel_z += fifo[i].accel_z;
+            fifoElem = driver->getFifoElement(i);
 
-                accelTimestamp = fifo[i].accel_timestamp;
+            if (fifoElem.accel_timestamp != accelTimestamp)
+            {
+                static_cast<AccelerometerData>(fifoElem) >> vec;
+                avgAccel += vec;
+
+                accelTimestamp = fifoElem.accel_timestamp;
                 numAccel++;
             }
 
-            if(fifo[i].mag_timestamp != magTimestamp){
-                avg.mag_x += fifo[i].mag_x;
-                avg.mag_y += fifo[i].mag_y;
-                avg.mag_z += fifo[i].mag_z;
+            if (fifoElem.mag_timestamp != magTimestamp)
+            {
+                static_cast<MagnetometerData>(fifoElem) >> vec;
+                avgMag += vec;
 
-                magTimestamp = fifo[i].mag_timestamp;
+                magTimestamp = fifoElem.mag_timestamp;
                 numMag++;
             }
-            
-            if(fifo[i].gyro_timestamp != gyroTimestamp){
-                avg.gyro_x += fifo[i].gyro_x;
-                avg.gyro_y += fifo[i].gyro_y;
-                avg.gyro_z += fifo[i].gyro_z;
 
-                gyroTimestamp = fifo[i].gyro_timestamp;
+            if (fifoElem.gyro_timestamp != gyroTimestamp)
+            {
+                static_cast<GyroscopeData>(fifoElem) >> vec;
+                avgGyro += vec;
+
+                gyroTimestamp = fifoElem.gyro_timestamp;
                 numGyro++;
             }
         }
 
-        if(numAccel == 0){
-            avg.accel_x = last_sample.accel_x;
-            avg.accel_y = last_sample.accel_y;
-            avg.accel_z = last_sample.accel_z;
-        } else {
-            avg.accel_x /= numAccel;
-            avg.accel_y /= numAccel;
-            avg.accel_z /= numAccel;
-        }
+        if (numAccel == 0)
+            static_cast<AccelerometerData>(last_sample) >> avgAccel;
+        else
+            avgAccel /= numAccel;
 
-        if(numMag == 0){
-            avg.mag_x = last_sample.mag_x;
-            avg.mag_y = last_sample.mag_y;
-            avg.mag_z = last_sample.mag_z;
-        } else {
-            avg.mag_x /= numMag;
-            avg.mag_y /= numMag;
-            avg.mag_z /= numMag;
-        }
+        if (numMag == 0)
+            static_cast<MagnetometerData>(last_sample) >> avgMag;
+        else
+            avgMag /= numMag;
 
-        if(numGyro == 0){
-            avg.gyro_x = last_sample.gyro_x;
-            avg.gyro_y = last_sample.gyro_y;
-            avg.gyro_z = last_sample.gyro_z;
-        } else {
-            avg.gyro_x /= numGyro;
-            avg.gyro_y /= numGyro;
-            avg.gyro_z /= numGyro;
-        }
+        if (numGyro == 0)
+            static_cast<GyroscopeData>(last_sample) >> avgGyro;
+        else
+            avgGyro /= numGyro;
 
         TRACE("Number of accelerometer samples considered: %d\n", numAccel);
         TRACE("Number of magnetometer samples considered: %d\n", numMag);
         TRACE("Number of gyroscope samples considered: %d\n", numGyro);
 
+        static_cast<AccelerometerData&>(res) << avgAccel;
+        static_cast<MagnetometerData&>(res) << avgMag;
+        static_cast<GyroscopeData&>(res) << avgGyro;
+
         // Correct the average measurements
-        auto acc    = accelCorrector.correct(avg);
-        avg.accel_x = acc.accel_x;
-        avg.accel_y = acc.accel_y;
-        avg.accel_z = acc.accel_z;
+        auto acc    = accelCorrector.correct(res);
+        res.accel_x = acc.accel_x;
+        res.accel_y = acc.accel_y;
+        res.accel_z = acc.accel_z;
 
-        auto magneto = magnetoCorrector.correct(avg);
-        avg.mag_x    = magneto.mag_x;
-        avg.mag_y    = magneto.mag_y;
-        avg.mag_z    = magneto.mag_z;
+        auto magneto = magnetoCorrector.correct(res);
+        res.mag_x    = magneto.mag_x;
+        res.mag_y    = magneto.mag_y;
+        res.mag_z    = magneto.mag_z;
 
-        auto gyro  = gyroCorrector.correct(avg);
-        avg.gyro_x = gyro.gyro_x;
-        avg.gyro_y = gyro.gyro_y;
-        avg.gyro_z = gyro.gyro_z;
+        auto gyro  = gyroCorrector.correct(res);
+        res.gyro_x = gyro.gyro_x;
+        res.gyro_y = gyro.gyro_y;
+        res.gyro_z = gyro.gyro_z;
 
-        uint64_t timestamp = TimestampTimer::getTimestamp(); 
+        uint64_t timestamp  = TimestampTimer::getTimestamp();
+        res.accel_timestamp = timestamp;
+        res.mag_timestamp   = timestamp;
+        res.gyro_timestamp  = timestamp;
 
-        avg.accel_timestamp = timestamp;
-        avg.mag_timestamp = timestamp;
-        avg.gyro_timestamp = timestamp;
-
-        return avg;
+        return res;
     }
 
     void setParameters(const BMX160CorrectionParameters& params)
