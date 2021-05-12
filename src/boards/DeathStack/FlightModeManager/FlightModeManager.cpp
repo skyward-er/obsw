@@ -272,7 +272,7 @@ State FlightModeManager::state_calibrating(const Event& ev)
             ada_ready = true;
             if (nas_ready && sm_ready)
             {
-                retState = transition(&FlightModeManager::state_disarmed);
+                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
@@ -281,7 +281,7 @@ State FlightModeManager::state_calibrating(const Event& ev)
             nas_ready = true;
             if (ada_ready && sm_ready)
             {
-                retState = transition(&FlightModeManager::state_disarmed);
+                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
@@ -290,8 +290,13 @@ State FlightModeManager::state_calibrating(const Event& ev)
             sm_ready = true;
             if (ada_ready && nas_ready)
             {
-                retState = transition(&FlightModeManager::state_disarmed);
+                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
             }
+            break;
+        }
+        case EV_CALIBRATION_OK:
+        {
+            retState = transition(&FlightModeManager::state_disarmed);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
