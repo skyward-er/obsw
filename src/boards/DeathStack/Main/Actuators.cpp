@@ -23,17 +23,20 @@
 
 #include "Actuators.h"
 
-#include "configs/AeroBrakesConfig.h"
-
 namespace DeathStackBoard
 {
 Actuators::Actuators()
 {
-    aerobrakes = new AeroBrakesServo(AeroBrakesConfigs::SERVO_MIN_POS,
-                                     AeroBrakesConfigs::SERVO_MAX_POS);
-    
-    aerobrakes->enable();
+    //aerobrakes = new AeroBrakesServo();
+    //aerobrakes->enable();
+
+    dpl_servo = new DeploymentServo();
+    dpl_servo->enable();
 }
 
-Actuators::~Actuators() { delete aerobrakes; }
+Actuators::~Actuators()
+{
+    //delete aerobrakes;
+    delete dpl_servo;
+}
 }  // namespace DeathStackBoard

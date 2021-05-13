@@ -28,15 +28,16 @@
 #include "AeroBrakesData.h"
 #include "LoggerService/LoggerService.h"
 #include "drivers/servo/servo.h"
-#include "miosix.h"
-using namespace DeathStackBoard::AeroBrakesConfigs;
 
 namespace DeathStackBoard
 {
+
+using namespace DeathStackBoard::AeroBrakesConfigs;
+
 class AeroBrakesServo : public ServoInterface
 {
 public:
-    AeroBrakesServo() : ServoInterface(SERVO_MIN_POS, SERVO_MAX_POS) {}
+    AeroBrakesServo() : ServoInterface(AB_SERVO_MIN_POS, AB_SERVO_MAX_POS) {}
     AeroBrakesServo(float minPosition, float maxPosition)
         : ServoInterface(minPosition, maxPosition)
     {
@@ -53,14 +54,14 @@ public:
     {
         servo.setMaxPulseWidth(2500);
         servo.setMinPulseWidth(500);
-        servo.enable(SERVO_PWM_CH);
+        servo.enable(AB_SERVO_PWM_CH);
         servo.start();
     }
 
     void disable() override
     {
         servo.stop();
-        servo.disable(SERVO_PWM_CH);
+        servo.disable(AB_SERVO_PWM_CH);
     }
 
     /**
@@ -69,8 +70,8 @@ public:
     void selfTest() override
     {
         float base   = (MAX_POS + RESET_POS) / 2;
-        float maxpos = base + SERVO_WIGGLE_AMPLITUDE / 2;
-        float minpos = base - SERVO_WIGGLE_AMPLITUDE / 2;
+        float maxpos = base + AB_SERVO_WIGGLE_AMPLITUDE / 2;
+        float minpos = base - AB_SERVO_WIGGLE_AMPLITUDE / 2;
 
         set(base);
 
@@ -86,7 +87,7 @@ public:
     }
 
 private:
-    Servo servo{SERVO_TIMER};
+    Servo servo{AB_SERVO_TIMER};
 
 protected:
     /**
@@ -98,7 +99,7 @@ protected:
     {
         currentPosition = angle;
         // map position to [0;1] interval for the servo driver
-        servo.setPosition(AeroBrakesConfigs::SERVO_PWM_CH, angle / 180.0f);
+        servo.setPosition(AeroBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
 
         AeroBrakesData abdata;
         abdata.timestamp      = miosix::getTick();
@@ -113,13 +114,13 @@ protected:
         float update_time_seconds = UPDATE_TIME / 1000;
         float rate = (angle - currentPosition) / update_time_seconds;
 
-        if (rate > SERVO_MAX_RATE)
+        if (rate > AB_SERVO_MAX_RATE)
         {
-            angle = update_time_seconds * SERVO_MAX_RATE + currentPosition;
+            angle = update_time_seconds * AB_SERVO_MAX_RATE + currentPosition;
         }
-        else if (rate < SERVO_MIN_RATE)
+        else if (rate < AB_SERVO_MIN_RATE)
         {
-            angle = update_time_seconds * SERVO_MIN_RATE + currentPosition;
+            angle = update_time_seconds * AB_SERVO_MIN_RATE + currentPosition;
         }
 
         angle =

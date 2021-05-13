@@ -148,7 +148,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         {
             TRACE("[DPL] entering state nosecone_ejection\n");
 
-            ejection_servo->set(SERVO_EJECT_POS);
+            ejection_servo->set(DPL_SERVO_EJECT_POS);
 
             ev_nc_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
                 Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
@@ -279,7 +279,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
             TRACE("[DPL] exiting state test_cutting_primary\n");
 
             primaryCutter->disable();
-            
+
             break;
         }
         case EV_CUTTING_TIMEOUT:

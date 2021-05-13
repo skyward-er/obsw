@@ -36,7 +36,7 @@ namespace DeathStackBoard
 /**
  * Enum defining the possibile FSM states.
  */
-enum DeploymentControllerState : uint8_t
+enum class DeploymentControllerState : uint8_t
 {
     IDLE = 0,
     NOSECONE_EJECTION,

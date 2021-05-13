@@ -24,15 +24,18 @@
 #pragma once
 
 #include "AeroBrakesController/AeroBrakesServo.h"
+#include "DeploymentController/DeploymentServo.h"
 
 namespace DeathStackBoard
 {
-class AeroBrakesServo;
+//class AeroBrakesServo;
+//class DeploymentServo;
 
 class Actuators
 {
 public:
     AeroBrakesServo* aerobrakes;
+    DeploymentServo* dpl_servo;
 
     Actuators();
     ~Actuators();
