@@ -25,6 +25,7 @@
 #include <Common.h>
 #include <events/EventBroker.h>
 #include <events/utils/EventSniffer.h>
+#include <diagnostic/PrintLogger.h>
 
 #include <functional>
 #include <stdexcept>
@@ -58,6 +59,8 @@ class DeathStack : public Singleton<DeathStack>
     friend class Singleton<DeathStack>;
 
 public:
+    PrintLogger log = Logging::getLogger("deathstack");
+
     // Shared Components
     EventBroker* broker;
     LoggerService* logger;
@@ -76,6 +79,8 @@ public:
 
         if (!broker->start())
         {
+            LOG_CRIT(log, "Error starting eventbroker");
+
             status.setError(&DeathStackStatus::ev_broker);
         }
 
@@ -85,14 +90,14 @@ public:
         logger->log(status);
 
         // If there was an error, signal it to the FMM and light a LED.
-        if (status.death_stack != COMP_OK)
-        {
-            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
-        }
-        else
-        {
-            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
-        }
+        // if (status.death_stack != COMP_OK)
+        // {
+        //     sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+        // }
+        // else
+        // {
+        //     sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+        // }
     }
 
 private:
@@ -110,7 +115,7 @@ private:
         }
         catch (const std::runtime_error& re)
         {
-            TRACE("Logger init error\n");
+            LOG_CRIT(log, "SD Logger init error");
             status.setError(&DeathStackStatus::logger);
         }
         
@@ -130,7 +135,7 @@ private:
         actuators = new Actuators();
 
         TimestampTimer::enableTimestampTimer();
-        TRACE("[DS] Init finished\n");
+        LOG_INFO(log, "Init finished");
     }
 
     /**
@@ -151,8 +156,7 @@ private:
                 return;
             }
         }
-        TRACE("[%.3f] %s on %s\n", (miosix::getTick() / 1000.0f),
-              getEventString(event).c_str(), getTopicString(topic).c_str());
+        LOG_DEBUG(log, "{:s} on {:s}", getEventString(event), getTopicString(topic));
 #endif
     }
 

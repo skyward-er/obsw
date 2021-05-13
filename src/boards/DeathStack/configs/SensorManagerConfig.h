@@ -47,13 +47,41 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT  = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 
-// Sampling periods
-static constexpr unsigned int SP_ADC = 3;
+// Sampling periods in milliseconds
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 3;
 
-static constexpr unsigned int SP_DIGITAL_PRESS = 1000 / 50;
-static constexpr unsigned int SP_PITOT_PRESS   = SP_ADC * 4;
-static constexpr unsigned int SP_DPL_PRESS     = SP_ADC * 4;
-static constexpr unsigned int SP_STATIC_PRESS  = SP_ADC * 4;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 1000 / 50;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_PITOT =
+    SAMPLE_PERIOD_ADC_ADS1118 * 4;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
+    SAMPLE_PERIOD_ADC_ADS1118 * 4;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
+    SAMPLE_PERIOD_ADC_ADS1118 * 4;
+
+static constexpr unsigned int IMU_BMX_ACC_GYRO_FS = 1600;
+static constexpr unsigned int IMU_BMX_MAG_FS      = 50;
+
+static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
+static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
+static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
+static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
+
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 200;
+
+// How many bytes go into the fifo each second
+static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
+    IMU_BMX_ACC_GYRO_FS * (IMU_BMX_FIFO_HEADER_SIZE + IMU_BMX_ACC_DATA_SIZE +
+                           IMU_BMX_GYRO_DATA_SIZE) +
+    IMU_BMX_MAG_FS * (IMU_BMX_MAG_DATA_SIZE + IMU_BMX_FIFO_HEADER_SIZE);
+
+// How long does it take for the bmx fifo to fill up
+static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
+    1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
+
+// Sample before the fifo is full, but slightly after the watermark level
+// (watermark + 2)
+static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 2) * 4 / 1024;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs

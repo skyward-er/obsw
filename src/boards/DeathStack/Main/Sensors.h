@@ -27,6 +27,7 @@
 
 #include <drivers/spi/SPIBusInterface.h>
 #include <sensors/SensorManager.h>
+#include <diagnostic/PrintLogger.h>
 
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
@@ -34,7 +35,7 @@
 
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
-
+#include <sensors/BMX160/BMX160.h>
 namespace DeathStackBoard
 {
 
@@ -45,14 +46,16 @@ namespace DeathStackBoard
 class Sensors
 {
 public:
-    SensorManager* sensor_manager;
+    SensorManager* sensor_manager = nullptr;
 
-    MS580301BA07* press_digital;
+    MS580301BA07* press_digital = nullptr;
 
-    ADS1118* adc_ads1118;
-    SSCDRRN015PDA* press_pitot;
-    SSCDANN030PAA* press_dpl_vane;
-    MPXHZ6130A* press_static_port;
+    ADS1118* adc_ads1118 = nullptr;
+    SSCDRRN015PDA* press_pitot = nullptr;
+    SSCDANN030PAA* press_dpl_vane = nullptr;
+    MPXHZ6130A* press_static_port = nullptr;
+
+    BMX160* imu_bmx160 = nullptr;
 
     Sensors(SPIBusInterface& spi1_bus);
 
@@ -61,6 +64,9 @@ public:
     void start();
 
 private:
+    PrintLogger log = Logging::getLogger("deathstack.sensors");
+
+
     void pressDigiInit();
     void pressDigiCallback();
 
@@ -75,6 +81,9 @@ private:
 
     void pressStaticInit();
     void pressStaticCallback();
+
+    void imuBMXinit();
+    void imuBMXCallback();
 
     SPIBusInterface& spi1_bus;
 
