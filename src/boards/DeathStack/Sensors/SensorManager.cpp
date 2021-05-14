@@ -31,9 +31,9 @@
 #include "events/Topics.h"
 
 #ifdef USE_MOCK_SENSORS
-#include "Sensors/Test/TestSensor.h"
-#include "Sensors/Test/MockGPS.h"
-#include "Sensors/Test/MockPressureSensor.h"
+#include "Sensors/Mock/TestSensor.h"
+#include "Sensors/Mock/MockGPS.h"
+#include "Sensors/Mock/MockPressureSensor.h"
 #endif
 
 #include "Common.h"
