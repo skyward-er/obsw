@@ -241,10 +241,6 @@ State FlightModeManager::state_calibrating(const Event& ev)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
-            ada_ready = false;
-            nas_ready = false;
-            sm_ready  = false;
-
             logState(FMMState::CALIBRATING);
 
             sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
@@ -332,6 +328,9 @@ State FlightModeManager::state_disarmed(const Event& ev)
         }
         case EV_TC_CALIBRATE:
         {
+            ada_ready = false;
+            nas_ready = false;
+            sm_ready  = false;
             sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
 
             retState = transition(&FlightModeManager::state_calibrating);
@@ -339,6 +338,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
         }
         case EV_TC_CALIBRATE_ADA:
         {
+            ada_ready = false;
             sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
 
             retState = transition(&FlightModeManager::state_calibrating);
@@ -346,6 +346,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
         }
         case EV_TC_CALIBRATE_NAS:
         {
+            nas_ready = false;
             sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
 
             retState = transition(&FlightModeManager::state_calibrating);
@@ -353,6 +354,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
         }
         case EV_TC_CALIBRATE_SENSORS:
         {
+            sm_ready = false;
             sEventBroker->post({EV_CALIBRATE_SENSORS}, TOPIC_SM);
 
             retState = transition(&FlightModeManager::state_calibrating);
@@ -426,6 +428,7 @@ State FlightModeManager::state_testMode(const Event& ev)
             logState(FMMState::TESTING);
 
             TRACE("[FMM] Entering testing\n");
+
             break;
         }
         case EV_INIT: /* No sub-state */
