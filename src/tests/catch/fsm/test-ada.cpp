@@ -36,8 +36,8 @@
 #define private public
 #define protected public
 
-#include "SensorManager/Sensors/Test/MockGPS.h"
-#include "SensorManager/Sensors/Test/MockPressureSensor.h"
+#include "Sensors/Mock/MockGPS.h"
+#include "Sensors/Mock/MockPressureSensor.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 #include "ADA/ADAController.h"

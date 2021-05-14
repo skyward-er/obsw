@@ -22,7 +22,7 @@
 #include "ADA.h"
 
 #include <Debug.h>
-#include <configs/ADAconfig.h>
+#include <configs/ADAConfig.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <utils/aero/AeroUtils.h>
@@ -37,10 +37,9 @@ namespace DeathStackBoard
 using namespace ADAConfigs;
 
 ADA::ADA(ReferenceValues ref_values)
-    : ref_values(ref_values),
-      filter(ADAConfigs::getKalmanConfig(ref_values.ref_pressure))
+    : ref_values(ref_values), filter(getKalmanConfig(ref_values.ref_pressure))
 {
-    TRACE("[ADA] Finalized calibration. p_ref: %.3f, p0: %.3f, t0: %.3f\n",
+    TRACE("[ADA] Initial reference values : p_ref: %.3f, p0: %.3f, t0: %.3f\n",
           ref_values.ref_pressure, ref_values.msl_pressure,
           ref_values.msl_temperature);
 }
@@ -121,6 +120,21 @@ void ADA::updatePressureKalman(float pressure)
     {
         TRACE("[ADA] Kalman correction step failed \n");
     }
+}
+
+const KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>::KalmanConfig
+ADA::getKalmanConfig(const float init_pressure)
+{
+    KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>::KalmanConfig
+        config;
+    config.F = F_INIT;
+    config.H = H_INIT;
+    config.Q = Q_INIT;
+    config.R = R_INIT;
+    config.P = P_INIT;
+    config.x = CVectorN(init_pressure, 0, KALMAN_INITIAL_ACCELERATION);
+
+    return config;
 }
 
 }  // namespace DeathStackBoard

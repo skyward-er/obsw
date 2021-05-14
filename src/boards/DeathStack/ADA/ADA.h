@@ -25,7 +25,7 @@
 #include <kalman/KalmanEigen.h>
 #include <math/Stats.h>
 
-#include "ADAStatus.h"
+#include "ADAData.h"
 #include "sensors/Sensor.h"
 
 namespace DeathStackBoard
@@ -94,6 +94,11 @@ public:
 
 private:
     void updatePressureKalman(float pressure);
+
+    // method to initialize the kalman configuration structure
+    const KalmanEigen<float, KALMAN_STATES_NUM,
+                      KALMAN_OUTPUTS_NUM>::KalmanConfig
+    getKalmanConfig(const float ref_pressure);
 
     // References for pressure to altitude conversion
     ReferenceValues ref_values;
