@@ -62,6 +62,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
     pressDPLVaneInit();
     pressStaticInit();
     imuBMXinit();
+    magLISinit();
     sensor_manager = new SensorManager(sensors_map);
 }
 
@@ -100,6 +101,9 @@ void Sensors::pressDigiInit()
                     bind(&Sensors::pressDigiCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_digital, info));
+
+    LOG_INFO(log, "MS5803 pressure sensor setup done! ({:p})",
+             fmt::ptr(press_digital));
 }
 
 void Sensors::ADS1118Init()
@@ -126,6 +130,8 @@ void Sensors::ADS1118Init()
     SensorInfo info(SAMPLE_PERIOD_ADC_ADS1118,
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
+
+    LOG_INFO(log, "ADS1118 setup done! ({:p})", fmt::ptr(adc_ads1118));
 }
 
 void Sensors::pressPitotInit()
@@ -139,6 +145,9 @@ void Sensors::pressPitotInit()
                     bind(&Sensors::pressPitotCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
+
+    LOG_INFO(log, "Pitot pressure sensor setup done! ({:p})",
+             fmt::ptr(press_pitot));
 }
 
 void Sensors::pressDPLVaneInit()
@@ -152,6 +161,9 @@ void Sensors::pressDPLVaneInit()
                     bind(&Sensors::pressDPLVaneCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
+
+    LOG_INFO(log, "DPL pressure sensor setup done! ({:p})",
+             fmt::ptr(press_dpl_vane));
 }
 
 void Sensors::pressStaticInit()
@@ -165,6 +177,9 @@ void Sensors::pressStaticInit()
                     bind(&Sensors::pressStaticCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
+
+    LOG_INFO(log, "Static pressure sensor setup done! ({:p})",
+             fmt::ptr(press_static_port));
 }
 
 void Sensors::imuBMXinit()
@@ -173,31 +188,28 @@ void Sensors::imuBMXinit()
     spi_cfg.clock_div    = SPIClockDivider::DIV32;
 
     BMX160Config bmx_config;
-    // bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
-    // bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
-    // bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
+    bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
+    bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
 
-    // bmx_config.temp_divider = 0;
-
-    // bmx_config.mag_repxy = 0x04;
-    // bmx_config.mag_repz  = 0x0E;
+    bmx_config.temp_divider = 0;
 
     // bmx_config.enable_compensation = false;
 
     // bmx_config.fifo_acc_filtered = true;
     // bmx_config.fifo_gyr_filtered = true;
 
-    // bmx_config.acc_range = BMX160Config::AccRange::G_16;
-    // bmx_config.gyr_range = BMX160Config::GyrRange::DEG_125;
+    bmx_config.acc_range = BMX160Config::AccRange::G_16;
+    bmx_config.gyr_range = BMX160Config::GyrRange::DEG_125;
 
-    // bmx_config.acc_odr = BMX160Config::Odr::HZ_1600;
-    // bmx_config.gyr_odr = BMX160Config::Odr::HZ_1600;
-    // bmx_config.mag_odr = BMX160Config::Odr::HZ_50;
+    bmx_config.acc_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
+    bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
+    bmx_config.mag_odr = IMU_BMX_MAG_FS_ENUM;
 
-    bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
-    bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
-    bmx_config.fifo_watermark = 100;
-    bmx_config.temp_divider   = 1;
+    // bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
+    // bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    // bmx_config.fifo_watermark = 100;
+    // bmx_config.temp_divider   = 1;
 
     imu_bmx160 =
         new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(), bmx_config);
@@ -207,8 +219,28 @@ void Sensors::imuBMXinit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
-    PrintLogger bmx_log = log.getChild("bmx");
-    LOG_INFO(bmx_log, "BMX setup done");
+    LOG_INFO(log, "BMX160 Setup done! ({:p})", fmt::ptr(imu_bmx160));
+}
+
+void Sensors::magLISinit()
+{
+    SPIBusConfig busConfig;
+    busConfig.clock_div = SPIClockDivider::DIV32;
+
+    LIS3MDL::Config config;
+    config.odr                = MAG_LIS_FS_ENUM;
+    config.scale              = MAG_LIS_FULLSCALE;
+    config.temperatureDivider = 1;
+
+    mag_lis3mdl = new LIS3MDL(spi1_bus, miosix::sensors::lis3mdl::cs::getPin(),
+                              busConfig, config);
+
+    SensorInfo info(SAMPLE_PERIOD_MAG_LIS, bind(&Sensors::magLISCallback, this),
+                    false, true);
+
+    sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
+
+    LOG_INFO(log, "LIS3MDL Setup done! ({:p})", fmt::ptr(mag_lis3mdl));
 }
 
 void Sensors::pressDigiCallback()
@@ -245,6 +277,33 @@ void Sensors::imuBMXCallback()
     {
         LoggerService::getInstance()->log(fifo.at(i));
     }
+
+    // static unsigned int downsample_ctr = 0;
+
+    // if (downsample_ctr++ % 20 == 0)
+    // {
+    //     auto sample = fifo.at(0);
+    //     LOG_DEBUG_ASYNC(log.getChild("bmx160"),
+    //                     "acc xyz: {:+.3f},{:+.3f},{:+.3f} gyro xyz: "
+    //                     "{:+.3f},{:+.3f},{:+.3f}",
+    //                     sample.accel_x, sample.accel_y, sample.accel_z,
+    //                     sample.gyro_x, sample.gyro_y, sample.gyro_z);
+    // }
+}
+
+void Sensors::magLISCallback()
+{
+    LoggerService::getInstance()->log(mag_lis3mdl->getLastSample());
+
+    // static unsigned int downsample_ctr = 0;
+
+    // if (downsample_ctr++ % 20 == 0)
+    // {
+    //     auto sample = mag_lis3mdl->getLastSample();
+    //     LOG_DEBUG_ASYNC(log.getChild("lis3mdl"),
+    //                     "mag xyzt: {:+.3f},{:+.3f},{:+.3f},{:+.3f}",
+    //                     sample.mag_x, sample.mag_y, sample.mag_z, sample.temp);
+    // }
 }
 
 }  // namespace DeathStackBoard

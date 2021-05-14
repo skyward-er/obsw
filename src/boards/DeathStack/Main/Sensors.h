@@ -36,6 +36,7 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
 #include <sensors/BMX160/BMX160.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
 namespace DeathStackBoard
 {
 
@@ -56,6 +57,7 @@ public:
     MPXHZ6130A* press_static_port = nullptr;
 
     BMX160* imu_bmx160 = nullptr;
+    LIS3MDL* mag_lis3mdl = nullptr;
 
     Sensors(SPIBusInterface& spi1_bus);
 
@@ -84,6 +86,9 @@ private:
 
     void imuBMXinit();
     void imuBMXCallback();
+
+    void magLISinit();
+    void magLISCallback();
 
     SPIBusInterface& spi1_bus;
 
