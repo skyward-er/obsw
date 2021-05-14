@@ -280,6 +280,8 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
 
             primaryCutter->disable();
 
+            primaryCutter->disable();
+            
             break;
         }
         case EV_CUTTING_TIMEOUT:

@@ -581,7 +581,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
         {
             shadow_delayed_event_id =
                 sEventBroker->postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
-                    {EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA);
+                    {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
             TRACE("[ADA] Entering state shadowMode\n");
             break;
@@ -592,7 +592,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
             TRACE("[ADA] Exiting state shadowMode\n");
             break;
         }
-        case EV_TIMEOUT_SHADOW_MODE:
+        case EV_SHADOW_MODE_TIMEOUT:
         {
             this->transition(&ADACtrl::state_active);
             break;

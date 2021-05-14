@@ -31,8 +31,16 @@ bool shaCmp(unsigned int a[5], unsigned int b[5])
 {
     if(memcmp(a,b,20)==0) return false;
     iprintf("Mismatch\n");
-    for(int i=0;i<5;i++) iprintf("%04x",a[i]); iprintf("\n");
-    for(int i=0;i<5;i++) iprintf("%04x",b[i]); iprintf("\n");
+    for(int i=0;i<5;i++) 
+    {
+        iprintf("%04x",a[i]); 
+    }
+    iprintf("\n");
+    for(int i=0;i<5;i++) 
+    {
+        iprintf("%04x",b[i]); 
+    }
+    iprintf("\n");
     return true;
 }
 

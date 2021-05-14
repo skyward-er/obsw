@@ -119,9 +119,9 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from shadow_mode")
 {
     controller->transition(&ADACtrl::state_shadowMode);
 
-    SECTION("EV_TIMEOUT_SHADOW_MODE -> ACTIVE")
+    SECTION("EV_SHADOW_MODE_TIMEOUT -> ACTIVE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_TIMEOUT_SHADOW_MODE},
+        REQUIRE(testFSMTransition(*controller, Event{EV_SHADOW_MODE_TIMEOUT},
                                   &ADACtrl::state_active));
     }
 }

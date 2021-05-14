@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-04-17 23:09:11.522877
+// Autogen date: 2021-05-05 14:56:16.829239
 
 #pragma once
 
@@ -41,29 +41,29 @@ using std::string;
  */
 enum Topics : uint8_t
 {
+    TOPIC_ABK,
+    TOPIC_ADA,
+    TOPIC_DPL,
     TOPIC_FLIGHT_EVENTS,
     TOPIC_FMM,
-    TOPIC_SM,
-    TOPIC_TC,
-    TOPIC_DPL,
-    TOPIC_ABK,
     TOPIC_NAS,
-    TOPIC_TMTC,
+    TOPIC_SM,
     TOPIC_STATS,
-    TOPIC_ADA,
+    TOPIC_TC,
+    TOPIC_TMTC,
 };
 
 const std::vector<uint8_t> TOPIC_LIST{
+    TOPIC_ABK,
+    TOPIC_ADA,
+    TOPIC_DPL,
     TOPIC_FLIGHT_EVENTS,
     TOPIC_FMM,
-    TOPIC_SM,
-    TOPIC_TC,
-    TOPIC_DPL,
-    TOPIC_ABK,
     TOPIC_NAS,
-    TOPIC_TMTC,
+    TOPIC_SM,
     TOPIC_STATS,
-    TOPIC_ADA,
+    TOPIC_TC,
+    TOPIC_TMTC,
 };
 
 /**

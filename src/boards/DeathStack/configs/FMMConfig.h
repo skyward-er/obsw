@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
+/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
  * Authors: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,7 +28,10 @@ namespace DeathStackBoard
 // State timeouts
 // Automatically end the mission after a very long time, in order to safely
 // close the logs if radio comms have been lost
-static constexpr unsigned int TIMEOUT_FMM_END_MISSION = 30 * 60 * 1000;
+static constexpr unsigned int TIMEOUT_END_MISSION = 30 * 60 * 1000;
+
+static constexpr unsigned int FMM_STACK_SIZE = 4096;
+static constexpr unsigned int FMM_PRIORITY   = 2;
 
 }  // namespace DeathStackBoard
 
