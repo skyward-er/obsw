@@ -1,6 +1,6 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/**
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,41 +23,17 @@
 
 #pragma once
 
-#include <cstdint>
-#include <ostream>
+// Ignore warnings as these are auto-generated headers made with third party
+// tools
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#include <mavlink_skyward_lib/mavlink_lib/lynx/mavlink.h>
+#pragma GCC diagnostic pop
 
-struct BatteryVoltageDataWrapper
+#include <drivers/mavlink/MavlinkDriver.h>
+
+namespace DeathStackBoard
 {
-    long long timestamp;
-
-    uint16_t raw_value;
-    float volt;
-
-    static std::string header() { return "timestamp,raw_value,volt\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)raw_value << "," << volt << "\n";
-    }
-};
-
-struct CurrentSenseDataWrapper
-{
-    long long timestamp;
-    uint16_t raw_value_1;
-    uint16_t raw_value_2;
-
-    float current_1;
-    float current_2;
-
-    static std::string header()
-    {
-        return "timestamp,raw_value_1,raw_value_2,current_1,current_2\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << raw_value_1 << "," << raw_value_2 << "," << current_1
-           << "," << current_2 << "\n";
-    }
-};
+using MavDriver = MavlinkDriver<256, 5>;
+}

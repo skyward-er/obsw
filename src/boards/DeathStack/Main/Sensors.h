@@ -1,6 +1,6 @@
-/*
+/**
  * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Vincenzo Santomarco
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,62 @@
 
 #pragma once
 
-#include <math.h>
+#include <map>
+
+#include <drivers/spi/SPIBusInterface.h>
+#include <sensors/SensorManager.h>
+
+#include <drivers/adc/ADS1118/ADS1118.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+
+#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+#include <sensors/MS580301BA07/MS580301BA07.h>
 
 namespace DeathStackBoard
 {
 
-class TrajectoryPoint
+/**
+ * @brief Initializes all the sensors on the death stack
+ *
+ */
+class Sensors
 {
 public:
-    TrajectoryPoint() : TrajectoryPoint(0, 0) {}
-    TrajectoryPoint(float z, float vz) : z(z), vz(vz) {}
+    SensorManager* sensor_manager;
 
-    float getZ() { return z; }
-    float getVz() { return vz; }
+    MS580301BA07* press_digital;
 
-    static float distance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return powf(a.getZ() - b.getZ(), 2) + powf(a.getVz() - b.getVz(), 2);
-    }
+    ADS1118* adc_ads1118;
+    SSCDRRN015PDA* press_pitot;
+    SSCDANN030PAA* press_dpl_vane;
+    MPXHZ6130A* press_static_port;
 
-    static float zDistance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return abs(a.getZ() - b.getZ());
-    }
+    Sensors(SPIBusInterface& spi1_bus);
 
-    static float vzDistance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return abs(a.getVz() - b.getVz());
-    }
+    ~Sensors();
+
+    void start();
 
 private:
-    float z;
-    float vz;
+    void pressDigiInit();
+    void pressDigiCallback();
+
+    void ADS1118Init();
+    void ADS1118Callback();
+
+    void pressPitotInit();
+    void pressPitotCallback();
+
+    void pressDPLVaneInit();
+    void pressDPLVaneCallback();
+
+    void pressStaticInit();
+    void pressStaticCallback();
+
+    SPIBusInterface& spi1_bus;
+
+    SensorManager::SensorMap_t sensors_map;
 };
 
-}  // namespace DeathStackBoard
+}

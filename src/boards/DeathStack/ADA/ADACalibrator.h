@@ -27,7 +27,7 @@
 #include <math/Stats.h>
 #include <miosix.h>
 
-#include "ADAStatus.h"
+#include "ADAData.h"
 
 namespace DeathStackBoard
 {

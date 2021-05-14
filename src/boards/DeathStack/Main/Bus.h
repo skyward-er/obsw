@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,16 @@
 
 #pragma once
 
-#include <drivers/piksi/piksi_data.h>
-#include <ostream>
+#include <miosix.h>
+#include <drivers/spi/SPIBus.h>
 
 namespace DeathStackBoard
 {
-struct PiksiData
+class Bus
 {
-    //GPSData gps_data;
-    bool fix = false;
-
-    static std::string header()
-    {
-        return "timestamp,lat,lon,alt,vel_n,vel_e,vel_d,speed,num_sat,fix\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        /*os << gps_data.timestamp << "," << gps_data.latitude << ","
-           << gps_data.longitude << "," << gps_data.height << ","
-           << gps_data.velocityNorth << "," << gps_data.velocityEast << ","
-           << gps_data.velocityDown << "," << gps_data.speed << ","
-           << gps_data.numSatellites << "," << (int)fix << "\n";*/
-    }
+public:
+    SPIBusInterface* spi1 = new SPIBus(SPI1);
+    SPIBusInterface* spi2 = new SPIBus(SPI2);
+private:
 };
 }  // namespace DeathStackBoard

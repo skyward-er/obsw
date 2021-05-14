@@ -1,6 +1,6 @@
-/*
+/**
  * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Vincenzo Santomarco
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,13 @@
 
 #pragma once
 
-#include <math.h>
+#include "Mavlink.h"
 
 namespace DeathStackBoard
 {
 
-class TrajectoryPoint
-{
-public:
-    TrajectoryPoint() : TrajectoryPoint(0, 0) {}
-    TrajectoryPoint(float z, float vz) : z(z), vz(vz) {}
+void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg);
 
-    float getZ() { return z; }
-    float getVz() { return vz; }
-
-    static float distance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return powf(a.getZ() - b.getZ(), 2) + powf(a.getVz() - b.getVz(), 2);
-    }
-
-    static float zDistance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return abs(a.getZ() - b.getZ());
-    }
-
-    static float vzDistance(TrajectoryPoint a, TrajectoryPoint b)
-    {
-        return abs(a.getVz() - b.getVz());
-    }
-
-private:
-    float z;
-    float vz;
-};
+void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg);
 
 }  // namespace DeathStackBoard

@@ -25,9 +25,9 @@
 
 #include <events/FSM.h>
 
-#include "TmRepository.h"
+#include "TmRepository/TmRepository.h"
 
-#include "ADA/ADAStatus.h"
+#include "ADA/ADAData.h"
 #include "SensorManager/Sensors/AD7994WrapperData.h"
 //#include "SensorManager/Sensors/PiksiData.h"
 #include "configs/FlightStatsConfig.h"

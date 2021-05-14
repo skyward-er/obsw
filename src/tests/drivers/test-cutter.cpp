@@ -81,7 +81,7 @@ void wait(void* arg)
     long long t  = getTick();
     long long t0 = t;
 
-    while (t < t0 + CUT_TIME)
+    while (t < t0 + CUT_TIME && !finished)
     {
         Thread::sleep(50);
 

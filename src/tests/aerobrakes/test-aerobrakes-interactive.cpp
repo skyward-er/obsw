@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Authors: Alberto Nidasio, Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,9 +85,9 @@ protected:
     bool selfTest() override { return true; }
 };
 
-float minPosition   = AeroBrakesConfigs::SERVO_MIN_POS;
-float maxPosition   = AeroBrakesConfigs::SERVO_MAX_POS;
-float resetPosition = AeroBrakesConfigs::SERVO_MIN_POS;
+float minPosition   = AeroBrakesConfigs::AB_SERVO_MIN_POS;
+float maxPosition   = AeroBrakesConfigs::AB_SERVO_MAX_POS;
+float resetPosition = AeroBrakesConfigs::AB_SERVO_MIN_POS;
 
 int main()
 {
@@ -233,12 +233,12 @@ void wiggleServo()
 
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
+    servo.reset();
 
-    cout << "Wiggling ... \n";
+    cout << "Wiggling ...\n";
     servo.selfTest();
-    Thread::sleep(10000);
+    Thread::sleep(1000);    
     servo.disable();
-
     cout << "\n\tDone!\n";
 }
 
@@ -252,7 +252,7 @@ void setServoFullyOpen()
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
     servo.setMaxPosition();
-    Thread::sleep(10000);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
@@ -268,7 +268,7 @@ void setServoFullyClosed()
     AeroBrakesServo servo{minPosition, maxPosition, resetPosition};
     servo.enable();
     servo.setMinPosition();
-    Thread::sleep(10000);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
@@ -311,7 +311,7 @@ void manualServoControl()
         servo.set(angle);
         Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
     }
-    Thread::sleep(100);
+    Thread::sleep(1000);
     servo.disable();
 
     cout << "\n\tDone!\n";
@@ -351,9 +351,9 @@ void setServoParameters()
 
 void resetServoParameters()
 {
-    minPosition   = AeroBrakesConfigs::SERVO_MIN_POS;
-    maxPosition   = AeroBrakesConfigs::SERVO_MAX_POS;
-    resetPosition = AeroBrakesConfigs::SERVO_MIN_POS;
+    minPosition   = AeroBrakesConfigs::AB_SERVO_MIN_POS;
+    maxPosition   = AeroBrakesConfigs::AB_SERVO_MAX_POS;
+    resetPosition = AeroBrakesConfigs::AB_SERVO_MIN_POS;
 
     cout << "Configured parameteres (default):\n";
     cout << "\tminimum position: " << minPosition << "\n";

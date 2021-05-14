@@ -31,22 +31,6 @@
 namespace DeathStackBoard
 {
 
-enum class SensorSamplerId : uint8_t
-{
-    STATS          = 0,
-    GPS            = 10,
-    SIMPLE_20HZ    = 20,
-    SIMPLE_50HZ    = 50,
-    MPU_MAGN_100HZ = 100,
-    SIMPLE_250HZ   = 250
-};
-
-enum class TempSensorId : uint8_t
-{
-    LM75B_ANALOG = 0,
-    LM75B_IMU    = 1
-};
-
 enum class SensorManagerState : uint8_t
 {
     IDLE,
@@ -102,20 +86,6 @@ struct SensorStatus
         os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi
            << "," << current_sensor << "," << battery_sensor << "," << ad7994
            << "," << ms5803 << "\n";
-    }
-};
-
-struct LM75BData
-{
-    long long timestamp;
-    float temp_imu;
-    float temp_analog;
-
-    static std::string header() { return "timestamp,temp_imu,temp_analog\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << temp_imu << "," << temp_analog << "\n";
     }
 };
 

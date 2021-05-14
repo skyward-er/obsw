@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,22 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "Actuators.h"
 
 namespace DeathStackBoard
 {
-void enableXbeeInterrupt();
+Actuators::Actuators()
+{
+    //aerobrakes = new AeroBrakesServo();
+    //aerobrakes->enable();
+
+    dpl_servo = new DeploymentServo();
+    dpl_servo->enable();
 }
+
+Actuators::~Actuators()
+{
+    //delete aerobrakes;
+    delete dpl_servo;
+}
+}  // namespace DeathStackBoard

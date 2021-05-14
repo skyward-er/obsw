@@ -44,7 +44,10 @@ class MockActuator : public AeroBrakesServo
 public:
     MockActuator() {}
     // void setPosition(float alpha) { lastAlpha = round(alpha * 180 / PI); }
-    float error(float alphaTest) { return abs(alphaTest - currentPosition); }
+    float error(float alphaTest) { 
+        int error = abs(alphaTest - currentPosition);
+        printf("Error: %d\n", error);
+        return error; }
 
     // private:
     // int lastAlpha;
@@ -115,6 +118,11 @@ int main()
     algorithm.begin();
     uint32_t t2 = hrclock.tick();
 
+    cout << "z: " << mockSensor.getLastSample().z
+        << "\tvz: " << mockSensor.getLastSample().vz
+        << "\tvMod: " << mockSensor.getLastSample().vMod
+        << "\tservo: " << mockActuator.getCurrentPosition() << "\n";
+
     float startTime   = hrclock.toMilliSeconds(t2 - t1);
     float stepTime    = 0;
     int maxAlphaError = 0;
@@ -142,8 +150,6 @@ int main()
     }
 
     miosix::Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
-
-    printf("Max alpha error: %d\n", maxAlphaError);
 
     printf(
         "Init time: %f ms\nAvg iter time: %f ms\nTotal computation time: %f "

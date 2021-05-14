@@ -66,7 +66,7 @@ struct AeroBrakesControllerStatus
 struct AeroBrakesData
 {
     long long timestamp;
-    float running;
+    bool running;
     float servo_position;
 
     static std::string header() { return "timestamp,running,servo_position\n"; }

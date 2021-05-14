@@ -64,6 +64,7 @@ string getEventString(uint8_t event)
         {EV_SEND_HR_TM, "EV_SEND_HR_TM"},
         {EV_SEND_LR_TM, "EV_SEND_LR_TM"},
         {EV_SEND_TEST_TM, "EV_SEND_TEST_TM"},
+        {EV_SEND_TUNNEL_TM, "EV_SEND_TUNNEL_TM"},
         {EV_SHADOW_MODE_TIMEOUT, "EV_SHADOW_MODE_TIMEOUT"},
         {EV_SM_READY, "EV_SM_READY"},
         {EV_STATS_TIMEOUT, "EV_STATS_TIMEOUT"},

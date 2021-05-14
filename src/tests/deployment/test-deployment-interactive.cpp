@@ -56,9 +56,9 @@ void resetBackupCutterParameters();
 
 void waitUserInput();
 
-float minPosition   = DeploymentConfigs::SERVO_MIN_POS;
-float maxPosition   = DeploymentConfigs::SERVO_MAX_POS;
-float resetPosition = DeploymentConfigs::SERVO_RESET_POS;
+float minPosition   = DeploymentConfigs::DPL_SERVO_MIN_POS;
+float maxPosition   = DeploymentConfigs::DPL_SERVO_MAX_POS;
+float resetPosition = DeploymentConfigs::DPL_SERVO_RESET_POS;
 
 unsigned int primaryCutterFrequency =
     CutterConfig::PRIMARY_CUTTER_PWM_FREQUENCY;
@@ -455,9 +455,9 @@ void setBackupCutterParameters()
 
 void resetServoParameters()
 {
-    minPosition   = DeploymentConfigs::SERVO_MIN_POS;
-    maxPosition   = DeploymentConfigs::SERVO_MAX_POS;
-    resetPosition = DeploymentConfigs::SERVO_MIN_POS;
+    minPosition   = DeploymentConfigs::DPL_SERVO_MIN_POS;
+    maxPosition   = DeploymentConfigs::DPL_SERVO_MAX_POS;
+    resetPosition = DeploymentConfigs::DPL_SERVO_MIN_POS;
 
     cout << "Configured servo parameteres (default):\n";
     cout << "\tminimum position: " << minPosition << "\n";

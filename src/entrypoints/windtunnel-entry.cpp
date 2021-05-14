@@ -1,6 +1,6 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/**
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,34 +21,36 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
 
-#include <cstdint>
-#include <ostream>
+#include "DeathStack.h"
+// #include "Main/GlobalBuffers.h"
 
-struct AD7994WrapperData
+using namespace miosix;
+using namespace DeathStackBoard;
+// using namespace GlobalBuffers;
+
+int main()
 {
-    long long timestamp;
+    TRACE("Starting windtunnel test....\n");
+    // Instantiate the stack
+    DeathStack::getInstance()->start();
+    TRACE("Running\n");
 
-    uint16_t honeywell_baro_volt;
-    uint16_t nxp_baro_volt;
-
-    float honeywell_baro_pressure;
-    float nxp_baro_pressure;
-
-    bool honeywell_baro_flag;
-    bool nxp_baro_flag;
-
-    static std::string header()
+    // bool printed = false;
+    for (;;)
     {
-        return "timestamp,honeywell_baro_volt,nxp_baro_volt,honeywell_baro_"
-               "pressure,nxp_baro_pressure,honeywell_baro_flag,nxp_baro_flag\n";
+        Thread::sleep(1000);
+        LoggerService::getInstance()->log(
+            LoggerService::getInstance()->getLogger().getLogStats());
+        // if(buf_adc_pitot.size() >= GLOBAL_BUF_LEN && !printed)
+        // {
+        //     printed = true;
+        //     printf("timestamp,voltage_pitot\n");
+        //     for(auto v : buf_adc_pitot)
+        //     {
+        //         printf("%llu,%f\n", v.adc_timestamp, v.voltage);
+        //     }
+        // }
     }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << honeywell_baro_volt << "," << nxp_baro_volt
-           << "," << honeywell_baro_pressure << "," << nxp_baro_pressure << ","
-           << honeywell_baro_flag << "," << nxp_baro_flag << "\n";
-    }
-};
+}

@@ -1,5 +1,6 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/**
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,49 +20,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_TESTSENSOR_H
-#define SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_TESTSENSOR_H
 
-#include <cmath>
+#pragma once
 
-#include "Common.h"
-#include "sensors/Sensor.h"
+#include "AeroBrakesController/AeroBrakesServo.h"
+#include "DeploymentController/DeploymentServo.h"
 
-using miosix::getTick;
-using miosix::TICK_FREQ;
-
-struct TestSensorData : public TimestampData
+namespace DeathStackBoard
 {
-    float value;
+//class AeroBrakesServo;
+//class DeploymentServo;
 
-    TestSensorData()
-        : TimestampData{0}, value(0.0)
-    {
-    }
-
-    TestSensorData(uint64_t timestamp, float value)
-        : TimestampData{timestamp}, value(value)
-    {
-    }
-};
-
-class TestSensor : public Sensor<TestSensorData>
+class Actuators
 {
 public:
-    TestSensor() {}
-    virtual ~TestSensor() {}
+    AeroBrakesServo* aerobrakes;
+    DeploymentServo* dpl_servo;
 
-    bool init() { return true; }
-
-    bool selfTest() { return true; }
-
-    TestSensorData sampleImpl()
-    {
-        float v = 10 * sin(PI * static_cast<float>(getTick()) /
-                               static_cast<float>(TICK_FREQ));
-
-        return TestSensorData(static_cast<uint64_t>(getTick()), v);
-    }
+    Actuators();
+    ~Actuators();
+private:
 };
-
-#endif /* SRC_SHARED_BOARDS_HOMEONE_SENSORMANAGER_TESTSENSOR_H */
+}  // namespace DeathStackBoard
