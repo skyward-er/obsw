@@ -192,12 +192,7 @@ void Sensors::imuBMXinit()
     bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
     bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
 
-    bmx_config.temp_divider = 0;
-
-    // bmx_config.enable_compensation = false;
-
-    // bmx_config.fifo_acc_filtered = true;
-    // bmx_config.fifo_gyr_filtered = true;
+    bmx_config.temp_divider = 1;
 
     bmx_config.acc_range = BMX160Config::AccRange::G_16;
     bmx_config.gyr_range = BMX160Config::GyrRange::DEG_125;
@@ -206,13 +201,8 @@ void Sensors::imuBMXinit()
     bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
     bmx_config.mag_odr = IMU_BMX_MAG_FS_ENUM;
 
-    // bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
-    // bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
-    // bmx_config.fifo_watermark = 100;
-    // bmx_config.temp_divider   = 1;
-
-    imu_bmx160 =
-        new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(), bmx_config);
+    imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
+                            bmx_config, spi_cfg);
 
     SensorInfo info(SAMPLE_PERIOD_IMU_BMX, bind(&Sensors::imuBMXCallback, this),
                     false, true);
@@ -273,6 +263,8 @@ void Sensors::imuBMXCallback()
     uint8_t fifo_size = imu_bmx160->getLastFifoSize();
     auto& fifo        = imu_bmx160->getLastFifo();
 
+    LoggerService::getInstance()->log(imu_bmx160->getTemperature());
+
     for (uint8_t i = 0; i < fifo_size; ++i)
     {
         LoggerService::getInstance()->log(fifo.at(i));
@@ -302,7 +294,8 @@ void Sensors::magLISCallback()
     //     auto sample = mag_lis3mdl->getLastSample();
     //     LOG_DEBUG_ASYNC(log.getChild("lis3mdl"),
     //                     "mag xyzt: {:+.3f},{:+.3f},{:+.3f},{:+.3f}",
-    //                     sample.mag_x, sample.mag_y, sample.mag_z, sample.temp);
+    //                     sample.mag_x, sample.mag_y, sample.mag_z,
+    //                     sample.temp);
     // }
 }
 

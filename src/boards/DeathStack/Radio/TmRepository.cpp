@@ -24,6 +24,7 @@
 #include "TmRepository.h"
 // #include <bitpacking/hermes/HermesPackets.h>
 #include <Debug.h>
+#include <diagnostic/PrintLogger.h>
 #include <configs/TMTCConfig.h>
 
 #include "LoggerService/LoggerService.h"
@@ -169,12 +170,17 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             tm_repository.wind_tm.timestamp = miosix::getTick();
             mavlink_msg_windtunnel_tm_encode(sys_id, comp_id, &m,
                                              &(tm_repository.wind_tm));
+        case MavTMList::MAV_SENSORS_TM_ID:
+            tm_repository.sensors_tm.timestamp = miosix::getTick();
+            mavlink_msg_sensors_tm_encode(sys_id, comp_id, &m,
+                                             &(tm_repository.sensors_tm));
             break;
         default:
         {
-            TRACE("[MAV] Unknown telemetry id: %d\n", req_tm);
+            PrintLogger log = Logging::getLogger("deathstack.tmrepo");
+            LOG_WARN(log, "[MAV] Unknown telemetry id: {:d}", req_tm);
             nack_tm.recv_msgid = 0;
-            nack_tm.seq_ack = 0;
+            nack_tm.seq_ack    = 0;
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
             break;
         }
@@ -192,15 +198,15 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t)
 }
 
 template <>
-void TmRepository::update<WindData>(const WindData& t) 
+void TmRepository::update<WindData>(const WindData& t)
 {
     tm_repository.wind_tm.wind_speed = t.wind;
 }
 
 template <>
-void TmRepository::update<ADS1118Data>(const ADS1118Data& t) 
+void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 {
-    if(t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
+    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
         tm_repository.wind_tm.pressure_dpl = t.voltage;
 }
 
@@ -208,24 +214,61 @@ template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t)
 {
     tm_repository.wind_tm.pressure_digital = t.press;
+    tm_repository.sensors_tm.ms5803_press  = t.press;
+    tm_repository.sensors_tm.ms5803_temp   = t.temp;
 }
 
 template <>
 void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
 {
     tm_repository.wind_tm.pressure_static = t.press;
+    tm_repository.sensors_tm.static_press = t.press;
 }
 
 template <>
 void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 {
     tm_repository.wind_tm.pressure_differential = t.press;
+    tm_repository.sensors_tm.pitot_press        = t.press;
 }
 
 template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 {
     tm_repository.wind_tm.pressure_dpl = t.press;
+    tm_repository.sensors_tm.dpl_press = t.press;
+}
+
+template <>
+void TmRepository::update<BMX160Data>(const BMX160Data& t)
+{
+    tm_repository.sensors_tm.bmx160_acc_x = t.accel_x;
+    tm_repository.sensors_tm.bmx160_acc_y = t.accel_y;
+    tm_repository.sensors_tm.bmx160_acc_z = t.accel_z;
+
+    tm_repository.sensors_tm.bmx160_gyro_x = t.gyro_x;
+    tm_repository.sensors_tm.bmx160_gyro_y = t.gyro_y;
+    tm_repository.sensors_tm.bmx160_gyro_z = t.gyro_z;
+
+    tm_repository.sensors_tm.bmx160_mag_x = t.mag_x;
+    tm_repository.sensors_tm.bmx160_mag_y = t.mag_y;
+    tm_repository.sensors_tm.bmx160_mag_z = t.mag_z;
+}
+
+template <>
+void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t)
+{
+    tm_repository.sensors_tm.bmx160_temp = t.temp;
+}
+
+template <>
+void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
+{
+    tm_repository.sensors_tm.lis3mdl_mag_x = t.mag_x;
+    tm_repository.sensors_tm.lis3mdl_mag_y = t.mag_y;
+    tm_repository.sensors_tm.lis3mdl_mag_z = t.mag_z;
+
+    tm_repository.sensors_tm.lis3mdl_temp = t.temp;
 }
 
 template <>
@@ -320,7 +363,7 @@ void TmRepository::update<LogStats>(const LogStats& t)
     tm_repository.logger_tm.statWriteTime       = t.statWriteTime;
     tm_repository.logger_tm.statMaxWriteTime    = t.statMaxWriteTime;
 
-    tm_repository.wind_tm.log_num = t.logNumber;
+    tm_repository.wind_tm.log_num    = t.logNumber;
     tm_repository.wind_tm.log_status = t.opened ? t.statWriteError : -1000;
 }
 

@@ -30,6 +30,8 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
+#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/LIS3MDL/LIS3MDLData.h>
 
 #include "AeroBrakesController/AeroBrakesData.h"
 #include "Radio/Mavlink.h"
@@ -110,6 +112,7 @@ private:
         mavlink_hr_tm_t hr_tm;
         mavlink_lr_tm_t lr_tm;
         mavlink_windtunnel_tm_t wind_tm;
+        mavlink_sensors_tm_t sensors_tm;
         mavlink_test_tm_t test_tm;
     } tm_repository;
 
@@ -197,8 +200,22 @@ template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
 template <>
+void TmRepository::update<BMX160Data>(const BMX160Data& t);
+
+template <>
+void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t);
+
+template <>
+void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
+
+template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t);
+
+
+/* Logger */
+template <>
+void TmRepository::update<LogStats>(const LogStats& t);
 
 /* Initialization status of the board*/
 // template <>
@@ -211,10 +228,6 @@ void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
 // /* Launch and Nosecone detachment pins */
 // template <>
 // void TmRepository::update<PinStatus>(const PinStatus& t);
-
-/* Logger */
-template <>
-void TmRepository::update<LogStats>(const LogStats& t);
 
 // /* TMTCManager (Mavlink) */
 // template <>
