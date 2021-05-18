@@ -32,11 +32,11 @@ namespace DeathStackBoard
 namespace AeroBrakesConfigs
 {
 
-static const PWM::Timer SERVO_TIMER{
+static const PWM::Timer AB_SERVO_TIMER{
     TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
-static constexpr PWMChannel SERVO_PWM_CH = PWMChannel::CH2;
+static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 
 static constexpr uint32_t LOOKS               = 50;
 static constexpr uint32_t START_INDEX_OFFSET  = -1;
@@ -57,11 +57,11 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
-static constexpr float SERVO_MAX_POS          = 55;  // deg
-static constexpr float SERVO_MIN_POS          = 0;      // deg
-static constexpr float SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
-static constexpr float SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
-static constexpr float SERVO_WIGGLE_AMPLITUDE = 10;  // deg, 0.17 in radians
+static constexpr float AB_SERVO_MAX_POS          = 55;         // deg
+static constexpr float AB_SERVO_MIN_POS          = 0;          // deg
+static constexpr float AB_SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
+static constexpr float AB_SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
+static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;  // deg, 0.17 in radians
 
 static constexpr float FILTER_COEFF = 0.9;
 

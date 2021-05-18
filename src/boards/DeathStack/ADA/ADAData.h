@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <configs/ADAconfig.h>
+#include <configs/ADAConfig.h>
 #include <math/Stats.h>
 
 #include <ostream>
@@ -33,7 +33,7 @@ namespace DeathStackBoard
 using namespace ADAConfigs;
 
 // All possible states of the ADA
-enum class ADAState
+enum class ADAState : uint8_t
 {
     UNDEFINED,
     IDLE,
@@ -44,29 +44,6 @@ enum class ADAState
     PRESSURE_STABILIZATION,
     DROGUE_DESCENT,
     END
-};
-
-// Struct to log apogee detection
-struct ApogeeDetected
-{
-    ADAState state;
-    uint64_t tick;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << tick << "," << (int)state << "\n";
-    }
-};
-
-// Struct to log deployment pressure detection
-struct DplAltitudeReached
-{
-    uint64_t tick;
-    static std::string header() { return "tick\n"; }
-
-    void print(std::ostream& os) const { os << tick << "\n"; }
 };
 
 // Struct to log current state
@@ -89,6 +66,30 @@ struct ADAControllerStatus
         os << timestamp << "," << (int)state << "," << apogee_reached << ","
            << dpl_altitude_reached << "\n";
     }
+};
+
+// Struct to log apogee detection
+struct ApogeeDetected
+{
+    uint64_t timestamp;
+    ADAState state;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
+// Struct to log deployment pressure detection
+struct DplAltitudeReached
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
 };
 
 // Struct to log the two Kalman states

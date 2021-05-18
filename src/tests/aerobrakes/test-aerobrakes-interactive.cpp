@@ -85,9 +85,9 @@ protected:
     bool selfTest() override { return true; }
 };
 
-float minPosition   = AeroBrakesConfigs::SERVO_MIN_POS;
-float maxPosition   = AeroBrakesConfigs::SERVO_MAX_POS;
-float resetPosition = AeroBrakesConfigs::SERVO_MIN_POS;
+float minPosition   = AeroBrakesConfigs::AB_SERVO_MIN_POS;
+float maxPosition   = AeroBrakesConfigs::AB_SERVO_MAX_POS;
+float resetPosition = AeroBrakesConfigs::AB_SERVO_MIN_POS;
 
 int main()
 {
@@ -351,9 +351,9 @@ void setServoParameters()
 
 void resetServoParameters()
 {
-    minPosition   = AeroBrakesConfigs::SERVO_MIN_POS;
-    maxPosition   = AeroBrakesConfigs::SERVO_MAX_POS;
-    resetPosition = AeroBrakesConfigs::SERVO_MIN_POS;
+    minPosition   = AeroBrakesConfigs::AB_SERVO_MIN_POS;
+    maxPosition   = AeroBrakesConfigs::AB_SERVO_MAX_POS;
+    resetPosition = AeroBrakesConfigs::AB_SERVO_MIN_POS;
 
     cout << "Configured parameteres (default):\n";
     cout << "\tminimum position: " << minPosition << "\n";

@@ -38,9 +38,9 @@ static const PWMChannel CHANNEL = PWMChannel::CH1;
 
 int main()
 {
-    Servo s{DeploymentConfigs::SERVO_TIMER};
-    s.setMinPulseWidth(800);
-    s.setMaxPulseWidth(2200);
+    Servo s{DeploymentConfigs::DPL_SERVO_TIMER};
+    s.setMinPulseWidth(500);
+    s.setMaxPulseWidth(2500);
     s.setPosition(CHANNEL, 0.77f);
     s.enable(CHANNEL);
 

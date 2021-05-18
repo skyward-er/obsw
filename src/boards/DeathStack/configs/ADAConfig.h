@@ -33,7 +33,7 @@ namespace ADAConfigs
 {
 
 static const unsigned int ADA_STACK_SIZE = 4096;
-static const unsigned int ADA_PRIORITY   = 2; // high
+static const unsigned int ADA_PRIORITY   = 2;  // high
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
@@ -87,47 +87,52 @@ using MatrixPP = Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_OUTPUTS_NUM>;
 using CVectorN = Matrix<float, KALMAN_STATES_NUM, 1>;
 using CVectorP = Matrix<float, KALMAN_OUTPUTS_NUM, 1>;
 
+// clang-format off
+static inline MatrixNN f_init()
+{
+    MatrixNN f;
+    f << 1.0f, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD, 
+         0.0f, 1.0f,            SAMPLING_PERIOD, 
+         0.0f, 0.0f,            1.0f;
+
+    return f;
+}
+
+static inline MatrixNN p_init()
+{
+    MatrixNN p;
+    p << 0.1f, 0.0f, 0.0f, 
+         0.0f, 0.0f, 0.0f, 
+         0.0f, 0.0f, 0.0f;
+
+    return p;
+}
+
+static inline MatrixNN q_init()
+{
+    MatrixNN q;
+    q << 1.0f, 0.0f,  0.0f, 
+         0.0f, 10.0f, 0.0f, 
+         0.0f, 0.0f,  100.0f;
+
+    return q;
+}
+// clang-format on
+
 // kalman matrices
-static const MatrixNN F_INIT =
-    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 1.0f, SAMPLING_PERIOD,
-     0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD, 0.0f, 1.0f, SAMPLING_PERIOD,
-     0.0f, 0.0f, 1.0f)
-        .finished();
+static const MatrixNN F_INIT = f_init();
 
 // Output matrix
-static const MatrixPN H_INIT{1, 0, 0};
+static const MatrixPN H_INIT{1.0f, 0.0f, 0.0f};
 
 // Initial error covariance matrix
-static const MatrixNN P_INIT =
-    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 0.1, 0, 0, 0, 0, 0, 0, 0,
-     0)
-        .finished();
+static const MatrixNN P_INIT = p_init();
 
 // Model variance matrix
-static const MatrixNN Q_INIT =
-    (MatrixNN(KALMAN_STATES_NUM, KALMAN_STATES_NUM) << 1, 0, 0, 0, 10, 0, 0, 0,
-     100)
-        .finished();
+static const MatrixNN Q_INIT = q_init();
 
 // Measurement variance
-static const MatrixPP R_INIT{800};
-
-// method to initialize the kalman configuration structure
-static const KalmanEigen<float, KALMAN_STATES_NUM,
-                         KALMAN_OUTPUTS_NUM>::KalmanConfig
-getKalmanConfig(const float ref_pressure)
-{
-    KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>::KalmanConfig
-        config;
-    config.F = F_INIT;
-    config.H = H_INIT;
-    config.Q = Q_INIT;
-    config.R = R_INIT;
-    config.P = P_INIT;
-    config.x = CVectorN(ref_pressure, 0, KALMAN_INITIAL_ACCELERATION);
-
-    return config;
-}
+static const MatrixPP R_INIT{800.0f};
 
 }  // namespace ADAConfigs
 
