@@ -181,17 +181,17 @@ private:
         }
 
         if (numAccel == 0)
-            static_cast<AccelerometerData>(last_sample) >> avgAccel;
+            static_cast<AccelerometerData>(driver->last_sample) >> avgAccel;
         else
             avgAccel /= numAccel;
 
         if (numMag == 0)
-            static_cast<MagnetometerData>(last_sample) >> avgMag;
+            static_cast<MagnetometerData>(driver->last_sample) >> avgMag;
         else
             avgMag /= numMag;
 
         if (numGyro == 0)
-            static_cast<GyroscopeData>(last_sample) >> avgGyro;
+            static_cast<GyroscopeData>(driver->last_sample) >> avgGyro;
         else
             avgGyro /= numGyro;
 
@@ -260,21 +260,21 @@ private:
     {
         lhs.accel_x = rhs.accel_x;
         lhs.accel_y = rhs.accel_y;
-        lhs.accel_x = rhs.accel_x;
+        lhs.accel_z = rhs.accel_z;
     }
 
     void setGyroCorrected(BMX160DataCorrected& lhs, const GyroscopeData& rhs)
     {
         lhs.gyro_x = rhs.gyro_x;
         lhs.gyro_y = rhs.gyro_y;
-        lhs.gyro_x = rhs.gyro_x;
+        lhs.gyro_z = rhs.gyro_z;
     }
 
     void setMagCorrected(BMX160DataCorrected& lhs, const MagnetometerData& rhs)
     {
         lhs.mag_x = rhs.mag_x;
         lhs.mag_y = rhs.mag_y;
-        lhs.mag_x = rhs.mag_x;
+        lhs.mag_z = rhs.mag_z;
     }
 
     BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
