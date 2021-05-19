@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2020 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Riccardo Musso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-/*
-Wiring on STM32F407VG Discovery:
-| BMX Shuttle | Discovery       |
-| ----------- | --------------- |
-| MISO (4)    | SPI3_MISO (PB4) |
-| MOSI (5)    | SPI3_MOSI (PB5) |
-| SCK  (6)    | SPI3_SCK  (PB3) |
-| CS   (7)    | GPIO      (PB7) |
-| INT1 (20)   | GPIO      (PB8) |
-*/
 
 #include <Common.h>
 #include <drivers/HardwareTimer.h>
@@ -62,7 +51,7 @@ int main()
     {
         miosix::FastInterruptDisableLock _lock;
 
-        // Enable TIM5 and SPI3 bus
+        // Enable TIM5
         RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
     };
 
@@ -72,25 +61,28 @@ int main()
     enableExternalInterrupt(GPIOE_BASE, 5, InterruptTrigger::FALLING_EDGE);
 
     BMX160Config config;
-    config.fifo_mode    = BMX160Config::FifoMode::HEADER;
-    config.fifo_int     = BMX160Config::FifoInt::PIN_INT1;
-    config.mag_odr      = BMX160Config::Odr::HZ_25;
-    config.temp_divider = 1;
+    config.fifo_mode      = BMX160Config::FifoMode::HEADER;
+    config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    config.fifo_watermark = 100;
+    config.mag_odr        = BMX160Config::Odr::HZ_25;
+    config.temp_divider   = 1;
 
     sensor = new BMX160(bus, miosix::sensors::bmx160::cs::getPin(), config);
 
-    Matrix<float, 3, 2> mat; 
+    /*Matrix<float, 3, 2> mat;
     mat.col(0) = Vector3f({2, 2, 2}).transpose();
     mat.col(1) = Vector3f({0, 0, 0}).transpose();
 
     BMX160CorrectionParameters params;
-    params.accelParams = mat;
+    params.accelParams   = mat;
     params.magnetoParams = mat;
-    params.gyroParams = mat;
+    params.gyroParams    = mat;*/
 
-    BMX160Corrector corrector;
-    corrector.setDriver(sensor);
-    corrector.setParameters(params);
+    BMX160Corrector corrector(sensor);
+    /*corrector.setDriver(sensor);
+    corrector.setParameters(params);*/
+
+    corrector.calibrate();
 
     TRACE("Initializing BMX160...\n");
 
@@ -112,7 +104,7 @@ int main()
 
     while (1)
     {
-        miosix::Thread::sleep(5000);
+        miosix::Thread::sleep(1000);
 
         printf("----------------------------\n");
 
@@ -145,27 +137,26 @@ int main()
                    data.gyro_z);
 
             printf("Acc [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-                   data.accel_timestamp / 1000000.0f, data.accel_x, data.accel_y,
-                   data.accel_z);
+                   data.accel_timestamp / 1000000.0f, data.accel_x,
+                   data.accel_y, data.accel_z);
         }
 
         printf("------ CORRECTED AVERAGE VALUES: ------\n");
 
         corrector.sample();
-        BMX160Data data = corrector.getLastSample();
+        BMX160DataCorrected data_corrected = corrector.getLastSample();
 
         printf("Mag [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data.mag_timestamp / 1000000.0f, data.mag_x, data.mag_y,
-               data.mag_z);
+               data_corrected.mag_timestamp / 1000000.0f, data_corrected.mag_x, data_corrected.mag_y,
+               data_corrected.mag_z);
 
         printf("Gyr [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data.gyro_timestamp / 1000000.0f, data.gyro_x, data.gyro_y,
-               data.gyro_z);
+               data_corrected.gyro_timestamp / 1000000.0f, data_corrected.gyro_x, data_corrected.gyro_y,
+               data_corrected.gyro_z);
 
         printf("Acc [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data.accel_timestamp / 1000000.0f, data.accel_x, data.accel_y,
-               data.accel_z);
-
+               data_corrected.accel_timestamp / 1000000.0f, data_corrected.accel_x, data_corrected.accel_y,
+               data_corrected.accel_z);
     }
 
     return 0;

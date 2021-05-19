@@ -190,8 +190,8 @@ LogResult LoggerService::log<MS5803Data>(const MS5803Data& t);
 //LogResult LoggerService::log<PiksiData>(const PiksiData& t);
 
 /* LM75b temperature */
-template <>
-LogResult LoggerService::log<LM75BData>(const LM75BData& t);
+//template <>
+//LogResult LoggerService::log<LM75BData>(const LM75BData& t);
 
 template <>
 LogResult LoggerService::log<TaskStatResult>(const TaskStatResult& t);

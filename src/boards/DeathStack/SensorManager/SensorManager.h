@@ -63,72 +63,33 @@ public:
     SensorManager();
     ~SensorManager();
 
-    vector<TaskStatResult> getSchedulerStats() { return scheduler_stats; }
-
-    SensorManagerStatus getStatus() { return status; }
-
     bool start() override;
 
 private:
     /**
-     * Initialize all the sensors.
-     */
-    void initSensors();
-
-    /**
-     * Adds all the SensorSamplers to the scheduler and begins sampling.
-     */
-    void initScheduler();
-
-    /**
      * @brief Sensor manager state machine entry state
      *
      */
-    void stateIdle(const Event& ev);
+    void state_idle(const Event& ev);
+
+    /**
+     * @brief Sensor manager state machine calibration state
+     *
+     */
+    void state_calibration(const Event& ev);
 
     /**
      * @brief Sensor manager state machine sampling state
      *
      */
-    void stateLogging(const Event& ev);
+    void state_active(const Event& ev);
 
-    /*
-     * Callbacks. These functions are called each time the corresponding
-     * SensorSampler has acquired new samples.
-     * These functions are called on the scheduler (sampler) thread, so avoid
-     * performing non-critical and intensive tasks.
-     */
-
-    /**
-     * Simple, 20 Hz SensorSampler Callback.
-     * Called each time all the sensors in the 20hz sampler have been sampled
-     */
-    void onSimple20HZCallback();   // ADCs
-    void onSimple50HZCallback();   // MS5803
-    void onSimple100HZCallback();  // Mpu magneto
-    void onSimple250HZCallback();  // Mpu accel & gyro
-
-    void onGPSCallback();
-
-    TaskScheduler scheduler;
     // Logger ref
     LoggerService& logger;
 
     bool enable_sensor_logging = false;
 
-    // Sensors
-#ifdef USE_MOCK_SENSORS
-    MockPressureSensor* mock_pressure_sensor;
-    MockGPS* mock_gps;
-#endif
-
-    long long last_gps_timestamp = 0;
-
-    // Stats & status
-    vector<TaskStatResult> scheduler_stats;
-
     SensorManagerStatus status;
-    SensorStatus sensor_status;
 };
 
 }  // namespace DeathStackBoard

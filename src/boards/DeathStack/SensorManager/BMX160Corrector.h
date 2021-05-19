@@ -32,6 +32,17 @@
 
 #include <fstream>
 
+struct BMX160DataCorrected : public BMX160Data
+{
+    BMX160DataCorrected() : BMX160Data() {}
+
+    BMX160DataCorrected(AccelerometerData acc, GyroscopeData gyr,
+                        MagnetometerData mag)
+        : BMX160Data(acc, gyr, mag)
+    {
+    }
+};
+
 struct BMX160CorrectionParameters
 {
     Matrix<float, 3, 2> accelParams, magnetoParams, gyroParams;
@@ -80,20 +91,20 @@ struct BMX160CorrectionParameters
     }
 };
 
-class BMX160Corrector : public Sensor<BMX160Data>
+class BMX160Corrector : public Sensor<BMX160DataCorrected>
 {
 public:
     BMX160Corrector(BMX160* _driver) : driver(_driver) {}
 
-    BMX160Corrector() : driver(NULL) {}
+    BMX160Corrector() : driver(nullptr) {}
 
     void setDriver(BMX160* _driver) { driver = _driver; }
 
     BMX160* getDriver() { return driver; }
 
-    bool init() override { return driver->init(); }
+    bool init() override { return true; }
 
-    bool selfTest() override { return driver->selfTest(); }
+    bool selfTest() override { return true; }
 
     static void setAccel(BMX160Data& lhs, const BMX160Data& rhs)
     {
@@ -102,18 +113,37 @@ public:
         lhs.accel_x = rhs.accel_x;
     }
 
-    BMX160Data sampleImpl() override
+    void calibrate()
+    {
+        // readParametersFromFile();
+
+        Matrix<float, 3, 2> mat;
+        mat.col(0) = Vector3f({2, 2, 2}).transpose();
+        mat.col(1) = Vector3f({0, 0, 0}).transpose();
+
+        BMX160CorrectionParameters params;
+        params.accelParams   = mat;
+        params.magnetoParams = mat;
+        params.gyroParams    = mat;
+
+        setParameters(params);
+    }
+
+private:
+    BMX160DataCorrected sampleImpl() override
     {
         if (!driver)
         {
             TRACE("Error: driver doesn't point to valid sensor.");
-            return {};
+            return BMX160DataCorrected{};
         }
 
-        Vector3f avgAccel = {0, 0, 0}, avgMag = {0, 0, 0}, avgGyro = {0, 0, 0}, vec = {0, 0, 0};
+        Vector3f avgAccel{0, 0, 0}, avgMag{0, 0, 0}, avgGyro{0, 0, 0},
+            vec{0, 0, 0};
         uint64_t accelTimestamp = 0, magTimestamp = 0, gyroTimestamp = 0;
-        uint8_t numAccel = 0, numMag = 0, numGyro = 0, fifoSize;
-        BMX160Data res, fifoElem;
+        uint8_t numAccel = 0, numMag = 0, numGyro = 0, fifoSize = 0;
+        BMX160Data fifoElem;
+        BMX160DataCorrected res;
 
         fifoSize = driver->getLastFifoSize();
 
@@ -122,7 +152,7 @@ public:
         {
             fifoElem = driver->getFifoElement(i);
 
-            if (fifoElem.accel_timestamp != accelTimestamp)
+            if (fifoElem.accel_timestamp > accelTimestamp)
             {
                 static_cast<AccelerometerData>(fifoElem) >> vec;
                 avgAccel += vec;
@@ -131,7 +161,7 @@ public:
                 numAccel++;
             }
 
-            if (fifoElem.mag_timestamp != magTimestamp)
+            if (fifoElem.mag_timestamp > magTimestamp)
             {
                 static_cast<MagnetometerData>(fifoElem) >> vec;
                 avgMag += vec;
@@ -140,7 +170,7 @@ public:
                 numMag++;
             }
 
-            if (fifoElem.gyro_timestamp != gyroTimestamp)
+            if (fifoElem.gyro_timestamp > gyroTimestamp)
             {
                 static_cast<GyroscopeData>(fifoElem) >> vec;
                 avgGyro += vec;
@@ -174,25 +204,23 @@ public:
         static_cast<GyroscopeData&>(res) << avgGyro;
 
         // Correct the average measurements
-        auto acc    = accelCorrector.correct(res);
-        res.accel_x = acc.accel_x;
-        res.accel_y = acc.accel_y;
-        res.accel_z = acc.accel_z;
+        auto acc = accelCorrector.correct(res);
+        setAccelCorrected(res, acc);
 
-        auto magneto = magnetoCorrector.correct(res);
-        res.mag_x    = magneto.mag_x;
-        res.mag_y    = magneto.mag_y;
-        res.mag_z    = magneto.mag_z;
+        auto mag = magnetoCorrector.correct(res);
+        setMagCorrected(res, mag);
 
-        auto gyro  = gyroCorrector.correct(res);
-        res.gyro_x = gyro.gyro_x;
-        res.gyro_y = gyro.gyro_y;
-        res.gyro_z = gyro.gyro_z;
+        auto gyro = gyroCorrector.correct(res);
+        setGyroCorrected(res, gyro);
 
-        uint64_t timestamp  = TimestampTimer::getTimestamp();
+        // get the timestamp of the newest value in fifo
+        uint64_t timestamp =
+            fifoElem.accel_timestamp;  // TimestampTimer::getTimestamp();
         res.accel_timestamp = timestamp;
         res.mag_timestamp   = timestamp;
         res.gyro_timestamp  = timestamp;
+
+        //res = rotateAxis(res);
 
         return res;
     }
@@ -227,11 +255,57 @@ public:
         setParameters(params);
     }
 
-private:
+    void setAccelCorrected(BMX160DataCorrected& lhs,
+                           const AccelerometerData& rhs)
+    {
+        lhs.accel_x = rhs.accel_x;
+        lhs.accel_y = rhs.accel_y;
+        lhs.accel_x = rhs.accel_x;
+    }
+
+    void setGyroCorrected(BMX160DataCorrected& lhs, const GyroscopeData& rhs)
+    {
+        lhs.gyro_x = rhs.gyro_x;
+        lhs.gyro_y = rhs.gyro_y;
+        lhs.gyro_x = rhs.gyro_x;
+    }
+
+    void setMagCorrected(BMX160DataCorrected& lhs, const MagnetometerData& rhs)
+    {
+        lhs.mag_x = rhs.mag_x;
+        lhs.mag_y = rhs.mag_y;
+        lhs.mag_x = rhs.mag_x;
+    }
+
+    BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
+    {
+        // TODO : use rotaton matrix
+        BMX160DataCorrected temp;
+        temp.accel_timestamp = data.accel_timestamp;
+        temp.gyro_timestamp  = data.gyro_timestamp;
+        temp.mag_timestamp   = data.mag_timestamp;
+
+        // sensor's Z is X in body frame
+        temp.accel_z = data.accel_x;
+        temp.gyro_z  = data.gyro_x;
+        temp.mag_z   = data.mag_x;
+
+        // sensor's X is -Z in body frame
+        temp.accel_x = -data.accel_z;
+        temp.gyro_x  = -data.gyro_z;
+        temp.mag_x   = -data.mag_z;
+
+        // sensor's Y is -Y in body frame
+        temp.accel_y = -data.accel_y;
+        temp.gyro_y  = -data.gyro_y;
+        temp.mag_y   = -data.mag_y;
+
+        return temp;
+    }
+
     BMX160* driver;
 
     SixParameterCorrector<AccelerometerData> accelCorrector;
     SixParameterCorrector<MagnetometerData> magnetoCorrector;
     SixParameterCorrector<GyroscopeData> gyroCorrector;
 };
-

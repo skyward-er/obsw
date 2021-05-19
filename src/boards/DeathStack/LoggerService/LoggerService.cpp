@@ -480,6 +480,7 @@ LogResult LoggerService::log<MPU9250Data>(const MPU9250Data& t)
 */
 
 /* LM75b temperature */
+/*
 template <>
 LogResult LoggerService::log<LM75BData>(const LM75BData& t)
 {
@@ -492,7 +493,7 @@ LogResult LoggerService::log<LM75BData>(const LM75BData& t)
 
     return logger.log(t);
 }
-
+*/
 /* GPS */
 /*template <>
 LogResult LoggerService::log<PiksiData>(const PiksiData& t)

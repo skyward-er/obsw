@@ -31,92 +31,11 @@
 namespace DeathStackBoard
 {
 
-enum class SensorSamplerId : uint8_t
-{
-    STATS          = 0,
-    GPS            = 10,
-    SIMPLE_20HZ    = 20,
-    SIMPLE_50HZ    = 50,
-    MPU_MAGN_100HZ = 100,
-    SIMPLE_250HZ   = 250
-};
-
-enum class TempSensorId : uint8_t
-{
-    LM75B_ANALOG = 0,
-    LM75B_IMU    = 1
-};
-
 enum class SensorManagerState : uint8_t
 {
     IDLE,
-    LOGGING
-};
-
-// Nominal value returned by SensorStatus.toNumeric() when every sensor was
-// initialized successfully.
-// 255 = 1 in every bit of the SensorStatus struct
-static constexpr uint16_t NOMINAL_SENSOR_INIT_VALUE = 255;
-
-struct SensorStatus
-{
-    // Imus
-    uint16_t mpu9250 : 1;
-
-    // Temperature sensors
-    uint16_t lm75b_imu : 1;
-    uint16_t lm75b_analog : 1;
-
-    // GPS
-    uint16_t piksi : 1;
-
-    // Internal ADC
-    uint16_t current_sensor : 1;
-    uint16_t battery_sensor : 1;
-
-    // External ADC
-    uint16_t ad7994 : 1;
-
-    // Digital pressure sensor
-    uint16_t ms5803 : 1;
-
-    /**
-     * Converts data in the struct to a single uint16_t value
-     * @return uint16_t representing the struct
-     */
-    uint16_t toNumeric()
-    {
-        uint16_t out;
-        memcpy(&out, this, sizeof(out));
-        return out;
-    }
-
-    static std::string header()
-    {
-        return "mpu9250,lm75b_imu,lm75b_analog,piksi,current_sensor,battery_"
-               "sensor,ad7994, ms5803\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << mpu9250 << "," << lm75b_imu << "," << lm75b_analog << "," << piksi
-           << "," << current_sensor << "," << battery_sensor << "," << ad7994
-           << "," << ms5803 << "\n";
-    }
-};
-
-struct LM75BData
-{
-    long long timestamp;
-    float temp_imu;
-    float temp_analog;
-
-    static std::string header() { return "timestamp,temp_imu,temp_analog\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << temp_imu << "," << temp_analog << "\n";
-    }
+    CALIBRATING,
+    ACTIVE
 };
 
 struct SensorManagerStatus
@@ -124,12 +43,11 @@ struct SensorManagerStatus
     uint64_t timestamp;
     SensorManagerState state;
 
-    uint16_t sensor_status;
-    static std::string header() { return "timestamp,state,sensor_status\n"; }
+    static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "," << sensor_status << "\n";
+        os << timestamp << "," << (int)state << "\n";
     }
 };
 

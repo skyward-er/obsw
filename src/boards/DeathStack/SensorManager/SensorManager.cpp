@@ -51,54 +51,25 @@ namespace DeathStackBoard
 {
 
 SensorManager::SensorManager()
-    : FSM(&SensorManager::stateIdle), scheduler(),
+    : FSM(&SensorManager::state_idle),
       logger(*LoggerService::getInstance())
 {
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TC);
-
-    memset(&sensor_status, 0, sizeof(sensor_status));
-
-    initSensors();
-
-    initScheduler();
 }
 
 SensorManager::~SensorManager()
 {
     sEventBroker->unsubscribe(this);
-    scheduler.stop();
 }
 
 bool SensorManager::start()
 {
     // Start the parent FSM
-    bool ok = FSM<SensorManager>::start();
-
-    // Start the scheduler
-    ok = ok && scheduler.start();
-
-    return ok;
+    return FSM<SensorManager>::start();
 }
 
-void SensorManager::initSensors()
-{
-
-#ifdef USE_MOCK_SENSORS
-    mock_pressure_sensor = new MockPressureSensor();
-    mock_gps             = new MockGPS();
-#endif
-
-    TRACE("[SM] Sensor init done\n");
-}
-
-void SensorManager::initScheduler()
-{
-
-    TRACE("[SM] Scheduler initialization complete\n");
-}
-
-void SensorManager::stateIdle(const Event& ev)
+void SensorManager::state_idle(const Event& ev)
 {
     switch (ev.sig)
     {
@@ -109,7 +80,7 @@ void SensorManager::stateIdle(const Event& ev)
             status.state     = SensorManagerState::IDLE;
             logger.log(status);
 
-            TRACE("[SM] Entering stateIdle\n");
+            TRACE("[SM] Entering state_idle\n");
 
             StackLogger::getInstance()->updateStack(THID_SENSOR_MANAGER);
 
@@ -122,7 +93,7 @@ void SensorManager::stateIdle(const Event& ev)
         // Perform the transition in both cases
         case EV_TC_START_SENSOR_LOGGING:
         case EV_ARMED:
-            transition(&SensorManager::stateLogging);
+            transition(&SensorManager::state_active);
             break;
 
         default:
@@ -130,86 +101,66 @@ void SensorManager::stateIdle(const Event& ev)
     }
 }
 
-void SensorManager::stateLogging(const Event& ev)
+void SensorManager::state_calibration(const Event& ev)
+{
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+            enable_sensor_logging = false;
+
+            status.timestamp = TimestampTimer::getTimestamp();
+            status.state     = SensorManagerState::IDLE;
+            logger.log(status);
+
+            TRACE("[SM] Entering state_calibration\n");
+
+            StackLogger::getInstance()->updateStack(THID_SENSOR_MANAGER);
+
+            break;
+        case EV_EXIT:
+            TRACE("[SM] Exiting state_calibration\n");
+
+            break;
+
+        // Perform the transition in both cases
+        case EV_TC_START_SENSOR_LOGGING:
+        case EV_ARMED:
+            transition(&SensorManager::state_active);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void SensorManager::state_active(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
             enable_sensor_logging = true;
             status.timestamp      = TimestampTimer::getTimestamp();
-            status.state          = SensorManagerState::LOGGING;
+            status.state          = SensorManagerState::ACTIVE;
             logger.log(status);
 
-            TRACE("[SM] Entering stateLogging\n");
+            TRACE("[SM] Entering state_active\n");
 
             StackLogger::getInstance()->updateStack(THID_SENSOR_MANAGER);
 
             break;
         case EV_EXIT:
 
-            TRACE("[SM] Exiting stateLogging\n");
+            TRACE("[SM] Exiting state_active\n");
 
             break;
-#ifdef USE_MOCK_SENSORS
-        // Signal to the mock pressure sensor that we have liftoff in order
-        // to start simulating flight pressures
-        case EV_LIFTOFF:
-            mock_pressure_sensor->signalLiftoff();
-            mock_gps->signalLiftoff();
-            break;
-#endif
         // Go back to idle in both cases
         case EV_TC_STOP_SENSOR_LOGGING:
         case EV_LANDED:
-            transition(&SensorManager::stateIdle);
+            transition(&SensorManager::state_idle);
             break;
 
         default:
             break;
-    }
-}
-
-void SensorManager::onSimple20HZCallback()
-{
-
-#ifdef USE_MOCK_SENSORS
-    PressureData p_data = mock_pressure_sensor->getLastSample();
-#endif
-
-    if (enable_sensor_logging)
-    {
-        // logger.log(...);
-    }
-}
-
-void SensorManager::onSimple50HZCallback()
-{
-    if (enable_sensor_logging)
-    {
-        // Since sampling both temps & pressure on the ms5803 takes two calls of
-        // onSimpleUpdate(), log only once every 2
-        /*if (pressure_ms5803->getState() ==
-            MS580301BA07Type::STATE_SAMPLED_PRESSURE)
-        {
-            logger.log(pressure_ms5803->getData());
-        }*/
-    }
-}
-
-void SensorManager::onSimple100HZCallback() {}
-
-void SensorManager::onSimple250HZCallback() {}
-
-void SensorManager::onGPSCallback()
-{
-
-#ifdef USE_MOCK_SENSORS
-    GPSData data = mock_gps->getLastSample();
-#endif
-
-    if (enable_sensor_logging)
-    {
-        // logger.log(data);
     }
 }
 
