@@ -23,9 +23,17 @@
 
 #pragma once
 
-static const unsigned PRESSURE_DATA_SIZE = 4295;
-static const unsigned GPS_DATA_SIZE = 2148;
-
+static const unsigned PRESSURE_DATA_SIZE = 2570;
 extern const float SIMULATED_PRESSURE[PRESSURE_DATA_SIZE];
+
+static const unsigned GPS_DATA_SIZE = 2570;
 extern const float SIMULATED_LAT[GPS_DATA_SIZE];
 extern const float SIMULATED_LON[GPS_DATA_SIZE];
+extern const float SIMULATED_VNORD[GPS_DATA_SIZE];
+extern const float SIMULATED_VEAST[GPS_DATA_SIZE];
+
+static const unsigned IMU_DATA_SIZE          = 2570;
+static const unsigned MOTION_SENSOR_AXIS_NUM = 3;
+extern const float ACCELEROMETER_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];
+extern const float GYROSCOPE_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];
+extern const float MAGNETOMETER_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];

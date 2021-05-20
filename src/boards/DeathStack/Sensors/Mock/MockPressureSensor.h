@@ -20,9 +20,12 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <Common.h>
 #include <sensors/Sensor.h>
 #include <tests/mock_sensors/test-mock-data.h>
+
 #include <random>
 
 namespace DeathStackBoard

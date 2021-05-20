@@ -30,7 +30,6 @@ namespace DeathStackBoard
 // close the logs if radio comms have been lost
 static constexpr unsigned int TIMEOUT_END_MISSION = 30 * 60 * 1000;
 
-static constexpr unsigned int FMM_STACK_SIZE = 4096;
 static constexpr unsigned int FMM_PRIORITY   = 2;
 
 }  // namespace DeathStackBoard

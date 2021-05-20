@@ -37,7 +37,8 @@ static const unsigned int ADA_PRIORITY   = 2;  // high
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
-
+// Number of consecutive samples with negative speed after which ABK are disabled
+constexpr unsigned int ABK_DISABLE_N_SAMPLES = 5;
 // Number of consecutive samples after which the main Deployment is triggered
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 
@@ -45,6 +46,8 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (while still going up)
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
+// When the vertical speed is smaller than this value, aerobrakes are disabled.
+constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 5.0;
 
 // State timeouts
 static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 6.5 * 1000;  // ms

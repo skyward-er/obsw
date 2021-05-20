@@ -158,7 +158,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     REQUIRE(ada_controller->testState(&ADACtrl::state_idle));
 
     // Enter Calibrating and REQUIRE
-    sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
     Thread::sleep(100);
     REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
 

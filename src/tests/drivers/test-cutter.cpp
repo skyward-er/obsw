@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Copyright (c) 2018-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,250 +21,192 @@
  * THE SOFTWARE.
  */
 
-//#include <interfaces-impl/hwmapping.h>
-#include <miosix.h>
+#include <Common.h>
+#include <configs/CutterConfig.h>
+#include <drivers/adc/InternalADC/InternalADC.h>
+#include <drivers/hbridge/HBridge.h>
+#include <sensors/analog/current/CurrentSensor.h>
 
 #include <iostream>
 #include <sstream>
-//#include "configs/CutterConfig.h"
-#include "drivers/adc/InternalADC/InternalADC.h"
-#include "drivers/hbridge/HBridge.h"
-#include "sensors/analog/current/CurrentSensor.h"
-
-#include "Common.h"
-
-using namespace std;
-using namespace miosix;
-// using namespace DeathStackBoard;
 
 /**
+ * Pin map for DeathStackX
+ *
  * PWM    : PE6 (both primary and backup)
  * ENA    : PD11 (primary)
  *          PG2  (backup)
- * Csense : PF6 (primary)
- *          PF8 (backup)
+ * Csense : PF6  (primary)
+ *          PF8  (backup)
  */
 
-bool PRINT                       = true;
-static constexpr int CUT_TIME    = 10 * 1000;  // ms
-static constexpr int CSENSE_FREQ = 50;         // hz
+using namespace std;
 
-long long measured_cut_time = 0;
-bool finished               = false;
+static constexpr int MAX_CUTTING_TIME = 10 * 1000;  // ms
+constexpr int SAMPLING_FREQUENCY      = 20;
 
-InternalADC::Channel ADC_CHANNEL_PRIMARY = InternalADC::Channel::CH4;
-InternalADC::Channel ADC_CHANNEL_BACKUP  = InternalADC::Channel::CH6;
-ADC_TypeDef& ADCx                        = *ADC3;
-InternalADC adc(ADCx);
+// This could go into CutterConfig
+static constexpr InternalADC::Channel ADC_CHANNEL_PRIMARY =
+    InternalADC::Channel::CH6;
+static constexpr InternalADC::Channel ADC_CHANNEL_BACKUP =
+    InternalADC::Channel::CH4;
 
-static const PWM::Timer CUTTER_TIM{
-    TIM9, &(RCC->APB2ENR), RCC_APB2ENR_TIM9EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
+// Check page 16 of datasheet for more informations
+static constexpr float ADC_TO_CURR_DKILIS = 10204.85;  // Typ: 19.5
+static constexpr float ADC_TO_CURR_RIS    = 510;
+static constexpr float ADC_TO_CURR_IISOFF = .0001662;  // Typ: 170uA
 
-static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2;
-static const PWMChannel CUTTER_CHANNEL_BACKUP  = PWMChannel::CH2;
+static constexpr float ADC_TO_CURR_COEFF = ADC_TO_CURR_DKILIS / ADC_TO_CURR_RIS;
+static constexpr float ADC_TO_CURR_OFFSET =
+    ADC_TO_CURR_DKILIS * ADC_TO_CURR_IISOFF;
 
-using pwm = Gpio<GPIOE_BASE, 6>;
+function<float(float)> adc_to_current = [](float adc_in) {
+    return ADC_TO_CURR_DKILIS * (adc_in/ADC_TO_CURR_RIS - ADC_TO_CURR_IISOFF);
+};
 
-using ena_primary   = Gpio<GPIOD_BASE, 11>;
-using csens_primary = Gpio<GPIOF_BASE, 6>;
+bool finished = false;
 
-using ena_backup   = Gpio<GPIOG_BASE, 2>;
-using csens_backup = Gpio<GPIOF_BASE, 8>;
+void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle);
 
-HBridge* cutter;
-
-void wait(void* arg)
-{
-    UNUSED(arg);
-    
-    long long t  = getTick();
-    long long t0 = t;
-
-    while (t < t0 + CUT_TIME && !finished)
-    {
-        Thread::sleep(50);
-
-        t = getTick();
-
-        if (PRINT)
-        {
-            printf("Elapsed time : %.2f \n", (t - t0) / 1000.0);
-        }
-    }
-
-    measured_cut_time = t - t0;
-
-    Thread::sleep(100);
-
-    if (!finished)
-    {
-        finished = true;
-        cutter->disable();
-        printf("\nTimer elapsed... Cutter disabled \n");
-        printf("Press ENTER to exit \n");
-    }
-}
-
-void csense(void* args)
-{
-    unsigned int c = *(unsigned int*)args;
-
-    std::function<ADCData()> get_voltage_function;
-
-    if (c == 1)
-    {
-        get_voltage_function = []() {
-            return adc.getVoltage(ADC_CHANNEL_PRIMARY);
-        };
-    }
-    else
-    {
-        get_voltage_function = []() {
-            return adc.getVoltage(ADC_CHANNEL_BACKUP);
-        };
-    }
-
-    std::function<float(float)> adc_to_current = [](float adc_in) {
-        return (adc_in - 107.0f) * 32.4f;
-    };
-
-    CurrentSensor current_sensor(get_voltage_function, adc_to_current);
-
-    if (!adc.init() || !adc.selfTest())
-    {
-        printf("ERROR : %d\n", adc.getLastError());
-    }
-
-    current_sensor.init();
-
-    while (!finished)
-    {
-        adc.sample();
-        miosix::Thread::sleep(1000 / CSENSE_FREQ);
-        current_sensor.sample();
-
-        CurrentSenseData current_data = current_sensor.getLastSample();
-        printf("Time: %llu - ADC channel: %u - V:%f - A:%f \n",
-               current_data.adc_timestamp, current_data.channel_id,
-               current_data.voltage, current_data.current);
-    }
-}
-
-void init()
-{
-    // Enable ADC3 clock
-    {
-        miosix::FastInterruptDisableLock dLock;
-
-        RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;  // <- CHANGE THIS!
-
-        pwm::mode(Mode::ALTERNATE);
-        pwm::alternateFunction(3);
-
-        ena_primary::mode(Mode::OUTPUT);
-        ena_primary::low();
-        csens_primary::mode(Mode::INPUT_ANALOG);
-
-        ena_backup::mode(Mode::OUTPUT);
-        ena_backup::low();
-        csens_backup::mode(Mode::INPUT_ANALOG);
-    }
-
-    TimestampTimer::enableTimestampTimer();
-
-    adc.enableChannel(ADC_CHANNEL_PRIMARY);
-    adc.enableChannel(ADC_CHANNEL_BACKUP);
-}
+void elapsedTimeAndCsense(void *args);
 
 int main()
 {
-    init();
+    unsigned int cutterNo = 0;
+    uint32_t frequency    = 0;
+    float dutyCycle       = 0;
 
-    for (;;)
+    TimestampTimer::enableTimestampTimer();
+
+    // Set the clock divider for the analog circuitry (/8)
+    ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
+
+    // Ask the user the parameters
+    menu(&cutterNo, &frequency, &dutyCycle);
+
+    // Cutter setup
+
+    GpioPin *ena_pin;
+    PWMChannel pwmChannel;
+
+    if (cutterNo == 1)
     {
-        finished          = false;
-        measured_cut_time = 0;
-
-        printf("\nWhat do you want to cut? (1 - primary / 2 - backup)\n");
-
-        unsigned int c, freq = 0;
-        float duty = 0;
-        string temp;
-        getline(cin, temp);
-        stringstream(temp) >> c;
-        if (c != 1 && c != 2)
-        {
-            printf("Choose 1 or 2\n");
-            continue;
-        }
-        printf("Insert frequency (1-30000 Hz): \n");
-        getline(cin, temp);
-        stringstream(temp) >> freq;
-
-        printf("Insert duty cycle (1-100): \n");
-        getline(cin, temp);
-        stringstream(temp) >> duty;
-
-        printf("Cutting %d, freq: %d, duty: %f\n\n", c, freq, duty);
-
-        if (!(freq >= 1 && freq <= 30000 && duty >= 0.0f && duty <= 100.0f))
-        {
-            printf("Wrong inputs!\n\n");
-            continue;
-        }
-
-        do
-        {
-            printf("READY!\nWrite 'start' to begin:\n");
-            getline(cin, temp);
-        } while (temp != "start");
-
-        printf("\n---------- Press ENTER to stop ----------\n");
-        printf("The PWM will automatically be disabled after %d s\n\n",
-               CUT_TIME / 1000);
-
-        Thread::create(csense, 2048, MAIN_PRIORITY, &c);
-
-        {
-            GpioPin* ena_pin;
-            PWMChannel channel;
-
-            if (c == 1)
-            {
-                ena_pin = new GpioPin(ena_primary::getPin());
-                channel = CUTTER_CHANNEL_PRIMARY;
-            }
-            else  // if (c == 2)
-            {
-                ena_pin = new GpioPin(ena_backup::getPin());
-                channel = CUTTER_CHANNEL_BACKUP;
-            }
-
-            cutter = new HBridge(*ena_pin, CUTTER_TIM, channel, freq,
-                                 duty / 100.0f, 50);
-
-            cutter->enable();
-            Thread::create(wait, 2048);
-
-            // wait for the user to press ENTER or the timer to elapse
-            while (!finished)
-            {
-                getline(cin, temp);
-                finished = true;
-                printf("Stopped... \n\n");
-            }
-            cutter->disable();
-
-            delete cutter;
-        }
-
-        Thread::sleep(500);
-
-        printf("Cut Time: %.2f s\n\n", measured_cut_time / 1000.0f);
-        printf("Done!\n\n");
-        printf("----------------------------------------------------\n");
+        ena_pin = new GpioPin(
+            DeathStackBoard::CutterConfig::PrimaryCutterEna::getPin());
+        pwmChannel = DeathStackBoard::CutterConfig::CUTTER_CHANNEL_PRIMARY;
+    }
+    else  // if (cutterNo == 2)
+    {
+        ena_pin = new GpioPin(
+            DeathStackBoard::CutterConfig::BackupCutterEna::getPin());
+        pwmChannel = DeathStackBoard::CutterConfig::CUTTER_CHANNEL_BACKUP;
     }
 
+    HBridge cutter(*ena_pin, DeathStackBoard::CutterConfig::CUTTER_TIM,
+                   pwmChannel, frequency, dutyCycle / 100.0f);
+
+    // Start the test
+
+    miosix::Thread::create(elapsedTimeAndCsense, 2048, miosix::MAIN_PRIORITY,
+                           &cutterNo);
+
+    cutter.enable();
+
+    // Wait for the user to press ENTER or the timer to elapse
+    string temp;
+    while (!finished)
+    {
+        (void)getchar();
+        finished = true;
+        printf("Stopped... \n\n");
+    }
+
+    cutter.disable();
+
     return 0;
+}
+
+void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle)
+{
+    string temp;
+
+    do
+    {
+        printf("\nWhat do you want to cut? (1 - primary / 2 - backup)\n");
+        printf(">> ");
+        getline(cin, temp);
+        stringstream(temp) >> *cutterNo;
+    } while (*cutterNo != 1 && *cutterNo != 2);
+
+    do
+    {
+        printf("\nInsert frequency (1-30000 Hz): \n");
+        printf(">> ");
+        getline(cin, temp);
+        stringstream(temp) >> *frequency;
+    } while (*frequency < 1 || *frequency > 30000);
+
+    do
+    {
+        printf("\nInsert duty cycle (1-100): \n");
+        printf(">> ");
+        getline(cin, temp);
+        stringstream(temp) >> *dutyCycle;
+    } while (*dutyCycle < 1 || *dutyCycle > 100);
+
+    printf("\nCutting %s, frequency: %lu, duty cycle: %.1f\n\n",
+           (*cutterNo ? "PRIMARY" : "BACKUP"), *frequency, *dutyCycle);
+
+    do
+    {
+        printf("READY!\n");
+        printf("Write 'start' to begin then press ENTER to end the test:\n");
+        getline(cin, temp);
+    } while (temp != "start");
+}
+
+void elapsedTimeAndCsense(void *args)
+{
+    int cutterNo = *(unsigned int *)args;
+    // Sensors setup
+
+    InternalADC internalADC(*ADC3, 3.3);
+    internalADC.init();
+    internalADC.enableChannel(ADC_CHANNEL_PRIMARY);
+    internalADC.enableChannel(ADC_CHANNEL_BACKUP);
+
+    function<ADCData()> get_voltage_function;
+
+    if (cutterNo == 1)
+    {
+        get_voltage_function =
+            bind(&InternalADC::getVoltage, &internalADC, ADC_CHANNEL_PRIMARY);
+    }
+    else
+    {
+        get_voltage_function =
+            bind(&InternalADC::getVoltage, &internalADC, ADC_CHANNEL_BACKUP);
+    }
+
+    CurrentSensor current_sensor(get_voltage_function, adc_to_current);
+    current_sensor.init();
+
+    // Save the cuttent timestamp
+    uint64_t t  = TimestampTimer::getTimestamp() / 1000;
+    uint64_t t0 = t;
+
+    while (t < t0 + MAX_CUTTING_TIME && !finished)
+    {
+        Thread::sleep(1000 / SAMPLING_FREQUENCY);
+
+        t = TimestampTimer::getTimestamp() / 1000;
+        internalADC.sample();
+        current_sensor.sample();
+
+        CurrentSenseData current_data = current_sensor.getLastSample();
+        printf("Elapsed time : %.2f\tCsense: %.4fV %.3fA\n", (t - t0) / 1000.0,
+               current_data.voltage, current_data.current);
+    }
+
+    printf("Cut Time: %.2f s\n\n", (t - t0) / 1000.0f);
 }

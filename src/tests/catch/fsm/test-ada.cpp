@@ -80,9 +80,9 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from idle")
 {
     controller->transition(&ADACtrl::state_idle);
 
-    SECTION("EV_CALIBRATE -> CALIBRATING")
+    SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE},
+        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
 }

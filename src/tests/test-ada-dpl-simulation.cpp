@@ -128,7 +128,7 @@ int main()
     Thread::sleep(1000);
 
     // Enter ADA calibration state
-    sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
     Thread::sleep(100);
 
     // Send baro calibration samples for ADA

@@ -152,6 +152,8 @@ private:
     unsigned int n_samples_deployment_detected =
         0; /**<  Number of consecutive samples in which dpl altitude is detected
             */
+    unsigned int n_samples_abk_disable_detected =
+        0; /**<  Number of consecutive samples for abk disable */
 
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
 };
@@ -271,6 +273,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
         case ADAState::ACTIVE:
         {
             ada.updateBaro(pressure);
+
             // Check if we reached apogee
             if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
@@ -289,6 +292,21 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             else if (n_samples_apogee_detected != 0)
             {
                 n_samples_apogee_detected = 0;
+            }
+
+            // Check if we have to disable aerobrakes
+            if (ada.getVerticalSpeed() < ABK_DISABLE_VERTICAL_SPEED_TARGET)
+            {
+                if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
+                {
+                    // Active state send notifications for disabling aerobrakes
+                    sEventBroker->post({EV_ADA_DISABLE_ABK}, TOPIC_FLIGHT_EVENTS);
+                    status.disable_aerobrakes = true;
+                }
+            }
+            else if (n_samples_abk_disable_detected != 0)
+            {
+                n_samples_abk_disable_detected = 0;
             }
 
             logData(ada.getKalmanState(), ada.getADAData());
@@ -463,7 +481,7 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
             TRACE("[ADA] Exiting state idle\n");
             break;
         }
-        case EV_CALIBRATE:
+        case EV_CALIBRATE_ADA:
         {
             this->transition(&ADACtrl::state_calibrating);
             break;

@@ -34,14 +34,13 @@ namespace DeathStackBoard
 {
 
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_initialization, FMM_STACK_SIZE,
+    : HSM(&FlightModeManager::state_initialization, STACK_MIN_FOR_SKYWARD,
           FMM_PRIORITY),
       logger(*(LoggerService::getInstance()))
 {
     sEventBroker->subscribe(this, TOPIC_ADA);
     sEventBroker->subscribe(this, TOPIC_NAS);
-    sEventBroker->subscribe(this, TOPIC_SM);
-    sEventBroker->subscribe(this, TOPIC_TC);
+    sEventBroker->subscribe(this, TOPIC_TMTC);
     sEventBroker->subscribe(this, TOPIC_FMM);
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
 }
@@ -214,9 +213,9 @@ State FlightModeManager::state_initDone(const Event& ev)
 
             break;
         }
-        case EV_TC_CALIBRATE:
+        case EV_TC_CALIBRATE_SENSORS:
         {
-            retState = transition(&FlightModeManager::state_calibrating);
+            retState = transition(&FlightModeManager::state_sensorsCalibration);
             break;
         }
         case EV_TC_TEST_MODE:
@@ -233,19 +232,19 @@ State FlightModeManager::state_initDone(const Event& ev)
     return retState;
 }
 
-/* Just wait the ADA, NAS and SM events */
-State FlightModeManager::state_calibrating(const Event& ev)
+State FlightModeManager::state_sensorsCalibration(const Event& ev)
 {
     State retState = HANDLED;
     switch (ev.sig)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
-            logState(FMMState::CALIBRATING);
+            logState(FMMState::SENSORS_CALIBRATION);
 
-            sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
+            TRACE("[FMM] Entering sensors_calibration\n");
 
-            TRACE("[FMM] Entering calibration\n");
+            // TODO : calibrate sensors
+
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -254,39 +253,77 @@ State FlightModeManager::state_calibrating(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            TRACE("[FMM] Exit calibration\n");
+            TRACE("[FMM] Exit sensors_calibration\n");
 
             break;
         }
-        case EV_TC_CALIBRATE:
+        case EV_TC_CALIBRATE_SENSORS:
         {
-            retState = transition(&FlightModeManager::state_calibrating);
+            retState = transition(&FlightModeManager::state_sensorsCalibration);
+            break;
+        }
+        case EV_SENSORS_READY:
+        {
+            retState = transition(&FlightModeManager::state_algosCalibration);
+            break;
+        }
+        default: /* If an event is not handled here, try with super-state */
+        {
+            retState = tran_super(&FlightModeManager::state_onGround);
+            break;
+        }
+    }
+    return retState;
+}
+
+/* Just wait the ADA and NAS events */
+State FlightModeManager::state_algosCalibration(const Event& ev)
+{
+    State retState = HANDLED;
+    switch (ev.sig)
+    {
+        case EV_ENTRY: /* Executed everytime state is entered */
+        {
+            logState(FMMState::ALGOS_CALIBRATION);
+
+            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+            sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
+
+            TRACE("[FMM] Entering algos_calibration\n");
+            break;
+        }
+        case EV_INIT: /* No sub-state */
+        {
+            break;
+        }
+        case EV_EXIT: /* Executed everytime state is exited */
+        {
+            TRACE("[FMM] Exit algos_calibration\n");
+
+            break;
+        }
+        case EV_TC_CALIBRATE_ALGOS:
+        {
+            retState = transition(&FlightModeManager::state_algosCalibration);
             break;
         }
         case EV_ADA_READY:
         {
             ada_ready = true;
-            if (nas_ready && sm_ready)
+            if (nas_ready)
             {
-                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
+                sEventBroker->post(Event{EV_CALIBRATION_OK},
+                                   TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
         case EV_NAS_READY:
         {
             nas_ready = true;
-            if (ada_ready && sm_ready)
+            if (ada_ready)
             {
-                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
-            }
-            break;
-        }
-        case EV_SM_READY:
-        {
-            sm_ready = true;
-            if (ada_ready && nas_ready)
-            {
-                sEventBroker->post(Event{EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
+                sEventBroker->post(Event{EV_CALIBRATION_OK},
+                                   TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
@@ -326,38 +363,17 @@ State FlightModeManager::state_disarmed(const Event& ev)
 
             break;
         }
-        case EV_TC_CALIBRATE:
+        case EV_TC_CALIBRATE_ALGOS:
         {
             ada_ready = false;
             nas_ready = false;
-            sm_ready  = false;
-            sEventBroker->post({EV_CALIBRATE}, TOPIC_FLIGHT_EVENTS);
 
-            retState = transition(&FlightModeManager::state_calibrating);
-            break;
-        }
-        case EV_TC_CALIBRATE_ADA:
-        {
-            ada_ready = false;
-            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
-
-            retState = transition(&FlightModeManager::state_calibrating);
-            break;
-        }
-        case EV_TC_CALIBRATE_NAS:
-        {
-            nas_ready = false;
-            sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
-
-            retState = transition(&FlightModeManager::state_calibrating);
+            retState = transition(&FlightModeManager::state_algosCalibration);
             break;
         }
         case EV_TC_CALIBRATE_SENSORS:
         {
-            sm_ready = false;
-            sEventBroker->post({EV_CALIBRATE_SENSORS}, TOPIC_SM);
-
-            retState = transition(&FlightModeManager::state_calibrating);
+            retState = transition(&FlightModeManager::state_sensorsCalibration);
             break;
         }
         case EV_TC_ARM:
@@ -405,7 +421,7 @@ State FlightModeManager::state_armed(const Event& ev)
         case EV_UMBILICAL_DETACHED:
         case EV_TC_LAUNCH:
         {
-            retState = transition(&FlightModeManager::state_ascending);
+            retState = transition(&FlightModeManager::state_flying);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -589,6 +605,14 @@ State FlightModeManager::state_ascending(const Event& ev)
             sEventBroker->post(Event{EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
 
             retState = transition(&FlightModeManager::state_drogueDescent);
+            break;
+        }
+        case EV_ADA_DISABLE_ABK:
+        {
+            // Send disable aerobrakes
+            sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
+
+            retState = transition(&FlightModeManager::state_ascending);
             break;
         }
         default: /* If an event is not handled here, try with super-state */

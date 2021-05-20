@@ -53,18 +53,19 @@ struct ADAControllerStatus
     uint64_t timestamp;
     ADAState state            = ADAState::UNDEFINED;
     bool apogee_reached       = false;
+    bool disable_aerobrakes   = false;
     bool dpl_altitude_reached = false;
 
     static std::string header()
     {
-        return "timestamp,state,apogee_reached,dpl_altitude_"
+        return "timestamp,state,apogee_reached,disable_aerobrakes,dpl_altitude_"
                "reached\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << (int)state << "," << apogee_reached << ","
-           << dpl_altitude_reached << "\n";
+           << disable_aerobrakes << "," << dpl_altitude_reached << "\n";
     }
 };
 
@@ -100,10 +101,7 @@ struct ADAKalmanState
     float x1;
     float x2;
 
-    static std::string header()
-    {
-        return "timestamp,x0,x1,x2\n";
-    }
+    static std::string header() { return "timestamp,x0,x1,x2\n"; }
 
     void print(std::ostream& os) const
     {
@@ -123,7 +121,7 @@ struct ADAData
 
     static std::string header()
     {
-        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n"; 
+        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n";
     }
 
     void print(std::ostream& os) const
