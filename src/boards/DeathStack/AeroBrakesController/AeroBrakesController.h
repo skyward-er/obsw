@@ -101,17 +101,6 @@ AeroBrakesController<T>::~AeroBrakesController()
 }
 
 template <class T>
-void AeroBrakesController<T>::logStatus(AeroBrakesControllerState state)
-{
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
-
-    // logger.log(status);
-
-    // StackLogger::getInstance()->updateStack(THID_ABK_FSM);
-}
-
-template <class T>
 void AeroBrakesController<T>::update()
 {
     algorithm.update();
@@ -391,6 +380,17 @@ void AeroBrakesController<T>::incrementallyClose()
     }
 
     servo->set(servo->MIN_POS);
+}
+
+template <class T>
+void AeroBrakesController<T>::logStatus(AeroBrakesControllerState state)
+{
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    LoggerService::getInstance()->log(status);
+
+    //StackLogger::getInstance()->updateStack(THID_ABK_FSM);
 }
 
 }  // namespace DeathStackBoard

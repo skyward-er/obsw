@@ -32,10 +32,15 @@ namespace DeathStackBoard
 class Trajectory
 {
 private:
-    uint32_t index;
+    uint8_t index;
+    float s_bar;  // fixed area for trajectory generation
+                  // if error = 0, this is the needed aerobrakes area
 
 public:
-    Trajectory(uint32_t index) : index(index) {}
+    Trajectory(uint8_t index, float delta_s_max)
+        : index(index), s_bar(TRAJECTORIES_DATA[index].s_bar_perc * delta_s_max)
+    {
+    }
     Trajectory() : index(0) {}
 
     Trajectory& operator=(const Trajectory& other)
@@ -51,6 +56,10 @@ public:
         point_t point = TRAJECTORIES_DATA[index].data[idx];
         return TrajectoryPoint(point.z, point.vz);
     }
+
+    uint8_t getTrajectoryIndex() { return index; }
+
+    float getSBar() { return s_bar; }
 };
 
 }  // namespace DeathStackBoard
