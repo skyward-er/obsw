@@ -1,5 +1,5 @@
-/* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Mozzarelli
+/* Copyright (c) 2020 Skyward Experimental Rocketry
+ * Authors: Luca Conterio, Marco Cella
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,61 +22,64 @@
 
 #pragma once
 
-#include <Common.h>
-#include <sensors/Sensor.h>
 #include <tests/mock_sensors/test-mock-data.h>
 
-#include <random>
+#include "TimestampTimer.h"
+#include "sensors/Sensor.h"
 
 namespace DeathStackBoard
 {
 
-class MockPressureSensor : public Sensor<PressureData>
+struct MockIMUData : public AccelerometerData,
+                     public GyroscopeData,
+                     public MagnetometerData
+{
+};
+
+class MockIMU : public Sensor<MockIMUData>
 {
 public:
-    MockPressureSensor() {}
+    MockIMU() {}
 
     bool init() override { return true; }
 
     bool selfTest() override { return true; }
 
-    PressureData sampleImpl() override
+    MockIMUData sampleImpl() override
     {
-        float press = 0.0;
-
         if (before_liftoff)
         {
-            press = addNoise(SIMULATED_PRESSURE[0]);
-        }
-        else
-        {
-            if (i < PRESSURE_DATA_SIZE)
-            {
-                press = addNoise(SIMULATED_PRESSURE[i++]);
-            }
-            else
-            {
-                press = addNoise(SIMULATED_PRESSURE[PRESSURE_DATA_SIZE - 1]);
-            }
+            index = 0;
         }
 
-        return PressureData{TimestampTimer::getTimestamp(), press};
+        MockIMUData data;
+        
+        data.accel_timestamp = TimestampTimer::getTimestamp();
+        data.accel_x         = ACCELEROMETER_DATA[0][index];
+        data.accel_y         = ACCELEROMETER_DATA[1][index];
+        data.accel_z         = ACCELEROMETER_DATA[2][index];
+
+        data.gyro_timestamp = TimestampTimer::getTimestamp();
+        data.gyro_x         = GYROSCOPE_DATA[0][index];
+        data.gyro_y         = GYROSCOPE_DATA[1][index];
+        data.gyro_z         = GYROSCOPE_DATA[2][index];
+
+        data.mag_timestamp = TimestampTimer::getTimestamp();
+        data.mag_x         = MAGNETOMETER_DATA[0][index];
+        data.mag_y         = MAGNETOMETER_DATA[1][index];
+        data.mag_z         = MAGNETOMETER_DATA[2][index];
+
+        // when finished, go back to the beginning
+        index = (index + 1) % IMU_DATA_SIZE;
+
+        return data;
     }
 
     void signalLiftoff() { before_liftoff = false; }
 
 private:
+    unsigned int index           = 0;
     volatile bool before_liftoff = true;
-    volatile unsigned int i      = 0;  // Last index
-    std::default_random_engine generator{1234567};
-    std::normal_distribution<float> distribution{0.0f, 5.0f};
-
-    float addNoise(float sample)
-    {
-        return quantization(sample + distribution(generator));
-    }
-
-    float quantization(float sample) { return round(sample / 30.0) * 30.0; }
 };
 
 }  // namespace DeathStackBoard

@@ -20,9 +20,14 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <tests/mock_sensors/test-mock-data.h>
 #include "TimestampTimer.h"
 #include "sensors/Sensor.h"
+
+#include "sensors/Sensor.h"
+#include "TimestampTimer.h"
 
 namespace DeathStackBoard
 {
@@ -58,13 +63,15 @@ public:
         {
             data.latitude = SIMULATED_LAT[0];
             data.longitude = SIMULATED_LON[0];
-            //data.height = SIMULATED_HEIGHT[0];
+            data.velocity_north = SIMULATED_VNORD[0];
+            data.velocity_east = SIMULATED_VEAST[0];
         }
         else if (i < GPS_DATA_SIZE)
         {
             data.latitude = SIMULATED_LAT[i];
             data.longitude = SIMULATED_LON[i];
-            //data.height = SIMULATED_HEIGHT[i];
+            data.velocity_north = SIMULATED_VNORD[i];
+            data.velocity_east = SIMULATED_VEAST[i];
             i++;
         }
 
