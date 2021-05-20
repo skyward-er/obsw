@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-05-05 14:56:16.829239
+// Autogen date: 2021-05-19 20:07:40.830045
 
 #pragma once
 
@@ -41,12 +41,13 @@
 using std::string;
 
 /**
- * Definition of all events in the Homeone Board software
- * Refer to section 5.1.1 of the Software Design Document.
+ * Definition of all events in the Board software.
+ * Refer to the Software Design Document.
  */
 enum Events : uint8_t
 {
     EV_ADA_APOGEE_DETECTED = EV_FIRST_SIGNAL,
+    EV_ADA_DISABLE_ABK,
     EV_ADA_DPL_ALT_DETECTED,
     EV_ADA_READY,
     EV_APOGEE,
@@ -73,7 +74,7 @@ enum Events : uint8_t
     EV_SEND_HR_TM,
     EV_SEND_LR_TM,
     EV_SEND_TEST_TM,
-    EV_SEND_TUNNEL_TM,
+    EV_SENSORS_READY,
     EV_SHADOW_MODE_TIMEOUT,
     EV_SM_READY,
     EV_STATS_TIMEOUT,
@@ -81,9 +82,7 @@ enum Events : uint8_t
     EV_TC_ABK_RESET_SERVO,
     EV_TC_ABK_WIGGLE_SERVO,
     EV_TC_ARM,
-    EV_TC_CALIBRATE,
-    EV_TC_CALIBRATE_ADA,
-    EV_TC_CALIBRATE_NAS,
+    EV_TC_CALIBRATE_ALGOS,
     EV_TC_CALIBRATE_SENSORS,
     EV_TC_CLOSE_LOG,
     EV_TC_CUT_DROGUE,
@@ -113,6 +112,7 @@ enum Events : uint8_t
 
 const std::vector<uint8_t> EVENT_LIST{
     EV_ADA_APOGEE_DETECTED,
+    EV_ADA_DISABLE_ABK,
     EV_ADA_DPL_ALT_DETECTED,
     EV_ADA_READY,
     EV_APOGEE,
@@ -139,7 +139,7 @@ const std::vector<uint8_t> EVENT_LIST{
     EV_SEND_HR_TM,
     EV_SEND_LR_TM,
     EV_SEND_TEST_TM,
-    EV_SEND_TUNNEL_TM,
+    EV_SENSORS_READY,
     EV_SHADOW_MODE_TIMEOUT,
     EV_SM_READY,
     EV_STATS_TIMEOUT,
@@ -147,9 +147,7 @@ const std::vector<uint8_t> EVENT_LIST{
     EV_TC_ABK_RESET_SERVO,
     EV_TC_ABK_WIGGLE_SERVO,
     EV_TC_ARM,
-    EV_TC_CALIBRATE,
-    EV_TC_CALIBRATE_ADA,
-    EV_TC_CALIBRATE_NAS,
+    EV_TC_CALIBRATE_ALGOS,
     EV_TC_CALIBRATE_SENSORS,
     EV_TC_CLOSE_LOG,
     EV_TC_CUT_DROGUE,
