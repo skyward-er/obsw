@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Copyright (c) 5021 Skyward Experimental Rocketry
  * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -95,22 +95,24 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_flying")
 {
     // move to state_flying (state_ascending)
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_CALIBRATION_OK});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_TC_ARM});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
-    Thread::sleep(20);
+    Thread::sleep(100);
 
     SECTION("EV_TC_END_MISSION -> LANDED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_END_MISSION},
                                   &FlightModeManager::state_landed));
     }
-
+    
     SECTION("EV_TIMEOUT_END_MISSION -> LANDED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TIMEOUT_END_MISSION},
@@ -137,7 +139,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initError")
 {
     // move to state_initError
     fsm->postEvent(Event{EV_INIT_ERROR});
-    Thread::sleep(20);
+    Thread::sleep(50);
 
     SECTION("EV_TC_FORCE_INIT -> INIT_DONE")
     {
@@ -150,7 +152,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initDone")
 {
     // move to state_initDone
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
+    Thread::sleep(50);
 
     SECTION("EV_TC_TEST_MODE -> TEST_MODE")
     {
@@ -158,31 +160,55 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initDone")
                                   &FlightModeManager::state_testMode));
     }
 
-    SECTION("EV_TC_CALIBRATE -> CALIBRATING")
+    SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE},
-                                  &FlightModeManager::state_calibrating));
+        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+                                  &FlightModeManager::state_sensorsCalibration));
     }
 }
 
-/*TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_testMode")
+/*
+TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_testMode")
 {
-    fsm->transition(&FlightModeManager::state_testMode);
-}*/
+    
+}
+*/
 
-
-TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_calibrating")
+TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_sensorsCalibration")
 {
     // move to state_calibrating
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(100);
 
-    SECTION("EV_TC_CALIBRATE -> CALIBRATING")
+    SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE},
-                                  &FlightModeManager::state_calibrating));
+        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+                                  &FlightModeManager::state_sensorsCalibration));
+    }
+
+    SECTION("EV_SENSORS_READY -> ALGOS_CALIBRATION")
+    {
+        REQUIRE(testHSMTransition(*fsm, Event{EV_SENSORS_READY},
+                                  &FlightModeManager::state_algosCalibration));
+    }
+}
+
+TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_algosCalibration")
+{
+    // move to state_calibrating
+    fsm->postEvent(Event{EV_INIT_OK});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(100);
+
+    SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
+    {
+        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
+                                  &FlightModeManager::state_algosCalibration));
     }
 
     SECTION("EV_CALIBRATION_OK -> DISARMED")
@@ -196,28 +222,24 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_disarmed")
 {
     // move to state_disarmed
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
     Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    Thread::sleep(100);
 
-    SECTION("EV_TC_CALIBRATE_ADA -> CALIBRATING")
+    SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ADA},
-                                  &FlightModeManager::state_calibrating));
+        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
+                                  &FlightModeManager::state_algosCalibration));
     }
 
-    SECTION("EV_TC_CALIBRATE_NAS -> CALIBRATING")
-    {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_NAS},
-                                  &FlightModeManager::state_calibrating));
-    }
-
-    SECTION("EV_TC_CALIBRATE_SENSORS -> CALIBRATING")
+    SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_calibrating));
+                                  &FlightModeManager::state_sensorsCalibration));
     }
 
     SECTION("EV_TC_ARM -> ARMED")
@@ -231,13 +253,15 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_armed")
 {
     // move to state_armed
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_CALIBRATION_OK});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_TC_ARM});
-    Thread::sleep(20);
+    Thread::sleep(100);
 
     SECTION("EV_TC_DISARM -> DISARMED")
     {
@@ -262,20 +286,28 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_ascending")
 {
     // move to state_ascending
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_CALIBRATION_OK});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_TC_ARM});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
-    Thread::sleep(20);
+    Thread::sleep(100);
 
     SECTION("EV_ADA_APOGEE_DETECTED -> DROGUE_DESCENT")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_APOGEE_DETECTED},
                                   &FlightModeManager::state_drogueDescent));
+    }
+
+    SECTION("EV_ADA_DISABLE_ABK -> ASCENDING")
+    {
+        REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_DISABLE_ABK},
+                                  &FlightModeManager::state_ascending));
     }
 
     SECTION("EV_TC_NC_OPEN -> DROGUE_DESCENT")
@@ -289,17 +321,19 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_drogueDescent")
 {
     // move to state_drogueDescent
     fsm->postEvent(Event{EV_INIT_OK});
-    Thread::sleep(20);
-    fsm->postEvent(Event{EV_TC_CALIBRATE});
-    Thread::sleep(20);
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    Thread::sleep(50);
+    fsm->postEvent(Event{EV_SENSORS_READY});
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_CALIBRATION_OK});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_TC_ARM});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
-    Thread::sleep(20);
+    Thread::sleep(50);
     fsm->postEvent(Event{EV_ADA_APOGEE_DETECTED});
-    Thread::sleep(20);
+    Thread::sleep(100);
 
     SECTION("EV_ADA_DPL_ALT_DETECTED -> TERMINAL_DESCENT")
     {

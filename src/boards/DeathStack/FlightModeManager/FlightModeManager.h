@@ -63,8 +63,11 @@ public:
     /* Test mode, listen to serial and print stuff on serial */
     State state_testMode(const Event& ev);
 
-    /* Calibrating ADA with pressure samples */
-    State state_calibrating(const Event& ev);
+
+    /* Calibrating sensors */
+    State state_sensorsCalibration(const Event& ev);
+    /* Calibrating ADA and NAS */
+    State state_algosCalibration(const Event& ev);
     /* All good, waiting for arm */
     State state_disarmed(const Event& ev);
 
@@ -103,7 +106,6 @@ private:
 
     bool ada_ready = false;
     bool nas_ready = false;
-    bool sm_ready = false;
 };
 
 }  // namespace DeathStackBoard
