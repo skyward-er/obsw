@@ -35,7 +35,7 @@
         <onexit>disableBackupCutter()</onexit>
         <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
     </state>
-    <state id="testCuttingPrimary">
+    <state id="testCuttingPiimary">
         <onentry>enablePrimaryCutter()</onentry>
         <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
         <onexit>disablePrimaryCutter()</onexit>

@@ -11,7 +11,7 @@
   </state>
   <state id="InitDone">
    <transition event="TMTC.EV_TC_TEST_MODE" target="TestMode"></transition>
-   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating"></transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_SENSORS" target="SensorsCalibration"></transition>
   </state>
   <state id="TestMode">
    <transition event="TMTC.EV_TC_NC_OPEN" target="TestMode">post(DPL.EV_NC_OPEN)</transition>
@@ -25,18 +25,20 @@
    <transition event="TMTC.EV_TC_TEST_ABK" target="TestMode">post(ABK.EV_TEST_ABK)</transition>
    <transition event="TMTC.EV_TC_CLOSE_LOG" target="TestMode">logger.stop()</transition>
   </state>
-  <state id="Calibrating">
-   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating">ada_ready = true</transition>
-   <transition event="ADA.EV_ADA_READY" target="Calibrating">nas_ready = true</transition>
-   <transition event="NAS.EV_NAS_READY" target="Calibrating">sm_ready = true</transition>
-   <transition event="SM.EV_SM_READY" target="Calibrating"></transition>
-   <transition event="FMM.EV_CALIBRATION_OK" target="Disarmed"></transition>
+  <state id="SensorsCalibration">
+   <transition event="TMTC.EV_TC_CALIBRATE_SENSORS" target="SensorsCalibration"></transition>
+   <transition event="FLIGHT_EVENTS.EV_SENSORS_READY" target="AlgosCalibration"></transition>
+  </state>
+  <state id="AlgosCalibration">
+   <onentry>post(ADA.EV_CALIBRATE_ADA); post(NAS.EV_CALIBRATE_NAS)</onentry>
+   <transition event="TMTC.EV_TC_CALIBRATE_ALGOS" target="AlgosCalibration"></transition>
+   <transition event="ADA.EV_ADA_READY" target="AlgosCalibration">ada_ready = true</transition>
+   <transition event="NAS.EV_NAS_READY" target="AlgosCalibration">nas_ready = true</transition>
+   <transition event="FLIGHT_EVENTS.EV_CALIBRATION_OK" target="Disarmed"></transition>
   </state>
   <state id="Disarmed">
-   <transition event="TMTC.EV_TC_CALIBRATE" target="Calibrating">post(ADA.EV_CALIBRATE)</transition>
-   <transition event="TMTC.EV_TC_CALIBRATE_ADA" target="Calibrating">post(ADA.EV_CALIBRATE_ADA)</transition>
-   <transition event="TMTC.EV_TC_CALIBRATE_NAS" target="Calibrating">post(NAS.EV_CALIBRATE_NAS)</transition>
-   <transition event="TMTC.EV_TC_CALIBRATE_SENSORS" target="Calibrating">post(SM.EV_CALIBRATE_SENSORS)</transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_SENSORS" target="SensorsCalibration"></transition>
+   <transition event="TMTC.EV_TC_CALIBRATE_ALGOS" target="AlgosCalibration"></transition>
    <transition event="TMTC.EV_TC_ARM" target="Armed"></transition>
   </state>
  </state>
@@ -47,12 +49,13 @@
   <transition event="TMTC.EV_TC_LAUNCH" target="Ascending"></transition>
  </state>
  <state id="Flying"> <!-- Super-state -->
-  <onentry>postD(FMM.EV_TIMEOUT_END_MISSION); post(FLIGHT_EVENTS.EV_LIFTOFF)</onentry>
+  <onentry>postD(FMM.EV_TIMEOUT_END_MISSION); post(FLIGHT_EVENTS.EV_LIFTOFF);</onentry>
   <transition event="TMTC.EV_TC_END_MISSION" target="Landed"></transition>
   <transition event="FMM.EV_TIMEOUT_END_MISSION" target="Landed"></transition>
   <transition event="TMTC.EV_TC_NC_OPEN" target="Flying">post(DPL.EV_NC_OPEN)</transition>
   <transition event="TMTC.EV_TC_ABK_DISABLE" target="Flying">post(ABK.EV_DISABLE_ABK)</transition>
   <state id="Ascending">
+   <transition event="ADA.EV_ADA_DISABLE_ABK" target="Ascending">post(ABK.EV_DISABLE_ABK)</transition>
    <transition event="ADA.EV_ADA_APOGEE_DETECTED" target="Descending">post(FLIGHT_EVENTS.EV_APOGEE)</transition>
    <transition event="TMTC.EV_TC_NC_OPEN" target="Descending">post(FLIGHT_EVENTS.EV_APOGEE)</transition>
   </state>
@@ -63,7 +66,7 @@
    <transition event="FLIGHT_EVENTS.EV_NC_DETACHED" target="DrogueDescent">post(FLIGHT_EVENTS.EV_NC_DETACHED)</transition>
   </state>
   <state id="TerminalDescent">
-   <onentry>post(FLIGHT_EVENTS.EV_DPL_ALTITUDE); post(DPL.EV_CUT_DROGUE)</onentry>
+   <onentry>post(FLIGHT_EVENTS.EV_DPL_ALTITUDE); post(DPL.EV_CUT_DROGUE);</onentry>
    <transition event="TMTC.EV_TC_CUT_DROGUE" target="TerminalDescent">post(DPL.EV_CUT_DROGUE)</transition>
   </state>
  </state>
