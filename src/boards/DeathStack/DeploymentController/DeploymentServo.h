@@ -26,6 +26,7 @@
 #include "../ServoInterface.h"
 #include "../configs/DeploymentConfig.h"
 #include "drivers/servo/servo.h"
+#include "miosix.h"
 
 namespace DeathStackBoard
 {
@@ -41,6 +42,7 @@ public:
         : ServoInterface(DPL_SERVO_MIN_POS, DPL_SERVO_MAX_POS, DPL_SERVO_RESET_POS)
     {
     }
+
     DeploymentServo(float minPosition, float maxPosition, float resetPosition)
         : ServoInterface(minPosition, maxPosition, resetPosition)
     {

@@ -1,6 +1,6 @@
-/*
+/**
  * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,56 +21,79 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
-#include <stdio.h>
+/**
+ * Components on the stm board:
+ *
+ * STM32F429:
+ *     Led wave
+ *     External oscillator
+ */
+
+#include <Common.h>
+
+#include <iostream>
+#include <sstream>
+
+using namespace std;
+
+namespace LedWave
+{
+#include "../ledwave.cpp"
+}
+
+namespace HSE
+{
+#include "../test-hse.cpp"
+}
+
+// Sample frequency
+constexpr int SAMPLING_FREQUENCY = 100;
+
+int menu();
+int askSeconds();
 
 int main()
 {
-    printf("\nClock configuration : 0x%x \n\n", (unsigned int)RCC->CR);
+    TimestampTimer::enableTimestampTimer();
 
-    // check if HSE is enabled
-    if (RCC->CR & RCC_CR_HSEON)
+    switch (menu())
     {
-        printf("HSE is on ... ok \n");
-    }
-    else
-    {
-        printf("HSE is off ... error \n");
-    }
+        case 1:
+            LedWave::main();
+            break;
+        case 2:
+            HSE::main();
+            break;
 
-    // check if HSE is ready
-    if (RCC->CR & RCC_CR_HSERDY)
-    {
-        printf("HSE is ready ... ok \n");
+        default:
+            break;
     }
-    else
-    {
-        printf("HSE not ready ... error \n");
-    }
-
-    // check if HSE is bypassed
-    if (RCC->CR & RCC_CR_HSEBYP)
-    {
-        printf("HSE is bypassed ... error \n");
-    }
-    else
-    {
-        printf("HSE is not bypassed ... ok \n");
-    }
-
-    // check if Clock Security System is enabled
-    if (RCC->CR & RCC_CR_CSSON)
-    {
-        printf("CSS is on \n");
-    }
-    else
-    {
-        printf("CSS is off \n");
-    }
-
-    // Wait for the user to press ENTER or the timer to elapse
-    printf("Press any key to exit the external oscillator test\n");
-    (void)getchar();
 
     return 0;
+}
+
+int menu()
+{
+    string temp;
+    int choice;
+
+    printf("\n\nWhat do you want to do?\n");
+    printf("1. Ledwave\n");
+    printf("2. External oscillator\n");
+    printf("\n>> ");
+    getline(cin, temp);
+    stringstream(temp) >> choice;
+
+    return choice;
+}
+
+int askSeconds()
+{
+    int seconds;
+
+    printf("How many seconds the test should run?\n");
+    printf("\n>> ");
+    scanf("%d", &seconds);
+
+    return seconds;
 }
