@@ -36,6 +36,9 @@ struct BMX160DataCorrected : public BMX160Data
 {
     BMX160DataCorrected() : BMX160Data() {}
 
+    BMX160DataCorrected(const BMX160Data& data) 
+        : BMX160DataCorrected(data, data, data){}
+
     BMX160DataCorrected(AccelerometerData acc, GyroscopeData gyr,
                         MagnetometerData mag)
         : BMX160Data(acc, gyr, mag)
@@ -129,6 +132,32 @@ public:
         setParameters(params);
     }
 
+    static BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
+    {
+        // TODO : use rotaton matrix
+        BMX160DataCorrected temp;
+        temp.accel_timestamp = data.accel_timestamp;
+        temp.gyro_timestamp  = data.gyro_timestamp;
+        temp.mag_timestamp   = data.mag_timestamp;
+
+        // sensor's Z is X in body frame
+        temp.accel_z = data.accel_x;
+        temp.gyro_z  = data.gyro_x;
+        temp.mag_z   = data.mag_x;
+
+        // sensor's X is -Z in body frame
+        temp.accel_x = -data.accel_z;
+        temp.gyro_x  = -data.gyro_z;
+        temp.mag_x   = -data.mag_z;
+
+        // sensor's Y is -Y in body frame
+        temp.accel_y = -data.accel_y;
+        temp.gyro_y  = -data.gyro_y;
+        temp.mag_y   = -data.mag_y;
+
+        return temp;
+    }
+
 private:
     BMX160DataCorrected sampleImpl() override
     {
@@ -195,9 +224,9 @@ private:
         else
             avgGyro /= numGyro;
 
-        TRACE("Number of accelerometer samples considered: %d\n", numAccel);
-        TRACE("Number of magnetometer samples considered: %d\n", numMag);
-        TRACE("Number of gyroscope samples considered: %d\n", numGyro);
+        //TRACE("Number of accelerometer samples considered: %d\n", numAccel);
+        //TRACE("Number of magnetometer samples considered: %d\n", numMag);
+        //TRACE("Number of gyroscope samples considered: %d\n", numGyro);
 
         static_cast<AccelerometerData&>(res) << avgAccel;
         static_cast<MagnetometerData&>(res) << avgMag;
@@ -275,32 +304,6 @@ private:
         lhs.mag_x = rhs.mag_x;
         lhs.mag_y = rhs.mag_y;
         lhs.mag_z = rhs.mag_z;
-    }
-
-    BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
-    {
-        // TODO : use rotaton matrix
-        BMX160DataCorrected temp;
-        temp.accel_timestamp = data.accel_timestamp;
-        temp.gyro_timestamp  = data.gyro_timestamp;
-        temp.mag_timestamp   = data.mag_timestamp;
-
-        // sensor's Z is X in body frame
-        temp.accel_z = data.accel_x;
-        temp.gyro_z  = data.gyro_x;
-        temp.mag_z   = data.mag_x;
-
-        // sensor's X is -Z in body frame
-        temp.accel_x = -data.accel_z;
-        temp.gyro_x  = -data.gyro_z;
-        temp.mag_x   = -data.mag_z;
-
-        // sensor's Y is -Y in body frame
-        temp.accel_y = -data.accel_y;
-        temp.gyro_y  = -data.gyro_y;
-        temp.mag_y   = -data.mag_y;
-
-        return temp;
     }
 
     BMX160* driver;
