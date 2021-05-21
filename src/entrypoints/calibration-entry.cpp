@@ -56,17 +56,15 @@ void __attribute__((used)) EXTI5_IRQHandlerImpl()
 
 void waitForInput()
 {
-    printf("To continue enter 'next'...");
 
     char input[100];
-    do
-    {
-        fgets(input, 100, stdin);
-    } while (strcmp("next", input));
+
+    printf("To continue enter 'next'...");
+    fgets(input, 100, stdin);
 }
 
 // Note: accelSamples and gyroSamples MUST be divisible by 6 (number of orientations)
-constexpr unsigned sleepTime = 20, accelSamples = 120, gyroSamples = 120,
+constexpr unsigned sleepTime = 1000, accelSamples = 120, gyroSamples = 120,
                    magnetoSamples = 120;
 
 constexpr unsigned numOrientations = 6;
@@ -106,10 +104,14 @@ int main()
     BMX160Config config;
     config.fifo_mode    = BMX160Config::FifoMode::HEADER;
     config.fifo_int     = BMX160Config::FifoInt::PIN_INT1;
-    config.mag_odr      = BMX160Config::Odr::HZ_25;
+    config.mag_odr      = BMX160Config::Odr::HZ_50;
+    config.acc_odr      = BMX160Config::Odr::HZ_1600;
+    config.gyr_odr      = BMX160Config::Odr::HZ_1600;
+    config.fifo_watermark    = 100;
     config.temp_divider = 1;
 
     sensor = new BMX160(bus, miosix::sensors::bmx160::cs::getPin(), config);
+    sensor->init();
 
     BMX160CorrectionParameters generatedParams;
 
@@ -123,11 +125,8 @@ int main()
 
     char input[50];
 
-    do
-    {
-        printf("Choose one...");
-        fgets(input, 50, stdin);
-    } while (input[1] != '\0');
+    printf("Choose one...");
+    fgets(input, 50, stdin);
 
     switch (input[0])
     {
@@ -156,7 +155,7 @@ int main()
     {
         auto* model =
             new SixParameterCalibration<AccelerometerData, accelSamples>;
-        model->setReferenceVector({0, 0, 1});
+        model->setReferenceVector({-1, 0, 0});
 
         printf("Now I will calibrate the accelerometer.\n");
 
@@ -172,17 +171,26 @@ int main()
                     orientations[i].yAxis)]);
             waitForInput();
 
-            for (unsigned x = 0; x < accelSamples / numOrientations; x++)
-            {
-                sleep(sleepTime);
+            sensor->sample();
+            long x = accelSamples / numOrientations;
 
+            while(x > 0)
+            {
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
-                auto data    = sensor->getFifoElement(size - 1);
-                model->feed(data, orientations[i]);
 
-                printf("Feeding sample: x = %f, y = %f, z = %f\n", data.accel_x,
-                       data.accel_y, data.accel_z);
+                uint8_t len = std::min(sensor->getLastFifoSize(), (uint8_t) 100000);
+                x -= len;
+
+                for (uint8_t i = 0; i < len; i++)
+                {
+                    auto data = BMX160Corrector::rotateAxis(sensor->getFifoElement(i));
+                    model->feed(data, orientations[i]);
+
+                    printf("Feeding sample: x = %f, y = %f, z = %f\n", data.accel_x, data.accel_y, data.accel_z);
+                }
+
+                sleep(sleepTime);
             }
         }
 
@@ -232,7 +240,7 @@ int main()
 
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
-                auto data    = sensor->getFifoElement(size - 1);
+                auto data    = BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
                 model->feed(data, orientations[i]);
 
                 printf("Feeding sample: x = %f, y = %f, z = %f\n", data.gyro_x,
@@ -275,7 +283,7 @@ int main()
 
             sensor->sample();
             uint8_t size = sensor->getLastFifoSize();
-            auto data    = sensor->getFifoElement(size - 1);
+            auto data    = BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
             model->feed(data);
 
             printf("Feeding sample: x = %f, y = %f, z = %f\n", data.mag_x,
