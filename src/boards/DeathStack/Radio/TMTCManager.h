@@ -64,13 +64,15 @@ private:
 
     uint16_t periodicHrEvId = 0;
     uint16_t periodicLrEvId = 0;
-    uint16_t periodicTunnelEvId = 0;
+    uint16_t periodicSensEvId = 0;
+    uint16_t periodicTestEvId = 0;
+
     uint8_t hrPktCounter    = 0;
 
     /* State handlers */
     void stateGroundTM(const Event& ev);
+    void stateSensorTM(const Event& ev);
     void stateFlightTM(const Event& ev);
-    void stateWindTunnelTM(const Event& ev);
 };
 
 } /* namespace DeathStackBoard */

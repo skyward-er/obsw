@@ -50,9 +50,9 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 
 // Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 3;
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 6;
 
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 1000 / 50;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 1000 / 100;
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_PITOT =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
@@ -72,7 +72,7 @@ static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 200;
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 500/4;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
@@ -92,6 +92,9 @@ static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
 static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS = 15;
 static constexpr LIS3MDL::ODR MAG_LIS_FS_ENUM = LIS3MDL::ODR_80_HZ;
 static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
+
+static constexpr unsigned int SAMPLE_PERIOD_GPS = 40;
+
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs

@@ -27,7 +27,7 @@
 
 #include <drivers/spi/SPIBusInterface.h>
 #include <sensors/SensorManager.h>
-#include <diagnostic/PrintLogger.h>
+// #include <diagnostic/PrintLogger.h>
 
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
@@ -37,6 +37,8 @@
 #include <sensors/MS580301BA07/MS580301BA07.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
+#include <drivers/gps/ublox/UbloxGPS.h>
+
 namespace DeathStackBoard
 {
 
@@ -58,6 +60,7 @@ public:
 
     BMX160* imu_bmx160 = nullptr;
     LIS3MDL* mag_lis3mdl = nullptr;
+    UbloxGPS* gps_ublox = nullptr;
 
     Sensors(SPIBusInterface& spi1_bus);
 
@@ -66,7 +69,7 @@ public:
     void start();
 
 private:
-    PrintLogger log = Logging::getLogger("deathstack.sensors");
+    // PrintLogger log = Logging::getLogger("deathstack.sensors");
 
 
     void pressDigiInit();
@@ -89,6 +92,9 @@ private:
 
     void magLISinit();
     void magLISCallback();
+
+    void gpsUbloxInit();
+    void gpsUbloxCallback();
 
     SPIBusInterface& spi1_bus;
 

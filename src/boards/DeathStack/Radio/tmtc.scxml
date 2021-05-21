@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" initial="groundTM" version="1.0">
+    <state id="groundTM">
+        <onentry>postD(TMTC.EV_SEND_TEST_TM)</onentry>
+        <onexit>removeD(TMTC.EV_SEND_TEST_TM)</onexit>
+        <transition event="TMTC.EV_SEND_TEST_TM" target="groundTM">
+        	sendHRTM()
+        	sendTestTM()
+        </transition>
+        <transition event="TMTC.EV_TC_START_SENSOR_TM" target="sensorTM"/>
+        <transition event="FLIGHT_EVENTS.EV_ARMED" target="flightTM"/>
+        <transition event="FLIGHT_EVENTS.EV_LIFTOFF" target="flightTM"/>
+    </state>
+    <state id="flightTM">
+        <onentry>postD(TMTC.EV_SEND_HR_TM)</onentry>
+        <onentry>postD(TMTC.EV_SEND_LR_TM)</onentry>
+        <onexit>removeD(TMTC.EV_SEND_HR_TM)</onexit>
+        <onexit>removeD(TMTC.EV_SEND_LR_TM)</onexit>
+        <transition event="TMTC.EV_SEND_HR_TM" target="flightTM">
+        	sendHRTM()
+        </transition>
+        <transition event="TMTC.EV_SEND_LR_TM" target="flightTM">
+        	sendLRTM()
+        </transition>
+        <transition event="FLIGHT_EVENTS.EV_DISARMED" target="flightTM"/>
+    </state>
+    <state id="sensorTM">
+        <onentry>postD(TMTC.EV_SEND_SENS_TM)</onentry>
+        <onexit>removeD(TMTC.EV_SEND_SENS_TM)</onexit>
+        <transition event="TMTC.EV_SEND_SENS_TM" target="sensorTM">
+        	sendSensTM()
+        </transition>
+        <transition event="TMTC.EV_TC_STOP_SENSOR_TM" target="groundTM"/>
+    </state>
+</scxml>

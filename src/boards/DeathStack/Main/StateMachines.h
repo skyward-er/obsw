@@ -21,33 +21,49 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
+#pragma once
 
-#include "DeathStack.h"
-// #include <diagnostic/PrintLogger.h>
-#include <Debug.h>
+#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/BMX160/BMX160.h>
+#include <drivers/gps/ublox/UbloxGPS.h>
+#include <NavigationSystem/NASData.h>
 
-using namespace miosix;
-using namespace DeathStackBoard;
-// using namespace GlobalBuffers;
-
-int main()
+namespace DeathStackBoard
 {
-    // Logging::startAsyncLogger();
-    // PrintLogger log = Logging::getLogger("main");
 
-    // LOG_INFO(log, "Starting death stack...");
-    TRACE("Starting death stack...\n");
-    // Instantiate the stack
-    Thread::sleep(1000);
-    DeathStack::getInstance()->start();
-    // LOG_INFO(log, "Death stack started");
-    TRACE("Death stack started\n");
+class FlightModeManager;
+class DeploymentController;
 
-    for (;;)
-    {
-        Thread::sleep(1000);
-        LoggerService::getInstance()->log(
-            LoggerService::getInstance()->getLogger().getLogStats());
-    }
+template <typename Press, typename GPS>
+class ADAController;
+
+template <typename IMU, typename Press, typename GPS>
+class NASController;
+
+template <typename T>
+class AeroBrakesController;
+
+class StateMachines
+{
+public:
+    using ADAControllerType = ADAController<MS5803Data, UbloxGPSData>;
+    using NASControllerType = NASController<BMX160Data, MS5803Data, UbloxGPSData>;
+    using AeroBrakesControllerType = AeroBrakesController<NASData>;
+
+    DeploymentController* dpl_controller;
+    FlightModeManager* fmm;
+    ADAControllerType* ada_controller;
+    NASControllerType* nas_controller;
+    AeroBrakesControllerType* arb_controller;
+
+    StateMachines(BMX160& imu, MS580301BA07& press, UbloxGPS& gps);
+
+    ~StateMachines();
+
+    void start();
+
+private:
+    
+};
+
 }

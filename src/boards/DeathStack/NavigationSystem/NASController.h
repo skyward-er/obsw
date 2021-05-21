@@ -51,20 +51,20 @@ class NASController : public FSM<NASController<IMU, Press, GPS>>
     using NASCtrl = NASController<IMU, Press, GPS>;
     using NASFsm  = FSM<NASCtrl>;
 
-    static_assert(
-        checkIfProduces<Sensor<IMU>, AccelerometerData>::value,
-        "Template argument must be a sensor that produces accelerometer data.");
-    static_assert(
-        checkIfProduces<Sensor<IMU>, GyroscopeData>::value,
-        "Template argument must be a sensor that produces gyroscope data.");
-    static_assert(
-        checkIfProduces<Sensor<IMU>, MagnetometerData>::value,
-        "Template argument must be a sensor that produces magnetometer data.");
-    static_assert(
-        checkIfProduces<Sensor<Press>, PressureData>::value,
-        "Template argument must be a sensor that produces pressure data.");
-    static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
-                  "Template argument must be a sensor that produces GPS data.");
+    // static_assert(
+    //     checkIfProduces<Sensor<IMU>, AccelerometerData>::value,
+    //     "Template argument must be a sensor that produces accelerometer data.");
+    // static_assert(
+    //     checkIfProduces<Sensor<IMU>, GyroscopeData>::value,
+    //     "Template argument must be a sensor that produces gyroscope data.");
+    // static_assert(
+    //     checkIfProduces<Sensor<IMU>, MagnetometerData>::value,
+    //     "Template argument must be a sensor that produces magnetometer data.");
+    // static_assert(
+    //     checkIfProduces<Sensor<Press>, PressureData>::value,
+    //     "Template argument must be a sensor that produces pressure data.");
+    // static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
+    //               "Template argument must be a sensor that produces GPS data.");
 
 public:
     NASController(Sensor<IMU>& imu, Sensor<Press>& baro, Sensor<GPS>& gps);
@@ -77,6 +77,8 @@ public:
     void state_end(const Event& ev);
 
     void update();
+
+    NAS<IMU, Press, GPS>& getNAS() { return nas; }
 
 private:
     void finalizeCalibration();

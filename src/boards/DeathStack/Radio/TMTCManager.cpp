@@ -22,34 +22,32 @@
 
 #include "TMTCManager.h"
 
+#include <LoggerService/LoggerService.h>
 #include <configs/TMTCConfig.h>
-#include <events/Events.h>
-#include <events/Topics.h>
-
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/mavlink/MavlinkDriver.h>
-
-#include <LoggerService/LoggerService.h>
+#include <events/Events.h>
+#include <events/Topics.h>
+// #include <diagnostic/PrintLogger.h>
 
 #include <cassert>
 
 namespace DeathStackBoard
 {
 
+// PrintLogger log = Logging::getLogger("deathstack.fsm.tmtc");
+
 TMTCManager::TMTCManager()
-    : FSM(&TMTCManager::stateWindTunnelTM, skywardStack(16 * 1024))
+    : FSM(&TMTCManager::stateSensorTM, skywardStack(16 * 1024))
 {
     // init FSM
     // sEventBroker->subscribe(this, TOPIC_FLIGHT);
     sEventBroker->subscribe(this, TOPIC_TMTC);
 
-    TRACE("[TMTC] Created TMTCManager\n");
+    TRACE("Created TMTCManager\n");
 }
 
-TMTCManager::~TMTCManager()
-{
-    sEventBroker->unsubscribe(this);
-}
+TMTCManager::~TMTCManager() { sEventBroker->unsubscribe(this); }
 
 bool TMTCManager::send(const uint8_t tm_id)
 {
@@ -68,16 +66,18 @@ bool TMTCManager::send(const uint8_t tm_id)
 // State Handlers
 void TMTCManager::stateGroundTM(const Event& ev)
 {
-    TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
             // add periodic events
-            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
-                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
+            // periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+            //     Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+            // periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
+            //     Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
+            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             TRACE("[TMTC] Entering stateGroundTM\n");
 
@@ -85,43 +85,103 @@ void TMTCManager::stateGroundTM(const Event& ev)
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
             break;
         }
-
         case EV_EXIT:
         {
             // remove periodic events
             sEventBroker->removeDelayed(periodicHrEvId);
             sEventBroker->removeDelayed(periodicLrEvId);
+            sEventBroker->removeDelayed(periodicSensEvId);
 
             TRACE("[TMTC] Exiting stateGroundTM\n");
             break;
         }
+        // case EV_SEND_HR_TM:
+        // {
+        //     // repost periodic event
+        //     periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+        //         Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
-        case EV_SEND_HR_TM:
+        //     send(MAV_HR_TM_ID);
+
+        //     break;
+        // }
+        // case EV_SEND_TEST_TM:
+        // {
+        //     // repost periodic event
+        //     periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
+        //         Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
+
+        //     // send tm
+        //     send(MAV_TEST_TM_ID);
+        //     break;
+        // }
+        case EV_SEND_SENS_TM:
         {
-            // repost periodic event
-            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-
-            // send tm once 4 packets are filled
-            bool full = tm_repo->updateHR();
-            if (full)
-            {
-                send(MAV_HR_TM_ID);
-            }
-            break;
-        }
-
-        case EV_SEND_TEST_TM:
-        {
-            // repost periodic event
-            periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
-                Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
+            // TRACE("[TMTC] Sending SENS_TM\n");
+            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             // send tm
-            send(MAV_TEST_TM_ID);
+            send(MAV_SENSORS_TM_ID);
             break;
         }
+        case EV_TC_START_SENSOR_TM:
+        {
+            transition(&TMTCManager::stateSensorTM);
+            break;
+        }
+        case EV_ARMED:
+        case EV_LIFTOFF:
+        {
+            transition(&TMTCManager::stateFlightTM);
+            break;
+        }
+        default:
+            break;
+    }
+}
 
+// State Handlers
+void TMTCManager::stateSensorTM(const Event& ev)
+{
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            // add periodic events
+            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+
+            TRACE("[TMTC] Entering stateSensorTM\n");
+
+            // log stack usage
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            break;
+        }
+        case EV_EXIT:
+        {
+            // remove periodic events
+            sEventBroker->removeDelayed(periodicSensEvId);
+
+            TRACE("[TMTC] Exiting stateSensorTM\n");
+            break;
+        }
+        case EV_SEND_SENS_TM:
+        {
+            // repost periodic event
+            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+
+            send(MAV_SENSORS_TM_ID);
+
+            break;
+        }
+        case EV_TC_STOP_SENSOR_TM:
+        {
+            transition(&TMTCManager::stateGroundTM);
+            break;
+        }
         case EV_ARMED:
         case EV_LIFTOFF:
         {
@@ -162,7 +222,6 @@ void TMTCManager::stateFlightTM(const Event& ev)
             TRACE("[TMTC] Exiting stateFlightTM\n");
             break;
         }
-
         case EV_SEND_HR_TM:
         {
             // repost periodic event
@@ -170,27 +229,26 @@ void TMTCManager::stateFlightTM(const Event& ev)
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
             // send tm once 4 packets are filled
-            bool full = tm_repo->updateHR();
-            if (full)
-            {
-                send(MAV_HR_TM_ID);
-            }
+            send(MAV_HR_TM_ID);
+            // bool full = tm_repo->updateHR();
+            // if (full)
+            // {
+            //     send(MAV_HR_TM_ID);
+            // }
             break;
         }
-
         case EV_SEND_LR_TM:
         {
             // repost periodic event
             periodicLrEvId = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC);
 
-            // send tm
-            tm_repo->updateLR();
-            send(MAV_LR_TM_ID);
+            // // send tm
+            // tm_repo->updateLR();
+            // send(MAV_LR_TM_ID);
 
             break;
         }
-
         case EV_DISARMED:
         {
             transition(&TMTCManager::stateGroundTM);
@@ -202,49 +260,51 @@ void TMTCManager::stateFlightTM(const Event& ev)
     }
 }
 
-void TMTCManager::stateWindTunnelTM(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            // add periodic events
-            periodicTunnelEvId = sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(
-                Event{EV_SEND_TUNNEL_TM}, TOPIC_TMTC);
+// void TMTCManager::stateWindTunnelTM(const Event& ev)
+// {
+//     switch (ev.sig)
+//     {
+//         // case EV_ENTRY:
+//         // {
+//         //     // add periodic events
+//         //     periodicTunnelEvId =
+//         sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(
+//         //         Event{EV_SEND_TUNNEL_TM}, TOPIC_TMTC);
 
-            TRACE("[TMTC] Entering stateWindTunnelTM\n");
+//         //     TRACE("[TMTC] Entering stateWindTunnelTM\n");
 
-            // log stack usage
-            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-        }
+//         //     // log stack usage
+//         //     StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+//         //     break;
+//         // }
 
-        case EV_EXIT:
-        {
-            // remove periodic events
-            sEventBroker->removeDelayed(periodicLrEvId);
-            sEventBroker->removeDelayed(periodicHrEvId);
-            sEventBroker->removeDelayed(periodicTunnelEvId);
+//         // case EV_EXIT:
+//         // {
+//         //     // remove periodic events
+//         //     sEventBroker->removeDelayed(periodicLrEvId);
+//         //     sEventBroker->removeDelayed(periodicHrEvId);
+//         //     sEventBroker->removeDelayed(periodicTunnelEvId);
 
-            TRACE("[TMTC] Exiting stateWindTunnelTM\n");
-            break;
-        }
+//         //     TRACE("[TMTC] Exiting stateWindTunnelTM\n");
+//         //     break;
+//         // }
 
-        case EV_SEND_TUNNEL_TM:
-        {
-            // TRACE("[TMTC] EV_SEND stateWindTunnelTM\n");
-            // repost periodic event
-            periodicTunnelEvId = sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(
-                Event{EV_SEND_TUNNEL_TM}, TOPIC_TMTC);
+//         // case EV_SEND_TUNNEL_TM:
+//         // {
+//         //     // TRACE("[TMTC] EV_SEND stateWindTunnelTM\n");
+//         //     // repost periodic event
+//         //     periodicTunnelEvId =
+//         sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(
+//         //         Event{EV_SEND_TUNNEL_TM}, TOPIC_TMTC);
 
-            // send tm once 4 packets are filled
-            send(MAV_WINDTUNNEL_TM_ID);
-            break;
-        }
+//         //     // send tm once 4 packets are filled
+//         //     send(MAV_WINDTUNNEL_TM_ID);
+//         //     break;
+//         // }
 
-        default:
-            break;
-    }
-}
+//         default:
+//             break;
+//     }
+// }
 
 } /* namespace DeathStackBoard */

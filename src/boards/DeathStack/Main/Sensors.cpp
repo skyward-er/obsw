@@ -23,6 +23,7 @@
 
 #include "Sensors.h"
 
+#include <Debug.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -63,6 +64,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
     pressStaticInit();
     imuBMXinit();
     magLISinit();
+    gpsUbloxInit();
     sensor_manager = new SensorManager(sensors_map);
 }
 
@@ -74,6 +76,7 @@ Sensors::~Sensors()
     delete press_dpl_vane;
     delete press_static_port;
     delete imu_bmx160;
+    delete gps_ublox;
 
     sensor_manager->stop();
     delete sensor_manager;
@@ -85,6 +88,9 @@ void Sensors::start()
 
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
+
+    gps_ublox->start();
+    gps_ublox->sendSBASMessage();
 
     sensor_manager->start();
 }
@@ -102,8 +108,7 @@ void Sensors::pressDigiInit()
 
     sensors_map.emplace(std::make_pair(press_digital, info));
 
-    LOG_INFO(log, "MS5803 pressure sensor setup done! ({:p})",
-             fmt::ptr(press_digital));
+    TRACE("MS5803 pressure sensor setup done! (%p)\n", press_digital);
 }
 
 void Sensors::ADS1118Init()
@@ -131,7 +136,7 @@ void Sensors::ADS1118Init()
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 
-    LOG_INFO(log, "ADS1118 setup done! ({:p})", fmt::ptr(adc_ads1118));
+    TRACE("ADS1118 setup done! (%p)\n", adc_ads1118);
 }
 
 void Sensors::pressPitotInit()
@@ -146,8 +151,7 @@ void Sensors::pressPitotInit()
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 
-    LOG_INFO(log, "Pitot pressure sensor setup done! ({:p})",
-             fmt::ptr(press_pitot));
+    TRACE("Pitot pressure sensor setup done! (%p)\n", press_pitot);
 }
 
 void Sensors::pressDPLVaneInit()
@@ -162,8 +166,7 @@ void Sensors::pressDPLVaneInit()
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 
-    LOG_INFO(log, "DPL pressure sensor setup done! ({:p})",
-             fmt::ptr(press_dpl_vane));
+    TRACE("DPL pressure sensor setup done! (%p)\n", press_dpl_vane);
 }
 
 void Sensors::pressStaticInit()
@@ -178,14 +181,13 @@ void Sensors::pressStaticInit()
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 
-    LOG_INFO(log, "Static pressure sensor setup done! ({:p})",
-             fmt::ptr(press_static_port));
+    TRACE("Static pressure sensor setup done! (%p)\n", press_static_port);
 }
 
 void Sensors::imuBMXinit()
 {
-    SPIBusConfig spi_cfg = ADS1118::getDefaultSPIConfig();
-    spi_cfg.clock_div    = SPIClockDivider::DIV32;
+    SPIBusConfig spi_cfg;
+    spi_cfg.clock_div    = SPIClockDivider::DIV8;
 
     BMX160Config bmx_config;
     bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
@@ -201,6 +203,8 @@ void Sensors::imuBMXinit()
     bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
     bmx_config.mag_odr = IMU_BMX_MAG_FS_ENUM;
 
+    // bmx_config.enable_compensation = false;
+
     imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
                             bmx_config, spi_cfg);
 
@@ -209,7 +213,7 @@ void Sensors::imuBMXinit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
-    LOG_INFO(log, "BMX160 Setup done! ({:p})", fmt::ptr(imu_bmx160));
+    TRACE("BMX160 Setup done! (%p)\n", imu_bmx160);
 }
 
 void Sensors::magLISinit()
@@ -230,7 +234,17 @@ void Sensors::magLISinit()
 
     sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
 
-    LOG_INFO(log, "LIS3MDL Setup done! ({:p})", fmt::ptr(mag_lis3mdl));
+    TRACE("LIS3MDL Setup done! (%p)\n", mag_lis3mdl);
+}
+
+void Sensors::gpsUbloxInit()
+{
+    gps_ublox = new UbloxGPS(38400);
+
+    SensorInfo info(SAMPLE_PERIOD_GPS, bind(&Sensors::gpsUbloxCallback, this),
+                    false, true);
+
+    sensors_map.emplace(std::make_pair(gps_ublox, info));
 }
 
 void Sensors::pressDigiCallback()
@@ -297,6 +311,11 @@ void Sensors::magLISCallback()
     //                     sample.mag_x, sample.mag_y, sample.mag_z,
     //                     sample.temp);
     // }
+}
+
+void Sensors::gpsUbloxCallback()
+{
+    LoggerService::getInstance()->log(gps_ublox->getLastSample());
 }
 
 }  // namespace DeathStackBoard

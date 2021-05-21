@@ -52,11 +52,11 @@ class ADAController : public FSM<ADAController<Press, GPS>>
     using ADACtrl = ADAController<Press, GPS>;
     using ADAFsm  = FSM<ADAController<Press, GPS>>;
 
-    static_assert(
-        checkIfProduces<Sensor<Press>, PressureData>::value,
-        "Template argument must be a sensor that produces pressure data.");
-    static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
-                  "Template argument must be a sensor that produces GPS data.");
+    // static_assert(
+    //     checkIfProduces<Sensor<Press>, PressureData>::value,
+    //     "Template argument must be a sensor that produces pressure data.");
+    // static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
+    //               "Template argument must be a sensor that produces GPS data.");
 
 public:
     ADAController(Sensor<Press>& barometer, Sensor<GPS>& gps);
