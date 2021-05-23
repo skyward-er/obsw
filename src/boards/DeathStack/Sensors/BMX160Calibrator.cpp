@@ -67,6 +67,8 @@ bool BMX160Calibrator::calibrate()
     {
         // calibration is done, replace the offsets in gyroCalibrator
         // with the computed ones
+
+        // also store offsets in a struct of type BMX160GyroOffsets
     }
 
     return is_calibrating;*/

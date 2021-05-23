@@ -38,4 +38,41 @@ struct BMX160DataCorrected : public BMX160Data
         : BMX160Data(acc, gyr, mag)
     {
     }
+
+    static std::string header()
+    {
+        return "accel_timestamp,accel_x,accel_y,accel_z,gyro_timestamp,gyro_x,"
+               "gyro_y,"
+               "gyro_z,mag_timestamp,mag_x,mag_y,mag_z\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << accel_timestamp << "," << accel_x << "," << accel_y << ","
+           << accel_z << "," << gyro_timestamp << "," << gyro_x << "," << gyro_y
+           << "," << gyro_z << "," << mag_timestamp << "," << mag_x << ","
+           << mag_y << "," << mag_z << "\n";
+    }
+};
+
+struct BMX160GyroOffsets : public GyroscopeData
+{
+    BMX160GyroOffsets() : GyroscopeData{} {}
+
+    BMX160GyroOffsets(GyroscopeData gyr)
+        : GyroscopeData{gyr.gyro_timestamp, gyr.gyro_x, gyr.gyro_y, gyr.gyro_z}
+    {
+    }
+
+    static std::string header()
+    {
+        return "gyro_timestamp,gyro_x_offset,gyro_y_offset,"
+               "gyro_z_offset\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << gyro_timestamp << "," << gyro_x << "," << gyro_y << "," << gyro_z
+           << "\n";
+    }
 };
