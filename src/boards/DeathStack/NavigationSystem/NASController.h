@@ -78,6 +78,8 @@ public:
 
     void update();
 
+    NAS<IMU, Press, GPS>& getNAS() { return nas; }
+
 private:
     void finalizeCalibration();
 

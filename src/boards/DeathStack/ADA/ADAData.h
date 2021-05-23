@@ -133,7 +133,7 @@ struct ADAData
 
 // Struct to log altimeter reference values
 // Also used in ADA to store the values
-struct ReferenceValues
+struct ADAReferenceValues
 {
     // Launch site altitude
     float ref_altitude = DEFAULT_REFERENCE_ALTITUDE;
@@ -159,7 +159,7 @@ struct ReferenceValues
            << "," << msl_pressure << "," << msl_temperature << "\n";
     }
 
-    bool operator==(const ReferenceValues& other) const
+    bool operator==(const ADAReferenceValues& other) const
     {
         return ref_altitude == other.ref_altitude &&
                ref_pressure == other.ref_pressure &&
@@ -168,7 +168,7 @@ struct ReferenceValues
                msl_temperature == other.msl_temperature;
     }
 
-    bool operator!=(const ReferenceValues& other) const
+    bool operator!=(const ADAReferenceValues& other) const
     {
         return !(*this == other);
     }

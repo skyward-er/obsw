@@ -88,6 +88,22 @@ public:
     void begin();
 
     /**
+     * @brief This method does a step if the algorithm is running, or sets the
+     * actuator to 0 otherwise
+     */
+    void update()
+    {
+        if (running)
+        {
+            step();
+        }
+        else
+        {
+            actuator->reset();
+        }
+    }
+
+    /**
      * @brief This method looks for nearest point in the current chosen
      * trajectory and sends to the servoInterface the aerobrakes degree
      * according to the current rocket speed and the one in the prediction.

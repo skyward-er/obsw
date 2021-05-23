@@ -163,7 +163,7 @@ template <typename Press, typename GPS>
 ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
                                          Sensor<GPS>& gps)
     : ADAFsm(&ADACtrl::state_idle, ADA_STACK_SIZE, ADA_PRIORITY),
-      ada(ReferenceValues{}), barometer(barometer), gps(gps)
+      ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);

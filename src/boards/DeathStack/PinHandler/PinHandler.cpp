@@ -27,6 +27,10 @@
 #include "LoggerService/LoggerService.h"
 #include "events/Events.h"
 
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
+
 using std::bind;
 
 namespace DeathStackBoard
@@ -76,6 +80,10 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HIL::getInstance()->signalLiftoff();
+#endif
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     TRACE("[PinHandler] Launch pin detached! \n");
