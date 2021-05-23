@@ -28,6 +28,8 @@
 #include "events/Events.h"
 #include "events/Topics.h"
 
+//#include "DeathStack.h"
+
 #include "Debug.h"
 
 namespace DeathStackBoard
@@ -243,7 +245,8 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
 
             TRACE("[FMM] Entering sensors_calibration\n");
 
-            // TODO : calibrate sensors
+            // TODO : calibrate sensors, imu and barometers
+            //DeathStack::getInstance()->sensors->imu_bmx160_calibrator->calibrate();
 
             break;
         }
@@ -723,6 +726,11 @@ State FlightModeManager::state_landed(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
+            break;
+        }
+        case EV_TC_RESET_BOARD:
+        {
+            miosix::reboot();
             break;
         }
         default: /* If an event is not handled here, try with super-state */
