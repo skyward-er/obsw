@@ -60,11 +60,16 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 
-static constexpr unsigned int IMU_BMX_ACC_GYRO_FS = 1600;
-static constexpr BMX160Config::Odr IMU_BMX_ACC_GYRO_FS_ENUM =
+static constexpr BMX160Config::AccRange IMU_BMX_ACC_FULLSCALE_ENUM =
+    BMX160Config::AccRange::G_16;
+static constexpr BMX160Config::GyrRange IMU_BMX_GYRO_FULLSCALE_ENUM =
+    BMX160Config::GyrRange::DEG_2000;
+
+static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+static constexpr BMX160Config::Odr IMU_BMX_ACC_GYRO_ODR_ENUM =
     BMX160Config::Odr::HZ_1600;
-static constexpr unsigned int IMU_BMX_MAG_FS = 50;
-static constexpr BMX160Config::Odr IMU_BMX_MAG_FS_ENUM =
+static constexpr unsigned int IMU_BMX_MAG_ODR = 50;
+static constexpr BMX160Config::Odr IMU_BMX_MAG_ODR_ENUM =
     BMX160Config::Odr::HZ_50;
 
 static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
@@ -72,13 +77,13 @@ static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 500/4;
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 500 / 4;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
-    IMU_BMX_ACC_GYRO_FS * (IMU_BMX_FIFO_HEADER_SIZE + IMU_BMX_ACC_DATA_SIZE +
-                           IMU_BMX_GYRO_DATA_SIZE) +
-    IMU_BMX_MAG_FS * (IMU_BMX_MAG_DATA_SIZE + IMU_BMX_FIFO_HEADER_SIZE);
+    IMU_BMX_ACC_GYRO_ODR * (IMU_BMX_FIFO_HEADER_SIZE + IMU_BMX_ACC_DATA_SIZE +
+                            IMU_BMX_GYRO_DATA_SIZE) +
+    IMU_BMX_MAG_ODR * (IMU_BMX_MAG_DATA_SIZE + IMU_BMX_FIFO_HEADER_SIZE);
 
 // How long does it take for the bmx fifo to fill up
 static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
@@ -89,12 +94,11 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
     IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 2) * 4 / 1024;
 
-static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS = 15;
-static constexpr LIS3MDL::ODR MAG_LIS_FS_ENUM = LIS3MDL::ODR_80_HZ;
+static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS   = 15;
+static constexpr LIS3MDL::ODR MAG_LIS_ODR_ENUM         = LIS3MDL::ODR_80_HZ;
 static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
 
 static constexpr unsigned int SAMPLE_PERIOD_GPS = 40;
-
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs
