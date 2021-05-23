@@ -28,6 +28,13 @@
 #include "AeroBrakesData.h"
 #include "LoggerService/LoggerService.h"
 #include "drivers/servo/servo.h"
+#include "miosix.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
+
+using namespace DeathStackBoard;
 
 namespace DeathStackBoard
 {
@@ -87,7 +94,11 @@ public:
     }
 
 private:
-    Servo servo{AB_SERVO_TIMER};
+    Servo servo{AeroBrakesConfigs::AB_SERVO_TIMER};
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HILTransceiver *simulator = HIL::getInstance()->simulator;
+#endif
 
 protected:
     /**
@@ -101,6 +112,10 @@ protected:
         // map position to [0;1] interval for the servo driver
         servo.setPosition(AeroBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
 
+#ifdef HARDWARE_IN_THE_LOOP
+        simulator->setActuatorData(angle);
+#endif
+
         AeroBrakesData abdata;
         abdata.timestamp      = TimestampTimer::getTimestamp();
         abdata.servo_position = currentPosition;
@@ -110,17 +125,16 @@ protected:
     float preprocessPosition(float angle) override
     {
         angle = ServoInterface::preprocessPosition(angle);
-
-        float ABK_UPDATE_PERIOD_seconds = ABK_UPDATE_PERIOD / 1000;
-        float rate = (angle - currentPosition) / ABK_UPDATE_PERIOD_seconds;
+        
+        float rate = (angle - currentPosition) / ABK_UPDATE_PERIOD_SECONDS;
 
         if (rate > AB_SERVO_MAX_RATE)
         {
-            angle = ABK_UPDATE_PERIOD_seconds * AB_SERVO_MAX_RATE + currentPosition;
+            angle = ABK_UPDATE_PERIOD_SECONDS * AB_SERVO_MAX_RATE + currentPosition;
         }
         else if (rate < AB_SERVO_MIN_RATE)
         {
-            angle = ABK_UPDATE_PERIOD_seconds * AB_SERVO_MIN_RATE + currentPosition;
+            angle = ABK_UPDATE_PERIOD_SECONDS * AB_SERVO_MIN_RATE + currentPosition;
         }
 
         angle =

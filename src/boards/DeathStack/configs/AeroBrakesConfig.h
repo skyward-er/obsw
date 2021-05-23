@@ -66,6 +66,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
 static constexpr float FILTER_COEFF = 0.9;
 
 static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 

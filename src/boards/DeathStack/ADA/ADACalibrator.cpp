@@ -63,7 +63,7 @@ void ADACalibrator::setReferenceAltitude(float ref_alt)
     TRACE("[ADA] Reference altitude set to %.3f m\n", ref_alt);
 }
 
-ReferenceValues ADACalibrator::getReferenceValues()
+ADAReferenceValues ADACalibrator::getReferenceValues()
 {
     // If calibration is not compete use default values
     if (calibIsComplete())

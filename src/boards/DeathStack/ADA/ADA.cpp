@@ -36,7 +36,7 @@ namespace DeathStackBoard
 
 using namespace ADAConfigs;
 
-ADA::ADA(ReferenceValues ref_values)
+ADA::ADA(ADAReferenceValues ref_values)
     : ref_values(ref_values), filter(getKalmanConfig(ref_values.ref_pressure))
 {
     TRACE("[ADA] Initial reference values : p_ref: %.3f, p0: %.3f, t0: %.3f\n",
@@ -61,6 +61,17 @@ void ADA::updateBaro(float pressure)
     ada_data.vert_speed = aeroutils::verticalSpeed(
         filter.getState()(0, 0), filter.getState()(1, 0),
         ref_values.msl_pressure, ref_values.msl_temperature);
+
+    if (counter == 50)
+    {
+        TRACE("[ADA] z : %.2f - vz : %.2f \n", ada_data.msl_altitude,
+              ada_data.vert_speed);
+        counter = 0;
+    }
+    else
+    {
+        counter++;
+    }
 }
 
 void ADA::updateGPS(float lat, float lon, bool fix)
@@ -114,7 +125,6 @@ ADAKalmanState ADA::getKalmanState()
 void ADA::updatePressureKalman(float pressure)
 {
     filter.predict();
-
     CVectorP y(pressure);  // column vector
     if (!filter.correct(y))
     {
