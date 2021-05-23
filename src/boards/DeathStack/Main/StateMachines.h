@@ -23,10 +23,11 @@
 
 #pragma once
 
-#include <sensors/MS580301BA07/MS580301BA07.h>
-#include <sensors/BMX160/BMX160.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
 #include <NavigationSystem/NASData.h>
+#include <drivers/gps/ublox/UbloxGPS.h>
+#include <sensors/BMX160/BMX160.h>
+#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <scheduler/TaskScheduler.h>
 
 namespace DeathStackBoard
 {
@@ -47,7 +48,8 @@ class StateMachines
 {
 public:
     using ADAControllerType = ADAController<MS5803Data, UbloxGPSData>;
-    using NASControllerType = NASController<BMX160Data, MS5803Data, UbloxGPSData>;
+    using NASControllerType =
+        NASController<BMX160Data, MS5803Data, UbloxGPSData>;
     using AeroBrakesControllerType = AeroBrakesController<NASData>;
 
     DeploymentController* dpl_controller;
@@ -56,14 +58,15 @@ public:
     NASControllerType* nas_controller;
     AeroBrakesControllerType* arb_controller;
 
-    StateMachines(BMX160& imu, MS580301BA07& press, UbloxGPS& gps);
+    StateMachines(BMX160& imu, MS580301BA07& press, UbloxGPS& gps,
+                  TaskScheduler* scheduler);
 
     ~StateMachines();
 
     void start();
 
 private:
-    
+    void addAlgorithmsToScheduler(TaskScheduler* scheduler);
 };
 
-}
+}  // namespace DeathStackBoard

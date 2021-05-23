@@ -62,7 +62,7 @@ public:
     LIS3MDL* mag_lis3mdl = nullptr;
     UbloxGPS* gps_ublox = nullptr;
 
-    Sensors(SPIBusInterface& spi1_bus);
+    Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler);
 
     ~Sensors();
 

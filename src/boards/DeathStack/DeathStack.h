@@ -67,7 +67,6 @@ public:
     EventBroker* broker;
     LoggerService* logger;
 
-    // PinHandler* pin_observer;
     EventSniffer* sniffer;
     StateMachines* state_machines;
 
@@ -77,6 +76,8 @@ public:
     Actuators* actuators;
 
     PinHandler* pin_handler;
+
+    TaskScheduler* scheduler;
 
     void start()
     {
@@ -140,12 +141,14 @@ private:
                 *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
         }
 
-        bus            = new Bus();
-        radio          = new Radio(*bus->spi2);
-        sensors        = new Sensors(*bus->spi1);
-        actuators      = new Actuators();
-        state_machines = new StateMachines(
-            *sensors->imu_bmx160, *sensors->press_digital, *sensors->gps_ublox);
+        scheduler = new TaskScheduler();
+        bus       = new Bus();
+        radio     = new Radio(*bus->spi2);
+        sensors   = new Sensors(*bus->spi1, scheduler);
+        actuators = new Actuators();
+        state_machines =
+            new StateMachines(*sensors->imu_bmx160, *sensors->press_digital,
+                              *sensors->gps_ublox, scheduler);
         pin_handler = new PinHandler();
 
         injector = new EventInjector();

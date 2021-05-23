@@ -54,7 +54,7 @@ namespace DeathStackBoard
 {
 using namespace SensorConfigs;
 
-Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
+Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler) : spi1_bus(spi1_bus)
 {
     // Pressure sensors
     pressDigiInit();
@@ -65,7 +65,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
     imuBMXinit();
     magLISinit();
     gpsUbloxInit();
-    sensor_manager = new SensorManager(sensors_map);
+    sensor_manager = new SensorManager(scheduler, sensors_map);
 }
 
 Sensors::~Sensors()
@@ -196,12 +196,12 @@ void Sensors::imuBMXinit()
 
     bmx_config.temp_divider = 1;
 
-    bmx_config.acc_range = BMX160Config::AccRange::G_16;
-    bmx_config.gyr_range = BMX160Config::GyrRange::DEG_125;
+    bmx_config.acc_range = IMU_BMX_ACC_FULLSCALE_ENUM;
+    bmx_config.gyr_range = IMU_BMX_GYRO_FULLSCALE_ENUM;
 
-    bmx_config.acc_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
-    bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
-    bmx_config.mag_odr = IMU_BMX_MAG_FS_ENUM;
+    bmx_config.acc_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmx_config.mag_odr = IMU_BMX_MAG_ODR_ENUM;
 
     // bmx_config.enable_compensation = false;
 
@@ -222,7 +222,7 @@ void Sensors::magLISinit()
     busConfig.clock_div = SPIClockDivider::DIV32;
 
     LIS3MDL::Config config;
-    config.odr                = MAG_LIS_FS_ENUM;
+    config.odr                = MAG_LIS_ODR_ENUM;
     config.scale              = MAG_LIS_FULLSCALE;
     config.temperatureDivider = 1;
 
@@ -245,6 +245,8 @@ void Sensors::gpsUbloxInit()
                     false, true);
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
+
+    TRACE("Ublox GPS Setup done! (%p)\n", gps_ublox);
 }
 
 void Sensors::pressDigiCallback()

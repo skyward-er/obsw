@@ -32,7 +32,9 @@ namespace DeathStackBoard
 namespace NASConfigs
 {
 
-static const float SAMPLE_RATE = 100.0F;  // [Hz]
+static const unsigned int NAS_UPDATE_PERIOD = 20; // ms -> 50 hz
+
+static const float SAMPLE_RATE = 1000.0F / NAS_UPDATE_PERIOD;  // [Hz]
 
 static const float T = 1.0F / SAMPLE_RATE;  // [s]
 

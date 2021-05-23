@@ -32,12 +32,14 @@ namespace DeathStackBoard
 namespace ADAConfigs
 {
 
-static const unsigned int ADA_STACK_SIZE = 4096;
-static const unsigned int ADA_PRIORITY   = 2;  // high
+static const unsigned int ADA_UPDATE_PERIOD = 50;  // ms -> 20 hz
+
+static const unsigned int ADA_PRIORITY = 2;  // high
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
-// Number of consecutive samples with negative speed after which ABK are disabled
+// Number of consecutive samples with negative speed after which ABK are
+// disabled
 constexpr unsigned int ABK_DISABLE_N_SAMPLES = 5;
 // Number of consecutive samples after which the main Deployment is triggered
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
