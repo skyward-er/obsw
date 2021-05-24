@@ -30,8 +30,12 @@
 
 #include "LoggerService/LoggerService.h"
 
+#include "diagnostic/PrintLogger.h"
+
 namespace DeathStackBoard
 {
+
+PrintLogger log = Logging::getLogger("ds.fsm.dpl");
 
 DeploymentController::DeploymentController(HBridge* primaryCutter,
                                            HBridge* backupCutter,
@@ -93,35 +97,35 @@ void DeploymentController::state_idle(const Event& ev)
         {
             logStatus(DeploymentControllerState::IDLE);
 
-            TRACE("[DPL] entering state idle\n");
+            LOG_INFO(log, "Entering state idle");
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[DPL] exiting state idle\n");
+            LOG_INFO(log, "Exiting state idle");
             break;
         }
         case EV_RESET_SERVO:
         {
-            TRACE("[DPL] reset servo \n");
+            LOG_INFO(log, "Reset servo ");
             ejection_servo->reset();
             break;
         }
         case EV_WIGGLE_SERVO:
         {
-            TRACE("[DPL] wiggle servo \n");
+            LOG_INFO(log, "Wiggle servo ");
             ejection_servo->selfTest();
             break;
         }
         case EV_NC_OPEN:
         {
-            TRACE("[DPL] nosecone open event \n");
+            LOG_INFO(log, "Nosecone open event ");
             transition(&DeploymentController::state_noseconeEjection);
             break;
         }
         case EV_CUT_DROGUE:
         {
-            TRACE("[DPL] cut drogue event \n");
+            LOG_INFO(log, "Cut drogue event ");
             transition(&DeploymentController::state_cuttingPrimary);
             break;
         }
@@ -148,7 +152,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[DPL] entering state nosecone_ejection\n");
+            LOG_INFO(log, "Entering state nosecone_ejection");
 
             ejection_servo->set(DPL_SERVO_EJECT_POS);
 
@@ -160,19 +164,19 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[DPL] exiting state nosecone_ejection\n");
+            LOG_INFO(log, "Exiting state nosecone_ejection");
             break;
         }
         case EV_NC_DETACHED:
         {
-            TRACE("[DPL] nosecone detached event \n");
+            LOG_INFO(log, "Nosecone detached event ");
             sEventBroker->removeDelayed(ev_nc_open_timeout_id);
             transition(&DeploymentController::state_idle);
             break;
         }
         case EV_NC_OPEN_TIMEOUT:
         {
-            TRACE("[DPL] nosecone opening timeout \n");
+            LOG_INFO(log, "Nosecone opening timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -189,7 +193,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[DPL] entering state cutting_primary\n");
+            LOG_INFO(log, "Entering state cutting_primary");
 
             primaryCutter->enable();
 
@@ -202,7 +206,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[DPL] exiting state cutting_primary\n");
+            LOG_INFO(log, "Eiting state cutting_primary");
 
             primaryCutter->disable();
 
@@ -210,7 +214,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            TRACE("[DPL] primary cutter timeout \n");
+            LOG_INFO(log, "Primary cutter timeout ");
             transition(&DeploymentController::state_cuttingBackup);
             break;
         }
@@ -227,7 +231,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[DPL] entering state cutting_backup\n");
+            LOG_INFO(log, "Entering state cutting_backup");
 
             backupCutter->enable();
 
@@ -240,7 +244,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[DPL] exiting state cutting_backup\n");
+            LOG_INFO(log, "Exiting state cutting_backup");
 
             backupCutter->disable();
 
@@ -248,7 +252,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            TRACE("[DPL] backup cutter timeout \n");
+            LOG_INFO(log, "Backup cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -265,7 +269,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[DPL] entering state test_cutting_primary\n");
+            LOG_INFO(log, "Entering state test_cutting_primary");
 
             primaryCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
 
@@ -278,7 +282,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[DPL] exiting state test_cutting_primary\n");
+            LOG_INFO(log, "Exiting state test_cutting_primary");
 
             primaryCutter->disable();
 
@@ -288,7 +292,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            TRACE("[DPL] test primary cutter timeout \n");
+            LOG_INFO(log, "Test primary cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -313,19 +317,19 @@ void DeploymentController::state_testCuttingBackup(const Event& ev)
 
             logStatus(DeploymentControllerState::TEST_CUTTING_BACKUP);
 
-            TRACE("[DPL] entering state test_cutting_backup\n");
+            LOG_INFO(log, "Entering state test_cutting_backup");
             break;
         }
         case EV_EXIT:
         {
             backupCutter->disable();
 
-            TRACE("[DPL] exiting state test_cutting_backup\n");
+            LOG_INFO(log, "Exiting state test_cutting_backup");
             break;
         }
         case EV_CUTTING_TIMEOUT:
         {
-            TRACE("[DPL] test backup cutter timeout \n");
+            LOG_INFO(log, "Test backup cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
