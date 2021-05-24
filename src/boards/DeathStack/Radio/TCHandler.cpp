@@ -23,18 +23,22 @@
 
 #include "TCHandler.h"
 
+#include <diagnostic/PrintLogger.h>
+
 #include <map>
 
+#include "ADA/ADAController.h"
+#include "AeroBrakesController/WindData.h"
 #include "DeathStack.h"
 #include "LoggerService/LoggerService.h"
 #include "configs/TMTCConfig.h"
 #include "events/Events.h"
-#include "AeroBrakesController/WindData.h"
 
 using std::map;
 namespace DeathStackBoard
 {
 
+PrintLogger log       = Logging::getLogger("ds.tmtc");
 LoggerService* logger = LoggerService::getInstance();
 
 bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
@@ -42,13 +46,21 @@ bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_ARM, EV_TC_ARM},
     {MAV_CMD_DISARM, EV_TC_DISARM},
-    // {MAV_CMD_CALIBRATE_ADA, EV_TC_CALIBRATE_ADA},
 
     {MAV_CMD_FORCE_INIT, EV_TC_FORCE_INIT},
     {MAV_CMD_FORCE_LAUNCH, EV_TC_LAUNCH},
     {MAV_CMD_NOSECONE_OPEN, EV_TC_NC_OPEN},
-    {MAV_CMD_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
-    {MAV_CMD_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
+
+    {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
+    {MAV_CMD_DPL_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
+    {MAV_CMD_DPL_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
+    {MAV_CMD_ARB_WIGGLE_SERVO, EV_TC_ABK_WIGGLE_SERVO},
+
+    {MAV_CMD_DISABLE_AEROBRAKES, EV_TC_ABK_DISABLE},
+    {MAV_CMD_TEST_AEROBRAKES, EV_TC_TEST_ABK},
+
+    {MAV_CMD_CALIBRATE_ALGOS, EV_TC_CALIBRATE_ALGOS},
+    {MAV_CMD_CALIBRATE_SENSORS, EV_TC_CALIBRATE_SENSORS},
 
     // {MAV_CMD_START_LOGGING, EV_TC_START_SENSOR_LOGGING},
     // {MAV_CMD_STOP_LOGGING, EV_TC_STOP_SENSOR_LOGGING},
@@ -64,7 +76,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
 
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
-    TRACE("[TMTC] Handling command\n");
+    LOG_INFO(log, "Handling command");
 
     // log status
     logger->log(mav_driver->getStatus());
@@ -77,7 +89,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
     {
         case MAVLINK_MSG_ID_NOARG_TC:  // basic command
         {
-            TRACE("[TMTC] Received NOARG command\n");
+            LOG_INFO(log, "Received NOARG command");
             uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
 
             // search for the corresponding event and post it
@@ -85,27 +97,27 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             if (it != tcMap.end())
                 sEventBroker->post(Event{it->second}, TOPIC_TMTC);
             else
-                TRACE("[TMTC] Unknown NOARG command %d\n", commandId);
-            
+                LOG_WARN(log, "Unknown NOARG command %d", commandId);
+
             switch (commandId)
             {
-            case MAV_CMD_BOARD_RESET:
-                logger->stop();
+                case MAV_CMD_BOARD_RESET:
+                    logger->stop();
 
-                miosix::reboot();
-                break;
-            case MAV_CMD_CLOSE_LOG:
-                logger->stop();
-                break;
-            default:
-                break;
+                    miosix::reboot();
+                    break;
+                case MAV_CMD_CLOSE_LOG:
+                    logger->stop();
+                    break;
+                default:
+                    break;
             }
             break;
         }
 
         case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
         {
-            TRACE("[TMTC] Received TM request\n");
+            LOG_INFO(log, "Received TM request");
             uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
 
             // send corresponding telemetry or NACK
@@ -114,39 +126,90 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_UPLOAD_SETTING_TC:  // set a configuration parameter
+        // case MAVLINK_MSG_ID_UPLOAD_SETTING_TC:  // set a configuration
+        // parameter
+        // {
+        //     // uint8_t id    =
+        //     // mavlink_msg_upload_setting_tc_get_setting_id(&msg); float
+        //     setting
+        //     // = mavlink_msg_upload_setting_tc_get_setting(&msg);
+
+        //     // TRACE("[TMTC] Upload setting: %d, %f", (int)id, setting);
+
+        //     // // modify correspondig setting
+        //     // switch (id)
+        //     // {
+        //     //     case MAV_SET_DEPLOYMENT_ALTITUDE:
+        //     //     {
+        //     //         ada.setDeploymentAltitude(setting);
+        //     //         break;
+        //     //     }
+        //     //     case MAV_SET_REFERENCE_ALTITUDE:
+        //     //     {
+        //     //         ada.setReferenceAltitude(setting);
+        //     //         break;
+        //     //     }
+        //     //     case MAV_SET_REFERENCE_TEMP:
+        //     //     {
+        //     //         ada.setReferenceTemperature(setting);
+        //     //         break;
+        //     //     }
+        //     // }
+        //     break;
+        // }
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
         {
-            // uint8_t id    =
-            // mavlink_msg_upload_setting_tc_get_setting_id(&msg); float setting
-            // = mavlink_msg_upload_setting_tc_get_setting(&msg);
-
-            // TRACE("[TMTC] Upload setting: %d, %f\n", (int)id, setting);
-
-            // // modify correspondig setting
-            // switch (id)
-            // {
-            //     case MAV_SET_DEPLOYMENT_ALTITUDE:
-            //     {
-            //         ada.setDeploymentAltitude(setting);
-            //         break;
-            //     }
-            //     case MAV_SET_REFERENCE_ALTITUDE:
-            //     {
-            //         ada.setReferenceAltitude(setting);
-            //         break;
-            //     }
-            //     case MAV_SET_REFERENCE_TEMP:
-            //     {
-            //         ada.setReferenceTemperature(setting);
-            //         break;
-            //     }
-            // }
+            float alt =
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+            LOG_INFO(
+                log,
+                "Received SET_REFERENCE_ALTITUDE command. Ref altitude: {:f} m",
+                alt);
+            DeathStack::getInstance()
+                ->state_machines->ada_controller->setReferenceAltitude(alt);
             break;
         }
+        case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
+        {
+            float temp =
+                mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+            LOG_INFO(
+                log,
+                "Received SET_REFERENCE_TEMPERATURE command. Temp: {:f} degC",
+                temp);
+            DeathStack::getInstance()
+                ->state_machines->ada_controller->setReferenceTemperature(alt);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
+        {
+            float alt =
+                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+            LOG_INFO(
+                log,
+                "Received SET_DEPLOYMENT_ALTITUDE command. Dpl alt: {:f} m",
+                alt);
+            DeathStack::getInstance()
+                ->state_machines->ada_controller->setDeploymentAltitude(alt);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
+        {
+            float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
+            float pitch =
+                mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
+            float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
+            LOG_INFO(log,
+                     "Received SET_INITIAL_ORIENTATION command. yaw: {:f}, "
+                     "pitch: {:f}, roll: {:f}",
+                     yaw, pitch, roll);
+            //TODO: Call NAS
 
+            break;
+        }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
         {
-            TRACE("[TMTC] Received RAW_EVENT command\n");
+            LOG_INFO(log, "Received RAW_EVENT command");
 
             // post given event on given topic
             sEventBroker->post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
@@ -156,29 +219,20 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_PING_TC:
         {
-            TRACE("[TMTC] Ping received\n");
+            LOG_DEBUG(log, "Ping received");
             break;
         }
         case MAVLINK_MSG_ID_SET_AEROBRAKE_ANGLE_TC:
         {
             float pos = mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
-            DeathStack::getInstance()->actuators->aerobrakes->set(pos);
-            TRACE("[TMTC] Received set ab pos: %.1f deg\n", pos);
+            // DeathStack::getInstance()->actuators->aerobrakes->set(pos);
+            LOG_INFO(log, "Received set ab pos: {:.1f} deg", pos);
 
-            break;
-        }
-        case MAVLINK_MSG_ID_SET_WIND_TUNNEL_WIND_SPEED:
-        {
-            WindData d;
-            d.wind = mavlink_msg_set_wind_tunnel_wind_speed_get_wind_speed(&msg);
-            d.timestamp = miosix::getTick();
-            logger->log(d);
-            TRACE("[TMTC] Received wind data: %.2f m/s\n", d.wind);
             break;
         }
         default:
         {
-            TRACE("[TMTC] Received message is not of a known type\n");
+            LOG_INFO(log, "Received message is not of a known type");
             break;
         }
     }
@@ -190,7 +244,7 @@ void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg)
                             msg.seq);
 
     mav_driver->enqueueMsg(ackMsg);
-    TRACE("[TMTC] Enqueued Ack (%d)\n", msg.seq);
+    LOG_INFO(log, "Enqueued Ack ({:d})", msg.seq);
 }
 
 bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id)
