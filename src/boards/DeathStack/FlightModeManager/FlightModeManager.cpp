@@ -37,7 +37,7 @@
 namespace DeathStackBoard
 {
 
-PrintLogger log = Logging::getLogger("ds.fsm.fmm");
+static PrintLogger log = Logging::getLogger("ds.fsm.fmm");
 
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_initialization, STACK_MIN_FOR_SKYWARD,
