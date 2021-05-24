@@ -28,6 +28,13 @@
 #include "AeroBrakesData.h"
 #include "LoggerService/LoggerService.h"
 #include "drivers/servo/servo.h"
+#include "miosix.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
+
+using namespace DeathStackBoard;
 
 namespace DeathStackBoard
 {
@@ -77,17 +84,21 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            miosix::Thread::sleep(UPDATE_TIME + 100);
+            miosix::Thread::sleep(ABK_UPDATE_PERIOD + 100);
             set(maxpos);
-            miosix::Thread::sleep(UPDATE_TIME + 100);
+            miosix::Thread::sleep(ABK_UPDATE_PERIOD + 100);
             set(minpos);
         }
 
-        miosix::Thread::sleep(UPDATE_TIME);
+        miosix::Thread::sleep(ABK_UPDATE_PERIOD);
     }
 
 private:
-    Servo servo{AB_SERVO_TIMER};
+    Servo servo{AeroBrakesConfigs::AB_SERVO_TIMER};
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HILTransceiver *simulator = HIL::getInstance()->simulator;
+#endif
 
 protected:
     /**
@@ -101,8 +112,12 @@ protected:
         // map position to [0;1] interval for the servo driver
         servo.setPosition(AeroBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
 
+#ifdef HARDWARE_IN_THE_LOOP
+        simulator->setActuatorData(angle);
+#endif
+
         AeroBrakesData abdata;
-        abdata.timestamp      = miosix::getTick();
+        abdata.timestamp      = TimestampTimer::getTimestamp();
         abdata.servo_position = currentPosition;
         LoggerService::getInstance()->log(abdata);
     }
@@ -110,17 +125,16 @@ protected:
     float preprocessPosition(float angle) override
     {
         angle = ServoInterface::preprocessPosition(angle);
-
-        float update_time_seconds = UPDATE_TIME / 1000;
-        float rate = (angle - currentPosition) / update_time_seconds;
+        
+        float rate = (angle - currentPosition) / ABK_UPDATE_PERIOD_SECONDS;
 
         if (rate > AB_SERVO_MAX_RATE)
         {
-            angle = update_time_seconds * AB_SERVO_MAX_RATE + currentPosition;
+            angle = ABK_UPDATE_PERIOD_SECONDS * AB_SERVO_MAX_RATE + currentPosition;
         }
         else if (rate < AB_SERVO_MIN_RATE)
         {
-            angle = update_time_seconds * AB_SERVO_MIN_RATE + currentPosition;
+            angle = ABK_UPDATE_PERIOD_SECONDS * AB_SERVO_MIN_RATE + currentPosition;
         }
 
         angle =

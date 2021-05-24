@@ -54,9 +54,13 @@ namespace DeathStackBoard
 {
 using namespace SensorConfigs;
 
-Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
+Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
+    : spi1_bus(spi1_bus)
 {
     // Pressure sensors
+    internalAdcInit();
+    batteryVoltageInit();
+    primaryCutterCurrentInit();
     pressDigiInit();
     ADS1118Init();
     pressPitotInit();
@@ -65,7 +69,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus) : spi1_bus(spi1_bus)
     imuBMXinit();
     magLISinit();
     gpsUbloxInit();
-    sensor_manager = new SensorManager(sensors_map);
+    sensor_manager = new SensorManager(scheduler, sensors_map);
 }
 
 Sensors::~Sensors()
@@ -93,6 +97,73 @@ void Sensors::start()
     gps_ublox->sendSBASMessage();
 
     sensor_manager->start();
+}
+
+void Sensors::internalAdcInit()
+{
+    internal_adc = new InternalADC(*ADC3, INTERNAL_ADC_VREF);
+
+    internal_adc->enableChannel(ADC_CS_CUTTER_PRIMARY);
+
+    internal_adc->enableChannel(ADC_CS_CUTTER_BACKUP);
+
+    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+                    bind(&Sensors::internalAdcCallback, this), false, true);
+    sensors_map.emplace(std::make_pair(internal_adc, info));
+
+    TRACE("InternalADC setup done! (%p)\n", internal_adc);
+}
+
+void Sensors::batteryVoltageInit()
+{
+    function<ADCData()> voltage_fun(
+        bind(&InternalADC::getVoltage, internal_adc, ADC_BATTERY_VOLTAGE));
+    battery_voltage =
+        new BatteryVoltageSensor(voltage_fun, BATTERY_VOLTAGE_COEFF);
+
+    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+                    bind(&Sensors::batteryVoltageCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(battery_voltage, info));
+
+    TRACE("Battery voltage sensor setup done! (%p)\n", battery_voltage);
+}
+
+void Sensors::primaryCutterCurrentInit()
+{
+    function<ADCData()> voltage_fun(
+        bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
+    function<float(float)> adc_to_current = [](float adc_in) {
+        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+    };
+    cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
+
+    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+                    bind(&Sensors::primaryCutterCurrentCallback, this), false,
+                    true);
+
+    sensors_map.emplace(std::make_pair(cs_cutter_primary, info));
+
+    TRACE("Primary cutter current sensor setup done! (%p)\n",
+          cs_cutter_primary);
+}
+
+void Sensors::backupCutterCurrentInit()
+{
+    function<ADCData()> voltage_fun(
+        bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
+    function<float(float)> adc_to_current = [](float adc_in) {
+        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+    };
+    cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
+
+    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+                    bind(&Sensors::backupCutterCurrentCallback, this), false,
+                    true);
+
+    sensors_map.emplace(std::make_pair(cs_cutter_backup, info));
+
+    TRACE("Backup cutter current sensor setup done! (%p)\n", cs_cutter_backup);
 }
 
 void Sensors::pressDigiInit()
@@ -141,7 +212,6 @@ void Sensors::ADS1118Init()
 
 void Sensors::pressPitotInit()
 {
-
     function<ADCData()> voltage_fun(
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_PITOT_PORT));
     press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE);
@@ -156,7 +226,6 @@ void Sensors::pressPitotInit()
 
 void Sensors::pressDPLVaneInit()
 {
-
     function<ADCData()> voltage_fun(
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_DPL_PORT));
     press_dpl_vane = new SSCDANN030PAA(voltage_fun, REFERENCE_VOLTAGE);
@@ -171,7 +240,6 @@ void Sensors::pressDPLVaneInit()
 
 void Sensors::pressStaticInit()
 {
-
     function<ADCData()> voltage_fun(
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_STATIC_PORT));
     press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE);
@@ -187,7 +255,7 @@ void Sensors::pressStaticInit()
 void Sensors::imuBMXinit()
 {
     SPIBusConfig spi_cfg;
-    spi_cfg.clock_div    = SPIClockDivider::DIV8;
+    spi_cfg.clock_div = SPIClockDivider::DIV8;
 
     BMX160Config bmx_config;
     bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
@@ -196,12 +264,12 @@ void Sensors::imuBMXinit()
 
     bmx_config.temp_divider = 1;
 
-    bmx_config.acc_range = BMX160Config::AccRange::G_16;
-    bmx_config.gyr_range = BMX160Config::GyrRange::DEG_125;
+    bmx_config.acc_range = IMU_BMX_ACC_FULLSCALE_ENUM;
+    bmx_config.gyr_range = IMU_BMX_GYRO_FULLSCALE_ENUM;
 
-    bmx_config.acc_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
-    bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_FS_ENUM;
-    bmx_config.mag_odr = IMU_BMX_MAG_FS_ENUM;
+    bmx_config.acc_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmx_config.mag_odr = IMU_BMX_MAG_ODR_ENUM;
 
     // bmx_config.enable_compensation = false;
 
@@ -222,7 +290,7 @@ void Sensors::magLISinit()
     busConfig.clock_div = SPIClockDivider::DIV32;
 
     LIS3MDL::Config config;
-    config.odr                = MAG_LIS_FS_ENUM;
+    config.odr                = MAG_LIS_ODR_ENUM;
     config.scale              = MAG_LIS_FULLSCALE;
     config.temperatureDivider = 1;
 
@@ -245,6 +313,28 @@ void Sensors::gpsUbloxInit()
                     false, true);
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
+
+    TRACE("Ublox GPS Setup done! (%p)\n", gps_ublox);
+}
+
+void Sensors::internalAdcCallback()
+{
+    LoggerService::getInstance()->log(internal_adc->getLastSample());
+}
+
+void Sensors::batteryVoltageCallback()
+{
+    LoggerService::getInstance()->log(battery_voltage->getLastSample());
+}
+
+void Sensors::primaryCutterCurrentCallback()
+{
+    LoggerService::getInstance()->log(cs_cutter_primary->getLastSample());
+}
+
+void Sensors::backupCutterCurrentCallback()
+{
+    LoggerService::getInstance()->log(cs_cutter_backup->getLastSample());
 }
 
 void Sensors::pressDigiCallback()

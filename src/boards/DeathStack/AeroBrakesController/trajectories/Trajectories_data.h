@@ -25,7 +25,6 @@
 
 namespace DeathStackBoard
 {
-
 static const unsigned int TOT_TRAJECTORIES      = 9;
 static const unsigned int TRAJECTORY_MAX_LENGTH = 500;
 

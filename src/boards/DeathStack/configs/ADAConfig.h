@@ -32,12 +32,14 @@ namespace DeathStackBoard
 namespace ADAConfigs
 {
 
-static const unsigned int ADA_STACK_SIZE = 4096;
-static const unsigned int ADA_PRIORITY   = 2;  // high
+static const unsigned int ADA_UPDATE_PERIOD = 50;  // ms -> 20 hz
+
+static const unsigned int ADA_PRIORITY = 2;  // high
 
 // Number of consecutive samples with negative speed after which AD is triggered
 constexpr unsigned int APOGEE_N_SAMPLES = 5;
-// Number of consecutive samples with negative speed after which ABK are disabled
+// Number of consecutive samples with negative speed after which ABK are
+// disabled
 constexpr unsigned int ABK_DISABLE_N_SAMPLES = 5;
 // Number of consecutive samples after which the main Deployment is triggered
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
@@ -50,11 +52,11 @@ constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
 constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 5.0;
 
 // State timeouts
-static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 6.5 * 1000;  // ms
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 7.5 * 1000;  // ms
 static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 
 // Number of samples used to calibrate the kalman initial state
-static const unsigned int CALIBRATION_BARO_N_SAMPLES     = 50;  // 1200
+static const unsigned int CALIBRATION_BARO_N_SAMPLES     = 50; // 1200;
 static const unsigned int ACCELERATION_AVERAGE_N_SAMPLES = 25;
 
 // Default reference values settings

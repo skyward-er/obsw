@@ -22,9 +22,13 @@
 
 #pragma once
 
-#include "Test/MockIMU.h"
-#include "Test/MockPressureSensor.h"
-#include "Test/MockGPS.h"
-#include "Test/TestSensor.h"
+#include "HILSensor.h"
 
-#include "tests/mock_sensors/test-mock-data.h"
+#include "HILAccelerometer.h"
+#include "HILBarometer.h"
+#include "HILGps.h"
+#include "HILGyroscope.h"
+#include "HILImu.h"
+#include "HILMagnetometer.h"
+
+#include "HILTimestampManagement.h"

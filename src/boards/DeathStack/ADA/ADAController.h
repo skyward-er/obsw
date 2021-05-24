@@ -166,8 +166,8 @@ private:
 template <typename Press, typename GPS>
 ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
                                          Sensor<GPS>& gps)
-    : ADAFsm(&ADACtrl::state_idle, ADA_STACK_SIZE, ADA_PRIORITY),
-      ada(ReferenceValues{}), barometer(barometer), gps(gps)
+    : ADAFsm(&ADACtrl::state_idle, STACK_MIN_FOR_SKYWARD, ADA_PRIORITY),
+      ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);

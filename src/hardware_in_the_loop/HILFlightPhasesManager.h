@@ -1,0 +1,361 @@
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#pragma once
+
+#include <events/Events.h>
+#include <events/utils/EventCounter.h>
+
+#include <iostream>
+#include <map>
+
+#include "ActiveObject.h"
+#include "DeathStack/Algorithm.h"
+#include "Singleton.h"
+#include "TimestampTimer.h"
+#include "hardware_in_the_loop/HILConfig.h"
+#include "miosix.h"
+#include "NavigationSystem/NASData.h"
+#include "sensors/Sensor.h"
+
+#include "HIL_sensors/HILSensors.h"
+
+using namespace miosix;
+using namespace std;
+
+typedef function<void()> TCallback;
+
+enum FlightPhases
+{
+    SIMULATION_STARTED,
+    CALIBRATION,
+    LIFTOFF_PIN_DETACHED,
+    FLIGHT,
+    ASCENT,
+    BURNING,
+    AEROBRAKES,
+    SIM_AEROBRAKES,
+    APOGEE,
+    PARA1,
+    PARA2,
+    SIMULATION_STOPPED
+};
+
+struct Outcomes
+{
+    uint64_t t = 0;
+    float z    = 0;
+    float vz   = 0;
+
+    Outcomes() : t(0), z(0), vz(0) {}
+    Outcomes(float z, float vz)
+        : t(TimestampTimer::getTimestamp()), z(z), vz(vz)
+    {
+    }
+
+    void print(uint64_t t_start) const
+    {
+        TRACE("@time     : %f [sec]\n", (double)(t - t_start) / 1000000);
+        TRACE("@altitude : %f [m]\n", z);
+        TRACE("@velocity : %f [m/s]\n\n", vz);
+    }
+};
+
+/**
+ * @brief Singleton object that manages all the phases of the simulation
+ */
+class HILFlightPhasesManager
+{
+    using FlightPhasesFlags = SimulatorData::Flags;
+
+public:
+    HILFlightPhasesManager()
+    {
+        updateFlags({0, 0, 0, 0, 0, 0});
+        counter = new EventCounter(*sEventBroker);
+        counter->subscribe(TOPIC_FLIGHT_EVENTS);
+        counter->subscribe(TOPIC_ADA);
+        counter->subscribe(TOPIC_NAS);
+        counter->subscribe(TOPIC_DPL);
+    }
+
+    bool isSimulationStarted() { return flagsFlightPhases[SIMULATION_STARTED]; }
+
+    bool isSimulationStopped() { return flagsFlightPhases[SIMULATION_STOPPED]; }
+
+    bool isSimulationRunning()
+    {
+        return flagsFlightPhases[SIMULATION_STARTED] &&
+               !flagsFlightPhases[SIMULATION_STOPPED];
+    }
+
+    void registerToFlightPhase(FlightPhases flag, TCallback func)
+    {
+        callbacks[flag].push_back(func);
+    }
+
+    void setFlagFlightPhase(FlightPhases flag, bool isEnable)
+    {
+        flagsFlightPhases[flag] = isEnable;
+    }
+
+    void processFlags(FlightPhasesFlags hil_flags)
+    {
+        updateFlags(hil_flags);
+
+        // check if the obsw triggered relevant flight events
+        checkEvents();
+
+        vector<FlightPhases> changed_flags;
+
+        // set true when the first packet from the simulator arrives
+        if (isSetTrue(SIMULATION_STARTED))
+        {
+            t_start = TimestampTimer::getTimestamp();
+            // starting calibration when the simulation starts
+            sEventBroker->post({EV_TC_CALIBRATE_ALGOS}, TOPIC_TMTC);
+
+            //*****************************************************************/
+            //        temporary until sensor manager fsm does not exist        /
+            //*****************************************************************/
+            Thread::sleep(100);
+            sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
+            //*****************************************************************/
+
+            TRACE("------- SIMULATION STARTED ! ------- \n");
+            changed_flags.push_back(SIMULATION_STARTED);
+        }
+
+        if (isSetTrue(CALIBRATION))
+        {
+            TRACE("------- CALIBRATION ! ------- \n");
+            changed_flags.push_back(CALIBRATION);
+        }
+
+        if (isSetFalse(CALIBRATION)) // calibration finalized
+        {
+            //*****************************************************************/
+            //            temporary until telecommands do not exist            /
+            //*****************************************************************/
+            sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+            //*****************************************************************/
+            TRACE("------- READY TO LAUNCH ! ------- \n");
+        }
+
+        if (isSetTrue(LIFTOFF_PIN_DETACHED))
+        {
+            TRACE("------- LIFTOFF PIN DETACHED ! ------- \n");
+            changed_flags.push_back(LIFTOFF_PIN_DETACHED);
+        }
+
+        if (flagsFlightPhases[FLIGHT])
+        {
+            if (isSetTrue(FLIGHT))
+            {
+                t_liftoff = TimestampTimer::getTimestamp();
+                sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
+
+                TRACE("------- LIFTOFF ! ------- \n");
+                changed_flags.push_back(FLIGHT);
+
+                TRACE("------- ASCENT ! ------- \n");
+                changed_flags.push_back(ASCENT);
+            }
+            if (isSetFalse(BURNING))
+            {
+                registerOutcomes(BURNING);
+                TRACE("------- STOPPED BURNING ! ------- \n");
+                changed_flags.push_back(BURNING);
+            }
+            if (isSetTrue(SIM_AEROBRAKES))
+            {
+                registerOutcomes(SIM_AEROBRAKES);
+                changed_flags.push_back(SIM_AEROBRAKES);
+            }
+            if (isSetTrue(AEROBRAKES))
+            {
+                registerOutcomes(AEROBRAKES);
+                TRACE("------- AEROBRAKES ENABLED ! ------- \n");
+                changed_flags.push_back(AEROBRAKES);
+            }
+            if (isSetTrue(APOGEE))
+            {
+                registerOutcomes(APOGEE);
+                TRACE("------- APOGEE DETECTED ! ------- \n");
+                changed_flags.push_back(APOGEE);
+            }
+            if (isSetTrue(PARA1))
+            {
+                registerOutcomes(PARA1);
+                TRACE("------- PARACHUTE 1 ! ------- \n");
+                changed_flags.push_back(PARA1);
+            }
+            if (isSetTrue(PARA2))
+            {
+                registerOutcomes(PARA2);
+                TRACE("------- PARACHUTE 2 ! ------- \n");
+                changed_flags.push_back(PARA2);
+            }
+        }
+        else if (isSetTrue(SIMULATION_STOPPED))
+        {
+            changed_flags.push_back(SIMULATION_STOPPED);
+            t_stop = TimestampTimer::getTimestamp();
+            TRACE("------- SIMULATION STOPPED ! -------: %f \n\n\n",
+                  (double)t_stop / 1000000.0f);
+            printOutcomes();
+        }
+
+        /* calling the callbacks subscribed to the changed flags */
+        for (unsigned int i = 0; i < changed_flags.size(); i++)
+        {
+            vector<TCallback> callbacksToCall = callbacks[changed_flags[i]];
+            for (unsigned int j = 0; j < callbacksToCall.size(); j++)
+            {
+                callbacksToCall[j]();
+            }
+        }
+
+        prev_flagsFlightPhases = flagsFlightPhases;
+    }
+
+    void setDataForOutcomes(Sensor<DeathStackBoard::NASData>* nas){
+        this->nas = nas;
+    }
+
+private:
+    void registerOutcomes(FlightPhases phase)
+    {
+        outcomes[phase] = Outcomes(nas->getLastSample().z, nas->getLastSample().vz);
+    }
+
+    void printOutcomes()
+    {
+        TRACE("OUTCOMES: (times dt from liftoff)\n\n");
+        TRACE("Simulation time: %.3f [sec]\n\n",
+              (double)(t_stop - t_start) / 1000000.0f);
+
+        TRACE("Motor stopped burning (simulation flag): \n");
+        outcomes[BURNING].print(t_liftoff);
+
+        TRACE("Aerobrakes exit shadowmode: \n");
+        outcomes[AEROBRAKES].print(t_liftoff);
+
+        TRACE("Apogee: \n");
+        outcomes[APOGEE].print(t_liftoff);
+
+        TRACE("Parachute 1: \n");
+        outcomes[PARA1].print(t_liftoff);
+
+        TRACE("Parachute 2: \n");
+        outcomes[PARA2].print(t_liftoff);
+    }
+
+    /**
+     * @brief Updates the flags of the object with the flags sent from matlab
+     * and checks for the apogee
+     */
+    void updateFlags(FlightPhasesFlags hil_flags)
+    {
+        flagsFlightPhases[ASCENT]  = hil_flags.flag_ascent;
+        flagsFlightPhases[FLIGHT]  = hil_flags.flag_flight;
+        flagsFlightPhases[BURNING] = hil_flags.flag_burning;
+
+        /* Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab  */
+        // flagsFlightPhases[SIM_AEROBRAKES] = hil_flags.flag_aerobrakes;
+        // flagsFlightPhases[PARA1]          = hil_flags.flag_para1;
+        // flagsFlightPhases[PARA2]          = hil_flags.flag_para2;
+
+        flagsFlightPhases[SIMULATION_STOPPED] =
+            isSetFalse(FLIGHT) || prev_flagsFlightPhases[SIMULATION_STOPPED];
+    }
+
+    void checkEvents()
+    {
+        // calibration flag set to true at the beginning of the simulation
+        if (!prev_flagsFlightPhases[CALIBRATION] &&
+            counter->getCount(EV_ADA_READY) == 0 &&
+            counter->getCount(EV_NAS_READY) == 0 &&
+            counter->getCount(EV_CALIBRATE) > 0)
+        {
+            setFlagFlightPhase(CALIBRATION, true);
+        }
+
+        // calibration flag turned false when calibration finishes
+        if (prev_flagsFlightPhases[CALIBRATION] &&
+            counter->getCount(EV_ADA_READY) > 0 &&
+            counter->getCount(EV_NAS_READY) > 0)
+        {
+            setFlagFlightPhase(CALIBRATION, false);
+        }
+
+        // aerobrakes flag turned true when the shadow mode ended
+        if (!prev_flagsFlightPhases[AEROBRAKES] &&
+            counter->getCount(EV_SHADOW_MODE_TIMEOUT) > 0)
+        {
+            setFlagFlightPhase(AEROBRAKES, true);
+        }
+
+        // apogee flag turned true when apogee is detected
+        if (!prev_flagsFlightPhases[APOGEE] &&
+            counter->getCount(EV_ADA_APOGEE_DETECTED) > 0)
+        {
+            setFlagFlightPhase(APOGEE, true);
+        }
+
+        // parachute 1 flag turned true when apogee is detected
+        if (!prev_flagsFlightPhases[PARA1] &&
+            counter->getCount(EV_ADA_APOGEE_DETECTED) > 0)
+        {
+            setFlagFlightPhase(PARA1, true);
+        }
+
+        // parachute 2 flag turned true with event deployment altitude detected
+        if (!prev_flagsFlightPhases[PARA2] &&
+            counter->getCount(EV_ADA_DPL_ALT_DETECTED) > 0)
+        {
+            setFlagFlightPhase(PARA2, true);
+        }
+    }
+
+    bool isSetTrue(FlightPhases phase)
+    {
+        return flagsFlightPhases[phase] == true &&
+               prev_flagsFlightPhases[phase] == false;
+    }
+
+    bool isSetFalse(FlightPhases phase)
+    {
+        return flagsFlightPhases[phase] == false &&
+               prev_flagsFlightPhases[phase] == true;
+    }
+
+    uint64_t t_start   = 0;
+    uint64_t t_liftoff = 0;
+    uint64_t t_stop    = 0;
+    map<FlightPhases, bool> flagsFlightPhases;
+    map<FlightPhases, bool> prev_flagsFlightPhases;
+    map<FlightPhases, vector<TCallback>> callbacks;
+    map<FlightPhases, Outcomes> outcomes;
+    Sensor<DeathStackBoard::NASData>* nas;
+    EventCounter *counter;
+};
