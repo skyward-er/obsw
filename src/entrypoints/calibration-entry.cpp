@@ -156,7 +156,7 @@ int main()
         auto* model =
             new SixParameterCalibration<AccelerometerData,
                                         accelSamples * numOrientations>;
-        model->setReferenceVector({-1, 0, 0});
+        model->setReferenceVector({0, 0, 1});
 
         printf("Now I will calibrate the accelerometer.\n");
         for (unsigned i = 0; i < numOrientations; i++)
@@ -177,8 +177,7 @@ int main()
 
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
-                auto data    = BMX160Corrector::rotateAxis(
-                    sensor->getFifoElement(size - 1));
+                auto data    = sensor->getFifoElement(size - 1);
                 model->feed(data, orientations[i]);
 
                 printf("Feeding sample: x = %f, y = %f, z = %f\n", data.accel_x,
@@ -208,9 +207,7 @@ int main()
 
     if (executionMode & GYRO)
     {
-        auto* model =
-            new SixParameterCalibration<GyroscopeData,
-                                        gyroSamples * numOrientations>;
+        auto* model = new BiasCalibration<GyroscopeData>;
         model->setReferenceVector({0, 0, 1});
 
         printf("Now I will calibrate the gyroscope.\n");
@@ -233,8 +230,7 @@ int main()
 
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
-                auto data    = BMX160Corrector::rotateAxis(
-                    sensor->getFifoElement(size - 1));
+                auto data    = sensor->getFifoElement(size - 1);
                 model->feed(data, orientations[i]);
 
                 printf("Feeding sample: x = %f, y = %f, z = %f\n", data.gyro_x,
@@ -278,8 +274,7 @@ int main()
 
             sensor->sample();
             uint8_t size = sensor->getLastFifoSize();
-            auto data =
-                BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
+            auto data = sensor->getFifoElement(size - 1);
             model->feed(data);
 
             printf("Feeding sample: x = %f, y = %f, z = %f\n", data.mag_x,
