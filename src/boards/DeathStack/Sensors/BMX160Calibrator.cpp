@@ -30,16 +30,9 @@ void BMX160Calibrator::setDriver(BMX160* _driver) { driver = _driver; }
 
 BMX160* BMX160Calibrator::getDriver() { return driver; }
 
-bool BMX160Calibrator::init() override { return true; }
+bool BMX160Calibrator::init() { return true; }
 
-bool BMX160Calibrator::selfTest() override { return true; }
-
-static void setAccel(BMX160Data& lhs, const BMX160Data& rhs)
-{
-    lhs.accel_x = rhs.accel_x;
-    lhs.accel_y = rhs.accel_y;
-    lhs.accel_x = rhs.accel_x;
-}
+bool BMX160Calibrator::selfTest() { return true; }
 
 bool BMX160Calibrator::calibrate()
 {

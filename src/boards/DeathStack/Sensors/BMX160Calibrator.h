@@ -22,15 +22,15 @@
 
 #pragma once
 
+#include <Sensors/BMX160DataCorrected.h>
 #include <configs/SensorManagerConfig.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/Sensor.h>
+#include <sensors/calibration/BiasCalibration.h>
 #include <sensors/calibration/Calibration.h>
 #include <sensors/calibration/SensorDataExtra.h>
 #include <sensors/calibration/SixParameterCalibration.h>
 #include <sensors/calibration/SoftIronCalibration.h>
-#include <sensors/calibration/BiasCalibration.h>
-#include <BMX160DataCorrected.h>
 
 #include <fstream>
 
@@ -48,30 +48,35 @@ struct BMX160CorrectionParameters
                "gyro_x,gyro_y,gyro_z";
     }
 
-    void setGyroParams(const Vector3f& gP)
-    {
-        gyroParams = gP;
-    }
+    void setGyroParams(const Vector3f& gP) { gyroParams = gP; }
 
     void read(std::istream& is)
     {
-       /* for (int which = 0; which < 3; which++)
+
+        for (int i = 0; i < 2; i++)
         {
-            Matrix<float, 3, 2>& mat =
-                (which == 0) ? accelParams
-                             : (which == 1) ? magnetoParams : gyroParams;
-
-            for (int i = 0; i < 2; i++)
+            for (int j = 0; j < 3; j++)
             {
-                for (int j = 0; j < 3; j++)
-                {
-                    is >> mat(j, i);
-
-                    if (i != 1 || j != 2 || which != 2)
-                        is.ignore(1, ',');
-                }
+                is >> accelParams(j, i);
+                is.ignore(1, ',');
             }
-        } */
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                is >> magnetoParams(j, i);
+                is.ignore(1, ',');
+            }
+        }
+
+        is >> gyroParams(0);
+        is.ignore(1, ',');
+        is >> gyroParams(1);
+        is.ignore(1, ',');
+        is >> gyroParams(2);
+        is.ignore(1, ',');
     }
 
     void print(std::ostream& os) const
@@ -84,8 +89,8 @@ struct BMX160CorrectionParameters
            << magnetoParams(2, 0) << "," << magnetoParams(0, 1) << ","
            << magnetoParams(1, 1) << "," << magnetoParams(2, 1) << ",";
 
-        os << gyroParams(0) << "," << gyroParams(1) << ","
-           << gyroParams(2) << "\n"
+        os << gyroParams(0) << "," << gyroParams(1) << "," << gyroParams(2)
+           << "\n";
     }
 };
 
@@ -103,8 +108,6 @@ public:
     bool init() override;
 
     bool selfTest() override;
-
-    static void setAccel(BMX160Data& lhs, const BMX160Data& rhs);
 
     bool calibrate();
 
@@ -126,7 +129,7 @@ private:
 
     BMX160* driver;
 
-    bool is_calibrating = false;
+    bool is_calibrating      = false;
     unsigned int samples_num = 0;
 
     SixParameterCorrector<AccelerometerData> accelCorrector;
