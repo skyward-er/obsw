@@ -20,18 +20,17 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
 #include <Common.h>
-#include <iostream>
-#include <fstream>
-
 #include <drivers/HardwareTimer.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/spi/SPIDriver.h>
-
+#include <miosix.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/calibration/SixParameterCalibration.h>
 #include <sensors/calibration/SoftIronCalibration.h>
+
+#include <fstream>
+#include <iostream>
 
 #include "SensorManager/BMX160Corrector.h"
 
@@ -63,9 +62,8 @@ void waitForInput()
     fgets(input, 100, stdin);
 }
 
-// Note: accelSamples and gyroSamples MUST be divisible by 6 (number of orientations)
-constexpr unsigned sleepTime = 1000, accelSamples = 120, gyroSamples = 120,
-                   magnetoSamples = 120;
+constexpr unsigned sleepTime = 25, accelSamples = 200, gyroSamples = 200,
+                   magnetoSamples = 500;
 
 constexpr unsigned numOrientations = 6;
 AxisOrthoOrientation orientations[numOrientations]{
@@ -102,13 +100,15 @@ int main()
     enableExternalInterrupt(GPIOE_BASE, 5, InterruptTrigger::FALLING_EDGE);
 
     BMX160Config config;
-    config.fifo_mode    = BMX160Config::FifoMode::HEADER;
-    config.fifo_int     = BMX160Config::FifoInt::PIN_INT1;
-    config.mag_odr      = BMX160Config::Odr::HZ_50;
-    config.acc_odr      = BMX160Config::Odr::HZ_1600;
-    config.gyr_odr      = BMX160Config::Odr::HZ_1600;
-    config.fifo_watermark    = 100;
-    config.temp_divider = 1;
+    config.fifo_mode      = BMX160Config::FifoMode::HEADER;
+    config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    config.mag_odr        = BMX160Config::Odr::HZ_50;
+    config.acc_odr        = BMX160Config::Odr::HZ_1600;
+    config.gyr_odr        = BMX160Config::Odr::HZ_1600;
+    config.acc_range      = AccRange::G_16;
+    config.gyr_range      = GyrRange::DEG_2000;
+    config.fifo_watermark = 100;
+    config.temp_divider   = 1;
 
     sensor = new BMX160(bus, miosix::sensors::bmx160::cs::getPin(), config);
     sensor->init();
@@ -154,11 +154,11 @@ int main()
     if (executionMode & ACCEL)
     {
         auto* model =
-            new SixParameterCalibration<AccelerometerData, accelSamples>;
+            new SixParameterCalibration<AccelerometerData,
+                                        accelSamples * numOrientations>;
         model->setReferenceVector({-1, 0, 0});
 
         printf("Now I will calibrate the accelerometer.\n");
-
         for (unsigned i = 0; i < numOrientations; i++)
         {
             printf(
@@ -171,26 +171,18 @@ int main()
                     orientations[i].yAxis)]);
             waitForInput();
 
-            sensor->sample();
-            long x = accelSamples / numOrientations;
-
-            while(x > 0)
+            for (unsigned x = 0; x < accelSamples; x++)
             {
+                Thread::sleep(sleepTime);
+
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
+                auto data    = BMX160Corrector::rotateAxis(
+                    sensor->getFifoElement(size - 1));
+                model->feed(data, orientations[i]);
 
-                uint8_t len = std::min(sensor->getLastFifoSize(), (uint8_t) 100000);
-                x -= len;
-
-                for (uint8_t i = 0; i < len; i++)
-                {
-                    auto data = BMX160Corrector::rotateAxis(sensor->getFifoElement(i));
-                    model->feed(data, orientations[i]);
-
-                    printf("Feeding sample: x = %f, y = %f, z = %f\n", data.accel_x, data.accel_y, data.accel_z);
-                }
-
-                sleep(sleepTime);
+                printf("Feeding sample: x = %f, y = %f, z = %f\n", data.accel_x,
+                       data.accel_y, data.accel_z);
             }
         }
 
@@ -201,15 +193,15 @@ int main()
         corrector >> m;
         corrector >> generatedParams.accelParams;
 
-        TRACE("b: the bias vector\n");
-        TRACE("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
-              m(2, 1));
+        printf("b: the bias vector\n");
+        printf("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
+               m(2, 1));
 
-        TRACE("M: the matrix to be multiplied to the input vector\n");
+        printf("M: the matrix to be multiplied to the input vector\n");
 
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
-        TRACE("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
+        printf("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
 
         delete model;
     }
@@ -217,7 +209,8 @@ int main()
     if (executionMode & GYRO)
     {
         auto* model =
-            new SixParameterCalibration<GyroscopeData, gyroSamples>;
+            new SixParameterCalibration<GyroscopeData,
+                                        gyroSamples * numOrientations>;
         model->setReferenceVector({0, 0, 1});
 
         printf("Now I will calibrate the gyroscope.\n");
@@ -234,13 +227,14 @@ int main()
                     orientations[i].yAxis)]);
             waitForInput();
 
-            for (unsigned x = 0; x < gyroSamples / numOrientations; x++)
+            for (unsigned x = 0; x < gyroSamples; x++)
             {
-                sleep(sleepTime);
+                Thread::sleep(sleepTime);
 
                 sensor->sample();
                 uint8_t size = sensor->getLastFifoSize();
-                auto data    = BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
+                auto data    = BMX160Corrector::rotateAxis(
+                    sensor->getFifoElement(size - 1));
                 model->feed(data, orientations[i]);
 
                 printf("Feeding sample: x = %f, y = %f, z = %f\n", data.gyro_x,
@@ -248,42 +242,44 @@ int main()
             }
         }
 
-        printf("Computing the result....");
+        printf("Computing the result....\n");
         auto corrector = model->computeResult();
 
         Matrix<float, 3, 2> m;
         corrector >> m;
         corrector >> generatedParams.gyroParams;
 
-        TRACE("b: the bias vector\n");
-        TRACE("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
-              m(2, 1));
+        printf("b: the bias vector\n");
+        printf("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
+               m(2, 1));
 
-        TRACE("M: the matrix to be multiplied to the input vector\n");
+        printf("M: the matrix to be multiplied to the input vector\n");
 
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
-        TRACE("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
+        printf("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
 
         delete model;
     }
 
     if (executionMode & MAGNETO)
     {
-        auto* model =
-            new SoftIronCalibration<magnetoSamples>;
+        auto* model = new SoftIronCalibration<magnetoSamples>;
 
         printf("Now I will calibrate the gyroscope.\n");
-        printf("Please rotate the gyroscope in the most possible different orientations after entering 'next'.\n");
+        printf(
+            "Please rotate the gyroscope in the most possible different "
+            "orientations after entering 'next'.\n");
         waitForInput();
 
         for (unsigned x = 0; x < magnetoSamples; x++)
         {
-            sleep(sleepTime);
+            Thread::sleep(sleepTime);
 
             sensor->sample();
             uint8_t size = sensor->getLastFifoSize();
-            auto data    = BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
+            auto data =
+                BMX160Corrector::rotateAxis(sensor->getFifoElement(size - 1));
             model->feed(data);
 
             printf("Feeding sample: x = %f, y = %f, z = %f\n", data.mag_x,
@@ -297,33 +293,34 @@ int main()
         corrector >> m;
         corrector >> generatedParams.magnetoParams;
 
-        TRACE("b: the bias vector\n");
-        TRACE("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
-              m(2, 1));
+        printf("b: the bias vector\n");
+        printf("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
+               m(2, 1));
 
-        TRACE("M: the matrix to be multiplied to the input vector\n");
+        printf("M: the matrix to be multiplied to the input vector\n");
 
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
-        TRACE("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
-        TRACE("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
+        printf("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
+        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
 
         delete model;
     }
 
     printf("Now I am writing params on the SD Card.\n");
-    
+
     std::cout << BMX160CorrectionParameters::header() << std::endl;
     generatedParams.print(std::cout);
+    std::cout << std::endl << "Done." << std::endl;
 
     {
         // Writing to file
-        std::ofstream paramsFile(DeathStackBoard::Bmx160CorrectionParametersFile);
+        std::ofstream paramsFile(
+            DeathStackBoard::Bmx160CorrectionParametersFile);
         paramsFile << BMX160CorrectionParameters::header() << std::endl;
         generatedParams.print(paramsFile);
     }
 
-    printf("Done.\n");
-
-    for(;;);
+    for (;;)
+        ;
 }
 
