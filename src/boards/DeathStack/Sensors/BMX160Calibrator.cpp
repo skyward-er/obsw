@@ -56,6 +56,8 @@ bool BMX160Calibrator::calibrate()
         readParametersFromFile();
         is_calibrating = true;
         samples_num    = 0;
+
+        gyroCalibrator = BiasCalibration<GyroscopeData>();
         gyroCalibrator.setReferenceVector(
             {0, 0, 0});  // gyro has to read 0 on all axis while stopped
     }
@@ -70,10 +72,6 @@ bool BMX160Calibrator::calibrate()
         {
             is_calibrating = false;
             gyroCorrector  = gyroCalibrator.computeResult();
-
-            Vector3f gyro_offsets;
-            gyroCorrector >> gyro_offsets;
-            
         }
     }
 
@@ -129,11 +127,6 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
 
         // if calibration is ongoing, simply feed the model
         // with the sampled data
-        if (is_calibrating)
-        {
-            gyroCalibrator.feed(static_cast<GyroscopeData>(fifoElem));
-            samples_num++;
-        }
 
         if (fifoElem.accel_timestamp > accelTimestamp)
         {
@@ -155,6 +148,12 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
 
         if (fifoElem.gyro_timestamp > gyroTimestamp)
         {
+            if (is_calibrating)
+            {
+                gyroCalibrator.feed(fifoElem);
+                samples_num++;
+            }
+
             static_cast<GyroscopeData>(fifoElem) >> vec;
             avgGyro += vec;
 
@@ -203,6 +202,10 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
     res.mag_timestamp   = timestamp;
     res.gyro_timestamp  = timestamp;
 
+    Vector3f gyro_offsets;
+    gyroCorrector >> gyro_offsets;
+    printf("Gyro params: %f, %f, %f\n", gyro_offsets(0), gyro_offsets(1), gyro_offsets(2));
+    printf("Corretto: %f, %f, %f\n", res.gyro_x, res.gyro_y, res.gyro_z);
     // res = rotateAxis(res);
 
     return res;

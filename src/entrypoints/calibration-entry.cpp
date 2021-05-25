@@ -26,13 +26,14 @@
 #include <drivers/spi/SPIDriver.h>
 #include <miosix.h>
 #include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160Config.h>
 #include <sensors/calibration/SixParameterCalibration.h>
 #include <sensors/calibration/SoftIronCalibration.h>
 
 #include <fstream>
 #include <iostream>
 
-#include "SensorManager/BMX160Corrector.h"
+#include "Sensors/BMX160Calibrator.h"
 
 using namespace miosix;
 
@@ -105,8 +106,8 @@ int main()
     config.mag_odr        = BMX160Config::Odr::HZ_50;
     config.acc_odr        = BMX160Config::Odr::HZ_1600;
     config.gyr_odr        = BMX160Config::Odr::HZ_1600;
-    config.acc_range      = AccRange::G_16;
-    config.gyr_range      = GyrRange::DEG_2000;
+    config.acc_range      = BMX160Config::AccRange::G_16;
+    config.gyr_range      = BMX160Config::GyrRange::DEG_2000;
     config.fifo_watermark = 100;
     config.temp_divider   = 1;
 
@@ -241,19 +242,12 @@ int main()
         printf("Computing the result....\n");
         auto corrector = model->computeResult();
 
-        Matrix<float, 3, 2> m;
-        corrector >> m;
-        corrector >> generatedParams.gyroParams;
+        Vector3f b;
+        corrector >> b;
 
         printf("b: the bias vector\n");
-        printf("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", m(0, 1), m(1, 1),
-               m(2, 1));
-
-        printf("M: the matrix to be multiplied to the input vector\n");
-
-        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", m(0, 0), 0.f, 0.f);
-        printf("M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, m(1, 0), 0.f);
-        printf("    |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f, 0.f, m(2, 0));
+        printf("b = [    % 2.5f    % 2.5f    % 2.5f    ]\n\n", b(0), b(1),
+               b(2));
 
         delete model;
     }
