@@ -25,7 +25,7 @@
 #include <drivers/HardwareTimer.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <sensors/BMX160/BMX160.h>
-#include "SensorManager/BMX160Corrector.h"
+#include "Sensors/BMX160Calibrator.h"
 
 SPIBus bus(SPI1);
 
@@ -78,7 +78,7 @@ int main()
     params.magnetoParams = mat;
     params.gyroParams    = mat;*/
 
-    BMX160Corrector corrector(sensor);
+    BMX160Calibrator corrector(sensor);
     /*corrector.setDriver(sensor);
     corrector.setParameters(params);*/
 
