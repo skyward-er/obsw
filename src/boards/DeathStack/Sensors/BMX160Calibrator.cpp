@@ -43,25 +43,28 @@ static void setAccel(BMX160Data& lhs, const BMX160Data& rhs)
 
 bool BMX160Calibrator::calibrate()
 {
-    // readParametersFromFile();
 
-    Matrix<float, 3, 2> mat;
-    mat.col(0) = Vector3f({2, 2, 2}).transpose();
-    mat.col(1) = Vector3f({0, 0, 0}).transpose();
+    // Matrix<float, 3, 2> mat;
+    // mat.col(0) = Vector3f({2, 2, 2}).transpose();
+    // mat.col(1) = Vector3f({0, 0, 0}).transpose();
 
-    BMX160CorrectionParameters params;
-    params.accelParams   = mat;
-    params.magnetoParams = mat;
-    params.gyroParams    = mat;
+    // BMX160CorrectionParameters params;
+    // params.accelParams   = mat;
+    // params.magnetoParams = mat;
+    // params.gyroParams    = mat;
 
-    setParameters(params);
+    // setParameters(params);
 
     // return a boolean to indicate if calibration has ended
-    // some other component will poll this method to know when 
+    // some other component will poll this method to know when
     // calibration is done
-    /*if (!is_calibrating)
+    if (!is_calibrating)
     {
+        readParametersFromFile();
         is_calibrating = true;
+        samples_num    = 0;
+        gyroCalibrator.setReferenceVector(
+            {0, 0, 0});  // gyro has to read 0 on all axis while stopped
     }
     else
     {
@@ -69,9 +72,19 @@ bool BMX160Calibrator::calibrate()
         // with the computed ones
 
         // also store offsets in a struct of type BMX160GyroOffsets
+
+        if (samples_num >= SAMPLES_NUM)
+        {
+            is_calibrating = false;
+            gyroCorrector  = gyroCalibrator.computeResult();
+
+            Vector3f gyro_offsets;
+            gyroCorrector >> gyro_offsets;
+            
+        }
     }
 
-    return is_calibrating;*/
+    return is_calibrating;
 }
 
 static BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
@@ -122,44 +135,39 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
         fifoElem = driver->getFifoElement(i);
 
         // if calibration is ongoing, simply feed the model
-        // with the sampled data, instead of computing the mean value
-        /*if (is_calibrating)
+        // with the sampled data
+        if (is_calibrating)
         {
-            if (!gyroCalibrator.feed(fifoElem, ...))
-            {
-                is_calibrating = false;
-            }
+            gyroCalibrator.feed(static_cast<GyroscopeData>(fifoElem));
+            samples_num++;
         }
-        else
-        {*/
 
-            if (fifoElem.accel_timestamp > accelTimestamp)
-            {
-                static_cast<AccelerometerData>(fifoElem) >> vec;
-                avgAccel += vec;
+        if (fifoElem.accel_timestamp > accelTimestamp)
+        {
+            static_cast<AccelerometerData>(fifoElem) >> vec;
+            avgAccel += vec;
 
-                accelTimestamp = fifoElem.accel_timestamp;
-                numAccel++;
-            }
+            accelTimestamp = fifoElem.accel_timestamp;
+            numAccel++;
+        }
 
-            if (fifoElem.mag_timestamp > magTimestamp)
-            {
-                static_cast<MagnetometerData>(fifoElem) >> vec;
-                avgMag += vec;
+        if (fifoElem.mag_timestamp > magTimestamp)
+        {
+            static_cast<MagnetometerData>(fifoElem) >> vec;
+            avgMag += vec;
 
-                magTimestamp = fifoElem.mag_timestamp;
-                numMag++;
-            }
+            magTimestamp = fifoElem.mag_timestamp;
+            numMag++;
+        }
 
-            if (fifoElem.gyro_timestamp > gyroTimestamp)
-            {
-                static_cast<GyroscopeData>(fifoElem) >> vec;
-                avgGyro += vec;
+        if (fifoElem.gyro_timestamp > gyroTimestamp)
+        {
+            static_cast<GyroscopeData>(fifoElem) >> vec;
+            avgGyro += vec;
 
-                gyroTimestamp = fifoElem.gyro_timestamp;
-                numGyro++;
-            }
-        //} end calibration if
+            gyroTimestamp = fifoElem.gyro_timestamp;
+            numGyro++;
+        }
     }
 
     if (numAccel == 0)
