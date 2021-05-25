@@ -64,6 +64,11 @@ struct BMX160GyroOffsets : public GyroscopeData
     {
     }
 
+    BMX160GyroOffsets(uint64_t t, float x, float y, float z)
+        : GyroscopeData{t, x, y, z}
+    {
+    }
+
     static std::string header()
     {
         return "gyro_timestamp,gyro_x_offset,gyro_y_offset,"

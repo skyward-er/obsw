@@ -29,25 +29,33 @@
 #include <sensors/calibration/SensorDataExtra.h>
 #include <sensors/calibration/SixParameterCalibration.h>
 #include <sensors/calibration/SoftIronCalibration.h>
+#include <sensors/calibration/BiasCalibration.h>
 #include <BMX160DataCorrected.h>
 
 #include <fstream>
 
+static constexpr unsigned int SAMPLES_NUM = 100;
 
 struct BMX160CorrectionParameters
 {
-    Matrix<float, 3, 2> accelParams, magnetoParams, gyroParams;
+    Matrix<float, 3, 2> accelParams, magnetoParams;
+    Vector3f gyroParams;
 
     static std::string header()
     {
         return "accel_p1,accel_p2,accel_p3,accel_q1,accel_q2,accel_q3,"
                "mag_p1,mag_p2,mag_p3,mag_q1,mag_q2,mag_q3,"
-               "gyro_p1,gyro_p2,gyro_p3,gyro_q1,gyro_q2,gyro_q3";
+               "gyro_x,gyro_y,gyro_z";
+    }
+
+    void setGyroParams(const Vector3f& gP)
+    {
+        gyroParams = gP;
     }
 
     void read(std::istream& is)
     {
-        for (int which = 0; which < 3; which++)
+       /* for (int which = 0; which < 3; which++)
         {
             Matrix<float, 3, 2>& mat =
                 (which == 0) ? accelParams
@@ -63,7 +71,7 @@ struct BMX160CorrectionParameters
                         is.ignore(1, ',');
                 }
             }
-        }
+        } */
     }
 
     void print(std::ostream& os) const
@@ -76,9 +84,8 @@ struct BMX160CorrectionParameters
            << magnetoParams(2, 0) << "," << magnetoParams(0, 1) << ","
            << magnetoParams(1, 1) << "," << magnetoParams(2, 1) << ",";
 
-        os << gyroParams(0, 0) << "," << gyroParams(1, 0) << ","
-           << gyroParams(2, 0) << "," << gyroParams(0, 1) << ","
-           << gyroParams(1, 1) << "," << gyroParams(2, 1);
+        os << gyroParams(0) << "," << gyroParams(1) << ","
+           << gyroParams(2) << "\n"
     }
 };
 
@@ -120,10 +127,11 @@ private:
     BMX160* driver;
 
     bool is_calibrating = false;
+    unsigned int samples_num = 0;
 
     SixParameterCorrector<AccelerometerData> accelCorrector;
     SixParameterCorrector<MagnetometerData> magnetoCorrector;
-    SixParameterCorrector<GyroscopeData> gyroCorrector;
+    BiasCorrector<GyroscopeData> gyroCorrector;
 
-    SixParameterCalibration<GyroscopeData, 100> gyroCalibrator;
+    BiasCalibration<GyroscopeData> gyroCalibrator;
 };
