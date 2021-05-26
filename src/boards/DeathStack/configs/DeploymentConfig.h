@@ -32,22 +32,20 @@ namespace DeathStackBoard
 namespace DeploymentConfigs
 {
 
-static const PWM::Timer SERVO_TIMER{
+static const PWM::Timer DPL_SERVO_TIMER{
     TIM4, &(RCC->APB1ENR), RCC_APB1ENR_TIM4EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)};
 
-static constexpr PWMChannel SERVO_PWM_CH = PWMChannel::CH1;
+static constexpr PWMChannel DPL_SERVO_PWM_CH = PWMChannel::CH1;
 
 static constexpr int NC_OPEN_TIMEOUT = 5000;
 
 // Angles in degrees
-static constexpr float SERVO_MIN_POS          = 63;
-static constexpr float SERVO_MAX_POS          = 138.6;
-static constexpr float SERVO_RESET_POS        = 138.6;
-static constexpr float SERVO_EJECT_POS        = 63;
-static constexpr float SERVO_WIGGLE_AMPLITUDE = 5;
-
-static constexpr float UPDATE_TIME = 0.1 * 1000;  // ms
+static constexpr float DPL_SERVO_MIN_POS          = 0;
+static constexpr float DPL_SERVO_MAX_POS          = 180;
+static constexpr float DPL_SERVO_RESET_POS        = 0;
+static constexpr float DPL_SERVO_EJECT_POS        = 30;
+static constexpr float DPL_SERVO_WIGGLE_AMPLITUDE = 5;
 
 }  // namespace DeploymentConfigs
 

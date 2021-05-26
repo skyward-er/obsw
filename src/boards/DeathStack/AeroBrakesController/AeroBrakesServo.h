@@ -25,38 +25,50 @@
 
 #include "../ServoInterface.h"
 #include "../configs/AeroBrakesConfig.h"
+#include "AeroBrakesData.h"
+#include "LoggerService/LoggerService.h"
 #include "drivers/servo/servo.h"
 #include "miosix.h"
 
-using namespace DeathStackBoard::AeroBrakesConfigs;
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
+
+using namespace DeathStackBoard;
 
 namespace DeathStackBoard
 {
+
+using namespace DeathStackBoard::AeroBrakesConfigs;
+
 class AeroBrakesServo : public ServoInterface
 {
 public:
-    AeroBrakesServo() : ServoInterface(SERVO_MIN_POS, SERVO_MAX_POS) {}
+    AeroBrakesServo() : ServoInterface(AB_SERVO_MIN_POS, AB_SERVO_MAX_POS) {}
     AeroBrakesServo(float minPosition, float maxPosition)
         : ServoInterface(minPosition, maxPosition)
     {
     }
+
     AeroBrakesServo(float minPosition, float maxPosition, float resetPosition)
         : ServoInterface(minPosition, maxPosition, resetPosition)
     {
     }
 
+    virtual ~AeroBrakesServo() {}
+
     void enable() override
     {
         servo.setMaxPulseWidth(2500);
         servo.setMinPulseWidth(500);
-        servo.enable(SERVO_PWM_CH);
+        servo.enable(AB_SERVO_PWM_CH);
         servo.start();
     }
 
     void disable() override
     {
         servo.stop();
-        servo.disable(SERVO_PWM_CH);
+        servo.disable(AB_SERVO_PWM_CH);
     }
 
     /**
@@ -65,55 +77,69 @@ public:
     void selfTest() override
     {
         float base   = (MAX_POS + RESET_POS) / 2;
-        float maxpos = base + SERVO_WIGGLE_AMPLITUDE / 2;
-        float minpos = base - SERVO_WIGGLE_AMPLITUDE / 2;
+        float maxpos = base + AB_SERVO_WIGGLE_AMPLITUDE / 2;
+        float minpos = base - AB_SERVO_WIGGLE_AMPLITUDE / 2;
 
         set(base);
 
         for (int i = 0; i < 3; i++)
         {
-            miosix::Thread::sleep(UPDATE_TIME + 100);
+            miosix::Thread::sleep(AeroBrakesConfigs::UPDATE_TIME + 100);
             set(maxpos);
-            miosix::Thread::sleep(UPDATE_TIME + 100);
+            miosix::Thread::sleep(AeroBrakesConfigs::UPDATE_TIME + 100);
             set(minpos);
         }
 
-        miosix::Thread::sleep(UPDATE_TIME);
+        miosix::Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
     }
 
 private:
-    Servo servo{SERVO_TIMER};
+    Servo servo{AeroBrakesConfigs::AB_SERVO_TIMER};
+#ifdef HARDWARE_IN_THE_LOOP
+    HILTransceiver *simulator = HIL::getInstance()->simulator;
+#endif
 
 protected:
     /**
      * @brief Set servo position.
-     * 
+     *
      * @param angle servo position (in degrees)
      */
     void setPosition(float angle) override
     {
         currentPosition = angle;
         // map position to [0;1] interval for the servo driver
-        servo.setPosition(AeroBrakesConfigs::SERVO_PWM_CH, angle / 180.0f);
+        servo.setPosition(AeroBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
+
+#ifdef HARDWARE_IN_THE_LOOP
+        simulator->setActuatorData(angle);
+#endif
+
+        AeroBrakesData abdata;
+        abdata.timestamp      = miosix::getTick();
+        abdata.servo_position = currentPosition;
+        LoggerService::getInstance()->log(abdata);
     }
 
     float preprocessPosition(float angle) override
     {
         angle = ServoInterface::preprocessPosition(angle);
 
-        float update_time_seconds = UPDATE_TIME / 1000;
+        float update_time_seconds = AeroBrakesConfigs::UPDATE_TIME / 1000;
+        
         float rate = (angle - currentPosition) / update_time_seconds;
 
-        if (rate > SERVO_MAX_RATE)
+        if (rate > AB_SERVO_MAX_RATE)
         {
-            angle = update_time_seconds * SERVO_MAX_RATE + currentPosition;
+            angle = update_time_seconds * AB_SERVO_MAX_RATE + currentPosition;
         }
-        else if (rate < SERVO_MIN_RATE)
+        else if (rate < AB_SERVO_MIN_RATE)
         {
-            angle = update_time_seconds * SERVO_MIN_RATE + currentPosition;
+            angle = update_time_seconds * AB_SERVO_MIN_RATE + currentPosition;
         }
 
-        angle = FILTER_COEFF*angle + (1-FILTER_COEFF)*getCurrentPosition();
+        angle =
+            FILTER_COEFF * angle + (1 - FILTER_COEFF) * getCurrentPosition();
 
         return angle;
     }

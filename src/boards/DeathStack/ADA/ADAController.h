@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <ADA/ADAStatus.h>
-#include <configs/ADAconfig.h>
+#include <ADA/ADAData.h>
+#include <configs/ADAConfig.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
@@ -66,7 +66,7 @@ public:
     /* --- SENSOR UPDATE METHODS --- */
     /*
      * It's critical that this methods are called at regualar intervals during
-     * the flight. Call frequency is defined in configs/ADAconfig.h The behavior
+     * the flight. Call frequency is defined in configs/ADAConfig.h The behavior
      * of this functions changes depending on the ADA state
      */
     void update();
@@ -91,11 +91,16 @@ public:
     void setDeploymentAltitude(float dpl_alt);
 
     /**
-     * ADA status
-     * @returns A struct containing the time stamp, the ADA FSM state and
+     * ADAController status
+     * @returns A struct containing the timestamp, the ADA FSM state and
      * several flags
      */
     ADAControllerStatus getStatus() { return status; }
+
+    /**
+     * @returns The current ADAData structure
+     */
+    ADAData getADAData() { return ada.getADAData(); }
 
 private:
     /* --- FSM STATES --- */
@@ -147,6 +152,8 @@ private:
     unsigned int n_samples_deployment_detected =
         0; /**<  Number of consecutive samples in which dpl altitude is detected
             */
+    unsigned int n_samples_abk_disable_detected =
+        0; /**<  Number of consecutive samples for abk disable */
 
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
 };
@@ -156,7 +163,7 @@ template <typename Press, typename GPS>
 ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
                                          Sensor<GPS>& gps)
     : ADAFsm(&ADACtrl::state_idle, ADA_STACK_SIZE, ADA_PRIORITY),
-      ada(ReferenceValues{}), barometer(barometer), gps(gps)
+      ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
@@ -253,8 +260,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
-                ApogeeDetected apogee{status.state,
-                                      TimestampTimer::getTimestamp()};
+                ApogeeDetected apogee{TimestampTimer::getTimestamp(),
+                                      status.state};
                 logger.log(apogee);
             }
 
@@ -266,6 +273,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
         case ADAState::ACTIVE:
         {
             ada.updateBaro(pressure);
+
             // Check if we reached apogee
             if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
@@ -277,13 +285,28 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 }
 
                 // Log
-                ApogeeDetected apogee{status.state,
-                                      TimestampTimer::getTimestamp()};
+                ApogeeDetected apogee{TimestampTimer::getTimestamp(),
+                                      status.state};
                 logger.log(apogee);
             }
             else if (n_samples_apogee_detected != 0)
             {
                 n_samples_apogee_detected = 0;
+            }
+
+            // Check if we have to disable aerobrakes
+            if (ada.getVerticalSpeed() < ABK_DISABLE_VERTICAL_SPEED_TARGET)
+            {
+                if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
+                {
+                    // Active state send notifications for disabling aerobrakes
+                    sEventBroker->post({EV_ADA_DISABLE_ABK}, TOPIC_FLIGHT_EVENTS);
+                    status.disable_aerobrakes = true;
+                }
+            }
+            else if (n_samples_abk_disable_detected != 0)
+            {
+                n_samples_abk_disable_detected = 0;
             }
 
             logData(ada.getKalmanState(), ada.getADAData());
@@ -458,9 +481,8 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
             TRACE("[ADA] Exiting state idle\n");
             break;
         }
-        case EV_CALIBRATE:
+        case EV_CALIBRATE_ADA:
         {
-            TRACE("[ADA] EV_CALIBRATE \n");
             this->transition(&ADACtrl::state_calibrating);
             break;
         }
@@ -577,7 +599,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
         {
             shadow_delayed_event_id =
                 sEventBroker->postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
-                    {EV_TIMEOUT_SHADOW_MODE}, TOPIC_ADA);
+                    {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
             TRACE("[ADA] Entering state shadowMode\n");
             break;
@@ -588,7 +610,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
             TRACE("[ADA] Exiting state shadowMode\n");
             break;
         }
-        case EV_TIMEOUT_SHADOW_MODE:
+        case EV_SHADOW_MODE_TIMEOUT:
         {
             this->transition(&ADACtrl::state_active);
             break;

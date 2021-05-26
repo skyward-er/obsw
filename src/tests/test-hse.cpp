@@ -37,7 +37,7 @@ int main()
     {
         printf("HSE is off ... error \n");
     }
-    
+
     // check if HSE is ready
     if (RCC->CR & RCC_CR_HSERDY)
     {
@@ -47,7 +47,7 @@ int main()
     {
         printf("HSE not ready ... error \n");
     }
-    
+
     // check if HSE is bypassed
     if (RCC->CR & RCC_CR_HSEBYP)
     {
@@ -57,7 +57,7 @@ int main()
     {
         printf("HSE is not bypassed ... ok \n");
     }
-    
+
     // check if Clock Security System is enabled
     if (RCC->CR & RCC_CR_CSSON)
     {
@@ -68,7 +68,9 @@ int main()
         printf("CSS is off \n");
     }
 
-    for (;;)
-    {
-    }
+    // Wait for the user to press ENTER or the timer to elapse
+    printf("Press any key to exit the external oscillator test\n");
+    (void)getchar();
+
+    return 0;
 }

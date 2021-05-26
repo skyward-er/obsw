@@ -32,7 +32,8 @@ enum class FMMState : uint8_t
     INIT,
     INIT_DONE,
     INIT_ERROR,
-    CALIBRATING,
+    SENSORS_CALIBRATION,
+    ALGOS_CALIBRATION,
     DISARMED,
     ARMED,
     TESTING,
@@ -47,7 +48,7 @@ enum class FMMState : uint8_t
 
 struct FMMStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     FMMState state = FMMState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }

@@ -32,21 +32,21 @@ namespace DeathStackBoard
 namespace AeroBrakesConfigs
 {
 
-static const PWM::Timer SERVO_TIMER{
+static const PWM::Timer AB_SERVO_TIMER{
     TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
-static constexpr PWMChannel SERVO_PWM_CH = PWMChannel::CH2;
+static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 
-static constexpr uint32_t LOOKS               = 50;
-static constexpr uint32_t START_INDEX_OFFSET  = -1;
-static constexpr float M                      = 22;   /**< rocket's mass */
+static constexpr int LOOKS                    = 100;
+static constexpr int START_INDEX_OFFSET       = -1;
+static constexpr float M                      = 22.0; /**< rocket's mass */
 static constexpr float D                      = 0.15; /**< rocket's diameter */
-static constexpr float S0                     = (PI * D * D) / 4;
+static constexpr float S0                     = (PI * D * D) / 4.0;
 static constexpr float RHO                    = 1.225;
-static constexpr float Hn                     = 10400;
-static constexpr float Kp                     = 55;  // 77;
-static constexpr float Ki                     = 5;
+static constexpr float Hn                     = 10400.0;
+static constexpr float Kp                       = 55;
+static constexpr float Ki                       = 5;
 static constexpr float Co                     = 340.3;
 static constexpr float ALPHA                  = -3.871e-3;
 static constexpr float A                      = -1.04034;
@@ -57,17 +57,17 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
-static constexpr float SERVO_MAX_POS          = 50.99;  // deg, 0.89 in radians
-static constexpr float SERVO_MIN_POS          = 0;      // deg
-static constexpr float SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
-static constexpr float SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
-static constexpr float SERVO_WIGGLE_AMPLITUDE = 10;  // deg, 0.17 in radians
+static constexpr float AB_SERVO_MAX_POS          = 55;         // deg
+static constexpr float AB_SERVO_MIN_POS          = 0;          // deg
+static constexpr float AB_SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
+static constexpr float AB_SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
+static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
 
 static constexpr float FILTER_COEFF = 0.9;
 
 static constexpr float UPDATE_TIME = 0.05 * 1000;  // ms -> 20 Hz
 
-static constexpr int SHADOW_MODE_DURATION = 1000;
+static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 
 }  // namespace AeroBrakesConfigs
 

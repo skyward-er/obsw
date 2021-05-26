@@ -25,7 +25,7 @@
 #include <kalman/KalmanEigen.h>
 #include <math/Stats.h>
 
-#include "ADAStatus.h"
+#include "ADAData.h"
 #include "sensors/Sensor.h"
 
 namespace DeathStackBoard
@@ -40,7 +40,7 @@ public:
         bool is_agl;
     };
 
-    ADA(ReferenceValues ref_values);
+    ADA(ADAReferenceValues ref_values);
 
     ~ADA();
 
@@ -90,13 +90,18 @@ public:
      */
     AltitudeDPL altitudeMSLtoDPL(float altitude_msl) const;
 
-    ReferenceValues getReferenceValues() const { return ref_values; }
+    ADAReferenceValues getReferenceValues() const { return ref_values; }
 
 private:
     void updatePressureKalman(float pressure);
 
+    // method to initialize the kalman configuration structure
+    const KalmanEigen<float, KALMAN_STATES_NUM,
+                      KALMAN_OUTPUTS_NUM>::KalmanConfig
+    getKalmanConfig(const float ref_pressure);
+
     // References for pressure to altitude conversion
-    ReferenceValues ref_values;
+    ADAReferenceValues ref_values;
 
     KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM> filter;
 
@@ -105,5 +110,7 @@ private:
     float last_lat = 0;
     float last_lon = 0;
     bool last_fix  = false;
+
+    unsigned int counter = 0;
 };
 }  // namespace DeathStackBoard

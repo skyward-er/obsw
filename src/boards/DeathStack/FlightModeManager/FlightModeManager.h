@@ -1,5 +1,5 @@
-/* Copyright (c) 2015-2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FSM_H
-#define SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FSM_H
+
+#pragma once
 
 #include "Singleton.h"
 
@@ -61,10 +61,13 @@ public:
     State state_initError(const Event& ev);
 
     /* Test mode, listen to serial and print stuff on serial */
-    State state_testing(const Event& ev);
+    State state_testMode(const Event& ev);
 
-    /* Calibrating ADA with pressure samples */
-    State state_calibrating(const Event& ev);
+
+    /* Calibrating sensors */
+    State state_sensorsCalibration(const Event& ev);
+    /* Calibrating ADA and NAS */
+    State state_algosCalibration(const Event& ev);
     /* All good, waiting for arm */
     State state_disarmed(const Event& ev);
 
@@ -100,8 +103,9 @@ private:
     FMMStatus status;
 
     uint16_t end_mission_d_event_id = 0;
+
+    bool ada_ready = false;
+    bool nas_ready = false;
 };
 
 }  // namespace DeathStackBoard
-
-#endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FSM_H */

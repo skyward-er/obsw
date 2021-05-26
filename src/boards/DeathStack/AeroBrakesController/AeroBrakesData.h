@@ -34,7 +34,7 @@ namespace DeathStackBoard
 /**
  * Enum defining the possibile FSM states.
  */
-enum AeroBrakesControllerState : uint8_t
+enum class AeroBrakesControllerState : uint8_t
 {
     IDLE = 0,
     SHADOW_MODE,
@@ -49,7 +49,7 @@ enum AeroBrakesControllerState : uint8_t
  */
 struct AeroBrakesControllerStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     AeroBrakesControllerState state;
 
     static std::string header() { return "timestamp,state\n"; }
@@ -61,19 +61,47 @@ struct AeroBrakesControllerStatus
 };
 
 /**
+ * Structure to log the data relative to the aerobrakes algorithm, including the
+ * chosen trajectory (when the aerobrakes are enabled for the first time).
+ */
+struct AeroBrakesAlgorithmData
+{
+    uint64_t timestamp;
+    float z;
+    float vz;
+    float vMod;
+
+    static std::string header() { return "timestamp,z,vz,vMod\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << z << "," << vz << ","
+           << vMod << "\n";
+    }
+};
+
+struct AeroBrakesChosenTrajectory
+{
+    uint8_t trajectory;
+
+    static std::string header() { return "trajectory\n"; }
+
+    void print(std::ostream& os) const { os << trajectory << "\n"; }
+};
+
+/**
  * Structure defining the output of the control algorithm.
  */
 struct AeroBrakesData
 {
-    long long timestamp;
-    float running;
+    uint64_t timestamp;
     float servo_position;
 
-    static std::string header() { return "timestamp,running,servo_position\n"; }
+    static std::string header() { return "timestamp,servo_position\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)running << "," << servo_position << "\n";
+        os << timestamp << "," << servo_position << "\n";
     }
 };
 

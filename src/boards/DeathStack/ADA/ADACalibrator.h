@@ -27,7 +27,7 @@
 #include <math/Stats.h>
 #include <miosix.h>
 
-#include "ADAStatus.h"
+#include "ADAData.h"
 
 namespace DeathStackBoard
 {
@@ -36,7 +36,7 @@ class ADACalibrator
 
 public:
     /* --- CALIBRATION --- */
-    ReferenceValues getReferenceValues();
+    ADAReferenceValues getReferenceValues();
     bool calibIsComplete();
     void addBaroSample(float p);  // Adds a pressure sample to the stats
     void resetBaro();             // Resets only pressure stats
@@ -56,7 +56,7 @@ public:
 
 private:
     /* --- CALIBRATION --- */
-    ReferenceValues ref_values{};
+    ADAReferenceValues ref_values{};
 
     Stats pressure_stats;  // Computes mean std dev etc for calibration of
                            // pressure conversion

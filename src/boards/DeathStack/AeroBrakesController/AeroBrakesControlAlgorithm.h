@@ -30,10 +30,11 @@
 #include "../ServoInterface.h"
 #include "AeroBrakesData.h"
 #include "Pid.h"
+#include "TimestampTimer.h"
 #include "configs/AeroBrakesConfig.h"
 #include "sensors/Sensor.h"
 #include "trajectories/Trajectory.h"
-#include "TimestampTimer.h"
+#include "LoggerService/LoggerService.h"
 
 /*
     Error and timing benchmark results:
@@ -59,24 +60,24 @@ template <class T>
 class AeroBrakesControlAlgorithm : public Algorithm
 {
 private:
-    uint32_t indexMinVal = 0;
-    float alpha          = 0;
-    uint64_t ts          = 0;
+    int indexMinVal = 0;
+    float alpha     = 0;
+    uint64_t ts     = 0;
     Trajectory chosenTrajectory;
     ServoInterface* actuator;
     Sensor<T>& sensor;
     Pid pid;
-    AeroBrakesData data;
+
+    LoggerService& logger;
 
     std::is_same<float, decltype(std::declval<T>().z)> checkz;
     std::is_same<float, decltype(std::declval<T>().vz)> checkvz;
     std::is_same<float, decltype(std::declval<T>().vMod)> checkvMod;
-    std::is_same<uint16_t, decltype(std::declval<T>().timestamp)>
+    std::is_same<uint64_t, decltype(std::declval<T>().timestamp)>
         checktimestamp;
 
 public:
-    AeroBrakesControlAlgorithm(Sensor<T>& sensor,
-                               ServoInterface* actuator);
+    AeroBrakesControlAlgorithm(Sensor<T>& sensor, ServoInterface* actuator);
 
     bool init() override { return true; }
 
@@ -85,6 +86,22 @@ public:
      * rocket will follow for reaching apogee.
      * */
     void begin();
+
+    /**
+     * @brief This method does a step if the algorithm is running, or sets the
+     * actuator to 0 otherwise
+     */
+    void update()
+    {
+        if (running)
+        {
+            step();
+        }
+        else
+        {
+            actuator->reset();
+        }
+    }
 
     /**
      * @brief This method looks for nearest point in the current chosen
@@ -99,12 +116,13 @@ public:
      * firstIteration is true then the nearest trajectory to the current
      * rocket's coordinates is chosen.
      *
+     * @param input  Input data struct, containing z, vz, vMod and timestamp.
      * @param firstIteration    The flag indicating wheter the trajectory has
      * already been choosen or not.
      *
      * @returns The alpha in radiants to be sent to the servoInterface
      * */
-    float computeAlpha(bool firstIteration);
+    float computeAlpha(T input, bool firstIteration);
 
     /**
      * @brief Chooses the nearest point on the trajectory, considering all the
@@ -193,13 +211,14 @@ public:
      * @brief Log algorithm data structure
      *
      */
-    void logData();
+    void logData(T input);
 };
 
 template <class T>
 AeroBrakesControlAlgorithm<T>::AeroBrakesControlAlgorithm(
     Sensor<T>& sensor, ServoInterface* actuator)
-    : actuator(actuator), sensor(sensor), pid(Kp, Ki)
+    : actuator(actuator), sensor(sensor), pid(Kp, Ki),
+      logger(*(LoggerService::getInstance()))
 {
 }
 
@@ -215,28 +234,29 @@ void AeroBrakesControlAlgorithm<T>::begin()
 
     ts = (sensor.getLastSample()).timestamp;
 
-    alpha = computeAlpha(true);
-    actuator->set(alpha);
+    alpha = computeAlpha(sensor.getLastSample(), true);
+    actuator->set(alpha, true);
 }
 
 template <class T>
 void AeroBrakesControlAlgorithm<T>::step()
 {
-    if ((sensor.getLastSample()).timestamp > ts)
+    T input = sensor.getLastSample();
+
+    if (input.timestamp > ts)
     {
-        ts    = (sensor.getLastSample()).timestamp;
-        alpha = computeAlpha(false);
+        ts    = input.timestamp;
+        alpha = computeAlpha(input, false);
     }
 
-    actuator->set(alpha);
+    actuator->set(alpha, true);
 
-    logData();
+    logData(input);
 }
 
 template <class T>
-float AeroBrakesControlAlgorithm<T>::computeAlpha(bool firstIteration)
+float AeroBrakesControlAlgorithm<T>::computeAlpha(T input, bool firstIteration)
 {
-    T input    = sensor.getLastSample();
     float z    = input.z;
     float vz   = input.vz;
     float vMod = input.vMod;
@@ -268,13 +288,13 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::chooseTrajectory(float z,
 
     float bestMin = INFINITY;
 
-    for (unsigned trajectoryIndex = 0; trajectoryIndex < TOT_TRAJECTORIES;
+    for (uint8_t trajectoryIndex = 0; trajectoryIndex < TOT_TRAJECTORIES;
          trajectoryIndex++)
     {
 
-        Trajectory trajectory = Trajectory(trajectoryIndex);
+        Trajectory trajectory(trajectoryIndex, DELTA_S_AVAILABLE_MAX);
 
-        for (uint32_t pointIndex = 0; pointIndex < LOOKS; pointIndex++)
+        for (int pointIndex = 0; pointIndex < LOOKS; pointIndex++)
         {
             TrajectoryPoint ref = trajectory.get(pointIndex);
             float distancesFromCurrentinput =
@@ -289,6 +309,12 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::chooseTrajectory(float z,
         }
     }
 
+    logger.log(
+        AeroBrakesChosenTrajectory{chosenTrajectory.getTrajectoryIndex()});
+
+    TRACE("[AeroBrakes] Chosen trajectory : %d \n",
+          chosenTrajectory.getTrajectoryIndex());
+
     TrajectoryPoint setpoint = chosenTrajectory.get(indexMinVal);
 
     return setpoint;
@@ -300,10 +326,10 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
     TrajectoryPoint currentPoint(z, vz);
     float minDistance = INFINITY;
 
-    uint32_t start = std::max(indexMinVal + START_INDEX_OFFSET, (uint32_t)0);
-    uint32_t end   = chosenTrajectory.length();
+    int start = std::max(indexMinVal + START_INDEX_OFFSET, 0);
+    int end   = chosenTrajectory.length();
 
-    for (uint32_t pointIndex = start; pointIndex < end; pointIndex++)
+    for (int pointIndex = start; pointIndex < end; pointIndex++)
     {
         TrajectoryPoint ref = chosenTrajectory.get(pointIndex);
         float DistanceFromCurrentinput =
@@ -422,13 +448,14 @@ float AeroBrakesControlAlgorithm<T>::getDrag(float h, float s, float* powMach)
 }
 
 template <class T>
-void AeroBrakesControlAlgorithm<T>::logData()
+void AeroBrakesControlAlgorithm<T>::logData(T input)
 {
-    data.timestamp      = TimestampTimer::getTimestamp();
-    data.running        = running;
-    data.servo_position = actuator->getCurrentPosition();
-
-    // logger.log(data);
+    AeroBrakesAlgorithmData d;
+    d.timestamp = input.timestamp;
+    d.z = input.z;
+    d.vz = input.vz;
+    d.vMod = input.vMod;
+    logger.log(d);
 }
 
 }  // namespace DeathStackBoard

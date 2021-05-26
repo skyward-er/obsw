@@ -7,7 +7,7 @@
 
 #include <ADA/ADA.h>
 #include <Common.h>
-#include <configs/ADAconfig.h>
+#include <configs/ADAConfig.h>
 
 #include <iostream>
 #include <random>
