@@ -51,6 +51,10 @@ bool BMX160Calibrator::calibrate()
     // return a boolean to indicate if calibration has ended
     // some other component will poll this method to know when
     // calibration is done
+    printf("Called calibrate()\n");
+    printf("samples_num: %d\n", samples_num);
+    printf("Called calibrate()\n");
+
     if (!is_calibrating)
     {
         readParametersFromFile();
@@ -68,10 +72,14 @@ bool BMX160Calibrator::calibrate()
 
         // also store offsets in a struct of type BMX160GyroOffsets
 
-        if (samples_num >= SAMPLES_NUM)
+        if (samples_num >= 1)
         {
             is_calibrating = false;
             gyroCorrector  = gyroCalibrator.computeResult();
+
+            Vector3f params;
+            gyroCorrector >> params;
+            printf("Params: %f, %f, %f\n", params(0), params(1), params(2));
         }
     }
 
@@ -150,6 +158,7 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
         {
             if (is_calibrating)
             {
+                printf("Feeding with %f, %f, %f\n", fifoElem.gyro_x, fifoElem.gyro_y, fifoElem.gyro_z);
                 gyroCalibrator.feed(fifoElem);
                 samples_num++;
             }
@@ -204,7 +213,8 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
 
     Vector3f gyro_offsets;
     gyroCorrector >> gyro_offsets;
-    printf("Gyro params: %f, %f, %f\n", gyro_offsets(0), gyro_offsets(1), gyro_offsets(2));
+    printf("Gyro params: %f, %f, %f\n", gyro_offsets(0), gyro_offsets(1),
+           gyro_offsets(2));
     printf("Corretto: %f, %f, %f\n", res.gyro_x, res.gyro_y, res.gyro_z);
     // res = rotateAxis(res);
 

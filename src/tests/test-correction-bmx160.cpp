@@ -82,8 +82,6 @@ int main()
     /*corrector.setDriver(sensor);
     corrector.setParameters(params);*/
 
-    corrector.calibrate();
-
     TRACE("Initializing BMX160...\n");
 
     if (!sensor->init())
@@ -101,6 +99,11 @@ int main()
     }
 
     TRACE("Self-test successful!\n");
+
+    while(corrector.calibrate()){
+        sensor->sample();
+        corrector.sample();
+    }
 
     while (1)
     {
