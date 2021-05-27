@@ -116,8 +116,8 @@ void Sensors::internalAdcInit()
     internal_adc = new InternalADC(*ADC3, INTERNAL_ADC_VREF);
 
     internal_adc->enableChannel(ADC_CS_CUTTER_PRIMARY);
-
     internal_adc->enableChannel(ADC_CS_CUTTER_BACKUP);
+    internal_adc->enableChannel(ADC_BATTERY_VOLTAGE);
 
     SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
                     bind(&Sensors::internalAdcCallback, this), false, true);
@@ -283,7 +283,7 @@ void Sensors::imuBMXinit()
     bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
     bmx_config.mag_odr = IMU_BMX_MAG_ODR_ENUM;
 
-    // bmx_config.enable_compensation = false;
+    bmx_config.gyr_unit = BMX160Config::GyrMeasureUnit::RAD;
 
     imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
                             bmx_config, spi_cfg);
@@ -336,6 +336,12 @@ void Sensors::internalAdcCallback()
 
 void Sensors::batteryVoltageCallback()
 {
+    // float v = battery_voltage->getLastSample().bat_voltage;
+    // if (v < 10.0)
+    // {
+    //     LOG_WARN(log, "******* LOW BATTERY ******* \n Voltage = %.2f \n", v);
+    // }
+
     LoggerService::getInstance()->log(battery_voltage->getLastSample());
 }
 
@@ -348,6 +354,7 @@ void Sensors::backupCutterCurrentCallback()
 {
     LoggerService::getInstance()->log(cs_cutter_backup->getLastSample());
 }
+
 #ifdef HARDWARE_IN_THE_LOOP
 void Sensors::hilSensorsInit()
 {
@@ -440,6 +447,10 @@ void Sensors::magLISCallback()
 
 void Sensors::gpsUbloxCallback()
 {
+    /*UbloxGPSData d = gps_ublox->getLastSample();
+    TRACE("%llu %d %f %f %u %f %f \n", d.gps_timestamp, d.fix, d.latitude,
+          d.longitude, d.num_satellites, d.speed, d.track);*/
+
     LoggerService::getInstance()->log(gps_ublox->getLastSample());
 }
 

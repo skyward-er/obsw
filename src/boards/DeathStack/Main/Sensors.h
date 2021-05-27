@@ -28,7 +28,7 @@
 #include <map>
 
 #include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
-// #include <diagnostic/PrintLogger.h>
+#include <diagnostic/PrintLogger.h>
 
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
@@ -140,6 +140,8 @@ private:
     SPIBusInterface& spi1_bus;
 
     SensorManager::SensorMap_t sensors_map;
+
+    PrintLogger log = Logging::getLogger("sensors");
 };
 
 }  // namespace DeathStackBoard
