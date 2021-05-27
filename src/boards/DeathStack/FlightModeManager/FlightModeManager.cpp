@@ -37,7 +37,7 @@
 namespace DeathStackBoard
 {
 
-PrintLogger log = Logging::getLogger("ds.fsm.fmm");
+static PrintLogger log = Logging::getLogger("ds.fsm.fmm");
 
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_initialization, STACK_MIN_FOR_SKYWARD,
@@ -618,8 +618,6 @@ State FlightModeManager::state_ascending(const Event& ev)
         {
             // Send disable aerobrakes
             sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
-
-            retState = transition(&FlightModeManager::state_ascending);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
