@@ -37,7 +37,7 @@ using namespace DeathStackBoard;
 int main()
 {
     // Logging::startAsyncLogger();
-    // PrintLogger log = Logging::getLogger("main");
+    PrintLogger log = Logging::getLogger("main");
 
     Stats cpu_stat;
 
@@ -57,10 +57,8 @@ int main()
             
         cpu_stat.add(averageCpuUtilization());
 
-        /*printf("CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
                cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
-               cpu_stat.getStats().minValue);*/
-
-        Thread::sleep(200);
+               cpu_stat.getStats().minValue);
     }
 }
