@@ -99,7 +99,7 @@ public:
             status.setError(&DeathStackStatus::ev_broker);
         }
 
-        //radio->start();
+        radio->start();
         sensors->start();
 
         logger->log(status);
@@ -160,7 +160,7 @@ private:
 
         scheduler = new TaskScheduler();
         bus       = new Bus();
-        //radio     = new Radio(*bus->spi2);
+        radio     = new Radio(*bus->spi2);
         sensors   = new Sensors(*bus->spi1, scheduler);
         actuators = new Actuators();
 
@@ -182,14 +182,22 @@ private:
 
         sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
 
+#ifdef HARDWARE_IN_THE_LOOP
+        // TODO : REMOVE ME
+        // TEMPORARY FOR HIL UNTIL TCs ARE READY
         sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
         sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
+        Thread::sleep(1000);
         state_machines->setReferenceValues(109, 15, 450);
 
-        Thread::sleep(5000);
+        Thread::sleep(10000);
 
+        sEventBroker->post({EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
+        Thread::sleep(1000);
+        sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+        Thread::sleep(1000);
         sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
-
+#endif
     }
 
     /**

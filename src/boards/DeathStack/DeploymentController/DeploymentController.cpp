@@ -35,7 +35,7 @@
 namespace DeathStackBoard
 {
 
-PrintLogger log = Logging::getLogger("ds.fsm.dpl");
+static PrintLogger log = Logging::getLogger("ds.fsm.dpl");
 
 DeploymentController::DeploymentController(HBridge* primaryCutter,
                                            HBridge* backupCutter,

@@ -22,7 +22,7 @@
 #pragma once
 
 #include <interfaces-impl/hwmapping.h>
-#include <skyward-boardcore/libs/mavlink_skyward_lib/mavlink_lib/hermes/mavlink.h>
+#include <mavlink_skyward_lib/mavlink_lib/lynx/mavlink.h>
 
 #include "drivers/Xbee/Xbee.h"
 #include "drivers/spi/SPIDriver.h"
