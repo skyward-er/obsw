@@ -57,8 +57,8 @@ int main()
             
         cpu_stat.add(averageCpuUtilization());
 
-        LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        /*LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
                cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
-               cpu_stat.getStats().minValue);
+               cpu_stat.getStats().minValue);*/
     }
 }
