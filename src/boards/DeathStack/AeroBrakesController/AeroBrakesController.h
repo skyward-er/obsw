@@ -185,7 +185,7 @@ void AeroBrakesController<T>::state_shadowMode(const Event& ev)
         {
             ev_shadow_mode_timeout_id =
                 sEventBroker->postDelayed<SHADOW_MODE_DURATION>(
-                    Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_FLIGHT_EVENTS);
+                    Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(AeroBrakesControllerState::SHADOW_MODE);
 
