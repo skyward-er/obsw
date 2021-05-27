@@ -32,6 +32,9 @@
 
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
+#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
@@ -41,6 +44,12 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 
 namespace DeathStackBoard
 {
@@ -69,6 +78,12 @@ public:
     BMX160* imu_bmx160   = nullptr;
     LIS3MDL* mag_lis3mdl = nullptr;
     UbloxGPS* gps_ublox  = nullptr;
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HILImu* hil_imu        = nullptr;
+    HILBarometer* hil_baro = nullptr;
+    HILGps* hil_gps        = nullptr;
+#endif
 
     Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler);
 
@@ -114,6 +129,13 @@ private:
 
     void gpsUbloxInit();
     void gpsUbloxCallback();
+
+#ifdef HARDWARE_IN_THE_LOOP
+    void hilSensorsInit();
+    void hilIMUCallback();
+    void hilBaroCallback();
+    void hilGPSCallback();
+#endif
 
     SPIBusInterface& spi1_bus;
 

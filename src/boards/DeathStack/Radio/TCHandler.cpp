@@ -38,8 +38,8 @@ using std::map;
 namespace DeathStackBoard
 {
 
-PrintLogger log       = Logging::getLogger("ds.tmtc");
-LoggerService* logger = LoggerService::getInstance();
+static PrintLogger log       = Logging::getLogger("ds.tmtc");
+static LoggerService* logger = LoggerService::getInstance();
 
 bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
@@ -76,7 +76,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
 
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
-    LOG_INFO(log, "Handling command");
+    LOG_INFO(log, "Handling command...");
 
     // log status
     logger->log(mav_driver->getStatus());
@@ -97,7 +97,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             if (it != tcMap.end())
                 sEventBroker->post(Event{it->second}, TOPIC_TMTC);
             else
-                LOG_WARN(log, "Unknown NOARG command %d", commandId);
+                LOG_WARN(log, "Unknown NOARG command {:d}", commandId);
 
             switch (commandId)
             {
@@ -125,38 +125,6 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 
             break;
         }
-
-        // case MAVLINK_MSG_ID_UPLOAD_SETTING_TC:  // set a configuration
-        // parameter
-        // {
-        //     // uint8_t id    =
-        //     // mavlink_msg_upload_setting_tc_get_setting_id(&msg); float
-        //     setting
-        //     // = mavlink_msg_upload_setting_tc_get_setting(&msg);
-
-        //     // TRACE("[TMTC] Upload setting: %d, %f", (int)id, setting);
-
-        //     // // modify correspondig setting
-        //     // switch (id)
-        //     // {
-        //     //     case MAV_SET_DEPLOYMENT_ALTITUDE:
-        //     //     {
-        //     //         ada.setDeploymentAltitude(setting);
-        //     //         break;
-        //     //     }
-        //     //     case MAV_SET_REFERENCE_ALTITUDE:
-        //     //     {
-        //     //         ada.setReferenceAltitude(setting);
-        //     //         break;
-        //     //     }
-        //     //     case MAV_SET_REFERENCE_TEMP:
-        //     //     {
-        //     //         ada.setReferenceTemperature(setting);
-        //     //         break;
-        //     //     }
-        //     // }
-        //     break;
-        // }
         case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
         {
             float alt =
@@ -178,7 +146,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 "Received SET_REFERENCE_TEMPERATURE command. Temp: {:f} degC",
                 temp);
             DeathStack::getInstance()
-                ->state_machines->ada_controller->setReferenceTemperature(alt);
+                ->state_machines->ada_controller->setReferenceTemperature(temp);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:

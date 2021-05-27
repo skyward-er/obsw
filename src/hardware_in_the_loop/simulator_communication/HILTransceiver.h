@@ -45,7 +45,7 @@ public:
     HILTransceiver(HILFlightPhasesManager *fpMgr)
         : flightPhasesManager(fpMgr), actuatorData(0.0f)
     {
-        serial = new SerialInterface(SIM_BAUDRATE, SIM_SERIAL_PORT_NUM);
+        serial = new SerialInterface(HIL_BAUDRATE, HIL_SERIAL_PORT_NUM);
 
         // initializing the serial connection
         if (!serial->init())
@@ -72,7 +72,7 @@ public:
      *
      * @return reference to the data simulated by matlab
      */
-    SimulatorData *getSensorData() { return &sensorData; }
+    SimulatorData *getSensorData() { return &simulatorData; }
 
     /**
      * @brief adds to the resetSampleCounter list an object that has to be
@@ -84,21 +84,6 @@ public:
     {
         sensorsTimestamp.push_back(t);
     }
-
-    /**
-     * @brief adds to the notifyToBegin list an object that has to be started
-     * when the first packet from the simulator arrives.
-     *
-     * @param algorithm Algorithm object to be started
-     */
-    /*void setIsAerobrakePhase(bool isAerobrakePhase)
-    {
-        this->isAerobrakePhase = isAerobrakePhase;
-        if (!isAerobrakePhase)
-        {
-            actuatorData = 0;
-        }
-    }*/
 
 private:
     /**
@@ -125,7 +110,7 @@ private:
                 SimulatorData tempData;
                 serial->recvData<SimulatorData>(&tempData);
                 PauseKernelLock kLock;
-                memmove(&sensorData, &tempData, sizeof(SimulatorData));
+                memcpy(&simulatorData, &tempData, sizeof(SimulatorData));
             }
 
             if (!receivedFirstPacket)
@@ -145,7 +130,7 @@ private:
             }
 
             // trigger events relative to the flight phases
-            flightPhasesManager->processFlags(sensorData.flags);
+            flightPhasesManager->processFlags(simulatorData.flags);
 
             waitActuatorData();
             serial->sendData<ActuatorData>(&actuatorData);
@@ -166,11 +151,10 @@ private:
     }
 
     SerialInterface *serial;
-    // bool isAerobrakePhase    = false;
     bool receivedFirstPacket = false;
     bool updated             = false;
     HILFlightPhasesManager *flightPhasesManager;
-    SimulatorData sensorData;
+    SimulatorData simulatorData;
     ActuatorData actuatorData;
     std::vector<HILTimestampManagement *> sensorsTimestamp;
     FastMutex mutex;

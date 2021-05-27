@@ -39,7 +39,7 @@
  */
 
 /* Hardware in the loop entrypoint */
-#if defined(HARDWARE_IN_THE_LOOP)
+#if defined(HARDWARE_IN_THE_LOOP_ENTRY)
 #include "entrypoints/hardware_in_the_loop/HILSimulationConfig.h"
 /* serial comunication test */
 #elif defined(HIL_SERIALINTERFACE)
@@ -47,20 +47,11 @@
 /* serial simulation with sample manager */
 #elif defined(HIL)
 #include "hardware_in_the_loop/test-HIL/HILSimulationConfig.h"
-#elif defined(HIL_ADA)
-#include "hardware_in_the_loop/test-HIL+ADA/HILSimulationConfig.h"
-#elif defined(HIL_AEROBRAKE)
-#include "hardware_in_the_loop/test-HIL+Aerobrake/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKE)
-#include "hardware_in_the_loop/test-HIL+ADA+Aerobrake/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKECONTROLLER)
-#include "hardware_in_the_loop/test-HIL+ADA+AerobrakeController/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKECONTROLLER_NAS)
-#include "hardware_in_the_loop/test-HIL+ADA+AerobrakeController+nas/HILSimulationConfig.h"
 /*
 #elif defined(HIL_<tuoFlag>)
 #include "<test-directory>/HILSimulationConfig.h"
 */
 #else
-#error You have add the flag of your configuration file for the HIL testing!
+//#error You have add the flag of your configuration file for the HIL testing!
+#include "boards/DeathStack/configs/HILConfig.h"
 #endif

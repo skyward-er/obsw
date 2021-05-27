@@ -57,6 +57,9 @@ using namespace SensorConfigs;
 Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     : spi1_bus(spi1_bus)
 {
+#ifdef HARDWARE_IN_THE_LOOP
+    hilSensorsInit();
+#else
     // Pressure sensors
     internalAdcInit();
     batteryVoltageInit();
@@ -69,11 +72,18 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     imuBMXinit();
     magLISinit();
     gpsUbloxInit();
+#endif
+
     sensor_manager = new SensorManager(scheduler, sensors_map);
 }
 
 Sensors::~Sensors()
 {
+#ifdef HARDWARE_IN_THE_LOOP
+    delete hil_imu;
+    delete hil_baro;
+    delete hil_gps;
+#else
     delete press_digital;
     delete adc_ads1118;
     delete press_pitot;
@@ -81,6 +91,7 @@ Sensors::~Sensors()
     delete press_static_port;
     delete imu_bmx160;
     delete gps_ublox;
+#endif
 
     sensor_manager->stop();
     delete sensor_manager;
@@ -88,13 +99,14 @@ Sensors::~Sensors()
 
 void Sensors::start()
 {
+#ifndef HARDWARE_IN_THE_LOOP
     GpioPin int_pin = miosix::sensors::bmx160::intr::getPin();
 
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
-
     gps_ublox->start();
     gps_ublox->sendSBASMessage();
+#endif
 
     sensor_manager->start();
 }
@@ -336,6 +348,29 @@ void Sensors::backupCutterCurrentCallback()
 {
     LoggerService::getInstance()->log(cs_cutter_backup->getLastSample());
 }
+#ifdef HARDWARE_IN_THE_LOOP
+void Sensors::hilSensorsInit()
+{
+    HILTransceiver* simulator = HIL::getInstance()->simulator;
+
+    hil_imu  = new HILImu(simulator, N_DATA_IMU);
+    hil_baro = new HILBarometer(simulator, N_DATA_BARO);
+    hil_gps  = new HILGps(simulator, N_DATA_GPS);
+
+    SensorInfo info_imu(HIL_IMU_PERIOD, bind(&Sensors::hilIMUCallback, this),
+                        false, true);
+    SensorInfo info_baro(HIL_BARO_PERIOD, bind(&Sensors::hilBaroCallback, this),
+                         false, true);
+    SensorInfo info_gps(HIL_GPS_PERIOD, bind(&Sensors::hilGPSCallback, this),
+                        false, true);
+
+    sensors_map.emplace(std::make_pair(hil_imu, info_imu));
+    sensors_map.emplace(std::make_pair(hil_baro, info_baro));
+    sensors_map.emplace(std::make_pair(hil_gps, info_gps));
+
+    TRACE("HIL Sensors setup done! \n");
+}
+#endif
 
 void Sensors::pressDigiCallback()
 {
@@ -407,5 +442,22 @@ void Sensors::gpsUbloxCallback()
 {
     LoggerService::getInstance()->log(gps_ublox->getLastSample());
 }
+
+#ifdef HARDWARE_IN_THE_LOOP
+void Sensors::hilIMUCallback()
+{
+    LoggerService::getInstance()->log(hil_imu->getLastSample());
+
+    // TRACE("HILImu callback \n");
+}
+void Sensors::hilBaroCallback()
+{
+    LoggerService::getInstance()->log(hil_baro->getLastSample());
+}
+void Sensors::hilGPSCallback()
+{
+    LoggerService::getInstance()->log(hil_gps->getLastSample());
+}
+#endif
 
 }  // namespace DeathStackBoard
