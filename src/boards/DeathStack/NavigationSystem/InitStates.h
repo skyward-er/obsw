@@ -164,7 +164,7 @@ void InitStates::positionInit(const float gps_lat, const float gps_lon,
 {
     x_init(0) = RAD * gps_lon * CLAT;
     x_init(1) = RAD * gps_lat;
-    x_init(2) = aeroutils::relAltitude(press, press, T0);  // agl altitude
+    x_init(2) = aeroutils::relAltitude(press, P0, T0);  // msl altitude
 }
 
 void InitStates::velocityInit()

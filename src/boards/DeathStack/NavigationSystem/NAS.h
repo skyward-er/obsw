@@ -97,7 +97,7 @@ public:
     void resetReferenceValues();
 
 private:
-    SkyQuaternion quat;  /**< Auxiliary functions for quaternions */
+    SkyQuaternion quat; /**< Auxiliary functions for quaternions */
 
     Matrix<float, N, 1> x; /**< Kalman state vector */
 
@@ -111,13 +111,19 @@ private:
     InitStates states_init;
     NASReferenceValues ref_values;
 
-    uint64_t last_gps_timestamp;
-    uint64_t last_accel_timestamp;
-    uint64_t last_gyro_timestamp;
-    uint64_t last_mag_timestamp;
-    uint64_t last_press_timestamp;
+    uint64_t last_gps_timestamp   = 0;
+    uint64_t last_accel_timestamp = 0;
+    uint64_t last_gyro_timestamp  = 0;
+    uint64_t last_mag_timestamp   = 0;
+    uint64_t last_press_timestamp = 0;
+
+    float pz_init;
 
     bool initialized = false;
+
+#ifdef DEBUG
+    unsigned int counter = 0;
+#endif
 };
 
 template <typename IMU, typename Press, typename GPS>
@@ -151,12 +157,15 @@ bool NAS<IMU, Press, GPS>::init()
 
     filter.setX(x);
 
+    pz_init = x(2);
+
 #ifdef DEBUG
     Vector4f qua(x(6), x(7), x(8), x(9));
     Vector3f e = quat.quat2eul(qua);
 
     TRACE(
-        "Init state vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
+        "[NAS] Init state vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: "
+        "%.2f \n "
         "vy: %.2f \n vz: %.2f \n roll: %.2f "
         "\n pitch: %.2f \n yaw: %.2f \n\n",
         x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2));
@@ -224,15 +233,15 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     // check if new magnetometer data is available
     if (imu_data.mag_timestamp > last_mag_timestamp)
     {
-        Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
+    Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
 
-        if (mag_readings.norm() < EMF)
-        {
-            last_mag_timestamp = imu_data.mag_timestamp;
+    if (mag_readings.norm() < EMF)
+    {
+        last_mag_timestamp = imu_data.mag_timestamp;
 
-            mag_readings.normalize();
-            filter.correct_MEKF(mag_readings);
-        }
+        mag_readings.normalize();
+        filter.correct_MEKF(mag_readings);
+    }
     }
 
     // update states
@@ -242,8 +251,9 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 
     nas_data.x = x(0);
     nas_data.y = x(1);
-    nas_data.z = -x(2);  // Negative sign because we're working in the NED frame
-                         // but we want a positive altitude as output.
+    nas_data.z =
+        -x(2) - pz_init;  // Negative sign because we're working in the NED
+                // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
     nas_data.vz = -x(5);
@@ -252,16 +262,28 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
               nas_data.vz * nas_data.vz);
 
 #ifdef DEBUG
-    Vector4f qua(x(6), x(7), x(8), x(9));
-    Vector3f e = quat.quat2eul(qua);
+    if (counter == 50)
+    {
+        //TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
+        //TRACE("[NAS] z : %.2f - vz : %.2f - vMod : %.2f \n", nas_data.z,
+        //      nas_data.vz, nas_data.vMod);
 
-    TRACE(
-        "State vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
-        "vy: %.2f \n vz: %.2f \n roll: %.2f "
-        "\n pitch: %.2f \n yaw: %.2f \n q1: %.2f \n q2: %.2f \n q3: %.2f \n "
-        "q4: %.2f \n\n",
-        x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2), x(6), x(7), x(8),
-        x(9));
+        counter = 0;
+
+        /*Vector4f qua(x(6), x(7), x(8), x(9));
+        Vector3f e = quat.quat2eul(qua);
+
+        TRACE(
+            "State vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
+            "vy: %.2f \n vz: %.2f \n roll: %.2f \n pitch: %.2f \n yaw: %.2f \n "
+            "q1: %.2f \n q2: %.2f \n q3: %.2f \n q4 : % .2f \n\n ",
+            x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2), x(6), x(7),
+            x(8), x(9));*/
+    }
+    else
+    {
+        counter++;
+    }
 #endif
 
     return nas_data;
