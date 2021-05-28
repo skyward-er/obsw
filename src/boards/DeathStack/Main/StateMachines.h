@@ -25,9 +25,13 @@
 
 #include <NavigationSystem/NASData.h>
 #include <drivers/gps/ublox/UbloxGPS.h>
+#include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
-#include <scheduler/TaskScheduler.h>
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 
 namespace DeathStackBoard
 {
@@ -47,9 +51,29 @@ class AeroBrakesController;
 class StateMachines
 {
 public:
-    using ADAControllerType = ADAController<MS5803Data, UbloxGPSData>;
+#ifdef HARDWARE_IN_THE_LOOP
+    using IMUType     = HILImu;
+    using IMUDataType = HILImuData;
+
+    using PressType     = HILBarometer;
+    using PressDataType = HILBaroData;
+
+    using GPSType     = HILGps;
+    using GPSDataType = HILGpsData;
+#else
+    using IMUType     = BMX160;
+    using IMUDataType = BMX160Data;
+
+    using PressType     = MS580301BA07;
+    using PressDataType = MS5803Data;
+
+    using GPSType     = UbloxGPS;
+    using GPSDataType = UbloxGPSData;
+#endif
+
+    using ADAControllerType = ADAController<PressDataType, GPSDataType>;
     using NASControllerType =
-        NASController<BMX160Data, MS5803Data, UbloxGPSData>;
+        NASController<IMUDataType, PressDataType, GPSDataType>;
     using AeroBrakesControllerType = AeroBrakesController<NASData>;
 
     DeploymentController* dpl_controller;
@@ -58,13 +82,12 @@ public:
     NASControllerType* nas_controller;
     AeroBrakesControllerType* arb_controller;
 
-    StateMachines(BMX160& imu, MS580301BA07& press, UbloxGPS& gps,
+    StateMachines(IMUType& imu, PressType& press, GPSType& gps,
                   TaskScheduler* scheduler);
 
     ~StateMachines();
 
     void start();
-
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
 };

@@ -27,6 +27,9 @@
 // #include <diagnostic/PrintLogger.h>
 #include <Debug.h>
 
+#include "math/Stats.h"
+#include <diagnostic/CpuMeter.h>
+
 using namespace miosix;
 using namespace DeathStackBoard;
 // using namespace GlobalBuffers;
@@ -34,7 +37,9 @@ using namespace DeathStackBoard;
 int main()
 {
     // Logging::startAsyncLogger();
-    // PrintLogger log = Logging::getLogger("main");
+    PrintLogger log = Logging::getLogger("main");
+
+    Stats cpu_stat;
 
     // LOG_INFO(log, "Starting death stack...");
     TRACE("Starting death stack...\n");
@@ -49,5 +54,11 @@ int main()
         Thread::sleep(1000);
         LoggerService::getInstance()->log(
             LoggerService::getInstance()->getLogger().getLogStats());
+            
+        cpu_stat.add(averageCpuUtilization());
+
+        /*LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+               cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+               cpu_stat.getStats().minValue);*/
     }
 }

@@ -57,7 +57,6 @@ static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 
 // Number of samples used to calibrate the kalman initial state
 static const unsigned int CALIBRATION_BARO_N_SAMPLES     = 50; // 1200;
-static const unsigned int ACCELERATION_AVERAGE_N_SAMPLES = 25;
 
 // Default reference values settings
 // Standard atmosphere values @ Roccaraso

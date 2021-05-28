@@ -44,6 +44,11 @@
 #include "events/EventInjector.h"
 #include "events/Events.h"
 #include "events/Topics.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
+
 using std::bind;
 
 namespace DeathStackBoard
@@ -79,13 +84,17 @@ public:
 
     TaskScheduler* scheduler;
 
+#ifdef HARDWARE_IN_THE_LOOP
+    HIL* hil;
+#endif
+
     void start()
     {
         logger->log(logger->getLogger().getLogStats());
 
         if (!broker->start())
         {
-            TRACE("Error starting eventbroker\n");
+            TRACE("Error starting EventBroker\n");
 
             status.setError(&DeathStackStatus::ev_broker);
         }
@@ -98,6 +107,10 @@ public:
         injector->start();
 
         pin_handler->start();
+
+#ifdef HARDWARE_IN_THE_LOOP
+        hil->start();
+#endif
 
         // If there was an error, signal it to the FMM and light a LED.
         // if (status.death_stack != COMP_OK)
@@ -119,7 +132,7 @@ private:
         /* Shared components */
         logger = Singleton<LoggerService>::getInstance();
         // Start threads
-        try
+        /*try
         {
             logger->start();
         }
@@ -127,7 +140,7 @@ private:
         {
             TRACE("SD Logger init error\n");
             status.setError(&DeathStackStatus::logger);
-        }
+        }*/
 
         TimestampTimer::enableTimestampTimer();
 
@@ -141,19 +154,50 @@ private:
                 *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
         }
 
+#ifdef HARDWARE_IN_THE_LOOP
+        hil = HIL::getInstance();
+#endif
+
         scheduler = new TaskScheduler();
         bus       = new Bus();
         radio     = new Radio(*bus->spi2);
         sensors   = new Sensors(*bus->spi1, scheduler);
         actuators = new Actuators();
+
+#ifdef HARDWARE_IN_THE_LOOP
+        state_machines =
+            new StateMachines(*sensors->hil_imu, *sensors->hil_baro,
+                              *sensors->hil_gps, scheduler);
+#else
         state_machines =
             new StateMachines(*sensors->imu_bmx160, *sensors->press_digital,
                               *sensors->gps_ublox, scheduler);
+#endif
+
         pin_handler = new PinHandler();
 
         injector = new EventInjector();
         // LOG_INFO(log, "Init finished");
         TRACE("Init finished\n");
+
+        sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
+
+#ifdef HARDWARE_IN_THE_LOOP
+        // TODO : REMOVE ME
+        // TEMPORARY FOR HIL UNTIL TCs ARE READY
+        sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
+        sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
+        Thread::sleep(1000);
+        state_machines->setReferenceValues(109, 15, 450);
+
+        Thread::sleep(10000);
+
+        sEventBroker->post({EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
+        Thread::sleep(1000);
+        sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+        Thread::sleep(1000);
+        sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
+#endif
     }
 
     /**
@@ -176,7 +220,7 @@ private:
         }
         // LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
         // getTopicString(topic));
-        TRACE("%s on %s", getEventString(event).c_str(),
+        TRACE("%s on %s \n", getEventString(event).c_str(),
               getTopicString(topic).c_str());
 #endif
     }

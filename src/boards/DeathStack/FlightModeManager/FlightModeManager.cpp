@@ -618,8 +618,6 @@ State FlightModeManager::state_ascending(const Event& ev)
         {
             // Send disable aerobrakes
             sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
-
-            retState = transition(&FlightModeManager::state_ascending);
             break;
         }
         default: /* If an event is not handled here, try with super-state */

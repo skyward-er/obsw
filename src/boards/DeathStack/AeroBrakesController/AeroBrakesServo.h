@@ -34,8 +34,6 @@
 #include "hardware_in_the_loop/HIL.h"
 #endif
 
-using namespace DeathStackBoard;
-
 namespace DeathStackBoard
 {
 
@@ -97,7 +95,7 @@ private:
     Servo servo{AeroBrakesConfigs::AB_SERVO_TIMER};
 
 #ifdef HARDWARE_IN_THE_LOOP
-    HILTransceiver *simulator = HIL::getInstance()->simulator;
+    HIL *simulator = HIL::getInstance();
 #endif
 
 protected:
@@ -113,7 +111,7 @@ protected:
         servo.setPosition(AeroBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
 
 #ifdef HARDWARE_IN_THE_LOOP
-        simulator->setActuatorData(angle);
+        simulator->send(angle);
 #endif
 
         AeroBrakesData abdata;
