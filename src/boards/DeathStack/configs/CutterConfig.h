@@ -48,10 +48,10 @@ typedef miosix::actuators::nosecone::thCut2::ena BackupCutterEna;
 static constexpr int CUT_DURATION      = 5 * 1000;
 static constexpr int CUT_TEST_DURATION = 3 * 1000;
 
-static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 15000;  // Hz
-static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.31f;
-static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 15000;  // Hz
-static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.31f;
+static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
+static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.45f;
+static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 10000;  // Hz
+static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.45f;
 static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE =
     PRIMARY_CUTTER_PWM_DUTY_CYCLE / 100.0f;
 
