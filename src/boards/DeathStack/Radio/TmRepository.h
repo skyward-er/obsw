@@ -40,6 +40,8 @@
 #include "PinHandler/PinHandlerData.h"
 #include "ADA/ADAData.h"
 
+#include "FlightModeManager/FMMStatus.h"
+
 namespace DeathStackBoard
 {
 
@@ -228,8 +230,8 @@ void TmRepository::update<LogStats>(const LogStats& t);
 // void TmRepository::update<BoardStatus>(const BoardStatus& t);
 
 // /* Flight Mode Manager */
-// template <>
-// void TmRepository::update<FMMStatus>(const FMMStatus& t);
+template <>
+void TmRepository::update<FMMStatus>(const FMMStatus& t);
 
 // /* Launch and Nosecone detachment pins */
 template <>

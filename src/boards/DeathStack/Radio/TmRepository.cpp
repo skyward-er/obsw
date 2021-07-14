@@ -154,10 +154,12 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
                                       &(tm_repository.gps_tm));
             break;
         case MavTMList::MAV_HR_TM_ID:
+            tm_repository.hr_tm.timestamp = miosix::getTick();
             mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.hr_tm));
             break;
         case MavTMList::MAV_LR_TM_ID:
+            //tm_repository.lr_tm.timestamp = miosix::getTick();
             mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.lr_tm));
             break;
@@ -174,7 +176,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
         case MavTMList::MAV_SENSORS_TM_ID:
             tm_repository.sensors_tm.timestamp = miosix::getTick();
             mavlink_msg_sensors_tm_encode(sys_id, comp_id, &m,
-                                             &(tm_repository.sensors_tm));
+                                          &(tm_repository.sensors_tm));
             break;
         default:
         {
@@ -196,7 +198,7 @@ template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t)
 {
     tm_repository.wind_tm.ab_angle = t.servo_position;
-    tm_repository.hr_tm.ab_angle = t.servo_position;
+    tm_repository.hr_tm.ab_angle   = t.servo_position;
 }
 
 template <>
@@ -206,10 +208,35 @@ void TmRepository::update<WindData>(const WindData& t)
 }
 
 template <>
+void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t)
+{
+    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_PRIMARY)
+    {
+        tm_repository.sensors_tm.c_sense_1 = t.current;
+    }
+    else if (t.channel_id ==
+             DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_BACKUP)
+    {
+        tm_repository.sensors_tm.c_sense_2 = t.current;
+    }
+}
+
+template <>
+void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t)
+{
+    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
+    {
+        tm_repository.hr_tm.vbat = t.voltage;
+        tm_repository.sensors_tm.v_bat = t.voltage;
+    }
+}
+
+template <>
 void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 {
-    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF){
-        tm_repository.wind_tm.pressure_dpl = t.voltage;
+    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
+    {
+        // tm_repository.wind_tm.pressure_dpl = t.voltage;
         tm_repository.sensors_tm.v_bat = t.voltage;
     }
 }
@@ -243,7 +270,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 {
     tm_repository.wind_tm.pressure_dpl = t.press;
     tm_repository.sensors_tm.dpl_press = t.press;
-    tm_repository.hr_tm.pressure_dpl = t.press;
+    tm_repository.hr_tm.pressure_dpl   = t.press;
 }
 
 template <>
@@ -278,7 +305,7 @@ template <>
 void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t)
 {
     tm_repository.sensors_tm.bmx160_temp = t.temp;
-    tm_repository.hr_tm.temperature = t.temp;
+    tm_repository.hr_tm.temperature      = t.temp;
 }
 
 template <>
@@ -325,13 +352,13 @@ void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
 //     tm_repository.sys_tm.dpl            = t.dpl;
 // }
 
-// /* Flight Mode Manager */
-// template <>
-// void TmRepository::update<FMMStatus>(const FMMStatus& t)
-// {
-//     tm_repository.fmm_tm.state = static_cast<uint8_t>(t.state);
-//     hr_pkt.fmm_state           = static_cast<uint8_t>(t.state);
-// }
+/* Flight Mode Manager */
+template <>
+void TmRepository::update<FMMStatus>(const FMMStatus& t)
+{
+    tm_repository.fmm_tm.state    = static_cast<uint8_t>(t.state);
+    tm_repository.hr_tm.fmm_state = static_cast<uint8_t>(t.state);
+}
 
 /* Launch and Nosecone detachment pins */
 template <>
@@ -474,7 +501,7 @@ template <>
 void TmRepository::update<ADAData>(const ADAData& t)
 {
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
-    tm_repository.hr_tm.vert_speed = t.vert_speed;
+    tm_repository.hr_tm.vert_speed   = t.vert_speed;
 }
 
 // template <>
