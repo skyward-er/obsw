@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
 #include <miosix.h>
 
 #include "AeroBrakesController/AeroBrakesControlAlgorithm.h"
@@ -67,7 +66,7 @@ private:
     AeroBrakesControllerStatus status;
     ServoInterface* servo;
     AeroBrakesControlAlgorithm<T> algorithm;
-    PrintLogger log = Logging::getLogger("ds.fsm.arb");
+
     uint16_t ev_shadow_mode_timeout_id;
 
     /**
@@ -141,12 +140,12 @@ void AeroBrakesController<T>::state_idle(const Event& ev)
         {
             logStatus(AeroBrakesControllerState::IDLE);
 
-            LOG_INFO(log, "Eentering state idle");
+            TRACE("[AeroBrakes] entering state idle\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state idle");
+            TRACE("[AeroBrakes] exiting state idle\n");
             break;
         }
         case EV_LIFTOFF:
@@ -185,16 +184,16 @@ void AeroBrakesController<T>::state_shadowMode(const Event& ev)
         {
             ev_shadow_mode_timeout_id =
                 sEventBroker->postDelayed<SHADOW_MODE_DURATION>(
-                    Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
+                    Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_FLIGHT_EVENTS);
 
             logStatus(AeroBrakesControllerState::SHADOW_MODE);
 
-            LOG_INFO(log, "Entering state shadow_mode");
+            TRACE("[AeroBrakes] entering state shadow_mode\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state shadow_mode");
+            TRACE("[AeroBrakes] exiting state shadow_mode\n");
             break;
         }
         case EV_SHADOW_MODE_TIMEOUT:
@@ -225,12 +224,12 @@ void AeroBrakesController<T>::state_enabled(const Event& ev)
 
             logStatus(AeroBrakesControllerState::ENABLED);
 
-            LOG_INFO(log, "Entering state enabled");
+            TRACE("[AeroBrakes] entering state enabled\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state enabled");
+            TRACE("[AeroBrakes] exiting state enabled\n");
             break;
         }
         case EV_APOGEE:
@@ -262,12 +261,12 @@ void AeroBrakesController<T>::state_end(const Event& ev)
 
             logStatus(AeroBrakesControllerState::END);
 
-            LOG_INFO(log, "Entering state end");
+            TRACE("[AeroBrakes] entering state end\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state end");
+            TRACE("[AeroBrakes] exiting state end\n");
             break;
         }
 
@@ -290,12 +289,12 @@ void AeroBrakesController<T>::state_disabled(const Event& ev)
 
             logStatus(AeroBrakesControllerState::DISABLED);
 
-            LOG_INFO(log, "Entering state disabled");
+            TRACE("[AeroBrakes] entering state disabled\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state disabled");
+            TRACE("[AeroBrakes] exiting state disabled\n");
             break;
         }
 
@@ -313,7 +312,7 @@ void AeroBrakesController<T>::state_testAerobrakes(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state test_aerobrakes");
+            TRACE("[AeroBrakes] entering state test_aerobrakes\n");
 
             incrementallyOpen();
             miosix::Thread::sleep(1000);
@@ -328,7 +327,7 @@ void AeroBrakesController<T>::state_testAerobrakes(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state test_aerobrakes");
+            TRACE("[AeroBrakes] exiting state test_aerobrakes\n");
             break;
         }
         case EV_TEST_TIMEOUT:
@@ -354,7 +353,7 @@ void AeroBrakesController<T>::incrementallyOpen()
 
     for (auto i = 0; i < STEPS_NUM; i++)
     {
-        LOG_INFO(log, "Servo position : {:.2f}", currentStep);
+        TRACE("Servo position : %.2f\n", currentStep);
         servo->set(currentStep);
         currentStep += INCREMENT_STEP;
         miosix::Thread::sleep(1000);
@@ -374,7 +373,7 @@ void AeroBrakesController<T>::incrementallyClose()
 
     for (auto i = 0; i < STEPS_NUM; i++)
     {
-        LOG_INFO(log, "Servo position : {:.2f}", currentStep);
+        TRACE("Servo position : %.2f\n", currentStep);
         servo->set(currentStep);
         currentStep -= INCREMENT_STEP;
         miosix::Thread::sleep(1000);
@@ -391,7 +390,7 @@ void AeroBrakesController<T>::logStatus(AeroBrakesControllerState state)
 
     LoggerService::getInstance()->log(status);
 
-    // StackLogger::getInstance()->updateStack(THID_ABK_FSM);
+    //StackLogger::getInstance()->updateStack(THID_ABK_FSM);
 }
 
 }  // namespace DeathStackBoard

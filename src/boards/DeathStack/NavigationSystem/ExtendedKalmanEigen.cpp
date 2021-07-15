@@ -116,7 +116,7 @@ void ExtendedKalmanEigen::correctBaro(const float& y)
     float temp = aeroutils::mslTemperature(T0, x(2));
 
     H_bar << 0.0F, 0.0F,
-        aeroutils::constants::a * aeroutils::constants::n * P0 *
+        aeroutils::constants::a * aeroutils::constants::n * y *
             powf(1 - aeroutils::constants::a * x(2) / temp,
                  -aeroutils::constants::n - 1) /
             temp,
@@ -128,7 +128,7 @@ void ExtendedKalmanEigen::correctBaro(const float& y)
 
     P.block<NL, NL>(0, 0) = (eye6 - K_bar * H_bar) * Plin;
 
-    h_bar = aeroutils::mslPressure(P0, T0, x(2));
+    h_bar = aeroutils::mslPressure(y, T0, x(2));
 
     x.head(NL) = x.head(NL) + K_bar * (y - h_bar);
 

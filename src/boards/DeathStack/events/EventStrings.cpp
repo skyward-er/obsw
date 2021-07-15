@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-05-20 19:17:02.568028
+// Autogen date: 2021-05-19 20:07:40.830045
 
 #include <map>
 using std::map;
@@ -46,6 +46,7 @@ string getEventString(uint8_t event)
         {EV_CALIBRATE, "EV_CALIBRATE"},
         {EV_CALIBRATE_ADA, "EV_CALIBRATE_ADA"},
         {EV_CALIBRATE_NAS, "EV_CALIBRATE_NAS"},
+        {EV_CALIBRATE_SENSORS, "EV_CALIBRATE_SENSORS"},
         {EV_CALIBRATION_OK, "EV_CALIBRATION_OK"},
         {EV_CUTTING_TIMEOUT, "EV_CUTTING_TIMEOUT"},
         {EV_CUT_DROGUE, "EV_CUT_DROGUE"},
@@ -63,10 +64,10 @@ string getEventString(uint8_t event)
         {EV_RESET_SERVO, "EV_RESET_SERVO"},
         {EV_SEND_HR_TM, "EV_SEND_HR_TM"},
         {EV_SEND_LR_TM, "EV_SEND_LR_TM"},
-        {EV_SEND_SENS_TM, "EV_SEND_SENS_TM"},
         {EV_SEND_TEST_TM, "EV_SEND_TEST_TM"},
         {EV_SENSORS_READY, "EV_SENSORS_READY"},
         {EV_SHADOW_MODE_TIMEOUT, "EV_SHADOW_MODE_TIMEOUT"},
+        {EV_SM_READY, "EV_SM_READY"},
         {EV_STATS_TIMEOUT, "EV_STATS_TIMEOUT"},
         {EV_TC_ABK_DISABLE, "EV_TC_ABK_DISABLE"},
         {EV_TC_ABK_RESET_SERVO, "EV_TC_ABK_RESET_SERVO"},
@@ -84,8 +85,8 @@ string getEventString(uint8_t event)
         {EV_TC_LAUNCH, "EV_TC_LAUNCH"},
         {EV_TC_NC_OPEN, "EV_TC_NC_OPEN"},
         {EV_TC_RESET_BOARD, "EV_TC_RESET_BOARD"},
-        {EV_TC_START_SENSOR_TM, "EV_TC_START_SENSOR_TM"},
-        {EV_TC_STOP_SENSOR_TM, "EV_TC_STOP_SENSOR_TM"},
+        {EV_TC_START_SENSOR_LOGGING, "EV_TC_START_SENSOR_LOGGING"},
+        {EV_TC_STOP_SENSOR_LOGGING, "EV_TC_STOP_SENSOR_LOGGING"},
         {EV_TC_TEST_ABK, "EV_TC_TEST_ABK"},
         {EV_TC_TEST_CUT_BACKUP, "EV_TC_TEST_CUT_BACKUP"},
         {EV_TC_TEST_CUT_PRIMARY, "EV_TC_TEST_CUT_PRIMARY"},
@@ -96,7 +97,6 @@ string getEventString(uint8_t event)
         {EV_TEST_TIMEOUT, "EV_TEST_TIMEOUT"},
         {EV_TIMEOUT_END_MISSION, "EV_TIMEOUT_END_MISSION"},
         {EV_TIMEOUT_PRESS_STABILIZATION, "EV_TIMEOUT_PRESS_STABILIZATION"},
-        {EV_TIMEOUT_SHADOW_MODE, "EV_TIMEOUT_SHADOW_MODE"},
         {EV_UMBILICAL_DETACHED, "EV_UMBILICAL_DETACHED"},
         {EV_WIGGLE_SERVO, "EV_WIGGLE_SERVO"},
     };
@@ -113,6 +113,7 @@ string getTopicString(uint8_t topic)
         {TOPIC_FLIGHT_EVENTS, "TOPIC_FLIGHT_EVENTS"},
         {TOPIC_FMM, "TOPIC_FMM"},
         {TOPIC_NAS, "TOPIC_NAS"},
+        {TOPIC_SM, "TOPIC_SM"},
         {TOPIC_STATS, "TOPIC_STATS"},
         {TOPIC_TMTC, "TOPIC_TMTC"},
 	};

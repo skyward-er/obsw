@@ -57,7 +57,7 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
-static constexpr float AB_SERVO_MAX_POS          = 50;         // deg
+static constexpr float AB_SERVO_MAX_POS          = 55;         // deg
 static constexpr float AB_SERVO_MIN_POS          = 0;          // deg
 static constexpr float AB_SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
 static constexpr float AB_SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
@@ -65,8 +65,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
 
 static constexpr float FILTER_COEFF = 0.9;
 
-static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
-static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
+static constexpr float UPDATE_TIME = 0.05 * 1000;  // ms -> 20 Hz
 
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 

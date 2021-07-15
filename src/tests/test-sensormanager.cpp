@@ -21,9 +21,12 @@
  */
 
 #include "Common.h"
+#include "ADA/ADAController.h"
+#include "events/Events.h"
+#include "LoggerService/LoggerService.h"
+#include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
-#include "Main/Sensors.h"
-#include "Main/Bus.h"
+#include "events/EventBroker.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -31,13 +34,36 @@ using namespace DeathStackBoard;
 int main()
 {
     Stats s;
+    SensorManager mgr;
     
-    Bus bus;
-    Sensors sensors(*bus.spi1, new TaskScheduler());
-    
-    sensors.start();
+    try
+    {
+        LoggerService::getInstance()->start();
+    }
+    catch (const std::exception& e)
+    {
+        printf("SDCARD MISSING\n");
+        for (;;)
+        {
+            ledOn();
+            Thread::sleep(200);
+            ledOff();
+            Thread::sleep(200);
+        }
+    }
+    ledOn();
+
+    sEventBroker->start();
+    mgr.start();
+
+    sEventBroker->post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
+
+
+    // printf("Wait for calibration to complete.\n");
 
     Thread::sleep(500);
+
+    // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     for (int i = 0; i < 60 * 3 * 10; i++)
     {
@@ -47,7 +73,7 @@ int main()
 
     printf("CPU: %f%%, min: %f max: %f\n", s.getStats().mean,
            s.getStats().minValue, s.getStats().maxValue);
-           
+    LoggerService::getInstance()->stop();
     printf("End\n");
 
     for (;;)

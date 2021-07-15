@@ -42,10 +42,10 @@ static constexpr int NC_OPEN_TIMEOUT = 5000;
 
 // Angles in degrees
 static constexpr float DPL_SERVO_MIN_POS          = 0;
-static constexpr float DPL_SERVO_MAX_POS          = 178;
-static constexpr float DPL_SERVO_RESET_POS        = 178;
-static constexpr float DPL_SERVO_EJECT_POS        = 157;
-static constexpr float DPL_SERVO_WIGGLE_AMPLITUDE = 2;
+static constexpr float DPL_SERVO_MAX_POS          = 180;
+static constexpr float DPL_SERVO_RESET_POS        = 0;
+static constexpr float DPL_SERVO_EJECT_POS        = 30;
+static constexpr float DPL_SERVO_WIGGLE_AMPLITUDE = 5;
 
 }  // namespace DeploymentConfigs
 

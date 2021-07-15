@@ -45,6 +45,13 @@
 #include <sstream>
 #include <vector>
 
+#include "math/Stats.h"
+
+namespace SDCardBenchmark
+{
+#include "../../skyward-boardcore/src/entrypoints/sdcard-benchmark.cpp"
+}
+
 // Sample frequency
 constexpr int SAMPLING_FREQUENCY = 100;
 
@@ -73,10 +80,13 @@ int main()
             // sampleLSM9DSI();
             break;
         case 4:
-            sampleBMX160();
+            sampleAll();
             break;
         case 5:
-            sampleAll();
+            sampleBMX160();
+            break;
+        case 6:
+            SDCardBenchmark::main();
             break;
 
         default:
@@ -94,8 +104,9 @@ int menu()
     printf("1. Sample LIS3MDL\n");
     printf("2. Sample ASM330LHH (not installed)\n");
     printf("3. Sample LSM9DSI (not installed)\n");
-    printf("4. Sample BMX160\n");
-    printf("5. Sample all the above\n");
+    printf("4. Sample all the above\n");
+    printf("5. Sample BMX160 (gps)\n");
+    printf("6. SD Card benchmark\n");
     printf("\n>> ");
     scanf("%d", &choice);
 

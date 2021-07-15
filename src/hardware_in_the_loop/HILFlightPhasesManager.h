@@ -30,11 +30,11 @@
 
 #include "ActiveObject.h"
 #include "DeathStack/Algorithm.h"
-#include "NavigationSystem/NASData.h"
 #include "Singleton.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
 #include "miosix.h"
+#include "NavigationSystem/NASData.h"
 #include "sensors/Sensor.h"
 
 #include "HIL_sensors/HILSensors.h"
@@ -131,40 +131,38 @@ public:
         if (isSetTrue(SIMULATION_STARTED))
         {
             t_start = TimestampTimer::getTimestamp();
+            // starting calibration when the simulation starts
+            sEventBroker->post({EV_TC_CALIBRATE_ALGOS}, TOPIC_TMTC);
 
             //*****************************************************************/
-            //       temporary until we test everything with GS and TCs        /
+            //        temporary until sensor manager fsm does not exist        /
             //*****************************************************************/
-            // TODO : REMOVE ME
-            //sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
-            //Thread::sleep(100);
-            //sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
-            //Thread::sleep(100);
+            Thread::sleep(100);
+            sEventBroker->post({EV_SM_READY}, TOPIC_SM);
             //*****************************************************************/
 
-            TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
+            TRACE("------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
         }
 
         if (isSetTrue(CALIBRATION))
         {
-            TRACE("[HIL] ------- CALIBRATION ! ------- \n");
+            TRACE("------- CALIBRATION ! ------- \n");
             changed_flags.push_back(CALIBRATION);
         }
 
-        if (isSetFalse(CALIBRATION))  // calibration finalized
-        {
+        if (isSetFalse(CALIBRATION)) // calibration finalized
+        {//*****************************************************************/
+            //        temporary until telecommands do not exist        /
             //*****************************************************************/
-            //            temporary until telecommands do not exist            /
+            sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
             //*****************************************************************/
-            // sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
-            //*****************************************************************/
-            TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
+            TRACE("------- READY TO LAUNCH ! ------- \n");
         }
 
         if (isSetTrue(LIFTOFF_PIN_DETACHED))
         {
-            TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
+            TRACE("------- LIFTOFF PIN DETACHED ! ------- \n");
             changed_flags.push_back(LIFTOFF_PIN_DETACHED);
         }
 
@@ -173,19 +171,18 @@ public:
             if (isSetTrue(FLIGHT))
             {
                 t_liftoff = TimestampTimer::getTimestamp();
-                sEventBroker->post({EV_UMBILICAL_DETACHED},
-                                   TOPIC_FLIGHT_EVENTS);
+                sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
-                TRACE("[HIL] ------- LIFTOFF ! ------- \n");
+                TRACE("------- LIFTOFF ! ------- \n");
                 changed_flags.push_back(FLIGHT);
 
-                TRACE("[HIL] ------- ASCENT ! ------- \n");
+                TRACE("------- ASCENT ! ------- \n");
                 changed_flags.push_back(ASCENT);
             }
             if (isSetFalse(BURNING))
             {
                 registerOutcomes(BURNING);
-                TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
+                TRACE("------- STOPPED BURNING ! ------- \n");
                 changed_flags.push_back(BURNING);
             }
             if (isSetTrue(SIM_AEROBRAKES))
@@ -196,25 +193,25 @@ public:
             if (isSetTrue(AEROBRAKES))
             {
                 registerOutcomes(AEROBRAKES);
-                TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
+                TRACE("------- AEROBRAKES ENABLED ! ------- \n");
                 changed_flags.push_back(AEROBRAKES);
             }
             if (isSetTrue(APOGEE))
             {
                 registerOutcomes(APOGEE);
-                TRACE("[HIL] ------- APOGEE DETECTED ! ------- \n");
+                TRACE("------- APOGEE DETECTED ! ------- \n");
                 changed_flags.push_back(APOGEE);
             }
             if (isSetTrue(PARA1))
             {
                 registerOutcomes(PARA1);
-                TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
+                TRACE("------- PARACHUTE 1 ! ------- \n");
                 changed_flags.push_back(PARA1);
             }
             if (isSetTrue(PARA2))
             {
                 registerOutcomes(PARA2);
-                TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
+                TRACE("------- PARACHUTE 2 ! ------- \n");
                 changed_flags.push_back(PARA2);
             }
         }
@@ -222,7 +219,7 @@ public:
         {
             changed_flags.push_back(SIMULATION_STOPPED);
             t_stop = TimestampTimer::getTimestamp();
-            TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
+            TRACE("------- SIMULATION STOPPED ! -------: %f \n\n\n",
                   (double)t_stop / 1000000.0f);
             printOutcomes();
         }
@@ -240,16 +237,14 @@ public:
         prev_flagsFlightPhases = flagsFlightPhases;
     }
 
-    void setSourceForOutcomes(Sensor<DeathStackBoard::NASData>* nas)
-    {
+    void setDataForOutcomes(Sensor<DeathStackBoard::NASData>* nas){
         this->nas = nas;
     }
 
 private:
     void registerOutcomes(FlightPhases phase)
     {
-        outcomes[phase] =
-            Outcomes(nas->getLastSample().z, nas->getLastSample().vz);
+        outcomes[phase] = Outcomes(nas->getLastSample().z, nas->getLastSample().vz);
     }
 
     void printOutcomes()
@@ -361,5 +356,5 @@ private:
     map<FlightPhases, vector<TCallback>> callbacks;
     map<FlightPhases, Outcomes> outcomes;
     Sensor<DeathStackBoard::NASData>* nas;
-    EventCounter* counter;
+    EventCounter *counter;
 };

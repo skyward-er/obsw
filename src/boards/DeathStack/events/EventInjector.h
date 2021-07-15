@@ -51,36 +51,36 @@ protected:
 
             switch (ev)
             {
-                // case EV_TC_SET_DPL_ALTITUDE:
-                // {
-                //     float in;
-                //     cout << "Payload:\n";
-                //     getline(cin, temp);
-                //     stringstream(temp) >> in;
+                case EV_TC_SET_DPL_ALTITUDE:
+                {
+                    float in;
+                    cout << "Payload:\n";
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
-                //     DeathStack::getInstance()->ada->setDeploymentAltitude(in);
-                //     break;
-                // }
-                // case EV_TC_SET_REFERENCE_ALTITUDE:
-                // {
-                //     float in;
-                //     cout << "Payload:\n";
-                //     getline(cin, temp);
-                //     stringstream(temp) >> in;
+                    DeathStack::getInstance()->ada->setDeploymentAltitude(in);
+                    break;
+                }
+                case EV_TC_SET_REFERENCE_ALTITUDE:
+                {
+                    float in;
+                    cout << "Payload:\n";
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
-                //     DeathStack::getInstance()->ada->setReferenceAltitude(in);
-                //     break;
-                // }
-                // case EV_TC_SET_REFERENCE_TEMP:
-                // {
-                //     float in;
-                //     cout << "Payload:\n";
-                //     getline(cin, temp);
-                //     stringstream(temp) >> in;
+                    DeathStack::getInstance()->ada->setReferenceAltitude(in);
+                    break;
+                }
+                case EV_TC_SET_REFERENCE_TEMP:
+                {
+                    float in;
+                    cout << "Payload:\n";
+                    getline(cin, temp);
+                    stringstream(temp) >> in;
 
-                //     DeathStack::getInstance()->ada->setReferenceTemperature(in);
-                //     break;
-                // }
+                    DeathStack::getInstance()->ada->setReferenceTemperature(in);
+                    break;
+                }
                 default:
                 {
                     sEventBroker->post({(uint8_t)ev}, topic);

@@ -30,8 +30,6 @@
 #include <miosix.h>
 #include <utils/aero/AeroUtils.h>
 
-#include <diagnostic/PrintLogger.h>
-
 #include "ADA/ADA.h"
 #include "ADA/ADACalibrator.h"
 #include "Debug.h"
@@ -158,15 +156,13 @@ private:
         0; /**<  Number of consecutive samples for abk disable */
 
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
-
-    PrintLogger log = Logging::getLogger("ds.fms.ada");
 };
 
 /* --- LIFE CYCLE --- */
 template <typename Press, typename GPS>
 ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
                                          Sensor<GPS>& gps)
-    : ADAFsm(&ADACtrl::state_idle, STACK_MIN_FOR_SKYWARD, ADA_PRIORITY),
+    : ADAFsm(&ADACtrl::state_idle, ADA_STACK_SIZE, ADA_PRIORITY),
       ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
@@ -377,13 +373,13 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
         }
         case ADAState::UNDEFINED:
         {
-            LOG_INFO(log, "Update Baro: Undefined state value ");
+            TRACE("[ADA] Update Baro: Undefined state value \n");
             break;
         }
 
         default:
         {
-            LOG_INFO(log, "Update Baro: Unexpected state value ");
+            TRACE("[ADA] Update Baro: Unexpected state value \n");
             break;
         }
     }
@@ -436,7 +432,7 @@ void ADAController<Press, GPS>::setDeploymentAltitude(float dpl_alt)
         }
         logger.log(TargetDeploymentAltitude{dpl_alt});
 
-        LOG_INFO(log, "Deployment altitude set to %.3f m", dpl_alt);
+        TRACE("[ADA] Deployment altitude set to %.3f m\n", dpl_alt);
 
         finalizeCalibration();
     }
@@ -454,7 +450,7 @@ void ADAController<Press, GPS>::finalizeCalibration()
         // If samples are enough and dpl altitude has been set init ada
         ada = ADA{calibrator.getReferenceValues()};
 
-        LOG_INFO(log, "Finalized calibration ");
+        TRACE("[ADAController] Finalized calibration \n");
 
         // ADA READY!
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -476,13 +472,13 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state idle");
+            TRACE("[ADA] Entering state idle\n");
             logStatus(ADAState::IDLE);
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state idle");
+            TRACE("[ADA] Exiting state idle\n");
             break;
         }
         case EV_CALIBRATE_ADA:
@@ -492,7 +488,7 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
         }
         default:
         {
-            LOG_INFO(log, "state idle: %d event not handled", ev.sig);
+            TRACE("[ADA] state idle: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -518,12 +514,12 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
                 calibrator.resetBaro();
             }
             logStatus(ADAState::CALIBRATING);
-            LOG_INFO(log, "Entering state calibrating");
+            TRACE("[ADA] Entering state calibrating\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state calibrating");
+            TRACE("[ADA] Exiting state calibrating\n");
             break;
         }
         case EV_ADA_READY:
@@ -538,7 +534,7 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state calibrating: %d event not handled",
+            // TRACE("ADA state calibrating: %d event not handled\n",
             // ev.sig);
             break;
         }
@@ -560,12 +556,12 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::READY);
-            LOG_INFO(log, "Entering state ready");
+            TRACE("[ADA] Entering state ready\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state ready");
+            TRACE("[ADA] Exiting state ready\n");
             break;
         }
         case EV_LIFTOFF:
@@ -580,7 +576,7 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state ready: %d event not handled", ev.sig);
+            // TRACE("ADA state ready: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -605,13 +601,13 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
                     {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
-            LOG_INFO(log, "Entering state shadowMode");
+            TRACE("[ADA] Entering state shadowMode\n");
             break;
         }
         case EV_EXIT:
         {
             sEventBroker->removeDelayed(shadow_delayed_event_id);
-            LOG_INFO(log, "Exiting state shadowMode");
+            TRACE("[ADA] Exiting state shadowMode\n");
             break;
         }
         case EV_SHADOW_MODE_TIMEOUT:
@@ -621,7 +617,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state shadowMode: %d event not handled", ev.sig);
+            // TRACE("ADA state shadowMode: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -644,12 +640,12 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::ACTIVE);
-            LOG_INFO(log, "Entering state active");
+            TRACE("[ADA] Entering state active\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state active");
+            TRACE("[ADA] Exiting state active\n");
             break;
         }
         case EV_ADA_APOGEE_DETECTED:
@@ -659,7 +655,7 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state active: %d event not handled", ev.sig);
+            // TRACE("ADA state active: %d event not handled\n", ev.sig);
             break;
         }
     }
@@ -676,13 +672,13 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
                     {EV_TIMEOUT_PRESS_STABILIZATION}, TOPIC_ADA);
             logStatus(ADAState::PRESSURE_STABILIZATION);
-            LOG_INFO(log, "Entering state pressureStabilization");
+            TRACE("[ADA] Entering state pressureStabilization\n");
             break;
         }
         case EV_EXIT:
         {
             sEventBroker->removeDelayed(pressure_delayed_event_id);
-            LOG_INFO(log, "Exiting state pressureStabilization");
+            TRACE("[ADA] Exiting state pressureStabilization\n");
             break;
         }
         case EV_TIMEOUT_PRESS_STABILIZATION:
@@ -693,7 +689,7 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
         default:
         {
             // TRACE("ADA state pressureStabilization: %d event not
-            // handled", ev.sig);
+            // handled\n", ev.sig);
             break;
         }
     }
@@ -716,13 +712,13 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::DROGUE_DESCENT);
-            LOG_INFO(log, "Entering state drogueDescent");
+            TRACE("[ADA] Entering state drogueDescent\n");
             n_samples_deployment_detected = 0;
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state drogueDescent");
+            TRACE("[ADA] Exiting state drogueDescent\n");
             break;
         }
         case EV_ADA_DPL_ALT_DETECTED:
@@ -735,7 +731,7 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state drogueDescent: %d event not handled",
+            // TRACE("ADA state drogueDescent: %d event not handled\n",
             // ev.sig);
             break;
         }
@@ -755,18 +751,18 @@ void ADAController<Press, GPS>::state_end(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state end");
+            TRACE("[ADA] Entering state end\n");
             logStatus(ADAState::END);
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state end");
+            TRACE("[ADA] Exiting state end\n");
             break;
         }
         default:
         {
-            // TRACE("ADA state end: %d event not handled", ev.sig);
+            // TRACE("ADA state end: %d event not handled\n", ev.sig);
             break;
         }
     }

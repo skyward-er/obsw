@@ -28,16 +28,10 @@
 #include "events/Events.h"
 #include "events/Topics.h"
 
-//#include "DeathStack.h"
-
 #include "Debug.h"
-
-#include <diagnostic/PrintLogger.h>
 
 namespace DeathStackBoard
 {
-
-static PrintLogger log = Logging::getLogger("ds.fsm.fmm");
 
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_initialization, STACK_MIN_FOR_SKYWARD,
@@ -83,13 +77,13 @@ State FlightModeManager::state_onGround(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ON_GROUND);
-            LOG_INFO(log, "Entering state_onGround");
+            TRACE("[FMM] Entering state_onGround\n");
             break;
         }
         case EV_INIT: /* This is a super-state, so move to the first sub-state
                        */
         {
-            LOG_INFO(log, "Init state_onGround");
+            TRACE("[FMM] Init state_onGround\n");
 
             retState = transition(&FlightModeManager::state_init);
 
@@ -97,7 +91,7 @@ State FlightModeManager::state_onGround(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting state_onGround");
+            TRACE("[FMM] Exiting state_onGround\n");
 
             break;
         }
@@ -131,7 +125,7 @@ State FlightModeManager::state_init(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT);
-            LOG_INFO(log, "Entering state_init");
+            TRACE("[FMM] Entering state_init\n");
             break;
         }
         case EV_INIT: /* No sub-states */
@@ -140,7 +134,7 @@ State FlightModeManager::state_init(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit state_init");
+            TRACE("[FMM] Exit state_init\n");
 
             break;
         }
@@ -171,7 +165,7 @@ State FlightModeManager::state_initError(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT_ERROR);
-            LOG_INFO(log, "Entering state_initError");
+            TRACE("[FMM] Entering state_initError\n");
             break;
         }
         case EV_INIT: /* No sub-states */
@@ -180,7 +174,7 @@ State FlightModeManager::state_initError(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit state_initError");
+            TRACE("[FMM] Exit state_initError\n");
 
             break;
         }
@@ -206,7 +200,7 @@ State FlightModeManager::state_initDone(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::INIT_DONE);
-            LOG_INFO(log, "Entering state_initDone");
+            TRACE("[FMM] Entering state_initDone\n");
             break;
         }
         case EV_INIT: /* No sub-states */
@@ -215,7 +209,7 @@ State FlightModeManager::state_initDone(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit state_initDone");
+            TRACE("[FMM] Exit state_initDone\n");
 
             break;
         }
@@ -247,10 +241,9 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
         {
             logState(FMMState::SENSORS_CALIBRATION);
 
-            LOG_INFO(log, "Entering sensors_calibration");
+            TRACE("[FMM] Entering sensors_calibration\n");
 
-            // TODO : calibrate sensors, imu and barometers
-            //DeathStack::getInstance()->sensors->imu_bmx160_calibrator->calibrate();
+            // TODO : calibrate sensors
 
             break;
         }
@@ -260,7 +253,7 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit sensors_calibration");
+            TRACE("[FMM] Exit sensors_calibration\n");
 
             break;
         }
@@ -296,7 +289,7 @@ State FlightModeManager::state_algosCalibration(const Event& ev)
             sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
             sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
 
-            LOG_INFO(log, "Entering algos_calibration");
+            TRACE("[FMM] Entering algos_calibration\n");
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -305,7 +298,7 @@ State FlightModeManager::state_algosCalibration(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit algos_calibration");
+            TRACE("[FMM] Exit algos_calibration\n");
 
             break;
         }
@@ -357,7 +350,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
         {
             sEventBroker->post({EV_DISARMED}, TOPIC_FLIGHT_EVENTS);
             logState(FMMState::DISARMED);
-            LOG_INFO(log, "Entering disarmed");
+            TRACE("[FMM] Entering disarmed\n");
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -366,7 +359,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting disarmed");
+            TRACE("[FMM] Exiting disarmed\n");
 
             break;
         }
@@ -407,7 +400,7 @@ State FlightModeManager::state_armed(const Event& ev)
             sEventBroker->post({EV_ARMED}, TOPIC_FLIGHT_EVENTS);
             logState(FMMState::ARMED);
 
-            LOG_INFO(log, "Entering armed");
+            TRACE("[FMM] Entering armed\n");
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -416,7 +409,7 @@ State FlightModeManager::state_armed(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting armed");
+            TRACE("[FMM] Exiting armed\n");
 
             break;
         }
@@ -450,7 +443,7 @@ State FlightModeManager::state_testMode(const Event& ev)
         {
             logState(FMMState::TESTING);
 
-            LOG_INFO(log, "Entering testing");
+            TRACE("[FMM] Entering testing\n");
 
             break;
         }
@@ -460,7 +453,7 @@ State FlightModeManager::state_testMode(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting testing");
+            TRACE("[FMM] Exiting testing\n");
 
             break;
         }
@@ -538,19 +531,19 @@ State FlightModeManager::state_flying(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_END_MISSION>(
                     {EV_TIMEOUT_END_MISSION}, TOPIC_FMM);
 
-            LOG_INFO(log, "Entering flying");
+            TRACE("[FMM] Entering flying\n");
             break;
         }
         case EV_INIT:
         {
-            LOG_INFO(log, "Init flying");
+            TRACE("[FMM] Init flying\n");
 
             retState = transition(&FlightModeManager::state_ascending);
             break;
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting flying");
+            TRACE("[FMM] Exiting flying\n");
 
             sEventBroker->removeDelayed(end_mission_d_event_id);
             break;
@@ -592,7 +585,7 @@ State FlightModeManager::state_ascending(const Event& ev)
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ASCENDING);
-            LOG_INFO(log, "Entering ascending");
+            TRACE("[FMM] Entering ascending\n");
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -601,7 +594,7 @@ State FlightModeManager::state_ascending(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exit ascending");
+            TRACE("[FMM] Exit ascending\n");
 
             break;
         }
@@ -618,6 +611,8 @@ State FlightModeManager::state_ascending(const Event& ev)
         {
             // Send disable aerobrakes
             sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
+
+            retState = transition(&FlightModeManager::state_ascending);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
@@ -640,7 +635,7 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
             sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
 
             logState(FMMState::DROGUE_DESCENT);
-            LOG_INFO(log, "Entering drogueDescent");
+            TRACE("[FMM] Entering drogueDescent\n");
             break;
         }
         case EV_INIT: /* No sub-state */
@@ -649,7 +644,7 @@ State FlightModeManager::state_drogueDescent(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            LOG_INFO(log, "Exiting drogueDescent");
+            TRACE("[FMM] Exiting drogueDescent\n");
 
             break;
         }
@@ -681,7 +676,7 @@ State FlightModeManager::state_terminalDescent(const Event& ev)
 
             logState(FMMState::TERMINAL_DESCENT);
 
-            LOG_INFO(log, "Entering terminalDescent");
+            TRACE("[FMM] Entering terminalDescent\n");
             break;
         }
         case EV_INIT:
@@ -719,7 +714,7 @@ State FlightModeManager::state_landed(const Event& ev)
             sEventBroker->post(Event{EV_LANDED}, TOPIC_FLIGHT_EVENTS);
             logger.stop();
 
-            LOG_INFO(log, "Entering landed");
+            TRACE("[FMM] Entering landed\n");
             break;
         }
         case EV_INIT:
@@ -728,11 +723,6 @@ State FlightModeManager::state_landed(const Event& ev)
         }
         case EV_EXIT: /* Executed everytime state is exited */
         {
-            break;
-        }
-        case EV_TC_RESET_BOARD:
-        {
-            miosix::reboot();
             break;
         }
         default: /* If an event is not handled here, try with super-state */

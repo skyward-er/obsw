@@ -111,8 +111,8 @@ protected:
             if (sampleCounter >= n_data_sensor)
             {
                 this->last_error = SensorErrors::NO_NEW_DATA;
-                //TRACE("[%s] NO NEW DATA! Simulation error\n",
-                //      typeid(this).name());
+                /*TRACE("[%s] NO NEW DATA! Simulation error\n",
+                      typeid(this).name());*/
             }
             else if (this->last_error != SensorErrors::NO_NEW_DATA)
             {

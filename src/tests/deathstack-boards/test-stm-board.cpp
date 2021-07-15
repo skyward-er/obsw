@@ -34,8 +34,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "math/Stats.h"
-
 using namespace std;
 
 namespace LedWave
@@ -46,11 +44,6 @@ namespace LedWave
 namespace HSE
 {
 #include "../test-hse.cpp"
-}
-
-namespace SDCardBenchmark
-{
-#include "../../skyward-boardcore/src/entrypoints/sdcard-benchmark.cpp"
 }
 
 // Sample frequency
@@ -71,9 +64,6 @@ int main()
         case 2:
             HSE::main();
             break;
-        case 3:
-            SDCardBenchmark::main();
-            break;
 
         default:
             break;
@@ -90,7 +80,6 @@ int menu()
     printf("\n\nWhat do you want to do?\n");
     printf("1. Ledwave\n");
     printf("2. External oscillator\n");
-    printf("3. SD card benchmark\n");
     printf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;
