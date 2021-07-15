@@ -237,7 +237,7 @@ void wiggleServo()
 
     cout << "Wiggling ...\n";
     servo.selfTest();
-    Thread::sleep(1000);    
+    Thread::sleep(1000);
     servo.disable();
     cout << "\n\tDone!\n";
 }

@@ -34,9 +34,13 @@
 #include <drivers/hbridge/HBridge.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 
+#include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <string>
 
+#include "../../boards/DeathStack/AeroBrakesController/AeroBrakesServo.h"
+#include "../../boards/DeathStack/DeploymentController/DeploymentServo.h"
 #include "drivers/servo/servo.h"
 
 namespace CutterTest
