@@ -50,6 +50,8 @@
 #include <sstream>
 #include <vector>
 
+#include "../boards/DeathStack/AeroBrakesController/AeroBrakesServo.h"
+#include "../boards/DeathStack/DeploymentController/DeploymentServo.h"
 #include "PinHandler/PinHandler.h"
 #include "drivers/servo/servo.h"
 #include "math/Stats.h"
