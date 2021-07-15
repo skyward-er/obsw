@@ -23,17 +23,33 @@
 
 #pragma once
 
+#include <drivers/spi/SPIBusInterface.h>
+
 #include <map>
 
-#include <drivers/spi/SPIBusInterface.h>
-#include <sensors/SensorManager.h>
+#include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
+#include <diagnostic/PrintLogger.h>
 
 #include <drivers/adc/ADS1118/ADS1118.h>
-#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <drivers/adc/InternalADC/InternalADC.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 
-#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+#include <drivers/gps/ublox/UbloxGPS.h>
+#include <sensors/BMX160/BMX160.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/analog/battery/BatteryVoltageSensor.h>
+#include <sensors/analog/current/CurrentSensor.h>
+#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 
 namespace DeathStackBoard
 {
@@ -45,22 +61,51 @@ namespace DeathStackBoard
 class Sensors
 {
 public:
-    SensorManager* sensor_manager;
+    SensorManager* sensor_manager = nullptr;
 
-    MS580301BA07* press_digital;
+    InternalADC* internal_adc             = nullptr;
+    BatteryVoltageSensor* battery_voltage = nullptr;
+    CurrentSensor* cs_cutter_primary      = nullptr;
+    CurrentSensor* cs_cutter_backup       = nullptr;
 
-    ADS1118* adc_ads1118;
-    SSCDRRN015PDA* press_pitot;
-    SSCDANN030PAA* press_dpl_vane;
-    MPXHZ6130A* press_static_port;
+    MS580301BA07* press_digital = nullptr;
 
-    Sensors(SPIBusInterface& spi1_bus);
+    ADS1118* adc_ads1118          = nullptr;
+    SSCDRRN015PDA* press_pitot    = nullptr;
+    SSCDANN030PAA* press_dpl_vane = nullptr;
+    MPXHZ6130A* press_static_port = nullptr;
+
+    BMX160* imu_bmx160   = nullptr;
+    LIS3MDL* mag_lis3mdl = nullptr;
+    UbloxGPS* gps_ublox  = nullptr;
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HILImu* hil_imu        = nullptr;
+    HILBarometer* hil_baro = nullptr;
+    HILGps* hil_gps        = nullptr;
+#endif
+
+    Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler);
 
     ~Sensors();
 
     void start();
 
 private:
+    // PrintLogger log = Logging::getLogger("deathstack.sensors");
+
+    void internalAdcInit();
+    void internalAdcCallback();
+
+    void batteryVoltageInit();
+    void batteryVoltageCallback();
+
+    void primaryCutterCurrentInit();
+    void primaryCutterCurrentCallback();
+
+    void backupCutterCurrentInit();
+    void backupCutterCurrentCallback();
+
     void pressDigiInit();
     void pressDigiCallback();
 
@@ -76,9 +121,27 @@ private:
     void pressStaticInit();
     void pressStaticCallback();
 
+    void imuBMXinit();
+    void imuBMXCallback();
+
+    void magLISinit();
+    void magLISCallback();
+
+    void gpsUbloxInit();
+    void gpsUbloxCallback();
+
+#ifdef HARDWARE_IN_THE_LOOP
+    void hilSensorsInit();
+    void hilIMUCallback();
+    void hilBaroCallback();
+    void hilGPSCallback();
+#endif
+
     SPIBusInterface& spi1_bus;
 
     SensorManager::SensorMap_t sensors_map;
+
+    PrintLogger log = Logging::getLogger("sensors");
 };
 
-}
+}  // namespace DeathStackBoard

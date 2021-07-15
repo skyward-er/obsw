@@ -1,5 +1,6 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/**
+ * Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,41 +21,44 @@
  * THE SOFTWARE.
  */
 
-#include "Common.h"
-#include "diagnostic/CpuMeter.h"
-#include "Main/Sensors.h"
-#include "Main/Bus.h"
+#include <miosix.h>
+
+#include "DeathStack.h"
+// #include <diagnostic/PrintLogger.h>
+#include <Debug.h>
+
+#include "math/Stats.h"
+#include <diagnostic/CpuMeter.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
+// using namespace GlobalBuffers;
 
 int main()
 {
-    Stats s;
-    
-    Bus bus;
-    Sensors sensors(*bus.spi1, new TaskScheduler());
-    
-    sensors.start();
+    // Logging::startAsyncLogger();
+    PrintLogger log = Logging::getLogger("main");
 
-    Thread::sleep(500);
+    Stats cpu_stat;
 
-    for (int i = 0; i < 60 * 3 * 10; i++)
-    {
-        s.add(averageCpuUtilization());
-        Thread::sleep(100);
-    }
-
-    printf("CPU: %f%%, min: %f max: %f\n", s.getStats().mean,
-           s.getStats().minValue, s.getStats().maxValue);
-           
-    printf("End\n");
+    // LOG_INFO(log, "Starting death stack...");
+    TRACE("Starting death stack...\n");
+    // Instantiate the stack
+    Thread::sleep(1000);
+    DeathStack::getInstance()->start();
+    // LOG_INFO(log, "Death stack started");
+    TRACE("Death stack started\n");
 
     for (;;)
     {
-        ledOn();
         Thread::sleep(1000);
-        ledOff();
-        Thread::sleep(1000);
+        LoggerService::getInstance()->log(
+            LoggerService::getInstance()->getLogger().getLogStats());
+            
+        cpu_stat.add(averageCpuUtilization());
+
+        /*LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+               cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+               cpu_stat.getStats().minValue);*/
     }
 }

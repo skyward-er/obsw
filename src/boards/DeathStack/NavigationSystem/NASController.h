@@ -78,7 +78,7 @@ public:
 
     void update();
 
-    NAS<IMU, Press, GPS>& getNAS() { return nas; }
+    Sensor<NASData>& getNAS() { return nas; }
 
 private:
     void finalizeCalibration();
@@ -114,8 +114,6 @@ NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
       barometer(baro), gps(gps), nas(imu, baro, gps),
       logger(*(LoggerService::getInstance()))
 {
-    printf("Constructor \n");
-
     memset(&status, 0, sizeof(NASStatus));
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_NAS);

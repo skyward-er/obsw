@@ -72,5 +72,6 @@
  </state>
  <state id="Landed">
   <onentry>logger.stop(); post(FLIGHT_EVENTS.EV_LANDED);</onentry>
+  <transition event="TMTC.EV_TC_RESET_BOARD" target="Landed">reboot()</transition>
  </state>
 </scxml>
