@@ -124,7 +124,7 @@ int actionMenu()
     printf("2.  Servo fully open\n");
     printf("3.  Servo fully close\n");
     printf("4.  Servo manual control\n");
-    printf("5.  Servo break-in (rodaggio)");
+    printf("5.  Servo break-in (rodaggio)\n");
     printf("6.  Exit\n");
     printf("\n>> ");
     getline(cin, temp);
