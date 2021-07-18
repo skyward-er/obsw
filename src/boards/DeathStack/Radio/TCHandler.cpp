@@ -125,10 +125,10 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE:
         {
             float alt =
-                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+                mavlink_msg_set_reference_altitude_get_ref_altitude(&msg);
             LOG_INFO(
                 log,
                 "Received SET_REFERENCE_ALTITUDE command. Ref altitude: {:f} m",
