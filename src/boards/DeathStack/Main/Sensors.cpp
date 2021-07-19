@@ -105,7 +105,6 @@ bool Sensors::start()
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
     gps_ublox->start();
-    gps_ublox->sendSBASMessage();
 #endif
 
     return sensor_manager->start();
