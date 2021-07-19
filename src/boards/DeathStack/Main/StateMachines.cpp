@@ -37,13 +37,10 @@ StateMachines::~StateMachines()
     delete fmm;
 }
 
-void StateMachines::start()
+bool StateMachines::start()
 {
-    fmm->start();
-    dpl_controller->start();
-    ada_controller->start();
-    nas_controller->start();
-    arb_controller->start();
+    return fmm->start() && dpl_controller->start() && ada_controller->start() &&
+           nas_controller->start() && arb_controller->start();
 }
 
 void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)

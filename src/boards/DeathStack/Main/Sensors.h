@@ -89,7 +89,7 @@ public:
 
     ~Sensors();
 
-    void start();
+    bool start();
 
 private:
     // PrintLogger log = Logging::getLogger("deathstack.sensors");

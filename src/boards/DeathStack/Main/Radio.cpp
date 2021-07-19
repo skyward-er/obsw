@@ -88,10 +88,9 @@ Radio::~Radio()
     delete xbee;
 }
 
-void Radio::start()
+bool Radio::start()
 {
-    mav_driver->start();
-    tmtc_manager->start();
+    return mav_driver->start() && tmtc_manager->start();
 }
 
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)

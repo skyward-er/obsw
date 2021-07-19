@@ -97,7 +97,7 @@ Sensors::~Sensors()
     delete sensor_manager;
 }
 
-void Sensors::start()
+bool Sensors::start()
 {
 #ifndef HARDWARE_IN_THE_LOOP
     GpioPin int_pin = miosix::sensors::bmx160::intr::getPin();
@@ -108,7 +108,7 @@ void Sensors::start()
     gps_ublox->sendSBASMessage();
 #endif
 
-    sensor_manager->start();
+    return sensor_manager->start();
 }
 
 void Sensors::internalAdcInit()

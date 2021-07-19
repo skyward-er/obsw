@@ -87,7 +87,8 @@ public:
 
     ~StateMachines();
 
-    void start();
+    bool start();
+
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
 };
