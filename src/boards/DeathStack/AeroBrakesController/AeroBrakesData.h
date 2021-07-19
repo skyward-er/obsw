@@ -75,8 +75,7 @@ struct AeroBrakesAlgorithmData
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << z << "," << vz << ","
-           << vMod << "\n";
+        os << timestamp << "," << z << "," << vz << "," << vMod << "\n";
     }
 };
 
@@ -97,12 +96,17 @@ struct AeroBrakesData
     uint64_t timestamp;
     float servo_position;
     float estimated_cd;
+    float pid_error;
 
-    static std::string header() { return "timestamp,servo_position,estimated_cd\n"; }
+    static std::string header()
+    {
+        return "timestamp,servo_position,estimated_cd,pid_error\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << servo_position << "," << estimated_cd << "\n";
+        os << timestamp << "," << servo_position << "," << estimated_cd << ","
+           << pid_error << "\n";
     }
 };
 

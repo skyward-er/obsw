@@ -369,6 +369,8 @@ float AeroBrakesControlAlgorithm<T>::pidStep(float vz, float vMod, float rho,
     float umax  = 0.5 * rho * S0 * 1 * vz * vMod;
     float error = (vz - setpoint.getVz());
 
+    ab_data.pid_error = error;
+
     float u = pid.step(umin, umax, error);
 
     return u;
@@ -481,7 +483,8 @@ void AeroBrakesControlAlgorithm<T>::logAerobrakesData()
     AeroBrakesData abdata;
     abdata.timestamp      = TimestampTimer::getTimestamp();
     abdata.servo_position = actuator->getCurrentPosition();
-    // estimated cd inserted when computing the new alpha (in getDrag())
+    // estimated_cd inserted when computing the new alpha (in getDrag())
+    // pid_error inserted when computing the new alpha (in pidStep())
     logger.log(abdata);
 }
 
