@@ -27,8 +27,8 @@
 // #include <diagnostic/PrintLogger.h>
 #include <Debug.h>
 
-#include "math/Stats.h"
 #include <diagnostic/CpuMeter.h>
+#include "math/Stats.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -36,7 +36,7 @@ using namespace DeathStackBoard;
 
 int main()
 {
-    // Logging::startAsyncLogger();
+    Logging::startAsyncLogger();
     PrintLogger log = Logging::getLogger("main");
 
     Stats cpu_stat;
@@ -54,11 +54,18 @@ int main()
         Thread::sleep(1000);
         LoggerService::getInstance()->log(
             LoggerService::getInstance()->getLogger().getLogStats());
-            
+
         cpu_stat.add(averageCpuUtilization());
 
-        /*LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
-               cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
-               cpu_stat.getStats().minValue);*/
+        // LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+        //        cpu_stat.getStats().minValue);
+        TRACE("CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+              cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+              cpu_stat.getStats().minValue);
+        TRACE(
+            "Memory : absolute free heap : %.2f    current free heap : %.2f \n",
+            MemoryProfiling::getAbsoluteFreeHeap(),
+            MemoryProfiling::getCurrentFreeHeap());
     }
 }

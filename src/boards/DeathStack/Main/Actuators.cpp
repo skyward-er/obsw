@@ -29,14 +29,16 @@ Actuators::Actuators()
 {
     //aerobrakes = new AeroBrakesServo();
     //aerobrakes->enable();
+    //aerobrakes->reset();
 
-    dpl_servo = new DeploymentServo();
-    dpl_servo->enable();
+    //dpl_servo = new DeploymentServo();
+    //dpl_servo->enable();
+    //dpl_servo->reset();
 }
 
 Actuators::~Actuators()
 {
     //delete aerobrakes;
-    delete dpl_servo;
+    //delete dpl_servo;
 }
 }  // namespace DeathStackBoard

@@ -88,7 +88,8 @@ void packSensorsTM(mavlink_message_t* out)
     tm.c_sense_1 = sine(2, 0.3, 1, 0);
     tm.c_sense_2 = sine(1.3, 0.4, 2, 77);
 
-    tm.v_bat = sine(11, 1, 0.4, 0);
+    tm.vbat = sine(11, 1, 0.4, 0);
+    tm.vbat_5v = sine(11, 1, 0.4, 0);
 
     mavlink_msg_sensors_tm_encode(0, 0, out, &tm);
 }
