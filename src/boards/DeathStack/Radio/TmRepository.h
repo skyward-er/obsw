@@ -34,14 +34,18 @@
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
 
-#include "AeroBrakesController/AeroBrakesData.h"
+#include "DeathStackStatus.h"
+
 #include "Radio/Mavlink.h"
 #include "AeroBrakesController/WindData.h"
 #include "PinHandler/PinHandlerData.h"
-#include "ADA/ADAData.h"
 
 #include "FlightModeManager/FMMStatus.h"
-
+#include "DeploymentController/DeploymentData.h"
+#include "ADA/ADAData.h"
+#include "NavigationSystem/NASData.h"
+#include "AeroBrakesController/AeroBrakesData.h"
+#include "Sensors/SensorStatus.h"
 namespace DeathStackBoard
 {
 
@@ -105,8 +109,9 @@ private:
     struct TmRepository_t
     {
         mavlink_sys_tm_t sys_tm;
-        mavlink_fmm_tm_t fmm_tm;
+        mavlink_pin_obs_tm_t pin_obs_tm;
         mavlink_logger_tm_t logger_tm;
+        mavlink_fmm_tm_t fmm_tm;
         mavlink_tmtc_tm_t tmtc_tm;
         mavlink_sm_tm_t sm_tm;
         mavlink_dpl_tm_t dpl_tm;
@@ -182,7 +187,6 @@ private:
  * specific status struct.
  */
 
-/* Initialization status of the board*/
 template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 
@@ -216,6 +220,14 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
 template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
 
+/* Battery status, sampled by internal ADC */
+template <>
+void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
+
+/* Motor current sense, sampled by internal ADC */
+template <>
+void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
+
 template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t);
@@ -226,14 +238,21 @@ template <>
 void TmRepository::update<LogStats>(const LogStats& t);
 
 /* Initialization status of the board*/
-// template <>
-// void TmRepository::update<BoardStatus>(const BoardStatus& t);
+template <>
+void TmRepository::update<DeathStackStatus>(const DeathStackStatus& t);
 
-// /* Flight Mode Manager */
+/* Flight Mode Manager */
 template <>
 void TmRepository::update<FMMStatus>(const FMMStatus& t);
 
-// /* Launch and Nosecone detachment pins */
+/* Navigation System */
+template <>
+void TmRepository::update<NASStatus>(const NASStatus& t);
+
+template<>
+void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
+
+/* Launch and Nosecone detachment pins and DPL servo optical sensor */
 template <>
 void TmRepository::update<PinStatus>(const PinStatus& t);
 
@@ -241,26 +260,26 @@ void TmRepository::update<PinStatus>(const PinStatus& t);
 // template <>
 // void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
 
-// /* Sensor Manager */
-// template <>
-// void TmRepository::update<SensorManagerStatus>(const SensorManagerStatus& t);
+/* Sensors */
+template <>
+void TmRepository::update<SensorStatus>(const SensorStatus& t);
 
-// /* Deployment Controller */
-// template <>
-// void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
+/* Deployment Controller */
+template <>
+void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
 
-// /* ADA state machine */
-// template <>
-// void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t);
+/* ADA state machine */
+template <>
+void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t);
 
 // /* ADA target dpl pressure */
 // template <>
 // void TmRepository::update<TargetDeploymentAltitude>(
 //     const TargetDeploymentAltitude& t);
 
-// /* ADA kalman filter values */
-// template <>
-// void TmRepository::update<KalmanState>(const KalmanState& t);
+/* ADA kalman filter values */
+template <>
+void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t);
 
 // /* ADA kalman altitude values */
 template <>
@@ -269,14 +288,6 @@ void TmRepository::update<ADAData>(const ADAData& t);
 // /* ADA calibration reference values set by TC */
 // template <>
 // void TmRepository::update<ReferenceValues>(const ReferenceValues& t);
-
-// /* Battery status, sampled by internal ADC */
-// template <>
-// void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
-
-// /* Motor current sense, sampled by internal ADC */
-// template <>
-// void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
 
 // /* Digital Pressure Sensor */
 // template <>

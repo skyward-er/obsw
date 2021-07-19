@@ -38,10 +38,10 @@ namespace DeathStackBoard
 // PrintLogger log = Logging::getLogger("deathstack.fsm.tmtc");
 
 TMTCManager::TMTCManager()
-    : FSM(&TMTCManager::stateSensorTM, skywardStack(16 * 1024))
+    : FSM(&TMTCManager::stateGroundTM, skywardStack(16 * 1024))
 {
     // init FSM
-    // sEventBroker->subscribe(this, TOPIC_FLIGHT);
+    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TMTC);
 
     TRACE("Created TMTCManager\n");
@@ -72,8 +72,8 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_ENTRY:
         {
             // add periodic events
-            // periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-            //     Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
             // periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
             //     Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
             periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
@@ -95,16 +95,16 @@ void TMTCManager::stateGroundTM(const Event& ev)
             TRACE("[TMTC] Exiting stateGroundTM\n");
             break;
         }
-        // case EV_SEND_HR_TM:
-        // {
-        //     // repost periodic event
-        //     periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
-        //         Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+        case EV_SEND_HR_TM:
+        {
+            // repost periodic event
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
-        //     send(MAV_HR_TM_ID);
+            send(MAV_HR_TM_ID);
 
-        //     break;
-        // }
+            break;
+        }
         // case EV_SEND_TEST_TM:
         // {
         //     // repost periodic event

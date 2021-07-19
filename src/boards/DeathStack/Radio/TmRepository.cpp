@@ -159,7 +159,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
                                      &(tm_repository.hr_tm));
             break;
         case MavTMList::MAV_LR_TM_ID:
-            //tm_repository.lr_tm.timestamp = miosix::getTick();
+            tm_repository.lr_tm.timestamp = miosix::getTick();
             mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.lr_tm));
             break;
@@ -198,7 +198,9 @@ template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t)
 {
     tm_repository.wind_tm.ab_angle = t.servo_position;
-    tm_repository.hr_tm.ab_angle   = t.servo_position;
+
+    tm_repository.hr_tm.ab_angle        = t.servo_position;
+    tm_repository.hr_tm.ab_estimated_cd = t.estimated_cd;
 }
 
 template <>
@@ -226,8 +228,8 @@ void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t)
 {
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
     {
-        tm_repository.hr_tm.vbat = t.voltage;
-        tm_repository.sensors_tm.v_bat = t.voltage;
+        tm_repository.hr_tm.vbat      = t.voltage;
+        tm_repository.sensors_tm.vbat = t.voltage;
     }
 }
 
@@ -237,7 +239,9 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
-        tm_repository.sensors_tm.v_bat = t.voltage;
+
+        tm_repository.sensors_tm.vbat_5v = t.voltage;
+        tm_repository.hr_tm.vbat_5v      = t.voltage;
     }
 }
 
@@ -263,6 +267,8 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 {
     tm_repository.wind_tm.pressure_differential = t.press;
     tm_repository.sensors_tm.pitot_press        = t.press;
+    
+    //tm_repository.hr_tm.airspeed_pitot = ?;
 }
 
 template <>
@@ -318,13 +324,30 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
     tm_repository.sensors_tm.lis3mdl_temp = t.temp;
 }
 
+/* GPS */
 template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 {
+    // GPS_TM
+    tm_repository.gps_tm.lat          = t.latitude;
+    tm_repository.gps_tm.lon          = t.longitude;
+    tm_repository.gps_tm.altitude     = t.height;
+    tm_repository.gps_tm.vel_north    = t.velocity_north;
+    tm_repository.gps_tm.vel_east     = t.velocity_east;
+    tm_repository.gps_tm.vel_down     = t.velocity_down;
+    tm_repository.gps_tm.vel_mag      = t.speed;
+    tm_repository.gps_tm.fix          = (uint8_t)t.fix;
+    tm_repository.gps_tm.track        = t.track;
+    tm_repository.gps_tm.n_satellites = t.num_satellites;
+
+    // HR TM
     tm_repository.hr_tm.gps_lat = t.latitude;
     tm_repository.hr_tm.gps_lon = t.longitude;
     tm_repository.hr_tm.gps_alt = t.height;
     tm_repository.hr_tm.gps_fix = (uint8_t)t.fix;
+
+    // TEST TM
+    tm_repository.test_tm.gps_nsats = t.num_satellites;
 }
 
 template <>
@@ -337,20 +360,17 @@ void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     }
 }
 
-// template <>
-// void TmRepository::update<BoardStatus>(const BoardStatus& t)
-// {
-//     // tm_repository.sys_tm.board          = t.death_stack;
-//     tm_repository.sys_tm.logger         = t.logger;
-//     tm_repository.sys_tm.ev_broker      = t.ev_broker;
-//     tm_repository.sys_tm.pin_obs        = t.pin_obs;
-//     tm_repository.sys_tm.fmm            = t.pin_obs;
-//     tm_repository.sys_tm.sensor_manager = t.sensor_manager;
-//     tm_repository.sys_tm.ada            = t.ada;
-//     tm_repository.sys_tm.tmtc           = t.tmtc;
-//     tm_repository.sys_tm.ign            = t.ign;
-//     tm_repository.sys_tm.dpl            = t.dpl;
-// }
+template <>
+void TmRepository::update<DeathStackStatus>(const DeathStackStatus& t)
+{
+    tm_repository.sys_tm.death_stack    = t.death_stack;
+    tm_repository.sys_tm.logger         = t.logger;
+    tm_repository.sys_tm.ev_broker      = t.ev_broker;
+    tm_repository.sys_tm.pin_obs        = t.pin_obs;
+    tm_repository.sys_tm.sensors        = t.sensors;
+    tm_repository.sys_tm.radio          = t.radio;
+    tm_repository.sys_tm.state_machines = t.state_machines;
+}
 
 /* Flight Mode Manager */
 template <>
@@ -358,6 +378,31 @@ void TmRepository::update<FMMStatus>(const FMMStatus& t)
 {
     tm_repository.fmm_tm.state    = static_cast<uint8_t>(t.state);
     tm_repository.hr_tm.fmm_state = static_cast<uint8_t>(t.state);
+}
+
+template <>
+void TmRepository::update<NASStatus>(const NASStatus& t)
+{
+    // tm_repository.nas_tm.nas_state = static_cast<uint8_t>(t.state);
+    tm_repository.hr_tm.nas_state = static_cast<uint8_t>(t.state);
+}
+
+template <>
+void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
+{
+    tm_repository.hr_tm.nas_x     = t.x0;
+    tm_repository.hr_tm.nas_y     = t.x1;
+    tm_repository.hr_tm.nas_z     = t.x2;
+    tm_repository.hr_tm.nas_vx    = t.x3;
+    tm_repository.hr_tm.nas_vy    = t.x4;
+    tm_repository.hr_tm.nas_vz    = t.x5;
+    Vector3f orientation          = t.toEul();
+    tm_repository.hr_tm.nas_roll  = orientation(0);
+    tm_repository.hr_tm.nas_pitch = orientation(1);
+    tm_repository.hr_tm.nas_yaw   = orientation(2);
+    tm_repository.hr_tm.nas_bias0 = t.x10;
+    tm_repository.hr_tm.nas_bias1 = t.x11;
+    tm_repository.hr_tm.nas_bias2 = t.x12;
 }
 
 /* Launch and Nosecone detachment pins */
@@ -369,22 +414,22 @@ void TmRepository::update<PinStatus>(const PinStatus& t)
 
         case ObservedPin::LAUNCH:
         {
-            // tm_repository.fmm_tm.pin_launch_last_change =
-            //     t.last_state_change / 1000;
-            // tm_repository.fmm_tm.pin_launch_num_changes =
-            // t.num_state_changes; tm_repository.fmm_tm.pin_launch_state =
-            // t.state;
+            tm_repository.pin_obs_tm.pin_launch_last_change =
+                t.last_state_change / 1000;
+            tm_repository.pin_obs_tm.pin_launch_num_changes =
+                t.num_state_changes;
+            tm_repository.pin_obs_tm.pin_launch_state = t.state;
             // HR TM
             tm_repository.hr_tm.pin_launch = t.state;
             break;
         }
         case ObservedPin::NOSECONE:
         {
-            // tm_repository.fmm_tm.pin_nosecone_last_change =
-            //     t.last_state_change / 1000;
-            // tm_repository.fmm_tm.pin_nosecone_num_changes =
-            // t.num_state_changes; tm_repository.fmm_tm.pin_nosecone_state =
-            // t.state;
+            tm_repository.pin_obs_tm.pin_nosecone_last_change =
+                t.last_state_change / 1000;
+            tm_repository.pin_obs_tm.pin_nosecone_num_changes =
+                t.num_state_changes;
+            tm_repository.pin_obs_tm.pin_nosecone_state = t.state;
 
             // HR TM
             tm_repository.hr_tm.pin_nosecone = t.state;
@@ -392,12 +437,13 @@ void TmRepository::update<PinStatus>(const PinStatus& t)
         }
         case ObservedPin::DPL_SERVO:
         {
-            // No time to change telemetries, since we have no GPS use gps
-            // telemetry to send motor pin state.
-            // tm_repository.gps_tm.n_satellites = t.num_state_changes;
-            // tm_repository.gps_tm.lat          = t.last_state_change / 1000;
-            // hr_pkt.gps_fix                    = t.state;
+            tm_repository.pin_obs_tm.pin_dpl_servo_last_change =
+                t.last_state_change / 1000;
+            tm_repository.pin_obs_tm.pin_dpl_servo_num_changes =
+                t.num_state_changes;
+            tm_repository.pin_obs_tm.pin_dpl_servo_state = t.state;
 
+            // HR TM
             tm_repository.hr_tm.servo_sensor = t.state;
             break;
         }
@@ -458,22 +504,22 @@ void TmRepository::update<LogStats>(const LogStats& t)
 // }
 
 // /* Deployment Controller */
-// template <>
-// void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
-// {
-//     tm_repository.dpl_tm.fsm_state    = (uint8_t)t.state;
-//     tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
+template <>
+void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
+{
+    // tm_repository.dpl_tm.fsm_state    = (uint8_t)t.state;
+    // tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
 
-//     // HR TM
-//     hr_pkt.dpl_state = t.state;
-// }
+    // HR TM
+    tm_repository.hr_tm.dpl_state = (int)t.state;
+}
 
-// /* ADA state machine */
-// template <>
-// void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t)
-// {
-//     tm_repository.ada_tm.state = (uint8_t)t.state;
-// }
+/* ADA state machine */
+template <>
+void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t)
+{
+    tm_repository.ada_tm.state = (uint8_t)t.state;
+}
 
 // /* ADA target dpl pressure */
 // template <>
@@ -483,18 +529,22 @@ void TmRepository::update<LogStats>(const LogStats& t)
 //     tm_repository.ada_tm.target_dpl_altitude = t.deployment_altitude;
 // }
 
-// /* ADA kalman filter values */
-// template <>
-// void TmRepository::update<KalmanState>(const KalmanState& t)
-// {
-//     tm_repository.ada_tm.kalman_x0 = t.x0;
-//     tm_repository.ada_tm.kalman_x1 = t.x1;
-//     tm_repository.ada_tm.kalman_x2 = t.x2;
+/* ADA kalman filter values */
+template <>
+void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
+{
+    tm_repository.ada_tm.kalman_x0 = t.x0;
+    tm_repository.ada_tm.kalman_x1 = t.x1;
+    tm_repository.ada_tm.kalman_x2 = t.x2;
 
-//     tm_repository.ada_tm.kalman_acc_x0 = t.x0_acc;
-//     tm_repository.ada_tm.kalman_acc_x1 = t.x1_acc;
-//     tm_repository.ada_tm.kalman_acc_x2 = t.x2_acc;
-// }
+    // tm_repository.ada_tm.kalman_acc_x0 = t.x0_acc;
+    // tm_repository.ada_tm.kalman_acc_x1 = t.x1_acc;
+    // tm_repository.ada_tm.kalman_acc_x2 = t.x2_acc;
+
+    // HR_TM
+    tm_repository.hr_tm.pressure_ada = t.x0;
+    //tm_repository.hr_tm.vert_accel = t.x2;
+}
 
 // /* ADA kalman altitude values */
 template <>
@@ -504,65 +554,21 @@ void TmRepository::update<ADAData>(const ADAData& t)
     tm_repository.hr_tm.vert_speed   = t.vert_speed;
 }
 
-// template <>
-// void TmRepository::update<ReferenceValues>(const ReferenceValues& t)
-// {
-//     tm_repository.ada_tm.msl_pressure    = t.msl_pressure;
-//     tm_repository.ada_tm.msl_temperature = t.msl_temperature;
+template <>
+void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
+{
+    tm_repository.ada_tm.msl_pressure    = t.msl_pressure;
+    tm_repository.ada_tm.msl_temperature = t.msl_temperature;
 
-//     tm_repository.ada_tm.ref_altitude    = t.ref_altitude;
-//     tm_repository.ada_tm.ref_pressure    = t.ref_pressure;
-//     tm_repository.ada_tm.ref_temperature = t.ref_temperature;
-// }
-
-// /* Battery status, sampled by internal ADC */
-// template <>
-// void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t)
-// {
-//     tm_repository.adc_tm.battery_voltage = t.volt;
-//     tm_repository.test_tm.battery_volt   = t.volt;
-// }
-
-// /* Current sense, sampled by internal ADC */
-// template <>
-// void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t)
-// {
-//     tm_repository.adc_tm.current_sense_1 = t.current_1;
-//     tm_repository.adc_tm.current_sense_2 = t.current_2;
-
-//     tm_repository.test_tm.th_cut_1 = t.current_1;
-//     tm_repository.test_tm.th_cut_2 = t.current_2;
-// }
+    tm_repository.ada_tm.ref_altitude    = t.ref_altitude;
+    tm_repository.ada_tm.ref_pressure    = t.ref_pressure;
+    tm_repository.ada_tm.ref_temperature = t.ref_temperature;
+}
 
 // template <>
 // void TmRepository::update<MS5803Data>(const MS5803Data& t)
 // {
 //     hr_pkt.pressure_digi = t.pressure;
-// }
-
-// /* GPS */
-// template <>
-// void TmRepository::update<PiksiData>(const PiksiData& t)
-// {
-//     // GPS_TM
-//     // tm_repository.gps_tm.lat          = t.gps_data.latitude;
-//     // tm_repository.gps_tm.lon          = t.gps_data.longitude;
-//     // tm_repository.gps_tm.altitude     = t.gps_data.height;
-//     // tm_repository.gps_tm.vel_north    = t.gps_data.velocityNorth;
-//     // tm_repository.gps_tm.vel_east     = t.gps_data.velocityEast;
-//     // tm_repository.gps_tm.vel_down     = t.gps_data.velocityDown;
-//     // tm_repository.gps_tm.vel_mag      = t.gps_data.speed;
-//     // tm_repository.gps_tm.fix          = (uint8_t)t.fix;
-//     // tm_repository.gps_tm.n_satellites = t.gps_data.numSatellites;
-
-//     // HR TM
-//     hr_pkt.gps_lat = t.gps_data.latitude;
-//     hr_pkt.gps_lon = t.gps_data.longitude;
-//     hr_pkt.gps_alt = t.gps_data.height;
-//     // hr_pkt.gps_fix = t.fix;
-
-//     // TEST TM
-//     tm_repository.test_tm.gps_nsats = t.gps_data.numSatellites;
 // }
 
 // template <>

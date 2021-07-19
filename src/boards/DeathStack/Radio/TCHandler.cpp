@@ -28,7 +28,9 @@
 #include <map>
 
 #include "ADA/ADAController.h"
+#include "AeroBrakesController/AeroBrakesController.h"
 #include "AeroBrakesController/WindData.h"
+//#include "NavigationSystem/NASController.h"
 #include "DeathStack.h"
 #include "LoggerService/LoggerService.h"
 #include "configs/TMTCConfig.h"
@@ -40,8 +42,6 @@ namespace DeathStackBoard
 
 static PrintLogger log       = Logging::getLogger("ds.tmtc");
 static LoggerService* logger = LoggerService::getInstance();
-
-bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
 const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_ARM, EV_TC_ARM},
@@ -62,14 +62,16 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_CALIBRATE_ALGOS, EV_TC_CALIBRATE_ALGOS},
     {MAV_CMD_CALIBRATE_SENSORS, EV_TC_CALIBRATE_SENSORS},
 
-    // {MAV_CMD_START_LOGGING, EV_TC_START_SENSOR_LOGGING},
-    // {MAV_CMD_STOP_LOGGING, EV_TC_STOP_SENSOR_LOGGING},
+    //{MAV_CMD_START_LOGGING, EV_TC_START_LOGGING},
+    //{MAV_CMD_STOP_LOGGING, EV_TC_STOP_LOGGING},
     {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
 
     {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
     {MAV_CMD_TEST_PRIMARY_CUTTER, EV_TC_TEST_CUT_PRIMARY},
     {MAV_CMD_TEST_BACKUP_CUTTER, EV_TC_TEST_CUT_BACKUP},
     {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
+    //{MAV_CMD_CUT_PRIMARY, EV_TC_CUT_PRIMARY},
+    //{MAV_CMD_CUT_BACKUP, EV_TC_CUT_BACKUP},
     {MAV_CMD_BOARD_RESET, EV_TC_RESET_BOARD},
 
     {MAV_CMD_END_MISSION, EV_TC_END_MISSION}};
@@ -103,11 +105,14 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             {
                 case MAV_CMD_BOARD_RESET:
                     logger->stop();
-
                     miosix::reboot();
                     break;
                 case MAV_CMD_CLOSE_LOG:
+                case MAV_CMD_STOP_LOGGING:
                     logger->stop();
+                    break;
+                case MAV_CMD_START_LOGGING:
+                    DeathStack::getInstance()->startLogger();
                     break;
                 default:
                     break;
@@ -168,11 +173,12 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
             float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
             LOG_INFO(log,
-                     "Received SET_INITIAL_ORIENTATION command. yaw: {:f}, "
-                     "pitch: {:f}, roll: {:f}",
-                     yaw, pitch, roll);
-            //TODO: Call NAS
-
+                     "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
+                     "pitch: {:f}, yaw: {:f}",
+                     roll, pitch, yaw);
+            // DeathStack::getInstance()
+            //     ->state_machines->nas_controller->setInitialOrientation(
+            //         roll, pitch, yaw);
             break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
@@ -193,7 +199,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SET_AEROBRAKE_ANGLE_TC:
         {
             float pos = mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
-            // DeathStack::getInstance()->actuators->aerobrakes->set(pos);
+            DeathStack::getInstance()
+                ->state_machines->arb_controller->setAeroBrakesPosition(pos);
             LOG_INFO(log, "Received set ab pos: {:.1f} deg", pos);
 
             break;
