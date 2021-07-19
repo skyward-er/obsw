@@ -96,12 +96,13 @@ struct AeroBrakesData
 {
     uint64_t timestamp;
     float servo_position;
+    float estimated_cd;
 
-    static std::string header() { return "timestamp,servo_position\n"; }
+    static std::string header() { return "timestamp,servo_position,estimated_cd\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << servo_position << "\n";
+        os << timestamp << "," << servo_position << "," << estimated_cd << "\n";
     }
 };
 

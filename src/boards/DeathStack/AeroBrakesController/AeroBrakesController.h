@@ -63,6 +63,8 @@ public:
      */
     void update();
 
+    void setAeroBrakesPosition(float pos);
+
 private:
     AeroBrakesControllerStatus status;
     ServoInterface* servo;
@@ -392,6 +394,12 @@ void AeroBrakesController<T>::logStatus(AeroBrakesControllerState state)
     LoggerService::getInstance()->log(status);
 
     // StackLogger::getInstance()->updateStack(THID_ABK_FSM);
+}
+
+template <class T>
+void AeroBrakesController<T>::setAeroBrakesPosition(float pos)
+{
+    servo->set(pos);
 }
 
 }  // namespace DeathStackBoard

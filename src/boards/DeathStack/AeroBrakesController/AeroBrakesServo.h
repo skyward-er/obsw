@@ -78,14 +78,14 @@ public:
         float maxpos = base + AB_SERVO_WIGGLE_AMPLITUDE / 2;
         float minpos = base - AB_SERVO_WIGGLE_AMPLITUDE / 2;
 
-        set(base);
+        set(base, true);
 
         for (int i = 0; i < 3; i++)
         {
             miosix::Thread::sleep(ABK_UPDATE_PERIOD + 100);
-            set(maxpos);
+            set(maxpos, true);
             miosix::Thread::sleep(ABK_UPDATE_PERIOD + 100);
-            set(minpos);
+            set(minpos, true);
         }
 
         miosix::Thread::sleep(ABK_UPDATE_PERIOD);
@@ -113,11 +113,6 @@ protected:
 #ifdef HARDWARE_IN_THE_LOOP
         simulator->send(angle);
 #endif
-
-        AeroBrakesData abdata;
-        abdata.timestamp      = TimestampTimer::getTimestamp();
-        abdata.servo_position = currentPosition;
-        LoggerService::getInstance()->log(abdata);
     }
 
     float preprocessPosition(float angle) override
