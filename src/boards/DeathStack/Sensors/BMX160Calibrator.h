@@ -71,12 +71,11 @@ struct BMX160CorrectionParameters
             }
         }
 
-        is >> gyroParams(0);
-        is.ignore(1, ',');
-        is >> gyroParams(1);
-        is.ignore(1, ',');
-        is >> gyroParams(2);
-        is.ignore(1, ',');
+        for (int i = 0; i < 3; i++)
+        {
+            is >> gyroParams(i);
+            is.ignore(1, ',');
+        }
     }
 
     void print(std::ostream& os) const
@@ -111,16 +110,16 @@ public:
 
     bool calibrate();
 
-    static BMX160DataCorrected rotateAxis(BMX160DataCorrected data);
-
-private:
-    BMX160DataCorrected sampleImpl() override;
+    void readParametersFromFile();
 
     void setParameters(const BMX160CorrectionParameters& params);
 
     BMX160CorrectionParameters getParameters();
 
-    void readParametersFromFile();
+private:
+    BMX160DataCorrected sampleImpl() override;
+
+    BMX160DataCorrected rotateAxis(BMX160DataCorrected data);
 
     void setAccelCorrected(BMX160DataCorrected& lhs,
                            const AccelerometerData& rhs);

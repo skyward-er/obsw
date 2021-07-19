@@ -24,7 +24,7 @@
 #include <fstream>
 #include <cmath>
 
-#include "SensorManager/BMX160Corrector.h"
+#include "Sensors/BMX160Calibrator.h"
 #include "sensors/BMX160/BMX160.h"
 #include "configs/SensorManagerConfig.h"
 
@@ -44,13 +44,13 @@ int main(){
 
     {
         // Writing to file
-        std::ofstream paramsFile(DeathStackBoard::Bmx160CorrectionParametersFile);
+        std::ofstream paramsFile(DeathStackBoard::SensorConfigs::Bmx160CorrectionParametersFile);
         paramsFile << BMX160CorrectionParameters::header() << std::endl;
         params.print(paramsFile);
     }
 
     BMX160Data data;
-    BMX160Corrector corrector;
+    BMX160Calibrator corrector;
     
     // Reading from same file
     corrector.readParametersFromFile();

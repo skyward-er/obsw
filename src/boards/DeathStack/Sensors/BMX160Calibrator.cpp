@@ -51,9 +51,9 @@ bool BMX160Calibrator::calibrate()
     // return a boolean to indicate if calibration has ended
     // some other component will poll this method to know when
     // calibration is done
-    printf("Called calibrate()\n");
-    printf("samples_num: %d\n", samples_num);
-    printf("Called calibrate()\n");
+    
+    /*TRACE("Called calibrate()\n");
+    TRACE("samples_num: %d\n", samples_num);*/
 
     if (!is_calibrating)
     {
@@ -79,14 +79,14 @@ bool BMX160Calibrator::calibrate()
 
             Vector3f params;
             gyroCorrector >> params;
-            printf("Params: %f, %f, %f\n", params(0), params(1), params(2));
+            //TRACE("Params: %f, %f, %f\n", params(0), params(1), params(2));
         }
     }
 
     return is_calibrating;
 }
 
-static BMX160DataCorrected rotateAxis(BMX160DataCorrected data)
+BMX160DataCorrected BMX160Calibrator::rotateAxis(BMX160DataCorrected data)
 {
     // TODO : use rotaton matrix
     BMX160DataCorrected temp;
@@ -158,7 +158,8 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
         {
             if (is_calibrating)
             {
-                printf("Feeding with %f, %f, %f\n", fifoElem.gyro_x, fifoElem.gyro_y, fifoElem.gyro_z);
+                /*TRACE("Feeding with %f, %f, %f\n", fifoElem.gyro_x,
+                       fifoElem.gyro_y, fifoElem.gyro_z);*/
                 gyroCalibrator.feed(fifoElem);
                 samples_num++;
             }
@@ -213,10 +214,10 @@ BMX160DataCorrected BMX160Calibrator::sampleImpl()
 
     Vector3f gyro_offsets;
     gyroCorrector >> gyro_offsets;
-    printf("Gyro params: %f, %f, %f\n", gyro_offsets(0), gyro_offsets(1),
+    /*TRACE("Gyro params: %f, %f, %f\n", gyro_offsets(0), gyro_offsets(1),
            gyro_offsets(2));
-    printf("Corretto: %f, %f, %f\n", res.gyro_x, res.gyro_y, res.gyro_z);
-    // res = rotateAxis(res);
+    TRACE("Corrected: %f, %f, %f\n", res.gyro_x, res.gyro_y, res.gyro_z);*/
+    res = rotateAxis(res);
 
     return res;
 }
@@ -242,7 +243,8 @@ BMX160CorrectionParameters BMX160Calibrator::getParameters()
 void BMX160Calibrator::readParametersFromFile()
 {
     BMX160CorrectionParameters params;
-    std::ifstream input(DeathStackBoard::Bmx160CorrectionParametersFile);
+    std::ifstream input(
+        DeathStackBoard::SensorConfigs::Bmx160CorrectionParametersFile);
 
     // ignore first line (csv header)
     input.ignore(1000, '\n');

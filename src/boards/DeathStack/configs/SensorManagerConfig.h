@@ -58,6 +58,9 @@ static constexpr unsigned int SP_DPL_PRESS     = SP_ADC * 4;
 static constexpr unsigned int SP_STATIC_PRESS  = SP_ADC * 4;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
+
+static constexpr char Bmx160CorrectionParametersFile[20] = "BMX160Params";
+
 }  // namespace SensorConfigs
 
 }  // namespace DeathStackBoard
