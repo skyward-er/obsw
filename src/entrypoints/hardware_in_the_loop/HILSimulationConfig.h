@@ -27,7 +27,8 @@
 
 struct SensorConfig : public SensorInfo
 {
-    SensorConfig(const uint32_t period) : SensorInfo{period, []() {}, false, false}
+    SensorConfig(const uint32_t period, const std::string s)
+        : SensorInfo{s, period, []() {}, false, false}
     {
     }
 };
@@ -66,9 +67,9 @@ const float referenceAltitude    = 109;  // launchpad Altitude for Pont De Sor?
 const float referenceTemperature = 15;
 
 /** sensors configuration */
-const SensorConfig imuConfig(1000 / IMU_FREQ);
-const SensorConfig baroConfig(1000 / BARO_FREQ);
-const SensorConfig gpsConfig(1000 / GPS_FREQ);
+const SensorConfig imuConfig("imu", 1000 / IMU_FREQ);
+const SensorConfig baroConfig("baro", 1000 / BARO_FREQ);
+const SensorConfig gpsConfig("gps", 1000 / GPS_FREQ);
 
 /** Number of samples per sensor at each simulator iteration */
 const int N_DATA_IMU    = (IMU_FREQ * SIMULATION_PERIOD) / 1000;

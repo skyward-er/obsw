@@ -245,7 +245,7 @@ void sampleGPS()
     gps.init();
     miosix::delayMs(200);
     gps.start();
-    gps.sendSBASMessage();
+    //gps.sendSBASMessage();
 
     // Sampling
     std::cout << UbloxGPSData::header();
