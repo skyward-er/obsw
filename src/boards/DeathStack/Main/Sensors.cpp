@@ -118,7 +118,7 @@ void Sensors::internalAdcInit()
     internal_adc->enableChannel(ADC_CS_CUTTER_BACKUP);
     internal_adc->enableChannel(ADC_BATTERY_VOLTAGE);
 
-    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+    SensorInfo info("InternalADC", SAMPLE_PERIOD_INTERNAL_ADC,
                     bind(&Sensors::internalAdcCallback, this), false, true);
     sensors_map.emplace(std::make_pair(internal_adc, info));
 
@@ -132,7 +132,7 @@ void Sensors::batteryVoltageInit()
     battery_voltage =
         new BatteryVoltageSensor(voltage_fun, BATTERY_VOLTAGE_COEFF);
 
-    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+    SensorInfo info("BatterySensor", SAMPLE_PERIOD_INTERNAL_ADC,
                     bind(&Sensors::batteryVoltageCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(battery_voltage, info));
@@ -149,7 +149,7 @@ void Sensors::primaryCutterCurrentInit()
     };
     cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
 
-    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+    SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
                     bind(&Sensors::primaryCutterCurrentCallback, this), false,
                     true);
 
@@ -168,7 +168,7 @@ void Sensors::backupCutterCurrentInit()
     };
     cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
 
-    SensorInfo info(SAMPLE_PERIOD_INTERNAL_ADC,
+    SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
                     bind(&Sensors::backupCutterCurrentCallback, this), false,
                     true);
 
@@ -185,7 +185,7 @@ void Sensors::pressDigiInit()
     press_digital = new MS580301BA07(
         spi1_bus, miosix::sensors::ms5803::cs::getPin(), spi_cfg);
 
-    SensorInfo info(SAMPLE_PERIOD_PRESS_DIGITAL,
+    SensorInfo info("DigitalBarometer", SAMPLE_PERIOD_PRESS_DIGITAL,
                     bind(&Sensors::pressDigiCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_digital, info));
@@ -214,7 +214,7 @@ void Sensors::ADS1118Init()
 
     adc_ads1118->enableInput(ADC_CH_VREF, ADC_DR_VREF, ADC_PGA_VREF);
 
-    SensorInfo info(SAMPLE_PERIOD_ADC_ADS1118,
+    SensorInfo info("ADS1118", SAMPLE_PERIOD_ADC_ADS1118,
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 
@@ -227,7 +227,7 @@ void Sensors::pressPitotInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_PITOT_PORT));
     press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(SAMPLE_PERIOD_PRESS_PITOT,
+    SensorInfo info("PitotBarometer", SAMPLE_PERIOD_PRESS_PITOT,
                     bind(&Sensors::pressPitotCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
@@ -241,7 +241,7 @@ void Sensors::pressDPLVaneInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_DPL_PORT));
     press_dpl_vane = new SSCDANN030PAA(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(SAMPLE_PERIOD_PRESS_DPL,
+    SensorInfo info("DeploymentBarometer", SAMPLE_PERIOD_PRESS_DPL,
                     bind(&Sensors::pressDPLVaneCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
@@ -255,7 +255,7 @@ void Sensors::pressStaticInit()
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_STATIC_PORT));
     press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE);
 
-    SensorInfo info(SAMPLE_PERIOD_PRESS_STATIC,
+    SensorInfo info("StaticPortsBarometer", SAMPLE_PERIOD_PRESS_STATIC,
                     bind(&Sensors::pressStaticCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
@@ -287,8 +287,8 @@ void Sensors::imuBMXinit()
     imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
                             bmx_config, spi_cfg);
 
-    SensorInfo info(SAMPLE_PERIOD_IMU_BMX, bind(&Sensors::imuBMXCallback, this),
-                    false, true);
+    SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
+                    bind(&Sensors::imuBMXCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
@@ -308,8 +308,8 @@ void Sensors::magLISinit()
     mag_lis3mdl = new LIS3MDL(spi1_bus, miosix::sensors::lis3mdl::cs::getPin(),
                               busConfig, config);
 
-    SensorInfo info(SAMPLE_PERIOD_MAG_LIS, bind(&Sensors::magLISCallback, this),
-                    false, true);
+    SensorInfo info("LIS3MDL", SAMPLE_PERIOD_MAG_LIS,
+                    bind(&Sensors::magLISCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
 
@@ -318,10 +318,10 @@ void Sensors::magLISinit()
 
 void Sensors::gpsUbloxInit()
 {
-    gps_ublox = new UbloxGPS(38400);
+    gps_ublox = new UbloxGPS(GPS_BAUD_RATE);
 
-    SensorInfo info(SAMPLE_PERIOD_GPS, bind(&Sensors::gpsUbloxCallback, this),
-                    false, true);
+    SensorInfo info("UbloxGPS", SAMPLE_PERIOD_GPS,
+                    bind(&Sensors::gpsUbloxCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
 

@@ -115,6 +115,7 @@ static constexpr LIS3MDL::ODR MAG_LIS_ODR_ENUM        = LIS3MDL::ODR_80_HZ;
 static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
 
 static constexpr unsigned int SAMPLE_PERIOD_GPS = 40;
+static constexpr unsigned int GPS_BAUD_RATE     = 38400;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs
