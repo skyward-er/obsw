@@ -89,6 +89,7 @@ public:
         }
 
         miosix::Thread::sleep(ABK_UPDATE_PERIOD);
+        reset();
     }
 
 private:
