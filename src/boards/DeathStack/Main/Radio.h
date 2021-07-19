@@ -43,7 +43,7 @@ public:
     Radio(SPIBusInterface& xbee_bus);
     ~Radio();
 
-    void start();
+    bool start();
 private:
     void onXbeeFrameReceived(Xbee::APIFrame& frame);
 

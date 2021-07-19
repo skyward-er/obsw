@@ -78,7 +78,9 @@ public:
 
     void update();
 
-    NAS<IMU, Press, GPS>& getNAS() { return nas; }
+    void setInitialOrientation(float roll, float pitch, float yaw);
+
+    Sensor<NASData>& getNAS() { return nas; }
 
 private:
     void finalizeCalibration();
@@ -114,8 +116,6 @@ NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
       barometer(baro), gps(gps), nas(imu, baro, gps),
       logger(*(LoggerService::getInstance()))
 {
-    printf("Constructor \n");
-
     memset(&status, 0, sizeof(NASStatus));
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_NAS);
@@ -387,6 +387,15 @@ void NASController<IMU, Press, GPS>::state_end(const Event& ev)
         {
             break;
         }
+    }
+}
+
+template <typename IMU, typename Press, typename GPS>
+void NASController<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch, float yaw)
+{
+    if (status.state == NASState::READY)
+    {
+        nas.setInitialOrientation(roll, pitch, yaw);
     }
 }
 

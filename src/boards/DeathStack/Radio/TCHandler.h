@@ -32,4 +32,6 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg);
 
 void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg);
 
+bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
+
 }  // namespace DeathStackBoard

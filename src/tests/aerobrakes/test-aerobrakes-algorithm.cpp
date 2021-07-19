@@ -149,7 +149,7 @@ int main()
              << "\tservo: " << mockActuator.getCurrentPosition() << "\n";
     }
 
-    miosix::Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
+    miosix::Thread::sleep(AeroBrakesConfigs::ABK_UPDATE_PERIOD);
 
     printf(
         "Init time: %f ms\nAvg iter time: %f ms\nTotal computation time: %f "

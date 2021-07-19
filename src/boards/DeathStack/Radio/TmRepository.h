@@ -30,11 +30,22 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
+#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/LIS3MDL/LIS3MDLData.h>
+#include <drivers/gps/ublox/UbloxGPSData.h>
 
-#include "AeroBrakesController/AeroBrakesData.h"
+#include "DeathStackStatus.h"
+
 #include "Radio/Mavlink.h"
 #include "AeroBrakesController/WindData.h"
+#include "PinHandler/PinHandlerData.h"
 
+#include "FlightModeManager/FMMStatus.h"
+#include "DeploymentController/DeploymentData.h"
+#include "ADA/ADAData.h"
+#include "NavigationSystem/NASData.h"
+#include "AeroBrakesController/AeroBrakesData.h"
+#include "Sensors/SensorStatus.h"
 namespace DeathStackBoard
 {
 
@@ -64,18 +75,18 @@ public:
         return;
     }
 
-    /**
-     * @brief Add a new packed HR packet to the HR telemetry message.
-     * The telemetry message contains multiple HR packets to reduce the impact
-     * of mavlink overhead.
-     * @return true if the HR message is full, i.e. ready to be sent
-     */
-    bool updateHR();
+    // /**
+    //  * @brief Add a new packed HR packet to the HR telemetry message.
+    //  * The telemetry message contains multiple HR packets to reduce the impact
+    //  * of mavlink overhead.
+    //  * @return true if the HR message is full, i.e. ready to be sent
+    //  */
+    // bool updateHR();
 
-    /**
-     * @brief Pack the current LR packet into a mavlink message.
-     */
-    void updateLR();
+    // /**
+    //  * @brief Pack the current LR packet into a mavlink message.
+    //  */
+    // void updateLR();
 
     /**
      * Retrieve a telemetry message in packed form.
@@ -98,8 +109,9 @@ private:
     struct TmRepository_t
     {
         mavlink_sys_tm_t sys_tm;
-        mavlink_fmm_tm_t fmm_tm;
+        mavlink_pin_obs_tm_t pin_obs_tm;
         mavlink_logger_tm_t logger_tm;
+        mavlink_fmm_tm_t fmm_tm;
         mavlink_tmtc_tm_t tmtc_tm;
         mavlink_sm_tm_t sm_tm;
         mavlink_dpl_tm_t dpl_tm;
@@ -110,63 +122,64 @@ private:
         mavlink_hr_tm_t hr_tm;
         mavlink_lr_tm_t lr_tm;
         mavlink_windtunnel_tm_t wind_tm;
+        mavlink_sensors_tm_t sensors_tm;
         mavlink_test_tm_t test_tm;
     } tm_repository;
 
     uint8_t curHrIndex = 0;
 
     /* Temporary packet to hold HR_TM values before bitpacking */
-    struct HighRatePacket_t
-    {
-        long long timestamp;
-        float pressure_ada;
-        float pressure_digi;
-        float msl_altitude;
-        float agl_altitude;
-        float vert_speed;
-        float vert_speed_2;
-        float acc_x;
-        float acc_y;
-        float acc_z;
-        float gyro_x;
-        float gyro_y;
-        float gyro_z;
-        float gps_lat;
-        float gps_lon;
-        float gps_alt;
-        float temperature;
-        uint8_t fmm_state;
-        uint8_t dpl_state;
-        uint8_t pin_launch;
-        uint8_t pin_nosecone;
-        uint8_t gps_fix;
-    } hr_pkt;
+    // struct HighRatePacket_t
+    // {
+    //     long long timestamp;
+    //     float pressure_ada;
+    //     float pressure_digi;
+    //     float msl_altitude;
+    //     float agl_altitude;
+    //     float vert_speed;
+    //     float vert_speed_2;
+    //     float acc_x;
+    //     float acc_y;
+    //     float acc_z;
+    //     float gyro_x;
+    //     float gyro_y;
+    //     float gyro_z;
+    //     float gps_lat;
+    //     float gps_lon;
+    //     float gps_alt;
+    //     float temperature;
+    //     uint8_t fmm_state;
+    //     uint8_t dpl_state;
+    //     uint8_t pin_launch;
+    //     uint8_t pin_nosecone;
+    //     uint8_t gps_fix;
+    // } hr_pkt;
 
     /* Temporary packet to hold LR_TM values before bitpacking */
-    struct LowRatePacket_t
-    {
-        long long liftoff_ts;
-        long long liftoff_max_acc_ts;
-        float liftoff_max_acc;
-        long long max_zspeed_ts;
-        float max_zspeed;
-        float max_speed_altitude;
-        long long apogee_ts;
-        float nxp_min_pressure;
-        float hw_min_pressure;
-        float kalman_min_pressure;
-        float digital_min_pressure;
-        float baro_max_altitutde;
-        float gps_max_altitude;
-        float apogee_lat;
-        float apogee_lon;
-        long long drogue_dpl_ts;
-        float drogue_dpl_max_acc;
-        long long main_dpl_ts;
-        float main_dpl_altitude;
-        float main_dpl_zspeed;
-        float main_dpl_acc;
-    } lr_pkt;
+    // struct LowRatePacket_t
+    // {
+    //     long long liftoff_ts;
+    //     long long liftoff_max_acc_ts;
+    //     float liftoff_max_acc;
+    //     long long max_zspeed_ts;
+    //     float max_zspeed;
+    //     float max_speed_altitude;
+    //     long long apogee_ts;
+    //     float nxp_min_pressure;
+    //     float hw_min_pressure;
+    //     float kalman_min_pressure;
+    //     float digital_min_pressure;
+    //     float baro_max_altitutde;
+    //     float gps_max_altitude;
+    //     float apogee_lat;
+    //     float apogee_lon;
+    //     long long drogue_dpl_ts;
+    //     float drogue_dpl_max_acc;
+    //     long long main_dpl_ts;
+    //     float main_dpl_altitude;
+    //     float main_dpl_zspeed;
+    //     float main_dpl_acc;
+    // } lr_pkt;
 };
 
 /*
@@ -174,7 +187,6 @@ private:
  * specific status struct.
  */
 
-/* Initialization status of the board*/
 template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 
@@ -197,65 +209,85 @@ template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
 template <>
+void TmRepository::update<BMX160Data>(const BMX160Data& t);
+
+template <>
+void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t);
+
+template <>
+void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
+
+template <>
+void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
+
+/* Battery status, sampled by internal ADC */
+template <>
+void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
+
+/* Motor current sense, sampled by internal ADC */
+template <>
+void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
+
+template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t);
 
-/* Initialization status of the board*/
-// template <>
-// void TmRepository::update<BoardStatus>(const BoardStatus& t);
-
-// /* Flight Mode Manager */
-// template <>
-// void TmRepository::update<FMMStatus>(const FMMStatus& t);
-
-// /* Launch and Nosecone detachment pins */
-// template <>
-// void TmRepository::update<PinStatus>(const PinStatus& t);
 
 /* Logger */
 template <>
 void TmRepository::update<LogStats>(const LogStats& t);
 
+/* Initialization status of the board*/
+template <>
+void TmRepository::update<DeathStackStatus>(const DeathStackStatus& t);
+
+/* Flight Mode Manager */
+template <>
+void TmRepository::update<FMMStatus>(const FMMStatus& t);
+
+/* Navigation System */
+template <>
+void TmRepository::update<NASStatus>(const NASStatus& t);
+
+template<>
+void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
+
+/* Launch and Nosecone detachment pins and DPL servo optical sensor */
+template <>
+void TmRepository::update<PinStatus>(const PinStatus& t);
+
 // /* TMTCManager (Mavlink) */
 // template <>
 // void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
 
-// /* Sensor Manager */
-// template <>
-// void TmRepository::update<SensorManagerStatus>(const SensorManagerStatus& t);
+/* Sensors */
+template <>
+void TmRepository::update<SensorStatus>(const SensorStatus& t);
 
-// /* Deployment Controller */
-// template <>
-// void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
+/* Deployment Controller */
+template <>
+void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
 
-// /* ADA state machine */
-// template <>
-// void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t);
+/* ADA state machine */
+template <>
+void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t);
 
 // /* ADA target dpl pressure */
 // template <>
 // void TmRepository::update<TargetDeploymentAltitude>(
 //     const TargetDeploymentAltitude& t);
 
-// /* ADA kalman filter values */
-// template <>
-// void TmRepository::update<KalmanState>(const KalmanState& t);
+/* ADA kalman filter values */
+template <>
+void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t);
 
 // /* ADA kalman altitude values */
-// template <>
-// void TmRepository::update<ADAData>(const ADAData& t);
+template <>
+void TmRepository::update<ADAData>(const ADAData& t);
 
 // /* ADA calibration reference values set by TC */
 // template <>
 // void TmRepository::update<ReferenceValues>(const ReferenceValues& t);
-
-// /* Battery status, sampled by internal ADC */
-// template <>
-// void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
-
-// /* Motor current sense, sampled by internal ADC */
-// template <>
-// void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
 
 // /* Digital Pressure Sensor */
 // template <>

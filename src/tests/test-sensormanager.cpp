@@ -28,44 +28,30 @@
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
 
+#include "Radio/TMTCManager.h"
+
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    TimestampTimer::enableTimestampTimer();
+
+    sEventBroker->start();
+
     Stats s;
     SensorManager mgr;
     
-    try
-    {
-        LoggerService::getInstance()->start();
-    }
-    catch (const std::exception& e)
-    {
-        printf("SDCARD MISSING\n");
-        for (;;)
-        {
-            ledOn();
-            Thread::sleep(200);
-            ledOff();
-            Thread::sleep(200);
-        }
-    }
-    ledOn();
+    Bus bus;
+    Sensors sensors(*bus.spi1, new TaskScheduler());
+    Radio radio(*bus.spi2);
 
-    sEventBroker->start();
-    mgr.start();
-
-    sEventBroker->post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
-
-
-    // printf("Wait for calibration to complete.\n");
+    sensors.start();
+    radio.start();
 
     Thread::sleep(500);
 
-    // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-
-    for (int i = 0; i < 60 * 3 * 10; i++)
+    for (int i = 0; i < 1 * 3 * 10; i++)
     {
         s.add(averageCpuUtilization());
         Thread::sleep(100);

@@ -304,7 +304,7 @@ int main()
     {
         // Writing to file
         std::ofstream paramsFile(
-            DeathStackBoard::SensorConfigs::Bmx160CorrectionParametersFile);
+            DeathStackBoard::SensorConfigs::BMX160_CORRECTION_PARAMETERS_FILE);
         paramsFile << BMX160CorrectionParameters::header() << std::endl;
         generatedParams.print(paramsFile);
     }

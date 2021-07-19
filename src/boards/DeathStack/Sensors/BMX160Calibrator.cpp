@@ -244,7 +244,7 @@ void BMX160Calibrator::readParametersFromFile()
 {
     BMX160CorrectionParameters params;
     std::ifstream input(
-        DeathStackBoard::SensorConfigs::Bmx160CorrectionParametersFile);
+        DeathStackBoard::SensorConfigs::BMX160_CORRECTION_PARAMETERS_FILE);
 
     // ignore first line (csv header)
     input.ignore(1000, '\n');

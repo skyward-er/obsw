@@ -60,22 +60,22 @@ using namespace std;
 
 namespace PowerBoardTest
 {
-#include "deathstack-boards/test-power-board.cpp"
+#include "../tests/deathstack-boards/test-power-board.cpp"
 }
 
 namespace STMBoardTest
 {
-#include "deathstack-boards/test-stm-board.cpp"
+#include "../tests/deathstack-boards/test-stm-board.cpp"
 }
 
 namespace RFBoardTest
 {
-#include "deathstack-boards/test-rf-board.cpp"
+#include "../tests/deathstack-boards/test-rf-board.cpp"
 }
 
 namespace AnalogBoardTest
 {
-#include "deathstack-boards/test-analog-board.cpp"
+#include "../tests/deathstack-boards/test-analog-board.cpp"
 }
 
 int menu();

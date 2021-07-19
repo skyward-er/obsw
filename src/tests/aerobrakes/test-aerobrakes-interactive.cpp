@@ -184,7 +184,7 @@ void testAlgorithm()
              << "\tvz: " << sensor.getLastSample().vz
              << "\tvMod: " << sensor.getLastSample().vMod
              << "\tservo: " << servo.getCurrentPosition() << "\n";
-        Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
+        Thread::sleep(AeroBrakesConfigs::ABK_UPDATE_PERIOD);
     }
 
     aerobrakesController.stop();
@@ -309,7 +309,7 @@ void manualServoControl()
     while (servo.getCurrentPosition() != angle)
     {
         servo.set(angle);
-        Thread::sleep(AeroBrakesConfigs::UPDATE_TIME);
+        Thread::sleep(AeroBrakesConfigs::ABK_UPDATE_PERIOD);
     }
     Thread::sleep(1000);
     servo.disable();

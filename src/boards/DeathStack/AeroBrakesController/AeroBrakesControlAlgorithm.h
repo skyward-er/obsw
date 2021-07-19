@@ -29,13 +29,16 @@
 #include "../Algorithm.h"
 #include "../ServoInterface.h"
 #include "AeroBrakesData.h"
+#include "LoggerService/LoggerService.h"
 #include "Pid.h"
 #include "TimestampTimer.h"
 #include "configs/AeroBrakesConfig.h"
 #include "sensors/Sensor.h"
 #include "trajectories/Trajectory.h"
-#include "LoggerService/LoggerService.h"
 
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
 /*
     Error and timing benchmark results:
 
@@ -59,22 +62,6 @@ namespace DeathStackBoard
 template <class T>
 class AeroBrakesControlAlgorithm : public Algorithm
 {
-private:
-    int indexMinVal = 0;
-    float alpha     = 0;
-    uint64_t ts     = 0;
-    Trajectory chosenTrajectory;
-    ServoInterface* actuator;
-    Sensor<T>& sensor;
-    Pid pid;
-
-    LoggerService& logger;
-
-    std::is_same<float, decltype(std::declval<T>().z)> checkz;
-    std::is_same<float, decltype(std::declval<T>().vz)> checkvz;
-    std::is_same<float, decltype(std::declval<T>().vMod)> checkvMod;
-    std::is_same<uint64_t, decltype(std::declval<T>().timestamp)>
-        checktimestamp;
 
 public:
     AeroBrakesControlAlgorithm(Sensor<T>& sensor, ServoInterface* actuator);
@@ -97,10 +84,13 @@ public:
         {
             step();
         }
+
+#ifdef HARDWARE_IN_THE_LOOP
         else
         {
-            actuator->reset();
+            HIL::getInstance()->send(0.0);
         }
+#endif
     }
 
     /**
@@ -211,7 +201,29 @@ public:
      * @brief Log algorithm data structure
      *
      */
-    void logData(T input);
+    void logAlgorithmData(T input);
+
+    void logAerobrakesData();
+
+private:
+    int indexMinVal = 0;
+    float alpha     = 0;
+    uint64_t ts     = 0;
+    Trajectory chosenTrajectory;
+    ServoInterface* actuator;
+    Sensor<T>& sensor;
+    Pid pid;
+
+    AeroBrakesAlgorithmData algo_data;
+    AeroBrakesData ab_data;
+
+    LoggerService& logger;
+
+    std::is_same<float, decltype(std::declval<T>().z)> checkz;
+    std::is_same<float, decltype(std::declval<T>().vz)> checkvz;
+    std::is_same<float, decltype(std::declval<T>().vMod)> checkvMod;
+    std::is_same<uint64_t, decltype(std::declval<T>().timestamp)>
+        checktimestamp;
 };
 
 template <class T>
@@ -251,7 +263,8 @@ void AeroBrakesControlAlgorithm<T>::step()
 
     actuator->set(alpha, true);
 
-    logData(input);
+    logAlgorithmData(input);
+    logAerobrakesData();
 }
 
 template <class T>
@@ -356,6 +369,8 @@ float AeroBrakesControlAlgorithm<T>::pidStep(float vz, float vMod, float rho,
     float umax  = 0.5 * rho * S0 * 1 * vz * vMod;
     float error = (vz - setpoint.getVz());
 
+    ab_data.pid_error = error;
+
     float u = pid.step(umin, umax, error);
 
     return u;
@@ -380,6 +395,7 @@ float AeroBrakesControlAlgorithm<T>::getDeltaS(float z, float vz, float vMod,
                         powf(mach, 5),
                         powf(mach, 6)};
 
+    float estimatedCd = 0;
     for (float deltaSAvailable = DELTA_S_AVAILABLE_MIN;
          deltaSAvailable < DELTA_S_AVAILABLE_MAX + DELTA_S_AVAILABLE_STEP;
          deltaSAvailable += DELTA_S_AVAILABLE_STEP)
@@ -388,10 +404,13 @@ float AeroBrakesControlAlgorithm<T>::getDeltaS(float z, float vz, float vMod,
         float temp        = abs(u - 0.5 * rho * S0 * cdAvaliable * vz * vMod);
         if (temp < bestValue)
         {
-            bestValue = temp;
-            deltaS    = deltaSAvailable;
+            bestValue   = temp;
+            deltaS      = deltaSAvailable;
+            estimatedCd = cdAvaliable;
         }
     }
+
+    ab_data.estimated_cd = estimatedCd;
 
     return deltaS;
 }
@@ -448,14 +467,25 @@ float AeroBrakesControlAlgorithm<T>::getDrag(float h, float s, float* powMach)
 }
 
 template <class T>
-void AeroBrakesControlAlgorithm<T>::logData(T input)
+void AeroBrakesControlAlgorithm<T>::logAlgorithmData(T input)
 {
     AeroBrakesAlgorithmData d;
     d.timestamp = input.timestamp;
-    d.z = input.z;
-    d.vz = input.vz;
-    d.vMod = input.vMod;
+    d.z         = input.z;
+    d.vz        = input.vz;
+    d.vMod      = input.vMod;
     logger.log(d);
+}
+
+template <class T>
+void AeroBrakesControlAlgorithm<T>::logAerobrakesData()
+{
+    AeroBrakesData abdata;
+    abdata.timestamp      = TimestampTimer::getTimestamp();
+    abdata.servo_position = actuator->getCurrentPosition();
+    // estimated_cd inserted when computing the new alpha (in getDrag())
+    // pid_error inserted when computing the new alpha (in pidStep())
+    logger.log(abdata);
 }
 
 }  // namespace DeathStackBoard

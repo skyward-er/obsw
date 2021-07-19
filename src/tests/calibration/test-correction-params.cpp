@@ -20,22 +20,24 @@
  * THE SOFTWARE.
  */
 
-#include <iostream>
-#include <fstream>
 #include <cmath>
+#include <fstream>
+#include <iostream>
 
 #include "Sensors/BMX160Calibrator.h"
-#include "sensors/BMX160/BMX160.h"
 #include "configs/SensorManagerConfig.h"
+#include "sensors/BMX160/BMX160.h"
 
-int main(){
+int main()
+{
     std::srand(123456);
 
     BMX160CorrectionParameters params;
-    for(int i = 0; i < 6; i++){
-        params.accelParams(i % 3, i / 3) = std::rand() % 100 * 0.1;
+    for (int i = 0; i < 6; i++)
+    {
+        params.accelParams(i % 3, i / 3)   = std::rand() % 100 * 0.1;
         params.magnetoParams(i % 3, i / 3) = std::rand() % 100 * 0.1;
-        params.gyroParams(i % 3, i / 3) = std::rand() % 100 * 0.1;
+        params.gyroParams(i % 3, i / 3)    = std::rand() % 100 * 0.1;
     }
 
     std::cout << "Generated params: " << std::endl;
@@ -44,14 +46,15 @@ int main(){
 
     {
         // Writing to file
-        std::ofstream paramsFile(DeathStackBoard::SensorConfigs::Bmx160CorrectionParametersFile);
+        std::ofstream paramsFile(
+            DeathStackBoard::SensorConfigs::BMX160_CORRECTION_PARAMETERS_FILE);
         paramsFile << BMX160CorrectionParameters::header() << std::endl;
         params.print(paramsFile);
     }
 
     BMX160Data data;
     BMX160Calibrator corrector;
-    
+
     // Reading from same file
     corrector.readParametersFromFile();
     params = corrector.getParameters();
@@ -61,5 +64,6 @@ int main(){
     params.print(std::cout);
 
     std::cout << std::flush;
-    for(;;);
+    for (;;)
+        ;
 }
