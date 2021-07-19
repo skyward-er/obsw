@@ -69,6 +69,11 @@ float cutterTestDutyCycle          = primaryCutterDutyCycle / 100.0f;
 
 int main()
 {
+    // avoid servo to move while resetting the board
+    DeploymentServo ejection_servo;
+    ejection_servo.enable();
+    ejection_servo.reset();
+
     sEventBroker->start();
 
     string temp;
