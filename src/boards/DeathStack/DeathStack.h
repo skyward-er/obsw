@@ -66,7 +66,7 @@ class DeathStack : public Singleton<DeathStack>
     friend class Singleton<DeathStack>;
 
 public:
-    // PrintLogger log = Logging::getLogger("deathstack");
+    PrintLogger log = Logging::getLogger("deathstack");
 
     // Shared Components
     EventBroker* broker;
@@ -90,37 +90,77 @@ public:
 
     void start()
     {
-        logger->log(logger->getLogger().getLogStats());
+        startLogger();
 
         if (!broker->start())
         {
+            //LOG_ERR(log, "Error starting EventBroker\n");
             TRACE("Error starting EventBroker\n");
-
             status.setError(&DeathStackStatus::ev_broker);
         }
 
-        radio->start();
-        sensors->start();
+        if (!radio->start()) 
+        {
+            //LOG_ERR(log, "Error starting radio module\n");
+            TRACE("Error starting radio module\n");
+            status.setError(&DeathStackStatus::radio);
+        }
+       
+        if (!sensors->start())
+        {
+            //LOG_ERR(log, "Error starting sensors\n");
+            TRACE("Error starting sensors\n");
+            status.setError(&DeathStackStatus::sensors);
+        }
+        
+        if (!state_machines->start())
+        {
+            //LOG_ERR(log, "Error starting state machines\n");
+            TRACE("Error starting state machines\n");
+            status.setError(&DeathStackStatus::state_machines);
+        }
 
-        logger->log(status);
-        state_machines->start();
+        if (!pin_handler->start())
+        {
+            //LOG_ERR(log, "Error starting PinObserver\n");
+            TRACE("Error starting PinObserver\n");
+            status.setError(&DeathStackStatus::pin_obs);
+        }
+        
         injector->start();
 
-        pin_handler->start();
+        logger->log(status);
 
 #ifdef HARDWARE_IN_THE_LOOP
         hil->start();
 #endif
 
         // If there was an error, signal it to the FMM and light a LED.
-        // if (status.death_stack != COMP_OK)
-        // {
-        //     sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
-        // }
-        // else
-        // {
-        //     sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
-        // }
+        if (status.death_stack != COMP_OK)
+        {
+            LOG_ERR(log, "Initalization failed\n");
+            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+        }
+        else
+        {
+            LOG_INFO(log, "Initalization ok\n");
+            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+        }
+    }
+
+    void startLogger()
+    {
+        try
+        {
+            logger->start();
+        }
+        catch (const std::runtime_error& re)
+        {
+            LOG_ERR(log, "SD Logger init error\n");
+            status.setError(&DeathStackStatus::logger);
+        }
+
+        logger->log(logger->getLogger().getLogStats());
     }
 
 private:
@@ -131,16 +171,6 @@ private:
     {
         /* Shared components */
         logger = Singleton<LoggerService>::getInstance();
-        // Start threads
-        /*try
-        {
-            logger->start();
-        }
-        catch (const std::runtime_error& re)
-        {
-            TRACE("SD Logger init error\n");
-            status.setError(&DeathStackStatus::logger);
-        }*/
 
         TimestampTimer::enableTimestampTimer();
 
