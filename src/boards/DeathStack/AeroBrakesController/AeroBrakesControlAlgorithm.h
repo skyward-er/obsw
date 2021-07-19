@@ -36,6 +36,9 @@
 #include "sensors/Sensor.h"
 #include "trajectories/Trajectory.h"
 
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL.h"
+#endif
 /*
     Error and timing benchmark results:
 
@@ -85,7 +88,7 @@ public:
 #ifdef HARDWARE_IN_THE_LOOP
         else
         {
-            HIL::getInstance()->send(angle);
+            HIL::getInstance()->send(0.0);
         }
 #endif
     }
