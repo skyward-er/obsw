@@ -25,21 +25,29 @@
 #include "Main/Sensors.h"
 #include "Main/Bus.h"
 
+#include "Radio/TMTCManager.h"
+
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
+    TimestampTimer::enableTimestampTimer();
+
+    sEventBroker->start();
+
     Stats s;
     
     Bus bus;
     Sensors sensors(*bus.spi1, new TaskScheduler());
-    
+    Radio radio(*bus.spi2);
+
     sensors.start();
+    radio.start();
 
     Thread::sleep(500);
 
-    for (int i = 0; i < 60 * 3 * 10; i++)
+    for (int i = 0; i < 1 * 3 * 10; i++)
     {
         s.add(averageCpuUtilization());
         Thread::sleep(100);
