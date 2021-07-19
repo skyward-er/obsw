@@ -62,6 +62,7 @@ void ADA::updateBaro(float pressure)
         filter.getState()(0, 0), filter.getState()(1, 0),
         ref_values.msl_pressure, ref_values.msl_temperature);
 
+#ifdef DEBUG
     if (counter == 50)
     {
         TRACE("[ADA] z : %.2f - vz : %.2f \n", ada_data.msl_altitude,
@@ -72,6 +73,7 @@ void ADA::updateBaro(float pressure)
     {
         counter++;
     }
+#endif
 }
 
 void ADA::updateGPS(float lat, float lon, bool fix)

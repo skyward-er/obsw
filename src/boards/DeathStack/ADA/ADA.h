@@ -111,6 +111,9 @@ private:
     float last_lon = 0;
     bool last_fix  = false;
 
+#ifdef DEBUG
     unsigned int counter = 0;
+    
+#endif
 };
 }  // namespace DeathStackBoard
