@@ -78,6 +78,8 @@ public:
 
     void update();
 
+    void setInitialOrientation(float roll, float pitch, float yaw);
+
     Sensor<NASData>& getNAS() { return nas; }
 
 private:
@@ -385,6 +387,15 @@ void NASController<IMU, Press, GPS>::state_end(const Event& ev)
         {
             break;
         }
+    }
+}
+
+template <typename IMU, typename Press, typename GPS>
+void NASController<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch, float yaw)
+{
+    if (status.state == NASState::READY)
+    {
+        nas.setInitialOrientation(roll, pitch, yaw);
     }
 }
 

@@ -96,6 +96,8 @@ public:
 
     void resetReferenceValues();
 
+    void setInitialOrientation(float roll, float pitch, float yaw);
+
 private:
     SkyQuaternion quat; /**< Auxiliary functions for quaternions */
 
@@ -233,15 +235,15 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     // check if new magnetometer data is available
     if (imu_data.mag_timestamp > last_mag_timestamp)
     {
-    Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
+        Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
 
-    if (mag_readings.norm() < EMF)
-    {
-        last_mag_timestamp = imu_data.mag_timestamp;
+        if (mag_readings.norm() < EMF)
+        {
+            last_mag_timestamp = imu_data.mag_timestamp;
 
-        mag_readings.normalize();
-        filter.correct_MEKF(mag_readings);
-    }
+            mag_readings.normalize();
+            filter.correct_MEKF(mag_readings);
+        }
     }
 
     // update states
@@ -253,7 +255,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     nas_data.y = x(1);
     nas_data.z =
         -x(2) - pz_init;  // Negative sign because we're working in the NED
-                // frame but we want a positive altitude as output.
+                          // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
     nas_data.vz = -x(5);
@@ -264,9 +266,9 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 #ifdef DEBUG
     if (counter == 50)
     {
-        //TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
-        //TRACE("[NAS] z : %.2f - vz : %.2f - vMod : %.2f \n", nas_data.z,
-        //      nas_data.vz, nas_data.vMod);
+        TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
+        TRACE("[NAS] z : %.2f - vz : %.2f - vMod : %.2f \n", nas_data.z,
+             nas_data.vz, nas_data.vMod);
 
         counter = 0;
 
@@ -328,6 +330,25 @@ template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::resetReferenceValues()
 {
     this->ref_values = NASReferenceValues{};
+}
+
+template <typename IMU, typename Press, typename GPS>
+void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
+                                                 float yaw)
+{
+    Vector4f q = quat.eul2quat({roll, pitch, yaw});
+    x(6)       = q(0);
+    x(7)       = q(1);
+    x(8)       = q(2);
+    x(9)       = q(3);
+    TRACE("[NAS] Initial orientation set to : {%f, %f, %f} \n", roll, pitch,
+          yaw);
+    TRACE(
+            "State vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
+            "vy: %.2f \n vz: %.2f \n roll: %.2f \n pitch: %.2f \n yaw: %.2f \n "
+            "q1: %.2f \n q2: %.2f \n q3: %.2f \n q4 : % .2f \n\n ",
+            x(0), x(1), x(2), x(3), x(4), x(5), roll, pitch, yaw, x(6), x(7),
+            x(8), x(9));
 }
 
 }  // namespace DeathStackBoard
