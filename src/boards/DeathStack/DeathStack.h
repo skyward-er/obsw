@@ -218,7 +218,7 @@ private:
         sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
         sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
         Thread::sleep(1000);
-        state_machines->setReferenceValues(109, 15, 450);
+        //state_machines->setReferenceValues(109, 15, 450);
 
         Thread::sleep(10000);
 
