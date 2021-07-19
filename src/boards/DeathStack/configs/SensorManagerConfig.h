@@ -29,7 +29,6 @@ using miosix::Gpio;
 
 namespace DeathStackBoard
 {
-
 namespace SensorConfigs
 {
 static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
@@ -47,6 +46,9 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT  = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 
+static constexpr char const* BMX160_CORRECTION_PARAMETERS_FILE =
+    "/sd/bmx160_params.csv";
+
 // Sampling periods
 static constexpr unsigned int SP_ADC = 3;
 
@@ -56,6 +58,9 @@ static constexpr unsigned int SP_DPL_PRESS     = SP_ADC * 4;
 static constexpr unsigned int SP_STATIC_PRESS  = SP_ADC * 4;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
+
+static constexpr char Bmx160CorrectionParametersFile[20] = "BMX160Params";
+
 }  // namespace SensorConfigs
 
 }  // namespace DeathStackBoard

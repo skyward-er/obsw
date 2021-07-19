@@ -94,12 +94,11 @@ struct SensorManagerStatus
     uint64_t timestamp;
     SensorManagerState state;
 
-    uint16_t sensor_status;
-    static std::string header() { return "timestamp,state,sensor_status\n"; }
+    static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "," << sensor_status << "\n";
+        os << timestamp << "," << (int)state << "\n";
     }
 };
 
