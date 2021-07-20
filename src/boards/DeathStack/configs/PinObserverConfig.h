@@ -52,7 +52,7 @@ static const unsigned int THRESHOLD_NC_DETACH_PIN = 10;
 // Dpl servo actuation pin config
 static const GpioPin dpl_servo_pin(miosix::inputs::expulsion_in::getPin());
 static const PinObserver::Transition TRIGGER_DPL_SERVO_PIN =
-    PinObserver::Transition::FALLING_EDGE;
+    PinObserver::Transition::RISING_EDGE;
 // How many consecutive times the deployment servo pin should be detected as
 // detached before triggering a nosecone detach event.
 static const unsigned int THRESHOLD_DPL_SERVO_PIN = 10;

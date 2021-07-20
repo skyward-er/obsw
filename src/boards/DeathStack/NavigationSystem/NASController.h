@@ -151,28 +151,28 @@ void NASController<IMU, Press, GPS>::update()
                 Lock<FastMutex> l(mutex);
 
                 // Add samples to the calibration
-                if (press_data.press_timestamp > last_press_timestamp)
+                //if (press_data.press_timestamp > last_press_timestamp)
                 {
                     last_press_timestamp = press_data.press_timestamp;
                     calibrator.addBaroSample(press_data.press);
                 }
 
-                if (gps_data.gps_timestamp > last_gps_timestamp &&
-                    gps_data.fix == true)
+                //if (gps_data.gps_timestamp > last_gps_timestamp &&
+                //    gps_data.fix == true)
                 {
                     last_gps_timestamp = gps_data.gps_timestamp;
                     calibrator.addGPSSample(gps_data.latitude,
                                             gps_data.longitude);
                 }
 
-                if (imu_data.accel_timestamp > last_accel_timestamp)
+                //if (imu_data.accel_timestamp > last_accel_timestamp)
                 {
                     last_accel_timestamp = imu_data.accel_timestamp;
                     calibrator.addAccelSample(
                         imu_data.accel_x, imu_data.accel_y, imu_data.accel_z);
                 }
 
-                if (imu_data.mag_timestamp > last_mag_timestamp)
+                //if (imu_data.mag_timestamp > last_mag_timestamp)
                 {
                     last_mag_timestamp = imu_data.mag_timestamp;
                     calibrator.addMagSample(imu_data.mag_x, imu_data.mag_y,
@@ -391,7 +391,9 @@ void NASController<IMU, Press, GPS>::state_end(const Event& ev)
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch, float yaw)
+void NASController<IMU, Press, GPS>::setInitialOrientation(float roll,
+                                                           float pitch,
+                                                           float yaw)
 {
     if (status.state == NASState::READY)
     {

@@ -176,9 +176,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                      "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
                      "pitch: {:f}, yaw: {:f}",
                      roll, pitch, yaw);
-            // DeathStack::getInstance()
-            //     ->state_machines->nas_controller->setInitialOrientation(
-            //         roll, pitch, yaw);
+            DeathStack::getInstance()->state_machines->setInitialOrientation(
+                roll, pitch, yaw);
             break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event

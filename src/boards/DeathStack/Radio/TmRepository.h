@@ -46,6 +46,10 @@
 #include "NavigationSystem/NASData.h"
 #include "AeroBrakesController/AeroBrakesData.h"
 #include "Sensors/SensorStatus.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 namespace DeathStackBoard
 {
 
@@ -316,5 +320,16 @@ void TmRepository::update<ADAData>(const ADAData& t);
 // /* FlightStatsRecorder hbridge test stats */
 // template <>
 // void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
+
+#ifdef HARDWARE_IN_THE_LOOP
+template <>
+void TmRepository::update<HILImuData>(const HILImuData& t);
+
+template <>
+void TmRepository::update<HILBaroData>(const HILBaroData& t);
+
+template <>
+void TmRepository::update<HILGpsData>(const HILGpsData& t);
+#endif
 
 }  // namespace DeathStackBoard

@@ -266,7 +266,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 #ifdef DEBUG
     if (counter == 50)
     {
-        TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
+        //TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
         TRACE("[NAS] z : %.2f - vz : %.2f - vMod : %.2f \n", nas_data.z,
              nas_data.vz, nas_data.vMod);
 

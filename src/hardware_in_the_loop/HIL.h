@@ -22,9 +22,10 @@
 
 #pragma once
 
-#include "HIL_sensors/HILSensors.h"
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
 #include "hardware_in_the_loop/HILFlightPhasesManager.h"
-#include "simulator_communication/HILTransceiver.h"
+#include "hardware_in_the_loop/simulator_communication/HILTransceiver.h"
+#include "hardware_in_the_loop/HILConfig.h"
 #include "NavigationSystem/NASData.h"
 
 /**
@@ -45,19 +46,9 @@ public:
 
     void stop() { simulator->stop(); }
 
-    bool isSimulationStarted()
+    void send(ActuatorData d)
     {
-        return flightPhasesManager->isSimulationStarted();
-    }
-
-    bool isSimulationStopped()
-    {
-        return flightPhasesManager->isSimulationStopped();
-    }
-
-    bool isSimulationRunning()
-    {
-        return flightPhasesManager->isSimulationRunning();
+        simulator->setActuatorData(d);
     }
 
     /**
@@ -72,7 +63,22 @@ public:
 
     void setNAS(Sensor<DeathStackBoard::NASData>* nas)
     {
-        flightPhasesManager->setDataForOutcomes(nas);
+        flightPhasesManager->setSourceForOutcomes(nas);
+    }
+
+    bool isSimulationStarted()
+    {
+        return flightPhasesManager->isSimulationStarted();
+    }
+
+    bool isSimulationStopped()
+    {
+        return flightPhasesManager->isSimulationStopped();
+    }
+
+    bool isSimulationRunning()
+    {
+        return flightPhasesManager->isSimulationRunning();
     }
 
 private:

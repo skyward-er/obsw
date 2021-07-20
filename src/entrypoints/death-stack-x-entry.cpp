@@ -55,17 +55,18 @@ int main()
         LoggerService::getInstance()->log(
             LoggerService::getInstance()->getLogger().getLogStats());
 
-        cpu_stat.add(averageCpuUtilization());
+        float cpu = averageCpuUtilization();
+        cpu_stat.add(cpu);
 
         // LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
         //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
         //        cpu_stat.getStats().minValue);
-        TRACE("CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        /*TRACE("CPU : curr: %.2f   avg: %.2f   max: %.2f   min: %.2f \n", cpu,
               cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
               cpu_stat.getStats().minValue);
         TRACE(
-            "Memory : absolute free heap : %.2f    current free heap : %.2f \n",
+            "Memory : absolute free heap : %u    current free heap : %u \n",
             MemoryProfiling::getAbsoluteFreeHeap(),
-            MemoryProfiling::getCurrentFreeHeap());
+            MemoryProfiling::getCurrentFreeHeap());*/
     }
 }

@@ -89,6 +89,8 @@ public:
 
     bool start();
 
+    void setInitialOrientation(float roll, float pitch, float yaw);
+
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
 };

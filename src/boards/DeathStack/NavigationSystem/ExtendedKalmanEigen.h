@@ -104,31 +104,20 @@ private:
     Matrix3f Q_pos;
     Matrix3f Q_vel;
     Matrix<float, NL, NL> Q_lin;
-    
+
     Vector3f g;
     Matrix2f eye2;
     Matrix3f eye3;
     Matrix4f eye4;
     Matrix<float, 6, 6> eye6;
 
-    float h_bar;
-    float res_bar;
     Matrix<float, NBAR, NBAR> R_bar;
-    Matrix<float, NBAR, NBAR> S_bar;
-    Matrix<float, NL, NBAR> K_bar;
-    Matrix<float, NBAR, NL> H_bar;
 
-    Matrix<float, NGPS, 1> h_gps;
-    Matrix<float, NGPS, 1> res_gps;
     Matrix<float, NGPS, NGPS> R_gps;
-    Matrix<float, NGPS, NGPS> S_gps;
-    Matrix<float, NL, NGPS> K_gps;
     Matrix<float, NGPS, NL> H_gps;
     Matrix<float, NL, NGPS> H_gpstr;
 
     Vector4f q;
-    Vector3f prev_bias;
-    Matrix<float, NMAG, NMAG> Satt;
     Matrix<float, NMAG, NMAG> R_mag;
     Matrix<float, NMEKF, NMEKF> Q_mag;
     Matrix<float, NMEKF, NMEKF> Fatt;
@@ -136,8 +125,6 @@ private:
     Matrix<float, NMEKF, NMEKF> Gatt;
     Matrix<float, NMEKF, NMEKF> Gatttr;
     Matrix<float, NMEKF, NMEKF> Patt;
-    Matrix<float, NMAG, NMEKF> Hatt;
-    Matrix<float, NMEKF, NMAG> Katt;
 
     SkyQuaternion quater;
 };

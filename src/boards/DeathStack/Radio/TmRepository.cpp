@@ -195,6 +195,12 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
 /* Components TM upaters */
 
 template <>
+void TmRepository::update<AeroBrakesControllerStatus>(const AeroBrakesControllerStatus& t)
+{
+    tm_repository.hr_tm.ab_state = (uint8_t)t.state;
+}
+
+template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t)
 {
     tm_repository.wind_tm.ab_angle = t.servo_position;
@@ -519,15 +525,17 @@ template <>
 void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t)
 {
     tm_repository.ada_tm.state = (uint8_t)t.state;
+
+    tm_repository.hr_tm.ada_state = (uint8_t)t.state;
 }
 
-// /* ADA target dpl pressure */
-// template <>
-// void TmRepository::update<TargetDeploymentAltitude>(
-//     const TargetDeploymentAltitude& t)
-// {
-//     tm_repository.ada_tm.target_dpl_altitude = t.deployment_altitude;
-// }
+/* ADA target dpl pressure */
+template <>
+void TmRepository::update<TargetDeploymentAltitude>(
+    const TargetDeploymentAltitude& t)
+{
+    tm_repository.ada_tm.target_dpl_altitude = t.deployment_altitude;
+}
 
 /* ADA kalman filter values */
 template <>
@@ -564,12 +572,6 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
     tm_repository.ada_tm.ref_pressure    = t.ref_pressure;
     tm_repository.ada_tm.ref_temperature = t.ref_temperature;
 }
-
-// template <>
-// void TmRepository::update<MS5803Data>(const MS5803Data& t)
-// {
-//     hr_pkt.pressure_digi = t.pressure;
-// }
 
 // template <>
 // void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
@@ -643,5 +645,69 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
 //     tm_repository.dpl_tm.cutter_1_test_current = t.cutter_1_avg;
 //     tm_repository.dpl_tm.cutter_2_test_current = t.cutter_2_avg;
 // }
+
+#ifdef HARDWARE_IN_THE_LOOP
+template <>
+void TmRepository::update<HILImuData>(const HILImuData& t)
+{
+    tm_repository.sensors_tm.bmx160_acc_x = t.accel_x;
+    tm_repository.sensors_tm.bmx160_acc_y = t.accel_y;
+    tm_repository.sensors_tm.bmx160_acc_z = t.accel_z;
+
+    tm_repository.sensors_tm.bmx160_gyro_x = t.gyro_x;
+    tm_repository.sensors_tm.bmx160_gyro_y = t.gyro_y;
+    tm_repository.sensors_tm.bmx160_gyro_z = t.gyro_z;
+
+    tm_repository.sensors_tm.bmx160_mag_x = t.mag_x;
+    tm_repository.sensors_tm.bmx160_mag_y = t.mag_y;
+    tm_repository.sensors_tm.bmx160_mag_z = t.mag_z;
+
+    tm_repository.hr_tm.acc_x = t.accel_x;
+    tm_repository.hr_tm.acc_y = t.accel_y;
+    tm_repository.hr_tm.acc_z = t.accel_z;
+
+    tm_repository.hr_tm.gyro_x = t.gyro_x;
+    tm_repository.hr_tm.gyro_y = t.gyro_y;
+    tm_repository.hr_tm.gyro_z = t.gyro_z;
+
+    tm_repository.hr_tm.mag_x = t.mag_x;
+    tm_repository.hr_tm.mag_y = t.mag_y;
+    tm_repository.hr_tm.mag_z = t.mag_z;
+}
+
+template <>
+void TmRepository::update<HILBaroData>(const HILBaroData& t)
+{
+    tm_repository.wind_tm.pressure_digital = t.press;
+    tm_repository.sensors_tm.ms5803_press  = t.press;
+
+    tm_repository.hr_tm.pressure_digi = t.press;
+}
+
+template <>
+void TmRepository::update<HILGpsData>(const HILGpsData& t)
+{
+    // GPS_TM
+    tm_repository.gps_tm.lat          = t.latitude;
+    tm_repository.gps_tm.lon          = t.longitude;
+    tm_repository.gps_tm.altitude     = t.height;
+    tm_repository.gps_tm.vel_north    = t.velocity_north;
+    tm_repository.gps_tm.vel_east     = t.velocity_east;
+    tm_repository.gps_tm.vel_down     = t.velocity_down;
+    tm_repository.gps_tm.vel_mag      = t.speed;
+    tm_repository.gps_tm.fix          = (uint8_t)t.fix;
+    tm_repository.gps_tm.track        = t.track;
+    tm_repository.gps_tm.n_satellites = t.num_satellites;
+
+    // HR TM
+    tm_repository.hr_tm.gps_lat = t.latitude;
+    tm_repository.hr_tm.gps_lon = t.longitude;
+    tm_repository.hr_tm.gps_alt = t.height;
+    tm_repository.hr_tm.gps_fix = (uint8_t)t.fix;
+
+    // TEST TM
+    tm_repository.test_tm.gps_nsats = t.num_satellites;
+}
+#endif
 
 }  // namespace DeathStackBoard
