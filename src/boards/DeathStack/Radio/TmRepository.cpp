@@ -217,7 +217,7 @@ void TmRepository::update<WindData>(const WindData& t)
 }
 
 template <>
-void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t)
+void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
 {
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_PRIMARY)
     {
@@ -233,7 +233,8 @@ void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t)
 }
 
 template <>
-void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t)
+void TmRepository::update<BatteryVoltageSensorData>(
+    const BatteryVoltageSensorData& t)
 {
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
     {

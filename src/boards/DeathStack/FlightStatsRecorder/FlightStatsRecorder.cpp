@@ -22,12 +22,13 @@
  */
 
 #include "FlightStatsRecorder.h"
+
 #include <cmath>
 
-#include "System/StackLogger.h"
-#include "events/Events.h"
 #include "LoggerService.h"
+#include "System/StackLogger.h"
 #include "events/EventBroker.h"
+#include "events/Events.h"
 
 namespace DeathStackBoard
 {

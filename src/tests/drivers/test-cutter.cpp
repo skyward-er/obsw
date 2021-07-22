@@ -60,8 +60,9 @@ static constexpr float ADC_TO_CURR_COEFF = ADC_TO_CURR_DKILIS / ADC_TO_CURR_RIS;
 static constexpr float ADC_TO_CURR_OFFSET =
     ADC_TO_CURR_DKILIS * ADC_TO_CURR_IISOFF;
 
-function<float(float)> adc_to_current = [](float adc_in) {
-    return ADC_TO_CURR_DKILIS * (adc_in/ADC_TO_CURR_RIS - ADC_TO_CURR_IISOFF);
+function<float(float)> adc_to_current = [](float adc_in)
+{
+    return ADC_TO_CURR_DKILIS * (adc_in / ADC_TO_CURR_RIS - ADC_TO_CURR_IISOFF);
 };
 
 bool finished = false;
@@ -203,7 +204,7 @@ void elapsedTimeAndCsense(void *args)
         internalADC.sample();
         current_sensor.sample();
 
-        CurrentSenseData current_data = current_sensor.getLastSample();
+        CurrentSensorData current_data = current_sensor.getLastSample();
         printf("Elapsed time : %.2f\tCsense: %.4fV %.3fA\n", (t - t0) / 1000.0,
                current_data.voltage, current_data.current);
     }

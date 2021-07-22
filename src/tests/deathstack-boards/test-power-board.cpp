@@ -137,7 +137,7 @@ void sampleBatteryVoltage()
     {
         internalADC.sample();
         batterySensor.sample();
-        BatteryVoltageData data = batterySensor.getLastSample();
+        BatteryVoltageSensorData data = batterySensor.getLastSample();
 
         // Calculate a simple linear battery percentage
         float batteryPercentage = 100 * (data.bat_voltage - 9.6) / (12.6 - 9.6);

@@ -350,7 +350,7 @@ void Sensors::gpsUbloxInit()
 
 void Sensors::internalAdcCallback()
 {
-    LoggerService::getInstance()->log(internal_adc->getLastSample());
+    // LoggerService::getInstance()->log(internal_adc->getLastSample());
 }
 
 void Sensors::batteryVoltageCallback()
@@ -405,7 +405,7 @@ void Sensors::pressDigiCallback()
 
 void Sensors::ADS1118Callback()
 {
-    LoggerService::getInstance()->log(adc_ads1118->getLastSample());
+    // LoggerService::getInstance()->log(adc_ads1118->getLastSample());
 }
 
 void Sensors::pressPitotCallback()

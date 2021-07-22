@@ -26,25 +26,25 @@
 #include <Singleton.h>
 #include <drivers/Xbee/APIFramesLog.h>
 #include <drivers/adc/ADS1118/ADS1118Data.h>
+#include <drivers/gps/ublox/UbloxGPSData.h>
+#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
+#include <sensors/analog/battery/BatteryVoltageSensorData.h>
+#include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-#include <sensors/BMX160/BMX160Data.h>
-#include <sensors/LIS3MDL/LIS3MDLData.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 
-#include "DeathStackStatus.h"
-
-#include "Radio/Mavlink.h"
-#include "AeroBrakesController/WindData.h"
-#include "PinHandler/PinHandlerData.h"
-
-#include "FlightModeManager/FMMStatus.h"
-#include "DeploymentController/DeploymentData.h"
 #include "ADA/ADAData.h"
-#include "NavigationSystem/NASData.h"
 #include "AeroBrakesController/AeroBrakesData.h"
+#include "AeroBrakesController/WindData.h"
+#include "DeathStackStatus.h"
+#include "DeploymentController/DeploymentData.h"
+#include "FlightModeManager/FMMStatus.h"
+#include "NavigationSystem/NASData.h"
+#include "PinHandler/PinHandlerData.h"
+#include "Radio/Mavlink.h"
 #include "Sensors/SensorStatus.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -81,7 +81,8 @@ public:
 
     // /**
     //  * @brief Add a new packed HR packet to the HR telemetry message.
-    //  * The telemetry message contains multiple HR packets to reduce the impact
+    //  * The telemetry message contains multiple HR packets to reduce the
+    //  impact
     //  * of mavlink overhead.
     //  * @return true if the HR message is full, i.e. ready to be sent
     //  */
@@ -197,8 +198,8 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 template <>
 void TmRepository::update<WindData>(const WindData& t);
 
-template <>
-void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
+// template <>
+// void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
 
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t);
@@ -226,16 +227,16 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
 
 /* Battery status, sampled by internal ADC */
 template <>
-void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
+void TmRepository::update<BatteryVoltageSensorData>(
+    const BatteryVoltageSensorData& t);
 
 /* Motor current sense, sampled by internal ADC */
 template <>
-void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
+void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t);
 
 template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t);
-
 
 /* Logger */
 template <>
@@ -253,7 +254,7 @@ void TmRepository::update<FMMStatus>(const FMMStatus& t);
 template <>
 void TmRepository::update<NASStatus>(const NASStatus& t);
 
-template<>
+template <>
 void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
 
 /* Launch and Nosecone detachment pins and DPL servo optical sensor */
