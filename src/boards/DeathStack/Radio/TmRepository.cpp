@@ -222,11 +222,13 @@ void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t)
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_PRIMARY)
     {
         tm_repository.sensors_tm.c_sense_1 = t.current;
+        tm_repository.hr_tm.csense1        = t.current;
     }
     else if (t.channel_id ==
              DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_BACKUP)
     {
         tm_repository.sensors_tm.c_sense_2 = t.current;
+        tm_repository.hr_tm.csense2        = t.current;
     }
 }
 

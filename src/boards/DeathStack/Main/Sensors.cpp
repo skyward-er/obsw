@@ -151,7 +151,15 @@ void Sensors::primaryCutterCurrentInit()
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
     function<float(float)> adc_to_current = [](float adc_in)
-    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
+    {
+        float current =
+            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+        if (current < 0)
+        {
+            return (float)0;
+        }
+        return current;
+    };
     cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -169,7 +177,15 @@ void Sensors::backupCutterCurrentInit()
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
     function<float(float)> adc_to_current = [](float adc_in)
-    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
+    {
+        float current =
+            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+        if (current < 0)
+        {
+            return (float)0;
+        }
+        return current;
+    };
     cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,

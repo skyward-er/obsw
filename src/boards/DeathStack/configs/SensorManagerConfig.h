@@ -45,9 +45,9 @@ static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
 
 static constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
 
-static constexpr float CS_CURR_DKILIS = 10250.0;  // Typ: 19.5
+static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
 static constexpr float CS_CURR_RIS    = 510;
-static constexpr float CS_CURR_IISOFF = .000166;  // Typ: 170uA
+static constexpr float CS_CURR_IISOFF = .000170;  // Typ: 170uA
 
 static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
 static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
