@@ -53,12 +53,12 @@ bool TMTCManager::send(const uint8_t tm_id)
 {
     MavDriver* mav_driver = DeathStack::getInstance()->radio->mav_driver;
     TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
-    bool ok = false;
+    bool ok               = false;
 
 #ifdef TELEMETRY_OVER_SERIAL
     uint8_t buf[256];
     mavlink_message_t msg = tm_repo->packTM(tm_id);
-    uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+    uint16_t len          = mavlink_msg_to_send_buffer(buf, &msg);
     fwrite(buf, sizeof(uint8_t), len, stdout);
     fflush(stdout);
     ok = true;
@@ -86,8 +86,9 @@ void TMTCManager::stateGroundTM(const Event& ev)
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
             // periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
             //     Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
-            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            periodicSensEvId =
+                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             TRACE("[TMTC] Entering stateGroundTM\n");
 
@@ -128,8 +129,9 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_SEND_SENS_TM:
         {
             // TRACE("[TMTC] Sending SENS_TM\n");
-            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            periodicSensEvId =
+                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             // send tm
             send(MAV_SENSORS_TM_ID);
@@ -205,7 +207,7 @@ void TMTCManager::stateSensorTM(const Event& ev)
 
 void TMTCManager::stateFlightTM(const Event& ev)
 {
-    TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     switch (ev.sig)
     {
         case EV_ENTRY:

@@ -43,7 +43,7 @@ static constexpr InternalADC::Channel ADC_CS_CUTTER_PRIMARY =
 static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
     InternalADC::Channel::CH4;
 
-static constexpr float BATTERY_VOLTAGE_COEFF = 3.681;
+static constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
 
 static constexpr float CS_CURR_DKILIS = 10250.0;  // Typ: 19.5
 static constexpr float CS_CURR_RIS    = 510;

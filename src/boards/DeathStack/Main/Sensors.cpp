@@ -150,9 +150,8 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-    };
+    function<float(float)> adc_to_current = [](float adc_in)
+    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
     cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -169,9 +168,8 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-    };
+    function<float(float)> adc_to_current = [](float adc_in)
+    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
     cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -369,12 +367,12 @@ void Sensors::hilSensorsInit()
     hil_baro = new HILBarometer(simulator, N_DATA_BARO);
     hil_gps  = new HILGps(simulator, N_DATA_GPS);
 
-    SensorInfo info_imu("HILImu", HIL_IMU_PERIOD, bind(&Sensors::hilIMUCallback, this),
-                        false, true);
-    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD, bind(&Sensors::hilBaroCallback, this),
-                         false, true);
-    SensorInfo info_gps("HILGps", HIL_GPS_PERIOD, bind(&Sensors::hilGPSCallback, this),
-                        false, true);
+    SensorInfo info_imu("HILImu", HIL_IMU_PERIOD,
+                        bind(&Sensors::hilIMUCallback, this), false, true);
+    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
+                         bind(&Sensors::hilBaroCallback, this), false, true);
+    SensorInfo info_gps("HILGps", HIL_GPS_PERIOD,
+                        bind(&Sensors::hilGPSCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(hil_imu, info_imu));
     sensors_map.emplace(std::make_pair(hil_baro, info_baro));

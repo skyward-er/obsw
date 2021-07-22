@@ -195,7 +195,8 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
 /* Components TM upaters */
 
 template <>
-void TmRepository::update<AeroBrakesControllerStatus>(const AeroBrakesControllerStatus& t)
+void TmRepository::update<AeroBrakesControllerStatus>(
+    const AeroBrakesControllerStatus& t)
 {
     tm_repository.hr_tm.ab_state = (uint8_t)t.state;
 }
@@ -234,8 +235,8 @@ void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t)
 {
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
     {
-        tm_repository.hr_tm.vbat      = t.voltage;
-        tm_repository.sensors_tm.vbat = t.voltage;
+        tm_repository.hr_tm.vbat      = t.bat_voltage;
+        tm_repository.sensors_tm.vbat = t.bat_voltage;
     }
 }
 
@@ -273,8 +274,8 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 {
     tm_repository.wind_tm.pressure_differential = t.press;
     tm_repository.sensors_tm.pitot_press        = t.press;
-    
-    //tm_repository.hr_tm.airspeed_pitot = ?;
+
+    // tm_repository.hr_tm.airspeed_pitot = ?;
 }
 
 template <>
@@ -551,7 +552,7 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
 
     // HR_TM
     tm_repository.hr_tm.pressure_ada = t.x0;
-    //tm_repository.hr_tm.vert_accel = t.x2;
+    // tm_repository.hr_tm.vert_accel = t.x2;
 }
 
 // /* ADA kalman altitude values */
