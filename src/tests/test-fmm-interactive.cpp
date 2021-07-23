@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,19 +13,17 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G FROM,
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
 #include <FlightModeManager/FlightModeManager.h>
-#include <events/utils/EventSniffer.h>
-
 #include <events/Events.h>
 #include <events/Topics.h>
-
+#include <events/utils/EventSniffer.h>
 #include <inttypes.h>
 
 using namespace miosix;
@@ -33,7 +31,8 @@ using namespace DeathStackBoard;
 
 void printEvent(uint8_t event, uint8_t topic)
 {
-    TRACE("%s on %s\n", getEventString(event).c_str(), getTopicString(topic).c_str());
+    TRACE("%s on %s\n", getEventString(event).c_str(),
+          getTopicString(topic).c_str());
 }
 int main()
 {
@@ -41,15 +40,16 @@ int main()
     FlightModeManager* fmm = new FlightModeManager();
     fmm->start();
 
-    EventSniffer* sniffer = new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
-    UNUSED(sniffer); // The sniffer's handler will be called by evBroker
+    EventSniffer* sniffer =
+        new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
+    UNUSED(sniffer);  // The sniffer's handler will be called by evBroker
 
     printf("\nOk\n");
 
     Event ev;
     int topic;
 
-    while(true)
+    while (true)
     {
         printf("Choose an event\n");
         printf("ID:\n");

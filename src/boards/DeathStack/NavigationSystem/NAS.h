@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -268,7 +268,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     {
         TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
         TRACE("[NAS] z : %.2f - vz : %.2f - vMod : %.2f \n", nas_data.z,
-             nas_data.vz, nas_data.vMod);
+              nas_data.vz, nas_data.vMod);
 
         counter = 0;
 
@@ -344,11 +344,11 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
     TRACE("[NAS] Initial orientation set to : {%f, %f, %f} \n", roll, pitch,
           yaw);
     TRACE(
-            "State vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
-            "vy: %.2f \n vz: %.2f \n roll: %.2f \n pitch: %.2f \n yaw: %.2f \n "
-            "q1: %.2f \n q2: %.2f \n q3: %.2f \n q4 : % .2f \n\n ",
-            x(0), x(1), x(2), x(3), x(4), x(5), roll, pitch, yaw, x(6), x(7),
-            x(8), x(9));
+        "State vector: \n px: %.2f \n py: %.2f \n pz: %.2f \n vx: %.2f \n "
+        "vy: %.2f \n vz: %.2f \n roll: %.2f \n pitch: %.2f \n yaw: %.2f \n "
+        "q1: %.2f \n q2: %.2f \n q3: %.2f \n q4 : % .2f \n\n ",
+        x(0), x(1), x(2), x(3), x(4), x(5), roll, pitch, yaw, x(6), x(7), x(8),
+        x(9));
 }
 
 }  // namespace DeathStackBoard

@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -27,18 +26,18 @@ namespace DeathStackBoard
 {
 Actuators::Actuators()
 {
-    //aerobrakes = new AeroBrakesServo();
-    //aerobrakes->enable();
-    //aerobrakes->reset();
+    // aerobrakes = new AeroBrakesServo();
+    // aerobrakes->enable();
+    // aerobrakes->reset();
 
-    //dpl_servo = new DeploymentServo();
-    //dpl_servo->enable();
-    //dpl_servo->reset();
+    // dpl_servo = new DeploymentServo();
+    // dpl_servo->enable();
+    // dpl_servo->reset();
 }
 
 Actuators::~Actuators()
 {
-    //delete aerobrakes;
-    //delete dpl_servo;
+    // delete aerobrakes;
+    // delete dpl_servo;
 }
 }  // namespace DeathStackBoard

@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019-2020 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/* Copyright (c) 2019-2020 Skyward Experimental Rocketry
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,25 +25,23 @@
 #include <Singleton.h>
 #include <drivers/Xbee/APIFramesLog.h>
 #include <drivers/adc/ADS1118/ADS1118Data.h>
+#include <drivers/gps/ublox/UbloxGPSData.h>
+#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-#include <sensors/BMX160/BMX160Data.h>
-#include <sensors/LIS3MDL/LIS3MDLData.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 
-#include "DeathStackStatus.h"
-
-#include "Radio/Mavlink.h"
-#include "AeroBrakesController/WindData.h"
-#include "PinHandler/PinHandlerData.h"
-
-#include "FlightModeManager/FMMStatus.h"
-#include "DeploymentController/DeploymentData.h"
 #include "ADA/ADAData.h"
-#include "NavigationSystem/NASData.h"
 #include "AeroBrakesController/AeroBrakesData.h"
+#include "AeroBrakesController/WindData.h"
+#include "DeathStackStatus.h"
+#include "DeploymentController/DeploymentData.h"
+#include "FlightModeManager/FMMStatus.h"
+#include "NavigationSystem/NASData.h"
+#include "PinHandler/PinHandlerData.h"
+#include "Radio/Mavlink.h"
 #include "Sensors/SensorStatus.h"
 namespace DeathStackBoard
 {
@@ -77,7 +74,8 @@ public:
 
     // /**
     //  * @brief Add a new packed HR packet to the HR telemetry message.
-    //  * The telemetry message contains multiple HR packets to reduce the impact
+    //  * The telemetry message contains multiple HR packets to reduce the
+    //  impact
     //  * of mavlink overhead.
     //  * @return true if the HR message is full, i.e. ready to be sent
     //  */
@@ -232,7 +230,6 @@ template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t);
 
-
 /* Logger */
 template <>
 void TmRepository::update<LogStats>(const LogStats& t);
@@ -249,7 +246,7 @@ void TmRepository::update<FMMStatus>(const FMMStatus& t);
 template <>
 void TmRepository::update<NASStatus>(const NASStatus& t);
 
-template<>
+template <>
 void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
 
 /* Launch and Nosecone detachment pins and DPL servo optical sensor */

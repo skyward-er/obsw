@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Riccardo Musso
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Riccardo Musso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,6 +24,7 @@
 #include <drivers/HardwareTimer.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <sensors/BMX160/BMX160.h>
+
 #include "Sensors/BMX160Calibrator.h"
 
 SPIBus bus(SPI1);
@@ -100,7 +100,8 @@ int main()
 
     TRACE("Self-test successful!\n");
 
-    while(corrector.calibrate()){
+    while (corrector.calibrate())
+    {
         sensor->sample();
         corrector.sample();
     }
@@ -150,15 +151,17 @@ int main()
         BMX160DataCorrected data_corrected = corrector.getLastSample();
 
         printf("Mag [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.mag_timestamp / 1000000.0f, data_corrected.mag_x, data_corrected.mag_y,
-               data_corrected.mag_z);
+               data_corrected.mag_timestamp / 1000000.0f, data_corrected.mag_x,
+               data_corrected.mag_y, data_corrected.mag_z);
 
         printf("Gyr [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.gyro_timestamp / 1000000.0f, data_corrected.gyro_x, data_corrected.gyro_y,
+               data_corrected.gyro_timestamp / 1000000.0f,
+               data_corrected.gyro_x, data_corrected.gyro_y,
                data_corrected.gyro_z);
 
         printf("Acc [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.accel_timestamp / 1000000.0f, data_corrected.accel_x, data_corrected.accel_y,
+               data_corrected.accel_timestamp / 1000000.0f,
+               data_corrected.accel_x, data_corrected.accel_y,
                data_corrected.accel_z);
     }
 

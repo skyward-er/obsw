@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -24,7 +23,6 @@
 #include "Radio.h"
 
 #include <drivers/Xbee/APIFramesLog.h>
-
 #include <drivers/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
@@ -67,7 +65,7 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
     Xbee::setDataRate(*xbee, true, 5000);
-    
+
     mav_driver = new MavDriver(xbee, handleMavlinkMessage, 0,
                                1000);  // TODO: Use settings
 
@@ -88,10 +86,7 @@ Radio::~Radio()
     delete xbee;
 }
 
-bool Radio::start()
-{
-    return mav_driver->start() && tmtc_manager->start();
-}
+bool Radio::start() { return mav_driver->start() && tmtc_manager->start(); }
 
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 {

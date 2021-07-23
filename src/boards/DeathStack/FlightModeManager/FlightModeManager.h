@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -22,14 +22,13 @@
 
 #pragma once
 
-#include "Singleton.h"
+#include <miosix.h>
 
 #include "FMMStatus.h"
+#include "LoggerService/LoggerService.h"
+#include "Singleton.h"
 #include "events/Event.h"
 #include "events/HSM.h"
-#include "LoggerService/LoggerService.h"
-
-#include <miosix.h>
 
 using miosix::FastMutex;
 using miosix::Lock;
@@ -63,7 +62,6 @@ public:
     /* Test mode, listen to serial and print stuff on serial */
     State state_testMode(const Event& ev);
 
-
     /* Calibrating sensors */
     State state_sensorsCalibration(const Event& ev);
     /* Calibrating ADA and NAS */
@@ -78,7 +76,7 @@ public:
     /// FLYING
 
     /* Handle TC_OPEN and END_MISSION (super-state) */
-    State state_flying(const Event& ev);                // super-state
+    State state_flying(const Event& ev);  // super-state
     /* Liftoff */
     State state_ascending(const Event& ev);
     /* Apogee reached, deploy drogue and wait half altitude (or manual mode) */
@@ -91,10 +89,8 @@ public:
     /* Close file descriptors */
     State state_landed(const Event& ev);
 
-    FMMStatus getStatus()
-    {
-        return status;
-    }
+    FMMStatus getStatus() { return status; }
+
 private:
     void logState(FMMState current_state);
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2020-2021 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,6 +26,7 @@
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/utils/EventCounter.h>
+
 #include "TimestampTimer.h"
 #include "miosix.h"
 #include "scheduler/TaskScheduler.h"
@@ -39,9 +40,9 @@
 #include "ADA/ADAController.h"
 #include "AeroBrakesController/AeroBrakesController.h"
 #include "DeploymentController/DeploymentController.h"
+#include "FlightModeManager/FlightModeManager.h"
 #include "NavigationSystem/NASController.h"
 #include "PinHandler/PinHandler.h"
-#include "FlightModeManager/FlightModeManager.h"
 #include "diagnostic/CpuMeter.h"
 
 using namespace std;
@@ -132,7 +133,8 @@ void threadFunc(void* arg)
     HIL::getInstance()->setNAS(&nas_controller.getNAS());
 
     /*-------------- [CA] Control Algorithm --------------*/
-    AeroBrakesController<NASData> aerobrakes_controller(nas_controller.getNAS());
+    AeroBrakesController<NASData> aerobrakes_controller(
+        nas_controller.getNAS());
 
     /*-------------- [DPL] Deployment Controller --------------*/
     DeploymentController dpl_controller;
@@ -191,8 +193,8 @@ void threadFunc(void* arg)
     ada_controller.start();
     nas_controller.start();
     aerobrakes_controller.start();
-    //dpl_controller.start();
-    //pin_handler.start();
+    // dpl_controller.start();
+    // pin_handler.start();
     scheduler.start();  // started only the scheduler instead of the SM
 
     sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
@@ -238,7 +240,6 @@ int main()
         }
 
         Thread::sleep(500);
-        
     }
 
     return 0;

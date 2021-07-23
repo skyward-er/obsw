@@ -1,5 +1,5 @@
 /* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -21,8 +21,9 @@
  */
 
 #include "IgnitionController.h"
-#include "configs/IgnitionConfig.h"
+
 #include "boards/CanInterfaces.h"
+#include "configs/IgnitionConfig.h"
 #include "events/Events.h"
 
 namespace DeathStackBoard
@@ -55,18 +56,17 @@ void IgnitionController::logStatus()
     logger.log(status);
 }
 
-
 bool IgnitionController::updateIgnBoardStatus(const Event& ev)
 {
     const CanbusEvent& cev = static_cast<const CanbusEvent&>(ev);
 
     // Check event
     if (cev.canTopic == CAN_TOPIC_IGNITION &&
-            cev.len == sizeof(IgnitionBoardStatus))
+        cev.len == sizeof(IgnitionBoardStatus))
     {
         // Update internal board status struct
         memcpy(&(loggable_board_status.board_status), cev.payload,
-                                                    sizeof(IgnitionBoardStatus));
+               sizeof(IgnitionBoardStatus));
 
         // Log internal board status struct
         loggable_board_status.timestamp = miosix::getTick();
@@ -78,7 +78,6 @@ bool IgnitionController::updateIgnBoardStatus(const Event& ev)
     // Event not directed to me
     return false;
 }
-
 
 /**
  * States
@@ -98,7 +97,8 @@ void IgnitionController::stateIdle(const Event& ev)
             ign_offline_delayed_id = sEventBroker->postDelayed(
                 {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS, TIMEOUT_IGN_OFFLINE);
 
-            // Send first getstatus event, which will be periodically rescheduled
+            // Send first getstatus event, which will be periodically
+            // rescheduled
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
 
             TRACE("IGNCTRL: Entering stateIdle\n");
@@ -116,7 +116,7 @@ void IgnitionController::stateIdle(const Event& ev)
 
             // Send status request on the CAN bus
             uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
-            canbus->send( CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
+            canbus->send(CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
 
             // Post next GETSTATUS event
             get_status_delayed_id = sEventBroker->postDelayed(
@@ -126,8 +126,8 @@ void IgnitionController::stateIdle(const Event& ev)
 
         case EV_NEW_CAN_MSG:
         {
-            // Check that the event is an ignition status: if so, update internal
-            // status
+            // Check that the event is an ignition status: if so, update
+            // internal status
             if (updateIgnBoardStatus(ev))
             {
                 status.n_rcv_messages++;
@@ -136,12 +136,12 @@ void IgnitionController::stateIdle(const Event& ev)
                 sEventBroker->removeDelayed(ign_offline_delayed_id);
                 // Reschedule offline event
                 ign_offline_delayed_id = sEventBroker->postDelayed(
-                    {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS,
-                    TIMEOUT_IGN_OFFLINE);
+                    {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS, TIMEOUT_IGN_OFFLINE);
 
                 static const uint16_t ABORT_BITMASK = 0x0707;
                 uint16_t status_bytes;
-                memcpy(&status_bytes, &loggable_board_status.board_status, sizeof(IgnitionBoardStatus));
+                memcpy(&status_bytes, &loggable_board_status.board_status,
+                       sizeof(IgnitionBoardStatus));
                 if (status_bytes & ABORT_BITMASK)
                 {
                     // We've had an abort.
@@ -166,8 +166,9 @@ void IgnitionController::stateIdle(const Event& ev)
             status.abort_sent = 1;
 
             // Send an ABORT message to the board
-            // NOTE: this does not cause the controller to go in abort state yet: this
-            // state wll be reached only when we have confirmation of the ABORT from the board
+            // NOTE: this does not cause the controller to go in abort state
+            // yet: this state wll be reached only when we have confirmation of
+            // the ABORT from the board
             uint8_t cmd = CAN_MSG_ABORT;
             canbus->send((uint16_t)CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
             break;
@@ -176,14 +177,15 @@ void IgnitionController::stateIdle(const Event& ev)
         case EV_LAUNCH:
         {
             // Send an LAUNCH command to the board
-            // NOTE: this does not cause the controller to change state: the state will
-            // change only when we have confirmation from the board and the detachment pin
-            // signaled the LIFTOFF event.
+            // NOTE: this does not cause the controller to change state: the
+            // state will change only when we have confirmation from the board
+            // and the detachment pin signaled the LIFTOFF event.
             const LaunchEvent& lev = static_cast<const LaunchEvent&>(ev);
             status.n_sent_messages++;
             status.launch_sent = 1;
 
-            canbus->send((uint16_t)CAN_TOPIC_LAUNCH, (uint8_t*)&(lev.launchCode), sizeof(uint64_t));
+            canbus->send((uint16_t)CAN_TOPIC_LAUNCH,
+                         (uint8_t*)&(lev.launchCode), sizeof(uint64_t));
             break;
         }
 
@@ -203,7 +205,8 @@ void IgnitionController::stateAborted(const Event& ev)
             status.fsm_state = IgnitionControllerState::IGN_ABORTED;
             logStatus();
 
-            // Send first getstatus event, which will be periodically rescheduled
+            // Send first getstatus event, which will be periodically
+            // rescheduled
             sEventBroker->post({EV_IGN_GETSTATUS}, TOPIC_IGNITION);
             // Signal abort to rest of the board
             sEventBroker->post({EV_IGN_ABORTED}, TOPIC_FLIGHT_EVENTS);
@@ -220,7 +223,7 @@ void IgnitionController::stateAborted(const Event& ev)
 
             // Send status request on the CAN bus
             uint8_t cmd = CAN_MSG_REQ_IGN_STATUS;
-            canbus->send( CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
+            canbus->send(CAN_TOPIC_HOMEONE, &cmd, sizeof(uint8_t));
 
             // Post next GETSTATUS event
             get_status_delayed_id = sEventBroker->postDelayed(
@@ -249,8 +252,7 @@ void IgnitionController::stateAborted(const Event& ev)
                 sEventBroker->removeDelayed(ign_offline_delayed_id);
                 // Reschedule offline event
                 ign_offline_delayed_id = sEventBroker->postDelayed(
-                    {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS,
-                    TIMEOUT_IGN_OFFLINE);
+                    {EV_IGN_OFFLINE}, TOPIC_FLIGHT_EVENTS, TIMEOUT_IGN_OFFLINE);
 
                 logStatus();
             }
@@ -280,7 +282,7 @@ void IgnitionController::stateEnd(const Event& ev)
             TRACE("IGNCTRL: Exiting stateEnd\n");
             break;
 
-        // No event handled here
+            // No event handled here
 
         default:
             TRACE("IGNCTRL stateEnd: Event %d not handled.\n", ev.sig);
@@ -288,4 +290,4 @@ void IgnitionController::stateEnd(const Event& ev)
     }
 }
 
-}  // namespace HomeoneBoard
+}  // namespace DeathStackBoard

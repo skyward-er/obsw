@@ -1,5 +1,5 @@
 /* Copyright (c) 2020 Skyward Experimental Rocketry
- * Authors: Marco Cella
+ * Author: Marco Cella
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -32,7 +32,7 @@ namespace DeathStackBoard
 namespace NASConfigs
 {
 
-static const unsigned int NAS_UPDATE_PERIOD = 20; // ms -> 50 hz
+static const unsigned int NAS_UPDATE_PERIOD = 20;  // ms -> 50 hz
 
 static const float SAMPLE_RATE = 1000.0F / NAS_UPDATE_PERIOD;  // [Hz]
 
@@ -110,12 +110,12 @@ static const float P0 = 101325.0F;  // [Pa]
 
 // DIMENSIONS OF MATRICES AND VECTORS
 
-static const uint16_t N = 13;  // State vector elements, N x 1
-static const uint16_t NP = N - 1;  // P matrix, N-1 x N-1.
-                                   // Reduced order thanks to the MEKF
-static const uint16_t NATT = 7;  // Number of attitude related elements.
-                                 // Quaternion components and biases:
-                                 // [q1, q2, q3, q4, bx, by, bz]
+static const uint16_t N  = 13;        // State vector elements, N x 1
+static const uint16_t NP = N - 1;     // P matrix, N-1 x N-1.
+                                      // Reduced order thanks to the MEKF
+static const uint16_t NATT = 7;       // Number of attitude related elements.
+                                      // Quaternion components and biases:
+                                      // [q1, q2, q3, q4, bx, by, bz]
 static const uint16_t NL = N - NATT;  // Number of linear elements in the state
                                       // vector. Position and velocity:
                                       // [p_north, p_east, p_down, v_n, v_e, vd]

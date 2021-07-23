@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -144,9 +143,8 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-    };
+    function<float(float)> adc_to_current = [](float adc_in)
+    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
     cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -163,9 +161,8 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-    };
+    function<float(float)> adc_to_current = [](float adc_in)
+    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
     cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,

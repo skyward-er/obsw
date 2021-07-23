@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -88,7 +87,7 @@ void packSensorsTM(mavlink_message_t* out)
     tm.c_sense_1 = sine(2, 0.3, 1, 0);
     tm.c_sense_2 = sine(1.3, 0.4, 2, 77);
 
-    tm.vbat = sine(11, 1, 0.4, 0);
+    tm.vbat    = sine(11, 1, 0.4, 0);
     tm.vbat_5v = sine(11, 1, 0.4, 0);
 
     mavlink_msg_sensors_tm_encode(0, 0, out, &tm);
@@ -110,7 +109,7 @@ void handleMessage(mavlink_message_t& msg)
 {
     mavlink_message_t ack_msg;
     mavlink_ack_tm_t ack;
-    ack.seq_ack = msg.seq;
+    ack.seq_ack    = msg.seq;
     ack.recv_msgid = msg.msgid;
     mavlink_msg_ack_tm_encode(0, 0, &ack_msg, &ack);
 

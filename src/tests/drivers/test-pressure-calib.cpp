@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,26 +13,24 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-#include "configs/SensorManagerConfig.h"
-
-#include "SensorManager/Sensors/AD7994Wrapper.h"
-#include "SensorManager/Sensors/ADCWrapper.h"
-
 #include <drivers/piksi/piksi.h>
+#include <interfaces-impl/hwmapping.h>
 #include <sensors/ADIS16405/ADIS16405.h>
 #include <sensors/LM75B.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <sensors/SensorSampling.h>
-#include "sensors/MS580301BA07/MS580301BA07.h"
 
-#include <interfaces-impl/hwmapping.h>
+#include "SensorManager/Sensors/AD7994Wrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
+#include "configs/SensorManagerConfig.h"
+#include "sensors/MS580301BA07/MS580301BA07.h"
 
 using namespace DeathStackBoard;
 using namespace miosix;
@@ -85,8 +82,9 @@ void update()
 
 void print()
 {
-    printf("%d,%f,%f,%f,%f,%f,%f\n", (int)miosix::getTick(), temp_lm75b_imu->getTemp(),
-           temp_lm75b_analog->getTemp(), pressure_ms5803->getData().temp,
+    printf("%d,%f,%f,%f,%f,%f,%f\n", (int)miosix::getTick(),
+           temp_lm75b_imu->getTemp(), temp_lm75b_analog->getTemp(),
+           pressure_ms5803->getData().temp,
            adc_ad7994->getDataPtr()->honeywell_baro_pressure,
            adc_ad7994->getDataPtr()->nxp_baro_pressure,
            pressure_ms5803->getData().pressure);

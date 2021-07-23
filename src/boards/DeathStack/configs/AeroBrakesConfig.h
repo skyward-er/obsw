@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Vincenzo Santomarco
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -45,8 +44,8 @@ static constexpr float D                      = 0.15; /**< rocket's diameter */
 static constexpr float S0                     = (PI * D * D) / 4.0;
 static constexpr float RHO                    = 1.225;
 static constexpr float Hn                     = 10400.0;
-static constexpr float Kp                       = 55;
-static constexpr float Ki                       = 5;
+static constexpr float Kp                     = 55;
+static constexpr float Ki                     = 5;
 static constexpr float Co                     = 340.3;
 static constexpr float ALPHA                  = -3.871e-3;
 static constexpr float A                      = -1.04034;
@@ -65,7 +64,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
 
 static constexpr float FILTER_COEFF = 0.9;
 
-static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD         = 0.05 * 1000;  // ms -> 20 Hz
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;

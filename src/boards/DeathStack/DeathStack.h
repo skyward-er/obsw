@@ -1,5 +1,5 @@
 /* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Alvise de'Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -94,39 +94,39 @@ public:
 
         if (!broker->start())
         {
-            //LOG_ERR(log, "Error starting EventBroker\n");
+            // LOG_ERR(log, "Error starting EventBroker\n");
             TRACE("Error starting EventBroker\n");
             status.setError(&DeathStackStatus::ev_broker);
         }
 
-        if (!radio->start()) 
+        if (!radio->start())
         {
-            //LOG_ERR(log, "Error starting radio module\n");
+            // LOG_ERR(log, "Error starting radio module\n");
             TRACE("Error starting radio module\n");
             status.setError(&DeathStackStatus::radio);
         }
-       
+
         if (!sensors->start())
         {
-            //LOG_ERR(log, "Error starting sensors\n");
+            // LOG_ERR(log, "Error starting sensors\n");
             TRACE("Error starting sensors\n");
             status.setError(&DeathStackStatus::sensors);
         }
-        
+
         if (!state_machines->start())
         {
-            //LOG_ERR(log, "Error starting state machines\n");
+            // LOG_ERR(log, "Error starting state machines\n");
             TRACE("Error starting state machines\n");
             status.setError(&DeathStackStatus::state_machines);
         }
 
         if (!pin_handler->start())
         {
-            //LOG_ERR(log, "Error starting PinObserver\n");
+            // LOG_ERR(log, "Error starting PinObserver\n");
             TRACE("Error starting PinObserver\n");
             status.setError(&DeathStackStatus::pin_obs);
         }
-        
+
         injector->start();
 
         logger->log(status);
@@ -218,7 +218,7 @@ private:
         sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
         sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
         Thread::sleep(1000);
-        //state_machines->setReferenceValues(109, 15, 450);
+        // state_machines->setReferenceValues(109, 15, 450);
 
         Thread::sleep(10000);
 

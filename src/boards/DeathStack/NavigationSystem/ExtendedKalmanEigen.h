@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+
 #include "configs/NASConfig.h"
 #include "math/SkyQuaternion.h"
 #include "utils/aero/AeroUtils.h"
@@ -40,7 +41,6 @@ class ExtendedKalmanEigen
 {
 
 public:
-
     ExtendedKalmanEigen();
 
     /**
@@ -60,7 +60,8 @@ public:
     /**
      * @brief EKF correction of the gps readings
      *
-     * @param y 4x1 Vector of the gps readings [longitude, latitude, gps_nord_vel, gps_east_vel]
+     * @param y 4x1 Vector of the gps readings [longitude, latitude,
+     * gps_nord_vel, gps_east_vel]
      */
     void correctGPS(const Vector4f& y);
 
@@ -89,7 +90,6 @@ public:
     void setX(const VectorNf& x);
 
 private:
-
     VectorNf x;
     Matrix<float, NP, NP> P;
     Matrix<float, NL, NL> F;
@@ -100,11 +100,11 @@ private:
     Matrix3f P_att;
     Matrix3f P_bias;
     Matrix<float, NL, NL> Plin;
-    
+
     Matrix3f Q_pos;
     Matrix3f Q_vel;
     Matrix<float, NL, NL> Q_lin;
-    
+
     Vector3f g;
     Matrix2f eye2;
     Matrix3f eye3;

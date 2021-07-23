@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2020 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,13 +23,10 @@
 #pragma once
 
 #include "DeathStack.h"
-
+#include "LoggerService/LoggerService.h"
 #include "configs/TMTCConfig.h"
 #include "events/Events.h"
 #include "events/FSM.h"
-#include "DeathStack.h"
-
-#include "LoggerService/LoggerService.h"
 
 namespace DeathStackBoard
 {
@@ -50,8 +47,9 @@ public:
 
     /* Destructor */
     ~TMTCManager();
+
 private:
-/**
+    /**
      * Non-blocking send. Adds the message to an out queue and logs the status.
      *
      * @param tm_id  the id of the TM to be sent. Sends a NACK if the tm was
@@ -62,12 +60,12 @@ private:
 
     LoggerService& logger = *(LoggerService::getInstance());
 
-    uint16_t periodicHrEvId = 0;
-    uint16_t periodicLrEvId = 0;
+    uint16_t periodicHrEvId   = 0;
+    uint16_t periodicLrEvId   = 0;
     uint16_t periodicSensEvId = 0;
     uint16_t periodicTestEvId = 0;
 
-    uint8_t hrPktCounter    = 0;
+    uint8_t hrPktCounter = 0;
 
     /* State handlers */
     void stateGroundTM(const Event& ev);

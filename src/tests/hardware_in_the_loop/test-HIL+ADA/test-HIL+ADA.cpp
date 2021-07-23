@@ -1,5 +1,5 @@
 /* Copyright (c) 2020-2021 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -171,7 +171,8 @@ int main()
 
     /*---------------- [ADA] ADA ---------------*/
     ADAController<HILBaroData, HILGpsData> *ada_controller =
-        new ADAController<HILBaroData, HILGpsData>(*state.barometer, *state.gps);
+        new ADAController<HILBaroData, HILGpsData>(*state.barometer,
+                                                   *state.gps);
 
     // setDeploymentAltitude when starting calibration
     flightPhasesManager->registerToFlightPhase(
@@ -257,8 +258,7 @@ int main()
     while (isSimulationRunning)
     {
         // [TODO] metti nel taskscheduler
-        if (!apogeeReached &&
-            counter.getCount({EV_ADA_APOGEE_DETECTED}) > 0)
+        if (!apogeeReached && counter.getCount({EV_ADA_APOGEE_DETECTED}) > 0)
         {
             flightPhasesManager->setFlagsFlightPhases(APOGEE, true);
             apogeeReached = true;

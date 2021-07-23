@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,14 +30,13 @@
 
 #include "ActiveObject.h"
 #include "DeathStack/Algorithm.h"
+#include "HIL_sensors/HILSensors.h"
+#include "NavigationSystem/NASData.h"
 #include "Singleton.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
 #include "miosix.h"
-#include "NavigationSystem/NASData.h"
 #include "sensors/Sensor.h"
-
-#include "HIL_sensors/HILSensors.h"
 
 using namespace miosix;
 using namespace std;
@@ -151,8 +150,8 @@ public:
             changed_flags.push_back(CALIBRATION);
         }
 
-        if (isSetFalse(CALIBRATION)) // calibration finalized
-        {//*****************************************************************/
+        if (isSetFalse(CALIBRATION))  // calibration finalized
+        {  //*****************************************************************/
             //        temporary until telecommands do not exist        /
             //*****************************************************************/
             sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
@@ -171,7 +170,8 @@ public:
             if (isSetTrue(FLIGHT))
             {
                 t_liftoff = TimestampTimer::getTimestamp();
-                sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
+                sEventBroker->post({EV_UMBILICAL_DETACHED},
+                                   TOPIC_FLIGHT_EVENTS);
 
                 TRACE("------- LIFTOFF ! ------- \n");
                 changed_flags.push_back(FLIGHT);
@@ -237,14 +237,16 @@ public:
         prev_flagsFlightPhases = flagsFlightPhases;
     }
 
-    void setDataForOutcomes(Sensor<DeathStackBoard::NASData>* nas){
+    void setDataForOutcomes(Sensor<DeathStackBoard::NASData>* nas)
+    {
         this->nas = nas;
     }
 
 private:
     void registerOutcomes(FlightPhases phase)
     {
-        outcomes[phase] = Outcomes(nas->getLastSample().z, nas->getLastSample().vz);
+        outcomes[phase] =
+            Outcomes(nas->getLastSample().z, nas->getLastSample().vz);
     }
 
     void printOutcomes()
@@ -356,5 +358,5 @@ private:
     map<FlightPhases, vector<TCallback>> callbacks;
     map<FlightPhases, Outcomes> outcomes;
     Sensor<DeathStackBoard::NASData>* nas;
-    EventCounter *counter;
+    EventCounter* counter;
 };

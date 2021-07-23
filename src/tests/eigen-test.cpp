@@ -1,7 +1,30 @@
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 #include <Common.h>
 #include <miosix.h>
-#include <Eigen/Sparse>
+
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <iomanip>
 #include <iostream>
 
@@ -14,7 +37,8 @@ using miosix::Thread;
 
 void nProducts2Mat(int n, MatrixXd& m1, MatrixXd& m2)
 {
-    HardwareTimer<uint32_t, 2>& hrclock = HardwareTimer<uint32_t, 2>::instance();
+    HardwareTimer<uint32_t, 2>& hrclock =
+        HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 
@@ -33,7 +57,8 @@ void nProducts2Mat(int n, MatrixXd& m1, MatrixXd& m2)
 
 void nProducts3Mat(int n, MatrixXd& m1, MatrixXd& m2, MatrixXd& m3)
 {
-    HardwareTimer<uint32_t, 2>& hrclock = HardwareTimer<uint32_t, 2>::instance();
+    HardwareTimer<uint32_t, 2>& hrclock =
+        HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 
@@ -53,7 +78,8 @@ void nProducts3Mat(int n, MatrixXd& m1, MatrixXd& m2, MatrixXd& m3)
 void kalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
                       MatrixXd& m5, MatrixXd& eye, MatrixXd& v1, MatrixXd& v2)
 {
-    HardwareTimer<uint32_t, 2>& hrclock = HardwareTimer<uint32_t, 2>::instance();
+    HardwareTimer<uint32_t, 2>& hrclock =
+        HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 
@@ -65,14 +91,14 @@ void kalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
 
     uint32_t t1 = hrclock.tick();
 
-    auto F = 0.5 * m1;
-    x      = F * x;
-    P      = F * P * (F.transpose()) + Q;
-    auto H = 2 * m4;
+    auto F     = 0.5 * m1;
+    x          = F * x;
+    P          = F * P * (F.transpose()) + Q;
+    auto H     = 2 * m4;
     auto K     = P * H.transpose() * ((H * P * H.transpose() + R).inverse());
-    auto U = K * (y.transpose() - H * x);
+    auto U     = K * (y.transpose() - H * x);
     auto x_new = x + U;
-    auto P_new      = (eye - K * H) * P;
+    auto P_new = (eye - K * H) * P;
 
     uint32_t t2 = hrclock.tick();
     double time = hrclock.toMilliSeconds(t2 - t1);
@@ -81,11 +107,13 @@ void kalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
     TRACE("\nTime for a single kalman cycle: %f [ms] \n\n", time);
 }
 
-void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
-                      MatrixXd& m5, MatrixXd& eye, MatrixXd& v1, MatrixXd& v2)
+void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3,
+                            MatrixXd& m4, MatrixXd& m5, MatrixXd& eye,
+                            MatrixXd& v1, MatrixXd& v2)
 {
     // H, P and R can't be sparse since their product needs to be inverted.
-    HardwareTimer<uint32_t, 2>& hrclock = HardwareTimer<uint32_t, 2>::instance();
+    HardwareTimer<uint32_t, 2>& hrclock =
+        HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 
@@ -97,11 +125,12 @@ void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& 
 
     uint32_t t1 = hrclock.tick();
 
-    auto F     = 0.5 * m1.sparseView();
-    x          = F * x;
-    P          = F * P * (F.transpose()) + Q;
-    auto H     = 2 * m4;
-    auto K     = (P * (H.transpose()) * ((H * P * H.transpose() + R).inverse())).sparseView();
+    auto F = 0.5 * m1.sparseView();
+    x      = F * x;
+    P      = F * P * (F.transpose()) + Q;
+    auto H = 2 * m4;
+    auto K = (P * (H.transpose()) * ((H * P * H.transpose() + R).inverse()))
+                 .sparseView();
     auto U     = (K * (y.transpose() - H * x)).sparseView();
     auto x_new = x + U;
     auto P_new = (eye - K * H) * P;
@@ -110,12 +139,16 @@ void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& 
     double time = hrclock.toMilliSeconds(t2 - t1);
     hrclock.stop();
 
-    TRACE("\nTime for a single kalman cycle with some sparse matrices: %f [ms] \n\n", time);
+    TRACE(
+        "\nTime for a single kalman cycle with some sparse matrices: %f [ms] "
+        "\n\n",
+        time);
 }
 
 void determinant(MatrixXd& m1)
 {
-    HardwareTimer<uint32_t, 2>& hrclock = HardwareTimer<uint32_t, 2>::instance();
+    HardwareTimer<uint32_t, 2>& hrclock =
+        HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 

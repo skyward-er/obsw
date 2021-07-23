@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -193,7 +192,8 @@ void cutterContinuity()
     int cutter;
 
     cout << "\n\n** CONTINUITY CUTTER TEST **\n\n";
-    cout << "Non-destructive cutter test : duty cycle inserted is divided by 100\n\n";
+    cout << "Non-destructive cutter test : duty cycle inserted is divided by "
+            "100\n\n";
     do
     {
         cout << "Which cutter to test? (1-primary / 2-backup)\n";
@@ -398,7 +398,6 @@ void setServoParameters()
         stringstream(temp) >> resetPosition;
     } while (resetPosition < 0 || resetPosition > 180.0f);
 
-
     cout << "Configured servo parameteres:\n";
     cout << "\tminimum position: " << minPosition << "\n";
     cout << "\tmaximum position: " << maxPosition << "\n";
@@ -468,7 +467,6 @@ void resetServoParameters()
     cout << "\tminimum position: " << minPosition << "\n";
     cout << "\tmaximum position: " << maxPosition << "\n";
     cout << "\treset position: " << resetPosition << "\n";
-
 }
 
 void resetPrimaryCutterParameters()

@@ -1,8 +1,5 @@
-/**
- * Rogallo Deployment and Termination System tests
- *
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -16,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,18 +23,16 @@
 #ifdef STANDALONE_CATCH1_TEST
 #include "catch/catch-tests-entry.cpp"
 #endif
-#include <utils/testutils/catch.hpp>
+#include <utils/EventCounter.h>
 
 #include <algorithm>
+#include <utils/testutils/catch.hpp>
 
 #include "ADA/RogalloDTS/ElevationMap.h"
 #include "ADA/RogalloDTS/LHCircles.h"
+#include "ADA/RogalloDTS/RogalloDTS.h"
 #include "ADA/RogalloDTS/generated/tests/elevation_map_test_data.h"
 #include "ADA/RogalloDTS/generated/tests/lh_circles_test_data.h"
-
-#include "ADA/RogalloDTS/RogalloDTS.h"
-
-#include <utils/EventCounter.h>
 #include "events/Events.h"
 
 using namespace DeathStackBoard;

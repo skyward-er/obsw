@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Vincenzo Santomarco
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -42,7 +41,8 @@ struct trajectory_t
 };
 
 const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
-    {404, 10,
+    {404,
+     10,
      {
          {822.834116, 250.000000},  {822.834116, 250.000000},
          {825.748986, 249.760711},  {838.211504, 248.739999},
@@ -247,7 +247,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {2999.999998, 0.006229},   {3000.000000, 0.001206},
          {3000.000000, 0.000201},   {3000.000000, 0.000000},
      }},
-    {395, 20,
+    {395,
+     20,
      {
          {905.722649, 250.000000},  {905.722649, 250.000000},
          {905.722649, 250.000000},  {915.489801, 249.123798},
@@ -448,7 +449,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {3000.000000, 0.001206},   {3000.000000, 0.000201},
          {3000.000000, 0.000000},
      }},
-    {385, 30,
+    {385,
+     30,
      {
          {986.524002, 250.000000},  {986.524002, 250.000000},
          {991.725533, 249.488842},  {1004.169530, 248.271036},
@@ -644,7 +646,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {3000.000000, 0.001206},   {3000.000000, 0.000201},
          {3000.000000, 0.000000},
      }},
-    {376, 40,
+    {376,
+     40,
      {
          {1065.277806, 250.000000}, {1065.277806, 250.000000},
          {1066.951150, 249.819943}, {1079.408842, 248.487728},
@@ -835,7 +838,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {2999.999998, 0.006229},   {3000.000000, 0.001206},
          {3000.000000, 0.000201},   {3000.000000, 0.000000},
      }},
-    {367, 50,
+    {367,
+     50,
      {
          {1142.065914, 250.000000}, {1142.065914, 250.000000},
          {1142.065914, 250.000000}, {1153.657448, 248.645856},
@@ -1022,7 +1026,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {3000.000000, 0.001206},   {3000.000000, 0.000201},
          {3000.000000, 0.000000},
      }},
-    {357, 60,
+    {357,
+     60,
      {
          {1216.978643, 250.000000}, {1216.978643, 250.000000},
          {1226.925199, 248.731029}, {1239.322481, 247.160238},
@@ -1204,7 +1209,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {3000.000000, 0.001206},   {3000.000000, 0.000201},
          {3000.000000, 0.000000},
      }},
-    {348, 70,
+    {348,
+     70,
      {
          {1290.095815, 250.000000}, {1290.095815, 250.000000},
          {1299.209094, 248.731151}, {1311.602879, 247.020240},
@@ -1381,7 +1387,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {2999.999998, 0.006229},   {3000.000000, 0.001206},
          {3000.000000, 0.000201},   {3000.000000, 0.000000},
      }},
-    {340, 80,
+    {340,
+     80,
      {
          {1361.522768, 250.000000}, {1361.522768, 250.000000},
          {1361.522768, 250.000000}, {1370.491594, 248.638116},
@@ -1554,7 +1561,8 @@ const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {
          {2999.999998, 0.006229},   {3000.000000, 0.001206},
          {3000.000000, 0.000201},   {3000.000000, 0.000000},
      }},
-    {330, 90,
+    {330,
+     90,
      {
          {1431.374621, 250.000000}, {1431.374621, 250.000000},
          {1440.738517, 248.450148}, {1453.110427, 246.426266},

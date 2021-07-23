@@ -1,5 +1,5 @@
 /* Copyright (c) 2020 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include "NavigationSystem/NASController.h"
 #include "hardware_in_the_loop/HIL_sensors/HILAccelerometer.h"
 #include "hardware_in_the_loop/HIL_sensors/HILBarometer.h"
 #include "hardware_in_the_loop/HIL_sensors/HILGps.h"
 #include "hardware_in_the_loop/HIL_sensors/HILGyroscope.h"
 #include "hardware_in_the_loop/HIL_sensors/HILMagnetometer.h"
 #include "hardware_in_the_loop/HIL_sensors/HILSensor.h"
-#include "NavigationSystem/NASController.h"
 
 using namespace DeathStackBoard;
 

@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,32 +13,30 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-#include "configs/SensorManagerConfig.h"
-
-#include "SensorManager/Sensors/AD7994Wrapper.h"
-#include "SensorManager/Sensors/ADCWrapper.h"
-
 #include <drivers/piksi/piksi.h>
+#include <interfaces-impl/hwmapping.h>
 #include <sensors/ADIS16405/ADIS16405.h>
 #include <sensors/LM75B.h>
 #include <sensors/MPU9250/MPU9250.h>
-#include "sensors/MS580301BA07/MS580301BA07.h"
 #include <sensors/SensorSampling.h>
 
-#include <interfaces-impl/hwmapping.h>
+#include "SensorManager/Sensors/AD7994Wrapper.h"
+#include "SensorManager/Sensors/ADCWrapper.h"
+#include "configs/SensorManagerConfig.h"
+#include "sensors/MS580301BA07/MS580301BA07.h"
 
 using namespace DeathStackBoard;
 using namespace miosix;
 
 typedef MPU9250<spiMPU9250> MPU9250Type;
-//typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
+// typedef ADIS16405<spiADIS16405, sensors::adis16405::rst> ADIS16405Type;
 typedef LM75B<i2c1> LM75BType;
 typedef MS580301BA07<spiMS5803> MS580301BA07Type;
 
@@ -47,7 +44,7 @@ AD7994Wrapper* adc_ad7994;
 ADCWrapper* adc_internal;
 
 MPU9250Type* imu_mpu9250;
-//ADIS16405Type* imu_adis16405;
+// ADIS16405Type* imu_adis16405;
 
 LM75BType* temp_lm75b_analog;
 LM75BType* temp_lm75b_imu;
@@ -64,26 +61,33 @@ void init()
     adc_ad7994        = new AD7994Wrapper(sensors::ad7994::addr, AD7994_V_REF);
     temp_lm75b_analog = new LM75BType(sensors::lm75b_analog::addr);
     temp_lm75b_imu    = new LM75BType(sensors::lm75b_imu::addr);
-    //imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
-    adc_internal  = new ADCWrapper();
+    // imu_adis16405 = new ADIS16405Type(ADIS16405Type::GYRO_FS_300);
+    adc_internal = new ADCWrapper();
 
     imu_mpu9250 =
         new MPU9250Type(MPU9250Type::ACC_FS_16G, MPU9250Type::GYRO_FS_2000);
 
-    pressure_ms5803  =  new MS580301BA07Type();
+    pressure_ms5803 = new MS580301BA07Type();
 
     piksi = new Piksi("/dev/gps");
 
     Thread::sleep(1000);
 
-    printf("\nTesting imu_mpu9250... %s\n", imu_mpu9250->init() ? "Ok" : "Failed");
-    printf("Testing imu_adis16405... RIP\n"); // \n", imu_adis16405->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_analog... %s\n", temp_lm75b_analog->init() ? "Ok" : "Failed");
-    printf("Testing temp_lm75b_imu... %s\n", temp_lm75b_imu->init() ? "Ok" : "Failed");
+    printf("\nTesting imu_mpu9250... %s\n",
+           imu_mpu9250->init() ? "Ok" : "Failed");
+    printf("Testing imu_adis16405... RIP\n");  // \n", imu_adis16405->init() ?
+                                               // "Ok" : "Failed");
+    printf("Testing temp_lm75b_analog... %s\n",
+           temp_lm75b_analog->init() ? "Ok" : "Failed");
+    printf("Testing temp_lm75b_imu... %s\n",
+           temp_lm75b_imu->init() ? "Ok" : "Failed");
     printf("Testing adc_ad7994... %s\n", adc_ad7994->init() ? "Ok" : "Failed");
-    printf("Testing battery sensor ... %s\n", adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
-    printf("Testing current sensor... %s\n", adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
-    printf("Testing digital pressure sensor... %s\n", pressure_ms5803->init() ? "Ok" : "Failed");
+    printf("Testing battery sensor ... %s\n",
+           adc_internal->getBatterySensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing current sensor... %s\n",
+           adc_internal->getCurrentSensorPtr()->init() ? "Ok" : "Failed");
+    printf("Testing digital pressure sensor... %s\n",
+           pressure_ms5803->init() ? "Ok" : "Failed");
     printf("\n\n");
 }
 
@@ -101,23 +105,26 @@ void update()
 
 void print()
 {
-    printf("MPU9250 Accel:  \tZ: %.3f\n",
-           imu_mpu9250->accelDataPtr()->getZ());
+    printf("MPU9250 Accel:  \tZ: %.3f\n", imu_mpu9250->accelDataPtr()->getZ());
     /* printf("ADIS Acc:       \tZ: %.3f\n",
            imu_adis16405->accelDataPtr()->getZ()); */
     printf("LM75B imu Temp:     \tT: %.3f\n", temp_lm75b_imu->getTemp());
     printf("LM75B analog Temp:  \tT: %.3f\n", temp_lm75b_analog->getTemp());
     printf("Digital temp:   \tP: %f\n", pressure_ms5803->getData().temp);
-    printf("HW Pressure:    \tP: %f\n", adc_ad7994->getDataPtr()->honeywell_baro_pressure);
-    printf("NXP Pressure:   \tP: %f\n", adc_ad7994->getDataPtr()->nxp_baro_pressure);
-    printf("Digital Pressure:   \tP: %f\n", pressure_ms5803->getData().pressure);
+    printf("HW Pressure:    \tP: %f\n",
+           adc_ad7994->getDataPtr()->honeywell_baro_pressure);
+    printf("NXP Pressure:   \tP: %f\n",
+           adc_ad7994->getDataPtr()->nxp_baro_pressure);
+    printf("Digital Pressure:   \tP: %f\n",
+           pressure_ms5803->getData().pressure);
     printf("Battery voltage:\tV: %f\n",
-        adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);
+           adc_internal->getBatterySensorPtr()->getBatteryDataPtr()->volt);
     printf("Current sens 1: \tC: %f\n",
-        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1);
+           adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_1);
     printf("Current sens 2: \tC: %f\n",
-        adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
-    printf("Pins:           \tLP: %d, MC: %d\n", inputs::lp_dtch::value(), nosecone::nc_dtch::value());
+           adc_internal->getCurrentSensorPtr()->getCurrentDataPtr()->current_2);
+    printf("Pins:           \tLP: %d, MC: %d\n", inputs::lp_dtch::value(),
+           nosecone::nc_dtch::value());
 
     try
     {
@@ -140,7 +147,7 @@ int main()
 
     printf("** SENSORS TEST SUITE **\n");
     printf("Press enter to start\n");
-    (void) getchar();
+    (void)getchar();
 
     for (;;)
     {

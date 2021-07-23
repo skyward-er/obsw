@@ -1,5 +1,5 @@
 /* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -22,12 +22,11 @@
 
 #pragma once
 
-
 namespace DeathStackBoard
 {
- 
-// How many milliseconds between a status request to the CAN bus and the 
-// next one.    
+
+// How many milliseconds between a status request to the CAN bus and the
+// next one.
 static const unsigned int INTERVAL_IGN_GET_STATUS = 1000;
 
 // Milliseconds after which, if the ignition board never responded, an
@@ -35,7 +34,6 @@ static const unsigned int INTERVAL_IGN_GET_STATUS = 1000;
 // NOTE: since the ignition and abort operations take ~10sec and the
 // ignition board doesn't respond during that time, this timeout
 // should be considerably longer than max(ignitionTime, abortTime).
-static const unsigned int TIMEOUT_IGN_OFFLINE = 3*1000; 
+static const unsigned int TIMEOUT_IGN_OFFLINE = 3 * 1000;
 
-} // DeathStackBoard
-
+}  // namespace DeathStackBoard

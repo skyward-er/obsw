@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2020 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -53,12 +53,12 @@ bool TMTCManager::send(const uint8_t tm_id)
 {
     MavDriver* mav_driver = DeathStack::getInstance()->radio->mav_driver;
     TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
-    bool ok = false;
+    bool ok               = false;
 
 #ifdef TELEMETRY_OVER_SERIAL
     uint8_t buf[256];
     mavlink_message_t msg = tm_repo->packTM(tm_id);
-    uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+    uint16_t len          = mavlink_msg_to_send_buffer(buf, &msg);
     fwrite(buf, sizeof(uint8_t), len, stdout);
     fflush(stdout);
     ok = true;
@@ -86,8 +86,9 @@ void TMTCManager::stateGroundTM(const Event& ev)
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
             // periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
             //     Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
-            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            periodicSensEvId =
+                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             TRACE("[TMTC] Entering stateGroundTM\n");
 
@@ -128,8 +129,9 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_SEND_SENS_TM:
         {
             // TRACE("[TMTC] Sending SENS_TM\n");
-            periodicSensEvId = sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            periodicSensEvId =
+                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             // send tm
             send(MAV_SENSORS_TM_ID);

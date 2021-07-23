@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2020 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+ * Authors: Luca Erbetta, Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -106,7 +106,7 @@ string getEventString(uint8_t event)
 
 string getTopicString(uint8_t topic)
 {
-	static const map<uint8_t, string> topic_string_map{
+    static const map<uint8_t, string> topic_string_map{
         {TOPIC_ABK, "TOPIC_ABK"},
         {TOPIC_ADA, "TOPIC_ADA"},
         {TOPIC_DPL, "TOPIC_DPL"},
@@ -115,7 +115,7 @@ string getTopicString(uint8_t topic)
         {TOPIC_NAS, "TOPIC_NAS"},
         {TOPIC_STATS, "TOPIC_STATS"},
         {TOPIC_TMTC, "TOPIC_TMTC"},
-	};
-	auto it = topic_string_map.find(topic);
-	return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
+    };
+    auto it = topic_string_map.find(topic);
+    return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
 }

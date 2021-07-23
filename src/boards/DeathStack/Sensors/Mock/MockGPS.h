@@ -1,5 +1,5 @@
 /* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,11 +23,9 @@
 #pragma once
 
 #include <tests/mock_sensors/test-mock-data.h>
-#include "TimestampTimer.h"
-#include "sensors/Sensor.h"
 
-#include "sensors/Sensor.h"
 #include "TimestampTimer.h"
+#include "sensors/Sensor.h"
 
 namespace DeathStackBoard
 {
@@ -35,7 +33,7 @@ namespace DeathStackBoard
 class MockGPS : public Sensor<GPSData>
 {
 public:
-    MockGPS() { }
+    MockGPS() {}
 
     bool init() override { return true; }
 
@@ -57,21 +55,21 @@ public:
         GPSData data;
 
         data.gps_timestamp = TimestampTimer::getTimestamp();
-        data.fix = true;
+        data.fix           = true;
 
         if (before_liftoff)
         {
-            data.latitude = SIMULATED_LAT[0];
-            data.longitude = SIMULATED_LON[0];
+            data.latitude       = SIMULATED_LAT[0];
+            data.longitude      = SIMULATED_LON[0];
             data.velocity_north = SIMULATED_VNORD[0];
-            data.velocity_east = SIMULATED_VEAST[0];
+            data.velocity_east  = SIMULATED_VEAST[0];
         }
         else if (i < GPS_DATA_SIZE)
         {
-            data.latitude = SIMULATED_LAT[i];
-            data.longitude = SIMULATED_LON[i];
+            data.latitude       = SIMULATED_LAT[i];
+            data.longitude      = SIMULATED_LON[i];
             data.velocity_north = SIMULATED_VNORD[i];
-            data.velocity_east = SIMULATED_VEAST[i];
+            data.velocity_east  = SIMULATED_VEAST[i];
             i++;
         }
 

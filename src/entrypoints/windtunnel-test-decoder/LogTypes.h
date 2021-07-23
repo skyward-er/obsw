@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,9 +25,13 @@
 #include <fstream>
 #include <iostream>
 
+#include "AeroBrakesController/AeroBrakesData.h"
+#include "AeroBrakesController/WindData.h"
+#include "DeathStackStatus.h"
 #include "drivers/Xbee/APIFramesLog.h"
 #include "drivers/Xbee/XbeeStatus.h"
 #include "drivers/adc/ADS1118/ADS1118Data.h"
+#include "drivers/mavlink/MavlinkStatus.h"
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
 #include "logger/LogStats.h"
@@ -35,10 +39,6 @@
 #include "sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h"
 #include "sensors/analog/pressure/honeywell/SSCDANN030PAAData.h"
 #include "sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h"
-#include "DeathStackStatus.h"
-#include "drivers/mavlink/MavlinkStatus.h"
-#include "AeroBrakesController/AeroBrakesData.h"
-#include "AeroBrakesController/WindData.h"
 
 // Serialized classes
 using std::ofstream;

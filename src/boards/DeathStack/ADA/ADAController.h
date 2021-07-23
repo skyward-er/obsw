@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -24,13 +24,12 @@
 
 #include <ADA/ADAData.h>
 #include <configs/ADAConfig.h>
+#include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
 #include <miosix.h>
 #include <utils/aero/AeroUtils.h>
-
-#include <diagnostic/PrintLogger.h>
 
 #include "ADA/ADA.h"
 #include "ADA/ADACalibrator.h"
@@ -304,7 +303,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
                 {
                     // Active state send notifications for disabling aerobrakes
-                    sEventBroker->post({EV_ADA_DISABLE_ABK}, TOPIC_FLIGHT_EVENTS);
+                    sEventBroker->post({EV_ADA_DISABLE_ABK},
+                                       TOPIC_FLIGHT_EVENTS);
                     status.disable_aerobrakes = true;
                 }
             }

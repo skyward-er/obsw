@@ -1,3 +1,25 @@
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Alvise de'Faveri Tron
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 /*
  *  sha1.h
  *
@@ -39,89 +61,87 @@
 class SHA1
 {
 
-    public:
+public:
+    SHA1();
+    virtual ~SHA1();
 
-        SHA1();
-        virtual ~SHA1();
+    /*
+     *  Re-initialize the class
+     */
+    void Reset();
 
-        /*
-         *  Re-initialize the class
-         */
-        void Reset();
+    /*
+     *  Returns the message digest
+     */
+    bool Result(unsigned* message_digest_array);
 
-        /*
-         *  Returns the message digest
-         */
-        bool Result(unsigned *message_digest_array);
+    /*
+     *  Provide input to SHA1
+     */
+    void Input(const unsigned char* message_array, unsigned length);
+    void Input(const char* message_array, unsigned length);
+    void Input(unsigned char message_element);
+    void Input(char message_element);
+    SHA1& operator<<(const char* message_array);
+    SHA1& operator<<(const unsigned char* message_array);
+    SHA1& operator<<(const char message_element);
+    SHA1& operator<<(const unsigned char message_element);
 
-        /*
-         *  Provide input to SHA1
-         */
-        void Input( const unsigned char *message_array,
-                    unsigned            length);
-        void Input( const char  *message_array,
-                    unsigned    length);
-        void Input(unsigned char message_element);
-        void Input(char message_element);
-        SHA1& operator<<(const char *message_array);
-        SHA1& operator<<(const unsigned char *message_array);
-        SHA1& operator<<(const char message_element);
-        SHA1& operator<<(const unsigned char message_element);
+private:
+    /*
+     *  Process the next 512 bits of the message
+     */
+    void ProcessMessageBlock();
 
-    private:
+    /*
+     *  Pads the current message block to 512 bits
+     */
+    void PadMessage();
 
-        /*
-         *  Process the next 512 bits of the message
-         */
-        void ProcessMessageBlock();
+    /*
+     *  Performs a circular left shift operation
+     */
+    inline unsigned CircularShift(int bits, unsigned word);
 
-        /*
-         *  Pads the current message block to 512 bits
-         */
-        void PadMessage();
+    unsigned H[5];  // Message digest buffers
 
-        /*
-         *  Performs a circular left shift operation
-         */
-        inline unsigned CircularShift(int bits, unsigned word);
+    unsigned Length_Low;   // Message length in bits
+    unsigned Length_High;  // Message length in bits
 
-        unsigned H[5];                      // Message digest buffers
+    unsigned char Message_Block[64];  // 512-bit message blocks
+    int Message_Block_Index;          // Index into message block array
 
-        unsigned Length_Low;                // Message length in bits
-        unsigned Length_High;               // Message length in bits
-
-        unsigned char Message_Block[64];    // 512-bit message blocks
-        int Message_Block_Index;            // Index into message block array
-
-        bool Computed;                      // Is the digest computed?
-        bool Corrupted;                     // Is the message digest corruped?
-    
+    bool Computed;   // Is the digest computed?
+    bool Corrupted;  // Is the message digest corruped?
 };
 
 // Added by TFT -- begin
-#include <string>
 #include <cstdio>
+#include <string>
 
-const int sha1size=20;
+const int sha1size = 20;
 
 inline std::string sha1(const std::string& message)
 {
-	SHA1 hash;
-	hash.Input(message.c_str(),message.length());
-	unsigned int r[sha1size/4];
-	hash.Result(r);
-	char resultstr[2*sha1size+1];
-	std::sprintf(resultstr,"%04x%04x%04x%04x%04x",r[0],r[1],r[2],r[3],r[4]);
-	return std::string(resultstr);
+    SHA1 hash;
+    hash.Input(message.c_str(), message.length());
+    unsigned int r[sha1size / 4];
+    hash.Result(r);
+    char resultstr[2 * sha1size + 1];
+    std::sprintf(resultstr, "%04x%04x%04x%04x%04x", r[0], r[1], r[2], r[3],
+                 r[4]);
+    return std::string(resultstr);
 }
 
-inline void sha1binary(const std::string& message, unsigned char digest[sha1size])
+inline void sha1binary(const std::string& message,
+                       unsigned char digest[sha1size])
 {
-	SHA1 hash;
-	hash.Input(message.c_str(),message.length());
-	unsigned int r[sha1size/4];
-	hash.Result(r);
-	for(int i=0;i<sha1size;i++) digest[i]=(r[i/4] >> 8*(3-i%4)) & 0xff;
+    SHA1 hash;
+    hash.Input(message.c_str(), message.length());
+    unsigned int r[sha1size / 4];
+    hash.Result(r);
+    for (int i = 0; i < sha1size; i++)
+        digest[i] = (r[i / 4] >> 8 * (3 - i % 4)) & 0xff;
 }
 // Added by TFT -- end
 

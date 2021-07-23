@@ -1,4 +1,4 @@
-/* Copyright (c) 2018,2019 Skyward Experimental Rocketry
+/* Copyright (c) 2018-2019 Skyward Experimental Rocketry
  * Authors: Luca Mozzarelli, Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -35,8 +35,9 @@ bool ADACalibrator::calibIsComplete()
     // Calibration is complete if enough samples were collected and reference
     // altitude and temperature were set
 
-    //TRACE("Calibrator : n samples = %d \n", pressure_stats.getStats().nSamples);
-    
+    // TRACE("Calibrator : n samples = %d \n",
+    // pressure_stats.getStats().nSamples);
+
     return pressure_stats.getStats().nSamples >= CALIBRATION_BARO_N_SAMPLES &&
            ref_alt_set && ref_temp_set;
 }

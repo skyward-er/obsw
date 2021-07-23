@@ -1,5 +1,5 @@
 /* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Alvise De Faveri
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,9 +23,9 @@
 #pragma once
 
 #include <Common.h>
+#include <LoggerService/LoggerService.h>
 #include <drivers/canbus/CanManager.h>
 #include <drivers/canbus/CanUtils.h>
-#include <LoggerService/LoggerService.h>
 
 namespace DeathStackBoard
 {
@@ -38,7 +38,7 @@ class CanProxy
 {
 public:
     CanProxy(CanManager* c);
-    ~CanProxy() {};
+    ~CanProxy(){};
 
     /*
      * Sending proxy function: sends and logs the status.
@@ -49,7 +49,6 @@ public:
      * @return true    if the message was sent correctly
      */
     bool send(uint16_t id, const uint8_t* message, uint8_t len);
-
 
     /*
      * Getters

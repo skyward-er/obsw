@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+ * Authors: Luca Erbetta, Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include "../../CanInterfaces.h"
 
 namespace DeathStackBoard
@@ -38,15 +39,15 @@ enum IgnitionControllerState : uint8_t
 
 struct __attribute__((packed)) IgnCtrlStatus
 {
-    uint64_t   timestamp;
-    uint8_t    fsm_state;
-    uint8_t    last_event;
-    uint16_t   n_sent_messages;
-    uint16_t   n_rcv_messages;
-    uint8_t    launch_sent : 1;
-    uint8_t    abort_sent  : 1;
-    uint8_t    abort_rcv   : 1;
-    uint8_t    padding     : 5;
+    uint64_t timestamp;
+    uint8_t fsm_state;
+    uint8_t last_event;
+    uint16_t n_sent_messages;
+    uint16_t n_rcv_messages;
+    uint8_t launch_sent : 1;
+    uint8_t abort_sent : 1;
+    uint8_t abort_rcv : 1;
+    uint8_t padding : 5;
 };
 
 struct IgnBoardLoggableStatus
@@ -55,4 +56,4 @@ struct IgnBoardLoggableStatus
     CanInterfaces::IgnitionBoardStatus board_status;
 };
 
-}
+}  // namespace DeathStackBoard

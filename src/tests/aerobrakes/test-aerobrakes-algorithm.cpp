@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Vincenzo Santomarco
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -44,10 +43,12 @@ class MockActuator : public AeroBrakesServo
 public:
     MockActuator() {}
     // void setPosition(float alpha) { lastAlpha = round(alpha * 180 / PI); }
-    float error(float alphaTest) { 
+    float error(float alphaTest)
+    {
         int error = abs(alphaTest - currentPosition);
         printf("Error: %d\n", error);
-        return error; }
+        return error;
+    }
 
     // private:
     // int lastAlpha;
@@ -119,9 +120,9 @@ int main()
     uint32_t t2 = hrclock.tick();
 
     cout << "z: " << mockSensor.getLastSample().z
-        << "\tvz: " << mockSensor.getLastSample().vz
-        << "\tvMod: " << mockSensor.getLastSample().vMod
-        << "\tservo: " << mockActuator.getCurrentPosition() << "\n";
+         << "\tvz: " << mockSensor.getLastSample().vz
+         << "\tvMod: " << mockSensor.getLastSample().vMod
+         << "\tservo: " << mockActuator.getCurrentPosition() << "\n";
 
     float startTime   = hrclock.toMilliSeconds(t2 - t1);
     float stepTime    = 0;

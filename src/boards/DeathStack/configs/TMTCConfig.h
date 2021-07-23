@@ -1,5 +1,5 @@
 /* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -43,13 +43,13 @@ typedef miosix::xbee::attn XbeeATTN;
 typedef miosix::xbee::reset XbeeRST;
 
 /* Periodic telemetries periods */
-static const unsigned int LR_TM_TIMEOUT = 1000;
+static const unsigned int LR_TM_TIMEOUT     = 1000;
 static const unsigned int TUNNEL_TM_TIMEOUT = 100;
-static const unsigned int HR_TM_TIMEOUT = 63;
+static const unsigned int HR_TM_TIMEOUT     = 63;
 
-static const unsigned int TEST_TM_TIMEOUT = 250;
+static const unsigned int TEST_TM_TIMEOUT        = 250;
 static const unsigned int GROUND_SENS_TM_TIMEOUT = 1000;
-static const unsigned int SENS_TM_TIMEOUT = 100;
+static const unsigned int SENS_TM_TIMEOUT        = 100;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID  = 1;

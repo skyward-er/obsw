@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,13 +24,12 @@
 
 #include <events/FSM.h>
 
-#include "TmRepository/TmRepository.h"
-
 #include "ADA/ADAData.h"
 #include "SensorManager/Sensors/AD7994WrapperData.h"
+#include "TmRepository/TmRepository.h"
 //#include "SensorManager/Sensors/PiksiData.h"
-#include "configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
+#include "configs/FlightStatsConfig.h"
 //#include "sensors/MPU9250/MPU9250Data.h"
 #include "SensorManager/Sensors/ADCWrapperData.h"
 
@@ -39,10 +37,10 @@ namespace DeathStackBoard
 {
 
 /**
- * @brief Records statistics about the flight such as maximum acceleration during
- * liftoff, maximum altitude, maximum speed etc. In order to do so, we need to
- * know in which stage of the flight we are in, and we do so using a state
- * machine and receiving events from the topic FLIGHT_EVENTS
+ * @brief Records statistics about the flight such as maximum acceleration
+ * during liftoff, maximum altitude, maximum speed etc. In order to do so, we
+ * need to know in which stage of the flight we are in, and we do so using a
+ * state machine and receiving events from the topic FLIGHT_EVENTS
  */
 class FlightStatsRecorder : public FSM<FlightStatsRecorder>
 {
@@ -54,8 +52,8 @@ public:
     void update(const CurrentSenseDataWrapper& t);
     void update(const ADAData& t);
     void update(const AD7994WrapperData& t);
-    //void update(const MPU9250Data& t);
-    //void update(const PiksiData& t);
+    // void update(const MPU9250Data& t);
+    // void update(const PiksiData& t);
 
     // Wait for liftoff or deployment
     void state_idle(const Event& ev);

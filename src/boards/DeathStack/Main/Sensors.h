@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,19 +22,11 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBusInterface.h>
-
-#include <map>
-
-#include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
 #include <diagnostic/PrintLogger.h>
-
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
-#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
-#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
-
 #include <drivers/gps/ublox/UbloxGPS.h>
+#include <drivers/spi/SPIBusInterface.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
@@ -44,7 +35,10 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
-#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
+
+#include <map>
+
+#include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL.h"

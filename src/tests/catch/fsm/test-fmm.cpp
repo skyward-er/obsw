@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 5021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -112,7 +111,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_flying")
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_END_MISSION},
                                   &FlightModeManager::state_landed));
     }
-    
+
     SECTION("EV_TIMEOUT_END_MISSION -> LANDED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TIMEOUT_END_MISSION},
@@ -162,19 +161,21 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initDone")
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+        REQUIRE(
+            testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+                              &FlightModeManager::state_sensorsCalibration));
     }
 }
 
 /*
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_testMode")
 {
-    
+
 }
 */
 
-TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_sensorsCalibration")
+TEST_CASE_METHOD(FMMFixture,
+                 "Testing transitions from state_sensorsCalibration")
 {
     // move to state_calibrating
     fsm->postEvent(Event{EV_INIT_OK});
@@ -184,8 +185,9 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_sensorsCalibration"
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+        REQUIRE(
+            testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+                              &FlightModeManager::state_sensorsCalibration));
     }
 
     SECTION("EV_SENSORS_READY -> ALGOS_CALIBRATION")
@@ -238,8 +240,9 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_disarmed")
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+        REQUIRE(
+            testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+                              &FlightModeManager::state_sensorsCalibration));
     }
 
     SECTION("EV_TC_ARM -> ARMED")

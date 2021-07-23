@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,6 +26,7 @@
 #include <Debug.h>
 #include <math/Stats.h>
 #include <miosix.h>
+
 #include "NASData.h"
 
 namespace DeathStackBoard
@@ -43,13 +44,12 @@ public:
     void addAccelSample(float x, float y,
                         float z);  // Adds an acceleration sample to the stats
     void addMagSample(float x, float y,
-                        float z);  // Adds an acceleration sample to the stats
-    void reset();                  // Reset stats
+                      float z);  // Adds an acceleration sample to the stats
+    void reset();                // Reset stats
 
     NASReferenceValues getReferenceValues();
 
 private:
-
     const uint32_t n_samples;
 
     /* --- CALIBRATION --- */

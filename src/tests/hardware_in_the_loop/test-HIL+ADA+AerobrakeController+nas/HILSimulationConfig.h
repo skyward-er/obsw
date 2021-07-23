@@ -1,5 +1,5 @@
 /* Copyright (c) 2020 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -42,12 +42,12 @@ const int SIM_BAUDRATE = 115200;
 const int SIMULATION_PERIOD = 100;
 
 /** sample frequency of sensor (samples/second) */
-const int IMU_FREQ  = 100;
+const int IMU_FREQ   = 100;
 const int ACCEL_FREQ = 100;
 const int GYRO_FREQ  = 100;
 const int MAGN_FREQ  = 100;
-const int BARO_FREQ = 20;
-const int GPS_FREQ  = 10;
+const int BARO_FREQ  = 20;
+const int GPS_FREQ   = 10;
 
 /** update frequency of the Navigation System */
 const int KALM_FREQ = 10;
@@ -73,10 +73,10 @@ float referenceTemperature = 15;
 SensorConfig imuConfig(IMU_FREQ);
 SensorConfig baroConfig(BARO_FREQ);
 SensorConfig gpsConfig(GPS_FREQ);
-SensorConfig kalmConfig(KALM_FREQ); // TODO: delete
+SensorConfig kalmConfig(KALM_FREQ);  // TODO: delete
 
 /** Number of samples per sensor at each simulator iteration */
-const int N_DATA_IMU  = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;

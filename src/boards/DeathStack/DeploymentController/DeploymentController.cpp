@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,12 +22,11 @@
 
 #include "DeploymentController.h"
 
+#include "LoggerService/LoggerService.h"
 #include "TimestampTimer.h"
 #include "configs/DeploymentConfig.h"
 #include "events/EventBroker.h"
 #include "events/Events.h"
-
-#include "LoggerService/LoggerService.h"
 
 namespace DeathStackBoard
 {
@@ -283,7 +281,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
             primaryCutter->disable();
 
             primaryCutter->disable();
-            
+
             break;
         }
         case EV_CUTTING_TIMEOUT:

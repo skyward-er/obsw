@@ -1,10 +1,6 @@
-/**
- * Rogallo Deployment and Termination System
- * This class is used to determine when it is safe to deploy the Rogallo wing,
- * and to terminate the flight in case safety can no longer be assured.
- *
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,16 +14,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
+/* Rogallo Deployment and Termination System
+ * This class is used to determine when it is safe to deploy the Rogallo wing,
+ * and to terminate the flight in case safety can no longer be assured.
+ */
+
 #pragma once
-#include "elevation_map.h"
 #include "configs/ADA_config.h"
+#include "elevation_map.h"
 
 namespace DeathStackBoard
 {
@@ -60,7 +61,7 @@ public:
     void setDeploymentAltitudeAgl(float dpl_altitude);
     float getDeploymentAltitudeAgl();
 
-    bool dtsIsReady() {return deployment_altitude_set; }
+    bool dtsIsReady() { return deployment_altitude_set; }
 
 private:
     void update();
@@ -84,8 +85,8 @@ private:
     // Last available data
     bool has_gps_sample = false;  // Do we have at least one sample?
 
-    double last_lat       = 0;
-    double last_lon       = 0;
+    double last_lat      = 0;
+    double last_lon      = 0;
     bool last_fix        = false;
     int last_terran_elev = elevationmap::INVALID_ELEVATION;
 
