@@ -118,7 +118,7 @@ private:
         mavlink_logger_tm_t logger_tm;
         mavlink_fmm_tm_t fmm_tm;
         mavlink_tmtc_tm_t tmtc_tm;
-        mavlink_sm_tm_t sm_tm;
+        mavlink_task_stats_tm_t task_stats_tm;
         mavlink_dpl_tm_t dpl_tm;
         mavlink_ada_tm_t ada_tm;
         mavlink_adc_tm_t adc_tm;

@@ -128,10 +128,10 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             mavlink_msg_tmtc_tm_encode(sys_id, comp_id, &m,
                                        &(tm_repository.tmtc_tm));
             break;
-        case MavTMList::MAV_SM_TM_ID:
-            tm_repository.sm_tm.timestamp = miosix::getTick();
-            mavlink_msg_sm_tm_encode(sys_id, comp_id, &m,
-                                     &(tm_repository.sm_tm));
+        case MavTMList::MAV_TASK_STATS_TM_ID:
+            tm_repository.task_stats_tm.timestamp = miosix::getTick();
+            mavlink_msg_task_stats_tm_encode(sys_id, comp_id, &m,
+                                     &(tm_repository.task_stats_tm));
             break;
         case MavTMList::MAV_DPL_TM_ID:
             tm_repository.dpl_tm.timestamp = miosix::getTick();
@@ -339,13 +339,13 @@ template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 {
     // GPS_TM
-    tm_repository.gps_tm.lat          = t.latitude;
-    tm_repository.gps_tm.lon          = t.longitude;
-    tm_repository.gps_tm.altitude     = t.height;
+    tm_repository.gps_tm.latitude          = t.latitude;
+    tm_repository.gps_tm.longitude          = t.longitude;
+    tm_repository.gps_tm.height     = t.height;
     tm_repository.gps_tm.vel_north    = t.velocity_north;
     tm_repository.gps_tm.vel_east     = t.velocity_east;
     tm_repository.gps_tm.vel_down     = t.velocity_down;
-    tm_repository.gps_tm.vel_mag      = t.speed;
+    tm_repository.gps_tm.speed      = t.speed;
     tm_repository.gps_tm.fix          = (uint8_t)t.fix;
     tm_repository.gps_tm.track        = t.track;
     tm_repository.gps_tm.n_satellites = t.num_satellites;
