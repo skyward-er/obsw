@@ -199,6 +199,7 @@ void NASController<IMU, Press, GPS>::update()
         case NASState::ACTIVE:
         {
             nas.sample();
+            logData();
             break;
         }
         case NASState::END:
