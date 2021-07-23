@@ -63,12 +63,13 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     internalAdcInit();
     batteryVoltageInit();
     primaryCutterCurrentInit();
+    backupCutterCurrentInit();
     pressDigiInit();
     ADS1118Init();
     pressPitotInit();
     pressDPLVaneInit();
     pressStaticInit();
-    imuBMXinit();
+    imuBMXInit();
     magLISinit();
     gpsUbloxInit();
 #endif
@@ -83,12 +84,17 @@ Sensors::~Sensors()
     delete hil_baro;
     delete hil_gps;
 #else
+    delete internal_adc;
+    delete cs_cutter_primary;
+    delete cs_cutter_backup;
+    delete battery_voltage;
     delete press_digital;
     delete adc_ads1118;
     delete press_pitot;
     delete press_dpl_vane;
     delete press_static_port;
     delete imu_bmx160;
+    delete mag_lis3mdl;
     delete gps_ublox;
 #endif
 
@@ -144,7 +150,15 @@ void Sensors::primaryCutterCurrentInit()
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
     function<float(float)> adc_to_current = [](float adc_in)
-    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
+    {
+        float current =
+            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+        if (current < 0)
+        {
+            return (float)0;
+        }
+        return current;
+    };
     cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -162,7 +176,15 @@ void Sensors::backupCutterCurrentInit()
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
     function<float(float)> adc_to_current = [](float adc_in)
-    { return CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF); };
+    {
+        float current =
+            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
+        if (current < 0)
+        {
+            return (float)0;
+        }
+        return current;
+    };
     cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
 
     SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -260,7 +282,7 @@ void Sensors::pressStaticInit()
     TRACE("Static pressure sensor setup done! (%p)\n", press_static_port);
 }
 
-void Sensors::imuBMXinit()
+void Sensors::imuBMXInit()
 {
     SPIBusConfig spi_cfg;
     spi_cfg.clock_div = SPIClockDivider::DIV8;
@@ -327,7 +349,7 @@ void Sensors::gpsUbloxInit()
 
 void Sensors::internalAdcCallback()
 {
-    LoggerService::getInstance()->log(internal_adc->getLastSample());
+    // LoggerService::getInstance()->log(internal_adc->getLastSample());
 }
 
 void Sensors::batteryVoltageCallback()
@@ -360,12 +382,12 @@ void Sensors::hilSensorsInit()
     hil_baro = new HILBarometer(simulator, N_DATA_BARO);
     hil_gps  = new HILGps(simulator, N_DATA_GPS);
 
-    SensorInfo info_imu(HIL_IMU_PERIOD, bind(&Sensors::hilIMUCallback, this),
-                        false, true);
-    SensorInfo info_baro(HIL_BARO_PERIOD, bind(&Sensors::hilBaroCallback, this),
-                         false, true);
-    SensorInfo info_gps(HIL_GPS_PERIOD, bind(&Sensors::hilGPSCallback, this),
-                        false, true);
+    SensorInfo info_imu("HILImu", HIL_IMU_PERIOD,
+                        bind(&Sensors::hilIMUCallback, this), false, true);
+    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
+                         bind(&Sensors::hilBaroCallback, this), false, true);
+    SensorInfo info_gps("HILGps", HIL_GPS_PERIOD,
+                        bind(&Sensors::hilGPSCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(hil_imu, info_imu));
     sensors_map.emplace(std::make_pair(hil_baro, info_baro));
@@ -382,7 +404,7 @@ void Sensors::pressDigiCallback()
 
 void Sensors::ADS1118Callback()
 {
-    LoggerService::getInstance()->log(adc_ads1118->getLastSample());
+    // LoggerService::getInstance()->log(adc_ads1118->getLastSample());
 }
 
 void Sensors::pressPitotCallback()

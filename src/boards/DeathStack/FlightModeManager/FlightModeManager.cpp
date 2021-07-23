@@ -242,7 +242,9 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
 
             TRACE("[FMM] Entering sensors_calibration\n");
 
-            // TODO : calibrate sensors
+            // TODO : CALIBRATE SENSORS
+            Thread::sleep(1000);
+            sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
 
             break;
         }
@@ -350,6 +352,7 @@ State FlightModeManager::state_disarmed(const Event& ev)
             sEventBroker->post({EV_DISARMED}, TOPIC_FLIGHT_EVENTS);
             logState(FMMState::DISARMED);
             TRACE("[FMM] Entering disarmed\n");
+
             break;
         }
         case EV_INIT: /* No sub-state */

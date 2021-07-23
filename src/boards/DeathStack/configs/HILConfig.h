@@ -1,5 +1,5 @@
 /* Copyright (c) 2020 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+ * Authors: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,65 +23,46 @@
 #pragma once
 
 #include "math/Vec3.h"
-#include "sensors/SensorInfo.h"
-
-struct SensorConfig : public SensorInfo
-{
-    SensorConfig(const std::string s, const uint32_t period)
-        : SensorInfo{s, period, []() {}, false, false}
-    {
-    }
-};
 
 /** serial port number */
-const int SIM_SERIAL_PORT_NUM = 3;
+static constexpr int HIL_SERIAL_PORT_NUM = 3;
 
 /** baudrate of connection */
-const int SIM_BAUDRATE = 115200;
+static constexpr int HIL_BAUDRATE = 115200;
 
 /** Period of simulation in milliseconds */
-const int SIMULATION_PERIOD = 100;
+static constexpr int HIL_SIMULATION_PERIOD = 100;  // 10 hz
 
-/** sample frequency of sensor (samples/second, Hz) */
-const int IMU_FREQ   = 100;
-const int ACCEL_FREQ = 100;
-const int GYRO_FREQ  = 100;
-const int MAGN_FREQ  = 100;
-const int BARO_FREQ  = 20;
-const int GPS_FREQ   = 10;
+/** sample frequency of sensor (samples/second) */
+static constexpr int HIL_IMU_PERIOD   = 10;   // 100 hz
+static constexpr int HIL_ACCEL_PERIOD = 10;   // 100 hz
+static constexpr int HIL_GYRO_PERIOD  = 10;   // 100 hz
+static constexpr int HIL_MAGN_PERIOD  = 10;   // 100 hz
+static constexpr int HIL_BARO_PERIOD  = 50;   // 20 hz
+static constexpr int HIL_GPS_PERIOD   = 100;  // 10 hz;
 
-/** update frequency of the Navigation System */
-//const int KALMAN_FREQ = 100;
-/** update frequency of airbrakes control algorithm */
-//const int CONTROL_FREQ = 10;
-/** update frequency of airbrakes control algorithm */
-//const int ADA_FREQ = 20;
-
-/** Sensors sample periods (in ms) */
-const int HIL_IMU_PERIOD  = 1000 / IMU_FREQ;
-const int HIL_BARO_PERIOD = 1000 / BARO_FREQ;
-const int HIL_GPS_PERIOD  = 1000 / GPS_FREQ;
+// /** update frequency of the Navigation System */
+// const int KALMAN_FREQ = 100;
+// /** update frequency of airbrakes control algorithm */
+// const int CONTROL_FREQ = 10;
+// /** update frequency of airbrakes control algorithm */
+// const int ADA_FREQ = 20;
 
 /** ADA configs
  * [TODO?] Prendi valori da config ADA
  */
-const float deploymentAltitude   = 450;
-const float referenceAltitude    = 109;  // launchpad Altitude for Pont De Sor?
-const float referenceTemperature = 15;
-
-/** sensors configuration */
-const SensorConfig imuConfig("imu", 1000 / IMU_FREQ);
-const SensorConfig baroConfig("baro", 1000 / BARO_FREQ);
-const SensorConfig gpsConfig("gps", 1000 / GPS_FREQ);
+// const float deploymentAltitude   = 450;
+// const float referenceAltitude    = 109;  // launchpad Altitude for Pont De
+// Sor? const float referenceTemperature = 15;
 
 /** Number of samples per sensor at each simulator iteration */
-const int N_DATA_IMU    = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_ACCEL  = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_GYRO   = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_MAGN   = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_BARO   = (BARO_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_GPS    = (GPS_FREQ * SIMULATION_PERIOD) / 1000;
-//const int N_DATA_KALMAN = (KALMAN_FREQ * SIMULATION_PERIOD) / 1000;
+static constexpr int N_DATA_IMU   = (HIL_SIMULATION_PERIOD / HIL_IMU_PERIOD);
+static constexpr int N_DATA_ACCEL = (HIL_SIMULATION_PERIOD / HIL_ACCEL_PERIOD);
+static constexpr int N_DATA_GYRO  = (HIL_SIMULATION_PERIOD) / HIL_GYRO_PERIOD;
+static constexpr int N_DATA_MAGN  = (HIL_SIMULATION_PERIOD / HIL_MAGN_PERIOD);
+static constexpr int N_DATA_BARO  = (HIL_SIMULATION_PERIOD / HIL_BARO_PERIOD);
+static constexpr int N_DATA_GPS   = (HIL_SIMULATION_PERIOD / HIL_GPS_PERIOD);
+// const int N_DATA_KALMAN = (HIL_KALMAN_FREQ * HIL_SIMULATION_PERIOD);
 
 /**
  * @brief Data structure used by the simulator in order to directly deserialize

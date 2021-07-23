@@ -436,7 +436,8 @@ void ADAController<Press, GPS>::setDeploymentAltitude(float dpl_alt)
         }
         logger.log(TargetDeploymentAltitude{dpl_alt});
 
-        LOG_INFO(log, "Deployment altitude set to %.3f m", dpl_alt);
+        //LOG_INFO(log, "Deployment altitude set to %.3f m", dpl_alt);
+        TRACE("Deployment altitude set to %.3f m", dpl_alt);
 
         finalizeCalibration();
     }
@@ -492,7 +493,7 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
         }
         default:
         {
-            LOG_INFO(log, "state idle: %d event not handled", ev.sig);
+            //TRACE("[ADA] state idle: %d event not handled", ev.sig);
             break;
         }
     }

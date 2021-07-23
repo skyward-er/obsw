@@ -43,11 +43,11 @@ static constexpr InternalADC::Channel ADC_CS_CUTTER_PRIMARY =
 static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
     InternalADC::Channel::CH4;
 
-static constexpr float BATTERY_VOLTAGE_COEFF = 3.681;
+static constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
 
-static constexpr float CS_CURR_DKILIS = 10250.0;  // Typ: 19.5
+static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
 static constexpr float CS_CURR_RIS    = 510;
-static constexpr float CS_CURR_IISOFF = .000166;  // Typ: 170uA
+static constexpr float CS_CURR_IISOFF = .000170;  // Typ: 170uA
 
 static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
 static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
@@ -118,7 +118,7 @@ static constexpr LIS3MDL::ODR MAG_LIS_ODR_ENUM        = LIS3MDL::ODR_80_HZ;
 static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
 
 static constexpr unsigned int SAMPLE_PERIOD_GPS = 40;
-static constexpr unsigned int GPS_BAUD_RATE     = 38400;
+static constexpr unsigned int GPS_BAUD_RATE     = 115200;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs

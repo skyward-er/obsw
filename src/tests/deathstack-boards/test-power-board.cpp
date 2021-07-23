@@ -55,7 +55,7 @@ namespace ServoTest
 using namespace std;
 
 // Sample frequency
-constexpr int SAMPLING_FREQUENCY = 100;
+constexpr int SAMPLING_FREQUENCY = 20;
 
 int menu();
 int askSeconds();
@@ -121,28 +121,28 @@ void sampleBatteryVoltage()
 
     // Sensor setup
 
-    InternalADC internalADC = InternalADC(*ADC3);
+    InternalADC internalADC = InternalADC(*ADC3, 3.3);
     internalADC.enableChannel(InternalADC::CH5);
     internalADC.init();
 
     std::function<ADCData()> get_voltage_function =
         std::bind(&InternalADC::getVoltage, &internalADC, InternalADC::CH5);
 
-    BatteryVoltageSensor batterySensor(get_voltage_function, 3.681);  // 4.15
+    BatteryVoltageSensor batterySensor(get_voltage_function, 5.98);
 
     // Sampling
-    printf("adc_timestamp,bat_voltage,battery_percentage");
+    printf("adc_timestamp,gpio_voltage,bat_voltage,battery_percentage\n");
     for (int i = 0; i < seconds * SAMPLING_FREQUENCY; i++)
     {
         internalADC.sample();
         batterySensor.sample();
-        BatteryVoltageData data = batterySensor.getLastSample();
+        BatteryVoltageSensorData data = batterySensor.getLastSample();
 
         // Calculate a simple linear battery percentage
         float batteryPercentage = 100 * (data.bat_voltage - 9.6) / (12.6 - 9.6);
 
-        printf("%llu,%.3f,%.1f\n", data.adc_timestamp, data.bat_voltage,
-               batteryPercentage);
+        printf("%llu,%.3f,%.3f,%.1f\n", data.adc_timestamp, data.voltage,
+               data.bat_voltage, batteryPercentage);
 
         miosix::delayMs(1000 / SAMPLING_FREQUENCY);
     }

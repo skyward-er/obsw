@@ -60,10 +60,11 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
         0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, MatrixXf::Zero(3, NL);
     F   = eye6 + T * F;
     Ftr = F.transpose();
-
-    H_gps << 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F,
-        0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F,
-        0.0F;
+    
+    H_gps << 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 
+             0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 
+             0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F,
+             0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F;
     H_gpstr = H_gps.transpose();
 
     Fatt << -eye3, -eye3 * T, Matrix3f::Zero(3, 3), eye3;
@@ -112,12 +113,16 @@ void ExtendedKalmanEigen::predict(const Vector3f& u)
 
 void ExtendedKalmanEigen::correctBaro(const float& y)
 {
+    Matrix<float, NL, NBAR> K_bar;
+    Matrix<float, NBAR, NL> H_bar;
+    Matrix<float, NBAR, NBAR> S_bar;
+
     Plin = P.block<NL, NL>(0, 0);
 
     float temp = aeroutils::mslTemperature(T0, x(2));
 
     H_bar << 0.0F, 0.0F,
-        aeroutils::constants::a * aeroutils::constants::n * y *
+        aeroutils::constants::a * aeroutils::constants::n * P0 *
             powf(1 - aeroutils::constants::a * x(2) / temp,
                  -aeroutils::constants::n - 1) /
             temp,
@@ -129,15 +134,20 @@ void ExtendedKalmanEigen::correctBaro(const float& y)
 
     P.block<NL, NL>(0, 0) = (eye6 - K_bar * H_bar) * Plin;
 
-    h_bar = aeroutils::mslPressure(y, T0, x(2));
+    float h_bar = aeroutils::mslPressure(P0, T0, x(2));
 
     x.head(NL) = x.head(NL) + K_bar * (y - h_bar);
 
-    res_bar = y - h_bar;
+    //float res_bar = y - h_bar;
 }
 
 void ExtendedKalmanEigen::correctGPS(const Vector4f& y)
 {
+    Matrix<float, NGPS, 1> h_gps;
+    Matrix<float, NL, NGPS> K_gps;
+    Matrix<float, NGPS, 1> res_gps;
+    Matrix<float, NGPS, NGPS> S_gps;
+
     // Convert lon-lat to x_nord and y_est
     float xnord = y(0) * RAD;
     float yest  = y(1) * RAD;
@@ -168,6 +178,7 @@ void ExtendedKalmanEigen::setX(const VectorNf& x) { this->x = x; }
 void ExtendedKalmanEigen::predict_MEKF(const Vector3f& u)
 {
     Vector3f omega;
+    Vector3f prev_bias;
     Matrix4f omega_mat;
     Matrix3f omega_submat;
 
@@ -200,10 +211,12 @@ void ExtendedKalmanEigen::correct_MEKF(const Vector3f& y)
     Matrix3f A;
     Vector3f z;
     Vector4f r;
-    float u_norm;
     Matrix3f z_mat;
     Vector4f u_att;
     Vector3f r_sub;
+    Matrix<float, NMAG, NMAG> Satt;
+    Matrix<float, NMAG, NMEKF> Hatt;
+    Matrix<float, NMEKF, NMAG> Katt;
     Matrix<float, NMEKF, 1> delta_x;
 
     float q1 = x(NL);
@@ -237,8 +250,8 @@ void ExtendedKalmanEigen::correct_MEKF(const Vector3f& y)
     r << 0.5F * r_sub, sqrtf(1.0F - 0.25F * r_sub.transpose() * r_sub);
 
     q << q1, q2, q3, q4;
-    u_att  = quater.quatProd(r, q);
-    u_norm = u_att.norm();
+    u_att = quater.quatProd(r, q);
+    float u_norm = u_att.norm();
 
     x(NL)     = u_att(0) / u_norm;
     x(NL + 1) = u_att(1) / u_norm;

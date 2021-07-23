@@ -30,7 +30,6 @@
 
 #include "ActiveObject.h"
 #include "DeathStack/Algorithm.h"
-#include "HIL_sensors/HILSensors.h"
 #include "NavigationSystem/NASData.h"
 #include "Singleton.h"
 #include "TimestampTimer.h"
@@ -130,38 +129,45 @@ public:
         if (isSetTrue(SIMULATION_STARTED))
         {
             t_start = TimestampTimer::getTimestamp();
-            // starting calibration when the simulation starts
-            sEventBroker->post({EV_TC_CALIBRATE_ALGOS}, TOPIC_TMTC);
 
             //*****************************************************************/
-            //        temporary until sensor manager fsm does not exist        /
+            //       temporary until we test everything with GS and TCs        /
             //*****************************************************************/
-            Thread::sleep(100);
-            sEventBroker->post({EV_SM_READY}, TOPIC_SM);
+            // TODO : REMOVE ME
+            //sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
+            //Thread::sleep(100);
+            //sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
+            //Thread::sleep(100);
             //*****************************************************************/
 
-            TRACE("------- SIMULATION STARTED ! ------- \n");
+            TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
         }
 
         if (isSetTrue(CALIBRATION))
         {
-            TRACE("------- CALIBRATION ! ------- \n");
+            TRACE("[HIL] ------- CALIBRATION ! ------- \n");
             changed_flags.push_back(CALIBRATION);
         }
 
         if (isSetFalse(CALIBRATION))  // calibration finalized
-        {  //*****************************************************************/
-            //        temporary until telecommands do not exist        /
+        {
+            TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
+            
             //*****************************************************************/
-            sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+            //            temporary until telecommands do not exist            /
             //*****************************************************************/
-            TRACE("------- READY TO LAUNCH ! ------- \n");
+            // sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+            //*****************************************************************/
+            // TRACE("\n\n --- PRESS ENTER TO ARM --- \n\n");
+            // getchar(); // wait user input
+            // sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
+            // Thread::sleep(1000);
         }
 
         if (isSetTrue(LIFTOFF_PIN_DETACHED))
         {
-            TRACE("------- LIFTOFF PIN DETACHED ! ------- \n");
+            TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
             changed_flags.push_back(LIFTOFF_PIN_DETACHED);
         }
 
@@ -173,16 +179,16 @@ public:
                 sEventBroker->post({EV_UMBILICAL_DETACHED},
                                    TOPIC_FLIGHT_EVENTS);
 
-                TRACE("------- LIFTOFF ! ------- \n");
+                TRACE("[HIL] ------- LIFTOFF ! ------- \n");
                 changed_flags.push_back(FLIGHT);
 
-                TRACE("------- ASCENT ! ------- \n");
+                TRACE("[HIL] ------- ASCENT ! ------- \n");
                 changed_flags.push_back(ASCENT);
             }
             if (isSetFalse(BURNING))
             {
                 registerOutcomes(BURNING);
-                TRACE("------- STOPPED BURNING ! ------- \n");
+                TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
                 changed_flags.push_back(BURNING);
             }
             if (isSetTrue(SIM_AEROBRAKES))
@@ -193,25 +199,25 @@ public:
             if (isSetTrue(AEROBRAKES))
             {
                 registerOutcomes(AEROBRAKES);
-                TRACE("------- AEROBRAKES ENABLED ! ------- \n");
+                TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
                 changed_flags.push_back(AEROBRAKES);
             }
             if (isSetTrue(APOGEE))
             {
                 registerOutcomes(APOGEE);
-                TRACE("------- APOGEE DETECTED ! ------- \n");
+                TRACE("[HIL] ------- APOGEE DETECTED ! ------- \n");
                 changed_flags.push_back(APOGEE);
             }
             if (isSetTrue(PARA1))
             {
                 registerOutcomes(PARA1);
-                TRACE("------- PARACHUTE 1 ! ------- \n");
+                TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
                 changed_flags.push_back(PARA1);
             }
             if (isSetTrue(PARA2))
             {
                 registerOutcomes(PARA2);
-                TRACE("------- PARACHUTE 2 ! ------- \n");
+                TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
                 changed_flags.push_back(PARA2);
             }
         }
@@ -219,7 +225,7 @@ public:
         {
             changed_flags.push_back(SIMULATION_STOPPED);
             t_stop = TimestampTimer::getTimestamp();
-            TRACE("------- SIMULATION STOPPED ! -------: %f \n\n\n",
+            TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
                   (double)t_stop / 1000000.0f);
             printOutcomes();
         }
@@ -237,7 +243,7 @@ public:
         prev_flagsFlightPhases = flagsFlightPhases;
     }
 
-    void setDataForOutcomes(Sensor<DeathStackBoard::NASData>* nas)
+    void setSourceForOutcomes(Sensor<DeathStackBoard::NASData>* nas)
     {
         this->nas = nas;
     }

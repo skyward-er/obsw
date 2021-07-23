@@ -29,6 +29,8 @@
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
+#include <sensors/analog/battery/BatteryVoltageSensorData.h>
+#include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
@@ -43,6 +45,10 @@
 #include "PinHandler/PinHandlerData.h"
 #include "Radio/Mavlink.h"
 #include "Sensors/SensorStatus.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 namespace DeathStackBoard
 {
 
@@ -191,8 +197,8 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 template <>
 void TmRepository::update<WindData>(const WindData& t);
 
-template <>
-void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
+// template <>
+// void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
 
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t);
@@ -220,11 +226,12 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
 
 /* Battery status, sampled by internal ADC */
 template <>
-void TmRepository::update<BatteryVoltageData>(const BatteryVoltageData& t);
+void TmRepository::update<BatteryVoltageSensorData>(
+    const BatteryVoltageSensorData& t);
 
 /* Motor current sense, sampled by internal ADC */
 template <>
-void TmRepository::update<CurrentSenseData>(const CurrentSenseData& t);
+void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t);
 
 template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
@@ -313,5 +320,16 @@ void TmRepository::update<ADAData>(const ADAData& t);
 // /* FlightStatsRecorder hbridge test stats */
 // template <>
 // void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
+
+#ifdef HARDWARE_IN_THE_LOOP
+template <>
+void TmRepository::update<HILImuData>(const HILImuData& t);
+
+template <>
+void TmRepository::update<HILBaroData>(const HILBaroData& t);
+
+template <>
+void TmRepository::update<HILGpsData>(const HILGpsData& t);
+#endif
 
 }  // namespace DeathStackBoard

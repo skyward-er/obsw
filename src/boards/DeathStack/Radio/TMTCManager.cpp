@@ -207,7 +207,7 @@ void TMTCManager::stateSensorTM(const Event& ev)
 
 void TMTCManager::stateFlightTM(const Event& ev)
 {
-    TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     switch (ev.sig)
     {
         case EV_ENTRY:

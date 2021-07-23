@@ -74,6 +74,15 @@ struct NASData
     float vy;
     float vz;
     float vMod;
+
+    static std::string header() { return "timestamp,x,y,z,vx,vy,vz,vMod\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << x << "," << y << "," << z << "," << vx << ","
+           << vy << "," << vz << "," << vMod << ","
+           << "\n";
+    }
 };
 
 // Struct to log the Kalman states
@@ -93,6 +102,24 @@ struct NASKalmanState
     float x10;
     float x11;
     float x12;
+
+    NASKalmanState()
+    {
+        timestamp = 0;
+        x0        = 0;
+        x1        = 0;
+        x2        = 0;
+        x3        = 0;
+        x4        = 0;
+        x5        = 0;
+        x6        = 0;
+        x7        = 0;
+        x8        = 0;
+        x9        = 0;
+        x10       = 0;
+        x11       = 0;
+        x12       = 0;
+    }
 
     NASKalmanState(uint64_t t, const Matrix<float, NASConfigs::N, 1>& state)
     {

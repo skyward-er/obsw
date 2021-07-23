@@ -115,7 +115,7 @@ private:
     void pressStaticInit();
     void pressStaticCallback();
 
-    void imuBMXinit();
+    void imuBMXInit();
     void imuBMXCallback();
 
     void magLISinit();

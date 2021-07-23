@@ -203,7 +203,7 @@ void elapsedTimeAndCsense(void *args)
         internalADC.sample();
         current_sensor.sample();
 
-        CurrentSenseData current_data = current_sensor.getLastSample();
+        CurrentSensorData current_data = current_sensor.getLastSample();
         printf("Elapsed time : %.2f\tCsense: %.4fV %.3fA\n", (t - t0) / 1000.0,
                current_data.voltage, current_data.current);
     }

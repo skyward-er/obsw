@@ -48,8 +48,8 @@ DeploymentController::~DeploymentController()
 
 void DeploymentController::logStatus(DeploymentControllerState current_state)
 {
-    status.timestamp            = TimestampTimer::getTimestamp();
-    status.state                = current_state;
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state = current_state;
     status.servo_position       = ejection_servo->getCurrentPosition();
     status.primary_cutter_state = primaryCutter->getStatus();
     status.backup_cutter_state  = backupCutter->getStatus();

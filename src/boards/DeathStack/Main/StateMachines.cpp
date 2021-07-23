@@ -82,4 +82,9 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
                    start_time);
 }
 
+void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
+{
+    nas_controller->setInitialOrientation(roll, pitch, yaw);
+}
+
 }  // namespace DeathStackBoard
