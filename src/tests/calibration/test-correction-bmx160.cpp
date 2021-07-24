@@ -25,6 +25,7 @@
 #include <drivers/HardwareTimer.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <sensors/BMX160/BMX160.h>
+
 #include "Sensors/BMX160Calibrator.h"
 
 SPIBus bus(SPI1);
@@ -62,9 +63,9 @@ int main()
 
     BMX160Config config;
     config.fifo_mode      = BMX160Config::FifoMode::HEADER;
-    config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    config.fifo_int       = BMX160Config::FifoInterruptMode::PIN_INT1;
     config.fifo_watermark = 100;
-    config.mag_odr        = BMX160Config::Odr::HZ_25;
+    config.mag_odr        = BMX160Config::OutputDataRate::HZ_25;
     config.temp_divider   = 1;
 
     sensor = new BMX160(bus, miosix::sensors::bmx160::cs::getPin(), config);
@@ -100,7 +101,8 @@ int main()
 
     TRACE("Self-test successful!\n");
 
-    while(corrector.calibrate()){
+    while (corrector.calibrate())
+    {
         sensor->sample();
         corrector.sample();
     }
@@ -150,15 +152,17 @@ int main()
         BMX160DataCorrected data_corrected = corrector.getLastSample();
 
         printf("Mag [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.mag_timestamp / 1000000.0f, data_corrected.mag_x, data_corrected.mag_y,
-               data_corrected.mag_z);
+               data_corrected.mag_timestamp / 1000000.0f, data_corrected.mag_x,
+               data_corrected.mag_y, data_corrected.mag_z);
 
         printf("Gyr [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.gyro_timestamp / 1000000.0f, data_corrected.gyro_x, data_corrected.gyro_y,
+               data_corrected.gyro_timestamp / 1000000.0f,
+               data_corrected.gyro_x, data_corrected.gyro_y,
                data_corrected.gyro_z);
 
         printf("Acc [%.4f s]:\t%.2f\t%.2f\t%.2f\n",
-               data_corrected.accel_timestamp / 1000000.0f, data_corrected.accel_x, data_corrected.accel_y,
+               data_corrected.accel_timestamp / 1000000.0f,
+               data_corrected.accel_x, data_corrected.accel_y,
                data_corrected.accel_z);
     }
 

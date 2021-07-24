@@ -291,7 +291,7 @@ void Sensors::imuBMXInit()
     BMX160Config bmx_config;
     bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
     bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
-    bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    bmx_config.fifo_int       = BMX160Config::FifoInterruptMode::PIN_INT1;
 
     bmx_config.temp_divider = 1;
 
@@ -302,7 +302,7 @@ void Sensors::imuBMXInit()
     bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
     bmx_config.mag_odr = IMU_BMX_MAG_ODR_ENUM;
 
-    bmx_config.gyr_unit = BMX160Config::GyrMeasureUnit::RAD;
+    bmx_config.gyr_unit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
                             bmx_config, spi_cfg);

@@ -76,17 +76,17 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 
-static constexpr BMX160Config::AccRange IMU_BMX_ACC_FULLSCALE_ENUM =
-    BMX160Config::AccRange::G_16;
-static constexpr BMX160Config::GyrRange IMU_BMX_GYRO_FULLSCALE_ENUM =
-    BMX160Config::GyrRange::DEG_2000;
+static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
+    BMX160Config::AccelerometerRange::G_16;
+static constexpr BMX160Config::GyroscopeRange IMU_BMX_GYRO_FULLSCALE_ENUM =
+    BMX160Config::GyroscopeRange::DEG_2000;
 
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
-static constexpr BMX160Config::Odr IMU_BMX_ACC_GYRO_ODR_ENUM =
-    BMX160Config::Odr::HZ_1600;
+static constexpr BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
+    BMX160Config::OutputDataRate::HZ_1600;
 static constexpr unsigned int IMU_BMX_MAG_ODR = 50;
-static constexpr BMX160Config::Odr IMU_BMX_MAG_ODR_ENUM =
-    BMX160Config::Odr::HZ_50;
+static constexpr BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
+    BMX160Config::OutputDataRate::HZ_50;
 
 static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
 static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;

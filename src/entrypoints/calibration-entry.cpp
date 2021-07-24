@@ -102,12 +102,12 @@ int main()
 
     BMX160Config config;
     config.fifo_mode      = BMX160Config::FifoMode::HEADER;
-    config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
-    config.mag_odr        = BMX160Config::Odr::HZ_50;
-    config.acc_odr        = BMX160Config::Odr::HZ_1600;
-    config.gyr_odr        = BMX160Config::Odr::HZ_1600;
-    config.acc_range      = BMX160Config::AccRange::G_16;
-    config.gyr_range      = BMX160Config::GyrRange::DEG_2000;
+    config.fifo_int       = BMX160Config::FifoInterruptMode::PIN_INT1;
+    config.mag_odr        = BMX160Config::OutputDataRate::HZ_50;
+    config.acc_odr        = BMX160Config::OutputDataRate::HZ_1600;
+    config.gyr_odr        = BMX160Config::OutputDataRate::HZ_1600;
+    config.acc_range      = BMX160Config::AccelerometerRange::G_16;
+    config.gyr_range      = BMX160Config::GyroscopeRange::DEG_2000;
     config.fifo_watermark = 100;
     config.temp_divider   = 1;
 
@@ -268,7 +268,7 @@ int main()
 
             sensor->sample();
             uint8_t size = sensor->getLastFifoSize();
-            auto data = sensor->getFifoElement(size - 1);
+            auto data    = sensor->getFifoElement(size - 1);
             model->feed(data);
 
             printf("Feeding sample: x = %f, y = %f, z = %f\n", data.mag_x,
@@ -312,4 +312,3 @@ int main()
     for (;;)
         ;
 }
-
