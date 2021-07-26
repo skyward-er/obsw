@@ -94,39 +94,34 @@ public:
 
         if (!broker->start())
         {
-            //LOG_ERR(log, "Error starting EventBroker\n");
-            TRACE("Error starting EventBroker\n");
+            LOG_ERR(log, "Error starting EventBroker\n");
             status.setError(&DeathStackStatus::ev_broker);
         }
 
-        if (!radio->start()) 
+        if (!radio->start())
         {
-            //LOG_ERR(log, "Error starting radio module\n");
-            TRACE("Error starting radio module\n");
+            LOG_ERR(log, "Error starting radio module\n");
             status.setError(&DeathStackStatus::radio);
         }
-       
+
         if (!sensors->start())
         {
-            //LOG_ERR(log, "Error starting sensors\n");
-            TRACE("Error starting sensors\n");
+            LOG_ERR(log, "Error starting sensors\n");
             status.setError(&DeathStackStatus::sensors);
         }
-        
+
         if (!state_machines->start())
         {
-            //LOG_ERR(log, "Error starting state machines\n");
-            TRACE("Error starting state machines\n");
+            LOG_ERR(log, "Error starting state machines\n");
             status.setError(&DeathStackStatus::state_machines);
         }
 
         if (!pin_handler->start())
         {
-            //LOG_ERR(log, "Error starting PinObserver\n");
-            TRACE("Error starting PinObserver\n");
+            LOG_ERR(log, "Error starting PinObserver\n");
             status.setError(&DeathStackStatus::pin_obs);
         }
-        
+
         injector->start();
 
         logger->log(status);
@@ -208,28 +203,9 @@ private:
         pin_handler = new PinHandler();
 
         injector = new EventInjector();
-        // LOG_INFO(log, "Init finished");
-        TRACE("Init finished\n");
-        
-        sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
+        LOG_INFO(log, "Init finished");
 
-#ifdef HARDWARE_IN_THE_LOOP
-        // TODO : REMOVE ME
-        // TEMPORARY FOR HIL UNTIL TCs ARE READY
-        /*Thread::sleep(1000);
-        sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
-        sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
-        Thread::sleep(1000);*/
-        //state_machines->setReferenceValues(109, 15, 450);
-
-        //Thread::sleep(10000);
-
-        /*sEventBroker->post({EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
-        Thread::sleep(1000);
-        sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
-        Thread::sleep(1000);
-        sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);*/
-#endif
+        // sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
     }
 
     /**
@@ -250,10 +226,10 @@ private:
                 return;
             }
         }
-        // LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
-        // getTopicString(topic));
-        TRACE("%s on %s \n", getEventString(event).c_str(),
-              getTopicString(topic).c_str());
+        LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
+                  getTopicString(topic));
+        /*TRACE("%s on %s \n", getEventString(event).c_str(),
+              getTopicString(topic).c_str());*/
 #endif
     }
 

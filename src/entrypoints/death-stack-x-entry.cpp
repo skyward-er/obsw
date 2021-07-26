@@ -41,13 +41,11 @@ int main()
 
     Stats cpu_stat;
 
-    // LOG_INFO(log, "Starting death stack...");
-    TRACE("Starting death stack...\n");
+    LOG_INFO(log, "Starting death stack...");
     // Instantiate the stack
     Thread::sleep(1000);
     DeathStack::getInstance()->start();
-    // LOG_INFO(log, "Death stack started");
-    TRACE("Death stack started\n");
+    LOG_INFO(log, "Death stack started");
 
     for (;;)
     {
