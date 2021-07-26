@@ -79,7 +79,8 @@ public:
 protected:
     void setPosition(float angle) override
     {
-        servo.setPosition(DPL_SERVO_PWM_CH, angle / 180.0f);
+        currentPosition = angle;
+        servo.setPosition(DPL_SERVO_PWM_CH, currentPosition / 180.0f);
     }
 
 private:
