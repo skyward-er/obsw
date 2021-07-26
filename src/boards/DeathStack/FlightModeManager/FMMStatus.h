@@ -41,8 +41,6 @@ enum class FMMState : uint8_t
     ASCENDING,
     DROGUE_DESCENT,
     TERMINAL_DESCENT,
-    ROGALLO_DESCENT,
-    MANUAL_DESCENT,
     LANDED
 };
 
