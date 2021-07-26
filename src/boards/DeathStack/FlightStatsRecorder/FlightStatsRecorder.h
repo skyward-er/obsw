@@ -56,6 +56,12 @@ public:
     void update(const SSCDRRN015PDAData& t); // pitot baro
     void update(const SSCDANN030PAAData& t); // DPL vane baro
 
+#ifdef HARDWARE_IN_THE_LOOP
+    void update(const HILImuData& t);
+    void update(const HILBaroData& t);
+    void update(const HILGpsData& t);
+#endif
+
     // Wait for liftoff or deployment
     void state_idle(const Event& ev);
 

@@ -203,7 +203,7 @@ void FlightStatsRecorder::update(const BMX160Data& t)
     {
         case State::LIFTOFF:
         {
-            if (fabs(t.accel_x) > liftoff_stats.acc_max)
+            if (fabs(t.accel_z) > liftoff_stats.acc_max)
             {
                 liftoff_stats.T_max_acc =
                     static_cast<uint32_t>(miosix::getTick());
@@ -240,7 +240,7 @@ void FlightStatsRecorder::update(const UbloxGPSData& t)
     {
         case State::ASCENDING:
         {
-            if (t.height > apogee_stats.gps_max_altitude)
+            if (fabs(t.height) > apogee_stats.gps_max_altitude)
             {
                 apogee_stats.gps_max_altitude = t.height;
                 apogee_stats.lat_apogee       = static_cast<float>(t.latitude);
@@ -252,6 +252,50 @@ void FlightStatsRecorder::update(const UbloxGPSData& t)
             break;
     }
 }
+
+#ifdef HARDWARE_IN_THE_LOOP
+void FlightStatsRecorder::update(const HILImuData& t)
+{
+    BMX160Data d;
+    d.accel_timestamp = t.accel_timestamp;
+    d.accel_x         = t.accel_x;
+    d.accel_y         = t.accel_y;
+    d.accel_z         = t.accel_z;
+    d.gyro_timestamp  = t.gyro_timestamp;
+    d.gyro_x          = t.gyro_x;
+    d.gyro_y          = t.gyro_y;
+    d.gyro_z          = t.gyro_z;
+    d.mag_timestamp   = t.mag_timestamp;
+    d.mag_x           = t.mag_x;
+    d.mag_y           = t.mag_y;
+    d.mag_z           = t.mag_z;
+    this->update(d);
+}
+
+void FlightStatsRecorder::update(const HILBaroData& t)
+{
+    MS5803Data d;
+    d.press_timestamp = t.press_timestamp;
+    d.press           = t.press;
+    this->update(d);
+}
+
+void FlightStatsRecorder::update(const HILGpsData& t)
+{
+    UbloxGPSData d;
+    d.latitude       = t.latitude;
+    d.longitude      = t.longitude;
+    d.height         = t.height;
+    d.velocity_north = t.velocity_north;
+    d.velocity_east  = t.velocity_east;
+    d.velocity_down  = t.velocity_down;
+    d.speed          = t.speed;
+    d.fix            = (uint8_t)t.fix;
+    d.track          = t.track;
+    d.num_satellites = t.num_satellites;
+    this->update(d);
+}
+#endif
 
 void FlightStatsRecorder::state_idle(const Event& ev)
 {
@@ -447,7 +491,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Entering EXITING state\n");
+            TRACE("[FlightStats] Exiting DROGUE_DPL state\n");
 
             LoggerService::getInstance()->log(drogue_dpl_stats);
 
@@ -472,7 +516,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering MAIN DPL state\n");
+            TRACE("[FlightStats] Entering MAIN_DPL state\n");
 
             state = State::MAIN_DPL;
 
@@ -490,7 +534,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting MAIN DPL state\n");
+            TRACE("[FlightStats] Exiting MAIN_DPL state\n");
 
             LoggerService::getInstance()->log(main_dpl_stats);
 

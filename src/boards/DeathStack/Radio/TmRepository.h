@@ -142,8 +142,8 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 template <>
 void TmRepository::update<WindData>(const WindData& t);
 
-// template <>
-// void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
+template <>
+void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
 
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t);
@@ -257,13 +257,17 @@ void TmRepository::update<LiftOffStats>(const LiftOffStats& t);
 template <>
 void TmRepository::update<ApogeeStats>(const ApogeeStats& t);
 
-/* FlightStatsRecorder deployment stats */
+/* FlightStatsRecorder drogue deployment stats */
 template <>
 void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t);
 
-// /* FlightStatsRecorder hbridge test stats */
-// template <>
-// void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
+/* FlightStatsRecorder main deployment stats */
+template <>
+void TmRepository::update<MainDPLStats>(const MainDPLStats& t);
+
+/* FlightStatsRecorder hbridge test stats */
+template <>
+void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
 
 #ifdef HARDWARE_IN_THE_LOOP
 template <>

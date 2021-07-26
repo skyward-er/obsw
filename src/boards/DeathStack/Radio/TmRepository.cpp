@@ -301,7 +301,6 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
     if (t.channel_id == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
-
         tm_repository.sensors_tm.vbat_5v = t.voltage;
         tm_repository.hr_tm.vbat_5v      = t.voltage;
     }
@@ -735,15 +734,25 @@ void TmRepository::update<ApogeeStats>(const ApogeeStats& t)
 template <>
 void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t)
 {
-    tm_repository.lr_tm.drogue_dpl_ts      = t.T_dpl;
-    tm_repository.lr_tm.drogue_dpl_max_acc = t.max_dpl_acc;
+    tm_repository.lr_tm.drogue_dpl_ts         = t.T_dpl;
+    tm_repository.lr_tm.drogue_dpl_max_acc    = t.max_dpl_acc;
+    tm_repository.lr_tm.dpl_vane_max_pressure = t.max_dpl_vane_pressure;
+}
+
+template <>
+void TmRepository::update<MainDPLStats>(const MainDPLStats& t)
+{
+    tm_repository.lr_tm.main_dpl_altitude_ts = t.T_dpl;
+    tm_repository.lr_tm.main_dpl_altitude    = t.altitude_dpl;
+    tm_repository.lr_tm.main_dpl_acc         = t.max_dpl_acc;
+    tm_repository.lr_tm.main_dpl_zspeed      = t.vert_speed_dpl;
 }
 
 template <>
 void TmRepository::update<CutterTestStats>(const CutterTestStats& t)
 {
     tm_repository.dpl_tm.primary_cutter_test_current = t.cutter_1_avg;
-    tm_repository.dpl_tm.backup_cutter_test_current = t.cutter_2_avg;
+    tm_repository.dpl_tm.backup_cutter_test_current  = t.cutter_2_avg;
 }
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -773,6 +782,8 @@ void TmRepository::update<HILImuData>(const HILImuData& t)
     tm_repository.hr_tm.mag_x = t.mag_x;
     tm_repository.hr_tm.mag_y = t.mag_y;
     tm_repository.hr_tm.mag_z = t.mag_z;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -782,19 +793,21 @@ void TmRepository::update<HILBaroData>(const HILBaroData& t)
     tm_repository.sensors_tm.ms5803_press  = t.press;
 
     tm_repository.hr_tm.pressure_digi = t.press;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
 void TmRepository::update<HILGpsData>(const HILGpsData& t)
 {
     // GPS_TM
-    tm_repository.gps_tm.lat          = t.latitude;
-    tm_repository.gps_tm.lon          = t.longitude;
-    tm_repository.gps_tm.altitude     = t.height;
+    tm_repository.gps_tm.latitude     = t.latitude;
+    tm_repository.gps_tm.longitude    = t.longitude;
+    tm_repository.gps_tm.height       = t.height;
     tm_repository.gps_tm.vel_north    = t.velocity_north;
     tm_repository.gps_tm.vel_east     = t.velocity_east;
     tm_repository.gps_tm.vel_down     = t.velocity_down;
-    tm_repository.gps_tm.vel_mag      = t.speed;
+    tm_repository.gps_tm.speed        = t.speed;
     tm_repository.gps_tm.fix          = (uint8_t)t.fix;
     tm_repository.gps_tm.track        = t.track;
     tm_repository.gps_tm.n_satellites = t.num_satellites;
@@ -807,6 +820,8 @@ void TmRepository::update<HILGpsData>(const HILGpsData& t)
 
     // TEST TM
     tm_repository.test_tm.gps_nsats = t.num_satellites;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 #endif
 
