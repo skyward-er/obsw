@@ -90,8 +90,6 @@ public:
 
     void start()
     {
-        startLogger();
-
         if (!broker->start())
         {
             LOG_ERR(log, "Error starting EventBroker\n");
@@ -167,6 +165,7 @@ private:
     {
         /* Shared components */
         logger = Singleton<LoggerService>::getInstance();
+        startLogger();
 
         TimestampTimer::enableTimestampTimer();
 
@@ -205,7 +204,7 @@ private:
         injector = new EventInjector();
         LOG_INFO(log, "Init finished");
 
-        // sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
+        sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
     }
 
     /**
