@@ -74,8 +74,6 @@ protected:
     ADACtrl* controller;
 };
 
-TEST_CASE() {}
-
 TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from idle")
 {
     controller->transition(&ADACtrl::state_idle);

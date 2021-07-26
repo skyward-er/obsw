@@ -35,8 +35,7 @@ using namespace ADAConfigs;
 // All possible states of the ADA
 enum class ADAState : uint8_t
 {
-    UNDEFINED,
-    IDLE,
+    IDLE = 0,
     CALIBRATING,
     READY,
     SHADOW_MODE,
@@ -51,7 +50,7 @@ enum class ADAState : uint8_t
 struct ADAControllerStatus
 {
     uint64_t timestamp;
-    ADAState state            = ADAState::UNDEFINED;
+    ADAState state            = ADAState::IDLE;
     bool apogee_reached       = false;
     bool disable_aerobrakes   = false;
     bool dpl_altitude_reached = false;

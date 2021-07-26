@@ -375,12 +375,6 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             logData(ada.getKalmanState(), ada.getADAData());
             break;
         }
-        case ADAState::UNDEFINED:
-        {
-            LOG_INFO(log, "Update Baro: Undefined state value ");
-            break;
-        }
-
         default:
         {
             LOG_INFO(log, "Update Baro: Unexpected state value ");
