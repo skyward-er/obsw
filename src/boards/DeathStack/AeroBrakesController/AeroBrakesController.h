@@ -393,7 +393,7 @@ void AeroBrakesController<T>::logStatus(AeroBrakesControllerState state)
 
     LoggerService::getInstance()->log(status);
 
-    // StackLogger::getInstance()->updateStack(THID_ABK_FSM);
+    StackLogger::getInstance()->updateStack(THID_ABK_FSM);
 }
 
 template <class T>

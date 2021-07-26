@@ -60,20 +60,19 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
 #ifdef HARDWARE_IN_THE_LOOP
     hilSensorsInit();
 #else
-    // Pressure sensors
+    imuBMXInit();
+    pressDigiInit();
+    gpsUbloxInit();
+#endif
     internalAdcInit();
     batteryVoltageInit();
     primaryCutterCurrentInit();
     backupCutterCurrentInit();
-    pressDigiInit();
     ADS1118Init();
     pressPitotInit();
     pressDPLVaneInit();
     pressStaticInit();
-    imuBMXInit();
     magLISinit();
-    gpsUbloxInit();
-#endif
 
     sensor_manager = new SensorManager(scheduler, sensors_map);
 }
@@ -85,19 +84,19 @@ Sensors::~Sensors()
     delete hil_baro;
     delete hil_gps;
 #else
+    delete imu_bmx160;
+    delete press_digital;
+    delete gps_ublox;
+#endif
     delete internal_adc;
     delete cs_cutter_primary;
     delete cs_cutter_backup;
     delete battery_voltage;
-    delete press_digital;
     delete adc_ads1118;
     delete press_pitot;
     delete press_dpl_vane;
     delete press_static_port;
-    delete imu_bmx160;
     delete mag_lis3mdl;
-    delete gps_ublox;
-#endif
 
     sensor_manager->stop();
     delete sensor_manager;
@@ -405,7 +404,7 @@ void Sensors::pressDigiCallback()
 
 void Sensors::ADS1118Callback()
 {
-    // LoggerService::getInstance()->log(adc_ads1118->getLastSample());
+    LoggerService::getInstance()->log(adc_ads1118->getLastSample());
 }
 
 void Sensors::pressPitotCallback()

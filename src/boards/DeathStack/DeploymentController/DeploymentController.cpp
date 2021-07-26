@@ -29,6 +29,7 @@
 #include "events/Events.h"
 
 #include "LoggerService/LoggerService.h"
+#include "System/StackLogger.h"
 
 namespace DeathStackBoard
 {
@@ -57,8 +58,7 @@ void DeploymentController::logStatus(DeploymentControllerState current_state)
     status.backup_cutter_state  = backupCutter->getStatus();
 
     LoggerService::getInstance()->log(status);
-
-    // StackLogger::getInstance()->updateStack(THID_DPL_FSM);
+    StackLogger::getInstance()->updateStack(THID_DPL_FSM);
 }
 
 void DeploymentController::state_initialization(const Event& ev)

@@ -411,7 +411,7 @@ void NASController<IMU, Press, GPS>::logStatus(NASState state)
     status.state     = state;
     logger.log(status);
 
-    // StackLogger::getInstance()->updateStack(THID_NAS_FSM);
+    StackLogger::getInstance()->updateStack(THID_NAS_FSM);
 }
 
 template <typename IMU, typename Press, typename GPS>
