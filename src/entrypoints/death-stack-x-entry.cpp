@@ -30,6 +30,8 @@
 #include <diagnostic/CpuMeter.h>
 #include "math/Stats.h"
 
+#include "FlightStatsRecorder/FlightStatsRecorder.h"
+
 using namespace miosix;
 using namespace DeathStackBoard;
 // using namespace GlobalBuffers;
@@ -40,6 +42,8 @@ int main()
     PrintLogger log = Logging::getLogger("main");
 
     Stats cpu_stat;
+    StatsResult cpu_stat_res;
+    SystemData system_data;
 
     LOG_INFO(log, "Starting death stack...");
     // Instantiate the stack
@@ -47,14 +51,28 @@ int main()
     DeathStack::getInstance()->start();
     LOG_INFO(log, "Death stack started");
 
+    LoggerService* logger_service = LoggerService::getInstance();
+
     for (;;)
     {
         Thread::sleep(1000);
-        LoggerService::getInstance()->log(
-            LoggerService::getInstance()->getLogger().getLogStats());
+        logger_service->log(logger_service->getLogger().getLogStats());
 
-        float cpu = averageCpuUtilization();
-        cpu_stat.add(cpu);
+        StackLogger::getInstance()->updateStack(THID_ENTRYPOINT);
+
+        system_data.timestamp = miosix::getTick();
+        system_data.cpu_usage = averageCpuUtilization();
+        cpu_stat.add(system_data.cpu_usage);
+
+        cpu_stat_res               = cpu_stat.getStats();
+        system_data.cpu_usage_min  = cpu_stat_res.minValue;
+        system_data.cpu_usage_max  = cpu_stat_res.maxValue;
+        system_data.cpu_usage_mean = cpu_stat_res.mean;
+
+        system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
+        system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
+
+        logger_service->log(system_data);
 
         // LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
         //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
