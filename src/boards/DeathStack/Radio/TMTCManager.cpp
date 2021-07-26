@@ -255,9 +255,8 @@ void TMTCManager::stateFlightTM(const Event& ev)
             periodicLrEvId = sEventBroker->postDelayed<LR_TM_TIMEOUT>(
                 Event{EV_SEND_LR_TM}, TOPIC_TMTC);
 
-            // // send tm
-            // tm_repo->updateLR();
-            // send(MAV_LR_TM_ID);
+            // send low rate tm
+            send(MAV_LR_TM_ID);
 
             break;
         }

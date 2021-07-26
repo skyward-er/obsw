@@ -37,19 +37,20 @@ struct LiftOffStats
 
     uint32_t T_max_speed     = 0;
     float vert_speed_max     = 0.0f;
+    float airspeed_pitot_max = 0.0f;
     float altitude_max_speed = 0.0f;
 
     static std::string header()
     {
         return "T_liftoff,T_max_acc,acc_max,T_max_speed,vert_speed_max,"
-               "altitude_max_speed\n";
+               "airspeed_pitot_max,altitude_max_speed\n";
     }
 
     void print(std::ostream& os) const
     {
         os << T_liftoff << "," << T_max_acc << "," << acc_max << ","
-           << T_max_speed << "," << vert_speed_max << "," << altitude_max_speed
-           << "\n";
+           << T_max_speed << "," << vert_speed_max << "," << airspeed_pitot_max
+           << "," << altitude_max_speed << "\n";
     }
 };
 
@@ -58,7 +59,8 @@ struct CutterTestStats
     uint32_t timestamp = 0;
     float cutter_1_avg = 0;
     float cutter_2_avg = 0;
-    uint32_t n_samples = 0;
+    uint32_t n_samples_1 = 0;
+    uint32_t n_samples_2 = 0;
     static std::string header()
     {
         return "timestamp,cutter_1_avg,cutter_2_avg\n";
@@ -73,9 +75,8 @@ struct CutterTestStats
 struct ApogeeStats
 {
     uint32_t T_apogee          = 0;
-    float nxp_min_pressure     = 200000.0f;
-    float hw_min_pressure      = 200000.0f;
-    float kalman_min_pressure  = 200000.0f;
+    float static_min_pressure  = 200000.0f;
+    float ada_min_pressure     = 200000.0f;
     float digital_min_pressure = 200000.0f;
 
     float baro_max_altitude = 0.0f;
@@ -86,17 +87,17 @@ struct ApogeeStats
 
     static std::string header()
     {
-        return "T_apogee,nxp_min_pressure,hw_min_pressure,kalman_min_pressure,"
-               "digital_min_pressure,baro_max_altitude,gps_max_altitude,lat_"
-               "apogee,lon_apogee\n";
+        return "T_apogee,static_min_pressure,ada_min_pressure,digital_min_"
+               "pressure,baro_max_altitude,gps_max_altitude,lat_apogee,lon_"
+               "apogee\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << T_apogee << "," << nxp_min_pressure << "," << hw_min_pressure
-           << "," << kalman_min_pressure << "," << digital_min_pressure << ","
-           << baro_max_altitude << "," << gps_max_altitude << "," << lat_apogee
-           << "," << lon_apogee << "\n";
+        os << T_apogee << "," << static_min_pressure << "," << ada_min_pressure
+           << "," << digital_min_pressure << "," << baro_max_altitude << ","
+           << gps_max_altitude << "," << lat_apogee << "," << lon_apogee
+           << "\n";
     }
 };
 
@@ -104,12 +105,13 @@ struct DrogueDPLStats
 {
     uint32_t T_dpl    = 0;
     float max_dpl_acc = 0.0f;
+    float max_dpl_vane_pressure = 0.0f;
 
-    static std::string header() { return "T_dpl,max_dpl_acc\n"; }
+    static std::string header() { return "T_dpl,max_dpl_acc,max_dpl_vane_pressure\n"; }
 
     void print(std::ostream& os) const
     {
-        os << T_dpl << "," << max_dpl_acc << "\n";
+        os << T_dpl << "," << max_dpl_acc << "," << max_dpl_vane_pressure << "\n";
     }
 };
 

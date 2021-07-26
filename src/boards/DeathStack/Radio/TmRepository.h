@@ -42,10 +42,12 @@
 #include "DeathStackStatus.h"
 #include "DeploymentController/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
+#include "FlightStatsRecorder/FlightStatsData.h"
 #include "NavigationSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
 #include "Radio/Mavlink.h"
 #include "Sensors/SensorStatus.h"
+#include "System/SystemData.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
@@ -79,20 +81,6 @@ public:
         return;
     }
 
-    // /**
-    //  * @brief Add a new packed HR packet to the HR telemetry message.
-    //  * The telemetry message contains multiple HR packets to reduce the
-    //  impact
-    //  * of mavlink overhead.
-    //  * @return true if the HR message is full, i.e. ready to be sent
-    //  */
-    // bool updateHR();
-
-    // /**
-    //  * @brief Pack the current LR packet into a mavlink message.
-    //  */
-    // void updateLR();
-
     /**
      * Retrieve a telemetry message in packed form.
      * @param req_tm    required telemetry
@@ -121,6 +109,15 @@ private:
         mavlink_task_stats_tm_t task_stats_tm;
         mavlink_dpl_tm_t dpl_tm;
         mavlink_ada_tm_t ada_tm;
+        mavlink_abk_tm_t abk_tm;
+        mavlink_nas_tm_t nas_tm;
+
+        mavlink_can_tm_t can_tm;
+        mavlink_strain_board_tm_t strain_board_tm;
+
+        mavlink_ms5803_tm_t digital_baro_tm;
+        mavlink_bmx160_tm_t bmx_tm;
+        mavlink_lis3mdl_tm_t lis3mdl_tm;
         mavlink_adc_tm_t adc_tm;
         mavlink_gps_tm_t gps_tm;
 
@@ -132,59 +129,6 @@ private:
     } tm_repository;
 
     uint8_t curHrIndex = 0;
-
-    /* Temporary packet to hold HR_TM values before bitpacking */
-    // struct HighRatePacket_t
-    // {
-    //     long long timestamp;
-    //     float pressure_ada;
-    //     float pressure_digi;
-    //     float msl_altitude;
-    //     float agl_altitude;
-    //     float vert_speed;
-    //     float vert_speed_2;
-    //     float acc_x;
-    //     float acc_y;
-    //     float acc_z;
-    //     float gyro_x;
-    //     float gyro_y;
-    //     float gyro_z;
-    //     float gps_lat;
-    //     float gps_lon;
-    //     float gps_alt;
-    //     float temperature;
-    //     uint8_t fmm_state;
-    //     uint8_t dpl_state;
-    //     uint8_t pin_launch;
-    //     uint8_t pin_nosecone;
-    //     uint8_t gps_fix;
-    // } hr_pkt;
-
-    /* Temporary packet to hold LR_TM values before bitpacking */
-    // struct LowRatePacket_t
-    // {
-    //     long long liftoff_ts;
-    //     long long liftoff_max_acc_ts;
-    //     float liftoff_max_acc;
-    //     long long max_zspeed_ts;
-    //     float max_zspeed;
-    //     float max_speed_altitude;
-    //     long long apogee_ts;
-    //     float nxp_min_pressure;
-    //     float hw_min_pressure;
-    //     float kalman_min_pressure;
-    //     float digital_min_pressure;
-    //     float baro_max_altitutde;
-    //     float gps_max_altitude;
-    //     float apogee_lat;
-    //     float apogee_lon;
-    //     long long drogue_dpl_ts;
-    //     float drogue_dpl_max_acc;
-    //     long long main_dpl_ts;
-    //     float main_dpl_altitude;
-    //     float main_dpl_zspeed;
-    //     float main_dpl_acc;
-    // } lr_pkt;
 };
 
 /*
@@ -257,13 +201,16 @@ void TmRepository::update<NASStatus>(const NASStatus& t);
 template <>
 void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
 
+template <>
+void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t);
+
 /* Launch and Nosecone detachment pins and DPL servo optical sensor */
 template <>
 void TmRepository::update<PinStatus>(const PinStatus& t);
 
-// /* TMTCManager (Mavlink) */
-// template <>
-// void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
+/* TMTCManager (Mavlink) */
+template <>
+void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
 
 /* Sensors */
 template <>
@@ -290,33 +237,29 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t);
 template <>
 void TmRepository::update<ADAData>(const ADAData& t);
 
-// /* ADA calibration reference values set by TC */
-// template <>
-// void TmRepository::update<ReferenceValues>(const ReferenceValues& t);
+/* ADA calibration reference values set by TC */
+template <>
+void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t);
 
-// /* Digital Pressure Sensor */
-// template <>
-// void TmRepository::update<MS5803Data>(const MS5803Data& t);
-
-// /* GPS */
-// template <>
-// void TmRepository::update<PiksiData>(const PiksiData& t);
+/* System statistics */
+template <>
+void TmRepository::update<SystemData>(const SystemData& t);
 
 // /* Sensor Manager scheduler */
 // template <>
 // void TmRepository::update<TaskStatResult>(const TaskStatResult& t);
 
-// /* FlightStatsRecorder liftoff stats */
-// template <>
-// void TmRepository::update<LiftOffStats>(const LiftOffStats& t);
+/* FlightStatsRecorder liftoff stats */
+template <>
+void TmRepository::update<LiftOffStats>(const LiftOffStats& t);
 
-// /* FlightStatsRecorder apogee stats */
-// template <>
-// void TmRepository::update<ApogeeStats>(const ApogeeStats& t);
+/* FlightStatsRecorder apogee stats */
+template <>
+void TmRepository::update<ApogeeStats>(const ApogeeStats& t);
 
-// /* FlightStatsRecorder deployment stats */
-// template <>
-// void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t);
+/* FlightStatsRecorder deployment stats */
+template <>
+void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t);
 
 // /* FlightStatsRecorder hbridge test stats */
 // template <>

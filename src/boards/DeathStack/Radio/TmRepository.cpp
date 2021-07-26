@@ -29,6 +29,10 @@
 
 #include "LoggerService/LoggerService.h"
 #include "configs/SensorManagerConfig.h"
+
+#include "DeathStack.h"
+#include "FlightStatsRecorder/FlightStatsRecorder.h"
+
 namespace DeathStackBoard
 {
 /* Periodic TM updaters */
@@ -71,29 +75,40 @@ namespace DeathStackBoard
 
 // void TmRepository::updateLR()
 // {
-//     //     LowRateTMPacker packer(tm_repository.lr_tm.payload);
+//     //     LowRateTMPacker packer(tm_repository.tm_repository.lr_tm.payload);
 
-//     //     packer.packLiftoffTs(lr_pkt.liftoff_ts, 0);
-//     //     packer.packLiftoffMaxAccTs(lr_pkt.liftoff_max_acc_ts, 0);
-//     //     packer.packLiftoffMaxAcc(lr_pkt.liftoff_max_acc_ts, 0);
-//     //     packer.packMaxZspeedTs(lr_pkt.max_zspeed_ts, 0);
-//     //     packer.packMaxZspeed(lr_pkt.max_zspeed, 0);
-//     //     packer.packMaxSpeedAltitude(lr_pkt.max_speed_altitude, 0);
-//     //     packer.packApogeeTs(lr_pkt.apogee_ts, 0);
-//     //     packer.packNxpMinPressure(lr_pkt.nxp_min_pressure, 0);
-//     //     packer.packHwMinPressure(lr_pkt.hw_min_pressure, 0);
-//     //     packer.packKalmanMinPressure(lr_pkt.kalman_min_pressure, 0);
-//     //     packer.packDigitalMinPressure(lr_pkt.digital_min_pressure, 0);
-//     //     packer.packBaroMaxAltitutde(lr_pkt.baro_max_altitutde, 0);
-//     //     packer.packGpsMaxAltitude(lr_pkt.gps_max_altitude, 0);
-//     //     packer.packApogeeLat(lr_pkt.apogee_lat, 0);
-//     //     packer.packApogeeLon(lr_pkt.apogee_lon, 0);
-//     //     packer.packDrogueDplTs(lr_pkt.drogue_dpl_ts, 0);
-//     //     packer.packDrogueDplMaxAcc(lr_pkt.drogue_dpl_max_acc, 0);
-//     //     packer.packMainDplTs(lr_pkt.main_dpl_ts, 0);
-//     //     packer.packMainDplAltitude(lr_pkt.main_dpl_altitude, 0);
-//     //     packer.packMainDplZspeed(lr_pkt.main_dpl_zspeed, 0);
-//     //     packer.packMainDplAcc(lr_pkt.main_dpl_acc, 0);
+//     //     packer.packLiftoffTs(tm_repository.lr_tm.liftoff_ts, 0);
+//     //     packer.packLiftoffMaxAccTs(tm_repository.lr_tm.liftoff_max_acc_ts,
+//     0);
+//     //     packer.packLiftoffMaxAcc(tm_repository.lr_tm.liftoff_max_acc_ts,
+//     0);
+//     //     packer.packMaxZspeedTs(tm_repository.lr_tm.max_zspeed_ts, 0);
+//     //     packer.packMaxZspeed(tm_repository.lr_tm.max_zspeed, 0);
+//     // packer.packMaxSpeedAltitude(tm_repository.lr_tm.max_speed_altitude,
+//     0);
+//     //     packer.packApogeeTs(tm_repository.lr_tm.apogee_ts, 0);
+//     //     packer.packNxpMinPressure(tm_repository.lr_tm.nxp_min_pressure,
+//     0);
+//     //     packer.packHwMinPressure(tm_repository.lr_tm.hw_min_pressure, 0);
+//     // packer.packKalmanMinPressure(tm_repository.lr_tm.kalman_min_pressure,
+//     0);
+//     //
+//     packer.packDigitalMinPressure(tm_repository.lr_tm.digital_min_pressure,
+//     0);
+//     // packer.packBaroMaxAltitutde(tm_repository.lr_tm.baro_max_altitutde,
+//     0);
+//     //     packer.packGpsMaxAltitude(tm_repository.lr_tm.gps_max_altitude,
+//     0);
+//     //     packer.packApogeeLat(tm_repository.lr_tm.apogee_lat, 0);
+//     //     packer.packApogeeLon(tm_repository.lr_tm.apogee_lon, 0);
+//     //     packer.packDrogueDplTs(tm_repository.lr_tm.drogue_dpl_ts, 0);
+//     //     packer.packDrogueDplMaxAcc(tm_repository.lr_tm.drogue_dpl_max_acc,
+//     0);
+//     //     packer.packMainDplTs(tm_repository.lr_tm.main_dpl_ts, 0);
+//     //     packer.packMainDplAltitude(tm_repository.lr_tm.main_dpl_altitude,
+//     0);
+//     //     packer.packMainDplZspeed(tm_repository.lr_tm.main_dpl_zspeed, 0);
+//     //     packer.packMainDplAcc(tm_repository.lr_tm.main_dpl_acc, 0);
 // }
 
 /* TM getter */
@@ -131,7 +146,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
         case MavTMList::MAV_TASK_STATS_TM_ID:
             tm_repository.task_stats_tm.timestamp = miosix::getTick();
             mavlink_msg_task_stats_tm_encode(sys_id, comp_id, &m,
-                                     &(tm_repository.task_stats_tm));
+                                             &(tm_repository.task_stats_tm));
             break;
         case MavTMList::MAV_DPL_TM_ID:
             tm_repository.dpl_tm.timestamp = miosix::getTick();
@@ -143,15 +158,50 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             mavlink_msg_ada_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.ada_tm));
             break;
+        case MavTMList::MAV_ABK_TM_ID:
+            tm_repository.abk_tm.timestamp = miosix::getTick();
+            mavlink_msg_abk_tm_encode(sys_id, comp_id, &m,
+                                      &(tm_repository.abk_tm));
+            break;
+        case MavTMList::MAV_NAS_TM_ID:
+            tm_repository.nas_tm.timestamp = miosix::getTick();
+            mavlink_msg_nas_tm_encode(sys_id, comp_id, &m,
+                                      &(tm_repository.nas_tm));
+            break;
+        case MavTMList::MAV_CAN_TM_ID:
+            // tm_repository.can_tm.timestamp = miosix::getTick();
+            mavlink_msg_can_tm_encode(sys_id, comp_id, &m,
+                                      &(tm_repository.can_tm));
+            break;
         case MavTMList::MAV_ADC_TM_ID:
             tm_repository.adc_tm.timestamp = miosix::getTick();
             mavlink_msg_adc_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.adc_tm));
             break;
+        case MavTMList::MAV_MS5803_TM_ID:
+            tm_repository.digital_baro_tm.timestamp = miosix::getTick();
+            mavlink_msg_ms5803_tm_encode(sys_id, comp_id, &m,
+                                         &(tm_repository.digital_baro_tm));
+            break;
+        case MavTMList::MAV_BMX160_TM_ID:
+            tm_repository.bmx_tm.timestamp = miosix::getTick();
+            mavlink_msg_bmx160_tm_encode(sys_id, comp_id, &m,
+                                         &(tm_repository.bmx_tm));
+            break;
+        case MavTMList::MAV_LIS3MDL_TM_ID:
+            tm_repository.lis3mdl_tm.timestamp = miosix::getTick();
+            mavlink_msg_lis3mdl_tm_encode(sys_id, comp_id, &m,
+                                          &(tm_repository.lis3mdl_tm));
+            break;
         case MavTMList::MAV_GPS_TM_ID:
             tm_repository.gps_tm.timestamp = miosix::getTick();
             mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.gps_tm));
+            break;
+        case MavTMList::MAV_STRAIN_BOARD_TM_ID:
+            tm_repository.strain_board_tm.timestamp = miosix::getTick();
+            mavlink_msg_strain_board_tm_encode(
+                sys_id, comp_id, &m, &(tm_repository.strain_board_tm));
             break;
         case MavTMList::MAV_HR_TM_ID:
             tm_repository.hr_tm.timestamp = miosix::getTick();
@@ -159,7 +209,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
                                      &(tm_repository.hr_tm));
             break;
         case MavTMList::MAV_LR_TM_ID:
-            tm_repository.lr_tm.timestamp = miosix::getTick();
+            // tm_repository.tm_repository.lr_tm.timestamp = miosix::getTick();
             mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
                                      &(tm_repository.lr_tm));
             break;
@@ -230,6 +280,8 @@ void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
         tm_repository.sensors_tm.c_sense_2 = t.current;
         tm_repository.hr_tm.csense2        = t.current;
     }
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -246,7 +298,7 @@ void TmRepository::update<BatteryVoltageSensorData>(
 template <>
 void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 {
-    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CH_VREF)
+    if (t.channel_id == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
 
@@ -263,6 +315,8 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
     tm_repository.sensors_tm.ms5803_temp   = t.temp;
 
     tm_repository.hr_tm.pressure_digi = t.press;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -270,6 +324,8 @@ void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
 {
     tm_repository.wind_tm.pressure_static = t.press;
     tm_repository.sensors_tm.static_press = t.press;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -279,6 +335,8 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
     tm_repository.sensors_tm.pitot_press        = t.press;
 
     // tm_repository.hr_tm.airspeed_pitot = ?;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -287,6 +345,8 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
     tm_repository.wind_tm.pressure_dpl = t.press;
     tm_repository.sensors_tm.dpl_press = t.press;
     tm_repository.hr_tm.pressure_dpl   = t.press;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -315,6 +375,8 @@ void TmRepository::update<BMX160Data>(const BMX160Data& t)
     tm_repository.hr_tm.mag_x = t.mag_x;
     tm_repository.hr_tm.mag_y = t.mag_y;
     tm_repository.hr_tm.mag_z = t.mag_z;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -339,13 +401,13 @@ template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 {
     // GPS_TM
-    tm_repository.gps_tm.latitude          = t.latitude;
-    tm_repository.gps_tm.longitude          = t.longitude;
-    tm_repository.gps_tm.height     = t.height;
+    tm_repository.gps_tm.latitude     = t.latitude;
+    tm_repository.gps_tm.longitude    = t.longitude;
+    tm_repository.gps_tm.height       = t.height;
     tm_repository.gps_tm.vel_north    = t.velocity_north;
     tm_repository.gps_tm.vel_east     = t.velocity_east;
     tm_repository.gps_tm.vel_down     = t.velocity_down;
-    tm_repository.gps_tm.speed      = t.speed;
+    tm_repository.gps_tm.speed        = t.speed;
     tm_repository.gps_tm.fix          = (uint8_t)t.fix;
     tm_repository.gps_tm.track        = t.track;
     tm_repository.gps_tm.n_satellites = t.num_satellites;
@@ -358,6 +420,8 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 
     // TEST TM
     tm_repository.test_tm.gps_nsats = t.num_satellites;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -413,6 +477,22 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
     tm_repository.hr_tm.nas_bias0 = t.x10;
     tm_repository.hr_tm.nas_bias1 = t.x11;
     tm_repository.hr_tm.nas_bias2 = t.x12;
+}
+
+template <>
+void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t)
+{
+    tm_repository.nas_tm.ref_accel_x = t.ref_accel_x;
+    tm_repository.nas_tm.ref_accel_y = t.ref_accel_y;
+    tm_repository.nas_tm.ref_accel_z = t.ref_accel_z;
+    tm_repository.nas_tm.ref_mag_x   = t.ref_mag_x;
+    tm_repository.nas_tm.ref_mag_y   = t.ref_mag_y;
+    tm_repository.nas_tm.ref_mag_z   = t.ref_mag_z;
+
+    tm_repository.nas_tm.ref_latitude  = t.ref_latitude;
+    tm_repository.nas_tm.ref_longitude = t.ref_longitude;
+
+    tm_repository.nas_tm.ref_pressure = t.ref_pressure;
 }
 
 /* Launch and Nosecone detachment pins */
@@ -483,27 +563,27 @@ void TmRepository::update<LogStats>(const LogStats& t)
     tm_repository.hr_tm.logger_error = t.opened ? t.statWriteError : 255;
 }
 
-// /* TMTCManager (Mavlink) */
-// template <>
-// void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t)
-// {
-//     // mavchannel stats
-//     tm_repository.tmtc_tm.n_send_queue   = t.n_send_queue;
-//     tm_repository.tmtc_tm.max_send_queue = t.max_send_queue;
-//     tm_repository.tmtc_tm.n_send_errors  = t.n_send_errors;
-//     tm_repository.tmtc_tm.msg_received   = t.mav_stats.msg_received;
-//     // mav stats
-//     tm_repository.tmtc_tm.buffer_overrun = t.mav_stats.buffer_overrun;
-//     tm_repository.tmtc_tm.parse_error    = t.mav_stats.parse_error;
-//     tm_repository.tmtc_tm.parse_state    = t.mav_stats.parse_state;
-//     tm_repository.tmtc_tm.packet_idx     = t.mav_stats.packet_idx;
-//     tm_repository.tmtc_tm.current_rx_seq = t.mav_stats.current_rx_seq;
-//     tm_repository.tmtc_tm.current_tx_seq = t.mav_stats.current_tx_seq;
-//     tm_repository.tmtc_tm.packet_rx_success_count =
-//         t.mav_stats.packet_rx_success_count;
-//     tm_repository.tmtc_tm.packet_rx_drop_count =
-//         t.mav_stats.packet_rx_drop_count;
-// }
+/* TMTCManager (Mavlink) */
+template <>
+void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t)
+{
+    // mavchannel stats
+    tm_repository.tmtc_tm.n_send_queue   = t.n_send_queue;
+    tm_repository.tmtc_tm.max_send_queue = t.max_send_queue;
+    tm_repository.tmtc_tm.n_send_errors  = t.n_send_errors;
+    tm_repository.tmtc_tm.msg_received   = t.mav_stats.msg_received;
+    // mav stats
+    tm_repository.tmtc_tm.buffer_overrun = t.mav_stats.buffer_overrun;
+    tm_repository.tmtc_tm.parse_error    = t.mav_stats.parse_error;
+    tm_repository.tmtc_tm.parse_state    = t.mav_stats.parse_state;
+    tm_repository.tmtc_tm.packet_idx     = t.mav_stats.packet_idx;
+    tm_repository.tmtc_tm.current_rx_seq = t.mav_stats.current_rx_seq;
+    tm_repository.tmtc_tm.current_tx_seq = t.mav_stats.current_tx_seq;
+    tm_repository.tmtc_tm.packet_rx_success_count =
+        t.mav_stats.packet_rx_success_count;
+    tm_repository.tmtc_tm.packet_rx_drop_count =
+        t.mav_stats.packet_rx_drop_count;
+}
 
 // /* Sensor Manager */
 // template <>
@@ -517,8 +597,12 @@ void TmRepository::update<LogStats>(const LogStats& t)
 template <>
 void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
 {
-    // tm_repository.dpl_tm.fsm_state    = (uint8_t)t.state;
-    // tm_repository.dpl_tm.cutter_state = (uint8_t)t.cutter_status.state;
+    tm_repository.dpl_tm.fsm_state = (uint8_t)t.state;
+    tm_repository.dpl_tm.primary_cutter_state =
+        (uint8_t)t.primary_cutter_state.state;
+    tm_repository.dpl_tm.backup_cutter_state =
+        (uint8_t)t.backup_cutter_state.state;
+    tm_repository.dpl_tm.servo_position = t.servo_position;
 
     // HR TM
     tm_repository.hr_tm.dpl_state = (int)t.state;
@@ -556,6 +640,8 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
     // HR_TM
     tm_repository.hr_tm.pressure_ada = t.x0;
     // tm_repository.hr_tm.vert_accel = t.x2;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 // /* ADA kalman altitude values */
@@ -564,6 +650,8 @@ void TmRepository::update<ADAData>(const ADAData& t)
 {
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
     tm_repository.hr_tm.vert_speed   = t.vert_speed;
+
+    DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
 
 template <>
@@ -606,49 +694,57 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
 //     }
 // }
 
-// template <>
-// void TmRepository::update<LiftOffStats>(const LiftOffStats& t)
-// {
-//     lr_pkt.liftoff_ts = t.T_liftoff;
+template <>
+void TmRepository::update<SystemData>(const SystemData& t)
+{
+    tm_repository.lr_tm.cpu_load  = t.cpu_usage;
+    tm_repository.lr_tm.free_heap = t.free_heap;
+}
 
-//     lr_pkt.liftoff_max_acc_ts = t.T_max_acc;
-//     lr_pkt.liftoff_max_acc    = t.acc_max;
+template <>
+void TmRepository::update<LiftOffStats>(const LiftOffStats& t)
+{
+    tm_repository.lr_tm.liftoff_ts = t.T_liftoff;
 
-//     lr_pkt.max_zspeed_ts      = t.T_max_speed;
-//     lr_pkt.max_zspeed         = t.vert_speed_max;
-//     lr_pkt.max_speed_altitude = t.altitude_max_speed;
-// }
+    tm_repository.lr_tm.liftoff_max_acc_ts = t.T_max_acc;
+    tm_repository.lr_tm.liftoff_max_acc    = t.acc_max;
 
-// template <>
-// void TmRepository::update<ApogeeStats>(const ApogeeStats& t)
-// {
-//     lr_pkt.apogee_ts = t.T_apogee;
+    tm_repository.lr_tm.max_z_speed_ts     = t.T_max_speed;
+    tm_repository.lr_tm.max_z_speed        = t.vert_speed_max;
+    tm_repository.lr_tm.max_airspeed_pitot = t.airspeed_pitot_max;
+    tm_repository.lr_tm.max_speed_altitude = t.altitude_max_speed;
+}
 
-//     lr_pkt.nxp_min_pressure     = t.nxp_min_pressure;
-//     lr_pkt.hw_min_pressure      = t.hw_min_pressure;
-//     lr_pkt.kalman_min_pressure  = t.kalman_min_pressure;
-//     lr_pkt.digital_min_pressure = t.digital_min_pressure;
+template <>
+void TmRepository::update<ApogeeStats>(const ApogeeStats& t)
+{
+    tm_repository.lr_tm.apogee_ts = t.T_apogee;
 
-//     lr_pkt.baro_max_altitutde = t.baro_max_altitude;
-//     lr_pkt.gps_max_altitude   = t.gps_max_altitude;
+    tm_repository.lr_tm.static_min_pressure  = t.static_min_pressure;
+    tm_repository.lr_tm.digital_min_pressure = t.digital_min_pressure;
+    tm_repository.lr_tm.ada_min_pressure     = t.ada_min_pressure;
+    tm_repository.lr_tm.digital_min_pressure = t.digital_min_pressure;
 
-//     lr_pkt.apogee_lat = t.lat_apogee;
-//     lr_pkt.apogee_lon = t.lon_apogee;
-// }
+    tm_repository.lr_tm.baro_max_altitutde = t.baro_max_altitude;
+    tm_repository.lr_tm.gps_max_altitude   = t.gps_max_altitude;
 
-// template <>
-// void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t)
-// {
-//     lr_pkt.drogue_dpl_ts      = t.T_dpl;
-//     lr_pkt.drogue_dpl_max_acc = t.max_dpl_acc;
-// }
+    tm_repository.lr_tm.apogee_lat = t.lat_apogee;
+    tm_repository.lr_tm.apogee_lon = t.lon_apogee;
+}
 
-// template <>
-// void TmRepository::update<CutterTestStats>(const CutterTestStats& t)
-// {
-//     tm_repository.dpl_tm.cutter_1_test_current = t.cutter_1_avg;
-//     tm_repository.dpl_tm.cutter_2_test_current = t.cutter_2_avg;
-// }
+template <>
+void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t)
+{
+    tm_repository.lr_tm.drogue_dpl_ts      = t.T_dpl;
+    tm_repository.lr_tm.drogue_dpl_max_acc = t.max_dpl_acc;
+}
+
+template <>
+void TmRepository::update<CutterTestStats>(const CutterTestStats& t)
+{
+    tm_repository.dpl_tm.primary_cutter_test_current = t.cutter_1_avg;
+    tm_repository.dpl_tm.backup_cutter_test_current = t.cutter_2_avg;
+}
 
 #ifdef HARDWARE_IN_THE_LOOP
 template <>

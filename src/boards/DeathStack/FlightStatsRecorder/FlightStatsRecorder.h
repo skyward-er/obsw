@@ -25,15 +25,11 @@
 
 #include <events/FSM.h>
 
-#include "TmRepository/TmRepository.h"
+#include "Radio/TmRepository.h"
 
 #include "ADA/ADAData.h"
-#include "SensorManager/Sensors/AD7994WrapperData.h"
-//#include "SensorManager/Sensors/PiksiData.h"
 #include "configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
-//#include "sensors/MPU9250/MPU9250Data.h"
-#include "SensorManager/Sensors/ADCWrapperData.h"
 
 namespace DeathStackBoard
 {
@@ -51,16 +47,19 @@ public:
     ~FlightStatsRecorder();
 
     void update(const ADAKalmanState& t);
-    void update(const CurrentSenseDataWrapper& t);
     void update(const ADAData& t);
-    void update(const AD7994WrapperData& t);
-    //void update(const MPU9250Data& t);
-    //void update(const PiksiData& t);
+    void update(const UbloxGPSData& t);
+    void update(const BMX160Data& t);
+    void update(const CurrentSensorData& t);
+    void update(const MS5803Data& t); // digitl baro
+    void update(const MPXHZ6130AData& t); // static ports baro
+    void update(const SSCDRRN015PDAData& t); // pitot baro
+    void update(const SSCDANN030PAAData& t); // DPL vane baro
 
     // Wait for liftoff or deployment
     void state_idle(const Event& ev);
 
-    void state_testing_cutters(const Event& ev);
+    void state_testingCutters(const Event& ev);
 
     // Record stats of the first few seconds of flight
     void state_liftOff(const Event& ev);
@@ -89,7 +88,7 @@ private:
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
-    CutterTestStats cutter_stats{};
+    CutterTestStats cutters_stats{};
     State state         = State::IDLE;
     long long T_liftoff = 0;
 
