@@ -88,14 +88,12 @@ public:
 
 private:
     Matrix<float, N, 1> x_init;
-
     Matrix3f R, Rb, Ri;
-
     SkyQuaternion quat;
-
     Vector4f x_quat;
-
     Vector3f eul;
+
+    PrintLogger log = Logging::getLogger("deathstack.nas.initstates");
 };
 
 InitStates::InitStates() { x_init << MatrixXf::Zero(N, 1); }
@@ -124,7 +122,7 @@ void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
 
 void InitStates::triad(const Vector3f acc, const Vector3f mag)
 {
-    TRACE("[NAS] Executing TRIAD \n");
+    LOG_DEBUG(log, "Executing TRIAD \n");
 
     Vector3f t1b, t2b, t3b, t1i, t2i,
         t3i;  // The coulmns of the the triad matrices. b:body, i:inertial.

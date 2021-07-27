@@ -52,7 +52,7 @@ void ADACalibrator::setReferenceTemperature(float ref_temp)
     {
         ref_values.ref_temperature = temperature_ref;
         ref_temp_set               = true;
-        TRACE("[ADA] Reference temperature set to %.3f K\n", temperature_ref);
+        LOG_INFO(log, "Reference temperature set to {:03f} K\n", temperature_ref);
     }
 }
 
@@ -60,7 +60,7 @@ void ADACalibrator::setReferenceAltitude(float ref_alt)
 {
     ref_values.ref_altitude = ref_alt;
     ref_alt_set             = true;
-    TRACE("[ADA] Reference altitude set to %.3f m\n", ref_alt);
+    LOG_INFO(log, "Reference altitude set to {:03f} m\n", ref_alt);
 }
 
 ADAReferenceValues ADACalibrator::getReferenceValues()

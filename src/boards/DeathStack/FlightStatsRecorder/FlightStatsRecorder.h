@@ -99,6 +99,8 @@ private:
     long long T_liftoff = 0;
 
     uint16_t ev_timeout_id = 0;
+
+    PrintLogger log = Logging::getLogger("deathstack.fsm.statsrecorder");
 };
 
 }  // namespace DeathStackBoard

@@ -27,6 +27,8 @@
 #include "PinHandlerData.h"
 #include "configs/PinObserverConfig.h"
 
+#include <diagnostic/PrintLogger.h>
+
 namespace DeathStackBoard
 {
 
@@ -95,6 +97,7 @@ private:
     PinObserver pin_obs;
 
     LoggerService* logger;
+    PrintLogger log = Logging::getLogger("deathstack.pinhandler");
 };
 
 }  // namespace DeathStackBoard

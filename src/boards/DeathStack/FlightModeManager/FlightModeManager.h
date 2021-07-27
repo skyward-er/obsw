@@ -99,6 +99,7 @@ private:
     void logState(FMMState current_state);
 
     LoggerService& logger;
+    PrintLogger log = Logging::getLogger("deathstack.fsm.fmm");
 
     FMMStatus status;
 

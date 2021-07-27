@@ -127,7 +127,7 @@ void Sensors::internalAdcInit()
                     bind(&Sensors::internalAdcCallback, this), false, true);
     sensors_map.emplace(std::make_pair(internal_adc, info));
 
-    TRACE("InternalADC setup done! (%p)\n", internal_adc);
+    LOG_INFO(log, "InternalADC setup done!\n");
 }
 
 void Sensors::batteryVoltageInit()
@@ -142,7 +142,7 @@ void Sensors::batteryVoltageInit()
 
     sensors_map.emplace(std::make_pair(battery_voltage, info));
 
-    TRACE("Battery voltage sensor setup done! (%p)\n", battery_voltage);
+    LOG_INFO(log, "Battery voltage sensor setup done!\n");
 }
 
 void Sensors::primaryCutterCurrentInit()
@@ -167,8 +167,7 @@ void Sensors::primaryCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_primary, info));
 
-    TRACE("Primary cutter current sensor setup done! (%p)\n",
-          cs_cutter_primary);
+    LOG_INFO(log, "Primary cutter current sensor setup done!\n");
 }
 
 void Sensors::backupCutterCurrentInit()
@@ -193,7 +192,7 @@ void Sensors::backupCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_backup, info));
 
-    TRACE("Backup cutter current sensor setup done! (%p)\n", cs_cutter_backup);
+    LOG_INFO(log, "Backup cutter current sensor setup done!\n");
 }
 
 void Sensors::pressDigiInit()
@@ -209,7 +208,7 @@ void Sensors::pressDigiInit()
 
     sensors_map.emplace(std::make_pair(press_digital, info));
 
-    TRACE("MS5803 pressure sensor setup done! (%p)\n", press_digital);
+    LOG_INFO(log, "MS5803 pressure sensor setup done!\n");
 }
 
 void Sensors::ADS1118Init()
@@ -237,7 +236,7 @@ void Sensors::ADS1118Init()
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 
-    TRACE("ADS1118 setup done! (%p)\n", adc_ads1118);
+    LOG_INFO(log, "ADS1118 setup done!\n");
 }
 
 void Sensors::pressPitotInit()
@@ -251,7 +250,7 @@ void Sensors::pressPitotInit()
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 
-    TRACE("Pitot pressure sensor setup done! (%p)\n", press_pitot);
+    LOG_INFO(log, "Pitot pressure sensor setup done!\n");
 }
 
 void Sensors::pressDPLVaneInit()
@@ -265,7 +264,7 @@ void Sensors::pressDPLVaneInit()
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 
-    TRACE("DPL pressure sensor setup done! (%p)\n", press_dpl_vane);
+    LOG_INFO(log, "DPL pressure sensor setup done!\n");
 }
 
 void Sensors::pressStaticInit()
@@ -279,7 +278,7 @@ void Sensors::pressStaticInit()
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 
-    TRACE("Static pressure sensor setup done! (%p)\n", press_static_port);
+    LOG_INFO(log, "Static pressure sensor setup done!\n");
 }
 
 void Sensors::imuBMXInit()
@@ -311,7 +310,7 @@ void Sensors::imuBMXInit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
-    TRACE("BMX160 Setup done! (%p)\n", imu_bmx160);
+    LOG_INFO(log, "BMX160 Setup done!\n");
 }
 
 void Sensors::magLISinit()
@@ -332,7 +331,7 @@ void Sensors::magLISinit()
 
     sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
 
-    TRACE("LIS3MDL Setup done! (%p)\n", mag_lis3mdl);
+    LOG_INFO(log, "LIS3MDL Setup done!\n");
 }
 
 void Sensors::gpsUbloxInit()
@@ -344,7 +343,7 @@ void Sensors::gpsUbloxInit()
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
 
-    TRACE("Ublox GPS Setup done! (%p)\n", gps_ublox);
+    LOG_INFO(log, "Ublox GPS Setup done!\n");
 }
 
 void Sensors::internalAdcCallback()
@@ -354,11 +353,11 @@ void Sensors::internalAdcCallback()
 
 void Sensors::batteryVoltageCallback()
 {
-    // float v = battery_voltage->getLastSample().bat_voltage;
-    // if (v < 10.0)
-    // {
-    //     LOG_WARN(log, "******* LOW BATTERY ******* \n Voltage = %.2f \n", v);
-    // }
+    /*float v = battery_voltage->getLastSample().bat_voltage;
+    if (v < 10.5)
+    {
+        LOG_CRIT(log, "******* LOW BATTERY ******* \n Voltage = {:02f} \n", v);
+    }*/
 
     LoggerService::getInstance()->log(battery_voltage->getLastSample());
 }
@@ -393,7 +392,7 @@ void Sensors::hilSensorsInit()
     sensors_map.emplace(std::make_pair(hil_baro, info_baro));
     sensors_map.emplace(std::make_pair(hil_gps, info_gps));
 
-    TRACE("HIL Sensors setup done! \n");
+    LOG_INFO(log, "HIL Sensors setup done! \n");
 }
 #endif
 
@@ -465,10 +464,6 @@ void Sensors::magLISCallback()
 
 void Sensors::gpsUbloxCallback()
 {
-    /*UbloxGPSData d = gps_ublox->getLastSample();
-    TRACE("%llu %d %f %f %u %f %f \n", d.gps_timestamp, d.fix, d.latitude,
-          d.longitude, d.num_satellites, d.speed, d.track);*/
-
     LoggerService::getInstance()->log(gps_ublox->getLastSample());
 }
 
@@ -476,8 +471,6 @@ void Sensors::gpsUbloxCallback()
 void Sensors::hilIMUCallback()
 {
     LoggerService::getInstance()->log(hil_imu->getLastSample());
-
-    // TRACE("HILImu callback \n");
 }
 void Sensors::hilBaroCallback()
 {

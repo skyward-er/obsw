@@ -66,7 +66,7 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
     xbee->setOnFrameReceivedListener(
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
-    Xbee::setDataRate(*xbee, true, 5000);
+    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, 5000);
     
     mav_driver = new MavDriver(xbee, handleMavlinkMessage, 0,
                                1000);  // TODO: Use settings

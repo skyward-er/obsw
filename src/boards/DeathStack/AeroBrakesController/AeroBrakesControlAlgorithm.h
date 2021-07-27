@@ -36,6 +36,8 @@
 #include "sensors/Sensor.h"
 #include "trajectories/Trajectory.h"
 
+#include "diagnostic/PrintLogger.h"
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL.h"
 #endif
@@ -325,7 +327,8 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::chooseTrajectory(float z,
     logger.log(
         AeroBrakesChosenTrajectory{chosenTrajectory.getTrajectoryIndex()});
 
-    TRACE("[AeroBrakes] Chosen trajectory : %d \n",
+    PrintLogger log = Logging::getLogger("deathstack.fsm.abk");
+    LOG_INFO(log, "Chosen trajectory : %d \n",
           chosenTrajectory.getTrajectoryIndex());
 
     TrajectoryPoint setpoint = chosenTrajectory.get(indexMinVal);

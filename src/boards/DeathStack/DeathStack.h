@@ -204,7 +204,7 @@ private:
         injector = new EventInjector();
         LOG_INFO(log, "Init finished");
 
-        sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
+        // sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
     }
 
     /**

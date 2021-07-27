@@ -32,6 +32,8 @@
 #include "events/FSM.h"
 #include "events/Events.h"
 
+#include "diagnostic/PrintLogger.h"
+
 using namespace DeathStackBoard::DeploymentConfigs;
 using namespace DeathStackBoard::CutterConfig;
 
@@ -73,6 +75,8 @@ private:
 
     uint16_t ev_nc_open_timeout_id    = 0;
     uint16_t ev_nc_cutting_timeout_id = 0;
+
+    PrintLogger log = Logging::getLogger("deathstack.fsm.dpl");
 
     void logStatus(DeploymentControllerState current_state);
 };

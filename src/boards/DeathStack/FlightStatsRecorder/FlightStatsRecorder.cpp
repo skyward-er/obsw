@@ -303,7 +303,7 @@ void FlightStatsRecorder::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering IDLE state\n");
+            LOG_DEBUG(log, "Entering IDLE state\n");
             state = State::IDLE;
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
@@ -311,7 +311,7 @@ void FlightStatsRecorder::state_idle(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting IDLE state\n");
+            LOG_DEBUG(log, "Exiting IDLE state\n");
 
             break;
         }
@@ -354,7 +354,7 @@ void FlightStatsRecorder::state_testingCutters(const Event& ev)
                 {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
-            TRACE("[FlightStats] Entering CUTTER_TEST state\n");
+            LOG_DEBUG(log, "Entering CUTTER_TEST state\n");
             break;
         }
         case EV_EXIT:
@@ -367,7 +367,7 @@ void FlightStatsRecorder::state_testingCutters(const Event& ev)
             LoggerService::getInstance()->log(cutters_stats);
             sEventBroker->removeDelayed(ev_timeout_id);
 
-            TRACE("[FlightStats] Exiting CUTTER_TEST state\n");
+            LOG_DEBUG(log, "Exiting CUTTER_TEST state\n");
             break;
         }
         case EV_STATS_TIMEOUT:
@@ -388,7 +388,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering LIFTOFF state\n");
+            LOG_DEBUG(log, "Entering LIFTOFF state\n");
             state = State::LIFTOFF;
 
             // Collect liftoff stats until this event is received
@@ -405,7 +405,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting LIFTOFF state\n");
+            LOG_DEBUG(log, "Exiting LIFTOFF state\n");
 
             LoggerService::getInstance()->log(liftoff_stats);
 
@@ -429,7 +429,7 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering ASCENDING state\n");
+            LOG_DEBUG(log, "Entering ASCENDING state\n");
 
             state = State::ASCENDING;
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
@@ -437,7 +437,7 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting ASCENDING state\n");
+            LOG_DEBUG(log, "Exiting ASCENDING state\n");
 
             LoggerService::getInstance()->log(apogee_stats);
 
@@ -476,7 +476,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering DROGUE_DPL state\n");
+            LOG_DEBUG(log, "Entering DROGUE_DPL state\n");
 
             state = State::DROGUE_DPL;
 
@@ -491,7 +491,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting DROGUE_DPL state\n");
+            LOG_DEBUG(log, "Exiting DROGUE_DPL state\n");
 
             LoggerService::getInstance()->log(drogue_dpl_stats);
 
@@ -516,7 +516,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[FlightStats] Entering MAIN_DPL state\n");
+            LOG_DEBUG(log, "Entering MAIN_DPL state\n");
 
             state = State::MAIN_DPL;
 
@@ -534,7 +534,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[FlightStats] Exiting MAIN_DPL state\n");
+            LOG_DEBUG(log, "Exiting MAIN_DPL state\n");
 
             LoggerService::getInstance()->log(main_dpl_stats);
 

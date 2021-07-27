@@ -69,7 +69,7 @@ private:
     AeroBrakesControllerStatus status;
     ServoInterface* servo;
     AeroBrakesControlAlgorithm<T> algorithm;
-    PrintLogger log = Logging::getLogger("ds.fsm.arb");
+    PrintLogger log = Logging::getLogger("deathstack.fsm.arb");
     uint16_t ev_shadow_mode_timeout_id;
 
     /**

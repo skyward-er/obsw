@@ -33,6 +33,7 @@
 #include "sensors/Sensor.h"
 
 #include "LoggerService/LoggerService.h"
+#include "diagnostic/PrintLogger.h"
 
 using miosix::FastMutex;
 using miosix::Lock;
@@ -101,6 +102,7 @@ private:
     NAS<IMU, Press, GPS> nas;
 
     LoggerService& logger;
+    PrintLogger log = Logging::getLogger("deathstack.fsm.nas");
 
     uint64_t last_gps_timestamp   = 0;
     uint64_t last_accel_timestamp = 0;
@@ -151,28 +153,28 @@ void NASController<IMU, Press, GPS>::update()
                 Lock<FastMutex> l(mutex);
 
                 // Add samples to the calibration
-                //if (press_data.press_timestamp > last_press_timestamp)
+                // if (press_data.press_timestamp > last_press_timestamp)
                 {
                     last_press_timestamp = press_data.press_timestamp;
                     calibrator.addBaroSample(press_data.press);
                 }
 
-                //if (gps_data.gps_timestamp > last_gps_timestamp &&
-                //    gps_data.fix == true)
+                if (/*gps_data.gps_timestamp > last_gps_timestamp &&*/
+                    gps_data.fix == true)
                 {
                     last_gps_timestamp = gps_data.gps_timestamp;
                     calibrator.addGPSSample(gps_data.latitude,
                                             gps_data.longitude);
                 }
 
-                //if (imu_data.accel_timestamp > last_accel_timestamp)
+                // if (imu_data.accel_timestamp > last_accel_timestamp)
                 {
                     last_accel_timestamp = imu_data.accel_timestamp;
                     calibrator.addAccelSample(
                         imu_data.accel_x, imu_data.accel_y, imu_data.accel_z);
                 }
 
-                //if (imu_data.mag_timestamp > last_mag_timestamp)
+                // if (imu_data.mag_timestamp > last_mag_timestamp)
                 {
                     last_mag_timestamp = imu_data.mag_timestamp;
                     calibrator.addMagSample(imu_data.mag_x, imu_data.mag_y,
@@ -232,7 +234,7 @@ void NASController<IMU, Press, GPS>::finalizeCalibration()
         logger.log(nas.getTriadResult());
         logData();
 
-        TRACE("[NAS] Finalized calibration and TRIAD \n");
+        LOG_INFO(log, "Finalized calibration and TRIAD \n");
 
         sEventBroker->post({EV_NAS_READY}, TOPIC_NAS);
     }
@@ -245,13 +247,13 @@ void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[NAS] entering state idle\n");
+            LOG_DEBUG(log, "Entering state idle\n");
             logStatus(NASState::IDLE);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[NAS] exiting state idle\n");
+            LOG_DEBUG(log, "Exiting state idle\n");
             break;
         }
         case EV_CALIBRATE_NAS:
@@ -273,7 +275,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[NAS] entering state calibrating\n");
+            LOG_DEBUG(log, "Entering state calibrating\n");
             logStatus(NASState::CALIBRATING);
 
             {
@@ -286,7 +288,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
         }
         case EV_EXIT:
         {
-            TRACE("[NAS] exiting state calibrating\n");
+            LOG_DEBUG(log, "Exiting state calibrating\n");
             break;
         }
         case EV_CALIBRATE_NAS:
@@ -313,13 +315,13 @@ void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[NAS] entering state ready\n");
+            LOG_DEBUG(log, "Entering state ready\n");
             logStatus(NASState::READY);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[NAS] exiting state ready\n");
+            LOG_DEBUG(log, "Exiting state ready\n");
             break;
         }
         case EV_LIFTOFF:
@@ -346,13 +348,13 @@ void NASController<IMU, Press, GPS>::state_active(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[NAS] entering state active\n");
+            LOG_DEBUG(log, "Entering state active\n");
             logStatus(NASState::ACTIVE);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[NAS] exiting state active\n");
+            LOG_DEBUG(log, "Exiting state active\n");
             break;
         }
         case EV_LANDED:
@@ -374,13 +376,13 @@ void NASController<IMU, Press, GPS>::state_end(const Event& ev)
     {
         case EV_ENTRY:
         {
-            TRACE("[NAS] entering state end\n");
+            LOG_DEBUG(log, "Entering state end\n");
             logStatus(NASState::END);
             break;
         }
         case EV_EXIT:
         {
-            TRACE("[NAS] exiting state end\n");
+            LOG_DEBUG(log, "Exiting state end\n");
             break;
         }
 

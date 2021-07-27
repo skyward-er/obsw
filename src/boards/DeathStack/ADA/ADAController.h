@@ -158,8 +158,7 @@ private:
         0; /**<  Number of consecutive samples for abk disable */
 
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
-
-    PrintLogger log = Logging::getLogger("ds.fms.ada");
+    PrintLogger log = Logging::getLogger("deathstack.fms.ada");
 };
 
 /* --- LIFE CYCLE --- */
@@ -430,8 +429,7 @@ void ADAController<Press, GPS>::setDeploymentAltitude(float dpl_alt)
         }
         logger.log(TargetDeploymentAltitude{dpl_alt});
 
-        //LOG_INFO(log, "Deployment altitude set to %.3f m", dpl_alt);
-        TRACE("Deployment altitude set to %.3f m", dpl_alt);
+        LOG_INFO(log, "Deployment altitude set to {:03f} m", dpl_alt);
 
         finalizeCalibration();
     }
@@ -449,7 +447,7 @@ void ADAController<Press, GPS>::finalizeCalibration()
         // If samples are enough and dpl altitude has been set init ada
         ada = ADA{calibrator.getReferenceValues()};
 
-        LOG_INFO(log, "Finalized calibration ");
+        LOG_INFO(log, "Finalized calibration\n");
 
         // ADA READY!
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -487,7 +485,6 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
         }
         default:
         {
-            //TRACE("[ADA] state idle: %d event not handled", ev.sig);
             break;
         }
     }
@@ -533,8 +530,6 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state calibrating: %d event not handled",
-            // ev.sig);
             break;
         }
     }
@@ -575,7 +570,6 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state ready: %d event not handled", ev.sig);
             break;
         }
     }
@@ -616,7 +610,6 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state shadowMode: %d event not handled", ev.sig);
             break;
         }
     }
@@ -654,7 +647,6 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state active: %d event not handled", ev.sig);
             break;
         }
     }
@@ -687,8 +679,6 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state pressureStabilization: %d event not
-            // handled", ev.sig);
             break;
         }
     }
@@ -730,8 +720,6 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state drogueDescent: %d event not handled",
-            // ev.sig);
             break;
         }
     }
@@ -761,7 +749,6 @@ void ADAController<Press, GPS>::state_end(const Event& ev)
         }
         default:
         {
-            // TRACE("ADA state end: %d event not handled", ev.sig);
             break;
         }
     }

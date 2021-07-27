@@ -28,6 +28,7 @@
 #include <miosix.h>
 
 #include "ADAData.h"
+#include "diagnostic/PrintLogger.h"
 
 namespace DeathStackBoard
 {
@@ -64,5 +65,7 @@ private:
     // Refernece flags
     bool ref_alt_set  = false;
     bool ref_temp_set = false;
+
+    PrintLogger log = Logging::getLogger("deathstack.fsm.ada");
 };
 }  // namespace DeathStackBoard

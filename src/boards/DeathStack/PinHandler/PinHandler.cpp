@@ -27,6 +27,8 @@
 #include "LoggerService/LoggerService.h"
 #include "events/Events.h"
 
+#include <diagnostic/PrintLogger.h>
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL.h"
 #endif
@@ -86,7 +88,7 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 #endif
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
-    TRACE("[PinHandler] Launch pin detached! \n");
+    LOG_INFO(log, "Launch pin detached! \n");
 
     status_pin_launch.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_launch);
@@ -98,7 +100,7 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
     UNUSED(n);
     sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
-    TRACE("[PinHandler] Nosecone detached! \n");
+    LOG_INFO(log, "Nosecone detached! \n");
 
     status_pin_nosecone.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_nosecone);
@@ -109,7 +111,7 @@ void PinHandler::onDPLServoPinTransition(unsigned int p, unsigned char n)
     UNUSED(p);
     UNUSED(n);
 
-    TRACE("[PinHandler] Deployment servo actuated! \n");
+    LOG_INFO(log, "Deployment servo actuated! \n");
 
     // do not post any event, just log the timestamp
     status_pin_dpl_servo.last_detection_time = TimestampTimer::getTimestamp();
@@ -126,8 +128,7 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     status_pin_launch.last_state_change = TimestampTimer::getTimestamp();
     status_pin_launch.num_state_changes += 1;
 
-    TRACE(
-        "[PinHandler] Launch pin state change at time %llu: new "
+    LOG_INFO(log, "Launch pin state change at time %llu: new "
         "state = %d \n",
         status_pin_launch.last_state_change, status_pin_launch.state);
 
@@ -143,8 +144,7 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
-    TRACE(
-        "[PinHandler] Nosecone pin state change at time %llu: new state = %d "
+    LOG_INFO(log, "Nosecone pin state change at time %llu: new state = %d "
         "\n",
         status_pin_nosecone.last_state_change, status_pin_nosecone.state);
 
@@ -161,8 +161,7 @@ void PinHandler::onDPLServoPinStateChange(unsigned int p, unsigned char n,
     status_pin_dpl_servo.last_state_change = TimestampTimer::getTimestamp();
     status_pin_dpl_servo.num_state_changes += 1;
 
-    TRACE(
-        "[PinHandler] Deployment servo pin state change at time %llu: "
+    LOG_INFO(log, "Deployment servo pin state change at time %llu: "
         "new "
         "state = %d \n",
         status_pin_dpl_servo.last_state_change, status_pin_dpl_servo.state);
