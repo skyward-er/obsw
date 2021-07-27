@@ -25,6 +25,9 @@
 
 #include "Mavlink.h"
 
+#include <diagnostic/PrintLogger.h>
+#include "LoggerService/LoggerService.h"
+
 namespace DeathStackBoard
 {
 
@@ -33,5 +36,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg);
 void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg);
 
 bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
+
+static PrintLogger print_logger       = Logging::getLogger("deathstack.tmtc.tchandler");
+static LoggerService* logger = LoggerService::getInstance();
 
 }  // namespace DeathStackBoard

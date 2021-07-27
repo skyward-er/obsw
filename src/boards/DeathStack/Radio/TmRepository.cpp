@@ -24,7 +24,6 @@
 #include "TmRepository.h"
 // #include <bitpacking/hermes/HermesPackets.h>
 #include <Debug.h>
-// #include <diagnostic/PrintLogger.h>
 #include <configs/TMTCConfig.h>
 
 #include "LoggerService/LoggerService.h"
@@ -133,6 +132,11 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             mavlink_msg_fmm_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.fmm_tm));
             break;
+        case MavTMList::MAV_PIN_OBS_TM_ID:
+            // tm_repository.pin_obs_tm.timestamp = miosix::getTick();
+            mavlink_msg_pin_obs_tm_encode(sys_id, comp_id, &m,
+                                          &(tm_repository.pin_obs_tm));
+            break;
         case MavTMList::MAV_LOGGER_TM_ID:
             tm_repository.logger_tm.timestamp = miosix::getTick();
             mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
@@ -230,8 +234,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             break;
         default:
         {
-            // PrintLogger log = Logging::getLogger("deathstack.tmrepo");
-            TRACE("[MAV] Unknown telemetry id: %d\n", req_tm);
+            LOG_INFO(log, "Unknown telemetry id: %d\n", req_tm);
             nack_tm.recv_msgid = 0;
             nack_tm.seq_ack    = 0;
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
@@ -248,6 +251,8 @@ template <>
 void TmRepository::update<AeroBrakesControllerStatus>(
     const AeroBrakesControllerStatus& t)
 {
+    tm_repository.abk_tm.state = (uint8_t)t.state;
+
     tm_repository.hr_tm.ab_state = (uint8_t)t.state;
 }
 
@@ -256,8 +261,21 @@ void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t)
 {
     tm_repository.wind_tm.ab_angle = t.servo_position;
 
+    tm_repository.abk_tm.servo_position = t.servo_position;
+    tm_repository.abk_tm.estimated_cd   = t.estimated_cd;
+    tm_repository.abk_tm.pid_error      = t.pid_error;
+
     tm_repository.hr_tm.ab_angle        = t.servo_position;
     tm_repository.hr_tm.ab_estimated_cd = t.estimated_cd;
+}
+
+template <>
+void TmRepository::update<AeroBrakesAlgorithmData>(
+    const AeroBrakesAlgorithmData& t)
+{
+    tm_repository.abk_tm.z     = t.z;
+    tm_repository.abk_tm.vz    = t.vz;
+    tm_repository.abk_tm.v_mod = t.vMod;
 }
 
 template <>
@@ -273,12 +291,14 @@ void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
     {
         tm_repository.sensors_tm.c_sense_1 = t.current;
         tm_repository.hr_tm.csense1        = t.current;
+        tm_repository.adc_tm.csense1       = t.current;
     }
     else if (t.channel_id ==
              DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_BACKUP)
     {
         tm_repository.sensors_tm.c_sense_2 = t.current;
         tm_repository.hr_tm.csense2        = t.current;
+        tm_repository.adc_tm.csense2       = t.current;
     }
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
@@ -290,8 +310,9 @@ void TmRepository::update<BatteryVoltageSensorData>(
 {
     if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
     {
-        tm_repository.hr_tm.vbat      = t.bat_voltage;
-        tm_repository.sensors_tm.vbat = t.bat_voltage;
+        tm_repository.hr_tm.vbat         = t.bat_voltage;
+        tm_repository.sensors_tm.vbat    = t.bat_voltage;
+        tm_repository.adc_tm.bat_voltage = t.bat_voltage;
     }
 }
 
@@ -301,8 +322,9 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
     if (t.channel_id == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
-        tm_repository.sensors_tm.vbat_5v = t.voltage;
-        tm_repository.hr_tm.vbat_5v      = t.voltage;
+        tm_repository.sensors_tm.vbat_5v    = t.voltage;
+        tm_repository.hr_tm.vbat_5v         = t.voltage;
+        tm_repository.adc_tm.bat_voltage_5v = t.voltage;
     }
 }
 
@@ -312,6 +334,9 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
     tm_repository.wind_tm.pressure_digital = t.press;
     tm_repository.sensors_tm.ms5803_press  = t.press;
     tm_repository.sensors_tm.ms5803_temp   = t.temp;
+
+    tm_repository.digital_baro_tm.pressure    = t.press;
+    tm_repository.digital_baro_tm.temperature = t.temp;
 
     tm_repository.hr_tm.pressure_digi = t.press;
 
@@ -323,6 +348,7 @@ void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
 {
     tm_repository.wind_tm.pressure_static = t.press;
     tm_repository.sensors_tm.static_press = t.press;
+    tm_repository.adc_tm.static_pressure  = t.press;
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
@@ -332,6 +358,7 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 {
     tm_repository.wind_tm.pressure_differential = t.press;
     tm_repository.sensors_tm.pitot_press        = t.press;
+    tm_repository.adc_tm.pitot_pressure         = t.press;
 
     // tm_repository.hr_tm.airspeed_pitot = ?;
 
@@ -344,6 +371,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
     tm_repository.wind_tm.pressure_dpl = t.press;
     tm_repository.sensors_tm.dpl_press = t.press;
     tm_repository.hr_tm.pressure_dpl   = t.press;
+    tm_repository.adc_tm.dpl_pressure  = t.press;
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
@@ -351,29 +379,35 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t)
 {
-    tm_repository.sensors_tm.bmx160_acc_x = t.accel_x;
-    tm_repository.sensors_tm.bmx160_acc_y = t.accel_y;
-    tm_repository.sensors_tm.bmx160_acc_z = t.accel_z;
-
+    tm_repository.sensors_tm.bmx160_acc_x  = t.accel_x;
+    tm_repository.sensors_tm.bmx160_acc_y  = t.accel_y;
+    tm_repository.sensors_tm.bmx160_acc_z  = t.accel_z;
     tm_repository.sensors_tm.bmx160_gyro_x = t.gyro_x;
     tm_repository.sensors_tm.bmx160_gyro_y = t.gyro_y;
     tm_repository.sensors_tm.bmx160_gyro_z = t.gyro_z;
+    tm_repository.sensors_tm.bmx160_mag_x  = t.mag_x;
+    tm_repository.sensors_tm.bmx160_mag_y  = t.mag_y;
+    tm_repository.sensors_tm.bmx160_mag_z  = t.mag_z;
 
-    tm_repository.sensors_tm.bmx160_mag_x = t.mag_x;
-    tm_repository.sensors_tm.bmx160_mag_y = t.mag_y;
-    tm_repository.sensors_tm.bmx160_mag_z = t.mag_z;
+    tm_repository.bmx_tm.acc_x  = t.accel_x;
+    tm_repository.bmx_tm.acc_y  = t.accel_y;
+    tm_repository.bmx_tm.acc_z  = t.accel_z;
+    tm_repository.bmx_tm.gyro_x = t.gyro_x;
+    tm_repository.bmx_tm.gyro_y = t.gyro_y;
+    tm_repository.bmx_tm.gyro_z = t.gyro_z;
+    tm_repository.bmx_tm.mag_x  = t.mag_x;
+    tm_repository.bmx_tm.mag_y  = t.mag_y;
+    tm_repository.bmx_tm.mag_z  = t.mag_z;
 
-    tm_repository.hr_tm.acc_x = t.accel_x;
-    tm_repository.hr_tm.acc_y = t.accel_y;
-    tm_repository.hr_tm.acc_z = t.accel_z;
-
+    tm_repository.hr_tm.acc_x  = t.accel_x;
+    tm_repository.hr_tm.acc_y  = t.accel_y;
+    tm_repository.hr_tm.acc_z  = t.accel_z;
     tm_repository.hr_tm.gyro_x = t.gyro_x;
     tm_repository.hr_tm.gyro_y = t.gyro_y;
     tm_repository.hr_tm.gyro_z = t.gyro_z;
-
-    tm_repository.hr_tm.mag_x = t.mag_x;
-    tm_repository.hr_tm.mag_y = t.mag_y;
-    tm_repository.hr_tm.mag_z = t.mag_z;
+    tm_repository.hr_tm.mag_x  = t.mag_x;
+    tm_repository.hr_tm.mag_y  = t.mag_y;
+    tm_repository.hr_tm.mag_z  = t.mag_z;
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
@@ -382,6 +416,7 @@ template <>
 void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t)
 {
     tm_repository.sensors_tm.bmx160_temp = t.temp;
+    tm_repository.bmx_tm.temp            = t.temp;
     tm_repository.hr_tm.temperature      = t.temp;
 }
 
@@ -391,8 +426,12 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
     tm_repository.sensors_tm.lis3mdl_mag_x = t.mag_x;
     tm_repository.sensors_tm.lis3mdl_mag_y = t.mag_y;
     tm_repository.sensors_tm.lis3mdl_mag_z = t.mag_z;
+    tm_repository.sensors_tm.lis3mdl_temp  = t.temp;
 
-    tm_repository.sensors_tm.lis3mdl_temp = t.temp;
+    tm_repository.lis3mdl_tm.mag_x = t.mag_x;
+    tm_repository.lis3mdl_tm.mag_y = t.mag_y;
+    tm_repository.lis3mdl_tm.mag_z = t.mag_z;
+    tm_repository.lis3mdl_tm.temp  = t.temp;
 }
 
 /* GPS */
@@ -456,20 +495,41 @@ void TmRepository::update<FMMStatus>(const FMMStatus& t)
 template <>
 void TmRepository::update<NASStatus>(const NASStatus& t)
 {
-    // tm_repository.nas_tm.nas_state = static_cast<uint8_t>(t.state);
+    tm_repository.nas_tm.state    = static_cast<uint8_t>(t.state);
     tm_repository.hr_tm.nas_state = static_cast<uint8_t>(t.state);
 }
 
 template <>
 void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
 {
+    Vector3f orientation = t.toEul();
+
+    tm_repository.nas_tm.x0    = t.x0;
+    tm_repository.nas_tm.x1    = t.x1;
+    tm_repository.nas_tm.x2    = t.x2;
+    tm_repository.nas_tm.x3    = t.x3;
+    tm_repository.nas_tm.x4    = t.x4;
+    tm_repository.nas_tm.x5    = t.x5;
+    tm_repository.nas_tm.x6    = t.x6;
+    tm_repository.nas_tm.x7    = t.x7;
+    tm_repository.nas_tm.x8    = t.x8;
+    tm_repository.nas_tm.x9    = t.x9;
+    tm_repository.nas_tm.x10   = t.x10;
+    tm_repository.nas_tm.x11   = t.x11;
+    tm_repository.nas_tm.x12   = t.x12;
+    tm_repository.nas_tm.roll  = orientation(0);
+    tm_repository.nas_tm.pitch = orientation(1);
+    tm_repository.nas_tm.yaw   = orientation(2);
+    // tm_repository.nas_tm.triad_x  = ...
+    // tm_repository.nas_tm.triad_y = ...
+    // tm_repository.nas_tm.triad_z   = ...
+
     tm_repository.hr_tm.nas_x     = t.x0;
     tm_repository.hr_tm.nas_y     = t.x1;
     tm_repository.hr_tm.nas_z     = t.x2;
     tm_repository.hr_tm.nas_vx    = t.x3;
     tm_repository.hr_tm.nas_vy    = t.x4;
     tm_repository.hr_tm.nas_vz    = t.x5;
-    Vector3f orientation          = t.toEul();
     tm_repository.hr_tm.nas_roll  = orientation(0);
     tm_repository.hr_tm.nas_pitch = orientation(1);
     tm_repository.hr_tm.nas_yaw   = orientation(2);
@@ -611,7 +671,10 @@ void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
 template <>
 void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t)
 {
-    tm_repository.ada_tm.state = (uint8_t)t.state;
+    tm_repository.ada_tm.state                = (uint8_t)t.state;
+    tm_repository.ada_tm.apogee_reached       = t.apogee_reached;
+    tm_repository.ada_tm.aerobrakes_disabled  = t.disable_aerobrakes;
+    tm_repository.ada_tm.dpl_altitude_reached = t.dpl_altitude_reached;
 
     tm_repository.hr_tm.ada_state = (uint8_t)t.state;
 }
@@ -647,6 +710,9 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
 template <>
 void TmRepository::update<ADAData>(const ADAData& t)
 {
+    tm_repository.ada_tm.msl_altitude = t.msl_altitude;
+    tm_repository.ada_tm.vert_speed = t.vert_speed;
+
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
     tm_repository.hr_tm.vert_speed   = t.vert_speed;
 

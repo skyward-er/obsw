@@ -49,6 +49,8 @@
 #include "Sensors/SensorStatus.h"
 #include "System/SystemData.h"
 
+#include <diagnostic/PrintLogger.h>
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
 #endif
@@ -129,15 +131,22 @@ private:
     } tm_repository;
 
     uint8_t curHrIndex = 0;
+
+    PrintLogger log = Logging::getLogger("deathstack.tmrepo");
 };
 
 /*
  * Each function here is an implementation of the update() method for a
  * specific status struct.
  */
+template <>
+void TmRepository::update<AeroBrakesControllerStatus>(const AeroBrakesControllerStatus& t);
 
 template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
+
+template <>
+void TmRepository::update<AeroBrakesAlgorithmData>(const AeroBrakesAlgorithmData& t);
 
 template <>
 void TmRepository::update<WindData>(const WindData& t);

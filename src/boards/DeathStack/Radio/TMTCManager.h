@@ -61,6 +61,7 @@ private:
     bool send(const uint8_t tm_id);
 
     LoggerService& logger = *(LoggerService::getInstance());
+    PrintLogger log = Logging::getLogger("deathstack.fsm.tmtc");
 
     uint16_t periodicHrEvId = 0;
     uint16_t periodicLrEvId = 0;

@@ -34,13 +34,15 @@ namespace DeathStackBoard
 static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
 static constexpr unsigned int MAV_PKT_SIZE        = 255;
 static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
-/* Min guaranteed sleep time after each packet sent(milliseconds) */
+/* Min guaranteed sleep time after each packet sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 0;
 
 /* Xbee */
 typedef miosix::xbee::cs XbeeCS;
 typedef miosix::xbee::attn XbeeATTN;
 typedef miosix::xbee::reset XbeeRST;
+/* Xbee data rate (80 or 10 kbps) */
+static const bool XBEE_80KBPS_DATA_RATE = true;
 
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 1000;
