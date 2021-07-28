@@ -23,12 +23,11 @@
 #include <FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
+#include "Debug.h"
 #include "System/StackLogger.h"
 #include "configs/FMMConfig.h"
 #include "events/Events.h"
 #include "events/Topics.h"
-
-#include "Debug.h"
 
 namespace DeathStackBoard
 {

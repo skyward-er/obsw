@@ -44,7 +44,6 @@
 #include "LogStats.h"
 #include "NavigationSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
-#include "Sensors/SensorStatus.h"
 #include "drivers/Xbee/APIFramesLog.h"
 #include "drivers/Xbee/XbeeStatus.h"
 #include "drivers/mavlink/MavlinkStatus.h"
@@ -75,7 +74,7 @@ void registerTypes(Deserializer& ds)
     registerType<BatteryVoltageSensorData>(ds);
     registerType<UbloxGPSData>(ds);
     registerType<BMX160Data>(ds);
-    registerType<BMX160Temerature>(ds);
+    registerType<BMX160Temperature>(ds);
     registerType<MS5803Data>(ds);
     registerType<MPXHZ6130AData>(ds);
     registerType<SSCDRRN015PDAData>(ds);
