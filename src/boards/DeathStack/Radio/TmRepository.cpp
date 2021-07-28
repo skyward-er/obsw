@@ -133,7 +133,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
                                       &(tm_repository.fmm_tm));
             break;
         case MavTMList::MAV_PIN_OBS_TM_ID:
-            // tm_repository.pin_obs_tm.timestamp = miosix::getTick();
+            tm_repository.pin_obs_tm.timestamp = miosix::getTick();
             mavlink_msg_pin_obs_tm_encode(sys_id, comp_id, &m,
                                           &(tm_repository.pin_obs_tm));
             break;

@@ -116,8 +116,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
         {
-            LOG_INFO(print_logger, "Received TM request");
             uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
+            LOG_INFO(print_logger, "Received TM request : id = {:d}", tmId);
 
             // send corresponding telemetry or NACK
             sendTelemetry(mav_driver, tmId);
