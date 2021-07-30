@@ -51,7 +51,7 @@ public:
     /* Destructor */
     ~TMTCManager();
 private:
-/**
+    /**
      * Non-blocking send. Adds the message to an out queue and logs the status.
      *
      * @param tm_id  the id of the TM to be sent. Sends a NACK if the tm was
@@ -59,6 +59,11 @@ private:
      * @return false if the message could not be enqueued for sending
      */
     bool send(const uint8_t tm_id);
+
+    /**
+     * Outputs mavlink HR_TM messages on serial port.
+     */
+    void sendSerialTelemetry();
 
     LoggerService& logger = *(LoggerService::getInstance());
     PrintLogger log = Logging::getLogger("deathstack.fsm.tmtc");
@@ -74,6 +79,7 @@ private:
     void stateGroundTM(const Event& ev);
     void stateSensorTM(const Event& ev);
     void stateFlightTM(const Event& ev);
+    void stateSerialDebugTM(const Event& ev);
 };
 
 } /* namespace DeathStackBoard */

@@ -339,6 +339,7 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
     tm_repository.digital_baro_tm.temperature = t.temp;
 
     tm_repository.hr_tm.pressure_digi = t.press;
+    tm_repository.hr_tm.temperature   = t.temp;
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
@@ -417,7 +418,6 @@ void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t)
 {
     tm_repository.sensors_tm.bmx160_temp = t.temp;
     tm_repository.bmx_tm.temp            = t.temp;
-    tm_repository.hr_tm.temperature      = t.temp;
 }
 
 template <>
@@ -524,9 +524,11 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
     // tm_repository.nas_tm.triad_y = ...
     // tm_repository.nas_tm.triad_z   = ...
 
-    tm_repository.hr_tm.nas_x     = t.x0;
-    tm_repository.hr_tm.nas_y     = t.x1;
-    tm_repository.hr_tm.nas_z     = t.x2;
+    tm_repository.hr_tm.nas_x = t.x0;
+    tm_repository.hr_tm.nas_y = t.x1;
+    tm_repository.hr_tm.nas_z =
+        -t.x2;  // Negative sign because we're working in the NED
+                // frame but we want a positive altitude as output
     tm_repository.hr_tm.nas_vx    = t.x3;
     tm_repository.hr_tm.nas_vy    = t.x4;
     tm_repository.hr_tm.nas_vz    = t.x5;
@@ -711,7 +713,7 @@ template <>
 void TmRepository::update<ADAData>(const ADAData& t)
 {
     tm_repository.ada_tm.msl_altitude = t.msl_altitude;
-    tm_repository.ada_tm.vert_speed = t.vert_speed;
+    tm_repository.ada_tm.vert_speed   = t.vert_speed;
 
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
     tm_repository.hr_tm.vert_speed   = t.vert_speed;

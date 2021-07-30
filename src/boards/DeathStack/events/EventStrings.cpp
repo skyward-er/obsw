@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-05-20 19:17:02.568028
+// Autogen date: 2021-07-29 11:34:14.327018
 
 #include <map>
 using std::map;
@@ -62,6 +62,7 @@ string getEventString(uint8_t event)
         {EV_NC_OPEN_TIMEOUT, "EV_NC_OPEN_TIMEOUT"},
         {EV_RESET_SERVO, "EV_RESET_SERVO"},
         {EV_SEND_HR_TM, "EV_SEND_HR_TM"},
+        {EV_SEND_HR_TM_OVER_SERIAL, "EV_SEND_HR_TM_OVER_SERIAL"},
         {EV_SEND_LR_TM, "EV_SEND_LR_TM"},
         {EV_SEND_SENS_TM, "EV_SEND_SENS_TM"},
         {EV_SEND_TEST_TM, "EV_SEND_TEST_TM"},
@@ -83,7 +84,9 @@ string getEventString(uint8_t event)
         {EV_TC_FORCE_INIT, "EV_TC_FORCE_INIT"},
         {EV_TC_LAUNCH, "EV_TC_LAUNCH"},
         {EV_TC_NC_OPEN, "EV_TC_NC_OPEN"},
+        {EV_TC_RADIO_TM, "EV_TC_RADIO_TM"},
         {EV_TC_RESET_BOARD, "EV_TC_RESET_BOARD"},
+        {EV_TC_SERIAL_TM, "EV_TC_SERIAL_TM"},
         {EV_TC_START_SENSOR_TM, "EV_TC_START_SENSOR_TM"},
         {EV_TC_STOP_SENSOR_TM, "EV_TC_STOP_SENSOR_TM"},
         {EV_TC_TEST_ABK, "EV_TC_TEST_ABK"},
@@ -106,7 +109,7 @@ string getEventString(uint8_t event)
 
 string getTopicString(uint8_t topic)
 {
-	static const map<uint8_t, string> topic_string_map{
+    static const map<uint8_t, string> topic_string_map{
         {TOPIC_ABK, "TOPIC_ABK"},
         {TOPIC_ADA, "TOPIC_ADA"},
         {TOPIC_DPL, "TOPIC_DPL"},
@@ -115,7 +118,7 @@ string getTopicString(uint8_t topic)
         {TOPIC_NAS, "TOPIC_NAS"},
         {TOPIC_STATS, "TOPIC_STATS"},
         {TOPIC_TMTC, "TOPIC_TMTC"},
-	};
-	auto it = topic_string_map.find(topic);
-	return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
+    };
+    auto it = topic_string_map.find(topic);
+    return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
 }

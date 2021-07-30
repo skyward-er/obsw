@@ -47,7 +47,9 @@ static const bool XBEE_80KBPS_DATA_RATE = true;
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT = 1000;
 static const unsigned int TUNNEL_TM_TIMEOUT = 100;
+
 static const unsigned int HR_TM_TIMEOUT = 63;
+static const unsigned int HR_TM_GROUND_TIMEOUT = 250;
 
 static const unsigned int TEST_TM_TIMEOUT = 250;
 static const unsigned int GROUND_SENS_TM_TIMEOUT = 1000;

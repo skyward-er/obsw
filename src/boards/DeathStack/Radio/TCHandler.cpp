@@ -56,6 +56,9 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_CALIBRATE_ALGOS, EV_TC_CALIBRATE_ALGOS},
     {MAV_CMD_CALIBRATE_SENSORS, EV_TC_CALIBRATE_SENSORS},
 
+    {MAV_CMD_SERIAL_TM, EV_TC_SERIAL_TM},
+    {MAV_CMD_RADIO_TM, EV_TC_RADIO_TM},
+
     //{MAV_CMD_START_LOGGING, EV_TC_START_LOGGING},
     //{MAV_CMD_STOP_LOGGING, EV_TC_STOP_LOGGING},
     {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
@@ -104,9 +107,11 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 case MAV_CMD_CLOSE_LOG:
                 case MAV_CMD_STOP_LOGGING:
                     logger->stop();
+                    sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
                     break;
                 case MAV_CMD_START_LOGGING:
                     DeathStack::getInstance()->startLogger();
+                    sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
                     break;
                 default:
                     break;

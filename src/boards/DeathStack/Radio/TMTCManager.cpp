@@ -51,24 +51,23 @@ bool TMTCManager::send(const uint8_t tm_id)
 {
     MavDriver* mav_driver = DeathStack::getInstance()->radio->mav_driver;
     TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
-    bool ok               = false;
+    // enqueue the TM packet taking it from the TM repo (pauses kernel to
+    // guarantee synchronicity)
+    bool ok = mav_driver->enqueueMsg(tm_repo->packTM(tm_id));
+    // update status
+    logger.log(mav_driver->getStatus());
 
-#ifdef TELEMETRY_OVER_SERIAL
+    return ok;
+}
+
+void TMTCManager::sendSerialTelemetry()
+{
+    TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     uint8_t buf[256];
-    mavlink_message_t msg = tm_repo->packTM(tm_id);
+    mavlink_message_t msg = tm_repo->packTM(MAV_HR_TM_ID);
     uint16_t len          = mavlink_msg_to_send_buffer(buf, &msg);
     fwrite(buf, sizeof(uint8_t), len, stdout);
     fflush(stdout);
-    ok = true;
-#else
-    // enqueue the TM packet taking it from the TM repo (pauses kernel to
-    // guarantee synchronicity)
-    ok = mav_driver->enqueueMsg(tm_repo->packTM(tm_id));
-    // update status
-    logger.log(mav_driver->getStatus());
-#endif
-
-    return ok;
 }
 
 // State Handlers
@@ -80,10 +79,8 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_ENTRY:
         {
             // add periodic events
-            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            // periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
-            //     Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
             periodicSensEvId =
                 sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
                     Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
@@ -107,23 +104,13 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_SEND_HR_TM:
         {
             // repost periodic event
-            periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
             send(MAV_HR_TM_ID);
 
             break;
         }
-        // case EV_SEND_TEST_TM:
-        // {
-        //     // repost periodic event
-        //     periodicLrEvId = sEventBroker->postDelayed<TEST_TM_TIMEOUT>(
-        //         Event{EV_SEND_TEST_TM}, TOPIC_TMTC);
-
-        //     // send tm
-        //     send(MAV_TEST_TM_ID);
-        //     break;
-        // }
         case EV_SEND_SENS_TM:
         {
             // LOG_DEBUG(log, "Sending SENS_TM\n");
@@ -138,6 +125,11 @@ void TMTCManager::stateGroundTM(const Event& ev)
         case EV_TC_START_SENSOR_TM:
         {
             transition(&TMTCManager::stateSensorTM);
+            break;
+        }
+        case EV_TC_SERIAL_TM:
+        {
+            transition(&TMTCManager::stateSerialDebugTM);
             break;
         }
         case EV_ARMED:
@@ -205,7 +197,6 @@ void TMTCManager::stateSensorTM(const Event& ev)
 
 void TMTCManager::stateFlightTM(const Event& ev)
 {
-    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     switch (ev.sig)
     {
         case EV_ENTRY:
@@ -264,6 +255,51 @@ void TMTCManager::stateFlightTM(const Event& ev)
             break;
         }
 
+        default:
+            break;
+    }
+}
+
+void TMTCManager::stateSerialDebugTM(const Event& ev)
+{
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            // add periodic events
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
+                Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
+
+            LOG_DEBUG(log, "Entering stateSerialDebugTM\n");
+
+            // log stack usage
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            break;
+        }
+        case EV_EXIT:
+        {
+            // remove periodic events
+            sEventBroker->removeDelayed(periodicHrEvId);
+
+            LOG_DEBUG(log, "Exiting stateSerialDebugTM\n");
+            break;
+        }
+        case EV_SEND_HR_TM_OVER_SERIAL:
+        {
+            // repost periodic event
+            periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
+                Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
+
+            sendSerialTelemetry();
+
+            break;
+        }
+        case EV_TC_SERIAL_TM:
+        {
+            transition(&TMTCManager::stateGroundTM);
+            break;
+        }
         default:
             break;
     }
