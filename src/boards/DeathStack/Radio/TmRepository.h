@@ -24,6 +24,7 @@
 #pragma once
 
 #include <Singleton.h>
+#include <diagnostic/PrintLogger.h>
 #include <drivers/Xbee/APIFramesLog.h>
 #include <drivers/adc/ADS1118/ADS1118Data.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
@@ -46,6 +47,7 @@
 #include "NavigationSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
 #include "Radio/Mavlink.h"
+#include "System/SystemData.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"

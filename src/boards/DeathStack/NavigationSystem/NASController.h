@@ -25,15 +25,15 @@
 
 #include <miosix.h>
 
+#include "LoggerService/LoggerService.h"
 #include "NAS.h"
 #include "NASCalibrator.h"
 #include "NASData.h"
+#include "System/StackLogger.h"
+#include "diagnostic/PrintLogger.h"
 #include "events/Events.h"
 #include "events/FSM.h"
 #include "sensors/Sensor.h"
-
-#include "LoggerService/LoggerService.h"
-#include "diagnostic/PrintLogger.h"
 
 using miosix::FastMutex;
 using miosix::Lock;

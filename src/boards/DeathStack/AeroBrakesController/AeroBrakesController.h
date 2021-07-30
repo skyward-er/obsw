@@ -29,6 +29,7 @@
 #include "AeroBrakesController/AeroBrakesControlAlgorithm.h"
 #include "AeroBrakesController/AeroBrakesServo.h"
 #include "AeroBrakesData.h"
+#include "System/StackLogger.h"
 #include "TimestampTimer.h"
 #include "configs/AeroBrakesConfig.h"
 #include "events/EventBroker.h"

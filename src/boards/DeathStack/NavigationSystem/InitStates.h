@@ -28,7 +28,10 @@
 #pragma once
 
 #include <Common.h>
+#include <diagnostic/PrintLogger.h>
+
 #include <Eigen/Dense>
+
 #include "configs/NASConfig.h"
 #include "math/SkyQuaternion.h"
 #include "utils/aero/AeroUtils.h"
