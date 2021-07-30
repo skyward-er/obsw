@@ -30,17 +30,16 @@
 
 #include <miosix.h>
 
-
 #include <utils/testutils/catch.hpp>
 
 #define private public
 #define protected public
 
-#include "Sensors/Mock/MockGPS.h"
-#include "Sensors/Mock/MockPressureSensor.h"
+#include "ADA/ADAController.h"
+#include "MockSensors/MockGPS.h"
+#include "MockSensors/MockPressureSensor.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
-#include "ADA/ADAController.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;

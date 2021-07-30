@@ -46,10 +46,6 @@
 #include "NavigationSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
 #include "Radio/Mavlink.h"
-#include "Sensors/SensorStatus.h"
-#include "System/SystemData.h"
-
-#include <diagnostic/PrintLogger.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
@@ -140,13 +136,15 @@ private:
  * specific status struct.
  */
 template <>
-void TmRepository::update<AeroBrakesControllerStatus>(const AeroBrakesControllerStatus& t);
+void TmRepository::update<AeroBrakesControllerStatus>(
+    const AeroBrakesControllerStatus& t);
 
 template <>
 void TmRepository::update<AeroBrakesData>(const AeroBrakesData& t);
 
 template <>
-void TmRepository::update<AeroBrakesAlgorithmData>(const AeroBrakesAlgorithmData& t);
+void TmRepository::update<AeroBrakesAlgorithmData>(
+    const AeroBrakesAlgorithmData& t);
 
 template <>
 void TmRepository::update<WindData>(const WindData& t);
@@ -170,7 +168,7 @@ template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t);
 
 template <>
-void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t);
+void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
 
 template <>
 void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
@@ -220,10 +218,6 @@ void TmRepository::update<PinStatus>(const PinStatus& t);
 /* TMTCManager (Mavlink) */
 template <>
 void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
-
-/* Sensors */
-template <>
-void TmRepository::update<SensorStatus>(const SensorStatus& t);
 
 /* Deployment Controller */
 template <>

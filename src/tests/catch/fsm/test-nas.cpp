@@ -32,8 +32,8 @@
 
 #include <utils/testutils/catch.hpp>
 
+#include "MockSensors/MockSensors.h"
 #include "NavigationSystem/NASController.h"
-#include "Sensors/Mock/MockSensors.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
@@ -69,7 +69,7 @@ protected:
 
 TEST_CASE_METHOD(NASControllerFixture, "Testing transitions from idle")
 {
-    //controller.transition(&NASCtrl::state_idle);
+    // controller.transition(&NASCtrl::state_idle);
 
     SECTION("EV_CALIBRATE_NAS -> CALIBRATING")
     {

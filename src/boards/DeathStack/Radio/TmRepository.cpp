@@ -414,7 +414,7 @@ void TmRepository::update<BMX160Data>(const BMX160Data& t)
 }
 
 template <>
-void TmRepository::update<BMX160Temerature>(const BMX160Temerature& t)
+void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t)
 {
     tm_repository.sensors_tm.bmx160_temp = t.temp;
     tm_repository.bmx_tm.temp            = t.temp;

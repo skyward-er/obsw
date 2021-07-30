@@ -27,13 +27,14 @@
 
 #define private public
 
-#define EIGEN_NO_MALLOC // enable eigen malloc usage assert
+#define EIGEN_NO_MALLOC  // enable eigen malloc usage assert
 
 #include <miosix.h>
+
 #include <utils/testutils/catch.hpp>
 
+#include "MockSensors/MockSensors.h"
 #include "NavigationSystem/NASController.h"
-#include "Sensors/Mock/MockSensors.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
@@ -154,8 +155,7 @@ TEST_CASE("Testing Navigation System Controller")
     {
         TRACE("Iteration: %u \n", i);
         sampleSensors();
-        //Thread::sleep(10);
+        // Thread::sleep(10);
         controller.update();
     }
 }
-
