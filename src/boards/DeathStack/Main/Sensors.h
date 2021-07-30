@@ -142,6 +142,8 @@ private:
     SensorManager::SensorMap_t sensors_map;
 
     PrintLogger log = Logging::getLogger("sensors");
+
+    uint8_t press_digi_count = 0;
 };
 
 }  // namespace DeathStackBoard

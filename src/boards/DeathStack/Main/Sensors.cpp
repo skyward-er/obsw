@@ -149,8 +149,7 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -174,8 +173,7 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -336,9 +334,9 @@ void Sensors::magLISinit()
 
 void Sensors::gpsUbloxInit()
 {
-    gps_ublox = new UbloxGPS(GPS_BAUD_RATE);
+    gps_ublox = new UbloxGPS(GPS_BAUD_RATE, GPS_SAMPLE_RATE);
 
-    SensorInfo info("UbloxGPS", SAMPLE_PERIOD_GPS,
+    SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
                     bind(&Sensors::gpsUbloxCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
@@ -398,7 +396,17 @@ void Sensors::hilSensorsInit()
 
 void Sensors::pressDigiCallback()
 {
-    LoggerService::getInstance()->log(press_digital->getLastSample());
+    // avoid logging all the samples
+    // since half of them are used for temperature only
+    if (press_digi_count == 2)
+    {
+        LoggerService::getInstance()->log(press_digital->getLastSample());
+        press_digi_count = 0;
+    }
+    else
+    {
+        press_digi_count++;
+    }
 }
 
 void Sensors::ADS1118Callback()
