@@ -26,11 +26,10 @@
 #include <Debug.h>
 #include <configs/TMTCConfig.h>
 
-#include "LoggerService/LoggerService.h"
-#include "configs/SensorManagerConfig.h"
-
 #include "DeathStack.h"
 #include "FlightStatsRecorder/FlightStatsRecorder.h"
+#include "LoggerService/LoggerService.h"
+#include "configs/SensorManagerConfig.h"
 
 namespace DeathStackBoard
 {
@@ -378,7 +377,8 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 }
 
 template <>
-void TmRepository::update<BMX160Data>(const BMX160Data& t)
+void TmRepository::update<BMX160WithCorrectionData>(
+    const BMX160WithCorrectionData& t)
 {
     tm_repository.sensors_tm.bmx160_acc_x  = t.accel_x;
     tm_repository.sensors_tm.bmx160_acc_y  = t.accel_y;

@@ -27,6 +27,7 @@
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/calibration/Calibration.h>
 
 using miosix::Gpio;
 
@@ -110,6 +111,10 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
     IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 2) * 4 / 1024;
 
+// IMU axis rotation
+static const AxisOrthoOrientation BMX160_AXIS_ROTATION = {
+    Direction::NEGATIVE_Z, Direction::NEGATIVE_Y};
+
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
@@ -117,9 +122,9 @@ static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS   = 15;
 static constexpr LIS3MDL::ODR MAG_LIS_ODR_ENUM        = LIS3MDL::ODR_80_HZ;
 static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
 
-static constexpr unsigned int GPS_SAMPLE_RATE   = 25;  // internal gps rate
-static constexpr unsigned int GPS_SAMPLE_PERIOD = 40;  // for sensor manager
-static constexpr unsigned int GPS_BAUD_RATE     = 115200;
+static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
+static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
+static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 
 static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
 }  // namespace SensorConfigs

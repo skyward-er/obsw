@@ -61,6 +61,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     hilSensorsInit();
 #else
     imuBMXInit();
+    imuBMXWithCorrectionInit();
     pressDigiInit();
     gpsUbloxInit();
 #endif
@@ -115,6 +116,8 @@ bool Sensors::start()
     return sensor_manager->start();
 }
 
+void calibrate() {}
+
 void Sensors::internalAdcInit()
 {
     internal_adc = new InternalADC(*ADC3, INTERNAL_ADC_VREF);
@@ -149,7 +152,8 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -173,7 +177,8 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -309,6 +314,27 @@ void Sensors::imuBMXInit()
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
     LOG_INFO(log, "BMX160 Setup done!\n");
+}
+
+void Sensors::imuBMXWithCorrectionInit()
+{
+    printf("imuBMXWithCorrectionInit\n");
+
+    // Read the correction parameters
+    BMX160CorrectionParameters correctionParameters =
+        BMX160WithCorrection::readCorrectionParametersFromFile(
+            BMX160_CORRECTION_PARAMETERS_FILE);
+
+    imu_bmx160_with_correction = new BMX160WithCorrection(
+        imu_bmx160, correctionParameters, BMX160_AXIS_ROTATION);
+
+    SensorInfo info("BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
+                    bind(&Sensors::imuBMXWithCorrectionCallback, this), false,
+                    true);
+
+    sensors_map.emplace(std::make_pair(imu_bmx160_with_correction, info));
+
+    LOG_INFO(log, "BMX160WithCorrection Setup done!\n");
 }
 
 void Sensors::magLISinit()
@@ -452,6 +478,13 @@ void Sensors::imuBMXCallback()
     //                     sample.accel_x, sample.accel_y, sample.accel_z,
     //                     sample.gyro_x, sample.gyro_y, sample.gyro_z);
     // }
+}
+
+void Sensors::imuBMXWithCorrectionCallback()
+{
+
+    LoggerService::getInstance()->log(
+        imu_bmx160_with_correction->getLastSample());
 }
 
 void Sensors::magLISCallback()

@@ -75,10 +75,8 @@ public:
      */
     void stop() { logger.stop(); }
 
-    Logger& getLogger()
-    {
-        return logger;
-    }
+    Logger& getLogger() { return logger; }
+
 private:
     // Private constructor to enforce the singleton
     LoggerService()

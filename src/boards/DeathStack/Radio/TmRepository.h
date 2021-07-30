@@ -28,7 +28,7 @@
 #include <drivers/Xbee/APIFramesLog.h>
 #include <drivers/adc/ADS1118/ADS1118Data.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
-#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
 #include <sensors/analog/battery/BatteryVoltageSensorData.h>
@@ -167,7 +167,8 @@ template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
 template <>
-void TmRepository::update<BMX160Data>(const BMX160Data& t);
+void TmRepository::update<BMX160WithCorrectionData>(
+    const BMX160WithCorrectionData& t);
 
 template <>
 void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
