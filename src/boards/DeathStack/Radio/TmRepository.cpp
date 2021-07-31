@@ -31,6 +31,8 @@
 #include "LoggerService/LoggerService.h"
 #include "configs/SensorManagerConfig.h"
 
+#include "System/TaskID.h"
+
 namespace DeathStackBoard
 {
 /* Periodic TM updaters */
@@ -727,39 +729,119 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
     tm_repository.ada_tm.msl_pressure    = t.msl_pressure;
     tm_repository.ada_tm.msl_temperature = t.msl_temperature;
 
-    tm_repository.ada_tm.ref_altitude    = t.ref_altitude;
-    tm_repository.ada_tm.ref_pressure    = t.ref_pressure;
-    tm_repository.ada_tm.ref_temperature = t.ref_temperature;
+    tm_repository.ada_tm.ref_altitude = t.ref_altitude;
+    tm_repository.ada_tm.ref_pressure = t.ref_pressure;
+    tm_repository.ada_tm.ref_temperature =
+        t.ref_temperature - 273.15;  // send temperature in °C
 }
 
-// template <>
-// void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
-// {
-//     switch (t.id)
-//     {
-//         case static_cast<uint8_t>(SensorSamplerId::SIMPLE_20HZ):
-//             tm_repository.sm_tm.task_20hz_max    = t.periodStats.maxValue;
-//             tm_repository.sm_tm.task_20hz_min    = t.periodStats.minValue;
-//             tm_repository.sm_tm.task_20hz_mean   = t.periodStats.mean;
-//             tm_repository.sm_tm.task_20hz_stddev = t.periodStats.stdev;
-//             break;
-//         case static_cast<uint8_t>(SensorSamplerId::GPS):
-//             tm_repository.sm_tm.task_10hz_max    = t.periodStats.maxValue;
-//             tm_repository.sm_tm.task_10hz_min    = t.periodStats.minValue;
-//             tm_repository.sm_tm.task_10hz_mean   = t.periodStats.mean;
-//             tm_repository.sm_tm.task_10hz_stddev = t.periodStats.stdev;
-//             break;
-//         case static_cast<uint8_t>(SensorSamplerId::SIMPLE_250HZ):
-//             tm_repository.sm_tm.task_250hz_max    = t.periodStats.maxValue;
-//             tm_repository.sm_tm.task_250hz_min    = t.periodStats.minValue;
-//             tm_repository.sm_tm.task_250hz_mean   = t.periodStats.mean;
-//             tm_repository.sm_tm.task_250hz_stddev = t.periodStats.stdev;
-//             break;
+template <>
+void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
+{
+    switch (t.id)
+    {
+        case TASK_SENSORS_6_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_6ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_6ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_6ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_6ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_10_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_10ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_10ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_10ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_10ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_15_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_15ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_15ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_15ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_15ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_23_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_23ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_23ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_23ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_23ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_24_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_24ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_24ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_24ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_24ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_40_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_40ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_40ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_40ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_40ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_SENSORS_50_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_50ms_max =
+                t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_sensors_50ms_min =
+                t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_sensors_50ms_mean =
+                t.periodStats.mean;
+            tm_repository.task_stats_tm.task_sensors_50ms_stddev =
+                t.periodStats.stdev;
+            break;
+        case TASK_ADA_ID:
+            tm_repository.task_stats_tm.task_ada_max  = t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_ada_min  = t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_ada_mean = t.periodStats.mean;
+            tm_repository.task_stats_tm.task_ada_stddev = t.periodStats.stdev;
+            break;
+        case TASK_ABK_ID:
+            tm_repository.task_stats_tm.task_abk_max  = t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_abk_min  = t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_abk_mean = t.periodStats.mean;
+            tm_repository.task_stats_tm.task_abk_stddev = t.periodStats.stdev;
+            break;
+        case TASK_NAS_ID:
+            tm_repository.task_stats_tm.task_nas_max  = t.periodStats.maxValue;
+            tm_repository.task_stats_tm.task_nas_min  = t.periodStats.minValue;
+            tm_repository.task_stats_tm.task_nas_mean = t.periodStats.mean;
+            tm_repository.task_stats_tm.task_nas_stddev = t.periodStats.stdev;
+            break;
+            // case TASK_SCHEDULER_STATS_ID:
+            //     tm_repository.task_stats_tm.task_250hz_max    =
+            //     t.periodStats.maxValue;
+            //     tm_repository.task_stats_tm.task_250hz_min    =
+            //     t.periodStats.minValue;
+            //     tm_repository.task_stats_tm.task_250hz_mean   =
+            //     t.periodStats.mean;
+            //     tm_repository.task_stats_tm.task_250hz_stddev =
+            //     t.periodStats.stdev; break;
 
-//         default:
-//             break;
-//     }
-// }
+        default:
+            break;
+    }
+}
 
 template <>
 void TmRepository::update<SystemData>(const SystemData& t)

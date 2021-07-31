@@ -48,6 +48,7 @@
 #include "PinHandler/PinHandlerData.h"
 #include "Radio/Mavlink.h"
 #include "System/SystemData.h"
+#include "scheduler/TaskSchedulerData.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
@@ -222,6 +223,10 @@ void TmRepository::update<PinStatus>(const PinStatus& t);
 template <>
 void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
 
+// /* Sensors */
+// template <>
+// void TmRepository::update<SensorStatus>(const SensorStatus& t);
+
 /* Deployment Controller */
 template <>
 void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
@@ -230,10 +235,10 @@ void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t);
 template <>
 void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t);
 
-// /* ADA target dpl pressure */
-// template <>
-// void TmRepository::update<TargetDeploymentAltitude>(
-//     const TargetDeploymentAltitude& t);
+/* ADA target dpl pressure */
+template <>
+void TmRepository::update<TargetDeploymentAltitude>(
+    const TargetDeploymentAltitude& t);
 
 /* ADA kalman filter values */
 template <>
@@ -251,9 +256,9 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t);
 template <>
 void TmRepository::update<SystemData>(const SystemData& t);
 
-// /* Sensor Manager scheduler */
-// template <>
-// void TmRepository::update<TaskStatResult>(const TaskStatResult& t);
+/* Sensor Manager scheduler */
+template <>
+void TmRepository::update<TaskStatResult>(const TaskStatResult& t);
 
 /* FlightStatsRecorder liftoff stats */
 template <>

@@ -29,6 +29,8 @@
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
 
+#include "LoggerService/LoggerService.h"
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
 #endif
@@ -95,6 +97,8 @@ public:
 
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
+
+    LoggerService& logger = *(LoggerService::getInstance());
 };
 
 }  // namespace DeathStackBoard

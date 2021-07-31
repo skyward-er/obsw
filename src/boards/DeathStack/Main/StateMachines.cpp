@@ -4,8 +4,10 @@
 #include "AeroBrakesController/AeroBrakesController.h"
 #include "DeploymentController/DeploymentController.h"
 #include "FlightModeManager/FlightModeManager.h"
-#include "NavigationSystem/NASController.h"
 #include "FlightStatsRecorder/FlightStatsRecorder.h"
+#include "NavigationSystem/NASController.h"
+
+#include "System/TaskID.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL.h"
@@ -43,7 +45,8 @@ StateMachines::~StateMachines()
 bool StateMachines::start()
 {
     return fmm->start() && dpl_controller->start() && ada_controller->start() &&
-           nas_controller->start() && arb_controller->start() && flight_stats->start();
+           nas_controller->start() && arb_controller->start() &&
+           flight_stats->start();
 }
 
 void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
@@ -51,16 +54,29 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
     uint64_t start_time = miosix::getTick() + 10;
 
     scheduler->add(std::bind(&ADAControllerType::update, ada_controller),
-                   ADA_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+                   ADA_UPDATE_PERIOD, TASK_ADA_ID, start_time);
 
     scheduler->add(std::bind(&NASControllerType::update, nas_controller),
-                   NAS_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+                   NAS_UPDATE_PERIOD, TASK_NAS_ID, start_time);
 
     scheduler->add(std::bind(&AeroBrakesControllerType::update, arb_controller),
-                   ABK_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+                   ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
+
+    // add lambda to log scheduler tasks statistics
+    scheduler->add(
+        [&]() {
+            std::vector<TaskStatResult> scheduler_stats =
+                scheduler->getTaskStats();
+
+            for (TaskStatResult stat : scheduler_stats)
+            {
+                logger.log(stat);
+            }
+
+            StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+        },
+        1000,  // 1 hz
+        TASK_SCHEDULER_STATS_ID, start_time);
 }
 
 void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
