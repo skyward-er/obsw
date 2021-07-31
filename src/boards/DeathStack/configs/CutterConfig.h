@@ -37,7 +37,7 @@ static const PWM::Timer CUTTER_TIM{
     TIM9, &(RCC->APB2ENR), RCC_APB2ENR_TIM9EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
-// PRIMARY --> THCUT1 on theboard
+// PRIMARY --> THCUT1 on the board
 static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2;
 typedef miosix::actuators::nosecone::thCut1::ena PrimaryCutterEna;
 
@@ -45,7 +45,7 @@ typedef miosix::actuators::nosecone::thCut1::ena PrimaryCutterEna;
 static const PWMChannel CUTTER_CHANNEL_BACKUP = PWMChannel::CH2;
 typedef miosix::actuators::nosecone::thCut2::ena BackupCutterEna;
 
-static constexpr int CUT_DURATION      = 5 * 1000;
+static constexpr int CUT_DURATION      = 3 * 1000;
 static constexpr int CUT_TEST_DURATION = 1 * 1000;
 
 static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
