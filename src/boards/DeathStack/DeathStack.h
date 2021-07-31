@@ -227,8 +227,6 @@ private:
         }
         LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
                   getTopicString(topic));
-        /*TRACE("%s on %s \n", getEventString(event).c_str(),
-              getTopicString(topic).c_str());*/
 #endif
     }
 

@@ -328,7 +328,7 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::chooseTrajectory(float z,
         AeroBrakesChosenTrajectory{chosenTrajectory.getTrajectoryIndex()});
 
     PrintLogger log = Logging::getLogger("deathstack.fsm.abk");
-    LOG_INFO(log, "Chosen trajectory : %d \n",
+    LOG_INFO(log, "Chosen trajectory : {:d} \n",
           chosenTrajectory.getTrajectoryIndex());
 
     TrajectoryPoint setpoint = chosenTrajectory.get(indexMinVal);

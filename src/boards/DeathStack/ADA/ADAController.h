@@ -427,9 +427,9 @@ void ADAController<Press, GPS>::setDeploymentAltitude(float dpl_alt)
             deployment_altitude     = dpl_alt;
             deployment_altitude_set = true;
         }
-        logger.log(TargetDeploymentAltitude{dpl_alt});
+        logger.log(TargetDeploymentAltitude{deployment_altitude});
 
-        LOG_INFO(log, "Deployment altitude set to {:03f} m", dpl_alt);
+        LOG_INFO(log, "Deployment altitude set to {:.3f} m", dpl_alt);
 
         finalizeCalibration();
     }

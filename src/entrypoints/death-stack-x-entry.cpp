@@ -74,10 +74,10 @@ int main()
 
         logger_service->log(system_data);
 
-        // LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        // LOG_INFO(log, "CPU : avg: {:.2f}   max: {:.2f}   min: {:.2f} \n",
         //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
         //        cpu_stat.getStats().minValue);
-        /*TRACE("CPU : curr: %.2f   avg: %.2f   max: %.2f   min: %.2f \n", cpu,
+        /*TRACE("CPU : curr: {:.2f}   avg: {:.2f}   max: {:.2f}   min: {:.2f} \n", cpu,
               cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
               cpu_stat.getStats().minValue);
         TRACE(
