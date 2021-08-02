@@ -522,9 +522,6 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
     tm_repository.nas_tm.roll  = orientation(0);
     tm_repository.nas_tm.pitch = orientation(1);
     tm_repository.nas_tm.yaw   = orientation(2);
-    // tm_repository.nas_tm.triad_x  = ...
-    // tm_repository.nas_tm.triad_y = ...
-    // tm_repository.nas_tm.triad_z   = ...
 
     tm_repository.hr_tm.nas_x = t.x0;
     tm_repository.hr_tm.nas_y = t.x1;
@@ -556,6 +553,14 @@ void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t)
     tm_repository.nas_tm.ref_longitude = t.ref_longitude;
 
     tm_repository.nas_tm.ref_pressure = t.ref_pressure;
+}
+
+template <>
+void TmRepository::update<NASTriadResult>(const NASTriadResult& t)
+{
+    tm_repository.nas_tm.triad_x  = t.roll;
+    tm_repository.nas_tm.triad_y = t.pitch;
+    tm_repository.nas_tm.triad_z   = t.yaw;
 }
 
 /* Launch and Nosecone detachment pins */

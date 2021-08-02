@@ -156,9 +156,7 @@ bool NAS<IMU, Press, GPS>::init()
     mag_init.normalize();
 
     states_init.triad(acc_init, mag_init);
-
     states_init.biasInit();
-
     x = states_init.getInitX();
 
     filter.setX(x);
@@ -178,6 +176,8 @@ bool NAS<IMU, Press, GPS>::init()
 #endif
 
     initialized = true;
+
+    LoggerService::getInstance()->log(getTriadResult());
 
     return initialized;
 }

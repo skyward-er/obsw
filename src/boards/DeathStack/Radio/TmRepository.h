@@ -215,6 +215,9 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t);
 template <>
 void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t);
 
+template <>
+void TmRepository::update<NASTriadResult>(const NASTriadResult& t);
+
 /* Launch and Nosecone detachment pins and DPL servo optical sensor */
 template <>
 void TmRepository::update<PinStatus>(const PinStatus& t);
