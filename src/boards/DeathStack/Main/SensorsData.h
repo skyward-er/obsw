@@ -41,28 +41,14 @@ struct AirSpeedPitot
 
 struct SensorsStatus
 {
-    uint8_t bmx160 : 1;
-    uint8_t ms5803 : 1;
-    uint8_t lis3mdl : 1;
-    uint8_t gps : 1;
-    uint8_t internal_adc : 1;
-    uint8_t ads1118 : 1;
+    uint8_t bmx160       = 1;
+    uint8_t ms5803       = 1;
+    uint8_t lis3mdl      = 1;
+    uint8_t gps          = 1;
+    uint8_t internal_adc = 1;
+    uint8_t ads1118      = 1;
 
-    SensorsStatus()
-        : bmx160(1), ms5803(1), lis3mdl(1), gps(1), internal_adc(1), ads1118(1)
-    {
-    }
-
-    /**
-     * Converts data in the struct to a single uint8_t value
-     * @return uint8_t representing the struct
-     */
-    uint8_t toNumeric()
-    {
-        uint8_t out;
-        memcpy(&out, this, sizeof(out));
-        return out;
-    }
+    SensorsStatus() {}
 
     static std::string header()
     {

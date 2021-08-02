@@ -133,6 +133,8 @@ bool Sensors::start()
         updateSensorsStatus();
     }
 
+    LoggerService::getInstance()->log(status);
+
     return sm_start_result;
 }
 
@@ -221,8 +223,9 @@ void Sensors::pressDigiInit()
     SPIBusConfig spi_cfg{};
     spi_cfg.clock_div = SPIClockDivider::DIV16;
 
-    press_digital = new MS580301BA07(
-        spi1_bus, miosix::sensors::ms5803::cs::getPin(), spi_cfg);
+    press_digital =
+        new MS580301BA07(spi1_bus, miosix::sensors::ms5803::cs::getPin(),
+                         spi_cfg, TEMP_DIVIDER_PRESS_DIGITAL);
 
     SensorInfo info("DigitalBarometer", SAMPLE_PERIOD_PRESS_DIGITAL,
                     bind(&Sensors::pressDigiCallback, this), false, true);
@@ -604,8 +607,6 @@ void Sensors::updateSensorsStatus()
     {
         status.ads1118 = 0;
     }
-
-    LoggerService::getInstance()->log(status);
 }
 
 }  // namespace DeathStackBoard

@@ -322,8 +322,8 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
     if (t.channel_id == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
-        tm_repository.sensors_tm.vsupply_5v    = t.voltage;
-        tm_repository.hr_tm.vsupply_5v         = t.voltage;
+        tm_repository.sensors_tm.vsupply_5v = t.voltage;
+        tm_repository.hr_tm.vsupply_5v      = t.voltage;
         tm_repository.adc_tm.bat_voltage_5v = t.voltage;
     }
 }
