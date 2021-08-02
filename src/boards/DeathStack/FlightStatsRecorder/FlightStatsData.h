@@ -30,12 +30,12 @@ namespace DeathStackBoard
 {
 struct LiftOffStats
 {
-    uint32_t T_liftoff = 0;
+    uint64_t T_liftoff = 0;
 
-    uint32_t T_max_acc = 0;
+    uint64_t T_max_acc = 0;
     float acc_max      = 0.0f;
 
-    uint32_t T_max_speed     = 0;
+    uint64_t T_max_speed     = 0;
     float vert_speed_max     = 0.0f;
     float airspeed_pitot_max = 0.0f;
     float altitude_max_speed = 0.0f;
@@ -56,7 +56,7 @@ struct LiftOffStats
 
 struct CutterTestStats
 {
-    uint32_t timestamp = 0;
+    uint64_t timestamp = 0;
     float cutter_1_avg = 0;
     float cutter_2_avg = 0;
     uint32_t n_samples_1 = 0;
@@ -74,7 +74,7 @@ struct CutterTestStats
 
 struct ApogeeStats
 {
-    uint32_t T_apogee          = 0;
+    uint64_t T_apogee          = 0;
     float static_min_pressure  = 200000.0f;
     float ada_min_pressure     = 200000.0f;
     float digital_min_pressure = 200000.0f;
@@ -103,7 +103,7 @@ struct ApogeeStats
 
 struct DrogueDPLStats
 {
-    uint32_t T_dpl    = 0;
+    uint64_t T_dpl    = 0;
     float max_dpl_acc = 0.0f;
     float max_dpl_vane_pressure = 0.0f;
 
@@ -117,7 +117,7 @@ struct DrogueDPLStats
 
 struct MainDPLStats
 {
-    uint32_t T_dpl       = 0;
+    uint64_t T_dpl       = 0;
     float max_dpl_acc    = 0.0f;
     float altitude_dpl   = 0.0f;
     float vert_speed_dpl = 0.0f;

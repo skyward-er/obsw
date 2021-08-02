@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <map>
+
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
@@ -38,9 +40,9 @@
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 
-#include <map>
-
 #include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
+
+#include "SensorsData.h"
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL.h"
@@ -141,6 +143,8 @@ private:
     void hilGPSCallback();
 #endif
 
+    void updateSensorsStatus();
+
     SPIBusInterface& spi1_bus;
 
     SensorManager::SensorMap_t sensors_map;
@@ -148,6 +152,8 @@ private:
     PrintLogger log = Logging::getLogger("sensors");
 
     uint8_t press_digi_count = 0;
+
+    SensorsStatus status;
 };
 
 }  // namespace DeathStackBoard

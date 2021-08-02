@@ -53,8 +53,9 @@ public:
     void update(const CurrentSensorData& t);
     void update(const MS5803Data& t); // digitl baro
     void update(const MPXHZ6130AData& t); // static ports baro
-    void update(const SSCDRRN015PDAData& t); // pitot baro
+    //void update(const SSCDRRN015PDAData& t); // pitot baro
     void update(const SSCDANN030PAAData& t); // DPL vane baro
+    void update(const AirSpeedPitot& t);
 
 #ifdef HARDWARE_IN_THE_LOOP
     void update(const HILImuData& t);

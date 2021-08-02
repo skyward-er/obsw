@@ -36,6 +36,7 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
+#include <Main/SensorsData.h>
 
 #include "ADA/ADAData.h"
 #include "AeroBrakesController/AeroBrakesData.h"
@@ -165,6 +166,9 @@ template <>
 void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t);
 
 template <>
+void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t);
+
+template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
 template <>
@@ -179,6 +183,9 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
 
 template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
+
+template <>
+void TmRepository::update<SensorsStatus>(const SensorsStatus& t);
 
 /* Battery status, sampled by internal ADC */
 template <>

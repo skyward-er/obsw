@@ -162,17 +162,29 @@ void FlightStatsRecorder::update(const MPXHZ6130AData& t)
     }
 }
 
-void FlightStatsRecorder::update(const SSCDRRN015PDAData& t)
+// void FlightStatsRecorder::update(const SSCDRRN015PDAData& t)
+// {
+//     switch (state)
+//     {
+//         case State::ASCENDING:
+//         {
+//             break;
+//         }
+//         default:
+//             break;
+//     }
+// }
+
+void FlightStatsRecorder::update(const AirSpeedPitot& t)
 {
     switch (state)
     {
         case State::ASCENDING:
         {
-            // TODO : CONVERT DYNAMIC PRESSURE TO SPEED
-            /*if (t.press > liftoff_stats.airspeed_pitot_max)
+            if (t.airspeed > liftoff_stats.airspeed_pitot_max)
             {
-                liftoff_stats.airspeed_pitot_max = t.press;
-            }*/
+                liftoff_stats.airspeed_pitot_max = t.airspeed;
+            }
             break;
         }
         default:

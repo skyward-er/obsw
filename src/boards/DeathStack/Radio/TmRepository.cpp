@@ -25,7 +25,6 @@
 // #include <bitpacking/hermes/HermesPackets.h>
 #include <Debug.h>
 #include <configs/TMTCConfig.h>
-
 #include "DeathStack.h"
 #include "FlightStatsRecorder/FlightStatsRecorder.h"
 #include "LoggerService/LoggerService.h"
@@ -323,8 +322,8 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
     if (t.channel_id == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
-        tm_repository.sensors_tm.vbat_5v    = t.voltage;
-        tm_repository.hr_tm.vbat_5v         = t.voltage;
+        tm_repository.sensors_tm.vsupply_5v    = t.voltage;
+        tm_repository.hr_tm.vsupply_5v         = t.voltage;
         tm_repository.adc_tm.bat_voltage_5v = t.voltage;
     }
 }
@@ -362,7 +361,13 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
     tm_repository.sensors_tm.pitot_press        = t.press;
     tm_repository.adc_tm.pitot_pressure         = t.press;
 
-    // tm_repository.hr_tm.airspeed_pitot = ?;
+    // DeathStack::getInstance()->state_machines->flight_stats->update(t);
+}
+
+template <>
+void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t)
+{
+    tm_repository.hr_tm.airspeed_pitot = t.airspeed;
 
     DeathStack::getInstance()->state_machines->flight_stats->update(t);
 }
@@ -465,6 +470,17 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 }
 
 template <>
+void TmRepository::update<SensorsStatus>(const SensorsStatus& t)
+{
+    tm_repository.sys_tm.bmx160_status       = t.bmx160;
+    tm_repository.sys_tm.ms5803_status       = t.ms5803;
+    tm_repository.sys_tm.lis3mdl_status      = t.lis3mdl;
+    tm_repository.sys_tm.gps_status          = t.gps;
+    tm_repository.sys_tm.internal_adc_status = t.internal_adc;
+    tm_repository.sys_tm.ads1118_status      = t.ads1118;
+}
+
+template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t)
 {
@@ -558,9 +574,9 @@ void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t)
 template <>
 void TmRepository::update<NASTriadResult>(const NASTriadResult& t)
 {
-    tm_repository.nas_tm.triad_x  = t.roll;
+    tm_repository.nas_tm.triad_x = t.roll;
     tm_repository.nas_tm.triad_y = t.pitch;
-    tm_repository.nas_tm.triad_z   = t.yaw;
+    tm_repository.nas_tm.triad_z = t.yaw;
 }
 
 /* Launch and Nosecone detachment pins */

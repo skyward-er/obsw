@@ -104,6 +104,11 @@ public:
      */
     ADAData getADAData() { return ada.getADAData(); }
 
+    /**
+     * @returns The current ADAReferenceValues structure
+     */
+    ADAReferenceValues getReferenceValues() { return ada.getReferenceValues(); }
+
 private:
     /* --- FSM STATES --- */
     void state_init(const Event& ev);

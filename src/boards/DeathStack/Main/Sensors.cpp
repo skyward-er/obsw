@@ -30,6 +30,9 @@
 #include <functional>
 #include <utility>
 
+#include "utils/aero/AeroUtils.h"
+
+#include "ADA/ADAController.h"
 #include "DeathStack.h"
 #include "LoggerService/LoggerService.h"
 #include "TimestampTimer.h"
@@ -68,7 +71,7 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
 #ifdef HARDWARE_IN_THE_LOOP
     hilImuInit();
 #else
-    imuBMXInit();  // 23 ms
+    imuBMXInit();     // 23 ms
     imuBMXWithCorrectionInit();
 #endif
     pressPitotInit();  // 24 ms
@@ -122,7 +125,15 @@ bool Sensors::start()
     gps_ublox->start();
 #endif
 
-    return sensor_manager->start();
+    bool sm_start_result = sensor_manager->start();
+
+    // if not init ok, set failing sensors in sensors status
+    if (!sm_start_result)
+    {
+        updateSensorsStatus();
+    }
+
+    return sm_start_result;
 }
 
 void calibrate() {}
@@ -325,8 +336,6 @@ void Sensors::imuBMXInit()
 
 void Sensors::imuBMXWithCorrectionInit()
 {
-    printf("imuBMXWithCorrectionInit\n");
-
     // Read the correction parameters
     BMX160CorrectionParameters correctionParameters =
         BMX160WithCorrection::readCorrectionParametersFromFile(
@@ -421,7 +430,7 @@ void Sensors::hilImuInit()
 {
     HILTransceiver* simulator = HIL::getInstance()->simulator;
 
-    hil_imu  = new HILImu(simulator, N_DATA_IMU);
+    hil_imu = new HILImu(simulator, N_DATA_IMU);
 
     SensorInfo info_imu("HILImu", HIL_IMU_PERIOD,
                         bind(&Sensors::hilIMUCallback, this), false, true);
@@ -435,7 +444,7 @@ void Sensors::hilGpsInit()
 {
     HILTransceiver* simulator = HIL::getInstance()->simulator;
 
-    hil_gps  = new HILGps(simulator, N_DATA_GPS);
+    hil_gps = new HILGps(simulator, N_DATA_GPS);
 
     SensorInfo info_gps("HILGps", HIL_GPS_PERIOD,
                         bind(&Sensors::hilGPSCallback, this), false, true);
@@ -468,7 +477,20 @@ void Sensors::ADS1118Callback()
 
 void Sensors::pressPitotCallback()
 {
-    LoggerService::getInstance()->log(press_pitot->getLastSample());
+    SSCDRRN015PDAData d = press_pitot->getLastSample();
+    LoggerService::getInstance()->log(d);
+
+    ADAReferenceValues rv =
+        DeathStack::getInstance()
+            ->state_machines->ada_controller->getReferenceValues();
+
+    float v = sqrtf(2 * d.press /
+                    aeroutils::relDensity(press_digital->getLastSample().press,
+                                          rv.ref_pressure, rv.ref_altitude,
+                                          rv.ref_temperature));
+
+    AirSpeedPitot aspeed_data{TimestampTimer::getTimestamp(), v};
+    LoggerService::getInstance()->log(aspeed_data);
 }
 
 void Sensors::pressDPLVaneCallback()
@@ -548,5 +570,42 @@ void Sensors::hilGPSCallback()
     LoggerService::getInstance()->log(hil_gps->getLastSample());
 }
 #endif
+
+void Sensors::updateSensorsStatus()
+{
+    SensorInfo info;
+
+    info = sensor_manager->getSensorInfo(imu_bmx160);
+    if (!info.initialized)
+    {
+        status.bmx160 = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(mag_lis3mdl);
+    if (!info.initialized)
+    {
+        status.lis3mdl = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(gps_ublox);
+    if (!info.initialized)
+    {
+        status.gps = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(internal_adc);
+    if (!info.initialized)
+    {
+        status.internal_adc = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(adc_ads1118);
+    if (!info.initialized)
+    {
+        status.ads1118 = 0;
+    }
+
+    LoggerService::getInstance()->log(status);
+}
 
 }  // namespace DeathStackBoard
