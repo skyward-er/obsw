@@ -30,13 +30,12 @@
 #include <functional>
 #include <utility>
 
-#include "utils/aero/AeroUtils.h"
-
 #include "ADA/ADAController.h"
 #include "DeathStack.h"
 #include "LoggerService/LoggerService.h"
 #include "TimestampTimer.h"
 #include "configs/SensorManagerConfig.h"
+#include "utils/aero/AeroUtils.h"
 
 using std::bind;
 using std::function;
@@ -172,7 +171,8 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -196,7 +196,8 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -340,6 +341,36 @@ void Sensors::imuBMXWithCorrectionInit()
     BMX160CorrectionParameters correctionParameters =
         BMX160WithCorrection::readCorrectionParametersFromFile(
             BMX160_CORRECTION_PARAMETERS_FILE);
+
+    // Print the calibration parameters
+    TRACE("[Sensors] Current accelerometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.accelParams(0, 1),
+          correctionParameters.accelParams(1, 1),
+          correctionParameters.accelParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.accelParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.accelParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.accelParams(2, 0));
+    TRACE("[Sensors] Current magnetometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.magnetoParams(0, 1),
+          correctionParameters.magnetoParams(1, 1),
+          correctionParameters.magnetoParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.magnetoParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.magnetoParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.magnetoParams(2, 0));
+    TRACE(
+        "[Sensors] The current minimun number of gyroscope samples for "
+        "calibration is %d\n",
+        correctionParameters.minGyroSamplesForCalibration);
 
     imu_bmx160_with_correction = new BMX160WithCorrection(
         imu_bmx160, correctionParameters, BMX160_AXIS_ROTATION);

@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <DeathStack.h>
 #include <FlightModeManager/FlightModeManager.h>
 #include <events/EventBroker.h>
 
@@ -243,7 +244,8 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
             LOG_DEBUG(log, "Entering sensors_calibration\n");
 
             // TODO : CALIBRATE SENSORS
-            Thread::sleep(1000);
+            DeathStack::getInstance()
+                ->sensors->imu_bmx160_with_correction->calibrate();
             sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
 
             break;
