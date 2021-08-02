@@ -133,7 +133,9 @@ private:
     void gpsUbloxCallback();
 
 #ifdef HARDWARE_IN_THE_LOOP
-    void hilSensorsInit();
+    void hilBarometerInit();
+    void hilImuInit();
+    void hilGpsInit();
     void hilIMUCallback();
     void hilBaroCallback();
     void hilGPSCallback();

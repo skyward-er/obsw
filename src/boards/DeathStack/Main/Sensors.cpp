@@ -57,23 +57,32 @@ using namespace SensorConfigs;
 Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     : spi1_bus(spi1_bus)
 {
+    // sensors are added to the map ordered by increasing period
+    ADS1118Init();  // 6 ms
 #ifdef HARDWARE_IN_THE_LOOP
-    hilSensorsInit();
+    hilBarometerInit();
 #else
-    imuBMXInit();
-    imuBMXWithCorrectionInit();
-    pressDigiInit();
-    gpsUbloxInit();
+    pressDigiInit();  // 10 ms
 #endif
-    internalAdcInit();
+    magLISinit();
+#ifdef HARDWARE_IN_THE_LOOP
+    hilImuInit();
+#else
+    imuBMXInit();  // 23 ms
+    imuBMXWithCorrectionInit();
+#endif
+    pressPitotInit();  // 24 ms
+    pressDPLVaneInit();
+    pressStaticInit();
+#ifdef HARDWARE_IN_THE_LOOP
+    hilGpsInit();
+#else
+    gpsUbloxInit();  // 40 ms
+#endif
+    internalAdcInit();  // 50 ms
     batteryVoltageInit();
     primaryCutterCurrentInit();
     backupCutterCurrentInit();
-    ADS1118Init();
-    pressPitotInit();
-    pressDPLVaneInit();
-    pressStaticInit();
-    magLISinit();
 
     sensor_manager = new SensorManager(scheduler, sensors_map);
 }
@@ -152,8 +161,7 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -177,8 +185,7 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -397,26 +404,45 @@ void Sensors::backupCutterCurrentCallback()
 }
 
 #ifdef HARDWARE_IN_THE_LOOP
-void Sensors::hilSensorsInit()
+void Sensors::hilBarometerInit()
+{
+    HILTransceiver* simulator = HIL::getInstance()->simulator;
+
+    hil_baro = new HILBarometer(simulator, N_DATA_BARO);
+
+    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
+                         bind(&Sensors::hilBaroCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(hil_baro, info_baro));
+
+    LOG_INFO(log, "HIL barometer setup done! \n");
+}
+void Sensors::hilImuInit()
 {
     HILTransceiver* simulator = HIL::getInstance()->simulator;
 
     hil_imu  = new HILImu(simulator, N_DATA_IMU);
-    hil_baro = new HILBarometer(simulator, N_DATA_BARO);
-    hil_gps  = new HILGps(simulator, N_DATA_GPS);
 
     SensorInfo info_imu("HILImu", HIL_IMU_PERIOD,
                         bind(&Sensors::hilIMUCallback, this), false, true);
-    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
-                         bind(&Sensors::hilBaroCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(hil_imu, info_imu));
+
+    LOG_INFO(log, "HIL IMU setup done! \n");
+}
+
+void Sensors::hilGpsInit()
+{
+    HILTransceiver* simulator = HIL::getInstance()->simulator;
+
+    hil_gps  = new HILGps(simulator, N_DATA_GPS);
+
     SensorInfo info_gps("HILGps", HIL_GPS_PERIOD,
                         bind(&Sensors::hilGPSCallback, this), false, true);
 
-    sensors_map.emplace(std::make_pair(hil_imu, info_imu));
-    sensors_map.emplace(std::make_pair(hil_baro, info_baro));
     sensors_map.emplace(std::make_pair(hil_gps, info_gps));
 
-    LOG_INFO(log, "HIL Sensors setup done! \n");
+    LOG_INFO(log, "HIL GPS setup done! \n");
 }
 #endif
 
