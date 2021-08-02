@@ -128,8 +128,8 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     status_pin_launch.last_state_change = TimestampTimer::getTimestamp();
     status_pin_launch.num_state_changes += 1;
 
-    LOG_INFO(log, "Launch pin state change at time %llu: new "
-        "state = %d \n",
+    LOG_INFO(log, "Launch pin state change at time {}: new "
+        "state = {} \n",
         status_pin_launch.last_state_change, status_pin_launch.state);
 
     logger->log(status_pin_launch);
@@ -144,7 +144,7 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
-    LOG_INFO(log, "Nosecone pin state change at time %llu: new state = %d "
+    LOG_INFO(log, "Nosecone pin state change at time {}: new state = {} "
         "\n",
         status_pin_nosecone.last_state_change, status_pin_nosecone.state);
 
@@ -161,9 +161,9 @@ void PinHandler::onDPLServoPinStateChange(unsigned int p, unsigned char n,
     status_pin_dpl_servo.last_state_change = TimestampTimer::getTimestamp();
     status_pin_dpl_servo.num_state_changes += 1;
 
-    LOG_INFO(log, "Deployment servo pin state change at time %llu: "
+    LOG_INFO(log, "Deployment servo pin state change at time {}: "
         "new "
-        "state = %d \n",
+        "state = {} \n",
         status_pin_dpl_servo.last_state_change, status_pin_dpl_servo.state);
 
     logger->log(status_pin_dpl_servo);
