@@ -348,11 +348,11 @@ TrajectoryPoint AeroBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
     for (int pointIndex = start; pointIndex < end; pointIndex++)
     {
         TrajectoryPoint ref = chosenTrajectory.get(pointIndex);
-        float DistanceFromCurrentinput =
-            TrajectoryPoint::zDistance(ref, currentPoint);
-        if (DistanceFromCurrentinput < minDistance)
+        float distanceFromCurrentinput =
+            TrajectoryPoint::distance(ref, currentPoint);
+        if (distanceFromCurrentinput < minDistance)
         {
-            minDistance = DistanceFromCurrentinput;
+            minDistance = distanceFromCurrentinput;
             indexMinVal = pointIndex;
         }
     }
