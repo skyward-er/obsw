@@ -38,8 +38,12 @@ using namespace DeathStackBoard;
 
 int main()
 {
-    Logging::startAsyncLogger();
     PrintLogger log = Logging::getLogger("main");
+#ifndef DEBUG  // if not debugging, output to file only INFO level or higher
+    unique_ptr<LogSink> log_sink = std::make_unique<FileLogSinkBuffered>();
+    log_sink->setLevel(LOGL_INFO);
+    Logging::addLogSink(log_sink);
+#endif
 
     Stats cpu_stat;
     StatsResult cpu_stat_res;
@@ -74,15 +78,14 @@ int main()
 
         logger_service->log(system_data);
 
-        // LOG_INFO(log, "CPU : avg: {:.2f}   max: {:.2f}   min: {:.2f} \n",
+        // LOG_INFO(log, "CPU : avg: {:.2f}   max: {:.2f}   min: {:.2f}",
         //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
         //        cpu_stat.getStats().minValue);
-        /*TRACE("CPU : curr: {:.2f}   avg: {:.2f}   max: {:.2f}   min: {:.2f} \n", cpu,
-              cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+        /*TRACE("CPU : curr: {:.2f}   avg: {:.2f}   max: {:.2f}   min: {:.2f}",
+              cpu, cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
               cpu_stat.getStats().minValue);
-        TRACE(
-            "Memory : absolute free heap : %u    current free heap : %u \n",
-            MemoryProfiling::getAbsoluteFreeHeap(),
-            MemoryProfiling::getCurrentFreeHeap());*/
+        TRACE("Memory : absolute free heap : %u    current free heap : %u",
+              MemoryProfiling::getAbsoluteFreeHeap(),
+              MemoryProfiling::getCurrentFreeHeap());*/
     }
 }
