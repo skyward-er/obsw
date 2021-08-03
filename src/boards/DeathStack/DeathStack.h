@@ -92,31 +92,31 @@ public:
     {
         if (!broker->start())
         {
-            LOG_ERR(log, "Error starting EventBroker\n");
+            LOG_ERR(log, "Error starting EventBroker");
             status.setError(&DeathStackStatus::ev_broker);
         }
 
         if (!radio->start())
         {
-            LOG_ERR(log, "Error starting radio module\n");
+            LOG_ERR(log, "Error starting radio module");
             status.setError(&DeathStackStatus::radio);
         }
 
         if (!sensors->start())
         {
-            LOG_ERR(log, "Error starting sensors\n");
+            LOG_ERR(log, "Error starting sensors");
             status.setError(&DeathStackStatus::sensors);
         }
 
         if (!state_machines->start())
         {
-            LOG_ERR(log, "Error starting state machines\n");
+            LOG_ERR(log, "Error starting state machines");
             status.setError(&DeathStackStatus::state_machines);
         }
 
         if (!pin_handler->start())
         {
-            LOG_ERR(log, "Error starting PinObserver\n");
+            LOG_ERR(log, "Error starting PinObserver");
             status.setError(&DeathStackStatus::pin_obs);
         }
 
@@ -136,7 +136,7 @@ public:
         }
         else
         {
-            LOG_INFO(log, "Initalization ok\n");
+            LOG_INFO(log, "Initalization ok");
             sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
         }
     }
@@ -146,11 +146,11 @@ public:
         try
         {
             logger->start();
-            LOG_INFO(log, "Logger started \n");
+            LOG_INFO(log, "Logger started ");
         }
         catch (const std::runtime_error& re)
         {
-            LOG_ERR(log, "SD Logger init error\n");
+            LOG_ERR(log, "SD Logger init error");
             status.setError(&DeathStackStatus::logger);
         }
 

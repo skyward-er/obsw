@@ -75,8 +75,6 @@ const std::map<uint8_t, uint8_t> tcMap = {
 
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
-    LOG_INFO(print_logger, "Handling command...");
-
     // log status
     logger->log(mav_driver->getStatus());
 
@@ -88,7 +86,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
     {
         case MAVLINK_MSG_ID_NOARG_TC:  // basic command
         {
-            LOG_INFO(print_logger, "Received NOARG command");
+            LOG_DEBUG(print_logger, "Received NOARG command");
             uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
 
             // search for the corresponding event and post it
@@ -122,7 +120,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
         {
             uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
-            LOG_INFO(print_logger, "Received TM request : id = {:d}", tmId);
+            LOG_DEBUG(print_logger, "Received TM request : id = {:d}", tmId);
 
             // send corresponding telemetry or NACK
             sendTelemetry(mav_driver, tmId);
@@ -133,7 +131,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         {
             float alt =
                 mavlink_msg_set_reference_altitude_get_ref_altitude(&msg);
-            LOG_INFO(
+            LOG_DEBUG(
                 print_logger,
                 "Received SET_REFERENCE_ALTITUDE command. Ref altitude: {:f} m",
                 alt);
@@ -145,7 +143,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         {
             float temp =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
-            LOG_INFO(
+            LOG_DEBUG(
                 print_logger,
                 "Received SET_REFERENCE_TEMPERATURE command. Temp: {:f} degC",
                 temp);
@@ -157,7 +155,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         {
             float alt =
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
-            LOG_INFO(
+            LOG_DEBUG(
                 print_logger,
                 "Received SET_DEPLOYMENT_ALTITUDE command. Dpl alt: {:f} m",
                 alt);
@@ -171,7 +169,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             float pitch =
                 mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
             float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
-            LOG_INFO(print_logger,
+            LOG_DEBUG(print_logger,
                      "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
                      "pitch: {:f}, yaw: {:f}",
                      roll, pitch, yaw);
@@ -181,7 +179,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
         {
-            LOG_INFO(print_logger, "Received RAW_EVENT command");
+            LOG_DEBUG(print_logger, "Received RAW_EVENT command");
 
             // post given event on given topic
             sEventBroker->post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
@@ -199,13 +197,13 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             float pos = mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
             DeathStack::getInstance()
                 ->state_machines->arb_controller->setAeroBrakesPosition(pos);
-            LOG_INFO(print_logger, "Received set ab pos: {:.1f} deg", pos);
+            LOG_DEBUG(print_logger, "Received set ab pos: {:.1f} deg", pos);
 
             break;
         }
         default:
         {
-            LOG_INFO(print_logger, "Received message is not of a known type");
+            LOG_DEBUG(print_logger, "Received message is not of a known type");
             break;
         }
     }

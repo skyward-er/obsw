@@ -144,12 +144,12 @@ void AeroBrakesController<T>::state_idle(const Event& ev)
         {
             logStatus(AeroBrakesControllerState::IDLE);
 
-            LOG_INFO(log, "Eentering state idle");
+            LOG_DEBUG(log, "Eentering state idle");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state idle");
+            LOG_DEBUG(log, "Exiting state idle");
             break;
         }
         case EV_LIFTOFF:
@@ -192,12 +192,12 @@ void AeroBrakesController<T>::state_shadowMode(const Event& ev)
 
             logStatus(AeroBrakesControllerState::SHADOW_MODE);
 
-            LOG_INFO(log, "Entering state shadow_mode");
+            LOG_DEBUG(log, "Entering state shadow_mode");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state shadow_mode");
+            LOG_DEBUG(log, "Exiting state shadow_mode");
             break;
         }
         case EV_SHADOW_MODE_TIMEOUT:
@@ -228,12 +228,12 @@ void AeroBrakesController<T>::state_enabled(const Event& ev)
 
             logStatus(AeroBrakesControllerState::ENABLED);
 
-            LOG_INFO(log, "Entering state enabled");
+            LOG_DEBUG(log, "Entering state enabled");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state enabled");
+            LOG_DEBUG(log, "Exiting state enabled");
             break;
         }
         case EV_APOGEE:
@@ -265,12 +265,12 @@ void AeroBrakesController<T>::state_end(const Event& ev)
 
             logStatus(AeroBrakesControllerState::END);
 
-            LOG_INFO(log, "Entering state end");
+            LOG_DEBUG(log, "Entering state end");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state end");
+            LOG_DEBUG(log, "Exiting state end");
             break;
         }
 
@@ -293,12 +293,12 @@ void AeroBrakesController<T>::state_disabled(const Event& ev)
 
             logStatus(AeroBrakesControllerState::DISABLED);
 
-            LOG_INFO(log, "Entering state disabled");
+            LOG_DEBUG(log, "Entering state disabled");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state disabled");
+            LOG_DEBUG(log, "Exiting state disabled");
             break;
         }
 
@@ -316,7 +316,7 @@ void AeroBrakesController<T>::state_testAerobrakes(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state test_aerobrakes");
+            LOG_DEBUG(log, "Entering state test_aerobrakes");
 
             incrementallyOpen();
             miosix::Thread::sleep(1000);
@@ -331,7 +331,7 @@ void AeroBrakesController<T>::state_testAerobrakes(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state test_aerobrakes");
+            LOG_DEBUG(log, "Exiting state test_aerobrakes");
             break;
         }
         case EV_TEST_TIMEOUT:
@@ -357,7 +357,7 @@ void AeroBrakesController<T>::incrementallyOpen()
 
     for (auto i = 0; i < STEPS_NUM; i++)
     {
-        LOG_INFO(log, "Servo position : {:.2f}", currentStep);
+        LOG_DEBUG(log, "Servo position : {:.2f}", currentStep);
         servo->set(currentStep);
         currentStep += INCREMENT_STEP;
         miosix::Thread::sleep(1000);
@@ -377,7 +377,7 @@ void AeroBrakesController<T>::incrementallyClose()
 
     for (auto i = 0; i < STEPS_NUM; i++)
     {
-        LOG_INFO(log, "Servo position : {:.2f}", currentStep);
+        LOG_DEBUG(log, "Servo position : {:.2f}", currentStep);
         servo->set(currentStep);
         currentStep -= INCREMENT_STEP;
         miosix::Thread::sleep(1000);

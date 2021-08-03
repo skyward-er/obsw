@@ -234,7 +234,7 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             break;
         default:
         {
-            LOG_INFO(log, "Unknown telemetry id: %d\n", req_tm);
+            LOG_DEBUG(log, "Unknown telemetry id: %d", req_tm);
             nack_tm.recv_msgid = 0;
             nack_tm.seq_ack    = 0;
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);

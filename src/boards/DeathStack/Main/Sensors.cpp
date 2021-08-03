@@ -151,7 +151,7 @@ void Sensors::internalAdcInit()
                     bind(&Sensors::internalAdcCallback, this), false, true);
     sensors_map.emplace(std::make_pair(internal_adc, info));
 
-    LOG_INFO(log, "InternalADC setup done!\n");
+    LOG_INFO(log, "InternalADC setup done!");
 }
 
 void Sensors::batteryVoltageInit()
@@ -166,7 +166,7 @@ void Sensors::batteryVoltageInit()
 
     sensors_map.emplace(std::make_pair(battery_voltage, info));
 
-    LOG_INFO(log, "Battery voltage sensor setup done!\n");
+    LOG_INFO(log, "Battery voltage sensor setup done!");
 }
 
 void Sensors::primaryCutterCurrentInit()
@@ -191,7 +191,7 @@ void Sensors::primaryCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_primary, info));
 
-    LOG_INFO(log, "Primary cutter current sensor setup done!\n");
+    LOG_INFO(log, "Primary cutter current sensor setup done!");
 }
 
 void Sensors::backupCutterCurrentInit()
@@ -216,7 +216,7 @@ void Sensors::backupCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_backup, info));
 
-    LOG_INFO(log, "Backup cutter current sensor setup done!\n");
+    LOG_INFO(log, "Backup cutter current sensor setup done!");
 }
 
 void Sensors::pressDigiInit()
@@ -233,7 +233,7 @@ void Sensors::pressDigiInit()
 
     sensors_map.emplace(std::make_pair(press_digital, info));
 
-    LOG_INFO(log, "MS5803 pressure sensor setup done!\n");
+    LOG_INFO(log, "MS5803 pressure sensor setup done!");
 }
 
 void Sensors::ADS1118Init()
@@ -261,7 +261,7 @@ void Sensors::ADS1118Init()
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 
-    LOG_INFO(log, "ADS1118 setup done!\n");
+    LOG_INFO(log, "ADS1118 setup done!");
 }
 
 void Sensors::pressPitotInit()
@@ -275,7 +275,7 @@ void Sensors::pressPitotInit()
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 
-    LOG_INFO(log, "Pitot pressure sensor setup done!\n");
+    LOG_INFO(log, "Pitot pressure sensor setup done!");
 }
 
 void Sensors::pressDPLVaneInit()
@@ -289,7 +289,7 @@ void Sensors::pressDPLVaneInit()
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 
-    LOG_INFO(log, "DPL pressure sensor setup done!\n");
+    LOG_INFO(log, "DPL pressure sensor setup done!");
 }
 
 void Sensors::pressStaticInit()
@@ -303,7 +303,7 @@ void Sensors::pressStaticInit()
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 
-    LOG_INFO(log, "Static pressure sensor setup done!\n");
+    LOG_INFO(log, "Static pressure sensor setup done!");
 }
 
 void Sensors::imuBMXInit()
@@ -335,7 +335,7 @@ void Sensors::imuBMXInit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
-    LOG_INFO(log, "BMX160 Setup done!\n");
+    LOG_INFO(log, "BMX160 Setup done!");
 }
 
 void Sensors::imuBMXWithCorrectionInit()
@@ -384,7 +384,7 @@ void Sensors::imuBMXWithCorrectionInit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160_with_correction, info));
 
-    LOG_INFO(log, "BMX160WithCorrection Setup done!\n");
+    LOG_INFO(log, "BMX160WithCorrection Setup done!");
 }
 
 void Sensors::magLISinit()
@@ -405,7 +405,7 @@ void Sensors::magLISinit()
 
     sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
 
-    LOG_INFO(log, "LIS3MDL Setup done!\n");
+    LOG_INFO(log, "LIS3MDL Setup done!");
 }
 
 void Sensors::gpsUbloxInit()
@@ -417,7 +417,7 @@ void Sensors::gpsUbloxInit()
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
 
-    LOG_INFO(log, "Ublox GPS Setup done!\n");
+    LOG_INFO(log, "Ublox GPS Setup done!");
 }
 
 void Sensors::internalAdcCallback()
@@ -458,7 +458,7 @@ void Sensors::hilBarometerInit()
 
     sensors_map.emplace(std::make_pair(hil_baro, info_baro));
 
-    LOG_INFO(log, "HIL barometer setup done! \n");
+    LOG_INFO(log, "HIL barometer setup done!");
 }
 void Sensors::hilImuInit()
 {
@@ -471,7 +471,7 @@ void Sensors::hilImuInit()
 
     sensors_map.emplace(std::make_pair(hil_imu, info_imu));
 
-    LOG_INFO(log, "HIL IMU setup done! \n");
+    LOG_INFO(log, "HIL IMU setup done!");
 }
 
 void Sensors::hilGpsInit()
@@ -485,23 +485,13 @@ void Sensors::hilGpsInit()
 
     sensors_map.emplace(std::make_pair(hil_gps, info_gps));
 
-    LOG_INFO(log, "HIL GPS setup done! \n");
+    LOG_INFO(log, "HIL GPS setup done!");
 }
 #endif
 
 void Sensors::pressDigiCallback()
 {
-    // avoid logging all the samples
-    // since half of them are used for temperature only
-    if (press_digi_count == 2)
-    {
-        LoggerService::getInstance()->log(press_digital->getLastSample());
-        press_digi_count = 0;
-    }
-    else
-    {
-        press_digi_count++;
-    }
+    LoggerService::getInstance()->log(press_digital->getLastSample());
 }
 
 void Sensors::ADS1118Callback()
@@ -554,7 +544,7 @@ void Sensors::imuBMXCallback()
     // if (downsample_ctr++ % 20 == 0)
     // {
     //     auto sample = fifo.at(0);
-    //     LOG_DEBUG_ASYNC(log.getChild("bmx160"),
+    //     LOG_INFO(log.getChild("bmx160"),
     //                     "acc xyz: {:+.3f},{:+.3f},{:+.3f} gyro xyz: "
     //                     "{:+.3f},{:+.3f},{:+.3f}",
     //                     sample.accel_x, sample.accel_y, sample.accel_z,
@@ -578,7 +568,7 @@ void Sensors::magLISCallback()
     // if (downsample_ctr++ % 20 == 0)
     // {
     //     auto sample = mag_lis3mdl->getLastSample();
-    //     LOG_DEBUG_ASYNC(log.getChild("lis3mdl"),
+    //     LOG_INFO(log.getChild("lis3mdl"),
     //                     "mag xyzt: {:+.3f},{:+.3f},{:+.3f},{:+.3f}",
     //                     sample.mag_x, sample.mag_y, sample.mag_z,
     //                     sample.temp);
@@ -610,31 +600,31 @@ void Sensors::updateSensorsStatus()
     SensorInfo info;
 
     info = sensor_manager->getSensorInfo(imu_bmx160);
-    if (!info.initialized)
+    if (!info.is_initialized)
     {
         status.bmx160 = 0;
     }
 
     info = sensor_manager->getSensorInfo(mag_lis3mdl);
-    if (!info.initialized)
+    if (!info.is_initialized)
     {
         status.lis3mdl = 0;
     }
 
     info = sensor_manager->getSensorInfo(gps_ublox);
-    if (!info.initialized)
+    if (!info.is_initialized)
     {
         status.gps = 0;
     }
 
     info = sensor_manager->getSensorInfo(internal_adc);
-    if (!info.initialized)
+    if (!info.is_initialized)
     {
         status.internal_adc = 0;
     }
 
     info = sensor_manager->getSensorInfo(adc_ads1118);
-    if (!info.initialized)
+    if (!info.is_initialized)
     {
         status.ads1118 = 0;
     }

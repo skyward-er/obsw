@@ -234,7 +234,7 @@ void NASController<IMU, Press, GPS>::finalizeCalibration()
         logger.log(nas.getTriadResult());
         logData();
 
-        LOG_INFO(log, "Finalized calibration and TRIAD \n");
+        LOG_INFO(log, "Finalized calibration and TRIAD");
 
         sEventBroker->post({EV_NAS_READY}, TOPIC_NAS);
     }
@@ -247,13 +247,13 @@ void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state idle\n");
+            LOG_DEBUG(log, "Entering state idle");
             logStatus(NASState::IDLE);
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state idle\n");
+            LOG_DEBUG(log, "Exiting state idle");
             break;
         }
         case EV_CALIBRATE_NAS:
@@ -275,7 +275,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state calibrating\n");
+            LOG_DEBUG(log, "Entering state calibrating");
             logStatus(NASState::CALIBRATING);
 
             {
@@ -288,7 +288,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state calibrating\n");
+            LOG_DEBUG(log, "Exiting state calibrating");
             break;
         }
         case EV_CALIBRATE_NAS:
@@ -315,13 +315,13 @@ void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state ready\n");
+            LOG_DEBUG(log, "Entering state ready");
             logStatus(NASState::READY);
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state ready\n");
+            LOG_DEBUG(log, "Exiting state ready");
             break;
         }
         case EV_LIFTOFF:
@@ -348,13 +348,13 @@ void NASController<IMU, Press, GPS>::state_active(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state active\n");
+            LOG_DEBUG(log, "Entering state active");
             logStatus(NASState::ACTIVE);
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state active\n");
+            LOG_DEBUG(log, "Exiting state active");
             break;
         }
         case EV_LANDED:
@@ -376,13 +376,13 @@ void NASController<IMU, Press, GPS>::state_end(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state end\n");
+            LOG_DEBUG(log, "Entering state end");
             logStatus(NASState::END);
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state end\n");
+            LOG_DEBUG(log, "Exiting state end");
             break;
         }
 

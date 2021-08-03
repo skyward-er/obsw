@@ -88,7 +88,7 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 #endif
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
-    LOG_INFO(log, "Launch pin detached! \n");
+    LOG_INFO(log, "Launch pin detached!");
 
     status_pin_launch.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_launch);
@@ -100,7 +100,7 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
     UNUSED(n);
     sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
-    LOG_INFO(log, "Nosecone detached! \n");
+    LOG_INFO(log, "Nosecone detached!");
 
     status_pin_nosecone.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_nosecone);
@@ -111,7 +111,7 @@ void PinHandler::onDPLServoPinTransition(unsigned int p, unsigned char n)
     UNUSED(p);
     UNUSED(n);
 
-    LOG_INFO(log, "Deployment servo actuated! \n");
+    LOG_INFO(log, "Deployment servo actuated!");
 
     // do not post any event, just log the timestamp
     status_pin_dpl_servo.last_detection_time = TimestampTimer::getTimestamp();
@@ -129,7 +129,7 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     status_pin_launch.num_state_changes += 1;
 
     LOG_INFO(log, "Launch pin state change at time {}: new "
-        "state = {} \n",
+        "state = {}",
         status_pin_launch.last_state_change, status_pin_launch.state);
 
     logger->log(status_pin_launch);
@@ -144,8 +144,7 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
-    LOG_INFO(log, "Nosecone pin state change at time {}: new state = {} "
-        "\n",
+    LOG_INFO(log, "Nosecone pin state change at time {}: new state = {}",
         status_pin_nosecone.last_state_change, status_pin_nosecone.state);
 
     logger->log(status_pin_nosecone);
@@ -163,7 +162,7 @@ void PinHandler::onDPLServoPinStateChange(unsigned int p, unsigned char n,
 
     LOG_INFO(log, "Deployment servo pin state change at time {}: "
         "new "
-        "state = {} \n",
+        "state = {}",
         status_pin_dpl_servo.last_state_change, status_pin_dpl_servo.state);
 
     logger->log(status_pin_dpl_servo);

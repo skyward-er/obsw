@@ -381,7 +381,6 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
         }
         default:
         {
-            LOG_INFO(log, "Update Baro: Unexpected state value ");
             break;
         }
     }
@@ -452,7 +451,7 @@ void ADAController<Press, GPS>::finalizeCalibration()
         // If samples are enough and dpl altitude has been set init ada
         ada = ADA{calibrator.getReferenceValues()};
 
-        LOG_INFO(log, "Finalized calibration\n");
+        LOG_INFO(log, "Finalized calibration");
 
         // ADA READY!
         sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
@@ -474,13 +473,13 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state idle");
+            LOG_DEBUG(log, "Entering state idle");
             logStatus(ADAState::IDLE);
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state idle");
+            LOG_DEBUG(log, "Exiting state idle");
             break;
         }
         case EV_CALIBRATE_ADA:
@@ -515,12 +514,12 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
                 calibrator.resetBaro();
             }
             logStatus(ADAState::CALIBRATING);
-            LOG_INFO(log, "Entering state calibrating");
+            LOG_DEBUG(log, "Entering state calibrating");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state calibrating");
+            LOG_DEBUG(log, "Exiting state calibrating");
             break;
         }
         case EV_ADA_READY:
@@ -555,12 +554,12 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::READY);
-            LOG_INFO(log, "Entering state ready");
+            LOG_DEBUG(log, "Entering state ready");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state ready");
+            LOG_DEBUG(log, "Exiting state ready");
             break;
         }
         case EV_LIFTOFF:
@@ -599,13 +598,13 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
                     {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
-            LOG_INFO(log, "Entering state shadowMode");
+            LOG_DEBUG(log, "Entering state shadowMode");
             break;
         }
         case EV_EXIT:
         {
             sEventBroker->removeDelayed(shadow_delayed_event_id);
-            LOG_INFO(log, "Exiting state shadowMode");
+            LOG_DEBUG(log, "Exiting state shadowMode");
             break;
         }
         case EV_SHADOW_MODE_TIMEOUT:
@@ -637,12 +636,12 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::ACTIVE);
-            LOG_INFO(log, "Entering state active");
+            LOG_DEBUG(log, "Entering state active");
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state active");
+            LOG_DEBUG(log, "Exiting state active");
             break;
         }
         case EV_ADA_APOGEE_DETECTED:
@@ -668,13 +667,13 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
                     {EV_TIMEOUT_PRESS_STABILIZATION}, TOPIC_ADA);
             logStatus(ADAState::PRESSURE_STABILIZATION);
-            LOG_INFO(log, "Entering state pressureStabilization");
+            LOG_DEBUG(log, "Entering state pressureStabilization");
             break;
         }
         case EV_EXIT:
         {
             sEventBroker->removeDelayed(pressure_delayed_event_id);
-            LOG_INFO(log, "Exiting state pressureStabilization");
+            LOG_DEBUG(log, "Exiting state pressureStabilization");
             break;
         }
         case EV_TIMEOUT_PRESS_STABILIZATION:
@@ -706,13 +705,13 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ADAState::DROGUE_DESCENT);
-            LOG_INFO(log, "Entering state drogueDescent");
+            LOG_DEBUG(log, "Entering state drogueDescent");
             n_samples_deployment_detected = 0;
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state drogueDescent");
+            LOG_DEBUG(log, "Exiting state drogueDescent");
             break;
         }
         case EV_ADA_DPL_ALT_DETECTED:
@@ -743,13 +742,13 @@ void ADAController<Press, GPS>::state_end(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(log, "Entering state end");
+            LOG_DEBUG(log, "Entering state end");
             logStatus(ADAState::END);
             break;
         }
         case EV_EXIT:
         {
-            LOG_INFO(log, "Exiting state end");
+            LOG_DEBUG(log, "Exiting state end");
             break;
         }
         default:

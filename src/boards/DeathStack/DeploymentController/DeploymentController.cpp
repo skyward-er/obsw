@@ -93,35 +93,35 @@ void DeploymentController::state_idle(const Event& ev)
         {
             logStatus(DeploymentControllerState::IDLE);
 
-            LOG_DEBUG(log, "Entering state idle\n");
+            LOG_DEBUG(log, "Entering state idle");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state idle\n");
+            LOG_DEBUG(log, "Exiting state idle");
             break;
         }
         case EV_RESET_SERVO:
         {
-            LOG_DEBUG(log, "Reset servo \n");
+            LOG_DEBUG(log, "Reset servo ");
             ejection_servo->reset();
             break;
         }
         case EV_WIGGLE_SERVO:
         {
-            LOG_DEBUG(log, "Wiggle servo \n");
+            LOG_DEBUG(log, "Wiggle servo ");
             ejection_servo->selfTest();
             break;
         }
         case EV_NC_OPEN:
         {
-            LOG_DEBUG(log, "Nosecone open event \n");
+            LOG_DEBUG(log, "Nosecone open event ");
             transition(&DeploymentController::state_noseconeEjection);
             break;
         }
         case EV_CUT_DROGUE:
         {
-            LOG_DEBUG(log, "Cut drogue event \n");
+            LOG_DEBUG(log, "Cut drogue event ");
             transition(&DeploymentController::state_cuttingPrimary);
             break;
         }
@@ -148,7 +148,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state nosecone_ejection\n");
+            LOG_DEBUG(log, "Entering state nosecone_ejection");
 
             ejection_servo->set(DPL_SERVO_EJECT_POS);
 
@@ -160,19 +160,19 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state nosecone_ejection\n");
+            LOG_DEBUG(log, "Exiting state nosecone_ejection");
             break;
         }
         case EV_NC_DETACHED:
         {
-            LOG_DEBUG(log, "Nosecone detached event \n");
+            LOG_DEBUG(log, "Nosecone detached event ");
             sEventBroker->removeDelayed(ev_nc_open_timeout_id);
             transition(&DeploymentController::state_idle);
             break;
         }
         case EV_NC_OPEN_TIMEOUT:
         {
-            LOG_DEBUG(log, "Nosecone opening timeout \n");
+            LOG_DEBUG(log, "Nosecone opening timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -189,7 +189,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state cutting_primary\n");
+            LOG_DEBUG(log, "Entering state cutting_primary");
 
             primaryCutter->enable();
 
@@ -202,7 +202,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state cutting_primary\n");
+            LOG_DEBUG(log, "Exiting state cutting_primary");
 
             primaryCutter->disable();
 
@@ -210,7 +210,7 @@ void DeploymentController::state_cuttingPrimary(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            LOG_DEBUG(log, "Primary cutter timeout \n");
+            LOG_DEBUG(log, "Primary cutter timeout ");
             transition(&DeploymentController::state_cuttingBackup);
             break;
         }
@@ -227,7 +227,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state cutting_backup\n");
+            LOG_DEBUG(log, "Entering state cutting_backup");
 
             backupCutter->enable();
 
@@ -240,7 +240,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state cutting_backup\n");
+            LOG_DEBUG(log, "Exiting state cutting_backup");
 
             backupCutter->disable();
 
@@ -248,7 +248,7 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            LOG_DEBUG(log, "Backup cutter timeout \n");
+            LOG_DEBUG(log, "Backup cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -265,7 +265,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state test_cutting_primary\n");
+            LOG_DEBUG(log, "Entering state test_cutting_primary");
 
             primaryCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
 
@@ -278,7 +278,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state test_cutting_primary\n");
+            LOG_DEBUG(log, "Exiting state test_cutting_primary");
 
             primaryCutter->disable();
 
@@ -288,7 +288,7 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
         }
         case EV_CUTTING_TIMEOUT:
         {
-            LOG_DEBUG(log, "Test primary cutter timeout \n");
+            LOG_DEBUG(log, "Test primary cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -313,19 +313,19 @@ void DeploymentController::state_testCuttingBackup(const Event& ev)
 
             logStatus(DeploymentControllerState::TEST_CUTTING_BACKUP);
 
-            LOG_DEBUG(log, "Entering state test_cutting_backup\n");
+            LOG_DEBUG(log, "Entering state test_cutting_backup");
             break;
         }
         case EV_EXIT:
         {
             backupCutter->disable();
 
-            LOG_DEBUG(log, "Exiting state test_cutting_backup\n");
+            LOG_DEBUG(log, "Exiting state test_cutting_backup");
             break;
         }
         case EV_CUTTING_TIMEOUT:
         {
-            LOG_DEBUG(log, "Test backup cutter timeout \n");
+            LOG_DEBUG(log, "Test backup cutter timeout ");
             transition(&DeploymentController::state_idle);
             break;
         }

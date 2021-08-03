@@ -151,8 +151,6 @@ private:
 
     PrintLogger log = Logging::getLogger("sensors");
 
-    uint8_t press_digi_count = 0;
-
     SensorsStatus status;
 };
 

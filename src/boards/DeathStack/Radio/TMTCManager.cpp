@@ -42,7 +42,7 @@ TMTCManager::TMTCManager()
     sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker->subscribe(this, TOPIC_TMTC);
 
-    LOG_DEBUG(log, "Created TMTCManager\n");
+    LOG_DEBUG(log, "Created TMTCManager");
 }
 
 TMTCManager::~TMTCManager() { sEventBroker->unsubscribe(this); }
@@ -85,7 +85,7 @@ void TMTCManager::stateGroundTM(const Event& ev)
                 sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
                     Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateGroundTM\n");
+            LOG_DEBUG(log, "Entering stateGroundTM");
 
             // log stack usage
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -98,7 +98,7 @@ void TMTCManager::stateGroundTM(const Event& ev)
             sEventBroker->removeDelayed(periodicLrEvId);
             sEventBroker->removeDelayed(periodicSensEvId);
 
-            LOG_DEBUG(log, "Exiting stateGroundTM\n");
+            LOG_DEBUG(log, "Exiting stateGroundTM");
             break;
         }
         case EV_SEND_HR_TM:
@@ -113,7 +113,7 @@ void TMTCManager::stateGroundTM(const Event& ev)
         }
         case EV_SEND_SENS_TM:
         {
-            // LOG_DEBUG(log, "Sending SENS_TM\n");
+            // LOG_DEBUG(log, "Sending SENS_TM");
             periodicSensEvId =
                 sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
                     Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
@@ -155,7 +155,7 @@ void TMTCManager::stateSensorTM(const Event& ev)
             periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
                 Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateSensorTM\n");
+            LOG_DEBUG(log, "Entering stateSensorTM");
 
             // log stack usage
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -166,7 +166,7 @@ void TMTCManager::stateSensorTM(const Event& ev)
             // remove periodic events
             sEventBroker->removeDelayed(periodicSensEvId);
 
-            LOG_DEBUG(log, "Exiting stateSensorTM\n");
+            LOG_DEBUG(log, "Exiting stateSensorTM");
             break;
         }
         case EV_SEND_SENS_TM:
@@ -207,7 +207,7 @@ void TMTCManager::stateFlightTM(const Event& ev)
             periodicHrEvId = sEventBroker->postDelayed<HR_TM_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateFlightTM\n");
+            LOG_DEBUG(log, "Entering stateFlightTM");
 
             // log stack usage
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -220,7 +220,7 @@ void TMTCManager::stateFlightTM(const Event& ev)
             sEventBroker->removeDelayed(periodicLrEvId);
             sEventBroker->removeDelayed(periodicHrEvId);
 
-            LOG_DEBUG(log, "Exiting stateFlightTM\n");
+            LOG_DEBUG(log, "Exiting stateFlightTM");
             break;
         }
         case EV_SEND_HR_TM:
@@ -271,7 +271,7 @@ void TMTCManager::stateSerialDebugTM(const Event& ev)
             periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
                 Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateSerialDebugTM\n");
+            LOG_DEBUG(log, "Entering stateSerialDebugTM");
 
             // log stack usage
             StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -282,7 +282,7 @@ void TMTCManager::stateSerialDebugTM(const Event& ev)
             // remove periodic events
             sEventBroker->removeDelayed(periodicHrEvId);
 
-            LOG_DEBUG(log, "Exiting stateSerialDebugTM\n");
+            LOG_DEBUG(log, "Exiting stateSerialDebugTM");
             break;
         }
         case EV_SEND_HR_TM_OVER_SERIAL:
@@ -316,7 +316,7 @@ void TMTCManager::stateSerialDebugTM(const Event& ev)
 //         sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(
 //         //         Event{EV_SEND_TUNNEL_TM}, TOPIC_TMTC);
 
-//         //     LOG_DEBUG(log, "Entering stateWindTunnelTM\n");
+//         //     LOG_DEBUG(log, "Entering stateWindTunnelTM");
 
 //         //     // log stack usage
 //         //     StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
@@ -330,13 +330,13 @@ void TMTCManager::stateSerialDebugTM(const Event& ev)
 //         //     sEventBroker->removeDelayed(periodicHrEvId);
 //         //     sEventBroker->removeDelayed(periodicTunnelEvId);
 
-//         //     LOG_DEBUG(log, "Exiting stateWindTunnelTM\n");
+//         //     LOG_DEBUG(log, "Exiting stateWindTunnelTM");
 //         //     break;
 //         // }
 
 //         // case EV_SEND_TUNNEL_TM:
 //         // {
-//         //     // LOG_DEBUG(log, "EV_SEND stateWindTunnelTM\n");
+//         //     // LOG_DEBUG(log, "EV_SEND stateWindTunnelTM");
 //         //     // repost periodic event
 //         //     periodicTunnelEvId =
 //         sEventBroker->postDelayed<TUNNEL_TM_TIMEOUT>(

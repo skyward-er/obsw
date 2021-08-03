@@ -170,7 +170,7 @@ bool NAS<IMU, Press, GPS>::init()
     LOG_DEBUG(log, "Init state vector: \n px: {:.2f} \n py: {:.2f} \n pz: {:.2f} \n vx: "
         "{:.2f} \n "
         "vy: {:.2f} \n vz: {:.2f} \n roll: {:.2f} "
-        "\n pitch: {:.2f} \n yaw: {:.2f} \n\n",
+        "\n pitch: {:.2f} \n yaw: {:.2f}",
         x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2));
 
 #endif
@@ -270,7 +270,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     if (counter == 50)
     {
         //TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
-        LOG_DEBUG(log, "z : {:.2f} - vz : {:.2f} - vMod : {:.2f} \n", nas_data.z,
+        LOG_DEBUG(log, "z : {:.2f} - vz : {:.2f} - vMod : {:.2f}", nas_data.z,
              nas_data.vz, nas_data.vMod);
 
         counter = 0;
@@ -281,7 +281,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
         LOG_DEBUG(log, 
             "State vector: \n px: {:.2f} \n py: {:.2f} \n pz: {:.2f} \n vx: {:.2f} \n "
             "vy: {:.2f} \n vz: {:.2f} \n roll: {:.2f} \n pitch: {:.2f} \n yaw: {:.2f} \n "
-            "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 : % .2f \n\n ",
+            "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 : {:.2f} ",
             x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2), x(6), x(7),
             x(8), x(9));*/
     }
@@ -344,12 +344,12 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
     x(7)       = q(1);
     x(8)       = q(2);
     x(9)       = q(3);
-    LOG_INFO(log, "Initial orientation set to : ({:.2f}, {:.2f}, {:.2f}) \n", roll, pitch,
+    LOG_INFO(log, "Initial orientation set to : ({:.2f}, {:.2f}, {:.2f})", roll, pitch,
           yaw);
     LOG_DEBUG(log, 
             "State vector: \n px: {:.2f} \n py: {:.2f} \n pz: {:.2f} \n vx: {:.2f} \n "
             "vy: {:.2f} \n vz: {:.2f} \n roll: {:.2f} \n pitch: {:.2f} \n yaw: {:.2f} \n "
-            "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 : % .2f \n\n ",
+            "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 : {:.2f}",
             x(0), x(1), x(2), x(3), x(4), x(5), roll, pitch, yaw, x(6), x(7),
             x(8), x(9));
 }
