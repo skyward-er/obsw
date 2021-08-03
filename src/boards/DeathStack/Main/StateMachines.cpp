@@ -23,7 +23,6 @@ StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,
     nas_controller = new NASControllerType(imu, press, gps);
     arb_controller = new AeroBrakesControllerType(nas_controller->getNAS());
     fmm            = new FlightModeManager();
-    flight_stats   = new FlightStatsRecorder();
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL::getInstance()->setNAS(&nas_controller->getNAS());
@@ -39,14 +38,12 @@ StateMachines::~StateMachines()
     delete nas_controller;
     delete arb_controller;
     delete fmm;
-    delete flight_stats;
 }
 
 bool StateMachines::start()
 {
     return fmm->start() && dpl_controller->start() && ada_controller->start() &&
-           nas_controller->start() && arb_controller->start() &&
-           flight_stats->start();
+           nas_controller->start() && arb_controller->start();
 }
 
 void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
@@ -65,13 +62,13 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
     // add lambda to log scheduler tasks statistics
     scheduler->add(
         [&]() {
-            std::vector<TaskStatResult> scheduler_stats =
+            /*std::vector<TaskStatResult> scheduler_stats =
                 scheduler->getTaskStats();
 
             for (TaskStatResult stat : scheduler_stats)
             {
                 logger.log(stat);
-            }
+            }*/
 
             StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
         },

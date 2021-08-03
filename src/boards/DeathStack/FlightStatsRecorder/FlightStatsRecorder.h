@@ -24,12 +24,23 @@
 #pragma once
 
 #include <events/FSM.h>
-
-#include "Radio/TmRepository.h"
+#include <diagnostic/PrintLogger.h>
 
 #include "ADA/ADAData.h"
 #include "configs/FlightStatsConfig.h"
 #include "FlightStatsData.h"
+
+#include "drivers/gps/ublox/UbloxGPSData.h"
+#include "sensors/BMX160/BMX160Data.h"
+#include "sensors/MS580301BA07/MS580301BA07Data.h"
+#include "sensors/analog/current/CurrentSensorData.h"
+#include "sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h"
+#include "sensors/analog/pressure/honeywell/SSCDANN030PAAData.h"
+#include "Main/SensorsData.h"
+
+#ifdef HARDWARE_IN_THE_LOOP
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#endif
 
 namespace DeathStackBoard
 {

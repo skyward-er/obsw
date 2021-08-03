@@ -51,6 +51,8 @@
 #include "System/SystemData.h"
 #include "scheduler/TaskSchedulerData.h"
 
+#include "FlightStatsRecorder/FlightStatsRecorder.h"
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
 #endif
@@ -131,6 +133,8 @@ private:
     } tm_repository;
 
     uint8_t curHrIndex = 0;
+
+    FlightStatsRecorder stats_rec;
 
     PrintLogger log = Logging::getLogger("deathstack.tmrepo");
 };

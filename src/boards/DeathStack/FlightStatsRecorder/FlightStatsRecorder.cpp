@@ -21,9 +21,9 @@
  * THE SOFTWARE.
  */
 
-#include "FlightStatsRecorder.h"
-
 #include <cmath>
+
+#include "FlightStatsRecorder.h"
 
 #include "LoggerService/LoggerService.h"
 #include "System/StackLogger.h"

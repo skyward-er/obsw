@@ -301,7 +301,7 @@ void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
         tm_repository.adc_tm.csense2       = t.current;
     }
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -341,7 +341,7 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
     tm_repository.hr_tm.pressure_digi = t.press;
     tm_repository.hr_tm.temperature   = t.temp;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -351,7 +351,7 @@ void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
     tm_repository.sensors_tm.static_press = t.press;
     tm_repository.adc_tm.static_pressure  = t.press;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -361,7 +361,7 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
     tm_repository.sensors_tm.pitot_press        = t.press;
     tm_repository.adc_tm.pitot_pressure         = t.press;
 
-    // DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    // stats_rec.update(t);
 }
 
 template <>
@@ -369,7 +369,7 @@ void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t)
 {
     tm_repository.hr_tm.airspeed_pitot = t.airspeed;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -380,7 +380,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
     tm_repository.hr_tm.pressure_dpl   = t.press;
     tm_repository.adc_tm.dpl_pressure  = t.press;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -417,7 +417,7 @@ void TmRepository::update<BMX160WithCorrectionData>(
     tm_repository.hr_tm.mag_y  = t.mag_y;
     tm_repository.hr_tm.mag_z  = t.mag_z;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -466,7 +466,7 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
     // TEST TM
     tm_repository.test_tm.gps_nsats = t.num_satellites;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -728,7 +728,7 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
     tm_repository.hr_tm.pressure_ada = t.x0;
     // tm_repository.hr_tm.vert_accel = t.x2;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 // /* ADA kalman altitude values */
@@ -741,7 +741,7 @@ void TmRepository::update<ADAData>(const ADAData& t)
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
     tm_repository.hr_tm.vert_speed   = t.vert_speed;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -954,7 +954,7 @@ void TmRepository::update<HILImuData>(const HILImuData& t)
     tm_repository.hr_tm.mag_y = t.mag_y;
     tm_repository.hr_tm.mag_z = t.mag_z;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -965,7 +965,7 @@ void TmRepository::update<HILBaroData>(const HILBaroData& t)
 
     tm_repository.hr_tm.pressure_digi = t.press;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 
 template <>
@@ -992,7 +992,7 @@ void TmRepository::update<HILGpsData>(const HILGpsData& t)
     // TEST TM
     tm_repository.test_tm.gps_nsats = t.num_satellites;
 
-    DeathStack::getInstance()->state_machines->flight_stats->update(t);
+    stats_rec.update(t);
 }
 #endif
 

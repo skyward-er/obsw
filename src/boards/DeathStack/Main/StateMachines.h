@@ -39,7 +39,6 @@ namespace DeathStackBoard
 {
 
 class FlightModeManager;
-class FlightStatsRecorder;
 class DeploymentController;
 
 template <typename Press, typename GPS>
@@ -84,7 +83,6 @@ public:
     ADAControllerType* ada_controller;
     NASControllerType* nas_controller;
     AeroBrakesControllerType* arb_controller;
-    FlightStatsRecorder* flight_stats;
 
     StateMachines(IMUType& imu, PressType& press, GPSType& gps,
                   TaskScheduler* scheduler);
