@@ -163,7 +163,7 @@ private:
         0; /**<  Number of consecutive samples for abk disable */
 
     LoggerService& logger = *(LoggerService::getInstance());  // Logger
-    PrintLogger log = Logging::getLogger("deathstack.fms.ada");
+    PrintLogger log       = Logging::getLogger("deathstack.fms.ada");
 };
 
 /* --- LIFE CYCLE --- */
@@ -188,7 +188,7 @@ ADAController<Press, GPS>::~ADAController()
 /* --- SENSOR UPDATE METHODS --- */
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::update()
-{
+{   
     // if new gps data available, update GPS, regardless of the current state
     GPS gps_data = gps.getLastSample();
     if (gps_data.gps_timestamp > last_gps_timestamp)
@@ -247,13 +247,9 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // while we are on the ramp
             ADAData d;
             d.timestamp = TimestampTimer::getTimestamp();
-
             d.msl_altitude = ada.pressureToAltitude(pressure);
+            d.agl_altitude = ada.altitudeMSLtoAGL(d.msl_altitude);
             d.vert_speed   = 0;
-
-            ADA::AltitudeDPL ad   = ada.altitudeMSLtoDPL(d.msl_altitude);
-            d.dpl_altitude        = ad.altitude;
-            d.is_dpl_altitude_agl = ad.is_agl;
 
             logger.log(d);
             break;
@@ -308,7 +304,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
                 {
                     // Active state send notifications for disabling aerobrakes
-                    sEventBroker->post({EV_ADA_DISABLE_ABK}, TOPIC_FLIGHT_EVENTS);
+                    sEventBroker->post({EV_ADA_DISABLE_ABK},
+                                       TOPIC_FLIGHT_EVENTS);
                     status.disable_aerobrakes = true;
                 }
             }
@@ -327,7 +324,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // altitude reached, log it
             ada.updateBaro(pressure);
 
-            if (ada.getAltitudeForDeployment().altitude <=
+            if (ada.getAltitudeForDeployment() <=
                     deployment_altitude &&
                 ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
             {
@@ -351,7 +348,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // Descent state: send notifications for target altitude reached
             ada.updateBaro(pressure);
 
-            if (ada.getAltitudeForDeployment().altitude <=
+            if (ada.getAltitudeForDeployment() <=
                     deployment_altitude &&
                 ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
             {
@@ -433,7 +430,7 @@ void ADAController<Press, GPS>::setDeploymentAltitude(float dpl_alt)
         }
         logger.log(TargetDeploymentAltitude{deployment_altitude});
 
-        LOG_INFO(log, "Deployment altitude set to {:.3f} m", dpl_alt);
+        LOG_INFO(log, "Deployment altitude set to {:.3f} m", deployment_altitude);
 
         finalizeCalibration();
     }
@@ -511,8 +508,9 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
         {
             {
                 Lock<FastMutex> l(calibrator_mutex);
-                calibrator.resetBaro();
+                calibrator.reset();
             }
+
             logStatus(ADAState::CALIBRATING);
             LOG_DEBUG(log, "Entering state calibrating");
             break;

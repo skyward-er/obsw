@@ -36,6 +36,8 @@
 #define private public
 #define protected public
 
+#include <DeathStack.h>
+
 #include <ADA/ADA.h>
 #include <ADA/ADAController.h>
 
@@ -51,7 +53,7 @@
 using namespace DeathStackBoard;
 using namespace ADAConfigs;
 
-constexpr float NOISE_STD_DEV                = 5;  // Noise varaince
+constexpr float NOISE_STD_DEV                = 5;  // Noise variance
 constexpr float LSB                          = 28;
 constexpr unsigned int SHADOW_MODE_END_INDEX = 30;
 constexpr unsigned int APOGEE_SAMPLE         = 382;
@@ -146,7 +148,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     TimestampTimer::enableTimestampTimer();
 
     ada_controller = new ADACtrl(mock_baro, mock_gps);
-    TRACE("ada init : %d \n", ada_controller->start());
+    TRACE("ADA init : %d \n", ada_controller->start());
 
     // Start event broker and ada_controller
     sEventBroker->start();
@@ -168,8 +170,6 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
         mock_baro.sample();
         Thread::sleep(10);
         ada_controller->update();
-
-        // TRACE("%d \n", i);
     }
 
     float mean = ada_controller->calibrator.getReferenceValues().ref_pressure;
@@ -177,7 +177,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
         FAIL("Calibration value");
     else
         SUCCEED();
-
+        
     // Should still be in calibrating
     Thread::sleep(100);
     REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));
@@ -197,7 +197,6 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
     mock_baro.sample();
     Thread::sleep(10);
     ada_controller->update();
-
     // Should still be in calibrating
     Thread::sleep(100);
     REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));

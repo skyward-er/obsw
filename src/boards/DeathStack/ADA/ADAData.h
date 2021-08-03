@@ -114,19 +114,18 @@ struct ADAData
 {
     uint64_t timestamp;
     float msl_altitude;
-    float dpl_altitude;
-    bool is_dpl_altitude_agl;
+    float agl_altitude;
     float vert_speed;
 
     static std::string header()
     {
-        return "timestamp,msl_altitude,dpl_altitude,is_agl,vert_speed\n";
+        return "timestamp,msl_altitude,agl_altitude,vert_speed\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << msl_altitude << "," << dpl_altitude << ","
-           << (int)is_dpl_altitude_agl << "," << vert_speed << "\n";
+        os << timestamp << "," << msl_altitude << "," << agl_altitude << ","
+           << vert_speed << "\n";
     }
 };
 

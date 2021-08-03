@@ -88,9 +88,9 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateGroundTM")
                                   &TMTCManager::stateFlightTM));
     }
 
-    SECTION("EV_TC_START_SERIAL_DEBUG_TM -> stateSerialDebugTM")
+    SECTION("EV_TC_SERIAL_TM -> stateSerialDebugTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_START_SERIAL_DEBUG_TM},
+        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_SERIAL_TM},
                                   &TMTCManager::stateSerialDebugTM));
     }
 }
@@ -124,9 +124,9 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
     fsm->transition(&TMTCManager::stateSerialDebugTM);
     Thread::sleep(100);
 
-    SECTION("EV_TC_STOP_SERIAL_DEBUG_TM -> stateSerialDebugTM")
+    SECTION("EV_TC_RADIO_TM -> stateSerialDebugTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_STOP_SERIAL_DEBUG_TM},
+        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_RADIO_TM},
                                   &TMTCManager::stateGroundTM));
     }
 }

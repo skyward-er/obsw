@@ -40,7 +40,7 @@ public:
     ADAReferenceValues getReferenceValues();
     bool calibIsComplete();
     void addBaroSample(float p);  // Adds a pressure sample to the stats
-    void resetBaro();             // Resets only pressure stats
+    void reset();                 // Resets pressure stats
 
     /* --- TC ---*/
     /**
@@ -50,7 +50,7 @@ public:
     void setReferenceTemperature(float ref_temp);
 
     /**
-     * Sets the reference altitude to be used to calibrate the altimeter
+     * Sets the reference altitude (msl) to be used to calibrate the altimeter
      * @param ref_alt Reference altitude in meters above mean sea level
      */
     void setReferenceAltitude(float ref_alt);

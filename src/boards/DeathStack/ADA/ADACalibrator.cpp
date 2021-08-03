@@ -41,7 +41,7 @@ bool ADACalibrator::calibIsComplete()
            ref_alt_set && ref_temp_set;
 }
 
-void ADACalibrator::resetBaro() { pressure_stats.reset(); }
+void ADACalibrator::reset() { pressure_stats.reset(); }
 
 void ADACalibrator::setReferenceTemperature(float ref_temp)
 {

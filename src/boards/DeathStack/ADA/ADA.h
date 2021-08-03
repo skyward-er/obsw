@@ -34,10 +34,9 @@ namespace DeathStackBoard
 class ADA
 {
 public:
-    struct AltitudeDPL
+    struct AltitudeAGL
     {
         float altitude;
-        bool is_agl;
     };
 
     ADA(ADAReferenceValues ref_values);
@@ -67,7 +66,7 @@ public:
      *
      * @return Altitude in meters
      */
-    AltitudeDPL getAltitudeForDeployment() const;
+    float getAltitudeForDeployment() const;
 
     /**
      * @brief Current vertical speed in m/s, positive upwards
@@ -88,7 +87,7 @@ public:
      * deployment (see getAltitudeForDeployment())
      *
      */
-    AltitudeDPL altitudeMSLtoDPL(float altitude_msl) const;
+    float altitudeMSLtoAGL(float altitude_msl) const;
 
     ADAReferenceValues getReferenceValues() const { return ref_values; }
 
@@ -113,7 +112,7 @@ private:
 
 #ifdef DEBUG
     unsigned int counter = 0;
-    
 #endif
+
 };
 }  // namespace DeathStackBoard

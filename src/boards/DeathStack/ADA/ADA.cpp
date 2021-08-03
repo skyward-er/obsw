@@ -53,11 +53,7 @@ void ADA::updateBaro(float pressure)
     // Convert filter data to altitudes & speeds
     ada_data.timestamp    = TimestampTimer::getTimestamp();
     ada_data.msl_altitude = pressureToAltitude(filter.getState()(0, 0));
-
-    AltitudeDPL ad               = altitudeMSLtoDPL(ada_data.msl_altitude);
-    ada_data.dpl_altitude        = ad.altitude;
-    ada_data.is_dpl_altitude_agl = ad.is_agl;
-
+    ada_data.agl_altitude = altitudeMSLtoAGL(ada_data.msl_altitude);
     ada_data.vert_speed = aeroutils::verticalSpeed(
         filter.getState()(0, 0), filter.getState()(1, 0),
         ref_values.msl_pressure, ref_values.msl_temperature);
@@ -85,10 +81,7 @@ void ADA::updateGPS(float lat, float lon, bool fix)
 
 float ADA::getAltitudeMsl() const { return ada_data.msl_altitude; }
 
-ADA::AltitudeDPL ADA::getAltitudeForDeployment() const
-{
-    return AltitudeDPL{ada_data.dpl_altitude, ada_data.is_dpl_altitude_agl};
-}
+float ADA::getAltitudeForDeployment() const { return ada_data.agl_altitude; }
 
 float ADA::getVerticalSpeed() const { return ada_data.vert_speed; }
 
@@ -98,18 +91,9 @@ float ADA::pressureToAltitude(float pressure)
                                   ref_values.msl_temperature);
 }
 
-ADA::AltitudeDPL ADA::altitudeMSLtoDPL(float altitude_msl) const
+float ADA::altitudeMSLtoAGL(float altitude_msl) const
 {
-    float elev = elevationmap::getElevation(last_lat, last_lon);
-
-    if (last_fix && elev >= 0)
-    {
-        return {altitude_msl - elev, true};
-    }
-    else
-    {
-        return {altitude_msl - ref_values.ref_altitude, false};
-    }
+    return altitude_msl - ref_values.ref_altitude;
 }
 
 ADAKalmanState ADA::getKalmanState()
