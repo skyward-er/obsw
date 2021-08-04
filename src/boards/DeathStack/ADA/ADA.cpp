@@ -27,7 +27,6 @@
 #include <events/Events.h>
 #include <utils/aero/AeroUtils.h>
 
-#include "DeploymentUtils/elevation_map.h"
 #include "TimestampTimer.h"
 #include "diagnostic/CpuMeter.h"
 
@@ -39,9 +38,12 @@ using namespace ADAConfigs;
 ADA::ADA(ADAReferenceValues ref_values)
     : ref_values(ref_values), filter(getKalmanConfig(ref_values.ref_pressure))
 {
-    TRACE("[ADA] Initial reference values : p_ref: %.3f, p0: %.3f, t0: %.3f\n",
-          ref_values.ref_pressure, ref_values.msl_pressure,
-          ref_values.msl_temperature);
+    TRACE(
+        "[ADA] Initial reference values : alt_ref: %.3f, p_ref: %.3f, t_ref: "
+        "%.3f, p0: %.3f, t0: %.3f\n",
+        ref_values.ref_altitude, ref_values.ref_pressure,
+        ref_values.ref_temperature, ref_values.msl_pressure,
+        ref_values.msl_temperature);
 }
 
 ADA::~ADA() {}
@@ -54,7 +56,7 @@ void ADA::updateBaro(float pressure)
     ada_data.timestamp    = TimestampTimer::getTimestamp();
     ada_data.msl_altitude = pressureToAltitude(filter.getState()(0, 0));
     ada_data.agl_altitude = altitudeMSLtoAGL(ada_data.msl_altitude);
-    ada_data.vert_speed = aeroutils::verticalSpeed(
+    ada_data.vert_speed   = aeroutils::verticalSpeed(
         filter.getState()(0, 0), filter.getState()(1, 0),
         ref_values.msl_pressure, ref_values.msl_temperature);
 

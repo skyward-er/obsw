@@ -34,14 +34,14 @@ bool ADACalibrator::calibIsComplete()
 {
     // Calibration is complete if enough samples were collected and reference
     // altitude and temperature were set
-
-    //TRACE("ADA Calibrator : n samples = %d \n", pressure_stats.getStats().nSamples);
-    
     return pressure_stats.getStats().nSamples >= CALIBRATION_BARO_N_SAMPLES &&
            ref_alt_set && ref_temp_set;
 }
 
-void ADACalibrator::reset() { pressure_stats.reset(); }
+void ADACalibrator::reset()
+{
+    pressure_stats.reset();
+}
 
 void ADACalibrator::setReferenceTemperature(float ref_temp)
 {
