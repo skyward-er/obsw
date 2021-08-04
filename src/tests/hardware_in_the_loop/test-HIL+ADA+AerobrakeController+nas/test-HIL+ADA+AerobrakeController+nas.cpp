@@ -41,7 +41,7 @@
 #include "hardware_in_the_loop/HIL_sensors/HILNas.h"  // TODO: delete
 
 /* Aerobrakes includes */
-#include "DeathStack/AeroBrakesController/AeroBrakesController.h"
+#include "DeathStack/AirBrakesController/AirBrakesController.h"
 
 /* ADA includes */
 #include <ADA/ADAController.h>
@@ -166,7 +166,7 @@ int main()
     /*-------------- [CA] Control Algorithm --------------*/
 
     // definition of the control algorithm
-    AeroBrakesController<HILNasData> aerobrakeController(*state.nas, &servo);
+    AirBrakesController<HILNasData> aerobrakeController(*state.nas, &servo);
 
     /*-------------- Events --------------*/
 
@@ -202,7 +202,7 @@ int main()
     // adding the updating of the algorithm to the scheduler
     {
         TaskScheduler::function_t update_Aerobrake{bind(
-            &AeroBrakesController<HILNasData>::update, &aerobrakeController)};
+            &AirBrakesController<HILNasData>::update, &aerobrakeController)};
 
         scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));

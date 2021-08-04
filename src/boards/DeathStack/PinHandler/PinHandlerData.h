@@ -37,7 +37,7 @@ enum class ObservedPin : uint8_t
 };
 
 /**
- * @brief Struct represeting the status of an observed pin
+ * @brief Struct represeting the status of an observed pin.
  *
  */
 struct PinStatus

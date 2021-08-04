@@ -52,14 +52,8 @@ enum Topics : uint8_t
 };
 
 const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT_EVENTS,
-    TOPIC_FMM,
-    TOPIC_NAS,
-    TOPIC_STATS,
-    TOPIC_TMTC,
+    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL,   TOPIC_FLIGHT_EVENTS,
+    TOPIC_FMM, TOPIC_NAS, TOPIC_STATS, TOPIC_TMTC,
 };
 
 /**

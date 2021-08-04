@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/adc/ADS1118/ADS1118Data.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
@@ -32,32 +33,29 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-#include <drivers/adc/ADS1118/ADS1118Data.h>
 
 #include <fstream>
 #include <iostream>
 
 #include "ADA/ADAData.h"
-#include "AeroBrakesController/AeroBrakesData.h"
-#include "AeroBrakesController/WindData.h"
+#include "AirBrakesController/AirBrakesData.h"
+#include "AirBrakesController/WindData.h"
 #include "DeathStackStatus.h"
-#include "System/SystemData.h"
-#include "Main/SensorsData.h"
 #include "DeploymentController/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
 #include "LogStats.h"
+#include "Main/SensorsData.h"
 #include "NavigationSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
+#include "System/SystemData.h"
+#include "diagnostic/PrintLoggerData.h"
+#include "diagnostic/StackData.h"
 #include "drivers/Xbee/APIFramesLog.h"
 #include "drivers/Xbee/XbeeStatus.h"
 #include "drivers/mavlink/MavlinkStatus.h"
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
-
 #include "scheduler/TaskSchedulerData.h"
-#include "diagnostic/StackData.h"
-
-#include "diagnostic/PrintLoggerData.h"
 
 // Serialized classes
 using std::ofstream;
@@ -100,7 +98,7 @@ void registerTypes(Deserializer& ds)
     registerType<AirSpeedPitot>(ds);
 
     // Statuses
-    registerType<AeroBrakesControllerStatus>(ds);
+    registerType<AirBrakesControllerStatus>(ds);
     registerType<DeathStackStatus>(ds);
     registerType<SensorsStatus>(ds);
     registerType<FMMStatus>(ds);
@@ -134,7 +132,7 @@ void registerTypes(Deserializer& ds)
     registerType<NASData>(ds);
 
     // Aerobrakes
-    registerType<AeroBrakesData>(ds);
+    registerType<AirBrakesData>(ds);
 
     // Others
     registerType<EventData>(ds);

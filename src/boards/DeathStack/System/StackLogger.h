@@ -29,7 +29,9 @@
 namespace DeathStackBoard
 {
 
-// define thread ids to be used by the StackLogger
+/**
+ * @brief Define thread ids to be used by the StackLogger.
+ */
 enum LynxThreadIds : uint8_t
 {
     THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
@@ -43,4 +45,5 @@ enum LynxThreadIds : uint8_t
     THID_TASK_SCHEDULER,
     THID_CAN_BUS
 };
+
 }

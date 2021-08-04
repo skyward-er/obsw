@@ -15,17 +15,15 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-#include <FlightModeManager/FlightModeManager.h>
-#include <events/utils/EventSniffer.h>
-
+#include <FlightModeManager/FMMController.h>
 #include <events/Events.h>
 #include <events/Topics.h>
-
+#include <events/utils/EventSniffer.h>
 #include <inttypes.h>
 
 using namespace miosix;
@@ -33,23 +31,25 @@ using namespace DeathStackBoard;
 
 void printEvent(uint8_t event, uint8_t topic)
 {
-    TRACE("%s on %s\n", getEventString(event).c_str(), getTopicString(topic).c_str());
+    TRACE("%s on %s\n", getEventString(event).c_str(),
+          getTopicString(topic).c_str());
 }
 int main()
 {
     sEventBroker->start();
-    FlightModeManager* fmm = new FlightModeManager();
+    FMMController* fmm = new FMMController();
     fmm->start();
 
-    EventSniffer* sniffer = new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
-    UNUSED(sniffer); // The sniffer's handler will be called by evBroker
+    EventSniffer* sniffer =
+        new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
+    UNUSED(sniffer);  // The sniffer's handler will be called by evBroker
 
     printf("\nOk\n");
 
     Event ev;
     int topic;
 
-    while(true)
+    while (true)
     {
         printf("Choose an event\n");
         printf("ID:\n");

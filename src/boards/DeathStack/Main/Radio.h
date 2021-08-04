@@ -23,19 +23,19 @@
 
 #pragma once
 
+#include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
-#include "Radio/Mavlink.h"
 
 namespace DeathStackBoard
 {
 
-class TMTCManager;
+class TMTCController;
 class TmRepository;
 
 class Radio
 {
 public:
-    TMTCManager* tmtc_manager;
+    TMTCController* tmtc_manager;
     TmRepository* tm_repo;
     Xbee::Xbee* xbee;
     MavDriver* mav_driver;
@@ -44,10 +44,11 @@ public:
     ~Radio();
 
     bool start();
+
 private:
     void onXbeeFrameReceived(Xbee::APIFrame& frame);
 
     SPIBusInterface& xbee_bus;
-
 };
+
 }  // namespace DeathStackBoard

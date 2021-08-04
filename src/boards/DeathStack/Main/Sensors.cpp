@@ -21,21 +21,19 @@
  * THE SOFTWARE.
  */
 
-#include "Sensors.h"
-
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <DeathStack.h>
 #include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <TimestampTimer.h>
+#include <configs/SensorManagerConfig.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/Sensor.h>
+#include <utils/aero/AeroUtils.h>
 
 #include <functional>
 #include <utility>
-
-#include "ADA/ADAController.h"
-#include "DeathStack.h"
-#include "LoggerService/LoggerService.h"
-#include "TimestampTimer.h"
-#include "configs/SensorManagerConfig.h"
-#include "utils/aero/AeroUtils.h"
 
 using std::bind;
 using std::function;

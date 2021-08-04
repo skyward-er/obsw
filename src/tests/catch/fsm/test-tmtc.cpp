@@ -30,15 +30,15 @@
 
 #include <miosix.h>
 
-
 #include <utils/testutils/catch.hpp>
 
 #define private public
 #define protected public
 
+#include <TelemetriesTelecommands/TMTCController.h>
+
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
-#include "Radio/TMTCManager.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
@@ -50,7 +50,7 @@ public:
     TMTCFixture()
     {
         sEventBroker->start();
-        fsm = new TMTCManager();
+        fsm = new TMTCController();
         fsm->start();
     }
 
@@ -64,8 +64,7 @@ public:
     }
 
 protected:
-
-    TMTCManager* fsm;
+    TMTCController* fsm;
 };
 
 TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateGroundTM")
@@ -73,60 +72,60 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateGroundTM")
     SECTION("EV_TC_START_SENSOR_TM -> stateSensorTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_TC_START_SENSOR_TM},
-                                  &TMTCManager::stateSensorTM));
+                                  &TMTCController::stateSensorTM));
     }
 
     SECTION("EV_ARMED -> stateSensorTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_ARMED},
-                                  &TMTCManager::stateFlightTM));
+                                  &TMTCController::stateFlightTM));
     }
 
     SECTION("EV_LIFTOFF -> stateFlightTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_LIFTOFF},
-                                  &TMTCManager::stateFlightTM));
+                                  &TMTCController::stateFlightTM));
     }
 
     SECTION("EV_TC_SERIAL_TM -> stateSerialDebugTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_TC_SERIAL_TM},
-                                  &TMTCManager::stateSerialDebugTM));
+                                  &TMTCController::stateSerialDebugTM));
     }
 }
 
 TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateSensorTM")
 {
-    fsm->transition(&TMTCManager::stateSensorTM);
+    fsm->transition(&TMTCController::stateSensorTM);
     Thread::sleep(100);
 
     SECTION("EV_TC_STOP_SENSOR_TM -> stateGroundTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_TC_STOP_SENSOR_TM},
-                                  &TMTCManager::stateGroundTM));
+                                  &TMTCController::stateGroundTM));
     }
 }
 
 TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
 {
-    fsm->transition(&TMTCManager::stateFlightTM);
+    fsm->transition(&TMTCController::stateFlightTM);
     Thread::sleep(100);
 
     SECTION("EV_DISARMED -> stateGroundTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_DISARMED},
-                                  &TMTCManager::stateGroundTM));
+                                  &TMTCController::stateGroundTM));
     }
 }
 
 TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
 {
-    fsm->transition(&TMTCManager::stateSerialDebugTM);
+    fsm->transition(&TMTCController::stateSerialDebugTM);
     Thread::sleep(100);
 
     SECTION("EV_TC_RADIO_TM -> stateSerialDebugTM")
     {
         REQUIRE(testFSMTransition(*fsm, Event{EV_TC_RADIO_TM},
-                                  &TMTCManager::stateGroundTM));
+                                  &TMTCController::stateGroundTM));
     }
 }

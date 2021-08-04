@@ -37,7 +37,8 @@
 #define private public
 #define protected public
 
-#include "FlightModeManager/FlightModeManager.h"
+#include <FlightModeManager/FMMController.h>
+
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
@@ -50,7 +51,7 @@ public:
     FMMFixture()
     {
         sEventBroker->start();
-        fsm = new FlightModeManager();
+        fsm = new FMMController();
         fsm->start();
     }
 
@@ -64,7 +65,7 @@ public:
     }
 
 protected:
-    FlightModeManager* fsm;
+    FMMController* fsm;
 };
 
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
@@ -77,7 +78,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
         /*
             REQUIRE(testHSMTransition(
                 *fsm, Event{EV_TC_RESET_BOARD},
-                &FlightModeManager::state_init));  // initial state of
+                &FMMController::state_init));  // initial state of
                                                    // state_onGround
         */
     }
@@ -86,8 +87,8 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
     {
         REQUIRE(testHSMTransition(
             *fsm, Event{EV_TC_LAUNCH},
-            &FlightModeManager::state_ascending));  // initial state of
-                                                    // state_flying
+            &FMMController::state_ascending));  // initial state of
+                                                // state_flying
     }
 }
 
@@ -110,13 +111,13 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_flying")
     SECTION("EV_TC_END_MISSION -> LANDED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_END_MISSION},
-                                  &FlightModeManager::state_landed));
+                                  &FMMController::state_landed));
     }
-    
+
     SECTION("EV_TIMEOUT_END_MISSION -> LANDED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TIMEOUT_END_MISSION},
-                                  &FlightModeManager::state_landed));
+                                  &FMMController::state_landed));
     }
 }
 
@@ -125,13 +126,13 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_init")
     SECTION("EV_INIT_OK -> INIT_DONE")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_INIT_OK},
-                                  &FlightModeManager::state_initDone));
+                                  &FMMController::state_initDone));
     }
 
     SECTION("EV_INIT_ERROR -> INIT_ERROR")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_INIT_ERROR},
-                                  &FlightModeManager::state_initError));
+                                  &FMMController::state_initError));
     }
 }
 
@@ -144,7 +145,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initError")
     SECTION("EV_TC_FORCE_INIT -> INIT_DONE")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_FORCE_INIT},
-                                  &FlightModeManager::state_initDone));
+                                  &FMMController::state_initDone));
     }
 }
 
@@ -157,24 +158,25 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initDone")
     SECTION("EV_TC_TEST_MODE -> TEST_MODE")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_TEST_MODE},
-                                  &FlightModeManager::state_testMode));
+                                  &FMMController::state_testMode));
     }
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+                                  &FMMController::state_sensorsCalibration));
     }
 }
 
 /*
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_testMode")
 {
-    
+
 }
 */
 
-TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_sensorsCalibration")
+TEST_CASE_METHOD(FMMFixture,
+                 "Testing transitions from state_sensorsCalibration")
 {
     // move to state_calibrating
     fsm->postEvent(Event{EV_INIT_OK});
@@ -185,13 +187,13 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_sensorsCalibration"
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+                                  &FMMController::state_sensorsCalibration));
     }
 
     SECTION("EV_SENSORS_READY -> ALGOS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_SENSORS_READY},
-                                  &FlightModeManager::state_algosCalibration));
+                                  &FMMController::state_algosCalibration));
     }
 }
 
@@ -208,13 +210,13 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_algosCalibration")
     SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
-                                  &FlightModeManager::state_algosCalibration));
+                                  &FMMController::state_algosCalibration));
     }
 
     SECTION("EV_CALIBRATION_OK -> DISARMED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_CALIBRATION_OK},
-                                  &FlightModeManager::state_disarmed));
+                                  &FMMController::state_disarmed));
     }
 }
 
@@ -233,19 +235,19 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_disarmed")
     SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
-                                  &FlightModeManager::state_algosCalibration));
+                                  &FMMController::state_algosCalibration));
     }
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
-                                  &FlightModeManager::state_sensorsCalibration));
+                                  &FMMController::state_sensorsCalibration));
     }
 
     SECTION("EV_TC_ARM -> ARMED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_ARM},
-                                  &FlightModeManager::state_armed));
+                                  &FMMController::state_armed));
     }
 }
 
@@ -266,19 +268,19 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_armed")
     SECTION("EV_TC_DISARM -> DISARMED")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_DISARM},
-                                  &FlightModeManager::state_disarmed));
+                                  &FMMController::state_disarmed));
     }
 
     SECTION("EV_TC_LAUNCH -> ASCENDING")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_LAUNCH},
-                                  &FlightModeManager::state_ascending));
+                                  &FMMController::state_ascending));
     }
 
     SECTION("EV_UMBILICAL_DETACHED -> ASCENDING")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_UMBILICAL_DETACHED},
-                                  &FlightModeManager::state_ascending));
+                                  &FMMController::state_ascending));
     }
 }
 
@@ -301,19 +303,19 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_ascending")
     SECTION("EV_ADA_APOGEE_DETECTED -> DROGUE_DESCENT")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_APOGEE_DETECTED},
-                                  &FlightModeManager::state_drogueDescent));
+                                  &FMMController::state_drogueDescent));
     }
 
     SECTION("EV_ADA_DISABLE_ABK -> ASCENDING")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_DISABLE_ABK},
-                                  &FlightModeManager::state_ascending));
+                                  &FMMController::state_ascending));
     }
 
     SECTION("EV_TC_NC_OPEN -> DROGUE_DESCENT")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_NC_OPEN},
-                                  &FlightModeManager::state_drogueDescent));
+                                  &FMMController::state_drogueDescent));
     }
 }
 
@@ -338,12 +340,12 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_drogueDescent")
     SECTION("EV_ADA_DPL_ALT_DETECTED -> TERMINAL_DESCENT")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_DPL_ALT_DETECTED},
-                                  &FlightModeManager::state_terminalDescent));
+                                  &FMMController::state_terminalDescent));
     }
 
     SECTION("EV_TC_CUT_DROGUE -> TERMINAL_DESCENT")
     {
         REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CUT_DROGUE},
-                                  &FlightModeManager::state_terminalDescent));
+                                  &FMMController::state_terminalDescent));
     }
 }

@@ -35,11 +35,11 @@
 #define private public
 #define protected public
 
-#include "ADA/ADAController.h"
-#include "MockSensors/MockGPS.h"
-#include "MockSensors/MockPressureSensor.h"
-#include "events/Events.h"
-#include "utils/testutils/TestHelper.h"
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <events/Events.h>
+#include <mocksensors/MockGPS.h>
+#include <mocksensors/MockPressureSensor.h>
+#include <utils/testutils/TestHelper.h>
 
 using miosix::Thread;
 using namespace DeathStackBoard;

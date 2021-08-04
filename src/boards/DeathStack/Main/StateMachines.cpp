@@ -1,16 +1,36 @@
-#include "StateMachines.h"
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
-#include "ADA/ADAController.h"
-#include "AeroBrakesController/AeroBrakesController.h"
-#include "DeploymentController/DeploymentController.h"
-#include "FlightModeManager/FlightModeManager.h"
-#include "FlightStatsRecorder/FlightStatsRecorder.h"
-#include "NavigationSystem/NASController.h"
-
-#include "System/TaskID.h"
+#include <AirBrakes/AirBrakesController.h>
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <Deployment/DeploymentController.h>
+#include <FlightModeManager/FMMController.h>
+#include <FlightStatsRecorder/FSRController.h>
+#include <Main/StateMachines.h>
+#include <NavigationAttitudeSystem/NASController.h>
+#include <System/TaskID.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
+#include <hardware_in_the_loop/HIL.h>
 #endif
 
 namespace DeathStackBoard
@@ -21,8 +41,8 @@ StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,
     ada_controller = new ADAControllerType(press, gps);
     dpl_controller = new DeploymentController();
     nas_controller = new NASControllerType(imu, press, gps);
-    arb_controller = new AeroBrakesControllerType(nas_controller->getNAS());
-    fmm            = new FlightModeManager();
+    arb_controller = new AirBrakesControllerType(nas_controller->getNAS());
+    fmm            = new FMMController();
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL::getInstance()->setNAS(&nas_controller->getNAS());
@@ -56,12 +76,13 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
     scheduler->add(std::bind(&NASControllerType::update, nas_controller),
                    NAS_UPDATE_PERIOD, TASK_NAS_ID, start_time);
 
-    scheduler->add(std::bind(&AeroBrakesControllerType::update, arb_controller),
+    scheduler->add(std::bind(&AirBrakesControllerType::update, arb_controller),
                    ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
 
     // add lambda to log scheduler tasks statistics
     scheduler->add(
-        [&]() {
+        [&]()
+        {
             /*std::vector<TaskStatResult> scheduler_stats =
                 scheduler->getTaskStats();
 

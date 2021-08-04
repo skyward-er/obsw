@@ -41,7 +41,7 @@
 #include "hardware_in_the_loop/events/Topics.h"
 
 /* Aerobrakes includes */
-#include "DeathStack/AeroBrakesController/AeroBrakesControlAlgorithm.h"
+#include "DeathStack/AirBrakesController/AirBrakesControlAlgorithm.h"
 
 using namespace std;
 using namespace miosix;
@@ -154,23 +154,23 @@ int main()
     /*-------------- [CA] Control Algorithm --------------*/
 
     // definition of the control algorithm
-    AeroBrakesControllerAlgorithm<HILKalmanData> aerobrakeCA(state.kalman,
-                                                             &servo);
+    AirBrakesControllerAlgorithm<HILKalmanData> aerobrakeCA(state.kalman,
+                                                            &servo);
 
     flightPhasesManager->registerToFlightPhase(
-        AEROBRAKES, bind(&AeroBrakesControllerAlgorithm<HILKalmanData>::begin,
+        AEROBRAKES, bind(&AirBrakesControllerAlgorithm<HILKalmanData>::begin,
                          &aerobrakeCA));
 
     flightPhasesManager->registerToFlightPhase(
         APOGEE,
-        bind(&AeroBrakesControllerAlgorithm<HILKalmanData>::end, &aerobrakeCA));
+        bind(&AirBrakesControllerAlgorithm<HILKalmanData>::end, &aerobrakeCA));
 
     /*-------------- Adding tasks to scheduler --------------*/
 
     // adding the updating of the algorithm to the scheduler
     {
         TaskScheduler::function_t update_Aerobrake{
-            bind(&AeroBrakesControllerAlgorithm<HILKalmanData>::update,
+            bind(&AirBrakesControllerAlgorithm<HILKalmanData>::update,
                  &aerobrakeCA)};
 
         scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),

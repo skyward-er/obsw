@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include <map>
-
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
@@ -34,19 +32,19 @@
 #include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/SensorData.h>
+#include <sensors/SensorManager.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/current/CurrentSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 
-#include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
-
-#include "SensorsData.h"
+#include <map>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
-#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#include <hardware_in_the_loop/HIL.h>
+#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
 
 namespace DeathStackBoard
@@ -149,9 +147,9 @@ private:
 
     SensorManager::SensorMap_t sensors_map;
 
-    PrintLogger log = Logging::getLogger("sensors");
-
     SensorsStatus status;
+
+    PrintLogger log = Logging::getLogger("sensors");
 };
 
 }  // namespace DeathStackBoard

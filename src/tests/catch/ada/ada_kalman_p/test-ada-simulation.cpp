@@ -36,10 +36,9 @@
 #define private public
 #define protected public
 
+#include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
+#include <ApogeeDetectionAlgorithm/ADAController.h>
 #include <DeathStack.h>
-
-#include <ADA/ADA.h>
-#include <ADA/ADAController.h>
 
 #include <algorithm>
 #include <cmath>
@@ -177,7 +176,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
         FAIL("Calibration value");
     else
         SUCCEED();
-        
+
     // Should still be in calibrating
     Thread::sleep(100);
     REQUIRE(ada_controller->testState(&ADACtrl::state_calibrating));

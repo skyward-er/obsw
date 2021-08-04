@@ -21,16 +21,12 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
-
-#include "DeathStack.h"
-// #include <diagnostic/PrintLogger.h>
+#include <DeathStack.h>
 #include <Debug.h>
-
+#include <FlightStatsRecorder/FSRController.h>
 #include <diagnostic/CpuMeter.h>
-#include "math/Stats.h"
-
-#include "FlightStatsRecorder/FlightStatsRecorder.h"
+#include <math/Stats.h>
+#include <miosix.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;

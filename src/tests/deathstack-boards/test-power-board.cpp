@@ -29,19 +29,18 @@
  * Servo (x2): Deployment & aerobrakes
  */
 
+#include <AirBrakes/AirBrakesServo.h>
 #include <Common.h>
+#include <Deployment/DeploymentServo.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
 #include <drivers/hbridge/HBridge.h>
+#include <drivers/servo/servo.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
-
-#include "../../boards/DeathStack/AeroBrakesController/AeroBrakesServo.h"
-#include "../../boards/DeathStack/DeploymentController/DeploymentServo.h"
-#include "drivers/servo/servo.h"
 
 namespace CutterTest
 {

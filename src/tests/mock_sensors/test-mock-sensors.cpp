@@ -22,8 +22,7 @@
  */
 
 #include <Common.h>
-
-#include "MockSensors/MockSensors.h"
+#include <mocksensors/MockSensors.h>
 
 using namespace DeathStackBoard;
 
