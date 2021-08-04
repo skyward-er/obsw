@@ -118,9 +118,9 @@ bool Sensors::start()
 {
 #ifndef HARDWARE_IN_THE_LOOP
     GpioPin int_pin = miosix::sensors::bmx160::intr::getPin();
-
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
+
     gps_ublox->start();
 #endif
 
@@ -137,7 +137,14 @@ bool Sensors::start()
     return sm_start_result;
 }
 
-void calibrate() {}
+void Sensors::calibrate()
+{
+    imu_bmx160_with_correction->calibrate();
+
+    press_pitot->calibrate();
+    while (press_pitot->isCalibrating())
+        ;  // wait calibration end
+}
 
 void Sensors::internalAdcInit()
 {
@@ -425,11 +432,11 @@ void Sensors::internalAdcCallback()
 
 void Sensors::batteryVoltageCallback()
 {
-    /*float v = battery_voltage->getLastSample().bat_voltage;
+    float v = battery_voltage->getLastSample().bat_voltage;
     if (v < 10.5)
     {
         LOG_CRIT(log, "******* LOW BATTERY ******* \n Voltage = {:02f} \n", v);
-    }*/
+    }
 
     LoggerService::getInstance()->log(battery_voltage->getLastSample());
 }

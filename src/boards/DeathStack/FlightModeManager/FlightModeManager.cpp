@@ -243,9 +243,7 @@ State FlightModeManager::state_sensorsCalibration(const Event& ev)
 
             LOG_DEBUG(log, "Entering sensors_calibration");
 
-            // TODO : CALIBRATE SENSORS
-            DeathStack::getInstance()
-                ->sensors->imu_bmx160_with_correction->calibrate();
+            DeathStack::getInstance()->sensors->calibrate();
             sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
 
             break;
