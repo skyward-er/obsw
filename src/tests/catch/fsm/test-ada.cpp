@@ -93,13 +93,6 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from calibrating")
         REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
-}
-
-TEST_CASE_METHOD(ADAControllerFixture,
-                 "Testing transitions from drogue_descent")
-{
-    controller->transition(
-        &ADAController<PressureData, GPSData>::state_drogueDescent);
 
     SECTION("EV_ADA_READY -> READY")
     {
@@ -112,16 +105,11 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from ready")
 {
     controller->transition(&ADACtrl::state_ready);
 
-    SECTION("EV_ADA_READY -> READY")
+    SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_ADA_READY},
-                                  &ADACtrl::state_ready));
+        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
+                                  &ADACtrl::state_calibrating));
     }
-}
-
-TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from ready")
-{
-    controller->transition(&ADACtrl::state_ready);
 
     SECTION("EV_LIFTOFF -> SHADOW_MODE")
     {

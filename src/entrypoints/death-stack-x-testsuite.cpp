@@ -21,14 +21,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Components on the stm board:
- *
- * STM32F429:
- *     Led wave
- *     External oscillator
- */
-
 #include <Common.h>
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
