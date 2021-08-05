@@ -468,9 +468,14 @@ State FMMController::state_testMode(const Event& ev)
             sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
             break;
         }
-        case EV_TC_TEST_CUTTERS:
+        case EV_TC_TEST_CUT_PRIMARY:
         {
-            sEventBroker->post(Event{EV_TC_TEST_CUTTERS}, TOPIC_DPL);
+            sEventBroker->post(Event{EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
+            break;
+        }
+        case EV_TC_TEST_CUT_BACKUP:
+        {
+            sEventBroker->post(Event{EV_TEST_CUT_BACKUP}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_DROGUE:

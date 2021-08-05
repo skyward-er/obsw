@@ -29,10 +29,7 @@
 #include <configs/TMTCConfig.h>
 #include <events/Events.h>
 
-#include <map>
-
 using std::map;
-
 namespace DeathStackBoard
 {
 
@@ -63,8 +60,8 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
 
     {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
-    {MAV_CMD_TEST_PRIMARY_CUTTER, EV_TC_TEST_CUTTERS},
-    {MAV_CMD_TEST_BACKUP_CUTTER, EV_TC_TEST_CUTTERS},
+    {MAV_CMD_TEST_PRIMARY_CUTTER, EV_TC_TEST_CUT_PRIMARY},
+    {MAV_CMD_TEST_BACKUP_CUTTER, EV_TC_TEST_CUT_BACKUP},
     {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
     //{MAV_CMD_CUT_PRIMARY, EV_TC_CUT_PRIMARY},
     //{MAV_CMD_CUT_BACKUP, EV_TC_CUT_BACKUP},
@@ -169,9 +166,9 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
             float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
             LOG_DEBUG(print_logger,
-                      "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
-                      "pitch: {:f}, yaw: {:f}",
-                      roll, pitch, yaw);
+                     "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
+                     "pitch: {:f}, yaw: {:f}",
+                     roll, pitch, yaw);
             DeathStack::getInstance()->state_machines->setInitialOrientation(
                 roll, pitch, yaw);
             break;
@@ -207,7 +204,6 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         }
     }
 }
-
 void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
