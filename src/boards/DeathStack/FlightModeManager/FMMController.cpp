@@ -470,14 +470,9 @@ State FMMController::state_testMode(const Event& ev)
             sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
             break;
         }
-        case EV_TC_TEST_CUT_PRIMARY:
+        case EV_TC_TEST_CUTTERS:
         {
-            sEventBroker->post(Event{EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
-            break;
-        }
-        case EV_TC_TEST_CUT_BACKUP:
-        {
-            sEventBroker->post(Event{EV_TEST_CUT_BACKUP}, TOPIC_DPL);
+            sEventBroker->post(Event{EV_TC_TEST_CUTTERS}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_DROGUE:
@@ -555,7 +550,7 @@ State FMMController::state_flying(const Event& ev)
         }
         case EV_TC_ABK_DISABLE:
         {
-            // Disable aerobrakes command sent by GS in case of problems
+            // Disable airbrakes command sent by GS in case of problems
             // during flight
             sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
             break;
@@ -607,7 +602,7 @@ State FMMController::state_ascending(const Event& ev)
         }
         case EV_ADA_DISABLE_ABK:
         {
-            // Send disable aerobrakes
+            // Send disable airbrakes
             sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
 
             retState = transition(&FMMController::state_ascending);

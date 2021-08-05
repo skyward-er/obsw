@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "DeathStack/ServoInterface.h"
 #include "DeathStack/Algorithm.h"
+#include "DeathStack/ServoInterface.h"
 #include "hardware_in_the_loop/HILConfig.h"
 #include "miosix.h"
 #include "sensors/Sensor.h"
@@ -38,7 +38,7 @@ using namespace miosix;
  * the result to the actuator.
  */
 template <typename KD>
-class MockAerobrakeAlgorithm : public Algorithm
+class MockAirbrakeAlgorithm : public Algorithm
 {
 public:
     /**
@@ -47,7 +47,7 @@ public:
      * parameter
      * @param servo the actuator that will communicate with the Simulator
      */
-    MockAerobrakeAlgorithm(Sensor<KD>* kalman, ServoInterface* servo)
+    MockAirbrakeAlgorithm(Sensor<KD>* kalman, ServoInterface* servo)
     {
         /* [TODO]
          * Check if the sensors have the data we need

@@ -134,7 +134,7 @@ TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from idle")
     {
         REQUIRE(testFSMTransition(
             *controller, {EV_TEST_ABK},
-            &AirBrakesController<InputClass>::state_testAerobrakes));
+            &AirBrakesController<InputClass>::state_testAirbrakes));
     }
 }
 
@@ -188,10 +188,10 @@ TEST_CASE_METHOD(AirBrakesControllerFixture,
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
-                 "Testing transitions from test_aerobrakes")
+                 "Testing transitions from test_airbrakes")
 {
     controller->transition(
-        &AirBrakesController<InputClass>::state_testAerobrakes);
+        &AirBrakesController<InputClass>::state_testAirbrakes);
 
     SECTION("EV_TEST_TIMEOUT -> IDLE")
     {

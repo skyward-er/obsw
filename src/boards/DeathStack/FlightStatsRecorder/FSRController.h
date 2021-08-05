@@ -101,27 +101,17 @@ public:
     void state_mainDeployment(const Event& ev);
 
 private:
-    enum class State
-    {
-        IDLE,
-        TESTING_CUTTER,
-        LIFTOFF,
-        ASCENDING,
-        DROGUE_DPL,
-        MAIN_DPL
-    };
-
     LiftOffStats liftoff_stats{};
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
     CutterTestStats cutters_stats{};
-    State state         = State::IDLE;
+    FSRState state      = FSRState::IDLE;
     long long T_liftoff = 0;
 
     uint16_t ev_timeout_id = 0;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.statsrecorder");
+    PrintLogger log = Logging::getLogger("deathstack.fsm.flightstatsrecorder");
 };
 
 }  // namespace DeathStackBoard

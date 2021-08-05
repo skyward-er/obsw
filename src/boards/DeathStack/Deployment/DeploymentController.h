@@ -22,15 +22,14 @@
 
 #pragma once
 
+#include <Deployment/DeploymentData.h>
+#include <Deployment/DeploymentServo.h>
+#include <configs/CutterConfig.h>
+#include <diagnostic/PrintLogger.h>
+#include <drivers/hbridge/HBridge.h>
 #include <drivers/servo/servo.h>
-
-#include "DeploymentData.h"
-#include "DeploymentServo.h"
-#include "configs/CutterConfig.h"
-#include "diagnostic/PrintLogger.h"
-#include "drivers/hbridge/HBridge.h"
-#include "events/Events.h"
-#include "events/FSM.h"
+#include <events/Events.h>
+#include <events/FSM.h>
 
 using namespace DeathStackBoard::DeploymentConfigs;
 using namespace DeathStackBoard::CutterConfig;
@@ -39,7 +38,7 @@ namespace DeathStackBoard
 {
 
 /**
- * @brief Deployment state machine
+ * @brief Deployment state machine.
  */
 class DeploymentController : public FSM<DeploymentController>
 {

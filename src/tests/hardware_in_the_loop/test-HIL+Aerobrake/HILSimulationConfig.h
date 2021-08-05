@@ -122,7 +122,7 @@ public:
         float flag_flight;
         float flag_ascent;
         float flag_burning;
-        float flag_aerobrakes;
+        float flag_airbrakes;
         float flag_para1;
         float flag_para2;
     } flags;

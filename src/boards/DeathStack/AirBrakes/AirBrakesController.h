@@ -48,17 +48,17 @@ public:
                         ServoInterface* servo = new AirBrakesServo());
     ~AirBrakesController();
 
-    // Aerobrakes FSM states
+    // Airbrakes FSM states
     void state_initialization(const Event& ev);
     void state_idle(const Event& ev);
     void state_shadowMode(const Event& ev);
     void state_enabled(const Event& ev);
     void state_end(const Event& ev);
     void state_disabled(const Event& ev);
-    void state_testAerobrakes(const Event& ev);
+    void state_testAirbrakes(const Event& ev);
 
     /**
-     * @brief Update the aerobrakes control algorithm
+     * @brief Update the airbrakes control algorithm
      */
     void update();
 
@@ -116,6 +116,8 @@ void AirBrakesController<T>::state_initialization(const Event& ev)
     {
         case EV_ENTRY:
         {
+            logStatus(AirBrakesControllerState::INITIALIZATION);
+
             servo->enable();
             servo->reset();
 
@@ -168,7 +170,7 @@ void AirBrakesController<T>::state_idle(const Event& ev)
         }
         case EV_TEST_ABK:
         {
-            this->transition(&AirBrakesController<T>::state_testAerobrakes);
+            this->transition(&AirBrakesController<T>::state_testAirbrakes);
             break;
         }
         default:
@@ -309,13 +311,13 @@ void AirBrakesController<T>::state_disabled(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_testAerobrakes(const Event& ev)
+void AirBrakesController<T>::state_testAirbrakes(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state test_aerobrakes");
+            LOG_DEBUG(log, "Entering state test_airbrakes");
 
             incrementallyOpen();
             miosix::Thread::sleep(1000);
@@ -330,7 +332,7 @@ void AirBrakesController<T>::state_testAerobrakes(const Event& ev)
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state test_aerobrakes");
+            LOG_DEBUG(log, "Exiting state test_airbrakes");
             break;
         }
         case EV_TEST_TIMEOUT:

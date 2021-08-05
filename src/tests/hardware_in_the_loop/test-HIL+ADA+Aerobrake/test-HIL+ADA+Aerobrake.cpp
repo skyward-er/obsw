@@ -43,7 +43,7 @@
 /*#include "hardware_in_the_loop/events/Events.h"
 #include "hardware_in_the_loop/events/Topics.h"*/
 
-/* Aerobrakes includes */
+/* Airbrakes includes */
 #include "DeathStack/AirBrakesController/AirBrakesControllerAlgorithm.h"
 
 /* ADA includes */
@@ -110,10 +110,10 @@ int main()
     // registering the HILTransceiver in order to let him know when it has to
     // wait to the control algorithm or not
     flightPhasesManager->registerToFlightPhase(
-        AEROBRAKES, bind(&HILTransceiver::setIsAerobrakePhase, matlab, true));
+        AEROBRAKES, bind(&HILTransceiver::setIsAirbrakePhase, matlab, true));
 
     flightPhasesManager->registerToFlightPhase(
-        APOGEE, bind(&HILTransceiver::setIsAerobrakePhase, matlab, false));
+        APOGEE, bind(&HILTransceiver::setIsAirbrakePhase, matlab, false));
 
     /*-------------- Sensors & Actuators --------------*/
 
@@ -171,16 +171,16 @@ int main()
     /*-------------- [CA] Control Algorithm --------------*/
 
     // definition of the control algorithm
-    AirBrakesControllerAlgorithm<HILKalmanData> aerobrakeCA(state.kalman,
-                                                            &servo);
+    AirBrakesControllerAlgorithm<HILKalmanData> airbrakeCA(state.kalman,
+                                                           &servo);
 
     flightPhasesManager->registerToFlightPhase(
-        AEROBRAKES, bind(&AirBrakesControllerAlgorithm<HILKalmanData>::begin,
-                         &aerobrakeCA));
+        AEROBRAKES,
+        bind(&AirBrakesControllerAlgorithm<HILKalmanData>::begin, &airbrakeCA));
 
     flightPhasesManager->registerToFlightPhase(
         APOGEE,
-        bind(&AirBrakesControllerAlgorithm<HILKalmanData>::end, &aerobrakeCA));
+        bind(&AirBrakesControllerAlgorithm<HILKalmanData>::end, &airbrakeCA));
 
     /*-------------- Events --------------*/
 
@@ -204,15 +204,14 @@ int main()
 
     // adding the updating of the algorithm to the scheduler
     {
-        TaskScheduler::function_t update_Aerobrake{
-            bind(&AirBrakesControllerAlgorithm<HILKalmanData>::update,
-                 &aerobrakeCA)};
+        TaskScheduler::function_t update_Airbrake{bind(
+            &AirBrakesControllerAlgorithm<HILKalmanData>::update, &airbrakeCA)};
 
-        scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
+        scheduler.add(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));
     }
 
-    // adding the Idle updating of the aperture when aerobrakes are disabled
+    // adding the Idle updating of the aperture when airbrakes are disabled
     {
         TaskScheduler::function_t update_Idle{
             bind(&HILTransceiver::setIdleActuatorData, matlab)};

@@ -34,7 +34,7 @@ class Trajectory
 private:
     uint8_t index;
     float s_bar;  // fixed area for trajectory generation
-                  // if error = 0, this is the needed aerobrakes area
+                  // if error = 0, this is the needed airbrakes area
 
 public:
     Trajectory(uint8_t index, float delta_s_max)

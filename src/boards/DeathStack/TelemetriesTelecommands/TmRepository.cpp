@@ -707,7 +707,7 @@ void TmRepository::update<ADAControllerStatus>(const ADAControllerStatus& t)
 {
     tm_repository.ada_tm.state                = (uint8_t)t.state;
     tm_repository.ada_tm.apogee_reached       = t.apogee_reached;
-    tm_repository.ada_tm.aerobrakes_disabled  = t.disable_aerobrakes;
+    tm_repository.ada_tm.aerobrakes_disabled  = t.disable_airbrakes;
     tm_repository.ada_tm.dpl_altitude_reached = t.dpl_altitude_reached;
 
     tm_repository.hr_tm.ada_state = (uint8_t)t.state;

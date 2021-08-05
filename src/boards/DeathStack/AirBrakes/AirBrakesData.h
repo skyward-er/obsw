@@ -35,12 +35,13 @@ namespace DeathStackBoard
  */
 enum class AirBrakesControllerState : uint8_t
 {
-    IDLE = 0,
+    INITIALIZATION = 0,
+    IDLE,
+    TEST_AEROBRAKES,
     SHADOW_MODE,
     ENABLED,
-    END,
     DISABLED,
-    TEST_AEROBRAKES,
+    END,
 };
 
 /**
@@ -82,8 +83,8 @@ struct AirBrakesControllerStatus
 };
 
 /**
- * Structure to log the data relative to the aerobrakes algorithm, including the
- * chosen trajectory (when the aerobrakes are enabled for the first time).
+ * Structure to log the data relative to the airbrakes algorithm, including the
+ * chosen trajectory (when the airbrakes are enabled for the first time).
  */
 struct AirBrakesAlgorithmData
 {

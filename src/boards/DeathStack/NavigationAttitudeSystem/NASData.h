@@ -62,7 +62,7 @@ struct NASStatus
 };
 
 /**
- * @brief NavigationSystem output, used by the aerobrakes algorithm.
+ * @brief NavigationSystem output, used by the airbrakes algorithm.
  */
 struct NASData
 {

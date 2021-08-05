@@ -48,7 +48,7 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (while still going up)
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
-// When the vertical speed is smaller than this value, aerobrakes are disabled.
+// When the vertical speed is smaller than this value, airbrakes are disabled.
 constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 5.0;
 
 // State timeouts

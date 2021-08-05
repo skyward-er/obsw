@@ -42,12 +42,12 @@ const int SIM_BAUDRATE = 115200;
 const int SIMULATION_PERIOD = 100;
 
 /** sample frequency of sensor (samples/second) */
-const int IMU_FREQ  = 100;
+const int IMU_FREQ   = 100;
 const int ACCEL_FREQ = 100;
 const int GYRO_FREQ  = 100;
 const int MAGN_FREQ  = 100;
-const int BARO_FREQ = 20;
-const int GPS_FREQ  = 10;
+const int BARO_FREQ  = 20;
+const int GPS_FREQ   = 10;
 
 /** update frequency of the Navigation System */
 const int KALM_FREQ = 10;
@@ -73,10 +73,10 @@ float referenceTemperature = 15;
 SensorConfig imuConfig(IMU_FREQ);
 SensorConfig baroConfig(BARO_FREQ);
 SensorConfig gpsConfig(GPS_FREQ);
-SensorConfig kalmConfig(KALM_FREQ); // TODO: delete
+SensorConfig kalmConfig(KALM_FREQ);  // TODO: delete
 
 /** Number of samples per sensor at each simulator iteration */
-const int N_DATA_IMU  = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;
 const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;
@@ -133,7 +133,7 @@ public:
         float flag_flight;
         float flag_ascent;
         float flag_burning;
-        float flag_aerobrakes;
+        float flag_airbrakes;
         float flag_para1;
         float flag_para2;
     } flags;

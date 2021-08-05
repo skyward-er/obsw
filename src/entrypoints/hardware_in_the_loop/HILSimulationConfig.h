@@ -51,11 +51,11 @@ const int BARO_FREQ  = 20;
 const int GPS_FREQ   = 10;
 
 /** update frequency of the Navigation System */
-//const int KALMAN_FREQ = 100;
+// const int KALMAN_FREQ = 100;
 /** update frequency of airbrakes control algorithm */
-//const int CONTROL_FREQ = 10;
+// const int CONTROL_FREQ = 10;
 /** update frequency of airbrakes control algorithm */
-//const int ADA_FREQ = 20;
+// const int ADA_FREQ = 20;
 
 /** Sensors sample periods (in ms) */
 const int HIL_IMU_PERIOD  = 1000 / IMU_FREQ;
@@ -75,13 +75,13 @@ const SensorConfig baroConfig("baro", 1000 / BARO_FREQ);
 const SensorConfig gpsConfig("gps", 1000 / GPS_FREQ);
 
 /** Number of samples per sensor at each simulator iteration */
-const int N_DATA_IMU    = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_ACCEL  = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_GYRO   = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_MAGN   = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_BARO   = (BARO_FREQ * SIMULATION_PERIOD) / 1000;
-const int N_DATA_GPS    = (GPS_FREQ * SIMULATION_PERIOD) / 1000;
-//const int N_DATA_KALMAN = (KALMAN_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;
+const int N_DATA_GPS   = (GPS_FREQ * SIMULATION_PERIOD) / 1000;
+// const int N_DATA_KALMAN = (KALMAN_FREQ * SIMULATION_PERIOD) / 1000;
 
 /**
  * @brief Data structure used by the simulator in order to directly deserialize
@@ -136,7 +136,7 @@ public:
         float flag_flight;
         float flag_ascent;
         float flag_burning;
-        float flag_aerobrakes;
+        float flag_airbrakes;
         float flag_para1;
         float flag_para2;
     } flags;

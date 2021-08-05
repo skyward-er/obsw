@@ -26,7 +26,7 @@
  *
  * Analog input: Battery meter
  * HBridge (x2): Cutters (primary & backup)
- * Servo (x2): Deployment & aerobrakes
+ * Servo (x2): Deployment & airbrakes
  */
 
 #include <AirBrakes/AirBrakesServo.h>

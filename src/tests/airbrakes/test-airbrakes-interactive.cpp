@@ -102,8 +102,8 @@ int main()
     {
         int choice;
         cout << "\n\nWhat do you want to do?:\n";
-        cout << "1. Aerobrakes algorithm simulation (with test data)\n";
-        cout << "2. Aerobrakes full extension\n";
+        cout << "1. Airbrakes algorithm simulation (with test data)\n";
+        cout << "2. Airbrakes full extension\n";
         cout << "3. Servo wiggle\n";
         cout << "4. Servo fully open\n";
         cout << "5. Servo fully closed\n";
@@ -160,16 +160,16 @@ void testAlgorithm()
     // AirBrakesController initialization
     MockSensor<InputClass> sensor;
     AirBrakesServo servo{minPosition, maxPosition, resetPosition};
-    AirBrakesController<InputClass> aerobrakesController(sensor, &servo);
+    AirBrakesController<InputClass> airbrakesController(sensor, &servo);
 
     // Start the state machine
-    aerobrakesController.start();
+    airbrakesController.start();
     sensor.sample();
     EventCounter counter{*sEventBroker};
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
 
     // Start test
-    cout << "Starting aerobrakes test\n";
+    cout << "Starting airbrakes test\n";
     sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
     while (counter.getCount(EV_SHADOW_MODE_TIMEOUT) < 1)
     {
@@ -179,7 +179,7 @@ void testAlgorithm()
     for (int i = 1; i < LEN_TEST; i++)
     {
         sensor.sample();
-        aerobrakesController.update();
+        airbrakesController.update();
         cout << "z: " << sensor.getLastSample().z
              << "\tvz: " << sensor.getLastSample().vz
              << "\tvMod: " << sensor.getLastSample().vMod
@@ -187,7 +187,7 @@ void testAlgorithm()
         Thread::sleep(AirBrakesConfigs::ABK_UPDATE_PERIOD);
     }
 
-    aerobrakesController.stop();
+    airbrakesController.stop();
     counter.stop();
 
     cout << "\n\tTest finished!\n";
@@ -202,15 +202,15 @@ void testAirBrakes()
     // AirBrakesController initialization
     MockSensor<InputClass> sensor{};
     AirBrakesServo servo{minPosition, maxPosition, resetPosition};
-    AirBrakesController<InputClass> aerobrakesController{sensor, &servo};
+    AirBrakesController<InputClass> airbrakesController{sensor, &servo};
 
     // Start the state machine
-    aerobrakesController.start();
+    airbrakesController.start();
     EventCounter counter{*sEventBroker};
     counter.subscribe(TOPIC_ABK);
 
     // Start test
-    cout << "Starting aerobrakes test\n";
+    cout << "Starting airbrakes test\n";
     sEventBroker->post({EV_TEST_ABK}, TOPIC_ABK);
 
     while (counter.getCount(EV_TEST_TIMEOUT) < 1)
@@ -218,7 +218,7 @@ void testAirBrakes()
         Thread::sleep(100);
     }
 
-    aerobrakesController.stop();
+    airbrakesController.stop();
     counter.stop();
 
     cout << "\n\tTest finished!\n";

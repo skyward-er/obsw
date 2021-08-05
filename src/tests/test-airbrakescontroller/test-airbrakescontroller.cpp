@@ -5,15 +5,15 @@
 
 #define private public
 
-#include "boards/DeathStack/AirBrakesController/AerobrakesServoInterface.h"
 #include "boards/DeathStack/AirBrakesController/AirBrakesControllerAlgorithm.h"
+#include "boards/DeathStack/AirBrakesController/AirbrakesServoInterface.h"
 #include "drivers/HardwareTimer.h"
 #include "sensors/Sensor.h"
 #include "testdata.h"
 
 using namespace DeathStackBoard;
 
-class MockActuator : public AerobrakesServoInterface
+class MockActuator : public AirbrakesServoInterface
 {
 public:
     MockActuator() {}

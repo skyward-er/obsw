@@ -105,7 +105,7 @@ int servoMenu()
 
     printf("\nWhat do you want to move?\n");
     printf("1. Deployment servo\n");
-    printf("2. Aerobrakes servo\n");
+    printf("2. Airbrakes servo\n");
     printf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;

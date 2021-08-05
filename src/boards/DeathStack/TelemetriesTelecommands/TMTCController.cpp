@@ -65,7 +65,6 @@ void TMTCController::sendSerialTelemetry()
     fflush(stdout);
 }
 
-// State Handlers
 void TMTCController::stateGroundTM(const Event& ev)
 {
     // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
@@ -90,7 +89,6 @@ void TMTCController::stateGroundTM(const Event& ev)
         {
             // remove periodic events
             sEventBroker->removeDelayed(periodicHrEvId);
-            sEventBroker->removeDelayed(periodicLrEvId);
             sEventBroker->removeDelayed(periodicSensEvId);
 
             LOG_DEBUG(log, "Exiting stateGroundTM");
@@ -125,58 +123,6 @@ void TMTCController::stateGroundTM(const Event& ev)
         case EV_TC_SERIAL_TM:
         {
             transition(&TMTCController::stateSerialDebugTM);
-            break;
-        }
-        case EV_ARMED:
-        case EV_LIFTOFF:
-        {
-            transition(&TMTCController::stateFlightTM);
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-// State Handlers
-void TMTCController::stateSensorTM(const Event& ev)
-{
-    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            // add periodic events
-            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
-
-            LOG_DEBUG(log, "Entering stateSensorTM");
-
-            // log stack usage
-            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
-            break;
-        }
-        case EV_EXIT:
-        {
-            // remove periodic events
-            sEventBroker->removeDelayed(periodicSensEvId);
-
-            LOG_DEBUG(log, "Exiting stateSensorTM");
-            break;
-        }
-        case EV_SEND_SENS_TM:
-        {
-            // repost periodic event
-            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
-
-            send(MAV_SENSORS_TM_ID);
-
-            break;
-        }
-        case EV_TC_STOP_SENSOR_TM:
-        {
-            transition(&TMTCController::stateGroundTM);
             break;
         }
         case EV_ARMED:
@@ -250,6 +196,57 @@ void TMTCController::stateFlightTM(const Event& ev)
             break;
         }
 
+        default:
+            break;
+    }
+}
+
+void TMTCController::stateSensorTM(const Event& ev)
+{
+    // TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
+    switch (ev.sig)
+    {
+        case EV_ENTRY:
+        {
+            // add periodic events
+            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+
+            LOG_DEBUG(log, "Entering stateSensorTM");
+
+            // log stack usage
+            StackLogger::getInstance()->updateStack(THID_TMTC_FSM);
+            break;
+        }
+        case EV_EXIT:
+        {
+            // remove periodic events
+            sEventBroker->removeDelayed(periodicSensEvId);
+
+            LOG_DEBUG(log, "Exiting stateSensorTM");
+            break;
+        }
+        case EV_SEND_SENS_TM:
+        {
+            // repost periodic event
+            periodicSensEvId = sEventBroker->postDelayed<SENS_TM_TIMEOUT>(
+                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+
+            send(MAV_SENSORS_TM_ID);
+
+            break;
+        }
+        case EV_TC_STOP_SENSOR_TM:
+        {
+            transition(&TMTCController::stateGroundTM);
+            break;
+        }
+        case EV_ARMED:
+        case EV_LIFTOFF:
+        {
+            transition(&TMTCController::stateFlightTM);
+            break;
+        }
         default:
             break;
     }

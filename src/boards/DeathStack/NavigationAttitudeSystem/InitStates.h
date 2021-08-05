@@ -24,7 +24,7 @@
  * INITIALIZATION OF ATTITUDE, NOT TO USE WHILE THE ROCKET IS FLYING
  * ecompass reference: https://de.mathworks.com/help/fusion/ref/ecompass.html
  * triad reference:
- * https://www.aero.iitb.ac.in/satelliteWiki/index.php/Triad_Algorithm
+ * https://www.air.iitb.ac.in/satelliteWiki/index.php/Triad_Algorithm
  */
 
 #pragma once

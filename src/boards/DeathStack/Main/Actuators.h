@@ -31,7 +31,7 @@ namespace DeathStackBoard
 
 struct Actuators
 {
-    AirBrakesServo* aerobrakes;
+    AirBrakesServo* airbrakes;
     DeploymentServo* dpl_servo;
 };
 

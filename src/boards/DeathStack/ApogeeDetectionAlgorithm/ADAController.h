@@ -34,7 +34,6 @@
 #include <events/FSM.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
-#include <utils/aero/AeroUtils.h>
 
 using miosix::FastMutex;
 using miosix::Lock;
@@ -345,15 +344,15 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 n_samples_apogee_detected = 0;
             }
 
-            // Check if we have to disable aerobrakes
+            // Check if we have to disable airbrakes
             if (ada.getVerticalSpeed() < ABK_DISABLE_VERTICAL_SPEED_TARGET)
             {
                 if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
                 {
-                    // Active state send notifications for disabling aerobrakes
+                    // Active state send notifications for disabling airbrakes
                     sEventBroker->post({EV_ADA_DISABLE_ABK},
                                        TOPIC_FLIGHT_EVENTS);
-                    status.disable_aerobrakes = true;
+                    status.disable_airbrakes = true;
                 }
             }
             else if (n_samples_abk_disable_detected != 0)

@@ -36,7 +36,8 @@ namespace DeathStackBoard
  */
 enum class DeploymentControllerState : uint8_t
 {
-    IDLE = 0,
+    INITIALIZATION = 0,
+    IDLE,
     NOSECONE_EJECTION,
     CUTTING_PRIMARY,
     CUTTING_BACKUP,

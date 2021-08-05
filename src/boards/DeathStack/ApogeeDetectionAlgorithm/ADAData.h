@@ -78,19 +78,19 @@ struct ADAControllerStatus
     uint64_t timestamp;
     ADAState state            = ADAState::IDLE;
     bool apogee_reached       = false;
-    bool disable_aerobrakes   = false;
+    bool disable_airbrakes    = false;
     bool dpl_altitude_reached = false;
 
     static std::string header()
     {
-        return "timestamp,state,apogee_reached,disable_aerobrakes,dpl_altitude_"
+        return "timestamp,state,apogee_reached,disable_airbrakes,dpl_altitude_"
                "reached\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << (int)state << "," << apogee_reached << ","
-           << disable_aerobrakes << "," << dpl_altitude_reached << "\n";
+           << disable_airbrakes << "," << dpl_altitude_reached << "\n";
     }
 };
 

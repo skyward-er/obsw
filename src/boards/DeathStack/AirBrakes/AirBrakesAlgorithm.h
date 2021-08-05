@@ -94,7 +94,7 @@ public:
 
     /**
      * @brief This method looks for nearest point in the current chosen
-     * trajectory and sends to the servoInterface the aerobrakes degree
+     * trajectory and sends to the servoInterface the airbrakes degree
      * according to the current rocket speed and the one in the prediction.
      */
     void step() override;
@@ -146,7 +146,7 @@ public:
     float pidStep(float vz, float vMod, float rho, TrajectoryPoint setpoint);
 
     /**
-     * @brief Compute the necessary aerobrakes surface to match the
+     * @brief Compute the necessary airbrakes surface to match the
      *    given the drag force from the Pid. The possible deltaS values are
      *    discretized in (DELTA_S_AVAILABLE_MIN, DELTA_S_AVAILABLE_MAX) with a
      * step of DELTA_S_AVAILABLE_STEP. For every possible deltaS the
@@ -162,10 +162,10 @@ public:
     float getDeltaS(float z, float vz, float vMod, float rho, float u);
 
     /**
-     * @brief Maps the exposed aerobrakes surface to servoInterface angle in
+     * @brief Maps the exposed airbrakes surface to servoInterface angle in
      * radiants.
      *
-     * @param deltas    Total variation of the aerobrakes surface
+     * @param deltas    Total variation of the airbrakes surface
      */
     float getAlpha(float deltaS);
 
@@ -183,8 +183,8 @@ public:
     float getMach(float v_mod, float z);
 
     /**
-     * @param deltaS    The total variation of the aerobrakes surface
-     * @return The radial distance of the current aerobrakes extension.
+     * @param deltaS    The total variation of the airbrakes surface
+     * @return The radial distance of the current airbrakes extension.
      */
     float getExtension(float deltaS);
 
@@ -202,7 +202,7 @@ public:
      */
     void logAlgorithmData(T input);
 
-    void logAerobrakesData();
+    void logAirbrakesData();
 
 private:
     int indexMinVal = 0;
@@ -263,7 +263,7 @@ void AirBrakesControlAlgorithm<T>::step()
     actuator->set(alpha, true);
 
     logAlgorithmData(input);
-    logAerobrakesData();
+    logAirbrakesData();
 }
 
 template <class T>
@@ -478,7 +478,7 @@ void AirBrakesControlAlgorithm<T>::logAlgorithmData(T input)
 }
 
 template <class T>
-void AirBrakesControlAlgorithm<T>::logAerobrakesData()
+void AirBrakesControlAlgorithm<T>::logAirbrakesData()
 {
     AirBrakesData abdata;
     abdata.timestamp      = TimestampTimer::getTimestamp();

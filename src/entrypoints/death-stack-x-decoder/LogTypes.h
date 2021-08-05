@@ -131,7 +131,7 @@ void registerTypes(Deserializer& ds)
     registerType<NASTriadResult>(ds);
     registerType<NASData>(ds);
 
-    // Aerobrakes
+    // Airbrakes
     registerType<AirBrakesData>(ds);
 
     // Others

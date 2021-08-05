@@ -28,12 +28,12 @@
 #include <events/EventBroker.h>
 #include <events/Events.h>
 
-#include "LoggerService/LoggerService.h"
-#include "System/StackLogger.h"
-#include "TimestampTimer.h"
-#include "configs/DeploymentConfig.h"
-#include "events/EventBroker.h"
-#include "events/Events.h"
+#include <LoggerService/LoggerService.h>
+#include <System/StackLogger.h>
+#include <TimestampTimer.h>
+#include <configs/DeploymentConfig.h>
+#include <events/EventBroker.h>
+#include <events/Events.h>
 
 namespace DeathStackBoard
 {
@@ -71,6 +71,10 @@ void DeploymentController::state_initialization(const Event& ev)
     {
         case EV_ENTRY:
         {
+            logStatus(DeploymentControllerState::INITIALIZATION);
+
+            LOG_DEBUG(log, "Entering state initialization");
+
             ejection_servo->enable();
             ejection_servo->reset();
 
@@ -79,6 +83,7 @@ void DeploymentController::state_initialization(const Event& ev)
         }
         case EV_EXIT:
         {
+            LOG_DEBUG(log, "Exiting state initialization");
             break;
         }
 
@@ -283,8 +288,6 @@ void DeploymentController::state_testCuttingPrimary(const Event& ev)
         case EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state test_cutting_primary");
-
-            primaryCutter->disable();
 
             primaryCutter->disable();
 

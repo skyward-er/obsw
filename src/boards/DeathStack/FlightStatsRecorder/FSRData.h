@@ -27,6 +27,17 @@
 
 namespace DeathStackBoard
 {
+
+enum class FSRState
+{
+    IDLE = 0,
+    LIFTOFF,
+    ASCENDING,
+    DROGUE_DPL,
+    MAIN_DPL,
+    TESTING_CUTTER
+};
+
 struct LiftOffStats
 {
     uint64_t T_liftoff = 0;

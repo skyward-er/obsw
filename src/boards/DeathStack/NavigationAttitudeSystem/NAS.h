@@ -73,7 +73,7 @@ public:
      * @brief Samples the sensors' readings, filters them through the EKF
      *        and computes the state vector
      *
-     * @return Struct with the states used by the aerobrakes subsystem
+     * @return Struct with the states used by the airbrakes subsystem
      */
     NASData sampleImpl();
 

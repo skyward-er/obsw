@@ -133,7 +133,7 @@ void threadFunc(void* arg)
     HIL::getInstance()->setNAS(&nas_controller.getNAS());
 
     /*-------------- [CA] Control Algorithm --------------*/
-    AirBrakesController<NASData> aerobrakes_controller(nas_controller.getNAS());
+    AirBrakesController<NASData> airbrakes_controller(nas_controller.getNAS());
 
     /*-------------- [DPL] Deployment Controller --------------*/
     DeploymentController dpl_controller;
@@ -172,12 +172,12 @@ void threadFunc(void* arg)
                       getNextSchedulerId(&scheduler));
     }
 
-    // adding the updating of the aerobrakes algorithm to the scheduler
+    // adding the updating of the airbrakes algorithm to the scheduler
     {
-        TaskScheduler::function_t update_Aerobrake{bind(
-            &AirBrakesController<NASData>::update, &aerobrakes_controller)};
+        TaskScheduler::function_t update_Airbrake{
+            bind(&AirBrakesController<NASData>::update, &airbrakes_controller)};
 
-        scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
+        scheduler.add(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));
     }
 
@@ -191,7 +191,7 @@ void threadFunc(void* arg)
     fmm.start();
     ada_controller.start();
     nas_controller.start();
-    aerobrakes_controller.start();
+    airbrakes_controller.start();
     // dpl_controller.start();
     // pin_handler.start();
     scheduler.start();  // started only the scheduler instead of the SM
