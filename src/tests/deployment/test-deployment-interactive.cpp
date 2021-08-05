@@ -21,6 +21,8 @@
  * THE SOFTWARE.
  */
 
+#include <Deployment/DeploymentController.h>
+#include <Deployment/DeploymentServo.h>
 #include <logger/Logger.h>
 #include <miosix.h>
 
@@ -29,8 +31,6 @@
 #include <sstream>
 #include <string>
 
-#include "DeploymentController/DeploymentController.h"
-#include "DeploymentController/DeploymentServo.h"
 #include "configs/CutterConfig.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
@@ -193,7 +193,8 @@ void cutterContinuity()
     int cutter;
 
     cout << "\n\n** CONTINUITY CUTTER TEST **\n\n";
-    cout << "Non-destructive cutter test : duty cycle inserted is divided by 100\n\n";
+    cout << "Non-destructive cutter test : duty cycle inserted is divided by "
+            "100\n\n";
     do
     {
         cout << "Which cutter to test? (1-primary / 2-backup)\n";
@@ -398,7 +399,6 @@ void setServoParameters()
         stringstream(temp) >> resetPosition;
     } while (resetPosition < 0 || resetPosition > 180.0f);
 
-
     cout << "Configured servo parameteres:\n";
     cout << "\tminimum position: " << minPosition << "\n";
     cout << "\tmaximum position: " << maxPosition << "\n";
@@ -468,7 +468,6 @@ void resetServoParameters()
     cout << "\tminimum position: " << minPosition << "\n";
     cout << "\tmaximum position: " << maxPosition << "\n";
     cout << "\treset position: " << resetPosition << "\n";
-
 }
 
 void resetPrimaryCutterParameters()

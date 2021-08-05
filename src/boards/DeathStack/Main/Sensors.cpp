@@ -21,21 +21,19 @@
  * THE SOFTWARE.
  */
 
-#include "Sensors.h"
-
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <DeathStack.h>
 #include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <TimestampTimer.h>
+#include <configs/SensorManagerConfig.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/Sensor.h>
+#include <utils/aero/AeroUtils.h>
 
 #include <functional>
 #include <utility>
-
-#include "ADA/ADAController.h"
-#include "DeathStack.h"
-#include "LoggerService/LoggerService.h"
-#include "TimestampTimer.h"
-#include "configs/SensorManagerConfig.h"
-#include "utils/aero/AeroUtils.h"
 
 using std::bind;
 using std::function;
@@ -180,7 +178,8 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -204,7 +203,8 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
+    function<float(float)> adc_to_current = [](float adc_in)
+    {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)

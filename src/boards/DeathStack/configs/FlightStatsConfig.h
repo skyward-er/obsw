@@ -23,11 +23,11 @@
 
 #pragma once
 
-#include "CutterConfig.h"
-#include "config.h"
+#include <configs/CutterConfig.h>
 
 namespace DeathStackBoard
 {
+
 namespace FlightStatsConfig
 {
 static constexpr long long TIMEOUT_LIFTOFF_STATS    = 7500;

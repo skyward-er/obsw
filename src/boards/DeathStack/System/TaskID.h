@@ -26,7 +26,9 @@
 namespace DeathStackBoard
 {
 
-// define task ids to be used by the TaskScheduler
+/**
+ * @brief Define task ids to be used by the TaskScheduler.
+ */
 enum TaskIDs : uint8_t
 {
     TASK_SENSORS_6_MS_ID,
@@ -41,4 +43,5 @@ enum TaskIDs : uint8_t
     TASK_NAS_ID,
     TASK_SCHEDULER_STATS_ID
 };
+
 }

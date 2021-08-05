@@ -23,30 +23,29 @@
 #pragma once
 
 #include <Common.h>
+#include <DeathStackStatus.h>
 #include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <Main/Actuators.h>
+#include <Main/Bus.h>
+#include <Main/Radio.h>
+#include <Main/Sensors.h>
+#include <Main/StateMachines.h>
+#include <PinHandler/PinHandler.h>
+#include <System/StackLogger.h>
 #include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/EventInjector.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 #include <events/utils/EventSniffer.h>
 
 #include <functional>
 #include <stdexcept>
 #include <vector>
 
-#include "DeathStackStatus.h"
-#include "LoggerService/LoggerService.h"
-#include "Main/Actuators.h"
-#include "Main/Bus.h"
-#include "Main/Radio.h"
-#include "Main/Sensors.h"
-#include "Main/StateMachines.h"
-#include "PinHandler/PinHandler.h"
-#include "System/StackLogger.h"
-#include "events/EventData.h"
-#include "events/EventInjector.h"
-#include "events/Events.h"
-#include "events/Topics.h"
-
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
+#include <hardware_in_the_loop/HIL.h>
 #endif
 
 using std::bind;
@@ -66,8 +65,6 @@ class DeathStack : public Singleton<DeathStack>
     friend class Singleton<DeathStack>;
 
 public:
-    PrintLogger log = Logging::getLogger("deathstack");
-
     // Shared Components
     EventBroker* broker;
     LoggerService* logger;
@@ -159,7 +156,7 @@ public:
 
 private:
     /**
-     * Initialize Everything
+     * @brief Initialize Everything.
      */
     DeathStack()
     {
@@ -208,7 +205,7 @@ private:
     }
 
     /**
-     * Helpers for debugging purposes
+     * @brief Helpers for debugging purposes.
      */
     void logEvent(uint8_t event, uint8_t topic)
     {
@@ -232,9 +229,10 @@ private:
 
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
 
-private:
     EventInjector* injector;
     DeathStackStatus status{};
+
+    PrintLogger log = Logging::getLogger("deathstack");
 };
 
-} /* namespace DeathStackBoard */
+}  // namespace DeathStackBoard

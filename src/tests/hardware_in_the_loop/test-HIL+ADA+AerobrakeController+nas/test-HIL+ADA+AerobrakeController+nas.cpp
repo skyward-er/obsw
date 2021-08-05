@@ -40,8 +40,8 @@
 #include "hardware_in_the_loop/HIL_sensors/HILImu.h"
 #include "hardware_in_the_loop/HIL_sensors/HILNas.h"  // TODO: delete
 
-/* Aerobrakes includes */
-#include "DeathStack/AeroBrakesController/AeroBrakesController.h"
+/* Airbrakes includes */
+#include "DeathStack/AirBrakesController/AirBrakesController.h"
 
 /* ADA includes */
 #include <ADA/ADAController.h>
@@ -104,10 +104,10 @@ int main()
     // registering the HILTransceiver in order to let him know when it has to
     // wait to the control algorithm or not
     flightPhasesManager->registerToFlightPhase(
-        AEROBRAKES, bind(&HILTransceiver::setIsAerobrakePhase, matlab, true));
+        AEROBRAKES, bind(&HILTransceiver::setIsAirbrakePhase, matlab, true));
 
     flightPhasesManager->registerToFlightPhase(
-        APOGEE, bind(&HILTransceiver::setIsAerobrakePhase, matlab, false));
+        APOGEE, bind(&HILTransceiver::setIsAirbrakePhase, matlab, false));
 
     /*-------------- Sensors & Actuators --------------*/
 
@@ -166,7 +166,7 @@ int main()
     /*-------------- [CA] Control Algorithm --------------*/
 
     // definition of the control algorithm
-    AeroBrakesController<HILNasData> aerobrakeController(*state.nas, &servo);
+    AirBrakesController<HILNasData> airbrakeController(*state.nas, &servo);
 
     /*-------------- Events --------------*/
 
@@ -201,10 +201,10 @@ int main()
 
     // adding the updating of the algorithm to the scheduler
     {
-        TaskScheduler::function_t update_Aerobrake{bind(
-            &AeroBrakesController<HILNasData>::update, &aerobrakeController)};
+        TaskScheduler::function_t update_Airbrake{bind(
+            &AirBrakesController<HILNasData>::update, &airbrakeController)};
 
-        scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
+        scheduler.add(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));
     }
 
@@ -213,7 +213,7 @@ int main()
     matlab->start();
     ada_controller->start();
     nas_controller.start();
-    aerobrakeController.start();
+    airbrakeController.start();
     sEventBroker->start();
     scheduler.start();  // started only the scheduler instead of the SM
 

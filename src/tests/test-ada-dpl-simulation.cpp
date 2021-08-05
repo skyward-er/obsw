@@ -21,10 +21,12 @@
  * THE SOFTWARE.
  */
 
-#include <ADA/ADA.h>
-#include <ADA/ADAController.h>
-#include <DeploymentController/DeploymentController.h>
+#include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <Deployment/DeploymentController.h>
+
 #include <random>
+
 #include "PinHandler/PinHandler.h"
 #include "catch/ada/ada_kalman_p/test-ada-data.h"
 #include "events/EventBroker.h"
@@ -95,7 +97,7 @@ public:
 int main()
 {
     TimestampTimer::enableTimestampTimer();
-    
+
     MockPressureSensor baro;
     MockGPSSensor gps;
 
@@ -156,7 +158,7 @@ int main()
     ada_controller.update();
 
     // wait for launch pin detach
-    while(counter.getCount({EV_UMBILICAL_DETACHED}) == 0)
+    while (counter.getCount({EV_UMBILICAL_DETACHED}) == 0)
     {
         Thread::sleep(100);
     }
@@ -169,8 +171,7 @@ int main()
     bool first_apogee_detection       = true;
     bool first_dpl_altitude_detection = true;
 
-    for (unsigned int i = 0;
-         i < DATA_SIZE ; i++)
+    for (unsigned int i = 0; i < DATA_SIZE; i++)
     {
         baro.sample();
         Thread::sleep(50);

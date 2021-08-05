@@ -30,14 +30,13 @@
 
 #include "ActiveObject.h"
 #include "DeathStack/Algorithm.h"
+#include "HIL_sensors/HILSensors.h"
 #include "NavigationSystem/NASData.h"
 #include "Singleton.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
 #include "miosix.h"
 #include "sensors/Sensor.h"
-
-#include "HIL_sensors/HILSensors.h"
 
 using namespace miosix;
 using namespace std;
@@ -136,10 +135,10 @@ public:
             //       temporary until we test everything with GS and TCs        /
             //*****************************************************************/
             // TODO : REMOVE ME
-            //sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
-            //Thread::sleep(100);
-            //sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
-            //Thread::sleep(100);
+            // sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
+            // Thread::sleep(100);
+            // sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
+            // Thread::sleep(100);
             //*****************************************************************/
 
             TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
@@ -155,7 +154,7 @@ public:
         if (isSetFalse(CALIBRATION))  // calibration finalized
         {
             TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
-            
+
             //*****************************************************************/
             //            temporary until telecommands do not exist            /
             //*****************************************************************/
@@ -266,7 +265,7 @@ private:
         TRACE("Motor stopped burning (simulation flag): \n");
         outcomes[BURNING].print(t_liftoff);
 
-        TRACE("Aerobrakes exit shadowmode: \n");
+        TRACE("Airbrakes exit shadowmode: \n");
         outcomes[AEROBRAKES].print(t_liftoff);
 
         TRACE("Apogee: \n");
@@ -290,7 +289,7 @@ private:
         flagsFlightPhases[BURNING] = hil_flags.flag_burning;
 
         /* Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab  */
-        // flagsFlightPhases[SIM_AEROBRAKES] = hil_flags.flag_aerobrakes;
+        // flagsFlightPhases[SIM_AEROBRAKES] = hil_flags.flag_airbrakes;
         // flagsFlightPhases[PARA1]          = hil_flags.flag_para1;
         // flagsFlightPhases[PARA2]          = hil_flags.flag_para2;
 
@@ -317,7 +316,7 @@ private:
             setFlagFlightPhase(CALIBRATION, false);
         }
 
-        // aerobrakes flag turned true when the shadow mode ended
+        // airbrakes flag turned true when the shadow mode ended
         if (!prev_flagsFlightPhases[AEROBRAKES] &&
             counter->getCount(EV_SHADOW_MODE_TIMEOUT) > 0)
         {

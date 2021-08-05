@@ -23,16 +23,16 @@
 
 #pragma once
 
-#include <miosix.h>
 #include <drivers/spi/SPIBus.h>
+#include <miosix.h>
 
 namespace DeathStackBoard
 {
-class Bus
+
+struct Bus
 {
-public:
     SPIBusInterface* spi1 = new SPIBus(SPI1);
     SPIBusInterface* spi2 = new SPIBus(SPI2);
-private:
 };
+
 }  // namespace DeathStackBoard

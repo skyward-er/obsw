@@ -23,8 +23,8 @@
 #pragma once
 
 #include <Singleton.h>
+#include <TelemetriesTelecommands/TmRepository.h>
 #include <logger/Logger.h>
-#include "Radio/TmRepository.h"
 
 namespace DeathStackBoard
 {
@@ -40,7 +40,9 @@ class LoggerService : public Singleton<LoggerService>
     friend class Singleton<LoggerService>;
 
 public:
-    /* Generic log function, to be implemented for each loggable struct */
+    /**
+     * @brief Generic log function, to be implemented for each loggable struct.
+     */
     template <typename T>
     inline LogResult log(const T& t)
     {
@@ -54,7 +56,8 @@ public:
     /**
      * WARNING: Blocking call. May take a long time.
      *
-     * Call this function to start the logger.
+     * @brief Call this function to start the logger.
+     *
      * When this function returns, the logger is started, and subsequent calls
      * to log will actually log the data.
      *
@@ -66,7 +69,8 @@ public:
     /**
      * WARNING: Blocking call. May take a very long time (seconds).
      *
-     * Call this function to stop the logger.
+     * @brief Call this function to stop the logger.
+     *
      * When this function returns, all log buffers have been flushed to disk,
      * and it is safe to power down the board without losing log data or
      * corrupting the filesystem.
@@ -76,7 +80,9 @@ public:
     Logger& getLogger() { return logger; }
 
 private:
-    // Private constructor to enforce the singleton
+    /**
+     * @brief Private constructor to enforce the singleton
+     */
     LoggerService()
         : logger(Logger::instance()), tmRepo(*(TmRepository::getInstance()))
     {

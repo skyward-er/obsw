@@ -50,13 +50,13 @@
 #elif defined(HIL_ADA)
 #include "hardware_in_the_loop/test-HIL+ADA/HILSimulationConfig.h"
 #elif defined(HIL_AEROBRAKE)
-#include "hardware_in_the_loop/test-HIL+Aerobrake/HILSimulationConfig.h"
+#include "hardware_in_the_loop/test-HIL+Airbrake/HILSimulationConfig.h"
 #elif defined(HIL_ADA_AEROBRAKE)
-#include "hardware_in_the_loop/test-HIL+ADA+Aerobrake/HILSimulationConfig.h"
+#include "hardware_in_the_loop/test-HIL+ADA+Airbrake/HILSimulationConfig.h"
 #elif defined(HIL_ADA_AEROBRAKECONTROLLER)
-#include "hardware_in_the_loop/test-HIL+ADA+AerobrakeController/HILSimulationConfig.h"
+#include "hardware_in_the_loop/test-HIL+ADA+AirbrakeController/HILSimulationConfig.h"
 #elif defined(HIL_ADA_AEROBRAKECONTROLLER_NAS)
-#include "hardware_in_the_loop/test-HIL+ADA+AerobrakeController+nas/HILSimulationConfig.h"
+#include "hardware_in_the_loop/test-HIL+ADA+AirbrakeController+nas/HILSimulationConfig.h"
 /*
 #elif defined(HIL_<tuoFlag>)
 #include "<test-directory>/HILSimulationConfig.h"

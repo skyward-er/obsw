@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include "drivers/HardwareTimer.h"
-#include "drivers/pwm/pwm.h"
-#include "interfaces-impl/hwmapping.h"
+#include <drivers/HardwareTimer.h>
+#include <drivers/pwm/pwm.h>
+#include <interfaces-impl/hwmapping.h>
 
 namespace DeathStackBoard
 {

@@ -22,12 +22,11 @@
 
 #pragma once
 
-
 namespace DeathStackBoard
 {
- 
-// How many milliseconds between a status request to the CAN bus and the 
-// next one.    
+
+// How many milliseconds between a status request to the CAN bus and the
+// next one.
 static const unsigned int INTERVAL_IGN_GET_STATUS = 1000;
 
 // Milliseconds after which, if the ignition board never responded, an
@@ -35,7 +34,6 @@ static const unsigned int INTERVAL_IGN_GET_STATUS = 1000;
 // NOTE: since the ignition and abort operations take ~10sec and the
 // ignition board doesn't respond during that time, this timeout
 // should be considerably longer than max(ignitionTime, abortTime).
-static const unsigned int TIMEOUT_IGN_OFFLINE = 3*1000; 
+static const unsigned int TIMEOUT_IGN_OFFLINE = 3 * 1000;
 
-} // DeathStackBoard
-
+}  // namespace DeathStackBoard

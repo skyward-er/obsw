@@ -21,11 +21,10 @@
  */
 #pragma once
 
+#include <drivers/Xbee/Xbee.h>
+#include <drivers/spi/SPIDriver.h>
 #include <interfaces-impl/hwmapping.h>
 #include <mavlink_skyward_lib/mavlink_lib/lynx/mavlink.h>
-
-#include "drivers/Xbee/Xbee.h"
-#include "drivers/spi/SPIDriver.h"
 
 namespace DeathStackBoard
 {
@@ -45,15 +44,15 @@ typedef miosix::xbee::reset XbeeRST;
 static const bool XBEE_80KBPS_DATA_RATE = true;
 
 /* Periodic telemetries periods */
-static const unsigned int LR_TM_TIMEOUT = 1000;
+static const unsigned int LR_TM_TIMEOUT     = 1000;
 static const unsigned int TUNNEL_TM_TIMEOUT = 100;
 
-static const unsigned int HR_TM_TIMEOUT = 63;
+static const unsigned int HR_TM_TIMEOUT        = 63;
 static const unsigned int HR_TM_GROUND_TIMEOUT = 250;
 
-static const unsigned int TEST_TM_TIMEOUT = 250;
+static const unsigned int TEST_TM_TIMEOUT        = 250;
 static const unsigned int GROUND_SENS_TM_TIMEOUT = 1000;
-static const unsigned int SENS_TM_TIMEOUT = 100;
+static const unsigned int SENS_TM_TIMEOUT        = 100;
 
 /* Mavlink messages sysID and compID */
 static const unsigned int TMTC_MAV_SYSID  = 1;

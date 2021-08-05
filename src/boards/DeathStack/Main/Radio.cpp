@@ -21,20 +21,17 @@
  * THE SOFTWARE.
  */
 
-#include "Radio.h"
-
+#include <LoggerService/LoggerService.h>
+#include <Main/Radio.h>
+#include <TelemetriesTelecommands/TCHandler.h>
+#include <TelemetriesTelecommands/TMTCController.h>
+#include <TelemetriesTelecommands/TmRepository.h>
 #include <drivers/Xbee/APIFramesLog.h>
-
 #include <drivers/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
 
 #include <functional>
-
-#include "LoggerService/LoggerService.h"
-#include "Radio/TCHandler.h"
-#include "Radio/TMTCManager.h"
-#include "Radio/TmRepository.h"
 
 // using std::function;
 using std::bind;
@@ -67,11 +64,11 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
     Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, 5000);
-    
+
     mav_driver = new MavDriver(xbee, handleMavlinkMessage, 0,
                                1000);  // TODO: Use settings
 
-    tmtc_manager = new TMTCManager();
+    tmtc_manager = new TMTCController();
 
     tm_repo = TmRepository::getInstance();
 
@@ -88,10 +85,7 @@ Radio::~Radio()
     delete xbee;
 }
 
-bool Radio::start()
-{
-    return mav_driver->start() && tmtc_manager->start();
-}
+bool Radio::start() { return mav_driver->start() && tmtc_manager->start(); }
 
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 {

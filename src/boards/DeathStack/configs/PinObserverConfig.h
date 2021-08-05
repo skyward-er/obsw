@@ -25,8 +25,7 @@
 
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-
-#include "utils/PinObserver.h"
+#include <utils/PinObserver.h>
 
 namespace DeathStackBoard
 {

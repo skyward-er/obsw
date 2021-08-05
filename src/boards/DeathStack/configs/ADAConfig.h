@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Eigen/Dense>
+#include <kalman/KalmanEigen.h>
 
-#include "kalman/KalmanEigen.h"
+#include <Eigen/Dense>
 
 namespace DeathStackBoard
 {
@@ -48,7 +48,7 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 // 0: Exact apogee
 // > 0: Apogee detected ahead of time (while still going up)
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
-// When the vertical speed is smaller than this value, aerobrakes are disabled.
+// When the vertical speed is smaller than this value, airbrakes are disabled.
 constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 5.0;
 
 // State timeouts
@@ -56,7 +56,7 @@ static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 7.5 * 1000;  // ms
 static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 
 // Number of samples used to calibrate the kalman initial state
-static const unsigned int CALIBRATION_BARO_N_SAMPLES     = 200; // 1200;
+static const unsigned int CALIBRATION_BARO_N_SAMPLES = 200;  // 1200;
 
 // Default reference values settings
 // Standard atmosphere values @ Roccaraso

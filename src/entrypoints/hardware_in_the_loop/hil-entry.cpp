@@ -26,6 +26,7 @@
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/utils/EventCounter.h>
+
 #include "TimestampTimer.h"
 #include "miosix.h"
 #include "scheduler/TaskScheduler.h"
@@ -37,11 +38,11 @@
 
 /* DeathStack includes */
 #include "ADA/ADAController.h"
-#include "AeroBrakesController/AeroBrakesController.h"
+#include "AirBrakesController/AirBrakesController.h"
 #include "DeploymentController/DeploymentController.h"
+#include "FlightModeManager/FlightModeManager.h"
 #include "NavigationSystem/NASController.h"
 #include "PinHandler/PinHandler.h"
-#include "FlightModeManager/FlightModeManager.h"
 #include "diagnostic/CpuMeter.h"
 
 using namespace std;
@@ -132,7 +133,7 @@ void threadFunc(void* arg)
     HIL::getInstance()->setNAS(&nas_controller.getNAS());
 
     /*-------------- [CA] Control Algorithm --------------*/
-    AeroBrakesController<NASData> aerobrakes_controller(nas_controller.getNAS());
+    AirBrakesController<NASData> airbrakes_controller(nas_controller.getNAS());
 
     /*-------------- [DPL] Deployment Controller --------------*/
     DeploymentController dpl_controller;
@@ -171,12 +172,12 @@ void threadFunc(void* arg)
                       getNextSchedulerId(&scheduler));
     }
 
-    // adding the updating of the aerobrakes algorithm to the scheduler
+    // adding the updating of the airbrakes algorithm to the scheduler
     {
-        TaskScheduler::function_t update_Aerobrake{bind(
-            &AeroBrakesController<NASData>::update, &aerobrakes_controller)};
+        TaskScheduler::function_t update_Airbrake{
+            bind(&AirBrakesController<NASData>::update, &airbrakes_controller)};
 
-        scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
+        scheduler.add(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));
     }
 
@@ -190,9 +191,9 @@ void threadFunc(void* arg)
     fmm.start();
     ada_controller.start();
     nas_controller.start();
-    aerobrakes_controller.start();
-    //dpl_controller.start();
-    //pin_handler.start();
+    airbrakes_controller.start();
+    // dpl_controller.start();
+    // pin_handler.start();
     scheduler.start();  // started only the scheduler instead of the SM
 
     sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
@@ -238,7 +239,6 @@ int main()
         }
 
         Thread::sleep(500);
-        
     }
 
     return 0;

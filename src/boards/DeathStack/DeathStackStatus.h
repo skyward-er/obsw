@@ -72,4 +72,5 @@ struct DeathStackStatus
            << "\n";
     }
 };
+
 }  // namespace DeathStackBoard

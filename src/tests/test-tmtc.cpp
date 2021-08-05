@@ -21,12 +21,10 @@
  */
 
 #include <TMTCManager/TMTCManager.h>
-#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
-
 #include <events/Events.h>
 #include <events/Topics.h>
-
 #include <interfaces-impl/hwmapping.h>
+#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -41,7 +39,7 @@ int main()
 {
     busSPI2::init();
 
-    TMTCManager* tmtc = new TMTCManager();
+    TMTCController* tmtc = new TMTCController();
     tmtc->start();
     sEventBroker->start();
 

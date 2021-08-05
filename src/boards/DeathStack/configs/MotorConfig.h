@@ -21,9 +21,10 @@
  */
 #pragma once
 
-namespace DeathStackBoard {
+namespace DeathStackBoard
+{
 
-/* Period of time where the IN must be kept low before bringing ENA/INH low */
+// Period of time where the IN must be kept low before bringing ENA/INH low
 static const int MOTOR_DISABLE_DELAY_MS = 50;
 
-}
+}  // namespace DeathStackBoard

@@ -20,11 +20,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H
-#define SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H
+
+#pragma once
 
 #include <cstdint>
 #include <ostream>
+
+namespace DeathStackBoard
+{
 
 enum class FMMState : uint8_t
 {
@@ -57,4 +60,4 @@ struct FMMStatus
     }
 };
 
-#endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H */
+}  // namespace DeathStackBoard

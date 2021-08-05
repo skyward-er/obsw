@@ -30,15 +30,15 @@
 
 #include <miosix.h>
 
-
 #include <utils/testutils/catch.hpp>
 
 #define private public
 #define protected public
 
+#include <FlightStatsRecorder/FSRController.h>
+
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
-#include "FlightStatsRecorder/FlightStatsRecorder.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
@@ -64,7 +64,6 @@ public:
     }
 
 protected:
-
     FlightStatsRecorder* fsm;
 };
 
@@ -102,8 +101,9 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from ascending")
 
     SECTION("EV_APOGEE -> drogueDPL")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
-                                  &FlightStatsRecorder::state_drogueDeployment));
+        REQUIRE(
+            testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
+                              &FlightStatsRecorder::state_drogueDeployment));
     }
 }
 
