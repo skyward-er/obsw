@@ -179,9 +179,9 @@ void FlightStatsRecorder::update(const AirSpeedPitot& t)
     {
         case FSRState::ASCENDING:
         {
-            if (t.airspeed > liftoff_stats.airspeed_pitot_max)
+            if (fabs(t.airspeed) > liftoff_stats.airspeed_pitot_max)
             {
-                liftoff_stats.airspeed_pitot_max = t.airspeed;
+                liftoff_stats.airspeed_pitot_max = fabs(t.airspeed);
             }
             break;
         }

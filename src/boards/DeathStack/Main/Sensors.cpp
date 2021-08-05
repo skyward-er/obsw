@@ -178,8 +178,7 @@ void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -203,8 +202,7 @@ void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -319,7 +317,7 @@ void Sensors::imuBMXInit()
     BMX160Config bmx_config;
     bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
     bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
-    bmx_config.fifo_int       = BMX160Config::FifoInterruptMode::PIN_INT1;
+    bmx_config.fifo_int       = BMX160Config::FifoInterruptPin::PIN_INT1;
 
     bmx_config.temp_divider = 1;
 
@@ -513,7 +511,7 @@ void Sensors::pressPitotCallback()
         DeathStack::getInstance()
             ->state_machines->ada_controller->getReferenceValues();
 
-    float v = sqrtf(2 * d.press /
+    float v = sqrtf(2 * fabs(d.press) /
                     aeroutils::relDensity(press_digital->getLastSample().press,
                                           rv.ref_pressure, rv.ref_altitude,
                                           rv.ref_temperature));
