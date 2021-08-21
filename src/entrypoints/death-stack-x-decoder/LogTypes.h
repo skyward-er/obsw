@@ -37,15 +37,15 @@
 #include <fstream>
 #include <iostream>
 
-#include "ADA/ADAData.h"
-#include "AirBrakesController/AirBrakesData.h"
-#include "AirBrakesController/WindData.h"
+#include "ApogeeDetectionAlgorithm/ADAData.h"
+#include "AirBrakes/AirBrakesData.h"
+//#include "AirBrakes/WindData.h"
 #include "DeathStackStatus.h"
-#include "DeploymentController/DeploymentData.h"
+#include "Deployment/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
 #include "LogStats.h"
 #include "Main/SensorsData.h"
-#include "NavigationSystem/NASData.h"
+#include "NavigationAttitudeSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
 #include "System/SystemData.h"
 #include "diagnostic/PrintLoggerData.h"
@@ -89,6 +89,7 @@ void registerTypes(Deserializer& ds)
     registerType<BMX160Data>(ds);
     registerType<BMX160WithCorrectionData>(ds);
     registerType<BMX160Temperature>(ds);
+    registerType<BMX160FifoStats>(ds);
     registerType<MS5803Data>(ds);
     registerType<MPXHZ6130AData>(ds);
     registerType<SSCDRRN015PDAData>(ds);
@@ -136,5 +137,5 @@ void registerTypes(Deserializer& ds)
 
     // Others
     registerType<EventData>(ds);
-    registerType<WindData>(ds);
+    //registerType<WindData>(ds);
 }
