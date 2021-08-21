@@ -26,7 +26,7 @@
 #include <Debug.h>
 #include <LoggerService/LoggerService.h>
 #include <TimestampTimer.h>
-#include <configs/SensorManagerConfig.h>
+#include <configs/SensorsConfig.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/Sensor.h>
@@ -140,8 +140,11 @@ void Sensors::calibrate()
     imu_bmx160_with_correction->calibrate();
 
     press_pitot->calibrate();
+     // wait calibration end
     while (press_pitot->isCalibrating())
-        ;  // wait calibration end
+    {
+        Thread::sleep(10);
+    }
 }
 
 void Sensors::internalAdcInit()
@@ -541,6 +544,8 @@ void Sensors::imuBMXCallback()
     {
         LoggerService::getInstance()->log(fifo.at(i));
     }
+
+    LoggerService::getInstance()->log(imu_bmx160->getFifoStats());
 
     // static unsigned int downsample_ctr = 0;
 

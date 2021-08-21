@@ -27,7 +27,7 @@
 #include <LoggerService/LoggerService.h>
 #include <System/TaskID.h>
 #include <TelemetriesTelecommands/TmRepository.h>
-#include <configs/SensorManagerConfig.h>
+#include <configs/SensorsConfig.h>
 #include <configs/TMTCConfig.h>
 
 namespace DeathStackBoard

@@ -169,7 +169,7 @@ void sampleBMX160()
 
     BMX160Config bmx160Config;
     bmx160Config.fifo_mode    = BMX160Config::FifoMode::DISABLED;
-    bmx160Config.fifo_int     = BMX160Config::FifoInterruptMode::PIN_INT1;
+    bmx160Config.fifo_int     = BMX160Config::FifoInterruptPin::PIN_INT1;
     bmx160Config.temp_divider = 1;
 
     BMX160 bmx160 =
@@ -212,7 +212,7 @@ void sampleAll()
 
     BMX160Config bmx160Config;
     bmx160Config.fifo_mode    = BMX160Config::FifoMode::DISABLED;
-    bmx160Config.fifo_int     = BMX160Config::FifoInterruptMode::PIN_INT1;
+    bmx160Config.fifo_int     = BMX160Config::FifoInterruptPin::PIN_INT1;
     bmx160Config.temp_divider = 1;
 
     BMX160 bmx160 =

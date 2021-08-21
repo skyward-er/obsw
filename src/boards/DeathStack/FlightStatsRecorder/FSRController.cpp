@@ -24,7 +24,7 @@
 #include <FlightStatsRecorder/FSRController.h>
 #include <LoggerService/LoggerService.h>
 #include <System/StackLogger.h>
-#include <configs/SensorManagerConfig.h>
+#include <configs/SensorsConfig.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 
