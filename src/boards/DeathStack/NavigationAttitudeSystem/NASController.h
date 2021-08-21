@@ -160,8 +160,8 @@ void NASController<IMU, Press, GPS>::update()
                     calibrator.addBaroSample(press_data.press);
                 }
 
-                if (/*gps_data.gps_timestamp > last_gps_timestamp &&*/
-                    gps_data.fix == true)
+                /*if (gps_data.gps_timestamp > last_gps_timestamp &&
+                    gps_data.fix == true)*/
                 {
                     last_gps_timestamp = gps_data.gps_timestamp;
                     calibrator.addGPSSample(gps_data.latitude,
@@ -402,6 +402,7 @@ void NASController<IMU, Press, GPS>::setInitialOrientation(float roll,
     if (status.state == NASState::READY)
     {
         nas.setInitialOrientation(roll, pitch, yaw);
+        logData();
     }
 }
 
