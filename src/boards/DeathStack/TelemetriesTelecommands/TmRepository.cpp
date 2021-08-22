@@ -323,6 +323,7 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t)
 {
+#ifndef HARDWARE_IN_THE_LOOP
     tm_repository.wind_tm.pressure_digital = t.press;
     tm_repository.sensors_tm.ms5803_press  = t.press;
     tm_repository.sensors_tm.ms5803_temp   = t.temp;
@@ -331,6 +332,7 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
     tm_repository.digital_baro_tm.temperature = t.temp;
 
     tm_repository.hr_tm.pressure_digi = t.press;
+#endif
     tm_repository.hr_tm.temperature   = t.temp;
 
     stats_rec.update(t);
@@ -375,6 +377,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
     stats_rec.update(t);
 }
 
+#ifndef HARDWARE_IN_THE_LOOP
 template <>
 void TmRepository::update<BMX160WithCorrectionData>(
     const BMX160WithCorrectionData& t)
@@ -411,6 +414,7 @@ void TmRepository::update<BMX160WithCorrectionData>(
 
     stats_rec.update(t);
 }
+#endif
 
 template <>
 void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t)
@@ -433,6 +437,7 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
     tm_repository.lis3mdl_tm.temp  = t.temp;
 }
 
+#ifndef HARDWARE_IN_THE_LOOP
 /**
  * @brief GPS.
  */
@@ -462,6 +467,7 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
 
     stats_rec.update(t);
 }
+#endif
 
 template <>
 void TmRepository::update<SensorsStatus>(const SensorsStatus& t)
@@ -739,7 +745,7 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
 
     // HR_TM
     tm_repository.hr_tm.pressure_ada = t.x0;
-    // tm_repository.hr_tm.vert_accel = t.x2;
+    tm_repository.hr_tm.vert_accel = t.x2;
 
     stats_rec.update(t);
 }
@@ -806,14 +812,14 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_15ms_stddev =
                 t.periodStats.stdev;
             break;
-        case TASK_SENSORS_23_MS_ID:
-            tm_repository.task_stats_tm.task_sensors_23ms_max =
+        case TASK_SENSORS_20_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_20ms_max =
                 t.periodStats.maxValue;
-            tm_repository.task_stats_tm.task_sensors_23ms_min =
+            tm_repository.task_stats_tm.task_sensors_20ms_min =
                 t.periodStats.minValue;
-            tm_repository.task_stats_tm.task_sensors_23ms_mean =
+            tm_repository.task_stats_tm.task_sensors_20ms_mean =
                 t.periodStats.mean;
-            tm_repository.task_stats_tm.task_sensors_23ms_stddev =
+            tm_repository.task_stats_tm.task_sensors_20ms_stddev =
                 t.periodStats.stdev;
             break;
         case TASK_SENSORS_24_MS_ID:

@@ -96,7 +96,7 @@ static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 200;
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 100;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
@@ -111,7 +111,7 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
 // Sample before the fifo is full, but slightly after the watermark level
 // (watermark + 2)
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
-    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 2) * 4 / 1024;
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 10) * 4 / 1024;
 
 // IMU axis rotation
 static const AxisOrthoOrientation BMX160_AXIS_ROTATION = {

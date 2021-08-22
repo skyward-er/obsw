@@ -171,9 +171,11 @@ void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t);
 template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
+#ifndef HARDWARE_IN_THE_LOOP
 template <>
 void TmRepository::update<BMX160WithCorrectionData>(
     const BMX160WithCorrectionData& t);
+#endif
 
 template <>
 void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
@@ -181,8 +183,10 @@ void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
 template <>
 void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
 
+#ifndef HARDWARE_IN_THE_LOOP
 template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
+#endif
 
 template <>
 void TmRepository::update<SensorsStatus>(const SensorsStatus& t);

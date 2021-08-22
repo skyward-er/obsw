@@ -58,31 +58,24 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     : spi1_bus(spi1_bus)
 {
     // sensors are added to the map ordered by increasing period
-    ADS1118Init();  // 6 ms
-#ifdef HARDWARE_IN_THE_LOOP
-    hilBarometerInit();
-#else
+    ADS1118Init();    // 6 ms
     pressDigiInit();  // 10 ms
-#endif
     magLISinit();
-#ifdef HARDWARE_IN_THE_LOOP
-    hilImuInit();
-#else
-    imuBMXInit();     // 23 ms
+    imuBMXInit();  // 23 ms
     imuBMXWithCorrectionInit();
-#endif
     pressPitotInit();  // 24 ms
     pressDPLVaneInit();
     pressStaticInit();
-#ifdef HARDWARE_IN_THE_LOOP
-    hilGpsInit();
-#else
-    gpsUbloxInit();  // 40 ms
-#endif
+    gpsUbloxInit();     // 40 ms
     internalAdcInit();  // 50 ms
     batteryVoltageInit();
     primaryCutterCurrentInit();
     backupCutterCurrentInit();
+#ifdef HARDWARE_IN_THE_LOOP
+    hilImuInit();
+    hilBarometerInit();
+    hilGpsInit();
+#endif
 
     sensor_manager = new SensorManager(scheduler, sensors_map);
 }
@@ -140,7 +133,7 @@ void Sensors::calibrate()
     imu_bmx160_with_correction->calibrate();
 
     press_pitot->calibrate();
-     // wait calibration end
+    // wait calibration end
     while (press_pitot->isCalibrating())
     {
         Thread::sleep(10);
