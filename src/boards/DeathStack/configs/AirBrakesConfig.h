@@ -38,15 +38,12 @@ static const PWM::Timer AB_SERVO_TIMER{
 
 static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 
-static constexpr int LOOKS                    = 100;
-static constexpr int START_INDEX_OFFSET       = -1;
-static constexpr float M                      = 22.0; /**< rocket's mass */
+// Rocket's parameters
+static constexpr float M                      = 27.0; /**< rocket's mass */
 static constexpr float D                      = 0.15; /**< rocket's diameter */
 static constexpr float S0                     = (PI * D * D) / 4.0;
 static constexpr float RHO                    = 1.225;
 static constexpr float Hn                     = 10400.0;
-static constexpr float Kp                     = 55;
-static constexpr float Ki                     = 5;
 static constexpr float Co                     = 340.3;
 static constexpr float ALPHA                  = -3.871e-3;
 static constexpr float A                      = -1.04034;
@@ -57,44 +54,54 @@ static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
 static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
 static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
 
+// PID configs
+static constexpr float Kp = 50;
+static constexpr float Ki = 5;
+
+// Airbrakes servo configs
 static constexpr float AB_SERVO_MAX_POS          = 50;         // deg
 static constexpr float AB_SERVO_MIN_POS          = 0;          // deg
 static constexpr float AB_SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
 static constexpr float AB_SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
 static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
 
-static constexpr float FILTER_COEFF = 0.9;
-
-static constexpr float ABK_UPDATE_PERIOD         = 0.05 * 1000;  // ms -> 20 Hz
+// Control algorithm configs
+// static constexpr int LOOKS                    = 100;
+static constexpr int START_INDEX_OFFSET = -1;
+static constexpr float FILTER_COEFF     = 0.85;
+#ifdef HARDWARE_IN_THE_LOOP
+static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
+#else
+static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+#endif
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
+static constexpr int SHADOW_MODE_DURATION        = 7.5 * 1000;
 
-static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
-
-typedef struct
+struct Coefficients
 {
-    float n000 = 0.496878;
-    float n100 = -1.405038;
-    float n200 = 6.502618;
-    float n300 = -18.314261;
-    float n400 = 30.152448;
-    float n500 = -26.715700;
-    float n600 = 9.711730;
-    float n010 = 8.486901;
-    float n020 = 141.050398;
-    float n110 = 1.233043;
-    float n120 = -152.610100;
-    float n210 = 81.980768;
-    float n220 = 1072.170007;
-    float n310 = -309.620754;
-    float n320 = -3618.989164;
-    float n410 = 455.524477;
-    float n420 = 5190.202262;
-    float n510 = -212.545170;
-    float n520 = -2402.939515;
-    float n001 = 0.000003;
-} coeffs_t;
+    float n000 = 0.4968777393871292;
+    float n100 = -1.4050375007975426;
+    float n200 = 6.502618436645153;
+    float n300 = -18.3142608989424;
+    float n400 = 30.152447999970377;
+    float n500 = -26.715700256336287;
+    float n600 = 9.711730306158518;
+    float n010 = 8.48690052994929;
+    float n020 = 141.05039771743526;
+    float n110 = 1.2330425934312637;
+    float n120 = -152.6100996769378;
+    float n210 = 81.98076783376676;
+    float n220 = 1072.1700065871796;
+    float n310 = -309.62075391969813;
+    float n320 = -3618.9891638915415;
+    float n410 = 455.5244772537147;
+    float n420 = 5190.202261565708;
+    float n510 = -212.545170192307;
+    float n520 = -2402.939514788227;
+    float n001 = 2.8334092348814035e-06;
+};
 
-const coeffs_t coeffs;
+const Coefficients coeffs;
 
 }  // namespace AirBrakesConfigs
 

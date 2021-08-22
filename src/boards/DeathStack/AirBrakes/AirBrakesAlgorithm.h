@@ -306,7 +306,7 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::chooseTrajectory(float z,
 
         Trajectory trajectory(trajectoryIndex, DELTA_S_AVAILABLE_MAX);
 
-        for (int pointIndex = 0; pointIndex < LOOKS; pointIndex++)
+        for (uint32_t pointIndex = 0; pointIndex < trajectory.length() /*LOOKS*/; pointIndex++)
         {
             TrajectoryPoint ref = trajectory.get(pointIndex);
             float distancesFromCurrentinput =
@@ -339,10 +339,10 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
     TrajectoryPoint currentPoint(z, vz);
     float minDistance = INFINITY;
 
-    int start = std::max(indexMinVal + START_INDEX_OFFSET, 0);
-    int end   = chosenTrajectory.length();
+    uint32_t start = std::max(indexMinVal + START_INDEX_OFFSET, 0);
+    uint32_t end   = chosenTrajectory.length();
 
-    for (int pointIndex = start; pointIndex < end; pointIndex++)
+    for (uint32_t pointIndex = start; pointIndex < end; pointIndex++)
     {
         TrajectoryPoint ref = chosenTrajectory.get(pointIndex);
         float distanceFromCurrentinput =
