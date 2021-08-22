@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta (luca.erbetta@skywarder.eu)
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
-
-// Ignore warnings as these are auto-generated headers made with third party
-// tools
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#include <mavlink_skyward_lib/mavlink_lib/lynx/mavlink.h>
-#pragma GCC diagnostic pop
-
-#include <drivers/mavlink/MavlinkDriver.h>
-#include <configs/MavlinkConfig.h>
 
 namespace DeathStackBoard
 {
 
-using MavDriver = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
+/* Mavlink Driver queue settings */
+static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
+static constexpr unsigned int MAV_PKT_SIZE        = 256;
+static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
 
 }  // namespace DeathStackBoard

@@ -29,10 +29,6 @@
 namespace DeathStackBoard
 {
 
-/* Mavlink Driver queue settings */
-static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
-static constexpr unsigned int MAV_PKT_SIZE        = 255;
-static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
 /* Min guaranteed sleep time after each packet sent (milliseconds) */
 static const uint16_t TMTC_SLEEP_AFTER_SEND = 0;
 
