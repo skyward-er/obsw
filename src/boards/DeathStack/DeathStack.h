@@ -33,6 +33,7 @@
 #include <Main/StateMachines.h>
 #include <PinHandler/PinHandler.h>
 #include <System/StackLogger.h>
+#include <System/TaskID.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/EventInjector.h>
@@ -53,7 +54,8 @@ using std::bind;
 namespace DeathStackBoard
 {
 
-// Add heres the event that you don't want to be TRACEd in DeathStack.logEvent()
+// Add heres the events that you don't want to be TRACEd in
+// DeathStack.logEvent()
 static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
     EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM, EV_SEND_SENS_TM};
 /**
@@ -181,6 +183,8 @@ private:
 #endif
 
         scheduler = new TaskScheduler();
+        addSchedulerStatsTask();
+
         bus       = new Bus();
         radio     = new Radio(*bus->spi2);
         sensors   = new Sensors(*bus->spi1, scheduler);
@@ -200,8 +204,6 @@ private:
 
         injector = new EventInjector();
         LOG_INFO(log, "Init finished");
-
-        // sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
     }
 
     /**
@@ -228,6 +230,25 @@ private:
     }
 
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
+
+    void addSchedulerStatsTask()
+    {
+        // add lambda to log scheduler tasks statistics
+        scheduler->add(
+            [&]() {
+                std::vector<TaskStatResult> scheduler_stats =
+                    scheduler->getTaskStats();
+
+                for (TaskStatResult stat : scheduler_stats)
+                {
+                    logger->log(stat);
+                }
+                
+                StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+            },
+            1000,  // 1 hz
+            TASK_SCHEDULER_STATS_ID, miosix::getTick());
+    }
 
     EventInjector* injector;
     DeathStackStatus status{};

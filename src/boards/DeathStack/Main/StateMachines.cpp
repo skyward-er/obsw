@@ -78,23 +78,6 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
 
     scheduler->add(std::bind(&AirBrakesControllerType::update, arb_controller),
                    ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
-
-    // add lambda to log scheduler tasks statistics
-    scheduler->add(
-        [&]()
-        {
-            /*std::vector<TaskStatResult> scheduler_stats =
-                scheduler->getTaskStats();
-
-            for (TaskStatResult stat : scheduler_stats)
-            {
-                logger.log(stat);
-            }*/
-
-            StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
-        },
-        1000,  // 1 hz
-        TASK_SCHEDULER_STATS_ID, start_time);
 }
 
 void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
