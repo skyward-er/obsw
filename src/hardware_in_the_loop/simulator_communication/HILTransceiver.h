@@ -23,7 +23,7 @@
 #pragma once
 
 #include "ActiveObject.h"
-#include "DeathStack/Algorithm.h"
+#include "Algorithm.h"
 #include "SerialInterface.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILFlightPhasesManager.h"

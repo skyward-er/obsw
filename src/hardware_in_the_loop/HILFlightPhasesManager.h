@@ -29,9 +29,9 @@
 #include <map>
 
 #include "ActiveObject.h"
-#include "DeathStack/Algorithm.h"
+#include "Algorithm.h"
 #include "HIL_sensors/HILSensors.h"
-#include "NavigationSystem/NASData.h"
+#include "NavigationAttitudeSystem/NASData.h"
 #include "Singleton.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
