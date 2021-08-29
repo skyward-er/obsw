@@ -88,6 +88,7 @@ void registerTypes(Deserializer& ds)
     registerType<UbloxGPSData>(ds);
     registerType<BMX160Data>(ds);
     registerType<BMX160WithCorrectionData>(ds);
+    registerType<BMX160GyroscopeCalibrationBiases>(ds);
     registerType<BMX160Temperature>(ds);
     registerType<BMX160FifoStats>(ds);
     registerType<MS5803Data>(ds);
