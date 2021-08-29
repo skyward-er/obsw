@@ -72,10 +72,11 @@ public:
      *
      * @param gps_lat Latitude.
      * @param gps_lon Longitude.
-     * @param press Pressure [Pa].
+     * @param press Reference pressure [Pa].
+     * @param press Reference temperature [Pa].
      */
     void positionInit(const float gps_lat, const float gps_lon,
-                      const float press);
+                      const float press);  //, const float temp);
     /**
      * @brief Initialization of the velocities before the liftoff.
      *
@@ -126,12 +127,15 @@ void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
 
 void InitStates::triad(const Vector3f acc, const Vector3f mag)
 {
-    LOG_DEBUG(log, "Executing TRIAD \n");
+    LOG_DEBUG(log, "Executing TRIAD");
 
-    Vector3f t1b, t2b, t3b, t1i, t2i,
-        t3i;  // The coulmns of the the triad matrices. b:body, i:inertial.
+    // The coulmns of the the triad matrices. b:body, i:inertial
+    Vector3f t1b, t2b, t3b, t1i, t2i, t3i;
 
-    Vector3f g_norm(0.0F, 0.0F, 1.0F);
+    // vettore gravità "vero" in NED, normalizzato
+    // -1 su asse "down", perché da fermo l'accelerometro
+    // misura la reazione vincolare (rivolta verso l'alto)
+    Vector3f g_norm(0.0F, 0.0F, -1.0F);
 
     t1b = acc;
     t1i = g_norm;
@@ -162,11 +166,17 @@ void InitStates::triad(const Vector3f acc, const Vector3f mag)
 }
 
 void InitStates::positionInit(const float gps_lat, const float gps_lon,
-                              float press)
+                              const float press)  //, const float temp)
 {
-    x_init(0) = RAD * gps_lon * CLAT;
-    x_init(1) = RAD * gps_lat;
-    x_init(2) = aeroutils::relAltitude(press, press, T0);  // agl altitude
+    x_init(0) = EARTH_RADIUS * gps_lon * CLAT;
+    x_init(1) = EARTH_RADIUS * gps_lat;
+    x_init(2) = aeroutils::relAltitude(press, MSL_PRESSURE,
+                                       MSL_TEMPERATURE);  // msl altitude
+
+    // starting point centered in the launchpad
+    // x_init(0) = 0.0f;
+    // x_init(1) = 0.0f;
+    // x_init(2) = 0.0f;  // agl altitude
 }
 
 void InitStates::velocityInit()
