@@ -80,9 +80,20 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
                    ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
 }
 
+void StateMachines::setReferenceTemperature(float t)
+{
+    ada_controller->setReferenceTemperature(t);
+    nas_controller->setReferenceTemperature(t);
+}
+
 void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
 {
     nas_controller->setInitialOrientation(roll, pitch, yaw);
+}
+
+void StateMachines::setInitialCoordinates(float latitude, float longitude)
+{
+    nas_controller->setInitialCoordinates(latitude, longitude);
 }
 
 }  // namespace DeathStackBoard

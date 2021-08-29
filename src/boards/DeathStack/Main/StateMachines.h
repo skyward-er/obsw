@@ -90,7 +90,11 @@ public:
 
     bool start();
 
+    void setReferenceTemperature(float t);
+
     void setInitialOrientation(float roll, float pitch, float yaw);
+
+    void setInitialCoordinates(float latitude, float longitude);
 
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
