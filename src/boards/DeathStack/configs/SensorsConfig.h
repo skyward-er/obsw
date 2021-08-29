@@ -115,7 +115,7 @@ static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
 
 // IMU axis rotation
 static const AxisOrthoOrientation BMX160_AXIS_ROTATION = {
-    Direction::NEGATIVE_Z, Direction::NEGATIVE_Y};
+    Direction::NEGATIVE_Z, Direction::POSITIVE_Y};
 
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";

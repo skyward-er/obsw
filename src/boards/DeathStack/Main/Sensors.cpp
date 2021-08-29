@@ -131,6 +131,8 @@ bool Sensors::start()
 void Sensors::calibrate()
 {
     imu_bmx160_with_correction->calibrate();
+    LoggerService::getInstance()->log(
+        imu_bmx160_with_correction->getGyroscopeBiases());
 
     press_pitot->calibrate();
     // wait calibration end
