@@ -147,6 +147,10 @@ void TmRepository::update<AirBrakesControllerStatus>(
     const AirBrakesControllerStatus& t);
 
 template <>
+void TmRepository::update<AirBrakesChosenTrajectory>(
+    const AirBrakesChosenTrajectory& t);
+
+template <>
 void TmRepository::update<AirBrakesData>(const AirBrakesData& t);
 
 template <>

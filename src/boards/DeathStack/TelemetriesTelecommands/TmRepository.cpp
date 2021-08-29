@@ -21,6 +21,7 @@
  * THE SOFTWARE.
  */
 
+#include <Constants.h>
 #include <DeathStack.h>
 #include <Debug.h>
 #include <FlightStatsRecorder/FSRController.h>
@@ -255,6 +256,13 @@ void TmRepository::update<AirBrakesControllerStatus>(
 }
 
 template <>
+void TmRepository::update<AirBrakesChosenTrajectory>(
+    const AirBrakesChosenTrajectory& t)
+{
+    tm_repository.abk_tm.trajectory = t.trajectory;
+}
+
+template <>
 void TmRepository::update<AirBrakesData>(const AirBrakesData& t)
 {
     tm_repository.wind_tm.ab_angle = t.servo_position;
@@ -326,14 +334,15 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
 #ifndef HARDWARE_IN_THE_LOOP
     tm_repository.wind_tm.pressure_digital = t.press;
     tm_repository.sensors_tm.ms5803_press  = t.press;
-    tm_repository.sensors_tm.ms5803_temp   = t.temp;
 
-    tm_repository.digital_baro_tm.pressure    = t.press;
-    tm_repository.digital_baro_tm.temperature = t.temp;
+    tm_repository.digital_baro_tm.pressure = t.press;
 
     tm_repository.hr_tm.pressure_digi = t.press;
 #endif
-    tm_repository.hr_tm.temperature   = t.temp;
+
+    tm_repository.sensors_tm.ms5803_temp      = t.temp;
+    tm_repository.hr_tm.temperature           = t.temp;
+    tm_repository.digital_baro_tm.temperature = t.temp;
 
     stats_rec.update(t);
 }
@@ -541,14 +550,15 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
     tm_repository.nas_tm.pitch = orientation(1);
     tm_repository.nas_tm.yaw   = orientation(2);
 
-    tm_repository.hr_tm.nas_x = t.x0;
-    tm_repository.hr_tm.nas_y = t.x1;
-    tm_repository.hr_tm.nas_z =
-        -t.x2;  // Negative sign because we're working in the NED
-                // frame but we want a positive altitude as output
+    // Positions converted from meters to lat/lon for visualization
+    tm_repository.hr_tm.nas_x = t.x0 / EARTH_RADIUS;
+    tm_repository.hr_tm.nas_y = t.x1 / EARTH_RADIUS;
+    // Altitude has negative sign because we're working in the NED
+    // frame but we want a positive altitude as output (same for vz)
+    tm_repository.hr_tm.nas_z     = -t.x2;
     tm_repository.hr_tm.nas_vx    = t.x3;
     tm_repository.hr_tm.nas_vy    = t.x4;
-    tm_repository.hr_tm.nas_vz    = t.x5;
+    tm_repository.hr_tm.nas_vz    = -t.x5;
     tm_repository.hr_tm.nas_roll  = orientation(0);
     tm_repository.hr_tm.nas_pitch = orientation(1);
     tm_repository.hr_tm.nas_yaw   = orientation(2);
@@ -571,18 +581,19 @@ void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t)
     tm_repository.nas_tm.ref_longitude = t.ref_longitude;
 
     tm_repository.nas_tm.ref_pressure = t.ref_pressure;
+    tm_repository.nas_tm.ref_temperature = t.ref_temperature;
 }
 
 template <>
 void TmRepository::update<NASTriadResult>(const NASTriadResult& t)
 {
-    tm_repository.nas_tm.triad_x = t.roll;
-    tm_repository.nas_tm.triad_y = t.pitch;
-    tm_repository.nas_tm.triad_z = t.yaw;
+    tm_repository.nas_tm.triad_roll = t.roll;
+    tm_repository.nas_tm.triad_pitch = t.pitch;
+    tm_repository.nas_tm.triad_yaw = t.yaw;
 }
 
 /**
- * @brief Launch and Nosecone detachment pins.
+ * @brief Launch and nosecone detachment pins.
  */
 template <>
 void TmRepository::update<PinStatus>(const PinStatus& t)
@@ -745,7 +756,7 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
 
     // HR_TM
     tm_repository.hr_tm.pressure_ada = t.x0;
-    tm_repository.hr_tm.vert_accel = t.x2;
+    tm_repository.hr_tm.vert_accel   = t.x2;
 
     stats_rec.update(t);
 }

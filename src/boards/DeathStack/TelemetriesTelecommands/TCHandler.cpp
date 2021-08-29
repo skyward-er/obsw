@@ -143,8 +143,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 print_logger,
                 "Received SET_REFERENCE_TEMPERATURE command. Temp: {:f} degC",
                 temp);
-            DeathStack::getInstance()
-                ->state_machines->ada_controller->setReferenceTemperature(temp);
+            DeathStack::getInstance()->state_machines->setReferenceTemperature(
+                temp);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -166,11 +166,27 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
             float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
             LOG_DEBUG(print_logger,
-                     "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
-                     "pitch: {:f}, yaw: {:f}",
-                     roll, pitch, yaw);
+                      "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
+                      "pitch: {:f}, yaw: {:f}",
+                      roll, pitch, yaw);
             DeathStack::getInstance()->state_machines->setInitialOrientation(
                 roll, pitch, yaw);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+        {
+            float latitude =
+                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+            LOG_DEBUG(
+                print_logger,
+                "Received SET_INITIAL_COORDINATES command. latitude: {:f}, "
+                "longitude: {:f}",
+                latitude, longitude);
+            DeathStack::getInstance()->state_machines->setInitialCoordinates(
+                latitude, longitude);
             break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
