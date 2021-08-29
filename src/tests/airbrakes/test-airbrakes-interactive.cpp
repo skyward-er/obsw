@@ -153,7 +153,7 @@ int main()
 
 void testAlgorithm()
 {
-    cout << "\n\n** AEROBRAKES ALGORITHM SIMULATION **\n\n";
+    cout << "\n\n** AIRBRAKES ALGORITHM SIMULATION **\n\n";
 
     waitUserInput();
 
@@ -167,6 +167,7 @@ void testAlgorithm()
     sensor.sample();
     EventCounter counter{*sEventBroker};
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
+    counter.subscribe(TOPIC_ABK);
 
     // Start test
     cout << "Starting airbrakes test\n";
@@ -175,15 +176,17 @@ void testAlgorithm()
     {
         Thread::sleep(10);
     }
+    Thread::sleep(100);
 
     for (int i = 1; i < LEN_TEST; i++)
     {
         sensor.sample();
         airbrakesController.update();
         cout << "z: " << sensor.getLastSample().z
-             << "\tvz: " << sensor.getLastSample().vz
-             << "\tvMod: " << sensor.getLastSample().vMod
-             << "\tservo: " << servo.getCurrentPosition() << "\n";
+             << " - vz: " << sensor.getLastSample().vz
+             << " - vMod: " << sensor.getLastSample().vMod
+             << " - servo: " << servo.getCurrentPosition()
+             << " - cd: " << airbrakesController.getEstimatedCd() << "\n";
         Thread::sleep(AirBrakesConfigs::ABK_UPDATE_PERIOD);
     }
 
@@ -195,7 +198,7 @@ void testAlgorithm()
 
 void testAirBrakes()
 {
-    cout << "\n\n** AEROBRAKES FULL EXTENSION **\n\n";
+    cout << "\n\n** AIRBRAKES FULL EXTENSION **\n\n";
 
     waitUserInput();
 
