@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "Constants.h"
 #include "Eigen/Dense"
 
 using namespace Eigen;
@@ -32,36 +33,37 @@ namespace DeathStackBoard
 namespace NASConfigs
 {
 
-static const unsigned int NAS_UPDATE_PERIOD = 20; // ms -> 50 hz
+static const unsigned int NAS_UPDATE_PERIOD = 20;  // ms -> 50 hz
 
 static const float SAMPLE_RATE = 1000.0F / NAS_UPDATE_PERIOD;  // [Hz]
 
 static const float T = 1.0F / SAMPLE_RATE;  // [s]
 
-static const uint32_t CALIBRATION_N_SAMPLES = 50;  // 1200
+static const uint32_t CALIBRATION_N_SAMPLES = 200;  // 1200
 
 static const float SIGMA_BETA =
-    (float)1e-2;  // [mdps^2]
+    (float)1e-2;  // [Rad/s^2]
                   // Estimated gyroscope bias variance
 
-static const float SIGMA_MAG = 0.5F;  // [uT^2]
-                                      // Estimated magnetometer variance
+static const float SIGMA_MAG = 0.7089F;  // [uT^2]
+                                         // Estimated magnetometer variance
 
-static const float SIGMA_W = 0.5F;  // Estimated gyroscope variance
+static const float SIGMA_W = 0.000027927F;  // [Rad^2]
+                                            // Estimated gyroscope variance
 
 static const float SIGMA_GPS = 2.0F;  // [deg^2]
                                       // Estimated GPS variance
 
-static const float SIGMA_BAR = 4.0F;  // [mbar^2]
-                                      // Estimated barometer variance
+static const float SIGMA_BAR = 4.3665F;  // [kPa^2]
+                                         // Estimated barometer variance
 
 static const float SIGMA_POS =
-    1.0F;  // [m^2]
-           // Estimated variance of the position noise
+    0.0192F;  // [m^2]
+              // Estimated variance of the position noise
 
 static const float SIGMA_VEL =
-    0.1F;  // [(m/s)^2]
-           // Estimated variance of the velocity noise
+    0.096F;  // [(m/s)^2]
+             // Estimated variance of the velocity noise
 
 static const float P_POS = 0.01F;  // Position prediction covariance
 
@@ -79,15 +81,17 @@ static const float EMF = 45.0F;  // [uT] micro Tesla
 
 // Equirectangular projection for gps: https://bit.ly/2RaMbD5
 
-static const float RAD =
+/*static const float RAD =
     6371.0F * powf(10, 3);  // [m]
-                            // Earth radius, used for the GPS correction
+                            // Earth radius, used for the GPS correction*/
 
-static const float LAT0 = 0.0F;  // [deg]
-                                 // Latitude of the launch location
+static const float LAT0 =
+    39.201778F;  // [deg]
+                 // Latitude of the launch location (pont de sor)
 
-static const float LON0 = 1.81e-14;  // [deg]
-                                     // Longitude of the launch location
+static const float LON0 =
+    -8.138368F;  // [deg]
+                 // Longitude of the launch location (pont de sor)
 
 static const float PHI1 =
     0.0F;  // [rad]
@@ -95,27 +99,21 @@ static const float PHI1 =
 
 static const float CLAT = cosf(PHI1);
 
-static const float SATS = 6.0F;  // Number of available satellites
-
-static const float T0 = 288.15F;  // [K]
-                                  // Ground temperature at the launch location
+static const float SATS_NUM = 6.0F;  // Number of available satellites
 
 static const Vector3f NED_MAG(
     0.5969F, -0.0139F,
     0.8022F);  // Normalized magnetic field vector at the launch site
                // Measurement units are not important since it's normalized
 
-static const float P0 = 101325.0F;  // [Pa]
-                                    // Sea level pressure
-
 // DIMENSIONS OF MATRICES AND VECTORS
 
-static const uint16_t N = 13;  // State vector elements, N x 1
-static const uint16_t NP = N - 1;  // P matrix, N-1 x N-1.
-                                   // Reduced order thanks to the MEKF
-static const uint16_t NATT = 7;  // Number of attitude related elements.
-                                 // Quaternion components and biases:
-                                 // [q1, q2, q3, q4, bx, by, bz]
+static const uint16_t N  = 13;        // State vector elements, N x 1
+static const uint16_t NP = N - 1;     // P matrix, N-1 x N-1.
+                                      // Reduced order thanks to the MEKF
+static const uint16_t NATT = 7;       // Number of attitude related elements.
+                                      // Quaternion components and biases:
+                                      // [q1, q2, q3, q4, bx, by, bz]
 static const uint16_t NL = N - NATT;  // Number of linear elements in the state
                                       // vector. Position and velocity:
                                       // [p_north, p_east, p_down, v_n, v_e, vd]
