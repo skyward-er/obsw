@@ -74,10 +74,10 @@ static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
 static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1800;
 
 // ------ Kalman parameters ------
-static const float SAMPLING_PERIOD = 1 / 20.0f;  // In seconds
+static const float SAMPLING_PERIOD = ADA_UPDATE_PERIOD / 1000.0f; // in seconds
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
-// to make it more respondive during the propulsive phase
+// to make it more responsive during the propulsive phase
 static const float KALMAN_INITIAL_ACCELERATION = -500;
 
 // kalman dimensions
