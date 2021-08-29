@@ -53,24 +53,27 @@ public:
     /**
      * @brief EKF correction of the barometer data.
      *
-     * @param y Pressure read from the barometer [Pa].
+     * @param y Pressure read from the barometer [Pa]
+     * @param ref_press Pressure at ground level [Pa]
+     * @param ref_temp Temperature at ground level [Kelvin]
      */
-    void correctBaro(const float& y);
+    void correctBaro(const float y);
 
     /**
      * @brief EKF correction of the gps readings.
      *
      * @param y 4x1 Vector of the gps readings [longitude, latitude,
      * gps_nord_vel, gps_east_vel].
+     * @param sats_num Number of satellites available
      */
-    void correctGPS(const Vector4f& y);
+    void correctGPS(const Vector4f& y, const uint8_t sats_num);
 
     /**
      * @brief Prediction step of the Multiplicative EKF.
      *
      * @param u 3x1 Vector of the gyroscope readings [wx wy wz].
      */
-    void predict_MEKF(const Vector3f& u);
+    void predictMEKF(const Vector3f& u);
 
     /**
      * @brief MEKF correction of the magnetometer readings.

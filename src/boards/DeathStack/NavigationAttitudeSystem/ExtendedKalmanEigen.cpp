@@ -34,9 +34,11 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
     eye3.setIdentity();
     eye2.setIdentity();
 
+    // clang-format off
+
     R_bar << SIGMA_BAR;
     R_mag << SIGMA_MAG * eye3;
-    R_gps << eye4 * SIGMA_GPS / SATS;
+    R_gps << eye4 * SIGMA_GPS / SATS_NUM;
     Q_mag << (SIGMA_W * SIGMA_W * T +
               (1.0F / 3.0F) * SIGMA_BETA * SIGMA_BETA * T * T * T) *
                  eye3,
@@ -56,23 +58,29 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
     Q_vel = eye3 * SIGMA_VEL;
     Q_lin << Q_pos, MatrixXf::Zero(3, NL - 3), MatrixXf::Zero(3, 3), Q_vel;
 
-    F << 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F,
-        0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, MatrixXf::Zero(3, NL);
+    F << 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 
+         0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F,
+         0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 
+         MatrixXf::Zero(3, NL);
     F   = eye6 + T * F;
     Ftr = F.transpose();
 
-    H_gps << 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F,
-        0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F,
-        0.0F;
+    H_gps << 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 
+             0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 
+             0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 
+             0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F;
     H_gpstr = H_gps.transpose();
 
     Fatt << -eye3, -eye3 * T, Matrix3f::Zero(3, 3), eye3;
     Fatttr = Fatt.transpose();
 
-    Gatt << -eye3, Matrix3f::Zero(3, 3), Matrix3f::Zero(3, 3), eye3;
+    Gatt << -eye3, Matrix3f::Zero(3, 3), 
+            Matrix3f::Zero(3, 3), eye3;
     Gatttr = Gatt.transpose();
 
     g << 0.0F, 0.0F, aeroutils::constants::g;
+
+    // clang-format on
 }
 
 void ExtendedKalmanEigen::predict(const Vector3f& u)
@@ -110,7 +118,7 @@ void ExtendedKalmanEigen::predict(const Vector3f& u)
     x = x + T * x_dot;
 }
 
-void ExtendedKalmanEigen::correctBaro(const float& y)
+void ExtendedKalmanEigen::correctBaro(const float y)
 {
     Matrix<float, NL, NBAR> K_bar;
     Matrix<float, NBAR, NL> H_bar;
@@ -118,13 +126,13 @@ void ExtendedKalmanEigen::correctBaro(const float& y)
 
     Plin = P.block<NL, NL>(0, 0);
 
-    float temp = aeroutils::mslTemperature(T0, x(2));
+    float temp = aeroutils::mslTemperature(MSL_TEMPERATURE, x(2));
+    float p = aeroutils::constants::a * aeroutils::constants::n * MSL_PRESSURE *
+              powf(1 - aeroutils::constants::a * x(2) / temp,
+                   -aeroutils::constants::n - 1) /
+              temp;
 
-    H_bar << 0.0F, 0.0F,
-        aeroutils::constants::a * aeroutils::constants::n * P0 *
-            powf(1 - aeroutils::constants::a * x(2) / temp,
-                 -aeroutils::constants::n - 1) /
-            temp,
+    H_bar << 0.0F, 0.0F, p,
         MatrixXf::Zero(1, N - 3 - NATT);  // Gradient of h_bar
 
     S_bar = H_bar * Plin * H_bar.transpose() + R_bar;
@@ -133,14 +141,14 @@ void ExtendedKalmanEigen::correctBaro(const float& y)
 
     P.block<NL, NL>(0, 0) = (eye6 - K_bar * H_bar) * Plin;
 
-    float h_bar = aeroutils::mslPressure(P0, T0, x(2));
+    float h_bar = aeroutils::mslPressure(MSL_PRESSURE, MSL_TEMPERATURE, x(2));
 
     x.head(NL) = x.head(NL) + K_bar * (y - h_bar);
 
     // float res_bar = y - h_bar;
 }
 
-void ExtendedKalmanEigen::correctGPS(const Vector4f& y)
+void ExtendedKalmanEigen::correctGPS(const Vector4f& y, const uint8_t sats_num)
 {
     Matrix<float, NGPS, 1> h_gps;
     Matrix<float, NL, NGPS> K_gps;
@@ -148,10 +156,12 @@ void ExtendedKalmanEigen::correctGPS(const Vector4f& y)
     Matrix<float, NGPS, NGPS> S_gps;
 
     // Convert lon-lat to x_nord and y_est
-    float xnord = y(0) * RAD;
-    float yest  = y(1) * RAD;
+    float xnord = y(0) * EARTH_RADIUS;
+    float yest  = y(1) * EARTH_RADIUS;
 
     Matrix<float, NGPS, 1> yned(xnord, yest, y(2), y(3));
+
+    R_gps = eye4 * SIGMA_GPS / sqrtf(sats_num);
 
     Plin = P.block<NL, NL>(0, 0);
 
@@ -172,9 +182,10 @@ const VectorNf& ExtendedKalmanEigen::getState() { return x; }
 
 void ExtendedKalmanEigen::setX(const VectorNf& x) { this->x = x; }
 
-// MULTIPLICATIVE EXTENDED KALMAN FILTER
-
-void ExtendedKalmanEigen::predict_MEKF(const Vector3f& u)
+/*
+    MULTIPLICATIVE EXTENDED KALMAN FILTER
+*/
+void ExtendedKalmanEigen::predictMEKF(const Vector3f& u)
 {
     Vector3f omega;
     Vector3f prev_bias;
