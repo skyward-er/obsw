@@ -52,13 +52,29 @@ void NASCalibrator::addMagSample(float x, float y, float z)
     mag_z_stats.add(z);
 }
 
+void NASCalibrator::setReferenceTemperature(float t)
+{
+    ref_values.ref_temperature = t;
+    ref_temperature_set        = true;
+}
+
+void NASCalibrator::setReferenceCoordinates(float lat, float lon)
+{
+    ref_values.ref_latitude  = lat;
+    ref_values.ref_longitude = lon;
+    ref_coordinates_set      = true;
+}
+
 bool NASCalibrator::calibIsComplete()
 {
     // Calibration is complete if enough samples were collected
     return pressure_stats.getStats().nSamples >= n_samples &&
-           gps_lat_stats.getStats().nSamples >= n_samples &&
+           // either enough gps samples or coordinates set via TC
+           (gps_lat_stats.getStats().nSamples >= n_samples ||
+            ref_coordinates_set == true) &&
            accel_x_stats.getStats().nSamples >= n_samples &&
-           mag_x_stats.getStats().nSamples >= n_samples;
+           mag_x_stats.getStats().nSamples >= n_samples &&
+           ref_temperature_set == true;
 }
 
 void NASCalibrator::reset()
@@ -79,15 +95,20 @@ NASReferenceValues NASCalibrator::getReferenceValues()
     // If calibration is not complete use default values
     if (calibIsComplete())
     {
-        ref_values.ref_pressure  = pressure_stats.getStats().mean;
-        ref_values.ref_latitude  = gps_lat_stats.getStats().mean;
-        ref_values.ref_longitude = gps_lon_stats.getStats().mean;
-        ref_values.ref_accel_x   = accel_x_stats.getStats().mean;
-        ref_values.ref_accel_y   = accel_y_stats.getStats().mean;
-        ref_values.ref_accel_z   = accel_z_stats.getStats().mean;
-        ref_values.ref_mag_x     = mag_x_stats.getStats().mean;
-        ref_values.ref_mag_y     = mag_y_stats.getStats().mean;
-        ref_values.ref_mag_z     = mag_z_stats.getStats().mean;
+        ref_values.ref_pressure = pressure_stats.getStats().mean;
+
+        if (!ref_coordinates_set)
+        {
+            ref_values.ref_latitude  = gps_lat_stats.getStats().mean;
+            ref_values.ref_longitude = gps_lon_stats.getStats().mean;
+        }
+
+        ref_values.ref_accel_x = accel_x_stats.getStats().mean;
+        ref_values.ref_accel_y = accel_y_stats.getStats().mean;
+        ref_values.ref_accel_z = accel_z_stats.getStats().mean;
+        ref_values.ref_mag_x   = mag_x_stats.getStats().mean;
+        ref_values.ref_mag_y   = mag_y_stats.getStats().mean;
+        ref_values.ref_mag_z   = mag_z_stats.getStats().mean;
     }
 
     return ref_values;

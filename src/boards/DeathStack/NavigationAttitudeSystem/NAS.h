@@ -120,7 +120,7 @@ private:
     uint64_t last_mag_timestamp   = 0;
     uint64_t last_press_timestamp = 0;
 
-    float pz_init;
+    float z_init;  // initial altitude (msl)
 
     bool initialized = false;
 
@@ -141,8 +141,7 @@ NAS<IMU, Press, GPS>::NAS(Sensor<IMU>& imu, Sensor<Press>& baro,
 template <typename IMU, typename Press, typename GPS>
 bool NAS<IMU, Press, GPS>::init()
 {
-    states_init.positionInit(ref_values.ref_latitude - LAT0,
-                             ref_values.ref_longitude - LON0,
+    states_init.positionInit(ref_values.ref_latitude, ref_values.ref_longitude,
                              ref_values.ref_pressure);
 
     states_init.velocityInit();
@@ -160,7 +159,7 @@ bool NAS<IMU, Press, GPS>::init()
 
     filter.setX(x);
 
-    pz_init = x(2);
+    z_init = x(2);
 
 #ifdef DEBUG
     Vector4f qua(x(6), x(7), x(8), x(9));
@@ -201,9 +200,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     GPS gps_data        = gps.getLastSample();
     Press pressure_data = barometer.getLastSample();
 
-    // check if new accel and gyro data is available
-    if (imu_data.accel_timestamp > last_accel_timestamp &&
-        imu_data.gyro_timestamp > last_gyro_timestamp)
+    // update ekf with new accel and gyro measures
     {
         last_accel_timestamp = imu_data.accel_timestamp;
         last_gyro_timestamp  = imu_data.gyro_timestamp;
@@ -214,7 +211,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 
         Vector3f gyro_readings(imu_data.gyro_x, imu_data.gyro_y,
                                imu_data.gyro_z);
-        filter.predict_MEKF(gyro_readings);
+        filter.predictMEKF(gyro_readings);
     }
 
     // check if new pressure data is available
@@ -230,10 +227,12 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     {
         last_gps_timestamp = gps_data.gps_timestamp;
 
-        Vector4f gps_readings(gps_data.longitude - LON0,
-                              gps_data.latitude - LAT0, gps_data.velocity_north,
-                              gps_data.velocity_east);
-        filter.correctGPS(gps_readings);
+        // float delta_lon = gps_data.longitude - ref_values.ref_longitude;
+        // float delta_lat = gps_data.latitude - ref_values.ref_latitude;
+
+        Vector4f gps_readings(gps_data.longitude, gps_data.latitude,
+                              gps_data.velocity_north, gps_data.velocity_east);
+        filter.correctGPS(gps_readings, gps_data.num_satellites);
     }
 
     // check if new magnetometer data is available
@@ -258,8 +257,8 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     nas_data.x = x(0);
     nas_data.y = x(1);
     nas_data.z =
-        -x(2) - pz_init;  // Negative sign because we're working in the NED
-                          // frame but we want a positive altitude as output.
+        -x(2) - z_init;  // Negative sign because we're working in the NED
+                // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
     nas_data.vz = -x(5);
@@ -270,7 +269,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 #ifdef DEBUG
     if (counter == 50)
     {
-        // TRACE("[NAS] x(2) : %.2f - pz_init : %.2f \n", x(2), pz_init);
+        // TRACE("[NAS] x(2) : %.2f - z_init : %.2f \n", x(2), z_init);
         LOG_DEBUG(log, "z : {:.2f} - vz : {:.2f} - vMod : {:.2f}", nas_data.z,
                   nas_data.vz, nas_data.vMod);
 
@@ -327,13 +326,13 @@ void NAS<IMU, Press, GPS>::setReferenceValues(const NASReferenceValues& ref_v)
 template <typename IMU, typename Press, typename GPS>
 const NASReferenceValues& NAS<IMU, Press, GPS>::getReferenceValues()
 {
-    return this->ref_values;
+    return ref_values;
 }
 
 template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::resetReferenceValues()
 {
-    this->ref_values = NASReferenceValues{};
+    ref_values = NASReferenceValues{};
 }
 
 template <typename IMU, typename Press, typename GPS>

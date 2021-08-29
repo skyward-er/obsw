@@ -145,7 +145,7 @@ public:
         try
         {
             logger->start();
-            LOG_INFO(log, "Logger started ");
+            LOG_INFO(log, "Logger started");
         }
         catch (const std::runtime_error& re)
         {

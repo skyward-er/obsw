@@ -59,6 +59,17 @@ public:
     void addMagSample(float x, float y, float z);
 
     /**
+     * @brief Set temperature of the launch location
+     */
+    void setReferenceTemperature(float t);
+
+
+    /**
+     * @brief Set latitude/longitude of the launchpad
+     */
+    void setReferenceCoordinates(float lat, float lon);
+
+    /**
      * @brief Reset stats
      */
     void reset();
@@ -84,8 +95,8 @@ private:
     Stats mag_z_stats;
 
     // Refernece flags
-    // bool ref_alt_set  = false;
-    // bool ref_temp_set = false;
+    bool ref_coordinates_set  = false;
+    bool ref_temperature_set = false;
 };
 
 }  // namespace DeathStackBoard

@@ -169,6 +169,8 @@ struct NASReferenceValues
 {
     float ref_pressure;
 
+    float ref_temperature;
+
     float ref_latitude;
     float ref_longitude;
 
@@ -182,20 +184,23 @@ struct NASReferenceValues
 
     static std::string header()
     {
-        return "ref_pressure,ref_latitude,ref_longitude,ref_accel_x,ref_accel_"
-               "y,ref_accel_z,ref_mag_x,ref_mag_y,ref_mag_z\n";
+        return "ref_pressure,ref_temperature,ref_latitude,ref_longitude,ref_"
+               "accel_x,ref_accel_y,ref_accel_z,ref_mag_x,ref_mag_y,ref_mag_"
+               "z\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << ref_pressure << "," << ref_latitude << "," << ref_longitude << ","
-           << ref_accel_x << "," << ref_accel_y << "," << ref_accel_z << ","
-           << ref_mag_x << "," << ref_mag_y << "," << ref_mag_z << "\n";
+        os << ref_pressure << "," << ref_temperature << "," << ref_latitude
+           << "," << ref_longitude << "," << ref_accel_x << "," << ref_accel_y
+           << "," << ref_accel_z << "," << ref_mag_x << "," << ref_mag_y << ","
+           << ref_mag_z << "\n";
     }
 
     bool operator==(const NASReferenceValues& other) const
     {
         return ref_pressure == other.ref_pressure &&
+               ref_temperature == other.ref_temperature &&
                ref_latitude == other.ref_latitude &&
                ref_longitude == other.ref_longitude &&
                ref_accel_x == other.ref_accel_x &&
