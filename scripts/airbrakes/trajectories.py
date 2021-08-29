@@ -25,9 +25,9 @@ with open(outfilename, "w") as f:
 
     f.write("const trajectory_t TRAJECTORIES_DATA[TOT_TRAJECTORIES] = {\n")
     for trajectory in trajectories:
-        zs, vzs, xs, vxs, ys, vys, sbar = trajectory
+        zs, vzs, xs, vxs, ys, vys = trajectory
         f.write("\t{\n")
-        f.write("\t\t%d, %d,\n\t\t{\n" % (len(zs), sbar))
+        f.write("\t\t%d, \n\t\t{\n" % (len(zs)))
         for z, vz in zip(zs, vzs):
             f.write("\t\t\t{%f, %f},\n" % (z, vz))
         f.write("\t\t}\n\t},\n")
