@@ -26,25 +26,19 @@ namespace DeathStackBoard
 {
 
 /**
- * @brief Pid proportional and integral controller with saturation
+ * @brief Proportional and integral controller with saturation.
  * */
-class Pid
+class PIController
 {
-private:
-    const float Kp;
-    const float Ki;
-
-    float i         = 0;
-    bool saturation = false;
 
 public:
-    Pid(float Kp, float Ki) : Kp(Kp), Ki(Ki) {}
-    ~Pid() {}
+    PIController(float Kp, float Ki) : Kp(Kp), Ki(Ki) {}
+    ~PIController() {}
 
     /**
-     * @brief Update the Pid internal state
+     * @brief Update the PI internal state.
      * */
-    float step(float umin, float umax, float error)
+    float update(float error)
     {
 
         float p = Kp * error;
@@ -56,6 +50,14 @@ public:
 
         float u = p + i;
 
+        return u;
+    }
+
+    /**
+     * @brief Anti-windup mechanism.
+     * */
+    float antiWindUp(float u, float umin, float umax)
+    {
         if (u < umin)
         {
             u          = umin;
@@ -73,6 +75,12 @@ public:
 
         return u;
     }
+
+private:
+    const float Kp;       // proportional factor
+    const float Ki;       // integral factor
+    float i         = 0;  // integral contribution
+    bool saturation = false;
 };
 
 }  // namespace DeathStackBoard

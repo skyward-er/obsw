@@ -23,7 +23,7 @@
 #pragma once
 
 #include <AirBrakes/AirBrakesData.h>
-#include <AirBrakes/Pid.h>
+#include <AirBrakes/PID.h>
 #include <AirBrakes/trajectories/Trajectory.h>
 #include <Algorithm.h>
 #include <LoggerService/LoggerService.h>
@@ -65,6 +65,8 @@ class AirBrakesControlAlgorithm : public Algorithm
 
 public:
     AirBrakesControlAlgorithm(Sensor<T>& sensor, ServoInterface* actuator);
+
+    float getEstimatedCd() { return ab_data.estimated_cd; }
 
     bool init() override { return true; }
 
@@ -137,19 +139,21 @@ public:
      * @brief Update Pid internal input. The Pid output represents represents
      * the drag force of the wind.
      *
+     * @param z         Current rocket's altitude
      * @param vz        The z component of the rocket's speed
-     * @param vMod      Modulo of the rocket's speed
+     * @param vMod     Modulo of the rocket's speed
      * @param rho       The density of the air
      * @param setpoint  Nearest point to the current rocket input in the chosen
      * trajectory
      */
-    float pidStep(float vz, float vMod, float rho, TrajectoryPoint setpoint);
+    float pidStep(float z, float vz, float vMod, float rho,
+                  TrajectoryPoint setpoint);
 
     /**
      * @brief Compute the necessary airbrakes surface to match the
-     *    given the drag force from the Pid. The possible deltaS values are
-     *    discretized in (DELTA_S_AVAILABLE_MIN, DELTA_S_AVAILABLE_MAX) with a
-     * step of DELTA_S_AVAILABLE_STEP. For every possible deltaS the
+     * given the drag force from the Pid. The possible surface values are
+     * discretized in (S_MIN, S_MAX) with a
+     * step of S_STEP. For every possible deltaS the
      * correspondig drag force is computed with @see getDrag method and the one
      * that gives lowest error with respect to Pid output is returned.
      *
@@ -159,15 +163,15 @@ public:
      * @param rho   The density of the air
      * @param u     The current pid value
      */
-    float getDeltaS(float z, float vz, float vMod, float rho, float u);
+    float getSurface(float z, float vz, float vMod, float rho, float u);
 
     /**
      * @brief Maps the exposed airbrakes surface to servoInterface angle in
-     * radiants.
+     * degrees.
      *
-     * @param deltas    Total variation of the airbrakes surface
+     * @param s    Airbrakes surface
      */
-    float getAlpha(float deltaS);
+    float getAlpha(float s);
 
     /**
      * @param h     The current altitude
@@ -176,33 +180,36 @@ public:
     float getRho(float h);
 
     /**
-     * @param v_mod    Modulo of the current rocket speed.
+     * @param vMod    Modulo of the current rocket speed.
      * @param z        The z component of the rocket's speed
      * @return The speed in Mach unit.
      */
-    float getMach(float v_mod, float z);
+    float getMach(float vMod, float z);
 
     /**
-     * @param deltaS    The total variation of the airbrakes surface
+     * @param s    Airbrakes surface
      * @return The radial distance of the current airbrakes extension.
      */
-    float getExtension(float deltaS);
+    float getExtension(float s);
 
     /**
-     * @param h         The current altitude of the rocket
-     * @param s
-     * @param powMach   Array containing precomputed powers of the mach
+     * @param v   Rocket's velocity module
+     * @param h   The current altitude of the rocket
+     * @param s   Airbrakes surface
      * @return The drag force coefficient
      */
-    float getDrag(float h, float s, float* powMach);
+    float getDrag(float v, float h, float s);
 
     /**
      * @brief Log algorithm data structure
      *
      */
-    void logAlgorithmData(T input);
+    void logAlgorithmData(T input, uint64_t t);
 
-    void logAirbrakesData();
+    /**
+     * @brief Log airbrakes data structure
+     */
+    void logAirbrakesData(uint64_t t);
 
 private:
     int indexMinVal = 0;
@@ -211,7 +218,7 @@ private:
     Trajectory chosenTrajectory;
     ServoInterface* actuator;
     Sensor<T>& sensor;
-    Pid pid;
+    PIController pid;
 
     AirBrakesAlgorithmData algo_data;
     AirBrakesData ab_data;
@@ -262,8 +269,9 @@ void AirBrakesControlAlgorithm<T>::step()
 
     actuator->set(alpha, true);
 
-    logAlgorithmData(input);
-    logAirbrakesData();
+    uint64_t t = TimestampTimer::getTimestamp();
+    logAlgorithmData(input, t);
+    logAirbrakesData(t);
 }
 
 template <class T>
@@ -285,9 +293,9 @@ float AirBrakesControlAlgorithm<T>::computeAlpha(T input, bool firstIteration)
         setpoint = getSetpoint(z, vz);
     }
 
-    float u      = pidStep(vz, vMod, rho, setpoint);
-    float deltaS = getDeltaS(z, vz, vMod, rho, u);
-    float alpha  = getAlpha(deltaS);
+    float u     = pidStep(z, vz, vMod, rho, setpoint);
+    float s     = getSurface(z, vz, vMod, rho, u);
+    float alpha = getAlpha(s);
 
     return alpha;
 }
@@ -303,18 +311,18 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::chooseTrajectory(float z,
     for (uint8_t trajectoryIndex = 0; trajectoryIndex < TOT_TRAJECTORIES;
          trajectoryIndex++)
     {
+        Trajectory trajectory(trajectoryIndex, S_MAX);
 
-        Trajectory trajectory(trajectoryIndex, DELTA_S_AVAILABLE_MAX);
-
-        for (uint32_t pointIndex = 0; pointIndex < trajectory.length() /*LOOKS*/; pointIndex++)
+        for (uint32_t pointIndex = 0; pointIndex < trajectory.length();
+             pointIndex++)
         {
             TrajectoryPoint ref = trajectory.get(pointIndex);
-            float distancesFromCurrentinput =
+            float distanceFromCurrentinput =
                 TrajectoryPoint::distance(ref, currentPoint);
 
-            if (distancesFromCurrentinput < bestMin)
+            if (distanceFromCurrentinput < bestMin)
             {
-                bestMin          = distancesFromCurrentinput;
+                bestMin          = distanceFromCurrentinput;
                 indexMinVal      = pointIndex;
                 chosenTrajectory = trajectory;
             }
@@ -356,71 +364,72 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
 
     TrajectoryPoint setpoint = chosenTrajectory.get(indexMinVal);
 
+    ab_data.setpoint_z  = setpoint.getZ();
+    ab_data.setpoint_vz = setpoint.getVz();
+
     return setpoint;
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::pidStep(float vz, float vMod, float rho,
-                                            TrajectoryPoint setpoint)
+float AirBrakesControlAlgorithm<T>::pidStep(float z, float vz, float vMod,
+                                            float rho, TrajectoryPoint setpoint)
 {
-    float umin = 0;
-    // The *1 factor replaces the cd variable. This variable will be later
-    // calculated in the getDeltaS method.
-    float umax  = 0.5 * rho * S0 * 1 * vz * vMod;
-    float error = (vz - setpoint.getVz());
+    // cd minimum if abk surface is 0
+    float cd_min = getDrag(vMod, z, 0);
+    // cd maximum if abk surface is maximum
+    float cd_max = getDrag(vMod, z, S_MAX);
 
+    float u_min = 0.5 * rho * cd_min * S0 * vz * vMod;
+    float u_max = 0.5 * rho * cd_max * S0 * vz * vMod;
+
+    // get reference CD and control action, according to the chosen trajectory
+    float cd_ref = getDrag(vMod, z, chosenTrajectory.getRefSurface());
+    float u_ref  = 0.5 * rho * cd_ref * S0 * vz * vMod;
+
+    float error       = vz - setpoint.getVz();
     ab_data.pid_error = error;
 
-    float u = pid.step(umin, umax, error);
+    // update PI controller
+    float u = pid.update(error);
+    u       = u + u_ref;
+    u       = pid.antiWindUp(u, u_min, u_max);
 
     return u;
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::getDeltaS(float z, float vz, float vMod,
-                                              float rho, float u)
+float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
+                                               float rho, float u)
 {
-    float deltaS    = 0;
-    float bestValue = INFINITY;
-
-    float mach = getMach(vMod, z);
-    // Precomputes all the powers of mach (from 0 to 6) in order to reuse it
-    // at avery iteration of the deltaSAvailable loop.
-    // See getDrag method.
-    float powMach[7] = {1,
-                        mach,
-                        powf(mach, 2),
-                        powf(mach, 3),
-                        powf(mach, 4),
-                        powf(mach, 5),
-                        powf(mach, 6)};
-
     float estimatedCd = 0;
-    for (float deltaSAvailable = DELTA_S_AVAILABLE_MIN;
-         deltaSAvailable < DELTA_S_AVAILABLE_MAX + DELTA_S_AVAILABLE_STEP;
-         deltaSAvailable += DELTA_S_AVAILABLE_STEP)
+    float selectedS   = 0;
+    float bestDu      = INFINITY;
+
+    for (float s = S_MIN; s < S_MAX + S_STEP; s += S_STEP)
     {
-        float cdAvaliable = getDrag(z, deltaSAvailable, powMach);
-        float temp        = abs(u - 0.5 * rho * S0 * cdAvaliable * vz * vMod);
-        if (temp < bestValue)
+        float cd = getDrag(vMod, z, s);
+        float du = abs(u - (0.5 * rho * S0 * cd * vz * vMod));
+
+        if (du < bestDu)
         {
-            bestValue   = temp;
-            deltaS      = deltaSAvailable;
-            estimatedCd = cdAvaliable;
+            bestDu      = du;
+            selectedS   = s;
+            estimatedCd = cd;
         }
     }
 
     ab_data.estimated_cd = estimatedCd;
 
-    return deltaS;
+    return selectedS;
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::getAlpha(float deltaS)
+float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 {
     float alphaRadiants =
-        (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * deltaS)) /
+        (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
         (2 * A_DELTAS);
+
     float alphaDegrees = alphaRadiants * 180.0f / PI;
 
     return alphaDegrees;
@@ -433,22 +442,32 @@ float AirBrakesControlAlgorithm<T>::getRho(float h)
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::getMach(float v_mod, float z)
+float AirBrakesControlAlgorithm<T>::getMach(float vMod, float z)
 {
     float c = Co + ALPHA * z;
-    return v_mod / c;
+    return vMod / c;
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::getExtension(float deltaS)
+float AirBrakesControlAlgorithm<T>::getExtension(float s)
 {
-    return (-B + sqrtf(powf(B, 2) + 4 * A * deltaS)) / (2 * A);
+    return (-B + sqrtf(powf(B, 2) + 4 * A * s)) / (2 * A);
 }
 
 template <class T>
-float AirBrakesControlAlgorithm<T>::getDrag(float h, float s, float* powMach)
+float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
 {
     float x = getExtension(s);
+
+    float mach = getMach(v, h);
+
+    float powMach[7] = {1,
+                        mach,
+                        powf(mach, 2),
+                        powf(mach, 3),
+                        powf(mach, 4),
+                        powf(mach, 5),
+                        powf(mach, 6)};
 
     return coeffs.n000 + coeffs.n100 * powMach[1] + coeffs.n200 * powMach[2] +
            coeffs.n300 * powMach[3] + coeffs.n400 * powMach[4] +
@@ -467,10 +486,10 @@ float AirBrakesControlAlgorithm<T>::getDrag(float h, float s, float* powMach)
 }
 
 template <class T>
-void AirBrakesControlAlgorithm<T>::logAlgorithmData(T input)
+void AirBrakesControlAlgorithm<T>::logAlgorithmData(T input, uint64_t t)
 {
     AirBrakesAlgorithmData d;
-    d.timestamp = input.timestamp;
+    d.timestamp = t;
     d.z         = input.z;
     d.vz        = input.vz;
     d.vMod      = input.vMod;
@@ -478,14 +497,15 @@ void AirBrakesControlAlgorithm<T>::logAlgorithmData(T input)
 }
 
 template <class T>
-void AirBrakesControlAlgorithm<T>::logAirbrakesData()
+void AirBrakesControlAlgorithm<T>::logAirbrakesData(uint64_t t)
 {
-    AirBrakesData abdata;
-    abdata.timestamp      = TimestampTimer::getTimestamp();
-    abdata.servo_position = actuator->getCurrentPosition();
-    // estimated_cd inserted when computing the new alpha (in getDrag())
+    ab_data.timestamp      = t;
+    ab_data.servo_position = actuator->getCurrentPosition();
+    // estimated_cd set when computing the new alpha (in getDrag())
     // pid_error inserted when computing the new alpha (in pidStep())
-    logger.log(abdata);
+    // setpoint z and vz inserted when computing the new setpoint (in
+    // getSetpoint())
+    logger.log(ab_data);
 }
 
 }  // namespace DeathStackBoard

@@ -32,20 +32,25 @@ namespace DeathStackBoard
 class Trajectory
 {
 private:
-    uint8_t index;
-    float s_bar;  // fixed area for trajectory generation
-                  // if error = 0, this is the needed airbrakes area
+    uint8_t index;  // trajectory id, from 0 to 9, generated with openings from
+                    // 10% to 90%
+    float s_bar;    // fixed area for trajectory generation
+                    // if error = 0, this is the needed airbrakes area
 
 public:
-    Trajectory(uint8_t index, float delta_s_max)
-        : index(index), s_bar(TRAJECTORIES_DATA[index].s_bar_perc * delta_s_max)
+    Trajectory(uint8_t index, float s_max)
+        : index(index),
+          // (index + 1) / 10 : airbrakes opening percentage, from 0.1 to 0.9
+          s_bar(((index + 1) / 10.0f) * s_max)
     {
     }
-    Trajectory() : index(0) {}
+
+    Trajectory() : index(0), s_bar(0.0f) {}
 
     Trajectory& operator=(const Trajectory& other)
     {
         this->index = other.index;
+        this->s_bar = other.s_bar;
         return *this;
     }
 
@@ -59,7 +64,7 @@ public:
 
     uint8_t getTrajectoryIndex() { return index; }
 
-    float getSBar() { return s_bar; }
+    float getRefSurface() { return s_bar; }
 };
 
 }  // namespace DeathStackBoard

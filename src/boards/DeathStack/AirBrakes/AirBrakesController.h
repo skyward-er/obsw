@@ -64,6 +64,8 @@ public:
 
     void setAirBrakesPosition(float pos);
 
+    float getEstimatedCd() { return algorithm.getEstimatedCd(); }
+
 private:
     /**
      * @brief Incrementally opens the servo with steps of 10°

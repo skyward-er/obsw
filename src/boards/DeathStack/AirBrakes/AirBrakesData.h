@@ -53,16 +53,18 @@ struct AirBrakesData
     float servo_position;
     float estimated_cd;
     float pid_error;
+    float setpoint_z;
+    float setpoint_vz;
 
     static std::string header()
     {
-        return "timestamp,servo_position,estimated_cd,pid_error\n";
+        return "timestamp,servo_position,estimated_cd,pid_error,setpoint_z,setpoint_vz\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << servo_position << "," << estimated_cd << ","
-           << pid_error << "\n";
+           << pid_error << "," << setpoint_z << "," << setpoint_vz << "\n";
     }
 };
 

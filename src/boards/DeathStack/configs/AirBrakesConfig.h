@@ -39,34 +39,35 @@ static const PWM::Timer AB_SERVO_TIMER{
 static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 
 // Rocket's parameters
-static constexpr float M                      = 27.0; /**< rocket's mass */
-static constexpr float D                      = 0.15; /**< rocket's diameter */
-static constexpr float S0                     = (PI * D * D) / 4.0;
-static constexpr float RHO                    = 1.225;
-static constexpr float Hn                     = 10400.0;
-static constexpr float Co                     = 340.3;
-static constexpr float ALPHA                  = -3.871e-3;
-static constexpr float A                      = -1.04034;
-static constexpr float B                      = 0.30548;
-static constexpr float A_DELTAS               = -9.43386 / 1000;
-static constexpr float B_DELTAS               = 19.86779 / 1000;
-static constexpr float DELTA_S_AVAILABLE_MIN  = 0;
-static constexpr float DELTA_S_AVAILABLE_MAX  = 0.01;
-static constexpr float DELTA_S_AVAILABLE_STEP = 0.0005;
+static constexpr float M        = 22.0; /**< rocket's mass */
+static constexpr float D        = 0.15; /**< rocket's diameter */
+static constexpr float S0       = (PI * D * D) / 4.0;
+static constexpr float RHO      = 1.225;
+static constexpr float Hn       = 10400.0;
+static constexpr float Co       = 340.3;
+static constexpr float ALPHA    = -3.871e-3;
+static constexpr float A        = -1.04034;
+static constexpr float B        = 0.30548;
+static constexpr float A_DELTAS = -9.43386 / 1000;
+static constexpr float B_DELTAS = 19.86779 / 1000;
+static constexpr float S_MIN    = 0.0;
+static constexpr float S_MAX    = 0.01;
+static constexpr float S_STEP   = 0.0005;
 
 // PID configs
-static constexpr float Kp = 50;
+static constexpr float Kp = 40;
 static constexpr float Ki = 5;
 
 // Airbrakes servo configs
-static constexpr float AB_SERVO_MAX_POS          = 50;         // deg
-static constexpr float AB_SERVO_MIN_POS          = 0;          // deg
-static constexpr float AB_SERVO_MAX_RATE         = 60 / 0.2;   // deg/s
-static constexpr float AB_SERVO_MIN_RATE         = -60 / 0.2;  // deg/s
-static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10;         // deg
+static constexpr float AB_SERVO_MAX_POS = 50.0;  // deg
+static constexpr float AB_SERVO_MIN_POS = 0.0;   // deg
+// airbrakes servo rate : datasheet says 60/0.13, increased for robustness
+static constexpr float AB_SERVO_MAX_RATE         = 15.0 / 0.1;   // deg/s
+static constexpr float AB_SERVO_MIN_RATE         = -15.0 / 0.1;  // deg/s
+static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
 
 // Control algorithm configs
-// static constexpr int LOOKS                    = 100;
+// static constexpr int LOOKS              = 150;
 static constexpr int START_INDEX_OFFSET = -1;
 static constexpr float FILTER_COEFF     = 0.85;
 #ifdef HARDWARE_IN_THE_LOOP
