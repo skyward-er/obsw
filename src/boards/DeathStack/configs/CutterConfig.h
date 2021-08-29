@@ -52,7 +52,7 @@ static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
 static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.45f;
 static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 10000;  // Hz
 static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.45f;
-static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE      = .1;
+static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE      = 0.1f;
 
 }  // namespace CutterConfig
 
