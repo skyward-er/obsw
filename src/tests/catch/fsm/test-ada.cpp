@@ -34,11 +34,11 @@
 #define private public
 #define protected public
 
-#include "ADA/ADAController.h"
-#include "Sensors/Mock/MockGPS.h"
-#include "Sensors/Mock/MockPressureSensor.h"
-#include "events/Events.h"
-#include "utils/testutils/TestHelper.h"
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <events/Events.h>
+#include <mocksensors/MockGPS.h>
+#include <mocksensors/MockPressureSensor.h>
+#include <utils/testutils/TestHelper.h>
 
 using miosix::Thread;
 using namespace DeathStackBoard;
@@ -72,8 +72,6 @@ protected:
     ADACtrl* controller;
 };
 
-TEST_CASE() {}
-
 TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from idle")
 {
     controller->transition(&ADACtrl::state_idle);
@@ -94,13 +92,6 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from calibrating")
         REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
-}
-
-TEST_CASE_METHOD(ADAControllerFixture,
-                 "Testing transitions from drogue_descent")
-{
-    controller->transition(
-        &ADAController<PressureData, GPSData>::state_drogueDescent);
 
     SECTION("EV_ADA_READY -> READY")
     {
@@ -113,16 +104,11 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from ready")
 {
     controller->transition(&ADACtrl::state_ready);
 
-    SECTION("EV_ADA_READY -> READY")
+    SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_ADA_READY},
-                                  &ADACtrl::state_ready));
+        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
+                                  &ADACtrl::state_calibrating));
     }
-}
-
-TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from ready")
-{
-    controller->transition(&ADACtrl::state_ready);
 
     SECTION("EV_LIFTOFF -> SHADOW_MODE")
     {

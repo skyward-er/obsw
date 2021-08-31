@@ -45,7 +45,7 @@ public:
      *
      * @param minPosition The minimum position possible for the Servo
      * @param maxPosition The maximum position possible for the Servo
-     * */
+     */
     ServoInterface(float minPosition, float maxPosition)
         : MIN_POS(minPosition), MAX_POS(maxPosition), RESET_POS(minPosition)
     {
@@ -57,7 +57,7 @@ public:
      * @param minPosition The minimum position possible for the Servo
      * @param maxPosition The maximum position possible for the Servo
      * @param resetPosition The reset position for the Servo
-     * */
+     */
     ServoInterface(float minPosition, float maxPosition, float resetPosition)
         : MIN_POS(minPosition), MAX_POS(maxPosition), RESET_POS(resetPosition)
     {
@@ -68,22 +68,23 @@ public:
     /**
      * @brief Enables the communication with the servo and sets it to its reset
      * position.
-     * */
+     */
     virtual void enable() = 0;
 
     /**
      * @brief Disables the communication with the servo.
-     * */
+     */
     virtual void disable() = 0;
 
     /**
-     * @brief Sends the given input to the Servo. Before sending data the input
-     * is preprocessed in order to have a physical consistent position to send
-     * to the servo. Do not override this method, but use @see{setPosition} and
-     * @see{preprocessPosition}.
+     * @brief Sends the given input to the Servo.
+     *
+     * Before sending data the input is preprocessed in order to have a physical
+     * consistent position to send to the servo. Do not override this method,
+     * but use @see{setPosition} and @see{preprocessPosition}.
      *
      * @param angle The input to be sent to the Servo
-     * */
+     */
     void set(float angle, bool preprocess = false)
     {
         if (angle > MAX_POS)
@@ -107,17 +108,17 @@ public:
 
     /**
      * @brief Sends the Servo the highest input possible
-     * */
+     */
     void setMaxPosition() { setPosition(MAX_POS); }
 
     /**
      * @brief Sends the Servo the lowest input possible
-     * */
+     */
     void setMinPosition() { setPosition(MIN_POS); }
 
     /**
      * @brief Sets servo to its reset position
-     * */
+     */
     void reset() { setPosition(RESET_POS); }
 
     /**
@@ -133,20 +134,20 @@ public:
 
 protected:
     /**
-     * @brief Sends the data to the servo
+     * @brief Sends the data to the servo.
      *
-     * @param angle Data to be sent to servo
-     * */
+     * @param angle Data to be sent to servo.
+     */
     virtual void setPosition(float angle) = 0;
 
     /**
      * @brief Applies any transformation needed to the data before actually
-     * sending it to the servo
+     * sending it to the servo.
      *
-     * @param angle Non normalized input position
+     * @param angle Non normalized input position.
      *
-     * @returns Normalized input position
-     * */
+     * @returns Normalized input position.
+     */
     virtual float preprocessPosition(float angle) { return angle; };
 
     /**

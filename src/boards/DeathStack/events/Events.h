@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-05-20 19:17:02.568028
+// Autogen date: 2021-07-29 11:34:14.327018
 
 #pragma once
 
@@ -71,6 +71,7 @@ enum Events : uint8_t
     EV_NC_OPEN_TIMEOUT,
     EV_RESET_SERVO,
     EV_SEND_HR_TM,
+    EV_SEND_HR_TM_OVER_SERIAL,
     EV_SEND_LR_TM,
     EV_SEND_SENS_TM,
     EV_SEND_TEST_TM,
@@ -92,7 +93,9 @@ enum Events : uint8_t
     EV_TC_FORCE_INIT,
     EV_TC_LAUNCH,
     EV_TC_NC_OPEN,
+    EV_TC_RADIO_TM,
     EV_TC_RESET_BOARD,
+    EV_TC_SERIAL_TM,
     EV_TC_START_SENSOR_TM,
     EV_TC_STOP_SENSOR_TM,
     EV_TC_TEST_ABK,
@@ -136,6 +139,7 @@ const std::vector<uint8_t> EVENT_LIST{
     EV_NC_OPEN_TIMEOUT,
     EV_RESET_SERVO,
     EV_SEND_HR_TM,
+    EV_SEND_HR_TM_OVER_SERIAL,
     EV_SEND_LR_TM,
     EV_SEND_SENS_TM,
     EV_SEND_TEST_TM,
@@ -157,7 +161,9 @@ const std::vector<uint8_t> EVENT_LIST{
     EV_TC_FORCE_INIT,
     EV_TC_LAUNCH,
     EV_TC_NC_OPEN,
+    EV_TC_RADIO_TM,
     EV_TC_RESET_BOARD,
+    EV_TC_SERIAL_TM,
     EV_TC_START_SENSOR_TM,
     EV_TC_STOP_SENSOR_TM,
     EV_TC_TEST_ABK,

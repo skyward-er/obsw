@@ -25,8 +25,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "AeroBrakesController/AeroBrakesData.h"
-#include "AeroBrakesController/WindData.h"
+#include "AirBrakesController/AirBrakesData.h"
+#include "AirBrakesController/WindData.h"
 #include "DeathStackStatus.h"
 #include "drivers/Xbee/APIFramesLog.h"
 #include "drivers/Xbee/XbeeStatus.h"
@@ -81,6 +81,6 @@ void registerTypes(Deserializer& ds)
     registerType<Xbee::XbeeStatus>(ds);
     registerType<DeathStackBoard::DeathStackStatus>(ds);
     registerType<MavlinkStatus>(ds);
-    registerType<AeroBrakesData>(ds);
+    registerType<AirBrakesData>(ds);
     registerType<WindData>(ds);
 }

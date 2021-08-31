@@ -22,8 +22,10 @@
 
 #pragma once
 
+#include <drivers/adc/ADS1118/ADS1118Data.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
 #include <sensors/BMX160/BMX160Data.h>
+#include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS580301BA07/MS580301BA07Data.h>
 #include <sensors/analog/battery/BatteryVoltageSensorData.h>
@@ -35,21 +37,25 @@
 #include <fstream>
 #include <iostream>
 
-#include "ADA/ADAData.h"
-#include "AeroBrakesController/AeroBrakesData.h"
-#include "AeroBrakesController/WindData.h"
+#include "ApogeeDetectionAlgorithm/ADAData.h"
+#include "AirBrakes/AirBrakesData.h"
+//#include "AirBrakes/WindData.h"
 #include "DeathStackStatus.h"
-#include "DeploymentController/DeploymentData.h"
+#include "Deployment/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
 #include "LogStats.h"
-#include "NavigationSystem/NASData.h"
+#include "Main/SensorsData.h"
+#include "NavigationAttitudeSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
-#include "Sensors/SensorStatus.h"
+#include "System/SystemData.h"
+#include "diagnostic/PrintLoggerData.h"
+#include "diagnostic/StackData.h"
 #include "drivers/Xbee/APIFramesLog.h"
 #include "drivers/Xbee/XbeeStatus.h"
 #include "drivers/mavlink/MavlinkStatus.h"
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
+#include "scheduler/TaskSchedulerData.h"
 
 // Serialized classes
 using std::ofstream;
@@ -70,21 +76,33 @@ void registerType(Deserializer& ds)
 
 void registerTypes(Deserializer& ds)
 {
+    // Disagnostic
+    registerType<TaskStatResult>(ds);
+    registerType<StackData>(ds);
+    registerType<LoggingString>(ds);
+    registerType<SystemData>(ds);
+
     // Sensors
     registerType<CurrentSensorData>(ds);
     registerType<BatteryVoltageSensorData>(ds);
     registerType<UbloxGPSData>(ds);
     registerType<BMX160Data>(ds);
-    registerType<BMX160Temerature>(ds);
+    registerType<BMX160WithCorrectionData>(ds);
+    registerType<BMX160GyroscopeCalibrationBiases>(ds);
+    registerType<BMX160Temperature>(ds);
+    registerType<BMX160FifoStats>(ds);
     registerType<MS5803Data>(ds);
     registerType<MPXHZ6130AData>(ds);
     registerType<SSCDRRN015PDAData>(ds);
     registerType<SSCDANN030PAAData>(ds);
     registerType<LIS3MDLData>(ds);
+    registerType<ADS1118Data>(ds);
+    registerType<AirSpeedPitot>(ds);
 
     // Statuses
-    registerType<AeroBrakesControllerStatus>(ds);
+    registerType<AirBrakesControllerStatus>(ds);
     registerType<DeathStackStatus>(ds);
+    registerType<SensorsStatus>(ds);
     registerType<FMMStatus>(ds);
     registerType<PinStatus>(ds);
     registerType<LogStats>(ds);
@@ -106,6 +124,7 @@ void registerTypes(Deserializer& ds)
     registerType<ADAKalmanState>(ds);
     registerType<ADAData>(ds);
     registerType<ADAReferenceValues>(ds);
+    registerType<TargetDeploymentAltitude>(ds);
 
     // NAS
     registerType<NASStatus>(ds);
@@ -114,9 +133,10 @@ void registerTypes(Deserializer& ds)
     registerType<NASTriadResult>(ds);
     registerType<NASData>(ds);
 
+    // Airbrakes
+    registerType<AirBrakesData>(ds);
+
     // Others
-    registerType<TargetDeploymentAltitude>(ds);
     registerType<EventData>(ds);
-    registerType<AeroBrakesData>(ds);
-    registerType<WindData>(ds);
+    //registerType<WindData>(ds);
 }

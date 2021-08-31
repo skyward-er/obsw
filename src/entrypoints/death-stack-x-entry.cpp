@@ -20,14 +20,12 @@
  * THE SOFTWARE.
  */
 
-#include <miosix.h>
-
-#include "DeathStack.h"
-// #include <diagnostic/PrintLogger.h>
+#include <DeathStack.h>
 #include <Debug.h>
+#include <FlightStatsRecorder/FSRController.h>
 #include <diagnostic/CpuMeter.h>
-
-#include "math/Stats.h"
+#include <math/Stats.h>
+#include <miosix.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -35,37 +33,54 @@ using namespace DeathStackBoard;
 
 int main()
 {
-    Logging::startAsyncLogger();
     PrintLogger log = Logging::getLogger("main");
+#ifndef DEBUG  // if not debugging, output to file only INFO level or higher
+    unique_ptr<LogSink> log_sink = std::make_unique<FileLogSinkBuffered>();
+    log_sink->setLevel(LOGL_INFO);
+    Logging::addLogSink(log_sink);
+#endif
 
     Stats cpu_stat;
+    StatsResult cpu_stat_res;
+    SystemData system_data;
 
-    // LOG_INFO(log, "Starting death stack...");
-    TRACE("Starting death stack...\n");
+    LOG_INFO(log, "Starting death stack...");
     // Instantiate the stack
     Thread::sleep(1000);
     DeathStack::getInstance()->start();
-    // LOG_INFO(log, "Death stack started");
-    TRACE("Death stack started\n");
+    LOG_INFO(log, "Death stack started");
+
+    LoggerService* logger_service = LoggerService::getInstance();
 
     for (;;)
     {
         Thread::sleep(1000);
-        LoggerService::getInstance()->log(
-            LoggerService::getInstance()->getLogger().getLogStats());
+        logger_service->log(logger_service->getLogger().getLogStats());
 
-        float cpu = averageCpuUtilization();
-        cpu_stat.add(cpu);
+        StackLogger::getInstance()->updateStack(THID_ENTRYPOINT);
 
-        // LOG_INFO(log, "CPU : avg: %.2f   max: %.2f   min: %.2f \n",
+        system_data.timestamp = miosix::getTick();
+        system_data.cpu_usage = averageCpuUtilization();
+        cpu_stat.add(system_data.cpu_usage);
+
+        cpu_stat_res               = cpu_stat.getStats();
+        system_data.cpu_usage_min  = cpu_stat_res.minValue;
+        system_data.cpu_usage_max  = cpu_stat_res.maxValue;
+        system_data.cpu_usage_mean = cpu_stat_res.mean;
+
+        system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
+        system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
+
+        logger_service->log(system_data);
+
+        // LOG_INFO(log, "CPU : avg: {:.2f}   max: {:.2f}   min: {:.2f}",
         //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
         //        cpu_stat.getStats().minValue);
-        /*TRACE("CPU : curr: %.2f   avg: %.2f   max: %.2f   min: %.2f \n", cpu,
-              cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
+        /*TRACE("CPU : curr: {:.2f}   avg: {:.2f}   max: {:.2f}   min: {:.2f}",
+              cpu, cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
               cpu_stat.getStats().minValue);
-        TRACE(
-            "Memory : absolute free heap : %u    current free heap : %u \n",
-            MemoryProfiling::getAbsoluteFreeHeap(),
-            MemoryProfiling::getCurrentFreeHeap());*/
+        TRACE("Memory : absolute free heap : %u    current free heap : %u",
+              MemoryProfiling::getAbsoluteFreeHeap(),
+              MemoryProfiling::getCurrentFreeHeap());*/
     }
 }

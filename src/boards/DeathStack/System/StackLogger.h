@@ -28,16 +28,21 @@
 namespace DeathStackBoard
 {
 
-// define thread ids to be used by the StackLogger
-enum HermesThreadIds : uint8_t
+/**
+ * @brief Define thread ids to be used by the StackLogger.
+ */
+enum LynxThreadIds : uint8_t
 {
     THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
-    THID_SENSOR_MANAGER,
-    THID_SENSOR_SAMPLER,
     THID_DPL_FSM,
     THID_FMM_FSM,
     THID_TMTC_FSM,
     THID_STATS_FSM,
-    THID_ADA_FSM
+    THID_ADA_FSM,
+    THID_ABK_FSM,
+    THID_NAS_FSM,
+    THID_TASK_SCHEDULER,
+    THID_CAN_BUS
 };
-}  // namespace DeathStackBoard
+
+}

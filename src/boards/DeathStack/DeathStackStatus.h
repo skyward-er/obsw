@@ -31,8 +31,8 @@ namespace DeathStackBoard
 
 enum DeathStackComponentStatus
 {
-    COMP_OK    = 0,
-    COMP_ERROR = 1
+    COMP_ERROR = 0,
+    COMP_OK    = 1
 };
 
 struct DeathStackStatus
@@ -71,4 +71,5 @@ struct DeathStackStatus
            << "\n";
     }
 };
+
 }  // namespace DeathStackBoard

@@ -22,20 +22,23 @@
 
 #pragma once
 
+#include <PinHandler/PinHandlerData.h>
+#include <configs/PinObserverConfig.h>
+#include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver.h>
-
-#include "PinHandlerData.h"
-#include "configs/PinObserverConfig.h"
 
 namespace DeathStackBoard
 {
 
-// Forward dec
+/**
+ * @brief Forward dec.
+ */
 class LoggerService;
 
 /**
  * @brief This class contains the handlers for both the launch pin (umbilical)
  * and the nosecone detachment pin.
+ *
  * It uses boardcore's PinObserver to bind these functions to the GPIO pins.
  * The handlers post an event on the EventBroker.
  */
@@ -45,13 +48,13 @@ public:
     PinHandler();
 
     /**
-     * @brief Starts the pin observer
+     * @brief Starts the pin observer.
      *
      */
     bool start() { return pin_obs.start(); }
 
     /**
-     * @brief Stops the pin observer
+     * @brief Stops the pin observer.
      *
      */
     void stop() { pin_obs.stop(); }
@@ -95,6 +98,7 @@ private:
     PinObserver pin_obs;
 
     LoggerService* logger;
+    PrintLogger log = Logging::getLogger("deathstack.pinhandler");
 };
 
 }  // namespace DeathStackBoard

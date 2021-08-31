@@ -24,16 +24,16 @@
 
 #include "math/Vec3.h"
 
-/** serial port number */
+// serial port number
 static constexpr int HIL_SERIAL_PORT_NUM = 3;
 
-/** baudrate of connection */
+// baudrate of connection
 static constexpr int HIL_BAUDRATE = 115200;
 
-/** Period of simulation in milliseconds */
+// Period of simulation in milliseconds
 static constexpr int HIL_SIMULATION_PERIOD = 100;  // 10 hz
 
-/** sample frequency of sensor (samples/second) */
+// sample frequency of sensor (samples/second)
 static constexpr int HIL_IMU_PERIOD   = 10;   // 100 hz
 static constexpr int HIL_ACCEL_PERIOD = 10;   // 100 hz
 static constexpr int HIL_GYRO_PERIOD  = 10;   // 100 hz
@@ -41,21 +41,20 @@ static constexpr int HIL_MAGN_PERIOD  = 10;   // 100 hz
 static constexpr int HIL_BARO_PERIOD  = 50;   // 20 hz
 static constexpr int HIL_GPS_PERIOD   = 100;  // 10 hz;
 
-// /** update frequency of the Navigation System */
+// // update frequency of the Navigation System
 // const int KALMAN_FREQ = 100;
-// /** update frequency of airbrakes control algorithm */
+// // update frequency of airbrakes control algorithm
 // const int CONTROL_FREQ = 10;
-// /** update frequency of airbrakes control algorithm */
+// // update frequency of airbrakes control algorithm
 // const int ADA_FREQ = 20;
 
-/** ADA configs
- * [TODO?] Prendi valori da config ADA
- */
+// ADA configs
+// [TODO?] Prendi valori da config ADA
 // const float deploymentAltitude   = 450;
 // const float referenceAltitude    = 109;  // launchpad Altitude for Pont De
 // Sor? const float referenceTemperature = 15;
 
-/** Number of samples per sensor at each simulator iteration */
+// Number of samples per sensor at each simulator iteration
 static constexpr int N_DATA_IMU   = (HIL_SIMULATION_PERIOD / HIL_IMU_PERIOD);
 static constexpr int N_DATA_ACCEL = (HIL_SIMULATION_PERIOD / HIL_ACCEL_PERIOD);
 static constexpr int N_DATA_GYRO  = (HIL_SIMULATION_PERIOD) / HIL_GYRO_PERIOD;
@@ -66,13 +65,13 @@ static constexpr int N_DATA_GPS   = (HIL_SIMULATION_PERIOD / HIL_GPS_PERIOD);
 
 /**
  * @brief Data structure used by the simulator in order to directly deserialize
- * the data received
+ * the data received.
  *
  * This structure then is accessed by sensors and other components in order to
  * get the data they need
  *
- * NOTE : all the fields contained in the struct are floats because
- *        it is the data type sent over serial by MATLAB
+ * NOTE: all the fields contained in the struct are floats because it is the
+ * data type sent over serial by MATLAB
  */
 struct SimulatorData
 {
@@ -117,7 +116,7 @@ public:
         float flag_flight;
         float flag_ascent;
         float flag_burning;
-        float flag_aerobrakes;
+        float flag_airbrakes;
         float flag_para1;
         float flag_para2;
     } flags;

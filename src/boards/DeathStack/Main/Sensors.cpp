@@ -20,19 +20,19 @@
  * THE SOFTWARE.
  */
 
-#include "Sensors.h"
-
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <DeathStack.h>
 #include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <TimestampTimer.h>
+#include <configs/SensorsConfig.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/Sensor.h>
+#include <utils/aero/AeroUtils.h>
 
 #include <functional>
 #include <utility>
-
-#include "DeathStack.h"
-#include "LoggerService/LoggerService.h"
-#include "TimestampTimer.h"
-#include "configs/SensorManagerConfig.h"
 
 using std::bind;
 using std::function;
@@ -56,22 +56,24 @@ using namespace SensorConfigs;
 Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     : spi1_bus(spi1_bus)
 {
-#ifdef HARDWARE_IN_THE_LOOP
-    hilSensorsInit();
-#else
-    // Pressure sensors
-    internalAdcInit();
+    // sensors are added to the map ordered by increasing period
+    ADS1118Init();    // 6 ms
+    pressDigiInit();  // 10 ms
+    magLISinit();
+    imuBMXInit();  // 23 ms
+    imuBMXWithCorrectionInit();
+    pressPitotInit();  // 24 ms
+    pressDPLVaneInit();
+    pressStaticInit();
+    gpsUbloxInit();     // 40 ms
+    internalAdcInit();  // 50 ms
     batteryVoltageInit();
     primaryCutterCurrentInit();
     backupCutterCurrentInit();
-    pressDigiInit();
-    ADS1118Init();
-    pressPitotInit();
-    pressDPLVaneInit();
-    pressStaticInit();
-    imuBMXInit();
-    magLISinit();
-    gpsUbloxInit();
+#ifdef HARDWARE_IN_THE_LOOP
+    hilImuInit();
+    hilBarometerInit();
+    hilGpsInit();
 #endif
 
     sensor_manager = new SensorManager(scheduler, sensors_map);
@@ -84,19 +86,19 @@ Sensors::~Sensors()
     delete hil_baro;
     delete hil_gps;
 #else
+    delete imu_bmx160;
+    delete press_digital;
+    delete gps_ublox;
+#endif
     delete internal_adc;
     delete cs_cutter_primary;
     delete cs_cutter_backup;
     delete battery_voltage;
-    delete press_digital;
     delete adc_ads1118;
     delete press_pitot;
     delete press_dpl_vane;
     delete press_static_port;
-    delete imu_bmx160;
     delete mag_lis3mdl;
-    delete gps_ublox;
-#endif
 
     sensor_manager->stop();
     delete sensor_manager;
@@ -106,13 +108,37 @@ bool Sensors::start()
 {
 #ifndef HARDWARE_IN_THE_LOOP
     GpioPin int_pin = miosix::sensors::bmx160::intr::getPin();
-
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
+
     gps_ublox->start();
 #endif
 
-    return sensor_manager->start();
+    bool sm_start_result = sensor_manager->start();
+
+    // if not init ok, set failing sensors in sensors status
+    if (!sm_start_result)
+    {
+        updateSensorsStatus();
+    }
+
+    LoggerService::getInstance()->log(status);
+
+    return sm_start_result;
+}
+
+void Sensors::calibrate()
+{
+    imu_bmx160_with_correction->calibrate();
+    LoggerService::getInstance()->log(
+        imu_bmx160_with_correction->getGyroscopeBiases());
+
+    press_pitot->calibrate();
+    // wait calibration end
+    while (press_pitot->isCalibrating())
+    {
+        Thread::sleep(10);
+    }
 }
 
 void Sensors::internalAdcInit()
@@ -127,7 +153,7 @@ void Sensors::internalAdcInit()
                     bind(&Sensors::internalAdcCallback, this), false, true);
     sensors_map.emplace(std::make_pair(internal_adc, info));
 
-    TRACE("InternalADC setup done! (%p)\n", internal_adc);
+    LOG_INFO(log, "InternalADC setup done!");
 }
 
 void Sensors::batteryVoltageInit()
@@ -142,15 +168,14 @@ void Sensors::batteryVoltageInit()
 
     sensors_map.emplace(std::make_pair(battery_voltage, info));
 
-    TRACE("Battery voltage sensor setup done! (%p)\n", battery_voltage);
+    LOG_INFO(log, "Battery voltage sensor setup done!");
 }
 
 void Sensors::primaryCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -167,16 +192,14 @@ void Sensors::primaryCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_primary, info));
 
-    TRACE("Primary cutter current sensor setup done! (%p)\n",
-          cs_cutter_primary);
+    LOG_INFO(log, "Primary cutter current sensor setup done!");
 }
 
 void Sensors::backupCutterCurrentInit()
 {
     function<ADCData()> voltage_fun(
         bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in)
-    {
+    function<float(float)> adc_to_current = [](float adc_in) {
         float current =
             CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
         if (current < 0)
@@ -193,7 +216,7 @@ void Sensors::backupCutterCurrentInit()
 
     sensors_map.emplace(std::make_pair(cs_cutter_backup, info));
 
-    TRACE("Backup cutter current sensor setup done! (%p)\n", cs_cutter_backup);
+    LOG_INFO(log, "Backup cutter current sensor setup done!");
 }
 
 void Sensors::pressDigiInit()
@@ -201,15 +224,16 @@ void Sensors::pressDigiInit()
     SPIBusConfig spi_cfg{};
     spi_cfg.clock_div = SPIClockDivider::DIV16;
 
-    press_digital = new MS580301BA07(
-        spi1_bus, miosix::sensors::ms5803::cs::getPin(), spi_cfg);
+    press_digital =
+        new MS580301BA07(spi1_bus, miosix::sensors::ms5803::cs::getPin(),
+                         spi_cfg, TEMP_DIVIDER_PRESS_DIGITAL);
 
     SensorInfo info("DigitalBarometer", SAMPLE_PERIOD_PRESS_DIGITAL,
                     bind(&Sensors::pressDigiCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_digital, info));
 
-    TRACE("MS5803 pressure sensor setup done! (%p)\n", press_digital);
+    LOG_INFO(log, "MS5803 pressure sensor setup done!");
 }
 
 void Sensors::ADS1118Init()
@@ -237,7 +261,7 @@ void Sensors::ADS1118Init()
                     bind(&Sensors::ADS1118Callback, this), false, true);
     sensors_map.emplace(std::make_pair(adc_ads1118, info));
 
-    TRACE("ADS1118 setup done! (%p)\n", adc_ads1118);
+    LOG_INFO(log, "ADS1118 setup done!");
 }
 
 void Sensors::pressPitotInit()
@@ -251,7 +275,7 @@ void Sensors::pressPitotInit()
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 
-    TRACE("Pitot pressure sensor setup done! (%p)\n", press_pitot);
+    LOG_INFO(log, "Pitot pressure sensor setup done!");
 }
 
 void Sensors::pressDPLVaneInit()
@@ -265,7 +289,7 @@ void Sensors::pressDPLVaneInit()
 
     sensors_map.emplace(std::make_pair(press_dpl_vane, info));
 
-    TRACE("DPL pressure sensor setup done! (%p)\n", press_dpl_vane);
+    LOG_INFO(log, "DPL pressure sensor setup done!");
 }
 
 void Sensors::pressStaticInit()
@@ -279,7 +303,7 @@ void Sensors::pressStaticInit()
 
     sensors_map.emplace(std::make_pair(press_static_port, info));
 
-    TRACE("Static pressure sensor setup done! (%p)\n", press_static_port);
+    LOG_INFO(log, "Static pressure sensor setup done!");
 }
 
 void Sensors::imuBMXInit()
@@ -290,7 +314,7 @@ void Sensors::imuBMXInit()
     BMX160Config bmx_config;
     bmx_config.fifo_mode      = BMX160Config::FifoMode::HEADER;
     bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
-    bmx_config.fifo_int       = BMX160Config::FifoInt::PIN_INT1;
+    bmx_config.fifo_int       = BMX160Config::FifoInterruptPin::PIN_INT1;
 
     bmx_config.temp_divider = 1;
 
@@ -301,7 +325,7 @@ void Sensors::imuBMXInit()
     bmx_config.gyr_odr = IMU_BMX_ACC_GYRO_ODR_ENUM;
     bmx_config.mag_odr = IMU_BMX_MAG_ODR_ENUM;
 
-    bmx_config.gyr_unit = BMX160Config::GyrMeasureUnit::RAD;
+    bmx_config.gyr_unit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     imu_bmx160 = new BMX160(spi1_bus, miosix::sensors::bmx160::cs::getPin(),
                             bmx_config, spi_cfg);
@@ -311,7 +335,56 @@ void Sensors::imuBMXInit()
 
     sensors_map.emplace(std::make_pair(imu_bmx160, info));
 
-    TRACE("BMX160 Setup done! (%p)\n", imu_bmx160);
+    LOG_INFO(log, "BMX160 Setup done!");
+}
+
+void Sensors::imuBMXWithCorrectionInit()
+{
+    // Read the correction parameters
+    BMX160CorrectionParameters correctionParameters =
+        BMX160WithCorrection::readCorrectionParametersFromFile(
+            BMX160_CORRECTION_PARAMETERS_FILE);
+
+    // Print the calibration parameters
+    TRACE("[Sensors] Current accelerometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.accelParams(0, 1),
+          correctionParameters.accelParams(1, 1),
+          correctionParameters.accelParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.accelParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.accelParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.accelParams(2, 0));
+    TRACE("[Sensors] Current magnetometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.magnetoParams(0, 1),
+          correctionParameters.magnetoParams(1, 1),
+          correctionParameters.magnetoParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.magnetoParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.magnetoParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.magnetoParams(2, 0));
+    TRACE(
+        "[Sensors] The current minimun number of gyroscope samples for "
+        "calibration is %d\n",
+        correctionParameters.minGyroSamplesForCalibration);
+
+    imu_bmx160_with_correction = new BMX160WithCorrection(
+        imu_bmx160, correctionParameters, BMX160_AXIS_ROTATION);
+
+    SensorInfo info("BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
+                    bind(&Sensors::imuBMXWithCorrectionCallback, this), false,
+                    true);
+
+    sensors_map.emplace(std::make_pair(imu_bmx160_with_correction, info));
+
+    LOG_INFO(log, "BMX160WithCorrection Setup done!");
 }
 
 void Sensors::magLISinit()
@@ -332,19 +405,19 @@ void Sensors::magLISinit()
 
     sensors_map.emplace(std::make_pair(mag_lis3mdl, info));
 
-    TRACE("LIS3MDL Setup done! (%p)\n", mag_lis3mdl);
+    LOG_INFO(log, "LIS3MDL Setup done!");
 }
 
 void Sensors::gpsUbloxInit()
 {
-    gps_ublox = new UbloxGPS(GPS_BAUD_RATE);
+    gps_ublox = new UbloxGPS(GPS_BAUD_RATE, GPS_SAMPLE_RATE);
 
-    SensorInfo info("UbloxGPS", SAMPLE_PERIOD_GPS,
+    SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
                     bind(&Sensors::gpsUbloxCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(gps_ublox, info));
 
-    TRACE("Ublox GPS Setup done! (%p)\n", gps_ublox);
+    LOG_INFO(log, "Ublox GPS Setup done!");
 }
 
 void Sensors::internalAdcCallback()
@@ -354,11 +427,11 @@ void Sensors::internalAdcCallback()
 
 void Sensors::batteryVoltageCallback()
 {
-    // float v = battery_voltage->getLastSample().bat_voltage;
-    // if (v < 10.0)
-    // {
-    //     LOG_WARN(log, "******* LOW BATTERY ******* \n Voltage = %.2f \n", v);
-    // }
+    float v = battery_voltage->getLastSample().bat_voltage;
+    if (v < 10.5)
+    {
+        LOG_CRIT(log, "******* LOW BATTERY ******* \n Voltage = {:02f} \n", v);
+    }
 
     LoggerService::getInstance()->log(battery_voltage->getLastSample());
 }
@@ -374,26 +447,45 @@ void Sensors::backupCutterCurrentCallback()
 }
 
 #ifdef HARDWARE_IN_THE_LOOP
-void Sensors::hilSensorsInit()
+void Sensors::hilBarometerInit()
 {
     HILTransceiver* simulator = HIL::getInstance()->simulator;
 
-    hil_imu  = new HILImu(simulator, N_DATA_IMU);
     hil_baro = new HILBarometer(simulator, N_DATA_BARO);
-    hil_gps  = new HILGps(simulator, N_DATA_GPS);
+
+    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
+                         bind(&Sensors::hilBaroCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(hil_baro, info_baro));
+
+    LOG_INFO(log, "HIL barometer setup done!");
+}
+void Sensors::hilImuInit()
+{
+    HILTransceiver* simulator = HIL::getInstance()->simulator;
+
+    hil_imu = new HILImu(simulator, N_DATA_IMU);
 
     SensorInfo info_imu("HILImu", HIL_IMU_PERIOD,
                         bind(&Sensors::hilIMUCallback, this), false, true);
-    SensorInfo info_baro("HILBaro", HIL_BARO_PERIOD,
-                         bind(&Sensors::hilBaroCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(hil_imu, info_imu));
+
+    LOG_INFO(log, "HIL IMU setup done!");
+}
+
+void Sensors::hilGpsInit()
+{
+    HILTransceiver* simulator = HIL::getInstance()->simulator;
+
+    hil_gps = new HILGps(simulator, N_DATA_GPS);
+
     SensorInfo info_gps("HILGps", HIL_GPS_PERIOD,
                         bind(&Sensors::hilGPSCallback, this), false, true);
 
-    sensors_map.emplace(std::make_pair(hil_imu, info_imu));
-    sensors_map.emplace(std::make_pair(hil_baro, info_baro));
     sensors_map.emplace(std::make_pair(hil_gps, info_gps));
 
-    TRACE("HIL Sensors setup done! \n");
+    LOG_INFO(log, "HIL GPS setup done!");
 }
 #endif
 
@@ -404,12 +496,25 @@ void Sensors::pressDigiCallback()
 
 void Sensors::ADS1118Callback()
 {
-    // LoggerService::getInstance()->log(adc_ads1118->getLastSample());
+    LoggerService::getInstance()->log(adc_ads1118->getLastSample());
 }
 
 void Sensors::pressPitotCallback()
 {
-    LoggerService::getInstance()->log(press_pitot->getLastSample());
+    SSCDRRN015PDAData d = press_pitot->getLastSample();
+    LoggerService::getInstance()->log(d);
+
+    ADAReferenceValues rv =
+        DeathStack::getInstance()
+            ->state_machines->ada_controller->getReferenceValues();
+
+    float v = sqrtf(2 * fabs(d.press) /
+                    aeroutils::relDensity(press_digital->getLastSample().press,
+                                          rv.ref_pressure, rv.ref_altitude,
+                                          rv.ref_temperature));
+
+    AirSpeedPitot aspeed_data{TimestampTimer::getTimestamp(), v};
+    LoggerService::getInstance()->log(aspeed_data);
 }
 
 void Sensors::pressDPLVaneCallback()
@@ -434,17 +539,26 @@ void Sensors::imuBMXCallback()
         LoggerService::getInstance()->log(fifo.at(i));
     }
 
+    LoggerService::getInstance()->log(imu_bmx160->getFifoStats());
+
     // static unsigned int downsample_ctr = 0;
 
     // if (downsample_ctr++ % 20 == 0)
     // {
     //     auto sample = fifo.at(0);
-    //     LOG_DEBUG_ASYNC(log.getChild("bmx160"),
+    //     LOG_INFO(log.getChild("bmx160"),
     //                     "acc xyz: {:+.3f},{:+.3f},{:+.3f} gyro xyz: "
     //                     "{:+.3f},{:+.3f},{:+.3f}",
     //                     sample.accel_x, sample.accel_y, sample.accel_z,
     //                     sample.gyro_x, sample.gyro_y, sample.gyro_z);
     // }
+}
+
+void Sensors::imuBMXWithCorrectionCallback()
+{
+
+    LoggerService::getInstance()->log(
+        imu_bmx160_with_correction->getLastSample());
 }
 
 void Sensors::magLISCallback()
@@ -456,7 +570,7 @@ void Sensors::magLISCallback()
     // if (downsample_ctr++ % 20 == 0)
     // {
     //     auto sample = mag_lis3mdl->getLastSample();
-    //     LOG_DEBUG_ASYNC(log.getChild("lis3mdl"),
+    //     LOG_INFO(log.getChild("lis3mdl"),
     //                     "mag xyzt: {:+.3f},{:+.3f},{:+.3f},{:+.3f}",
     //                     sample.mag_x, sample.mag_y, sample.mag_z,
     //                     sample.temp);
@@ -465,10 +579,6 @@ void Sensors::magLISCallback()
 
 void Sensors::gpsUbloxCallback()
 {
-    /*UbloxGPSData d = gps_ublox->getLastSample();
-    TRACE("%llu %d %f %f %u %f %f \n", d.gps_timestamp, d.fix, d.latitude,
-          d.longitude, d.num_satellites, d.speed, d.track);*/
-
     LoggerService::getInstance()->log(gps_ublox->getLastSample());
 }
 
@@ -476,8 +586,6 @@ void Sensors::gpsUbloxCallback()
 void Sensors::hilIMUCallback()
 {
     LoggerService::getInstance()->log(hil_imu->getLastSample());
-
-    // TRACE("HILImu callback \n");
 }
 void Sensors::hilBaroCallback()
 {
@@ -488,5 +596,40 @@ void Sensors::hilGPSCallback()
     LoggerService::getInstance()->log(hil_gps->getLastSample());
 }
 #endif
+
+void Sensors::updateSensorsStatus()
+{
+    SensorInfo info;
+
+    info = sensor_manager->getSensorInfo(imu_bmx160);
+    if (!info.is_initialized)
+    {
+        status.bmx160 = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(mag_lis3mdl);
+    if (!info.is_initialized)
+    {
+        status.lis3mdl = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(gps_ublox);
+    if (!info.is_initialized)
+    {
+        status.gps = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(internal_adc);
+    if (!info.is_initialized)
+    {
+        status.internal_adc = 0;
+    }
+
+    info = sensor_manager->getSensorInfo(adc_ads1118);
+    if (!info.is_initialized)
+    {
+        status.ads1118 = 0;
+    }
+}
 
 }  // namespace DeathStackBoard

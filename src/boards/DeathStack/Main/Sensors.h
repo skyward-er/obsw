@@ -28,8 +28,11 @@
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <drivers/spi/SPIBusInterface.h>
 #include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/SensorData.h>
+#include <sensors/SensorManager.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/current/CurrentSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
@@ -38,11 +41,9 @@
 
 #include <map>
 
-#include "../../../../skyward-boardcore/src/shared/sensors/SensorManager.h"
-
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
-#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#include <hardware_in_the_loop/HIL.h>
+#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
 
 namespace DeathStackBoard
@@ -69,9 +70,10 @@ public:
     SSCDANN030PAA* press_dpl_vane = nullptr;
     MPXHZ6130A* press_static_port = nullptr;
 
-    BMX160* imu_bmx160   = nullptr;
-    LIS3MDL* mag_lis3mdl = nullptr;
-    UbloxGPS* gps_ublox  = nullptr;
+    BMX160* imu_bmx160                               = nullptr;
+    BMX160WithCorrection* imu_bmx160_with_correction = nullptr;
+    LIS3MDL* mag_lis3mdl                             = nullptr;
+    UbloxGPS* gps_ublox                              = nullptr;
 
 #ifdef HARDWARE_IN_THE_LOOP
     HILImu* hil_imu        = nullptr;
@@ -84,6 +86,8 @@ public:
     ~Sensors();
 
     bool start();
+
+    void calibrate();
 
 private:
     // PrintLogger log = Logging::getLogger("deathstack.sensors");
@@ -118,6 +122,9 @@ private:
     void imuBMXInit();
     void imuBMXCallback();
 
+    void imuBMXWithCorrectionInit();
+    void imuBMXWithCorrectionCallback();
+
     void magLISinit();
     void magLISCallback();
 
@@ -125,15 +132,21 @@ private:
     void gpsUbloxCallback();
 
 #ifdef HARDWARE_IN_THE_LOOP
-    void hilSensorsInit();
+    void hilBarometerInit();
+    void hilImuInit();
+    void hilGpsInit();
     void hilIMUCallback();
     void hilBaroCallback();
     void hilGPSCallback();
 #endif
 
+    void updateSensorsStatus();
+
     SPIBusInterface& spi1_bus;
 
     SensorManager::SensorMap_t sensors_map;
+
+    SensorsStatus status;
 
     PrintLogger log = Logging::getLogger("sensors");
 };

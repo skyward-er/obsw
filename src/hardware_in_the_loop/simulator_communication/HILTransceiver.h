@@ -23,7 +23,7 @@
 #pragma once
 
 #include "ActiveObject.h"
-#include "DeathStack/Algorithm.h"
+#include "Algorithm.h"
 #include "SerialInterface.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILFlightPhasesManager.h"
@@ -91,10 +91,10 @@ public:
      *
      * @param algorithm Algorithm object to be started
      */
-    /*void setIsAerobrakePhase(bool isAerobrakePhase)
+    /*void setIsAirbrakePhase(bool isAirbrakePhase)
     {
-        this->isAerobrakePhase = isAerobrakePhase;
-        if (!isAerobrakePhase)
+        this->isAirbrakePhase = isAirbrakePhase;
+        if (!isAirbrakePhase)
         {
             actuatorData = 0;
         }
@@ -166,7 +166,7 @@ private:
     }
 
     SerialInterface *serial;
-    // bool isAerobrakePhase    = false;
+    // bool isAirbrakePhase    = false;
     bool receivedFirstPacket = false;
     bool updated             = false;
     HILFlightPhasesManager *flightPhasesManager;

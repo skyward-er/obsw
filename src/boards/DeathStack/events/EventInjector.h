@@ -21,14 +21,13 @@
  */
 
 #include <ActiveObject.h>
+#include <DeathStack.h>
 #include <events/EventBroker.h>
+#include <events/Events.h>
 
 #include <iostream>
 #include <sstream>
 #include <string>
-
-#include "DeathStack.h"
-#include "events/Events.h"
 
 using std::string;
 using std::stringstream;

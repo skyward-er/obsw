@@ -28,12 +28,12 @@
 
 #define EIGEN_NO_MALLOC  // enable eigen malloc usage assert
 
+#include <NavigationAttitudeSystem/NASController.h>
 #include <miosix.h>
+#include <mocksensors/MockSensors.h>
 
 #include <utils/testutils/catch.hpp>
 
-#include "NavigationSystem/NASController.h"
-#include "Sensors/Mock/MockSensors.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 

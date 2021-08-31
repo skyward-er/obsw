@@ -20,15 +20,14 @@
  * THE SOFTWARE.
  */
 
+#include <AirBrakes/AirBrakesServo.h>
+#include <Deployment/DeploymentServo.h>
 #include <miosix.h>
 
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
-
-#include "../../boards/DeathStack/AeroBrakesController/AeroBrakesServo.h"
-#include "../../boards/DeathStack/DeploymentController/DeploymentServo.h"
 
 using namespace std;
 using namespace DeathStackBoard;
@@ -105,7 +104,7 @@ int servoMenu()
 
     printf("\nWhat do you want to move?\n");
     printf("1. Deployment servo\n");
-    printf("2. Aerobrakes servo\n");
+    printf("2. Airbrakes servo\n");
     printf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;
@@ -152,7 +151,7 @@ void testServo()
     }
     else
     {
-        servo   = new AeroBrakesServo{};
+        servo   = new AirBrakesServo{};
         channel = AB_SERVO_PWM_CH;
     }
 

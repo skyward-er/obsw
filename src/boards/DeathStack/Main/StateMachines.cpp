@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,17 @@
  * THE SOFTWARE.
  */
 
-#include "StateMachines.h"
-
-#include "ADA/ADAController.h"
-#include "AeroBrakesController/AeroBrakesController.h"
-#include "DeploymentController/DeploymentController.h"
-#include "FlightModeManager/FlightModeManager.h"
-#include "NavigationSystem/NASController.h"
+#include <AirBrakes/AirBrakesController.h>
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <Deployment/DeploymentController.h>
+#include <FlightModeManager/FMMController.h>
+#include <FlightStatsRecorder/FSRController.h>
+#include <Main/StateMachines.h>
+#include <NavigationAttitudeSystem/NASController.h>
+#include <System/TaskID.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
+#include <hardware_in_the_loop/HIL.h>
 #endif
 
 namespace DeathStackBoard
@@ -40,8 +41,8 @@ StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,
     ada_controller = new ADAControllerType(press, gps);
     dpl_controller = new DeploymentController();
     nas_controller = new NASControllerType(imu, press, gps);
-    arb_controller = new AeroBrakesControllerType(nas_controller->getNAS());
-    fmm            = new FlightModeManager();
+    arb_controller = new AirBrakesControllerType(nas_controller->getNAS());
+    fmm            = new FMMController();
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL::getInstance()->setNAS(&nas_controller->getNAS());
@@ -52,10 +53,10 @@ StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,
 
 StateMachines::~StateMachines()
 {
-    delete arb_controller;
-    delete nas_controller;
     delete ada_controller;
     delete dpl_controller;
+    delete nas_controller;
+    delete arb_controller;
     delete fmm;
 }
 
@@ -70,21 +71,29 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
     uint64_t start_time = miosix::getTick() + 10;
 
     scheduler->add(std::bind(&ADAControllerType::update, ada_controller),
-                   ADA_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+                   ADA_UPDATE_PERIOD, TASK_ADA_ID, start_time);
 
     scheduler->add(std::bind(&NASControllerType::update, nas_controller),
-                   NAS_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+                   NAS_UPDATE_PERIOD, TASK_NAS_ID, start_time);
 
-    scheduler->add(std::bind(&AeroBrakesControllerType::update, arb_controller),
-                   ABK_UPDATE_PERIOD, scheduler->getTaskStats().back().id + 1,
-                   start_time);
+    scheduler->add(std::bind(&AirBrakesControllerType::update, arb_controller),
+                   ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
+}
+
+void StateMachines::setReferenceTemperature(float t)
+{
+    ada_controller->setReferenceTemperature(t);
+    nas_controller->setReferenceTemperature(t);
 }
 
 void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
 {
     nas_controller->setInitialOrientation(roll, pitch, yaw);
+}
+
+void StateMachines::setInitialCoordinates(float latitude, float longitude)
+{
+    nas_controller->setInitialCoordinates(latitude, longitude);
 }
 
 }  // namespace DeathStackBoard

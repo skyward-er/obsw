@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#include <Deployment/DeploymentController.h>
+#include <Deployment/DeploymentServo.h>
 #include <logger/Logger.h>
 #include <miosix.h>
 
@@ -28,8 +30,6 @@
 #include <sstream>
 #include <string>
 
-#include "DeploymentController/DeploymentController.h"
-#include "DeploymentController/DeploymentServo.h"
 #include "configs/CutterConfig.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"

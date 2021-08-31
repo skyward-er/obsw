@@ -15,12 +15,12 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-#include <FlightModeManager/FlightModeManager.h>
+#include <FlightModeManager/FMMController.h>
 #include <events/Events.h>
 #include <events/Topics.h>
 #include <events/utils/EventSniffer.h>
@@ -37,7 +37,7 @@ void printEvent(uint8_t event, uint8_t topic)
 int main()
 {
     sEventBroker->start();
-    FlightModeManager* fmm = new FlightModeManager();
+    FMMController* fmm = new FMMController();
     fmm->start();
 
     EventSniffer* sniffer =

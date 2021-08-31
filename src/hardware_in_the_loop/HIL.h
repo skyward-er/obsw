@@ -26,7 +26,7 @@
 #include "hardware_in_the_loop/HILFlightPhasesManager.h"
 #include "hardware_in_the_loop/simulator_communication/HILTransceiver.h"
 #include "hardware_in_the_loop/HILConfig.h"
-#include "NavigationSystem/NASData.h"
+#include "NavigationAttitudeSystem/NASData.h"
 
 /**
  * @brief Single interface to the hardware-in-the-loop framework.

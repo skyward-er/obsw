@@ -37,14 +37,14 @@ e.g.
   - `setActuatorData` sends the data to the simulator
   - `addNotifyToBegin` takes an *Algorithm* object as input and starts it when the first packet from the simulator is received
   - `addResetSampleCounter` takes a *HILSensor* as input (or every object that implements *HILTimestampManagement*) and notifies to it that new data has arrived from the simulator
-- `MockAerobrakeAlgorithm.h`: Example of control algorithm. Receives in the constructor a *HILSensor* (or a kalman that implements *HILSensor* as in this case) and a *ServoInterface*. The algorithm have to *getLastSample* from the sensor passed, elaborates it and then sends the output to the actuator calling his *set* method
+- `MockAirbrakeAlgorithm.h`: Example of control algorithm. Receives in the constructor a *HILSensor* (or a kalman that implements *HILSensor* as in this case) and a *ServoInterface*. The algorithm have to *getLastSample* from the sensor passed, elaborates it and then sends the output to the actuator calling his *set* method
 - `HILSensor`: Interface implemented by all the sensors and kalmans. To the constructor (templated with the type of the struct used by the sensor to store the last sample) we have to pass the reference to the *HILTransceiver* object, the *simulation period* and the *number of simulated samples* by matlab of this sensor (corresponding to the number of rows of the corresponding field of the sensorData structure in the matlab simulatos). They have to be initialized before use. Everytime the `sample` method is invoked, the sensor takes the last unread sample from the data simulated and creates a timestamp for that sample. If we sample more data then the available one we [continue receiving the last sample/throw an exception/print an error message on the stdin]. We have to register the sensor to the `addResetSampleCounter` queue of *HILTransceiver* in order to be notified when fresh new data is arrived from the simulator, so that the sensor can start reading the data from the beginning of the array. The method `getLastSample` returns the *HILSensorData* structure with the last sample. 
 - `HILServo`: Is a *ServoInterface* implementation. Interfaces the control algorithm to the HILTransceiver object. Invoking the method `set`, the value passed is converted (if needed) and then sent to the simulator.
 
 ### Usage of the hardware-in-the-loop framework:
 
 To use this module as-is:
-- The first thing to do is to develop the control algorithm in the `step` method of *MockAerobrakeAlgorithm*. Then you should check that the *HILServo* sends back to the simulator the data in the conversion you want.
+- The first thing to do is to develop the control algorithm in the `step` method of *MockAirbrakeAlgorithm*. Then you should check that the *HILServo* sends back to the simulator the data in the conversion you want.
 - Now you should create the entrypoint in the `sbs.conf` file. In the *Defines:* field you should add the flag of your entrypoint corresponding to the one used in `HILConfig.h` in order to choose the right config file (e.g. `Defines: -DHIL`)
 - After this you should be able to build the `test-HIL.cpp` and flash the executable on the board. 
 - Then you should connect via serial the board to the computer (with a serial adapter). The connections between adapter and board are:
@@ -112,7 +112,7 @@ serialbridge("Close");                % Closes the serial port
 ## FAQ
 Some common problems found using the framework:
 - For every problem you encounter, first time reboot your board. If it doesn't work clear and flash the board again. also you can try to disconnect and reconnect the serial adapter.
-- If matlab gives back an error about something wrong with array indices check the data received from the OBSW, if they exceed the limit of that value (for example giving to the aerobrake aperture a value of 2000 degrees) matlab returns this error
+- If matlab gives back an error about something wrong with array indices check the data received from the OBSW, if they exceed the limit of that value (for example giving to the airbrake aperture a value of 2000 degrees) matlab returns this error
 - If you have problems on linux (on the matlab side) check if you are opening the right port and at the right baudrate; check also if the baudrate you are using is supported by your operative system
 - If you are reading malformed data check the baudrate on OBSW and matlab side. they have to be the same
 - If you are not able to read data and matlab stays in the *busy* state (to restart matlab usage you must reboot matlab, *ctrl+c* or *ctrl+z* doesn't work cause you are waiting in the mex file and matlab can't communicate to it... thanks matlab):

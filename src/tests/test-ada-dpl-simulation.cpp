@@ -20,9 +20,9 @@
  * THE SOFTWARE.
  */
 
-#include <ADA/ADA.h>
-#include <ADA/ADAController.h>
-#include <DeploymentController/DeploymentController.h>
+#include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <Deployment/DeploymentController.h>
 
 #include <random>
 

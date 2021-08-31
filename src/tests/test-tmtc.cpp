@@ -39,7 +39,7 @@ int main()
 {
     busSPI2::init();
 
-    TMTCManager* tmtc = new TMTCManager();
+    TMTCController* tmtc = new TMTCController();
     tmtc->start();
     sEventBroker->start();
 

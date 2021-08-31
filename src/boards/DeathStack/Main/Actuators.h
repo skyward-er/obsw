@@ -22,23 +22,16 @@
 
 #pragma once
 
-#include "AeroBrakesController/AeroBrakesServo.h"
-#include "DeploymentController/DeploymentServo.h"
+#include <AirBrakes/AirBrakesServo.h>
+#include <Deployment/DeploymentServo.h>
 
 namespace DeathStackBoard
 {
-// class AeroBrakesServo;
-// class DeploymentServo;
 
-class Actuators
+struct Actuators
 {
-public:
-    AeroBrakesServo* aerobrakes;
+    AirBrakesServo* airbrakes;
     DeploymentServo* dpl_servo;
-
-    Actuators();
-    ~Actuators();
-
-private:
 };
+
 }  // namespace DeathStackBoard

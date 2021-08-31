@@ -20,7 +20,9 @@
  * THE SOFTWARE.
  */
 
+#include <AirBrakes/AirBrakesServo.h>
 #include <Common.h>
+#include <Deployment/DeploymentServo.h>
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
 #include <drivers/gps/ublox/UbloxGPS.h>
@@ -41,8 +43,6 @@
 #include <sstream>
 #include <vector>
 
-#include "../boards/DeathStack/AeroBrakesController/AeroBrakesServo.h"
-#include "../boards/DeathStack/DeploymentController/DeploymentServo.h"
 #include "PinHandler/PinHandler.h"
 #include "drivers/servo/servo.h"
 #include "math/Stats.h"

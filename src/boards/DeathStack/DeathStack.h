@@ -23,30 +23,30 @@
 #pragma once
 
 #include <Common.h>
+#include <DeathStackStatus.h>
 #include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <Main/Actuators.h>
+#include <Main/Bus.h>
+#include <Main/Radio.h>
+#include <Main/Sensors.h>
+#include <Main/StateMachines.h>
+#include <PinHandler/PinHandler.h>
+#include <System/StackLogger.h>
+#include <System/TaskID.h>
 #include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/EventInjector.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 #include <events/utils/EventSniffer.h>
 
 #include <functional>
 #include <stdexcept>
 #include <vector>
 
-#include "DeathStackStatus.h"
-#include "LoggerService/LoggerService.h"
-#include "Main/Actuators.h"
-#include "Main/Bus.h"
-#include "Main/Radio.h"
-#include "Main/Sensors.h"
-#include "Main/StateMachines.h"
-#include "PinHandler/PinHandler.h"
-#include "System/StackLogger.h"
-#include "events/EventData.h"
-#include "events/EventInjector.h"
-#include "events/Events.h"
-#include "events/Topics.h"
-
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL.h"
+#include <hardware_in_the_loop/HIL.h>
 #endif
 
 using std::bind;
@@ -54,7 +54,8 @@ using std::bind;
 namespace DeathStackBoard
 {
 
-// Add heres the event that you don't want to be TRACEd in DeathStack.logEvent()
+// Add heres the events that you don't want to be TRACEd in
+// DeathStack.logEvent()
 static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
     EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM, EV_SEND_SENS_TM};
 /**
@@ -66,8 +67,6 @@ class DeathStack : public Singleton<DeathStack>
     friend class Singleton<DeathStack>;
 
 public:
-    PrintLogger log = Logging::getLogger("deathstack");
-
     // Shared Components
     EventBroker* broker;
     LoggerService* logger;
@@ -90,40 +89,33 @@ public:
 
     void start()
     {
-        startLogger();
-
         if (!broker->start())
         {
-            // LOG_ERR(log, "Error starting EventBroker\n");
-            TRACE("Error starting EventBroker\n");
+            LOG_ERR(log, "Error starting EventBroker");
             status.setError(&DeathStackStatus::ev_broker);
         }
 
         if (!radio->start())
         {
-            // LOG_ERR(log, "Error starting radio module\n");
-            TRACE("Error starting radio module\n");
+            LOG_ERR(log, "Error starting radio module");
             status.setError(&DeathStackStatus::radio);
         }
 
         if (!sensors->start())
         {
-            // LOG_ERR(log, "Error starting sensors\n");
-            TRACE("Error starting sensors\n");
+            LOG_ERR(log, "Error starting sensors");
             status.setError(&DeathStackStatus::sensors);
         }
 
         if (!state_machines->start())
         {
-            // LOG_ERR(log, "Error starting state machines\n");
-            TRACE("Error starting state machines\n");
+            LOG_ERR(log, "Error starting state machines");
             status.setError(&DeathStackStatus::state_machines);
         }
 
         if (!pin_handler->start())
         {
-            // LOG_ERR(log, "Error starting PinObserver\n");
-            TRACE("Error starting PinObserver\n");
+            LOG_ERR(log, "Error starting PinObserver");
             status.setError(&DeathStackStatus::pin_obs);
         }
 
@@ -143,7 +135,7 @@ public:
         }
         else
         {
-            LOG_INFO(log, "Initalization ok\n");
+            LOG_INFO(log, "Initalization ok");
             sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
         }
     }
@@ -153,11 +145,11 @@ public:
         try
         {
             logger->start();
-            LOG_INFO(log, "Logger started \n");
+            LOG_INFO(log, "Logger started");
         }
         catch (const std::runtime_error& re)
         {
-            LOG_ERR(log, "SD Logger init error\n");
+            LOG_ERR(log, "SD Logger init error");
             status.setError(&DeathStackStatus::logger);
         }
 
@@ -166,12 +158,13 @@ public:
 
 private:
     /**
-     * Initialize Everything
+     * @brief Initialize Everything.
      */
     DeathStack()
     {
         /* Shared components */
         logger = Singleton<LoggerService>::getInstance();
+        startLogger();
 
         TimestampTimer::enableTimestampTimer();
 
@@ -190,6 +183,8 @@ private:
 #endif
 
         scheduler = new TaskScheduler();
+        addSchedulerStatsTask();
+
         bus       = new Bus();
         radio     = new Radio(*bus->spi2);
         sensors   = new Sensors(*bus->spi1, scheduler);
@@ -208,32 +203,11 @@ private:
         pin_handler = new PinHandler();
 
         injector = new EventInjector();
-        // LOG_INFO(log, "Init finished");
-        TRACE("Init finished\n");
-        
-        sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
-
-#ifdef HARDWARE_IN_THE_LOOP
-        // TODO : REMOVE ME
-        // TEMPORARY FOR HIL UNTIL TCs ARE READY
-        /*Thread::sleep(1000);
-        sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
-        sEventBroker->post({EV_SENSORS_READY}, TOPIC_TMTC);
-        Thread::sleep(1000);*/
-        //state_machines->setReferenceValues(109, 15, 450);
-
-        //Thread::sleep(10000);
-
-        /*sEventBroker->post({EV_CALIBRATION_OK}, TOPIC_FLIGHT_EVENTS);
-        Thread::sleep(1000);
-        sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
-        Thread::sleep(1000);
-        sEventBroker->post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);*/
-#endif
+        LOG_INFO(log, "Init finished");
     }
 
     /**
-     * Helpers for debugging purposes
+     * @brief Helpers for debugging purposes.
      */
     void logEvent(uint8_t event, uint8_t topic)
     {
@@ -250,18 +224,36 @@ private:
                 return;
             }
         }
-        // LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
-        // getTopicString(topic));
-        TRACE("%s on %s \n", getEventString(event).c_str(),
-              getTopicString(topic).c_str());
+        LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
+                  getTopicString(topic));
 #endif
     }
 
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
 
-private:
+    void addSchedulerStatsTask()
+    {
+        // add lambda to log scheduler tasks statistics
+        scheduler->add(
+            [&]() {
+                std::vector<TaskStatResult> scheduler_stats =
+                    scheduler->getTaskStats();
+
+                for (TaskStatResult stat : scheduler_stats)
+                {
+                    logger->log(stat);
+                }
+                
+                StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+            },
+            1000,  // 1 hz
+            TASK_SCHEDULER_STATS_ID, miosix::getTick());
+    }
+
     EventInjector* injector;
     DeathStackStatus status{};
+
+    PrintLogger log = Logging::getLogger("deathstack");
 };
 
-} /* namespace DeathStackBoard */
+}  // namespace DeathStackBoard

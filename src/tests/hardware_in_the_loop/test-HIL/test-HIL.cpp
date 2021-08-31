@@ -85,10 +85,10 @@ int main()
     // registering the HILTransceiver in order to let him know when it has to
     // wait to the control algorithm or not
     flightPhasesManager->registerToFlightPhase(
-        AEROBRAKES, bind(&HILTransceiver::setIsAerobrakePhase, matlab, true));
+        AEROBRAKES, bind(&HILTransceiver::setIsAirbrakePhase, matlab, true));
 
     flightPhasesManager->registerToFlightPhase(
-        APOGEE, bind(&HILTransceiver::setIsAerobrakePhase, matlab, false));
+        APOGEE, bind(&HILTransceiver::setIsAirbrakePhase, matlab, false));
 
     /*-------------- Sensors & Actuators --------------*/
 
@@ -122,25 +122,25 @@ int main()
     /*-------------- [CA] Control Algorithm --------------*/
 
     // definition of the control algorithm
-    MockAerobrakeAlgorithm<HILKalmanData> mockAerobrake(state.kalman, &servo);
+    MockAirbrakeAlgorithm<HILKalmanData> mockAirbrake(state.kalman, &servo);
 
     // registering the starting and ending of the algorithm in base of the phase
     flightPhasesManager->registerToFlightPhase(
         AEROBRAKES,
-        bind(&MockAerobrakeAlgorithm<HILKalmanData>::begin, &mockAerobrake));
+        bind(&MockAirbrakeAlgorithm<HILKalmanData>::begin, &mockAirbrake));
 
     flightPhasesManager->registerToFlightPhase(
         APOGEE,
-        bind(&MockAerobrakeAlgorithm<HILKalmanData>::end, &mockAerobrake));
+        bind(&MockAirbrakeAlgorithm<HILKalmanData>::end, &mockAirbrake));
 
     /*-------------- Adding tasks to scheduler --------------*/
 
     // adding the updating of the algorithm to the scheduler
     {
-        TaskScheduler::function_t update_Aerobrake{bind(
-            &MockAerobrakeAlgorithm<HILKalmanData>::update, &mockAerobrake)};
+        TaskScheduler::function_t update_Airbrake{
+            bind(&MockAirbrakeAlgorithm<HILKalmanData>::update, &mockAirbrake)};
 
-        scheduler.add(update_Aerobrake, (uint32_t)(1000 / CONTROL_FREQ),
+        scheduler.add(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
                       getNextSchedulerId(&scheduler));
     }
 

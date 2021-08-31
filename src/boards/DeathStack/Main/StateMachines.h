@@ -22,20 +22,21 @@
 
 #pragma once
 
-#include <NavigationSystem/NASData.h>
+#include <LoggerService/LoggerService.h>
+#include <NavigationAttitudeSystem/NASData.h>
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/MS580301BA07/MS580301BA07.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
 
 namespace DeathStackBoard
 {
 
-class FlightModeManager;
+class FMMController;
 class DeploymentController;
 
 template <typename Press, typename GPS>
@@ -45,7 +46,7 @@ template <typename IMU, typename Press, typename GPS>
 class NASController;
 
 template <typename T>
-class AeroBrakesController;
+class AirBrakesController;
 
 class StateMachines
 {
@@ -73,13 +74,13 @@ public:
     using ADAControllerType = ADAController<PressDataType, GPSDataType>;
     using NASControllerType =
         NASController<IMUDataType, PressDataType, GPSDataType>;
-    using AeroBrakesControllerType = AeroBrakesController<NASData>;
+    using AirBrakesControllerType = AirBrakesController<NASData>;
 
     DeploymentController* dpl_controller;
-    FlightModeManager* fmm;
+    FMMController* fmm;
     ADAControllerType* ada_controller;
     NASControllerType* nas_controller;
-    AeroBrakesControllerType* arb_controller;
+    AirBrakesControllerType* arb_controller;
 
     StateMachines(IMUType& imu, PressType& press, GPSType& gps,
                   TaskScheduler* scheduler);
@@ -88,10 +89,16 @@ public:
 
     bool start();
 
+    void setReferenceTemperature(float t);
+
     void setInitialOrientation(float roll, float pitch, float yaw);
+
+    void setInitialCoordinates(float latitude, float longitude);
 
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
+
+    LoggerService& logger = *(LoggerService::getInstance());
 };
 
 }  // namespace DeathStackBoard

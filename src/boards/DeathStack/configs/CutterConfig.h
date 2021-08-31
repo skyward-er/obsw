@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "drivers/HardwareTimer.h"
-#include "drivers/pwm/pwm.h"
-#include "interfaces-impl/hwmapping.h"
+#include <drivers/HardwareTimer.h>
+#include <drivers/pwm/pwm.h>
+#include <interfaces-impl/hwmapping.h>
 
 namespace DeathStackBoard
 {
@@ -36,7 +36,7 @@ static const PWM::Timer CUTTER_TIM{
     TIM9, &(RCC->APB2ENR), RCC_APB2ENR_TIM9EN,
     TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
 
-// PRIMARY --> THCUT1 on theboard
+// PRIMARY --> THCUT1 on the board
 static const PWMChannel CUTTER_CHANNEL_PRIMARY = PWMChannel::CH2;
 typedef miosix::actuators::nosecone::thCut1::ena PrimaryCutterEna;
 
@@ -44,14 +44,14 @@ typedef miosix::actuators::nosecone::thCut1::ena PrimaryCutterEna;
 static const PWMChannel CUTTER_CHANNEL_BACKUP = PWMChannel::CH2;
 typedef miosix::actuators::nosecone::thCut2::ena BackupCutterEna;
 
-static constexpr int CUT_DURATION      = 5 * 1000;
+static constexpr int CUT_DURATION      = 3 * 1000;
 static constexpr int CUT_TEST_DURATION = 1 * 1000;
 
 static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
 static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.45f;
 static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 10000;  // Hz
 static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.45f;
-static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE      = .1;
+static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE      = 0.1f;
 
 }  // namespace CutterConfig
 

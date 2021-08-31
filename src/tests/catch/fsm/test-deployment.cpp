@@ -28,12 +28,12 @@
 // test them synchronously
 #define protected public
 
+#include <Deployment/DeploymentController.h>
 #include <drivers/servo/servo.h>
 #include <miosix.h>
 
 #include <utils/testutils/catch.hpp>
 
-#include "DeploymentController/DeploymentController.h"
 #include "configs/DeploymentConfig.h"
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
