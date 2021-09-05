@@ -113,6 +113,7 @@ private:
     ExtendedKalmanEigen filter;
     InitStates states_init;
     NASReferenceValues ref_values;
+    Vector3f triad_result_eul;
 
     uint64_t last_gps_timestamp   = 0;
     uint64_t last_accel_timestamp = 0;
@@ -141,8 +142,7 @@ NAS<IMU, Press, GPS>::NAS(Sensor<IMU>& imu, Sensor<Press>& baro,
 template <typename IMU, typename Press, typename GPS>
 bool NAS<IMU, Press, GPS>::init()
 {
-    states_init.positionInit(ref_values.ref_latitude, ref_values.ref_longitude,
-                             ref_values.ref_pressure);
+    states_init.positionInit(ref_values.ref_pressure);
 
     states_init.velocityInit();
 
@@ -153,7 +153,8 @@ bool NAS<IMU, Press, GPS>::init()
     acc_init.normalize();
     mag_init.normalize();
 
-    states_init.triad(acc_init, mag_init);
+    triad_result_eul = states_init.triad(acc_init, mag_init);
+
     states_init.biasInit();
     x = states_init.getInitX();
 
@@ -215,7 +216,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     }
 
     // check if new pressure data is available
-    if (pressure_data.press_timestamp > last_press_timestamp)
+    if (pressure_data.press_timestamp != last_press_timestamp)
     {
         last_press_timestamp = pressure_data.press_timestamp;
 
@@ -223,20 +224,20 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     }
 
     // check if new gps data is available and the gps has fix
-    if (gps_data.gps_timestamp > last_gps_timestamp && gps_data.fix == true)
+    if (gps_data.gps_timestamp != last_gps_timestamp && gps_data.fix == true)
     {
         last_gps_timestamp = gps_data.gps_timestamp;
 
-        // float delta_lon = gps_data.longitude - ref_values.ref_longitude;
-        // float delta_lat = gps_data.latitude - ref_values.ref_latitude;
+        float delta_lon = gps_data.longitude - ref_values.ref_longitude;
+        float delta_lat = gps_data.latitude - ref_values.ref_latitude;
 
-        Vector4f gps_readings(gps_data.longitude, gps_data.latitude,
-                              gps_data.velocity_north, gps_data.velocity_east);
+        Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
+                              gps_data.velocity_east);
         filter.correctGPS(gps_readings, gps_data.num_satellites);
     }
 
     // check if new magnetometer data is available
-    if (imu_data.mag_timestamp > last_mag_timestamp)
+    if (imu_data.mag_timestamp != last_mag_timestamp)
     {
         Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
 
@@ -245,7 +246,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
             last_mag_timestamp = imu_data.mag_timestamp;
 
             mag_readings.normalize();
-            filter.correct_MEKF(mag_readings);
+            filter.correctMEKF(mag_readings);
         }
     }
 
@@ -258,7 +259,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     nas_data.y = x(1);
     nas_data.z =
         -x(2) - z_init;  // Negative sign because we're working in the NED
-                // frame but we want a positive altitude as output.
+                         // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
     nas_data.vz = -x(5);
@@ -298,15 +299,15 @@ template <typename IMU, typename Press, typename GPS>
 NASTriadResult NAS<IMU, Press, GPS>::getTriadResult()
 {
     Matrix<float, N, 1> state = states_init.getInitX();
-    Vector3f e = quat.quat2eul({state(6), state(7), state(8), state(9)});
+    //Vector3f e = quat.quat2eul({state(6), state(7), state(8), state(9)});
 
     NASTriadResult result;
     result.x     = state(0);
     result.y     = state(1);
     result.z     = -state(2);
-    result.roll  = e(0);
-    result.pitch = e(1);
-    result.yaw   = e(2);
+    result.roll  = triad_result_eul(0); //e(0);
+    result.pitch = triad_result_eul(1); //e(1);
+    result.yaw   = triad_result_eul(2); //e(2);
 
     return result;
 }

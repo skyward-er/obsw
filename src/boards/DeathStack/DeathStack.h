@@ -119,7 +119,9 @@ public:
             status.setError(&DeathStackStatus::pin_obs);
         }
 
+#ifdef DEBUG
         injector->start();
+#endif
 
         logger->log(status);
 
@@ -202,7 +204,10 @@ private:
 
         pin_handler = new PinHandler();
 
+#ifdef DEBUG
         injector = new EventInjector();
+#endif
+
         LOG_INFO(log, "Init finished");
     }
 

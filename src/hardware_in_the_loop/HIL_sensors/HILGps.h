@@ -25,19 +25,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILGpsData : public GPSData
-{
-    HILGpsData() : GPSData{0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3, true}
-    {
-    }
-
-    HILGpsData(uint64_t t, float x, float y, float z, float v_x, float v_y,
-               float v_z, float v)
-        : GPSData{t, x, y, z, v_x, v_y, v_z, v, 0.0, 3, true}
-    {
-    }
-};
-
 /**
  * @brief fake gps sensor used for the HILulation.
  *

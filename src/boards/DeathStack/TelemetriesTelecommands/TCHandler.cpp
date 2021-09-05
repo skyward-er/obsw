@@ -71,7 +71,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
     // log status
-    logger->log(mav_driver->getStatus());
+    logMavlinkStatus(mav_driver);
 
     // acknowledge
     sendAck(mav_driver, msg);
@@ -101,10 +101,12 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 case MAV_CMD_STOP_LOGGING:
                     logger->stop();
                     sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
+                    LOG_INFO(print_logger, "Received command CLOSE_LOG");
                     break;
                 case MAV_CMD_START_LOGGING:
                     DeathStack::getInstance()->startLogger();
                     sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
+                    LOG_INFO(print_logger, "Received command START_LOG");
                     break;
                 default:
                     break;
@@ -237,9 +239,16 @@ bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id)
         mav_driver->enqueueMsg(TmRepository::getInstance()->packTM(tm_id));
 
     // update status
-    logger->log(mav_driver->getStatus());
+    logMavlinkStatus(mav_driver);
 
     return ok;
+}
+
+void logMavlinkStatus(MavDriver* mav_driver)
+{
+    MavlinkStatus status = mav_driver->getStatus();
+    status.timestamp = TimestampTimer::getTimestamp();
+    logger->log(status);
 }
 
 }  // namespace DeathStackBoard

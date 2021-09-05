@@ -99,8 +99,8 @@ public:
     void sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
 private:
-    TmRepository() {}
-    ~TmRepository() {}
+    TmRepository();
+    ~TmRepository();
 
     /**
      * @brief Struct containing all TMs in the form of mavlink messages.

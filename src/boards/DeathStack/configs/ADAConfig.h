@@ -64,9 +64,6 @@ static const float DEFAULT_REFERENCE_TEMPERATURE = 278.920f;
 static const float DEFAULT_REFERENCE_ALTITUDE    = 1420.0f;
 static const float DEFAULT_REFERENCE_PRESSURE    = 85389.4f;
 
-static const float DEFAULT_MSL_TEMPERATURE = 288.15f;
-static const float DEFAULT_MSL_PRESSURE    = 101325.0f;
-
 // Deployment altitude AGL
 static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
 

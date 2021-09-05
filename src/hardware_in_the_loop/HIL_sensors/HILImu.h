@@ -28,12 +28,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILImuData : public HILAccelData,
-                    public HILGyroscopeData,
-                    public HILMagnetometerData
-{
-};
-
 /**
  * @brief fake 9-axis IMU sensor used for the simulation.
  *
@@ -70,7 +64,7 @@ protected:
         matlabData     = sensorData->magnetometer.measures[sampleCounter];
         tempData.mag_x = matlabData.getX();
         tempData.mag_y = matlabData.getY();
-        tempData.mag_z = matlabData.getZ();
+        tempData.mag_z = matlabData.getZ() / 1000.0f; // from nanotesla to microtesla
 
         // only update the timestamp once and use it for all the 3 sensors
         // (this sensor assumes the same frequency for accel, gyro and mag)

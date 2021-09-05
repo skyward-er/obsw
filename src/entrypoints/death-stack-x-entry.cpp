@@ -44,9 +44,7 @@ int main()
     StatsResult cpu_stat_res;
     SystemData system_data;
 
-    LOG_INFO(log, "Starting death stack...");
     // Instantiate the stack
-    Thread::sleep(1000);
     DeathStack::getInstance()->start();
     LOG_INFO(log, "Death stack started");
 
@@ -72,15 +70,7 @@ int main()
         system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
 
         logger_service->log(system_data);
-
-        // LOG_INFO(log, "CPU : avg: {:.2f}   max: {:.2f}   min: {:.2f}",
-        //        cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
-        //        cpu_stat.getStats().minValue);
-        /*TRACE("CPU : curr: {:.2f}   avg: {:.2f}   max: {:.2f}   min: {:.2f}",
-              cpu, cpu_stat.getStats().mean, cpu_stat.getStats().maxValue,
-              cpu_stat.getStats().minValue);
-        TRACE("Memory : absolute free heap : %u    current free heap : %u",
-              MemoryProfiling::getAbsoluteFreeHeap(),
-              MemoryProfiling::getCurrentFreeHeap());*/
+        
+        StackLogger::getInstance()->log();
     }
 }

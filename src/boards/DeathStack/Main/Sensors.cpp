@@ -85,11 +85,10 @@ Sensors::~Sensors()
     delete hil_imu;
     delete hil_baro;
     delete hil_gps;
-#else
+#endif
     delete imu_bmx160;
     delete press_digital;
     delete gps_ublox;
-#endif
     delete internal_adc;
     delete cs_cutter_primary;
     delete cs_cutter_backup;
@@ -134,7 +133,7 @@ void Sensors::calibrate()
         imu_bmx160_with_correction->getGyroscopeBiases());
 
     press_pitot->calibrate();
-    // wait calibration end
+    // wait pitot calibration end
     while (press_pitot->isCalibrating())
     {
         Thread::sleep(10);
@@ -604,31 +603,31 @@ void Sensors::updateSensorsStatus()
     info = sensor_manager->getSensorInfo(imu_bmx160);
     if (!info.is_initialized)
     {
-        status.bmx160 = 0;
+        status.bmx160 = SensorDriverStatus::DRIVER_ERROR;
     }
 
     info = sensor_manager->getSensorInfo(mag_lis3mdl);
     if (!info.is_initialized)
     {
-        status.lis3mdl = 0;
+        status.lis3mdl = SensorDriverStatus::DRIVER_ERROR;
     }
 
     info = sensor_manager->getSensorInfo(gps_ublox);
     if (!info.is_initialized)
     {
-        status.gps = 0;
+        status.gps = SensorDriverStatus::DRIVER_ERROR;
     }
 
     info = sensor_manager->getSensorInfo(internal_adc);
     if (!info.is_initialized)
     {
-        status.internal_adc = 0;
+        status.internal_adc = SensorDriverStatus::DRIVER_ERROR;
     }
 
     info = sensor_manager->getSensorInfo(adc_ads1118);
     if (!info.is_initialized)
     {
-        status.ads1118 = 0;
+        status.ads1118 = SensorDriverStatus::DRIVER_ERROR;
     }
 }
 

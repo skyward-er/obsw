@@ -33,81 +33,10 @@
 
 namespace DeathStackBoard
 {
-/* Periodic TM updaters */
 
-// bool TmRepository::updateHR()
-// {
-//     //     HighRateTMPacker packer(tm_repository.hr_tm.payload);
+TmRepository::TmRepository() { stats_rec.start(); }
 
-//     //     packer.packTimestamp(miosix::getTick(), curHrIndex);
-
-//     //     packer.packPressureAda(hr_pkt.pressure_ada, curHrIndex);
-//     //     packer.packPressureDigi(hr_pkt.pressure_digi, curHrIndex);
-//     //     packer.packMslAltitude(hr_pkt.msl_altitude, curHrIndex);
-//     //     packer.packAglAltitude(hr_pkt.agl_altitude, curHrIndex);
-//     //     packer.packVertSpeed(hr_pkt.vert_speed, curHrIndex);
-//     //     packer.packVertSpeed2(hr_pkt.vert_speed_2, curHrIndex);
-//     //     packer.packAccX(hr_pkt.acc_x, curHrIndex);
-//     //     packer.packAccY(hr_pkt.acc_y, curHrIndex);
-//     //     packer.packAccZ(hr_pkt.acc_z, curHrIndex);
-//     //     packer.packGyroX(hr_pkt.gyro_x, curHrIndex);
-//     //     packer.packGyroY(hr_pkt.gyro_y, curHrIndex);
-//     //     packer.packGyroZ(hr_pkt.gyro_z, curHrIndex);
-//     //     packer.packGpsLat(hr_pkt.gps_lat, curHrIndex);
-//     //     packer.packGpsLon(hr_pkt.gps_lon, curHrIndex);
-//     //     packer.packGpsAlt(hr_pkt.gps_alt, curHrIndex);
-//     //     packer.packGpsFix(hr_pkt.gps_fix, curHrIndex);
-//     //     packer.packTemperature(hr_pkt.temperature, curHrIndex);
-//     //     packer.packFmmState(hr_pkt.fmm_state, curHrIndex);
-//     //     packer.packDplState(hr_pkt.dpl_state, curHrIndex);
-//     //     packer.packPinLaunch(hr_pkt.pin_launch, curHrIndex);
-//     //     packer.packPinNosecone(hr_pkt.pin_nosecone, curHrIndex);
-
-//     //     curHrIndex = (curHrIndex + 1) % N_PKT_HR;
-
-//     //     if (curHrIndex == 0)
-//     //         return true;
-//     //     else
-//     return false;
-// }
-
-// void TmRepository::updateLR()
-// {
-//     //     LowRateTMPacker packer(tm_repository.tm_repository.lr_tm.payload);
-
-//     //     packer.packLiftoffTs(tm_repository.lr_tm.liftoff_ts, 0);
-//     //     packer.packLiftoffMaxAccTs(tm_repository.lr_tm.liftoff_max_acc_ts,
-//     0);
-//     //     packer.packLiftoffMaxAcc(tm_repository.lr_tm.liftoff_max_acc_ts,
-//     0);
-//     //     packer.packMaxZspeedTs(tm_repository.lr_tm.max_zspeed_ts, 0);
-//     //     packer.packMaxZspeed(tm_repository.lr_tm.max_zspeed, 0);
-//     // packer.packMaxSpeedAltitude(tm_repository.lr_tm.max_speed_altitude,
-//     0);
-//     //     packer.packApogeeTs(tm_repository.lr_tm.apogee_ts, 0);
-//     //     packer.packNxpMinPressure(tm_repository.lr_tm.nxp_min_pressure,
-//     0);
-//     //     packer.packHwMinPressure(tm_repository.lr_tm.hw_min_pressure, 0);
-//     // packer.packKalmanMinPressure(tm_repository.lr_tm.kalman_min_pressure,
-//     0);
-//     //
-//     packer.packDigitalMinPressure(tm_repository.lr_tm.digital_min_pressure,
-//     0);
-//     // packer.packBaroMaxAltitutde(tm_repository.lr_tm.baro_max_altitutde,
-//     0);
-//     //     packer.packGpsMaxAltitude(tm_repository.lr_tm.gps_max_altitude,
-//     0);
-//     //     packer.packApogeeLat(tm_repository.lr_tm.apogee_lat, 0);
-//     //     packer.packApogeeLon(tm_repository.lr_tm.apogee_lon, 0);
-//     //     packer.packDrogueDplTs(tm_repository.lr_tm.drogue_dpl_ts, 0);
-//     //     packer.packDrogueDplMaxAcc(tm_repository.lr_tm.drogue_dpl_max_acc,
-//     0);
-//     //     packer.packMainDplTs(tm_repository.lr_tm.main_dpl_ts, 0);
-//     //     packer.packMainDplAltitude(tm_repository.lr_tm.main_dpl_altitude,
-//     0);
-//     //     packer.packMainDplZspeed(tm_repository.lr_tm.main_dpl_zspeed, 0);
-//     //     packer.packMainDplAcc(tm_repository.lr_tm.main_dpl_acc, 0);
-// }
+TmRepository::~TmRepository() {}
 
 /* TM getter */
 
@@ -363,8 +292,6 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
     tm_repository.wind_tm.pressure_differential = t.press;
     tm_repository.sensors_tm.pitot_press        = t.press;
     tm_repository.adc_tm.pitot_pressure         = t.press;
-
-    // stats_rec.update(t);
 }
 
 template <>
@@ -550,9 +477,8 @@ void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
     tm_repository.nas_tm.pitch = orientation(1);
     tm_repository.nas_tm.yaw   = orientation(2);
 
-    // Positions converted from meters to lat/lon for visualization
-    tm_repository.hr_tm.nas_x = t.x0 / EARTH_RADIUS;
-    tm_repository.hr_tm.nas_y = t.x1 / EARTH_RADIUS;
+    tm_repository.hr_tm.nas_x = t.x0;
+    tm_repository.hr_tm.nas_y = t.x1;
     // Altitude has negative sign because we're working in the NED
     // frame but we want a positive altitude as output (same for vz)
     tm_repository.hr_tm.nas_z     = -t.x2;

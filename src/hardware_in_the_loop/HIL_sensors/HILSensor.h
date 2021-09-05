@@ -31,6 +31,7 @@
 #include "math/Vec3.h"
 #include "sensors/Sensor.h"
 #include "sensors/SensorData.h"
+#include "HILSensorsData.h"
 
 /**
  * @brief Fake sensor base used for the simulation. Every sensor for the

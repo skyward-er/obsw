@@ -56,6 +56,7 @@
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
 #include "scheduler/TaskSchedulerData.h"
+#include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
 
 // Serialized classes
 using std::ofstream;
@@ -125,6 +126,7 @@ void registerTypes(Deserializer& ds)
     registerType<ADAData>(ds);
     registerType<ADAReferenceValues>(ds);
     registerType<TargetDeploymentAltitude>(ds);
+    registerType<ApogeeDetected>(ds);
 
     // NAS
     registerType<NASStatus>(ds);
@@ -135,6 +137,13 @@ void registerTypes(Deserializer& ds)
 
     // Airbrakes
     registerType<AirBrakesData>(ds);
+    registerType<AirBrakesAlgorithmData>(ds);
+    registerType<AirBrakesChosenTrajectory>(ds);
+
+    // HIL
+    registerType<HILImuData>(ds);
+    registerType<HILGpsData>(ds);
+    registerType<HILBaroData>(ds);
 
     // Others
     registerType<EventData>(ds);

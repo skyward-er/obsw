@@ -237,7 +237,7 @@ void ADAController<Press, GPS>::update()
 {
     // if new gps data available, update GPS, regardless of the current state
     GPS gps_data = gps.getLastSample();
-    if (gps_data.gps_timestamp > last_gps_timestamp)
+    if (gps_data.gps_timestamp != last_gps_timestamp)
     {
         last_gps_timestamp = gps_data.gps_timestamp;
 
@@ -247,7 +247,7 @@ void ADAController<Press, GPS>::update()
     // if new pressure data available, update baro, according to current state
     Press press_data = barometer.getLastSample();
 
-    if (press_data.press_timestamp > last_press_timestamp)
+    if (press_data.press_timestamp != last_press_timestamp)
     {
         last_press_timestamp = press_data.press_timestamp;
 

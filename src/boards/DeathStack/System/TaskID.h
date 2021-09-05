@@ -31,17 +31,17 @@ namespace DeathStackBoard
  */
 enum TaskIDs : uint8_t
 {
-    TASK_SENSORS_6_MS_ID,
-    TASK_SENSORS_10_MS_ID,
-    TASK_SENSORS_15_MS_ID,
-    TASK_SENSORS_20_MS_ID,
-    TASK_SENSORS_24_MS_ID,
-    TASK_SENSORS_40_MS_ID,
-    TASK_SENSORS_50_MS_ID,
-    TASK_ADA_ID,
-    TASK_ABK_ID,
-    TASK_NAS_ID,
-    TASK_SCHEDULER_STATS_ID
+    TASK_SCHEDULER_STATS_ID = 0,
+    TASK_SENSORS_6_MS_ID    = 1,
+    TASK_SENSORS_10_MS_ID   = 2,
+    TASK_SENSORS_15_MS_ID   = 3,
+    TASK_SENSORS_20_MS_ID   = 4,
+    TASK_SENSORS_24_MS_ID   = 5,
+    TASK_SENSORS_40_MS_ID   = 6,
+    TASK_SENSORS_50_MS_ID   = 7,
+    TASK_ADA_ID             = 8,
+    TASK_ABK_ID             = 9,
+    TASK_NAS_ID             = 10
 };
 
-}
+}  // namespace DeathStackBoard

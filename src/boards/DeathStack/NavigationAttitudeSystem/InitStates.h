@@ -65,18 +65,13 @@ public:
      * @param acc 3x1 accelerometer readings [ax ay az].
      * @param mag 3x1 magnetometer readings [mx my mz].
      */
-    void triad(const Vector3f acc, const Vector3f mag);
+    const Vector3f& triad(const Vector3f acc, const Vector3f mag);
 
     /**
      * @brief Initialization of the positions before the liftoff.
-     *
-     * @param gps_lat Latitude.
-     * @param gps_lon Longitude.
      * @param press Reference pressure [Pa].
-     * @param press Reference temperature [Pa].
      */
-    void positionInit(const float gps_lat, const float gps_lon,
-                      const float press);  //, const float temp);
+    void positionInit(const float press);  //, const float temp);
     /**
      * @brief Initialization of the velocities before the liftoff.
      *
@@ -125,14 +120,14 @@ void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
     x_init(NL + 3) = x_quat(3);
 }
 
-void InitStates::triad(const Vector3f acc, const Vector3f mag)
+const Vector3f& InitStates::triad(const Vector3f acc, const Vector3f mag)
 {
     LOG_DEBUG(log, "Executing TRIAD");
 
     // The coulmns of the the triad matrices. b:body, i:inertial
     Vector3f t1b, t2b, t3b, t1i, t2i, t3i;
 
-    // vettore gravità "vero" in NED, normalizzato
+    // vettore gravità "vero" in NED, normalizzato :
     // -1 su asse "down", perché da fermo l'accelerometro
     // misura la reazione vincolare (rivolta verso l'alto)
     Vector3f g_norm(0.0F, 0.0F, -1.0F);
@@ -163,20 +158,16 @@ void InitStates::triad(const Vector3f acc, const Vector3f mag)
     x_init(NL + 1) = x_quat(1);
     x_init(NL + 2) = x_quat(2);
     x_init(NL + 3) = x_quat(3);
+
+    return eul;
 }
 
-void InitStates::positionInit(const float gps_lat, const float gps_lon,
-                              const float press)  //, const float temp)
+void InitStates::positionInit(const float press)
 {
-    x_init(0) = EARTH_RADIUS * gps_lon * CLAT;
-    x_init(1) = EARTH_RADIUS * gps_lat;
+    x_init(0) = 0.0;  // EARTH_RADIUS * gps_lon * CLAT;
+    x_init(1) = 0.0;  // EARTH_RADIUS * gps_lat;
     x_init(2) = aeroutils::relAltitude(press, MSL_PRESSURE,
                                        MSL_TEMPERATURE);  // msl altitude
-
-    // starting point centered in the launchpad
-    // x_init(0) = 0.0f;
-    // x_init(1) = 0.0f;
-    // x_init(2) = 0.0f;  // agl altitude
 }
 
 void InitStates::velocityInit()
@@ -188,6 +179,8 @@ void InitStates::velocityInit()
 
 void InitStates::biasInit()
 {
+    // gyro biases set to zero since the sensor performs
+    // self-calibration and the measurements are already compensated
     x_init(NL + 4) = 0.0F;
     x_init(NL + 5) = 0.0F;
     x_init(NL + 6) = 0.0F;

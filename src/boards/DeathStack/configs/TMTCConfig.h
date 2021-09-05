@@ -30,7 +30,7 @@ namespace DeathStackBoard
 {
 
 /* Min guaranteed sleep time after each packet sent (milliseconds) */
-static const uint16_t TMTC_SLEEP_AFTER_SEND = 0;
+static const uint16_t SLEEP_AFTER_SEND = 0;
 
 /* Xbee */
 typedef miosix::xbee::cs XbeeCS;
@@ -38,6 +38,7 @@ typedef miosix::xbee::attn XbeeATTN;
 typedef miosix::xbee::reset XbeeRST;
 /* Xbee data rate (80 or 10 kbps) */
 static const bool XBEE_80KBPS_DATA_RATE = true;
+static const bool XBEE_TIMEOUT          = 5000;  // milliseconds
 
 /* Periodic telemetries periods */
 static const unsigned int LR_TM_TIMEOUT     = 1000;

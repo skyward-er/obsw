@@ -62,10 +62,10 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
     xbee->setOnFrameReceivedListener(
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
-    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, 5000);
+    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
-    mav_driver = new MavDriver(xbee, handleMavlinkMessage, 0,
-                               1000);  // TODO: Use settings
+    mav_driver = new MavDriver(xbee, handleMavlinkMessage, SLEEP_AFTER_SEND,
+                               MAV_OUT_BUFFER_MAX_AGE);
 
     tmtc_manager = new TMTCController();
 

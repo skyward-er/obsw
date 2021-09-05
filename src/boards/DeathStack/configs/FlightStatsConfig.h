@@ -29,10 +29,10 @@ namespace DeathStackBoard
 
 namespace FlightStatsConfig
 {
-static constexpr long long TIMEOUT_LIFTOFF_STATS    = 7500;
-static constexpr long long TIMEOUT_APOGEE_STATS     = 1500;
-static constexpr long long TIMEOUT_DROGUE_DPL_STATS = 10000;
-static constexpr long long TIMEOUT_MAIN_DPL_STATS   = 10000;
+static constexpr long long TIMEOUT_LIFTOFF_STATS    = 7500;   // [ms]
+static constexpr long long TIMEOUT_APOGEE_STATS     = 1500;   // [ms]
+static constexpr long long TIMEOUT_DROGUE_DPL_STATS = 10000;  // [ms]
+static constexpr long long TIMEOUT_MAIN_DPL_STATS   = 10000;  // [ms]
 }  // namespace FlightStatsConfig
 
 }  // namespace DeathStackBoard

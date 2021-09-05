@@ -216,7 +216,7 @@ void ExtendedKalmanEigen::predictMEKF(const Vector3f& u)
         Gatt * Q_mag * Gatttr;  // Update only the attitude related part of P
 }
 
-void ExtendedKalmanEigen::correct_MEKF(const Vector3f& y)
+void ExtendedKalmanEigen::correctMEKF(const Vector3f& y)
 {
     Matrix3f A;
     Vector3f z;

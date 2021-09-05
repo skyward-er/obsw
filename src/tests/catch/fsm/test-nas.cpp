@@ -24,18 +24,17 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+#include <utils/testutils/catch.hpp>
+
 // We need access to the handleEvent(...) function in state machines in order to
 // test them synchronously
 #define private public
 #define protected public
 
-#include <NavigationAttitudeSystem/NASCalibrator.h>
 #include <NavigationAttitudeSystem/NASController.h>
-#include <mocksensors/MockSensors.h>
-
-#include <utils/testutils/catch.hpp>
-
+#include <NavigationAttitudeSystem/NASCalibrator.h>
 #include "events/Events.h"
+#include <mocksensors/MockSensors.h>
 #include "utils/testutils/TestHelper.h"
 
 using namespace DeathStackBoard;

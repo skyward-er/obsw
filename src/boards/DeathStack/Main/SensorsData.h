@@ -39,16 +39,20 @@ struct AirSpeedPitot
     }
 };
 
+enum SensorDriverStatus
+{
+    DRIVER_ERROR = 0,
+    DRIVER_OK    = 1
+};
+
 struct SensorsStatus
 {
-    uint8_t bmx160       = 1;
-    uint8_t ms5803       = 1;
-    uint8_t lis3mdl      = 1;
-    uint8_t gps          = 1;
-    uint8_t internal_adc = 1;
-    uint8_t ads1118      = 1;
-
-    SensorsStatus() {}
+    uint8_t bmx160       = DRIVER_OK;
+    uint8_t ms5803       = DRIVER_OK;
+    uint8_t lis3mdl      = DRIVER_OK;
+    uint8_t gps          = DRIVER_OK;
+    uint8_t internal_adc = DRIVER_OK;
+    uint8_t ads1118      = DRIVER_OK;
 
     static std::string header()
     {
@@ -57,8 +61,9 @@ struct SensorsStatus
 
     void print(std::ostream& os) const
     {
-        os << bmx160 << "," << ms5803 << "," << lis3mdl << "," << gps << ","
-           << internal_adc << "," << ads1118 << "\n";
+        os << (int)bmx160 << "," << (int)ms5803 << "," << (int)lis3mdl << ","
+           << (int)gps << "," << (int)internal_adc << "," << (int)ads1118
+           << "\n";
     }
 };
 

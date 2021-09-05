@@ -25,16 +25,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILAccelData : public AccelerometerData
-{
-    HILAccelData() : AccelerometerData{0, 0.0, 0.0, 0.0} {}
-
-    HILAccelData(uint64_t t, float x, float y, float z)
-        : AccelerometerData{t, x, y, z}
-    {
-    }
-};
-
 /**
  * @brief fake accelerometer sensor used for the simulation.
  *

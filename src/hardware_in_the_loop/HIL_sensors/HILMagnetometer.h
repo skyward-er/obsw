@@ -25,16 +25,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILMagnetometerData : public MagnetometerData
-{
-    HILMagnetometerData() : MagnetometerData{0, 0.0, 0.0, 0.0} {}
-
-    HILMagnetometerData(uint64_t t, float x, float y, float z)
-        : MagnetometerData{t, x, y, z}
-    {
-    }
-};
-
 /**
  * @brief fake magnetometer sensor used for the simulation.
  *
@@ -61,7 +51,7 @@ protected:
 
         tempData.mag_x         = matlabData.getX();
         tempData.mag_y         = matlabData.getY();
-        tempData.mag_z         = matlabData.getZ();
+        tempData.mag_z         = matlabData.getZ() / 1000.0f; // from nanotesla to microtesla
         tempData.mag_timestamp = updateTimestamp();
 
         return tempData;

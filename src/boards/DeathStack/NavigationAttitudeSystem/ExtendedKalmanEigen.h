@@ -80,7 +80,7 @@ public:
      *
      * @param y 3x1 Vector of the magnetometer readings [mx my mz].
      */
-    void correct_MEKF(const Vector3f& y);
+    void correctMEKF(const Vector3f& y);
 
     /**
      * @return 13x1 State vector [px py pz vx vy vz qx qy qz qw bx by bz].

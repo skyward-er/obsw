@@ -24,6 +24,8 @@
 #include "catch/catch-tests-entry.cpp"
 #endif
 
+#include <utils/testutils/catch.hpp>
+
 #define private public
 
 #define EIGEN_NO_MALLOC  // enable eigen malloc usage assert
@@ -31,8 +33,6 @@
 #include <NavigationAttitudeSystem/NASController.h>
 #include <miosix.h>
 #include <mocksensors/MockSensors.h>
-
-#include <utils/testutils/catch.hpp>
 
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
@@ -132,7 +132,7 @@ TEST_CASE("Testing Navigation System Controller")
                                              // (same as SIMULATED_PRESSURE[0])
     gps_data   = mock_gps.getLastSample();   // still before liftoff ...
     imu_data   = mock_imu.getLastSample();   // still before liftoff ...
-    ref_values = {press_data.press, gps_data.latitude, gps_data.longitude,
+    ref_values = NASReferenceValues{press_data.press, gps_data.latitude, gps_data.longitude,
                   imu_data.accel_x, imu_data.accel_y,  imu_data.accel_z,
                   imu_data.mag_x,   imu_data.mag_y,    imu_data.mag_z};
     REQUIRE(ref_values == controller.calibrator.getReferenceValues());

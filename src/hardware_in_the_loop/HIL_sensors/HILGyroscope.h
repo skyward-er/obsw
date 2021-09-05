@@ -25,16 +25,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILGyroscopeData : public GyroscopeData
-{
-    HILGyroscopeData() : GyroscopeData{0, 0.0, 0.0, 0.0} {}
-
-    HILGyroscopeData(uint64_t t, float x, float y, float z)
-        : GyroscopeData{t, x, y, z}
-    {
-    }
-};
-
 /**
  * @brief fake gyroscope sensor used for the simulation.
  *

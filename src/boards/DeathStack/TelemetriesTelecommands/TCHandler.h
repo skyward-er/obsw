@@ -35,6 +35,8 @@ void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg);
 
 bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
+void logMavlinkStatus(MavDriver* mav_driver);
+
 static LoggerService* logger = LoggerService::getInstance();
 
 static PrintLogger print_logger =

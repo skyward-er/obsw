@@ -154,21 +154,6 @@ void NASController<IMU, Press, GPS>::update()
             {
                 Lock<FastMutex> l(mutex);
 
-                // Add samples to the calibration
-                if (press_data.press_timestamp > last_press_timestamp)
-                {
-                    last_press_timestamp = press_data.press_timestamp;
-                    calibrator.addBaroSample(press_data.press);
-                }
-
-                if (gps_data.fix == true &&
-                    gps_data.gps_timestamp > last_gps_timestamp)
-                {
-                    last_gps_timestamp = gps_data.gps_timestamp;
-                    calibrator.addGPSSample(gps_data.latitude,
-                                            gps_data.longitude);
-                }
-
                 // Accel and gyro sampled at higher rate than the NAS
                 // => always new sample available
                 {
@@ -177,11 +162,26 @@ void NASController<IMU, Press, GPS>::update()
                         imu_data.accel_x, imu_data.accel_y, imu_data.accel_z);
                 }
 
-                //if (imu_data.mag_timestamp > last_mag_timestamp)
+                if (imu_data.mag_timestamp != last_mag_timestamp)
                 {
                     last_mag_timestamp = imu_data.mag_timestamp;
                     calibrator.addMagSample(imu_data.mag_x, imu_data.mag_y,
                                             imu_data.mag_z);
+                }
+
+                // Add samples to the calibration
+                if (press_data.press_timestamp != last_press_timestamp)
+                {
+                    last_press_timestamp = press_data.press_timestamp;
+                    calibrator.addBaroSample(press_data.press);
+                }
+
+                if (gps_data.fix == true &&
+                    gps_data.gps_timestamp != last_gps_timestamp)
+                {
+                    last_gps_timestamp = gps_data.gps_timestamp;
+                    calibrator.addGPSSample(gps_data.latitude,
+                                            gps_data.longitude);
                 }
 
                 // Save the state of calibration to release mutex

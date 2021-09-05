@@ -24,7 +24,7 @@
 
 #include <configs/ADAConfig.h>
 #include <math/Stats.h>
-
+#include <Constants.h>
 #include <ostream>
 
 namespace DeathStackBoard
@@ -155,8 +155,8 @@ struct ADAReferenceValues
 
     // Pressure at mean sea level for altitude calculation, to be updated with
     // launch-day calibration
-    float msl_pressure    = DEFAULT_MSL_PRESSURE;
-    float msl_temperature = DEFAULT_MSL_TEMPERATURE;
+    float msl_pressure    = MSL_PRESSURE;
+    float msl_temperature = MSL_TEMPERATURE;
 
     static std::string header()
     {

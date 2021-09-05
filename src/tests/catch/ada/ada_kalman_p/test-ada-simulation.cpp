@@ -26,25 +26,25 @@
 
 #define EIGEN_NO_MALLOC
 
+
+#include <utils/testutils/catch.hpp>
+
+#define private public
+#define protected public
+
+#include <ApogeeDetectionAlgorithm/ADAController.h>
+#include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
+#include <DeathStack.h>
 #include <Common.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
 #include <events/utils/EventCounter.h>
-
-#define private public
-#define protected public
-
-#include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
-#include <ApogeeDetectionAlgorithm/ADAController.h>
-#include <DeathStack.h>
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <utils/testutils/catch.hpp>
 
 #include "test-ada-data.h"
 

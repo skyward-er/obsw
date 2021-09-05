@@ -125,6 +125,23 @@ void FlightStatsRecorder::update(const ADAData& t)
     }
 }
 
+void FlightStatsRecorder::update(const AirSpeedPitot& t)
+{
+    switch (state)
+    {
+        case FSRState::LIFTOFF:
+        {
+            if (fabs(t.airspeed) > liftoff_stats.airspeed_pitot_max)
+            {
+                liftoff_stats.airspeed_pitot_max = fabs(t.airspeed);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void FlightStatsRecorder::update(const MS5803Data& t)
 {
     switch (state)
@@ -151,36 +168,6 @@ void FlightStatsRecorder::update(const MPXHZ6130AData& t)
             if (t.press < apogee_stats.static_min_pressure)
             {
                 apogee_stats.static_min_pressure = t.press;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-// void FlightStatsRecorder::update(const SSCDRRN015PDAData& t)
-// {
-//     switch (state)
-//     {
-//         case FSRState::ASCENDING:
-//         {
-//             break;
-//         }
-//         default:
-//             break;
-//     }
-// }
-
-void FlightStatsRecorder::update(const AirSpeedPitot& t)
-{
-    switch (state)
-    {
-        case FSRState::ASCENDING:
-        {
-            if (fabs(t.airspeed) > liftoff_stats.airspeed_pitot_max)
-            {
-                liftoff_stats.airspeed_pitot_max = fabs(t.airspeed);
             }
             break;
         }
@@ -313,6 +300,7 @@ void FlightStatsRecorder::state_idle(const Event& ev)
         case EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering IDLE state");
+            
             state = FSRState::IDLE;
 
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
@@ -354,6 +342,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
         case EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering LIFTOFF state");
+
             state = FSRState::LIFTOFF;
 
             // Collect liftoff stats until this event is received
@@ -398,6 +387,7 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
             LOG_DEBUG(log, "Entering ASCENDING state");
 
             state = FSRState::ASCENDING;
+
             StackLogger::getInstance()->updateStack(THID_STATS_FSM);
             break;
         }

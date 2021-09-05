@@ -50,7 +50,9 @@ bool TMTCController::send(const uint8_t tm_id)
     // guarantee synchronicity)
     bool ok = mav_driver->enqueueMsg(tm_repo->packTM(tm_id));
     // update status
-    logger.log(mav_driver->getStatus());
+    MavlinkStatus status = mav_driver->getStatus();
+    status.timestamp = TimestampTimer::getTimestamp();
+    logger.log(status);
 
     return ok;
 }

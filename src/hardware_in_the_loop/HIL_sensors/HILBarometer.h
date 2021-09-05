@@ -25,13 +25,6 @@
 #include "HILSensor.h"
 #include "math/Vec3.h"
 
-struct HILBaroData : public PressureData
-{
-    HILBaroData() : PressureData{0, 0.0} {}
-
-    HILBaroData(uint64_t t, float p) : PressureData{t, p} {}
-};
-
 /**
  * @brief fake barometer sensor used for the simulation.
  *
