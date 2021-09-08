@@ -39,7 +39,12 @@ static const PWM::Timer AB_SERVO_TIMER{
 static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 
 // Rocket's parameters
-static constexpr float M        = 22.0; /**< rocket's mass */
+#ifdef EUROC
+static constexpr float M = 27.0; /**< rocket's mass */
+#else
+static constexpr float M = 19.2; /**< rocket's mass */
+#endif
+
 static constexpr float D        = 0.15; /**< rocket's diameter */
 static constexpr float S0       = (PI * D * D) / 4.0;
 static constexpr float RHO      = 1.225;
@@ -73,34 +78,65 @@ static constexpr float FILTER_COEFF     = 0.85;
 #ifdef HARDWARE_IN_THE_LOOP
 static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else
-static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
 #endif
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
-static constexpr int SHADOW_MODE_DURATION        = 7.5 * 1000;
 
+#ifdef EUROC
+static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
+#else
+static constexpr int SHADOW_MODE_DURATION = 3.0 * 1000;
+#endif
+
+#ifdef EUROC
 struct Coefficients
 {
-    float n000 = 0.4968777393871292;
-    float n100 = -1.4050375007975426;
-    float n200 = 6.502618436645153;
-    float n300 = -18.3142608989424;
-    float n400 = 30.152447999970377;
-    float n500 = -26.715700256336287;
-    float n600 = 9.711730306158518;
-    float n010 = 8.48690052994929;
-    float n020 = 141.05039771743526;
-    float n110 = 1.2330425934312637;
-    float n120 = -152.6100996769378;
-    float n210 = 81.98076783376676;
-    float n220 = 1072.1700065871796;
-    float n310 = -309.62075391969813;
-    float n320 = -3618.9891638915415;
-    float n410 = 455.5244772537147;
-    float n420 = 5190.202261565708;
-    float n510 = -212.545170192307;
-    float n520 = -2402.939514788227;
-    float n001 = 2.8334092348814035e-06;
+    float n000 = 0.4912038462193552;
+    float n100 = -1.2829337399401595;
+    float n200 = 5.4496525366603175;
+    float n300 = -14.373489732912505;
+    float n400 = 23.041565019164537;
+    float n500 = -20.665098183955564;
+    float n600 = 7.781756180733372;
+    float n010 = 8.578612850167778;
+    float n020 = 139.0917211542655;
+    float n110 = 0.7488030083983109;
+    float n120 = -143.1155855707458;
+    float n210 = 85.43971374816863;
+    float n220 = 1012.1982268667119;
+    float n310 = -318.72827049284604;
+    float n320 = -3465.8287321207386;
+    float n410 = 465.76527224155507;
+    float n420 = 5018.865244618964;
+    float n510 = -216.65938340162148;
+    float n520 = -2334.271751434503;
+    float n001 = 2.7225033263675867e-06;
 };
+#else
+struct Coefficients
+{
+    float n000 = 0.5047586920710725;
+    float n100 = -1.3293513469123344;
+    float n200 = 5.601218191131566;
+    float n300 = -14.225368661713572;
+    float n400 = 21.663349336681787;
+    float n500 = -18.579135819086048;
+    float n600 = 6.851826924514666;
+    float n010 = 8.436044511643843;
+    float n020 = 149.2990640054199;
+    float n110 = 3.621048095119312;
+    float n120 = -260.80740460918076;
+    float n210 = 62.991673668723855;
+    float n220 = 1503.2169611333475;
+    float n310 = -256.30553427247116;
+    float n320 = -4432.423406317357;
+    float n410 = 393.01912725674475;
+    float n420 = 5881.223355649425;
+    float n510 = -187.42852955727568;
+    float n520 = -2619.370124692982;
+    float n001 = 3.3241142518818432e-06;
+};
+#endif
 
 const Coefficients coeffs;
 
