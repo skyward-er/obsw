@@ -51,7 +51,7 @@ bool TMTCController::send(const uint8_t tm_id)
     bool ok = mav_driver->enqueueMsg(tm_repo->packTM(tm_id));
     // update status
     MavlinkStatus status = mav_driver->getStatus();
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp     = TimestampTimer::getTimestamp();
     logger.log(status);
 
     return ok;
@@ -59,12 +59,17 @@ bool TMTCController::send(const uint8_t tm_id)
 
 void TMTCController::sendSerialTelemetry()
 {
+    // avoid spamming on serial of not in debug mode
+    // TODO : this has a problem, mavlink bytes are printed along with debug
+    //        messages, which confuses everything
+#ifdef DEBUG
     TmRepository* tm_repo = DeathStack::getInstance()->radio->tm_repo;
     uint8_t buf[256];
     mavlink_message_t msg = tm_repo->packTM(MAV_HR_TM_ID);
     uint16_t len          = mavlink_msg_to_send_buffer(buf, &msg);
     fwrite(buf, sizeof(uint8_t), len, stdout);
     fflush(stdout);
+#endif
 }
 
 void TMTCController::stateGroundTM(const Event& ev)
@@ -289,7 +294,7 @@ void TMTCController::stateSerialDebugTM(const Event& ev)
 
             break;
         }
-        case EV_TC_SERIAL_TM:
+        case EV_TC_RADIO_TM:
         {
             transition(&TMTCController::stateGroundTM);
             break;

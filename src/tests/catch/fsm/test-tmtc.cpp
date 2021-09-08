@@ -118,7 +118,7 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
     }
 }
 
-TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
+TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateSerialDebugTM")
 {
     fsm->transition(&TMTCController::stateSerialDebugTM);
     Thread::sleep(100);
