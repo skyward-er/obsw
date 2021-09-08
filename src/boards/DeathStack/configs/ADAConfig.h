@@ -49,10 +49,15 @@ constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 // > 0: Apogee detected ahead of time (while still going up)
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;
 // When the vertical speed is smaller than this value, airbrakes are disabled.
-constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 5.0;
+constexpr float ABK_DISABLE_VERTICAL_SPEED_TARGET = 7.5;
 
 // State timeouts
-static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 7.5 * 1000;  // ms
+#ifdef EUROC
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 8.5 * 1000;  // ms
+#else
+static const unsigned int TIMEOUT_ADA_SHADOW_MODE     = 6.5 * 1000;  // ms
+#endif
+
 static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 
 // Number of samples used to calibrate the kalman initial state
