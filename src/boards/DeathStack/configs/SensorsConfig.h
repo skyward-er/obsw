@@ -39,16 +39,17 @@ namespace SensorConfigs
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr InternalADC::Channel ADC_BATTERY_VOLTAGE =
     InternalADC::Channel::CH5;
-static constexpr InternalADC::Channel ADC_CS_CUTTER_PRIMARY =
-    InternalADC::Channel::CH6;
-static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
-    InternalADC::Channel::CH4;
+// static constexpr InternalADC::Channel ADC_CS_CUTTER_PRIMARY =
+//     InternalADC::Channel::CH6;
+// static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
+//     InternalADC::Channel::CH4;
 
 static constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
+static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5; // [V]
 
-static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
-static constexpr float CS_CURR_RIS    = 510;
-static constexpr float CS_CURR_IISOFF = .000170;  // Typ: 170uA
+// static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
+// static constexpr float CS_CURR_RIS    = 510;
+// static constexpr float CS_CURR_IISOFF = .000170;  // Typ: 170uA
 
 static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
 static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
@@ -66,7 +67,7 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 
 // Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 50;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1000; // only for battery voltage
 static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118  = 6;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 1000 / 100;

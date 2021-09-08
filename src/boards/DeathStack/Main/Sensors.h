@@ -30,7 +30,7 @@
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
-#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
@@ -63,7 +63,7 @@ public:
     CurrentSensor* cs_cutter_primary      = nullptr;
     CurrentSensor* cs_cutter_backup       = nullptr;
 
-    MS580301BA07* press_digital = nullptr;
+    MS5803* press_digital = nullptr;
 
     ADS1118* adc_ads1118          = nullptr;
     SSCDRRN015PDA* press_pitot    = nullptr;
@@ -97,12 +97,6 @@ private:
 
     void batteryVoltageInit();
     void batteryVoltageCallback();
-
-    void primaryCutterCurrentInit();
-    void primaryCutterCurrentCallback();
-
-    void backupCutterCurrentInit();
-    void backupCutterCurrentCallback();
 
     void pressDigiInit();
     void pressDigiCallback();
@@ -149,6 +143,8 @@ private:
     SensorsStatus status;
 
     PrintLogger log = Logging::getLogger("sensors");
+
+    unsigned int battery_critical_counter = 0;
 };
 
 }  // namespace DeathStackBoard

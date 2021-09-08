@@ -68,8 +68,6 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     gpsUbloxInit();     // 40 ms
     internalAdcInit();  // 50 ms
     batteryVoltageInit();
-    primaryCutterCurrentInit();
-    backupCutterCurrentInit();
 #ifdef HARDWARE_IN_THE_LOOP
     hilImuInit();
     hilBarometerInit();
@@ -144,8 +142,6 @@ void Sensors::internalAdcInit()
 {
     internal_adc = new InternalADC(*ADC3, INTERNAL_ADC_VREF);
 
-    internal_adc->enableChannel(ADC_CS_CUTTER_PRIMARY);
-    internal_adc->enableChannel(ADC_CS_CUTTER_BACKUP);
     internal_adc->enableChannel(ADC_BATTERY_VOLTAGE);
 
     SensorInfo info("InternalADC", SAMPLE_PERIOD_INTERNAL_ADC,
@@ -170,62 +166,13 @@ void Sensors::batteryVoltageInit()
     LOG_INFO(log, "Battery voltage sensor setup done!");
 }
 
-void Sensors::primaryCutterCurrentInit()
-{
-    function<ADCData()> voltage_fun(
-        bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_PRIMARY));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        float current =
-            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-        if (current < 0)
-        {
-            return (float)0;
-        }
-        return current;
-    };
-    cs_cutter_primary = new CurrentSensor(voltage_fun, adc_to_current);
-
-    SensorInfo info("PrimaryCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
-                    bind(&Sensors::primaryCutterCurrentCallback, this), false,
-                    true);
-
-    sensors_map.emplace(std::make_pair(cs_cutter_primary, info));
-
-    LOG_INFO(log, "Primary cutter current sensor setup done!");
-}
-
-void Sensors::backupCutterCurrentInit()
-{
-    function<ADCData()> voltage_fun(
-        bind(&InternalADC::getVoltage, internal_adc, ADC_CS_CUTTER_BACKUP));
-    function<float(float)> adc_to_current = [](float adc_in) {
-        float current =
-            CS_CURR_DKILIS * (adc_in / CS_CURR_RIS - CS_CURR_IISOFF);
-        if (current < 0)
-        {
-            return (float)0;
-        }
-        return current;
-    };
-    cs_cutter_backup = new CurrentSensor(voltage_fun, adc_to_current);
-
-    SensorInfo info("BackupCutterSensor", SAMPLE_PERIOD_INTERNAL_ADC,
-                    bind(&Sensors::backupCutterCurrentCallback, this), false,
-                    true);
-
-    sensors_map.emplace(std::make_pair(cs_cutter_backup, info));
-
-    LOG_INFO(log, "Backup cutter current sensor setup done!");
-}
-
 void Sensors::pressDigiInit()
 {
     SPIBusConfig spi_cfg{};
     spi_cfg.clock_div = SPIClockDivider::DIV16;
 
-    press_digital =
-        new MS580301BA07(spi1_bus, miosix::sensors::ms5803::cs::getPin(),
-                         spi_cfg, TEMP_DIVIDER_PRESS_DIGITAL);
+    press_digital = new MS5803(spi1_bus, miosix::sensors::ms5803::cs::getPin(),
+                               spi_cfg, TEMP_DIVIDER_PRESS_DIGITAL);
 
     SensorInfo info("DigitalBarometer", SAMPLE_PERIOD_PRESS_DIGITAL,
                     bind(&Sensors::pressDigiCallback, this), false, true);
@@ -426,23 +373,19 @@ void Sensors::internalAdcCallback()
 
 void Sensors::batteryVoltageCallback()
 {
-    float v = battery_voltage->getLastSample().bat_voltage;
-    if (v < 10.5)
+    static float v = battery_voltage->getLastSample().bat_voltage;
+    if (v < BATTERY_MIN_SAFE_VOLTAGE)
     {
-        LOG_CRIT(log, "******* LOW BATTERY ******* \n Voltage = {:02f} \n", v);
+        battery_critical_counter++;
+        // every 30 seconds to avoid filling the log (if debug disabled)
+        if (battery_critical_counter % 30 == 0)
+        {
+            LOG_CRIT(log, "*** LOW BATTERY *** ---> Voltage = {:02f}", v);
+            battery_critical_counter = 0;
+        }
     }
 
     LoggerService::getInstance()->log(battery_voltage->getLastSample());
-}
-
-void Sensors::primaryCutterCurrentCallback()
-{
-    LoggerService::getInstance()->log(cs_cutter_primary->getLastSample());
-}
-
-void Sensors::backupCutterCurrentCallback()
-{
-    LoggerService::getInstance()->log(cs_cutter_backup->getLastSample());
 }
 
 #ifdef HARDWARE_IN_THE_LOOP
