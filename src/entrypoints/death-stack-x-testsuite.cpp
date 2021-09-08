@@ -32,7 +32,7 @@
 #include <miosix.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
-#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/MS5803/MS5803.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
