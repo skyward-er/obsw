@@ -40,7 +40,7 @@
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/MS5803/MS5803.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
@@ -62,7 +62,7 @@ constexpr ADS1118::ADS1118Mux HONEYWELL_1 = ADS1118::ADS1118Mux::MUX_AIN2_GND;
 constexpr ADS1118::ADS1118Mux HONEYWELL_2 = ADS1118::ADS1118Mux::MUX_AIN1_GND;
 
 // Sample frequency
-constexpr int SAMPLING_FREQUENCY = 600;
+constexpr int SAMPLING_FREQUENCY = 50;
 
 // Voltage supplied to the analog sensors
 constexpr int SUPPLIED_VOLTAGE = 5;  // Measure and change!
@@ -118,7 +118,7 @@ int menu()
     printf("2. Sample NXP 2 (not installed)\n");
     printf("3. Sample HONEYWELL 1 (absolute)\n");
     printf("4. Sample HONEYWELL 2 (differential)\n");
-    printf("5. Sample MS580301BA07\n");
+    printf("5. Sample MS5803\n");
     printf("6. Sample all the above\n");
     printf("7. Test detachment pins\n");
     printf("\n>> ");
@@ -182,11 +182,11 @@ void sampleMS5803()
     int seconds = askSeconds();
 
     // Sensor setup
-
+    SPIBusConfig spiCfg{};
+    spiCfg.clock_div = SPIClockDivider::DIV16;
     SPIBus spiBus(SPI1);
-
-    MS580301BA07 ms5803 =
-        MS580301BA07(spiBus, miosix::sensors::ms5803::cs::getPin());
+    SPISlave spiSlave(spiBus, miosix::sensors::ms5803::cs::getPin(), spiCfg);
+    MS5803 ms5803 = MS5803(spiSlave);
     ms5803.init();
 
     // Sampling
@@ -207,14 +207,14 @@ void sampleAll()
     // Sensor setup
 
     SPIBus spiBus(SPI1);
-    SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
-    spiConfig.clock_div    = SPIClockDivider::DIV64;
-    SPISlave spiSlave(spiBus, miosix::sensors::ads1118::cs::getPin(),
-                      spiConfig);
+    SPIBusConfig adsSpiConfig = ADS1118::getDefaultSPIConfig();
+    adsSpiConfig.clock_div    = SPIClockDivider::DIV64;
+    SPISlave adsSpiSlave(spiBus, miosix::sensors::ads1118::cs::getPin(),
+                      adsSpiConfig);
 
     ADS1118::ADS1118Config ads1118Config = ADS1118::ADS1118_DEFAULT_CONFIG;
     ads1118Config.bits.mode = ADS1118::ADS1118Mode::CONTIN_CONV_MODE;
-    ADS1118 ads1118         = ADS1118(spiSlave, ads1118Config);
+    ADS1118 ads1118         = ADS1118(adsSpiSlave, ads1118Config);
     ads1118.init();
     ads1118.enableInput(NXP_1, ADS1118::ADS1118DataRate::DR_860,
                         ADS1118::ADS1118Pga::FSR_6_144);
@@ -240,8 +240,11 @@ void sampleAll()
                              SUPPLIED_VOLTAGE);
     SSCDRRN015PDA honeywell2(get_voltage_function_honeywell_2,
                              SUPPLIED_VOLTAGE);
-    MS580301BA07 ms5803 =
-        MS580301BA07(spiBus, miosix::sensors::ms5803::cs::getPin());
+    
+    SPIBusConfig ms5803SpiCfg{};
+    ms5803SpiCfg.clock_div = SPIClockDivider::DIV16;
+    SPISlave ms5803SpiSlave(spiBus, miosix::sensors::ms5803::cs::getPin(), ms5803SpiCfg);
+    MS5803 ms5803 = MS5803(ms5803SpiSlave);
     ms5803.init();
 
     // Sampling
