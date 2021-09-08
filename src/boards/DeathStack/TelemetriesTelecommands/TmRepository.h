@@ -42,7 +42,7 @@
 #include <scheduler/TaskSchedulerData.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
-#include <sensors/MS580301BA07/MS580301BA07Data.h>
+#include <sensors/MS5803/MS5803Data.h>
 #include <sensors/analog/battery/BatteryVoltageSensorData.h>
 #include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
@@ -202,10 +202,10 @@ void TmRepository::update<BatteryVoltageSensorData>(
     const BatteryVoltageSensorData& t);
 
 /**
- * @brief Motor current sense, sampled by internal ADC.
+ * @brief Cutters current sense, sampled by internal ADC.
  */
-template <>
-void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t);
+// template <>
+// void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t);
 
 template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
@@ -333,11 +333,11 @@ void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t);
 template <>
 void TmRepository::update<MainDPLStats>(const MainDPLStats& t);
 
-/**
- * @brief FlightStatsRecorder hbridge test stats.
- */
-template <>
-void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
+// /**
+//  * @brief FlightStatsRecorder hbridge test stats.
+//  */
+// template <>
+// void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
 
 #ifdef HARDWARE_IN_THE_LOOP
 template <>

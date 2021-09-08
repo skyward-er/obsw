@@ -213,6 +213,7 @@ void TmRepository::update<AirBrakesAlgorithmData>(
     tm_repository.abk_tm.v_mod = t.vMod;
 }
 
+/*
 template <>
 void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
 {
@@ -232,6 +233,7 @@ void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
 
     stats_rec.update(t);
 }
+*/
 
 template <>
 void TmRepository::update<BatteryVoltageSensorData>(
@@ -297,7 +299,7 @@ void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 template <>
 void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t)
 {
-    tm_repository.hr_tm.airspeed_pitot = t.airspeed;
+    tm_repository.hr_tm.airspeed_pitot = fabs(t.airspeed);
 
     stats_rec.update(t);
 }
@@ -587,7 +589,7 @@ void TmRepository::update<LogStats>(const LogStats& t)
     tm_repository.wind_tm.log_num    = t.logNumber;
     tm_repository.wind_tm.log_status = t.opened ? t.statWriteError : -1000;
 
-    tm_repository.hr_tm.logger_error = t.opened ? t.statWriteError : 255;
+    tm_repository.hr_tm.logger_error = t.opened ? t.statWriteError : -1;
 }
 
 /**
@@ -632,14 +634,11 @@ template <>
 void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
 {
     tm_repository.dpl_tm.fsm_state = (uint8_t)t.state;
-    tm_repository.dpl_tm.primary_cutter_state =
-        (uint8_t)t.primary_cutter_state.state;
-    tm_repository.dpl_tm.backup_cutter_state =
-        (uint8_t)t.backup_cutter_state.state;
+    tm_repository.dpl_tm.cutters_enabled =(uint8_t)t.cutters_enabled;
     tm_repository.dpl_tm.servo_position = t.servo_position;
 
     // HR TM
-    tm_repository.hr_tm.dpl_state = (int)t.state;
+    tm_repository.hr_tm.dpl_state = (uint8_t)t.state;
 }
 
 /**
@@ -682,7 +681,7 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
 
     // HR_TM
     tm_repository.hr_tm.pressure_ada = t.x0;
-    tm_repository.hr_tm.vert_accel   = t.x2;
+    tm_repository.hr_tm.ada_vert_accel   = t.x2;
 
     stats_rec.update(t);
 }
@@ -697,7 +696,7 @@ void TmRepository::update<ADAData>(const ADAData& t)
     tm_repository.ada_tm.vert_speed   = t.vert_speed;
 
     tm_repository.hr_tm.msl_altitude = t.msl_altitude;
-    tm_repository.hr_tm.vert_speed   = t.vert_speed;
+    tm_repository.hr_tm.ada_vert_speed   = t.vert_speed;
 
     stats_rec.update(t);
 }
@@ -807,15 +806,15 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_nas_mean = t.periodStats.mean;
             tm_repository.task_stats_tm.task_nas_stddev = t.periodStats.stdev;
             break;
-            // case TASK_SCHEDULER_STATS_ID:
-            //     tm_repository.task_stats_tm.task_250hz_max    =
-            //     t.periodStats.maxValue;
-            //     tm_repository.task_stats_tm.task_250hz_min    =
-            //     t.periodStats.minValue;
-            //     tm_repository.task_stats_tm.task_250hz_mean   =
-            //     t.periodStats.mean;
-            //     tm_repository.task_stats_tm.task_250hz_stddev =
-            //     t.periodStats.stdev; break;
+        // case TASK_SCHEDULER_STATS_ID:
+        //     tm_repository.task_stats_tm.task_250hz_max    =
+        //     t.periodStats.maxValue;
+        //     tm_repository.task_stats_tm.task_250hz_min    =
+        //     t.periodStats.minValue;
+        //     tm_repository.task_stats_tm.task_250hz_mean   =
+        //     t.periodStats.mean;
+        //     tm_repository.task_stats_tm.task_250hz_stddev =
+        //     t.periodStats.stdev; break;
 
         default:
             break;
@@ -877,12 +876,14 @@ void TmRepository::update<MainDPLStats>(const MainDPLStats& t)
     tm_repository.lr_tm.main_dpl_zspeed      = t.vert_speed_dpl;
 }
 
+/*
 template <>
 void TmRepository::update<CutterTestStats>(const CutterTestStats& t)
 {
     tm_repository.dpl_tm.primary_cutter_test_current = t.cutter_1_avg;
     tm_repository.dpl_tm.backup_cutter_test_current  = t.cutter_2_avg;
 }
+*/
 
 #ifdef HARDWARE_IN_THE_LOOP
 template <>
