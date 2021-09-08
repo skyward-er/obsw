@@ -27,7 +27,7 @@
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160.h>
-#include <sensors/MS580301BA07/MS580301BA07.h>
+#include <sensors/MS5803/MS5803.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
@@ -64,7 +64,7 @@ public:
     using IMUType     = BMX160;
     using IMUDataType = BMX160Data;
 
-    using PressType     = MS580301BA07;
+    using PressType     = MS5803;
     using PressDataType = MS5803Data;
 
     using GPSType     = UbloxGPS;

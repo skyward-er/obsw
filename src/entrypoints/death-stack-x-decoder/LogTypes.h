@@ -27,7 +27,7 @@
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
-#include <sensors/MS580301BA07/MS580301BA07Data.h>
+#include <sensors/MS5803/MS5803Data.h>
 #include <sensors/analog/battery/BatteryVoltageSensorData.h>
 #include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
