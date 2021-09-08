@@ -299,15 +299,15 @@ template <typename IMU, typename Press, typename GPS>
 NASTriadResult NAS<IMU, Press, GPS>::getTriadResult()
 {
     Matrix<float, N, 1> state = states_init.getInitX();
-    //Vector3f e = quat.quat2eul({state(6), state(7), state(8), state(9)});
+    // Vector3f e = quat.quat2eul({state(6), state(7), state(8), state(9)});
 
     NASTriadResult result;
     result.x     = state(0);
     result.y     = state(1);
     result.z     = -state(2);
-    result.roll  = triad_result_eul(0); //e(0);
-    result.pitch = triad_result_eul(1); //e(1);
-    result.yaw   = triad_result_eul(2); //e(2);
+    result.roll  = triad_result_eul(0);  // e(0);
+    result.pitch = triad_result_eul(1);  // e(1);
+    result.yaw   = triad_result_eul(2);  // e(2);
 
     return result;
 }
@@ -341,10 +341,10 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
                                                  float yaw)
 {
     Vector4f q = quat.eul2quat({roll, pitch, yaw});
-    x(6)       = q(0);
-    x(7)       = q(1);
-    x(8)       = q(2);
-    x(9)       = q(3);
+    x(NL)      = q(0);
+    x(NL + 1)  = q(1);
+    x(NL + 2)  = q(2);
+    x(NL + 3)  = q(3);
     LOG_INFO(log, "Initial orientation set to : ({:.2f}, {:.2f}, {:.2f})", roll,
              pitch, yaw);
     LOG_DEBUG(log,
