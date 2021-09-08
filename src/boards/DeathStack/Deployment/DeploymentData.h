@@ -39,8 +39,7 @@ enum class DeploymentControllerState : uint8_t
     INITIALIZATION = 0,
     IDLE,
     NOSECONE_EJECTION,
-    CUTTING_PRIMARY,
-    CUTTING_BACKUP,
+    CUTTING,
     TEST_CUTTING_PRIMARY,
     TEST_CUTTING_BACKUP,
 };
@@ -51,22 +50,19 @@ enum class DeploymentControllerState : uint8_t
 struct DeploymentStatus
 {
     uint64_t timestamp;
-    DeploymentControllerState state;
-    HBridgeStatus primary_cutter_state;
-    HBridgeStatus backup_cutter_state;
-    float servo_position;
+    DeploymentControllerState state = DeploymentControllerState::INITIALIZATION;
+    bool cutters_enabled            = false;
+    float servo_position            = 0.0f;
 
     static std::string header()
     {
-        return "timestamp,state,primary_cutter_state,backup_cutter_state,servo_"
-               "position\n";
+        return "timestamp,state,cutters_enabled,servo_position\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << ","
-           << (int)primary_cutter_state.state << ","
-           << (int)backup_cutter_state.state << "," << servo_position << "\n";
+        os << timestamp << "," << (int)state << "," << (int)cutters_enabled
+           << "," << servo_position << "\n";
     }
 };
 

@@ -11,8 +11,6 @@
         </transition>
         <transition event="DPL.EV_NC_OPEN" target="noseconeEjection"/>
         <transition event="DPL.EV_CUT_DROGUE" target="cuttingPrimary"/>
-        <transition event="DPL.EV_TEST_CUT_PRIMARY" target="testCuttingPrimary"/>
-        <transition event="DPL.EV_TEST_CUT_BACKUP" target="testCuttingBackup"/>
     </state>
     <state id="noseconeEjection">
         <onentry>ejectNosecone()</onentry>
@@ -23,28 +21,11 @@
         </transition>
         <transition event="DPL.EV_NC_OPEN_TIMEOUT" target="idle"/>
     </state>
-    <state id="cuttingPrimary">
-        <onentry>enablePrimaryCutter()</onentry>
+    <state id="cutting">
+        <onentry>startCutting()</onentry>
         <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
-        <onexit>disablePrimaryCutter()</onexit>
-        <transition event="DPL.EV_CUTTING_TIMEOUT" target="cuttingBackup"/>
-    </state>
-    <state id="cuttingBackup">
-        <onentry>enableBackupCutter()</onentry>
-        <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
-        <onexit>disableBackupCutter()</onexit>
-        <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
-    </state>
-    <state id="testCuttingPiimary">
-        <onentry>enablePrimaryCutter()</onentry>
-        <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
-        <onexit>disablePrimaryCutter()</onexit>
-        <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
-    </state>
-    <state id="testCuttingBackup">
-        <onentry>enableBackupCutter()</onentry>
-        <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
-        <onexit>disableBackupCutter()</onexit>
+        <onexit>stopCutting()</onexit>
         <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
     </state>
 </scxml>
+

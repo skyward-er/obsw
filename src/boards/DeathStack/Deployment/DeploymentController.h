@@ -44,30 +44,21 @@ class DeploymentController : public FSM<DeploymentController>
 {
 public:
     DeploymentController(
-        HBridge* primaryCutter         = new HBridge(PrimaryCutterEna::getPin(),
-                                             CUTTER_TIM, CUTTER_CHANNEL_PRIMARY,
-                                             PRIMARY_CUTTER_PWM_FREQUENCY,
-                                             PRIMARY_CUTTER_PWM_DUTY_CYCLE),
-        HBridge* backupCutter          = new HBridge(BackupCutterEna::getPin(),
-                                            CUTTER_TIM, CUTTER_CHANNEL_PRIMARY,
-                                            BACKUP_CUTTER_PWM_FREQUENCY,
-                                            BACKUP_CUTTER_PWM_DUTY_CYCLE),
         ServoInterface* ejection_servo = new DeploymentServo());
     ~DeploymentController();
 
     void state_initialization(const Event& ev);
     void state_idle(const Event& ev);
     void state_noseconeEjection(const Event& ev);
-    void state_cuttingPrimary(const Event& ev);
-    void state_cuttingBackup(const Event& ev);
-    void state_testCuttingPrimary(const Event& ev);
-    void state_testCuttingBackup(const Event& ev);
+    void state_cutting(const Event& ev);
+
+    void ejectNosecone();
+    void startCutting();
+    void stopCutting();
 
 private:
     DeploymentStatus status;
 
-    HBridge* primaryCutter;
-    HBridge* backupCutter;
     ServoInterface* ejection_servo;
 
     uint16_t ev_nc_open_timeout_id    = 0;

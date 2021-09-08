@@ -38,11 +38,8 @@
 namespace DeathStackBoard
 {
 
-DeploymentController::DeploymentController(HBridge* primaryCutter,
-                                           HBridge* backupCutter,
-                                           ServoInterface* ejection_servo)
+DeploymentController::DeploymentController(ServoInterface* ejection_servo)
     : FSM(&DeploymentController::state_initialization),
-      primaryCutter{primaryCutter}, backupCutter{backupCutter},
       ejection_servo{ejection_servo}
 {
     sEventBroker->subscribe(this, TOPIC_DPL);
@@ -58,8 +55,10 @@ void DeploymentController::logStatus(DeploymentControllerState current_state)
     status.timestamp            = TimestampTimer::getTimestamp();
     status.state                = current_state;
     status.servo_position       = ejection_servo->getCurrentPosition();
-    status.primary_cutter_state = primaryCutter->getStatus();
-    status.backup_cutter_state  = backupCutter->getStatus();
+    if (current_state == DeploymentControllerState::CUTTING)
+    {
+        status.cutters_enabled = true;
+    }
 
     LoggerService::getInstance()->log(status);
     StackLogger::getInstance()->updateStack(THID_DPL_FSM);
@@ -112,36 +111,26 @@ void DeploymentController::state_idle(const Event& ev)
         }
         case EV_RESET_SERVO:
         {
-            LOG_DEBUG(log, "Reset servo ");
+            LOG_DEBUG(log, "Reset servo");
             ejection_servo->reset();
             break;
         }
         case EV_WIGGLE_SERVO:
         {
-            LOG_DEBUG(log, "Wiggle servo ");
+            LOG_DEBUG(log, "Wiggle servo");
             ejection_servo->selfTest();
             break;
         }
         case EV_NC_OPEN:
         {
-            LOG_DEBUG(log, "Nosecone open event ");
+            LOG_DEBUG(log, "Nosecone open event");
             transition(&DeploymentController::state_noseconeEjection);
             break;
         }
         case EV_CUT_DROGUE:
         {
-            LOG_DEBUG(log, "Cut drogue event ");
-            transition(&DeploymentController::state_cuttingPrimary);
-            break;
-        }
-        case EV_TEST_CUT_PRIMARY:
-        {
-            transition(&DeploymentController::state_testCuttingPrimary);
-            break;
-        }
-        case EV_TEST_CUT_BACKUP:
-        {
-            transition(&DeploymentController::state_testCuttingBackup);
+            LOG_DEBUG(log, "Cut drogue event");
+            transition(&DeploymentController::state_cutting);
             break;
         }
         default:
@@ -159,7 +148,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         {
             LOG_DEBUG(log, "Entering state nosecone_ejection");
 
-            ejection_servo->set(DPL_SERVO_EJECT_POS);
+            ejectNosecone();
 
             ev_nc_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
                 Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
@@ -174,14 +163,14 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         }
         case EV_NC_DETACHED:
         {
-            LOG_DEBUG(log, "Nosecone detached event ");
+            LOG_DEBUG(log, "Nosecone detached event");
             sEventBroker->removeDelayed(ev_nc_open_timeout_id);
             transition(&DeploymentController::state_idle);
             break;
         }
         case EV_NC_OPEN_TIMEOUT:
         {
-            LOG_DEBUG(log, "Nosecone opening timeout ");
+            LOG_DEBUG(log, "Nosecone opening timeout");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -192,72 +181,34 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
     }
 }
 
-void DeploymentController::state_cuttingPrimary(const Event& ev)
+void DeploymentController::state_cutting(const Event& ev)
 {
     switch (ev.sig)
     {
         case EV_ENTRY:
         {
-            LOG_DEBUG(log, "Entering state cutting_primary");
+            LOG_DEBUG(log, "Entering state cutting");
 
-            primaryCutter->enable();
+            startCutting();
 
             ev_nc_cutting_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
                 Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
-            logStatus(DeploymentControllerState::CUTTING_PRIMARY);
+            logStatus(DeploymentControllerState::CUTTING);
 
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(log, "Exiting state cutting_primary");
-
-            primaryCutter->disable();
-
-            break;
-        }
-        case EV_CUTTING_TIMEOUT:
-        {
-            LOG_DEBUG(log, "Primary cutter timeout ");
-            transition(&DeploymentController::state_cuttingBackup);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-void DeploymentController::state_cuttingBackup(const Event& ev)
-{
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            LOG_DEBUG(log, "Entering state cutting_backup");
-
-            backupCutter->enable();
-
-            ev_nc_cutting_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
-                Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
-
-            logStatus(DeploymentControllerState::CUTTING_BACKUP);
-
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(log, "Exiting state cutting_backup");
-
-            backupCutter->disable();
+            stopCutting();
+        
+            LOG_DEBUG(log, "Exiting state cutting");
 
             break;
         }
         case EV_CUTTING_TIMEOUT:
         {
-            LOG_DEBUG(log, "Backup cutter timeout ");
+            LOG_DEBUG(log, "Cutter timeout");
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -268,79 +219,23 @@ void DeploymentController::state_cuttingBackup(const Event& ev)
     }
 }
 
-void DeploymentController::state_testCuttingPrimary(const Event& ev)
+void DeploymentController::ejectNosecone()
 {
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            LOG_DEBUG(log, "Entering state test_cutting_primary");
-
-            primaryCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
-
-            ev_nc_cutting_timeout_id =
-                sEventBroker->postDelayed<CUT_TEST_DURATION>(
-                    Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
-
-            logStatus(DeploymentControllerState::TEST_CUTTING_PRIMARY);
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(log, "Exiting state test_cutting_primary");
-
-            primaryCutter->disable();
-
-            break;
-        }
-        case EV_CUTTING_TIMEOUT:
-        {
-            LOG_DEBUG(log, "Test primary cutter timeout ");
-            transition(&DeploymentController::state_idle);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
+    ejection_servo->set(DPL_SERVO_EJECT_POS);
 }
 
-void DeploymentController::state_testCuttingBackup(const Event& ev)
+void DeploymentController::startCutting()
 {
-    switch (ev.sig)
-    {
-        case EV_ENTRY:
-        {
-            backupCutter->enableTest(CUTTER_TEST_PWM_DUTY_CYCLE);
+    PrimaryCutterEna::getPin().high();
+    BackupCutterEna::getPin().high();
+    CuttersInput::getPin().high();
+}
 
-            ev_nc_cutting_timeout_id =
-                sEventBroker->postDelayed<CUT_TEST_DURATION>(
-                    Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
-
-            logStatus(DeploymentControllerState::TEST_CUTTING_BACKUP);
-
-            LOG_DEBUG(log, "Entering state test_cutting_backup");
-            break;
-        }
-        case EV_EXIT:
-        {
-            backupCutter->disable();
-
-            LOG_DEBUG(log, "Exiting state test_cutting_backup");
-            break;
-        }
-        case EV_CUTTING_TIMEOUT:
-        {
-            LOG_DEBUG(log, "Test backup cutter timeout ");
-            transition(&DeploymentController::state_idle);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
+void DeploymentController::stopCutting()
+{
+    PrimaryCutterEna::getPin().low();
+    BackupCutterEna::getPin().low();
+    CuttersInput::getPin().low();
 }
 
 }  // namespace DeathStackBoard

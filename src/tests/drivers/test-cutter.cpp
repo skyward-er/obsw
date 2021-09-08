@@ -41,6 +41,8 @@
 
 using namespace std;
 
+using namespace DeathStackBoard::CutterConfig;
+
 static constexpr int MAX_CUTTING_TIME = 10 * 1000;  // ms
 constexpr int SAMPLING_FREQUENCY      = 20;
 
@@ -59,14 +61,13 @@ static constexpr float ADC_TO_CURR_COEFF = ADC_TO_CURR_DKILIS / ADC_TO_CURR_RIS;
 static constexpr float ADC_TO_CURR_OFFSET =
     ADC_TO_CURR_DKILIS * ADC_TO_CURR_IISOFF;
 
-function<float(float)> adc_to_current = [](float adc_in)
-{
+function<float(float)> adc_to_current = [](float adc_in) {
     return ADC_TO_CURR_DKILIS * (adc_in / ADC_TO_CURR_RIS - ADC_TO_CURR_IISOFF);
 };
 
 bool finished = false;
 
-void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle);
+void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle, uint32_t *cutDuration);
 
 void elapsedTimeAndCsense(void *args);
 
@@ -75,6 +76,7 @@ int main()
     unsigned int cutterNo = 0;
     uint32_t frequency    = 0;
     float dutyCycle       = 0;
+    uint32_t cutDuration  = 0; // for cots cutters
 
     TimestampTimer::enableTimestampTimer();
 
@@ -82,84 +84,115 @@ int main()
     ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
     // Ask the user the parameters
-    menu(&cutterNo, &frequency, &dutyCycle);
+    menu(&cutterNo, &frequency, &dutyCycle, &cutDuration);
 
     // Cutter setup
 
     GpioPin *ena_pin;
     PWMChannel pwmChannel;
 
-    if (cutterNo == 1)
+    if (cutterNo == 3)  // COTS cutters
     {
-        ena_pin = new GpioPin(
-            DeathStackBoard::CutterConfig::PrimaryCutterEna::getPin());
-        pwmChannel = DeathStackBoard::CutterConfig::CUTTER_CHANNEL_PRIMARY;
+        PrimaryCutterEna::getPin().high();
+        BackupCutterEna::getPin().high();
+        CuttersInput::getPin().high();
+
+        Thread::sleep(cutDuration);
+
+        PrimaryCutterEna::getPin().low();
+        BackupCutterEna::getPin().low();
+        CuttersInput::getPin().low();
     }
-    else  // if (cutterNo == 2)
-    {
-        ena_pin = new GpioPin(
-            DeathStackBoard::CutterConfig::BackupCutterEna::getPin());
-        pwmChannel = DeathStackBoard::CutterConfig::CUTTER_CHANNEL_BACKUP;
+    else
+    {  // SRAD cutters
+        if (cutterNo == 1)
+        {
+            ena_pin = new GpioPin(
+                PrimaryCutterEna::getPin());
+            pwmChannel = CUTTER_CHANNEL_PRIMARY;
+        }
+        else  // if (cutterNo == 2)
+        {
+            ena_pin = new GpioPin(
+                BackupCutterEna::getPin());
+            pwmChannel = CUTTER_CHANNEL_BACKUP;
+        }
+
+        HBridge cutter(*ena_pin, CUTTER_TIM,
+                       pwmChannel, frequency, dutyCycle / 100.0f);
+
+        // Start the test
+
+        miosix::Thread::create(elapsedTimeAndCsense, 2048,
+                               miosix::MAIN_PRIORITY, &cutterNo);
+
+        cutter.enable();
+
+        // Wait for the user to press ENTER or the timer to elapse
+        string temp;
+        while (!finished)
+        {
+            (void)getchar();
+            finished = true;
+            printf("Stopped... \n\n");
+        }
+
+        cutter.disable();
     }
-
-    HBridge cutter(*ena_pin, DeathStackBoard::CutterConfig::CUTTER_TIM,
-                   pwmChannel, frequency, dutyCycle / 100.0f);
-
-    // Start the test
-
-    miosix::Thread::create(elapsedTimeAndCsense, 2048, miosix::MAIN_PRIORITY,
-                           &cutterNo);
-
-    cutter.enable();
-
-    // Wait for the user to press ENTER or the timer to elapse
-    string temp;
-    while (!finished)
-    {
-        (void)getchar();
-        finished = true;
-        printf("Stopped... \n\n");
-    }
-
-    cutter.disable();
 
     return 0;
 }
 
-void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle)
+void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle,
+          uint32_t *cutDuration)
 {
     string temp;
 
     do
     {
-        printf("\nWhat do you want to cut? (1 - primary / 2 - backup)\n");
+        printf(
+            "\nWhat do you want to cut? (1 - SRAD primary / 2 - SRAD backup / "
+            "3 - COTS (both channels enabled))\n");
         printf(">> ");
         getline(cin, temp);
         stringstream(temp) >> *cutterNo;
-    } while (*cutterNo != 1 && *cutterNo != 2);
+    } while (*cutterNo != 1 && *cutterNo != 2 && *cutterNo != 3);
+
+    if (*cutterNo != 3)  // SRAD cutters
+    {
+        do
+        {
+            printf("\nInsert frequency (1-30000 Hz): \n");
+            printf(">> ");
+            getline(cin, temp);
+            stringstream(temp) >> *frequency;
+        } while (*frequency < 1 || *frequency > 30000);
+
+        do
+        {
+            printf("\nInsert duty cycle (1-100): \n");
+            printf(">> ");
+            getline(cin, temp);
+            stringstream(temp) >> *dutyCycle;
+        } while (*dutyCycle < 1 || *dutyCycle > 100);
+
+        printf("\nCutting %s, frequency: %lu, duty cycle: %.1f\n\n",
+               (*cutterNo ? "PRIMARY" : "BACKUP"), *frequency, *dutyCycle);
+    }
+    else  // COTS cutters
+    {
+        do
+        {
+            printf("\nInsert cut duration (1-1000 milliseconds): \n");
+            printf(">> ");
+            getline(cin, temp);
+            stringstream(temp) >> *cutDuration;
+        } while (*cutDuration < 1 || *cutDuration > 1000);
+    }
 
     do
     {
-        printf("\nInsert frequency (1-30000 Hz): \n");
-        printf(">> ");
-        getline(cin, temp);
-        stringstream(temp) >> *frequency;
-    } while (*frequency < 1 || *frequency > 30000);
-
-    do
-    {
-        printf("\nInsert duty cycle (1-100): \n");
-        printf(">> ");
-        getline(cin, temp);
-        stringstream(temp) >> *dutyCycle;
-    } while (*dutyCycle < 1 || *dutyCycle > 100);
-
-    printf("\nCutting %s, frequency: %lu, duty cycle: %.1f\n\n",
-           (*cutterNo ? "PRIMARY" : "BACKUP"), *frequency, *dutyCycle);
-
-    do
-    {
-        printf("READY!\n");
+        printf("\nREADY!\n");
         printf("Write 'start' to begin then press ENTER to end the test:\n");
         getline(cin, temp);
     } while (temp != "start");
