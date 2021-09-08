@@ -64,28 +64,28 @@ void FlightStatsRecorder::update(const ADAKalmanState& t)
     }
 }
 
-void FlightStatsRecorder::update(const CurrentSensorData& t)
-{
-    switch (state)
-    {
-        case FSRState::TESTING_CUTTER:
-        {
-            if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_PRIMARY)
-            {
-                ++cutters_stats.n_samples_1;
-                cutters_stats.cutter_1_avg += t.current;
-            }
-            else if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_BACKUP)
-            {
-                ++cutters_stats.n_samples_2;
-                cutters_stats.cutter_2_avg += t.current;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-}
+// void FlightStatsRecorder::update(const CurrentSensorData& t)
+// {
+//     switch (state)
+//     {
+//         case FSRState::TESTING_CUTTER:
+//         {
+//             if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_PRIMARY)
+//             {
+//                 ++cutters_stats.n_samples_1;
+//                 cutters_stats.cutter_1_avg += t.current;
+//             }
+//             else if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_BACKUP)
+//             {
+//                 ++cutters_stats.n_samples_2;
+//                 cutters_stats.cutter_2_avg += t.current;
+//             }
+//             break;
+//         }
+//         default:
+//             break;
+//     }
+// }
 
 void FlightStatsRecorder::update(const ADAData& t)
 {
@@ -193,25 +193,26 @@ void FlightStatsRecorder::update(const SSCDANN030PAAData& t)
     }
 }
 
-void FlightStatsRecorder::update(const BMX160Data& t)
+void FlightStatsRecorder::update(const BMX160WithCorrectionData& t)
 {
+    // take acceleration on x axis since it is in body frame
     switch (state)
     {
         case FSRState::LIFTOFF:
         {
-            if (fabs(t.accel_z) > liftoff_stats.acc_max)
+            if (fabs(t.accel_x) > liftoff_stats.acc_max)
             {
                 liftoff_stats.T_max_acc =
                     static_cast<uint32_t>(miosix::getTick());
-                liftoff_stats.acc_max = fabs(t.accel_z);
+                liftoff_stats.acc_max = fabs(t.accel_x);
             }
             break;
         }
         case FSRState::DROGUE_DPL:
         {
-            if (fabs(t.accel_z) > fabs(drogue_dpl_stats.max_dpl_acc))
+            if (fabs(t.accel_x) > fabs(drogue_dpl_stats.max_dpl_acc))
             {
-                drogue_dpl_stats.max_dpl_acc = t.accel_z;
+                drogue_dpl_stats.max_dpl_acc = t.accel_x;
                 drogue_dpl_stats.T_dpl =
                     static_cast<uint32_t>(miosix::getTick());
             }
@@ -219,9 +220,9 @@ void FlightStatsRecorder::update(const BMX160Data& t)
         }
         case FSRState::MAIN_DPL:
         {
-            if (fabs(t.accel_z) > fabs(main_dpl_stats.max_dpl_acc))
+            if (fabs(t.accel_x) > fabs(main_dpl_stats.max_dpl_acc))
             {
-                main_dpl_stats.max_dpl_acc = t.accel_z;
+                main_dpl_stats.max_dpl_acc = t.accel_x;
             }
             break;
         }

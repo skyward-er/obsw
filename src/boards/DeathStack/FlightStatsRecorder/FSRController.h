@@ -29,8 +29,8 @@
 #include <diagnostic/PrintLogger.h>
 #include <drivers/gps/ublox/UbloxGPSData.h>
 #include <events/FSM.h>
-#include <sensors/BMX160/BMX160Data.h>
-#include <sensors/MS580301BA07/MS580301BA07Data.h>
+#include <sensors/BMX160/BMX160WithCorrectionData.h>
+#include <sensors/MS5803/MS5803Data.h>
 #include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
@@ -59,8 +59,8 @@ public:
     void update(const ADAKalmanState& t);
     void update(const ADAData& t);
     void update(const UbloxGPSData& t);
-    void update(const BMX160Data& t);
-    void update(const CurrentSensorData& t);
+    void update(const BMX160WithCorrectionData& t);
+    //void update(const CurrentSensorData& t);
     void update(const MS5803Data& t);      // digitl baro
     void update(const MPXHZ6130AData& t);  // static ports baro
     void update(const SSCDANN030PAAData& t);  // DPL vane baro
