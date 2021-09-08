@@ -47,8 +47,7 @@ public:
     // This is called at the beginning of each test / section
     DeploymentControllerFixture()
     {
-        controller = new DeploymentController(&primaryCutter, &backupCutter,
-                                              &ejection_servo);
+        controller = new DeploymentController(&ejection_servo);
         sEventBroker->start();
         controller->start();
     }
@@ -64,13 +63,6 @@ public:
 
 protected:
     DeploymentController* controller;
-
-    HBridge primaryCutter{PrimaryCutterEna::getPin(), CUTTER_TIM,
-                          CUTTER_CHANNEL_PRIMARY, PRIMARY_CUTTER_PWM_FREQUENCY,
-                          PRIMARY_CUTTER_PWM_DUTY_CYCLE};
-    HBridge backupCutter{BackupCutterEna::getPin(), CUTTER_TIM,
-                         CUTTER_CHANNEL_BACKUP, BACKUP_CUTTER_PWM_FREQUENCY,
-                         BACKUP_CUTTER_PWM_DUTY_CYCLE};
     DeploymentServo ejection_servo;
 };
 
@@ -100,21 +92,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from idle")
     SECTION("DPL_IDLE -> EV_CUT_DROGUE")
     {
         REQUIRE(testFSMTransition(*controller, Event{EV_CUT_DROGUE},
-                                  &DeploymentController::state_cuttingPrimary));
-    }
-
-    SECTION("DPL_IDLE -> EV_TEST_CUT_PRIMARY")
-    {
-        REQUIRE(
-            testFSMTransition(*controller, Event{EV_TEST_CUT_PRIMARY},
-                              &DeploymentController::state_testCuttingPrimary));
-    }
-
-    SECTION("DPL_IDLE -> EV_TEST_CUT_BACKUP")
-    {
-        REQUIRE(
-            testFSMTransition(*controller, Event{EV_TEST_CUT_BACKUP},
-                              &DeploymentController::state_testCuttingBackup));
+                                  &DeploymentController::state_cutting));
     }
 }
 
@@ -137,47 +115,11 @@ TEST_CASE_METHOD(DeploymentControllerFixture,
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from cutting_primary")
+                 "Testing transitions from cutting")
 {
-    controller->transition(&DeploymentController::state_cuttingPrimary);
+    controller->transition(&DeploymentController::state_cutting);
 
-    SECTION("DPL_CUTTING_PRIMARY -> EV_CUTTING_TIMEOUT")
-    {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
-                                  &DeploymentController::state_cuttingBackup));
-    }
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from cutting_backup")
-{
-    controller->transition(&DeploymentController::state_cuttingBackup);
-
-    SECTION("DPL_CUTTING_BACKUP -> EV_CUTTING_TIMEOUT")
-    {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
-                                  &DeploymentController::state_idle));
-    }
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from test_cutting_primary")
-{
-    controller->transition(&DeploymentController::state_testCuttingPrimary);
-
-    SECTION("DPL_TEST_CUTTING_PRIMARY -> EV_CUTTING_TIMEOUT")
-    {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
-                                  &DeploymentController::state_idle));
-    }
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from test_cutting_backup")
-{
-    controller->transition(&DeploymentController::state_testCuttingBackup);
-
-    SECTION("DPL_TEST_CUTTING_BACKUP -> EV_CUTTING_TIMEOUT")
+    SECTION("DPL_CUTTING -> EV_CUTTING_TIMEOUT")
     {
         REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
                                   &DeploymentController::state_idle));
