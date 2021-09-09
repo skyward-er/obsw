@@ -90,11 +90,17 @@ public:
     HILFlightPhasesManager()
     {
         updateFlags({0, 0, 0, 0, 0, 0});
-        counter = new EventCounter(*sEventBroker);
-        counter->subscribe(TOPIC_FLIGHT_EVENTS);
-        counter->subscribe(TOPIC_ADA);
-        counter->subscribe(TOPIC_NAS);
-        counter->subscribe(TOPIC_DPL);
+        counter_flight_events = new EventCounter(*sEventBroker);
+        counter_flight_events->subscribe(TOPIC_FLIGHT_EVENTS);
+
+        counter_airbrakes = new EventCounter(*sEventBroker);
+        counter_airbrakes->subscribe(TOPIC_ABK);
+
+        counter_ada = new EventCounter(*sEventBroker);
+        counter_ada->subscribe(TOPIC_ADA);
+
+        counter_dpl = new EventCounter(*sEventBroker);
+        counter_dpl->subscribe(TOPIC_DPL);
     }
 
     bool isSimulationStarted() { return flagsFlightPhases[SIMULATION_STARTED]; }
@@ -131,16 +137,6 @@ public:
         {
             t_start = TimestampTimer::getTimestamp();
 
-            //*****************************************************************/
-            //       temporary until we test everything with GS and TCs        /
-            //*****************************************************************/
-            // TODO : REMOVE ME
-            // sEventBroker->post({EV_TC_CALIBRATE_SENSORS}, TOPIC_TMTC);
-            // Thread::sleep(100);
-            // sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
-            // Thread::sleep(100);
-            //*****************************************************************/
-
             TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
         }
@@ -154,16 +150,6 @@ public:
         if (isSetFalse(CALIBRATION))  // calibration finalized
         {
             TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
-
-            //*****************************************************************/
-            //            temporary until telecommands do not exist            /
-            //*****************************************************************/
-            // sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
-            //*****************************************************************/
-            // TRACE("\n\n --- PRESS ENTER TO ARM --- \n\n");
-            // getchar(); // wait user input
-            // sEventBroker->post({EV_TC_ARM}, TOPIC_FLIGHT_EVENTS);
-            // Thread::sleep(1000);
         }
 
         if (isSetTrue(LIFTOFF_PIN_DETACHED))
@@ -301,45 +287,43 @@ private:
     {
         // calibration flag set to true at the beginning of the simulation
         if (!prev_flagsFlightPhases[CALIBRATION] &&
-            counter->getCount(EV_ADA_READY) == 0 &&
-            counter->getCount(EV_NAS_READY) == 0 &&
-            counter->getCount(EV_CALIBRATE) > 0)
+            counter_flight_events->getCount(EV_CALIBRATION_OK) == 0 &&
+            counter_flight_events->getCount(EV_TC_CALIBRATE_SENSORS) > 0)
         {
             setFlagFlightPhase(CALIBRATION, true);
         }
 
         // calibration flag turned false when calibration finishes
         if (prev_flagsFlightPhases[CALIBRATION] &&
-            counter->getCount(EV_ADA_READY) > 0 &&
-            counter->getCount(EV_NAS_READY) > 0)
+            counter_flight_events->getCount(EV_CALIBRATION_OK) > 0)
         {
             setFlagFlightPhase(CALIBRATION, false);
         }
 
         // airbrakes flag turned true when the shadow mode ended
         if (!prev_flagsFlightPhases[AEROBRAKES] &&
-            counter->getCount(EV_SHADOW_MODE_TIMEOUT) > 0)
+            counter_airbrakes->getCount(EV_SHADOW_MODE_TIMEOUT) > 0)
         {
             setFlagFlightPhase(AEROBRAKES, true);
         }
 
         // apogee flag turned true when apogee is detected
         if (!prev_flagsFlightPhases[APOGEE] &&
-            counter->getCount(EV_ADA_APOGEE_DETECTED) > 0)
+            counter_ada->getCount(EV_ADA_APOGEE_DETECTED) > 0)
         {
             setFlagFlightPhase(APOGEE, true);
         }
 
         // parachute 1 flag turned true when apogee is detected
         if (!prev_flagsFlightPhases[PARA1] &&
-            counter->getCount(EV_ADA_APOGEE_DETECTED) > 0)
+            counter_dpl->getCount(EV_NC_OPEN) > 0)
         {
             setFlagFlightPhase(PARA1, true);
         }
 
         // parachute 2 flag turned true with event deployment altitude detected
         if (!prev_flagsFlightPhases[PARA2] &&
-            counter->getCount(EV_ADA_DPL_ALT_DETECTED) > 0)
+            counter_ada->getCount(EV_ADA_DPL_ALT_DETECTED) > 0)
         {
             setFlagFlightPhase(PARA2, true);
         }
@@ -365,5 +349,9 @@ private:
     map<FlightPhases, vector<TCallback>> callbacks;
     map<FlightPhases, Outcomes> outcomes;
     Sensor<DeathStackBoard::NASData>* nas;
-    EventCounter* counter;
+
+    EventCounter* counter_flight_events;
+    EventCounter* counter_airbrakes;
+    EventCounter* counter_ada;
+    EventCounter* counter_dpl;
 };
