@@ -103,8 +103,11 @@ static const float SATS_NUM = 6.0F;  // Number of available satellites
 
 static const Vector3f NED_MAG(
     0.5969F, -0.0139F,
-    0.8022F);  // Normalized magnetic field vector at the launch site
+    0.8022F);  // Normalized magnetic field vector at Ponte de Sor
                // Measurement units are not important since it's normalized
+
+// normalized magentic field at Milano
+// static const Vector3f NED_MAG(0.4742, 0.025, 0.8801);
 
 // DIMENSIONS OF MATRICES AND VECTORS
 
@@ -116,11 +119,11 @@ static const uint16_t NATT = 7;       // Number of attitude related elements.
                                       // [q1, q2, q3, q4, bx, by, bz]
 static const uint16_t NL = N - NATT;  // Number of linear elements in the state
                                       // vector. Position and velocity:
-                                      // [p_north, p_east, p_down, v_n, v_e, vd]
+                                      // [p_north, p_east, p_down, v_n, v_e, v_d]
 
 static const uint16_t NBAR = 1;   // States of the barometer
                                   // [pressure]
-static const uint16_t NGPS = 4;   // States of the barometer
+static const uint16_t NGPS = 4;   // States of the gps
                                   // [lon, lat, v_north, v_east]
 static const uint16_t NMAG = 3;   // States of the magnetometer
                                   // [mx, my, mz]
