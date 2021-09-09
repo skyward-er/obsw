@@ -75,6 +75,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
 // static constexpr int LOOKS              = 150;
 static constexpr int START_INDEX_OFFSET = -1;
 static constexpr float FILTER_COEFF     = 0.85;
+
 #ifdef HARDWARE_IN_THE_LOOP
 static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else

@@ -22,7 +22,12 @@
 
 #pragma once
 
-#include "Trajectories_data.h"
+#ifdef EUROC
+#include "TrajectoriesEuroc.h"
+#else
+#include "TrajectoriesRoccaraso.h"
+#endif
+
 #include "TrajectoryPoint.h"
 
 namespace DeathStackBoard
