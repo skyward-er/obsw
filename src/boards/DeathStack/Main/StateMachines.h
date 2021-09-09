@@ -26,7 +26,7 @@
 #include <NavigationAttitudeSystem/NASData.h>
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
-#include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/MS5803/MS5803.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -61,8 +61,8 @@ public:
     using GPSType     = HILGps;
     using GPSDataType = HILGpsData;
 #else
-    using IMUType     = BMX160;
-    using IMUDataType = BMX160Data;
+    using IMUType     = BMX160WithCorrection;
+    using IMUDataType = BMX160WithCorrectionData;
 
     using PressType     = MS5803;
     using PressDataType = MS5803Data;

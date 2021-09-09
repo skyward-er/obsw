@@ -197,9 +197,9 @@ private:
             new StateMachines(*sensors->hil_imu, *sensors->hil_baro,
                               *sensors->hil_gps, scheduler);
 #else
-        state_machines =
-            new StateMachines(*sensors->imu_bmx160, *sensors->press_digital,
-                              *sensors->gps_ublox, scheduler);
+        state_machines = new StateMachines(*sensors->imu_bmx160_with_correction,
+                                           *sensors->press_digital,
+                                           *sensors->gps_ublox, scheduler);
 #endif
 
         pin_handler = new PinHandler();
@@ -248,7 +248,7 @@ private:
                 {
                     logger->log(stat);
                 }
-                
+
                 StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
             },
             1000,  // 1 hz
