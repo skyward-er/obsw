@@ -468,16 +468,6 @@ State FMMController::state_testMode(const Event& ev)
             sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
             break;
         }
-        case EV_TC_TEST_CUT_PRIMARY:
-        {
-            sEventBroker->post(Event{EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
-            break;
-        }
-        case EV_TC_TEST_CUT_BACKUP:
-        {
-            sEventBroker->post(Event{EV_TEST_CUT_BACKUP}, TOPIC_DPL);
-            break;
-        }
         case EV_TC_CUT_DROGUE:
         {
             sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
@@ -501,6 +491,11 @@ State FMMController::state_testMode(const Event& ev)
         case EV_TC_CLOSE_LOG:
         {
             logger.stop();
+            break;
+        }
+        case EV_TC_START_LOG:
+        {
+            DeathStackBoard::DeathStack::getInstance()->startLogger();
             break;
         }
         default: /* If an event is not handled here, try with super-state */
