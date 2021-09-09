@@ -317,8 +317,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 
 #ifndef HARDWARE_IN_THE_LOOP
 template <>
-void TmRepository::update<BMX160WithCorrectionData>(
-    const BMX160WithCorrectionData& t)
+void TmRepository::update<BMX160Data>(const BMX160Data& t)
 {
     tm_repository.sensors_tm.bmx160_acc_x  = t.accel_x;
     tm_repository.sensors_tm.bmx160_acc_y  = t.accel_y;
@@ -329,7 +328,12 @@ void TmRepository::update<BMX160WithCorrectionData>(
     tm_repository.sensors_tm.bmx160_mag_x  = t.mag_x;
     tm_repository.sensors_tm.bmx160_mag_y  = t.mag_y;
     tm_repository.sensors_tm.bmx160_mag_z  = t.mag_z;
+}
 
+template <>
+void TmRepository::update<BMX160WithCorrectionData>(
+    const BMX160WithCorrectionData& t)
+{
     tm_repository.bmx_tm.acc_x  = t.accel_x;
     tm_repository.bmx_tm.acc_y  = t.accel_y;
     tm_repository.bmx_tm.acc_z  = t.accel_z;
@@ -508,16 +512,16 @@ void TmRepository::update<NASReferenceValues>(const NASReferenceValues& t)
     tm_repository.nas_tm.ref_latitude  = t.ref_latitude;
     tm_repository.nas_tm.ref_longitude = t.ref_longitude;
 
-    tm_repository.nas_tm.ref_pressure = t.ref_pressure;
+    tm_repository.nas_tm.ref_pressure    = t.ref_pressure;
     tm_repository.nas_tm.ref_temperature = t.ref_temperature;
 }
 
 template <>
 void TmRepository::update<NASTriadResult>(const NASTriadResult& t)
 {
-    tm_repository.nas_tm.triad_roll = t.roll;
+    tm_repository.nas_tm.triad_roll  = t.roll;
     tm_repository.nas_tm.triad_pitch = t.pitch;
-    tm_repository.nas_tm.triad_yaw = t.yaw;
+    tm_repository.nas_tm.triad_yaw   = t.yaw;
 }
 
 /**
@@ -633,9 +637,9 @@ void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t)
 template <>
 void TmRepository::update<DeploymentStatus>(const DeploymentStatus& t)
 {
-    tm_repository.dpl_tm.fsm_state = (uint8_t)t.state;
-    tm_repository.dpl_tm.cutters_enabled =(uint8_t)t.cutters_enabled;
-    tm_repository.dpl_tm.servo_position = t.servo_position;
+    tm_repository.dpl_tm.fsm_state       = (uint8_t)t.state;
+    tm_repository.dpl_tm.cutters_enabled = (uint8_t)t.cutters_enabled;
+    tm_repository.dpl_tm.servo_position  = t.servo_position;
 
     // HR TM
     tm_repository.hr_tm.dpl_state = (uint8_t)t.state;
@@ -680,8 +684,8 @@ void TmRepository::update<ADAKalmanState>(const ADAKalmanState& t)
     // tm_repository.ada_tm.kalman_acc_x2 = t.x2_acc;
 
     // HR_TM
-    tm_repository.hr_tm.pressure_ada = t.x0;
-    tm_repository.hr_tm.ada_vert_accel   = t.x2;
+    tm_repository.hr_tm.pressure_ada   = t.x0;
+    tm_repository.hr_tm.ada_vert_accel = t.x2;
 
     stats_rec.update(t);
 }
@@ -695,8 +699,8 @@ void TmRepository::update<ADAData>(const ADAData& t)
     tm_repository.ada_tm.msl_altitude = t.msl_altitude;
     tm_repository.ada_tm.vert_speed   = t.vert_speed;
 
-    tm_repository.hr_tm.msl_altitude = t.msl_altitude;
-    tm_repository.hr_tm.ada_vert_speed   = t.vert_speed;
+    tm_repository.hr_tm.msl_altitude   = t.msl_altitude;
+    tm_repository.hr_tm.ada_vert_speed = t.vert_speed;
 
     stats_rec.update(t);
 }
@@ -806,15 +810,15 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_nas_mean = t.periodStats.mean;
             tm_repository.task_stats_tm.task_nas_stddev = t.periodStats.stdev;
             break;
-        // case TASK_SCHEDULER_STATS_ID:
-        //     tm_repository.task_stats_tm.task_250hz_max    =
-        //     t.periodStats.maxValue;
-        //     tm_repository.task_stats_tm.task_250hz_min    =
-        //     t.periodStats.minValue;
-        //     tm_repository.task_stats_tm.task_250hz_mean   =
-        //     t.periodStats.mean;
-        //     tm_repository.task_stats_tm.task_250hz_stddev =
-        //     t.periodStats.stdev; break;
+            // case TASK_SCHEDULER_STATS_ID:
+            //     tm_repository.task_stats_tm.task_250hz_max    =
+            //     t.periodStats.maxValue;
+            //     tm_repository.task_stats_tm.task_250hz_min    =
+            //     t.periodStats.minValue;
+            //     tm_repository.task_stats_tm.task_250hz_mean   =
+            //     t.periodStats.mean;
+            //     tm_repository.task_stats_tm.task_250hz_stddev =
+            //     t.periodStats.stdev; break;
 
         default:
             break;

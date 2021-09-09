@@ -176,6 +176,9 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
 #ifndef HARDWARE_IN_THE_LOOP
 template <>
+void TmRepository::update<BMX160Data>(const BMX160Data& t);
+
+template <>
 void TmRepository::update<BMX160WithCorrectionData>(
     const BMX160WithCorrectionData& t);
 #endif
