@@ -54,8 +54,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_SERIAL_TM, EV_TC_SERIAL_TM},
     {MAV_CMD_RADIO_TM, EV_TC_RADIO_TM},
 
-    //{MAV_CMD_START_LOGGING, EV_TC_START_LOGGING},
-    //{MAV_CMD_STOP_LOGGING, EV_TC_STOP_LOGGING},
+    {MAV_CMD_START_LOGGING, EV_TC_START_LOG},
     {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
 
     {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
@@ -91,10 +90,10 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             {
                 case MAV_CMD_BOARD_RESET:
                     logger->stop();
+                    LOG_INFO(print_logger, "Received command BOARD_RESET");
                     miosix::reboot();
                     break;
                 case MAV_CMD_CLOSE_LOG:
-                case MAV_CMD_STOP_LOGGING:
                     logger->stop();
                     sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
                     LOG_INFO(print_logger, "Received command CLOSE_LOG");
