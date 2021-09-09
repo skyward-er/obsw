@@ -65,7 +65,7 @@ public:
      * @param acc 3x1 accelerometer readings [ax ay az].
      * @param mag 3x1 magnetometer readings [mx my mz].
      */
-    const Vector3f& triad(const Vector3f acc, const Vector3f mag);
+    const Vector3f& triad(Vector3f& acc, Vector3f& mag);
 
     /**
      * @brief Initialization of the positions before the liftoff.
@@ -120,7 +120,7 @@ void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
     x_init(NL + 3) = x_quat(3);
 }
 
-const Vector3f& InitStates::triad(const Vector3f acc, const Vector3f mag)
+const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
 {
     LOG_DEBUG(log, "Executing TRIAD");
 
@@ -132,26 +132,34 @@ const Vector3f& InitStates::triad(const Vector3f acc, const Vector3f mag)
     // misura la reazione vincolare (rivolta verso l'alto)
     Vector3f g_norm(0.0F, 0.0F, -1.0F);
 
-    t1b = acc;
-    t1i = g_norm;
+    acc.normalize();
+    Vector3f w1 = acc;
+    mag.normalize();
+    Vector3f w2 = mag;
 
-    t2b = acc.cross(mag);
-    t2b.normalize();
-    t2i = g_norm.cross(NED_MAG);
-    t2i.normalize();
+    Vector3f v1 = g_norm;
+    Vector3f v2 = NED_MAG;
 
-    t3b = t2b.cross(t1b);
-    t3i = t2i.cross(t1i);
+    Vector3f Ou1 = w1;
+    Vector3f Ou2 = w1.cross(w2);
+    Ou2.normalize();
+    Vector3f Ou3 = Ou2.cross(Ou1);
 
-    Rb << t1b, t2b, t3b;
-    Ri << t1i, t2i, t3i;
+    Vector3f R1 = v1;
+    Vector3f R2 = v1.cross(v2);
+    R2.normalize();
+    Vector3f R3 = R2.cross(R1);
 
-    R = Rb * Ri.transpose();
-    R.col(0).normalize();
-    R.col(1).normalize();
-    R.col(2).normalize();
+    Matrix3f Mou;
+    Mou << Ou1, Ou2, Ou3;
 
+    Matrix3f Mr;
+    Mr << R1, R2, R3;
+
+    R = Mr * Mou.transpose();
+    
     x_quat = quat.rotm2quat(R);
+
     eul    = quat.quat2eul(x_quat);
 
     x_init(NL)     = x_quat(0);

@@ -150,8 +150,6 @@ bool NAS<IMU, Press, GPS>::init()
                       ref_values.ref_accel_z);
     Vector3f mag_init(ref_values.ref_mag_x, ref_values.ref_mag_y,
                       ref_values.ref_mag_z);
-    acc_init.normalize();
-    mag_init.normalize();
 
     triad_result_eul = states_init.triad(acc_init, mag_init);
 
@@ -340,7 +338,7 @@ template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
                                                  float yaw)
 {
-    Vector4f q = quat.eul2quat({roll, pitch, yaw});
+    Vector4f q = quat.eul2quat({yaw, pitch, roll});
     x(NL)      = q(0);
     x(NL + 1)  = q(1);
     x(NL + 2)  = q(2);
