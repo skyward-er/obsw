@@ -34,8 +34,7 @@ enum class FSRState
     LIFTOFF,
     ASCENDING,
     DROGUE_DPL,
-    MAIN_DPL,
-    TESTING_CUTTER
+    MAIN_DPL
 };
 
 struct LiftOffStats
@@ -64,7 +63,7 @@ struct LiftOffStats
     }
 };
 
-struct CutterTestStats
+/*struct CutterTestStats
 {
     uint64_t timestamp   = 0;
     float cutter_1_avg   = 0;
@@ -80,7 +79,7 @@ struct CutterTestStats
     {
         os << timestamp << "," << cutter_1_avg << "," << cutter_2_avg << "\n";
     }
-};
+};*/
 
 struct ApogeeStats
 {

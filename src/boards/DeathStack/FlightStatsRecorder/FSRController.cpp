@@ -318,12 +318,6 @@ void FlightStatsRecorder::state_idle(const Event& ev)
             transition(&FlightStatsRecorder::state_liftOff);
             break;
         }
-        case EV_TEST_CUT_BACKUP:
-        case EV_TEST_CUT_PRIMARY:
-        {
-            transition(&FlightStatsRecorder::state_testingCutters);
-            break;
-        }
         case EV_DPL_ALTITUDE:
         {
             transition(&FlightStatsRecorder::state_mainDeployment);
@@ -510,6 +504,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
     }
 }
 
+/*
 void FlightStatsRecorder::state_testingCutters(const Event& ev)
 {
     switch (ev.sig)
@@ -553,5 +548,6 @@ void FlightStatsRecorder::state_testingCutters(const Event& ev)
         }
     }
 }
+*/
 
 }  // namespace DeathStackBoard

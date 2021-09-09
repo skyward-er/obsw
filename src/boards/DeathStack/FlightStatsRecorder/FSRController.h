@@ -77,8 +77,6 @@ public:
      */
     void state_idle(const Event& ev);
 
-    void state_testingCutters(const Event& ev);
-
     /**
      * @brief Record stats of the first few seconds of flight.
      */
@@ -104,7 +102,7 @@ private:
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
-    CutterTestStats cutters_stats{};
+    //CutterTestStats cutters_stats{};
     FSRState state      = FSRState::IDLE;
     long long T_liftoff = 0;
 
