@@ -26,7 +26,7 @@
  ******************************************************************************
  */
 
-// Autogen date: 2021-07-29 11:34:14.327018
+// Autogen date: 2021-09-08 23:46:23.104837
 
 #pragma once
 
@@ -97,14 +97,11 @@ enum Events : uint8_t
     EV_TC_RESET_BOARD,
     EV_TC_SERIAL_TM,
     EV_TC_START_SENSOR_TM,
+    EV_TC_START_LOG,
     EV_TC_STOP_SENSOR_TM,
     EV_TC_TEST_ABK,
-    EV_TC_TEST_CUT_BACKUP,
-    EV_TC_TEST_CUT_PRIMARY,
     EV_TC_TEST_MODE,
     EV_TEST_ABK,
-    EV_TEST_CUT_BACKUP,
-    EV_TEST_CUT_PRIMARY,
     EV_TEST_TIMEOUT,
     EV_TIMEOUT_END_MISSION,
     EV_TIMEOUT_PRESS_STABILIZATION,
@@ -165,14 +162,11 @@ const std::vector<uint8_t> EVENT_LIST{
     EV_TC_RESET_BOARD,
     EV_TC_SERIAL_TM,
     EV_TC_START_SENSOR_TM,
+    EV_TC_START_LOG,
     EV_TC_STOP_SENSOR_TM,
     EV_TC_TEST_ABK,
-    EV_TC_TEST_CUT_BACKUP,
-    EV_TC_TEST_CUT_PRIMARY,
     EV_TC_TEST_MODE,
     EV_TEST_ABK,
-    EV_TEST_CUT_BACKUP,
-    EV_TEST_CUT_PRIMARY,
     EV_TEST_TIMEOUT,
     EV_TIMEOUT_END_MISSION,
     EV_TIMEOUT_PRESS_STABILIZATION,
