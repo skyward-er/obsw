@@ -79,11 +79,6 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
 
 Sensors::~Sensors()
 {
-#ifdef HARDWARE_IN_THE_LOOP
-    delete hil_imu;
-    delete hil_baro;
-    delete hil_gps;
-#endif
     delete imu_bmx160;
     delete press_digital;
     delete gps_ublox;
@@ -96,6 +91,11 @@ Sensors::~Sensors()
     delete press_dpl_vane;
     delete press_static_port;
     delete mag_lis3mdl;
+#ifdef HARDWARE_IN_THE_LOOP
+    delete hil_imu;
+    delete hil_baro;
+    delete hil_gps;
+#endif
 
     sensor_manager->stop();
     delete sensor_manager;
@@ -103,13 +103,11 @@ Sensors::~Sensors()
 
 bool Sensors::start()
 {
-#ifndef HARDWARE_IN_THE_LOOP
     GpioPin int_pin = miosix::sensors::bmx160::intr::getPin();
     enableExternalInterrupt(int_pin.getPort(), int_pin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
 
     gps_ublox->start();
-#endif
 
     bool sm_start_result = sensor_manager->start();
 
@@ -262,7 +260,7 @@ void Sensors::imuBMXInit()
     bmx_config.fifo_watermark = IMU_BMX_FIFO_WATERMARK;
     bmx_config.fifo_int       = BMX160Config::FifoInterruptPin::PIN_INT1;
 
-    bmx_config.temp_divider = 1;
+    bmx_config.temp_divider = IMU_BMX_TEMP_DIVIDER;
 
     bmx_config.acc_range = IMU_BMX_ACC_FULLSCALE_ENUM;
     bmx_config.gyr_range = IMU_BMX_GYRO_FULLSCALE_ENUM;
@@ -450,13 +448,16 @@ void Sensors::pressPitotCallback()
         DeathStack::getInstance()
             ->state_machines->ada_controller->getReferenceValues();
 
-    float v = sqrtf(2 * fabs(d.press) /
-                    aeroutils::relDensity(press_digital->getLastSample().press,
-                                          rv.ref_pressure, rv.ref_altitude,
-                                          rv.ref_temperature));
+    float rel_density = aeroutils::relDensity(
+        press_digital->getLastSample().press, rv.ref_pressure, rv.ref_altitude,
+        rv.ref_temperature);
+    if (rel_density != 0.0f)
+    {
+        float airspeed = sqrtf(2 * fabs(d.press) / rel_density);
 
-    AirSpeedPitot aspeed_data{TimestampTimer::getTimestamp(), v};
-    LoggerService::getInstance()->log(aspeed_data);
+        AirSpeedPitot aspeed_data{TimestampTimer::getTimestamp(), airspeed};
+        LoggerService::getInstance()->log(aspeed_data);
+    }
 }
 
 void Sensors::pressDPLVaneCallback()
@@ -471,6 +472,9 @@ void Sensors::pressStaticCallback()
 
 void Sensors::imuBMXCallback()
 {
+    // static uint64_t max_t = 0;
+    // static unsigned int counter = 0;
+
     uint8_t fifo_size = imu_bmx160->getLastFifoSize();
     auto& fifo        = imu_bmx160->getLastFifo();
 
@@ -478,22 +482,25 @@ void Sensors::imuBMXCallback()
 
     for (uint8_t i = 0; i < fifo_size; ++i)
     {
-        LoggerService::getInstance()->log(fifo.at(i));
+        BMX160Data d = fifo.at(i);
+
+        // counter++;
+        // if (counter > 1000)
+        // {
+        //     if (d.accel_timestamp > max_t)
+        //     {
+        //         max_t = d.accel_timestamp;
+        //     }
+        //     else
+        //     {
+        //        TRACE("\nBUG!!!\n\n");
+        //     }
+        // }
+
+        LoggerService::getInstance()->log(d);
     }
 
     LoggerService::getInstance()->log(imu_bmx160->getFifoStats());
-
-    // static unsigned int downsample_ctr = 0;
-
-    // if (downsample_ctr++ % 20 == 0)
-    // {
-    //     auto sample = fifo.at(0);
-    //     LOG_INFO(log.getChild("bmx160"),
-    //                     "acc xyz: {:+.3f},{:+.3f},{:+.3f} gyro xyz: "
-    //                     "{:+.3f},{:+.3f},{:+.3f}",
-    //                     sample.accel_x, sample.accel_y, sample.accel_z,
-    //                     sample.gyro_x, sample.gyro_y, sample.gyro_z);
-    // }
 }
 
 void Sensors::imuBMXWithCorrectionCallback()
@@ -506,17 +513,6 @@ void Sensors::imuBMXWithCorrectionCallback()
 void Sensors::magLISCallback()
 {
     LoggerService::getInstance()->log(mag_lis3mdl->getLastSample());
-
-    // static unsigned int downsample_ctr = 0;
-
-    // if (downsample_ctr++ % 20 == 0)
-    // {
-    //     auto sample = mag_lis3mdl->getLastSample();
-    //     LOG_INFO(log.getChild("lis3mdl"),
-    //                     "mag xyzt: {:+.3f},{:+.3f},{:+.3f},{:+.3f}",
-    //                     sample.mag_x, sample.mag_y, sample.mag_z,
-    //                     sample.temp);
-    // }
 }
 
 void Sensors::gpsUbloxCallback()

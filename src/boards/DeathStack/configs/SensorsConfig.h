@@ -70,8 +70,8 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1000; // only for battery voltage
 static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118  = 6;
 
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 1000 / 100;
-static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL = 10;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
+static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL = 5;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_PITOT =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
@@ -83,11 +83,11 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
 static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
     BMX160Config::AccelerometerRange::G_16;
 static constexpr BMX160Config::GyroscopeRange IMU_BMX_GYRO_FULLSCALE_ENUM =
-    BMX160Config::GyroscopeRange::DEG_2000;
+    BMX160Config::GyroscopeRange::DEG_500;
 
-static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 800;
 static constexpr BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
-    BMX160Config::OutputDataRate::HZ_1600;
+    BMX160Config::OutputDataRate::HZ_800;
 static constexpr unsigned int IMU_BMX_MAG_ODR = 50;
 static constexpr BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
     BMX160Config::OutputDataRate::HZ_50;
@@ -97,7 +97,7 @@ static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 100;
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 50;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
@@ -110,9 +110,11 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
     1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
 
 // Sample before the fifo is full, but slightly after the watermark level
-// (watermark + 2)
+// (watermark + 5)
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
-    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 10) * 4 / 1024;
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 5) * 4 / 1024;
+
+static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
 // IMU axis rotation
 static const AxisOrthoOrientation BMX160_AXIS_ROTATION = {
