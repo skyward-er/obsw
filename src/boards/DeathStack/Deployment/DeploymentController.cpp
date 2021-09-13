@@ -70,12 +70,12 @@ void DeploymentController::state_initialization(const Event& ev)
     {
         case EV_ENTRY:
         {
-            logStatus(DeploymentControllerState::INITIALIZATION);
-
             LOG_DEBUG(log, "Entering state initialization");
 
             ejection_servo->enable();
             ejection_servo->reset();
+            
+            logStatus(DeploymentControllerState::INITIALIZATION);
 
             transition(&DeploymentController::state_idle);
             break;
