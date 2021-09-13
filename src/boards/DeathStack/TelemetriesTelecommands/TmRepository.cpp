@@ -100,11 +100,6 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             mavlink_msg_nas_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.nas_tm));
             break;
-        case MavTMList::MAV_CAN_TM_ID:
-            // tm_repository.can_tm.timestamp = miosix::getTick();
-            mavlink_msg_can_tm_encode(sys_id, comp_id, &m,
-                                      &(tm_repository.can_tm));
-            break;
         case MavTMList::MAV_ADC_TM_ID:
             tm_repository.adc_tm.timestamp = miosix::getTick();
             mavlink_msg_adc_tm_encode(sys_id, comp_id, &m,
@@ -129,11 +124,6 @@ mavlink_message_t TmRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             tm_repository.gps_tm.timestamp = miosix::getTick();
             mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
                                       &(tm_repository.gps_tm));
-            break;
-        case MavTMList::MAV_STRAIN_BOARD_TM_ID:
-            tm_repository.strain_board_tm.timestamp = miosix::getTick();
-            mavlink_msg_strain_board_tm_encode(
-                sys_id, comp_id, &m, &(tm_repository.strain_board_tm));
             break;
         case MavTMList::MAV_HR_TM_ID:
             tm_repository.hr_tm.timestamp = miosix::getTick();
@@ -732,16 +722,6 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_6ms_stddev =
                 t.periodStats.stdev;
             break;
-        case TASK_SENSORS_10_MS_ID:
-            tm_repository.task_stats_tm.task_sensors_10ms_max =
-                t.periodStats.maxValue;
-            tm_repository.task_stats_tm.task_sensors_10ms_min =
-                t.periodStats.minValue;
-            tm_repository.task_stats_tm.task_sensors_10ms_mean =
-                t.periodStats.mean;
-            tm_repository.task_stats_tm.task_sensors_10ms_stddev =
-                t.periodStats.stdev;
-            break;
         case TASK_SENSORS_15_MS_ID:
             tm_repository.task_stats_tm.task_sensors_15ms_max =
                 t.periodStats.maxValue;
@@ -782,14 +762,14 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_40ms_stddev =
                 t.periodStats.stdev;
             break;
-        case TASK_SENSORS_50_MS_ID:
-            tm_repository.task_stats_tm.task_sensors_50ms_max =
+        case TASK_SENSORS_1000_MS_ID:
+            tm_repository.task_stats_tm.task_sensors_1000ms_max =
                 t.periodStats.maxValue;
-            tm_repository.task_stats_tm.task_sensors_50ms_min =
+            tm_repository.task_stats_tm.task_sensors_1000ms_min =
                 t.periodStats.minValue;
-            tm_repository.task_stats_tm.task_sensors_50ms_mean =
+            tm_repository.task_stats_tm.task_sensors_1000ms_mean =
                 t.periodStats.mean;
-            tm_repository.task_stats_tm.task_sensors_50ms_stddev =
+            tm_repository.task_stats_tm.task_sensors_1000ms_stddev =
                 t.periodStats.stdev;
             break;
         case TASK_ADA_ID:

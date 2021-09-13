@@ -38,13 +38,14 @@ const std::map<uint8_t, uint8_t> tcMap = {
 
     {MAV_CMD_FORCE_INIT, EV_TC_FORCE_INIT},
     {MAV_CMD_FORCE_LAUNCH, EV_TC_LAUNCH},
-    {MAV_CMD_NOSECONE_OPEN, EV_TC_NC_OPEN},
 
-    {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
+    {MAV_CMD_NOSECONE_OPEN, EV_TC_NC_OPEN},
     {MAV_CMD_DPL_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
     {MAV_CMD_DPL_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
+    {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
+    
+    {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
     {MAV_CMD_ARB_WIGGLE_SERVO, EV_TC_ABK_WIGGLE_SERVO},
-
     {MAV_CMD_DISABLE_AEROBRAKES, EV_TC_ABK_DISABLE},
     {MAV_CMD_TEST_AEROBRAKES, EV_TC_TEST_ABK},
 
@@ -58,15 +59,13 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
 
     {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
-    {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
     {MAV_CMD_BOARD_RESET, EV_TC_RESET_BOARD},
-
     {MAV_CMD_END_MISSION, EV_TC_END_MISSION}};
 
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
     // log status
-    logMavlinkStatus(mav_driver);
+    DeathStack::getInstance()->radio->logStatus();
 
     // acknowledge
     sendAck(mav_driver, msg);
@@ -234,16 +233,9 @@ bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id)
         mav_driver->enqueueMsg(TmRepository::getInstance()->packTM(tm_id));
 
     // update status
-    logMavlinkStatus(mav_driver);
+    DeathStack::getInstance()->radio->logStatus();
 
     return ok;
-}
-
-void logMavlinkStatus(MavDriver* mav_driver)
-{
-    MavlinkStatus status = mav_driver->getStatus();
-    status.timestamp = TimestampTimer::getTimestamp();
-    logger->log(status);
 }
 
 }  // namespace DeathStackBoard

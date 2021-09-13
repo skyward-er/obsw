@@ -49,6 +49,8 @@
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
 
+#include <configs/TMTCConfig.h>
+
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
@@ -93,8 +95,8 @@ public:
      * @return          packed mavlink struct of that telemetry or a NACK_TM if
      *                  the telemetry id was not found.
      */
-    mavlink_message_t packTM(uint8_t req_tm, uint8_t sys_id = 0,
-                             uint8_t comp_id = 0);
+    mavlink_message_t packTM(uint8_t req_tm, uint8_t sys_id = TMTC_MAV_SYSID,
+                             uint8_t comp_id = TMTC_MAV_COMPID);
 
     void sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
@@ -117,9 +119,6 @@ private:
         mavlink_ada_tm_t ada_tm;
         mavlink_abk_tm_t abk_tm;
         mavlink_nas_tm_t nas_tm;
-
-        mavlink_can_tm_t can_tm;
-        mavlink_strain_board_tm_t strain_board_tm;
 
         mavlink_ms5803_tm_t digital_baro_tm;
         mavlink_bmx160_tm_t bmx_tm;
