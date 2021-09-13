@@ -101,25 +101,31 @@ static const float CLAT = cosf(PHI1);
 
 static const float SATS_NUM = 6.0F;  // Number of available satellites
 
+#ifdef EUROC
 static const Vector3f NED_MAG(
     0.5969F, -0.0139F,
     0.8022F);  // Normalized magnetic field vector at Ponte de Sor
                // Measurement units are not important since it's normalized
+#else
+static const Vector3f NED_MAG(
+    0.5252, 0.0348, 0.8503);  // Normalized magnetic field vector at Roccaraso
+#endif
 
 // normalized magentic field at Milano
 // static const Vector3f NED_MAG(0.4742, 0.025, 0.8801);
 
 // DIMENSIONS OF MATRICES AND VECTORS
 
-static const uint16_t N  = 13;        // State vector elements, N x 1
-static const uint16_t NP = N - 1;     // P matrix, N-1 x N-1.
-                                      // Reduced order thanks to the MEKF
-static const uint16_t NATT = 7;       // Number of attitude related elements.
-                                      // Quaternion components and biases:
-                                      // [q1, q2, q3, q4, bx, by, bz]
-static const uint16_t NL = N - NATT;  // Number of linear elements in the state
-                                      // vector. Position and velocity:
-                                      // [p_north, p_east, p_down, v_n, v_e, v_d]
+static const uint16_t N  = 13;     // State vector elements, N x 1
+static const uint16_t NP = N - 1;  // P matrix, N-1 x N-1.
+                                   // Reduced order thanks to the MEKF
+static const uint16_t NATT = 7;    // Number of attitude related elements.
+                                   // Quaternion components and biases:
+                                   // [q1, q2, q3, q4, bx, by, bz]
+static const uint16_t NL =
+    N - NATT;  // Number of linear elements in the state
+               // vector. Position and velocity:
+               // [p_north, p_east, p_down, v_n, v_e, v_d]
 
 static const uint16_t NBAR = 1;   // States of the barometer
                                   // [pressure]
