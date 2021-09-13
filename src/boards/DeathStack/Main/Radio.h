@@ -44,6 +44,8 @@ public:
 
     bool start();
 
+    void logStatus();
+
 private:
     void onXbeeFrameReceived(Xbee::APIFrame& frame);
 

@@ -164,4 +164,12 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
     }
 }
 
+void Radio::logStatus()
+{
+    MavlinkStatus status = mav_driver->getStatus();
+    status.timestamp     = TimestampTimer::getTimestamp();
+    LoggerService::getInstance()->log(status);
+    LoggerService::getInstance()->log(xbee->getStatus());
+}
+
 }  // namespace DeathStackBoard
