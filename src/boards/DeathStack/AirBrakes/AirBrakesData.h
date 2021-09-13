@@ -109,7 +109,7 @@ struct AirBrakesChosenTrajectory
 
     static std::string header() { return "trajectory\n"; }
 
-    void print(std::ostream& os) const { os << trajectory << "\n"; }
+    void print(std::ostream& os) const { os << (int)trajectory << "\n"; }
 };
 
 }  // namespace DeathStackBoard
