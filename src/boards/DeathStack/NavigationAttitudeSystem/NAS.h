@@ -89,6 +89,11 @@ public:
     NASKalmanState getKalmanState();
 
     /**
+     * @brief Copy the kalman state information in the NASData output struct.
+     */
+    void updateNASData();
+
+    /**
      * @param ref_v Struct of NASReferenceValues to be set
      */
     void setReferenceValues(const NASReferenceValues& ref_v);
@@ -159,6 +164,8 @@ bool NAS<IMU, Press, GPS>::init()
     filter.setX(x);
 
     z_init = x(2);
+
+    updateNASData();
 
 #ifdef DEBUG
     Vector4f qua(x(6), x(7), x(8), x(9));
@@ -251,19 +258,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     // update states
     x = filter.getState();
 
-    nas_data.timestamp = TimestampTimer::getTimestamp();
-
-    nas_data.x = x(0);
-    nas_data.y = x(1);
-    nas_data.z =
-        -x(2) - z_init;  // Negative sign because we're working in the NED
-                         // frame but we want a positive altitude as output.
-    nas_data.vx = x(3);
-    nas_data.vy = x(4);
-    nas_data.vz = -x(5);
-    nas_data.vMod =
-        sqrtf(nas_data.vx * nas_data.vx + nas_data.vy * nas_data.vy +
-              nas_data.vz * nas_data.vz);
+    updateNASData();
 
 #ifdef DEBUG
     if (counter == 50)
@@ -353,6 +348,24 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
               "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 : {:.2f}",
               x(0), x(1), x(2), x(3), x(4), x(5), roll, pitch, yaw, x(6), x(7),
               x(8), x(9));
+}
+
+template <typename IMU, typename Press, typename GPS>
+void NAS<IMU, Press, GPS>::updateNASData()
+{
+    nas_data.timestamp = TimestampTimer::getTimestamp();
+
+    nas_data.x = x(0);
+    nas_data.y = x(1);
+    nas_data.z =
+        -x(2) - z_init;  // Negative sign because we're working in the NED
+                         // frame but we want a positive altitude as output.
+    nas_data.vx = x(3);
+    nas_data.vy = x(4);
+    nas_data.vz = -x(5);
+    nas_data.vMod =
+        sqrtf(nas_data.vx * nas_data.vx + nas_data.vy * nas_data.vy +
+              nas_data.vz * nas_data.vz);
 }
 
 }  // namespace DeathStackBoard

@@ -65,14 +65,14 @@ struct NASStatus
  */
 struct NASData
 {
-    uint64_t timestamp;
-    float x;
-    float y;
-    float z;
-    float vx;
-    float vy;
-    float vz;
-    float vMod;
+    uint64_t timestamp = 0;
+    float x            = 0;
+    float y            = 0;
+    float z            = 0;
+    float vx           = 0;
+    float vy           = 0;
+    float vz           = 0;
+    float vMod         = 0;
 
     static std::string header() { return "timestamp,x,y,z,vx,vy,vz,vMod\n"; }
 
@@ -89,38 +89,22 @@ struct NASData
  */
 struct NASKalmanState
 {
-    uint64_t timestamp;
-    float x0;
-    float x1;
-    float x2;
-    float x3;
-    float x4;
-    float x5;
-    float x6;
-    float x7;
-    float x8;
-    float x9;
-    float x10;
-    float x11;
-    float x12;
+    uint64_t timestamp = 0;
+    float x0           = 0;
+    float x1           = 0;
+    float x2           = 0;
+    float x3           = 0;
+    float x4           = 0;
+    float x5           = 0;
+    float x6           = 0;
+    float x7           = 0;
+    float x8           = 0;
+    float x9           = 0;
+    float x10          = 0;
+    float x11          = 0;
+    float x12          = 0;
 
-    NASKalmanState()
-    {
-        timestamp = 0;
-        x0        = 0;
-        x1        = 0;
-        x2        = 0;
-        x3        = 0;
-        x4        = 0;
-        x5        = 0;
-        x6        = 0;
-        x7        = 0;
-        x8        = 0;
-        x9        = 0;
-        x10       = 0;
-        x11       = 0;
-        x12       = 0;
-    }
+    NASKalmanState() {}
 
     NASKalmanState(uint64_t t, const Matrix<float, NASConfigs::N, 1>& state)
     {

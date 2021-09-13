@@ -432,7 +432,7 @@ void NASController<IMU, Press, GPS>::setInitialCoordinates(float latitude,
     {
         Lock<FastMutex> l(mutex);
         calibrator.setReferenceCoordinates(latitude, longitude);
-        // logData();
+        logData();
     }
 
     finalizeCalibration();
@@ -451,7 +451,9 @@ void NASController<IMU, Press, GPS>::logStatus(NASState state)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logData()
 {
-    logger.log(nas.getKalmanState());
+    NASKalmanState kalman_state = nas.getKalmanState();
+    kalman_state.timestamp = TimestampTimer::getTimestamp();
+    logger.log(kalman_state);
     logger.log(nas.getLastSample());
 }
 
