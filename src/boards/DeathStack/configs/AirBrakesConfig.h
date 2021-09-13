@@ -42,7 +42,7 @@ static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 #ifdef EUROC
 static constexpr float M = 27.0; /**< rocket's mass */
 #else
-static constexpr float M = 19.2; /**< rocket's mass */
+static constexpr float M                  = 19.2;         /**< rocket's mass */
 #endif
 
 static constexpr float D        = 0.15; /**< rocket's diameter */
@@ -86,7 +86,7 @@ static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 #ifdef EUROC
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 #else
-static constexpr int SHADOW_MODE_DURATION = 3.0 * 1000;
+static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
 #endif
 
 #ifdef EUROC
@@ -116,26 +116,26 @@ struct Coefficients
 #else
 struct Coefficients
 {
-    float n000 = 0.5047586920710725;
-    float n100 = -1.3293513469123344;
-    float n200 = 5.601218191131566;
-    float n300 = -14.225368661713572;
-    float n400 = 21.663349336681787;
-    float n500 = -18.579135819086048;
-    float n600 = 6.851826924514666;
-    float n010 = 8.436044511643843;
-    float n020 = 149.2990640054199;
-    float n110 = 3.621048095119312;
-    float n120 = -260.80740460918076;
-    float n210 = 62.991673668723855;
-    float n220 = 1503.2169611333475;
-    float n310 = -256.30553427247116;
-    float n320 = -4432.423406317357;
-    float n410 = 393.01912725674475;
-    float n420 = 5881.223355649425;
-    float n510 = -187.42852955727568;
-    float n520 = -2619.370124692982;
-    float n001 = 3.3241142518818432e-06;
+    float n000 = 0.47885644032626357;
+    float n100 = -1.3034714816627486;
+    float n200 = 5.855250857341603;
+    float n300 = -15.804467871608331;
+    float n400 = 25.101568926578267;
+    float n500 = -21.807834163413037;
+    float n600 = 7.9441228817993546;
+    float n010 = 8.332725338197339;
+    float n020 = 150.92179004169594;
+    float n110 = 4.450607930313118;
+    float n120 = -261.9317740122675;
+    float n210 = 62.374798498326285;
+    float n220 = 1402.273850221572;
+    float n310 = -261.26595308714985;
+    float n320 = -4020.2954140409474;
+    float n410 = 402.46390018341435;
+    float n420 = 5332.223039294196;
+    float n510 = -192.02443481902043;
+    float n520 = -2381.855640881901;
+    float n001 = 3.0688005499541758e-06;
 };
 #endif
 
