@@ -370,8 +370,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // altitude reached, log it
             ada.updateBaro(pressure);
 
-            if (ada.getAltitudeForDeployment() <= deployment_altitude &&
-                ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
+            if (ada.getAltitudeForDeployment() <= deployment_altitude)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
@@ -393,8 +392,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // Descent state: send notifications for target altitude reached
             ada.updateBaro(pressure);
 
-            if (ada.getAltitudeForDeployment() <= deployment_altitude &&
-                ada.getAltitudeMsl() <= MAX_DEPLOYMENT_ALTITUDE_MSL)
+            if (ada.getAltitudeForDeployment() <= deployment_altitude)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {

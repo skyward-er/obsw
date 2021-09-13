@@ -64,16 +64,20 @@ static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;    // ms
 static const unsigned int CALIBRATION_BARO_N_SAMPLES = 200;  // 1200;
 
 // Default reference values settings
-// Standard atmosphere values @ Roccaraso
-static const float DEFAULT_REFERENCE_TEMPERATURE = 278.920f;
+static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;
+#ifdef EUROC
+static const float DEFAULT_REFERENCE_ALTITUDE    = 109.0f;
+static const float DEFAULT_REFERENCE_PRESSURE    = 100022.4f;
+#else
 static const float DEFAULT_REFERENCE_ALTITUDE    = 1420.0f;
 static const float DEFAULT_REFERENCE_PRESSURE    = 85389.4f;
+#endif
 
 // Deployment altitude AGL
-static const float DEFAULT_DEPLOYMENT_ALTITUDE = -100;
+static const float DEFAULT_DEPLOYMENT_ALTITUDE = 450;
 
 // Do cut the drogue above this altitude
-static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 1800;
+//static const float MAX_DEPLOYMENT_ALTITUDE_MSL = 2000;
 
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = ADA_UPDATE_PERIOD / 1000.0f; // in seconds
