@@ -56,6 +56,7 @@
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
 #include "scheduler/TaskSchedulerData.h"
+#include "FlightStatsRecorder/FSRData.h"
 #include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
 
 // Serialized classes
@@ -127,6 +128,7 @@ void registerTypes(Deserializer& ds)
     registerType<ADAReferenceValues>(ds);
     registerType<TargetDeploymentAltitude>(ds);
     registerType<ApogeeDetected>(ds);
+    registerType<DplAltitudeReached>(ds);
 
     // NAS
     registerType<NASStatus>(ds);
@@ -139,6 +141,12 @@ void registerTypes(Deserializer& ds)
     registerType<AirBrakesData>(ds);
     registerType<AirBrakesAlgorithmData>(ds);
     registerType<AirBrakesChosenTrajectory>(ds);
+
+     // FlightStatsRecorder
+    registerType<LiftOffStats>(ds);
+    registerType<ApogeeStats>(ds);
+    registerType<DrogueDPLStats>(ds);
+    registerType<MainDPLStats>(ds);
 
     // HIL
     registerType<HILImuData>(ds);
