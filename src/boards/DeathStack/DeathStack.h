@@ -216,7 +216,7 @@ private:
      */
     void logEvent(uint8_t event, uint8_t topic)
     {
-        EventData ev{miosix::getTick(), event, topic};
+        EventData ev{(long long)TimestampTimer::getTimestamp(), event, topic};
         logger->log(ev);
 
 #ifdef DEBUG
