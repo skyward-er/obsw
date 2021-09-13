@@ -48,7 +48,7 @@ enum FlightPhases
     SIMULATION_STARTED,
     CALIBRATION,
     LIFTOFF_PIN_DETACHED,
-    FLIGHT,
+    FLYING,
     ASCENT,
     BURNING,
     AEROBRAKES,
@@ -158,16 +158,16 @@ public:
             changed_flags.push_back(LIFTOFF_PIN_DETACHED);
         }
 
-        if (flagsFlightPhases[FLIGHT])
+        if (flagsFlightPhases[FLYING])
         {
-            if (isSetTrue(FLIGHT))
+            if (isSetTrue(FLYING))
             {
                 t_liftoff = TimestampTimer::getTimestamp();
                 sEventBroker->post({EV_UMBILICAL_DETACHED},
                                    TOPIC_FLIGHT_EVENTS);
 
                 TRACE("[HIL] ------- LIFTOFF ! ------- \n");
-                changed_flags.push_back(FLIGHT);
+                changed_flags.push_back(FLYING);
 
                 TRACE("[HIL] ------- ASCENT ! ------- \n");
                 changed_flags.push_back(ASCENT);
@@ -271,7 +271,7 @@ private:
     void updateFlags(FlightPhasesFlags hil_flags)
     {
         flagsFlightPhases[ASCENT]  = hil_flags.flag_ascent;
-        flagsFlightPhases[FLIGHT]  = hil_flags.flag_flight;
+        flagsFlightPhases[FLYING]  = hil_flags.flag_flight;
         flagsFlightPhases[BURNING] = hil_flags.flag_burning;
 
         /* Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab  */
@@ -280,7 +280,7 @@ private:
         // flagsFlightPhases[PARA2]          = hil_flags.flag_para2;
 
         flagsFlightPhases[SIMULATION_STOPPED] =
-            isSetFalse(FLIGHT) || prev_flagsFlightPhases[SIMULATION_STOPPED];
+            isSetFalse(FLYING) || prev_flagsFlightPhases[SIMULATION_STOPPED];
     }
 
     void checkEvents()
