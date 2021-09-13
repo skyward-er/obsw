@@ -41,8 +41,7 @@ enum LynxThreadIds : uint8_t
     THID_ADA_FSM,
     THID_ABK_FSM,
     THID_NAS_FSM,
-    THID_TASK_SCHEDULER,
-    THID_CAN_BUS
+    THID_TASK_SCHEDULER
 };
 
 }
