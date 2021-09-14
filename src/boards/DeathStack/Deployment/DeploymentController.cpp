@@ -59,6 +59,10 @@ void DeploymentController::logStatus(DeploymentControllerState current_state)
     {
         status.cutters_enabled = true;
     }
+    else 
+    {
+        status.cutters_enabled = false;
+    }
 
     LoggerService::getInstance()->log(status);
     StackLogger::getInstance()->updateStack(THID_DPL_FSM);
