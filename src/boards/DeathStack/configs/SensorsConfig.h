@@ -44,8 +44,8 @@ static constexpr InternalADC::Channel ADC_BATTERY_VOLTAGE =
 // static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
 //     InternalADC::Channel::CH4;
 
-static constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
-static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5; // [V]
+static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
+static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
 
 // static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
 // static constexpr float CS_CURR_RIS    = 510;
@@ -67,11 +67,12 @@ static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
 static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
 
 // Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1000; // only for battery voltage
-static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118  = 6;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC =
+    1000;  // only for battery voltage
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 6;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
-static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL = 5;
+static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_PITOT =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
@@ -85,19 +86,19 @@ static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
 static constexpr BMX160Config::GyroscopeRange IMU_BMX_GYRO_FULLSCALE_ENUM =
     BMX160Config::GyroscopeRange::DEG_500;
 
-static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 800;
+static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
 static constexpr BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
-    BMX160Config::OutputDataRate::HZ_800;
-static constexpr unsigned int IMU_BMX_MAG_ODR = 50;
+    BMX160Config::OutputDataRate::HZ_1600;
+static constexpr unsigned int IMU_BMX_MAG_ODR = 100;
 static constexpr BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
-    BMX160Config::OutputDataRate::HZ_50;
+    BMX160Config::OutputDataRate::HZ_100;
 
 static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
 static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 50;
+static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
@@ -110,9 +111,10 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
     1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
 
 // Sample before the fifo is full, but slightly after the watermark level
-// (watermark + 5)
+// (watermark + 30) ---> high slack due to scheduler imprecision,
+//                       avoid clearing the fifo before the interrupt
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
-    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 5) * 4 / 1024;
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
 
 static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
@@ -131,7 +133,7 @@ static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 
-static constexpr float REFERENCE_VOLTAGE = 4.8;  // TODO: Measure it
+static constexpr float REFERENCE_VOLTAGE = 4.8;
 }  // namespace SensorConfigs
 
 }  // namespace DeathStackBoard
