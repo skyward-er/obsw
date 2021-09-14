@@ -71,6 +71,12 @@ static constexpr float AB_SERVO_MAX_RATE         = 15.0 / 0.1;   // deg/s
 static constexpr float AB_SERVO_MIN_RATE         = -15.0 / 0.1;  // deg/s
 static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
 
+#ifdef ROCCARASO
+// At Roccaraso airbrakes opened at 100%, then 50% and then 0%
+// Each opening is kept for 3 seconds (3000 ms)
+static constexpr float AB_OPENING_TIMEOUT = 3000; // [ms]
+#endif
+
 // Control algorithm configs
 // static constexpr int LOOKS              = 150;
 static constexpr int START_INDEX_OFFSET = -1;
@@ -81,12 +87,13 @@ static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else
 static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
 #endif
+
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 
 #ifdef EUROC
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 #else
-static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
+static constexpr int SHADOW_MODE_DURATION = 100; //3.5 * 1000;
 #endif
 
 #ifdef EUROC
