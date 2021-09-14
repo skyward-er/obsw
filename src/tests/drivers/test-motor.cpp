@@ -1,7 +1,5 @@
-/**
- *
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,18 +13,20 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-#include "DeathStack/DeploymentController/Motor/MotorDriver.h"
 #include <interfaces-impl/hwmapping.h>
+
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
+
+#include "DeploymentController/Motor/MotorDriver.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -44,26 +44,28 @@ motorState state = STOPPED;
 
 void buttonMode()
 {
-    while(true)
+    while (true)
     {
-        if(inputs::btn_open::value() == 0)
+        if (inputs::btn_open::value() == 0)
         {
             Thread::sleep(10);
 
             motor.start(MotorDirection::NORMAL);
 
-            while(!inputs::btn_open::value());
+            while (!inputs::btn_open::value())
+                ;
 
             motor.stop();
         }
 
-        if(inputs::btn_close::value() == 0)
+        if (inputs::btn_close::value() == 0)
         {
             Thread::sleep(10);
 
             motor.start(MotorDirection::REVERSE);
 
-            while(!inputs::btn_close::value());
+            while (!inputs::btn_close::value())
+                ;
 
             motor.stop();
         }
@@ -75,7 +77,7 @@ int main()
 
     Thread::sleep(500);
 
-    while(true)
+    while (true)
     {
         printf("\nOptions:\n");
         printf(" o - open\n");
@@ -90,7 +92,7 @@ int main()
         getline(cin, temp);
         stringstream(temp) >> c;
 
-        switch(c)
+        switch (c)
         {
             case 'o':
                 motor.start(MotorDirection::NORMAL);
@@ -108,9 +110,8 @@ int main()
                 return 0;
                 break;
             default:
-                break;                
+                break;
         }
-
     }
 
     return 0;

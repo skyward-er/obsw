@@ -1,5 +1,5 @@
 /* Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,60 +13,44 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
+#include "ADA/ADAController.h"
 #include "Common.h"
-#include "DeathStack/ADA/ADAController.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/LoggerService/LoggerService.h"
-#include "DeathStack/SensorManager/SensorManager.h"
+#include "LoggerService/LoggerService.h"
+#include "Radio/TMTCManager.h"
+#include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
 #include "events/EventBroker.h"
+#include "events/Events.h"
 
 using namespace miosix;
 using namespace DeathStackBoard;
 
 int main()
 {
-    Stats s;
-    ADAController ada;
-    SensorManager mgr{&ada};
-    // ada.start();
-    try
-    {
-        LoggerService::getInstance()->start();
-    }
-    catch (const std::exception& e)
-    {
-        printf("SDCARD MISSING\n");
-        for (;;)
-        {
-            led1::high();
-            Thread::sleep(200);
-            led1::low();
-            Thread::sleep(200);
-        }
-    }
-    led1::high();
+    TimestampTimer::enableTimestampTimer();
 
     sEventBroker->start();
-    mgr.start();
 
-    sEventBroker->post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
+    Stats s;
+    SensorManager mgr;
 
+    Bus bus;
+    Sensors sensors(*bus.spi1, new TaskScheduler());
+    Radio radio(*bus.spi2);
 
-    // printf("Wait for calibration to complete.\n");
+    sensors.start();
+    radio.start();
 
     Thread::sleep(500);
 
-    // sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
-
-    for (int i = 0; i < 60 * 3 * 10; i++)
+    for (int i = 0; i < 1 * 3 * 10; i++)
     {
         s.add(averageCpuUtilization());
         Thread::sleep(100);
@@ -79,9 +63,9 @@ int main()
 
     for (;;)
     {
-        led1::high();
+        ledOn();
         Thread::sleep(1000);
-        led1::low();
+        ledOff();
         Thread::sleep(1000);
     }
 }

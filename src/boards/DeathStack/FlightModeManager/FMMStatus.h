@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2018 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2018 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H
-#define SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H
+
+#pragma once
 
 #include <cstdint>
 #include <ostream>
+
+namespace DeathStackBoard
+{
 
 enum class FMMState : uint8_t
 {
@@ -32,7 +34,8 @@ enum class FMMState : uint8_t
     INIT,
     INIT_DONE,
     INIT_ERROR,
-    CALIBRATING,
+    SENSORS_CALIBRATION,
+    ALGOS_CALIBRATION,
     DISARMED,
     ARMED,
     TESTING,
@@ -40,14 +43,12 @@ enum class FMMState : uint8_t
     ASCENDING,
     DROGUE_DESCENT,
     TERMINAL_DESCENT,
-    ROGALLO_DESCENT,
-    MANUAL_DESCENT,
     LANDED
 };
 
 struct FMMStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     FMMState state = FMMState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
@@ -58,4 +59,4 @@ struct FMMStatus
     }
 };
 
-#endif /* SRC_SHARED_BOARDS_HOMEONE_FLIGHTMODEMANAGER_FMMSTATUS_H */
+}  // namespace DeathStackBoard

@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2019 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,20 +13,18 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
-#include <boards/DeathStack/TMTCManager/TMTCManager.h>
-#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
-
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/events/Topics.h>
-
+#include <TMTCManager/TMTCManager.h>
+#include <events/Events.h>
+#include <events/Topics.h>
 #include <interfaces-impl/hwmapping.h>
+#include <skyward-boardcore/src/shared/utils/EventSniffer.h>
 
 using namespace miosix;
 using namespace DeathStackBoard;
@@ -41,7 +39,7 @@ int main()
 {
     busSPI2::init();
 
-    TMTCManager* tmtc = new TMTCManager();
+    TMTCController* tmtc = new TMTCController();
     tmtc->start();
     sEventBroker->start();
 

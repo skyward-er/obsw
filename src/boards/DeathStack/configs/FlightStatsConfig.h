@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,19 +22,17 @@
 
 #pragma once
 
-#include "config.h"
-#include "CutterConfig.h"
+#include <configs/CutterConfig.h>
 
 namespace DeathStackBoard
 {
+
 namespace FlightStatsConfig
 {
-
-static constexpr long long TIMEOUT_CUTTER_TEST_STATS = CUT_TEST_DURATION;
-static constexpr long long TIMEOUT_LIFTOFF_STATS     = 6000;
-static constexpr long long TIMEOUT_APOGEE_STATS      = 1500;
-static constexpr long long TIMEOUT_DROGUE_DPL_STATS  = 15000;
-static constexpr long long TIMEOUT_MAIN_DPL_STATS    = 15000;
+static constexpr long long TIMEOUT_LIFTOFF_STATS    = 7500;   // [ms]
+static constexpr long long TIMEOUT_APOGEE_STATS     = 1500;   // [ms]
+static constexpr long long TIMEOUT_DROGUE_DPL_STATS = 10000;  // [ms]
+static constexpr long long TIMEOUT_MAIN_DPL_STATS   = 10000;  // [ms]
 }  // namespace FlightStatsConfig
 
 }  // namespace DeathStackBoard

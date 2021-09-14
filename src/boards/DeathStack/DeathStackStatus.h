@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -32,8 +31,8 @@ namespace DeathStackBoard
 
 enum DeathStackComponentStatus
 {
-    COMP_OK    = 0,
-    COMP_ERROR = 1
+    COMP_ERROR = 0,
+    COMP_OK    = 1
 };
 
 struct DeathStackStatus
@@ -44,12 +43,9 @@ struct DeathStackStatus
     uint8_t logger         = COMP_OK;
     uint8_t ev_broker      = COMP_OK;
     uint8_t pin_obs        = COMP_OK;
-    uint8_t fmm            = COMP_OK;
-    uint8_t sensor_manager = COMP_OK;
-    uint8_t ada            = COMP_OK;
-    uint8_t tmtc           = COMP_OK;
-    uint8_t ign            = COMP_OK;
-    uint8_t dpl            = COMP_OK;
+    uint8_t sensors        = COMP_OK;
+    uint8_t radio          = COMP_OK;
+    uint8_t state_machines = COMP_OK;
 
     /**
      * @brief Helper method to signal an error in the DeathStackStatus struct.
@@ -65,14 +61,15 @@ struct DeathStackStatus
 
     static std::string header()
     {
-        return "logger,ev_broker,pin_obs,fmm,sensor_manager,ada,tmtc,ign,dpl\n";
+        return "logger,ev_broker,pin_obs,sensors,radio,state_machines\n";
     }
 
     void print(std::ostream& os)
     {
-        os << (int)logger << "," << (int)ev_broker << "," << (int)pin_obs << "," << (int)fmm << ","
-           << (int)sensor_manager << "," << (int)ada << "," << (int)tmtc << "," << (int)ign << ","
-           << (int)dpl << "\n";
+        os << (int)logger << "," << (int)ev_broker << "," << (int)pin_obs << ","
+           << (int)sensors << "," << (int)radio << "," << (int)state_machines
+           << "\n";
     }
 };
+
 }  // namespace DeathStackBoard

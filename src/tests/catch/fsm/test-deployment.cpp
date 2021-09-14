@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Alvise de'Faveri Tron, Luca Erbetta, Luca Mozzarelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,422 +28,100 @@
 // test them synchronously
 #define protected public
 
+#include <Deployment/DeploymentController.h>
+#include <drivers/servo/servo.h>
 #include <miosix.h>
+
 #include <utils/testutils/catch.hpp>
 
-#include "DeathStack/DeploymentController/DeploymentController.h"
-#include "DeathStack/events/Events.h"
-#include "utils/PinObserver.h"
+#include "configs/DeploymentConfig.h"
+#include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
 using namespace DeathStackBoard;
 
-/**
- * @brief Ensure cleanup in every test using RAIII
- *
- */
 class DeploymentControllerFixture
 {
 public:
     // This is called at the beginning of each test / section
     DeploymentControllerFixture()
     {
-        dpl = new DeploymentController();
+        controller = new DeploymentController(&ejection_servo);
         sEventBroker->start();
-        dpl->start();
+        controller->start();
     }
 
     // This is called at the end of each test / section
     ~DeploymentControllerFixture()
     {
-        dpl->stop();
-        sEventBroker->unsubscribe(dpl);
+        controller->stop();
+        sEventBroker->unsubscribe(controller);
         sEventBroker->clearDelayedEvents();
-        delete dpl;
+        delete controller;
     }
 
 protected:
-    DeploymentController* dpl;
+    DeploymentController* controller;
+    DeploymentServo ejection_servo;
 };
 
-/**
- * TEST_CASE_METHOD(Foo, "...") can access all protected members of Foo. See the
- * catch framework reference on Github.
- */
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from IDLE")
+TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from idle")
 {
-    SECTION("IDLE -> Opening Nosecone")
+    controller->transition(&DeploymentController::state_idle);
+
+    SECTION("DPL_IDLE -> EV_RESET_SERVO")
     {
-        REQUIRE(
-            testHSMTransition(*dpl, Event{EV_NC_OPEN},
-                              &DeploymentController::state_spinning));
+        REQUIRE(testFSMTransition(*controller, Event{EV_RESET_SERVO},
+                                  &DeploymentController::state_idle));
     }
 
-    SECTION("IDLE -> Cutting main")
+    SECTION("DPL_IDLE -> EV_WIGGLE_SERVO")
     {
-        REQUIRE(
-            testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_cuttingMain));
+        REQUIRE(testFSMTransition(*controller, Event{EV_WIGGLE_SERVO},
+                                  &DeploymentController::state_idle));
     }
 
-    SECTION("IDLE -> Cutting drogue")
+    SECTION("DPL_IDLE -> EV_NC_OPEN")
     {
         REQUIRE(
-            testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                              &DeploymentController::state_cuttingDrogue));
+            testFSMTransition(*controller, Event{EV_NC_OPEN},
+                              &DeploymentController::state_noseconeEjection));
     }
 
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from CUTTING MAIN")
-{
-    REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_cuttingMain));
-
-    SECTION(" Cutting Main -> Idle")
+    SECTION("DPL_IDLE -> EV_CUT_DROGUE")
     {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
-                            &DeploymentController::state_idle));
-    }
-
-    SECTION("Deferred event: EV_CUT_DROGUE")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_cuttingMain));
-        // Send TIMEOUT_CUTTING: back in idle
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
-                            &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
+        REQUIRE(testFSMTransition(*controller, Event{EV_CUT_DROGUE},
+                                  &DeploymentController::state_cutting));
     }
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from CUTTING DROGUE")
+TEST_CASE_METHOD(DeploymentControllerFixture,
+                 "Testing transitions from nosecone_ejection")
 {
-    REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_cuttingDrogue));
+    controller->transition(&DeploymentController::state_noseconeEjection);
 
-    SECTION("Cutting Drogue -> Idle")
+    SECTION("DPL_NOSECONE_EJECTION -> EV_NC_DETACHED")
     {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
-                            &DeploymentController::state_idle));
+        REQUIRE(testFSMTransition(*controller, Event{EV_NC_DETACHED},
+                                  &DeploymentController::state_idle));
     }
-    SECTION("Deferred event: EV_CUT_MAIN")
+
+    SECTION("DPL_NOSECONE_EJECTION -> EV_NC_OPEN_TIMEOUT")
     {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_cuttingDrogue));
-        // Send TIMEOUT_CUTTING: back in idle
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_CUTTING},
-                            &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
+        REQUIRE(testFSMTransition(*controller, Event{EV_NC_OPEN_TIMEOUT},
+                                  &DeploymentController::state_idle));
     }
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from SPINNING")
+TEST_CASE_METHOD(DeploymentControllerFixture,
+                 "Testing transitions from cutting")
 {
-    REQUIRE(
-    testHSMTransition(*dpl, Event{EV_NC_OPEN},
-                      &DeploymentController::state_spinning));
-    SECTION("SPINNING -> Waiting Detachment")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_awaitingDetachment));
-    }
-    SECTION("SPINNING -> Waiting Min Open Time")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_awaitingOpenTime));
-    }
-    SECTION("OPENING NOSECONE -> Idle")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (spinning->idle)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (spinning->waiting time->idle)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_awaitingOpenTime));
-       REQUIRE(
-       testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                         &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (spinning->waiting detachement->idle)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_awaitingDetachment));
-       REQUIRE(
-       testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                         &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (spinning->waiting time->idle)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_awaitingOpenTime));
-       REQUIRE(
-       testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                         &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (spinning->waiting detachement->idle)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_spinning));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_awaitingDetachment));
-       REQUIRE(
-       testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                         &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-}
+    controller->transition(&DeploymentController::state_cutting);
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING MIN OPEN TIME")
-{
-    REQUIRE(
-    testHSMTransition(*dpl, Event{EV_NC_OPEN},
-                      &DeploymentController::state_spinning));
-    REQUIRE(
-    testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                      &DeploymentController::state_awaitingOpenTime));
-
-    SECTION("WAITING MIN OPEN TIME -> Idle")
+    SECTION("DPL_CUTTING -> EV_CUTTING_TIMEOUT")
     {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_idle));
-    }
-    SECTION("OPENING NOSECONE -> Idle")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (timeout)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_awaitingOpenTime));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (min_open_time)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_awaitingOpenTime));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (timeout)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_awaitingOpenTime));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (min_open_time)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_awaitingOpenTime));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-}
-
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from WAITING DETACHEMENT")
-{
-    REQUIRE(
-    testHSMTransition(*dpl, Event{EV_NC_OPEN},
-                      &DeploymentController::state_spinning));
-    REQUIRE(
-    testHSMTransition(*dpl, Event{EV_MOT_MIN_OPEN_TIME},
-                      &DeploymentController::state_awaitingDetachment));
-
-    SECTION("WAITING DETACHEMENT -> Idle")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_idle));
-    }
-    SECTION("OPENING NOSECONE -> Idle")
-    {
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (timeout)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_awaitingDetachment));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (timeout)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_awaitingDetachment));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_TIMEOUT_MOT_OPEN},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
-    }
-    SECTION("Deferred event: EV_CUT_MAIN (nc_detached)")
-    {
-        // Send CUT_MAIN: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_MAIN},
-                            &DeploymentController::state_awaitingDetachment));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_MAIN should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingMain ));
-    }
-    SECTION("Deferred event: EV_CUT_DROGUE (nc_detached)")
-    {
-        // Send CUT_DROGUE: nothing should happen
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_CUT_DROGUE},
-                            &DeploymentController::state_awaitingDetachment));
-        // Go back in IDLE
-        REQUIRE(
-        testHSMTransition(*dpl, Event{EV_NC_DETACHED},
-                          &DeploymentController::state_idle));
-        // Wait a bit to allow EV_ENTRY handling
-        Thread::sleep(10);
-        // CUT_DROGUE should now be processed
-        REQUIRE( dpl->testState(&DeploymentController::state_cuttingDrogue ));
+        REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
+                                  &DeploymentController::state_idle));
     }
 }

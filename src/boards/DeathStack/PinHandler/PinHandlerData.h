@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,13 +13,12 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 
 #pragma once
 
@@ -32,28 +30,28 @@ namespace DeathStackBoard
 
 enum class ObservedPin : uint8_t
 {
-    LAUNCH   = 0,
-    NOSECONE = 1,
-    MOTOR = 2
+    LAUNCH    = 0,
+    NOSECONE  = 1,
+    DPL_SERVO = 2
 };
 
 /**
- * @brief Struct represeting the status of an observed pin
+ * @brief Struct represeting the status of an observed pin.
  *
  */
 struct PinStatus
 {
     ObservedPin pin;
 
-    long long last_state_change = 0;  // Last time the pin changed state
-    uint8_t state = 0;                // Current state of the pin
+    uint64_t last_state_change     = 0;  // Last time the pin changed state
+    uint8_t state                  = 0;  // Current state of the pin
     unsigned int num_state_changes = 0;
 
-    long long last_detection_time = 0;  // When a transition is detected
+    uint64_t last_detection_time = 0;  // When a transition is detected
 
-    PinStatus() {};
+    PinStatus(){};
     PinStatus(ObservedPin pin) : pin(pin) {}
-    
+
     static std::string header()
     {
         return "pin,last_state_change,state,num_state_changes,last_detection_"

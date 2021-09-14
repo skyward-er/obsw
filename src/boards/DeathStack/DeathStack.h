@@ -1,5 +1,5 @@
 /* Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Alvise de'Faveri Tron
+ * Author: Alvise de'Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -22,38 +22,42 @@
 
 #pragma once
 
+#include <Common.h>
+#include <DeathStackStatus.h>
+#include <Debug.h>
+#include <LoggerService/LoggerService.h>
+#include <Main/Actuators.h>
+#include <Main/Bus.h>
+#include <Main/Radio.h>
+#include <Main/Sensors.h>
+#include <Main/StateMachines.h>
+#include <PinHandler/PinHandler.h>
+#include <System/StackLogger.h>
+#include <System/TaskID.h>
+#include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/EventInjector.h>
+#include <events/Events.h>
+#include <events/Topics.h>
+#include <events/utils/EventSniffer.h>
+
 #include <functional>
 #include <stdexcept>
 #include <vector>
 
-#include <Common.h>
-
-#include <events/EventBroker.h>
-#include <events/utils/EventSniffer.h>
-
-#include "DeathStack/LoggerService/TmRepository.h"
-#include "DeathStack/events/Events.h"
-#include "DeathStack/events/Topics.h"
-#include "DeathStackStatus.h"
-
-#include "DeathStack/LoggerService/LoggerService.h"
-
-#include "DeathStack/ADA/ADAController.h"
-#include "DeathStack/DeploymentController/DeploymentController.h"
-#include "DeathStack/FlightModeManager/FlightModeManager.h"
-#include "DeathStack/PinHandler/PinHandler.h"
-#include "DeathStack/SensorManager/SensorManager.h"
-#include "DeathStack/TMTCManager/TMTCManager.h"
-#include "DeathStack/events/EventData.h"
+#ifdef HARDWARE_IN_THE_LOOP
+#include <hardware_in_the_loop/HIL.h>
+#endif
 
 using std::bind;
 
 namespace DeathStackBoard
 {
 
-// Add heres the event that you don't want to be TRACEd in DeathStack.logEvent()
+// Add heres the events that you don't want to be TRACEd in
+// DeathStack.logEvent()
 static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
-    EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM};
+    EV_SEND_HR_TM, EV_SEND_LR_TM, EV_SEND_TEST_TM, EV_SEND_SENS_TM};
 /**
  * This file provides a simplified way to initialize and monitor all
  * the components of the DeathStack.
@@ -66,32 +70,107 @@ public:
     // Shared Components
     EventBroker* broker;
     LoggerService* logger;
-    PinHandler* pin_observer;
+
     EventSniffer* sniffer;
+    StateMachines* state_machines;
 
-    // FSMs
-    ADAController* ada;
-    SensorManager* sensor_manager;
-    TMTCManager* tmtc;
-    FlightModeManager* fmm;
+    Bus* bus;
+    Sensors* sensors;
+    Radio* radio;
+    Actuators* actuators;
 
-    Cutter* cutter;
-    Servo* servo;
-    DeploymentController* dpl;
+    PinHandler* pin_handler;
+
+    TaskScheduler* scheduler;
+
+#ifdef HARDWARE_IN_THE_LOOP
+    HIL* hil;
+#endif
+
+    void start()
+    {
+        if (!broker->start())
+        {
+            LOG_ERR(log, "Error starting EventBroker");
+            status.setError(&DeathStackStatus::ev_broker);
+        }
+
+        if (!radio->start())
+        {
+            LOG_ERR(log, "Error starting radio module");
+            status.setError(&DeathStackStatus::radio);
+        }
+
+        if (!sensors->start())
+        {
+            LOG_ERR(log, "Error starting sensors");
+            status.setError(&DeathStackStatus::sensors);
+        }
+
+        if (!state_machines->start())
+        {
+            LOG_ERR(log, "Error starting state machines");
+            status.setError(&DeathStackStatus::state_machines);
+        }
+
+        if (!pin_handler->start())
+        {
+            LOG_ERR(log, "Error starting PinObserver");
+            status.setError(&DeathStackStatus::pin_obs);
+        }
+
+#ifdef DEBUG
+        injector->start();
+#endif
+
+        logger->log(status);
+
+#ifdef HARDWARE_IN_THE_LOOP
+        hil->start();
+#endif
+
+        // If there was an error, signal it to the FMM and light a LED.
+        if (status.death_stack != COMP_OK)
+        {
+            LOG_ERR(log, "Initalization failed\n");
+            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+        }
+        else
+        {
+            LOG_INFO(log, "Initalization ok");
+            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+        }
+    }
+
+    void startLogger()
+    {
+        try
+        {
+            logger->start();
+            LOG_INFO(log, "Logger started");
+        }
+        catch (const std::runtime_error& re)
+        {
+            LOG_ERR(log, "SD Logger init error");
+            status.setError(&DeathStackStatus::logger);
+        }
+
+        logger->log(logger->getLogger().getLogStats());
+    }
 
 private:
     /**
-     * Initialize Everything
+     * @brief Initialize Everything.
      */
     DeathStack()
     {
-        memset(&status, 0, sizeof(status));
-
         /* Shared components */
-        logger       = Singleton<LoggerService>::getInstance();
-        
-        broker       = sEventBroker;
-        pin_observer = new PinHandler();
+        logger = Singleton<LoggerService>::getInstance();
+        startLogger();
+
+        TimestampTimer::enableTimestampTimer();
+
+        broker = sEventBroker;
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event
@@ -101,87 +180,43 @@ private:
                 *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
         }
 
-        ada            = new ADAController();
-        sensor_manager = new SensorManager(ada);
-        tmtc           = new TMTCManager();
-        fmm            = new FlightModeManager();
-        cutter         = new Cutter(CUTTER_PWM_FREQUENCY, CUTTER_PWM_DUTY_CYCLE,
-                            CUTTER_TEST_PWM_DUTY_CYCLE);
-        servo          = new Servo(DeploymentConfigs::SERVO_TIMER);
-        dpl            = new DeploymentController(*cutter, *servo);
+#ifdef HARDWARE_IN_THE_LOOP
+        hil = HIL::getInstance();
+#endif
 
-        // Start threads
-        try
-        {
-            logger->start();
-        }
-        catch (const std::runtime_error& re)
-        {
-            TRACE("Logger init error\n");
-            status.setError(&DeathStackStatus::logger);
-        }
+        scheduler = new TaskScheduler();
+        addSchedulerStatsTask();
 
-        if (!broker->start())
-        {
-            status.setError(&DeathStackStatus::ev_broker);
-        }
+        bus       = new Bus();
+        radio     = new Radio(*bus->spi2);
+        sensors   = new Sensors(*bus->spi1, scheduler);
+        actuators = new Actuators();
 
-        if (!pin_observer->start())
-        {
-            status.setError(&DeathStackStatus::pin_obs);
-        }
+#ifdef HARDWARE_IN_THE_LOOP
+        state_machines =
+            new StateMachines(*sensors->hil_imu, *sensors->hil_baro,
+                              *sensors->hil_gps, scheduler);
+#else
+        state_machines = new StateMachines(*sensors->imu_bmx160_with_correction,
+                                           *sensors->press_digital,
+                                           *sensors->gps_ublox, scheduler);
+#endif
 
-        /* State Machines */
-        if (!fmm->start())
-        {
-            status.setError(&DeathStackStatus::fmm);
-        }
-        if (!tmtc->start())
-        {
-            status.setError(&DeathStackStatus::tmtc);
-        }
-        if (!dpl->start())
-        {
-            status.setError(&DeathStackStatus::dpl);
-        }
-        if (!ada->start())
-        {
-            status.setError(&DeathStackStatus::ada);
-        }
-        if (!sensor_manager->start())
-        {
-            status.setError(&DeathStackStatus::sensor_manager);
-        }
-        TRACE("[DS] Sensor init status: %02X %d\n",
-              sensor_manager->getStatus().sensor_status,
-              sensor_manager->getStatus().sensor_status);
-        if (sensor_manager->getStatus().sensor_status !=
-            NOMINAL_SENSOR_INIT_VALUE)
-        {
-            status.setError(&DeathStackStatus::sensor_manager);
-        }
+        pin_handler = new PinHandler();
 
-        logger->log(status);
+#ifdef DEBUG
+        injector = new EventInjector();
+#endif
 
-        // If there was an error, signal it to the FMM and light a LED.
-        if (status.death_stack != COMP_OK)
-        {
-            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
-        }
-        else
-        {
-            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
-        }
-
-        TRACE("[DS] Init finished\n");
+        LOG_INFO(log, "Init finished");
     }
-    /**
-     * Helpers for debugging purposes
-     */
 
+    /**
+     * @brief Helpers for debugging purposes.
+     */
     void logEvent(uint8_t event, uint8_t topic)
     {
-        EventData ev{miosix::getTick(), event, topic};
+        EventData ev{(long long)TimestampTimer::getTimestamp(), event, topic};
         logger->log(ev);
 
 #ifdef DEBUG
@@ -194,15 +229,36 @@ private:
                 return;
             }
         }
-        TRACE("[%.3f] %s on %s\n", (miosix::getTick() / 1000.0f),
-              getEventString(event).c_str(), getTopicString(topic).c_str());
+        LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
+                  getTopicString(topic));
 #endif
     }
 
     inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
 
-private:
-    DeathStackStatus status;
+    void addSchedulerStatsTask()
+    {
+        // add lambda to log scheduler tasks statistics
+        scheduler->add(
+            [&]() {
+                std::vector<TaskStatResult> scheduler_stats =
+                    scheduler->getTaskStats();
+
+                for (TaskStatResult stat : scheduler_stats)
+                {
+                    logger->log(stat);
+                }
+
+                StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+            },
+            1000,  // 1 hz
+            TASK_SCHEDULER_STATS_ID, miosix::getTick());
+    }
+
+    EventInjector* injector;
+    DeathStackStatus status{};
+
+    PrintLogger log = Logging::getLogger("deathstack");
 };
 
-} /* namespace DeathStackBoard */
+}  // namespace DeathStackBoard

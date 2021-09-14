@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Benedetta Margrethe Cattani
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Benedetta Margrethe Cattani
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,14 +29,15 @@
 #define protected public
 #define private public
 
+#include <CanInterfaces.h>
+#include <EventClasses.h>
+#include <IgnitionController/IgnitionController.h>
+#include <configs/IgnitionConfig.h>
+#include <events/Events.h>
 #include <miosix.h>
+
 #include <utils/testutils/catch.hpp>
 
-#include <boards/CanInterfaces.h>
-#include <boards/DeathStack/EventClasses.h>
-#include <boards/DeathStack/events/Events.h>
-#include <boards/DeathStack/IgnitionController/IgnitionController.h>
-#include <boards/DeathStack/configs/IgnitionConfig.h>
 #include "utils/testutils/TestHelper.h"
 
 using miosix::Thread;
@@ -193,7 +193,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
             long long start = miosix::getTick();
 
             REQUIRE(expectEvent(EV_IGN_OFFLINE, TOPIC_FLIGHT_EVENTS,
-                                      start + TIMEOUT_IGN_OFFLINE));
+                                start + TIMEOUT_IGN_OFFLINE));
         }
 
         SECTION("IGNITION OFFLINE 2")  // Wait for EV_IGN_OFFLINE after we post

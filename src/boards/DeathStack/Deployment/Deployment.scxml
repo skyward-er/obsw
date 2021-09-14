@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" initial="idle" version="1.0">
+    <state id="idle">
+        <onentry>initServo()</onentry>
+        <onentry>initCutters()</onentry>
+        <transition event="DPL.EV_RESET_SERVO" target="idle">
+            resetServo()
+        </transition>
+        <transition event="DPL.EV_WIGGLE_SERVO" target="idle">
+            wiggleServo()
+        </transition>
+        <transition event="DPL.EV_NC_OPEN" target="noseconeEjection"/>
+        <transition event="DPL.EV_CUT_DROGUE" target="cuttingPrimary"/>
+    </state>
+    <state id="noseconeEjection">
+        <onentry>ejectNosecone()</onentry>
+        <onentry>postD(DPL.EV_NC_OPEN_TIMEOUT)</onentry>
+        <onexit>disableServo()</onexit>
+        <transition event="DPL.EV_NC_DETACHED" target="idle">
+            removeD(DPL.EV_NC_OPEN_TIMEOUT)
+        </transition>
+        <transition event="DPL.EV_NC_OPEN_TIMEOUT" target="idle"/>
+    </state>
+    <state id="cutting">
+        <onentry>startCutting()</onentry>
+        <onentry>postD(DPL.EV_CUTTING_TIMEOUT)</onentry>
+        <onexit>stopCutting()</onexit>
+        <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
+    </state>
+</scxml>
+

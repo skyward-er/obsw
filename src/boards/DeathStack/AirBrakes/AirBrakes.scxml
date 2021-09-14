@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" initial="idle" version="1.0">
+    <state id="idle">
+    	<onentry>initServo()</onentry>
+        <transition event="FLIGHT_EVENTS.EV_LIFTOFF" target="shadowMode"/>
+        <transition event="ABK.EV_WIGGLE_SERVO" target="idle">
+        	wiggleServo()
+        </transition>
+        <transition event="ABK.EV_RESET_SERVO" target="idle">
+        	resetServo()
+        </transition>
+        <transition event="ABK.EV_TEST_ABK" target="testAirbrakes"/>
+    </state>
+    <state id="shadowMode">
+        <onentry>postD(EV_SHADOW_MODE_TIMEOUT)</onentry>
+        <transition event="ABK.EV_SHADOW_MODE_TIMEOUT" target="enabled"/>
+        <transition event="ABK.EV_DISABLE_ABK" target="disabled"/>
+    </state>
+    <state id="enabled">
+    	<onentry>enableAirbrakes()</onentry>
+        <transition event="FLIGHT_EVENTS.EV_APOGEE" target="end"/>
+        <transition event="ABK.EV_DISABLE_ABK" target="disabled"/>
+    </state>
+    <state id="end">
+        <onentry>setFullyClosed()</onentry>
+    </state>
+    <state id="disabled">
+        <onentry>setFullyClosed()</onentry>
+    </state>
+    <state id="testAirbrakes">
+    	<onentry>enableAirbrakes()</onentry>
+    	<onentry>incrementallyOpen()</onentry>
+    	<onentry>postD(ABK.EV_TEST_TIMEOUT)</onentry>
+    	<onexit>incrementallyCloe()</onexit>
+    	<onexit>disableAirbrakes()</onexit>
+        <transition event="ABK.EV_TEST_TIMEOUT" target="idle"/>
+    </state>
+</scxml>

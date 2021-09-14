@@ -1,3 +1,24 @@
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Mozzarelli
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 #ifdef STANDALONE_CATCH1_TEST
 #include "catch/catch-tests-entry.cpp"
@@ -5,15 +26,19 @@
 
 #define private public
 
+#include <ADA/ADA.h>
 #include <Common.h>
-#include <DeathStack/ADA/ADA.h>
+#include <configs/ADAConfig.h>
+
 #include <iostream>
 #include <random>
 #include <sstream>
 #include <utils/testutils/catch.hpp>
+
 #include "test-kalman-acc-data.h"
 
 using namespace DeathStackBoard;
+using namespace ADAConfigs;
 
 constexpr float NOISE_STD_DEV_P = 5;  // Noise varaince
 constexpr float LSB_P           = 28;
@@ -34,7 +59,7 @@ float addNoise_p(float sample);
 float quantization_p(float sample);
 std::normal_distribution<float> distribution_p(0.0, NOISE_STD_DEV_P);
 
-typedef miosix::Gpio<GPIOG_BASE, 13> greenLed;
+typedef miosix::Gpio<GPIOA_BASE, 5> greenLed;
 
 TEST_CASE("Testing Kalman with accelerometer")
 {
@@ -43,9 +68,9 @@ TEST_CASE("Testing Kalman with accelerometer")
     ref_values.ref_altitude = 0;
     ref_values.msl_pressure = SIMULATED_PRESSURE[1];
 
-    ada = new ADA(ref_values);
+    ada = new ADA(ref_values, getKalmanConfig(), getKalmanAccConfig());
 
-    KalmanState state;
+    ADAKalmanState state;
     unsigned int j = 0;
     for (unsigned int i = 0; i < DATA_SIZE_AX; i++)
     {
@@ -58,7 +83,7 @@ TEST_CASE("Testing Kalman with accelerometer")
             ada->updateBaro(addNoise_p(SIMULATED_PRESSURE[j]));
             j++;
 
-            state = ada->getKalmanState();
+            state = ada->getADAKalmanState();
             std::cout << state.x0_acc << ", " << state.x1_acc << ", "
                       << state.x2_acc << ", " << SIMULATED_PRESSURE[i] << ", "
                       << ada->last_acc_average << "\n";
