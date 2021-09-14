@@ -49,8 +49,8 @@ protected:
          * struct */
         Vec3 matlabData = sensorData->gps.positionMeasures[sampleCounter];
         tempData.latitude =
-            matlabData.getX() / 6371000.0f;  // divide by earth radius
-        tempData.longitude = matlabData.getY() / 6371000.0f;
+            matlabData.getX(); // divide by earth radius
+        tempData.longitude = matlabData.getY();
         tempData.height    = matlabData.getZ();
 
         matlabData = sensorData->gps.velocityMeasures[sampleCounter];
