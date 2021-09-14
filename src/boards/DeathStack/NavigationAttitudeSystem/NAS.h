@@ -210,8 +210,8 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     Press pressure_data = barometer.getLastSample();
 
     // update ekf with new accel and gyro measures
-    if (ium_data.accel_timestamp != last_accel_timestamp &&
-        ium_data.gyro_timestamp != last_gyro_timestamp)
+    if (imu_data.accel_timestamp != last_accel_timestamp &&
+        imu_data.gyro_timestamp != last_gyro_timestamp)
     {
         last_accel_timestamp = imu_data.accel_timestamp;
         last_gyro_timestamp  = imu_data.gyro_timestamp;

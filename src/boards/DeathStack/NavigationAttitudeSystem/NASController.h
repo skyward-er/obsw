@@ -155,7 +155,7 @@ void NASController<IMU, Press, GPS>::update()
             {
                 Lock<FastMutex> l(mutex);
 
-                if (ium_data.accel_timestamp != last_accel_timestamp)
+                if (imu_data.accel_timestamp != last_accel_timestamp)
                 {
                     last_accel_timestamp = imu_data.accel_timestamp;
                     calibrator.addAccelSample(
