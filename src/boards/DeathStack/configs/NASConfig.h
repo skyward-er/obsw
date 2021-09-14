@@ -39,7 +39,7 @@ static const float SAMPLE_RATE = 1000.0F / NAS_UPDATE_PERIOD;  // [Hz]
 
 static const float T = 1.0F / SAMPLE_RATE;  // [s]
 
-static const uint32_t CALIBRATION_N_SAMPLES = 200;  // 1200
+static const uint32_t CALIBRATION_N_SAMPLES = 200;
 
 static const float SIGMA_BETA =
     (float)1e-2;  // [Rad/s^2]
@@ -75,40 +75,52 @@ static const float P_BIAS = 0.01F;  // Bias prediction covariance
 
 /*----------------------------------------------------------------------------*/
 
+// Equirectangular projection for gps: https://bit.ly/2RaMbD5
+
+// static const float RAD =
+//     6371.0F * powf(10, 3);  // [m]
+//                             // Earth radius, used for the GPS correction
+
+// static const float PHI1 =
+//     0.0F;  // [rad]
+//            // Latitude where the scale of the projection is true
+
+// static const float CLAT = cosf(PHI1);
+
+static const float SATS_NUM = 6.0F;  // Number of available satellites
+
+static const unsigned int JAMMING_FACTOR = 3;
+
+#ifdef EUROC
+// static const float LAT0 =
+//     39.201778F;  // [deg]
+//                  // Latitude of the launch location (pont de sor)
+// static const float LON0 =
+//     -8.138368F;  // [deg]
+//                  // Longitude of the launch location (pont de sor)
+
 static const float EMF = 45.0F;  // [uT] micro Tesla
                                  // Earth magnetic field, used to
                                  // check if there's magnetic jamming
 
-// Equirectangular projection for gps: https://bit.ly/2RaMbD5
-
-/*static const float RAD =
-    6371.0F * powf(10, 3);  // [m]
-                            // Earth radius, used for the GPS correction*/
-
-static const float LAT0 =
-    39.201778F;  // [deg]
-                 // Latitude of the launch location (pont de sor)
-
-static const float LON0 =
-    -8.138368F;  // [deg]
-                 // Longitude of the launch location (pont de sor)
-
-static const float PHI1 =
-    0.0F;  // [rad]
-           // Latitude where the scale of the projection is true
-
-static const float CLAT = cosf(PHI1);
-
-static const float SATS_NUM = 6.0F;  // Number of available satellites
-
-#ifdef EUROC
 static const Vector3f NED_MAG(
     0.5969F, -0.0139F,
     0.8022F);  // Normalized magnetic field vector at Ponte de Sor
                // Measurement units are not important since it's normalized
 #else
+// static const float LAT0 =
+//     41.8098571;  // [deg]
+//                  // Latitude of the launch location (roccaraso)
+// static const float LON0 =
+//     14.0545127;  // [deg]
+//                  // Longitude of the launch location (roccaraso)
+
+static const float EMF = 46.77F;  // [uT] micro Tesla
+                                 // Earth magnetic field, used to
+                                 // check if there's magnetic jamming
+
 static const Vector3f NED_MAG(
-    0.5252, 0.0348, 0.8503);  // Normalized magnetic field vector at Roccaraso
+    0.5248, 0.0356, 0.8505);  // Normalized magnetic field vector at Roccaraso
 #endif
 
 // normalized magentic field at Milano
