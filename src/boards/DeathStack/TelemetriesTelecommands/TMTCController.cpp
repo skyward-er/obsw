@@ -79,9 +79,9 @@ void TMTCController::stateGroundTM(const Event& ev)
             // add periodic events
             periodicHrEvId = sEventBroker->postDelayed<HR_TM_GROUND_TIMEOUT>(
                 Event{EV_SEND_HR_TM}, TOPIC_TMTC);
-            periodicSensEvId =
-                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            // periodicSensEvId =
+            //     sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+            //         Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             LOG_DEBUG(log, "Entering stateGroundTM");
 
@@ -111,9 +111,9 @@ void TMTCController::stateGroundTM(const Event& ev)
         case EV_SEND_SENS_TM:
         {
             // LOG_DEBUG(log, "Sending SENS_TM");
-            periodicSensEvId =
-                sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
-                    Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            // periodicSensEvId =
+            //     sEventBroker->postDelayed<GROUND_SENS_TM_TIMEOUT>(
+            //         Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             // send tm
             send(MAV_SENSORS_TM_ID);
