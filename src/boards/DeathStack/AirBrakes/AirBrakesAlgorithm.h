@@ -220,6 +220,8 @@ private:
     Sensor<T>& sensor;
     PIController pid;
 
+    uint64_t begin_ts = 0;
+
     AirBrakesAlgorithmData algo_data;
     AirBrakesData ab_data;
 
@@ -250,10 +252,15 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     running = true;
 
+    begin_ts = TimestampTimer::getTimestamp();
+
     ts = (sensor.getLastSample()).timestamp;
 
     alpha = computeAlpha(sensor.getLastSample(), true);
+
+#ifndef ROCCARASO
     actuator->set(alpha, true);
+#endif
 }
 
 template <class T>
@@ -267,11 +274,29 @@ void AirBrakesControlAlgorithm<T>::step()
         alpha = computeAlpha(input, false);
     }
 
+#ifndef ROCCARASO
     actuator->set(alpha, true);
+#endif
 
     uint64_t t = TimestampTimer::getTimestamp();
     logAlgorithmData(input, t);
     logAirbrakesData(t);
+
+#ifdef ROCCARASO
+    if (t - begin_ts < 2 * AB_OPENING_TIMEOUT * 1000)
+    {  // after 3 seconds open to 100%
+        actuator->set(AB_SERVO_MAX_POS, true);
+    }
+    else if (t - begin_ts > 2 * AB_OPENING_TIMEOUT * 1000 &&
+             t - begin_ts < 3 * AB_OPENING_TIMEOUT * 1000)
+    {  // after 6 seconds open to 100%
+        actuator->set(AB_SERVO_MAX_POS / 2, true);
+    }
+    else
+    {  // then keep airbrakes closed
+        actuator->set(AB_SERVO_MIN_POS, true);
+    }
+#endif
 }
 
 template <class T>
@@ -296,6 +321,11 @@ float AirBrakesControlAlgorithm<T>::computeAlpha(T input, bool firstIteration)
     float u     = pidStep(z, vz, vMod, rho, setpoint);
     float s     = getSurface(z, vz, vMod, rho, u);
     float alpha = getAlpha(s);
+
+    // for logging
+    ab_data.rho     = rho;
+    ab_data.u       = u;
+    ab_data.surface = s;
 
     return alpha;
 }
@@ -364,6 +394,7 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
 
     TrajectoryPoint setpoint = chosenTrajectory.get(indexMinVal);
 
+    // for logging
     ab_data.setpoint_z  = setpoint.getZ();
     ab_data.setpoint_vz = setpoint.getVz();
 
@@ -387,7 +418,7 @@ float AirBrakesControlAlgorithm<T>::pidStep(float z, float vz, float vMod,
     float u_ref  = 0.5 * rho * cd_ref * S0 * vz * vMod;
 
     float error       = vz - setpoint.getVz();
-    ab_data.pid_error = error;
+    ab_data.pid_error = error; // for logging
 
     // update PI controller
     float u = pid.update(error);
@@ -401,38 +432,38 @@ template <class T>
 float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
                                                float rho, float u)
 {
-    float estimatedCd = 0;
-    float selectedS   = 0;
-    float bestDu      = INFINITY;
+    float estimated_cd = 0;
+    float selected_s   = 0;
+    float best_du      = INFINITY;
 
     for (float s = S_MIN; s < S_MAX + S_STEP; s += S_STEP)
     {
         float cd = getDrag(vMod, z, s);
         float du = abs(u - (0.5 * rho * S0 * cd * vz * vMod));
 
-        if (du < bestDu)
+        if (du < best_du)
         {
-            bestDu      = du;
-            selectedS   = s;
-            estimatedCd = cd;
+            best_du      = du;
+            selected_s   = s;
+            estimated_cd = cd;
         }
     }
 
-    ab_data.estimated_cd = estimatedCd;
+    ab_data.estimated_cd = estimated_cd; // for logging
 
-    return selectedS;
+    return selected_s;
 }
 
 template <class T>
 float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 {
-    float alphaRadiants =
+    float alpha_rad =
         (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
         (2 * A_DELTAS);
 
-    float alphaDegrees = alphaRadiants * 180.0f / PI;
+    float alpha_deg = alpha_rad * 180.0f / PI;
 
-    return alphaDegrees;
+    return alpha_deg;
 }
 
 template <class T>
@@ -461,7 +492,7 @@ float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
 
     float mach = getMach(v, h);
 
-    float powMach[7] = {1,
+    float pow_mach[7] = {1,
                         mach,
                         powf(mach, 2),
                         powf(mach, 3),
@@ -469,20 +500,20 @@ float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
                         powf(mach, 5),
                         powf(mach, 6)};
 
-    return coeffs.n000 + coeffs.n100 * powMach[1] + coeffs.n200 * powMach[2] +
-           coeffs.n300 * powMach[3] + coeffs.n400 * powMach[4] +
-           coeffs.n500 * powMach[5] + coeffs.n600 * powMach[6] +
+    return coeffs.n000 + coeffs.n100 * pow_mach[1] + coeffs.n200 * pow_mach[2] +
+           coeffs.n300 * pow_mach[3] + coeffs.n400 * pow_mach[4] +
+           coeffs.n500 * pow_mach[5] + coeffs.n600 * pow_mach[6] +
            coeffs.n010 * x + coeffs.n020 * powf(x, 2) +
-           coeffs.n110 * x * powMach[1] +
-           coeffs.n120 * powf(x, 2) * powMach[1] +
-           coeffs.n210 * x * powMach[2] +
-           coeffs.n220 * powf(x, 2) * powMach[2] +
-           coeffs.n310 * x * powMach[3] +
-           coeffs.n320 * powf(x, 2) * powMach[3] +
-           coeffs.n410 * x * powMach[4] +
-           coeffs.n420 * powf(x, 2) * powMach[4] +
-           coeffs.n510 * x * powMach[5] +
-           coeffs.n520 * powf(x, 2) * powMach[5] + coeffs.n001 * h;
+           coeffs.n110 * x * pow_mach[1] +
+           coeffs.n120 * powf(x, 2) * pow_mach[1] +
+           coeffs.n210 * x * pow_mach[2] +
+           coeffs.n220 * powf(x, 2) * pow_mach[2] +
+           coeffs.n310 * x * pow_mach[3] +
+           coeffs.n320 * powf(x, 2) * pow_mach[3] +
+           coeffs.n410 * x * pow_mach[4] +
+           coeffs.n420 * powf(x, 2) * pow_mach[4] +
+           coeffs.n510 * x * pow_mach[5] +
+           coeffs.n520 * powf(x, 2) * pow_mach[5] + coeffs.n001 * h;
 }
 
 template <class T>
@@ -505,6 +536,7 @@ void AirBrakesControlAlgorithm<T>::logAirbrakesData(uint64_t t)
     // pid_error inserted when computing the new alpha (in pidStep())
     // setpoint z and vz inserted when computing the new setpoint (in
     // getSetpoint())
+    // the same holds to u, surface and rho, in computeAlpha()
     logger.log(ab_data);
 }
 
