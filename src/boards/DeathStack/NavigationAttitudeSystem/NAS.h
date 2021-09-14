@@ -145,6 +145,7 @@ NAS<IMU, Press, GPS>::NAS(Sensor<IMU>& imu, Sensor<Press>& baro,
                           Sensor<GPS>& gps)
     : imu(imu), barometer(baro), gps(gps)
 {
+    x = Matrix<float, N, 1>::Zero();
 }
 
 template <typename IMU, typename Press, typename GPS>
@@ -209,6 +210,8 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     Press pressure_data = barometer.getLastSample();
 
     // update ekf with new accel and gyro measures
+    if (ium_data.accel_timestamp != last_accel_timestamp &&
+        ium_data.gyro_timestamp != last_gyro_timestamp)
     {
         last_accel_timestamp = imu_data.accel_timestamp;
         last_gyro_timestamp  = imu_data.gyro_timestamp;
@@ -238,13 +241,15 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
         // float delta_lon = gps_data.longitude - ref_values.ref_longitude;
         // float delta_lat = gps_data.latitude - ref_values.ref_latitude;
 
-        //Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
-        //gps_data.velocity_east);
+        // Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
+        // gps_data.velocity_east);
 
-        Vector3f gps_readings(gps_data.latitude, gps_data.longitude, gps_data.height);
+        Vector3f gps_readings(gps_data.latitude, gps_data.longitude,
+                              gps_data.height);
         Vector3f gps_ned = geodetic2NED(gps_readings);
 
-        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocity_north, gps_data.velocity_east);
+        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocity_north,
+                         gps_data.velocity_east);
         filter.correctGPS(pos_vel, gps_data.num_satellites);
     }
 
@@ -365,8 +370,10 @@ void NAS<IMU, Press, GPS>::updateNASData()
     nas_data.x = x(0);
     nas_data.y = x(1);
     nas_data.z =
-        - x(2) - ref_values.ref_altitude;  // Negative sign because we're working in the NED
-                         // frame but we want a positive altitude as output.
+        -x(2) -
+        ref_values
+            .ref_altitude;  // Negative sign because we're working in the NED
+                            // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
     nas_data.vz = -x(5);

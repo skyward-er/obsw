@@ -155,8 +155,7 @@ void NASController<IMU, Press, GPS>::update()
             {
                 Lock<FastMutex> l(mutex);
 
-                // Accel and gyro sampled at higher rate than the NAS
-                // => always new sample available
+                if (ium_data.accel_timestamp != last_accel_timestamp)
                 {
                     last_accel_timestamp = imu_data.accel_timestamp;
                     calibrator.addAccelSample(
