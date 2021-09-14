@@ -157,10 +157,10 @@ const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
     Mr << R1, R2, R3;
 
     R = Mr * Mou.transpose();
-    
+
     x_quat = quat.rotm2quat(R);
 
-    eul    = quat.quat2eul(x_quat);
+    eul = quat.quat2eul(x_quat);
 
     x_init(NL)     = x_quat(0);
     x_init(NL + 1) = x_quat(1);
@@ -172,10 +172,11 @@ const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
 
 void InitStates::positionInit(const float press)
 {
-    x_init(0) = 0.0;  // EARTH_RADIUS * gps_lon * CLAT;
-    x_init(1) = 0.0;  // EARTH_RADIUS * gps_lat;
-    x_init(2) = aeroutils::relAltitude(press, MSL_PRESSURE,
-                                       MSL_TEMPERATURE);  // msl altitude
+    x_init(0) = 0.0;
+    x_init(1) = 0.0;
+    x_init(2) = -aeroutils::relAltitude(
+        press, MSL_PRESSURE,
+        MSL_TEMPERATURE);  // msl altitude (in NED, so negative)
 }
 
 void InitStates::velocityInit()

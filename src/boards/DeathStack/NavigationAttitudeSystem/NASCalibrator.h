@@ -63,11 +63,15 @@ public:
      */
     void setReferenceTemperature(float t);
 
-
     /**
      * @brief Set latitude/longitude of the launchpad
      */
     void setReferenceCoordinates(float lat, float lon);
+
+    /**
+     * @brief Set latitude/longitude of the launchpad
+     */
+    void setReferenceAltitude(float alt);
 
     /**
      * @brief Reset stats
@@ -96,6 +100,7 @@ private:
 
     // Refernece flags
     bool ref_coordinates_set  = false;
+    bool ref_altitude_set  = false;
     bool ref_temperature_set = false;
 };
 

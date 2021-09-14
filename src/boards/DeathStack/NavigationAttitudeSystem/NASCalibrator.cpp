@@ -58,6 +58,12 @@ void NASCalibrator::setReferenceTemperature(float t)
     ref_temperature_set        = true;
 }
 
+void NASCalibrator::setReferenceAltitude(float alt)
+{
+    ref_values.ref_altitude = alt;
+    ref_altitude_set        = true;
+}
+
 void NASCalibrator::setReferenceCoordinates(float lat, float lon)
 {
     ref_values.ref_latitude  = lat;
@@ -72,6 +78,7 @@ bool NASCalibrator::calibIsComplete()
            // either enough gps samples or coordinates set via TC
            (gps_lat_stats.getStats().nSamples >= n_samples ||
             ref_coordinates_set == true) &&
+           ref_altitude_set == true &&
            accel_x_stats.getStats().nSamples >= n_samples &&
            mag_x_stats.getStats().nSamples >= n_samples &&
            ref_temperature_set == true;

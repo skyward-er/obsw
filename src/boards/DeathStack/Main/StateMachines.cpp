@@ -91,6 +91,12 @@ void StateMachines::setInitialOrientation(float roll, float pitch, float yaw)
     nas_controller->setInitialOrientation(roll, pitch, yaw);
 }
 
+void StateMachines::setReferenceAltitude(float altitude)
+{
+    ada_controller->setReferenceAltitude(altitude);
+    nas_controller->setReferenceAltitude(altitude);
+}
+
 void StateMachines::setInitialCoordinates(float latitude, float longitude)
 {
     nas_controller->setInitialCoordinates(latitude, longitude);

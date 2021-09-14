@@ -89,11 +89,6 @@ public:
     NASKalmanState getKalmanState();
 
     /**
-     * @brief Copy the kalman state information in the NASData output struct.
-     */
-    void updateNASData();
-
-    /**
      * @param ref_v Struct of NASReferenceValues to be set
      */
     void setReferenceValues(const NASReferenceValues& ref_v);
@@ -105,6 +100,16 @@ public:
     void setInitialOrientation(float roll, float pitch, float yaw);
 
 private:
+    /**
+     * @brief Copy the kalman state information in the NASData output struct.
+     */
+    void updateNASData();
+
+    /**
+     * @brief Convert GPS coordinates to NED frame.
+     */
+    Vector3f geodetic2NED(const Vector3f& gps_data);
+
     SkyQuaternion quat; /**< Auxiliary functions for quaternions */
 
     Matrix<float, N, 1> x; /**< Kalman state vector */
@@ -125,8 +130,6 @@ private:
     uint64_t last_gyro_timestamp  = 0;
     uint64_t last_mag_timestamp   = 0;
     uint64_t last_press_timestamp = 0;
-
-    float z_init;  // initial altitude (msl)
 
     bool initialized = false;
 
@@ -159,11 +162,10 @@ bool NAS<IMU, Press, GPS>::init()
     triad_result_eul = states_init.triad(acc_init, mag_init);
 
     states_init.biasInit();
+
     x = states_init.getInitX();
 
     filter.setX(x);
-
-    z_init = x(2);
 
     updateNASData();
 
@@ -233,12 +235,17 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     {
         last_gps_timestamp = gps_data.gps_timestamp;
 
-        float delta_lon = gps_data.longitude - ref_values.ref_longitude;
-        float delta_lat = gps_data.latitude - ref_values.ref_latitude;
+        // float delta_lon = gps_data.longitude - ref_values.ref_longitude;
+        // float delta_lat = gps_data.latitude - ref_values.ref_latitude;
 
-        Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
-                              gps_data.velocity_east);
-        filter.correctGPS(gps_readings, gps_data.num_satellites);
+        //Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
+        //gps_data.velocity_east);
+
+        Vector3f gps_readings(gps_data.latitude, gps_data.longitude, gps_data.height);
+        Vector3f gps_ned = geodetic2NED(gps_readings);
+
+        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocity_north, gps_data.velocity_east);
+        filter.correctGPS(pos_vel, gps_data.num_satellites);
     }
 
     // check if new magnetometer data is available
@@ -246,7 +253,7 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     {
         Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
 
-        if (mag_readings.norm() < EMF)
+        if (mag_readings.norm() < EMF * JAMMING_FACTOR)
         {
             last_mag_timestamp = imu_data.mag_timestamp;
 
@@ -358,7 +365,7 @@ void NAS<IMU, Press, GPS>::updateNASData()
     nas_data.x = x(0);
     nas_data.y = x(1);
     nas_data.z =
-        -x(2) - z_init;  // Negative sign because we're working in the NED
+        - x(2) - ref_values.ref_altitude;  // Negative sign because we're working in the NED
                          // frame but we want a positive altitude as output.
     nas_data.vx = x(3);
     nas_data.vy = x(4);
@@ -366,6 +373,50 @@ void NAS<IMU, Press, GPS>::updateNASData()
     nas_data.vMod =
         sqrtf(nas_data.vx * nas_data.vx + nas_data.vy * nas_data.vy +
               nas_data.vz * nas_data.vz);
+}
+
+template <typename IMU, typename Press, typename GPS>
+Vector3f NAS<IMU, Press, GPS>::geodetic2NED(const Vector3f& gps_data)
+{
+    const float a  = 6378137;               // [m]
+    const float a2 = pow(a, 2);             // [m^2]
+    const float b2 = pow(6356752.3142, 2);  // [m^2]
+    const float e2 = 1 - b2 / a2;
+
+    float lat0 = ref_values.ref_latitude * DEGREES_TO_RADIANS;
+    float lon0 = ref_values.ref_longitude * DEGREES_TO_RADIANS;
+    float lat  = gps_data(0) * DEGREES_TO_RADIANS;
+    float lon  = gps_data(1) * DEGREES_TO_RADIANS;
+    float h    = gps_data(2);
+
+    float s1 = sin(lat0);
+    float c1 = cos(lat0);
+    float s2 = sin(lat);
+    float c2 = cos(lat);
+    float p1 = c1 * cos(lon0);
+    float p2 = c2 * cos(lon);
+    float q1 = c1 * sin(lon0);
+    float q2 = c2 * sin(lon);
+    float w1 = 1 / sqrt(1 - e2 * pow(s1, 2));
+    float w2 = 1 / sqrt(1 - e2 * pow(s2, 2));
+    float delta_x =
+        a * (p2 * w2 - p1 * w1) + (h * p2 - ref_values.ref_altitude * p1);
+    float delta_y =
+        a * (q2 * w2 - q1 * w1) + (h * q2 - ref_values.ref_altitude * q1);
+    float delta_z = (1 - e2) * a * (s2 * w2 - s1 * w1) +
+                    (h * s2 - ref_values.ref_altitude * s1);
+
+    // positions in ENU (east, north, up) frame
+    float p_east  = -sin(lon0) * delta_x + cos(lon0) * delta_y;
+    float p_north = -sin(lat0) * cos(lon0) * delta_x -
+                    sin(lat0) * sin(lon0) * delta_y + cos(lat0) * delta_z;
+    float p_up = cos(lat0) * cos(lon0) * delta_x +
+                 cos(lat0) * sin(lon0) * delta_y + sin(lat0) * delta_z;
+
+    // positions in NED frame
+    Vector3f p_ned(p_north, p_east, -p_up);
+
+    return p_ned;
 }
 
 }  // namespace DeathStackBoard

@@ -95,6 +95,8 @@ public:
 
     void setInitialCoordinates(float latitude, float longitude);
 
+    void setReferenceAltitude(float altitude);
+
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
 

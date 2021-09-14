@@ -155,11 +155,12 @@ void ExtendedKalmanEigen::correctGPS(const Vector4f& y, const uint8_t sats_num)
     Matrix<float, NGPS, 1> res_gps;
     Matrix<float, NGPS, NGPS> S_gps;
 
-    // Convert lon-lat to x_nord and y_est
-    float xnord = y(0) * EARTH_RADIUS;
-    float yest  = y(1) * EARTH_RADIUS;
+    float xnord = y(0);
+    float yest  = y(1);
+    float velnord = y(2);
+    float velest = y(3);
 
-    Matrix<float, NGPS, 1> yned(xnord, yest, y(2), y(3));
+    Matrix<float, NGPS, 1> yned(xnord, yest, velnord, velest);
 
     R_gps = eye4 * SIGMA_GPS / sqrtf(sats_num);
 

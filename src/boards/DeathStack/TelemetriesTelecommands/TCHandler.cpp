@@ -43,7 +43,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
     {MAV_CMD_DPL_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
     {MAV_CMD_DPL_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
     {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
-    
+
     {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
     {MAV_CMD_ARB_WIGGLE_SERVO, EV_TC_ABK_WIGGLE_SERVO},
     {MAV_CMD_DISABLE_AEROBRAKES, EV_TC_ABK_DISABLE},
@@ -126,8 +126,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 print_logger,
                 "Received SET_REFERENCE_ALTITUDE command. Ref altitude: {:f} m",
                 alt);
-            DeathStack::getInstance()
-                ->state_machines->ada_controller->setReferenceAltitude(alt);
+            DeathStack::getInstance()->state_machines->setReferenceAltitude(
+                alt);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:

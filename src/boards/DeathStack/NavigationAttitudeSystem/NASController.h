@@ -78,6 +78,7 @@ public:
     void setReferenceTemperature(float t);
     void setInitialOrientation(float roll, float pitch, float yaw);
     void setInitialCoordinates(float latitude, float longitude);
+    void setReferenceAltitude(float altitude);
 
     void update();
 
@@ -439,6 +440,20 @@ void NASController<IMU, Press, GPS>::setInitialCoordinates(float latitude,
 }
 
 template <typename IMU, typename Press, typename GPS>
+void NASController<IMU, Press, GPS>::setReferenceAltitude(float altitude)
+{
+    if (status.state == NASState::CALIBRATING ||
+        status.state == NASState::READY)
+    {
+        Lock<FastMutex> l(mutex);
+        calibrator.setReferenceAltitude(altitude);
+        logData();
+    }
+
+    finalizeCalibration();
+}
+
+template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logStatus(NASState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
@@ -452,7 +467,7 @@ template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logData()
 {
     NASKalmanState kalman_state = nas.getKalmanState();
-    kalman_state.timestamp = TimestampTimer::getTimestamp();
+    kalman_state.timestamp      = TimestampTimer::getTimestamp();
     logger.log(kalman_state);
     logger.log(nas.getLastSample());
 }
