@@ -74,6 +74,14 @@ static const float P_ATT = 0.01F;  // Attitude prediction covariance
 static const float P_BIAS = 0.01F;  // Bias prediction covariance
 
 /*----------------------------------------------------------------------------*/
+// Earth constants, semi-axis and eccentricity
+static constexpr float a  = 6378137;       // [m]
+static constexpr float a2 = a * a;         // [m^2]
+static constexpr float b  = 6356752.3142;  // [m]
+static constexpr float b2 = b * b;         // [m^2]
+static constexpr float e2 = 1 - b2 / a2;
+
+/*----------------------------------------------------------------------------*/
 
 // Equirectangular projection for gps: https://bit.ly/2RaMbD5
 
@@ -116,8 +124,8 @@ static const Vector3f NED_MAG(
 //                  // Longitude of the launch location (roccaraso)
 
 static const float EMF = 46.77F;  // [uT] micro Tesla
-                                 // Earth magnetic field, used to
-                                 // check if there's magnetic jamming
+                                  // Earth magnetic field, used to
+                                  // check if there's magnetic jamming
 
 static const Vector3f NED_MAG(
     0.5248, 0.0356, 0.8505);  // Normalized magnetic field vector at Roccaraso

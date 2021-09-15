@@ -280,16 +280,6 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
                   nas_data.vz, nas_data.vMod);
 
         counter = 0;
-
-        /*Vector4f qua(x(6), x(7), x(8), x(9));
-        Vector3f e = quat.quat2eul(qua);
-
-        LOG_DEBUG(log,
-            "State vector: \n px: {:.2f} \n py: {:.2f} \n pz: {:.2f} \n vx:
-        {:.2f} \n " "vy: {:.2f} \n vz: {:.2f} \n roll: {:.2f} \n pitch: {:.2f}
-        \n yaw: {:.2f} \n " "q1: {:.2f} \n q2: {:.2f} \n q3: {:.2f} \n q4 :
-        {:.2f} ", x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2), x(6),
-        x(7), x(8), x(9));*/
     }
     else
     {
@@ -385,11 +375,6 @@ void NAS<IMU, Press, GPS>::updateNASData()
 template <typename IMU, typename Press, typename GPS>
 Vector3f NAS<IMU, Press, GPS>::geodetic2NED(const Vector3f& gps_data)
 {
-    const float a  = 6378137;               // [m]
-    const float a2 = pow(a, 2);             // [m^2]
-    const float b2 = pow(6356752.3142, 2);  // [m^2]
-    const float e2 = 1 - b2 / a2;
-
     float lat0 = ref_values.ref_latitude * DEGREES_TO_RADIANS;
     float lon0 = ref_values.ref_longitude * DEGREES_TO_RADIANS;
     float lat  = gps_data(0) * DEGREES_TO_RADIANS;
