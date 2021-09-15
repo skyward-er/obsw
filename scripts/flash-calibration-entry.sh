@@ -1,3 +1,3 @@
 #!/bin/sh
 
-st-flash write bin_delivery/lynx/final/calibration-entry.bin 0x8000000
+st-flash --reset write bin_delivery/lynx/final/calibration-entry.bin 0x8000000
