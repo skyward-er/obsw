@@ -93,7 +93,7 @@ static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 #ifdef EUROC
 static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
 #else
-static constexpr int SHADOW_MODE_DURATION = 100; //3.5 * 1000;
+static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
 #endif
 
 #ifdef EUROC
