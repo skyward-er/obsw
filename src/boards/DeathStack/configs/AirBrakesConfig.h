@@ -42,7 +42,7 @@ static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 #ifdef EUROC
 static constexpr float M = 27.0; /**< rocket's mass */
 #else
-static constexpr float M                  = 19.2;         /**< rocket's mass */
+static constexpr float M                  = 18.362;       /**< rocket's mass */
 #endif
 
 static constexpr float D        = 0.15; /**< rocket's diameter */
@@ -74,7 +74,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
 #ifdef ROCCARASO
 // At Roccaraso airbrakes opened at 100%, then 50% and then 0%
 // Each opening is kept for 3 seconds (3000 ms)
-static constexpr float AB_OPENING_TIMEOUT = 3000; // [ms]
+static constexpr float AB_OPENING_TIMEOUT = 3000;  // [ms]
 #endif
 
 // Control algorithm configs
