@@ -39,30 +39,30 @@ static const float SAMPLE_RATE = 1000.0F / NAS_UPDATE_PERIOD;  // [Hz]
 
 static const float T = 1.0F / SAMPLE_RATE;  // [s]
 
-static const uint32_t CALIBRATION_N_SAMPLES = 200;
+static const uint32_t CALIBRATION_N_SAMPLES = 500;
 
 static const float SIGMA_BETA =
     (float)1e-2;  // [Rad/s^2]
                   // Estimated gyroscope bias variance
 
-static const float SIGMA_MAG = 0.7089F;  // [uT^2]
+static const float SIGMA_MAG = 0.7089F * 10;  // [uT^2]
                                          // Estimated magnetometer variance
 
-static const float SIGMA_W = 0.000027927F;  // [Rad^2]
+static const float SIGMA_W = 0.000027927F * 100;  // [rad^2]
                                             // Estimated gyroscope variance
 
-static const float SIGMA_GPS = 2.0F;  // [deg^2]
+static const float SIGMA_GPS = 10.0F;  // [m^2]
                                       // Estimated GPS variance
 
 static const float SIGMA_BAR = 4.3665F;  // [kPa^2]
                                          // Estimated barometer variance
 
 static const float SIGMA_POS =
-    0.0192F;  // [m^2]
+    0.0192F * 100;  // [m^2]
               // Estimated variance of the position noise
 
 static const float SIGMA_VEL =
-    0.096F;  // [(m/s)^2]
+    0.096F * 100;  // [(m/s)^2]
              // Estimated variance of the velocity noise
 
 static const float P_POS = 0.01F;  // Position prediction covariance
@@ -72,6 +72,14 @@ static const float P_VEL = 0.01F;  // Velocity prediction covariance
 static const float P_ATT = 0.01F;  // Attitude prediction covariance
 
 static const float P_BIAS = 0.01F;  // Bias prediction covariance
+
+/*----------------------------------------------------------------------------*/
+// Earth constants, semi-axis and eccentricity
+static constexpr float a  = 6378137;       // [m]
+static constexpr float a2 = a * a;         // [m^2]
+static constexpr float b  = 6356752.3142;  // [m]
+static constexpr float b2 = b * b;         // [m^2]
+static constexpr float e2 = 1 - b2 / a2;
 
 /*----------------------------------------------------------------------------*/
 
@@ -116,11 +124,11 @@ static const Vector3f NED_MAG(
 //                  // Longitude of the launch location (roccaraso)
 
 static const float EMF = 46.77F;  // [uT] micro Tesla
-                                 // Earth magnetic field, used to
-                                 // check if there's magnetic jamming
+                                  // Earth magnetic field, used to
+                                  // check if there's magnetic jamming
 
 static const Vector3f NED_MAG(
-    0.5248, 0.0356, 0.8505);  // Normalized magnetic field vector at Roccaraso
+    0.524848, 0.035602, 0.850451);  // Normalized magnetic field vector at Roccaraso
 #endif
 
 // normalized magentic field at Milano

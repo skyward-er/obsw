@@ -283,12 +283,12 @@ void AirBrakesControlAlgorithm<T>::step()
     logAirbrakesData(t);
 
 #ifdef ROCCARASO
-    if (t - begin_ts < 2 * AB_OPENING_TIMEOUT * 1000)
+    if (t - begin_ts < AB_OPENING_TIMEOUT * 1000)
     {  // after 3 seconds open to 100%
         actuator->set(AB_SERVO_MAX_POS, true);
     }
-    else if (t - begin_ts > 2 * AB_OPENING_TIMEOUT * 1000 &&
-             t - begin_ts < 3 * AB_OPENING_TIMEOUT * 1000)
+    else if (t - begin_ts > AB_OPENING_TIMEOUT * 1000 &&
+             t - begin_ts < 2 * AB_OPENING_TIMEOUT * 1000)
     {  // after 6 seconds open to 100%
         actuator->set(AB_SERVO_MAX_POS / 2, true);
     }

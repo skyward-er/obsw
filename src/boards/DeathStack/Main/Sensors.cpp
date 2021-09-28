@@ -212,7 +212,8 @@ void Sensors::pressPitotInit()
 {
     function<ADCData()> voltage_fun(
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_PITOT_PORT));
-    press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE);
+    press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE,
+                                    PRESS_PITOT_CALIB_SAMPLES_NUM);
 
     SensorInfo info("PitotBarometer", SAMPLE_PERIOD_PRESS_PITOT,
                     bind(&Sensors::pressPitotCallback, this), false, true);

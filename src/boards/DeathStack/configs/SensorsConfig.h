@@ -81,10 +81,12 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 
+static constexpr unsigned int PRESS_PITOT_CALIB_SAMPLES_NUM = 500;
+
 static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
     BMX160Config::AccelerometerRange::G_16;
 static constexpr BMX160Config::GyroscopeRange IMU_BMX_GYRO_FULLSCALE_ENUM =
-    BMX160Config::GyroscopeRange::DEG_500;
+    BMX160Config::GyroscopeRange::DEG_1000;
 
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
 static constexpr BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
