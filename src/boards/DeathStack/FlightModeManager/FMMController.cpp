@@ -522,6 +522,10 @@ State FMMController::state_flying(const Event& ev)
                 sEventBroker->postDelayed<TIMEOUT_END_MISSION>(
                     {EV_TIMEOUT_END_MISSION}, TOPIC_FMM);
 
+#ifdef USE_MOCK_SENSORS
+            DeathStack::getInstance()->sensors->signalLiftoff();
+#endif
+
             LOG_DEBUG(log, "Entering flying");
             break;
         }
