@@ -64,29 +64,6 @@ void FlightStatsRecorder::update(const ADAKalmanState& t)
     }
 }
 
-// void FlightStatsRecorder::update(const CurrentSensorData& t)
-// {
-//     switch (state)
-//     {
-//         case FSRState::TESTING_CUTTER:
-//         {
-//             if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_PRIMARY)
-//             {
-//                 ++cutters_stats.n_samples_1;
-//                 cutters_stats.cutter_1_avg += t.current;
-//             }
-//             else if (t.channel_id == SensorConfigs::ADC_CS_CUTTER_BACKUP)
-//             {
-//                 ++cutters_stats.n_samples_2;
-//                 cutters_stats.cutter_2_avg += t.current;
-//             }
-//             break;
-//         }
-//         default:
-//             break;
-//     }
-// }
-
 void FlightStatsRecorder::update(const ADAData& t)
 {
     switch (state)
