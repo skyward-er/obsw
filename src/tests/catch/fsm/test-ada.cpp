@@ -43,7 +43,7 @@
 using miosix::Thread;
 using namespace DeathStackBoard;
 
-using ADACtrl = ADAController<PressureData, GPSData>;
+using ADACtrl = ADAController<MockPressureData, MockGPSData>;
 
 class ADAControllerFixture
 {
