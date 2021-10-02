@@ -274,15 +274,21 @@ void AirBrakesControlAlgorithm<T>::step()
         alpha = computeAlpha(input, false);
     }
 
-#ifndef ROCCARASO
-    actuator->set(alpha, true);
-#endif
-
     uint64_t t = TimestampTimer::getTimestamp();
     logAlgorithmData(input, t);
     logAirbrakesData(t);
 
-#ifdef ROCCARASO
+#ifdef EUROC
+    if (t - begin_ts <
+        (SHADOW_MODE_DURATION + AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE) * 1000)
+    {  // after 3 seconds open to 100%
+        actuator->set(getAlpha(S_MAX / 2), true);
+    }
+    else
+    {
+        actuator->set(alpha, true);
+    }
+#elif defined(ROCCARASO)
     if (t - begin_ts < AB_OPENING_TIMEOUT * 1000)
     {  // after 3 seconds open to 100%
         actuator->set(AB_SERVO_MAX_POS, true);
@@ -418,7 +424,7 @@ float AirBrakesControlAlgorithm<T>::pidStep(float z, float vz, float vMod,
     float u_ref  = 0.5 * rho * cd_ref * S0 * vz * vMod;
 
     float error       = vz - setpoint.getVz();
-    ab_data.pid_error = error; // for logging
+    ab_data.pid_error = error;  // for logging
 
     // update PI controller
     float u = pid.update(error);
@@ -449,7 +455,7 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
         }
     }
 
-    ab_data.estimated_cd = estimated_cd; // for logging
+    ab_data.estimated_cd = estimated_cd;  // for logging
 
     return selected_s;
 }
@@ -457,9 +463,8 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
 template <class T>
 float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 {
-    float alpha_rad =
-        (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
-        (2 * A_DELTAS);
+    float alpha_rad = (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
+                      (2 * A_DELTAS);
 
     float alpha_deg = alpha_rad * 180.0f / PI;
 
@@ -493,12 +498,12 @@ float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
     float mach = getMach(v, h);
 
     float pow_mach[7] = {1,
-                        mach,
-                        powf(mach, 2),
-                        powf(mach, 3),
-                        powf(mach, 4),
-                        powf(mach, 5),
-                        powf(mach, 6)};
+                         mach,
+                         powf(mach, 2),
+                         powf(mach, 3),
+                         powf(mach, 4),
+                         powf(mach, 5),
+                         powf(mach, 6)};
 
     return coeffs.n000 + coeffs.n100 * pow_mach[1] + coeffs.n200 * pow_mach[2] +
            coeffs.n300 * pow_mach[3] + coeffs.n400 * pow_mach[4] +

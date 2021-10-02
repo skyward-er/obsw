@@ -91,7 +91,9 @@ static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 
 #ifdef EUROC
-static constexpr int SHADOW_MODE_DURATION = 7.5 * 1000;
+static constexpr int SHADOW_MODE_DURATION = 6.2 * 1000;  // 0.8 mach
+static constexpr int AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE =
+    1.3 * 1000;  // 0.7 mach
 #else
 static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
 #endif
