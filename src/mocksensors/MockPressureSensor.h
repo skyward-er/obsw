@@ -23,53 +23,69 @@
 #pragma once
 
 #include <Common.h>
+#include <mocksensors/MockSensorsData.h>
+//#include <mocksensors/lynx_flight_data/lynx_press_data.h>
+#include <mocksensors/lynx_flight_data/lynx_pressure_static_data.h>
 #include <sensors/Sensor.h>
-#include <tests/mock_sensors/test-mock-data.h>
-
 #include <random>
 
 namespace DeathStackBoard
 {
 
-class MockPressureSensor : public Sensor<PressureData>
+class MockPressureSensor : public Sensor<MockPressureData>
 {
 public:
-    MockPressureSensor() {}
+    MockPressureSensor(bool with_noise_ = false) : with_noise(with_noise_) {}
 
     bool init() override { return true; }
 
     bool selfTest() override { return true; }
 
-    PressureData sampleImpl() override
+    MockPressureData sampleImpl() override
     {
-        float press = 0.0;
+        MockPressureData data;
+
+        data.press_timestamp = TimestampTimer::getTimestamp();
 
         if (before_liftoff)
         {
-            press = addNoise(SIMULATED_PRESSURE[0]);
+            data.press = PRESSURE_STATIC_DATA[0];
         }
         else
         {
-            if (i < PRESSURE_DATA_SIZE)
+            if (i < PRESSURE_STATIC_DATA_SIZE)
             {
-                press = addNoise(SIMULATED_PRESSURE[i++]);
+                data.press = PRESSURE_STATIC_DATA[i++];
             }
             else
             {
-                press = addNoise(SIMULATED_PRESSURE[PRESSURE_DATA_SIZE - 1]);
+                data.press =
+                    PRESSURE_STATIC_DATA[PRESSURE_STATIC_DATA_SIZE - 1];
             }
         }
 
-        return PressureData{TimestampTimer::getTimestamp(), press};
+        if (with_noise)
+        {
+            data.press = addNoise(data.press);
+        }
+
+        data.press = movingAverage(data.press);
+
+        return data;
     }
 
     void signalLiftoff() { before_liftoff = false; }
 
 private:
+    bool with_noise;
     volatile bool before_liftoff = true;
     volatile unsigned int i      = 0;  // Last index
     std::default_random_engine generator{1234567};
     std::normal_distribution<float> distribution{0.0f, 5.0f};
+
+    // moving average
+    const float moving_avg_coeff = 0.95;
+    float accumulator            = 0.0;
 
     float addNoise(float sample)
     {
@@ -77,6 +93,13 @@ private:
     }
 
     float quantization(float sample) { return round(sample / 30.0) * 30.0; }
+
+    float movingAverage(float new_value)
+    {
+        accumulator = (moving_avg_coeff * new_value) +
+                      (1.0 - moving_avg_coeff) * accumulator;
+        return accumulator;
+    }
 };
 
 }  // namespace DeathStackBoard

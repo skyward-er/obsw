@@ -22,15 +22,15 @@
 
 #pragma once
 
-#include <tests/mock_sensors/test-mock-data.h>
-
-#include "TimestampTimer.h"
-#include "sensors/Sensor.h"
+#include <TimestampTimer.h>
+#include <sensors/Sensor.h>
+#include <mocksensors/MockSensorsData.h>
+#include <mocksensors/lynx_flight_data/lynx_gps_data.h>
 
 namespace DeathStackBoard
 {
 
-class MockGPS : public Sensor<GPSData>
+class MockGPS : public Sensor<MockGPSData>
 {
 public:
     MockGPS() {}
@@ -39,7 +39,7 @@ public:
 
     bool selfTest() override { return true; }
 
-    GPSData sampleImpl() override
+    MockGPSData sampleImpl() override
     {
         // if (inside_lha)
         // {
@@ -52,24 +52,30 @@ public:
         //     lon = lon_outside;
         // }
 
-        GPSData data;
+        MockGPSData data;
 
         data.gps_timestamp = TimestampTimer::getTimestamp();
         data.fix           = true;
 
         if (before_liftoff)
         {
-            data.latitude       = SIMULATED_LAT[0];
-            data.longitude      = SIMULATED_LON[0];
-            data.velocity_north = SIMULATED_VNORD[0];
-            data.velocity_east  = SIMULATED_VEAST[0];
+            data.latitude       = GPS_DATA_LAT[0];
+            data.longitude      = GPS_DATA_LON[0];
+            data.velocity_north = GPS_DATA_VNORD[0];
+            data.velocity_east  = GPS_DATA_VEAST[0];
+            data.velocity_down  = GPS_DATA_VDOWN[0];
+            data.num_satellites = GPS_DATA_NSATS[0];
+            data.fix            = true;
         }
         else if (i < GPS_DATA_SIZE)
         {
-            data.latitude       = SIMULATED_LAT[i];
-            data.longitude      = SIMULATED_LON[i];
-            data.velocity_north = SIMULATED_VNORD[i];
-            data.velocity_east  = SIMULATED_VEAST[i];
+            data.latitude       = GPS_DATA_LAT[i];
+            data.longitude      = GPS_DATA_LON[i];
+            data.velocity_north = GPS_DATA_VNORD[i];
+            data.velocity_east  = GPS_DATA_VEAST[i];
+            data.velocity_down  = GPS_DATA_VDOWN[i];
+            data.num_satellites = GPS_DATA_NSATS[i];
+            data.fix            = true;
             i++;
         }
 

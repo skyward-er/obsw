@@ -57,21 +57,23 @@ Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
     : spi1_bus(spi1_bus)
 {
     // sensors are added to the map ordered by increasing period
-    ADS1118Init();    // 6 ms
-    pressDigiInit();  // 10 ms
+    ADS1118Init();
     magLISinit();
-    imuBMXInit();  // 23 ms
+    imuBMXInit();
     imuBMXWithCorrectionInit();
-    pressPitotInit();  // 24 ms
+    pressDigiInit();
+    pressPitotInit();
     pressDPLVaneInit();
     pressStaticInit();
-    gpsUbloxInit();     // 40 ms
-    internalAdcInit();  // 50 ms
+    gpsUbloxInit();
+    internalAdcInit();
     batteryVoltageInit();
 #ifdef HARDWARE_IN_THE_LOOP
     hilImuInit();
     hilBarometerInit();
     hilGpsInit();
+#elif defined(USE_MOCK_SENSORS)
+    mockSensorsInit();
 #endif
 
     sensor_manager = new SensorManager(scheduler, sensors_map);
@@ -83,8 +85,6 @@ Sensors::~Sensors()
     delete press_digital;
     delete gps_ublox;
     delete internal_adc;
-    delete cs_cutter_primary;
-    delete cs_cutter_backup;
     delete battery_voltage;
     delete adc_ads1118;
     delete press_pitot;
@@ -95,6 +95,10 @@ Sensors::~Sensors()
     delete hil_imu;
     delete hil_baro;
     delete hil_gps;
+#elif defined(USE_MOCK_SENSORS)
+    delete mock_imu;
+    delete mock_baro;
+    delete mock_gps;
 #endif
 
     sensor_manager->stop();
@@ -129,12 +133,26 @@ void Sensors::calibrate()
         imu_bmx160_with_correction->getGyroscopeBiases());
 
     press_pitot->calibrate();
-    // wait pitot calibration end
-    while (press_pitot->isCalibrating())
+
+    press_static_port->setReferencePressure(
+        press_digital->getLastSample().press);
+    press_static_port->calibrate();
+
+    // wait differential and static barometers calibration end
+    while (press_pitot->isCalibrating() && press_static_port->isCalibrating())
     {
         Thread::sleep(10);
     }
 }
+
+#ifdef USE_MOCK_SENSORS
+void Sensors::signalLiftoff()
+{
+    mock_imu->signalLiftoff();
+    mock_baro->signalLiftoff();
+    mock_gps->signalLiftoff();
+}
+#endif
 
 void Sensors::internalAdcInit()
 {
@@ -215,12 +233,12 @@ void Sensors::pressPitotInit()
     press_pitot = new SSCDRRN015PDA(voltage_fun, REFERENCE_VOLTAGE,
                                     PRESS_PITOT_CALIB_SAMPLES_NUM);
 
-    SensorInfo info("PitotBarometer", SAMPLE_PERIOD_PRESS_PITOT,
+    SensorInfo info("DiffBarometer", SAMPLE_PERIOD_PRESS_PITOT,
                     bind(&Sensors::pressPitotCallback, this), false, true);
 
     sensors_map.emplace(std::make_pair(press_pitot, info));
 
-    LOG_INFO(log, "Pitot pressure sensor setup done!");
+    LOG_INFO(log, "Diff pressure sensor setup done!");
 }
 
 void Sensors::pressDPLVaneInit()
@@ -241,7 +259,9 @@ void Sensors::pressStaticInit()
 {
     function<ADCData()> voltage_fun(
         bind(&ADS1118::getVoltage, adc_ads1118, ADC_CH_STATIC_PORT));
-    press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE);
+    press_static_port = new MPXHZ6130A(voltage_fun, REFERENCE_VOLTAGE,
+                                       PRESS_STATIC_CALIB_SAMPLES_NUM,
+                                       PRESS_STATIC_MOVING_AVG_COEFF);
 
     SensorInfo info("StaticPortsBarometer", SAMPLE_PERIOD_PRESS_STATIC,
                     bind(&Sensors::pressStaticCallback, this), false, true);
@@ -428,6 +448,26 @@ void Sensors::hilGpsInit()
 
     LOG_INFO(log, "HIL GPS setup done!");
 }
+#elif defined(USE_MOCK_SENSORS)
+void Sensors::mockSensorsInit()
+{
+    mock_imu = new MockIMU();
+    mock_baro = new MockPressureSensor();
+    mock_gps = new MockGPS();
+
+    SensorInfo info_baro("MockBaro", SAMPLE_PERIOD_PRESS_STATIC,
+                         bind(&Sensors::mockBaroCallback, this), false, true);
+    SensorInfo info_imu("MockIMU", SAMPLE_PERIOD_IMU_BMX,
+                        bind(&Sensors::mockImuCallback, this), false, true);
+    SensorInfo info_gps("MockGPS", GPS_SAMPLE_PERIOD,
+                        bind(&Sensors::mockGpsCallback, this), false, true);
+
+    sensors_map.emplace(std::make_pair(mock_baro, info_baro));
+    sensors_map.emplace(std::make_pair(mock_imu, info_imu));
+    sensors_map.emplace(std::make_pair(mock_gps, info_gps));
+
+    LOG_INFO(log, "Mock sensors setup done!");
+}
 #endif
 
 void Sensors::pressDigiCallback()
@@ -473,9 +513,6 @@ void Sensors::pressStaticCallback()
 
 void Sensors::imuBMXCallback()
 {
-    // static uint64_t max_t = 0;
-    // static unsigned int counter = 0;
-
     uint8_t fifo_size = imu_bmx160->getLastFifoSize();
     auto& fifo        = imu_bmx160->getLastFifo();
 
@@ -483,22 +520,7 @@ void Sensors::imuBMXCallback()
 
     for (uint8_t i = 0; i < fifo_size; ++i)
     {
-        BMX160Data d = fifo.at(i);
-
-        // counter++;
-        // if (counter > 1000)
-        // {
-        //     if (d.accel_timestamp > max_t)
-        //     {
-        //         max_t = d.accel_timestamp;
-        //     }
-        //     else
-        //     {
-        //        TRACE("\nBUG!!!\n\n");
-        //     }
-        // }
-
-        LoggerService::getInstance()->log(d);
+        LoggerService::getInstance()->log(fifo.at(i));
     }
 
     LoggerService::getInstance()->log(imu_bmx160->getFifoStats());
@@ -506,7 +528,6 @@ void Sensors::imuBMXCallback()
 
 void Sensors::imuBMXWithCorrectionCallback()
 {
-
     LoggerService::getInstance()->log(
         imu_bmx160_with_correction->getLastSample());
 }
@@ -526,13 +547,30 @@ void Sensors::hilIMUCallback()
 {
     LoggerService::getInstance()->log(hil_imu->getLastSample());
 }
+
 void Sensors::hilBaroCallback()
 {
     LoggerService::getInstance()->log(hil_baro->getLastSample());
 }
+
 void Sensors::hilGPSCallback()
 {
     LoggerService::getInstance()->log(hil_gps->getLastSample());
+}
+#elif defined(USE_MOCK_SENSORS)
+void Sensors::mockBaroCallback()
+{
+    LoggerService::getInstance()->log(mock_imu->getLastSample());
+}
+
+void Sensors::mockImuCallback()
+{
+    LoggerService::getInstance()->log(mock_baro->getLastSample());
+}
+
+void Sensors::mockGpsCallback()
+{
+    LoggerService::getInstance()->log(mock_gps->getLastSample());
 }
 #endif
 

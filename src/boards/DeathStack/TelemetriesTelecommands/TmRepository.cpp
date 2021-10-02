@@ -203,28 +203,6 @@ void TmRepository::update<AirBrakesAlgorithmData>(
     tm_repository.abk_tm.v_mod = t.vMod;
 }
 
-/*
-template <>
-void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t)
-{
-    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_PRIMARY)
-    {
-        tm_repository.sensors_tm.c_sense_1 = t.current;
-        tm_repository.hr_tm.csense1        = t.current;
-        tm_repository.adc_tm.csense1       = t.current;
-    }
-    else if (t.channel_id ==
-             DeathStackBoard::SensorConfigs::ADC_CS_CUTTER_BACKUP)
-    {
-        tm_repository.sensors_tm.c_sense_2 = t.current;
-        tm_repository.hr_tm.csense2        = t.current;
-        tm_repository.adc_tm.csense2       = t.current;
-    }
-
-    stats_rec.update(t);
-}
-*/
-
 template <>
 void TmRepository::update<BatteryVoltageSensorData>(
     const BatteryVoltageSensorData& t)
@@ -252,14 +230,13 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t)
 {
-#ifndef HARDWARE_IN_THE_LOOP
     tm_repository.wind_tm.pressure_digital = t.press;
     tm_repository.sensors_tm.ms5803_press  = t.press;
-
     tm_repository.digital_baro_tm.pressure = t.press;
 
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
     tm_repository.hr_tm.pressure_digi = t.press;
-#endif
+#endif 
 
     tm_repository.sensors_tm.ms5803_temp      = t.temp;
     tm_repository.hr_tm.temperature           = t.temp;
@@ -274,6 +251,10 @@ void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
     tm_repository.wind_tm.pressure_static = t.press;
     tm_repository.sensors_tm.static_press = t.press;
     tm_repository.adc_tm.static_pressure  = t.press;
+
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
+    tm_repository.hr_tm.pressure_static = t.press;
+#endif
 
     stats_rec.update(t);
 }
@@ -305,7 +286,7 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
     stats_rec.update(t);
 }
 
-#ifndef HARDWARE_IN_THE_LOOP
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t)
 {
@@ -369,7 +350,7 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
     tm_repository.lis3mdl_tm.temp  = t.temp;
 }
 
-#ifndef HARDWARE_IN_THE_LOOP
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 /**
  * @brief GPS.
  */
@@ -611,17 +592,6 @@ void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t)
 }
 
 /**
- *@brief Sensor Manager.
- */
-// template <>
-// void TmRepository::update<SensorManagerStatus>(const SensorManagerStatus&
-// t)
-// {
-//     tm_repository.sm_tm.sensor_state = t.sensor_status;
-//     tm_repository.sm_tm.state        = (uint8_t)t.state;
-// }
-
-/**
  *@brief Deployment Controller.
  */
 template <>
@@ -860,15 +830,6 @@ void TmRepository::update<MainDPLStats>(const MainDPLStats& t)
     tm_repository.lr_tm.main_dpl_zspeed      = t.vert_speed_dpl;
 }
 
-/*
-template <>
-void TmRepository::update<CutterTestStats>(const CutterTestStats& t)
-{
-    tm_repository.dpl_tm.primary_cutter_test_current = t.cutter_1_avg;
-    tm_repository.dpl_tm.backup_cutter_test_current  = t.cutter_2_avg;
-}
-*/
-
 #ifdef HARDWARE_IN_THE_LOOP
 template <>
 void TmRepository::update<HILImuData>(const HILImuData& t)
@@ -936,6 +897,68 @@ void TmRepository::update<HILGpsData>(const HILGpsData& t)
     tm_repository.test_tm.gps_nsats = t.num_satellites;
 
     stats_rec.update(t);
+}
+#elif defined(USE_MOCK_SENSORS)
+template <>
+void TmRepository::update<MockIMUData>(const MockIMUData& t)
+{
+    tm_repository.sensors_tm.bmx160_acc_x = t.accel_x;
+    tm_repository.sensors_tm.bmx160_acc_y = t.accel_y;
+    tm_repository.sensors_tm.bmx160_acc_z = t.accel_z;
+
+    tm_repository.sensors_tm.bmx160_gyro_x = t.gyro_x;
+    tm_repository.sensors_tm.bmx160_gyro_y = t.gyro_y;
+    tm_repository.sensors_tm.bmx160_gyro_z = t.gyro_z;
+
+    tm_repository.sensors_tm.bmx160_mag_x = t.mag_x;
+    tm_repository.sensors_tm.bmx160_mag_y = t.mag_y;
+    tm_repository.sensors_tm.bmx160_mag_z = t.mag_z;
+
+    tm_repository.hr_tm.acc_x = t.accel_x;
+    tm_repository.hr_tm.acc_y = t.accel_y;
+    tm_repository.hr_tm.acc_z = t.accel_z;
+
+    tm_repository.hr_tm.gyro_x = t.gyro_x;
+    tm_repository.hr_tm.gyro_y = t.gyro_y;
+    tm_repository.hr_tm.gyro_z = t.gyro_z;
+
+    tm_repository.hr_tm.mag_x = t.mag_x;
+    tm_repository.hr_tm.mag_y = t.mag_y;
+    tm_repository.hr_tm.mag_z = t.mag_z;
+}
+
+template <>
+void TmRepository::update<MockPressureData>(const MockPressureData& t)
+{
+    tm_repository.wind_tm.pressure_digital = t.press;
+    tm_repository.sensors_tm.ms5803_press  = t.press;
+
+    tm_repository.hr_tm.pressure_digi = t.press;
+}
+
+template <>
+void TmRepository::update<MockGPSData>(const MockGPSData& t)
+{
+    // GPS_TM
+    tm_repository.gps_tm.latitude     = t.latitude;
+    tm_repository.gps_tm.longitude    = t.longitude;
+    tm_repository.gps_tm.height       = t.height;
+    tm_repository.gps_tm.vel_north    = t.velocity_north;
+    tm_repository.gps_tm.vel_east     = t.velocity_east;
+    tm_repository.gps_tm.vel_down     = t.velocity_down;
+    tm_repository.gps_tm.speed        = t.speed;
+    tm_repository.gps_tm.fix          = (uint8_t)t.fix;
+    tm_repository.gps_tm.track        = t.track;
+    tm_repository.gps_tm.n_satellites = t.num_satellites;
+
+    // HR TM
+    tm_repository.hr_tm.gps_lat = t.latitude;
+    tm_repository.hr_tm.gps_lon = t.longitude;
+    tm_repository.hr_tm.gps_alt = t.height;
+    tm_repository.hr_tm.gps_fix = (uint8_t)t.fix;
+
+    // TEST TM
+    tm_repository.test_tm.gps_nsats = t.num_satellites;
 }
 #endif
 

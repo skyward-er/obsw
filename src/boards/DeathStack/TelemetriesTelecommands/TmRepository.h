@@ -29,11 +29,11 @@
 #include <FlightModeManager/FMMStatus.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <FlightStatsRecorder/FSRData.h>
-#include <Main/SensorsData.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <PinHandler/PinHandlerData.h>
 #include <Singleton.h>
 #include <System/SystemData.h>
+#include <Main/SensorsData.h>
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/Xbee/APIFramesLog.h>
@@ -53,6 +53,8 @@
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#elif defined(USE_MOCK_SENSORS)
+#include <mocksensors/MockSensorsData.h>
 #endif
 
 namespace DeathStackBoard
@@ -173,7 +175,7 @@ void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t);
 template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
-#ifndef HARDWARE_IN_THE_LOOP
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
 template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t);
 
@@ -188,7 +190,7 @@ void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
 template <>
 void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
 
-#ifndef HARDWARE_IN_THE_LOOP
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
 template <>
 void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
 #endif
@@ -202,12 +204,6 @@ void TmRepository::update<SensorsStatus>(const SensorsStatus& t);
 template <>
 void TmRepository::update<BatteryVoltageSensorData>(
     const BatteryVoltageSensorData& t);
-
-/**
- * @brief Cutters current sense, sampled by internal ADC.
- */
-// template <>
-// void TmRepository::update<CurrentSensorData>(const CurrentSensorData& t);
 
 template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
@@ -257,12 +253,6 @@ void TmRepository::update<PinStatus>(const PinStatus& t);
  */
 template <>
 void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
-
-/**
- * @brief Sensors.
- */
-// template <>
-// void TmRepository::update<SensorStatus>(const SensorStatus& t);
 
 /**
  * @brief Deployment Controller.
@@ -335,12 +325,6 @@ void TmRepository::update<DrogueDPLStats>(const DrogueDPLStats& t);
 template <>
 void TmRepository::update<MainDPLStats>(const MainDPLStats& t);
 
-// /**
-//  * @brief FlightStatsRecorder hbridge test stats.
-//  */
-// template <>
-// void TmRepository::update<CutterTestStats>(const CutterTestStats& t);
-
 #ifdef HARDWARE_IN_THE_LOOP
 template <>
 void TmRepository::update<HILImuData>(const HILImuData& t);
@@ -350,6 +334,15 @@ void TmRepository::update<HILBaroData>(const HILBaroData& t);
 
 template <>
 void TmRepository::update<HILGpsData>(const HILGpsData& t);
+#elif defined(USE_MOCK_SENSORS)
+template <>
+void TmRepository::update<MockIMUData>(const MockIMUData& t);
+
+template <>
+void TmRepository::update<MockPressureData>(const MockPressureData& t);
+
+template <>
+void TmRepository::update<MockGPSData>(const MockGPSData& t);
 #endif
 
 }  // namespace DeathStackBoard
