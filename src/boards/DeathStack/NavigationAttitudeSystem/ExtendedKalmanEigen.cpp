@@ -36,7 +36,7 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
 
     // clang-format off
 
-    R_bar << SIGMA_BAR;
+    R_bar << SIGMA_ALT;
     R_mag << SIGMA_MAG * eye3;
     R_gps << eye4 * SIGMA_GPS / SATS_NUM;
     Q_mag << (SIGMA_W * SIGMA_W * T +
@@ -46,8 +46,12 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
         (0.5F * SIGMA_BETA * SIGMA_BETA * T * T) * eye3,
         (SIGMA_BETA * SIGMA_BETA * T) * eye3;
 
-    P_pos  = eye3 * P_POS;
-    P_vel  = eye3 * P_VEL;
+    P_pos << P_POS, 0,     0,
+             0,     P_POS, 0,
+             0,     0,     P_POS_VERTICAL;
+    P_vel << P_VEL, 0,     0,
+             0,     P_VEL, 0,
+             0,     0,     P_VEL_VERTICAL;
     P_att  = eye3 * P_ATT;
     P_bias = eye3 * P_BIAS;
     P << P_pos, MatrixXf::Zero(3, N - 4), MatrixXf::Zero(3, 3), P_vel,
@@ -78,7 +82,7 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
             Matrix3f::Zero(3, 3), eye3;
     Gatttr = Gatt.transpose();
 
-    g << 0.0F, 0.0F, aeroutils::constants::g;
+    g << 0.0F, 0.0F, aeroutils::constants::g; // [m/s^2]
 
     // clang-format on
 }
@@ -155,10 +159,10 @@ void ExtendedKalmanEigen::correctGPS(const Vector4f& y, const uint8_t sats_num)
     Matrix<float, NGPS, 1> res_gps;
     Matrix<float, NGPS, NGPS> S_gps;
 
-    float xnord = y(0);
-    float yest  = y(1);
+    float xnord   = y(0);
+    float yest    = y(1);
     float velnord = y(2);
-    float velest = y(3);
+    float velest  = y(3);
 
     Matrix<float, NGPS, 1> yned(xnord, yest, velnord, velest);
 

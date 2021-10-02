@@ -41,33 +41,35 @@ static const float T = 1.0F / SAMPLE_RATE;  // [s]
 
 static const uint32_t CALIBRATION_N_SAMPLES = 500;
 
-static const float SIGMA_BETA =
-    (float)1e-2;  // [Rad/s^2]
-                  // Estimated gyroscope bias variance
+static const float SIGMA_BETA = 0.0001;  // 0.01;  // [Rad/s^2]
+                                         // Estimated gyroscope bias variance
 
 static const float SIGMA_MAG = 0.7089F * 10;  // [uT^2]
-                                         // Estimated magnetometer variance
+                                              // Estimated magnetometer variance
 
-static const float SIGMA_W = 0.000027927F * 100;  // [rad^2]
-                                            // Estimated gyroscope variance
+static const float SIGMA_W = 0.3;
+// 0.000027927F * 100;  // [rad^2]
+// Estimated gyroscope variance
 
 static const float SIGMA_GPS = 10.0F;  // [m^2]
-                                      // Estimated GPS variance
+                                       // Estimated GPS variance
 
-static const float SIGMA_BAR = 4.3665F;  // [kPa^2]
-                                         // Estimated barometer variance
+static const float SIGMA_ALT = 4;  // [m^2]
+                                   // Estimated altitude variance
 
-static const float SIGMA_POS =
-    0.0192F * 100;  // [m^2]
-              // Estimated variance of the position noise
+static const float SIGMA_POS = 10.0;
+// 0.0192F * 100;  // [m^2]
+// Estimated variance of the position noise
 
-static const float SIGMA_VEL =
-    0.096F * 100;  // [(m/s)^2]
-             // Estimated variance of the velocity noise
+static const float SIGMA_VEL = 10.0;
+// 0.096F * 100;  // [(m/s)^2]
+// Estimated variance of the velocity noise
 
-static const float P_POS = 0.01F;  // Position prediction covariance
+static const float P_POS          = 1.0F;  // Position prediction covariance
+static const float P_POS_VERTICAL = 10.0F;
 
-static const float P_VEL = 0.01F;  // Velocity prediction covariance
+static const float P_VEL          = 1.0F;  // Velocity prediction covariance
+static const float P_VEL_VERTICAL = 10.0F;
 
 static const float P_ATT = 0.01F;  // Attitude prediction covariance
 
@@ -95,17 +97,18 @@ static constexpr float e2 = 1 - b2 / a2;
 
 // static const float CLAT = cosf(PHI1);
 
-static const float SATS_NUM = 6.0F;  // Number of available satellites
+static const float SATS_NUM =
+    6.0F;  // Number of available satellites (updated at runtime)
 
 static const unsigned int JAMMING_FACTOR = 3;
 
 #ifdef EUROC
 // static const float LAT0 =
 //     39.201778F;  // [deg]
-//                  // Latitude of the launch location (pont de sor)
+//                  // Latitude of the launch location (ponte de sor)
 // static const float LON0 =
 //     -8.138368F;  // [deg]
-//                  // Longitude of the launch location (pont de sor)
+//                  // Longitude of the launch location (ponte de sor)
 
 static const float EMF = 45.0F;  // [uT] micro Tesla
                                  // Earth magnetic field, used to
@@ -128,7 +131,8 @@ static const float EMF = 46.77F;  // [uT] micro Tesla
                                   // check if there's magnetic jamming
 
 static const Vector3f NED_MAG(
-    0.524848, 0.035602, 0.850451);  // Normalized magnetic field vector at Roccaraso
+    0.524848, 0.035602,
+    0.850451);  // Normalized magnetic field vector at Roccaraso
 #endif
 
 // normalized magentic field at Milano
