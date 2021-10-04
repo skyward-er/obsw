@@ -151,7 +151,8 @@ NAS<IMU, Press, GPS>::NAS(Sensor<IMU>& imu, Sensor<Press>& baro,
 template <typename IMU, typename Press, typename GPS>
 bool NAS<IMU, Press, GPS>::init()
 {
-    states_init.positionInit(ref_values.ref_pressure);
+    states_init.positionInit(ref_values.ref_pressure, ref_values.msl_pressure,
+                             ref_values.msl_temperature);
 
     states_init.velocityInit();
 

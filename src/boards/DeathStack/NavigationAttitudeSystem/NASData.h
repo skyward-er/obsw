@@ -23,6 +23,7 @@
 #pragma once
 
 #include <configs/NASConfig.h>
+#include <configs/config.h>
 #include <math/SkyQuaternion.h>
 #include <stdint.h>
 
@@ -150,36 +151,38 @@ struct NASKalmanState
  */
 struct NASReferenceValues
 {
-    float ref_pressure;
+    float ref_pressure    = DEFAULT_REFERENCE_PRESSURE;
+    float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
-    float ref_temperature;
+    float msl_pressure    = MSL_PRESSURE;
+    float msl_temperature = MSL_TEMPERATURE;
 
-    float ref_altitude;
-    float ref_latitude;
-    float ref_longitude;
+    float ref_altitude  = DEFAULT_REFERENCE_ALTITUDE;
+    float ref_latitude  = 0.0f;
+    float ref_longitude = 0.0f;
 
-    float ref_accel_x;
-    float ref_accel_y;
-    float ref_accel_z;
+    float ref_accel_x = 0.0f;
+    float ref_accel_y = 0.0f;
+    float ref_accel_z = 0.0f;
 
-    float ref_mag_x;
-    float ref_mag_y;
-    float ref_mag_z;
+    float ref_mag_x = 0.0f;
+    float ref_mag_y = 0.0f;
+    float ref_mag_z = 0.0f;
 
     static std::string header()
     {
-        return "ref_pressure,ref_temperature,ref_altitude,ref_latitude,ref_"
-               "longitude,ref_"
-               "accel_x,ref_accel_y,ref_accel_z,ref_mag_x,ref_mag_y,ref_mag_"
-               "z\n";
+        return "ref_pressure,ref_temperature,msl_pressure,msl_temperature,ref_"
+               "altitude,ref_latitude,ref_longitude,ref_accel_x,ref_accel_y,"
+               "ref_accel_z,ref_mag_x,ref_mag_y,ref_mag_z\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << ref_pressure << "," << ref_temperature << "," << ref_altitude
-           << "," << ref_latitude << "," << ref_longitude << "," << ref_accel_x
-           << "," << ref_accel_y << "," << ref_accel_z << "," << ref_mag_x
-           << "," << ref_mag_y << "," << ref_mag_z << "\n";
+        os << ref_pressure << "," << ref_temperature << "," << msl_pressure
+           << "," << msl_temperature << "," << ref_altitude << ","
+           << ref_latitude << "," << ref_longitude << "," << ref_accel_x << ","
+           << ref_accel_y << "," << ref_accel_z << "," << ref_mag_x << ","
+           << ref_mag_y << "," << ref_mag_z << "\n";
     }
 
     bool operator==(const NASReferenceValues& other) const

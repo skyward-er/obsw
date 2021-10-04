@@ -21,6 +21,7 @@
  */
 
 #include <NavigationAttitudeSystem/NASCalibrator.h>
+#include <utils/aero/AeroUtils.h>
 
 namespace DeathStackBoard
 {
@@ -103,20 +104,32 @@ NASReferenceValues NASCalibrator::getReferenceValues()
     if (calibIsComplete())
     {
         ref_values.ref_pressure = pressure_stats.getStats().mean;
-
-        if (!ref_coordinates_set)
-        {
-            ref_values.ref_latitude  = gps_lat_stats.getStats().mean;
-            ref_values.ref_longitude = gps_lon_stats.getStats().mean;
-        }
-
-        ref_values.ref_accel_x = accel_x_stats.getStats().mean;
-        ref_values.ref_accel_y = accel_y_stats.getStats().mean;
-        ref_values.ref_accel_z = accel_z_stats.getStats().mean;
-        ref_values.ref_mag_x   = mag_x_stats.getStats().mean;
-        ref_values.ref_mag_y   = mag_y_stats.getStats().mean;
-        ref_values.ref_mag_z   = mag_z_stats.getStats().mean;
     }
+    else
+    {
+        ref_values.ref_pressure = DEFAULT_REFERENCE_PRESSURE;
+    }
+
+    if (!ref_coordinates_set)
+    {
+        ref_values.ref_latitude  = gps_lat_stats.getStats().mean;
+        ref_values.ref_longitude = gps_lon_stats.getStats().mean;
+    }
+
+    ref_values.ref_accel_x = accel_x_stats.getStats().mean;
+    ref_values.ref_accel_y = accel_y_stats.getStats().mean;
+    ref_values.ref_accel_z = accel_z_stats.getStats().mean;
+    ref_values.ref_mag_x   = mag_x_stats.getStats().mean;
+    ref_values.ref_mag_y   = mag_y_stats.getStats().mean;
+    ref_values.ref_mag_z   = mag_z_stats.getStats().mean;
+
+    // Calculate MSL values for altitude Pa/m conversion
+    ref_values.msl_pressure = aeroutils::mslPressure(ref_values.ref_pressure,
+                                                     ref_values.ref_temperature,
+                                                     ref_values.ref_altitude);
+
+    ref_values.msl_temperature = aeroutils::mslTemperature(
+        ref_values.ref_temperature, ref_values.ref_altitude);
 
     return ref_values;
 }

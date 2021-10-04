@@ -71,7 +71,8 @@ public:
      * @brief Initialization of the positions before the liftoff.
      * @param press Reference pressure [Pa].
      */
-    void positionInit(const float press);  //, const float temp);
+    void positionInit(const float press, const float ref_press,
+                      const float ref_temp);
     /**
      * @brief Initialization of the velocities before the liftoff.
      *
@@ -170,13 +171,15 @@ const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
     return eul;
 }
 
-void InitStates::positionInit(const float press)
+void InitStates::positionInit(const float press, const float ref_press,
+                              const float ref_temp)
 {
     x_init(0) = 0.0;
     x_init(1) = 0.0;
     x_init(2) = -aeroutils::relAltitude(
-        press, MSL_PRESSURE,
-        MSL_TEMPERATURE);  // msl altitude (in NED, so negative)
+        press, ref_press, ref_temp);  // msl altitude (in NED, so negative)
+
+    TRACE("\n[NAS] press : %f - z_init : %f\n\n", press, x_init(2));
 }
 
 void InitStates::velocityInit()
