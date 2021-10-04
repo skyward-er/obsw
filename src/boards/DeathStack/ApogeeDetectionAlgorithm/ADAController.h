@@ -150,6 +150,15 @@ private:
      * (NOT self generated!)
      */
     void state_active(const Event& ev);
+
+    /**
+     * @brief Pressure stabilization state:  ADA is running and does not trigger
+     * any event
+     *
+     * In this state a call to update() will trigger a one step update of the
+     * kalman filter. The exiting transition to the drogue descent state is
+     * triggered by a timeout event.
+     */
     void state_pressureStabilization(const Event& ev);
 
     /**

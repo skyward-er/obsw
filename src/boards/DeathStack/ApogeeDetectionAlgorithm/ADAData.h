@@ -23,6 +23,7 @@
 #pragma once
 
 #include <configs/ADAConfig.h>
+#include <configs/config.h>
 #include <math/Stats.h>
 #include <Constants.h>
 #include <ostream>
@@ -190,7 +191,7 @@ struct ADAReferenceValues
  */
 struct TargetDeploymentAltitude
 {
-    float deployment_altitude;
+    float deployment_altitude = DEFAULT_DEPLOYMENT_ALTITUDE;
 
     static std::string header() { return "deployment_altitude\n"; }
 

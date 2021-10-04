@@ -63,19 +63,6 @@ static const unsigned int TIMEOUT_ADA_P_STABILIZATION = 5 * 1000;  // ms
 // Number of samples used to calibrate the kalman initial state
 static const unsigned int CALIBRATION_BARO_N_SAMPLES = 500;
 
-// Default reference values settings
-static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;
-#ifdef EUROC
-static const float DEFAULT_REFERENCE_ALTITUDE = 109.0f;
-static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
-#else
-static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
-static const float DEFAULT_REFERENCE_PRESSURE     = 85389.4f;
-#endif
-
-// Deployment altitude AGL
-static const float DEFAULT_DEPLOYMENT_ALTITUDE = 450;
-
 // ------ Kalman parameters ------
 static const float SAMPLING_PERIOD = ADA_UPDATE_PERIOD / 1000.0f;  // in seconds
 
