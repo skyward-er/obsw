@@ -134,8 +134,15 @@ void Sensors::calibrate()
 
     press_pitot->calibrate();
 
-    press_static_port->setReferencePressure(
-        press_digital->getLastSample().press);
+    // use the digital barometer as a reference to compute the offset of the
+    // analog one (static ports sensor)
+    Stats press_digi_stats;
+    for (unsigned int i = 0; i < PRESS_STATIC_CALIB_SAMPLES_NUM / 10; i++)
+    {
+        Thread::sleep(SAMPLE_PERIOD_PRESS_DIGITAL);
+        press_digi_stats.add(press_digital->getLastSample().press);
+    }
+    press_static_port->setReferencePressure(press_digi_stats.getStats().mean);
     press_static_port->calibrate();
 
     // wait differential and static barometers calibration end
