@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Mozzarelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +22,17 @@
 
 #pragma once
 
-static constexpr unsigned int DEFERRED_EVENTS_QUEUE_SIZE = 100;
+static const unsigned PRESSURE_DATA_SIZE = 2570;
+extern const float SIMULATED_PRESSURE[PRESSURE_DATA_SIZE];
 
-// Default reference values settings
-#ifdef EUROC
-static const float DEFAULT_REFERENCE_ALTITUDE = 171.0f;
-static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
-#else
-static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
-static const float DEFAULT_REFERENCE_PRESSURE     = 85389.4f;
-#endif
+static const unsigned GPS_DATA_SIZE = 2570;
+extern const float SIMULATED_LAT[GPS_DATA_SIZE];
+extern const float SIMULATED_LON[GPS_DATA_SIZE];
+extern const float SIMULATED_VNORD[GPS_DATA_SIZE];
+extern const float SIMULATED_VEAST[GPS_DATA_SIZE];
 
-static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;
-
-// Deployment altitude AGL
-static const float DEFAULT_DEPLOYMENT_ALTITUDE = 350;
+static const unsigned IMU_DATA_SIZE          = 2570;
+static const unsigned MOTION_SENSOR_AXIS_NUM = 3;
+extern const float ACCELEROMETER_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];
+extern const float GYROSCOPE_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];
+extern const float MAGNETOMETER_DATA[MOTION_SENSOR_AXIS_NUM][IMU_DATA_SIZE];

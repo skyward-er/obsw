@@ -27,10 +27,12 @@
 #include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
-#include <sensors/MS5803/MS5803.h>
+#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#elif defined(USE_MOCK_SENSORS)
+#include <mocksensors/MockSensors.h>
 #endif
 
 namespace DeathStackBoard
@@ -60,12 +62,21 @@ public:
 
     using GPSType     = HILGps;
     using GPSDataType = HILGpsData;
+#elif defined(USE_MOCK_SENSORS)
+    using IMUType     = MockIMU;
+    using IMUDataType = MockIMUData;
+
+    using PressType     = MockPressureSensor;
+    using PressDataType = MockPressureData;
+
+    using GPSType     = MockGPS;
+    using GPSDataType = MockGPSData;
 #else
     using IMUType     = BMX160WithCorrection;
     using IMUDataType = BMX160WithCorrectionData;
 
-    using PressType     = MS5803;
-    using PressDataType = MS5803Data;
+    using PressType     = MPXHZ6130A;
+    using PressDataType = MPXHZ6130AData;
 
     using GPSType     = UbloxGPS;
     using GPSDataType = UbloxGPSData;

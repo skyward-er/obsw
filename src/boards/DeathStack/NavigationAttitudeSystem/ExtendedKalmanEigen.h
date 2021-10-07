@@ -54,10 +54,11 @@ public:
      * @brief EKF correction of the barometer data.
      *
      * @param y Pressure read from the barometer [Pa]
-     * @param ref_press Pressure at ground level [Pa]
-     * @param ref_temp Temperature at ground level [Kelvin]
+     * @param msl_press Pressure at sea level [Pa]
+     * @param msl_temp Temperature at sea level [Kelvin]
      */
-    void correctBaro(const float y);
+    void correctBaro(const float y, const float msl_press,
+                     const float msl_temp);
 
     /**
      * @brief EKF correction of the gps readings.

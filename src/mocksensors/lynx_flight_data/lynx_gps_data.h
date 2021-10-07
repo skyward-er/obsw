@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +22,16 @@
 
 #pragma once
 
-static constexpr unsigned int DEFERRED_EVENTS_QUEUE_SIZE = 100;
+#include <Common.h>
 
-// Default reference values settings
-#ifdef EUROC
-static const float DEFAULT_REFERENCE_ALTITUDE = 171.0f;
-static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
-#else
-static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
-static const float DEFAULT_REFERENCE_PRESSURE     = 85389.4f;
-#endif
-
-static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;
-
-// Deployment altitude AGL
-static const float DEFAULT_DEPLOYMENT_ALTITUDE = 350;
+/**
+ * Ublox Neo-M9N GPS data from Lynx flight test in Roccaraso.
+ * Sampled at 25 Hz (40 ms period).
+ */
+static constexpr unsigned GPS_DATA_SIZE = 3230;
+extern const float GPS_DATA_LAT[GPS_DATA_SIZE];
+extern const float GPS_DATA_LON[GPS_DATA_SIZE];
+extern const float GPS_DATA_VNORD[GPS_DATA_SIZE];
+extern const float GPS_DATA_VEAST[GPS_DATA_SIZE];
+extern const float GPS_DATA_VDOWN[GPS_DATA_SIZE];
+extern const uint8_t GPS_DATA_NSATS[GPS_DATA_SIZE];

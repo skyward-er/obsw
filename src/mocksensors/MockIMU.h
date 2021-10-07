@@ -22,19 +22,13 @@
 
 #pragma once
 
-#include <tests/mock_sensors/test-mock-data.h>
-
-#include "TimestampTimer.h"
-#include "sensors/Sensor.h"
+#include <TimestampTimer.h>
+#include <sensors/Sensor.h>
+#include <mocksensors/MockSensorsData.h>
+#include <mocksensors/lynx_flight_data/lynx_imu_data.h>
 
 namespace DeathStackBoard
 {
-
-struct MockIMUData : public AccelerometerData,
-                     public GyroscopeData,
-                     public MagnetometerData
-{
-};
 
 class MockIMU : public Sensor<MockIMUData>
 {
@@ -53,21 +47,22 @@ public:
         }
 
         MockIMUData data;
+        uint64_t t = TimestampTimer::getTimestamp();
 
-        data.accel_timestamp = TimestampTimer::getTimestamp();
-        data.accel_x         = ACCELEROMETER_DATA[0][index];
-        data.accel_y         = ACCELEROMETER_DATA[1][index];
-        data.accel_z         = ACCELEROMETER_DATA[2][index];
+        data.accel_timestamp = t;
+        data.accel_x         = ACCEL_DATA[index][0];
+        data.accel_y         = ACCEL_DATA[index][1];
+        data.accel_z         = ACCEL_DATA[index][2];
 
-        data.gyro_timestamp = TimestampTimer::getTimestamp();
-        data.gyro_x         = GYROSCOPE_DATA[0][index];
-        data.gyro_y         = GYROSCOPE_DATA[1][index];
-        data.gyro_z         = GYROSCOPE_DATA[2][index];
+        data.gyro_timestamp = t;
+        data.gyro_x         = GYRO_DATA[index][0];
+        data.gyro_y         = GYRO_DATA[index][1];
+        data.gyro_z         = GYRO_DATA[index][2];
 
-        data.mag_timestamp = TimestampTimer::getTimestamp();
-        data.mag_x         = MAGNETOMETER_DATA[0][index];
-        data.mag_y         = MAGNETOMETER_DATA[1][index];
-        data.mag_z         = MAGNETOMETER_DATA[2][index];
+        data.mag_timestamp = t;
+        data.mag_x         = MAG_DATA[index][0];
+        data.mag_y         = MAG_DATA[index][1];
+        data.mag_z         = MAG_DATA[index][2];
 
         // when finished, go back to the beginning
         index = (index + 1) % IMU_DATA_SIZE;

@@ -22,8 +22,54 @@
 
 #pragma once
 
-#include "MockGPS.h"
-#include "MockIMU.h"
-#include "MockPressureSensor.h"
-#include "MockSpeedSensor.h"
-#include "utils/testutils/TestSensor.h"
+#include <Common.h>
+#include <mocksensors/MockSensorsData.h>
+#include <mocksensors/lynx_flight_data/lynx_airspeed_data.h>
+#include <sensors/Sensor.h>
+#include <random>
+
+namespace DeathStackBoard
+{
+
+class MockSpeedSensor : public Sensor<MockSpeedData>
+{
+public:
+    MockSpeedSensor() {}
+
+    bool init() override { return true; }
+
+    bool selfTest() override { return true; }
+
+    MockSpeedData sampleImpl() override
+    {
+        MockSpeedData data;
+
+        data.timestamp = TimestampTimer::getTimestamp();
+
+        if (before_liftoff)
+        {
+            data.speed = AIRSPEED_DATA[0];
+        }
+        else
+        {
+            if (i < AIRSPEED_DATA_SIZE)
+            {
+                data.speed = AIRSPEED_DATA[i++];
+            }
+            else
+            {
+                data.speed = AIRSPEED_DATA[AIRSPEED_DATA_SIZE - 1];
+            }
+        }
+
+        return data;
+    }
+
+    void signalLiftoff() { before_liftoff = false; }
+
+private:
+    volatile bool before_liftoff = true;
+    volatile unsigned int i      = 0;  // Last index
+};
+
+}  // namespace DeathStackBoard

@@ -31,15 +31,15 @@
 #define private public
 #define protected public
 
-#include <NavigationAttitudeSystem/NASController.h>
 #include <NavigationAttitudeSystem/NASCalibrator.h>
-#include "events/Events.h"
+#include <NavigationAttitudeSystem/NASController.h>
 #include <mocksensors/MockSensors.h>
+#include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
 using namespace DeathStackBoard;
 
-using NASCtrl = NASController<MockIMUData, PressureData, GPSData>;
+using NASCtrl = NASController<MockIMUData, MockPressureData, MockGPSData>;
 
 class NASControllerFixture
 {

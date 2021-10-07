@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/SensorsData.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/ADS1118/ADS1118.h>
 #include <drivers/adc/InternalADC/InternalADC.h>
@@ -44,6 +45,8 @@
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL.h>
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#elif defined(USE_MOCK_SENSORS)
+#include <mocksensors/MockSensors.h>
 #endif
 
 namespace DeathStackBoard
@@ -60,15 +63,13 @@ public:
 
     InternalADC* internal_adc             = nullptr;
     BatteryVoltageSensor* battery_voltage = nullptr;
-    CurrentSensor* cs_cutter_primary      = nullptr;
-    CurrentSensor* cs_cutter_backup       = nullptr;
 
     MS5803* press_digital = nullptr;
 
     ADS1118* adc_ads1118          = nullptr;
-    SSCDRRN015PDA* press_pitot    = nullptr;
     SSCDANN030PAA* press_dpl_vane = nullptr;
     MPXHZ6130A* press_static_port = nullptr;
+    SSCDRRN015PDA* press_pitot    = nullptr;
 
     BMX160* imu_bmx160                               = nullptr;
     BMX160WithCorrection* imu_bmx160_with_correction = nullptr;
@@ -79,6 +80,10 @@ public:
     HILImu* hil_imu        = nullptr;
     HILBarometer* hil_baro = nullptr;
     HILGps* hil_gps        = nullptr;
+#elif defined(USE_MOCK_SENSORS)
+    MockIMU* mock_imu             = nullptr;
+    MockPressureSensor* mock_baro = nullptr;
+    MockGPS* mock_gps             = nullptr;
 #endif
 
     Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler);
@@ -89,9 +94,11 @@ public:
 
     void calibrate();
 
-private:
-    // PrintLogger log = Logging::getLogger("deathstack.sensors");
+#ifdef USE_MOCK_SENSORS
+    void signalLiftoff();
+#endif
 
+private:
     void internalAdcInit();
     void internalAdcCallback();
 
@@ -132,6 +139,11 @@ private:
     void hilIMUCallback();
     void hilBaroCallback();
     void hilGPSCallback();
+#elif defined(USE_MOCK_SENSORS)
+    void mockSensorsInit();
+    void mockBaroCallback();
+    void mockImuCallback();
+    void mockGpsCallback();
 #endif
 
     void updateSensorsStatus();

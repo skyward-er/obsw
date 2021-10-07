@@ -46,8 +46,12 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
         (0.5F * SIGMA_BETA * SIGMA_BETA * T * T) * eye3,
         (SIGMA_BETA * SIGMA_BETA * T) * eye3;
 
-    P_pos  = eye3 * P_POS;
-    P_vel  = eye3 * P_VEL;
+    P_pos << P_POS, 0,     0,
+             0,     P_POS, 0,
+             0,     0,     P_POS_VERTICAL;
+    P_vel << P_VEL, 0,     0,
+             0,     P_VEL, 0,
+             0,     0,     P_VEL_VERTICAL;
     P_att  = eye3 * P_ATT;
     P_bias = eye3 * P_BIAS;
     P << P_pos, MatrixXf::Zero(3, N - 4), MatrixXf::Zero(3, 3), P_vel,
@@ -78,7 +82,7 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
             Matrix3f::Zero(3, 3), eye3;
     Gatttr = Gatt.transpose();
 
-    g << 0.0F, 0.0F, aeroutils::constants::g;
+    g << 0.0F, 0.0F, aeroutils::constants::g; // [m/s^2]
 
     // clang-format on
 }
@@ -118,7 +122,8 @@ void ExtendedKalmanEigen::predict(const Vector3f& u)
     x = x + T * x_dot;
 }
 
-void ExtendedKalmanEigen::correctBaro(const float y)
+void ExtendedKalmanEigen::correctBaro(const float y, const float msl_press,
+                                      const float msl_temp)
 {
     Matrix<float, NL, NBAR> K_bar;
     Matrix<float, NBAR, NL> H_bar;
@@ -126,13 +131,19 @@ void ExtendedKalmanEigen::correctBaro(const float y)
 
     Plin = P.block<NL, NL>(0, 0);
 
-    float temp = aeroutils::mslTemperature(MSL_TEMPERATURE, x(2));
-    float p = aeroutils::constants::a * aeroutils::constants::n * MSL_PRESSURE *
-              powf(1 - aeroutils::constants::a * x(2) / temp,
-                   -aeroutils::constants::n - 1) /
-              temp;
+    // temperature at current altitude :
+    // since x(2) (altitude) is negative, mslTemperature returns temperature at
+    // current altitude and not at mean sea level
+    float temp = aeroutils::mslTemperature(msl_temp, x(2));
 
-    H_bar << 0.0F, 0.0F, p,
+    // compute gradient of the altitude-pressure function
+    float dp_dx = aeroutils::constants::a * aeroutils::constants::n *
+                  msl_press *
+                  powf(1 - aeroutils::constants::a * x(2) / temp,
+                       -aeroutils::constants::n - 1) /
+                  temp;
+
+    H_bar << 0.0F, 0.0F, dp_dx,
         MatrixXf::Zero(1, N - 3 - NATT);  // Gradient of h_bar
 
     S_bar = H_bar * Plin * H_bar.transpose() + R_bar;
@@ -141,9 +152,9 @@ void ExtendedKalmanEigen::correctBaro(const float y)
 
     P.block<NL, NL>(0, 0) = (eye6 - K_bar * H_bar) * Plin;
 
-    float h_bar = aeroutils::mslPressure(MSL_PRESSURE, MSL_TEMPERATURE, x(2));
+    float y_hat = aeroutils::mslPressure(msl_press, msl_temp, x(2));
 
-    x.head(NL) = x.head(NL) + K_bar * (y - h_bar);
+    x.head(NL) = x.head(NL) + K_bar * (y - y_hat);
 
     // float res_bar = y - h_bar;
 }
@@ -155,10 +166,10 @@ void ExtendedKalmanEigen::correctGPS(const Vector4f& y, const uint8_t sats_num)
     Matrix<float, NGPS, 1> res_gps;
     Matrix<float, NGPS, NGPS> S_gps;
 
-    float xnord = y(0);
-    float yest  = y(1);
+    float xnord   = y(0);
+    float yest    = y(1);
     float velnord = y(2);
-    float velest = y(3);
+    float velest  = y(3);
 
     Matrix<float, NGPS, 1> yned(xnord, yest, velnord, velest);
 

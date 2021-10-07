@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +22,14 @@
 
 #pragma once
 
-static constexpr unsigned int DEFERRED_EVENTS_QUEUE_SIZE = 100;
-
-// Default reference values settings
-#ifdef EUROC
-static const float DEFAULT_REFERENCE_ALTITUDE = 171.0f;
-static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
-#else
-static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
-static const float DEFAULT_REFERENCE_PRESSURE     = 85389.4f;
-#endif
-
-static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;
-
-// Deployment altitude AGL
-static const float DEFAULT_DEPLOYMENT_ALTITUDE = 350;
+/**
+ * BMX160 IMU data from Lynx flight test in Roccaraso.
+ * Sampled at 50 Hz (20 ms period).
+ * Each sample here is the result of an average over an entire FIFO, corrected
+ * using calibration parameters and rotated in body frame.
+ */
+static constexpr unsigned IMU_DATA_SIZE      = 6463;
+static const unsigned MOTION_SENSOR_AXIS_NUM = 3;
+extern const float ACCEL_DATA[IMU_DATA_SIZE][MOTION_SENSOR_AXIS_NUM];
+extern const float GYRO_DATA[IMU_DATA_SIZE][MOTION_SENSOR_AXIS_NUM];
+extern const float MAG_DATA[IMU_DATA_SIZE][MOTION_SENSOR_AXIS_NUM];

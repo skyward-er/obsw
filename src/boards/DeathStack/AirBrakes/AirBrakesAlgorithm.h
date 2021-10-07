@@ -212,15 +212,16 @@ public:
     void logAirbrakesData(uint64_t t);
 
 private:
-    int indexMinVal = 0;
-    float alpha     = 0;
-    uint64_t ts     = 0;
+    int indexMinVal       = 0;
+    float alpha           = 0;
+
+    uint64_t last_input_ts = 0;
+    uint64_t begin_ts      = 0;
+
     Trajectory chosenTrajectory;
     ServoInterface* actuator;
     Sensor<T>& sensor;
     PIController pid;
-
-    uint64_t begin_ts = 0;
 
     AirBrakesAlgorithmData algo_data;
     AirBrakesData ab_data;
@@ -254,7 +255,7 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     begin_ts = TimestampTimer::getTimestamp();
 
-    ts = (sensor.getLastSample()).timestamp;
+    last_input_ts = (sensor.getLastSample()).timestamp;
 
     alpha = computeAlpha(sensor.getLastSample(), true);
 
@@ -268,21 +269,26 @@ void AirBrakesControlAlgorithm<T>::step()
 {
     T input = sensor.getLastSample();
 
-    if (input.timestamp > ts)
+    if (input.timestamp > last_input_ts)
     {
-        ts    = input.timestamp;
-        alpha = computeAlpha(input, false);
+        last_input_ts = input.timestamp;
+        alpha         = computeAlpha(input, false);
     }
 
-#ifndef ROCCARASO
-    actuator->set(alpha, true);
-#endif
+    uint64_t curr_ts = TimestampTimer::getTimestamp();
 
-    uint64_t t = TimestampTimer::getTimestamp();
-    logAlgorithmData(input, t);
-    logAirbrakesData(t);
-
-#ifdef ROCCARASO
+#ifdef EUROC
+    if (curr_ts - begin_ts < AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE * 1000)
+    {
+        // limit control to half of the airbrakes surface
+        // this should correspond to a maximum of 17.18° angle on the servo
+        actuator->set(AB_SERVO_HALF_AREA_POS, true);
+    }
+    else
+    {
+        actuator->set(alpha, true);
+    }
+#elif defined(ROCCARASO)
     if (t - begin_ts < AB_OPENING_TIMEOUT * 1000)
     {  // after 3 seconds open to 100%
         actuator->set(AB_SERVO_MAX_POS, true);
@@ -296,7 +302,12 @@ void AirBrakesControlAlgorithm<T>::step()
     {  // then keep airbrakes closed
         actuator->set(AB_SERVO_MIN_POS, true);
     }
+#else
+    actuator->set(alpha, true);
 #endif
+
+    logAlgorithmData(input, curr_ts);
+    logAirbrakesData(curr_ts);
 }
 
 template <class T>
@@ -418,7 +429,7 @@ float AirBrakesControlAlgorithm<T>::pidStep(float z, float vz, float vMod,
     float u_ref  = 0.5 * rho * cd_ref * S0 * vz * vMod;
 
     float error       = vz - setpoint.getVz();
-    ab_data.pid_error = error; // for logging
+    ab_data.pid_error = error;  // for logging
 
     // update PI controller
     float u = pid.update(error);
@@ -449,7 +460,7 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
         }
     }
 
-    ab_data.estimated_cd = estimated_cd; // for logging
+    ab_data.estimated_cd = estimated_cd;  // for logging
 
     return selected_s;
 }
@@ -457,9 +468,8 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
 template <class T>
 float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 {
-    float alpha_rad =
-        (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
-        (2 * A_DELTAS);
+    float alpha_rad = (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
+                      (2 * A_DELTAS);
 
     float alpha_deg = alpha_rad * 180.0f / PI;
 
@@ -493,12 +503,12 @@ float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
     float mach = getMach(v, h);
 
     float pow_mach[7] = {1,
-                        mach,
-                        powf(mach, 2),
-                        powf(mach, 3),
-                        powf(mach, 4),
-                        powf(mach, 5),
-                        powf(mach, 6)};
+                         mach,
+                         powf(mach, 2),
+                         powf(mach, 3),
+                         powf(mach, 4),
+                         powf(mach, 5),
+                         powf(mach, 6)};
 
     return coeffs.n000 + coeffs.n100 * pow_mach[1] + coeffs.n200 * pow_mach[2] +
            coeffs.n300 * pow_mach[3] + coeffs.n400 * pow_mach[4] +

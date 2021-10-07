@@ -44,7 +44,7 @@ MockIMU mock_imu;
 MockPressureSensor mock_baro;
 MockGPS mock_gps;
 
-using NASCtrl = NASController<MockIMUData, PressureData, GPSData>;
+using NASCtrl = NASController<MockIMUData, MockPressureData, MockGPSData>;
 
 NASCtrl controller(mock_imu, mock_baro, mock_gps);
 

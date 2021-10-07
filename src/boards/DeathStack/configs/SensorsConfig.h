@@ -39,17 +39,9 @@ namespace SensorConfigs
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr InternalADC::Channel ADC_BATTERY_VOLTAGE =
     InternalADC::Channel::CH5;
-// static constexpr InternalADC::Channel ADC_CS_CUTTER_PRIMARY =
-//     InternalADC::Channel::CH6;
-// static constexpr InternalADC::Channel ADC_CS_CUTTER_BACKUP =
-//     InternalADC::Channel::CH4;
 
 static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
 static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
-
-// static constexpr float CS_CURR_DKILIS = 19500.0;  // Typ: 19.5
-// static constexpr float CS_CURR_RIS    = 510;
-// static constexpr float CS_CURR_IISOFF = .000170;  // Typ: 170uA
 
 static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
 static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
@@ -81,7 +73,9 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 
-static constexpr unsigned int PRESS_PITOT_CALIB_SAMPLES_NUM = 500;
+static constexpr unsigned int PRESS_PITOT_CALIB_SAMPLES_NUM  = 500;
+static constexpr unsigned int PRESS_STATIC_CALIB_SAMPLES_NUM = 500;
+static constexpr float PRESS_STATIC_MOVING_AVG_COEFF         = 0.95;
 
 static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
     BMX160Config::AccelerometerRange::G_16;
@@ -135,7 +129,7 @@ static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 
-static constexpr float REFERENCE_VOLTAGE = 4.8;
+static constexpr float REFERENCE_VOLTAGE = 5.0;
 }  // namespace SensorConfigs
 
 }  // namespace DeathStackBoard

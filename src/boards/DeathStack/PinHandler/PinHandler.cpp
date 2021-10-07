@@ -25,6 +25,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
+#include <DeathStack.h>
 
 #include <functional>
 
@@ -84,7 +85,10 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL::getInstance()->signalLiftoff();
+#elif defined(USE_MOCK_SENSORS)
+    DeathStack::getInstance()->sensors->signalLiftoff();
 #endif
+
     sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     LOG_INFO(log, "Launch pin detached!");

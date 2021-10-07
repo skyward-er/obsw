@@ -196,9 +196,13 @@ private:
         state_machines =
             new StateMachines(*sensors->hil_imu, *sensors->hil_baro,
                               *sensors->hil_gps, scheduler);
+#elif defined(USE_MOCK_SENSORS)
+        state_machines =
+            new StateMachines(*sensors->mock_imu, *sensors->mock_baro,
+                              *sensors->mock_gps, scheduler);
 #else
         state_machines = new StateMachines(*sensors->imu_bmx160_with_correction,
-                                           *sensors->press_digital,
+                                           *sensors->press_static_port,
                                            *sensors->gps_ublox, scheduler);
 #endif
 
