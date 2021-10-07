@@ -55,8 +55,15 @@ void NASCalibrator::addMagSample(float x, float y, float z)
 
 void NASCalibrator::setReferenceTemperature(float t)
 {
-    ref_values.ref_temperature = t;
-    ref_temperature_set        = true;
+    ref_temperature_set   = true;
+    float temperature_ref = t + 273.15;  // Celsius to Kelvin
+
+    // Sanity check: Obey to the laws of thermodynamics
+    if (temperature_ref > 0)
+    {
+        ref_values.ref_temperature = temperature_ref;
+        ref_temperature_set        = true;
+    }
 }
 
 void NASCalibrator::setReferenceAltitude(float alt)

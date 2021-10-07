@@ -231,19 +231,14 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     {
         last_press_timestamp = pressure_data.press_timestamp;
 
-        filter.correctBaro(pressure_data.press);
+        filter.correctBaro(pressure_data.press, ref_values.msl_pressure,
+                           ref_values.msl_temperature);
     }
 
     // check if new gps data is available and the gps has fix
     if (gps_data.gps_timestamp != last_gps_timestamp && gps_data.fix == true)
     {
         last_gps_timestamp = gps_data.gps_timestamp;
-
-        // float delta_lon = gps_data.longitude - ref_values.ref_longitude;
-        // float delta_lat = gps_data.latitude - ref_values.ref_latitude;
-
-        // Vector4f gps_readings(delta_lon, delta_lat, gps_data.velocity_north,
-        // gps_data.velocity_east);
 
         Vector3f gps_readings(gps_data.latitude, gps_data.longitude,
                               gps_data.height);

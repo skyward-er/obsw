@@ -36,7 +36,7 @@ ExtendedKalmanEigen::ExtendedKalmanEigen()
 
     // clang-format off
 
-    R_bar << SIGMA_ALT;
+    R_bar << SIGMA_BAR;
     R_mag << SIGMA_MAG * eye3;
     R_gps << eye4 * SIGMA_GPS / SATS_NUM;
     Q_mag << (SIGMA_W * SIGMA_W * T +
@@ -122,7 +122,8 @@ void ExtendedKalmanEigen::predict(const Vector3f& u)
     x = x + T * x_dot;
 }
 
-void ExtendedKalmanEigen::correctBaro(const float y)
+void ExtendedKalmanEigen::correctBaro(const float y, const float msl_press,
+                                      const float msl_temp)
 {
     Matrix<float, NL, NBAR> K_bar;
     Matrix<float, NBAR, NL> H_bar;
@@ -130,13 +131,19 @@ void ExtendedKalmanEigen::correctBaro(const float y)
 
     Plin = P.block<NL, NL>(0, 0);
 
-    float temp = aeroutils::mslTemperature(MSL_TEMPERATURE, x(2));
-    float p = aeroutils::constants::a * aeroutils::constants::n * MSL_PRESSURE *
-              powf(1 - aeroutils::constants::a * x(2) / temp,
-                   -aeroutils::constants::n - 1) /
-              temp;
+    // temperature at current altitude :
+    // since x(2) (altitude) is negative, mslTemperature returns temperature at
+    // current altitude and not at mean sea level
+    float temp = aeroutils::mslTemperature(msl_temp, x(2));
 
-    H_bar << 0.0F, 0.0F, p,
+    // compute gradient of the altitude-pressure function
+    float dp_dx = aeroutils::constants::a * aeroutils::constants::n *
+                  msl_press *
+                  powf(1 - aeroutils::constants::a * x(2) / temp,
+                       -aeroutils::constants::n - 1) /
+                  temp;
+
+    H_bar << 0.0F, 0.0F, dp_dx,
         MatrixXf::Zero(1, N - 3 - NATT);  // Gradient of h_bar
 
     S_bar = H_bar * Plin * H_bar.transpose() + R_bar;
@@ -145,9 +152,9 @@ void ExtendedKalmanEigen::correctBaro(const float y)
 
     P.block<NL, NL>(0, 0) = (eye6 - K_bar * H_bar) * Plin;
 
-    float h_bar = aeroutils::mslPressure(MSL_PRESSURE, MSL_TEMPERATURE, x(2));
+    float y_hat = aeroutils::mslPressure(msl_press, msl_temp, x(2));
 
-    x.head(NL) = x.head(NL) + K_bar * (y - h_bar);
+    x.head(NL) = x.head(NL) + K_bar * (y - y_hat);
 
     // float res_bar = y - h_bar;
 }

@@ -54,8 +54,8 @@ static const float SIGMA_W = 0.3;
 static const float SIGMA_GPS = 10.0F;  // [m^2]
                                        // Estimated GPS variance
 
-static const float SIGMA_ALT = 4;  // [m^2]
-                                   // Estimated altitude variance
+static const float SIGMA_BAR = 4.3F;  // [m^2]
+                                      // Estimated altitude variance
 
 static const float SIGMA_POS = 10.0;
 // 0.0192F * 100;  // [m^2]
@@ -104,19 +104,21 @@ static const unsigned int JAMMING_FACTOR = 3;
 
 #ifdef EUROC
 // static const float LAT0 =
-//     39.201778F;  // [deg]
-//                  // Latitude of the launch location (ponte de sor)
+//     39.371507F;  // [deg]
+//                  // Latitude of the launch location
+//                  // (campo militar santa margarida)
 // static const float LON0 =
-//     -8.138368F;  // [deg]
-//                  // Longitude of the launch location (ponte de sor)
+//     -8.278039F;  // [deg]
+//                  // Longitude of the launch location
+//                  // (campo militar santa margarida)
 
-static const float EMF = 45.0F;  // [uT] micro Tesla
-                                 // Earth magnetic field, used to
-                                 // check if there's magnetic jamming
+static const float EMF = 44.24F;  // [uT] micro Tesla
+                                  // Earth magnetic field, used to
+                                  // check if there's magnetic jamming
 
 static const Vector3f NED_MAG(
-    0.5969F, -0.0139F,
-    0.8022F);  // Normalized magnetic field vector at Ponte de Sor
+    0.5923F, -0.0175F,
+    0.8055F);  // Normalized magnetic field vector at Ponte de Sor
                // Measurement units are not important since it's normalized
 #else
 // static const float LAT0 =
