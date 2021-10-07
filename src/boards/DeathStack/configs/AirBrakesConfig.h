@@ -42,7 +42,7 @@ static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 #ifdef EUROC
 static constexpr float M = 27.0; /**< rocket's mass */
 #else
-static constexpr float M                  = 18.362;       /**< rocket's mass */
+static constexpr float M                 = 18.362;       /**< rocket's mass */
 #endif
 
 static constexpr float D        = 0.15; /**< rocket's diameter */
@@ -66,7 +66,9 @@ static constexpr float Ki = 5;
 // Airbrakes servo configs
 static constexpr float AB_SERVO_MAX_POS = 50.0;  // deg
 static constexpr float AB_SERVO_MIN_POS = 0.0;   // deg
-// airbrakes servo rate : datasheet says 60/0.13, increased for robustness
+// servo angle at which airbrakes exposed area is 50% of the maximum one
+static constexpr float AB_SERVO_HALF_AREA_POS = 17.18;  // deg
+// airbrakes servo rate : datasheet says 60/0.13, decreased for robustness
 static constexpr float AB_SERVO_MAX_RATE         = 15.0 / 0.1;   // deg/s
 static constexpr float AB_SERVO_MIN_RATE         = -15.0 / 0.1;  // deg/s
 static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
@@ -74,7 +76,7 @@ static constexpr float AB_SERVO_WIGGLE_AMPLITUDE = 10.0;         // deg
 #ifdef ROCCARASO
 // At Roccaraso airbrakes opened at 100%, then 50% and then 0%
 // Each opening is kept for 3 seconds (3000 ms)
-static constexpr float AB_OPENING_TIMEOUT = 3000;  // [ms]
+static constexpr float AB_OPENING_TIMEOUT = 3 * 1000;  // [ms]
 #endif
 
 // Control algorithm configs
@@ -85,15 +87,15 @@ static constexpr float FILTER_COEFF     = 0.9;
 #ifdef HARDWARE_IN_THE_LOOP
 static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else
-static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
 #endif
 
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
 
 #ifdef EUROC
-static constexpr int SHADOW_MODE_DURATION = 6.2 * 1000;  // 0.8 mach
+static constexpr int SHADOW_MODE_DURATION = 6.3 * 1000;  // 0.8 mach
 static constexpr int AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE =
-    1.3 * 1000;  // 0.7 mach
+    1.2 * 1000;  // 0.7 mach
 #else
 static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
 #endif

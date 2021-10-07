@@ -212,15 +212,16 @@ public:
     void logAirbrakesData(uint64_t t);
 
 private:
-    int indexMinVal = 0;
-    float alpha     = 0;
-    uint64_t ts     = 0;
+    int indexMinVal       = 0;
+    float alpha           = 0;
+
+    uint64_t last_input_ts = 0;
+    uint64_t begin_ts      = 0;
+
     Trajectory chosenTrajectory;
     ServoInterface* actuator;
     Sensor<T>& sensor;
     PIController pid;
-
-    uint64_t begin_ts = 0;
 
     AirBrakesAlgorithmData algo_data;
     AirBrakesData ab_data;
@@ -254,7 +255,7 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     begin_ts = TimestampTimer::getTimestamp();
 
-    ts = (sensor.getLastSample()).timestamp;
+    last_input_ts = (sensor.getLastSample()).timestamp;
 
     alpha = computeAlpha(sensor.getLastSample(), true);
 
@@ -268,21 +269,20 @@ void AirBrakesControlAlgorithm<T>::step()
 {
     T input = sensor.getLastSample();
 
-    if (input.timestamp > ts)
+    if (input.timestamp > last_input_ts)
     {
-        ts    = input.timestamp;
-        alpha = computeAlpha(input, false);
+        last_input_ts = input.timestamp;
+        alpha         = computeAlpha(input, false);
     }
 
-    uint64_t t = TimestampTimer::getTimestamp();
-    logAlgorithmData(input, t);
-    logAirbrakesData(t);
+    uint64_t curr_ts = TimestampTimer::getTimestamp();
 
 #ifdef EUROC
-    if (t - begin_ts <
-        (SHADOW_MODE_DURATION + AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE) * 1000)
-    {  // after 3 seconds open to 100%
-        actuator->set(getAlpha(S_MAX / 2), true);
+    if (curr_ts - begin_ts < AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE * 1000)
+    {
+        // limit control to half of the airbrakes surface
+        // this should correspond to a maximum of 17.18° angle on the servo
+        actuator->set(AB_SERVO_HALF_AREA_POS, true);
     }
     else
     {
@@ -302,7 +302,12 @@ void AirBrakesControlAlgorithm<T>::step()
     {  // then keep airbrakes closed
         actuator->set(AB_SERVO_MIN_POS, true);
     }
+#else
+    actuator->set(alpha, true);
 #endif
+
+    logAlgorithmData(input, curr_ts);
+    logAirbrakesData(curr_ts);
 }
 
 template <class T>
