@@ -42,7 +42,7 @@ static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
 #ifdef EUROC
 static constexpr float M = 27.0; /**< rocket's mass */
 #else
-static constexpr float M                 = 18.362;       /**< rocket's mass */
+static constexpr float M                  = 18.362;       /**< rocket's mass */
 #endif
 
 static constexpr float D        = 0.15; /**< rocket's diameter */
@@ -87,7 +87,7 @@ static constexpr float FILTER_COEFF     = 0.9;
 #ifdef HARDWARE_IN_THE_LOOP
 static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else
-static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
 #endif
 
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;
@@ -103,26 +103,26 @@ static constexpr int SHADOW_MODE_DURATION = 3.5 * 1000;
 #ifdef EUROC
 struct Coefficients
 {
-    float n000 = 0.4912038462193552;
-    float n100 = -1.2829337399401595;
-    float n200 = 5.4496525366603175;
-    float n300 = -14.373489732912505;
-    float n400 = 23.041565019164537;
-    float n500 = -20.665098183955564;
-    float n600 = 7.781756180733372;
-    float n010 = 8.578612850167778;
-    float n020 = 139.0917211542655;
-    float n110 = 0.7488030083983109;
-    float n120 = -143.1155855707458;
-    float n210 = 85.43971374816863;
-    float n220 = 1012.1982268667119;
-    float n310 = -318.72827049284604;
-    float n320 = -3465.8287321207386;
-    float n410 = 465.76527224155507;
-    float n420 = 5018.865244618964;
-    float n510 = -216.65938340162148;
-    float n520 = -2334.271751434503;
-    float n001 = 2.7225033263675867e-06;
+    float n000 = 0.48691724895766536;
+    float n100 = -1.0201967915455747;
+    float n200 = 3.1601195121881624;
+    float n300 = -5.207372520459633;
+    float n400 = 5.348364517420158;
+    float n500 = -4.6411809574995235;
+    float n600 = 2.410373760485268;
+    float n010 = 8.065292810990796;
+    float n020 = 143.73493969843133;
+    float n110 = 1.231780014534557;
+    float n120 = -130.29216244392964;
+    float n210 = 68.58740070791052;
+    float n220 = 1073.263262818047;
+    float n310 = -259.68709984180873;
+    float n320 = -3750.7093392408874;
+    float n410 = 385.3808010115668;
+    float n420 = 5464.924806439974;
+    float n510 = -180.76701763197605;
+    float n520 = -2554.179469197033;
+    float n001 = 2.7555579144973302e-06;
 };
 #else
 struct Coefficients
