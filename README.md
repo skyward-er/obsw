@@ -1,8 +1,8 @@
-# Lynx On-Board Software [![pipeline status](https://git.skywarder.eu/r2a/skyward-boardcore/badges/master/pipeline.svg)](https://git.skywarder.eu/r2a/skyward-boardcore/commits/master)
+# Pyxis On-Board Software [![pipeline status](https://git.skywarder.eu/scs/pyxis/obsw/badges/master/pipeline.svg)](https://git.skywarder.eu/scs/pyxis/obsw/commits/master)
 
-*On Board software for Lynx*
+*On Board software for Pyxis*
 
-To clone, use `git clone --recurse-submodules git@git.skywarder.eu:scs/hermes/r2a-obsw.git`.
+To clone, use `git clone --recurse-submodules git@git.skywarder.eu:scs/pyxis/obsw.git`.
 
 To build, use `sbs` (for more info, type `./sbs --help` on Linux or `sbs --help` on Windows).
 
