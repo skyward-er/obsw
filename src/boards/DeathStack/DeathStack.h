@@ -36,7 +36,7 @@
 #include <System/TaskID.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
-#include <events/EventInjector.h>
+#include <events/utils/EventInjector.h>
 #include <events/Events.h>
 #include <events/Topics.h>
 #include <events/utils/EventSniffer.h>
