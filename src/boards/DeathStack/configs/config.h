@@ -27,7 +27,7 @@ static constexpr unsigned int DEFERRED_EVENTS_QUEUE_SIZE = 100;
 
 // Default reference values settings
 #ifdef EUROC
-static const float DEFAULT_REFERENCE_ALTITUDE = 171.0f;
+static const float DEFAULT_REFERENCE_ALTITUDE = 160.0f;
 static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
 #else
 static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
