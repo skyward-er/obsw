@@ -28,7 +28,7 @@ namespace DeathStackBoard
 // State timeouts
 // Automatically end the mission after a very long time, in order to safely
 // close the logs if radio comms have been lost
-static constexpr unsigned int TIMEOUT_END_MISSION = 30 * 60 * 1000;
+static constexpr unsigned int TIMEOUT_END_MISSION = 15 * 60 * 1000;
 
 static constexpr unsigned int FMM_PRIORITY = 2;
 

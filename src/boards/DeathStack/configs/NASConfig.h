@@ -104,11 +104,11 @@ static const unsigned int JAMMING_FACTOR = 3;
 
 #ifdef EUROC
 // static const float LAT0 =
-//     39.371507F;  // [deg]
+//     39.390278F;  // [deg]
 //                  // Latitude of the launch location
 //                  // (campo militar santa margarida)
 // static const float LON0 =
-//     -8.278039F;  // [deg]
+//     -8.289167;  // [deg]
 //                  // Longitude of the launch location
 //                  // (campo militar santa margarida)
 
