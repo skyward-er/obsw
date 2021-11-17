@@ -24,7 +24,7 @@
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/spi/SPIDriver.h>
 #include <interfaces-impl/hwmapping.h>
-#include <mavlink_skyward_lib/mavlink_lib/lynx/mavlink.h>
+#include <mavlink_lib/lynx/mavlink.h>
 
 namespace DeathStackBoard
 {
