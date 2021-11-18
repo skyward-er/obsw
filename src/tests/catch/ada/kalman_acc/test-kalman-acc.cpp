@@ -21,7 +21,7 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch/catch-tests-entry.cpp"
+#include "../../catch-tests-entry.cpp"
 #endif
 
 #define private public
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "test-kalman-acc-data.h"
 

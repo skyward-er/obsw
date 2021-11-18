@@ -57,7 +57,7 @@
 
 #include <cstring>
 #include <string>
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 #include <vector>
 
 using miosix::Thread;

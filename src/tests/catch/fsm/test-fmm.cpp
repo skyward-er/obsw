@@ -29,9 +29,11 @@
 
 #include <miosix.h>
 
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "events/Events.h"
+
+#include <Eigen/Dense>
 
 #define private public
 #define protected public

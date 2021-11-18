@@ -21,12 +21,12 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch/catch-tests-entry.cpp"
+#include "../catch-tests-entry.cpp"
 #endif
 #include <utils/EventCounter.h>
 
 #include <algorithm>
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "ADA/RogalloDTS/ElevationMap.h"
 #include "ADA/RogalloDTS/LHCircles.h"

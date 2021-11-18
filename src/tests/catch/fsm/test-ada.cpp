@@ -21,7 +21,7 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch/catch-tests-entry.cpp"
+#include "../catch-tests-entry.cpp"
 #endif
 
 // We need access to the handleEvent(...) function in state machines in order to
@@ -29,7 +29,9 @@
 
 #include <miosix.h>
 
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
+
+#include <Eigen/Dense>
 
 #define private public
 #define protected public

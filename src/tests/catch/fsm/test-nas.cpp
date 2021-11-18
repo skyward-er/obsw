@@ -21,10 +21,10 @@
  */
 
 #ifdef STANDALONE_CATCH1_TEST
-#include "catch/catch-tests-entry.cpp"
+#include "../catch-tests-entry.cpp"
 #endif
 
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 
 // We need access to the handleEvent(...) function in state machines in order to
 // test them synchronously

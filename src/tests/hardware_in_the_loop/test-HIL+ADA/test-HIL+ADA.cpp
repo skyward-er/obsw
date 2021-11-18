@@ -31,7 +31,7 @@
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <utils/testutils/catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "TimestampTimer.h"
 #include "miosix.h"
