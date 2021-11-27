@@ -1,4 +1,4 @@
-/* Copyright (c) 2020 Skyward Experimental Rocketry
+/* Copyright (c) 2021 Skyward Experimental Rocketry
  * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,49 +22,47 @@
 
 #pragma once
 
-namespace DeathStackBoard
+#include <common/ServoInterface.h>
+#include <Payload/configs/WingConfig.h>
+#include <drivers/servo/servo.h>
+#include <miosix.h>
+
+using namespace Boardcore;
+
+namespace PayloadBoard
 {
 
-class Algorithm
+class WingServo : public ServoInterface
 {
+
 public:
-    /**
-     * @brief Initializes the Algorithm object, must be called as soon as the
-     * object is created.
-     * */
-    virtual bool init() = 0;
+    WingServo(PWM::Timer servo_timer, PWMChannel servo_ch);
+
+    WingServo(PWM::Timer servo_timer, PWMChannel servo_ch, float minPosition,
+              float maxPosition);
+
+    virtual ~WingServo();
+
+    void enable() override;
+
+    void disable() override;
 
     /**
-     * @brief Starts the execution of the algorithm and set the running flag to
-     * true.
-     * */
-    void begin() { running = true; }
+     * @brief Perform wiggle around the middle point.
+     */
+    void selfTest() override;
 
-    /**
-     * @brief Terminates the algorithm's execution and sets the running flag to
-     * false.
-     * */
-    void end() { running = false; }
-
-    /**
-     * @brief Checks wether the algorithm is in a running state or not, and
-     * eventually calls the @see{step} routine.
-     * */
-    void update()
-    {
-        if (running)
-        {
-            step();
-        }
-    }
+private:
+    Servo servo;
+    PWMChannel servo_channel;
 
 protected:
     /**
-     * @brief The actual algorithm step.
+     * @brief Set servo position.
+     *
+     * @param angle servo position (in degrees)
      */
-    virtual void step() = 0;
-
-    bool running = false;
+    void setPosition(float angle) override;
 };
 
-}  // namespace DeathStackBoard
+}  // namespace PayloadBoard

@@ -22,9 +22,6 @@
 
 #pragma once
 
-namespace DeathStackBoard
-{
-
 /**
  * @brief Class for interfacing with 180° servo motors, works in degrees.
  *
@@ -155,5 +152,3 @@ protected:
      */
     float currentPosition = 0;
 };
-
-}  // namespace DeathStackBoard

@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Vincenzo Santomarco
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +22,33 @@
 
 #pragma once
 
-#include <AirBrakes/AirBrakesData.h>
-#include <LoggerService/LoggerService.h>
-#include <common/ServoInterface.h>
-#include <configs/AirBrakesConfig.h>
-#include <drivers/servo/servo.h>
-#include <miosix.h>
+//#include <TelemetriesTelecommands/Mavlink.h>
+#include <drivers/Xbee/Xbee.h>
 
-#ifdef HARDWARE_IN_THE_LOOP
-#include <hardware_in_the_loop/HIL.h>
-#endif
+using namespace Boardcore;
 
-namespace DeathStackBoard
+namespace PayloadBoard
 {
 
-using namespace AirBrakesConfigs;
-
-class AirBrakesServo : public ServoInterface
+class Radio
 {
 public:
-    AirBrakesServo();
+    //TMTCController* tmtc_manager;
+    //TmRepository* tm_repo;
+    Xbee::Xbee* xbee;
+    //MavDriver* mav_driver;
 
-    AirBrakesServo(float minPosition, float maxPosition);
+    Radio(SPIBusInterface& xbee_bus_);
+    ~Radio();
 
-    AirBrakesServo(float minPosition, float maxPosition, float resetPosition);
+    bool start();
 
-    virtual ~AirBrakesServo();
-
-    void enable() override;
-
-    void disable() override;
-
-    /**
-     * @brief Perform wiggle around the middle point.
-     */
-    void selfTest() override;
+    void logStatus();
 
 private:
-    Servo servo{AirBrakesConfigs::AB_SERVO_TIMER};
+    void onXbeeFrameReceived(Xbee::APIFrame& frame);
 
-#ifdef HARDWARE_IN_THE_LOOP
-    HIL *simulator = HIL::getInstance();
-#endif
-
-protected:
-    /**
-     * @brief Set servo position.
-     *
-     * @param angle servo position (in degrees)
-     */
-    void setPosition(float angle) override;
-
-    float preprocessPosition(float angle) override;
+    SPIBusInterface& xbee_bus;
 };
 
-}  // namespace DeathStackBoard
+}  // namespace PayloadBoard

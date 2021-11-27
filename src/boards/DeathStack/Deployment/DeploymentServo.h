@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <ServoInterface.h>
+#include <common/ServoInterface.h>
 #include <configs/DeploymentConfig.h>
 #include <drivers/servo/servo.h>
 #include <miosix.h>

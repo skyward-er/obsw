@@ -32,7 +32,7 @@
 #include <NavigationAttitudeSystem/NASData.h>
 #include <PinHandler/PinHandlerData.h>
 #include <Singleton.h>
-#include <System/SystemData.h>
+#include <SystemData.h>
 #include <Main/SensorsData.h>
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
