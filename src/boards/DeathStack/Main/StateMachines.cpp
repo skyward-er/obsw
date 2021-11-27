@@ -33,6 +33,8 @@
 #include <hardware_in_the_loop/HIL.h>
 #endif
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,

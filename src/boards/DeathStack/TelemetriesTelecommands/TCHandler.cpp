@@ -29,6 +29,8 @@
 #include <events/Events.h>
 
 using std::map;
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

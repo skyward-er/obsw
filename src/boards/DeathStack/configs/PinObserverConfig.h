@@ -26,6 +26,8 @@
 #include <miosix.h>
 #include <utils/PinObserver.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

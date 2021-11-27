@@ -25,6 +25,8 @@
 #include <drivers/HardwareTimer.h>
 #include <drivers/pwm/pwm.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

@@ -37,6 +37,8 @@
 using std::bind;
 using std::function;
 
+using namespace Boardcore;
+
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {

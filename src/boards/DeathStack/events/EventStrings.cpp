@@ -29,10 +29,13 @@
 // Autogen date: 2021-09-08 23:46:23.104837
 
 #include <map>
+
 using std::map;
 
 #include "Events.h"
 #include "Topics.h"
+
+using namespace Boardcore;
 
 string getEventString(uint8_t event)
 {

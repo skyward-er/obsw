@@ -35,6 +35,7 @@
 // using std::function;
 using std::bind;
 using namespace std::placeholders;
+using namespace Boardcore;
 
 // Xbee ATTN interrupt
 void __attribute__((used)) EXTI10_IRQHandlerImpl()

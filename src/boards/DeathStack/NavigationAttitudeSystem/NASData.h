@@ -30,6 +30,8 @@
 #include <iostream>
 #include <string>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

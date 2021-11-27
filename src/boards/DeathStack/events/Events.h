@@ -39,6 +39,7 @@
 #include "events/EventBroker.h"
 
 using std::string;
+using namespace Boardcore;
 
 /**
  * Definition of all events in the Board software.

@@ -35,6 +35,8 @@
 #include <mocksensors/MockSensors.h>
 #endif
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

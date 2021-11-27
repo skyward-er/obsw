@@ -27,6 +27,8 @@
 #include <drivers/servo/servo.h>
 #include <miosix.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

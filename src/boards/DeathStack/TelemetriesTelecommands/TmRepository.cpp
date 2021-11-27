@@ -31,6 +31,8 @@
 #include <configs/SensorsConfig.h>
 #include <configs/TMTCConfig.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

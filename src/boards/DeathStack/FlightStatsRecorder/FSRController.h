@@ -39,6 +39,8 @@
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

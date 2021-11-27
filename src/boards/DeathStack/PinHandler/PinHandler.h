@@ -27,6 +27,8 @@
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

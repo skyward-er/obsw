@@ -33,6 +33,8 @@
 using miosix::FastMutex;
 using miosix::Lock;
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

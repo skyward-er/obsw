@@ -50,6 +50,7 @@
 #endif
 
 using std::bind;
+using namespace Boardcore;
 
 namespace DeathStackBoard
 {

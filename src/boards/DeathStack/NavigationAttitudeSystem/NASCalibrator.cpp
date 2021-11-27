@@ -23,6 +23,8 @@
 #include <NavigationAttitudeSystem/NASCalibrator.h>
 #include <utils/aero/AeroUtils.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

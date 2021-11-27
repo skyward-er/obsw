@@ -35,6 +35,8 @@
 #include <events/EventBroker.h>
 #include <events/Events.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

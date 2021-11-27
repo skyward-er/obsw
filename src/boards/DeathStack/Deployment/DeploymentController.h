@@ -31,6 +31,7 @@
 #include <events/Events.h>
 #include <events/FSM.h>
 
+using namespace Boardcore;
 using namespace DeathStackBoard::DeploymentConfigs;
 using namespace DeathStackBoard::CutterConfig;
 

@@ -25,6 +25,8 @@
 #include <drivers/spi/SPIBus.h>
 #include <miosix.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

@@ -28,6 +28,8 @@
 #include <Constants.h>
 #include <ostream>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

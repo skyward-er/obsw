@@ -29,6 +29,7 @@
 #include <Eigen/Dense>
 
 using namespace Eigen;
+using namespace Boardcore;
 
 namespace DeathStackBoard
 {

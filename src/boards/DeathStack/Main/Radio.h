@@ -25,6 +25,8 @@
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

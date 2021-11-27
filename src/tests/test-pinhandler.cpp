@@ -23,6 +23,8 @@
 #include "Common.h"
 #include "PinHandler/PinHandler.h"
 
+using namespace Boardcore;
+
 using namespace DeathStackBoard;
 
 int main()

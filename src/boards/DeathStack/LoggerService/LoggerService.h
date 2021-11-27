@@ -26,6 +26,8 @@
 #include <TelemetriesTelecommands/TmRepository.h>
 #include <logger/Logger.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

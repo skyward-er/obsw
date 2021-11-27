@@ -28,6 +28,8 @@
 #include <events/Events.h>
 #include <events/FSM.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

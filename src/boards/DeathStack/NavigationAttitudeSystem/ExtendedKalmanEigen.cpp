@@ -22,6 +22,8 @@
 
 #include <NavigationAttitudeSystem/ExtendedKalmanEigen.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

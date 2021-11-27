@@ -40,7 +40,7 @@
  */
 
 using namespace std;
-
+using namespace Boardcore;
 using namespace DeathStackBoard::CutterConfig;
 
 static constexpr int MAX_CUTTING_TIME = 10 * 1000;  // ms
