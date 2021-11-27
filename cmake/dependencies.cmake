@@ -64,6 +64,7 @@ set(PAYLOAD_SOURCES
     src/boards/Payload/WingControl/WingServo.cpp
     src/boards/Payload/Main/Sensors.cpp
     src/boards/Payload/Main/Radio.cpp
+    src/boards/Payload/PinHandler/PinHandler.cpp
 )
 set(ADA_SOURCES
     src/boards/DeathStack/ApogeeDetectionAlgorithm/ADAAlgorithm.cpp

@@ -30,8 +30,8 @@
 #include <Payload/Main/Bus.h>
 #include <Payload/Main/Radio.h>
 #include <Payload/Main/Sensors.h>
-//#include <Main/StateMachines.h>
-//#include <PinHandler/PinHandler.h>
+//#include <Payload/Main/StateMachines.h>
+#include <Payload/PinHandler/PinHandler.h>
 #include <System/StackLogger.h>
 #include <System/TaskID.h>
 #include <events/EventBroker.h>
@@ -76,7 +76,7 @@ public:
     Radio* radio;
     Actuators* actuators;
 
-    //PinHandler* pin_handler;
+    PinHandler* pin_handler;
 
     TaskScheduler* scheduler;
 
@@ -104,13 +104,13 @@ public:
         {
             LOG_ERR(log, "Error starting state machines");
             status.setError(&PayloadStatus::state_machines);
-        }
+        }*/
 
         if (!pin_handler->start())
         {
             LOG_ERR(log, "Error starting PinObserver");
             status.setError(&PayloadStatus::pin_obs);
-        }*/
+        }
 
 #ifdef DEBUG
         injector->start();
@@ -175,6 +175,8 @@ private:
         radio     = new Radio(*bus->spi2);
         sensors   = new Sensors(*bus->spi1, scheduler);
         actuators = new Actuators();
+
+        pin_handler = new PinHandler();
 
 #ifdef DEBUG
         injector = new EventInjector();
