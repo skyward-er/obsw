@@ -19,30 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */ 
+ #include <ParafoilTest.h>
+ 
+ using namespace ParafoilTestDev;
 
-#pragma once
-
-#include <Common.h>
-#include <Main/Sensors.h>
-
-using namespace Boardcore;
-
-/**
- * This class is the main singleton that keeps all the project objects.
- * It has all the instances and initializes all of them.
- */
-namespace ParafoilTest
-{
-    class PayloadTest : public Singleton<PayloadTest>
-    {
-    private:
-        
-        /**
-         * @brief Constructor
-         */
-        PayloadTest()
-        {
-            
-        }
-    }
-}
+ 
+ int main()
+ {
+ 	//TODO integrate all the logging stuff
+ 	ParafoilTest::getInstance() -> start();
+ 	return 0;
+ } 

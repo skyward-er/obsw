@@ -31,7 +31,7 @@
 
 #include <sensors/LIS3DSH/LIS3DSH.h>
 
-namespace ParafoilTest
+namespace ParafoilTestDev
 {
     static constexpr unsigned int SAMPLE_PERIOD_ACCEL_LIS3DSH = 2; //2 millis
 

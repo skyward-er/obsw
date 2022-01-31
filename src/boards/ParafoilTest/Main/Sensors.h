@@ -31,7 +31,7 @@ using namespace Boardcore;
  * Every instance is initialized by the constructor. Also every
  * sensor has its own status
  */
-namespace ParafoilTest
+namespace ParafoilTestDev
 {
     class Sensors
     {
@@ -57,7 +57,7 @@ namespace ParafoilTest
          * @brief initializes the LIS3DSH method
          */
         void initLIS3DSH();
-        void LIS3DSHcallback();
+        void LIS3DSHCallback();
 
 
     public:
@@ -86,5 +86,5 @@ namespace ParafoilTest
          * @brief Calibrates the sensors that need to
          */
         void calibrate();
-    }
+    };
 }

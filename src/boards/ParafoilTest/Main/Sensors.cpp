@@ -28,7 +28,7 @@ using std::bind;
 
 using namespace Boardcore;
 
-namespace ParafoilTest
+namespace ParafoilTestDev
 {
     /**
      * PRIVATE METHODS
