@@ -28,9 +28,9 @@
 #include <Algorithm.h>
 #include <LoggerService/LoggerService.h>
 #include <ServoInterface.h>
-#include <TimestampTimer.h>
 #include <configs/AirBrakesConfig.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <sensors/Sensor.h>
 
 #include <algorithm>
@@ -89,7 +89,7 @@ public:
 #ifdef HARDWARE_IN_THE_LOOP
         else
         {
-            HIL::getInstance()->send(0.0);
+            HIL::getInstance().send(0.0);
         }
 #endif
     }
@@ -212,8 +212,8 @@ public:
     void logAirbrakesData(uint64_t t);
 
 private:
-    int indexMinVal       = 0;
-    float alpha           = 0;
+    int indexMinVal = 0;
+    float alpha     = 0;
 
     uint64_t last_input_ts = 0;
     uint64_t begin_ts      = 0;
@@ -239,7 +239,7 @@ template <class T>
 AirBrakesControlAlgorithm<T>::AirBrakesControlAlgorithm(
     Sensor<T>& sensor, ServoInterface* actuator)
     : actuator(actuator), sensor(sensor), pid(Kp, Ki),
-      logger(*(LoggerService::getInstance()))
+      logger(LoggerService::getInstance())
 {
 }
 
@@ -253,7 +253,7 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     running = true;
 
-    begin_ts = TimestampTimer::getTimestamp();
+    begin_ts = TimestampTimer::getInstance().getTimestamp();
 
     last_input_ts = (sensor.getLastSample()).timestamp;
 
@@ -275,7 +275,7 @@ void AirBrakesControlAlgorithm<T>::step()
         alpha         = computeAlpha(input, false);
     }
 
-    uint64_t curr_ts = TimestampTimer::getTimestamp();
+    uint64_t curr_ts = TimestampTimer::getInstance().getTimestamp();
 
 #ifdef EUROC
     if (curr_ts - begin_ts < AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE * 1000)

@@ -67,7 +67,7 @@ const std::map<uint8_t, uint8_t> tcMap = {
 void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
     // log status
-    DeathStack::getInstance()->radio->logStatus();
+    DeathStack::getInstance().radio->logStatus();
 
     // acknowledge
     sendAck(mav_driver, msg);
@@ -83,7 +83,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             // search for the corresponding event and post it
             auto it = tcMap.find(commandId);
             if (it != tcMap.end())
-                sEventBroker->post(Event{it->second}, TOPIC_TMTC);
+                sEventBroker.post(Event{it->second}, TOPIC_TMTC);
             else
                 LOG_WARN(print_logger, "Unknown NOARG command {:d}", commandId);
 
@@ -100,7 +100,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                     LOG_INFO(print_logger, "Received command CLOSE_LOG");
                     break;
                 case MAV_CMD_START_LOGGING:
-                    DeathStack::getInstance()->startLogger();
+                    DeathStack::getInstance().startLogger();
                     sendTelemetry(mav_driver, MAV_LOGGER_TM_ID);
                     LOG_INFO(print_logger, "Received command START_LOG");
                     break;
@@ -128,8 +128,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 print_logger,
                 "Received SET_REFERENCE_ALTITUDE command. Ref altitude: {:f} m",
                 alt);
-            DeathStack::getInstance()->state_machines->setReferenceAltitude(
-                alt);
+            DeathStack::getInstance().state_machines->setReferenceAltitude(alt);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -140,7 +139,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 print_logger,
                 "Received SET_REFERENCE_TEMPERATURE command. Temp: {:f} degC",
                 temp);
-            DeathStack::getInstance()->state_machines->setReferenceTemperature(
+            DeathStack::getInstance().state_machines->setReferenceTemperature(
                 temp);
             break;
         }
@@ -153,7 +152,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 "Received SET_DEPLOYMENT_ALTITUDE command. Dpl alt: {:f} m",
                 alt);
             DeathStack::getInstance()
-                ->state_machines->ada_controller->setDeploymentAltitude(alt);
+                .state_machines->ada_controller->setDeploymentAltitude(alt);
             break;
         }
         case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
@@ -166,7 +165,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                       "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
                       "pitch: {:f}, yaw: {:f}",
                       roll, pitch, yaw);
-            DeathStack::getInstance()->state_machines->setInitialOrientation(
+            DeathStack::getInstance().state_machines->setInitialOrientation(
                 roll, pitch, yaw);
             break;
         }
@@ -182,7 +181,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
                 "Received SET_INITIAL_COORDINATES command. latitude: {:f}, "
                 "longitude: {:f}",
                 latitude, longitude);
-            DeathStack::getInstance()->state_machines->setInitialCoordinates(
+            DeathStack::getInstance().state_machines->setInitialCoordinates(
                 latitude, longitude);
             break;
         }
@@ -191,8 +190,8 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
             LOG_DEBUG(print_logger, "Received RAW_EVENT command");
 
             // post given event on given topic
-            sEventBroker->post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
-                               mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+            sEventBroker.post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
+                              mavlink_msg_raw_event_tc_get_Topic_id(&msg));
             break;
         }
 
@@ -205,7 +204,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         {
             float pos = mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
             DeathStack::getInstance()
-                ->state_machines->arb_controller->setAirBrakesPosition(pos);
+                .state_machines->arb_controller->setAirBrakesPosition(pos);
             LOG_DEBUG(print_logger, "Received set ab pos: {:.1f} deg", pos);
 
             break;
@@ -231,11 +230,10 @@ bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id)
 {
     // enqueue the TM packet taking it from the TM repo (pauses kernel to
     // guarantee synchronicity)
-    bool ok =
-        mav_driver->enqueueMsg(TmRepository::getInstance()->packTM(tm_id));
+    bool ok = mav_driver->enqueueMsg(TmRepository::getInstance().packTM(tm_id));
 
     // update status
-    DeathStack::getInstance()->radio->logStatus();
+    DeathStack::getInstance().radio->logStatus();
 
     return ok;
 }

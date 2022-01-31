@@ -40,8 +40,8 @@
 #include <NavigationAttitudeSystem/ExtendedKalmanEigen.h>
 #include <NavigationAttitudeSystem/InitStates.h>
 #include <NavigationAttitudeSystem/NASData.h>
-#include <TimestampTimer.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <math/SkyQuaternion.h>
 #include <sensors/Sensor.h>
 
@@ -187,7 +187,7 @@ bool NAS<IMU, Press, GPS>::init()
 
     initialized = true;
 
-    LoggerService::getInstance()->log(getTriadResult());
+    LoggerService::getInstance().log(getTriadResult());
 
     return initialized;
 }
@@ -211,52 +211,54 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     Press pressure_data = barometer.getLastSample();
 
     // update ekf with new accel and gyro measures
-    if (imu_data.accel_timestamp != last_accel_timestamp &&
-        imu_data.gyro_timestamp != last_gyro_timestamp)
+    if (imu_data.accelerationTimestamp != last_accel_timestamp &&
+        imu_data.angularVelocityTimestamp != last_gyro_timestamp)
     {
-        last_accel_timestamp = imu_data.accel_timestamp;
-        last_gyro_timestamp  = imu_data.gyro_timestamp;
+        last_accel_timestamp = imu_data.accelerationTimestamp;
+        last_gyro_timestamp  = imu_data.angularVelocityTimestamp;
 
-        Vector3f accel_readings(imu_data.accel_x, imu_data.accel_y,
-                                imu_data.accel_z);
+        Vector3f accel_readings(imu_data.accelerationX, imu_data.accelerationY,
+                                imu_data.accelerationZ);
         filter.predict(accel_readings);
 
-        Vector3f gyro_readings(imu_data.gyro_x, imu_data.gyro_y,
-                               imu_data.gyro_z);
+        Vector3f gyro_readings(imu_data.angularVelocityX,
+                               imu_data.angularVelocityY,
+                               imu_data.angularVelocityZ);
         filter.predictMEKF(gyro_readings);
     }
 
     // check if new pressure data is available
-    if (pressure_data.press_timestamp != last_press_timestamp)
+    if (pressure_data.pressureTimestamp != last_press_timestamp)
     {
-        last_press_timestamp = pressure_data.press_timestamp;
+        last_press_timestamp = pressure_data.pressureTimestamp;
 
-        filter.correctBaro(pressure_data.press, ref_values.msl_pressure,
+        filter.correctBaro(pressure_data.pressure, ref_values.msl_pressure,
                            ref_values.msl_temperature);
     }
 
     // check if new gps data is available and the gps has fix
-    if (gps_data.gps_timestamp != last_gps_timestamp && gps_data.fix == true)
+    if (gps_data.gpsTimestamp != last_gps_timestamp && gps_data.fix == true)
     {
-        last_gps_timestamp = gps_data.gps_timestamp;
+        last_gps_timestamp = gps_data.gpsTimestamp;
 
         Vector3f gps_readings(gps_data.latitude, gps_data.longitude,
                               gps_data.height);
         Vector3f gps_ned = geodetic2NED(gps_readings);
 
-        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocity_north,
-                         gps_data.velocity_east);
-        filter.correctGPS(pos_vel, gps_data.num_satellites);
+        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocityNorth,
+                         gps_data.velocityEast);
+        filter.correctGPS(pos_vel, gps_data.satellites);
     }
 
     // check if new magnetometer data is available
-    if (imu_data.mag_timestamp != last_mag_timestamp)
+    if (imu_data.magneticFieldTimestamp != last_mag_timestamp)
     {
-        Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
+        Vector3f mag_readings(imu_data.magneticFieldX, imu_data.magneticFieldY,
+                              imu_data.magneticFieldZ);
 
         if (mag_readings.norm() < EMF * JAMMING_FACTOR)
         {
-            last_mag_timestamp = imu_data.mag_timestamp;
+            last_mag_timestamp = imu_data.magneticFieldTimestamp;
 
             mag_readings.normalize();
             filter.correctMEKF(mag_readings);
@@ -351,7 +353,7 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
 template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::updateNASData()
 {
-    nas_data.timestamp = TimestampTimer::getTimestamp();
+    nas_data.timestamp = TimestampTimer::getInstance().getTimestamp();
 
     nas_data.x = x(0);
     nas_data.y = x(1);

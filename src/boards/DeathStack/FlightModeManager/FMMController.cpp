@@ -34,28 +34,28 @@ namespace DeathStackBoard
 FMMController::FMMController()
     : HSM(&FMMController::state_initialization, STACK_MIN_FOR_SKYWARD,
           FMM_PRIORITY),
-      logger(*(LoggerService::getInstance()))
+      logger(LoggerService::getInstance())
 {
-    sEventBroker->subscribe(this, TOPIC_ADA);
-    sEventBroker->subscribe(this, TOPIC_NAS);
-    sEventBroker->subscribe(this, TOPIC_TMTC);
-    sEventBroker->subscribe(this, TOPIC_FMM);
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_ADA);
+    sEventBroker.subscribe(this, TOPIC_NAS);
+    sEventBroker.subscribe(this, TOPIC_TMTC);
+    sEventBroker.subscribe(this, TOPIC_FMM);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
 }
 
 FMMController::~FMMController()
 {
     // Unsubscribe from all topics
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 void FMMController::logState(FMMState current_state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = TimestampTimer::getInstance().getTimestamp();
     status.state     = current_state;
 
     logger.log(status);
-    StackLogger::getInstance()->updateStack(THID_FMM_FSM);
+    StackLogger::getInstance().updateStack(THID_FMM_FSM);
 }
 
 State FMMController::state_initialization(const Event& ev)
@@ -69,7 +69,7 @@ State FMMController::state_initialization(const Event& ev)
 State FMMController::state_onGround(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -106,7 +106,7 @@ State FMMController::state_onGround(const Event& ev)
         default: /* If an event is not handled here, try with super-state */
         {
             // Since this is an outer super-state, the parent is HSM_top
-            retState = tran_super(&FMMController::Hsm_top);
+            retState = tranSuper(&FMMController::Hsm_top);
             break;
         }
     }
@@ -116,7 +116,7 @@ State FMMController::state_onGround(const Event& ev)
 State FMMController::state_init(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -146,7 +146,7 @@ State FMMController::state_init(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -156,7 +156,7 @@ State FMMController::state_init(const Event& ev)
 State FMMController::state_initError(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -181,7 +181,7 @@ State FMMController::state_initError(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -191,7 +191,7 @@ State FMMController::state_initError(const Event& ev)
 State FMMController::state_initDone(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -221,7 +221,7 @@ State FMMController::state_initDone(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -231,7 +231,7 @@ State FMMController::state_initDone(const Event& ev)
 State FMMController::state_sensorsCalibration(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -239,8 +239,8 @@ State FMMController::state_sensorsCalibration(const Event& ev)
 
             LOG_DEBUG(log, "Entering sensors_calibration");
 
-            DeathStack::getInstance()->sensors->calibrate();
-            sEventBroker->post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
+            DeathStack::getInstance().sensors->calibrate();
+            sEventBroker.post({EV_SENSORS_READY}, TOPIC_FLIGHT_EVENTS);
 
             break;
         }
@@ -266,7 +266,7 @@ State FMMController::state_sensorsCalibration(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -276,14 +276,14 @@ State FMMController::state_sensorsCalibration(const Event& ev)
 State FMMController::state_algosCalibration(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::ALGOS_CALIBRATION);
 
-            sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
-            sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
+            sEventBroker.post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+            sEventBroker.post({EV_CALIBRATE_NAS}, TOPIC_NAS);
 
             LOG_DEBUG(log, "Entering algos_calibration");
             break;
@@ -308,8 +308,8 @@ State FMMController::state_algosCalibration(const Event& ev)
             ada_ready = true;
             if (nas_ready)
             {
-                sEventBroker->post(Event{EV_CALIBRATION_OK},
-                                   TOPIC_FLIGHT_EVENTS);
+                sEventBroker.post(Event{EV_CALIBRATION_OK},
+                                  TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
@@ -318,8 +318,8 @@ State FMMController::state_algosCalibration(const Event& ev)
             nas_ready = true;
             if (ada_ready)
             {
-                sEventBroker->post(Event{EV_CALIBRATION_OK},
-                                   TOPIC_FLIGHT_EVENTS);
+                sEventBroker.post(Event{EV_CALIBRATION_OK},
+                                  TOPIC_FLIGHT_EVENTS);
             }
             break;
         }
@@ -330,7 +330,7 @@ State FMMController::state_algosCalibration(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -340,11 +340,11 @@ State FMMController::state_algosCalibration(const Event& ev)
 State FMMController::state_disarmed(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
-            sEventBroker->post({EV_DISARMED}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post({EV_DISARMED}, TOPIC_FLIGHT_EVENTS);
             logState(FMMState::DISARMED);
             LOG_DEBUG(log, "Entering disarmed");
 
@@ -380,7 +380,7 @@ State FMMController::state_disarmed(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -390,11 +390,11 @@ State FMMController::state_disarmed(const Event& ev)
 State FMMController::state_armed(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
-            sEventBroker->post({EV_ARMED}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post({EV_ARMED}, TOPIC_FLIGHT_EVENTS);
             logState(FMMState::ARMED);
 
             LOG_DEBUG(log, "Entering armed");
@@ -423,7 +423,7 @@ State FMMController::state_armed(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::Hsm_top);
+            retState = tranSuper(&FMMController::Hsm_top);
             break;
         }
     }
@@ -433,7 +433,7 @@ State FMMController::state_armed(const Event& ev)
 State FMMController::state_testMode(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -455,37 +455,37 @@ State FMMController::state_testMode(const Event& ev)
         }
         case EV_TC_NC_OPEN:
         {
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_NC_OPEN}, TOPIC_DPL);
             break;
         }
         case EV_TC_DPL_WIGGLE_SERVO:
         {
-            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_WIGGLE_SERVO}, TOPIC_DPL);
             break;
         }
         case EV_TC_DPL_RESET_SERVO:
         {
-            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_RESET_SERVO}, TOPIC_DPL);
             break;
         }
         case EV_TC_CUT_DROGUE:
         {
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
             break;
         }
         case EV_TC_ABK_WIGGLE_SERVO:
         {
-            sEventBroker->post(Event{EV_WIGGLE_SERVO}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_WIGGLE_SERVO}, TOPIC_ABK);
             break;
         }
         case EV_TC_ABK_RESET_SERVO:
         {
-            sEventBroker->post(Event{EV_RESET_SERVO}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_RESET_SERVO}, TOPIC_ABK);
             break;
         }
         case EV_TC_TEST_ABK:
         {
-            sEventBroker->post(Event{EV_TEST_ABK}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_TEST_ABK}, TOPIC_ABK);
             break;
         }
         case EV_TC_CLOSE_LOG:
@@ -495,12 +495,12 @@ State FMMController::state_testMode(const Event& ev)
         }
         case EV_TC_START_LOG:
         {
-            DeathStackBoard::DeathStack::getInstance()->startLogger();
+            DeathStackBoard::DeathStack::getInstance().startLogger();
             break;
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_onGround);
+            retState = tranSuper(&FMMController::state_onGround);
             break;
         }
     }
@@ -510,20 +510,20 @@ State FMMController::state_testMode(const Event& ev)
 State FMMController::state_flying(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::FLYING);
 
-            sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
             // Start timeout for closing file descriptors
             end_mission_d_event_id =
-                sEventBroker->postDelayed<TIMEOUT_END_MISSION>(
+                sEventBroker.postDelayed<TIMEOUT_END_MISSION>(
                     {EV_TIMEOUT_END_MISSION}, TOPIC_FMM);
 
 #ifdef USE_MOCK_SENSORS
-            DeathStack::getInstance()->sensors->signalLiftoff();
+            DeathStack::getInstance().ensors->signalLiftoff();
 #endif
 
             LOG_DEBUG(log, "Entering flying");
@@ -540,21 +540,21 @@ State FMMController::state_flying(const Event& ev)
         {
             LOG_DEBUG(log, "Exiting flying");
 
-            sEventBroker->removeDelayed(end_mission_d_event_id);
+            sEventBroker.removeDelayed(end_mission_d_event_id);
             break;
         }
         case EV_TC_NC_OPEN:
         {
             // Open nosecone command sent by GS in case of problems
             // during flight
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_NC_OPEN}, TOPIC_DPL);
             break;
         }
         case EV_TC_ABK_DISABLE:
         {
             // Disable airbrakes command sent by GS in case of problems
             // during flight
-            sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
             break;
         }
         case EV_TC_END_MISSION:
@@ -565,7 +565,7 @@ State FMMController::state_flying(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::Hsm_top);
+            retState = tranSuper(&FMMController::Hsm_top);
             break;
         }
     }
@@ -575,7 +575,7 @@ State FMMController::state_flying(const Event& ev)
 State FMMController::state_ascending(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
@@ -597,7 +597,7 @@ State FMMController::state_ascending(const Event& ev)
         case EV_ADA_APOGEE_DETECTED:
         {
             // Notify of apogee all components
-            sEventBroker->post(Event{EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Event{EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
 
             retState = transition(&FMMController::state_drogueDescent);
             break;
@@ -605,14 +605,14 @@ State FMMController::state_ascending(const Event& ev)
         case EV_ADA_DISABLE_ABK:
         {
             // Send disable airbrakes
-            sEventBroker->post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_DISABLE_ABK}, TOPIC_ABK);
 
             retState = transition(&FMMController::state_ascending);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_flying);
+            retState = tranSuper(&FMMController::state_flying);
             break;
         }
     }
@@ -622,12 +622,12 @@ State FMMController::state_ascending(const Event& ev)
 State FMMController::state_drogueDescent(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             // Open nosecone
-            sEventBroker->post(Event{EV_NC_OPEN}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_NC_OPEN}, TOPIC_DPL);
 
             logState(FMMState::DROGUE_DESCENT);
             LOG_DEBUG(log, "Entering drogueDescent");
@@ -651,7 +651,7 @@ State FMMController::state_drogueDescent(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_flying);
+            retState = tranSuper(&FMMController::state_flying);
             break;
         }
     }
@@ -661,13 +661,13 @@ State FMMController::state_drogueDescent(const Event& ev)
 State FMMController::state_terminalDescent(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
-            sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
 
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
 
             logState(FMMState::TERMINAL_DESCENT);
 
@@ -684,12 +684,12 @@ State FMMController::state_terminalDescent(const Event& ev)
         }
         case EV_TC_CUT_DROGUE:  // if you want to repeat cutting
         {
-            sEventBroker->post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
+            sEventBroker.post(Event{EV_CUT_DROGUE}, TOPIC_DPL);
             break;
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::state_flying);
+            retState = tranSuper(&FMMController::state_flying);
             break;
         }
     }
@@ -699,14 +699,14 @@ State FMMController::state_terminalDescent(const Event& ev)
 State FMMController::state_landed(const Event& ev)
 {
     State retState = HANDLED;
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY: /* Executed everytime state is entered */
         {
             logState(FMMState::LANDED);
 
             // Announce landing to all components
-            sEventBroker->post(Event{EV_LANDED}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Event{EV_LANDED}, TOPIC_FLIGHT_EVENTS);
             logger.stop();
 
             LOG_DEBUG(log, "Entering landed");
@@ -722,7 +722,7 @@ State FMMController::state_landed(const Event& ev)
         }
         default: /* If an event is not handled here, try with super-state */
         {
-            retState = tran_super(&FMMController::Hsm_top);
+            retState = tranSuper(&FMMController::Hsm_top);
             break;
         }
     }

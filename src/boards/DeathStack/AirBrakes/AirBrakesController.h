@@ -26,9 +26,9 @@
 #include <AirBrakes/AirBrakesData.h>
 #include <AirBrakes/AirBrakesServo.h>
 #include <System/StackLogger.h>
-#include <TimestampTimer.h>
 #include <configs/AirBrakesConfig.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
@@ -95,14 +95,14 @@ AirBrakesController<T>::AirBrakesController(Sensor<T>& sensor,
       servo(servo), algorithm(sensor, servo)
 {
     memset(&status, 0, sizeof(AirBrakesControllerStatus));
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_ABK);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_ABK);
 }
 
 template <class T>
 AirBrakesController<T>::~AirBrakesController()
 {
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 template <class T>
@@ -114,7 +114,7 @@ void AirBrakesController<T>::update()
 template <class T>
 void AirBrakesController<T>::state_initialization(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -141,7 +141,7 @@ void AirBrakesController<T>::state_initialization(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_idle(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -185,12 +185,12 @@ void AirBrakesController<T>::state_idle(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_shadowMode(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
             ev_shadow_mode_timeout_id =
-                sEventBroker->postDelayed<SHADOW_MODE_DURATION>(
+                sEventBroker.postDelayed<SHADOW_MODE_DURATION>(
                     Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(AirBrakesControllerState::SHADOW_MODE);
@@ -223,7 +223,7 @@ void AirBrakesController<T>::state_shadowMode(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_enabled(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -259,7 +259,7 @@ void AirBrakesController<T>::state_enabled(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_end(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -287,7 +287,7 @@ void AirBrakesController<T>::state_end(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_disabled(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -315,7 +315,7 @@ void AirBrakesController<T>::state_disabled(const Event& ev)
 template <class T>
 void AirBrakesController<T>::state_testAirbrakes(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -329,7 +329,7 @@ void AirBrakesController<T>::state_testAirbrakes(const Event& ev)
 
             logStatus(AirBrakesControllerState::TEST_AEROBRAKES);
 
-            sEventBroker->post(Event{EV_TEST_TIMEOUT}, TOPIC_ABK);
+            sEventBroker.post(Event{EV_TEST_TIMEOUT}, TOPIC_ABK);
             break;
         }
         case EV_EXIT:
@@ -392,12 +392,12 @@ void AirBrakesController<T>::incrementallyClose()
 template <class T>
 void AirBrakesController<T>::logStatus(AirBrakesControllerState state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = TimestampTimer::getInstance().getTimestamp();
     status.state     = state;
 
-    LoggerService::getInstance()->log(status);
+    LoggerService::getInstance().log(status);
 
-    StackLogger::getInstance()->updateStack(THID_ABK_FSM);
+    StackLogger::getInstance().updateStack(THID_ABK_FSM);
 }
 
 template <class T>

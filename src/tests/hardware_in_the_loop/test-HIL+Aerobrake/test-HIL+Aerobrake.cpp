@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <events/EventBroker.h>
 
 #include "TimestampTimer.h"
@@ -72,8 +71,6 @@ void setIsSimulationRunning(bool running) { isSimulationRunning = running; }
 int main()
 {
     isSimulationRunning = true;
-
-    TimestampTimer::enableTimestampTimer();
 
     // Definition of the flight phases manager
     HILFlightPhasesManager *flightPhasesManager =

@@ -29,17 +29,17 @@
 #include <FlightModeManager/FMMStatus.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <FlightStatsRecorder/FSRData.h>
+#include <Main/SensorsData.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <PinHandler/PinHandlerData.h>
 #include <Singleton.h>
 #include <SystemData.h>
-#include <Main/SensorsData.h>
 #include <TelemetriesTelecommands/Mavlink.h>
+#include <configs/TMTCConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/Xbee/APIFramesLog.h>
-#include <drivers/adc/ADS1118/ADS1118Data.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 #include <scheduler/TaskSchedulerData.h>
+#include <sensors/ADS1118/ADS1118Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS5803/MS5803Data.h>
@@ -48,8 +48,6 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-
-#include <configs/TMTCConfig.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
@@ -175,7 +173,7 @@ void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t);
 template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
 
-#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t);
 
@@ -190,9 +188,9 @@ void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
 template <>
 void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
 
-#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 template <>
-void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
+void TmRepository::update<GPSData>(const GPSData& t);
 #endif
 
 template <>
@@ -213,7 +211,7 @@ void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
  * @brief Logger.
  */
 template <>
-void TmRepository::update<LogStats>(const LogStats& t);
+void TmRepository::update<LoggerStats>(const LoggerStats& t);
 
 /**
  * @brief Initialization status of the board.

@@ -24,9 +24,9 @@
 
 #include <LoggerService/LoggerService.h>
 #include <NavigationAttitudeSystem/NASData.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -112,8 +112,6 @@ public:
 
 private:
     void addAlgorithmsToScheduler(TaskScheduler* scheduler);
-
-    LoggerService& logger = *(LoggerService::getInstance());
 };
 
 }  // namespace DeathStackBoard

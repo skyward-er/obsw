@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <configs/TMTCConfig.h>
 #include <drivers/Xbee/Xbee.h>
 #include <drivers/gamma868/Gamma868.h>

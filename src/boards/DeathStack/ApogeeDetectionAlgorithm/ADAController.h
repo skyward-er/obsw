@@ -29,6 +29,7 @@
 #include <System/StackLogger.h>
 #include <configs/ADAConfig.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
@@ -221,7 +222,7 @@ private:
     unsigned int n_samples_abk_disable_detected =
         0;  //  Number of consecutive samples for abk disable
 
-    LoggerService& logger = *(LoggerService::getInstance());  // Logger
+    LoggerService& logger = LoggerService::getInstance();  // Logger
     PrintLogger log       = Logging::getLogger("deathstack.fms.ada");
 };
 
@@ -232,8 +233,8 @@ ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
       ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_ADA);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_ADA);
 
     status.state = ADAState::IDLE;
 }
@@ -248,9 +249,9 @@ void ADAController<Press, GPS>::update()
 {
     // if new gps data available, update GPS, regardless of the current state
     GPS gps_data = gps.getLastSample();
-    if (gps_data.gps_timestamp != last_gps_timestamp)
+    if (gps_data.gpsTimestamp != last_gps_timestamp)
     {
-        last_gps_timestamp = gps_data.gps_timestamp;
+        last_gps_timestamp = gps_data.gpsTimestamp;
 
         ada.updateGPS(gps_data.latitude, gps_data.longitude, gps_data.fix);
     }
@@ -258,11 +259,11 @@ void ADAController<Press, GPS>::update()
     // if new pressure data available, update baro, according to current state
     Press press_data = barometer.getLastSample();
 
-    if (press_data.press_timestamp != last_press_timestamp)
+    if (press_data.pressureTimestamp != last_press_timestamp)
     {
-        last_press_timestamp = press_data.press_timestamp;
+        last_press_timestamp = press_data.pressureTimestamp;
 
-        updateBaroAccordingToState(press_data.press);
+        updateBaroAccordingToState(press_data.pressure);
     }
 }
 
@@ -303,7 +304,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // Log the altitude & vertical speed but don't use kalman pressure
             // while we are on the ramp
             ADAData d;
-            d.timestamp    = TimestampTimer::getTimestamp();
+            d.timestamp    = TimestampTimer::getInstance().getTimestamp();
             d.msl_altitude = ada.pressureToAltitude(pressure);
             d.agl_altitude = ada.altitudeMSLtoAGL(d.msl_altitude);
             d.vert_speed   = 0;
@@ -321,8 +322,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
-                ApogeeDetected apogee{TimestampTimer::getTimestamp(),
-                                      status.state};
+                ApogeeDetected apogee{
+                    TimestampTimer::getInstance().getTimestamp(), status.state};
                 logger.log(apogee);
             }
 
@@ -341,13 +342,13 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 if (++n_samples_apogee_detected >= APOGEE_N_SAMPLES)
                 {
                     // Active state send notifications for apogee
-                    sEventBroker->post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
+                    sEventBroker.post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
                     status.apogee_reached = true;
                 }
 
                 // Log
-                ApogeeDetected apogee{TimestampTimer::getTimestamp(),
-                                      status.state};
+                ApogeeDetected apogee{
+                    TimestampTimer::getInstance().getTimestamp(), status.state};
                 logger.log(apogee);
             }
             else if (n_samples_apogee_detected != 0)
@@ -361,8 +362,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
                 {
                     // Active state send notifications for disabling airbrakes
-                    sEventBroker->post({EV_ADA_DISABLE_ABK},
-                                       TOPIC_FLIGHT_EVENTS);
+                    sEventBroker.post({EV_ADA_DISABLE_ABK},
+                                      TOPIC_FLIGHT_EVENTS);
                     status.disable_airbrakes = true;
                 }
             }
@@ -385,8 +386,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
-                    logger.log(
-                        DplAltitudeReached{TimestampTimer::getTimestamp()});
+                    logger.log(DplAltitudeReached{
+                        TimestampTimer::getInstance().getTimestamp()});
                 }
             }
             else if (n_samples_deployment_detected != 0)
@@ -407,10 +408,10 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             {
                 if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
                 {
-                    logger.log(
-                        DplAltitudeReached{TimestampTimer::getTimestamp()});
+                    logger.log(DplAltitudeReached{
+                        TimestampTimer::getInstance().getTimestamp()});
 
-                    sEventBroker->post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
+                    sEventBroker.post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
                 }
             }
             else if (n_samples_deployment_detected != 0)
@@ -503,7 +504,7 @@ void ADAController<Press, GPS>::finalizeCalibration()
         LOG_INFO(log, "Finalized calibration");
 
         // ADA READY!
-        sEventBroker->post({EV_ADA_READY}, TOPIC_ADA);
+        sEventBroker.post({EV_ADA_READY}, TOPIC_ADA);
 
         logger.log(calibrator.getReferenceValues());
         logger.log(ada.getKalmanState());
@@ -513,7 +514,7 @@ void ADAController<Press, GPS>::finalizeCalibration()
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_idle(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -541,7 +542,7 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_calibrating(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -579,7 +580,7 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_ready(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -612,12 +613,12 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
             shadow_delayed_event_id =
-                sEventBroker->postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
+                sEventBroker.postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
                     {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
             LOG_DEBUG(log, "Entering state shadowMode");
@@ -625,7 +626,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
         }
         case EV_EXIT:
         {
-            sEventBroker->removeDelayed(shadow_delayed_event_id);
+            sEventBroker.removeDelayed(shadow_delayed_event_id);
             LOG_DEBUG(log, "Exiting state shadowMode");
             break;
         }
@@ -644,7 +645,7 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_active(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -672,12 +673,12 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
             pressure_delayed_event_id =
-                sEventBroker->postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
+                sEventBroker.postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
                     {EV_TIMEOUT_PRESS_STABILIZATION}, TOPIC_ADA);
             logStatus(ADAState::PRESSURE_STABILIZATION);
             LOG_DEBUG(log, "Entering state pressureStabilization");
@@ -685,7 +686,7 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
         }
         case EV_EXIT:
         {
-            sEventBroker->removeDelayed(pressure_delayed_event_id);
+            sEventBroker.removeDelayed(pressure_delayed_event_id);
             LOG_DEBUG(log, "Exiting state pressureStabilization");
             break;
         }
@@ -704,7 +705,7 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -736,7 +737,7 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::state_end(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -766,10 +767,10 @@ void ADAController<Press, GPS>::logStatus(ADAState state)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::logStatus()
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = TimestampTimer::getInstance().getTimestamp();
     logger.log(status);
 
-    StackLogger::getInstance()->updateStack(THID_ADA_FSM);
+    StackLogger::getInstance().updateStack(THID_ADA_FSM);
 }
 
 template <typename Press, typename GPS>

@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <drivers/adc/ADS1118/ADS1118.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
+#include <drivers/adc/InternalADC.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/calibration/Calibration.h>
@@ -36,6 +36,7 @@ namespace PayloadBoard
 
 namespace SensorConfigs
 {
+
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr InternalADC::Channel ADC_BATTERY_VOLTAGE =
     InternalADC::Channel::CH5;

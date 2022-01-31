@@ -27,7 +27,6 @@
 #include <Main/SensorsData.h>
 #include <configs/FlightStatsConfig.h>
 #include <diagnostic/PrintLogger.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 #include <events/FSM.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/MS5803/MS5803Data.h>
@@ -60,11 +59,11 @@ public:
 
     void update(const ADAKalmanState& t);
     void update(const ADAData& t);
-    void update(const UbloxGPSData& t);
+    void update(const GPSData& t);
     void update(const BMX160WithCorrectionData& t);
-    //void update(const CurrentSensorData& t);
-    void update(const MS5803Data& t);      // digitl baro
-    void update(const MPXHZ6130AData& t);  // static ports baro
+    // void update(const CurrentSensorData& t);
+    void update(const MS5803Data& t);         // digitl baro
+    void update(const MPXHZ6130AData& t);     // static ports baro
     void update(const SSCDANN030PAAData& t);  // DPL vane baro
     void update(const AirSpeedPitot& t);
 
@@ -104,7 +103,7 @@ private:
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
-    //CutterTestStats cutters_stats{};
+    // CutterTestStats cutters_stats{};
     FSRState state      = FSRState::IDLE;
     long long T_liftoff = 0;
 

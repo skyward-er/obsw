@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <common/ServoInterface.h>
 #include <Payload/configs/WingConfig.h>
-#include <drivers/servo/servo.h>
+#include <common/ServoInterface.h>
+#include <drivers/servo/Servo.h>
 #include <miosix.h>
 
 using namespace Boardcore;
@@ -36,10 +36,9 @@ class WingServo : public ServoInterface
 {
 
 public:
-    WingServo(PWM::Timer servo_timer, PWMChannel servo_ch);
-
-    WingServo(PWM::Timer servo_timer, PWMChannel servo_ch, float minPosition,
-              float maxPosition);
+    WingServo(TIM_TypeDef* const timer, TimerUtils::Channel channel,
+              float minPosition = WingConfigs::WING_SERVO_MIN_POS,
+              float maxPosition = WingConfigs::WING_SERVO_MAX_POS);
 
     virtual ~WingServo();
 
@@ -54,7 +53,6 @@ public:
 
 private:
     Servo servo;
-    PWMChannel servo_channel;
 
 protected:
     /**

@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include <Constants.h>
-#include <drivers/HardwareTimer.h>
-#include <drivers/pwm/pwm.h>
+#include <drivers/timer/PWM.h>
+#include <utils/Constants.h>
 
 namespace DeathStackBoard
 {
@@ -32,17 +31,15 @@ namespace DeathStackBoard
 namespace AirBrakesConfigs
 {
 
-static const PWM::Timer AB_SERVO_TIMER{
-    TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
-
-static constexpr PWMChannel AB_SERVO_PWM_CH = PWMChannel::CH2;
+static TIM_TypeDef* const AB_SERVO_TIMER = TIM8;
+static constexpr TimerUtils::Channel AB_SERVO_PWM_CH =
+    TimerUtils::Channel::CHANNEL_2;
 
 // Rocket's parameters
 #ifdef EUROC
 static constexpr float M = 27.0; /**< rocket's mass */
 #else
-static constexpr float M                 = 18.362;       /**< rocket's mass */
+static constexpr float M                  = 18.362;       /**< rocket's mass */
 #endif
 
 static constexpr float D        = 0.15; /**< rocket's diameter */
@@ -87,7 +84,7 @@ static constexpr float FILTER_COEFF     = 0.9;
 #ifdef HARDWARE_IN_THE_LOOP
 static constexpr float ABK_UPDATE_PERIOD = 0.1 * 1000;  // ms -> 10 Hz
 #else
-static constexpr float ABK_UPDATE_PERIOD = 0.05 * 1000;  // ms -> 20 Hz
+static constexpr float ABK_UPDATE_PERIOD  = 0.05 * 1000;  // ms -> 20 Hz
 #endif
 
 static constexpr float ABK_UPDATE_PERIOD_SECONDS = ABK_UPDATE_PERIOD / 1000;

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Common.h>
+#include <stdint.h>
 
 /**
  * Ublox Neo-M9N GPS data from Lynx flight test in Roccaraso.

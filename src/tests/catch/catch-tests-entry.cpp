@@ -55,9 +55,9 @@
 
 #include <miosix.h>
 
+#include <catch2/catch.hpp>
 #include <cstring>
 #include <string>
-#include <catch2/catch.hpp>
 #include <vector>
 
 using miosix::Thread;
@@ -137,7 +137,7 @@ int main()
     }
 
     // Run tests with the provided arguments
-    int result = Catch::Session().run(argc, argv);
+    Catch::Session().run(argc, argv);
 
     // Clear memory
     for (size_t i = 0; i < argc; i++)

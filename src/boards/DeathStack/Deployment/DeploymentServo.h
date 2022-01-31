@@ -24,7 +24,7 @@
 
 #include <common/ServoInterface.h>
 #include <configs/DeploymentConfig.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <miosix.h>
 
 using namespace Boardcore;
@@ -37,7 +37,7 @@ using namespace DeathStackBoard::DeploymentConfigs;
 class DeploymentServo : public ServoInterface
 {
 public:
-    Servo servo{DPL_SERVO_TIMER};
+    Servo servo{DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, 50, 500, 2500};
 
     DeploymentServo()
         : ServoInterface(DPL_SERVO_MIN_POS, DPL_SERVO_MAX_POS,
@@ -50,19 +50,9 @@ public:
     {
     }
 
-    void enable() override
-    {
-        servo.setMinPulseWidth(500);
-        servo.setMaxPulseWidth(2500);
-        servo.enable(DPL_SERVO_PWM_CH);
-        servo.start();
-    }
+    void enable() override { servo.enable(); }
 
-    void disable() override
-    {
-        servo.stop();
-        servo.disable(DPL_SERVO_PWM_CH);
-    }
+    void disable() override { servo.disable(); }
 
     /**
      * @brief Perform wiggle around the reset position.
@@ -82,7 +72,7 @@ protected:
     void setPosition(float angle) override
     {
         currentPosition = angle;
-        servo.setPosition(DPL_SERVO_PWM_CH, currentPosition / 180.0f);
+        servo.setPosition180Deg(currentPosition);
     }
 
 private:

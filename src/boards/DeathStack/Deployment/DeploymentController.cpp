@@ -23,15 +23,8 @@
 #include <Deployment/DeploymentController.h>
 #include <LoggerService/LoggerService.h>
 #include <System/StackLogger.h>
-#include <TimestampTimer.h>
 #include <configs/DeploymentConfig.h>
-#include <events/EventBroker.h>
-#include <events/Events.h>
-
-#include <LoggerService/LoggerService.h>
-#include <System/StackLogger.h>
-#include <TimestampTimer.h>
-#include <configs/DeploymentConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 
@@ -41,38 +34,38 @@ namespace DeathStackBoard
 {
 
 DeploymentController::DeploymentController(ServoInterface* ejection_servo)
-    : FSM(&DeploymentController::state_initialization),
-      ejection_servo{ejection_servo}
+    : FSM(&DeploymentController::state_initialization), ejection_servo{
+                                                            ejection_servo}
 {
-    sEventBroker->subscribe(this, TOPIC_DPL);
+    sEventBroker.subscribe(this, TOPIC_DPL);
 }
 
 DeploymentController::~DeploymentController()
 {
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 void DeploymentController::logStatus(DeploymentControllerState current_state)
 {
-    status.timestamp            = TimestampTimer::getTimestamp();
-    status.state                = current_state;
-    status.servo_position       = ejection_servo->getCurrentPosition();
+    status.timestamp      = TimestampTimer::getInstance().getTimestamp();
+    status.state          = current_state;
+    status.servo_position = ejection_servo->getCurrentPosition();
     if (current_state == DeploymentControllerState::CUTTING)
     {
         status.cutters_enabled = true;
     }
-    else 
+    else
     {
         status.cutters_enabled = false;
     }
 
-    LoggerService::getInstance()->log(status);
-    StackLogger::getInstance()->updateStack(THID_DPL_FSM);
+    LoggerService::getInstance().log(status);
+    StackLogger::getInstance().updateStack(THID_DPL_FSM);
 }
 
 void DeploymentController::state_initialization(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -80,7 +73,7 @@ void DeploymentController::state_initialization(const Event& ev)
 
             ejection_servo->enable();
             ejection_servo->reset();
-            
+
             logStatus(DeploymentControllerState::INITIALIZATION);
 
             transition(&DeploymentController::state_idle);
@@ -101,7 +94,7 @@ void DeploymentController::state_initialization(const Event& ev)
 
 void DeploymentController::state_idle(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -148,7 +141,7 @@ void DeploymentController::state_idle(const Event& ev)
 
 void DeploymentController::state_noseconeEjection(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -156,7 +149,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
 
             ejectNosecone();
 
-            ev_nc_open_timeout_id = sEventBroker->postDelayed<NC_OPEN_TIMEOUT>(
+            ev_nc_open_timeout_id = sEventBroker.postDelayed<NC_OPEN_TIMEOUT>(
                 Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
 
             logStatus(DeploymentControllerState::NOSECONE_EJECTION);
@@ -170,7 +163,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
         case EV_NC_DETACHED:
         {
             LOG_DEBUG(log, "Nosecone detached event");
-            sEventBroker->removeDelayed(ev_nc_open_timeout_id);
+            sEventBroker.removeDelayed(ev_nc_open_timeout_id);
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -189,7 +182,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
 
 void DeploymentController::state_cutting(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -197,7 +190,7 @@ void DeploymentController::state_cutting(const Event& ev)
 
             startCutting();
 
-            ev_nc_cutting_timeout_id = sEventBroker->postDelayed<CUT_DURATION>(
+            ev_nc_cutting_timeout_id = sEventBroker.postDelayed<CUT_DURATION>(
                 Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
             logStatus(DeploymentControllerState::CUTTING);
@@ -207,7 +200,7 @@ void DeploymentController::state_cutting(const Event& ev)
         case EV_EXIT:
         {
             stopCutting();
-        
+
             LOG_DEBUG(log, "Exiting state cutting");
 
             break;

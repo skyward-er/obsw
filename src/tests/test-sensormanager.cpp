@@ -21,7 +21,6 @@
  */
 
 #include "ADA/ADAController.h"
-#include "Common.h"
 #include "LoggerService/LoggerService.h"
 #include "Radio/TMTCManager.h"
 #include "SensorManager/SensorManager.h"
@@ -34,9 +33,7 @@ using namespace DeathStackBoard;
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
-    sEventBroker->start();
+    sEventBroker.start();
 
     Stats s;
     SensorManager mgr;
@@ -58,7 +55,7 @@ int main()
 
     printf("CPU: %f%%, min: %f max: %f\n", s.getStats().mean,
            s.getStats().minValue, s.getStats().maxValue);
-    LoggerService::getInstance()->stop();
+    LoggerService::getInstance().stop();
     printf("End\n");
 
     for (;;)

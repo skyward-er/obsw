@@ -26,7 +26,7 @@
 #include <LoggerService/LoggerService.h>
 #include <common/ServoInterface.h>
 #include <configs/AirBrakesConfig.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <miosix.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -59,7 +59,8 @@ public:
     void selfTest() override;
 
 private:
-    Servo servo{AirBrakesConfigs::AB_SERVO_TIMER};
+    Servo servo{AirBrakesConfigs::AB_SERVO_TIMER, AB_SERVO_PWM_CH, 50, 500,
+                2500};
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL *simulator = HIL::getInstance();

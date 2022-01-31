@@ -42,9 +42,9 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     using namespace PayloadBoard;
 
-    /*if (DeathStack::getInstance()->radio->xbee != nullptr)
+    /*if (DeathStack::getInstance().radio->xbee != nullptr)
     {
-        DeathStack::getInstance()->radio->xbee->handleATTNInterrupt();
+        DeathStack::getInstance().radio->xbee->handleATTNInterrupt();
     }*/
 }
 
@@ -55,7 +55,7 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
 {
     SPIBusConfig xbee_cfg{};
 
-    xbee_cfg.clock_div = SPIClockDivider::DIV16;
+    xbee_cfg.clockDivider = SPI::ClockDivider::DIV_16;
 
     xbee = new Xbee::Xbee(xbee_bus, xbee_cfg, miosix::xbee::cs::getPin(),
                           miosix::xbee::attn::getPin(),
@@ -93,11 +93,11 @@ bool Radio::start()
 
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 {
-    //LoggerService& logger = *LoggerService::getInstance();
+    // LoggerService& logger = *LoggerService::getInstance();
 
     using namespace Xbee;
     bool logged = false;
-    switch (frame.frame_type)
+    switch (frame.frameType)
     {
         case FTYPE_AT_COMMAND:
         {
@@ -105,7 +105,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = ATCommandFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -115,7 +115,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = ATCommandResponseFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -125,7 +125,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = ModemStatusFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -135,7 +135,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = TXRequestFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -145,7 +145,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = TXStatusFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -155,7 +155,7 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
             logged = RXPacketFrameLog::toFrameType(frame, &dest);
             if (logged)
             {
-                //logger.log(dest);
+                // logger.log(dest);
             }
             break;
         }
@@ -165,16 +165,16 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
     {
         APIFrameLog api;
         APIFrameLog::fromAPIFrame(frame, &api);
-        //logger.log(api);
+        // logger.log(api);
     }
 }
 
 void Radio::logStatus()
 {
-    //MavlinkStatus status = mav_driver->getStatus();
-    //status.timestamp     = TimestampTimer::getTimestamp();
-    //LoggerService::getInstance()->log(status);
-    //LoggerService::getInstance()->log(xbee->getStatus());
+    // MavlinkStatus status = mav_driver->getStatus();
+    // status.timestamp     = TimestampTimer::getInstance().getTimestamp();
+    // LoggerService::getInstance().log(status);
+    // LoggerService::getInstance().log(xbee->getStatus());
 }
 
 }  // namespace PayloadBoard

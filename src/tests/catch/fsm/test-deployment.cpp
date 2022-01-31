@@ -29,7 +29,7 @@
 #define protected public
 
 #include <Deployment/DeploymentController.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <miosix.h>
 
 #include <catch2/catch.hpp>
@@ -48,7 +48,7 @@ public:
     DeploymentControllerFixture()
     {
         controller = new DeploymentController(&ejection_servo);
-        sEventBroker->start();
+        sEventBroker.start();
         controller->start();
     }
 
@@ -56,8 +56,8 @@ public:
     ~DeploymentControllerFixture()
     {
         controller->stop();
-        sEventBroker->unsubscribe(controller);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(controller);
+        sEventBroker.clearDelayedEvents();
         delete controller;
     }
 

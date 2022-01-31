@@ -75,7 +75,7 @@ public:
     AirBrakesControllerFixture()
     {
         controller = new AirBrakesController<InputClass>(sensor);
-        sEventBroker->start();
+        sEventBroker.start();
         controller->start();
     }
 
@@ -83,8 +83,8 @@ public:
     ~AirBrakesControllerFixture()
     {
         controller->stop();
-        sEventBroker->unsubscribe(controller);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(controller);
+        sEventBroker.clearDelayedEvents();
         delete controller;
     }
 

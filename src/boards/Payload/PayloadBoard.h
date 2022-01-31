@@ -22,9 +22,7 @@
 
 #pragma once
 
-#include <Common.h>
 #include <Payload/PayloadStatus.h>
-#include <Debug.h>
 //#include <LoggerService/LoggerService.h>
 #include <Payload/Main/Actuators.h>
 #include <Payload/Main/Bus.h>
@@ -36,9 +34,9 @@
 #include <System/TaskID.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
-#include <events/utils/EventInjector.h>
 #include <events/Events.h>
 #include <events/Topics.h>
+#include <events/utils/EventInjector.h>
 #include <events/utils/EventSniffer.h>
 
 #include <functional>
@@ -66,11 +64,11 @@ class Payload : public Singleton<Payload>
 public:
     // Shared Components
     EventBroker* broker;
-    //LoggerService* logger;
+    // LoggerService* logger;
 
     EventSniffer* sniffer;
 
-    //StateMachines* state_machines;
+    // StateMachines* state_machines;
     Bus* bus;
     Sensors* sensors;
     Radio* radio;
@@ -116,18 +114,18 @@ public:
         injector->start();
 #endif
 
-        //logger->log(status);
+        // logger->log(status);
 
         // If there was an error, signal it to the FMM and light a LED.
         if (status.payload_board != COMP_OK)
         {
             LOG_ERR(log, "Initalization failed\n");
-            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
         }
         else
         {
             LOG_INFO(log, "Initalization ok");
-            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
         }
     }
 
@@ -144,7 +142,7 @@ public:
             status.setError(&PayloadStatus::logger);
         }
 
-        logger->log(logger->getLogger().getLogStats());
+        logger->log(logger->getLogger().getLoggerStats());
     }*/
 
 private:
@@ -154,12 +152,10 @@ private:
     Payload()
     {
         /* Shared components */
-        //logger = Singleton<LoggerService>::getInstance();
-        //startLogger();
+        // logger = Singleton<LoggerService>::getInstance();
+        // startLogger();
 
-        TimestampTimer::enableTimestampTimer();
-
-        broker = sEventBroker;
+        broker = &sEventBroker;
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event
@@ -190,8 +186,8 @@ private:
      */
     /*void logEvent(uint8_t event, uint8_t topic)
     {
-        EventData ev{(long long)TimestampTimer::getTimestamp(), event, topic};
-        logger->log(ev);
+        EventData ev{(long long)TimestampTimer::getInstance().getTimestamp(),
+event, topic}; logger->log(ev);
 
 #ifdef DEBUG
         // Don't TRACE if event is in the blacklist to avoid cluttering the
@@ -213,17 +209,17 @@ private:
     /*void addSchedulerStatsTask()
     {
         // add lambda to log scheduler tasks statistics
-        scheduler->add(
+        scheduler.add(
             [&]() {
                 std::vector<TaskStatResult> scheduler_stats =
-                    scheduler->getTaskStats();
+                    scheduler.getTaskStats();
 
                 for (TaskStatResult stat : scheduler_stats)
                 {
                     logger->log(stat);
                 }
 
-                StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+                StackLogger::getInstance().updateStack(THID_TASK_SCHEDULER);
             },
             1000,  // 1 hz
             TASK_SCHEDULER_STATS_ID, miosix::getTick());

@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <Common.h>
-
 /**
  * Pitot airspeed data from Lynx flight test in Roccaraso.
  * Sampled at 42 Hz (24 ms period).

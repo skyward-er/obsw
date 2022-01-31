@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include <Common.h>
 #include <configs/NASConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <math/SkyQuaternion.h>

@@ -67,7 +67,7 @@ struct Outcomes
 
     Outcomes() : t(0), z(0), vz(0) {}
     Outcomes(float z, float vz)
-        : t(TimestampTimer::getTimestamp()), z(z), vz(vz)
+        : t(TimestampTimer::getInstance().getTimestamp()), z(z), vz(vz)
     {
     }
 
@@ -90,16 +90,16 @@ public:
     HILFlightPhasesManager()
     {
         updateFlags({0, 0, 0, 0, 0, 0});
-        counter_flight_events = new EventCounter(*sEventBroker);
+        counter_flight_events = new EventCounter(sEventBroker);
         counter_flight_events->subscribe(TOPIC_FLIGHT_EVENTS);
 
-        counter_airbrakes = new EventCounter(*sEventBroker);
+        counter_airbrakes = new EventCounter(sEventBroker);
         counter_airbrakes->subscribe(TOPIC_ABK);
 
-        counter_ada = new EventCounter(*sEventBroker);
+        counter_ada = new EventCounter(sEventBroker);
         counter_ada->subscribe(TOPIC_ADA);
 
-        counter_dpl = new EventCounter(*sEventBroker);
+        counter_dpl = new EventCounter(sEventBroker);
         counter_dpl->subscribe(TOPIC_DPL);
     }
 
@@ -135,7 +135,7 @@ public:
         // set true when the first packet from the simulator arrives
         if (isSetTrue(SIMULATION_STARTED))
         {
-            t_start = TimestampTimer::getTimestamp();
+            t_start = TimestampTimer::getInstance().getTimestamp();
 
             TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
@@ -162,9 +162,8 @@ public:
         {
             if (isSetTrue(FLYING))
             {
-                t_liftoff = TimestampTimer::getTimestamp();
-                sEventBroker->post({EV_UMBILICAL_DETACHED},
-                                   TOPIC_FLIGHT_EVENTS);
+                t_liftoff = TimestampTimer::getInstance().getTimestamp();
+                sEventBroker.post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
                 TRACE("[HIL] ------- LIFTOFF ! ------- \n");
                 changed_flags.push_back(FLYING);
@@ -211,7 +210,7 @@ public:
         else if (isSetTrue(SIMULATION_STOPPED))
         {
             changed_flags.push_back(SIMULATION_STOPPED);
-            t_stop = TimestampTimer::getTimestamp();
+            t_stop = TimestampTimer::getInstance().getTimestamp();
             TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
                   (double)t_stop / 1000000.0f);
             printOutcomes();

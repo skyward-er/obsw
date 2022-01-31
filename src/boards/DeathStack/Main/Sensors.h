@@ -24,16 +24,17 @@
 
 #include <Main/SensorsData.h>
 #include <diagnostic/PrintLogger.h>
-#include <drivers/adc/ADS1118/ADS1118.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
+#include <drivers/adc/InternalADC.h>
 #include <drivers/spi/SPIBusInterface.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/current/CurrentSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>

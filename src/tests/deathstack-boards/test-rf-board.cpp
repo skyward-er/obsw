@@ -31,13 +31,12 @@
  * SD card
  */
 
-#include <Common.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
 #include <drivers/spi/SPIDriver.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 
 #include <ctime>
 #include <iostream>
@@ -45,6 +44,8 @@
 #include <vector>
 
 #include "math/Stats.h"
+
+using namespace Boardcore;
 
 namespace SDCardBenchmark
 {
@@ -132,8 +133,8 @@ void sampleLIS3MDL()
 
     SPIBus spiBus(SPI1);
     SPIBusConfig spiConfig;
-    spiConfig.clock_div = SPIClockDivider::DIV32;
-    spiConfig.mode      = SPIMode::MODE1;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_1;
 
     LIS3MDL::Config lis3mdlConfig;
     lis3mdlConfig.odr                = LIS3MDL::ODR_560_HZ;
@@ -167,9 +168,9 @@ void sampleBMX160()
     SPIBus spiBus(SPI1);
 
     BMX160Config bmx160Config;
-    bmx160Config.fifo_mode    = BMX160Config::FifoMode::DISABLED;
-    bmx160Config.fifo_int     = BMX160Config::FifoInterruptPin::PIN_INT1;
-    bmx160Config.temp_divider = 1;
+    bmx160Config.fifoMode           = BMX160Config::FifoMode::DISABLED;
+    bmx160Config.fifoInterrupt      = BMX160Config::FifoInterruptPin::PIN_INT1;
+    bmx160Config.temperatureDivider = 1;
 
     BMX160 bmx160 =
         BMX160(spiBus, miosix::sensors::bmx160::cs::getPin(), bmx160Config);
@@ -197,8 +198,8 @@ void sampleAll()
 
     SPIBus spiBus(SPI1);
     SPIBusConfig spiConfig;
-    spiConfig.clock_div = SPIClockDivider::DIV32;
-    spiConfig.mode      = SPIMode::MODE1;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_1;
 
     LIS3MDL::Config lis3mdlConfig;
     lis3mdlConfig.odr                = LIS3MDL::ODR_560_HZ;
@@ -210,9 +211,9 @@ void sampleAll()
     lis3mdl.init();
 
     BMX160Config bmx160Config;
-    bmx160Config.fifo_mode    = BMX160Config::FifoMode::DISABLED;
-    bmx160Config.fifo_int     = BMX160Config::FifoInterruptPin::PIN_INT1;
-    bmx160Config.temp_divider = 1;
+    bmx160Config.fifoMode           = BMX160Config::FifoMode::DISABLED;
+    bmx160Config.fifoInterrupt      = BMX160Config::FifoInterruptPin::PIN_INT1;
+    bmx160Config.temperatureDivider = 1;
 
     BMX160 bmx160 =
         BMX160(spiBus, miosix::sensors::bmx160::cs::getPin(), bmx160Config);
@@ -240,7 +241,8 @@ void sampleGPS()
 
     // Sensor setup
 
-    UbloxGPS gps(38400);
+    UbloxGPSSerial gps;
+
     gps.init();
     miosix::delayMs(200);
     gps.start();

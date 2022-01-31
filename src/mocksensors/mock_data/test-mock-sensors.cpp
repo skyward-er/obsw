@@ -20,15 +20,12 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <mocksensors/MockSensors.h>
 
 using namespace DeathStackBoard;
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     MockGPS gps;
     MockPressureSensor p_sensor;
     MockIMU imu;
@@ -55,7 +52,7 @@ int main()
         p_sensor.sample();
         PressureData pressure = p_sensor.getLastSample();
         TRACE("PRESSURE SAMPLE: \n");
-        TRACE("pressure = %f \n\n", pressure.press);
+        TRACE("pressure = %f \n\n", pressure.pressure);
 
         imu.sample();
         MockIMUData imu_data = imu.getLastSample();

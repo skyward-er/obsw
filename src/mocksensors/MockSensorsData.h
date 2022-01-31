@@ -37,10 +37,12 @@ struct MockIMUData : public AccelerometerData,
 
     void print(std::ostream& os) const
     {
-        os << accel_timestamp << "," << accel_x << "," << accel_y << ","
-           << accel_z << "," << gyro_timestamp << "," << gyro_x << "," << gyro_y
-           << "," << gyro_z << "," << mag_timestamp << "," << mag_x << ","
-           << mag_y << "," << mag_z << "\n";
+        os << accelerationTimestamp << "," << accelerationX << ","
+           << accelerationY << "," << accelerationZ << ","
+           << angularVelocityTimestamp << "," << angularVelocityX << ","
+           << angularVelocityY << "," << angularVelocityZ << ","
+           << magneticFieldTimestamp << "," << magneticFieldX << ","
+           << magneticFieldY << "," << magneticFieldZ << "\n";
     }
 };
 
@@ -53,7 +55,7 @@ struct MockPressureData : public PressureData
 
     void print(std::ostream& os) const
     {
-        os << press_timestamp << "," << press << "\n";
+        os << pressureTimestamp << "," << pressure << "\n";
     }
 };
 
@@ -65,12 +67,12 @@ struct MockGPSData : public GPSData
                "velocity_east,velocity_down,speed,track,num_satellites,fix\n";
     }
 
-    void print(std::ostream &os) const
+    void print(std::ostream& os) const
     {
-        os << gps_timestamp << "," << latitude << "," << longitude << ","
-           << height << "," << velocity_north << "," << velocity_east << ","
-           << velocity_down << "," << speed << "," << track << ","
-           << (int)num_satellites << "," << (int)fix << "\n";
+        os << gpsTimestamp << "," << latitude << "," << longitude << ","
+           << height << "," << velocityNorth << "," << velocityEast << ","
+           << velocityDown << "," << speed << "," << track << ","
+           << (int)satellites << "," << (int)fix << "\n";
     }
 };
 

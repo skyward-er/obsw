@@ -23,8 +23,6 @@
 #pragma once
 
 #include <ApogeeDetectionAlgorithm/ADAData.h>
-#include <Common.h>
-#include <Debug.h>
 #include <diagnostic/PrintLogger.h>
 #include <math/Stats.h>
 #include <miosix.h>

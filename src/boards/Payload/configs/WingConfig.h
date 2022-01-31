@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Constants.h>
-#include <drivers/HardwareTimer.h>
-#include <drivers/pwm/pwm.h>
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <utils/Constants.h>
 
 using namespace Boardcore;
 
@@ -34,17 +34,13 @@ namespace PayloadBoard
 namespace WingConfigs
 {
 
-static const PWM::Timer WING_SERVO_1_TIMER{
-    TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
+static TIM_TypeDef* const WING_SERVO_1_TIMER = TIM8;
+static constexpr TimerUtils::Channel WING_SERVO_1_PWM_CH =
+    TimerUtils::Channel::CHANNEL_2;
 
-static constexpr PWMChannel WING_SERVO_1_PWM_CH = PWMChannel::CH2;
-
-static const PWM::Timer WING_SERVO_2_TIMER{
-    TIM8, &(RCC->APB2ENR), RCC_APB2ENR_TIM8EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
-
-static constexpr PWMChannel WING_SERVO_2_PWM_CH = PWMChannel::CH2;
+static const TIM_TypeDef* WING_SERVO_2_TIMER = TIM4;
+static constexpr TimerUtils::Channel WING_SERVO_2_PWM_CH =
+    TimerUtils::Channel::CHANNEL_1;
 
 // Wing servo configs
 static constexpr float WING_SERVO_MAX_POS = 180.0;  // deg

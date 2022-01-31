@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Debug.h>
 #include <Payload/PayloadBoard.h>
 #include <SystemData.h>
 #include <diagnostic/CpuMeter.h>
@@ -44,7 +43,7 @@ int main()
     SystemData system_data;
 
     // Instantiate the payload
-    Payload::getInstance()->start();
+    Payload::getInstance().start();
     LOG_INFO(log, "Payload started");
 
     // LoggerService* logger_service = LoggerService::getInstance();
@@ -52,9 +51,9 @@ int main()
     for (;;)
     {
         Thread::sleep(1000);
-        // logger_service->log(logger_service->getLogger().getLogStats());
+        // logger_service->log(logger_service->getLogger().getLoggerStats());
 
-        // StackLogger::getInstance()->updateStack(THID_ENTRYPOINT);
+        // StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 
         system_data.timestamp = miosix::getTick();
         system_data.cpu_usage = averageCpuUtilization();
@@ -70,6 +69,6 @@ int main()
 
         // logger_service->log(system_data);
 
-        // StackLogger::getInstance()->log();
+        // StackLogger::getInstance().log();
     }
 }

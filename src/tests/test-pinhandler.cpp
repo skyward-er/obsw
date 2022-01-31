@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include "Common.h"
 #include "PinHandler/PinHandler.h"
 
 using namespace Boardcore;
@@ -29,8 +28,6 @@ using namespace DeathStackBoard;
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     PinHandler pin_handler;
 
     if (!pin_handler.start())

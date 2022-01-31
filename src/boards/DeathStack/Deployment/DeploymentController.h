@@ -27,7 +27,7 @@
 #include <configs/CutterConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/hbridge/HBridge.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <events/Events.h>
 #include <events/FSM.h>
 

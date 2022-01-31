@@ -23,6 +23,7 @@
 //#include <LoggerService/LoggerService.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 //#include <Payload/PayloadBoard.h>
@@ -36,7 +37,7 @@ namespace PayloadBoard
 {
 
 PinHandler::PinHandler()
-    : pin_obs(PIN_POLL_INTERVAL) //, logger(LoggerService::getInstance())
+    : pin_obs(PIN_POLL_INTERVAL)  //, logger(LoggerService::getInstance())
 {
     // Used for _1, _2. See std::bind cpp reference
     using namespace std::placeholders;
@@ -57,12 +58,13 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
-    sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     LOG_INFO(log, "Nosecone detached!");
 
-    status_pin_nosecone.last_detection_time = TimestampTimer::getTimestamp();
-    //logger->log(status_pin_nosecone);
+    status_pin_nosecone.last_detection_time =
+        TimestampTimer::getInstance().getTimestamp();
+    // logger->log(status_pin_nosecone);
 }
 
 void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
@@ -70,14 +72,15 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_nosecone.state             = (uint8_t)state;
-    status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
+    status_pin_nosecone.state = (uint8_t)state;
+    status_pin_nosecone.last_state_change =
+        TimestampTimer::getInstance().getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
     LOG_INFO(log, "Nosecone pin state change at time {}: new state = {}",
              status_pin_nosecone.last_state_change, status_pin_nosecone.state);
 
-    //logger->log(status_pin_nosecone);
+    // logger->log(status_pin_nosecone);
 }
 
 }  // namespace PayloadBoard

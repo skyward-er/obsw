@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <TimestampTimer.h>
-#include <sensors/Sensor.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <mocksensors/MockSensorsData.h>
 #include <mocksensors/lynx_flight_data/lynx_gps_data.h>
+#include <sensors/Sensor.h>
 
 namespace DeathStackBoard
 {
@@ -54,28 +54,28 @@ public:
 
         MockGPSData data;
 
-        data.gps_timestamp = TimestampTimer::getTimestamp();
-        data.fix           = true;
+        data.gpsTimestamp = TimestampTimer::getInstance().getTimestamp();
+        data.fix          = true;
 
         if (before_liftoff)
         {
-            data.latitude       = GPS_DATA_LAT[0];
-            data.longitude      = GPS_DATA_LON[0];
-            data.velocity_north = GPS_DATA_VNORD[0];
-            data.velocity_east  = GPS_DATA_VEAST[0];
-            data.velocity_down  = GPS_DATA_VDOWN[0];
-            data.num_satellites = GPS_DATA_NSATS[0];
-            data.fix            = true;
+            data.latitude      = GPS_DATA_LAT[0];
+            data.longitude     = GPS_DATA_LON[0];
+            data.velocityNorth = GPS_DATA_VNORD[0];
+            data.velocityEast  = GPS_DATA_VEAST[0];
+            data.velocityDown  = GPS_DATA_VDOWN[0];
+            data.satellites    = GPS_DATA_NSATS[0];
+            data.fix           = true;
         }
         else if (i < GPS_DATA_SIZE)
         {
-            data.latitude       = GPS_DATA_LAT[i];
-            data.longitude      = GPS_DATA_LON[i];
-            data.velocity_north = GPS_DATA_VNORD[i];
-            data.velocity_east  = GPS_DATA_VEAST[i];
-            data.velocity_down  = GPS_DATA_VDOWN[i];
-            data.num_satellites = GPS_DATA_NSATS[i];
-            data.fix            = true;
+            data.latitude      = GPS_DATA_LAT[i];
+            data.longitude     = GPS_DATA_LON[i];
+            data.velocityNorth = GPS_DATA_VNORD[i];
+            data.velocityEast  = GPS_DATA_VEAST[i];
+            data.velocityDown  = GPS_DATA_VDOWN[i];
+            data.satellites    = GPS_DATA_NSATS[i];
+            data.fix           = true;
             i++;
         }
 

@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <miosix.h>
 
 #include <Eigen/Dense>

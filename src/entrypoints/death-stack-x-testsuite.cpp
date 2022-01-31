@@ -21,18 +21,18 @@
  */
 
 #include <AirBrakes/AirBrakesServo.h>
-#include <Common.h>
 #include <Deployment/DeploymentServo.h>
-#include <drivers/adc/ADS1118/ADS1118.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
+#include <drivers/adc/InternalADC.h>
 #include <drivers/hbridge/HBridge.h>
+#include <drivers/servo/Servo.h>
 #include <drivers/spi/SPIDriver.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
@@ -44,7 +44,6 @@
 #include <vector>
 
 #include "PinHandler/PinHandler.h"
-#include "drivers/servo/servo.h"
 #include "math/Stats.h"
 
 using namespace std;
@@ -73,8 +72,6 @@ int menu();
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     switch (menu())
     {
         case 1:

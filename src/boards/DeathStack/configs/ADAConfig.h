@@ -74,12 +74,12 @@ static const float KALMAN_INITIAL_ACCELERATION = -500;
 static const uint8_t KALMAN_STATES_NUM  = 3;
 static const uint8_t KALMAN_OUTPUTS_NUM = 1;
 
-using MatrixNN = Matrix<float, KALMAN_STATES_NUM, KALMAN_STATES_NUM>;
-using MatrixPN = Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_STATES_NUM>;
-using MatrixNP = Matrix<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>;
-using MatrixPP = Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_OUTPUTS_NUM>;
-using CVectorN = Matrix<float, KALMAN_STATES_NUM, 1>;
-using CVectorP = Matrix<float, KALMAN_OUTPUTS_NUM, 1>;
+using MatrixNN = Eigen::Matrix<float, KALMAN_STATES_NUM, KALMAN_STATES_NUM>;
+using MatrixPN = Eigen::Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_STATES_NUM>;
+using MatrixNP = Eigen::Matrix<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM>;
+using MatrixPP = Eigen::Matrix<float, KALMAN_OUTPUTS_NUM, KALMAN_OUTPUTS_NUM>;
+using CVectorN = Eigen::Matrix<float, KALMAN_STATES_NUM, 1>;
+using CVectorP = Eigen::Matrix<float, KALMAN_OUTPUTS_NUM, 1>;
 
 // clang-format off
 static inline MatrixNN f_init()

@@ -29,9 +29,8 @@
 
 #include <miosix.h>
 
-#include <catch2/catch.hpp>
-
 #include <Eigen/Dense>
+#include <catch2/catch.hpp>
 
 #define private public
 #define protected public
@@ -53,7 +52,7 @@ public:
     // This is called at the beginning of each test / section
     ADAControllerFixture()
     {
-        sEventBroker->start();
+        sEventBroker.start();
         controller = new ADACtrl(mock_baro, mock_gps);
         controller->start();
     }
@@ -62,8 +61,8 @@ public:
     ~ADAControllerFixture()
     {
         controller->stop();
-        sEventBroker->unsubscribe(controller);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(controller);
+        sEventBroker.clearDelayedEvents();
         delete controller;
     }
 

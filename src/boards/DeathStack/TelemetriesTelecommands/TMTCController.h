@@ -77,7 +77,7 @@ private:
     void stateFlightTM(const Event& ev);
     void stateSerialDebugTM(const Event& ev);
 
-    LoggerService& logger = *(LoggerService::getInstance());
+    LoggerService& logger = LoggerService::getInstance();
 
     uint16_t periodicHrEvId   = 0;
     uint16_t periodicLrEvId   = 0;

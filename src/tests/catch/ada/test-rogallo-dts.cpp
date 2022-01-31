@@ -119,7 +119,7 @@ TEST_CASE("[RogalloDTS] Test Launch Hazard Circles")
 
 TEST_CASE("[Rogallo DTS] Test deployment altitude")
 {
-    EventCounter c{*sEventBroker};
+    EventCounter c{sEventBroker};
     c.subscribe(TOPIC_ADA);
 
     RogalloDTS dts;

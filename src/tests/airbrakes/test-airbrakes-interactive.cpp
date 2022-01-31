@@ -90,7 +90,7 @@ float resetPosition = AirBrakesConfigs::AB_SERVO_MIN_POS;
 
 int main()
 {
-    sEventBroker->start();
+    sEventBroker.start();
 
     miosix::GpioPin pwmPin = miosix::GpioPin(GPIOC_BASE, 7);
     pwmPin.mode(miosix::Mode::ALTERNATE);
@@ -164,13 +164,13 @@ void testAlgorithm()
     // Start the state machine
     airbrakesController.start();
     sensor.sample();
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
     counter.subscribe(TOPIC_ABK);
 
     // Start test
     cout << "Starting airbrakes test\n";
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
     while (counter.getCount(EV_SHADOW_MODE_TIMEOUT) < 1)
     {
         Thread::sleep(10);
@@ -208,12 +208,12 @@ void testAirBrakes()
 
     // Start the state machine
     airbrakesController.start();
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_ABK);
 
     // Start test
     cout << "Starting airbrakes test\n";
-    sEventBroker->post({EV_TEST_ABK}, TOPIC_ABK);
+    sEventBroker.post({EV_TEST_ABK}, TOPIC_ABK);
 
     while (counter.getCount(EV_TEST_TIMEOUT) < 1)
     {

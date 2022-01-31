@@ -35,12 +35,12 @@ namespace DeathStackBoard
 FlightStatsRecorder::FlightStatsRecorder()
     : FSM(&FlightStatsRecorder::state_idle)
 {
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_DPL);
-    sEventBroker->subscribe(this, TOPIC_STATS);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_DPL);
+    sEventBroker.subscribe(this, TOPIC_STATS);
 }
 
-FlightStatsRecorder::~FlightStatsRecorder() { sEventBroker->unsubscribe(this); }
+FlightStatsRecorder::~FlightStatsRecorder() { sEventBroker.unsubscribe(this); }
 
 void FlightStatsRecorder::update(const ADAKalmanState& t)
 {
@@ -125,9 +125,9 @@ void FlightStatsRecorder::update(const MS5803Data& t)
     {
         case FSRState::ASCENDING:
         {
-            if (t.press < apogee_stats.digital_min_pressure)
+            if (t.pressure < apogee_stats.digital_min_pressure)
             {
-                apogee_stats.digital_min_pressure = t.press;
+                apogee_stats.digital_min_pressure = t.pressure;
             }
             break;
         }
@@ -142,9 +142,9 @@ void FlightStatsRecorder::update(const MPXHZ6130AData& t)
     {
         case FSRState::ASCENDING:
         {
-            if (t.press < apogee_stats.static_min_pressure)
+            if (t.pressure < apogee_stats.static_min_pressure)
             {
-                apogee_stats.static_min_pressure = t.press;
+                apogee_stats.static_min_pressure = t.pressure;
             }
             break;
         }
@@ -159,9 +159,9 @@ void FlightStatsRecorder::update(const SSCDANN030PAAData& t)
     {
         case FSRState::ASCENDING:
         {
-            if (t.press > drogue_dpl_stats.max_dpl_vane_pressure)
+            if (t.pressure > drogue_dpl_stats.max_dpl_vane_pressure)
             {
-                drogue_dpl_stats.max_dpl_vane_pressure = t.press;
+                drogue_dpl_stats.max_dpl_vane_pressure = t.pressure;
             }
             break;
         }
@@ -177,19 +177,19 @@ void FlightStatsRecorder::update(const BMX160WithCorrectionData& t)
     {
         case FSRState::LIFTOFF:
         {
-            if (fabs(t.accel_x) > liftoff_stats.acc_max)
+            if (fabs(t.accelerationX) > liftoff_stats.acc_max)
             {
                 liftoff_stats.T_max_acc =
                     static_cast<uint32_t>(miosix::getTick());
-                liftoff_stats.acc_max = fabs(t.accel_x);
+                liftoff_stats.acc_max = fabs(t.accelerationX);
             }
             break;
         }
         case FSRState::DROGUE_DPL:
         {
-            if (fabs(t.accel_x) > fabs(drogue_dpl_stats.max_dpl_acc))
+            if (fabs(t.accelerationX) > fabs(drogue_dpl_stats.max_dpl_acc))
             {
-                drogue_dpl_stats.max_dpl_acc = t.accel_x;
+                drogue_dpl_stats.max_dpl_acc = t.accelerationX;
                 drogue_dpl_stats.T_dpl =
                     static_cast<uint32_t>(miosix::getTick());
             }
@@ -197,9 +197,9 @@ void FlightStatsRecorder::update(const BMX160WithCorrectionData& t)
         }
         case FSRState::MAIN_DPL:
         {
-            if (fabs(t.accel_x) > fabs(main_dpl_stats.max_dpl_acc))
+            if (fabs(t.accelerationX) > fabs(main_dpl_stats.max_dpl_acc))
             {
-                main_dpl_stats.max_dpl_acc = t.accel_x;
+                main_dpl_stats.max_dpl_acc = t.accelerationX;
             }
             break;
         }
@@ -208,7 +208,7 @@ void FlightStatsRecorder::update(const BMX160WithCorrectionData& t)
     }
 }
 
-void FlightStatsRecorder::update(const UbloxGPSData& t)
+void FlightStatsRecorder::update(const GPSData& t)
 {
     switch (state)
     {
@@ -232,7 +232,7 @@ void FlightStatsRecorder::update(const HILImuData& t)
 {
     BMX160Data d;
     d.accel_timestamp = t.accel_timestamp;
-    d.accel_x         = t.accel_x;
+    d.accelerationX   = t.accelerationX;
     d.accel_y         = t.accel_y;
     d.accel_z         = t.accel_z;
     d.gyro_timestamp  = t.gyro_timestamp;
@@ -250,13 +250,13 @@ void FlightStatsRecorder::update(const HILBaroData& t)
 {
     MS5803Data d;
     d.press_timestamp = t.press_timestamp;
-    d.press           = t.press;
+    d.pressure        = t.press;
     this->update(d);
 }
 
 void FlightStatsRecorder::update(const HILGpsData& t)
 {
-    UbloxGPSData d;
+    GPSData d;
     d.latitude       = t.latitude;
     d.longitude      = t.longitude;
     d.height         = t.height;
@@ -273,15 +273,15 @@ void FlightStatsRecorder::update(const HILGpsData& t)
 
 void FlightStatsRecorder::state_idle(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering IDLE state");
-            
+
             state = FSRState::IDLE;
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
@@ -309,7 +309,7 @@ void FlightStatsRecorder::state_idle(const Event& ev)
 
 void FlightStatsRecorder::state_liftOff(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -320,22 +320,22 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
             // Collect liftoff stats until this event is received
             ev_timeout_id =
                 sEventBroker
-                    ->postDelayed<FlightStatsConfig::TIMEOUT_LIFTOFF_STATS>(
+                    .postDelayed<FlightStatsConfig::TIMEOUT_LIFTOFF_STATS>(
                         {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
             // Save liftoff time
             liftoff_stats.T_liftoff = static_cast<uint32_t>(miosix::getTick());
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting LIFTOFF state");
 
-            LoggerService::getInstance()->log(liftoff_stats);
+            LoggerService::getInstance().log(liftoff_stats);
 
-            sEventBroker->removeDelayed(ev_timeout_id);
+            sEventBroker.removeDelayed(ev_timeout_id);
             break;
         }
         case EV_STATS_TIMEOUT:
@@ -352,7 +352,7 @@ void FlightStatsRecorder::state_liftOff(const Event& ev)
 
 void FlightStatsRecorder::state_ascending(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -360,16 +360,16 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
 
             state = FSRState::ASCENDING;
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting ASCENDING state");
 
-            LoggerService::getInstance()->log(apogee_stats);
+            LoggerService::getInstance().log(apogee_stats);
 
-            sEventBroker->removeDelayed(ev_timeout_id);
+            sEventBroker.removeDelayed(ev_timeout_id);
             break;
         }
         case EV_APOGEE:
@@ -381,7 +381,7 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
             // seconds in order to record the maximum altitude.
             ev_timeout_id =
                 sEventBroker
-                    ->postDelayed<FlightStatsConfig::TIMEOUT_APOGEE_STATS>(
+                    .postDelayed<FlightStatsConfig::TIMEOUT_APOGEE_STATS>(
                         {EV_STATS_TIMEOUT}, TOPIC_STATS);
             break;
         }
@@ -400,7 +400,7 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
 
 void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -411,19 +411,19 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
             // Collect stats until this event is received
             ev_timeout_id =
                 sEventBroker
-                    ->postDelayed<FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS>(
+                    .postDelayed<FlightStatsConfig::TIMEOUT_DROGUE_DPL_STATS>(
                         {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting DROGUE_DPL state");
 
-            LoggerService::getInstance()->log(drogue_dpl_stats);
+            LoggerService::getInstance().log(drogue_dpl_stats);
 
-            sEventBroker->removeDelayed(ev_timeout_id);
+            sEventBroker.removeDelayed(ev_timeout_id);
             break;
         }
         case EV_STATS_TIMEOUT:
@@ -440,7 +440,7 @@ void FlightStatsRecorder::state_drogueDeployment(const Event& ev)
 
 void FlightStatsRecorder::state_mainDeployment(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -454,19 +454,19 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
             // Record stats until this event occurs
             ev_timeout_id =
                 sEventBroker
-                    ->postDelayed<FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS>(
+                    .postDelayed<FlightStatsConfig::TIMEOUT_MAIN_DPL_STATS>(
                         {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             break;
         }
         case EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting MAIN_DPL state");
 
-            LoggerService::getInstance()->log(main_dpl_stats);
+            LoggerService::getInstance().log(main_dpl_stats);
 
-            sEventBroker->removeDelayed(ev_timeout_id);
+            sEventBroker.removeDelayed(ev_timeout_id);
             break;
         }
         case EV_STATS_TIMEOUT:
@@ -484,7 +484,7 @@ void FlightStatsRecorder::state_mainDeployment(const Event& ev)
 /*
 void FlightStatsRecorder::state_testingCutters(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -494,10 +494,10 @@ void FlightStatsRecorder::state_testingCutters(const Event& ev)
 
             const int timeout = CutterConfig::CUT_TEST_DURATION;
 
-            ev_timeout_id = sEventBroker->postDelayed<timeout>(
+            ev_timeout_id = sEventBroker.postDelayed<timeout>(
                 {EV_STATS_TIMEOUT}, TOPIC_STATS);
 
-            StackLogger::getInstance()->updateStack(THID_STATS_FSM);
+            StackLogger::getInstance().updateStack(THID_STATS_FSM);
             LOG_DEBUG(log, "Entering CUTTER_TEST state");
             break;
         }
@@ -508,8 +508,8 @@ void FlightStatsRecorder::state_testingCutters(const Event& ev)
             cutters_stats.cutter_2_avg =
                 cutters_stats.cutter_2_avg / cutters_stats.n_samples_2;
 
-            LoggerService::getInstance()->log(cutters_stats);
-            sEventBroker->removeDelayed(ev_timeout_id);
+            LoggerService::getInstance().log(cutters_stats);
+            sEventBroker.removeDelayed(ev_timeout_id);
 
             LOG_DEBUG(log, "Exiting CUTTER_TEST state");
             break;

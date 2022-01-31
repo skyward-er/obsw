@@ -22,7 +22,6 @@
 
 #define EIGEN_RUNTIME_NO_MALLOC  // enable eigen malloc usage assert
 
-#include <Common.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/utils/EventCounter.h>
@@ -80,8 +79,6 @@ int main()
 
     // crash if eigen dynamically allocates memory
     Eigen::internal::set_is_malloc_allowed(false);
-    TimestampTimer::enableTimestampTimer();
-
     // Definition of the flight phases manager
     HILFlightPhasesManager *flightPhasesManager =
         HILFlightPhasesManager::getInstance();
@@ -170,7 +167,7 @@ int main()
 
     /*-------------- Events --------------*/
 
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
     counter.subscribe(TOPIC_ADA);
     counter.subscribe(TOPIC_NAS);
@@ -214,7 +211,7 @@ int main()
     ada_controller->start();
     nas_controller.start();
     airbrakeController.start();
-    sEventBroker->start();
+    sEventBroker.start();
     scheduler.start();  // started only the scheduler instead of the SM
 
     /*---------- Normal execution --------*/

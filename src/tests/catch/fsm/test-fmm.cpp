@@ -29,11 +29,10 @@
 
 #include <miosix.h>
 
+#include <Eigen/Dense>
 #include <catch2/catch.hpp>
 
 #include "events/Events.h"
-
-#include <Eigen/Dense>
 
 #define private public
 #define protected public
@@ -51,7 +50,7 @@ public:
     // This is called at the beginning of each test / section
     FMMFixture()
     {
-        sEventBroker->start();
+        sEventBroker.start();
         fsm = new FMMController();
         fsm->start();
     }
@@ -60,8 +59,8 @@ public:
     ~FMMFixture()
     {
         fsm->stop();
-        sEventBroker->unsubscribe(fsm);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(fsm);
+        sEventBroker.clearDelayedEvents();
         delete fsm;
     }
 

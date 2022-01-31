@@ -27,34 +27,18 @@ namespace PayloadBoard
 
 using namespace WingConfigs;
 
-WingServo::WingServo(PWM::Timer servo_timer, PWMChannel servo_ch)
-    : ServoInterface(WING_SERVO_MIN_POS, WING_SERVO_MAX_POS),
-      servo(servo_timer), servo_channel(servo_ch)
-{
-}
-
-WingServo::WingServo(PWM::Timer servo_timer, PWMChannel servo_ch,
+WingServo::WingServo(TIM_TypeDef* const timer, TimerUtils::Channel channel,
                      float minPosition, float maxPosition)
-    : ServoInterface(minPosition, maxPosition), servo(servo_timer),
-      servo_channel(servo_ch)
+    : ServoInterface(minPosition, maxPosition),
+      servo(timer, channel, 50, 500, 2500)
 {
 }
 
 WingServo::~WingServo() {}
 
-void WingServo::enable()
-{
-    servo.setMaxPulseWidth(2500);
-    servo.setMinPulseWidth(500);
-    servo.enable(servo_channel);
-    servo.start();
-}
+void WingServo::enable() { servo.enable(); }
 
-void WingServo::disable()
-{
-    servo.stop();
-    servo.disable(servo_channel);
-}
+void WingServo::disable() { servo.disable(); }
 
 void WingServo::selfTest()
 {
@@ -80,7 +64,7 @@ void WingServo::setPosition(float angle)
 {
     this->currentPosition = angle;
     // map position to [0;1] interval for the servo driver
-    servo.setPosition(servo_channel, angle / 180.0f);
+    servo.setPosition180Deg(angle);
 }
 
 }  // namespace PayloadBoard

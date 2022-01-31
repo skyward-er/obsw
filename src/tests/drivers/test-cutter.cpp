@@ -20,9 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <configs/CutterConfig.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
+#include <drivers/adc/InternalADC.h>
 #include <drivers/hbridge/HBridge.h>
 #include <sensors/analog/current/CurrentSensor.h>
 
@@ -40,6 +39,7 @@
  */
 
 using namespace std;
+using namespace miosix;
 using namespace Boardcore;
 using namespace DeathStackBoard::CutterConfig;
 
@@ -51,18 +51,18 @@ constexpr int SAMPLING_FREQUENCY      = 20;
  * They are not useful for activating the COTS ones
  * (i.e. they are currently used only in the test-cutter entrypoint)
  */
-static const PWM::Timer CUTTER_TIM{
-    TIM9, &(RCC->APB2ENR), RCC_APB2ENR_TIM9EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB2)};
+static TIM_TypeDef *const CUTTER_TIM = TIM9;
 
-static const PWMChannel CUTTER_CHANNEL_PRIMARY         = PWMChannel::CH2;
-static const PWMChannel CUTTER_CHANNEL_BACKUP          = PWMChannel::CH2;
+static const TimerUtils::Channel CUTTER_CHANNEL_PRIMARY =
+    TimerUtils::Channel::CHANNEL_2;
+static const TimerUtils::Channel CUTTER_CHANNEL_BACKUP =
+    TimerUtils::Channel::CHANNEL_2;
 static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
 static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.45f;
 static const unsigned int BACKUP_CUTTER_PWM_FREQUENCY  = 10000;  // Hz
 static constexpr float BACKUP_CUTTER_PWM_DUTY_CYCLE    = 0.45f;
 static constexpr float CUTTER_TEST_PWM_DUTY_CYCLE      = 0.1f;
-static constexpr int CUT_TEST_DURATION = 1 * 1000;
+static constexpr int CUT_TEST_DURATION                 = 1 * 1000;
 
 // This could go into CutterConfig
 static constexpr InternalADC::Channel ADC_CHANNEL_PRIMARY =
@@ -79,13 +79,15 @@ static constexpr float ADC_TO_CURR_COEFF = ADC_TO_CURR_DKILIS / ADC_TO_CURR_RIS;
 static constexpr float ADC_TO_CURR_OFFSET =
     ADC_TO_CURR_DKILIS * ADC_TO_CURR_IISOFF;
 
-function<float(float)> adc_to_current = [](float adc_in) {
+function<float(float)> adc_to_current = [](float adc_in)
+{
     return ADC_TO_CURR_DKILIS * (adc_in / ADC_TO_CURR_RIS - ADC_TO_CURR_IISOFF);
 };
 
 bool finished = false;
 
-void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle, uint32_t *cutDuration);
+void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle,
+          uint32_t *cutDuration);
 
 void elapsedTimeAndCsense(void *args);
 
@@ -94,9 +96,7 @@ int main()
     unsigned int cutterNo = 0;
     uint32_t frequency    = 0;
     float dutyCycle       = 0;
-    uint32_t cutDuration  = 0; // for cots cutters
-
-    TimestampTimer::enableTimestampTimer();
+    uint32_t cutDuration  = 0;  // for cots cutters
 
     // Set the clock divider for the analog circuitry (/8)
     ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
@@ -107,7 +107,7 @@ int main()
     // Cutter setup
 
     GpioPin *ena_pin;
-    PWMChannel pwmChannel;
+    TimerUtils::Channel pwmChannel;
 
     if (cutterNo == 3)  // COTS cutters
     {
@@ -125,19 +125,17 @@ int main()
     {  // SRAD cutters
         if (cutterNo == 1)
         {
-            ena_pin = new GpioPin(
-                PrimaryCutterEna::getPin());
+            ena_pin    = new GpioPin(PrimaryCutterEna::getPin());
             pwmChannel = CUTTER_CHANNEL_PRIMARY;
         }
         else  // if (cutterNo == 2)
         {
-            ena_pin = new GpioPin(
-                BackupCutterEna::getPin());
+            ena_pin    = new GpioPin(BackupCutterEna::getPin());
             pwmChannel = CUTTER_CHANNEL_BACKUP;
         }
 
-        HBridge cutter(*ena_pin, CUTTER_TIM,
-                       pwmChannel, frequency, dutyCycle / 100.0f);
+        HBridge cutter(*ena_pin, CUTTER_TIM, pwmChannel, frequency,
+                       dutyCycle / 100.0f);
 
         // Start the test
 
@@ -221,7 +219,7 @@ void elapsedTimeAndCsense(void *args)
     int cutterNo = *(unsigned int *)args;
     // Sensors setup
 
-    InternalADC internalADC(*ADC3, 3.3);
+    InternalADC internalADC(ADC3, 3.3);
     internalADC.init();
     internalADC.enableChannel(ADC_CHANNEL_PRIMARY);
     internalADC.enableChannel(ADC_CHANNEL_BACKUP);
@@ -243,14 +241,14 @@ void elapsedTimeAndCsense(void *args)
     current_sensor.init();
 
     // Save the cuttent timestamp
-    uint64_t t  = TimestampTimer::getTimestamp() / 1000;
+    uint64_t t  = TimestampTimer::getInstance().getTimestamp() / 1000;
     uint64_t t0 = t;
 
     while (t < t0 + MAX_CUTTING_TIME && !finished)
     {
         Thread::sleep(1000 / SAMPLING_FREQUENCY);
 
-        t = TimestampTimer::getTimestamp() / 1000;
+        t = TimestampTimer::getInstance().getTimestamp() / 1000;
         internalADC.sample();
         current_sensor.sample();
 

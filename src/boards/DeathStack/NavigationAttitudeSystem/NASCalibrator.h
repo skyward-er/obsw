@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <Common.h>
-#include <Debug.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <math/Stats.h>
 #include <miosix.h>
@@ -99,8 +97,8 @@ private:
     Stats mag_z_stats;
 
     // Refernece flags
-    bool ref_coordinates_set  = false;
-    bool ref_altitude_set  = false;
+    bool ref_coordinates_set = false;
+    bool ref_altitude_set    = false;
     bool ref_temperature_set = false;
 };
 

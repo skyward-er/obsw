@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include "Constants.h"
+#include <utils/Constants.h>
+
 #include "Eigen/Dense"
 
 using namespace Eigen;

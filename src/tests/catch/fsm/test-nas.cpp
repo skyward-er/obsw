@@ -34,6 +34,7 @@
 #include <NavigationAttitudeSystem/NASCalibrator.h>
 #include <NavigationAttitudeSystem/NASController.h>
 #include <mocksensors/MockSensors.h>
+
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
@@ -47,7 +48,7 @@ public:
     // This is called at the beginning of each test / section
     NASControllerFixture() : controller(mock_imu, mock_baro, mock_gps)
     {
-        sEventBroker->start();
+        sEventBroker.start();
         controller.start();
     }
 
@@ -55,8 +56,8 @@ public:
     ~NASControllerFixture()
     {
         controller.stop();
-        sEventBroker->unsubscribe(&controller);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(&controller);
+        sEventBroker.clearDelayedEvents();
     }
 
 protected:

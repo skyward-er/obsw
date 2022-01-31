@@ -121,11 +121,11 @@ NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
                                               Sensor<GPS>& gps)
     : NASFsm(&NASCtrl::state_idle), calibrator(CALIBRATION_N_SAMPLES), imu(imu),
       barometer(baro), gps(gps), nas(imu, baro, gps),
-      logger(*(LoggerService::getInstance()))
+      logger(LoggerService::getInstance())
 {
     memset(&status, 0, sizeof(NASStatus));
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_NAS);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_NAS);
 
     status.state = NASState::IDLE;
 }
@@ -133,7 +133,7 @@ NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
 template <typename IMU, typename Press, typename GPS>
 NASController<IMU, Press, GPS>::~NASController()
 {
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 template <typename IMU, typename Press, typename GPS>
@@ -157,31 +157,33 @@ void NASController<IMU, Press, GPS>::update()
             {
                 Lock<FastMutex> l(mutex);
 
-                if (imu_data.accel_timestamp != last_accel_timestamp)
+                if (imu_data.accelerationTimestamp != last_accel_timestamp)
                 {
-                    last_accel_timestamp = imu_data.accel_timestamp;
-                    calibrator.addAccelSample(
-                        imu_data.accel_x, imu_data.accel_y, imu_data.accel_z);
+                    last_accel_timestamp = imu_data.accelerationTimestamp;
+                    calibrator.addAccelSample(imu_data.accelerationX,
+                                              imu_data.accelerationY,
+                                              imu_data.accelerationZ);
                 }
 
-                if (imu_data.mag_timestamp != last_mag_timestamp)
+                if (imu_data.magneticFieldTimestamp != last_mag_timestamp)
                 {
-                    last_mag_timestamp = imu_data.mag_timestamp;
-                    calibrator.addMagSample(imu_data.mag_x, imu_data.mag_y,
-                                            imu_data.mag_z);
+                    last_mag_timestamp = imu_data.magneticFieldTimestamp;
+                    calibrator.addMagSample(imu_data.magneticFieldX,
+                                            imu_data.magneticFieldY,
+                                            imu_data.magneticFieldZ);
                 }
 
                 // Add samples to the calibration
-                if (press_data.press_timestamp != last_press_timestamp)
+                if (press_data.pressureTimestamp != last_press_timestamp)
                 {
-                    last_press_timestamp = press_data.press_timestamp;
-                    calibrator.addBaroSample(press_data.press);
+                    last_press_timestamp = press_data.pressureTimestamp;
+                    calibrator.addBaroSample(press_data.pressure);
                 }
 
                 if (gps_data.fix == true &&
-                    gps_data.gps_timestamp != last_gps_timestamp)
+                    gps_data.gpsTimestamp != last_gps_timestamp)
                 {
-                    last_gps_timestamp = gps_data.gps_timestamp;
+                    last_gps_timestamp = gps_data.gpsTimestamp;
                     calibrator.addGPSSample(gps_data.latitude,
                                             gps_data.longitude);
                 }
@@ -240,14 +242,14 @@ void NASController<IMU, Press, GPS>::finalizeCalibration()
 
         LOG_INFO(log, "Finalized calibration and TRIAD");
 
-        sEventBroker->post({EV_NAS_READY}, TOPIC_NAS);
+        sEventBroker.post({EV_NAS_READY}, TOPIC_NAS);
     }
 }
 
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -275,7 +277,7 @@ void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -315,7 +317,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -348,7 +350,7 @@ void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::state_active(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -376,7 +378,7 @@ void NASController<IMU, Press, GPS>::state_active(const Event& ev)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::state_end(const Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
         case EV_ENTRY:
         {
@@ -457,18 +459,18 @@ void NASController<IMU, Press, GPS>::setReferenceAltitude(float altitude)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logStatus(NASState state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = TimestampTimer::getInstance().getTimestamp();
     status.state     = state;
     logger.log(status);
 
-    StackLogger::getInstance()->updateStack(THID_NAS_FSM);
+    StackLogger::getInstance().updateStack(THID_NAS_FSM);
 }
 
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logData()
 {
     NASKalmanState kalman_state = nas.getKalmanState();
-    kalman_state.timestamp      = TimestampTimer::getTimestamp();
+    kalman_state.timestamp      = TimestampTimer::getInstance().getTimestamp();
     logger.log(kalman_state);
     logger.log(nas.getLastSample());
 }

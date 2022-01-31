@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <TimestampTimer.h>
-#include <sensors/Sensor.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <mocksensors/MockSensorsData.h>
 #include <mocksensors/lynx_flight_data/lynx_imu_data.h>
+#include <sensors/Sensor.h>
 
 namespace DeathStackBoard
 {
@@ -47,22 +47,22 @@ public:
         }
 
         MockIMUData data;
-        uint64_t t = TimestampTimer::getTimestamp();
+        uint64_t t = TimestampTimer::getInstance().getTimestamp();
 
-        data.accel_timestamp = t;
-        data.accel_x         = ACCEL_DATA[index][0];
-        data.accel_y         = ACCEL_DATA[index][1];
-        data.accel_z         = ACCEL_DATA[index][2];
+        data.accelerationTimestamp = t;
+        data.accelerationX         = ACCEL_DATA[index][0];
+        data.accelerationY         = ACCEL_DATA[index][1];
+        data.accelerationZ         = ACCEL_DATA[index][2];
 
-        data.gyro_timestamp = t;
-        data.gyro_x         = GYRO_DATA[index][0];
-        data.gyro_y         = GYRO_DATA[index][1];
-        data.gyro_z         = GYRO_DATA[index][2];
+        data.angularVelocityTimestamp = t;
+        data.angularVelocityX         = GYRO_DATA[index][0];
+        data.angularVelocityY         = GYRO_DATA[index][1];
+        data.angularVelocityZ         = GYRO_DATA[index][2];
 
-        data.mag_timestamp = t;
-        data.mag_x         = MAG_DATA[index][0];
-        data.mag_y         = MAG_DATA[index][1];
-        data.mag_z         = MAG_DATA[index][2];
+        data.magneticFieldTimestamp = t;
+        data.magneticFieldX         = MAG_DATA[index][0];
+        data.magneticFieldY         = MAG_DATA[index][1];
+        data.magneticFieldZ         = MAG_DATA[index][2];
 
         // when finished, go back to the beginning
         index = (index + 1) % IMU_DATA_SIZE;

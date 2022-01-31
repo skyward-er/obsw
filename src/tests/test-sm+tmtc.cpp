@@ -27,7 +27,6 @@
 #include <interfaces-impl/hwmapping.h>
 
 #include "ADA/ADAController.h"
-#include "Common.h"
 #include "LoggerService/LoggerService.h"
 #include "SensorManager/SensorManager.h"
 #include "diagnostic/CpuMeter.h"
@@ -50,7 +49,7 @@ int main()
     // ada.start();
     // try
     // {
-    //     LoggerService::getInstance()->start();
+    //     LoggerService::getInstance().start();
     // }
     // catch (const std::exception& e)
     // {
@@ -65,10 +64,10 @@ int main()
     // }
     // led1::high();
 
-    sEventBroker->start();
+    sEventBroker.start();
     mgr.start();
 
-    sEventBroker->post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
+    sEventBroker.post({EV_TC_START_SENSOR_LOGGING}, TOPIC_TC);
 
     printf("Wait for calibration to complete.\n");
 
@@ -80,7 +79,7 @@ int main()
 
     TMTCManager* tmtc = new TMTCManager();
     tmtc->start();
-    sEventBroker->start();
+    sEventBroker.start();
 
     Thread::sleep(1000);
 
@@ -94,7 +93,7 @@ int main()
 
     Thread::sleep(100);
 
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     for (;;)
     {

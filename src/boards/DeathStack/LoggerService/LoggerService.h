@@ -46,7 +46,7 @@ public:
      * @brief Generic log function, to be implemented for each loggable struct.
      */
     template <typename T>
-    inline LogResult log(const T& t)
+    inline LoggerResult log(const T& t)
     {
         {
             miosix::PauseKernelLock kLock;
@@ -86,7 +86,7 @@ private:
      * @brief Private constructor to enforce the singleton
      */
     LoggerService()
-        : logger(Logger::instance()), tmRepo(*(TmRepository::getInstance()))
+        : logger(Logger::getInstance()), tmRepo(TmRepository::getInstance())
     {
     }
 

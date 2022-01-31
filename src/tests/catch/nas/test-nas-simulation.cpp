@@ -64,12 +64,10 @@ void signalLiftoff()
 
 TEST_CASE("Testing Navigation System Controller")
 {
-    TimestampTimer::enableTimestampTimer();
-
-    sEventBroker->start();
+    sEventBroker.start();
     controller.start();
 
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_NAS);
 
     // Startup: we should be in idle
@@ -77,7 +75,7 @@ TEST_CASE("Testing Navigation System Controller")
     REQUIRE(controller.testState(&NASCtrl::state_idle));
 
     // Enter Calibrating and REQUIRE
-    sEventBroker->post(Event{EV_CALIBRATE_NAS}, TOPIC_NAS);
+    sEventBroker.post(Event{EV_CALIBRATE_NAS}, TOPIC_NAS);
     Thread::sleep(100);
     REQUIRE(controller.testState(&NASCtrl::state_calibrating));
 
@@ -101,9 +99,11 @@ TEST_CASE("Testing Navigation System Controller")
     MockIMUData imu_data =
         mock_imu.getLastSample();  // still before liftoff ...
     NASReferenceValues ref_values{
-        press_data.press, gps_data.latitude, gps_data.longitude,
-        imu_data.accel_x, imu_data.accel_y,  imu_data.accel_z,
-        imu_data.mag_x,   imu_data.mag_y,    imu_data.mag_z};
+        press_data.pressure,     gps_data.latitude,
+        gps_data.longitude,      imu_data.accelerationX,
+        imu_data.accelerationY,  imu_data.accelerationZ,
+        imu_data.magneticFieldX, imu_data.magneticFieldY,
+        imu_data.magneticFieldZ};
     REQUIRE(ref_values == controller.calibrator.getReferenceValues());
 
     // Now we should be in ready
@@ -115,7 +115,7 @@ TEST_CASE("Testing Navigation System Controller")
     Thread::sleep(100);
 
     // retry the calibration phase
-    sEventBroker->post({EV_CALIBRATE_NAS}, TOPIC_NAS);
+    sEventBroker.post({EV_CALIBRATE_NAS}, TOPIC_NAS);
     Thread::sleep(100);
     REQUIRE(controller.testState(&NASCtrl::state_calibrating));
     // sample some data for calibration
@@ -130,11 +130,14 @@ TEST_CASE("Testing Navigation System Controller")
     // i.e. the first element of the arrays from which the sensors get the data
     press_data = mock_baro.getLastSample();  // still before liftoff
                                              // (same as SIMULATED_PRESSURE[0])
-    gps_data   = mock_gps.getLastSample();   // still before liftoff ...
-    imu_data   = mock_imu.getLastSample();   // still before liftoff ...
-    ref_values = NASReferenceValues{press_data.press, gps_data.latitude, gps_data.longitude,
-                  imu_data.accel_x, imu_data.accel_y,  imu_data.accel_z,
-                  imu_data.mag_x,   imu_data.mag_y,    imu_data.mag_z};
+    gps_data = mock_gps.getLastSample();     // still before liftoff ...
+    imu_data = mock_imu.getLastSample();     // still before liftoff ...
+    ref_values =
+        NASReferenceValues{press_data.pressure,     gps_data.latitude,
+                           gps_data.longitude,      imu_data.accelerationX,
+                           imu_data.accelerationY,  imu_data.accelerationZ,
+                           imu_data.magneticFieldX, imu_data.magneticFieldY,
+                           imu_data.magneticFieldZ};
     REQUIRE(ref_values == controller.calibrator.getReferenceValues());
 
     // Now we should be in ready
@@ -144,7 +147,7 @@ TEST_CASE("Testing Navigation System Controller")
     REQUIRE(controller.testState(&NASCtrl::state_ready));
 
     // Send liftoff event: should be in state active
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
     signalLiftoff();
     Thread::sleep(100);
     REQUIRE(controller.testState(&NASCtrl::state_active));

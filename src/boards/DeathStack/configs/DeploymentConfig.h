@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <drivers/HardwareTimer.h>
-#include <drivers/pwm/pwm.h>
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 
 using namespace Boardcore;
 
@@ -33,11 +33,9 @@ namespace DeathStackBoard
 namespace DeploymentConfigs
 {
 
-static const PWM::Timer DPL_SERVO_TIMER{
-    TIM4, &(RCC->APB1ENR), RCC_APB1ENR_TIM4EN,
-    TimerUtils::getPrescalerInputFrequency(TimerUtils::InputClock::APB1)};
-
-static constexpr PWMChannel DPL_SERVO_PWM_CH = PWMChannel::CH1;
+static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
+static constexpr TimerUtils::Channel DPL_SERVO_PWM_CH =
+    TimerUtils::Channel::CHANNEL_1;
 
 static constexpr int NC_OPEN_TIMEOUT = 5000;
 
