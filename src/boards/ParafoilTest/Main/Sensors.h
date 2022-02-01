@@ -22,7 +22,9 @@
 #pragma once
 
 #include <sensors/SensorManager.h>
-#include <sensors/LIS3DSH/LIS3DSH.h>
+#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/BME280/BME280.h>
 
 using namespace Boardcore;
 
@@ -54,15 +56,45 @@ namespace ParafoilTestDev
         SPIBusInterface& spiInterface;
 
         /**
-         * @brief initializes the LIS3DSH method
+         * @brief Sensors serial logger
          */
-        void initLIS3DSH();
-        void LIS3DSHCallback();
+        PrintLogger log = Logging::getLogger("sensors");
 
+        /**
+         * @brief The MPU9250 IMU init function and
+         * sample callback
+         */
+        void MPU9250init();
+        void MPU9250Callback();
+
+        /**
+         * @brief GPS init function and sample callback
+         */
+        void UbloxGPSinit();
+        void UbloxGPSCallback();
+
+        /**
+         * @brief Barometer BME280 init function and sample callback
+         */
+        void BME280init();
+        void BME280Callback();
 
     public:
 
-        LIS3DSH* accel_sensor;
+        /**
+         * @brief MPU9250IMU
+         */
+        MPU9250* imu_mpu9250;
+
+        /**
+         * @brief GPS
+         */
+        UbloxGPS* gps_ublox;
+
+        /**
+         * @brief Barometer
+         */
+        BME280* press_bme280;
 
         /**
          * @brief Constructor

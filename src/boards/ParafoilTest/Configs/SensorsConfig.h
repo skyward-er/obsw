@@ -29,13 +29,27 @@
 
 #pragma once
 
-#include <sensors/LIS3DSH/LIS3DSH.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/BME280/BME280.h>
+
+using namespace Boardcore;
 
 namespace ParafoilTestDev
 {
-    static constexpr unsigned int SAMPLE_PERIOD_ACCEL_LIS3DSH = 2; //2 millis
+    //GPS settings
+    static constexpr unsigned int GPS_SAMPLE_RATE       = 25;
+    static constexpr unsigned int GPS_SAMPLE_PERIOD     = 1000 / GPS_SAMPLE_RATE;
+    static constexpr unsigned int GPS_BAUD_RATE         = 460800;
 
-    static constexpr LIS3DSH::OutputDataRate    ACCEL_LIS3DSH_ODR           = LIS3DSH::ODR_800_HZ;
-    static constexpr LIS3DSH::BlockDataUpdate   ACCEL_LIS3DSH_BDU           = LIS3DSH::UPDATE_AFTER_READ_MODE;
-    static constexpr LIS3DSH::FullScale         ACCEL_LIS3DSH_FULL_SCALE    = LIS3DSH::FULL_SCALE_2G;
+    //IMU MPU9250 settings
+    static miosix::GpioPin IMU_CS(GPIOA_BASE, 5);
+    static MPU9250::MPU9250GyroFSR IMU_GYRO_SCALE       = MPU9250::GYRO_FSR_250DPS;
+    static MPU9250::MPU9250AccelFSR IMU_ACCEL_SCALE     = MPU9250::ACCEL_FSR_2G;
+    static constexpr unsigned short IMU_SAMPLE_RATE   = 100;
+    static constexpr unsigned int   IMU_SAMPLE_PERIOD = 1000 / IMU_SAMPLE_RATE;
+
+    //Barometer BME280 settings
+    static miosix::GpioPin PRESS_CS(GPIOA_BASE, 6);   
+    static BME280::StandbyTime PRESS_SAMPLE_PERIOD = BME280::STB_TIME_0_5; 
 }

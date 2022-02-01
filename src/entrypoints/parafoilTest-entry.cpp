@@ -27,6 +27,6 @@
  int main()
  {
  	//TODO integrate all the logging stuff
- 	ParafoilTest::getInstance() -> start();
+ 	ParafoilTest::getInstance().start();
  	return 0;
  } 

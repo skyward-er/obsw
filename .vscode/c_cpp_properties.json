@@ -21,13 +21,12 @@
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
-                "${workspaceFolder}/skyward-boardcore/libs/simple-template-matrix",
                 "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
                 "${workspaceFolder}/skyward-boardcore/libs/eigen",
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
-                "${workspaceFolder}/src/boards/DeathStack",
+                "${workspaceFolder}/src/boards/ParafoilTest",
                 "${workspaceFolder}/src/boards"
             ],
             "browse": {
@@ -43,7 +42,6 @@
                     "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/util",
                     "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/e20",
                     "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/*",
-                    "${workspaceFolder}/skyward-boardcore/libs/simple-template-matrix",
                     "${workspaceFolder}/skyward-boardcore/libs/mavlink_skyward_lib",
                     "${workspaceFolder}/skyward-boardcore/libs/eigen",
                     "${workspaceFolder}/skyward-boardcore/libs/tscpp",

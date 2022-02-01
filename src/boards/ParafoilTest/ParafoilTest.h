@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Common.h>
+#include <miosix.h>
 #include <ParafoilTestStatus.h>
 #include <Main/Sensors.h>
 #include <events/EventBroker.h>
@@ -121,7 +121,7 @@ namespace ParafoilTestDev
             startLogger();
 
             //Store the broker
-            broker = EventBroker::getInstance();
+            broker = &sEventBroker;
 
             //Create the task scheduler
             scheduler = new TaskScheduler();
