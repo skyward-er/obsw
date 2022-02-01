@@ -24,9 +24,9 @@
 
 #include <LoggerService/LoggerService.h>
 #include <NavigationAttitudeSystem/NASData.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -34,8 +34,6 @@
 #elif defined(USE_MOCK_SENSORS)
 #include <mocksensors/MockSensors.h>
 #endif
-
-using namespace Boardcore;
 
 namespace DeathStackBoard
 {
@@ -74,14 +72,14 @@ public:
     using GPSType     = MockGPS;
     using GPSDataType = MockGPSData;
 #else
-    using IMUType     = BMX160WithCorrection;
-    using IMUDataType = BMX160WithCorrectionData;
+    using IMUType     = Boardcore::BMX160WithCorrection;
+    using IMUDataType = Boardcore::BMX160WithCorrectionData;
 
-    using PressType     = MPXHZ6130A;
-    using PressDataType = MPXHZ6130AData;
+    using PressType     = Boardcore::MPXHZ6130A;
+    using PressDataType = Boardcore::MPXHZ6130AData;
 
-    using GPSType     = UbloxGPS;
-    using GPSDataType = UbloxGPSData;
+    using GPSType     = Boardcore::UbloxGPS;
+    using GPSDataType = Boardcore::UbloxGPSData;
 #endif
 
     using ADAControllerType = ADAController<PressDataType, GPSDataType>;
@@ -96,7 +94,7 @@ public:
     AirBrakesControllerType* arb_controller;
 
     StateMachines(IMUType& imu, PressType& press, GPSType& gps,
-                  TaskScheduler* scheduler);
+                  Boardcore::TaskScheduler* scheduler);
 
     ~StateMachines();
 
@@ -111,9 +109,7 @@ public:
     void setReferenceAltitude(float altitude);
 
 private:
-    void addAlgorithmsToScheduler(TaskScheduler* scheduler);
-
-    LoggerService& logger = *(LoggerService::getInstance());
+    void addAlgorithmsToScheduler(Boardcore::TaskScheduler* scheduler);
 };
 
 }  // namespace DeathStackBoard

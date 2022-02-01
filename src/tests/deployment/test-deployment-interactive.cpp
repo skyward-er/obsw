@@ -73,7 +73,7 @@ int main()
     ejection_servo.enable();
     ejection_servo.reset();
 
-    sEventBroker->start();
+    sEventBroker.start();
 
     string temp;
     for (;;)
@@ -172,7 +172,7 @@ void cuttingSequence()
     deploymentController.start();
 
     Thread::sleep(1000);
-    sEventBroker->post({EV_CUT_DROGUE}, TOPIC_DPL);
+    sEventBroker.post({EV_CUT_DROGUE}, TOPIC_DPL);
 
     waitForEvent(EV_CUTTING_TIMEOUT, TOPIC_DPL, waitEventTimeout);
 
@@ -220,12 +220,12 @@ void cutterContinuity()
     if (cutter == 1)
     {
         cout << "Activating primary cutter...\n";
-        sEventBroker->post({EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
+        sEventBroker.post({EV_TEST_CUT_PRIMARY}, TOPIC_DPL);
     }
     else
     {
         cout << "Activating backup cutter...\n";
-        sEventBroker->post({EV_TEST_CUT_BACKUP}, TOPIC_DPL);
+        sEventBroker.post({EV_TEST_CUT_BACKUP}, TOPIC_DPL);
     }
 
     waitForEvent(EV_CUTTING_TIMEOUT, TOPIC_DPL);
@@ -243,7 +243,7 @@ void noseconeEjection()
 
     waitUserInput();
 
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
 
     HBridge primaryCutter{PrimaryCutterEna::getPin(), CUTTER_TIM,
                           CUTTER_CHANNEL_PRIMARY, primaryCutterFrequency,
@@ -266,7 +266,7 @@ void noseconeEjection()
     }
 
     deploymentController.start();
-    sEventBroker->post({EV_NC_OPEN}, TOPIC_DPL);
+    sEventBroker.post({EV_NC_OPEN}, TOPIC_DPL);
 
     for (;;)
     {

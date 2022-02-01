@@ -64,7 +64,8 @@ protected:
         matlabData     = sensorData->magnetometer.measures[sampleCounter];
         tempData.mag_x = matlabData.getX();
         tempData.mag_y = matlabData.getY();
-        tempData.mag_z = matlabData.getZ() / 1000.0f; // from nanotesla to microtesla
+        tempData.mag_z =
+            matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
 
         // only update the timestamp once and use it for all the 3 sensors
         // (this sensor assumes the same frequency for accel, gyro and mag)

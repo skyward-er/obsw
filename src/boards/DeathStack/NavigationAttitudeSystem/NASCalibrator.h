@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <Common.h>
-#include <Debug.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <math/Stats.h>
 #include <miosix.h>
@@ -85,22 +83,23 @@ private:
 
     NASReferenceValues ref_values{};
 
-    Stats pressure_stats;  // Computes mean std dev etc for calibration
+    Boardcore::Stats
+        pressure_stats;  // Computes mean std dev etc for calibration
 
-    Stats gps_lat_stats;
-    Stats gps_lon_stats;
+    Boardcore::Stats gps_lat_stats;
+    Boardcore::Stats gps_lon_stats;
 
-    Stats accel_x_stats;
-    Stats accel_y_stats;
-    Stats accel_z_stats;
+    Boardcore::Stats accel_x_stats;
+    Boardcore::Stats accel_y_stats;
+    Boardcore::Stats accel_z_stats;
 
-    Stats mag_x_stats;
-    Stats mag_y_stats;
-    Stats mag_z_stats;
+    Boardcore::Stats mag_x_stats;
+    Boardcore::Stats mag_y_stats;
+    Boardcore::Stats mag_z_stats;
 
     // Refernece flags
-    bool ref_coordinates_set  = false;
-    bool ref_altitude_set  = false;
+    bool ref_coordinates_set = false;
+    bool ref_altitude_set    = false;
     bool ref_temperature_set = false;
 };
 

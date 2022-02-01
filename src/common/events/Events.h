@@ -38,16 +38,13 @@
 #include "events/Event.h"
 #include "events/EventBroker.h"
 
-using std::string;
-using namespace Boardcore;
-
 /**
  * Definition of all events in the Board software.
  * Refer to the Software Design Document.
  */
 enum Events : uint8_t
 {
-    EV_ADA_APOGEE_DETECTED = EV_FIRST_SIGNAL,
+    EV_ADA_APOGEE_DETECTED = Boardcore::EV_FIRST_SIGNAL,
     EV_ADA_DISABLE_ABK,
     EV_ADA_DPL_ALT_DETECTED,
     EV_ADA_READY,
@@ -182,4 +179,4 @@ const std::vector<uint8_t> EVENT_LIST{
  * @param event
  * @return string
  */
-string getEventString(uint8_t event);
+std::string getEventString(uint8_t event);

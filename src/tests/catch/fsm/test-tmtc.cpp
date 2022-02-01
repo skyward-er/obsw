@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,9 +29,8 @@
 
 #include <miosix.h>
 
-#include <catch2/catch.hpp>
-
 #include <Eigen/Dense>
+#include <catch2/catch.hpp>
 
 #define private public
 #define protected public
@@ -51,7 +49,9 @@ public:
     // This is called at the beginning of each test / section
     TMTCFixture()
     {
-        sEventBroker->start();
+        sEventBroker.start();
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         fsm = new TMTCController();
         fsm->start();
     }
@@ -60,8 +60,8 @@ public:
     ~TMTCFixture()
     {
         fsm->stop();
-        sEventBroker->unsubscribe(fsm);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(fsm);
+        sEventBroker.clearDelayedEvents();
         delete fsm;
     }
 
@@ -73,25 +73,25 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateGroundTM")
 {
     SECTION("EV_TC_START_SENSOR_TM -> stateSensorTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_START_SENSOR_TM},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_TC_START_SENSOR_TM},
                                   &TMTCController::stateSensorTM));
     }
 
     SECTION("EV_ARMED -> stateSensorTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_ARMED},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_ARMED},
                                   &TMTCController::stateFlightTM));
     }
 
     SECTION("EV_LIFTOFF -> stateFlightTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_LIFTOFF},
                                   &TMTCController::stateFlightTM));
     }
 
     SECTION("EV_TC_SERIAL_TM -> stateSerialDebugTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_SERIAL_TM},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_TC_SERIAL_TM},
                                   &TMTCController::stateSerialDebugTM));
     }
 }
@@ -103,7 +103,7 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateSensorTM")
 
     SECTION("EV_TC_STOP_SENSOR_TM -> stateGroundTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_STOP_SENSOR_TM},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_TC_STOP_SENSOR_TM},
                                   &TMTCController::stateGroundTM));
     }
 }
@@ -115,7 +115,7 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateFlightTM")
 
     SECTION("EV_DISARMED -> stateGroundTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_DISARMED},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_DISARMED},
                                   &TMTCController::stateGroundTM));
     }
 }
@@ -127,7 +127,7 @@ TEST_CASE_METHOD(TMTCFixture, "Testing transitions from stateSerialDebugTM")
 
     SECTION("EV_TC_RADIO_TM -> stateSerialDebugTM")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_TC_RADIO_TM},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_TC_RADIO_TM},
                                   &TMTCController::stateGroundTM));
     }
 }

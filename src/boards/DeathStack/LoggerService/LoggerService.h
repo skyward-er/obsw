@@ -26,8 +26,6 @@
 #include <TelemetriesTelecommands/TmRepository.h>
 #include <logger/Logger.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -37,16 +35,16 @@ namespace DeathStackBoard
  * struct is called. In this way, the Logger updates the Tm Repository before
  * logging on SD card.
  */
-class LoggerService : public Singleton<LoggerService>
+class LoggerService : public Boardcore::Singleton<LoggerService>
 {
-    friend class Singleton<LoggerService>;
+    friend class Boardcore::Singleton<LoggerService>;
 
 public:
     /**
      * @brief Generic log function, to be implemented for each loggable struct.
      */
     template <typename T>
-    inline LogResult log(const T& t)
+    inline Boardcore::LoggerResult log(const T& t)
     {
         {
             miosix::PauseKernelLock kLock;
@@ -79,20 +77,21 @@ public:
      */
     void stop() { logger.stop(); }
 
-    Logger& getLogger() { return logger; }
+    Boardcore::Logger& getLogger() { return logger; }
 
 private:
     /**
      * @brief Private constructor to enforce the singleton
      */
     LoggerService()
-        : logger(Logger::instance()), tmRepo(*(TmRepository::getInstance()))
+        : logger(Boardcore::Logger::getInstance()),
+          tmRepo(TmRepository::getInstance())
     {
     }
 
     ~LoggerService() {}
 
-    Logger& logger;  // SD loggers
+    Boardcore::Logger& logger;  // SD loggers
     // FlightStatsRecorder flight_stats{};
     TmRepository& tmRepo;
 };

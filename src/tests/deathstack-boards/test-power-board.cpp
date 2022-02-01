@@ -29,17 +29,18 @@
  */
 
 #include <AirBrakes/AirBrakesServo.h>
-#include <Common.h>
 #include <Deployment/DeploymentServo.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
+#include <drivers/adc/InternalADC.h>
 #include <drivers/hbridge/HBridge.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
+
+using namespace Boardcore;
 
 namespace CutterTest
 {
@@ -62,8 +63,6 @@ void sampleBatteryVoltage();
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     switch (menu())
     {
         case 1:
@@ -120,7 +119,7 @@ void sampleBatteryVoltage()
 
     // Sensor setup
 
-    InternalADC internalADC = InternalADC(*ADC3, 3.3);
+    InternalADC internalADC = InternalADC(ADC3, 3.3);
     internalADC.enableChannel(InternalADC::CH5);
     internalADC.init();
 
@@ -138,10 +137,10 @@ void sampleBatteryVoltage()
         BatteryVoltageSensorData data = batterySensor.getLastSample();
 
         // Calculate a simple linear battery percentage
-        float batteryPercentage = 100 * (data.bat_voltage - 9.6) / (12.6 - 9.6);
+        float batteryPercentage = 100 * (data.batVoltage - 9.6) / (12.6 - 9.6);
 
-        printf("%llu,%.3f,%.3f,%.1f\n", data.adc_timestamp, data.voltage,
-               data.bat_voltage, batteryPercentage);
+        printf("%llu,%.3f,%.3f,%.1f\n", data.voltageTimestamp, data.voltage,
+               data.batVoltage, batteryPercentage);
 
         miosix::delayMs(1000 / SAMPLING_FREQUENCY);
     }

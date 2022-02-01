@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -27,7 +27,6 @@
 #include <Main/SensorsData.h>
 #include <configs/FlightStatsConfig.h>
 #include <diagnostic/PrintLogger.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 #include <events/FSM.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/MS5803/MS5803Data.h>
@@ -38,8 +37,6 @@
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
 #endif
-
-using namespace Boardcore;
 
 namespace DeathStackBoard
 {
@@ -52,7 +49,7 @@ namespace DeathStackBoard
  * flight we are in, and we do so using a state machine and receiving events
  * from the topic FLIGHT_EVENTS.
  */
-class FlightStatsRecorder : public FSM<FlightStatsRecorder>
+class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>
 {
 public:
     FlightStatsRecorder();
@@ -60,12 +57,12 @@ public:
 
     void update(const ADAKalmanState& t);
     void update(const ADAData& t);
-    void update(const UbloxGPSData& t);
-    void update(const BMX160WithCorrectionData& t);
-    //void update(const CurrentSensorData& t);
-    void update(const MS5803Data& t);      // digitl baro
-    void update(const MPXHZ6130AData& t);  // static ports baro
-    void update(const SSCDANN030PAAData& t);  // DPL vane baro
+    void update(const Boardcore::GPSData& t);
+    void update(const Boardcore::BMX160WithCorrectionData& t);
+    // void update(const CurrentSensorData& t);
+    void update(const Boardcore::MS5803Data& t);         // digitl baro
+    void update(const Boardcore::MPXHZ6130AData& t);     // static ports baro
+    void update(const Boardcore::SSCDANN030PAAData& t);  // DPL vane baro
     void update(const AirSpeedPitot& t);
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -77,40 +74,41 @@ public:
     /**
      * @brief Wait for liftoff or deployment.
      */
-    void state_idle(const Event& ev);
+    void state_idle(const Boardcore::Event& ev);
 
     /**
      * @brief Record stats of the first few seconds of flight.
      */
-    void state_liftOff(const Event& ev);
+    void state_liftOff(const Boardcore::Event& ev);
 
     /**
      * @brief Record stats for the apogee part of the flight.
      */
-    void state_ascending(const Event& ev);
+    void state_ascending(const Boardcore::Event& ev);
 
     /**
      * @brief Record stats during drogue deployment.
      */
-    void state_drogueDeployment(const Event& ev);
+    void state_drogueDeployment(const Boardcore::Event& ev);
 
     /**
      * @brief Stats during main deployment.
      */
-    void state_mainDeployment(const Event& ev);
+    void state_mainDeployment(const Boardcore::Event& ev);
 
 private:
     LiftOffStats liftoff_stats{};
     ApogeeStats apogee_stats{};
     DrogueDPLStats drogue_dpl_stats{};
     MainDPLStats main_dpl_stats{};
-    //CutterTestStats cutters_stats{};
+    // CutterTestStats cutters_stats{};
     FSRState state      = FSRState::IDLE;
     long long T_liftoff = 0;
 
     uint16_t ev_timeout_id = 0;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.flightstatsrecorder");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.flightstatsrecorder");
 };
 
 }  // namespace DeathStackBoard

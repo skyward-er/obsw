@@ -47,7 +47,7 @@ StateMachines::StateMachines(IMUType& imu, PressType& press, GPSType& gps,
     fmm            = new FMMController();
 
 #ifdef HARDWARE_IN_THE_LOOP
-    HIL::getInstance()->setNAS(&nas_controller->getNAS());
+    HIL::getInstance().setNAS(&nas_controller->getNAS());
 #endif
 
     addAlgorithmsToScheduler(scheduler);
@@ -72,14 +72,18 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
 {
     uint64_t start_time = miosix::getTick() + 10;
 
-    scheduler->add(std::bind(&ADAControllerType::update, ada_controller),
-                   ADA_UPDATE_PERIOD, TASK_ADA_ID, start_time);
+    scheduler->addTask(std::bind(&ADAControllerType::update, ada_controller),
+                       ADAConfigs::ADA_UPDATE_PERIOD, TASK_ADA_ID,
+                       TaskScheduler::Policy::RECOVER, start_time);
 
-    scheduler->add(std::bind(&NASControllerType::update, nas_controller),
-                   NAS_UPDATE_PERIOD, TASK_NAS_ID, start_time);
+    scheduler->addTask(std::bind(&NASControllerType::update, nas_controller),
+                       NASConfigs::NAS_UPDATE_PERIOD, TASK_NAS_ID,
+                       TaskScheduler::Policy::RECOVER, start_time);
 
-    scheduler->add(std::bind(&AirBrakesControllerType::update, arb_controller),
-                   ABK_UPDATE_PERIOD, TASK_ABK_ID, start_time);
+    scheduler->addTask(
+        std::bind(&AirBrakesControllerType::update, arb_controller),
+        AirBrakesConfigs::ABK_UPDATE_PERIOD, TASK_ABK_ID,
+        TaskScheduler::Policy::RECOVER, start_time);
 }
 
 void StateMachines::setReferenceTemperature(float t)

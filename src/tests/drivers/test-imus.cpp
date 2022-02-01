@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <interfaces-impl/hwmapping.h>
 
 #include "configs/SensorManagerConfig.h"

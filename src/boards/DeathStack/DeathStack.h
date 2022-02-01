@@ -22,9 +22,7 @@
 
 #pragma once
 
-#include <Common.h>
 #include <DeathStackStatus.h>
-#include <Debug.h>
 #include <LoggerService/LoggerService.h>
 #include <Main/Actuators.h>
 #include <Main/Bus.h>
@@ -36,9 +34,9 @@
 #include <System/TaskID.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
-#include <events/utils/EventInjector.h>
 #include <events/Events.h>
 #include <events/Topics.h>
+#include <events/utils/EventInjector.h>
 #include <events/utils/EventSniffer.h>
 
 #include <functional>
@@ -50,7 +48,6 @@
 #endif
 
 using std::bind;
-using namespace Boardcore;
 
 namespace DeathStackBoard
 {
@@ -63,16 +60,15 @@ static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
  * This file provides a simplified way to initialize and monitor all
  * the components of the DeathStack.
  */
-class DeathStack : public Singleton<DeathStack>
+class DeathStack : public Boardcore::Singleton<DeathStack>
 {
     friend class Singleton<DeathStack>;
 
 public:
     // Shared Components
-    EventBroker* broker;
     LoggerService* logger;
 
-    EventSniffer* sniffer;
+    Boardcore::EventSniffer* sniffer;
     StateMachines* state_machines;
 
     Bus* bus;
@@ -82,7 +78,7 @@ public:
 
     PinHandler* pin_handler;
 
-    TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler;
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL* hil;
@@ -90,7 +86,7 @@ public:
 
     void start()
     {
-        if (!broker->start())
+        if (!sEventBroker.start())
         {
             LOG_ERR(log, "Error starting EventBroker");
             status.setError(&DeathStackStatus::ev_broker);
@@ -134,12 +130,14 @@ public:
         if (status.death_stack != COMP_OK)
         {
             LOG_ERR(log, "Initalization failed\n");
-            sEventBroker->post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Boardcore::Event{EV_INIT_ERROR},
+                              TOPIC_FLIGHT_EVENTS);
         }
         else
         {
             LOG_INFO(log, "Initalization ok");
-            sEventBroker->post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Boardcore::Event{EV_INIT_OK},
+                              TOPIC_FLIGHT_EVENTS);
         }
     }
 
@@ -156,7 +154,7 @@ public:
             status.setError(&DeathStackStatus::logger);
         }
 
-        logger->log(logger->getLogger().getLogStats());
+        logger->log(logger->getLogger().getLoggerStats());
     }
 
 private:
@@ -166,26 +164,23 @@ private:
     DeathStack()
     {
         /* Shared components */
-        logger = Singleton<LoggerService>::getInstance();
+        logger = &LoggerService::getInstance();
         startLogger();
-
-        TimestampTimer::enableTimestampTimer();
-
-        broker = sEventBroker;
 
         // Bind the logEvent function to the event sniffer in order to log every
         // event
         {
             using namespace std::placeholders;
-            sniffer = new EventSniffer(
-                *broker, TOPIC_LIST, bind(&DeathStack::logEvent, this, _1, _2));
+            sniffer = new Boardcore::EventSniffer(
+                sEventBroker, TOPIC_LIST,
+                bind(&DeathStack::logEvent, this, _1, _2));
         }
 
 #ifdef HARDWARE_IN_THE_LOOP
         hil = HIL::getInstance();
 #endif
 
-        scheduler = new TaskScheduler();
+        scheduler = new Boardcore::TaskScheduler();
         addSchedulerStatsTask();
 
         bus       = new Bus();
@@ -210,7 +205,7 @@ private:
         pin_handler = new PinHandler();
 
 #ifdef DEBUG
-        injector = new EventInjector();
+        injector = new Boardcore::EventInjector();
 #endif
 
         LOG_INFO(log, "Init finished");
@@ -221,7 +216,9 @@ private:
      */
     void logEvent(uint8_t event, uint8_t topic)
     {
-        EventData ev{(long long)TimestampTimer::getTimestamp(), event, topic};
+        Boardcore::EventData ev{
+            (long long)Boardcore::TimestampTimer::getInstance().getTimestamp(),
+            event, topic};
         logger->log(ev);
 
 #ifdef DEBUG
@@ -239,31 +236,33 @@ private:
 #endif
     }
 
-    inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
+    inline void postEvent(Boardcore::Event ev, uint8_t topic)
+    {
+        sEventBroker.post(ev, topic);
+    }
 
     void addSchedulerStatsTask()
     {
         // add lambda to log scheduler tasks statistics
-        scheduler->add(
-            [&]() {
-                std::vector<TaskStatResult> scheduler_stats =
+        scheduler->addTask(
+            [&]()
+            {
+                std::vector<Boardcore::TaskStatsResult> scheduler_stats =
                     scheduler->getTaskStats();
 
-                for (TaskStatResult stat : scheduler_stats)
-                {
+                for (Boardcore::TaskStatsResult stat : scheduler_stats)
                     logger->log(stat);
-                }
 
-                StackLogger::getInstance()->updateStack(THID_TASK_SCHEDULER);
+                Boardcore::StackLogger::getInstance().updateStack(
+                    THID_TASK_SCHEDULER);
             },
-            1000,  // 1 hz
-            TASK_SCHEDULER_STATS_ID, miosix::getTick());
+            1000, TASK_SCHEDULER_STATS_ID);
     }
 
-    EventInjector* injector;
+    Boardcore::EventInjector* injector;
     DeathStackStatus status{};
 
-    PrintLogger log = Logging::getLogger("deathstack");
+    Boardcore::PrintLogger log = Boardcore::Logging::getLogger("deathstack");
 };
 
 }  // namespace DeathStackBoard

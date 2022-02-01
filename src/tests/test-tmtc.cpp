@@ -41,10 +41,7 @@ int main()
 
     TMTCController* tmtc = new TMTCController();
     tmtc->start();
-    sEventBroker->start();
-
-    EventSniffer* sniffer =
-        new EventSniffer(*sEventBroker, TOPIC_LIST, onEventReceived);
+    sEventBroker.start();
 
     Thread::sleep(1000);
 
@@ -54,7 +51,7 @@ int main()
 
     Thread::sleep(100);
 
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
 
     printf("Press close to reboot...\n");
     while (inputs::btn_close::value())

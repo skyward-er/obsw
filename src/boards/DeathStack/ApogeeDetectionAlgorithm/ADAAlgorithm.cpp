@@ -21,13 +21,14 @@
  */
 
 #include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
-#include <Debug.h>
-#include <TimestampTimer.h>
 #include <configs/ADAConfig.h>
 #include <diagnostic/CpuMeter.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <utils/aero/AeroUtils.h>
+
+using namespace Boardcore;
 
 namespace DeathStackBoard
 {
@@ -52,12 +53,12 @@ void ADAAlgorithm::updateBaro(float pressure)
     updatePressureKalman(pressure);
 
     // Convert filter data to altitudes & speeds
-    ada_data.timestamp    = TimestampTimer::getTimestamp();
+    ada_data.timestamp    = TimestampTimer::getInstance().getTimestamp();
     ada_data.msl_altitude = pressureToAltitude(filter.getState()(0, 0));
     ada_data.agl_altitude = altitudeMSLtoAGL(ada_data.msl_altitude);
     ada_data.vert_speed   = aeroutils::verticalSpeed(
-        filter.getState()(0, 0), filter.getState()(1, 0),
-        ref_values.msl_pressure, ref_values.msl_temperature);
+          filter.getState()(0, 0), filter.getState()(1, 0),
+          ref_values.msl_pressure, ref_values.msl_temperature);
 
 #ifdef DEBUG
     if (counter == 50)
@@ -103,7 +104,7 @@ float ADAAlgorithm::altitudeMSLtoAGL(float altitude_msl) const
 ADAKalmanState ADAAlgorithm::getKalmanState()
 {
     ADAKalmanState state;
-    state.timestamp = TimestampTimer::getTimestamp();
+    state.timestamp = TimestampTimer::getInstance().getTimestamp();
 
     state.x0 = filter.getState()(0, 0);
     state.x1 = filter.getState()(1, 0);

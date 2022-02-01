@@ -30,12 +30,12 @@
 #include <mavlink_lib/lynx/mavlink.h>
 #pragma GCC diagnostic pop
 
-#include <drivers/mavlink/MavlinkDriver.h>
 #include <configs/MavlinkConfig.h>
+#include <drivers/mavlink/MavlinkDriver.h>
 
 namespace DeathStackBoard
 {
 
-using MavDriver = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
+using MavDriver = Boardcore::MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
 
 }  // namespace DeathStackBoard

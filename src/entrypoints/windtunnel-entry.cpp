@@ -33,15 +33,15 @@ int main()
 {
     TRACE("Starting windtunnel test....\n");
     // Instantiate the stack
-    DeathStack::getInstance()->start();
+    DeathStack::getInstance().start();
     TRACE("Running\n");
 
     // bool printed = false;
     for (;;)
     {
         Thread::sleep(1000);
-        LoggerService::getInstance()->log(
-            LoggerService::getInstance()->getLogger().getLogStats());
+        LoggerService::getInstance().log(
+            LoggerService::getInstance().getLogger().getLoggerStats());
         // if(buf_adc_pitot.size() >= GLOBAL_BUF_LEN && !printed)
         // {
         //     printed = true;

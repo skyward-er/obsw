@@ -30,8 +30,6 @@
 #include "hardware_in_the_loop/HIL_sensors/HILMagnetometer.h"
 #include "hardware_in_the_loop/HIL_sensors/HILSensor.h"
 
-using namespace DeathStackBoard;
-
 struct HILNasData : public TimestampData
 {
     HILNasData() : TimestampData{0} {}

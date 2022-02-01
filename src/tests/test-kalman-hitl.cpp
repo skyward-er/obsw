@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
 #include <EventClasses.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
@@ -49,7 +48,7 @@ int main()
     }
 
     // Start event broker and ada
-    sEventBroker->start();
+    sEventBroker.start();
     ada.start();
 
     // Read serial
@@ -99,15 +98,15 @@ void handleCommands(std::string line)
     // }
     else if (command == "EV_TC_RESET_CALIBRATION")
     {
-        sEventBroker->post({EV_TC_RESET_CALIBRATION}, TOPIC_ADA);
+        sEventBroker.post({EV_TC_RESET_CALIBRATION}, TOPIC_ADA);
     }
     else if (command == "EV_LIFTOFF")
     {
-        sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+        sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
     }
     else if (command == "EV_APOGEE")
     {
-        sEventBroker->post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
+        sEventBroker.post({EV_APOGEE}, TOPIC_FLIGHT_EVENTS);
     }
     else if (command == "EV_SET_DPL_ALTITUDE")
     {
@@ -115,11 +114,11 @@ void handleCommands(std::string line)
         DeploymentAltitudeEvent ev;
         ev.dplAltitude = alt;
         ev.sig         = EV_TC_SET_DPL_ALTITUDE;
-        sEventBroker->post(ev, TOPIC_TC);
+        sEventBroker.post(ev, TOPIC_TC);
     }
     else if (command == "EV_DPL_ALTITUDE")
     {
-        sEventBroker->post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
+        sEventBroker.post({EV_DPL_ALTITUDE}, TOPIC_FLIGHT_EVENTS);
     }
     else
     {

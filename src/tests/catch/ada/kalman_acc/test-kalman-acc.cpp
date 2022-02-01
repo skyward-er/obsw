@@ -27,13 +27,12 @@
 #define private public
 
 #include <ADA/ADA.h>
-#include <Common.h>
 #include <configs/ADAConfig.h>
 
+#include <catch2/catch.hpp>
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <catch2/catch.hpp>
 
 #include "test-kalman-acc-data.h"
 

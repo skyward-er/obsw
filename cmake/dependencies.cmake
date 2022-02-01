@@ -19,10 +19,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-set(OBSW_INCLUDE_DIRS src src/boards/DeathStack)
+set(OBSW_INCLUDE_DIRS
+    src
+    src/common
+    src/boards
+    src/boards/DeathStack
+)
 
 set(DEATHSTACK_NEW_SOURCES
-    src/boards/DeathStack/events/EventStrings.cpp
+    src/common/events/EventStrings.cpp
     src/boards/DeathStack/PinHandler/PinHandler.cpp
     src/boards/DeathStack/TelemetriesTelecommands/TMTCController.cpp
     src/boards/DeathStack/TelemetriesTelecommands/TCHandler.cpp
@@ -54,6 +59,13 @@ set(DEATHSTACK_NEW_SOURCES
 #    src/boards/DeathStack/TMTCManager/XbeeInterrupt.cpp
 #    src/boards/DeathStack/AirBrakes/AirBrakesServo.cpp
 #)
+set(PAYLOAD_SOURCES
+    src/common/events/EventStrings.cpp
+    src/boards/Payload/WingControl/WingServo.cpp
+    src/boards/Payload/Main/Sensors.cpp
+    src/boards/Payload/Main/Radio.cpp
+    src/boards/Payload/PinHandler/PinHandler.cpp
+)
 set(ADA_SOURCES
     src/boards/DeathStack/ApogeeDetectionAlgorithm/ADAAlgorithm.cpp
     src/boards/DeathStack/ApogeeDetectionAlgorithm/ADACalibrator.cpp

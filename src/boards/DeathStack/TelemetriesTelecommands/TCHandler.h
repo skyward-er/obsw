@@ -37,9 +37,9 @@ bool sendTelemetry(MavDriver* mav_driver, const uint8_t tm_id);
 
 void logMavlinkStatus(MavDriver* mav_driver);
 
-static LoggerService* logger = LoggerService::getInstance();
+static LoggerService* logger = &LoggerService::getInstance();
 
-static PrintLogger print_logger =
-    Logging::getLogger("deathstack.tmtc.tchandler");
+static Boardcore::PrintLogger print_logger =
+    Boardcore::Logging::getLogger("deathstack.tmtc.tchandler");
 
 }  // namespace DeathStackBoard

@@ -22,16 +22,16 @@
 
 #pragma once
 
-#include <Common.h>
 #include <mocksensors/MockSensorsData.h>
 #include <mocksensors/lynx_flight_data/lynx_airspeed_data.h>
 #include <sensors/Sensor.h>
+
 #include <random>
 
 namespace DeathStackBoard
 {
 
-class MockSpeedSensor : public Sensor<MockSpeedData>
+class MockSpeedSensor : public Boardcore::Sensor<MockSpeedData>
 {
 public:
     MockSpeedSensor() {}
@@ -44,7 +44,8 @@ public:
     {
         MockSpeedData data;
 
-        data.timestamp = TimestampTimer::getTimestamp();
+        data.timestamp =
+            Boardcore::TimestampTimer::getInstance().getTimestamp();
 
         if (before_liftoff)
         {

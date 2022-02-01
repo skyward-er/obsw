@@ -30,7 +30,10 @@
 #include <string>
 
 using namespace std;
+using namespace Boardcore;
 using namespace DeathStackBoard;
+using namespace DeploymentConfigs;
+using namespace AirBrakesConfigs;
 
 int servoMenu();
 int actionMenu();
@@ -51,7 +54,7 @@ float perlin2d(float x, float y, float freq, int depth);
 
 int servoChoice;
 ServoInterface* servo;
-PWMChannel channel;
+TimerUtils::Channel channel;
 
 constexpr int WIGGLE_STEPS = 5;
 
@@ -77,8 +80,6 @@ static int hashh[] = {
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     servoChoice = servoMenu();
 
     switch (servoChoice)
@@ -266,15 +267,17 @@ void servoBreakIn()
 
     waitUserInput();
 
-    uint64_t start = TimestampTimer::getTimestamp();
+    uint64_t start = TimestampTimer::getInstance().getTimestamp();
 
-    while (TimestampTimer::getTimestamp() - start < minutes * 60 * 1000000)
+    while (TimestampTimer::getInstance().getTimestamp() - start <
+           minutes * 60 * 1000000)
     {
-        uint64_t start2 = TimestampTimer::getTimestamp();
+        uint64_t start2 = TimestampTimer::getInstance().getTimestamp();
         float counter   = 0;
 
         // 10 seconds
-        while (TimestampTimer::getTimestamp() - start2 < 10 * 1000000)
+        while (TimestampTimer::getInstance().getTimestamp() - start2 <
+               10 * 1000000)
         {
             double angolo =
                 servo->MIN_POS + abs(perlin2d(counter, 0, .075, 10)) *

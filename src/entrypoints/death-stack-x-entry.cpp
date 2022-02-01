@@ -21,13 +21,13 @@
  */
 
 #include <DeathStack.h>
-#include <Debug.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <diagnostic/CpuMeter.h>
 #include <math/Stats.h>
 #include <miosix.h>
 
 using namespace miosix;
+using namespace Boardcore;
 using namespace DeathStackBoard;
 // using namespace GlobalBuffers;
 
@@ -45,19 +45,19 @@ int main()
     SystemData system_data;
 
     // Instantiate the stack
-    DeathStack::getInstance()->start();
+    DeathStack::getInstance().start();
     LOG_INFO(log, "Death stack started");
 
-    LoggerService* logger_service = LoggerService::getInstance();
+    LoggerService& logger_service = LoggerService::getInstance();
 
     for (;;)
     {
         Thread::sleep(1000);
-        logger_service->log(logger_service->getLogger().getLogStats());
+        logger_service.log(logger_service.getLogger().getLoggerStats());
 
-        StackLogger::getInstance()->updateStack(THID_ENTRYPOINT);
+        StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 
-        system_data.timestamp = miosix::getTick();
+        system_data.timestamp = getTick();
         system_data.cpu_usage = averageCpuUtilization();
         cpu_stat.add(system_data.cpu_usage);
 
@@ -69,8 +69,8 @@ int main()
         system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
         system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
 
-        logger_service->log(system_data);
-        
-        StackLogger::getInstance()->log();
+        logger_service.log(system_data);
+
+        StackLogger::getInstance().log();
     }
 }

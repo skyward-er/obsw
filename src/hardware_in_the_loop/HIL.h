@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
-#include "hardware_in_the_loop/HILFlightPhasesManager.h"
-#include "hardware_in_the_loop/simulator_communication/HILTransceiver.h"
-#include "hardware_in_the_loop/HILConfig.h"
 #include "NavigationAttitudeSystem/NASData.h"
+#include "hardware_in_the_loop/HILConfig.h"
+#include "hardware_in_the_loop/HILFlightPhasesManager.h"
+#include "hardware_in_the_loop/HIL_sensors/HILSensors.h"
+#include "hardware_in_the_loop/simulator_communication/HILTransceiver.h"
 
 /**
  * @brief Single interface to the hardware-in-the-loop framework.
@@ -46,10 +46,7 @@ public:
 
     void stop() { simulator->stop(); }
 
-    void send(ActuatorData d)
-    {
-        simulator->setActuatorData(d);
-    }
+    void send(ActuatorData d) { simulator->setActuatorData(d); }
 
     /**
      * @brief method that signals to the simulator that the liftoff pin has

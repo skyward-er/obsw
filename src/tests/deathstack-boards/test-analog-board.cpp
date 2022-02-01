@@ -36,10 +36,9 @@
  * Deatachment pins
  */
 
-#include <Common.h>
-#include <drivers/adc/ADS1118/ADS1118.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
@@ -49,6 +48,8 @@
 #include <sstream>
 
 #include "PinHandler/PinHandler.h"
+
+using namespace Boardcore;
 
 namespace PinHandlerTest
 {
@@ -76,8 +77,6 @@ void sampleAll();
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     switch (menu())
     {
         case 1:
@@ -148,7 +147,7 @@ void sampleAnalogPressureSensor(ADS1118::ADS1118Mux channel)
 
     SPIBus spiBus(SPI1);
     SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
-    spiConfig.clock_div    = SPIClockDivider::DIV64;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
     SPISlave spiSlave(spiBus, miosix::sensors::ads1118::cs::getPin(),
                       spiConfig);
 
@@ -169,8 +168,8 @@ void sampleAnalogPressureSensor(ADS1118::ADS1118Mux channel)
     {
         ads1118.sample();
         pressureSensor.sample();
-        printf("%llu,%.2f\n", pressureSensor.getLastSample().press_timestamp,
-               pressureSensor.getLastSample().press);
+        printf("%llu,%.2f\n", pressureSensor.getLastSample().pressureTimestamp,
+               pressureSensor.getLastSample().pressure);
 
         miosix::delayMs(1000 / SAMPLING_FREQUENCY);
     }
@@ -183,7 +182,7 @@ void sampleMS5803()
 
     // Sensor setup
     SPIBusConfig spiCfg{};
-    spiCfg.clock_div = SPIClockDivider::DIV16;
+    spiCfg.clockDivider = SPI::ClockDivider::DIV_16;
     SPIBus spiBus(SPI1);
     SPISlave spiSlave(spiBus, miosix::sensors::ms5803::cs::getPin(), spiCfg);
     MS5803 ms5803 = MS5803(spiSlave);
@@ -193,7 +192,7 @@ void sampleMS5803()
     for (int i = 0; i < seconds * SAMPLING_FREQUENCY; i++)
     {
         ms5803.sample();
-        printf("%.2f\n", ms5803.getLastSample().press);
+        printf("%.2f\n", ms5803.getLastSample().pressure);
 
         miosix::delayMs(1000 / SAMPLING_FREQUENCY);
     }
@@ -208,9 +207,9 @@ void sampleAll()
 
     SPIBus spiBus(SPI1);
     SPIBusConfig adsSpiConfig = ADS1118::getDefaultSPIConfig();
-    adsSpiConfig.clock_div    = SPIClockDivider::DIV64;
+    adsSpiConfig.clockDivider = SPI::ClockDivider::DIV_64;
     SPISlave adsSpiSlave(spiBus, miosix::sensors::ads1118::cs::getPin(),
-                      adsSpiConfig);
+                         adsSpiConfig);
 
     ADS1118::ADS1118Config ads1118Config = ADS1118::ADS1118_DEFAULT_CONFIG;
     ads1118Config.bits.mode = ADS1118::ADS1118Mode::CONTIN_CONV_MODE;
@@ -240,10 +239,11 @@ void sampleAll()
                              SUPPLIED_VOLTAGE);
     SSCDRRN015PDA honeywell2(get_voltage_function_honeywell_2,
                              SUPPLIED_VOLTAGE);
-    
+
     SPIBusConfig ms5803SpiCfg{};
-    ms5803SpiCfg.clock_div = SPIClockDivider::DIV16;
-    SPISlave ms5803SpiSlave(spiBus, miosix::sensors::ms5803::cs::getPin(), ms5803SpiCfg);
+    ms5803SpiCfg.clockDivider = SPI::ClockDivider::DIV_16;
+    SPISlave ms5803SpiSlave(spiBus, miosix::sensors::ms5803::cs::getPin(),
+                            ms5803SpiCfg);
     MS5803 ms5803 = MS5803(ms5803SpiSlave);
     ms5803.init();
 
@@ -257,10 +257,11 @@ void sampleAll()
         honeywell2.sample();
         ms5803.sample();
         printf("%llu,%.2f,%.2f,%.2f,%.2f,%.2f\n",
-               ads1118.getLastSample().adc_timestamp,
-               npx1.getLastSample().press, npx2.getLastSample().press,
-               honeywell1.getLastSample().press,
-               honeywell2.getLastSample().press, ms5803.getLastSample().press);
+               ads1118.getLastSample().voltageTimestamp,
+               npx1.getLastSample().pressure, npx2.getLastSample().pressure,
+               honeywell1.getLastSample().pressure,
+               honeywell2.getLastSample().pressure,
+               ms5803.getLastSample().pressure);
 
         miosix::delayMs(1000 / SAMPLING_FREQUENCY);
     }

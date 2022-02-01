@@ -28,9 +28,6 @@
 #include "miosix.h"
 #include "sensors/Sensor.h"
 
-using namespace DeathStackBoard;
-using namespace miosix;
-
 /**
  * @brief Example of how a control algorithm should be created.
  *

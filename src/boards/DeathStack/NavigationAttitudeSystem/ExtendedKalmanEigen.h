@@ -28,15 +28,10 @@
 
 #include <Eigen/Dense>
 
-using namespace Eigen;
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
-using namespace NASConfigs;
-
-using VectorNf = Matrix<float, N, 1>;
+using VectorNf = Eigen::Matrix<float, NASConfigs::N, 1>;
 
 class ExtendedKalmanEigen
 {
@@ -49,7 +44,7 @@ public:
      *
      * @param u 3x1 Vector of the accelerometer readings [ax ay az].
      */
-    void predict(const Vector3f& u);
+    void predict(const Eigen::Vector3f& u);
 
     /**
      * @brief EKF correction of the barometer data.
@@ -68,21 +63,21 @@ public:
      * gps_nord_vel, gps_east_vel].
      * @param sats_num Number of satellites available
      */
-    void correctGPS(const Vector4f& y, const uint8_t sats_num);
+    void correctGPS(const Eigen::Vector4f& y, const uint8_t sats_num);
 
     /**
      * @brief Prediction step of the Multiplicative EKF.
      *
      * @param u 3x1 Vector of the gyroscope readings [wx wy wz].
      */
-    void predictMEKF(const Vector3f& u);
+    void predictMEKF(const Eigen::Vector3f& u);
 
     /**
      * @brief MEKF correction of the magnetometer readings.
      *
      * @param y 3x1 Vector of the magnetometer readings [mx my mz].
      */
-    void correctMEKF(const Vector3f& y);
+    void correctMEKF(const Eigen::Vector3f& y);
 
     /**
      * @return 13x1 State vector [px py pz vx vy vz qx qy qz qw bx by bz].
@@ -96,42 +91,42 @@ public:
 
 private:
     VectorNf x;
-    Matrix<float, NP, NP> P;
-    Matrix<float, NL, NL> F;
-    Matrix<float, NL, NL> Ftr;
+    Eigen::Matrix<float, NASConfigs::NP, NASConfigs::NP> P;
+    Eigen::Matrix<float, NASConfigs::NL, NASConfigs::NL> F;
+    Eigen::Matrix<float, NASConfigs::NL, NASConfigs::NL> Ftr;
 
-    Matrix3f P_pos;
-    Matrix3f P_vel;
-    Matrix3f P_att;
-    Matrix3f P_bias;
-    Matrix<float, NL, NL> Plin;
+    Eigen::Matrix3f P_pos;
+    Eigen::Matrix3f P_vel;
+    Eigen::Matrix3f P_att;
+    Eigen::Matrix3f P_bias;
+    Eigen::Matrix<float, NASConfigs::NL, NASConfigs::NL> Plin;
 
-    Matrix3f Q_pos;
-    Matrix3f Q_vel;
-    Matrix<float, NL, NL> Q_lin;
+    Eigen::Matrix3f Q_pos;
+    Eigen::Matrix3f Q_vel;
+    Eigen::Matrix<float, NASConfigs::NL, NASConfigs::NL> Q_lin;
 
-    Vector3f g;
-    Matrix2f eye2;
-    Matrix3f eye3;
-    Matrix4f eye4;
-    Matrix<float, 6, 6> eye6;
+    Eigen::Vector3f g;
+    Eigen::Matrix2f eye2;
+    Eigen::Matrix3f eye3;
+    Eigen::Matrix4f eye4;
+    Eigen::Matrix<float, 6, 6> eye6;
 
-    Matrix<float, NBAR, NBAR> R_bar;
+    Eigen::Matrix<float, NASConfigs::NBAR, NASConfigs::NBAR> R_bar;
 
-    Matrix<float, NGPS, NGPS> R_gps;
-    Matrix<float, NGPS, NL> H_gps;
-    Matrix<float, NL, NGPS> H_gpstr;
+    Eigen::Matrix<float, NASConfigs::NGPS, NASConfigs::NGPS> R_gps;
+    Eigen::Matrix<float, NASConfigs::NGPS, NASConfigs::NL> H_gps;
+    Eigen::Matrix<float, NASConfigs::NL, NASConfigs::NGPS> H_gpstr;
 
-    Vector4f q;
-    Matrix<float, NMAG, NMAG> R_mag;
-    Matrix<float, NMEKF, NMEKF> Q_mag;
-    Matrix<float, NMEKF, NMEKF> Fatt;
-    Matrix<float, NMEKF, NMEKF> Fatttr;
-    Matrix<float, NMEKF, NMEKF> Gatt;
-    Matrix<float, NMEKF, NMEKF> Gatttr;
-    Matrix<float, NMEKF, NMEKF> Patt;
+    Eigen::Vector4f q;
+    Eigen::Matrix<float, NASConfigs::NMAG, NASConfigs::NMAG> R_mag;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Q_mag;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Fatt;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Fatttr;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Gatt;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Gatttr;
+    Eigen::Matrix<float, NASConfigs::NMEKF, NASConfigs::NMEKF> Patt;
 
-    SkyQuaternion quater;
+    Boardcore::SkyQuaternion quater;
 };
 
 }  // namespace DeathStackBoard

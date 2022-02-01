@@ -1,4 +1,4 @@
-/* Copyright (c) 2020 Skyward Experimental Rocketry
+/* Copyright (c) 2021 Skyward Experimental Rocketry
  * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,49 +22,30 @@
 
 #pragma once
 
-namespace DeathStackBoard
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <utils/Constants.h>
+
+namespace PayloadBoard
 {
 
-class Algorithm
+namespace WingConfigs
 {
-public:
-    /**
-     * @brief Initializes the Algorithm object, must be called as soon as the
-     * object is created.
-     * */
-    virtual bool init() = 0;
 
-    /**
-     * @brief Starts the execution of the algorithm and set the running flag to
-     * true.
-     * */
-    void begin() { running = true; }
+static TIM_TypeDef* const WING_SERVO_1_TIMER = TIM8;
+static constexpr Boardcore::TimerUtils::Channel WING_SERVO_1_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-    /**
-     * @brief Terminates the algorithm's execution and sets the running flag to
-     * false.
-     * */
-    void end() { running = false; }
+static const TIM_TypeDef* WING_SERVO_2_TIMER = TIM4;
+static constexpr Boardcore::TimerUtils::Channel WING_SERVO_2_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-    /**
-     * @brief Checks wether the algorithm is in a running state or not, and
-     * eventually calls the @see{step} routine.
-     * */
-    void update()
-    {
-        if (running)
-        {
-            step();
-        }
-    }
+// Wing servo configs
+static constexpr float WING_SERVO_MAX_POS = 180.0;  // deg
+static constexpr float WING_SERVO_MIN_POS = 0.0;    // deg
 
-protected:
-    /**
-     * @brief The actual algorithm step.
-     */
-    virtual void step() = 0;
+static constexpr float WING_SERVO_WIGGLE_AMPLITUDE = 20.0;  // deg
 
-    bool running = false;
-};
+}  // namespace WingConfigs
 
-}  // namespace DeathStackBoard
+}  // namespace PayloadBoard

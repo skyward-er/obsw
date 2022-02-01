@@ -25,15 +25,12 @@
 #include <configs/ADAConfig.h>
 #include <configs/config.h>
 #include <math/Stats.h>
-#include <Constants.h>
-#include <ostream>
+#include <utils/Constants.h>
 
-using namespace Boardcore;
+#include <ostream>
 
 namespace DeathStackBoard
 {
-
-using namespace ADAConfigs;
 
 /**
  * @brief All possible states of the ADA.
@@ -158,8 +155,8 @@ struct ADAReferenceValues
 
     // Pressure at mean sea level for altitude calculation, to be updated with
     // launch-day calibration
-    float msl_pressure    = MSL_PRESSURE;
-    float msl_temperature = MSL_TEMPERATURE;
+    float msl_pressure    = Boardcore::MSL_PRESSURE;
+    float msl_temperature = Boardcore::MSL_TEMPERATURE;
 
     static std::string header()
     {

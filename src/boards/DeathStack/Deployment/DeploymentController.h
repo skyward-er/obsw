@@ -27,13 +27,9 @@
 #include <configs/CutterConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/hbridge/HBridge.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <events/Events.h>
 #include <events/FSM.h>
-
-using namespace Boardcore;
-using namespace DeathStackBoard::DeploymentConfigs;
-using namespace DeathStackBoard::CutterConfig;
 
 namespace DeathStackBoard
 {
@@ -41,17 +37,17 @@ namespace DeathStackBoard
 /**
  * @brief Deployment state machine.
  */
-class DeploymentController : public FSM<DeploymentController>
+class DeploymentController : public Boardcore::FSM<DeploymentController>
 {
 public:
     DeploymentController(
         ServoInterface* ejection_servo = new DeploymentServo());
     ~DeploymentController();
 
-    void state_initialization(const Event& ev);
-    void state_idle(const Event& ev);
-    void state_noseconeEjection(const Event& ev);
-    void state_cutting(const Event& ev);
+    void state_initialization(const Boardcore::Event& ev);
+    void state_idle(const Boardcore::Event& ev);
+    void state_noseconeEjection(const Boardcore::Event& ev);
+    void state_cutting(const Boardcore::Event& ev);
 
     void ejectNosecone();
     void startCutting();
@@ -65,7 +61,8 @@ private:
     uint16_t ev_nc_open_timeout_id    = 0;
     uint16_t ev_nc_cutting_timeout_id = 0;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.dpl");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.dpl");
 
     void logStatus(DeploymentControllerState current_state);
 };

@@ -29,9 +29,8 @@
 
 #include <miosix.h>
 
-#include <catch2/catch.hpp>
-
 #include <Eigen/Dense>
+#include <catch2/catch.hpp>
 
 #define private public
 #define protected public
@@ -53,7 +52,9 @@ public:
     // This is called at the beginning of each test / section
     ADAControllerFixture()
     {
-        sEventBroker->start();
+        sEventBroker.start();
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         controller = new ADACtrl(mock_baro, mock_gps);
         controller->start();
     }
@@ -62,8 +63,8 @@ public:
     ~ADAControllerFixture()
     {
         controller->stop();
-        sEventBroker->unsubscribe(controller);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(controller);
+        sEventBroker.clearDelayedEvents();
         delete controller;
     }
 
@@ -80,7 +81,8 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from idle")
 
     SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
 }
@@ -91,13 +93,14 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from calibrating")
 
     SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
 
     SECTION("EV_ADA_READY -> READY")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_ADA_READY},
+        REQUIRE(testFSMTransition(*controller, Boardcore::Event{EV_ADA_READY},
                                   &ADACtrl::state_ready));
     }
 }
@@ -108,13 +111,14 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from ready")
 
     SECTION("EV_CALIBRATE_ADA -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CALIBRATE_ADA},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_CALIBRATE_ADA},
                                   &ADACtrl::state_calibrating));
     }
 
     SECTION("EV_LIFTOFF -> SHADOW_MODE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*controller, Boardcore::Event{EV_LIFTOFF},
                                   &ADACtrl::state_shadowMode));
     }
 }
@@ -125,7 +129,8 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from shadow_mode")
 
     SECTION("EV_SHADOW_MODE_TIMEOUT -> ACTIVE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_SHADOW_MODE_TIMEOUT},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_SHADOW_MODE_TIMEOUT},
                                   &ADACtrl::state_active));
     }
 }
@@ -136,7 +141,8 @@ TEST_CASE_METHOD(ADAControllerFixture, "Testing transitions from active")
 
     SECTION("EV_ADA_APOGEE_DETECTED -> PRESSURE_STABILIZATION")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_ADA_APOGEE_DETECTED},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_ADA_APOGEE_DETECTED},
                                   &ADACtrl::state_pressureStabilization));
     }
 }
@@ -148,9 +154,9 @@ TEST_CASE_METHOD(ADAControllerFixture,
 
     SECTION("EV_TIMEOUT_PRESS_STABILIZATION -> DROGUE_DESCENT")
     {
-        REQUIRE(testFSMTransition(*controller,
-                                  Event{EV_TIMEOUT_PRESS_STABILIZATION},
-                                  &ADACtrl::state_drogueDescent));
+        REQUIRE(testFSMTransition(
+            *controller, Boardcore::Event{EV_TIMEOUT_PRESS_STABILIZATION},
+            &ADACtrl::state_drogueDescent));
     }
 }
 
@@ -161,7 +167,8 @@ TEST_CASE_METHOD(ADAControllerFixture,
 
     SECTION("EV_ADA_DPL_ALT_DETECTED -> END")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_ADA_DPL_ALT_DETECTED},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_ADA_DPL_ALT_DETECTED},
                                   &ADACtrl::state_end));
     }
 }

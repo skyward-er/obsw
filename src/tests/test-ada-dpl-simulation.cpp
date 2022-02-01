@@ -23,6 +23,7 @@
 #include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
 #include <ApogeeDetectionAlgorithm/ADAController.h>
 #include <Deployment/DeploymentController.h>
+#include <utils/Debug.h>
 
 #include <random>
 
@@ -32,6 +33,7 @@
 #include "events/Events.h"
 #include "events/utils/EventCounter.h"
 
+using namespace Boardcore;
 using namespace DeathStackBoard;
 
 constexpr float NOISE_STD_DEV = 5;  // Noise varaince
@@ -66,7 +68,8 @@ public:
             }
         }
 
-        return PressureData{TimestampTimer::getTimestamp(), press};
+        return PressureData{TimestampTimer::getInstance().getTimestamp(),
+                            press};
     }
 
     void signalLiftoff() { before_liftoff = false; }
@@ -95,8 +98,6 @@ public:
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     MockPressureSensor baro;
     MockGPSSensor gps;
 
@@ -111,8 +112,8 @@ int main()
     DeploymentController dpl_controller;
     PinHandler pin_handler;
 
-    sEventBroker->start();
-    EventCounter counter{*sEventBroker};
+    sEventBroker.start();
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_ADA);
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
 
@@ -129,11 +130,11 @@ int main()
     Thread::sleep(1000);
 
     // Enter ADA calibration state
-    sEventBroker->post({EV_CALIBRATE_ADA}, TOPIC_ADA);
+    sEventBroker.post({EV_CALIBRATE_ADA}, TOPIC_ADA);
     Thread::sleep(100);
 
     // Send baro calibration samples for ADA
-    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
+    for (unsigned i = 0; i < ADAConfigs::CALIBRATION_BARO_N_SAMPLES + 5; i++)
     {
         baro.sample();
         Thread::sleep(50);
@@ -164,7 +165,7 @@ int main()
 
     TRACE("Sending EV_LIFTOFF ... \n");
     // Send liftoff event
-    sEventBroker->post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LIFTOFF}, TOPIC_FLIGHT_EVENTS);
     baro.signalLiftoff();
 
     bool first_apogee_detection       = true;
@@ -185,7 +186,7 @@ int main()
             first_apogee_detection = false;
 
             TRACE("Triggering nosecone ejection ... \n\n");
-            sEventBroker->post({EV_NC_OPEN}, TOPIC_DPL);
+            sEventBroker.post({EV_NC_OPEN}, TOPIC_DPL);
         }
 
         if (ada_controller.getStatus().dpl_altitude_reached &&
@@ -195,7 +196,7 @@ int main()
             first_dpl_altitude_detection = false;
 
             TRACE("Triggering cutting sequence ... \n\n");
-            sEventBroker->post({EV_CUT_DROGUE}, TOPIC_DPL);
+            sEventBroker.post({EV_CUT_DROGUE}, TOPIC_DPL);
         }
     }
 

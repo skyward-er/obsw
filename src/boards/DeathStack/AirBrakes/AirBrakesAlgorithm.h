@@ -28,9 +28,9 @@
 #include <Algorithm.h>
 #include <LoggerService/LoggerService.h>
 #include <ServoInterface.h>
-#include <TimestampTimer.h>
 #include <configs/AirBrakesConfig.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <sensors/Sensor.h>
 
 #include <algorithm>
@@ -54,8 +54,6 @@
  * Total computation time: |   25.557320 ms |  181.001143 ms
  */
 
-using namespace DeathStackBoard::AirBrakesConfigs;
-
 namespace DeathStackBoard
 {
 
@@ -64,7 +62,8 @@ class AirBrakesControlAlgorithm : public Algorithm
 {
 
 public:
-    AirBrakesControlAlgorithm(Sensor<T>& sensor, ServoInterface* actuator);
+    AirBrakesControlAlgorithm(Boardcore::Sensor<T>& sensor,
+                              ServoInterface* actuator);
 
     float getEstimatedCd() { return ab_data.estimated_cd; }
 
@@ -89,7 +88,7 @@ public:
 #ifdef HARDWARE_IN_THE_LOOP
         else
         {
-            HIL::getInstance()->send(0.0);
+            HIL::getInstance().send(0.0);
         }
 #endif
     }
@@ -152,8 +151,8 @@ public:
     /**
      * @brief Compute the necessary airbrakes surface to match the
      * given the drag force from the Pid. The possible surface values are
-     * discretized in (S_MIN, S_MAX) with a
-     * step of S_STEP. For every possible deltaS the
+     * discretized in (AirBrakesConfigs::S_MIN, AirBrakesConfigs::S_MAX) with a
+     * step of AirBrakesConfigs::S_STEP. For every possible deltaS the
      * correspondig drag force is computed with @see getDrag method and the one
      * that gives lowest error with respect to Pid output is returned.
      *
@@ -212,15 +211,15 @@ public:
     void logAirbrakesData(uint64_t t);
 
 private:
-    int indexMinVal       = 0;
-    float alpha           = 0;
+    int indexMinVal = 0;
+    float alpha     = 0;
 
     uint64_t last_input_ts = 0;
     uint64_t begin_ts      = 0;
 
     Trajectory chosenTrajectory;
     ServoInterface* actuator;
-    Sensor<T>& sensor;
+    Boardcore::Sensor<T>& sensor;
     PIController pid;
 
     AirBrakesAlgorithmData algo_data;
@@ -237,9 +236,10 @@ private:
 
 template <class T>
 AirBrakesControlAlgorithm<T>::AirBrakesControlAlgorithm(
-    Sensor<T>& sensor, ServoInterface* actuator)
-    : actuator(actuator), sensor(sensor), pid(Kp, Ki),
-      logger(*(LoggerService::getInstance()))
+    Boardcore::Sensor<T>& sensor, ServoInterface* actuator)
+    : actuator(actuator), sensor(sensor),
+      pid(AirBrakesConfigs::Kp, AirBrakesConfigs::Ki),
+      logger(LoggerService::getInstance())
 {
 }
 
@@ -253,7 +253,7 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     running = true;
 
-    begin_ts = TimestampTimer::getTimestamp();
+    begin_ts = Boardcore::TimestampTimer::getInstance().getTimestamp();
 
     last_input_ts = (sensor.getLastSample()).timestamp;
 
@@ -275,14 +275,15 @@ void AirBrakesControlAlgorithm<T>::step()
         alpha         = computeAlpha(input, false);
     }
 
-    uint64_t curr_ts = TimestampTimer::getTimestamp();
+    uint64_t curr_ts = Boardcore::TimestampTimer::getInstance().getTimestamp();
 
 #ifdef EUROC
-    if (curr_ts - begin_ts < AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE * 1000)
+    if (curr_ts - begin_ts <
+        AirBrakesConfigs::AIRBRAKES_ACTIVATION_AFTER_SHADOW_MODE * 1000)
     {
         // limit control to half of the airbrakes surface
         // this should correspond to a maximum of 17.18° angle on the servo
-        actuator->set(AB_SERVO_HALF_AREA_POS, true);
+        actuator->set(AirBrakesConfigs::AB_SERVO_HALF_AREA_POS, true);
     }
     else
     {
@@ -352,7 +353,7 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::chooseTrajectory(float z,
     for (uint8_t trajectoryIndex = 0; trajectoryIndex < TOT_TRAJECTORIES;
          trajectoryIndex++)
     {
-        Trajectory trajectory(trajectoryIndex, S_MAX);
+        Trajectory trajectory(trajectoryIndex, AirBrakesConfigs::S_MAX);
 
         for (uint32_t pointIndex = 0; pointIndex < trajectory.length();
              pointIndex++)
@@ -373,7 +374,8 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::chooseTrajectory(float z,
     logger.log(
         AirBrakesChosenTrajectory{chosenTrajectory.getTrajectoryIndex()});
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.abk");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.abk");
     LOG_INFO(log, "Chosen trajectory : {:d} \n",
              chosenTrajectory.getTrajectoryIndex());
 
@@ -388,8 +390,9 @@ TrajectoryPoint AirBrakesControlAlgorithm<T>::getSetpoint(float z, float vz)
     TrajectoryPoint currentPoint(z, vz);
     float minDistance = INFINITY;
 
-    uint32_t start = std::max(indexMinVal + START_INDEX_OFFSET, 0);
-    uint32_t end   = chosenTrajectory.length();
+    uint32_t start =
+        std::max(indexMinVal + AirBrakesConfigs::START_INDEX_OFFSET, 0);
+    uint32_t end = chosenTrajectory.length();
 
     for (uint32_t pointIndex = start; pointIndex < end; pointIndex++)
     {
@@ -419,14 +422,14 @@ float AirBrakesControlAlgorithm<T>::pidStep(float z, float vz, float vMod,
     // cd minimum if abk surface is 0
     float cd_min = getDrag(vMod, z, 0);
     // cd maximum if abk surface is maximum
-    float cd_max = getDrag(vMod, z, S_MAX);
+    float cd_max = getDrag(vMod, z, AirBrakesConfigs::S_MAX);
 
-    float u_min = 0.5 * rho * cd_min * S0 * vz * vMod;
-    float u_max = 0.5 * rho * cd_max * S0 * vz * vMod;
+    float u_min = 0.5 * rho * cd_min * AirBrakesConfigs::S0 * vz * vMod;
+    float u_max = 0.5 * rho * cd_max * AirBrakesConfigs::S0 * vz * vMod;
 
     // get reference CD and control action, according to the chosen trajectory
     float cd_ref = getDrag(vMod, z, chosenTrajectory.getRefSurface());
-    float u_ref  = 0.5 * rho * cd_ref * S0 * vz * vMod;
+    float u_ref  = 0.5 * rho * cd_ref * AirBrakesConfigs::S0 * vz * vMod;
 
     float error       = vz - setpoint.getVz();
     ab_data.pid_error = error;  // for logging
@@ -447,10 +450,12 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
     float selected_s   = 0;
     float best_du      = INFINITY;
 
-    for (float s = S_MIN; s < S_MAX + S_STEP; s += S_STEP)
+    for (float s = AirBrakesConfigs::S_MIN;
+         s < AirBrakesConfigs::S_MAX + AirBrakesConfigs::S_STEP;
+         s += AirBrakesConfigs::S_STEP)
     {
         float cd = getDrag(vMod, z, s);
-        float du = abs(u - (0.5 * rho * S0 * cd * vz * vMod));
+        float du = abs(u - (0.5 * rho * AirBrakesConfigs::S0 * cd * vz * vMod));
 
         if (du < best_du)
         {
@@ -468,10 +473,12 @@ float AirBrakesControlAlgorithm<T>::getSurface(float z, float vz, float vMod,
 template <class T>
 float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 {
-    float alpha_rad = (-B_DELTAS + sqrt(powf(B_DELTAS, 2) + 4 * A_DELTAS * s)) /
-                      (2 * A_DELTAS);
+    float alpha_rad = (-AirBrakesConfigs::B_DELTAS +
+                       sqrt(powf(AirBrakesConfigs::B_DELTAS, 2) +
+                            4 * AirBrakesConfigs::A_DELTAS * s)) /
+                      (2 * AirBrakesConfigs::A_DELTAS);
 
-    float alpha_deg = alpha_rad * 180.0f / PI;
+    float alpha_deg = alpha_rad * 180.0f / Boardcore::PI;
 
     return alpha_deg;
 }
@@ -479,20 +486,22 @@ float AirBrakesControlAlgorithm<T>::getAlpha(float s)
 template <class T>
 float AirBrakesControlAlgorithm<T>::getRho(float h)
 {
-    return RHO * expf(-h / Hn);
+    return AirBrakesConfigs::RHO * expf(-h / AirBrakesConfigs::Hn);
 }
 
 template <class T>
 float AirBrakesControlAlgorithm<T>::getMach(float vMod, float z)
 {
-    float c = Co + ALPHA * z;
+    float c = AirBrakesConfigs::Co + AirBrakesConfigs::ALPHA * z;
     return vMod / c;
 }
 
 template <class T>
 float AirBrakesControlAlgorithm<T>::getExtension(float s)
 {
-    return (-B + sqrtf(powf(B, 2) + 4 * A * s)) / (2 * A);
+    return (-AirBrakesConfigs::B +
+            sqrtf(powf(AirBrakesConfigs::B, 2) + 4 * AirBrakesConfigs::A * s)) /
+           (2 * AirBrakesConfigs::A);
 }
 
 template <class T>
@@ -510,6 +519,7 @@ float AirBrakesControlAlgorithm<T>::getDrag(float v, float h, float s)
                          powf(mach, 5),
                          powf(mach, 6)};
 
+    using AirBrakesConfigs::coeffs;
     return coeffs.n000 + coeffs.n100 * pow_mach[1] + coeffs.n200 * pow_mach[2] +
            coeffs.n300 * pow_mach[3] + coeffs.n400 * pow_mach[4] +
            coeffs.n500 * pow_mach[5] + coeffs.n600 * pow_mach[6] +

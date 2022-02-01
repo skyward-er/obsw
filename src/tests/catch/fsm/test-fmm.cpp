@@ -29,11 +29,10 @@
 
 #include <miosix.h>
 
+#include <Eigen/Dense>
 #include <catch2/catch.hpp>
 
 #include "events/Events.h"
-
-#include <Eigen/Dense>
 
 #define private public
 #define protected public
@@ -51,7 +50,9 @@ public:
     // This is called at the beginning of each test / section
     FMMFixture()
     {
-        sEventBroker->start();
+        sEventBroker.start();
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         fsm = new FMMController();
         fsm->start();
     }
@@ -60,8 +61,8 @@ public:
     ~FMMFixture()
     {
         fsm->stop();
-        sEventBroker->unsubscribe(fsm);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(fsm);
+        sEventBroker.clearDelayedEvents();
         delete fsm;
     }
 
@@ -78,7 +79,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
         // I needed one hour of debugging to figure it out :')
         /*
             REQUIRE(testHSMTransition(
-                *fsm, Event{EV_TC_RESET_BOARD},
+                *fsm, Boardcore::Event{EV_TC_RESET_BOARD},
                 &FMMController::state_init));  // initial state of
                                                    // state_onGround
         */
@@ -87,7 +88,7 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
     SECTION("EV_TC_LAUNCH -> FLYING (ASCENDING)")
     {
         REQUIRE(testHSMTransition(
-            *fsm, Event{EV_TC_LAUNCH},
+            *fsm, Boardcore::Event{EV_TC_LAUNCH},
             &FMMController::state_ascending));  // initial state of
                                                 // state_flying
     }
@@ -96,28 +97,29 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_onGround")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_flying")
 {
     // move to state_flying (state_ascending)
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    fsm->postEvent(Boardcore::Event{EV_CALIBRATION_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_ARM});
+    fsm->postEvent(Boardcore::Event{EV_TC_ARM});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
+    fsm->postEvent(Boardcore::Event{EV_UMBILICAL_DETACHED});
     Thread::sleep(100);
 
     SECTION("EV_TC_END_MISSION -> LANDED")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_END_MISSION},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_END_MISSION},
                                   &FMMController::state_landed));
     }
 
     SECTION("EV_TIMEOUT_END_MISSION -> LANDED")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TIMEOUT_END_MISSION},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_TIMEOUT_END_MISSION},
                                   &FMMController::state_landed));
     }
 }
@@ -126,13 +128,13 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_init")
 {
     SECTION("EV_INIT_OK -> INIT_DONE")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_INIT_OK},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_INIT_OK},
                                   &FMMController::state_initDone));
     }
 
     SECTION("EV_INIT_ERROR -> INIT_ERROR")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_INIT_ERROR},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_INIT_ERROR},
                                   &FMMController::state_initError));
     }
 }
@@ -140,12 +142,12 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_init")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initError")
 {
     // move to state_initError
-    fsm->postEvent(Event{EV_INIT_ERROR});
+    fsm->postEvent(Boardcore::Event{EV_INIT_ERROR});
     Thread::sleep(50);
 
     SECTION("EV_TC_FORCE_INIT -> INIT_DONE")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_FORCE_INIT},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_FORCE_INIT},
                                   &FMMController::state_initDone));
     }
 }
@@ -153,18 +155,19 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initError")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_initDone")
 {
     // move to state_initDone
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
 
     SECTION("EV_TC_TEST_MODE -> TEST_MODE")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_TEST_MODE},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_TEST_MODE},
                                   &FMMController::state_testMode));
     }
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_TC_CALIBRATE_SENSORS},
                                   &FMMController::state_sensorsCalibration));
     }
 }
@@ -180,20 +183,21 @@ TEST_CASE_METHOD(FMMFixture,
                  "Testing transitions from state_sensorsCalibration")
 {
     // move to state_calibrating
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(100);
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_TC_CALIBRATE_SENSORS},
                                   &FMMController::state_sensorsCalibration));
     }
 
     SECTION("EV_SENSORS_READY -> ALGOS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_SENSORS_READY},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_SENSORS_READY},
                                   &FMMController::state_algosCalibration));
     }
 }
@@ -201,22 +205,22 @@ TEST_CASE_METHOD(FMMFixture,
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_algosCalibration")
 {
     // move to state_calibrating
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(100);
 
     SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_CALIBRATE_ALGOS},
                                   &FMMController::state_algosCalibration));
     }
 
     SECTION("EV_CALIBRATION_OK -> DISARMED")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_CALIBRATION_OK},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_CALIBRATION_OK},
                                   &FMMController::state_disarmed));
     }
 }
@@ -224,30 +228,31 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_algosCalibration")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_disarmed")
 {
     // move to state_disarmed
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    fsm->postEvent(Boardcore::Event{EV_CALIBRATION_OK});
     Thread::sleep(100);
 
     SECTION("EV_TC_CALIBRATE_ALGOS -> ALGOS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_ALGOS},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_CALIBRATE_ALGOS},
                                   &FMMController::state_algosCalibration));
     }
 
     SECTION("EV_TC_CALIBRATE_SENSORS -> SENSORS_CALIBRATION")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CALIBRATE_SENSORS},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_TC_CALIBRATE_SENSORS},
                                   &FMMController::state_sensorsCalibration));
     }
 
     SECTION("EV_TC_ARM -> ARMED")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_ARM},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_ARM},
                                   &FMMController::state_armed));
     }
 }
@@ -255,32 +260,32 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_disarmed")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_armed")
 {
     // move to state_armed
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    fsm->postEvent(Boardcore::Event{EV_CALIBRATION_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_ARM});
+    fsm->postEvent(Boardcore::Event{EV_TC_ARM});
     Thread::sleep(100);
 
     SECTION("EV_TC_DISARM -> DISARMED")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_DISARM},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_DISARM},
                                   &FMMController::state_disarmed));
     }
 
     SECTION("EV_TC_LAUNCH -> ASCENDING")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_LAUNCH},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_LAUNCH},
                                   &FMMController::state_ascending));
     }
 
     SECTION("EV_UMBILICAL_DETACHED -> ASCENDING")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_UMBILICAL_DETACHED},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_UMBILICAL_DETACHED},
                                   &FMMController::state_ascending));
     }
 }
@@ -288,34 +293,35 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_armed")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_ascending")
 {
     // move to state_ascending
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    fsm->postEvent(Boardcore::Event{EV_CALIBRATION_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_ARM});
+    fsm->postEvent(Boardcore::Event{EV_TC_ARM});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
+    fsm->postEvent(Boardcore::Event{EV_UMBILICAL_DETACHED});
     Thread::sleep(100);
 
     SECTION("EV_ADA_APOGEE_DETECTED -> DROGUE_DESCENT")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_APOGEE_DETECTED},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_ADA_APOGEE_DETECTED},
                                   &FMMController::state_drogueDescent));
     }
 
     SECTION("EV_ADA_DISABLE_ABK -> ASCENDING")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_DISABLE_ABK},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_ADA_DISABLE_ABK},
                                   &FMMController::state_ascending));
     }
 
     SECTION("EV_TC_NC_OPEN -> DROGUE_DESCENT")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_NC_OPEN},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_NC_OPEN},
                                   &FMMController::state_drogueDescent));
     }
 }
@@ -323,30 +329,31 @@ TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_ascending")
 TEST_CASE_METHOD(FMMFixture, "Testing transitions from state_drogueDescent")
 {
     // move to state_drogueDescent
-    fsm->postEvent(Event{EV_INIT_OK});
+    fsm->postEvent(Boardcore::Event{EV_INIT_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_CALIBRATE_SENSORS});
+    fsm->postEvent(Boardcore::Event{EV_TC_CALIBRATE_SENSORS});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_SENSORS_READY});
+    fsm->postEvent(Boardcore::Event{EV_SENSORS_READY});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_CALIBRATION_OK});
+    fsm->postEvent(Boardcore::Event{EV_CALIBRATION_OK});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_TC_ARM});
+    fsm->postEvent(Boardcore::Event{EV_TC_ARM});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_UMBILICAL_DETACHED});
+    fsm->postEvent(Boardcore::Event{EV_UMBILICAL_DETACHED});
     Thread::sleep(50);
-    fsm->postEvent(Event{EV_ADA_APOGEE_DETECTED});
+    fsm->postEvent(Boardcore::Event{EV_ADA_APOGEE_DETECTED});
     Thread::sleep(100);
 
     SECTION("EV_ADA_DPL_ALT_DETECTED -> TERMINAL_DESCENT")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_ADA_DPL_ALT_DETECTED},
+        REQUIRE(testHSMTransition(*fsm,
+                                  Boardcore::Event{EV_ADA_DPL_ALT_DETECTED},
                                   &FMMController::state_terminalDescent));
     }
 
     SECTION("EV_TC_CUT_DROGUE -> TERMINAL_DESCENT")
     {
-        REQUIRE(testHSMTransition(*fsm, Event{EV_TC_CUT_DROGUE},
+        REQUIRE(testHSMTransition(*fsm, Boardcore::Event{EV_TC_CUT_DROGUE},
                                   &FMMController::state_terminalDescent));
     }
 }

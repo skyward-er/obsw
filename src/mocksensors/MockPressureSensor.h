@@ -22,17 +22,17 @@
 
 #pragma once
 
-#include <Common.h>
 #include <mocksensors/MockSensorsData.h>
 //#include <mocksensors/lynx_flight_data/lynx_press_data.h>
 #include <mocksensors/lynx_flight_data/lynx_pressure_static_data.h>
 #include <sensors/Sensor.h>
+
 #include <random>
 
 namespace DeathStackBoard
 {
 
-class MockPressureSensor : public Sensor<MockPressureData>
+class MockPressureSensor : public Boardcore::Sensor<MockPressureData>
 {
 public:
     MockPressureSensor(bool with_noise_ = false) : with_noise(with_noise_) {}
@@ -45,31 +45,32 @@ public:
     {
         MockPressureData data;
 
-        data.press_timestamp = TimestampTimer::getTimestamp();
+        data.pressureTimestamp =
+            Boardcore::TimestampTimer::getInstance().getTimestamp();
 
         if (before_liftoff)
         {
-            data.press = PRESSURE_STATIC_DATA[0];
+            data.pressure = PRESSURE_STATIC_DATA[0];
         }
         else
         {
             if (i < PRESSURE_STATIC_DATA_SIZE)
             {
-                data.press = PRESSURE_STATIC_DATA[i++];
+                data.pressure = PRESSURE_STATIC_DATA[i++];
             }
             else
             {
-                data.press =
+                data.pressure =
                     PRESSURE_STATIC_DATA[PRESSURE_STATIC_DATA_SIZE - 1];
             }
         }
 
         if (with_noise)
         {
-            data.press = addNoise(data.press);
+            data.pressure = addNoise(data.pressure);
         }
 
-        data.press = movingAverage(data.press);
+        data.pressure = movingAverage(data.pressure);
 
         return data;
     }

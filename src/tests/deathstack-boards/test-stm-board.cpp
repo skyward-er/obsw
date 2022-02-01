@@ -28,8 +28,6 @@
  *     External oscillator
  */
 
-#include <Common.h>
-
 #include <iostream>
 #include <sstream>
 
@@ -53,8 +51,6 @@ int askSeconds();
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     switch (menu())
     {
         case 1:

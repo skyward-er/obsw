@@ -40,22 +40,21 @@
 #include <NavigationAttitudeSystem/ExtendedKalmanEigen.h>
 #include <NavigationAttitudeSystem/InitStates.h>
 #include <NavigationAttitudeSystem/NASData.h>
-#include <TimestampTimer.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <math/SkyQuaternion.h>
 #include <sensors/Sensor.h>
 
 namespace DeathStackBoard
 {
 
-using namespace NASConfigs;
-
 template <typename IMU, typename Press, typename GPS>
-class NAS : public Sensor<NASData>
+class NAS : public Boardcore::Sensor<NASData>
 {
 
 public:
-    NAS(Sensor<IMU>& imu, Sensor<Press>& baro, Sensor<GPS>& gps);
+    NAS(Boardcore::Sensor<IMU>& imu, Boardcore::Sensor<Press>& baro,
+        Boardcore::Sensor<GPS>& gps);
 
     /**
      * @brief Initialization of the state vector before the liftoff
@@ -108,11 +107,11 @@ private:
     /**
      * @brief Convert GPS coordinates to NED frame.
      */
-    Vector3f geodetic2NED(const Vector3f& gps_data);
+    Eigen::Vector3f geodetic2NED(const Eigen::Vector3f& gps_data);
 
-    SkyQuaternion quat; /**< Auxiliary functions for quaternions */
+    Boardcore::SkyQuaternion quat; /**< Auxiliary functions for quaternions */
 
-    Matrix<float, N, 1> x; /**< Kalman state vector */
+    Eigen::Matrix<float, NASConfigs::N, 1> x; /**< Kalman state vector */
 
     NASData nas_data;
 
@@ -123,7 +122,7 @@ private:
     ExtendedKalmanEigen filter;
     InitStates states_init;
     NASReferenceValues ref_values;
-    Vector3f triad_result_eul;
+    Eigen::Vector3f triad_result_eul;
 
     uint64_t last_gps_timestamp   = 0;
     uint64_t last_accel_timestamp = 0;
@@ -133,7 +132,8 @@ private:
 
     bool initialized = false;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.nas");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.nas");
 
 #ifdef DEBUG
     unsigned int counter = 0;
@@ -145,7 +145,7 @@ NAS<IMU, Press, GPS>::NAS(Sensor<IMU>& imu, Sensor<Press>& baro,
                           Sensor<GPS>& gps)
     : imu(imu), barometer(baro), gps(gps)
 {
-    x = Matrix<float, N, 1>::Zero();
+    x = Eigen::Matrix<float, NASConfigs::N, 1>::Zero();
 }
 
 template <typename IMU, typename Press, typename GPS>
@@ -156,10 +156,10 @@ bool NAS<IMU, Press, GPS>::init()
 
     states_init.velocityInit();
 
-    Vector3f acc_init(ref_values.ref_accel_x, ref_values.ref_accel_y,
-                      ref_values.ref_accel_z);
-    Vector3f mag_init(ref_values.ref_mag_x, ref_values.ref_mag_y,
-                      ref_values.ref_mag_z);
+    Eigen::Vector3f acc_init(ref_values.ref_accel_x, ref_values.ref_accel_y,
+                             ref_values.ref_accel_z);
+    Eigen::Vector3f mag_init(ref_values.ref_mag_x, ref_values.ref_mag_y,
+                             ref_values.ref_mag_z);
 
     triad_result_eul = states_init.triad(acc_init, mag_init);
 
@@ -172,8 +172,8 @@ bool NAS<IMU, Press, GPS>::init()
     updateNASData();
 
 #ifdef DEBUG
-    Vector4f qua(x(6), x(7), x(8), x(9));
-    Vector3f e = quat.quat2eul(qua);
+    Eigen::Vector4f qua(x(6), x(7), x(8), x(9));
+    Eigen::Vector3f e = quat.quat2eul(qua);
 
     LOG_DEBUG(
         log,
@@ -187,7 +187,7 @@ bool NAS<IMU, Press, GPS>::init()
 
     initialized = true;
 
-    LoggerService::getInstance()->log(getTriadResult());
+    LoggerService::getInstance().log(getTriadResult());
 
     return initialized;
 }
@@ -211,52 +211,56 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
     Press pressure_data = barometer.getLastSample();
 
     // update ekf with new accel and gyro measures
-    if (imu_data.accel_timestamp != last_accel_timestamp &&
-        imu_data.gyro_timestamp != last_gyro_timestamp)
+    if (imu_data.accelerationTimestamp != last_accel_timestamp &&
+        imu_data.angularVelocityTimestamp != last_gyro_timestamp)
     {
-        last_accel_timestamp = imu_data.accel_timestamp;
-        last_gyro_timestamp  = imu_data.gyro_timestamp;
+        last_accel_timestamp = imu_data.accelerationTimestamp;
+        last_gyro_timestamp  = imu_data.angularVelocityTimestamp;
 
-        Vector3f accel_readings(imu_data.accel_x, imu_data.accel_y,
-                                imu_data.accel_z);
+        Eigen::Vector3f accel_readings(imu_data.accelerationX,
+                                       imu_data.accelerationY,
+                                       imu_data.accelerationZ);
         filter.predict(accel_readings);
 
-        Vector3f gyro_readings(imu_data.gyro_x, imu_data.gyro_y,
-                               imu_data.gyro_z);
+        Eigen::Vector3f gyro_readings(imu_data.angularVelocityX,
+                                      imu_data.angularVelocityY,
+                                      imu_data.angularVelocityZ);
         filter.predictMEKF(gyro_readings);
     }
 
     // check if new pressure data is available
-    if (pressure_data.press_timestamp != last_press_timestamp)
+    if (pressure_data.pressureTimestamp != last_press_timestamp)
     {
-        last_press_timestamp = pressure_data.press_timestamp;
+        last_press_timestamp = pressure_data.pressureTimestamp;
 
-        filter.correctBaro(pressure_data.press, ref_values.msl_pressure,
+        filter.correctBaro(pressure_data.pressure, ref_values.msl_pressure,
                            ref_values.msl_temperature);
     }
 
     // check if new gps data is available and the gps has fix
-    if (gps_data.gps_timestamp != last_gps_timestamp && gps_data.fix == true)
+    if (gps_data.gpsTimestamp != last_gps_timestamp && gps_data.fix == true)
     {
-        last_gps_timestamp = gps_data.gps_timestamp;
+        last_gps_timestamp = gps_data.gpsTimestamp;
 
-        Vector3f gps_readings(gps_data.latitude, gps_data.longitude,
-                              gps_data.height);
-        Vector3f gps_ned = geodetic2NED(gps_readings);
+        Eigen::Vector3f gps_readings(gps_data.latitude, gps_data.longitude,
+                                     gps_data.height);
+        Eigen::Vector3f gps_ned = geodetic2NED(gps_readings);
 
-        Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocity_north,
-                         gps_data.velocity_east);
-        filter.correctGPS(pos_vel, gps_data.num_satellites);
+        Eigen::Vector4f pos_vel(gps_ned(0), gps_ned(1), gps_data.velocityNorth,
+                                gps_data.velocityEast);
+        filter.correctGPS(pos_vel, gps_data.satellites);
     }
 
     // check if new magnetometer data is available
-    if (imu_data.mag_timestamp != last_mag_timestamp)
+    if (imu_data.magneticFieldTimestamp != last_mag_timestamp)
     {
-        Vector3f mag_readings(imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
+        Eigen::Vector3f mag_readings(imu_data.magneticFieldX,
+                                     imu_data.magneticFieldY,
+                                     imu_data.magneticFieldZ);
 
-        if (mag_readings.norm() < EMF * JAMMING_FACTOR)
+        if (mag_readings.norm() < NASConfigs::EMF * NASConfigs::JAMMING_FACTOR)
         {
-            last_mag_timestamp = imu_data.mag_timestamp;
+            last_mag_timestamp = imu_data.magneticFieldTimestamp;
 
             mag_readings.normalize();
             filter.correctMEKF(mag_readings);
@@ -289,8 +293,9 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 template <typename IMU, typename Press, typename GPS>
 NASTriadResult NAS<IMU, Press, GPS>::getTriadResult()
 {
-    Matrix<float, N, 1> state = states_init.getInitX();
-    // Vector3f e = quat.quat2eul({state(6), state(7), state(8), state(9)});
+    Eigen::Matrix<float, NASConfigs::N, 1> state = states_init.getInitX();
+    // Eigen::Vector3f e = quat.quat2eul({state(6), state(7), state(8),
+    // state(9)});
 
     NASTriadResult result;
     result.x     = state(0);
@@ -331,11 +336,11 @@ template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
                                                  float yaw)
 {
-    Vector4f q = quat.eul2quat({yaw, pitch, roll});
-    x(NL)      = q(0);
-    x(NL + 1)  = q(1);
-    x(NL + 2)  = q(2);
-    x(NL + 3)  = q(3);
+    Eigen::Vector4f q     = quat.eul2quat({yaw, pitch, roll});
+    x(NASConfigs::NL)     = q(0);
+    x(NASConfigs::NL + 1) = q(1);
+    x(NASConfigs::NL + 2) = q(2);
+    x(NASConfigs::NL + 3) = q(3);
     LOG_INFO(log, "Initial orientation set to : ({:.2f}, {:.2f}, {:.2f})", roll,
              pitch, yaw);
     LOG_DEBUG(log,
@@ -351,7 +356,8 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
 template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::updateNASData()
 {
-    nas_data.timestamp = TimestampTimer::getTimestamp();
+    nas_data.timestamp =
+        Boardcore::TimestampTimer::getInstance().getTimestamp();
 
     nas_data.x = x(0);
     nas_data.y = x(1);
@@ -369,29 +375,30 @@ void NAS<IMU, Press, GPS>::updateNASData()
 }
 
 template <typename IMU, typename Press, typename GPS>
-Vector3f NAS<IMU, Press, GPS>::geodetic2NED(const Vector3f& gps_data)
+Eigen::Vector3f NAS<IMU, Press, GPS>::geodetic2NED(
+    const Eigen::Vector3f& gps_data)
 {
-    float lat0 = ref_values.ref_latitude * DEGREES_TO_RADIANS;
-    float lon0 = ref_values.ref_longitude * DEGREES_TO_RADIANS;
-    float lat  = gps_data(0) * DEGREES_TO_RADIANS;
-    float lon  = gps_data(1) * DEGREES_TO_RADIANS;
+    float lat0 = ref_values.ref_latitude * Boardcore::DEGREES_TO_RADIANS;
+    float lon0 = ref_values.ref_longitude * Boardcore::DEGREES_TO_RADIANS;
+    float lat  = gps_data(0) * Boardcore::DEGREES_TO_RADIANS;
+    float lon  = gps_data(1) * Boardcore::DEGREES_TO_RADIANS;
     float h    = gps_data(2);
 
-    float s1 = sin(lat0);
-    float c1 = cos(lat0);
-    float s2 = sin(lat);
-    float c2 = cos(lat);
-    float p1 = c1 * cos(lon0);
-    float p2 = c2 * cos(lon);
-    float q1 = c1 * sin(lon0);
-    float q2 = c2 * sin(lon);
-    float w1 = 1 / sqrt(1 - e2 * pow(s1, 2));
-    float w2 = 1 / sqrt(1 - e2 * pow(s2, 2));
-    float delta_x =
-        a * (p2 * w2 - p1 * w1) + (h * p2 - ref_values.ref_altitude * p1);
-    float delta_y =
-        a * (q2 * w2 - q1 * w1) + (h * q2 - ref_values.ref_altitude * q1);
-    float delta_z = (1 - e2) * a * (s2 * w2 - s1 * w1) +
+    float s1      = sin(lat0);
+    float c1      = cos(lat0);
+    float s2      = sin(lat);
+    float c2      = cos(lat);
+    float p1      = c1 * cos(lon0);
+    float p2      = c2 * cos(lon);
+    float q1      = c1 * sin(lon0);
+    float q2      = c2 * sin(lon);
+    float w1      = 1 / sqrt(1 - NASConfigs::e2 * pow(s1, 2));
+    float w2      = 1 / sqrt(1 - NASConfigs::e2 * pow(s2, 2));
+    float delta_x = NASConfigs::a * (p2 * w2 - p1 * w1) +
+                    (h * p2 - ref_values.ref_altitude * p1);
+    float delta_y = NASConfigs::a * (q2 * w2 - q1 * w1) +
+                    (h * q2 - ref_values.ref_altitude * q1);
+    float delta_z = (1 - NASConfigs::e2) * NASConfigs::a * (s2 * w2 - s1 * w1) +
                     (h * s2 - ref_values.ref_altitude * s1);
 
     // positions in ENU (east, north, up) frame
@@ -402,7 +409,7 @@ Vector3f NAS<IMU, Press, GPS>::geodetic2NED(const Vector3f& gps_data)
                  cos(lat0) * sin(lon0) * delta_y + sin(lat0) * delta_z;
 
     // positions in NED frame
-    Vector3f p_ned(p_north, p_east, -p_up);
+    Eigen::Vector3f p_ned(p_north, p_east, -p_up);
 
     return p_ned;
 }

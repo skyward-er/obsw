@@ -22,7 +22,6 @@
 
 #define EIGEN_NO_MALLOC  // enable eigen malloc usage assert
 
-#include <Common.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/utils/EventCounter.h>
@@ -70,7 +69,7 @@ void threadFunc(void* arg)
 
     /*-------------- [FPM] Flight Phases Manager --------------*/
     HILFlightPhasesManager* flightPhasesManager =
-        HIL::getInstance()->flightPhasesManager;
+        HIL::getInstance().flightPhasesManager;
 
     /*flightPhasesManager->registerToFlightPhase(
         SIMULATION_STOPPED, bind(&setIsSimulationRunning, false));*/
@@ -83,7 +82,7 @@ void threadFunc(void* arg)
         SIMULATION_STOPPED, bind(&TaskScheduler::stop, &scheduler));
 
     /*-------------- [HIL] HILTransceiver --------------*/
-    HILTransceiver* simulator = HIL::getInstance()->simulator;
+    HILTransceiver* simulator = HIL::getInstance().imulator;
 
     /*-------------- Sensors & Actuators --------------*/
 
@@ -130,7 +129,7 @@ void threadFunc(void* arg)
     NASController<HILImuData, HILBaroData, HILGpsData> nas_controller(
         *sensors.imu, *sensors.barometer, *sensors.gps);
 
-    HIL::getInstance()->setNAS(&nas_controller.getNAS());
+    HIL::getInstance().etNAS(&nas_controller.getNAS());
 
     /*-------------- [CA] Control Algorithm --------------*/
     AirBrakesController<NASData> airbrakes_controller(nas_controller.getNAS());
@@ -143,7 +142,7 @@ void threadFunc(void* arg)
 
     /*-------------- Events --------------*/
 
-    EventCounter counter{*sEventBroker};
+    EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_FLIGHT_EVENTS);
     counter.subscribe(TOPIC_ADA);
     counter.subscribe(TOPIC_NAS);
@@ -187,7 +186,7 @@ void threadFunc(void* arg)
 
     /*---------- Starting threads --------*/
 
-    sEventBroker->start();
+    sEventBroker.start();
     fmm.start();
     ada_controller.start();
     nas_controller.start();
@@ -196,10 +195,10 @@ void threadFunc(void* arg)
     // pin_handler.start();
     scheduler.start();  // started only the scheduler instead of the SM
 
-    sEventBroker->post({EV_INIT_OK}, TOPIC_FMM);
+    sEventBroker.post({EV_INIT_OK}, TOPIC_FMM);
     Thread::sleep(100);
 
-    HIL::getInstance()->start();  // wait for first message from simulator
+    HIL::getInstance().tart();  // wait for first message from simulator
 
     /*---------- Wait for simulator to startup ----------*/
     while (!flightPhasesManager->isSimulationStarted())
@@ -214,15 +213,17 @@ void threadFunc(void* arg)
 
     scheduler.stop();
 
-    sEventBroker->post({EV_LANDED}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post({EV_LANDED}, TOPIC_FLIGHT_EVENTS);
 
     Thread::sleep(1000);
+
+    delete sensors.imu;
+    delete sensors.barometer;
+    delete sensors.gps;
 }
 
 int main()
 {
-    TimestampTimer::enableTimestampTimer();
-
     Thread::create(threadFunc, STACK_MIN_FOR_SKYWARD, MAIN_PRIORITY, nullptr);
 
     unsigned int counter = 0;

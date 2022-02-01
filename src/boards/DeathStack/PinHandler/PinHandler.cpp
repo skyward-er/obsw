@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  */
 
+#include <DeathStack.h>
 #include <LoggerService/LoggerService.h>
 #include <PinHandler/PinHandler.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
-#include <DeathStack.h>
 
 #include <functional>
 
@@ -40,7 +40,7 @@ namespace DeathStackBoard
 {
 
 PinHandler::PinHandler()
-    : pin_obs(PIN_POLL_INTERVAL), logger(LoggerService::getInstance())
+    : pin_obs(PIN_POLL_INTERVAL), logger(&LoggerService::getInstance())
 {
     // Used for _1, _2. See std::bind cpp reference
     using namespace std::placeholders;
@@ -85,16 +85,17 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
     UNUSED(n);
 
 #ifdef HARDWARE_IN_THE_LOOP
-    HIL::getInstance()->signalLiftoff();
+    HIL::getInstance().signalLiftoff();
 #elif defined(USE_MOCK_SENSORS)
-    DeathStack::getInstance()->sensors->signalLiftoff();
+    DeathStack::getInstance().ensors->signalLiftoff();
 #endif
 
-    sEventBroker->post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post(Event{EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     LOG_INFO(log, "Launch pin detached!");
 
-    status_pin_launch.last_detection_time = TimestampTimer::getTimestamp();
+    status_pin_launch.last_detection_time =
+        TimestampTimer::getInstance().getTimestamp();
     logger->log(status_pin_launch);
 }
 
@@ -102,11 +103,12 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
 {
     UNUSED(p);
     UNUSED(n);
-    sEventBroker->post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.post(Event{EV_NC_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
     LOG_INFO(log, "Nosecone detached!");
 
-    status_pin_nosecone.last_detection_time = TimestampTimer::getTimestamp();
+    status_pin_nosecone.last_detection_time =
+        TimestampTimer::getInstance().getTimestamp();
     logger->log(status_pin_nosecone);
 }
 
@@ -118,7 +120,8 @@ void PinHandler::onDPLServoPinTransition(unsigned int p, unsigned char n)
     LOG_INFO(log, "Deployment servo actuated!");
 
     // do not post any event, just log the timestamp
-    status_pin_dpl_servo.last_detection_time = TimestampTimer::getTimestamp();
+    status_pin_dpl_servo.last_detection_time =
+        TimestampTimer::getInstance().getTimestamp();
     logger->log(status_pin_dpl_servo);
 }
 
@@ -128,8 +131,9 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_launch.state             = (uint8_t)state;
-    status_pin_launch.last_state_change = TimestampTimer::getTimestamp();
+    status_pin_launch.state = (uint8_t)state;
+    status_pin_launch.last_state_change =
+        TimestampTimer::getInstance().getTimestamp();
     status_pin_launch.num_state_changes += 1;
 
     LOG_INFO(log,
@@ -145,8 +149,9 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_nosecone.state             = (uint8_t)state;
-    status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
+    status_pin_nosecone.state = (uint8_t)state;
+    status_pin_nosecone.last_state_change =
+        TimestampTimer::getInstance().getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
     LOG_INFO(log, "Nosecone pin state change at time {}: new state = {}",
@@ -161,8 +166,9 @@ void PinHandler::onDPLServoPinStateChange(unsigned int p, unsigned char n,
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_dpl_servo.state             = (uint8_t)state;
-    status_pin_dpl_servo.last_state_change = TimestampTimer::getTimestamp();
+    status_pin_dpl_servo.state = (uint8_t)state;
+    status_pin_dpl_servo.last_state_change =
+        TimestampTimer::getInstance().getTimestamp();
     status_pin_dpl_servo.num_state_changes += 1;
 
     LOG_INFO(log,

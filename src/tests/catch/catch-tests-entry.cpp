@@ -55,9 +55,9 @@
 
 #include <miosix.h>
 
+#include <catch2/catch.hpp>
 #include <cstring>
 #include <string>
-#include <catch2/catch.hpp>
 #include <vector>
 
 using miosix::Thread;
@@ -78,13 +78,13 @@ using std::vector;
  */
 vector<string> splitSpaces(string str)
 {
-    unsigned int p = 0, p2;
+    unsigned int p = 0;
     bool end       = false;
     vector<string> out;
 
     do
     {
-        p2 = str.find(" ", p);
+        unsigned int p2 = str.find(" ", p);
 
         if (p2 == string::npos)  // No match
         {
@@ -137,7 +137,7 @@ int main()
     }
 
     // Run tests with the provided arguments
-    int result = Catch::Session().run(argc, argv);
+    Catch::Session().run(argc, argv);
 
     // Clear memory
     for (size_t i = 0; i < argc; i++)

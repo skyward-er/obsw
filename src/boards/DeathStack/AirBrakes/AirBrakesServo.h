@@ -24,9 +24,9 @@
 
 #include <AirBrakes/AirBrakesData.h>
 #include <LoggerService/LoggerService.h>
-#include <ServoInterface.h>
+#include <common/ServoInterface.h>
 #include <configs/AirBrakesConfig.h>
-#include <drivers/servo/servo.h>
+#include <drivers/servo/Servo.h>
 #include <miosix.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
@@ -36,16 +36,12 @@
 namespace DeathStackBoard
 {
 
-using namespace AirBrakesConfigs;
-
 class AirBrakesServo : public ServoInterface
 {
 public:
-    AirBrakesServo();
-
-    AirBrakesServo(float minPosition, float maxPosition);
-
-    AirBrakesServo(float minPosition, float maxPosition, float resetPosition);
+    AirBrakesServo(float minPosition   = AirBrakesConfigs::AB_SERVO_MIN_POS,
+                   float maxPosition   = AirBrakesConfigs::AB_SERVO_MAX_POS,
+                   float resetPosition = AirBrakesConfigs::AB_SERVO_MIN_POS);
 
     virtual ~AirBrakesServo();
 
@@ -59,7 +55,7 @@ public:
     void selfTest() override;
 
 private:
-    Servo servo{AirBrakesConfigs::AB_SERVO_TIMER};
+    Boardcore::Servo servo;
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL *simulator = HIL::getInstance();

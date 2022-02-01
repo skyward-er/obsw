@@ -23,7 +23,7 @@
 #pragma once
 
 #include <drivers/adc/ADS1118/ADS1118Data.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
+#include <drivers/gps/ublox/GPSData.h>
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
@@ -37,13 +37,15 @@
 #include <fstream>
 #include <iostream>
 
-#include "ApogeeDetectionAlgorithm/ADAData.h"
 #include "AirBrakes/AirBrakesData.h"
+#include "ApogeeDetectionAlgorithm/ADAData.h"
 //#include "AirBrakes/WindData.h"
+#include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
 #include "DeathStackStatus.h"
 #include "Deployment/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
-#include "LogStats.h"
+#include "FlightStatsRecorder/FSRData.h"
+#include "LoggerStats.h"
 #include "Main/SensorsData.h"
 #include "NavigationAttitudeSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
@@ -56,13 +58,9 @@
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
 #include "scheduler/TaskSchedulerData.h"
-#include "FlightStatsRecorder/FSRData.h"
-#include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
 
 // Serialized classes
 using std::ofstream;
-
-using namespace DeathStackBoard;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -79,7 +77,7 @@ void registerType(Deserializer& ds)
 void registerTypes(Deserializer& ds)
 {
     // Disagnostic
-    registerType<TaskStatResult>(ds);
+    registerType<TaskStatsResult>(ds);
     registerType<StackData>(ds);
     registerType<LoggingString>(ds);
     registerType<SystemData>(ds);
@@ -87,7 +85,7 @@ void registerTypes(Deserializer& ds)
     // Sensors
     registerType<CurrentSensorData>(ds);
     registerType<BatteryVoltageSensorData>(ds);
-    registerType<UbloxGPSData>(ds);
+    registerType<GPSData>(ds);
     registerType<BMX160Data>(ds);
     registerType<BMX160WithCorrectionData>(ds);
     registerType<BMX160GyroscopeCalibrationBiases>(ds);
@@ -107,7 +105,7 @@ void registerTypes(Deserializer& ds)
     registerType<SensorsStatus>(ds);
     registerType<FMMStatus>(ds);
     registerType<PinStatus>(ds);
-    registerType<LogStats>(ds);
+    registerType<LoggerStats>(ds);
     registerType<DeploymentStatus>(ds);
     registerType<ADAControllerStatus>(ds);
 
@@ -142,7 +140,7 @@ void registerTypes(Deserializer& ds)
     registerType<AirBrakesAlgorithmData>(ds);
     registerType<AirBrakesChosenTrajectory>(ds);
 
-     // FlightStatsRecorder
+    // FlightStatsRecorder
     registerType<LiftOffStats>(ds);
     registerType<ApogeeStats>(ds);
     registerType<DrogueDPLStats>(ds);
@@ -155,5 +153,5 @@ void registerTypes(Deserializer& ds)
 
     // Others
     registerType<EventData>(ds);
-    //registerType<WindData>(ds);
+    // registerType<WindData>(ds);
 }

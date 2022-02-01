@@ -42,9 +42,9 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     using namespace DeathStackBoard;
 
-    if (DeathStack::getInstance()->radio->xbee != nullptr)
+    if (DeathStack::getInstance().radio->xbee != nullptr)
     {
-        DeathStack::getInstance()->radio->xbee->handleATTNInterrupt();
+        DeathStack::getInstance().radio->xbee->handleATTNInterrupt();
     }
 }
 
@@ -55,7 +55,7 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
 {
     SPIBusConfig xbee_cfg{};
 
-    xbee_cfg.clock_div = SPIClockDivider::DIV16;
+    xbee_cfg.clockDivider = SPI::ClockDivider::DIV_16;
 
     xbee = new Xbee::Xbee(xbee_bus, xbee_cfg, miosix::xbee::cs::getPin(),
                           miosix::xbee::attn::getPin(),
@@ -70,7 +70,7 @@ Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
 
     tmtc_manager = new TMTCController();
 
-    tm_repo = TmRepository::getInstance();
+    tm_repo = &(TmRepository::getInstance());
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 }
@@ -89,11 +89,11 @@ bool Radio::start() { return mav_driver->start() && tmtc_manager->start(); }
 
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 {
-    LoggerService& logger = *LoggerService::getInstance();
+    LoggerService& logger = LoggerService::getInstance();
 
     using namespace Xbee;
     bool logged = false;
-    switch (frame.frame_type)
+    switch (frame.frameType)
     {
         case FTYPE_AT_COMMAND:
         {
@@ -168,9 +168,9 @@ void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 void Radio::logStatus()
 {
     MavlinkStatus status = mav_driver->getStatus();
-    status.timestamp     = TimestampTimer::getTimestamp();
-    LoggerService::getInstance()->log(status);
-    LoggerService::getInstance()->log(xbee->getStatus());
+    status.timestamp     = TimestampTimer::getInstance().getTimestamp();
+    LoggerService::getInstance().log(status);
+    LoggerService::getInstance().log(xbee->getStatus());
 }
 
 }  // namespace DeathStackBoard

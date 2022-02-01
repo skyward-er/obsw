@@ -36,46 +36,48 @@
 using miosix::FastMutex;
 using miosix::Lock;
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
-
-using namespace NASConfigs;
 
 /**
  * @brief Navigatioin system state machine
  */
 template <typename IMU, typename Press, typename GPS>
-class NASController : public FSM<NASController<IMU, Press, GPS>>
+class NASController : public Boardcore::FSM<NASController<IMU, Press, GPS>>
 {
     using NASCtrl = NASController<IMU, Press, GPS>;
-    using NASFsm  = FSM<NASCtrl>;
+    using NASFsm  = Boardcore::FSM<NASCtrl>;
 
     static_assert(
-        checkIfProduces<Sensor<IMU>, AccelerometerData>::value,
+        Boardcore::checkIfProduces<Boardcore::Sensor<IMU>,
+                                   Boardcore::AccelerometerData>::value,
         "Template argument must be a sensor that produces accelerometer data.");
     static_assert(
-        checkIfProduces<Sensor<IMU>, GyroscopeData>::value,
+        Boardcore::checkIfProduces<Boardcore::Sensor<IMU>,
+                                   Boardcore::GyroscopeData>::value,
         "Template argument must be a sensor that produces gyroscope data.");
     static_assert(
-        checkIfProduces<Sensor<IMU>, MagnetometerData>::value,
+        Boardcore::checkIfProduces<Boardcore::Sensor<IMU>,
+                                   Boardcore::MagnetometerData>::value,
         "Template argument must be a sensor that produces magnetometer data.");
     static_assert(
-        checkIfProduces<Sensor<Press>, PressureData>::value,
+        Boardcore::checkIfProduces<Boardcore::Sensor<Press>,
+                                   Boardcore::PressureData>::value,
         "Template argument must be a sensor that produces pressure data.");
-    static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
+    static_assert(Boardcore::checkIfProduces<Boardcore::Sensor<GPS>,
+                                             Boardcore::GPSData>::value,
                   "Template argument must be a sensor that produces GPS data.");
 
 public:
-    NASController(Sensor<IMU>& imu, Sensor<Press>& baro, Sensor<GPS>& gps);
+    NASController(Boardcore::Sensor<IMU>& imu, Boardcore::Sensor<Press>& baro,
+                  Boardcore::Sensor<GPS>& gps);
     ~NASController();
 
-    void state_idle(const Event& ev);
-    void state_calibrating(const Event& ev);
-    void state_ready(const Event& ev);
-    void state_active(const Event& ev);
-    void state_end(const Event& ev);
+    void state_idle(const Boardcore::Event& ev);
+    void state_calibrating(const Boardcore::Event& ev);
+    void state_ready(const Boardcore::Event& ev);
+    void state_active(const Boardcore::Event& ev);
+    void state_end(const Boardcore::Event& ev);
 
     void setReferenceTemperature(float t);
     void setInitialOrientation(float roll, float pitch, float yaw);
@@ -84,7 +86,7 @@ public:
 
     void update();
 
-    Sensor<NASData>& getNAS() { return nas; }
+    Boardcore::Sensor<NASData>& getNAS() { return nas; }
 
 private:
     void finalizeCalibration();
@@ -100,14 +102,15 @@ private:
     FastMutex mutex;
     NASCalibrator calibrator;
 
-    Sensor<IMU>& imu;
-    Sensor<Press>& barometer;
-    Sensor<GPS>& gps;
+    Boardcore::Sensor<IMU>& imu;
+    Boardcore::Sensor<Press>& barometer;
+    Boardcore::Sensor<GPS>& gps;
 
     NAS<IMU, Press, GPS> nas;
 
     LoggerService& logger;
-    PrintLogger log = Logging::getLogger("deathstack.fsm.nas");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.nas");
 
     uint64_t last_gps_timestamp   = 0;
     uint64_t last_accel_timestamp = 0;
@@ -116,16 +119,16 @@ private:
 };
 
 template <typename IMU, typename Press, typename GPS>
-NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
-                                              Sensor<Press>& baro,
-                                              Sensor<GPS>& gps)
-    : NASFsm(&NASCtrl::state_idle), calibrator(CALIBRATION_N_SAMPLES), imu(imu),
-      barometer(baro), gps(gps), nas(imu, baro, gps),
-      logger(*(LoggerService::getInstance()))
+NASController<IMU, Press, GPS>::NASController(Boardcore::Sensor<IMU>& imu,
+                                              Boardcore::Sensor<Press>& baro,
+                                              Boardcore::Sensor<GPS>& gps)
+    : NASFsm(&NASCtrl::state_idle),
+      calibrator(NASConfigs::CALIBRATION_N_SAMPLES), imu(imu), barometer(baro),
+      gps(gps), nas(imu, baro, gps), logger(LoggerService::getInstance())
 {
     memset(&status, 0, sizeof(NASStatus));
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_NAS);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_NAS);
 
     status.state = NASState::IDLE;
 }
@@ -133,7 +136,7 @@ NASController<IMU, Press, GPS>::NASController(Sensor<IMU>& imu,
 template <typename IMU, typename Press, typename GPS>
 NASController<IMU, Press, GPS>::~NASController()
 {
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 template <typename IMU, typename Press, typename GPS>
@@ -157,31 +160,33 @@ void NASController<IMU, Press, GPS>::update()
             {
                 Lock<FastMutex> l(mutex);
 
-                if (imu_data.accel_timestamp != last_accel_timestamp)
+                if (imu_data.accelerationTimestamp != last_accel_timestamp)
                 {
-                    last_accel_timestamp = imu_data.accel_timestamp;
-                    calibrator.addAccelSample(
-                        imu_data.accel_x, imu_data.accel_y, imu_data.accel_z);
+                    last_accel_timestamp = imu_data.accelerationTimestamp;
+                    calibrator.addAccelSample(imu_data.accelerationX,
+                                              imu_data.accelerationY,
+                                              imu_data.accelerationZ);
                 }
 
-                if (imu_data.mag_timestamp != last_mag_timestamp)
+                if (imu_data.magneticFieldTimestamp != last_mag_timestamp)
                 {
-                    last_mag_timestamp = imu_data.mag_timestamp;
-                    calibrator.addMagSample(imu_data.mag_x, imu_data.mag_y,
-                                            imu_data.mag_z);
+                    last_mag_timestamp = imu_data.magneticFieldTimestamp;
+                    calibrator.addMagSample(imu_data.magneticFieldX,
+                                            imu_data.magneticFieldY,
+                                            imu_data.magneticFieldZ);
                 }
 
                 // Add samples to the calibration
-                if (press_data.press_timestamp != last_press_timestamp)
+                if (press_data.pressureTimestamp != last_press_timestamp)
                 {
-                    last_press_timestamp = press_data.press_timestamp;
-                    calibrator.addBaroSample(press_data.press);
+                    last_press_timestamp = press_data.pressureTimestamp;
+                    calibrator.addBaroSample(press_data.pressure);
                 }
 
                 if (gps_data.fix == true &&
-                    gps_data.gps_timestamp != last_gps_timestamp)
+                    gps_data.gpsTimestamp != last_gps_timestamp)
                 {
-                    last_gps_timestamp = gps_data.gps_timestamp;
+                    last_gps_timestamp = gps_data.gpsTimestamp;
                     calibrator.addGPSSample(gps_data.latitude,
                                             gps_data.longitude);
                 }
@@ -240,22 +245,22 @@ void NASController<IMU, Press, GPS>::finalizeCalibration()
 
         LOG_INFO(log, "Finalized calibration and TRIAD");
 
-        sEventBroker->post({EV_NAS_READY}, TOPIC_NAS);
+        sEventBroker.post({EV_NAS_READY}, TOPIC_NAS);
     }
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
+void NASController<IMU, Press, GPS>::state_idle(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state idle");
             logStatus(NASState::IDLE);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state idle");
             break;
@@ -273,11 +278,12 @@ void NASController<IMU, Press, GPS>::state_idle(const Event& ev)
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
+void NASController<IMU, Press, GPS>::state_calibrating(
+    const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state calibrating");
             logStatus(NASState::CALIBRATING);
@@ -290,7 +296,7 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
 
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state calibrating");
             break;
@@ -313,17 +319,17 @@ void NASController<IMU, Press, GPS>::state_calibrating(const Event& ev)
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
+void NASController<IMU, Press, GPS>::state_ready(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state ready");
             logStatus(NASState::READY);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state ready");
             break;
@@ -346,17 +352,17 @@ void NASController<IMU, Press, GPS>::state_ready(const Event& ev)
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::state_active(const Event& ev)
+void NASController<IMU, Press, GPS>::state_active(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state active");
             logStatus(NASState::ACTIVE);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state active");
             break;
@@ -374,17 +380,17 @@ void NASController<IMU, Press, GPS>::state_active(const Event& ev)
 }
 
 template <typename IMU, typename Press, typename GPS>
-void NASController<IMU, Press, GPS>::state_end(const Event& ev)
+void NASController<IMU, Press, GPS>::state_end(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state end");
             logStatus(NASState::END);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state end");
             break;
@@ -457,18 +463,19 @@ void NASController<IMU, Press, GPS>::setReferenceAltitude(float altitude)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logStatus(NASState state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
     status.state     = state;
     logger.log(status);
 
-    StackLogger::getInstance()->updateStack(THID_NAS_FSM);
+    Boardcore::StackLogger::getInstance().updateStack(THID_NAS_FSM);
 }
 
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logData()
 {
     NASKalmanState kalman_state = nas.getKalmanState();
-    kalman_state.timestamp      = TimestampTimer::getTimestamp();
+    kalman_state.timestamp =
+        Boardcore::TimestampTimer::getInstance().getTimestamp();
     logger.log(kalman_state);
     logger.log(nas.getLastSample());
 }

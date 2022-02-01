@@ -41,9 +41,19 @@ target_include_directories(death-stack-x-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(death-stack-x-entry PRIVATE FLIGHT EUROC)
 sbs_target(death-stack-x-entry stm32f429zi_skyward_death_stack_x)
 
-add_executable(death-stack-x-testsuite src/entrypoints/death-stack-x-testsuite.cpp ${DEATHSTACK_NEW_SOURCES})
+add_executable(death-stack-x-testsuite 
+    src/entrypoints/death-stack-x-testsuite.cpp 
+    ${DEATHSTACK_NEW_SOURCES}
+)
 target_include_directories(death-stack-x-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(death-stack-x-testsuite stm32f429zi_skyward_death_stack_x)
+
+add_executable(payload-entry
+    src/entrypoints/payload-entry.cpp
+    ${PAYLOAD_SOURCES}
+)
+target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
 #add_executable(death-stack-entry src/entrypoints/death-stack-entry.cpp ${DEATHSTACK_SOURCES})
 #target_include_directories(death-stack-entry PRIVATE ${OBSW_INCLUDE_DIRS})

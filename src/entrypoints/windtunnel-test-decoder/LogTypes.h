@@ -34,7 +34,7 @@
 #include "drivers/mavlink/MavlinkStatus.h"
 #include "events/EventData.h"
 #include "logger/Deserializer.h"
-#include "logger/LogStats.h"
+#include "logger/LoggerStats.h"
 #include "sensors/MS580301BA07/MS580301BA07Data.h"
 #include "sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h"
 #include "sensors/analog/pressure/honeywell/SSCDANN030PAAData.h"
@@ -42,8 +42,6 @@
 
 // Serialized classes
 using std::ofstream;
-
-using namespace DeathStackBoard;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -59,7 +57,7 @@ void registerType(Deserializer& ds)
 
 void registerTypes(Deserializer& ds)
 {
-    registerType<LogStats>(ds);
+    registerType<LoggerStats>(ds);
     registerType<EventData>(ds);
 
     registerType<MS5803Data>(ds);

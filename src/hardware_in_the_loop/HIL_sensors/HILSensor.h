@@ -24,6 +24,7 @@
 
 #include <typeinfo>
 
+#include "HILSensorsData.h"
 #include "HILTimestampManagement.h"
 #include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
@@ -31,7 +32,6 @@
 #include "math/Vec3.h"
 #include "sensors/Sensor.h"
 #include "sensors/SensorData.h"
-#include "HILSensorsData.h"
 
 /**
  * @brief Fake sensor base used for the simulation. Every sensor for the
@@ -140,7 +140,7 @@ protected:
     uint64_t updateTimestamp()
     {
         sampleCounter++;
-        return TimestampTimer::getTimestamp();
+        return Boardcore::TimestampTimer::getInstance().getTimestamp();
     }
 
     /**

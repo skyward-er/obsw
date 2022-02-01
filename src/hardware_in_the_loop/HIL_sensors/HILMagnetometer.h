@@ -49,9 +49,10 @@ protected:
          * struct */
         Vec3 matlabData = sensorData->magnetometer.measures[sampleCounter];
 
-        tempData.mag_x         = matlabData.getX();
-        tempData.mag_y         = matlabData.getY();
-        tempData.mag_z         = matlabData.getZ() / 1000.0f; // from nanotesla to microtesla
+        tempData.mag_x = matlabData.getX();
+        tempData.mag_y = matlabData.getY();
+        tempData.mag_z =
+            matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
         tempData.mag_timestamp = updateTimestamp();
 
         return tempData;

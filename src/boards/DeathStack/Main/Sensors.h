@@ -24,16 +24,17 @@
 
 #include <Main/SensorsData.h>
 #include <diagnostic/PrintLogger.h>
-#include <drivers/adc/ADS1118/ADS1118.h>
-#include <drivers/adc/InternalADC/InternalADC.h>
-#include <drivers/gps/ublox/UbloxGPS.h>
+#include <drivers/adc/InternalADC.h>
 #include <drivers/spi/SPIBusInterface.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/analog/battery/BatteryVoltageSensor.h>
 #include <sensors/analog/current/CurrentSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
@@ -49,8 +50,6 @@
 #include <mocksensors/MockSensors.h>
 #endif
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -61,22 +60,22 @@ namespace DeathStackBoard
 class Sensors
 {
 public:
-    SensorManager* sensor_manager = nullptr;
+    Boardcore::SensorManager* sensor_manager = nullptr;
 
-    InternalADC* internal_adc             = nullptr;
-    BatteryVoltageSensor* battery_voltage = nullptr;
+    Boardcore::InternalADC* internal_adc             = nullptr;
+    Boardcore::BatteryVoltageSensor* battery_voltage = nullptr;
 
-    MS5803* press_digital = nullptr;
+    Boardcore::MS5803* press_digital = nullptr;
 
-    ADS1118* adc_ads1118          = nullptr;
-    SSCDANN030PAA* press_dpl_vane = nullptr;
-    MPXHZ6130A* press_static_port = nullptr;
-    SSCDRRN015PDA* press_pitot    = nullptr;
+    Boardcore::ADS1118* adc_ads1118          = nullptr;
+    Boardcore::SSCDANN030PAA* press_dpl_vane = nullptr;
+    Boardcore::MPXHZ6130A* press_static_port = nullptr;
+    Boardcore::SSCDRRN015PDA* press_pitot    = nullptr;
 
-    BMX160* imu_bmx160                               = nullptr;
-    BMX160WithCorrection* imu_bmx160_with_correction = nullptr;
-    LIS3MDL* mag_lis3mdl                             = nullptr;
-    UbloxGPS* gps_ublox                              = nullptr;
+    Boardcore::BMX160* imu_bmx160                               = nullptr;
+    Boardcore::BMX160WithCorrection* imu_bmx160_with_correction = nullptr;
+    Boardcore::LIS3MDL* mag_lis3mdl                             = nullptr;
+    Boardcore::UbloxGPS* gps_ublox                              = nullptr;
 
 #ifdef HARDWARE_IN_THE_LOOP
     HILImu* hil_imu        = nullptr;
@@ -88,7 +87,8 @@ public:
     MockGPS* mock_gps             = nullptr;
 #endif
 
-    Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler);
+    Sensors(Boardcore::SPIBusInterface& spi1_bus,
+            Boardcore::TaskScheduler* scheduler);
 
     ~Sensors();
 
@@ -150,13 +150,13 @@ private:
 
     void updateSensorsStatus();
 
-    SPIBusInterface& spi1_bus;
+    Boardcore::SPIBusInterface& spi1_bus;
 
-    SensorManager::SensorMap_t sensors_map;
+    Boardcore::SensorManager::SensorMap_t sensors_map;
 
     SensorsStatus status;
 
-    PrintLogger log = Logging::getLogger("sensors");
+    Boardcore::PrintLogger log = Boardcore::Logging::getLogger("sensors");
 
     unsigned int battery_critical_counter = 0;
 };

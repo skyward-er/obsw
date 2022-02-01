@@ -47,9 +47,8 @@ protected:
 
         /* I make a copy of the vector i have to memorize in the sensor
          * struct */
-        Vec3 matlabData = sensorData->gps.positionMeasures[sampleCounter];
-        tempData.latitude =
-            matlabData.getX(); // divide by earth radius
+        Vec3 matlabData    = sensorData->gps.positionMeasures[sampleCounter];
+        tempData.latitude  = matlabData.getX();  // divide by earth radius
         tempData.longitude = matlabData.getY();
         tempData.height    = matlabData.getZ();
 

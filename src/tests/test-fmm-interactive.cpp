@@ -15,9 +15,9 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISIN\G
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 #include <FlightModeManager/FMMController.h>
@@ -36,12 +36,12 @@ void printEvent(uint8_t event, uint8_t topic)
 }
 int main()
 {
-    sEventBroker->start();
+    sEventBroker.start();
     FMMController* fmm = new FMMController();
     fmm->start();
 
     EventSniffer* sniffer =
-        new EventSniffer(*sEventBroker, TOPIC_LIST, printEvent);
+        new EventSniffer(sEventBroker, TOPIC_LIST, printEvent);
     UNUSED(sniffer);  // The sniffer's handler will be called by evBroker
 
     printf("\nOk\n");
@@ -53,11 +53,11 @@ int main()
     {
         printf("Choose an event\n");
         printf("ID:\n");
-        scanf("%hhu", &(ev.sig));
+        scanf("%hhu", &(ev.code));
         printf("TOPIC:\n");
         scanf("%d", &topic);
 
-        sEventBroker->post(ev, topic);
+        sEventBroker.post(ev, topic);
     }
 
     return 0;

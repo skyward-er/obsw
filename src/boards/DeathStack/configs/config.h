@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2019 Skyward Experimental Rocketry
- * Authors: Luca Erbetta
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +29,8 @@ static constexpr unsigned int DEFERRED_EVENTS_QUEUE_SIZE = 100;
 static const float DEFAULT_REFERENCE_ALTITUDE = 160.0f;
 static const float DEFAULT_REFERENCE_PRESSURE = 100022.4f;
 #else
-static const float DEFAULT_REFERENCE_ALTITUDE     = 1420.0f;
-static const float DEFAULT_REFERENCE_PRESSURE     = 85389.4f;
+static const float DEFAULT_REFERENCE_ALTITUDE = 1420.0f;
+static const float DEFAULT_REFERENCE_PRESSURE = 85389.4f;
 #endif
 
 static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;

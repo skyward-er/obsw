@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -22,40 +22,24 @@
 
 #include <AirBrakes/AirBrakesServo.h>
 
+using namespace DeathStackBoard::AirBrakesConfigs;
+
 namespace DeathStackBoard
 {
 
-AirBrakesServo::AirBrakesServo()
-    : ServoInterface(AB_SERVO_MIN_POS, AB_SERVO_MAX_POS)
-{
-}
-
-AirBrakesServo::AirBrakesServo(float minPosition, float maxPosition)
-    : ServoInterface(minPosition, maxPosition)
-{
-}
-
 AirBrakesServo::AirBrakesServo(float minPosition, float maxPosition,
                                float resetPosition)
-    : ServoInterface(minPosition, maxPosition, resetPosition)
+    : ServoInterface(minPosition, maxPosition, resetPosition),
+      servo(AB_SERVO_TIMER, Boardcore::TimerUtils::Channel::CHANNEL_2, 500,
+            2500, 50)
 {
 }
 
 AirBrakesServo::~AirBrakesServo() {}
 
-void AirBrakesServo::enable()
-{
-    servo.setMaxPulseWidth(2500);
-    servo.setMinPulseWidth(500);
-    servo.enable(AB_SERVO_PWM_CH);
-    servo.start();
-}
+void AirBrakesServo::enable() { servo.enable(); }
 
-void AirBrakesServo::disable()
-{
-    servo.stop();
-    servo.disable(AB_SERVO_PWM_CH);
-}
+void AirBrakesServo::disable() { servo.disable(); }
 
 void AirBrakesServo::selfTest()
 {
@@ -80,8 +64,7 @@ void AirBrakesServo::selfTest()
 void AirBrakesServo::setPosition(float angle)
 {
     currentPosition = angle;
-    // map position to [0;1] interval for the servo driver
-    servo.setPosition(AirBrakesConfigs::AB_SERVO_PWM_CH, angle / 180.0f);
+    servo.setPosition180Deg(angle);
 
 #ifdef HARDWARE_IN_THE_LOOP
     simulator->send(angle);

@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2020 Skyward Experimental Rocketry
- * Authors: Alvise de' Faveri Tron
+/* Copyright (c) 2020 Skyward Experimental Rocketry
+ * Author: Alvise de' Faveri Tron
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,22 +13,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
 
-#include <Constants.h>
 #include <DeathStack.h>
-#include <Debug.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <LoggerService/LoggerService.h>
 #include <System/TaskID.h>
 #include <TelemetriesTelecommands/TmRepository.h>
 #include <configs/SensorsConfig.h>
 #include <configs/TMTCConfig.h>
+#include <utils/Constants.h>
 
 using namespace Boardcore;
 
@@ -209,18 +207,18 @@ template <>
 void TmRepository::update<BatteryVoltageSensorData>(
     const BatteryVoltageSensorData& t)
 {
-    if (t.channel_id == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
+    if (t.channelId == DeathStackBoard::SensorConfigs::ADC_BATTERY_VOLTAGE)
     {
-        tm_repository.hr_tm.vbat         = t.bat_voltage;
-        tm_repository.sensors_tm.vbat    = t.bat_voltage;
-        tm_repository.adc_tm.bat_voltage = t.bat_voltage;
+        tm_repository.hr_tm.vbat         = t.batVoltage;
+        tm_repository.sensors_tm.vbat    = t.batVoltage;
+        tm_repository.adc_tm.bat_voltage = t.batVoltage;
     }
 }
 
 template <>
 void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 {
-    if (t.channel_id == SensorConfigs::ADC_CH_VREF)
+    if (t.channelId == SensorConfigs::ADC_CH_VREF)
     {
         // tm_repository.wind_tm.pressure_dpl = t.voltage;
         tm_repository.sensors_tm.vsupply_5v = t.voltage;
@@ -232,17 +230,17 @@ void TmRepository::update<ADS1118Data>(const ADS1118Data& t)
 template <>
 void TmRepository::update<MS5803Data>(const MS5803Data& t)
 {
-    tm_repository.wind_tm.pressure_digital = t.press;
-    tm_repository.sensors_tm.ms5803_press  = t.press;
-    tm_repository.digital_baro_tm.pressure = t.press;
+    tm_repository.wind_tm.pressure_digital = t.pressure;
+    tm_repository.sensors_tm.ms5803_press  = t.pressure;
+    tm_repository.digital_baro_tm.pressure = t.pressure;
 
 #if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
-    tm_repository.hr_tm.pressure_digi = t.press;
-#endif 
+    tm_repository.hr_tm.pressure_digi = t.pressure;
+#endif
 
-    tm_repository.sensors_tm.ms5803_temp      = t.temp;
-    tm_repository.hr_tm.temperature           = t.temp;
-    tm_repository.digital_baro_tm.temperature = t.temp;
+    tm_repository.sensors_tm.ms5803_temp      = t.temperature;
+    tm_repository.hr_tm.temperature           = t.temperature;
+    tm_repository.digital_baro_tm.temperature = t.temperature;
 
     stats_rec.update(t);
 }
@@ -250,12 +248,12 @@ void TmRepository::update<MS5803Data>(const MS5803Data& t)
 template <>
 void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
 {
-    tm_repository.wind_tm.pressure_static = t.press;
-    tm_repository.sensors_tm.static_press = t.press;
-    tm_repository.adc_tm.static_pressure  = t.press;
+    tm_repository.wind_tm.pressure_static = t.pressure;
+    tm_repository.sensors_tm.static_press = t.pressure;
+    tm_repository.adc_tm.static_pressure  = t.pressure;
 
 #if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
-    tm_repository.hr_tm.pressure_static = t.press;
+    tm_repository.hr_tm.pressure_static = t.pressure;
 #endif
 
     stats_rec.update(t);
@@ -264,9 +262,9 @@ void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t)
 template <>
 void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t)
 {
-    tm_repository.wind_tm.pressure_differential = t.press;
-    tm_repository.sensors_tm.pitot_press        = t.press;
-    tm_repository.adc_tm.pitot_pressure         = t.press;
+    tm_repository.wind_tm.pressure_differential = t.pressure;
+    tm_repository.sensors_tm.pitot_press        = t.pressure;
+    tm_repository.adc_tm.pitot_pressure         = t.pressure;
 }
 
 template <>
@@ -280,10 +278,10 @@ void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t)
 template <>
 void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 {
-    tm_repository.wind_tm.pressure_dpl = t.press;
-    tm_repository.sensors_tm.dpl_press = t.press;
-    tm_repository.hr_tm.pressure_dpl   = t.press;
-    tm_repository.adc_tm.dpl_pressure  = t.press;
+    tm_repository.wind_tm.pressure_dpl = t.pressure;
+    tm_repository.sensors_tm.dpl_press = t.pressure;
+    tm_repository.hr_tm.pressure_dpl   = t.pressure;
+    tm_repository.adc_tm.dpl_pressure  = t.pressure;
 
     stats_rec.update(t);
 }
@@ -292,40 +290,40 @@ void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t)
 template <>
 void TmRepository::update<BMX160Data>(const BMX160Data& t)
 {
-    tm_repository.sensors_tm.bmx160_acc_x  = t.accel_x;
-    tm_repository.sensors_tm.bmx160_acc_y  = t.accel_y;
-    tm_repository.sensors_tm.bmx160_acc_z  = t.accel_z;
-    tm_repository.sensors_tm.bmx160_gyro_x = t.gyro_x;
-    tm_repository.sensors_tm.bmx160_gyro_y = t.gyro_y;
-    tm_repository.sensors_tm.bmx160_gyro_z = t.gyro_z;
-    tm_repository.sensors_tm.bmx160_mag_x  = t.mag_x;
-    tm_repository.sensors_tm.bmx160_mag_y  = t.mag_y;
-    tm_repository.sensors_tm.bmx160_mag_z  = t.mag_z;
+    tm_repository.sensors_tm.bmx160_acc_x  = t.accelerationX;
+    tm_repository.sensors_tm.bmx160_acc_y  = t.accelerationY;
+    tm_repository.sensors_tm.bmx160_acc_z  = t.accelerationZ;
+    tm_repository.sensors_tm.bmx160_gyro_x = t.angularVelocityX;
+    tm_repository.sensors_tm.bmx160_gyro_y = t.angularVelocityY;
+    tm_repository.sensors_tm.bmx160_gyro_z = t.angularVelocityZ;
+    tm_repository.sensors_tm.bmx160_mag_x  = t.magneticFieldX;
+    tm_repository.sensors_tm.bmx160_mag_y  = t.magneticFieldY;
+    tm_repository.sensors_tm.bmx160_mag_z  = t.magneticFieldZ;
 }
 
 template <>
 void TmRepository::update<BMX160WithCorrectionData>(
     const BMX160WithCorrectionData& t)
 {
-    tm_repository.bmx_tm.acc_x  = t.accel_x;
-    tm_repository.bmx_tm.acc_y  = t.accel_y;
-    tm_repository.bmx_tm.acc_z  = t.accel_z;
-    tm_repository.bmx_tm.gyro_x = t.gyro_x;
-    tm_repository.bmx_tm.gyro_y = t.gyro_y;
-    tm_repository.bmx_tm.gyro_z = t.gyro_z;
-    tm_repository.bmx_tm.mag_x  = t.mag_x;
-    tm_repository.bmx_tm.mag_y  = t.mag_y;
-    tm_repository.bmx_tm.mag_z  = t.mag_z;
+    tm_repository.bmx_tm.acc_x  = t.accelerationX;
+    tm_repository.bmx_tm.acc_y  = t.accelerationY;
+    tm_repository.bmx_tm.acc_z  = t.accelerationZ;
+    tm_repository.bmx_tm.gyro_x = t.angularVelocityX;
+    tm_repository.bmx_tm.gyro_y = t.angularVelocityY;
+    tm_repository.bmx_tm.gyro_z = t.angularVelocityZ;
+    tm_repository.bmx_tm.mag_x  = t.magneticFieldX;
+    tm_repository.bmx_tm.mag_y  = t.magneticFieldY;
+    tm_repository.bmx_tm.mag_z  = t.magneticFieldZ;
 
-    tm_repository.hr_tm.acc_x  = t.accel_x;
-    tm_repository.hr_tm.acc_y  = t.accel_y;
-    tm_repository.hr_tm.acc_z  = t.accel_z;
-    tm_repository.hr_tm.gyro_x = t.gyro_x;
-    tm_repository.hr_tm.gyro_y = t.gyro_y;
-    tm_repository.hr_tm.gyro_z = t.gyro_z;
-    tm_repository.hr_tm.mag_x  = t.mag_x;
-    tm_repository.hr_tm.mag_y  = t.mag_y;
-    tm_repository.hr_tm.mag_z  = t.mag_z;
+    tm_repository.hr_tm.acc_x  = t.accelerationX;
+    tm_repository.hr_tm.acc_y  = t.accelerationY;
+    tm_repository.hr_tm.acc_z  = t.accelerationZ;
+    tm_repository.hr_tm.gyro_x = t.angularVelocityX;
+    tm_repository.hr_tm.gyro_y = t.angularVelocityY;
+    tm_repository.hr_tm.gyro_z = t.angularVelocityZ;
+    tm_repository.hr_tm.mag_x  = t.magneticFieldX;
+    tm_repository.hr_tm.mag_y  = t.magneticFieldY;
+    tm_repository.hr_tm.mag_z  = t.magneticFieldZ;
 
     stats_rec.update(t);
 }
@@ -334,22 +332,22 @@ void TmRepository::update<BMX160WithCorrectionData>(
 template <>
 void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t)
 {
-    tm_repository.sensors_tm.bmx160_temp = t.temp;
-    tm_repository.bmx_tm.temp            = t.temp;
+    tm_repository.sensors_tm.bmx160_temp = t.temperature;
+    tm_repository.bmx_tm.temp            = t.temperature;
 }
 
 template <>
 void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
 {
-    tm_repository.sensors_tm.lis3mdl_mag_x = t.mag_x;
-    tm_repository.sensors_tm.lis3mdl_mag_y = t.mag_y;
-    tm_repository.sensors_tm.lis3mdl_mag_z = t.mag_z;
-    tm_repository.sensors_tm.lis3mdl_temp  = t.temp;
+    tm_repository.sensors_tm.lis3mdl_mag_x = t.magneticFieldX;
+    tm_repository.sensors_tm.lis3mdl_mag_y = t.magneticFieldY;
+    tm_repository.sensors_tm.lis3mdl_mag_z = t.magneticFieldZ;
+    tm_repository.sensors_tm.lis3mdl_temp  = t.temperature;
 
-    tm_repository.lis3mdl_tm.mag_x = t.mag_x;
-    tm_repository.lis3mdl_tm.mag_y = t.mag_y;
-    tm_repository.lis3mdl_tm.mag_z = t.mag_z;
-    tm_repository.lis3mdl_tm.temp  = t.temp;
+    tm_repository.lis3mdl_tm.mag_x = t.magneticFieldX;
+    tm_repository.lis3mdl_tm.mag_y = t.magneticFieldY;
+    tm_repository.lis3mdl_tm.mag_z = t.magneticFieldZ;
+    tm_repository.lis3mdl_tm.temp  = t.temperature;
 }
 
 #if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
@@ -357,19 +355,19 @@ void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t)
  * @brief GPS.
  */
 template <>
-void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
+void TmRepository::update<GPSData>(const GPSData& t)
 {
     // GPS_TM
     tm_repository.gps_tm.latitude     = t.latitude;
     tm_repository.gps_tm.longitude    = t.longitude;
     tm_repository.gps_tm.height       = t.height;
-    tm_repository.gps_tm.vel_north    = t.velocity_north;
-    tm_repository.gps_tm.vel_east     = t.velocity_east;
-    tm_repository.gps_tm.vel_down     = t.velocity_down;
+    tm_repository.gps_tm.vel_north    = t.velocityNorth;
+    tm_repository.gps_tm.vel_east     = t.velocityEast;
+    tm_repository.gps_tm.vel_down     = t.velocityDown;
     tm_repository.gps_tm.speed        = t.speed;
     tm_repository.gps_tm.fix          = (uint8_t)t.fix;
     tm_repository.gps_tm.track        = t.track;
-    tm_repository.gps_tm.n_satellites = t.num_satellites;
+    tm_repository.gps_tm.n_satellites = t.satellites;
 
     // HR TM
     tm_repository.hr_tm.gps_lat = t.latitude;
@@ -378,7 +376,7 @@ void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t)
     tm_repository.hr_tm.gps_fix = (uint8_t)t.fix;
 
     // TEST TM
-    tm_repository.test_tm.gps_nsats = t.num_satellites;
+    tm_repository.test_tm.gps_nsats = t.satellites;
 
     stats_rec.update(t);
 }
@@ -399,9 +397,9 @@ template <>
 void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
     const Xbee::ATCommandResponseFrameLog& t)
 {
-    if (strncmp(t.at_command, "DB", 2) == 0 && t.command_data_length == 1)
+    if (strncmp(t.atCommand, "DB", 2) == 0 && t.commandDataLength == 1)
     {
-        tm_repository.wind_tm.last_RSSI = -t.command_data[0];
+        tm_repository.wind_tm.last_RSSI = -t.commandData[0];
     }
 }
 
@@ -437,7 +435,7 @@ void TmRepository::update<NASStatus>(const NASStatus& t)
 template <>
 void TmRepository::update<NASKalmanState>(const NASKalmanState& t)
 {
-    Vector3f orientation = t.toEul();
+    Eigen::Vector3f orientation = t.toEul();
 
     tm_repository.nas_tm.x0    = t.x0;
     tm_repository.nas_tm.x1    = t.x1;
@@ -550,23 +548,23 @@ void TmRepository::update<PinStatus>(const PinStatus& t)
  * @brief Logger.
  */
 template <>
-void TmRepository::update<LogStats>(const LogStats& t)
+void TmRepository::update<LoggerStats>(const LoggerStats& t)
 {
     tm_repository.logger_tm.statLogNumber       = t.logNumber;
-    tm_repository.logger_tm.statTooLargeSamples = t.statTooLargeSamples;
-    tm_repository.logger_tm.statDroppedSamples  = t.statDroppedSamples;
-    tm_repository.logger_tm.statQueuedSamples   = t.statQueuedSamples;
-    tm_repository.logger_tm.statBufferFilled    = t.statBufferFilled;
-    tm_repository.logger_tm.statBufferWritten   = t.statBufferWritten;
-    tm_repository.logger_tm.statWriteFailed     = t.statWriteFailed;
-    tm_repository.logger_tm.statWriteError      = t.statWriteError;
-    tm_repository.logger_tm.statWriteTime       = t.statWriteTime;
-    tm_repository.logger_tm.statMaxWriteTime    = t.statMaxWriteTime;
+    tm_repository.logger_tm.statTooLargeSamples = t.tooLargeSamples;
+    tm_repository.logger_tm.statDroppedSamples  = t.droppedSamples;
+    tm_repository.logger_tm.statQueuedSamples   = t.queuedSamples;
+    tm_repository.logger_tm.statBufferFilled    = t.buffersFilled;
+    tm_repository.logger_tm.statBufferWritten   = t.buffersWritten;
+    tm_repository.logger_tm.statWriteFailed     = t.writesFailed;
+    tm_repository.logger_tm.statWriteError      = t.lastWriteError;
+    tm_repository.logger_tm.statWriteTime       = t.writeTime;
+    tm_repository.logger_tm.statMaxWriteTime    = t.maxWriteTime;
 
     tm_repository.wind_tm.log_num    = t.logNumber;
-    tm_repository.wind_tm.log_status = t.opened ? t.statWriteError : -1000;
+    tm_repository.wind_tm.log_status = t.lastWriteError;
 
-    tm_repository.hr_tm.logger_error = t.opened ? t.statWriteError : -1;
+    tm_repository.hr_tm.logger_error = t.lastWriteError;
 }
 
 /**
@@ -576,21 +574,21 @@ template <>
 void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t)
 {
     // mavchannel stats
-    tm_repository.tmtc_tm.n_send_queue   = t.n_send_queue;
-    tm_repository.tmtc_tm.max_send_queue = t.max_send_queue;
-    tm_repository.tmtc_tm.n_send_errors  = t.n_send_errors;
-    tm_repository.tmtc_tm.msg_received   = t.mav_stats.msg_received;
+    tm_repository.tmtc_tm.n_send_queue   = t.nSendQueue;
+    tm_repository.tmtc_tm.max_send_queue = t.maxSendQueue;
+    tm_repository.tmtc_tm.n_send_errors  = t.nSendErrors;
+    tm_repository.tmtc_tm.msg_received   = t.mavStats.msg_received;
     // mav stats
-    tm_repository.tmtc_tm.buffer_overrun = t.mav_stats.buffer_overrun;
-    tm_repository.tmtc_tm.parse_error    = t.mav_stats.parse_error;
-    tm_repository.tmtc_tm.parse_state    = t.mav_stats.parse_state;
-    tm_repository.tmtc_tm.packet_idx     = t.mav_stats.packet_idx;
-    tm_repository.tmtc_tm.current_rx_seq = t.mav_stats.current_rx_seq;
-    tm_repository.tmtc_tm.current_tx_seq = t.mav_stats.current_tx_seq;
+    tm_repository.tmtc_tm.buffer_overrun = t.mavStats.buffer_overrun;
+    tm_repository.tmtc_tm.parse_error    = t.mavStats.parse_error;
+    tm_repository.tmtc_tm.parse_state    = t.mavStats.parse_state;
+    tm_repository.tmtc_tm.packet_idx     = t.mavStats.packet_idx;
+    tm_repository.tmtc_tm.current_rx_seq = t.mavStats.current_rx_seq;
+    tm_repository.tmtc_tm.current_tx_seq = t.mavStats.current_tx_seq;
     tm_repository.tmtc_tm.packet_rx_success_count =
-        t.mav_stats.packet_rx_success_count;
+        t.mavStats.packet_rx_success_count;
     tm_repository.tmtc_tm.packet_rx_drop_count =
-        t.mav_stats.packet_rx_drop_count;
+        t.mavStats.packet_rx_drop_count;
 }
 
 /**
@@ -680,7 +678,7 @@ void TmRepository::update<ADAReferenceValues>(const ADAReferenceValues& t)
 }
 
 template <>
-void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
+void TmRepository::update<TaskStatsResult>(const TaskStatsResult& t)
 {
     switch (t.id)
     {
@@ -692,7 +690,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_6ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_6ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_SENSORS_15_MS_ID:
             tm_repository.task_stats_tm.task_sensors_15ms_max =
@@ -702,7 +700,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_15ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_15ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_SENSORS_20_MS_ID:
             tm_repository.task_stats_tm.task_sensors_20ms_max =
@@ -712,7 +710,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_20ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_20ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_SENSORS_24_MS_ID:
             tm_repository.task_stats_tm.task_sensors_24ms_max =
@@ -722,7 +720,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_24ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_24ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_SENSORS_40_MS_ID:
             tm_repository.task_stats_tm.task_sensors_40ms_max =
@@ -732,7 +730,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_40ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_40ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_SENSORS_1000_MS_ID:
             tm_repository.task_stats_tm.task_sensors_1000ms_max =
@@ -742,25 +740,25 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             tm_repository.task_stats_tm.task_sensors_1000ms_mean =
                 t.periodStats.mean;
             tm_repository.task_stats_tm.task_sensors_1000ms_stddev =
-                t.periodStats.stdev;
+                t.periodStats.stdDev;
             break;
         case TASK_ADA_ID:
             tm_repository.task_stats_tm.task_ada_max  = t.periodStats.maxValue;
             tm_repository.task_stats_tm.task_ada_min  = t.periodStats.minValue;
             tm_repository.task_stats_tm.task_ada_mean = t.periodStats.mean;
-            tm_repository.task_stats_tm.task_ada_stddev = t.periodStats.stdev;
+            tm_repository.task_stats_tm.task_ada_stddev = t.periodStats.stdDev;
             break;
         case TASK_ABK_ID:
             tm_repository.task_stats_tm.task_abk_max  = t.periodStats.maxValue;
             tm_repository.task_stats_tm.task_abk_min  = t.periodStats.minValue;
             tm_repository.task_stats_tm.task_abk_mean = t.periodStats.mean;
-            tm_repository.task_stats_tm.task_abk_stddev = t.periodStats.stdev;
+            tm_repository.task_stats_tm.task_abk_stddev = t.periodStats.stdDev;
             break;
         case TASK_NAS_ID:
             tm_repository.task_stats_tm.task_nas_max  = t.periodStats.maxValue;
             tm_repository.task_stats_tm.task_nas_min  = t.periodStats.minValue;
             tm_repository.task_stats_tm.task_nas_mean = t.periodStats.mean;
-            tm_repository.task_stats_tm.task_nas_stddev = t.periodStats.stdev;
+            tm_repository.task_stats_tm.task_nas_stddev = t.periodStats.stdDev;
             break;
             // case TASK_SCHEDULER_STATS_ID:
             //     tm_repository.task_stats_tm.task_250hz_max    =
@@ -770,7 +768,7 @@ void TmRepository::update<TaskStatResult>(const TaskStatResult& t)
             //     tm_repository.task_stats_tm.task_250hz_mean   =
             //     t.periodStats.mean;
             //     tm_repository.task_stats_tm.task_250hz_stddev =
-            //     t.periodStats.stdev; break;
+            //     t.periodStats.stdDev; break;
 
         default:
             break;

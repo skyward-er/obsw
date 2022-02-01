@@ -33,7 +33,7 @@ namespace DeathStackBoard
  */
 enum LynxThreadIds : uint8_t
 {
-    THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
+    THID_ENTRYPOINT = Boardcore::THID_FIRST_AVAILABLE_ID,
     THID_DPL_FSM,
     THID_FMM_FSM,
     THID_TMTC_FSM,
@@ -44,4 +44,4 @@ enum LynxThreadIds : uint8_t
     THID_TASK_SCHEDULER
 };
 
-}
+}  // namespace DeathStackBoard

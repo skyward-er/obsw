@@ -26,9 +26,9 @@
 #include <AirBrakes/AirBrakesData.h>
 #include <AirBrakes/AirBrakesServo.h>
 #include <System/StackLogger.h>
-#include <TimestampTimer.h>
 #include <configs/AirBrakesConfig.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/Events.h>
 #include <events/FSM.h>
@@ -41,21 +41,21 @@ namespace DeathStackBoard
  * @brief AirBrakes state machine
  */
 template <class T>
-class AirBrakesController : public FSM<AirBrakesController<T>>
+class AirBrakesController : public Boardcore::FSM<AirBrakesController<T>>
 {
 public:
-    AirBrakesController(Sensor<T>& sensor,
+    AirBrakesController(Boardcore::Sensor<T>& sensor,
                         ServoInterface* servo = new AirBrakesServo());
     ~AirBrakesController();
 
     // Airbrakes FSM states
-    void state_initialization(const Event& ev);
-    void state_idle(const Event& ev);
-    void state_shadowMode(const Event& ev);
-    void state_enabled(const Event& ev);
-    void state_end(const Event& ev);
-    void state_disabled(const Event& ev);
-    void state_testAirbrakes(const Event& ev);
+    void state_initialization(const Boardcore::Event& ev);
+    void state_idle(const Boardcore::Event& ev);
+    void state_shadowMode(const Boardcore::Event& ev);
+    void state_enabled(const Boardcore::Event& ev);
+    void state_end(const Boardcore::Event& ev);
+    void state_disabled(const Boardcore::Event& ev);
+    void state_testAirbrakes(const Boardcore::Event& ev);
 
     /**
      * @brief Update the airbrakes control algorithm
@@ -84,25 +84,26 @@ private:
     AirBrakesControlAlgorithm<T> algorithm;
     uint16_t ev_shadow_mode_timeout_id;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.arb");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.arb");
 };
 
 template <class T>
-AirBrakesController<T>::AirBrakesController(Sensor<T>& sensor,
+AirBrakesController<T>::AirBrakesController(Boardcore::Sensor<T>& sensor,
                                             ServoInterface* servo)
-    : FSM<AirBrakesController<T>>(
+    : Boardcore::FSM<AirBrakesController<T>>(
           &AirBrakesController<T>::state_initialization),
       servo(servo), algorithm(sensor, servo)
 {
     memset(&status, 0, sizeof(AirBrakesControllerStatus));
-    sEventBroker->subscribe(this, TOPIC_FLIGHT_EVENTS);
-    sEventBroker->subscribe(this, TOPIC_ABK);
+    sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
+    sEventBroker.subscribe(this, TOPIC_ABK);
 }
 
 template <class T>
 AirBrakesController<T>::~AirBrakesController()
 {
-    sEventBroker->unsubscribe(this);
+    sEventBroker.unsubscribe(this);
 }
 
 template <class T>
@@ -112,11 +113,11 @@ void AirBrakesController<T>::update()
 }
 
 template <class T>
-void AirBrakesController<T>::state_initialization(const Event& ev)
+void AirBrakesController<T>::state_initialization(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             logStatus(AirBrakesControllerState::INITIALIZATION);
 
@@ -126,7 +127,7 @@ void AirBrakesController<T>::state_initialization(const Event& ev)
             this->transition(&AirBrakesController<T>::state_idle);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             break;
         }
@@ -139,18 +140,18 @@ void AirBrakesController<T>::state_initialization(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_idle(const Event& ev)
+void AirBrakesController<T>::state_idle(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             logStatus(AirBrakesControllerState::IDLE);
 
             LOG_DEBUG(log, "Eentering state idle");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state idle");
             break;
@@ -183,22 +184,23 @@ void AirBrakesController<T>::state_idle(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_shadowMode(const Event& ev)
+void AirBrakesController<T>::state_shadowMode(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             ev_shadow_mode_timeout_id =
-                sEventBroker->postDelayed<SHADOW_MODE_DURATION>(
-                    Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
+                sEventBroker
+                    .postDelayed<AirBrakesConfigs::SHADOW_MODE_DURATION>(
+                        Boardcore::Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(AirBrakesControllerState::SHADOW_MODE);
 
             LOG_DEBUG(log, "Entering state shadow_mode");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state shadow_mode");
             break;
@@ -221,11 +223,11 @@ void AirBrakesController<T>::state_shadowMode(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_enabled(const Event& ev)
+void AirBrakesController<T>::state_enabled(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             algorithm.begin();
 
@@ -234,7 +236,7 @@ void AirBrakesController<T>::state_enabled(const Event& ev)
             LOG_DEBUG(log, "Entering state enabled");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state enabled");
             break;
@@ -257,11 +259,11 @@ void AirBrakesController<T>::state_enabled(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_end(const Event& ev)
+void AirBrakesController<T>::state_end(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             algorithm.end();
             servo->reset();
@@ -271,7 +273,7 @@ void AirBrakesController<T>::state_end(const Event& ev)
             LOG_DEBUG(log, "Entering state end");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state end");
             break;
@@ -285,11 +287,11 @@ void AirBrakesController<T>::state_end(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_disabled(const Event& ev)
+void AirBrakesController<T>::state_disabled(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             algorithm.end();
             servo->reset();
@@ -299,7 +301,7 @@ void AirBrakesController<T>::state_disabled(const Event& ev)
             LOG_DEBUG(log, "Entering state disabled");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state disabled");
             break;
@@ -313,11 +315,11 @@ void AirBrakesController<T>::state_disabled(const Event& ev)
 }
 
 template <class T>
-void AirBrakesController<T>::state_testAirbrakes(const Event& ev)
+void AirBrakesController<T>::state_testAirbrakes(const Boardcore::Event& ev)
 {
-    switch (ev.sig)
+    switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state test_airbrakes");
 
@@ -329,10 +331,10 @@ void AirBrakesController<T>::state_testAirbrakes(const Event& ev)
 
             logStatus(AirBrakesControllerState::TEST_AEROBRAKES);
 
-            sEventBroker->post(Event{EV_TEST_TIMEOUT}, TOPIC_ABK);
+            sEventBroker.post(Boardcore::Event{EV_TEST_TIMEOUT}, TOPIC_ABK);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state test_airbrakes");
             break;
@@ -392,12 +394,12 @@ void AirBrakesController<T>::incrementallyClose()
 template <class T>
 void AirBrakesController<T>::logStatus(AirBrakesControllerState state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
     status.state     = state;
 
-    LoggerService::getInstance()->log(status);
+    LoggerService::getInstance().log(status);
 
-    StackLogger::getInstance()->updateStack(THID_ABK_FSM);
+    Boardcore::StackLogger::getInstance().updateStack(THID_ABK_FSM);
 }
 
 template <class T>

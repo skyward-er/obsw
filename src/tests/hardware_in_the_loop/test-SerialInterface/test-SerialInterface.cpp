@@ -20,8 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Common.h>
-
 #include "hardware_in_the_loop/HILConfig.h"
 #include "hardware_in_the_loop/simulator_communication/SerialInterface.h"
 #include "math/Vec3.h"

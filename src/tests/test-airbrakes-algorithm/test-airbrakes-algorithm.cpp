@@ -46,7 +46,7 @@ public:
     int error(int alphaTest) { return abs(alphaTest - lastAlpha); }
 
 private:
-    int lastAlpha;
+    int lastAlpha = 0;
 };
 
 template <typename T>
@@ -98,9 +98,8 @@ int main()
         RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
     }
 
-    input_t input;
-
-    input = DATA[0].input;
+    // input_t input;
+    // input = DATA[0].input;
 
     HardwareTimer<uint32_t> hrclock(
         TIM5,

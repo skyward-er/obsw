@@ -29,17 +29,17 @@
 #include <FlightModeManager/FMMStatus.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <FlightStatsRecorder/FSRData.h>
+#include <Main/SensorsData.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <PinHandler/PinHandlerData.h>
 #include <Singleton.h>
-#include <System/SystemData.h>
-#include <Main/SensorsData.h>
+#include <SystemData.h>
 #include <TelemetriesTelecommands/Mavlink.h>
+#include <configs/TMTCConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/Xbee/APIFramesLog.h>
-#include <drivers/adc/ADS1118/ADS1118Data.h>
-#include <drivers/gps/ublox/UbloxGPSData.h>
 #include <scheduler/TaskSchedulerData.h>
+#include <sensors/ADS1118/ADS1118Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MS5803/MS5803Data.h>
@@ -48,8 +48,6 @@
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-
-#include <configs/TMTCConfig.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
 #include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
@@ -67,9 +65,9 @@ namespace DeathStackBoard
  * WARNING: These packets are updated by the LoggerService. If the
  * LoggerService is not active, the values inside packets WILL NOT BE UPDATED.
  */
-class TmRepository : public Singleton<TmRepository>
+class TmRepository : public Boardcore::Singleton<TmRepository>
 {
-    friend class Singleton<TmRepository>;
+    friend class Boardcore::Singleton<TmRepository>;
 
 public:
     /**
@@ -139,7 +137,8 @@ private:
 
     FlightStatsRecorder stats_rec;
 
-    PrintLogger log = Logging::getLogger("deathstack.tmrepo");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.tmrepo");
 };
 
 template <>
@@ -158,41 +157,49 @@ void TmRepository::update<AirBrakesAlgorithmData>(
     const AirBrakesAlgorithmData& t);
 
 template <>
-void TmRepository::update<ADS1118Data>(const ADS1118Data& t);
+void TmRepository::update<Boardcore::ADS1118Data>(
+    const Boardcore::ADS1118Data& t);
 
 template <>
-void TmRepository::update<MS5803Data>(const MS5803Data& t);
+void TmRepository::update<Boardcore::MS5803Data>(
+    const Boardcore::MS5803Data& t);
 
 template <>
-void TmRepository::update<MPXHZ6130AData>(const MPXHZ6130AData& t);
+void TmRepository::update<Boardcore::MPXHZ6130AData>(
+    const Boardcore::MPXHZ6130AData& t);
 
 template <>
-void TmRepository::update<SSCDRRN015PDAData>(const SSCDRRN015PDAData& t);
+void TmRepository::update<Boardcore::SSCDRRN015PDAData>(
+    const Boardcore::SSCDRRN015PDAData& t);
 
 template <>
 void TmRepository::update<AirSpeedPitot>(const AirSpeedPitot& t);
 
 template <>
-void TmRepository::update<SSCDANN030PAAData>(const SSCDANN030PAAData& t);
+void TmRepository::update<Boardcore::SSCDANN030PAAData>(
+    const Boardcore::SSCDANN030PAAData& t);
 
-#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 template <>
-void TmRepository::update<BMX160Data>(const BMX160Data& t);
+void TmRepository::update<Boardcore::BMX160Data>(
+    const Boardcore::BMX160Data& t);
 
 template <>
-void TmRepository::update<BMX160WithCorrectionData>(
-    const BMX160WithCorrectionData& t);
+void TmRepository::update<Boardcore::BMX160WithCorrectionData>(
+    const Boardcore::BMX160WithCorrectionData& t);
 #endif
 
 template <>
-void TmRepository::update<BMX160Temperature>(const BMX160Temperature& t);
+void TmRepository::update<Boardcore::BMX160Temperature>(
+    const Boardcore::BMX160Temperature& t);
 
 template <>
-void TmRepository::update<LIS3MDLData>(const LIS3MDLData& t);
+void TmRepository::update<Boardcore::LIS3MDLData>(
+    const Boardcore::LIS3MDLData& t);
 
-#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS) 
+#if !defined(HARDWARE_IN_THE_LOOP) && !defined(USE_MOCK_SENSORS)
 template <>
-void TmRepository::update<UbloxGPSData>(const UbloxGPSData& t);
+void TmRepository::update<Boardcore::GPSData>(const Boardcore::GPSData& t);
 #endif
 
 template <>
@@ -202,18 +209,19 @@ void TmRepository::update<SensorsStatus>(const SensorsStatus& t);
  * @brief Battery status, sampled by internal ADC.
  */
 template <>
-void TmRepository::update<BatteryVoltageSensorData>(
-    const BatteryVoltageSensorData& t);
+void TmRepository::update<Boardcore::BatteryVoltageSensorData>(
+    const Boardcore::BatteryVoltageSensorData& t);
 
 template <>
-void TmRepository::update<Xbee::ATCommandResponseFrameLog>(
-    const Xbee::ATCommandResponseFrameLog& t);
+void TmRepository::update<Boardcore::Xbee::ATCommandResponseFrameLog>(
+    const Boardcore::Xbee::ATCommandResponseFrameLog& t);
 
 /**
  * @brief Logger.
  */
 template <>
-void TmRepository::update<LogStats>(const LogStats& t);
+void TmRepository::update<Boardcore::LoggerStats>(
+    const Boardcore::LoggerStats& t);
 
 /**
  * @brief Initialization status of the board.
@@ -252,7 +260,8 @@ void TmRepository::update<PinStatus>(const PinStatus& t);
  * @brief TMTCController (Mavlink).
  */
 template <>
-void TmRepository::update<MavlinkStatus>(const MavlinkStatus& t);
+void TmRepository::update<Boardcore::MavlinkStatus>(
+    const Boardcore::MavlinkStatus& t);
 
 /**
  * @brief Deployment Controller.
@@ -299,7 +308,8 @@ void TmRepository::update<SystemData>(const SystemData& t);
  * @brief Sensor Manager scheduler.
  */
 template <>
-void TmRepository::update<TaskStatResult>(const TaskStatResult& t);
+void TmRepository::update<Boardcore::TaskStatsResult>(
+    const Boardcore::TaskStatsResult& t);
 
 /**
  * @brief FlightStatsRecorder liftoff stats.

@@ -50,13 +50,15 @@ public:
     IgnitionTestFixture()
     {
         can_mgr = new CanManager(CAN1);
-        can     = new CanProxy(can_mgr);
-        ign     = new IgnitionController(can);
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
+        can = new CanProxy(can_mgr);
+        ign = new IgnitionController(can);
     }
     ~IgnitionTestFixture()
     {
-        sEventBroker->unsubscribe(ign);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(ign);
+        sEventBroker.clearDelayedEvents();
         delete ign;
         delete can;
         delete can_mgr;
@@ -75,7 +77,7 @@ TEST_CASE_METHOD(IgnitionTestFixture, "Testing IDLE transitions")
 
     SECTION("IDLE -> END")
     {
-        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*ign, Boardcore::Event{EV_LIFTOFF},
                                   &IgnitionController::stateEnd));
     }
 
@@ -161,17 +163,19 @@ class IgnitionTestFixture2
 public:
     IgnitionTestFixture2()
     {
-        sEventBroker->start();
+        sEventBroker.start();
         can_mgr = new CanManager(CAN1);
-        can     = new CanProxy(can_mgr);
-        ign     = new IgnitionController(can);
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
+        can = new CanProxy(can_mgr);
+        ign = new IgnitionController(can);
         ign->start();
     }
     ~IgnitionTestFixture2()
     {
         ign->stop();
-        sEventBroker->unsubscribe(ign);
-        sEventBroker->clearDelayedEvents();
+        sEventBroker.unsubscribe(ign);
+        sEventBroker.clearDelayedEvents();
         delete ign;
         delete can;
         delete can_mgr;
@@ -201,7 +205,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
         {
             TRACE("Beginning of section\n");
 
-            EventCounter counter{*sEventBroker};
+            EventCounter counter{sEventBroker};
             counter.subscribe(TOPIC_FLIGHT_EVENTS);
 
             // Sending ign status
@@ -251,12 +255,12 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
                                                   // the delayed ev_ign_offline
                                                   // should be deleted
     {
-        EventCounter counter{*sEventBroker};
+        EventCounter counter{sEventBroker};
         counter.subscribe(TOPIC_FLIGHT_EVENTS);
 
         Thread::sleep(TIMEOUT_IGN_OFFLINE / 2);
 
-        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*ign, Boardcore::Event{EV_LIFTOFF},
                                   &IgnitionController::stateEnd));
 
         Thread::sleep(TIMEOUT_IGN_OFFLINE / 2 + 5);
