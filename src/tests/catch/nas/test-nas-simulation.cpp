@@ -37,6 +37,7 @@
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
+using namespace Boardcore;
 using namespace DeathStackBoard;
 using namespace NASConfigs;
 

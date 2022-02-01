@@ -27,8 +27,6 @@
 #include <drivers/servo/Servo.h>
 #include <miosix.h>
 
-using namespace Boardcore;
-
 namespace PayloadBoard
 {
 
@@ -36,7 +34,7 @@ class WingServo : public ServoInterface
 {
 
 public:
-    WingServo(TIM_TypeDef* const timer, TimerUtils::Channel channel,
+    WingServo(TIM_TypeDef* const timer, Boardcore::TimerUtils::Channel channel,
               float minPosition = WingConfigs::WING_SERVO_MIN_POS,
               float maxPosition = WingConfigs::WING_SERVO_MAX_POS);
 
@@ -52,7 +50,7 @@ public:
     void selfTest() override;
 
 private:
-    Servo servo;
+    Boardcore::Servo servo;
 
 protected:
     /**

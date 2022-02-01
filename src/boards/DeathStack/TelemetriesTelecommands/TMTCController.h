@@ -28,8 +28,6 @@
 #include <events/Events.h>
 #include <events/FSM.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -42,7 +40,7 @@ namespace DeathStackBoard
  * - receiving and handling commands coming from GS
  * - fetching the last logged values when sending telemetries
  */
-class TMTCController : public FSM<TMTCController>
+class TMTCController : public Boardcore::FSM<TMTCController>
 {
 public:
     /**
@@ -72,10 +70,10 @@ private:
     void sendSerialTelemetry();
 
     // State handlers
-    void stateGroundTM(const Event& ev);
-    void stateSensorTM(const Event& ev);
-    void stateFlightTM(const Event& ev);
-    void stateSerialDebugTM(const Event& ev);
+    void stateGroundTM(const Boardcore::Event& ev);
+    void stateSensorTM(const Boardcore::Event& ev);
+    void stateFlightTM(const Boardcore::Event& ev);
+    void stateSerialDebugTM(const Boardcore::Event& ev);
 
     LoggerService& logger = LoggerService::getInstance();
 
@@ -86,7 +84,8 @@ private:
 
     uint8_t hrPktCounter = 0;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.tmtc");
+    Boardcore::PrintLogger printLogger =
+        Boardcore::Logging::getLogger("deathstack.fsm.tmtc");
 };
 
 }  // namespace DeathStackBoard

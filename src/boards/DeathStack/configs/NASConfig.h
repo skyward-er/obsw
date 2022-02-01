@@ -26,8 +26,6 @@
 
 #include "Eigen/Dense"
 
-using namespace Eigen;
-
 namespace DeathStackBoard
 {
 
@@ -117,7 +115,7 @@ static const float EMF = 44.24F;  // [uT] micro Tesla
                                   // Earth magnetic field, used to
                                   // check if there's magnetic jamming
 
-static const Vector3f NED_MAG(
+static const Eigen::Vector3f NED_MAG(
     0.5923F, -0.0175F,
     0.8055F);  // Normalized magnetic field vector at Ponte de Sor
                // Measurement units are not important since it's normalized
@@ -133,13 +131,13 @@ static const float EMF = 46.77F;  // [uT] micro Tesla
                                   // Earth magnetic field, used to
                                   // check if there's magnetic jamming
 
-static const Vector3f NED_MAG(
+static const Eigen::Vector3f NED_MAG(
     0.524848, 0.035602,
     0.850451);  // Normalized magnetic field vector at Roccaraso
 #endif
 
 // normalized magentic field at Milano
-// static const Vector3f NED_MAG(0.4742, 0.025, 0.8801);
+// static const Eigen::Vector3f NED_MAG(0.4742, 0.025, 0.8801);
 
 // DIMENSIONS OF MATRICES AND VECTORS
 

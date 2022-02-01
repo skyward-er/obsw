@@ -27,6 +27,7 @@
 #include <miosix.h>
 
 using namespace miosix;
+using namespace Boardcore;
 using namespace PayloadBoard;
 
 int main()

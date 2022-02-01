@@ -39,27 +39,26 @@
 using miosix::FastMutex;
 using miosix::Lock;
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
-using namespace ADAConfigs;
-
 template <typename Press, typename GPS>
-class ADAController : public FSM<ADAController<Press, GPS>>
+class ADAController : public Boardcore::FSM<ADAController<Press, GPS>>
 {
     using ADACtrl = ADAController<Press, GPS>;
-    using ADAFsm  = FSM<ADAController<Press, GPS>>;
+    using ADAFsm  = Boardcore::FSM<ADAController<Press, GPS>>;
 
     static_assert(
-        checkIfProduces<Sensor<Press>, PressureData>::value,
+        Boardcore::checkIfProduces<Boardcore::Sensor<Press>,
+                                   Boardcore::PressureData>::value,
         "Template argument must be a sensor that produces pressure data.");
-    static_assert(checkIfProduces<Sensor<GPS>, GPSData>::value,
+    static_assert(Boardcore::checkIfProduces<Boardcore::Sensor<GPS>,
+                                             Boardcore::GPSData>::value,
                   "Template argument must be a sensor that produces GPS data.");
 
 public:
-    ADAController(Sensor<Press>& barometer, Sensor<GPS>& gps);
+    ADAController(Boardcore::Sensor<Press>& barometer,
+                  Boardcore::Sensor<GPS>& gps);
 
     ~ADAController();
 
@@ -106,13 +105,13 @@ public:
     ADAReferenceValues getReferenceValues() { return ada.getReferenceValues(); }
 
 private:
-    void state_init(const Event& ev);
+    void state_init(const Boardcore::Event& ev);
 
     /**
      * @brief Idle state: the ADA waits for a command to start calibration. This
      * is the initial state.
      */
-    void state_idle(const Event& ev);
+    void state_idle(const Boardcore::Event& ev);
 
     /**
      * @brief Calibrating state: the ADA calibrates the initial Kalman state.
@@ -122,7 +121,7 @@ private:
      * triggered at the first sample update after having set the deployment
      * altitude and having reached the minimum number of calibration samples.
      */
-    void state_calibrating(const Event& ev);
+    void state_calibrating(const Boardcore::Event& ev);
 
     /**
      * @brief Ready state:  ADA is ready and waiting for liftoff
@@ -131,7 +130,7 @@ private:
      * The exiting transition to the shadow mode state is triggered by the
      * liftoff event.
      */
-    void state_ready(const Event& ev);
+    void state_ready(const Boardcore::Event& ev);
 
     /**
      * @brief Shadow mode state:  ADA is running and logging apogees detected,
@@ -141,7 +140,7 @@ private:
      * kalman filter followed by a check of vertical speed sign. The exiting
      * transition to the active state is triggered by a timeout event.
      */
-    void state_shadowMode(const Event& ev);
+    void state_shadowMode(const Boardcore::Event& ev);
 
     /**
      * @brief Active state:  ADA is running and it generates an event whe apogee
@@ -152,7 +151,7 @@ private:
      * transition to the descent state is triggered by the apogee reached event
      * (NOT self generated!)
      */
-    void state_active(const Event& ev);
+    void state_active(const Boardcore::Event& ev);
 
     /**
      * @brief Pressure stabilization state:  ADA is running and does not trigger
@@ -162,7 +161,7 @@ private:
      * kalman filter. The exiting transition to the drogue descent state is
      * triggered by a timeout event.
      */
-    void state_pressureStabilization(const Event& ev);
+    void state_pressureStabilization(const Boardcore::Event& ev);
 
     /**
      * @brief First descent phase state:  ADA is running and it generates an
@@ -173,7 +172,7 @@ private:
      * to the stop state is triggered by the parachute deployment altitude
      * reached event (NOT self generated!)
      */
-    void state_drogueDescent(const Event& ev);
+    void state_drogueDescent(const Boardcore::Event& ev);
 
     /**
      * @brief End state:  ADA is stopped
@@ -181,7 +180,7 @@ private:
      * In this state a call to update() will have no effect.
      * This is the final state
      */
-    void state_end(const Event& ev);
+    void state_end(const Boardcore::Event& ev);
 
     void updateBaroAccordingToState(float pressure);
 
@@ -205,8 +204,8 @@ private:
 
     ADAAlgorithm ada;
 
-    Sensor<Press>& barometer;
-    Sensor<GPS>& gps;
+    Boardcore::Sensor<Press>& barometer;
+    Boardcore::Sensor<GPS>& gps;
 
     uint64_t last_press_timestamp = 0;
     uint64_t last_gps_timestamp   = 0;
@@ -223,13 +222,15 @@ private:
         0;  //  Number of consecutive samples for abk disable
 
     LoggerService& logger = LoggerService::getInstance();  // Logger
-    PrintLogger log       = Logging::getLogger("deathstack.fms.ada");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fms.ada");
 };
 
 template <typename Press, typename GPS>
-ADAController<Press, GPS>::ADAController(Sensor<Press>& barometer,
-                                         Sensor<GPS>& gps)
-    : ADAFsm(&ADACtrl::state_idle, STACK_MIN_FOR_SKYWARD, ADA_PRIORITY),
+ADAController<Press, GPS>::ADAController(Boardcore::Sensor<Press>& barometer,
+                                         Boardcore::Sensor<GPS>& gps)
+    : ADAFsm(&ADACtrl::state_idle, Boardcore::STACK_MIN_FOR_SKYWARD,
+             ADAConfigs::ADA_PRIORITY),
       ada(ADAReferenceValues{}), barometer(barometer), gps(gps)
 {
     // Subscribe to topics
@@ -304,7 +305,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // Log the altitude & vertical speed but don't use kalman pressure
             // while we are on the ramp
             ADAData d;
-            d.timestamp    = TimestampTimer::getInstance().getTimestamp();
+            d.timestamp =
+                Boardcore::TimestampTimer::getInstance().getTimestamp();
             d.msl_altitude = ada.pressureToAltitude(pressure);
             d.agl_altitude = ada.altitudeMSLtoAGL(d.msl_altitude);
             d.vert_speed   = 0;
@@ -319,11 +321,13 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             ada.updateBaro(pressure);
 
             // Check if the vertical speed smaller than the target apogee speed
-            if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
+            if (ada.getVerticalSpeed() <
+                ADAConfigs::APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
                 ApogeeDetected apogee{
-                    TimestampTimer::getInstance().getTimestamp(), status.state};
+                    Boardcore::TimestampTimer::getInstance().getTimestamp(),
+                    status.state};
                 logger.log(apogee);
             }
 
@@ -337,9 +341,10 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             ada.updateBaro(pressure);
 
             // Check if we reached apogee
-            if (ada.getVerticalSpeed() < APOGEE_VERTICAL_SPEED_TARGET)
+            if (ada.getVerticalSpeed() <
+                ADAConfigs::APOGEE_VERTICAL_SPEED_TARGET)
             {
-                if (++n_samples_apogee_detected >= APOGEE_N_SAMPLES)
+                if (++n_samples_apogee_detected >= ADAConfigs::APOGEE_N_SAMPLES)
                 {
                     // Active state send notifications for apogee
                     sEventBroker.post({EV_ADA_APOGEE_DETECTED}, TOPIC_ADA);
@@ -348,7 +353,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
 
                 // Log
                 ApogeeDetected apogee{
-                    TimestampTimer::getInstance().getTimestamp(), status.state};
+                    Boardcore::TimestampTimer::getInstance().getTimestamp(),
+                    status.state};
                 logger.log(apogee);
             }
             else if (n_samples_apogee_detected != 0)
@@ -357,9 +363,11 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             }
 
             // Check if we have to disable airbrakes
-            if (ada.getVerticalSpeed() < ABK_DISABLE_VERTICAL_SPEED_TARGET)
+            if (ada.getVerticalSpeed() <
+                ADAConfigs::ABK_DISABLE_VERTICAL_SPEED_TARGET)
             {
-                if (++n_samples_abk_disable_detected >= ABK_DISABLE_N_SAMPLES)
+                if (++n_samples_abk_disable_detected >=
+                    ADAConfigs::ABK_DISABLE_N_SAMPLES)
                 {
                     // Active state send notifications for disabling airbrakes
                     sEventBroker.post({EV_ADA_DISABLE_ABK},
@@ -384,10 +392,12 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
 
             if (ada.getAltitudeForDeployment() <= deployment_altitude)
             {
-                if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
+                if (++n_samples_deployment_detected >=
+                    ADAConfigs::DEPLOYMENT_N_SAMPLES)
                 {
                     logger.log(DplAltitudeReached{
-                        TimestampTimer::getInstance().getTimestamp()});
+                        Boardcore::TimestampTimer::getInstance()
+                            .getTimestamp()});
                 }
             }
             else if (n_samples_deployment_detected != 0)
@@ -406,10 +416,12 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
 
             if (ada.getAltitudeForDeployment() <= deployment_altitude)
             {
-                if (++n_samples_deployment_detected >= DEPLOYMENT_N_SAMPLES)
+                if (++n_samples_deployment_detected >=
+                    ADAConfigs::DEPLOYMENT_N_SAMPLES)
                 {
                     logger.log(DplAltitudeReached{
-                        TimestampTimer::getInstance().getTimestamp()});
+                        Boardcore::TimestampTimer::getInstance()
+                            .getTimestamp()});
 
                     sEventBroker.post({EV_ADA_DPL_ALT_DETECTED}, TOPIC_ADA);
                 }
@@ -512,17 +524,17 @@ void ADAController<Press, GPS>::finalizeCalibration()
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_idle(const Event& ev)
+void ADAController<Press, GPS>::state_idle(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state idle");
             logStatus(ADAState::IDLE);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state idle");
             break;
@@ -540,11 +552,11 @@ void ADAController<Press, GPS>::state_idle(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_calibrating(const Event& ev)
+void ADAController<Press, GPS>::state_calibrating(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             {
                 Lock<FastMutex> l(calibrator_mutex);
@@ -555,7 +567,7 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
             LOG_DEBUG(log, "Entering state calibrating");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state calibrating");
             break;
@@ -578,17 +590,17 @@ void ADAController<Press, GPS>::state_calibrating(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_ready(const Event& ev)
+void ADAController<Press, GPS>::state_ready(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             logStatus(ADAState::READY);
             LOG_DEBUG(log, "Entering state ready");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state ready");
             break;
@@ -611,20 +623,20 @@ void ADAController<Press, GPS>::state_ready(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
+void ADAController<Press, GPS>::state_shadowMode(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             shadow_delayed_event_id =
-                sEventBroker.postDelayed<TIMEOUT_ADA_SHADOW_MODE>(
+                sEventBroker.postDelayed<ADAConfigs::TIMEOUT_ADA_SHADOW_MODE>(
                     {EV_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             logStatus(ADAState::SHADOW_MODE);
             LOG_DEBUG(log, "Entering state shadowMode");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             sEventBroker.removeDelayed(shadow_delayed_event_id);
             LOG_DEBUG(log, "Exiting state shadowMode");
@@ -643,17 +655,17 @@ void ADAController<Press, GPS>::state_shadowMode(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_active(const Event& ev)
+void ADAController<Press, GPS>::state_active(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             logStatus(ADAState::ACTIVE);
             LOG_DEBUG(log, "Entering state active");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state active");
             break;
@@ -671,20 +683,22 @@ void ADAController<Press, GPS>::state_active(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
+void ADAController<Press, GPS>::state_pressureStabilization(
+    const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             pressure_delayed_event_id =
-                sEventBroker.postDelayed<TIMEOUT_ADA_P_STABILIZATION>(
-                    {EV_TIMEOUT_PRESS_STABILIZATION}, TOPIC_ADA);
+                sEventBroker
+                    .postDelayed<ADAConfigs::TIMEOUT_ADA_P_STABILIZATION>(
+                        {EV_TIMEOUT_PRESS_STABILIZATION}, TOPIC_ADA);
             logStatus(ADAState::PRESSURE_STABILIZATION);
             LOG_DEBUG(log, "Entering state pressureStabilization");
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             sEventBroker.removeDelayed(pressure_delayed_event_id);
             LOG_DEBUG(log, "Exiting state pressureStabilization");
@@ -703,18 +717,18 @@ void ADAController<Press, GPS>::state_pressureStabilization(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
+void ADAController<Press, GPS>::state_drogueDescent(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             logStatus(ADAState::DROGUE_DESCENT);
             LOG_DEBUG(log, "Entering state drogueDescent");
             n_samples_deployment_detected = 0;
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state drogueDescent");
             break;
@@ -735,17 +749,17 @@ void ADAController<Press, GPS>::state_drogueDescent(const Event& ev)
 }
 
 template <typename Press, typename GPS>
-void ADAController<Press, GPS>::state_end(const Event& ev)
+void ADAController<Press, GPS>::state_end(const Boardcore::Event& ev)
 {
     switch (ev.code)
     {
-        case EV_ENTRY:
+        case Boardcore::EV_ENTRY:
         {
             LOG_DEBUG(log, "Entering state end");
             logStatus(ADAState::END);
             break;
         }
-        case EV_EXIT:
+        case Boardcore::EV_EXIT:
         {
             LOG_DEBUG(log, "Exiting state end");
             break;
@@ -767,10 +781,10 @@ void ADAController<Press, GPS>::logStatus(ADAState state)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::logStatus()
 {
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
     logger.log(status);
 
-    StackLogger::getInstance().updateStack(THID_ADA_FSM);
+    Boardcore::StackLogger::getInstance().updateStack(THID_ADA_FSM);
 }
 
 template <typename Press, typename GPS>

@@ -49,6 +49,8 @@
 
 #include "PinHandler/PinHandler.h"
 
+using namespace Boardcore;
+
 namespace PinHandlerTest
 {
 #include "../test-pinhandler.cpp"

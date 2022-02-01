@@ -30,7 +30,7 @@ namespace PayloadBoard
 
 enum class ObservedPin : uint8_t
 {
-    NOSECONE  = 0
+    NOSECONE = 0
 };
 
 /**

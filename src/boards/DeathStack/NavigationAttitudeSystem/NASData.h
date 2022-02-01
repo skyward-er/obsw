@@ -30,8 +30,6 @@
 #include <iostream>
 #include <string>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -109,7 +107,8 @@ struct NASKalmanState
 
     NASKalmanState() {}
 
-    NASKalmanState(uint64_t t, const Matrix<float, NASConfigs::N, 1>& state)
+    NASKalmanState(uint64_t t,
+                   const Eigen::Matrix<float, NASConfigs::N, 1>& state)
     {
         timestamp = t;
         x0        = state(0);
@@ -139,9 +138,9 @@ struct NASKalmanState
            << "," << x9 << "," << x10 << "," << x11 << "," << x12 << "\n";
     }
 
-    Vector3f toEul() const
+    Eigen::Vector3f toEul() const
     {
-        SkyQuaternion q;
+        Boardcore::SkyQuaternion q;
         return q.quat2eul({x6, x7, x8, x9});
     }
 };
@@ -156,8 +155,8 @@ struct NASReferenceValues
     float ref_pressure    = DEFAULT_REFERENCE_PRESSURE;
     float ref_temperature = DEFAULT_REFERENCE_TEMPERATURE;
 
-    float msl_pressure    = MSL_PRESSURE;
-    float msl_temperature = MSL_TEMPERATURE;
+    float msl_pressure    = Boardcore::MSL_PRESSURE;
+    float msl_temperature = Boardcore::MSL_TEMPERATURE;
 
     float ref_altitude  = DEFAULT_REFERENCE_ALTITUDE;
     float ref_latitude  = 0.0f;

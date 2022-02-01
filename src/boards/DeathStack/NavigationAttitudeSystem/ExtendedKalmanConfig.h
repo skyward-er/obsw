@@ -27,8 +27,6 @@
 namespace DeathStackBoard
 {
 
-using namespace Eigen;
-
 // function with 2 vectors as parameters
 typedef std::function<MatrixXf(VectorXf, VectorXf)> function_2v;
 // function with 1 vector as parameter
@@ -40,8 +38,8 @@ struct ExtendedKalmanConfig
     uint8_t m;
     uint8_t p;
 
-    Matrix<float, 12, 12> P;
-    Matrix<float, 6, 6> Q;
+    Eigen::Matrix<float, 12, 12> P;
+    Eigen::Matrix<float, 6, 6> Q;
     Vector<float, 13> x;
 
     function_v h;

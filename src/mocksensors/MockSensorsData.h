@@ -24,9 +24,9 @@
 
 #include <sensors/SensorData.h>
 
-struct MockIMUData : public AccelerometerData,
-                     public GyroscopeData,
-                     public MagnetometerData
+struct MockIMUData : public Boardcore::AccelerometerData,
+                     public Boardcore::GyroscopeData,
+                     public Boardcore::MagnetometerData
 {
     static std::string header()
     {
@@ -46,7 +46,7 @@ struct MockIMUData : public AccelerometerData,
     }
 };
 
-struct MockPressureData : public PressureData
+struct MockPressureData : public Boardcore::PressureData
 {
     static std::string header()
     {
@@ -59,7 +59,7 @@ struct MockPressureData : public PressureData
     }
 };
 
-struct MockGPSData : public GPSData
+struct MockGPSData : public Boardcore::GPSData
 {
     static std::string header()
     {

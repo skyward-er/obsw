@@ -30,7 +30,7 @@
 namespace DeathStackBoard
 {
 
-class MockIMU : public Sensor<MockIMUData>
+class MockIMU : public Boardcore::Sensor<MockIMUData>
 {
 public:
     MockIMU() {}
@@ -47,7 +47,7 @@ public:
         }
 
         MockIMUData data;
-        uint64_t t = TimestampTimer::getInstance().getTimestamp();
+        uint64_t t = Boardcore::TimestampTimer::getInstance().getTimestamp();
 
         data.accelerationTimestamp = t;
         data.accelerationX         = ACCEL_DATA[index][0];

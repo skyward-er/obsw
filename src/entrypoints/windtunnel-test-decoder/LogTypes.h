@@ -43,8 +43,6 @@
 // Serialized classes
 using std::ofstream;
 
-using namespace DeathStackBoard;
-
 template <typename T>
 void print(T& t, ostream& os)
 {

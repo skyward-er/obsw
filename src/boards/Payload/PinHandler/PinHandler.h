@@ -27,15 +27,13 @@
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver.h>
 
-using namespace Boardcore;
-
 namespace PayloadBoard
 {
 
 /**
  * @brief Forward dec.
  */
-//class LoggerService;
+// class LoggerService;
 
 /**
  * @brief This class contains the handlers for both the launch pin (umbilical)
@@ -69,16 +67,17 @@ public:
      * @param n
      */
     void onNCPinTransition(unsigned int p, unsigned char n);
-    
+
     void onNCPinStateChange(unsigned int p, unsigned char n, int state);
 
 private:
     PinStatus status_pin_nosecone{ObservedPin::NOSECONE};
 
-    PinObserver pin_obs;
+    Boardcore::PinObserver pin_obs;
 
-    //LoggerService* logger;
-    PrintLogger log = Logging::getLogger("deathstack.pinhandler");
+    // LoggerService* logger;
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.pinhandler");
 };
 
 }  // namespace PayloadBoard

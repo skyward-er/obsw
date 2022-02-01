@@ -41,7 +41,7 @@
 using namespace std;
 using namespace tscpp;
 
-void showUsage(string cmdName)
+void showUsage(string& const cmdName)
 {
     std::cerr << "Usage: " << cmdName << " {-a | <log_file_name> | -h}"
               << "Options:\n"

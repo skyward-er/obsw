@@ -26,33 +26,32 @@
 #include <miosix.h>
 #include <utils/PinObserver.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
 static const unsigned int PIN_POLL_INTERVAL = 10;  // ms
 
 // Launch pin config
-static const GpioPin launch_pin(miosix::inputs::lp_dtch::getPin());
-static const PinObserver::Transition TRIGGER_LAUNCH_PIN =
-    PinObserver::Transition::FALLING_EDGE;
+static const miosix::GpioPin launch_pin(miosix::inputs::lp_dtch::getPin());
+static const Boardcore::PinObserver::Transition TRIGGER_LAUNCH_PIN =
+    Boardcore::PinObserver::Transition::FALLING_EDGE;
 // How many consecutive times the launch pin should be detected as detached
 // before triggering a launch event.
 static const unsigned int THRESHOLD_LAUNCH_PIN = 10;
 
 // Nosecone detach pin config
-static const GpioPin nosecone_pin(miosix::inputs::nc_dtch::getPin());
-static const PinObserver::Transition TRIGGER_NC_DETACH_PIN =
-    PinObserver::Transition::FALLING_EDGE;
+static const miosix::GpioPin nosecone_pin(miosix::inputs::nc_dtch::getPin());
+static const Boardcore::PinObserver::Transition TRIGGER_NC_DETACH_PIN =
+    Boardcore::PinObserver::Transition::FALLING_EDGE;
 // How many consecutive times the nosecone pin should be detected as detached
 // before triggering a nosecone detach event.
 static const unsigned int THRESHOLD_NC_DETACH_PIN = 10;
 
 // Dpl servo actuation pin config
-static const GpioPin dpl_servo_pin(miosix::inputs::expulsion_in::getPin());
-static const PinObserver::Transition TRIGGER_DPL_SERVO_PIN =
-    PinObserver::Transition::RISING_EDGE;
+static const miosix::GpioPin dpl_servo_pin(
+    miosix::inputs::expulsion_in::getPin());
+static const Boardcore::PinObserver::Transition TRIGGER_DPL_SERVO_PIN =
+    Boardcore::PinObserver::Transition::RISING_EDGE;
 // How many consecutive times the deployment servo pin should be detected as
 // detached before triggering a nosecone detach event.
 static const unsigned int THRESHOLD_DPL_SERVO_PIN = 10;

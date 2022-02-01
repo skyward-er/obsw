@@ -44,7 +44,6 @@
 #include <vector>
 
 using std::bind;
-using namespace Boardcore;
 
 namespace PayloadBoard
 {
@@ -57,16 +56,16 @@ static const std::vector<uint8_t> TRACE_EVENT_BLACKLIST{
  * This file provides a simplified way to initialize and monitor all
  * the components of the Payload.
  */
-class Payload : public Singleton<Payload>
+class Payload : public Boardcore::Singleton<Payload>
 {
-    friend class Singleton<Payload>;
+    friend class Boardcore::Singleton<Payload>;
 
 public:
     // Shared Components
-    EventBroker* broker;
+    Boardcore::EventBroker* broker;
     // LoggerService* logger;
 
-    EventSniffer* sniffer;
+    Boardcore::EventSniffer* sniffer;
 
     // StateMachines* state_machines;
     Bus* bus;
@@ -76,7 +75,7 @@ public:
 
     PinHandler* pin_handler;
 
-    TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler;
 
     void start()
     {
@@ -120,12 +119,14 @@ public:
         if (status.payload_board != COMP_OK)
         {
             LOG_ERR(log, "Initalization failed\n");
-            sEventBroker.post(Event{EV_INIT_ERROR}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Boardcore::Event{EV_INIT_ERROR},
+                              TOPIC_FLIGHT_EVENTS);
         }
         else
         {
             LOG_INFO(log, "Initalization ok");
-            sEventBroker.post(Event{EV_INIT_OK}, TOPIC_FLIGHT_EVENTS);
+            sEventBroker.post(Boardcore::Event{EV_INIT_OK},
+                              TOPIC_FLIGHT_EVENTS);
         }
     }
 
@@ -165,7 +166,7 @@ private:
                 *broker, TOPIC_LIST, bind(&Payload::logEvent, this, _1, _2));
         }*/
 
-        scheduler = new TaskScheduler();
+        scheduler = new Boardcore::TaskScheduler();
 
         bus       = new Bus();
         radio     = new Radio(*bus->spi2);
@@ -175,7 +176,7 @@ private:
         pin_handler = new PinHandler();
 
 #ifdef DEBUG
-        injector = new EventInjector();
+        injector = new Boardcore::EventInjector();
 #endif
 
         LOG_INFO(log, "Init finished");
@@ -199,22 +200,24 @@ event, topic}; logger->log(ev);
                 return;
             }
         }
-        LOG_DEBUG(log, "{:s} on {:s}", getEventString(event),
-                  getTopicString(topic));
-#endif
+        LOG_DEBUG(log, "{:s} on {:s}",
+getEventString(event), getTopicString(topic)); #endif
     }*/
 
-    inline void postEvent(Event ev, uint8_t topic) { broker->post(ev, topic); }
+    inline void postEvent(Boardcore::Event ev, uint8_t topic)
+    {
+        broker->post(ev, topic);
+    }
 
     /*void addSchedulerStatsTask()
     {
         // add lambda to log scheduler tasks statistics
         scheduler.add(
             [&]() {
-                std::vector<TaskStatResult> scheduler_stats =
+                std::vector<TaskStatsResult> scheduler_stats =
                     scheduler.getTaskStats();
 
-                for (TaskStatResult stat : scheduler_stats)
+                for (TaskStatsResult stat : scheduler_stats)
                 {
                     logger->log(stat);
                 }
@@ -225,10 +228,10 @@ event, topic}; logger->log(ev);
             TASK_SCHEDULER_STATS_ID, miosix::getTick());
     }*/
 
-    EventInjector* injector;
+    Boardcore::EventInjector* injector;
     PayloadStatus status{};
 
-    PrintLogger log = Logging::getLogger("Payload");
+    Boardcore::PrintLogger log = Boardcore::Logging::getLogger("Payload");
 };
 
 }  // namespace PayloadBoard

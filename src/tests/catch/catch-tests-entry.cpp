@@ -78,13 +78,13 @@ using std::vector;
  */
 vector<string> splitSpaces(string str)
 {
-    unsigned int p = 0, p2;
+    unsigned int p = 0;
     bool end       = false;
     vector<string> out;
 
     do
     {
-        p2 = str.find(" ", p);
+        unsigned int p2 = str.find(" ", p);
 
         if (p2 == string::npos)  // No match
         {

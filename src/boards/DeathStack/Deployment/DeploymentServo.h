@@ -27,21 +27,19 @@
 #include <drivers/servo/Servo.h>
 #include <miosix.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
-
-using namespace DeathStackBoard::DeploymentConfigs;
 
 class DeploymentServo : public ServoInterface
 {
 public:
-    Servo servo{DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, 50, 500, 2500};
+    Boardcore::Servo servo{DeploymentConfigs::DPL_SERVO_TIMER,
+                           DeploymentConfigs::DPL_SERVO_PWM_CH, 50, 500, 2500};
 
     DeploymentServo()
-        : ServoInterface(DPL_SERVO_MIN_POS, DPL_SERVO_MAX_POS,
-                         DPL_SERVO_RESET_POS)
+        : ServoInterface(DeploymentConfigs::DPL_SERVO_MIN_POS,
+                         DeploymentConfigs::DPL_SERVO_MAX_POS,
+                         DeploymentConfigs::DPL_SERVO_RESET_POS)
     {
     }
 
@@ -61,7 +59,7 @@ public:
     {
         for (int i = 0; i < 3; i++)
         {
-            set(RESET_POS - DPL_SERVO_WIGGLE_AMPLITUDE);
+            set(RESET_POS - DeploymentConfigs::DPL_SERVO_WIGGLE_AMPLITUDE);
             miosix::Thread::sleep(500);
             reset();
             miosix::Thread::sleep(500);
@@ -76,7 +74,7 @@ protected:
     }
 
 private:
-    float anglePrec = DPL_SERVO_RESET_POS;
+    float anglePrec = DeploymentConfigs::DPL_SERVO_RESET_POS;
 };
 
 }  // namespace DeathStackBoard

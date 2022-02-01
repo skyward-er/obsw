@@ -40,6 +40,7 @@
 
 using miosix::Thread;
 using namespace DeathStackBoard;
+using namespace Boardcore;
 
 class InputClass
 {
@@ -59,7 +60,9 @@ private:
 protected:
     T sampleImpl() override
     {
+        // cppcheck-suppress unassignedVariable
         T data;
+        // cppcheck-suppress uninitvar
         return data;
     }
 
@@ -74,6 +77,8 @@ public:
     // This is called at the beginning of each test / section
     AirBrakesControllerFixture()
     {
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         controller = new AirBrakesController<InputClass>(sensor);
         sEventBroker.start();
         controller->start();

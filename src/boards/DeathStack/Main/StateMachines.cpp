@@ -73,17 +73,17 @@ void StateMachines::addAlgorithmsToScheduler(TaskScheduler* scheduler)
     uint64_t start_time = miosix::getTick() + 10;
 
     scheduler->addTask(std::bind(&ADAControllerType::update, ada_controller),
-                       ADA_UPDATE_PERIOD, TASK_ADA_ID,
+                       ADAConfigs::ADA_UPDATE_PERIOD, TASK_ADA_ID,
                        TaskScheduler::Policy::RECOVER, start_time);
 
     scheduler->addTask(std::bind(&NASControllerType::update, nas_controller),
-                       NAS_UPDATE_PERIOD, TASK_NAS_ID,
+                       NASConfigs::NAS_UPDATE_PERIOD, TASK_NAS_ID,
                        TaskScheduler::Policy::RECOVER, start_time);
 
     scheduler->addTask(
         std::bind(&AirBrakesControllerType::update, arb_controller),
-        ABK_UPDATE_PERIOD, TASK_ABK_ID, TaskScheduler::Policy::RECOVER,
-        start_time);
+        AirBrakesConfigs::ABK_UPDATE_PERIOD, TASK_ABK_ID,
+        TaskScheduler::Policy::RECOVER, start_time);
 }
 
 void StateMachines::setReferenceTemperature(float t)

@@ -47,6 +47,8 @@ public:
     // This is called at the beginning of each test / section
     DeploymentControllerFixture()
     {
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         controller = new DeploymentController(&ejection_servo);
         sEventBroker.start();
         controller->start();
@@ -72,26 +74,27 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from idle")
 
     SECTION("DPL_IDLE -> EV_RESET_SERVO")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_RESET_SERVO},
+        REQUIRE(testFSMTransition(*controller, Boardcore::Event{EV_RESET_SERVO},
                                   &DeploymentController::state_idle));
     }
 
     SECTION("DPL_IDLE -> EV_WIGGLE_SERVO")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_WIGGLE_SERVO},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_WIGGLE_SERVO},
                                   &DeploymentController::state_idle));
     }
 
     SECTION("DPL_IDLE -> EV_NC_OPEN")
     {
         REQUIRE(
-            testFSMTransition(*controller, Event{EV_NC_OPEN},
+            testFSMTransition(*controller, Boardcore::Event{EV_NC_OPEN},
                               &DeploymentController::state_noseconeEjection));
     }
 
     SECTION("DPL_IDLE -> EV_CUT_DROGUE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CUT_DROGUE},
+        REQUIRE(testFSMTransition(*controller, Boardcore::Event{EV_CUT_DROGUE},
                                   &DeploymentController::state_cutting));
     }
 }
@@ -103,13 +106,14 @@ TEST_CASE_METHOD(DeploymentControllerFixture,
 
     SECTION("DPL_NOSECONE_EJECTION -> EV_NC_DETACHED")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_NC_DETACHED},
+        REQUIRE(testFSMTransition(*controller, Boardcore::Event{EV_NC_DETACHED},
                                   &DeploymentController::state_idle));
     }
 
     SECTION("DPL_NOSECONE_EJECTION -> EV_NC_OPEN_TIMEOUT")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_NC_OPEN_TIMEOUT},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_NC_OPEN_TIMEOUT},
                                   &DeploymentController::state_idle));
     }
 }
@@ -121,7 +125,8 @@ TEST_CASE_METHOD(DeploymentControllerFixture,
 
     SECTION("DPL_CUTTING -> EV_CUTTING_TIMEOUT")
     {
-        REQUIRE(testFSMTransition(*controller, Event{EV_CUTTING_TIMEOUT},
+        REQUIRE(testFSMTransition(*controller,
+                                  Boardcore::Event{EV_CUTTING_TIMEOUT},
                                   &DeploymentController::state_idle));
     }
 }

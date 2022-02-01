@@ -32,7 +32,7 @@
 namespace DeathStackBoard
 {
 
-class MockPressureSensor : public Sensor<MockPressureData>
+class MockPressureSensor : public Boardcore::Sensor<MockPressureData>
 {
 public:
     MockPressureSensor(bool with_noise_ = false) : with_noise(with_noise_) {}
@@ -45,7 +45,8 @@ public:
     {
         MockPressureData data;
 
-        data.pressureTimestamp = TimestampTimer::getInstance().getTimestamp();
+        data.pressureTimestamp =
+            Boardcore::TimestampTimer::getInstance().getTimestamp();
 
         if (before_liftoff)
         {

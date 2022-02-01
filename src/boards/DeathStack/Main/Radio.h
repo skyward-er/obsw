@@ -25,8 +25,6 @@
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -38,10 +36,10 @@ class Radio
 public:
     TMTCController* tmtc_manager;
     TmRepository* tm_repo;
-    Xbee::Xbee* xbee;
+    Boardcore::Xbee::Xbee* xbee;
     MavDriver* mav_driver;
 
-    Radio(SPIBusInterface& xbee_bus);
+    Radio(Boardcore::SPIBusInterface& xbee_bus);
     ~Radio();
 
     bool start();
@@ -49,9 +47,9 @@ public:
     void logStatus();
 
 private:
-    void onXbeeFrameReceived(Xbee::APIFrame& frame);
+    void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
 
-    SPIBusInterface& xbee_bus;
+    Boardcore::SPIBusInterface& xbee_bus;
 };
 
 }  // namespace DeathStackBoard

@@ -216,6 +216,10 @@ void threadFunc(void* arg)
     sEventBroker.post({EV_LANDED}, TOPIC_FLIGHT_EVENTS);
 
     Thread::sleep(1000);
+
+    delete sensors.imu;
+    delete sensors.barometer;
+    delete sensors.gps;
 }
 
 int main()

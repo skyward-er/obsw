@@ -38,26 +38,38 @@ namespace SensorConfigs
 {
 
 static constexpr float INTERNAL_ADC_VREF = 3.3;
-static constexpr InternalADC::Channel ADC_BATTERY_VOLTAGE =
-    InternalADC::Channel::CH5;
+static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
+    Boardcore::InternalADC::Channel::CH5;
 
 static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
 static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
 
-static constexpr ADS1118::ADS1118Mux ADC_CH_STATIC_PORT = ADS1118::MUX_AIN0_GND;
-static constexpr ADS1118::ADS1118Mux ADC_CH_PITOT_PORT  = ADS1118::MUX_AIN1_GND;
-static constexpr ADS1118::ADS1118Mux ADC_CH_DPL_PORT    = ADS1118::MUX_AIN2_GND;
-static constexpr ADS1118::ADS1118Mux ADC_CH_VREF        = ADS1118::MUX_AIN3_GND;
+static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
+    Boardcore::ADS1118::MUX_AIN0_GND;
+static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
+    Boardcore::ADS1118::MUX_AIN1_GND;
+static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
+    Boardcore::ADS1118::MUX_AIN2_GND;
+static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_VREF =
+    Boardcore::ADS1118::MUX_AIN3_GND;
 
-static constexpr ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT = ADS1118::DR_860;
-static constexpr ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT  = ADS1118::DR_860;
-static constexpr ADS1118::ADS1118DataRate ADC_DR_DPL_PORT    = ADS1118::DR_860;
-static constexpr ADS1118::ADS1118DataRate ADC_DR_VREF        = ADS1118::DR_860;
+static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
+    Boardcore::ADS1118::DR_860;
+static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
+    Boardcore::ADS1118::DR_860;
+static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
+    Boardcore::ADS1118::DR_860;
+static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_VREF =
+    Boardcore::ADS1118::DR_860;
 
-static constexpr ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT = ADS1118::FSR_6_144;
-static constexpr ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT  = ADS1118::FSR_6_144;
-static constexpr ADS1118::ADS1118Pga ADC_PGA_DPL_PORT    = ADS1118::FSR_6_144;
-static constexpr ADS1118::ADS1118Pga ADC_PGA_VREF        = ADS1118::FSR_6_144;
+static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_VREF =
+    Boardcore::ADS1118::FSR_6_144;
 
 // Sampling periods in milliseconds
 static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC =
@@ -78,17 +90,20 @@ static constexpr unsigned int PRESS_PITOT_CALIB_SAMPLES_NUM  = 500;
 static constexpr unsigned int PRESS_STATIC_CALIB_SAMPLES_NUM = 500;
 static constexpr float PRESS_STATIC_MOVING_AVG_COEFF         = 0.95;
 
-static constexpr BMX160Config::AccelerometerRange IMU_BMX_ACC_FULLSCALE_ENUM =
-    BMX160Config::AccelerometerRange::G_16;
-static constexpr BMX160Config::GyroscopeRange IMU_BMX_GYRO_FULLSCALE_ENUM =
-    BMX160Config::GyroscopeRange::DEG_1000;
+static constexpr Boardcore::BMX160Config::AccelerometerRange
+    IMU_BMX_ACC_FULLSCALE_ENUM =
+        Boardcore::BMX160Config::AccelerometerRange::G_16;
+static constexpr Boardcore::BMX160Config::GyroscopeRange
+    IMU_BMX_GYRO_FULLSCALE_ENUM =
+        Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
-static constexpr BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
-    BMX160Config::OutputDataRate::HZ_1600;
+static constexpr Boardcore::BMX160Config::OutputDataRate
+    IMU_BMX_ACC_GYRO_ODR_ENUM =
+        Boardcore::BMX160Config::OutputDataRate::HZ_1600;
 static constexpr unsigned int IMU_BMX_MAG_ODR = 100;
-static constexpr BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
-    BMX160Config::OutputDataRate::HZ_100;
+static constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
 static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
 static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
@@ -116,15 +131,17 @@ static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
 static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
 // IMU axis rotation
-static const AxisOrthoOrientation BMX160_AXIS_ROTATION = {
-    Direction::NEGATIVE_Z, Direction::POSITIVE_Y};
+static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
+    Boardcore::Direction::NEGATIVE_Z, Boardcore::Direction::POSITIVE_Y};
 
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
-static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS   = 15;
-static constexpr LIS3MDL::ODR MAG_LIS_ODR_ENUM        = LIS3MDL::ODR_80_HZ;
-static constexpr LIS3MDL::FullScale MAG_LIS_FULLSCALE = LIS3MDL::FS_4_GAUSS;
+static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS = 15;
+static constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
+    Boardcore::LIS3MDL::ODR_80_HZ;
+static constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
+    Boardcore::LIS3MDL::FS_4_GAUSS;
 
 static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;

@@ -140,7 +140,7 @@ protected:
     uint64_t updateTimestamp()
     {
         sampleCounter++;
-        return TimestampTimer::getInstance().getTimestamp();
+        return Boardcore::TimestampTimer::getInstance().getTimestamp();
     }
 
     /**

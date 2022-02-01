@@ -31,7 +31,7 @@
 namespace DeathStackBoard
 {
 
-class MockSpeedSensor : public Sensor<MockSpeedData>
+class MockSpeedSensor : public Boardcore::Sensor<MockSpeedData>
 {
 public:
     MockSpeedSensor() {}
@@ -44,7 +44,8 @@ public:
     {
         MockSpeedData data;
 
-        data.timestamp = TimestampTimer::getInstance().getTimestamp();
+        data.timestamp =
+            Boardcore::TimestampTimer::getInstance().getTimestamp();
 
         if (before_liftoff)
         {

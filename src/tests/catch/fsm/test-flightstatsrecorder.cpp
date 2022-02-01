@@ -1,6 +1,5 @@
-/*
- * Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -51,6 +50,8 @@ public:
     FlightStatsFixture()
     {
         sEventBroker.start();
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
         fsm = new FlightStatsRecorder();
         fsm->start();
     }
@@ -72,13 +73,13 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from idle")
 {
     SECTION("EV_LIFTOFF -> liftoff")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_LIFTOFF},
                                   &FlightStatsRecorder::state_liftOff));
     }
 
     SECTION("EV_DPL_ALTITUDE -> mainDPL")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_DPL_ALTITUDE},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_DPL_ALTITUDE},
                                   &FlightStatsRecorder::state_mainDeployment));
     }
 }
@@ -90,7 +91,7 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from liftoff")
 
     SECTION("EV_STATS_TIMEOUT -> ascending")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_STATS_TIMEOUT},
                                   &FlightStatsRecorder::state_ascending));
     }
 }
@@ -103,7 +104,7 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from ascending")
     SECTION("EV_APOGEE -> drogueDPL")
     {
         REQUIRE(
-            testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
+            testFSMTransition(*fsm, Boardcore::Event{EV_STATS_TIMEOUT},
                               &FlightStatsRecorder::state_drogueDeployment));
     }
 }
@@ -115,7 +116,7 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from drogueDPL")
 
     SECTION("EV_STATS_TIMEOUT -> idle")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_STATS_TIMEOUT},
                                   &FlightStatsRecorder::state_idle));
     }
 }
@@ -127,7 +128,7 @@ TEST_CASE_METHOD(FlightStatsFixture, "Testing transitions from mainDPL")
 
     SECTION("EV_STATS_TIMEOUT -> idle")
     {
-        REQUIRE(testFSMTransition(*fsm, Event{EV_STATS_TIMEOUT},
+        REQUIRE(testFSMTransition(*fsm, Boardcore::Event{EV_STATS_TIMEOUT},
                                   &FlightStatsRecorder::state_idle));
     }
 }

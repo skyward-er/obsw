@@ -28,6 +28,8 @@
 #include <events/Events.h>
 #include <utils/aero/AeroUtils.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 
@@ -55,8 +57,8 @@ void ADAAlgorithm::updateBaro(float pressure)
     ada_data.msl_altitude = pressureToAltitude(filter.getState()(0, 0));
     ada_data.agl_altitude = altitudeMSLtoAGL(ada_data.msl_altitude);
     ada_data.vert_speed   = aeroutils::verticalSpeed(
-        filter.getState()(0, 0), filter.getState()(1, 0),
-        ref_values.msl_pressure, ref_values.msl_temperature);
+          filter.getState()(0, 0), filter.getState()(1, 0),
+          ref_values.msl_pressure, ref_values.msl_temperature);
 
 #ifdef DEBUG
     if (counter == 50)

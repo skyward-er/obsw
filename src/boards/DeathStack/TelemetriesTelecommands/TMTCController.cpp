@@ -27,6 +27,8 @@
 
 #include <cassert>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 
@@ -37,7 +39,7 @@ TMTCController::TMTCController()
     sEventBroker.subscribe(this, TOPIC_FLIGHT_EVENTS);
     sEventBroker.subscribe(this, TOPIC_TMTC);
 
-    LOG_DEBUG(log, "Created TMTCController");
+    LOG_DEBUG(printLogger, "Created TMTCController");
 }
 
 TMTCController::~TMTCController() { sEventBroker.unsubscribe(this); }
@@ -78,12 +80,12 @@ void TMTCController::stateGroundTM(const Event& ev)
         {
             // add periodic events
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_GROUND_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM}, TOPIC_TMTC);
             // periodicSensEvId =
             //     sEventBroker.postDelayed<GROUND_SENS_TM_TIMEOUT>(
-            //         Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            //         Boardcore::Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateGroundTM");
+            LOG_DEBUG(printLogger, "Entering stateGroundTM");
 
             // log stack usage
             StackLogger::getInstance().updateStack(THID_TMTC_FSM);
@@ -95,14 +97,14 @@ void TMTCController::stateGroundTM(const Event& ev)
             sEventBroker.removeDelayed(periodicHrEvId);
             sEventBroker.removeDelayed(periodicSensEvId);
 
-            LOG_DEBUG(log, "Exiting stateGroundTM");
+            LOG_DEBUG(printLogger, "Exiting stateGroundTM");
             break;
         }
         case EV_SEND_HR_TM:
         {
             // repost periodic event
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_GROUND_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
             send(MAV_HR_TM_ID);
 
@@ -110,10 +112,10 @@ void TMTCController::stateGroundTM(const Event& ev)
         }
         case EV_SEND_SENS_TM:
         {
-            // LOG_DEBUG(log, "Sending SENS_TM");
+            // LOG_DEBUG(printLogger, "Sending SENS_TM");
             // periodicSensEvId =
             //     sEventBroker.postDelayed<GROUND_SENS_TM_TIMEOUT>(
-            //         Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+            //         Boardcore::Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             // send tm
             send(MAV_SENSORS_TM_ID);
@@ -148,11 +150,11 @@ void TMTCController::stateFlightTM(const Event& ev)
         {
             // add periodic events
             periodicLrEvId = sEventBroker.postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_LR_TM}, TOPIC_TMTC);
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateFlightTM");
+            LOG_DEBUG(printLogger, "Entering stateFlightTM");
 
             // log stack usage
             StackLogger::getInstance().updateStack(THID_TMTC_FSM);
@@ -165,14 +167,14 @@ void TMTCController::stateFlightTM(const Event& ev)
             sEventBroker.removeDelayed(periodicLrEvId);
             sEventBroker.removeDelayed(periodicHrEvId);
 
-            LOG_DEBUG(log, "Exiting stateFlightTM");
+            LOG_DEBUG(printLogger, "Exiting stateFlightTM");
             break;
         }
         case EV_SEND_HR_TM:
         {
             // repost periodic event
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_TIMEOUT>(
-                Event{EV_SEND_HR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM}, TOPIC_TMTC);
 
             // send tm once 4 packets are filled
             send(MAV_HR_TM_ID);
@@ -187,7 +189,7 @@ void TMTCController::stateFlightTM(const Event& ev)
         {
             // repost periodic event
             periodicLrEvId = sEventBroker.postDelayed<LR_TM_TIMEOUT>(
-                Event{EV_SEND_LR_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_LR_TM}, TOPIC_TMTC);
 
             // send low rate tm
             send(MAV_LR_TM_ID);
@@ -214,9 +216,9 @@ void TMTCController::stateSensorTM(const Event& ev)
         {
             // add periodic events
             periodicSensEvId = sEventBroker.postDelayed<SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateSensorTM");
+            LOG_DEBUG(printLogger, "Entering stateSensorTM");
 
             // log stack usage
             StackLogger::getInstance().updateStack(THID_TMTC_FSM);
@@ -227,14 +229,14 @@ void TMTCController::stateSensorTM(const Event& ev)
             // remove periodic events
             sEventBroker.removeDelayed(periodicSensEvId);
 
-            LOG_DEBUG(log, "Exiting stateSensorTM");
+            LOG_DEBUG(printLogger, "Exiting stateSensorTM");
             break;
         }
         case EV_SEND_SENS_TM:
         {
             // repost periodic event
             periodicSensEvId = sEventBroker.postDelayed<SENS_TM_TIMEOUT>(
-                Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_SENS_TM}, TOPIC_TMTC);
 
             send(MAV_SENSORS_TM_ID);
 
@@ -265,9 +267,9 @@ void TMTCController::stateSerialDebugTM(const Event& ev)
         {
             // add periodic events
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_GROUND_TIMEOUT>(
-                Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
 
-            LOG_DEBUG(log, "Entering stateSerialDebugTM");
+            LOG_DEBUG(printLogger, "Entering stateSerialDebugTM");
 
             // log stack usage
             StackLogger::getInstance().updateStack(THID_TMTC_FSM);
@@ -278,14 +280,14 @@ void TMTCController::stateSerialDebugTM(const Event& ev)
             // remove periodic events
             sEventBroker.removeDelayed(periodicHrEvId);
 
-            LOG_DEBUG(log, "Exiting stateSerialDebugTM");
+            LOG_DEBUG(printLogger, "Exiting stateSerialDebugTM");
             break;
         }
         case EV_SEND_HR_TM_OVER_SERIAL:
         {
             // repost periodic event
             periodicHrEvId = sEventBroker.postDelayed<HR_TM_GROUND_TIMEOUT>(
-                Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
+                Boardcore::Event{EV_SEND_HR_TM_OVER_SERIAL}, TOPIC_TMTC);
 
             sendSerialTelemetry();
 

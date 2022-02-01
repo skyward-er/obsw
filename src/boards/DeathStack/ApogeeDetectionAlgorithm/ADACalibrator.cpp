@@ -23,6 +23,8 @@
 #include <ApogeeDetectionAlgorithm/ADACalibrator.h>
 #include <utils/aero/AeroUtils.h>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

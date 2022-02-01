@@ -22,8 +22,10 @@
 
 #pragma once
 
+#include <drivers/timer/TimestampTimer.h>
 #include <events/Events.h>
 #include <events/utils/EventCounter.h>
+#include <utils/Debug.h>
 
 #include <iostream>
 #include <map>
@@ -33,13 +35,9 @@
 #include "HIL_sensors/HILSensors.h"
 #include "NavigationAttitudeSystem/NASData.h"
 #include "Singleton.h"
-#include "TimestampTimer.h"
 #include "hardware_in_the_loop/HILConfig.h"
 #include "miosix.h"
 #include "sensors/Sensor.h"
-
-using namespace miosix;
-using namespace std;
 
 typedef function<void()> TCallback;
 
@@ -135,7 +133,7 @@ public:
         // set true when the first packet from the simulator arrives
         if (isSetTrue(SIMULATION_STARTED))
         {
-            t_start = TimestampTimer::getInstance().getTimestamp();
+            t_start = Boardcore::TimestampTimer::getInstance().getTimestamp();
 
             TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
@@ -162,7 +160,8 @@ public:
         {
             if (isSetTrue(FLYING))
             {
-                t_liftoff = TimestampTimer::getInstance().getTimestamp();
+                t_liftoff =
+                    Boardcore::TimestampTimer::getInstance().getTimestamp();
                 sEventBroker.post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
                 TRACE("[HIL] ------- LIFTOFF ! ------- \n");
@@ -210,7 +209,7 @@ public:
         else if (isSetTrue(SIMULATION_STOPPED))
         {
             changed_flags.push_back(SIMULATION_STOPPED);
-            t_stop = TimestampTimer::getInstance().getTimestamp();
+            t_stop = Boardcore::TimestampTimer::getInstance().getTimestamp();
             TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
                   (double)t_stop / 1000000.0f);
             printOutcomes();

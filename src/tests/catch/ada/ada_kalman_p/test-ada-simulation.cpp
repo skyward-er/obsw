@@ -57,7 +57,7 @@ constexpr unsigned int SHADOW_MODE_END_INDEX = 30;
 constexpr unsigned int APOGEE_SAMPLE         = 382;
 
 // Mock sensors for testing purposes
-class MockPressureSensor : public Sensor<PressureData>
+class MockPressureSensor : public Boardcore::Sensor<Boardcore::PressureData>
 {
 public:
     MockPressureSensor() {}
@@ -66,7 +66,7 @@ public:
 
     bool selfTest() override { return true; }
 
-    PressureData sampleImpl() override
+    Boardcore::PressureData sampleImpl() override
     {
         float press = 0.0;
 
@@ -86,8 +86,8 @@ public:
             }
         }
 
-        return PressureData{TimestampTimer::getInstance().getTimestamp(),
-                            press};
+        return Boardcore::PressureData{
+            Boardcore::TimestampTimer::getInstance().getTimestamp(), press};
     }
 
     void signalLiftoff() { before_liftoff = false; }
@@ -106,18 +106,18 @@ private:
     float quantization(float sample) { return round(sample / LSB) * LSB; }
 };
 
-class MockGPSSensor : public Sensor<GPSData>
+class MockGPSSensor : public Boardcore::Sensor<Boardcore::GPSData>
 {
 public:
     bool init() { return true; }
     bool selfTest() { return true; }
-    GPSData sampleImpl() { return GPSData{}; }
+    Boardcore::GPSData sampleImpl() { return Boardcore::GPSData{}; }
 };
 
 MockPressureSensor mock_baro;
 MockGPSSensor mock_gps;
 
-using ADACtrl = ADAController<PressureData, GPSData>;
+using ADACtrl = ADAController<Boardcore::PressureData, Boardcore::GPSData>;
 ADACtrl *ada_controller;
 
 void checkState(unsigned int i, ADAKalmanState state)
@@ -149,7 +149,7 @@ TEST_CASE("Testing ada_controller from calibration to first descent phase")
 
     // Start event broker and ada_controller
     sEventBroker.start();
-    EventCounter counter{sEventBroker};
+    Boardcore::EventCounter counter{sEventBroker};
     counter.subscribe(TOPIC_ADA);
 
     // Startup: we should be in idle

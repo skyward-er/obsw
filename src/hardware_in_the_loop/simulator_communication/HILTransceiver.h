@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <utils/Debug.h>
+
 #include "ActiveObject.h"
 #include "Algorithm.h"
 #include "SerialInterface.h"
@@ -29,8 +31,6 @@
 #include "hardware_in_the_loop/HILFlightPhasesManager.h"
 #include "hardware_in_the_loop/HIL_sensors/HILTimestampManagement.h"
 #include "math/Vec3.h"
-
-using namespace miosix;
 
 /**
  * @brief HILTranceiver is a Singleton and provides an easy interface for the

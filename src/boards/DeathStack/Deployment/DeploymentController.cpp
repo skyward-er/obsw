@@ -29,6 +29,8 @@
 #include <events/Events.h>
 
 using namespace Boardcore;
+using namespace DeathStackBoard::DeploymentConfigs;
+using namespace DeathStackBoard::CutterConfig;
 
 namespace DeathStackBoard
 {
@@ -150,7 +152,7 @@ void DeploymentController::state_noseconeEjection(const Event& ev)
             ejectNosecone();
 
             ev_nc_open_timeout_id = sEventBroker.postDelayed<NC_OPEN_TIMEOUT>(
-                Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
+                Boardcore::Event{EV_NC_OPEN_TIMEOUT}, TOPIC_DPL);
 
             logStatus(DeploymentControllerState::NOSECONE_EJECTION);
             break;
@@ -191,7 +193,7 @@ void DeploymentController::state_cutting(const Event& ev)
             startCutting();
 
             ev_nc_cutting_timeout_id = sEventBroker.postDelayed<CUT_DURATION>(
-                Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
+                Boardcore::Event{EV_CUTTING_TIMEOUT}, TOPIC_DPL);
 
             logStatus(DeploymentControllerState::CUTTING);
 

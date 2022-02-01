@@ -69,13 +69,14 @@ private:
     /**
      * @brief Computes mean std dev etc for calibration of pressure conversion.
      */
-    Stats pressure_stats;
+    Boardcore::Stats pressure_stats;
 
     // Refernece flags
     bool ref_alt_set  = false;
     bool ref_temp_set = false;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.ada");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.fsm.ada");
 };
 
 }  // namespace DeathStackBoard

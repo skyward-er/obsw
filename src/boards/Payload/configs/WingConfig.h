@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,8 +26,6 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/Constants.h>
 
-using namespace Boardcore;
-
 namespace PayloadBoard
 {
 
@@ -35,12 +33,12 @@ namespace WingConfigs
 {
 
 static TIM_TypeDef* const WING_SERVO_1_TIMER = TIM8;
-static constexpr TimerUtils::Channel WING_SERVO_1_PWM_CH =
-    TimerUtils::Channel::CHANNEL_2;
+static constexpr Boardcore::TimerUtils::Channel WING_SERVO_1_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 
 static const TIM_TypeDef* WING_SERVO_2_TIMER = TIM4;
-static constexpr TimerUtils::Channel WING_SERVO_2_PWM_CH =
-    TimerUtils::Channel::CHANNEL_1;
+static constexpr Boardcore::TimerUtils::Channel WING_SERVO_2_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 // Wing servo configs
 static constexpr float WING_SERVO_MAX_POS = 180.0;  // deg

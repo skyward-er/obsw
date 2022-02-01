@@ -32,6 +32,8 @@
 using namespace std;
 using namespace Boardcore;
 using namespace DeathStackBoard;
+using namespace DeploymentConfigs;
+using namespace AirBrakesConfigs;
 
 int servoMenu();
 int actionMenu();

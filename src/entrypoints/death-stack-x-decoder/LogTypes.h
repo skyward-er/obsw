@@ -62,8 +62,6 @@
 // Serialized classes
 using std::ofstream;
 
-using namespace DeathStackBoard;
-
 template <typename T>
 void print(T& t, ostream& os)
 {
@@ -79,7 +77,7 @@ void registerType(Deserializer& ds)
 void registerTypes(Deserializer& ds)
 {
     // Disagnostic
-    registerType<TaskStatResult>(ds);
+    registerType<TaskStatsResult>(ds);
     registerType<StackData>(ds);
     registerType<LoggingString>(ds);
     registerType<SystemData>(ds);

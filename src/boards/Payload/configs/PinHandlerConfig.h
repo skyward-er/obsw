@@ -26,8 +26,6 @@
 #include <miosix.h>
 #include <utils/PinObserver.h>
 
-using namespace Boardcore;
-
 namespace PayloadBoard
 {
 
@@ -43,8 +41,8 @@ static const unsigned int PIN_POLL_INTERVAL = 10;  // ms
 
 // Nosecone detach pin config
 static const GpioPin nosecone_pin(miosix::inputs::nc_dtch::getPin());
-static const PinObserver::Transition TRIGGER_NC_DETACH_PIN =
-    PinObserver::Transition::FALLING_EDGE;
+static const Boardcore::PinObserver::Transition TRIGGER_NC_DETACH_PIN =
+    Boardcore::PinObserver::Transition::FALLING_EDGE;
 // How many consecutive times the nosecone pin should be detected as detached
 // before triggering a nosecone detach event.
 static const unsigned int THRESHOLD_NC_DETACH_PIN = 10;

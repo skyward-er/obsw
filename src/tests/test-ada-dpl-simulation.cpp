@@ -23,6 +23,7 @@
 #include <ApogeeDetectionAlgorithm/ADAAlgorithm.h>
 #include <ApogeeDetectionAlgorithm/ADAController.h>
 #include <Deployment/DeploymentController.h>
+#include <utils/Debug.h>
 
 #include <random>
 
@@ -32,6 +33,7 @@
 #include "events/Events.h"
 #include "events/utils/EventCounter.h"
 
+using namespace Boardcore;
 using namespace DeathStackBoard;
 
 constexpr float NOISE_STD_DEV = 5;  // Noise varaince
@@ -132,7 +134,7 @@ int main()
     Thread::sleep(100);
 
     // Send baro calibration samples for ADA
-    for (unsigned i = 0; i < CALIBRATION_BARO_N_SAMPLES + 5; i++)
+    for (unsigned i = 0; i < ADAConfigs::CALIBRATION_BARO_N_SAMPLES + 5; i++)
     {
         baro.sample();
         Thread::sleep(50);

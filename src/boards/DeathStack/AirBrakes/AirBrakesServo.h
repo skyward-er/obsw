@@ -36,16 +36,12 @@
 namespace DeathStackBoard
 {
 
-using namespace AirBrakesConfigs;
-
 class AirBrakesServo : public ServoInterface
 {
 public:
-    AirBrakesServo();
-
-    AirBrakesServo(float minPosition, float maxPosition);
-
-    AirBrakesServo(float minPosition, float maxPosition, float resetPosition);
+    AirBrakesServo(float minPosition   = AirBrakesConfigs::AB_SERVO_MIN_POS,
+                   float maxPosition   = AirBrakesConfigs::AB_SERVO_MAX_POS,
+                   float resetPosition = AirBrakesConfigs::AB_SERVO_MIN_POS);
 
     virtual ~AirBrakesServo();
 
@@ -59,8 +55,7 @@ public:
     void selfTest() override;
 
 private:
-    Servo servo{AirBrakesConfigs::AB_SERVO_TIMER, AB_SERVO_PWM_CH, 50, 500,
-                2500};
+    Boardcore::Servo servo;
 
 #ifdef HARDWARE_IN_THE_LOOP
     HIL *simulator = HIL::getInstance();

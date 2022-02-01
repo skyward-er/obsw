@@ -29,6 +29,8 @@
 
 #include <cmath>
 
+using namespace Boardcore;
+
 namespace DeathStackBoard
 {
 

@@ -105,7 +105,7 @@ void writeMessage(mavlink_message_t& msg)
     }
 }
 
-void handleMessage(mavlink_message_t& msg)
+void handleMessage(mavlink_message_t& const msg)
 {
     mavlink_message_t ack_msg;
     mavlink_ack_tm_t ack;

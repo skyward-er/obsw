@@ -220,5 +220,10 @@ int main()
         Thread::sleep(1000 * ADAConfigs::SAMPLING_PERIOD);
     }
 
+    delete state.imu;
+    delete state.barometer;
+    delete state.gps;
+    delete state.nas;
+
     return 0;
 }

@@ -95,14 +95,16 @@ private:
     /**
      * @brief Method to initialize the kalman configuration structure
      */
-    const KalmanEigen<float, KALMAN_STATES_NUM,
-                      KALMAN_OUTPUTS_NUM>::KalmanConfig
+    const Boardcore::KalmanEigen<float, ADAConfigs::KALMAN_STATES_NUM,
+                                 ADAConfigs::KALMAN_OUTPUTS_NUM>::KalmanConfig
     getKalmanConfig(const float ref_pressure);
 
     // References for pressure to altitude conversion
     ADAReferenceValues ref_values;
 
-    KalmanEigen<float, KALMAN_STATES_NUM, KALMAN_OUTPUTS_NUM> filter;
+    Boardcore::KalmanEigen<float, ADAConfigs::KALMAN_STATES_NUM,
+                           ADAConfigs::KALMAN_OUTPUTS_NUM>
+        filter;
 
     ADAData ada_data;
 

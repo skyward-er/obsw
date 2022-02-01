@@ -40,6 +40,8 @@
 #include <sstream>
 #include <string>
 
+using namespace Boardcore;
+
 namespace CutterTest
 {
 #include "../drivers/test-cutter.cpp"

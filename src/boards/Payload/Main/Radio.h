@@ -25,20 +25,18 @@
 //#include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
 
-using namespace Boardcore;
-
 namespace PayloadBoard
 {
 
 class Radio
 {
 public:
-    //TMTCController* tmtc_manager;
-    //TmRepository* tm_repo;
-    Xbee::Xbee* xbee;
-    //MavDriver* mav_driver;
+    // TMTCController* tmtc_manager;
+    // TmRepository* tm_repo;
+    Boardcore::Xbee::Xbee* xbee;
+    // MavDriver* mav_driver;
 
-    Radio(SPIBusInterface& xbee_bus_);
+    Radio(Boardcore::SPIBusInterface& xbee_bus_);
     ~Radio();
 
     bool start();
@@ -46,9 +44,9 @@ public:
     void logStatus();
 
 private:
-    void onXbeeFrameReceived(Xbee::APIFrame& frame);
+    void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
 
-    SPIBusInterface& xbee_bus;
+    Boardcore::SPIBusInterface& xbee_bus;
 };
 
 }  // namespace PayloadBoard

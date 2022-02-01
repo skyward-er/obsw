@@ -27,8 +27,6 @@
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -97,10 +95,11 @@ private:
     PinStatus status_pin_nosecone{ObservedPin::NOSECONE};
     PinStatus status_pin_dpl_servo{ObservedPin::DPL_SERVO};
 
-    PinObserver pin_obs;
+    Boardcore::PinObserver pin_obs;
 
     LoggerService* logger;
-    PrintLogger log = Logging::getLogger("deathstack.pinhandler");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.pinhandler");
 };
 
 }  // namespace DeathStackBoard

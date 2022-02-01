@@ -20,7 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include "PinHandler/PinHandler.h"
+#include <PinHandler/PinHandler.h>
+#include <miosix.h>
 
 using namespace Boardcore;
 

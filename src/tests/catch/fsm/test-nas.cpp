@@ -38,6 +38,7 @@
 #include "events/Events.h"
 #include "utils/testutils/TestHelper.h"
 
+using namespace miosix;
 using namespace DeathStackBoard;
 
 using NASCtrl = NASController<MockIMUData, MockPressureData, MockGPSData>;
@@ -74,7 +75,8 @@ TEST_CASE_METHOD(NASControllerFixture, "Testing transitions from idle")
 
     SECTION("EV_CALIBRATE_NAS -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_CALIBRATE_NAS},
+        REQUIRE(testFSMTransition(controller,
+                                  Boardcore::Event{EV_CALIBRATE_NAS},
                                   &NASCtrl::state_calibrating));
     }
 }
@@ -85,13 +87,14 @@ TEST_CASE_METHOD(NASControllerFixture, "Testing transitions from calibrating")
 
     SECTION("EV_CALIBRATE_NAS -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_CALIBRATE_NAS},
+        REQUIRE(testFSMTransition(controller,
+                                  Boardcore::Event{EV_CALIBRATE_NAS},
                                   &NASCtrl::state_calibrating));
     }
 
     SECTION("EV_NAS_READY -> READY")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_NAS_READY},
+        REQUIRE(testFSMTransition(controller, Boardcore::Event{EV_NAS_READY},
                                   &NASCtrl::state_ready));
     }
 }
@@ -102,13 +105,14 @@ TEST_CASE_METHOD(NASControllerFixture, "Testing transitions from ready")
 
     SECTION("EV_LIFTOFF -> ACTIVE")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(controller, Boardcore::Event{EV_LIFTOFF},
                                   &NASCtrl::state_active));
     }
 
     SECTION("EV_CALIBRATE_NAS -> CALIBRATING")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_CALIBRATE_NAS},
+        REQUIRE(testFSMTransition(controller,
+                                  Boardcore::Event{EV_CALIBRATE_NAS},
                                   &NASCtrl::state_calibrating));
     }
 }
@@ -119,7 +123,7 @@ TEST_CASE_METHOD(NASControllerFixture, "Testing transitions from active")
 
     SECTION("EV_LANDED -> END")
     {
-        REQUIRE(testFSMTransition(controller, Event{EV_LANDED},
+        REQUIRE(testFSMTransition(controller, Boardcore::Event{EV_LANDED},
                                   &NASCtrl::state_end));
     }
 }

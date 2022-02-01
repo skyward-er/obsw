@@ -50,8 +50,10 @@ public:
     IgnitionTestFixture()
     {
         can_mgr = new CanManager(CAN1);
-        can     = new CanProxy(can_mgr);
-        ign     = new IgnitionController(can);
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
+        can = new CanProxy(can_mgr);
+        ign = new IgnitionController(can);
     }
     ~IgnitionTestFixture()
     {
@@ -75,7 +77,7 @@ TEST_CASE_METHOD(IgnitionTestFixture, "Testing IDLE transitions")
 
     SECTION("IDLE -> END")
     {
-        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*ign, Boardcore::Event{EV_LIFTOFF},
                                   &IgnitionController::stateEnd));
     }
 
@@ -163,8 +165,10 @@ public:
     {
         sEventBroker.start();
         can_mgr = new CanManager(CAN1);
-        can     = new CanProxy(can_mgr);
-        ign     = new IgnitionController(can);
+        // cppcheck-suppress noCopyConstructor
+        // cppcheck-suppress noOperatorEq
+        can = new CanProxy(can_mgr);
+        ign = new IgnitionController(can);
         ign->start();
     }
     ~IgnitionTestFixture2()
@@ -256,7 +260,7 @@ TEST_CASE_METHOD(IgnitionTestFixture2, "Igntiion: Testing IDLE functions")
 
         Thread::sleep(TIMEOUT_IGN_OFFLINE / 2);
 
-        REQUIRE(testFSMTransition(*ign, Event{EV_LIFTOFF},
+        REQUIRE(testFSMTransition(*ign, Boardcore::Event{EV_LIFTOFF},
                                   &IgnitionController::stateEnd));
 
         Thread::sleep(TIMEOUT_IGN_OFFLINE / 2 + 5);

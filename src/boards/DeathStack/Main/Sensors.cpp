@@ -35,6 +35,7 @@
 
 using std::bind;
 using std::function;
+using namespace Boardcore;
 
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
@@ -50,6 +51,7 @@ void __attribute__((used)) EXTI5_IRQHandlerImpl()
 
 namespace DeathStackBoard
 {
+
 using namespace SensorConfigs;
 
 Sensors::Sensors(SPIBusInterface& spi1_bus, TaskScheduler* scheduler)
@@ -582,7 +584,7 @@ void Sensors::mockGpsCallback()
 
 void Sensors::updateSensorsStatus()
 {
-    SensorInfo info = sensor_manager->getSensorInfo(imu_bmx160);
+    Boardcore::SensorInfo info = sensor_manager->getSensorInfo(imu_bmx160);
     if (!info.isInitialized)
     {
         status.bmx160 = SensorDriverStatus::DRIVER_ERROR;

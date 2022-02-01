@@ -33,92 +33,90 @@
 using miosix::FastMutex;
 using miosix::Lock;
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
 /**
  * @brief Implementation of the Flight Mode Manager Finite State Machine.
  */
-class FMMController : public HSM<FMMController>
+class FMMController : public Boardcore::HSM<FMMController>
 {
 public:
     FMMController();
     ~FMMController();
 
-    State state_initialization(const Event& ev);
+    Boardcore::State state_initialization(const Boardcore::Event& ev);
 
     /**
      * @brief Handle TC_BOARD_RESET and TC_FORCE_LIFTOFF (super-state).
      */
-    State state_onGround(const Event& ev);
+    Boardcore::State state_onGround(const Boardcore::Event& ev);
 
     /**
      * @brief First state, wait for sensors and objects initialization.
      */
-    State state_init(const Event& ev);
+    Boardcore::State state_init(const Boardcore::Event& ev);
 
     /**
      * @brief "Low power" state, log only if requested by TC.
      */
-    State state_initDone(const Event& ev);
+    Boardcore::State state_initDone(const Boardcore::Event& ev);
 
     /**
      * @brief Init error, get stuck.
      */
-    State state_initError(const Event& ev);
+    Boardcore::State state_initError(const Boardcore::Event& ev);
 
     /**
      * @brief Test mode, listen to serial and print stuff on serial.
      */
-    State state_testMode(const Event& ev);
+    Boardcore::State state_testMode(const Boardcore::Event& ev);
 
     /**
      * @brief Calibrating sensors.
      */
-    State state_sensorsCalibration(const Event& ev);
+    Boardcore::State state_sensorsCalibration(const Boardcore::Event& ev);
 
     /**
      * @brief Calibrating ADA and NAS.
      */
-    State state_algosCalibration(const Event& ev);
+    Boardcore::State state_algosCalibration(const Boardcore::Event& ev);
 
     /**
      * @brief All good, waiting for arm.
      */
-    State state_disarmed(const Event& ev);
+    Boardcore::State state_disarmed(const Boardcore::Event& ev);
 
     /**
      * @brief Ready to launch, listening detachment pin (or command).
      */
-    State state_armed(const Event& ev);
+    Boardcore::State state_armed(const Boardcore::Event& ev);
 
     /**
      * @brief Handle TC_OPEN and END_MISSION (super-state).
      */
-    State state_flying(const Event& ev);
+    Boardcore::State state_flying(const Boardcore::Event& ev);
 
     /**
      * @brief Liftoff.
      */
-    State state_ascending(const Event& ev);
+    Boardcore::State state_ascending(const Boardcore::Event& ev);
 
     /**
      * @brief Apogee reached, deploy drogue and wait half altitude (or manual
      * mode).
      */
-    State state_drogueDescent(const Event& ev);
+    Boardcore::State state_drogueDescent(const Boardcore::Event& ev);
 
     /**
      * @brief Descent super-state.
      */
-    State state_terminalDescent(const Event& ev);
+    Boardcore::State state_terminalDescent(const Boardcore::Event& ev);
 
     /**
      * @brief Close file descriptors.
      */
-    State state_landed(const Event& ev);
+    Boardcore::State state_landed(const Boardcore::Event& ev);
 
     FMMStatus getStatus() { return status; }
 
@@ -134,7 +132,8 @@ private:
     bool ada_ready = false;
     bool nas_ready = false;
 
-    PrintLogger log = Logging::getLogger("deathstack.fsm.fmm");
+    Boardcore::PrintLogger printLogger =
+        Boardcore::Logging::getLogger("deathstack.fsm.fmm");
 };
 
 }  // namespace DeathStackBoard

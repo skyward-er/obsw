@@ -32,16 +32,13 @@
 #include <configs/NASConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <math/SkyQuaternion.h>
+#include <utils/Debug.h>
 #include <utils/aero/AeroUtils.h>
 
 #include <Eigen/Dense>
 
-using namespace Eigen;
-
 namespace DeathStackBoard
 {
-
-using namespace NASConfigs;
 
 class InitStates
 {
@@ -56,7 +53,7 @@ public:
      * @param mag 3x1 magnetometer readings [mx my mz].
      *
      */
-    void eCompass(const Vector3f acc, const Vector3f mag);
+    void eCompass(const Eigen::Vector3f acc, const Eigen::Vector3f mag);
 
     /**
      * @brief triad algorithm to estimate the attitude before the liftoff.
@@ -64,7 +61,7 @@ public:
      * @param acc 3x1 accelerometer readings [ax ay az].
      * @param mag 3x1 magnetometer readings [mx my mz].
      */
-    const Vector3f& triad(Vector3f& acc, Vector3f& mag);
+    const Eigen::Vector3f& triad(Eigen::Vector3f& acc, Eigen::Vector3f& mag);
 
     /**
      * @brief Initialization of the positions before the liftoff.
@@ -84,27 +81,28 @@ public:
      */
     void biasInit();
 
-    Matrix<float, N, 1> getInitX();
+    Eigen::Matrix<float, NASConfigs::N, 1> getInitX();
 
 private:
-    Matrix<float, N, 1> x_init;
-    Matrix3f R, Rb, Ri;
-    SkyQuaternion quat;
-    Vector4f x_quat;
-    Vector3f eul;
+    Eigen::Matrix<float, NASConfigs::N, 1> x_init;
+    Eigen::Matrix3f R, Rb, Ri;
+    Boardcore::SkyQuaternion quat;
+    Eigen::Vector4f x_quat;
+    Eigen::Vector3f eul;
 
-    PrintLogger log = Logging::getLogger("deathstack.nas.initstates");
+    Boardcore::PrintLogger log =
+        Boardcore::Logging::getLogger("deathstack.nas.initstates");
 };
 
-InitStates::InitStates() { x_init << MatrixXf::Zero(N, 1); }
+InitStates::InitStates() { x_init << Eigen::MatrixXf::Zero(NASConfigs::N, 1); }
 
-void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
+void InitStates::eCompass(const Eigen::Vector3f acc, const Eigen::Vector3f mag)
 {
     // ndr: since this method runs only when the rocket is stationary, there's
     // no need to add the gravity vector because the accelerometers already
     // measure it. This is not true if we consider the flying rocket.
 
-    Vector3f am(acc.cross(mag));
+    Eigen::Vector3f am(acc.cross(mag));
 
     R << am.cross(acc), am, acc;
     R.col(0).normalize();
@@ -114,46 +112,47 @@ void InitStates::eCompass(const Vector3f acc, const Vector3f mag)
     x_quat = quat.rotm2quat(R);
     eul    = quat.quat2eul(x_quat);
 
-    x_init(NL)     = x_quat(0);
-    x_init(NL + 1) = x_quat(1);
-    x_init(NL + 2) = x_quat(2);
-    x_init(NL + 3) = x_quat(3);
+    x_init(NASConfigs::NL)     = x_quat(0);
+    x_init(NASConfigs::NL + 1) = x_quat(1);
+    x_init(NASConfigs::NL + 2) = x_quat(2);
+    x_init(NASConfigs::NL + 3) = x_quat(3);
 }
 
-const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
+const Eigen::Vector3f& InitStates::triad(Eigen::Vector3f& acc,
+                                         Eigen::Vector3f& mag)
 {
     LOG_DEBUG(log, "Executing TRIAD");
 
     // The coulmns of the the triad matrices. b:body, i:inertial
-    Vector3f t1b, t2b, t3b, t1i, t2i, t3i;
+    Eigen::Vector3f t1b, t2b, t3b, t1i, t2i, t3i;
 
     // vettore gravità "vero" in NED, normalizzato :
     // -1 su asse "down", perché da fermo l'accelerometro
     // misura la reazione vincolare (rivolta verso l'alto)
-    Vector3f g_norm(0.0F, 0.0F, -1.0F);
+    Eigen::Vector3f g_norm(0.0F, 0.0F, -1.0F);
 
     acc.normalize();
-    Vector3f w1 = acc;
+    Eigen::Vector3f w1 = acc;
     mag.normalize();
-    Vector3f w2 = mag;
+    Eigen::Vector3f w2 = mag;
 
-    Vector3f v1 = g_norm;
-    Vector3f v2 = NED_MAG;
+    Eigen::Vector3f v1 = g_norm;
+    Eigen::Vector3f v2 = NASConfigs::NED_MAG;
 
-    Vector3f Ou1 = w1;
-    Vector3f Ou2 = w1.cross(w2);
+    Eigen::Vector3f Ou1 = w1;
+    Eigen::Vector3f Ou2 = w1.cross(w2);
     Ou2.normalize();
-    Vector3f Ou3 = Ou2.cross(Ou1);
+    Eigen::Vector3f Ou3 = Ou2.cross(Ou1);
 
-    Vector3f R1 = v1;
-    Vector3f R2 = v1.cross(v2);
+    Eigen::Vector3f R1 = v1;
+    Eigen::Vector3f R2 = v1.cross(v2);
     R2.normalize();
-    Vector3f R3 = R2.cross(R1);
+    Eigen::Vector3f R3 = R2.cross(R1);
 
-    Matrix3f Mou;
+    Eigen::Matrix3f Mou;
     Mou << Ou1, Ou2, Ou3;
 
-    Matrix3f Mr;
+    Eigen::Matrix3f Mr;
     Mr << R1, R2, R3;
 
     R = Mr * Mou.transpose();
@@ -162,10 +161,10 @@ const Vector3f& InitStates::triad(Vector3f& acc, Vector3f& mag)
 
     eul = quat.quat2eul(x_quat);
 
-    x_init(NL)     = x_quat(0);
-    x_init(NL + 1) = x_quat(1);
-    x_init(NL + 2) = x_quat(2);
-    x_init(NL + 3) = x_quat(3);
+    x_init(NASConfigs::NL)     = x_quat(0);
+    x_init(NASConfigs::NL + 1) = x_quat(1);
+    x_init(NASConfigs::NL + 2) = x_quat(2);
+    x_init(NASConfigs::NL + 3) = x_quat(3);
 
     return eul;
 }
@@ -175,7 +174,7 @@ void InitStates::positionInit(const float press, const float ref_press,
 {
     x_init(0) = 0.0;
     x_init(1) = 0.0;
-    x_init(2) = -aeroutils::relAltitude(
+    x_init(2) = -Boardcore::aeroutils::relAltitude(
         press, ref_press, ref_temp);  // msl altitude (in NED, so negative)
 
     TRACE("\n[NAS] press : %f - z_init : %f\n\n", press, x_init(2));
@@ -192,11 +191,11 @@ void InitStates::biasInit()
 {
     // gyro biases set to zero since the sensor performs
     // self-calibration and the measurements are already compensated
-    x_init(NL + 4) = 0.0F;
-    x_init(NL + 5) = 0.0F;
-    x_init(NL + 6) = 0.0F;
+    x_init(NASConfigs::NL + 4) = 0.0F;
+    x_init(NASConfigs::NL + 5) = 0.0F;
+    x_init(NASConfigs::NL + 6) = 0.0F;
 }
 
-Matrix<float, N, 1> InitStates::getInitX() { return x_init; }
+Eigen::Matrix<float, NASConfigs::N, 1> InitStates::getInitX() { return x_init; }
 
 }  // namespace DeathStackBoard

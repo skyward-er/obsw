@@ -34,7 +34,7 @@ using namespace Eigen;
 using namespace miosix;
 using miosix::Thread;
 
-void nProducts2Mat(int n, MatrixXd& m1, MatrixXd& m2)
+void nProducts2Mat(int n, MatrixXd& const m1, MatrixXd& const m2)
 {
     HardwareTimer<uint32_t, 2>& hrclock =
         HardwareTimer<uint32_t, 2>::instance();
@@ -54,7 +54,8 @@ void nProducts2Mat(int n, MatrixXd& m1, MatrixXd& m2)
     TRACE("\nTime for %d products using 2 matrices: %f [ms] \n\n", n, time);
 }
 
-void nProducts3Mat(int n, MatrixXd& m1, MatrixXd& m2, MatrixXd& m3)
+void nProducts3Mat(int n, MatrixXd& const m1, MatrixXd& const m2,
+                   MatrixXd& const m3)
 {
     HardwareTimer<uint32_t, 2>& hrclock =
         HardwareTimer<uint32_t, 2>::instance();
@@ -74,30 +75,32 @@ void nProducts3Mat(int n, MatrixXd& m1, MatrixXd& m2, MatrixXd& m3)
     TRACE("\nTime for %d products using 3 matrices: %f [ms] \n\n", n, time);
 }
 
-void kalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
-                      MatrixXd& m5, MatrixXd& eye, MatrixXd& v1, MatrixXd& v2)
+void kalmanOperations(MatrixXd& const m1, MatrixXd& const m2,
+                      MatrixXd& const m3, MatrixXd& const m4,
+                      MatrixXd& const m5, MatrixXd& const eye,
+                      MatrixXd& const v1, MatrixXd& const v2)
 {
     HardwareTimer<uint32_t, 2>& hrclock =
         HardwareTimer<uint32_t, 2>::instance();
     hrclock.setPrescaler(127);
     hrclock.start();
 
-    auto x = v1;
-    auto P = m2;
-    auto Q = m3;
-    auto R = m5;
-    auto y = v2;
+    // auto x = v1;
+    // auto P = m2;
+    // auto Q = m3;
+    // auto R = m5;
+    // auto y = v2;
 
     uint32_t t1 = hrclock.tick();
 
-    auto F     = 0.5 * m1;
-    x          = F * x;
-    P          = F * P * (F.transpose()) + Q;
-    auto H     = 2 * m4;
-    auto K     = P * H.transpose() * ((H * P * H.transpose() + R).inverse());
-    auto U     = K * (y.transpose() - H * x);
-    auto x_new = x + U;
-    auto P_new = (eye - K * H) * P;
+    // auto F = 0.5 * m1;
+    // x      = F * x;
+    // P = F * P * (F.transpose()) + Q;
+    // auto H = 2 * m4;
+    // auto K = P * H.transpose() * ((H * P * H.transpose() + R).inverse());
+    // auto U = K * (y.transpose() - H * x);
+    // auto x_new = x + U;
+    // auto P_new = (eye - K * H) * P;
 
     uint32_t t2 = hrclock.tick();
     double time = hrclock.toMilliSeconds(t2 - t1);
@@ -106,9 +109,10 @@ void kalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3, MatrixXd& m4,
     TRACE("\nTime for a single kalman cycle: %f [ms] \n\n", time);
 }
 
-void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3,
-                            MatrixXd& m4, MatrixXd& m5, MatrixXd& eye,
-                            MatrixXd& v1, MatrixXd& v2)
+void sparseKalmanOperations(MatrixXd& const m1, MatrixXd& const m2,
+                            MatrixXd& const m3, MatrixXd& const m4,
+                            MatrixXd& const m5, MatrixXd& const eye,
+                            MatrixXd& const v1, MatrixXd& const v2)
 {
     // H, P and R can't be sparse since their product needs to be inverted.
     HardwareTimer<uint32_t, 2>& hrclock =
@@ -116,23 +120,23 @@ void sparseKalmanOperations(MatrixXd& m1, MatrixXd& m2, MatrixXd& m3,
     hrclock.setPrescaler(127);
     hrclock.start();
 
-    auto x = v1;
-    auto P = m2;
-    auto Q = m3.sparseView();
-    auto R = m5;
-    auto y = v2;
+    // auto x = v1;
+    // auto P = m2;
+    // auto Q = m3.sparseView();
+    // auto R = m5;
+    // auto y = v2;
 
     uint32_t t1 = hrclock.tick();
 
-    auto F = 0.5 * m1.sparseView();
-    x      = F * x;
-    P      = F * P * (F.transpose()) + Q;
-    auto H = 2 * m4;
-    auto K = (P * (H.transpose()) * ((H * P * H.transpose() + R).inverse()))
-                 .sparseView();
-    auto U     = (K * (y.transpose() - H * x)).sparseView();
-    auto x_new = x + U;
-    auto P_new = (eye - K * H) * P;
+    // auto F = 0.5 * m1.sparseView();
+    // x      = F * x;
+    // P      = F * P * (F.transpose()) + Q;
+    // auto H = 2 * m4;
+    // auto K = (P * (H.transpose()) * ((H * P * H.transpose() + R).inverse()))
+    // .sparseView();
+    // auto U = (K * (y.transpose() - H * x)).sparseView();
+    // auto x_new = x + U;
+    // auto P_new = (eye - K * H) * P;
 
     uint32_t t2 = hrclock.tick();
     double time = hrclock.toMilliSeconds(t2 - t1);
@@ -153,7 +157,7 @@ void determinant(MatrixXd& m1)
 
     uint32_t t1 = hrclock.tick();
 
-    float det = m1.determinant();
+    // float det = m1.determinant();
 
     uint32_t t2 = hrclock.tick();
     double time = hrclock.toMilliSeconds(t2 - t1);

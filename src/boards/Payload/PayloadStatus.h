@@ -38,7 +38,7 @@ enum PayloadComponentStatus
 struct PayloadStatus
 {
     // Logic OR of all components errors.
-    uint8_t payload_board  = COMP_OK;
+    uint8_t payload_board = COMP_OK;
 
     uint8_t logger         = COMP_OK;
     uint8_t ev_broker      = COMP_OK;

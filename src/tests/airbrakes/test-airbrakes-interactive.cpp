@@ -33,6 +33,8 @@
 #include "test_data.h"
 #include "utils/testutils/TestHelper.h"
 
+using namespace miosix;
+using namespace Boardcore;
 using namespace DeathStackBoard;
 
 using namespace std;
@@ -92,8 +94,8 @@ int main()
 {
     sEventBroker.start();
 
-    miosix::GpioPin pwmPin = miosix::GpioPin(GPIOC_BASE, 7);
-    pwmPin.mode(miosix::Mode::ALTERNATE);
+    GpioPin pwmPin = GpioPin(GPIOC_BASE, 7);
+    pwmPin.mode(Mode::ALTERNATE);
     pwmPin.alternateFunction(3);
 
     string temp;
@@ -228,7 +230,6 @@ void testAirBrakes()
 
 void wiggleServo()
 {
-    string temp;
     cout << "\n\n** WIGGLE SERVO **\n\n";
 
     waitUserInput();
@@ -246,7 +247,6 @@ void wiggleServo()
 
 void setServoFullyOpen()
 {
-    string temp;
     cout << "\n\n** SERVO FULLY OPEN **\n\n";
 
     waitUserInput();
@@ -262,7 +262,6 @@ void setServoFullyOpen()
 
 void setServoFullyClosed()
 {
-    string temp;
     cout << "\n\n** SERVO FULLY CLOSED **\n\n";
 
     waitUserInput();
@@ -278,7 +277,6 @@ void setServoFullyClosed()
 
 void resetServo()
 {
-    string temp;
     cout << "\n\n** RESET SERVO **\n\n";
 
     waitUserInput();

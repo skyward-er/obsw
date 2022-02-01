@@ -23,6 +23,7 @@
 #include <configs/CutterConfig.h>
 #include <drivers/adc/InternalADC.h>
 #include <drivers/hbridge/HBridge.h>
+#include <drivers/timer/TimerUtils.h>
 #include <sensors/analog/current/CurrentSensor.h>
 
 #include <iostream>
@@ -40,8 +41,8 @@
 
 using namespace std;
 using namespace miosix;
-using namespace Boardcore;
 using namespace DeathStackBoard::CutterConfig;
+using namespace Boardcore;
 
 static constexpr int MAX_CUTTING_TIME = 10 * 1000;  // ms
 constexpr int SAMPLING_FREQUENCY      = 20;
@@ -53,9 +54,9 @@ constexpr int SAMPLING_FREQUENCY      = 20;
  */
 static TIM_TypeDef *const CUTTER_TIM = TIM9;
 
-static const TimerUtils::Channel CUTTER_CHANNEL_PRIMARY =
+const TimerUtils::Channel CUTTER_CHANNEL_PRIMARY =
     TimerUtils::Channel::CHANNEL_2;
-static const TimerUtils::Channel CUTTER_CHANNEL_BACKUP =
+const TimerUtils::Channel CUTTER_CHANNEL_BACKUP =
     TimerUtils::Channel::CHANNEL_2;
 static const unsigned int PRIMARY_CUTTER_PWM_FREQUENCY = 10000;  // Hz
 static constexpr float PRIMARY_CUTTER_PWM_DUTY_CYCLE   = 0.45f;
@@ -106,7 +107,6 @@ int main()
 
     // Cutter setup
 
-    GpioPin *ena_pin;
     TimerUtils::Channel pwmChannel;
 
     if (cutterNo == 3)  // COTS cutters
@@ -122,7 +122,10 @@ int main()
         CuttersInput::getPin().low();
     }
     else
-    {  // SRAD cutters
+    {
+        // SRAD cutters
+        GpioPin *ena_pin;
+
         if (cutterNo == 1)
         {
             ena_pin    = new GpioPin(PrimaryCutterEna::getPin());
@@ -145,7 +148,6 @@ int main()
         cutter.enable();
 
         // Wait for the user to press ENTER or the timer to elapse
-        string temp;
         while (!finished)
         {
             (void)getchar();
@@ -192,6 +194,7 @@ void menu(unsigned int *cutterNo, uint32_t *frequency, float *dutyCycle,
             stringstream(temp) >> *dutyCycle;
         } while (*dutyCycle < 1 || *dutyCycle > 100);
 
+        // cppcheck-suppress invalidPrintfArgType_uint
         printf("\nCutting %s, frequency: %lu, duty cycle: %.1f\n\n",
                (*cutterNo ? "PRIMARY" : "BACKUP"), *frequency, *dutyCycle);
     }

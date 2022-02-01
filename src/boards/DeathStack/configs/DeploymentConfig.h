@@ -25,8 +25,6 @@
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
@@ -34,8 +32,8 @@ namespace DeploymentConfigs
 {
 
 static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
-static constexpr TimerUtils::Channel DPL_SERVO_PWM_CH =
-    TimerUtils::Channel::CHANNEL_1;
+static constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 static constexpr int NC_OPEN_TIMEOUT = 5000;
 

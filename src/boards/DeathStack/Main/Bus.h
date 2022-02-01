@@ -25,15 +25,13 @@
 #include <drivers/spi/SPIBus.h>
 #include <miosix.h>
 
-using namespace Boardcore;
-
 namespace DeathStackBoard
 {
 
 struct Bus
 {
-    SPIBusInterface* spi1 = new SPIBus(SPI1);
-    SPIBusInterface* spi2 = new SPIBus(SPI2);
+    Boardcore::SPIBusInterface* spi1 = new Boardcore::SPIBus(SPI1);
+    Boardcore::SPIBusInterface* spi2 = new Boardcore::SPIBus(SPI2);
 };
 
 }  // namespace DeathStackBoard

@@ -43,9 +43,6 @@ int main()
     tmtc->start();
     sEventBroker.start();
 
-    EventSniffer* sniffer =
-        new EventSniffer(sEventBroker, TOPIC_LIST, onEventReceived);
-
     Thread::sleep(1000);
 
     printf("\nOk, press open to post liftoff...\n");

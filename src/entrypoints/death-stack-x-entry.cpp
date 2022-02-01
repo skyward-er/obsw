@@ -27,6 +27,7 @@
 #include <miosix.h>
 
 using namespace miosix;
+using namespace Boardcore;
 using namespace DeathStackBoard;
 // using namespace GlobalBuffers;
 
@@ -56,7 +57,7 @@ int main()
 
         StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 
-        system_data.timestamp = miosix::getTick();
+        system_data.timestamp = getTick();
         system_data.cpu_usage = averageCpuUtilization();
         cpu_stat.add(system_data.cpu_usage);
 

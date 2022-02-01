@@ -37,6 +37,7 @@ using std::bind;
 using std::function;
 
 using namespace Boardcore;
+using namespace PayloadBoard::SensorConfigs;
 
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
@@ -402,7 +403,7 @@ void Sensors::ADS1118Callback()
 
 void Sensors::pressPitotCallback()
 {
-    SSCDRRN015PDAData d = press_pitot->getLastSample();
+    // SSCDRRN015PDAData d = press_pitot->getLastSample();
     // LoggerService::getInstance().log(d);
 
     /*ADAReferenceValues rv =
@@ -433,15 +434,15 @@ void Sensors::pressStaticCallback()
 
 void Sensors::imuBMXCallback()
 {
-    uint8_t fifo_size = imu_bmx160->getLastFifoSize();
-    auto& fifo        = imu_bmx160->getLastFifo();
+    // uint8_t fifo_size = imu_bmx160->getLastFifoSize();
+    // auto& fifo        = imu_bmx160->getLastFifo();
 
     // LoggerService::getInstance().log(imu_bmx160->getTemperature());
 
-    for (uint8_t i = 0; i < fifo_size; ++i)
-    {
-        // LoggerService::getInstance().log(fifo.at(i));
-    }
+    // for (uint8_t i = 0; i < fifo_size; ++i)
+    // {
+    //     LoggerService::getInstance().log(fifo.at(i));
+    // }
 
     // LoggerService::getInstance().log(imu_bmx160->getFifoStats());
 }

@@ -62,7 +62,7 @@ int main()
 
     SPIBus xbee_bus(SPI2);
     device  = new Xbee::Xbee(xbee_bus, XbeeCS::getPin(), XbeeATTN::getPin(),
-                            XbeeRST::getPin());
+                             XbeeRST::getPin());
     channel = new MavChannel(device, &onReceive, 250);
 
     device->start();

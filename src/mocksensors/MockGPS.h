@@ -30,7 +30,7 @@
 namespace DeathStackBoard
 {
 
-class MockGPS : public Sensor<MockGPSData>
+class MockGPS : public Boardcore::Sensor<MockGPSData>
 {
 public:
     MockGPS() {}
@@ -54,8 +54,9 @@ public:
 
         MockGPSData data;
 
-        data.gpsTimestamp = TimestampTimer::getInstance().getTimestamp();
-        data.fix          = true;
+        data.gpsTimestamp =
+            Boardcore::TimestampTimer::getInstance().getTimestamp();
+        data.fix = true;
 
         if (before_liftoff)
         {

@@ -24,15 +24,13 @@
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <utils/Debug.h>
 
 #include <string>
 
 #include "arch/common/drivers/serial.h"
 #include "filesystem/file_access.h"
 #include "miosix.h"
-
-using namespace std;
-using namespace miosix;
 
 /**
  * @brief Creates and opens a serial port on the board and provides templated
