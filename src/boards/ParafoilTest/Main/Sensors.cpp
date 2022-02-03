@@ -59,7 +59,7 @@ namespace ParafoilTestDev
 
     void Sensors::MPU9250Callback()
     {
-
+        logger -> log(imu_mpu9250 -> getLastSample());
     }
 
     void Sensors::UbloxGPSinit()
@@ -80,7 +80,7 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSCallback()
     {
-
+        logger -> log(gps_ublox -> getLastSample());
     }
 
     void Sensors::BME280init()
@@ -107,7 +107,7 @@ namespace ParafoilTestDev
 
     void Sensors::BME280Callback()
     {
-
+        logger -> log(press_bme280 -> getLastSample());
     }
 
     /**
@@ -116,6 +116,9 @@ namespace ParafoilTestDev
     Sensors::Sensors(SPIBusInterface& spi, TaskScheduler* scheduler)
         : spiInterface(spi)
     {
+        //Take the SD logger singleton
+        logger = &Logger::getInstance();
+
         //Sensor init
         MPU9250init();
         UbloxGPSinit();

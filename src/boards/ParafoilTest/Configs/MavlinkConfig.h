@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,14 +18,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
- #include <ParafoilTest.h>
- 
- using namespace ParafoilTestDev;
- 
- int main()
- {
- 	//TODO integrate all the logging stuff
- 	ParafoilTest::getInstance().start();
- 	return 0;
- } 
+ */
+#pragma once
+
+namespace ParafoilTestDev
+{
+
+    /* Mavlink Driver queue settings */
+    static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
+    static constexpr unsigned int MAV_PKT_SIZE        = 255;
+    static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
+
+}

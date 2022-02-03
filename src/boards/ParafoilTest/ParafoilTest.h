@@ -25,6 +25,7 @@
 #include <miosix.h>
 #include <ParafoilTestStatus.h>
 #include <Main/Sensors.h>
+#include <Main/Radio.h>
 #include <events/EventBroker.h>
 #include <drivers/spi/SPIDriver.h>
 
@@ -43,22 +44,28 @@ namespace ParafoilTestDev
     public:
 
         /**
-         * Event broker
+         * @brief Event broker
          */
         EventBroker* broker;
 
         /**
-         * Sensors collection
+         * @brief Sensors collection
          */
         Sensors* sensors;
 
         /**
-         * Task scheduler
+         * @brief Radio that manages the interaction between
+         * the xbee module and mavlink
+         */
+        Radio* radio;
+
+        /**
+         * @brief Task scheduler
          */
         TaskScheduler* scheduler;
 
         /**
-         * Start method
+         * @brief Start method
          */
         void start()
         {
@@ -76,36 +83,43 @@ namespace ParafoilTestDev
                 status.setError(&ParafoilTestStatus::sensors);
             }
 
+            //Start the radio
+            if(!radio -> start())
+            {
+                LOG_ERR(log, "Error starting the radio");
+                status.setError(&ParafoilTestStatus::radio);
+            }
+
             //After all the initializations i log the status
-            //logger -> log(status);
+            logger -> log(status);
 
             //If all is ok i can send the signal to the FSMs
             if(status.parafoil_test != OK)
             {
                 LOG_ERR(log, "Initialization failed");
-                //TODO add event
+                //TODO add event to inibit the state machines
             }
             else
             {
                 LOG_INFO(log, "Initialization ok");
-                //TODO add event
+                //TODO add event to start the state machines
             }
         }
 
     private:
         
         /**
-         * Logger in debug mode
+         * @brief Logger in debug mode
          */
         PrintLogger log = Logging::getLogger("ParafoilTest");
 
         /**
-         * Logger singleton
+         * @brief Logger singleton for SD
          */
-        //LoggerService* logger;
+        Logger* logger;
 
         /**
-         * Status memory
+         * @brief Status memory
          */
         ParafoilTestStatus status{};
 
@@ -114,8 +128,8 @@ namespace ParafoilTestDev
          */
         ParafoilTest()
         {
-            //Store the singleton logger
-            //logger = Singleton<LoggerService>::getInstance();
+            //Take the singleton instance of SD logger
+            logger = &Logger::getInstance();
 
             //Start the logging
             startLogger();
@@ -129,6 +143,9 @@ namespace ParafoilTestDev
             //Create the sensors
             SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
             sensors = new Sensors(*spiInterface1, scheduler);
+
+            //Create a new radio
+            radio = new Radio(*spiInterface1);
         }
 
         /**
@@ -138,7 +155,7 @@ namespace ParafoilTestDev
         {
             try
             {
-                //logger -> start();
+                logger -> start();
                 //Log in serial
                 LOG_INFO(log, "Logger started");
             }
@@ -148,7 +165,7 @@ namespace ParafoilTestDev
                 status.setError(&ParafoilTestStatus::logger);
             }
             //Log the status
-            //logger -> log(logger -> getLogger().getLogStats());
+            logger -> log(logger -> getLoggerStats());
         }
     };
 }

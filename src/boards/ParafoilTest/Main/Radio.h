@@ -18,57 +18,61 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
-
-/**
- * This class is used to keep track of various main class
- * initialization errors.
  */
-
 #pragma once
 
-#include <string>
-#include <ostream>
+#include <TelemetriesTelecommands/Mavlink.h>
+#include <drivers/Xbee/Xbee.h>
+
+/**
+ * @brief This class defines the interactions beetween the radio module (xbee)
+ * and the mavlink messages enumeration. It is used as a main class about these radio 
+ * sub modules such as TMRepository and TMCController
+ */
 
 namespace ParafoilTestDev
 {
-    enum ParafoilTestComponentStatus
+    class Radio
     {
-        ERROR   = 0,
-        OK      = 1
-    };
-
-    struct ParafoilTestStatus
-    {
-        //If there is an error, this uint8_t reports it(OR)
-        uint8_t parafoil_test = OK;
-
-        //Specific errors
-        uint8_t logger      = OK;
-        uint8_t eventBroker = OK;
-        uint8_t sensors     = OK;
-        uint8_t radio       = OK;
+    public:
+        
+        /**
+         * @brief The xbee module driver
+         */
+        Xbee::Xbee* xbee;
 
         /**
-         * @brief Method to set a specific component in an error state
+         * @brief The mavlink driver
          */
-        void setError(uint8_t ParafoilTestStatus::*component)
-        {
-            //Put the passed component to error state
-            this->*component  = ERROR;
-            //Logic OR
-            parafoil_test       = ERROR;
-        }
+        MavDriver* mav_driver;
 
+        /**
+         * @brief Construct a new Radio object
+         * 
+         * @param xbee_bus The Xbee SPI bus
+         */
+        Radio(SPIBusInterface& xbee_bus);
 
-        static std::string header()
-        {
-            return "logger, eventBorker, sensors, radio\n";
-        }
+        /**
+         * @brief Destroy the Radio object
+         */
+        ~Radio();
 
-        void print(std::ostream& os)
-        {
-            os << (int)logger << "," << (int)eventBroker << "," << (int)sensors << "," << (int)radio << "\n";
-        }
+        bool start();
+
+        void logStatus();
+
+    private:
+        
+        /**
+         * @brief Radio frame received callback method.
+         * It's used for logging purposes
+         */
+        void onXbeeFrameReceived(Xbee::APIFrame& frame);
+
+        /**
+         * @brief SPI bus
+         */
+        SPIBusInterface& xbee_bus;
     };
 }

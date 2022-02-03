@@ -19,13 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */ 
- #include <ParafoilTest.h>
- 
- using namespace ParafoilTestDev;
- 
- int main()
- {
- 	//TODO integrate all the logging stuff
- 	ParafoilTest::getInstance().start();
- 	return 0;
- } 
+#pragma once
+
+#include <drivers/timer/PWM.h>
+
+using namespace Boardcore;
+
+/**
+ * @brief This class defines all the wing configs
+ * (E.g. Servos PWM channels, Servos max and min positions, etc..)
+ */
+namespace ParafoilTestDev
+{
+    //16 bit, 45MHz, no DMA timer
+    static TIM_TypeDef* WING_SERVO1_TIMER = TIM13;
+    static TIM_TypeDef* WING_SERVO2_TIMER = TIM14;
+
+    static const TimerUtils::Channel WING_SERVO1_PWM_CHANNEL = TimerUtils::Channel::CHANNEL_1;
+    static const TimerUtils::Channel WING_SERVO2_PWM_CHANNEL = TimerUtils::Channel::CHANNEL_1;
+
+    static const float WING_SERVO1_MAX_POSITION = 180; //degrees
+    static const float WING_SERVO2_MAX_POSITION = 180; //degrees
+
+    static const float WING_SERVO1_MIN_POSITION = 0;   //degrees
+    static const float WING_SERVO2_MIN_POSITION = 0;   //degrees
+
+    static const float WING_SERVO1_RESET_POSITION = 90; //degrees
+    static const float WING_SERVO2_RESET_POSITION = 90; //degrees
+}

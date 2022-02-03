@@ -18,57 +18,54 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
-
-/**
- * This class is used to keep track of various main class
- * initialization errors.
  */
-
-#pragma once
-
-#include <string>
-#include <ostream>
+#include <Wing/WingServo.h>
 
 namespace ParafoilTestDev
 {
-    enum ParafoilTestComponentStatus
+    /**
+     * PUBLIC METHODS
+     */
+    WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition)
+             :WingServo(timer, pwmChannel, minPosition, maxPosition, minPosition){}
+    
+    WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition, float resetPosition)
+             :ServoInterface(minPosition, maxPosition, resetPosition)
     {
-        ERROR   = 0,
-        OK      = 1
-    };
+        servo = new Servo(timer, pwmChannel);
+    }
 
-    struct ParafoilTestStatus
+    WingServo::~WingServo(){}
+
+    void WingServo::enable()
     {
-        //If there is an error, this uint8_t reports it(OR)
-        uint8_t parafoil_test = OK;
+        servo -> enable();
+    }
 
-        //Specific errors
-        uint8_t logger      = OK;
-        uint8_t eventBroker = OK;
-        uint8_t sensors     = OK;
-        uint8_t radio       = OK;
+    void WingServo::disable()
+    {
+        servo -> disable();
+    }
 
-        /**
-         * @brief Method to set a specific component in an error state
-         */
-        void setError(uint8_t ParafoilTestStatus::*component)
-        {
-            //Put the passed component to error state
-            this->*component  = ERROR;
-            //Logic OR
-            parafoil_test       = ERROR;
-        }
+    void WingServo::selfTest()
+    {
+        setPosition(MIN_POS);
+        miosix::Thread::sleep(1000);
+        setPosition(RESET_POS);
+        miosix::Thread::sleep(1000);
+        setPosition(MAX_POS);
+    }
 
+    /**
+     * PRIVATE METHODS
+     */
+    void WingServo::setPosition(float angle)
+    {
+        servo->setPosition(angle / 180);
+    }
 
-        static std::string header()
-        {
-            return "logger, eventBorker, sensors, radio\n";
-        }
-
-        void print(std::ostream& os)
-        {
-            os << (int)logger << "," << (int)eventBroker << "," << (int)sensors << "," << (int)radio << "\n";
-        }
-    };
+    float WingServo::preprocessPosition(float angle)
+    {
+        return angle;
+    }
 }

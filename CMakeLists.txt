@@ -33,9 +33,12 @@ project(SkywardParafoilTest)
 #-----------------------------------------------------------------------------#
 
 add_executable(parafoilTest-entry 	src/entrypoints/parafoilTest-entry.cpp 
-					src/boards/ParafoilTest/Main/Sensors.cpp)
+					src/boards/ParafoilTest/Main/Sensors.cpp
+					src/boards/ParafoilTest/Main/Radio.cpp
+					src/boards/ParafoilTest/Wing/WingServo.cpp)
 sbs_target(parafoilTest-entry stm32f429zi_stm32f4discovery)
-target_include_directories(parafoilTest-entry PRIVATE src/boards/ParafoilTest)
+target_include_directories(parafoilTest-entry PRIVATE src/boards/ParafoilTest
+						      src/)
 
 #-----------------------------------------------------------------------------#
 #                                Tests - Catch                                #

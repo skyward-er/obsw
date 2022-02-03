@@ -18,14 +18,21 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
- #include <ParafoilTest.h>
- 
- using namespace ParafoilTestDev;
- 
- int main()
- {
- 	//TODO integrate all the logging stuff
- 	ParafoilTest::getInstance().start();
- 	return 0;
- } 
+ */
+#pragma once
+
+#include <drivers/Xbee/Xbee.h>
+
+using namespace Boardcore;
+
+namespace ParafoilTestDev
+{
+    //TODO change the pins to something correct
+    static miosix::GpioPin XBEE_CS(GPIOB_BASE, 6);
+    static miosix::GpioPin XBEE_ATTN(GPIOB_BASE, 7);
+    static miosix::GpioPin XBEE_RESET(GPIOB_BASE, 8);
+
+    //Data rate
+    static const bool XBEE_80KBPS_DATA_RATE = true;
+    static const int XBEE_TIMEOUT           = 5000; //5 seconds
+}

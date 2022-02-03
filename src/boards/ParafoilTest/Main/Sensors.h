@@ -61,6 +61,11 @@ namespace ParafoilTestDev
         PrintLogger log = Logging::getLogger("sensors");
 
         /**
+         * @brief SD logger singleton
+         */
+        Logger* logger;
+
+        /**
          * @brief The MPU9250 IMU init function and
          * sample callback
          */
