@@ -32,7 +32,9 @@ namespace ParafoilTestDev
     WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition, float resetPosition)
              :ServoInterface(minPosition, maxPosition, resetPosition)
     {
-        servo = new Servo(timer, pwmChannel);
+        servo = new Servo(timer, pwmChannel, WING_SERVO_MIN_PULSE
+                                           , WING_SERVO_MAX_PULSE
+                                           , WING_SERVO_FREQUENCY);
     }
 
     WingServo::~WingServo(){}
@@ -40,6 +42,8 @@ namespace ParafoilTestDev
     void WingServo::enable()
     {
         servo -> enable();
+        //Set the servo position to reset
+        setPosition(RESET_POS);
     }
 
     void WingServo::disable()

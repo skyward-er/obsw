@@ -23,6 +23,7 @@
 
 #include <common/ServoInterface.h>
 #include <drivers/servo/Servo.h>
+#include <Wing/WingConfig.h>
 
 using namespace Boardcore;
 

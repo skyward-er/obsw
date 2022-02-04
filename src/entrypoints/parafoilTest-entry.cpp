@@ -19,13 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */ 
- #include <ParafoilTest.h>
- 
- using namespace ParafoilTestDev;
- 
- int main()
- {
- 	//TODO integrate all the logging stuff
- 	ParafoilTest::getInstance().start();
- 	return 0;
- } 
+#include <ParafoilTest.h>
+
+using namespace ParafoilTestDev;
+
+int main()
+{
+	//TODO integrate all the logging stuff
+	ParafoilTest::getInstance().start();
+
+	return 0;
+} 

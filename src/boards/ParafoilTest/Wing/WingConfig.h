@@ -38,6 +38,11 @@ namespace ParafoilTestDev
     static const TimerUtils::Channel WING_SERVO1_PWM_CHANNEL = TimerUtils::Channel::CHANNEL_1;
     static const TimerUtils::Channel WING_SERVO2_PWM_CHANNEL = TimerUtils::Channel::CHANNEL_1;
 
+    //Servo dipendent variables
+    static const unsigned int WING_SERVO_MIN_PULSE = 1000;
+    static const unsigned int WING_SERVO_MAX_PULSE = 2000;
+    static const unsigned int WING_SERVO_FREQUENCY = 50;
+
     static const float WING_SERVO1_MAX_POSITION = 180; //degrees
     static const float WING_SERVO2_MAX_POSITION = 180; //degrees
 
