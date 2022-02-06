@@ -28,4 +28,3 @@
         <transition event="DPL.EV_CUTTING_TIMEOUT" target="idle"/>
     </state>
 </scxml>
-

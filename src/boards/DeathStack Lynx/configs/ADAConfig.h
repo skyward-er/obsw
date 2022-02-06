@@ -85,8 +85,8 @@ using CVectorP = Eigen::Matrix<float, KALMAN_OUTPUTS_NUM, 1>;
 static inline MatrixNN f_init()
 {
     MatrixNN f;
-    f << 1.0f, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD, 
-         0.0f, 1.0f,            SAMPLING_PERIOD, 
+    f << 1.0f, SAMPLING_PERIOD, 0.5f * SAMPLING_PERIOD * SAMPLING_PERIOD,
+         0.0f, 1.0f,            SAMPLING_PERIOD,
          0.0f, 0.0f,            1.0f;
 
     return f;
@@ -95,8 +95,8 @@ static inline MatrixNN f_init()
 static inline MatrixNN p_init()
 {
     MatrixNN p;
-    p << 1.0f, 0.0f, 0.0f, 
-         0.0f, 1.0f, 0.0f, 
+    p << 1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 0.0f,
          0.0f, 0.0f, 1.0f;
 
     return p;
@@ -105,8 +105,8 @@ static inline MatrixNN p_init()
 static inline MatrixNN q_init()
 {
     MatrixNN q;
-    q << 30.0f, 0.0f,  0.0f, 
-         0.0f, 10.0f, 0.0f, 
+    q << 30.0f, 0.0f,  0.0f,
+         0.0f, 10.0f, 0.0f,
          0.0f, 0.0f,  2.5f;
 
     return q;
