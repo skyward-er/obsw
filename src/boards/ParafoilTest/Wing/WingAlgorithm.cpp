@@ -38,12 +38,14 @@ namespace ParafoilTestDev
     /**
      * PUBLIC METHODS
      */
-    WingAlgorithm::WingAlgorithm(WingServo* servo1, WingServo* servo2, const char* filename)
+    WingAlgorithm::WingAlgorithm(ServoInterface* servo1, ServoInterface* servo2, const char* filename)
                  : parser(filename)
     {
-        this -> servo1 = servo1;
-        this -> servo2 = servo2;
+        setServo(servo1, servo2);
     }
+
+    WingAlgorithm::WingAlgorithm(const char* filename)
+                 : parser(filename){}
 
     bool WingAlgorithm::init()
     {
@@ -54,6 +56,37 @@ namespace ParafoilTestDev
         //Return if the size collected is greater than 0
         fileValid = steps.size() > 0;
         return fileValid;
+    }
+
+    void WingAlgorithm::setServo(ServoInterface* servo1, ServoInterface* servo2)
+    {
+        if(servo1 != NULL)
+        {
+            this -> servo1 = servo1;
+        }
+        else
+        {
+            //In this case i create a standard servo from the wing config file
+            servo1 = new WingServo(WING_SERVO1_TIMER,
+                                   WING_SERVO1_PWM_CHANNEL,
+                                   WING_SERVO1_MIN_POSITION,
+                                   WING_SERVO1_MAX_POSITION,
+                                   WING_SERVO1_RESET_POSITION);
+        }
+
+        if(servo2 != NULL)
+        {
+            this -> servo2 = servo2;
+        }
+        else
+        {
+            //In this case i create a standard servo from the wing config file
+            servo2 = new WingServo(WING_SERVO2_TIMER,
+                                   WING_SERVO2_PWM_CHANNEL,
+                                   WING_SERVO2_MIN_POSITION,
+                                   WING_SERVO2_MAX_POSITION,
+                                   WING_SERVO2_RESET_POSITION);
+        }
     }
 
     void WingAlgorithm::addStep(WingAlgorithmData step)
@@ -70,6 +103,7 @@ namespace ParafoilTestDev
     void WingAlgorithm::begin()
     {
         running = true;
+        shouldReset = true;
         //Set the current timestamp
         timeStart = TimestampTimer::getInstance().getTimestamp();
     }
@@ -86,11 +120,17 @@ namespace ParafoilTestDev
      */
     void WingAlgorithm::step()
     {
-        //Variable to remember the what is the stab that has to be done
+        //Variable to remember what is the step that has to be done
         static unsigned int stepIndex = 0;
         uint64_t currentTimestamp = TimestampTimer::getInstance().getTimestamp();
-        
-        
+
+        if(shouldReset)
+        {
+            //If the algorithm has been stopped 
+            //i want to start from the beginning
+            stepIndex   = 0;
+            shouldReset = false;
+        }
 
         if(stepIndex >= steps.size())
         {
@@ -104,9 +144,16 @@ namespace ParafoilTestDev
 
         if(currentTimestamp - timeStart >= steps[stepIndex].timestamp)
         {
-            //I need to execute the current step
-            servo1->set(steps[stepIndex].servo1Angle);
-            servo2->set(steps[stepIndex].servo1Angle);
+            //TODO log the action
+            //I need to execute the current step (if not null servos)
+            if(servo1 != NULL)
+            {
+                servo1->set(steps[stepIndex].servo1Angle);
+            }
+            if(servo2 != NULL)
+            {
+                servo2->set(steps[stepIndex].servo2Angle);
+            }
 
             //finally increment the stepIndex
             stepIndex++;

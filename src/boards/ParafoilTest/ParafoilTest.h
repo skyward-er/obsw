@@ -24,6 +24,7 @@
 
 #include <miosix.h>
 #include <ParafoilTestStatus.h>
+#include <Wing/WingController.h>
 #include <Main/Sensors.h>
 #include <Main/Radio.h>
 #include <events/EventBroker.h>
@@ -54,6 +55,11 @@ namespace ParafoilTestDev
         Sensors* sensors;
 
         /**
+         * @brief Wing algorithm controller
+         */
+        WingController* wingController;
+
+        /**
          * @brief Radio that manages the interaction between
          * the xbee module and mavlink
          */
@@ -76,19 +82,22 @@ namespace ParafoilTestDev
                 status.setError(&ParafoilTestStatus::eventBroker);
             }
 
+            //Start the wing controller
+            wingController -> start();
+
             //Start the sensors sampling
-            if(!sensors -> start())
+            /*if(!sensors -> start())
             {
                 LOG_ERR(log, "Error starting sensors");
                 status.setError(&ParafoilTestStatus::sensors);
-            }
+            }*/
 
             //Start the radio
-            if(!radio -> start())
+            /*if(!radio -> start())
             {
                 LOG_ERR(log, "Error starting the radio");
                 status.setError(&ParafoilTestStatus::radio);
-            }
+            }*/
 
             //After all the initializations i log the status
             logger -> log(status);
@@ -140,12 +149,15 @@ namespace ParafoilTestDev
             //Create the task scheduler
             scheduler = new TaskScheduler();
 
+            //Create the wing controller
+            wingController = new WingController(scheduler);
+
             //Create the sensors
-            SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
-            sensors = new Sensors(*spiInterface1, scheduler);
+            //SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
+            //sensors = new Sensors(*spiInterface1, scheduler);
 
             //Create a new radio
-            radio = new Radio(*spiInterface1);
+            //radio = new Radio(*spiInterface1);
         }
 
         /**

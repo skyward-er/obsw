@@ -19,14 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */ 
+#include <miosix.h>
 #include <ParafoilTest.h>
 
 using namespace ParafoilTestDev;
 
 int main()
 {
+	miosix::GpioPin servo(GPIOA_BASE, 6);
+	servo.mode(miosix::Mode::ALTERNATE);
+	servo.alternateFunction(9);
+
+	miosix::GpioPin servo2(GPIOA_BASE, 7);
+	servo2.mode(miosix::Mode::ALTERNATE);
+	servo2.alternateFunction(9);
+
 	//TODO integrate all the logging stuff
 	ParafoilTest::getInstance().start();
+
+	miosix::Thread::sleep(2000);
+	ParafoilTest::getInstance().wingController->stop();
+	ParafoilTest::getInstance().wingController->start();
+
+	while(true)
+	{}
 
 	return 0;
 } 

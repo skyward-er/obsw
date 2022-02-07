@@ -63,7 +63,7 @@ namespace ParafoilTestDev
 {
     struct WingAlgorithmData
     {
-        uint64_t timestamp; //First timestamp is 0
+        uint64_t timestamp; //First timestamp is 0 (in microseconds)
         float servo1Angle;  //degrees
         float servo2Angle;  //degrees
     };
@@ -79,7 +79,14 @@ namespace ParafoilTestDev
          * @param servo2 The second servo
          * @param filename The csv file where all the operations are stored
          */
-        WingAlgorithm(WingServo* servo1, WingServo* servo2, const char* filename);
+        WingAlgorithm(ServoInterface* servo1, ServoInterface* servo2, const char* filename);
+
+        /**
+         * @brief Construct a new Wing Algorithm object
+         * 
+         * @param filename The csv file where all the operations are stored
+         */
+        WingAlgorithm(const char* filename);
 
         /**
          * @brief This method parses the file and stores it into a std::vector
@@ -88,6 +95,13 @@ namespace ParafoilTestDev
          * @return false If something went wrong
          */
         bool init() override;
+
+        /**
+         * @brief Set the Servos objects
+         * @param servo1 The first algorithm servo
+         * @param servo2 The second algorithm servo
+         */
+        void setServo(ServoInterface* servo1, ServoInterface* servo2);
 
         /**
          * @brief Adds manually the step in case of fast debug needs
@@ -113,14 +127,19 @@ namespace ParafoilTestDev
         void step() override;
 
         //Actuators
-        WingServo* servo1;
-        WingServo* servo2;
+        ServoInterface* servo1;
+        ServoInterface* servo2;
         //Offset timestamp
         uint64_t timeStart;
         //Procedure
         std::vector<WingAlgorithmData> steps;
         //File parser
         CSVParser<WingAlgorithmData> parser;
-        bool fileValid = false;
+        bool fileValid      = false;
+        //This boolean is used to understand when to reset
+        //the index where the algorithm has stopped.
+        //In case of end call, we want to be able to perform
+        //another time this algorithm starting from 0
+        bool shouldReset    = false;
     };
 }

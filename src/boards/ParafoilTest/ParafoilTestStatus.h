@@ -44,10 +44,10 @@ namespace ParafoilTestDev
         uint8_t parafoil_test = OK;
 
         //Specific errors
-        uint8_t logger      = OK;
-        uint8_t eventBroker = OK;
-        uint8_t sensors     = OK;
-        uint8_t radio       = OK;
+        uint8_t logger          = OK;
+        uint8_t eventBroker     = OK;
+        uint8_t sensors         = OK;
+        uint8_t radio           = OK;
 
         /**
          * @brief Method to set a specific component in an error state

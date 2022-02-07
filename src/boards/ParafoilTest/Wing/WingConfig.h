@@ -31,6 +31,16 @@ using namespace Boardcore;
  */
 namespace ParafoilTestDev
 {
+    /**
+     * ALGORITHM CONFIGURATION
+     */
+    static const uint32_t   WING_UPDATE_PERIOD = 10; //milliseconds
+    static const uint8_t    WING_CONTROLLER_ID = 100; //TODO define a correct ID
+
+    /**
+     * SERVOS CONFIGURATIONS
+     */
+
     //16 bit, 45MHz, no DMA timer
     static TIM_TypeDef* WING_SERVO1_TIMER = TIM13;
     static TIM_TypeDef* WING_SERVO2_TIMER = TIM14;
@@ -40,7 +50,7 @@ namespace ParafoilTestDev
 
     //Servo dipendent variables
     static const unsigned int WING_SERVO_MIN_PULSE = 1000;
-    static const unsigned int WING_SERVO_MAX_PULSE = 2000;
+    static const unsigned int WING_SERVO_MAX_PULSE = 2500;
     static const unsigned int WING_SERVO_FREQUENCY = 50;
 
     static const float WING_SERVO1_MAX_POSITION = 180; //degrees
