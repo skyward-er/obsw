@@ -28,9 +28,9 @@ using namespace Boardcore;
 namespace ParafoilTestDev
 {
     //TODO change the pins to something correct
-    static miosix::GpioPin XBEE_CS(GPIOB_BASE, 6);
-    static miosix::GpioPin XBEE_ATTN(GPIOB_BASE, 7);
-    static miosix::GpioPin XBEE_RESET(GPIOB_BASE, 8);
+    static miosix::GpioPin XBEE_CS(GPIOA_BASE, 3);
+    static miosix::GpioPin XBEE_ATTN(GPIOF_BASE, 10); //Interrupt pin (THE SAME AS THE RADIO.CPP)
+    static miosix::GpioPin XBEE_RESET(GPIOA_BASE, 4);
 
     //Data rate
     static const bool XBEE_80KBPS_DATA_RATE = true;

@@ -121,11 +121,6 @@ namespace ParafoilTestDev
         void end();
 
     protected:
-        /**
-         * @brief This method implements the algorithm step based on the current timestamp
-         */
-        void step() override;
-
         //Actuators
         ServoInterface* servo1;
         ServoInterface* servo2;
@@ -141,5 +136,10 @@ namespace ParafoilTestDev
         //In case of end call, we want to be able to perform
         //another time this algorithm starting from 0
         bool shouldReset    = false;
+
+        /**
+         * @brief This method implements the algorithm step based on the current timestamp
+         */
+        void step() override;
     };
 }

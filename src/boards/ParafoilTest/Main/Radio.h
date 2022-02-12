@@ -23,11 +23,15 @@
 
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
+#include <scheduler/TaskScheduler.h>
 
 /**
- * @brief This class defines the interactions beetween the radio module (xbee)
- * and the mavlink messages enumeration. It is used as a main class about these radio 
- * sub modules such as TMRepository and TMCController
+ * @brief This class represents the radio module. It allows the communications
+ * between the xbee radio module and the on board software. The main tasks are about
+ * sending automatic updates to ground based on the current state (High rate telemetry
+ * or Low rate telemetry) and handle the messages from the ground station.
+ * To handle the various messages there is an apposit callback method and,
+ * to pack the optional reply data we use the TMRepository singleton. 
  */
 
 namespace ParafoilTestDev
@@ -35,11 +39,66 @@ namespace ParafoilTestDev
     class Radio
     {
     public:
-        
         /**
          * @brief The xbee module driver
          */
         Xbee::Xbee* xbee;
+
+        /**
+         * @brief Construct a new Radio object
+         * 
+         * @param xbee_bus The Xbee SPI bus
+         */
+        Radio(SPIBusInterface& xbee_bus, TaskScheduler* scheduler);
+
+        /**
+         * @brief Destroy the Radio object
+         */
+        ~Radio();
+
+        /**
+         * @brief Method called when a mavlink message is received
+         * 
+         * @param msg The parsed message
+         */
+        void handleMavlinkMessage(const mavlink_message_t& msg);
+
+        /**
+         * @brief This method is used to add in send queue
+         * the requested message. It is necessary to call the 
+         * TMrepository to process the actual packet.
+         * 
+         * @param tm_id The requested message id
+         * @return boolean that indicates the operation's result
+         */
+        bool sendTelemetry(const uint8_t tm_id);
+
+        /**
+         * @brief Method automatically called by the task
+         * scheduler that sends the high rate telemetry
+         */
+        void sendHRTelemetry();
+
+        /**
+         * @brief Method automatically called by the task
+         * scheduler that sends the high rate telemetry
+         */
+        void sendLRTelemetry();
+
+        /**
+         * @brief Every time a message is received we send
+         * an ack message to tell the ground station that we
+         * received the message
+         * 
+         * @param msg The message received that we need to ack
+         */
+        void sendAck(const mavlink_message_t& msg);
+
+        bool start();
+
+        void logStatus();
+
+    private:
 
         /**
          * @brief The mavlink driver
@@ -47,32 +106,19 @@ namespace ParafoilTestDev
         MavDriver* mav_driver;
 
         /**
-         * @brief Construct a new Radio object
-         * 
-         * @param xbee_bus The Xbee SPI bus
+         * @brief SPI bus
          */
-        Radio(SPIBusInterface& xbee_bus);
+        SPIBusInterface& xbee_bus;
 
         /**
-         * @brief Destroy the Radio object
+         * @brief Main task scheduler
          */
-        ~Radio();
+        TaskScheduler* scheduler;
 
-        bool start();
-
-        void logStatus();
-
-    private:
-        
         /**
          * @brief Radio frame received callback method.
          * It's used for logging purposes
          */
         void onXbeeFrameReceived(Xbee::APIFrame& frame);
-
-        /**
-         * @brief SPI bus
-         */
-        SPIBusInterface& xbee_bus;
     };
 }

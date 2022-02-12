@@ -37,7 +37,8 @@ using namespace Boardcore;
 
 namespace ParafoilTestDev
 {
-    //GPS settings
+    //GPS settings TODO SPI
+    static miosix::GpioPin GPS_CS(GPIOA_BASE, 4);
     static constexpr unsigned int GPS_SAMPLE_RATE       = 25;
     static constexpr unsigned int GPS_SAMPLE_PERIOD     = 1000 / GPS_SAMPLE_RATE;
     static constexpr unsigned int GPS_BAUD_RATE         = 460800;

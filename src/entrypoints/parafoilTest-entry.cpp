@@ -21,28 +21,41 @@
  */ 
 #include <miosix.h>
 #include <ParafoilTest.h>
+#include <Configs/XbeeConfig.h>
 
-using namespace ParafoilTestDev;
+using namespace ParafoilTestDev;	
 
 int main()
 {
-	miosix::GpioPin servo(GPIOA_BASE, 6);
-	servo.mode(miosix::Mode::ALTERNATE);
-	servo.alternateFunction(9);
+	miosix::GpioPin spiSck(GPIOF_BASE, 7);
+	miosix::GpioPin spiMiso(GPIOF_BASE, 8);
+	miosix::GpioPin spiMosi(GPIOF_BASE, 9);
 
-	miosix::GpioPin servo2(GPIOA_BASE, 7);
-	servo2.mode(miosix::Mode::ALTERNATE);
-	servo2.alternateFunction(9);
+	spiSck.mode(miosix::Mode::ALTERNATE);
+    spiSck.alternateFunction(5);
+    spiMiso.mode(miosix::Mode::ALTERNATE);
+    spiMiso.alternateFunction(5);
+    spiMosi.mode(miosix::Mode::ALTERNATE);
+    spiMosi.alternateFunction(5);
+
+	XBEE_CS.mode(miosix::Mode::OUTPUT);
+	XBEE_CS.high();
+
+	XBEE_ATTN.mode(miosix::Mode::INPUT);
+
+	XBEE_RESET.mode(miosix::Mode::OUTPUT);
+	XBEE_RESET.low();
+
+	RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;  // Enable SPI5 bus
 
 	//TODO integrate all the logging stuff
 	ParafoilTest::getInstance().start();
 
-	miosix::Thread::sleep(2000);
-	ParafoilTest::getInstance().wingController->stop();
-	ParafoilTest::getInstance().wingController->start();
-
 	while(true)
-	{}
+	{
+		ParafoilTest::getInstance().radio ->sendHRTelemetry();
+		miosix::Thread::sleep(100);
+	}
 
 	return 0;
 } 

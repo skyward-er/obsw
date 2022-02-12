@@ -27,6 +27,12 @@ namespace ParafoilTestDev
     /* Mavlink Driver queue settings */
     static constexpr unsigned int MAV_OUT_QUEUE_LEN   = 10;
     static constexpr unsigned int MAV_PKT_SIZE        = 255;
-    static constexpr long long MAV_OUT_BUFFER_MAX_AGE = 200;
+    static constexpr size_t MAV_OUT_BUFFER_MAX_AGE    = 200;
 
+    //These two values are taken as is 
+    static const unsigned int TMTC_MAV_SYSID  = 171;
+    static const unsigned int TMTC_MAV_COMPID = 96;
+
+    /* Min guaranteed sleep time after each packet sent (milliseconds) */
+    static const uint16_t SLEEP_AFTER_SEND = 0;
 }

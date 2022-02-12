@@ -25,7 +25,6 @@
 #include "Sensors.h"
 
 using std::bind;
-//using std::function;
 
 using namespace Boardcore;
 
@@ -64,8 +63,8 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSinit()
     {
-        //Instantiate the object
-        gps_ublox = new UbloxGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE);
+        //Instantiate the object TODO set the sample rate and stuff
+        gps_ublox = new UbloxGPSSPI(spiInterface, GPS_CS);
 
         //Bind the information with the callback method
         SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,

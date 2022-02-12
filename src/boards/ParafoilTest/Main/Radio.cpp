@@ -21,23 +21,44 @@
  */
 
 #include <Main/Radio.h>
+#include <TelemetriesTelecommands/TMRepository.h>
 #include <Configs/XbeeConfig.h>
 #include <drivers/spi/SPIDriver.h>
 #include <drivers/Xbee/ATCommands.h>
+#include <drivers/interrupt/external_interrupts.h>
+#include <ParafoilTest.h>
 
 using std::bind;
 using namespace std::placeholders;
 using namespace Boardcore;
+
+// Xbee ATTN interrupt
+/**
+ * @brief We must define the interrupt handler. This calls
+ * the message handler which is: handleMavlinkMessage
+ */
+void __attribute__((used)) EXTI10_IRQHandlerImpl()
+{
+    using namespace ParafoilTestDev;
+
+    if (ParafoilTest::getInstance().radio->xbee != nullptr)
+    {
+        ParafoilTest::getInstance().radio->xbee->handleATTNInterrupt();
+    }
+}
 
 namespace ParafoilTestDev
 {
     /**
     * PUBLIC METHODS
     */
-    Radio::Radio(SPIBusInterface& xbee_bus) : xbee_bus(xbee_bus)
+    Radio::Radio(SPIBusInterface& xbee_bus, TaskScheduler* scheduler) : xbee_bus(xbee_bus)
     {
         //Create a SPI configuration object
         SPIBusConfig config{};
+
+        //Set the internal scheduler
+        this -> scheduler = scheduler;
 
         //Add a clock divider config
         config.clockDivider = SPI::ClockDivider::DIV_16;
@@ -55,9 +76,17 @@ namespace ParafoilTestDev
         //Set the data rate
         Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
-        //TODO Create the mavlink driver
-        
-        
+        //Create a lambda function that interfaces the driver with
+        //the object handleMavlikMessage of this class
+        std::function<void (MavDriver* driver, const mavlink_message_t& msg)> 
+            handleMessage([=](MavDriver* driver, const mavlink_message_t& msg) 
+            {
+                this -> handleMavlinkMessage(msg);
+            });
+        mav_driver = new MavDriver(xbee, handleMessage, SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
+
+        //Enable external interrupt on F10 pin
+        enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
     }
 
     Radio::~Radio()
@@ -65,9 +94,47 @@ namespace ParafoilTestDev
 
     }
 
+    void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
+    {
+        printf("provola\n");
+    }
+
+    bool Radio::sendTelemetry(const uint8_t tm_id)
+    {
+        //Enqueue the message
+        bool result = mav_driver -> enqueueMsg(TMRepository::getInstance().packTM(tm_id));
+        //TODO log the operation
+        return result;
+    }
+
+    void Radio::sendHRTelemetry()
+    {
+        mavlink_message_t msg;
+        msg.msgid = 10;
+        mav_driver -> enqueueMsg(msg);
+    }
+
+    void Radio::sendLRTelemetry()
+    {
+
+    }
+
+    void Radio::sendAck(const mavlink_message_t& msg)
+    {
+        mavlink_message_t ackMsg;
+        //Pack the ack message based on the received message
+        mavlink_msg_ack_tm_pack(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &ackMsg, msg.msgid, msg.seq);
+
+        //Put the message in the queue
+        mav_driver -> enqueueMsg(ackMsg);
+        //TODO log the thing
+    }
+
     bool Radio::start()
     {
-        return false;
+        bool result = mav_driver -> start();
+        //TODO start the scheduler
+        return result;
     }
 
     void Radio::logStatus()
@@ -80,6 +147,6 @@ namespace ParafoilTestDev
      */
     void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
     {
-
+        printf("frame received\n");
     }
 }

@@ -82,9 +82,6 @@ namespace ParafoilTestDev
                 status.setError(&ParafoilTestStatus::eventBroker);
             }
 
-            //Start the wing controller
-            wingController -> start();
-
             //Start the sensors sampling
             /*if(!sensors -> start())
             {
@@ -93,11 +90,11 @@ namespace ParafoilTestDev
             }*/
 
             //Start the radio
-            /*if(!radio -> start())
+            if(!radio -> start())
             {
                 LOG_ERR(log, "Error starting the radio");
                 status.setError(&ParafoilTestStatus::radio);
-            }*/
+            }
 
             //After all the initializations i log the status
             logger -> log(status);
@@ -150,14 +147,14 @@ namespace ParafoilTestDev
             scheduler = new TaskScheduler();
 
             //Create the wing controller
-            wingController = new WingController(scheduler);
+            //wingController = new WingController(scheduler);
 
             //Create the sensors
-            //SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
+            SPIBusInterface *spiInterface1 = new SPIBus(SPI5);
             //sensors = new Sensors(*spiInterface1, scheduler);
 
             //Create a new radio
-            //radio = new Radio(*spiInterface1);
+            radio = new Radio(*spiInterface1, scheduler);
         }
 
         /**
