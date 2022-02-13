@@ -23,9 +23,11 @@
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
                 "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
                 "${workspaceFolder}/skyward-boardcore/libs/eigen",
+                "${workspaceFolder}/skyward-boardcore/libs/mavlink_skyward_lib",
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src",
                 "${workspaceFolder}/src/boards/ParafoilTest",
                 "${workspaceFolder}/src/boards"
             ],

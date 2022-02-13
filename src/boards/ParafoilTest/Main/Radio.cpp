@@ -76,15 +76,10 @@ namespace ParafoilTestDev
         //Set the data rate
         Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
-        //Create a lambda function that interfaces the driver with
-        //the object handleMavlikMessage of this class
-        std::function<void (MavDriver* driver, const mavlink_message_t& msg)> 
-            handleMessage([=](MavDriver* driver, const mavlink_message_t& msg) 
-            {
-                this -> handleMavlinkMessage(msg);
-            });
-        mav_driver = new MavDriver(xbee, handleMessage, SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
-
+        //Create the mavlink driver
+        mav_driver = new MavDriver(xbee, 
+                                   bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                                   SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
         //Enable external interrupt on F10 pin
         enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
     }
@@ -94,9 +89,9 @@ namespace ParafoilTestDev
 
     }
 
-    void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
+    void Radio::handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg)
     {
-        printf("provola\n");
+        prova = true;
     }
 
     bool Radio::sendTelemetry(const uint8_t tm_id)
@@ -147,6 +142,6 @@ namespace ParafoilTestDev
      */
     void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
     {
-        printf("frame received\n");
+
     }
 }

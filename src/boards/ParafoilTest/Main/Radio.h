@@ -44,6 +44,8 @@ namespace ParafoilTestDev
          */
         Xbee::Xbee* xbee;
 
+        bool prova = false;
+
         /**
          * @brief Construct a new Radio object
          * 
@@ -61,7 +63,7 @@ namespace ParafoilTestDev
          * 
          * @param msg The parsed message
          */
-        void handleMavlinkMessage(const mavlink_message_t& msg);
+        void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
         /**
          * @brief This method is used to add in send queue
@@ -114,6 +116,11 @@ namespace ParafoilTestDev
          * @brief Main task scheduler
          */
         TaskScheduler* scheduler;
+
+        /**
+         * @brief Logger
+         */
+        PrintLogger logger = Logging::getLogger("Radio");
 
         /**
          * @brief Radio frame received callback method.

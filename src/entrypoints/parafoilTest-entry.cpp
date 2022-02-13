@@ -44,7 +44,6 @@ int main()
 	XBEE_ATTN.mode(miosix::Mode::INPUT);
 
 	XBEE_RESET.mode(miosix::Mode::OUTPUT);
-	XBEE_RESET.low();
 
 	RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;  // Enable SPI5 bus
 
@@ -53,7 +52,13 @@ int main()
 
 	while(true)
 	{
-		ParafoilTest::getInstance().radio ->sendHRTelemetry();
+		//ParafoilTest::getInstance().radio ->sendHRTelemetry();
+		if(ParafoilTest::getInstance().radio -> prova)
+		{
+			printf("prova\n");
+			ParafoilTest::getInstance().radio -> prova = false;
+		}
+		
 		miosix::Thread::sleep(100);
 	}
 
