@@ -35,6 +35,7 @@ project(SkywardParafoilTest)
 add_executable(parafoilTest-entry 	src/entrypoints/parafoilTest-entry.cpp 
 					src/boards/ParafoilTest/Main/Sensors.cpp
 					src/boards/ParafoilTest/Main/Radio.cpp
+					src/boards/ParafoilTest/TelemetriesTelecommands/TMRepository.cpp
 					src/boards/ParafoilTest/Wing/WingServo.cpp
 					src/boards/ParafoilTest/Wing/WingAlgorithm.cpp
 					src/boards/ParafoilTest/Wing/WingController.cpp)

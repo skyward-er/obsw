@@ -23,6 +23,7 @@
 #include <Main/Radio.h>
 #include <TelemetriesTelecommands/TMRepository.h>
 #include <Configs/XbeeConfig.h>
+#include <Configs/RadioConfig.h>
 #include <drivers/spi/SPIDriver.h>
 #include <drivers/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
@@ -60,6 +61,9 @@ namespace ParafoilTestDev
         //Set the internal scheduler
         this -> scheduler = scheduler;
 
+        //Set the internal telemetry status to low rate
+        this -> HRtelemetry = false;
+
         //Add a clock divider config
         config.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -68,20 +72,12 @@ namespace ParafoilTestDev
                               XBEE_CS,
                               XBEE_ATTN,
                               XBEE_RESET);
-        
-        //Set the frame receive callback
-        xbee -> setOnFrameReceivedListener(
-                bind(&Radio::onXbeeFrameReceived, this, _1));
-
-        //Set the data rate
-        Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
         //Create the mavlink driver
         mav_driver = new MavDriver(xbee, 
                                    bind(&Radio::handleMavlinkMessage, this, _1, _2),
                                    SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
-        //Enable external interrupt on F10 pin
-        enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+        init();
     }
 
     Radio::~Radio()
@@ -91,7 +87,7 @@ namespace ParafoilTestDev
 
     void Radio::handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg)
     {
-        prova = true;
+        
     }
 
     bool Radio::sendTelemetry(const uint8_t tm_id)
@@ -104,14 +100,22 @@ namespace ParafoilTestDev
 
     void Radio::sendHRTelemetry()
     {
-        mavlink_message_t msg;
-        msg.msgid = 10;
-        mav_driver -> enqueueMsg(msg);
+        //I send this telemetry if and only if the status is
+        //in high rate telemetry
+        if(HRtelemetry)
+        {
+            sendTelemetry(MAV_HR_TM_ID);
+        }
     }
 
     void Radio::sendLRTelemetry()
     {
-
+        //I send this telemetry if and only if the status is
+        //in low rate telemetry
+        if(!HRtelemetry)
+        {
+            sendTelemetry(MAV_LR_TM_ID);
+        }
     }
 
     void Radio::sendAck(const mavlink_message_t& msg)
@@ -125,10 +129,21 @@ namespace ParafoilTestDev
         //TODO log the thing
     }
 
+    void Radio::toggleHRTelemetry()
+    {
+        //Lock the kernel to avoid context switch during this toggle
+        miosix::PauseKernelLock kLock;
+        HRtelemetry = !HRtelemetry;
+    }
+
     bool Radio::start()
     {
+        //Start the mavlink driver
         bool result = mav_driver -> start();
-        //TODO start the scheduler
+
+        //Start the scheduler
+        result &= scheduler -> start();
+
         return result;
     }
 
@@ -142,6 +157,27 @@ namespace ParafoilTestDev
      */
     void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
     {
+        //Log the thing
+    }
 
+    void Radio::init()
+    {
+        //Create the lambdas to be called
+        TaskScheduler::function_t HRfunction([=]() {sendHRTelemetry();});
+        TaskScheduler::function_t LRfunction([=]() {sendLRTelemetry();});
+        
+        //Register the LR and HR tasks in the scheduler
+        scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
+        scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
+
+        //Set the frame receive callback
+        xbee -> setOnFrameReceivedListener(
+                bind(&Radio::onXbeeFrameReceived, this, _1));
+
+        //Set the data rate
+        Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
+
+        //Enable external interrupt on F10 pin
+        enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
     }
 }

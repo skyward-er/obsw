@@ -18,42 +18,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
-#include <miosix.h>
-#include <ParafoilTest.h>
-#include <Configs/XbeeConfig.h>
+ */
+#pragma once
 
-using namespace ParafoilTestDev;	
-
-int main()
+namespace ParafoilTestDev
 {
-	miosix::GpioPin spiSck(GPIOF_BASE, 7);
-	miosix::GpioPin spiMiso(GPIOF_BASE, 8);
-	miosix::GpioPin spiMosi(GPIOF_BASE, 9);
+    //TODO update with the correct values
+    static const uint32_t HR_UPDATE_PERIOD = 1;     //Milliseconds
+    static const uint32_t LR_UPDATE_PERIOD = 100;   //Milliseconds
 
-	spiSck.mode(miosix::Mode::ALTERNATE);
-    spiSck.alternateFunction(5);
-    spiMiso.mode(miosix::Mode::ALTERNATE);
-    spiMiso.alternateFunction(5);
-    spiMosi.mode(miosix::Mode::ALTERNATE);
-    spiMosi.alternateFunction(5);
-
-	XBEE_CS.mode(miosix::Mode::OUTPUT);
-	XBEE_CS.high();
-
-	XBEE_ATTN.mode(miosix::Mode::INPUT);
-
-	XBEE_RESET.mode(miosix::Mode::OUTPUT);
-
-	RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;  // Enable SPI5 bus
-
-	//TODO integrate all the logging stuff
-	ParafoilTest::getInstance().start();
-
-	while(true)
-	{	
-		miosix::Thread::sleep(100);
-	}
-
-	return 0;
-} 
+    //TODO define the correct id
+    static const uint8_t RADIO_ID = 200;
+}

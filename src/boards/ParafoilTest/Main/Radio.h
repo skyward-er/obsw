@@ -44,8 +44,6 @@ namespace ParafoilTestDev
          */
         Xbee::Xbee* xbee;
 
-        bool prova = false;
-
         /**
          * @brief Construct a new Radio object
          * 
@@ -96,6 +94,11 @@ namespace ParafoilTestDev
          */
         void sendAck(const mavlink_message_t& msg);
 
+        /**
+         * @brief Method to change the telemetry rate
+         */
+        void toggleHRTelemetry();
+
         bool start();
 
         void logStatus();
@@ -118,6 +121,13 @@ namespace ParafoilTestDev
         TaskScheduler* scheduler;
 
         /**
+         * @brief high rate telemetry status.
+         * false -> LR telemetry
+         * true  -> HR telemetry
+         */
+        bool HRtelemetry;
+
+        /**
          * @brief Logger
          */
         PrintLogger logger = Logging::getLogger("Radio");
@@ -127,5 +137,11 @@ namespace ParafoilTestDev
          * It's used for logging purposes
          */
         void onXbeeFrameReceived(Xbee::APIFrame& frame);
+
+        /**
+         * @brief Method to initialize all the variables and objects
+         * and to register the HR and LR tasks into the task scheduler
+         */
+        void init();
     };
 }
