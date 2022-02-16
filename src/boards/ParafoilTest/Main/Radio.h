@@ -33,7 +33,6 @@
  * To handle the various messages there is an apposit callback method and,
  * to pack the optional reply data we use the TMRepository singleton. 
  */
-
 namespace ParafoilTestDev
 {
     class Radio

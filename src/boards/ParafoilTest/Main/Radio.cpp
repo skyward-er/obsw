@@ -82,12 +82,118 @@ namespace ParafoilTestDev
 
     Radio::~Radio()
     {
-
+        //TODO destruct
     }
 
     void Radio::handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg)
     {
-        
+        // log status
+        ParafoilTest::getInstance().radio->logStatus();
+
+        // acknowledge
+        sendAck(msg);
+        /*
+        // handle TC
+        switch (msg.msgid)
+        {
+            case MAVLINK_MSG_ID_NOARG_TC:  // basic command
+            {
+                LOG_DEBUG(logger, "Received NOARG command");
+                uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
+
+                // search for the corresponding event and post it
+                auto it = tcMap.find(commandId);
+                if (it != tcMap.end())
+                    sEventBroker->post(Event{it->second}, TOPIC_TMTC);
+                else
+                    LOG_WARN(logger, "Unknown NOARG command {:d}", commandId);
+
+                switch (commandId)
+                {
+                    case MAV_CMD_BOARD_RESET:
+                        logger->stop();
+                        LOG_INFO(logger, "Received command BOARD_RESET");
+                        miosix::reboot();
+                        break;
+                    case MAV_CMD_CLOSE_LOG:
+                        logger->stop();
+                        sendTelemetry(MAV_LOGGER_TM_ID);
+                        LOG_INFO(logger, "Received command CLOSE_LOG");
+                        break;
+                    case MAV_CMD_START_LOGGING:
+                        ParafoilTest::getInstance().startLogger();
+                        sendTelemetry(MAV_LOGGER_TM_ID);
+                        LOG_INFO(logger, "Received command START_LOG");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+
+            case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
+            {
+                uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
+                LOG_DEBUG(logger, "Received TM request : id = {:d}", tmId);
+
+                // send corresponding telemetry or NACK
+                sendTelemetry(tmId);
+
+                break;
+            }
+            
+            case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
+            {
+                float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
+                float pitch =
+                    mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
+                float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
+                LOG_DEBUG(logger,
+                        "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
+                        "pitch: {:f}, yaw: {:f}",
+                        roll, pitch, yaw);
+                ParafoilTest::getInstance().state_machines->setInitialOrientation(
+                    roll, pitch, yaw);
+                break;
+            }
+
+            case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+            {
+                float latitude =
+                    mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+                float longitude =
+                    mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+                LOG_DEBUG(
+                    logger,
+                    "Received SET_INITIAL_COORDINATES command. latitude: {:f}, "
+                    "longitude: {:f}",
+                    latitude, longitude);
+                ParafoilTest::getInstance().state_machines->setInitialCoordinates(
+                    latitude, longitude);
+                break;
+            }
+            case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
+            {
+                LOG_DEBUG(logger, "Received RAW_EVENT command");
+
+                // post given event on given topic
+                sEventBroker->post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
+                                mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+                break;
+            }
+
+            case MAVLINK_MSG_ID_PING_TC:
+            {
+                LOG_DEBUG(logger, "Ping received");
+                break;
+            }
+
+            default:
+            {
+                LOG_DEBUG(logger, "Received message is not of a known type");
+                break;
+            }
+        }*/
     }
 
     bool Radio::sendTelemetry(const uint8_t tm_id)
@@ -149,7 +255,7 @@ namespace ParafoilTestDev
 
     void Radio::logStatus()
     {
-
+        //TODO log
     }
 
     /**

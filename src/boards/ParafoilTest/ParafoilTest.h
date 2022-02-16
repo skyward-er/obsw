@@ -29,6 +29,7 @@
 #include <Main/Radio.h>
 #include <events/EventBroker.h>
 #include <drivers/spi/SPIDriver.h>
+#include <FlightModeManager/FMMController.h>
 
 using namespace Boardcore;
 
@@ -66,6 +67,11 @@ namespace ParafoilTestDev
         Radio* radio;
 
         /**
+         * @brief Main FSM
+         */
+        FMMController* FMM;
+
+        /**
          * @brief Task scheduler
          */
         TaskScheduler* scheduler;
@@ -89,6 +95,13 @@ namespace ParafoilTestDev
                 status.setError(&ParafoilTestStatus::sensors);
             }*/
 
+            //Start the main FSM
+            if(!FMM -> start())
+            {
+                LOG_ERR(log, "Error starting the main FSM");
+                status.setError(&ParafoilTestStatus::FMM);
+            }
+
             //Start the radio
             if(!radio -> start())
             {
@@ -97,7 +110,7 @@ namespace ParafoilTestDev
             }
 
             //After all the initializations i log the status
-            logger -> log(status);
+            SDlogger -> log(status);
 
             //If all is ok i can send the signal to the FSMs
             if(status.parafoil_test != OK)
@@ -115,14 +128,14 @@ namespace ParafoilTestDev
     private:
         
         /**
-         * @brief Logger in debug mode
+         * @brief SDlogger in debug mode
          */
         PrintLogger log = Logging::getLogger("ParafoilTest");
 
         /**
-         * @brief Logger singleton for SD
+         * @brief SDlogger singleton for SD
          */
-        Logger* logger;
+        Logger* SDlogger;
 
         /**
          * @brief Status memory
@@ -135,10 +148,10 @@ namespace ParafoilTestDev
         ParafoilTest()
         {
             //Take the singleton instance of SD logger
-            logger = &Logger::getInstance();
+            SDlogger = &Logger::getInstance();
 
             //Start the logging
-            startLogger();
+            startSDlogger();
 
             //Store the broker
             broker = &sEventBroker;
@@ -146,35 +159,38 @@ namespace ParafoilTestDev
             //Create the task scheduler
             scheduler = new TaskScheduler();
 
-            //Create the wing controller
-            //wingController = new WingController(scheduler);
-
             //Create the sensors
             SPIBusInterface *spiInterface1 = new SPIBus(SPI5);
             //sensors = new Sensors(*spiInterface1, scheduler);
+
+            //Create the wing controller
+            //wingController = new WingController(scheduler);
+
+            //Create the main FSM
+            FMM = new FMMController();
 
             //Create a new radio
             radio = new Radio(*spiInterface1, scheduler);
         }
 
         /**
-         * @brief Method to start the logger singleton
+         * @brief Method to start the SDlogger singleton
          */
-        void startLogger()
+        void startSDlogger()
         {
             try
             {
-                logger -> start();
+                SDlogger -> start();
                 //Log in serial
-                LOG_INFO(log, "Logger started");
+                LOG_INFO(log, "SDlogger started");
             }
             catch(const std::runtime_error& error)
             {
-                LOG_ERR(log, "SD Logger init error");
+                LOG_ERR(log, "SD SDlogger init error");
                 status.setError(&ParafoilTestStatus::logger);
             }
             //Log the status
-            logger -> log(logger -> getLoggerStats());
+            SDlogger -> log(SDlogger -> getLoggerStats());
         }
     };
 }

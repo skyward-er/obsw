@@ -28,8 +28,7 @@
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/src/boards/ParafoilTest",
-                "${workspaceFolder}/src/boards"
+                "${workspaceFolder}/src/boards/ParafoilTest"
             ],
             "browse": {
                 "path": [
@@ -51,8 +50,9 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
-                    "${workspaceFolder}/src/boards",
-                    "${workspaceFolder}/src/tests"
+                    "${workspaceFolder}/src/boards/ParafoilTest",
+                    "${workspaceFolder}/src/tests",
+                    "${workspaceFolder}/src"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             },

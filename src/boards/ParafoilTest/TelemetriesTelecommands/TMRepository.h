@@ -87,5 +87,10 @@ namespace ParafoilTestDev
             mavlink_sensors_tm_t sensors_tm;
             mavlink_test_tm_t test_tm;
         } tm_repository;
+
+        /**
+         * @brief Logger
+         */
+        PrintLogger logger = Logging::getLogger("TMRepository");
     };
 }
