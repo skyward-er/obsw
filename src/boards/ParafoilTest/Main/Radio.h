@@ -24,6 +24,7 @@
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <drivers/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
+#include <common/events/Events.h>
 
 /**
  * @brief This class represents the radio module. It allows the communications
@@ -104,6 +105,37 @@ namespace ParafoilTestDev
 
     private:
 
+        //1 to 1 corrispondence of every message to its event
+        const std::map<uint8_t, uint8_t> tcMap = {
+        {MAV_CMD_ARM, EV_TC_ARM},
+        {MAV_CMD_DISARM, EV_TC_DISARM},
+
+        {MAV_CMD_FORCE_INIT, EV_TC_FORCE_INIT},
+        {MAV_CMD_FORCE_LAUNCH, EV_TC_LAUNCH},
+
+        {MAV_CMD_NOSECONE_OPEN, EV_TC_NC_OPEN},
+        {MAV_CMD_DPL_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
+        {MAV_CMD_DPL_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
+        {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
+
+        {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
+        {MAV_CMD_ARB_WIGGLE_SERVO, EV_TC_ABK_WIGGLE_SERVO},
+        {MAV_CMD_DISABLE_AEROBRAKES, EV_TC_ABK_DISABLE},
+        {MAV_CMD_TEST_AEROBRAKES, EV_TC_TEST_ABK},
+
+        {MAV_CMD_CALIBRATE_ALGOS, EV_TC_CALIBRATE_ALGOS},
+        {MAV_CMD_CALIBRATE_SENSORS, EV_TC_CALIBRATE_SENSORS},
+
+        {MAV_CMD_SERIAL_TM, EV_TC_SERIAL_TM},
+        {MAV_CMD_RADIO_TM, EV_TC_RADIO_TM},
+
+        {MAV_CMD_START_LOGGING, EV_TC_START_LOG},
+        {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
+
+        {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
+        {MAV_CMD_BOARD_RESET, EV_TC_RESET_BOARD},
+        {MAV_CMD_END_MISSION, EV_TC_END_MISSION}};
+
         /**
          * @brief The mavlink driver
          */
@@ -130,6 +162,11 @@ namespace ParafoilTestDev
          * @brief Logger
          */
         PrintLogger logger = Logging::getLogger("Radio");
+
+        /**
+         * @brief SD logger (pre started because of the ParafoilTest.h main class)
+         */
+        Logger* SDlogger = &Logger::getInstance();
 
         /**
          * @brief Radio frame received callback method.

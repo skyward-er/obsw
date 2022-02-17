@@ -27,9 +27,9 @@ using namespace ParafoilTestDev;
 
 int main()
 {
-	miosix::GpioPin spiSck(GPIOF_BASE, 7);
-	miosix::GpioPin spiMiso(GPIOF_BASE, 8);
-	miosix::GpioPin spiMosi(GPIOF_BASE, 9);
+	miosix::GpioPin spiSck(GPIOA_BASE, 5);
+	miosix::GpioPin spiMiso(GPIOB_BASE, 4);
+	miosix::GpioPin spiMosi(GPIOA_BASE, 7);
 
 	spiSck.mode(miosix::Mode::ALTERNATE);
     spiSck.alternateFunction(5);
@@ -45,7 +45,7 @@ int main()
 
 	XBEE_RESET.mode(miosix::Mode::OUTPUT);
 
-	RCC->APB2ENR |= RCC_APB2ENR_SPI5EN;  // Enable SPI5 bus
+	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;  // Enable SPI1 bus
 
 	//TODO integrate all the logging stuff
 	ParafoilTest::getInstance().start();

@@ -28,6 +28,7 @@
 #include <drivers/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <ParafoilTest.h>
+#include <common/events/Topics.h>
 
 using std::bind;
 using namespace std::placeholders;
@@ -90,9 +91,11 @@ namespace ParafoilTestDev
         // log status
         ParafoilTest::getInstance().radio->logStatus();
 
+        LOG_DEBUG(logger, "Message received!");
+
         // acknowledge
         sendAck(msg);
-        /*
+        
         // handle TC
         switch (msg.msgid)
         {
@@ -104,24 +107,24 @@ namespace ParafoilTestDev
                 // search for the corresponding event and post it
                 auto it = tcMap.find(commandId);
                 if (it != tcMap.end())
-                    sEventBroker->post(Event{it->second}, TOPIC_TMTC);
+                    sEventBroker.post(Event{it->second}, TOPIC_TMTC);
                 else
                     LOG_WARN(logger, "Unknown NOARG command {:d}", commandId);
 
                 switch (commandId)
                 {
                     case MAV_CMD_BOARD_RESET:
-                        logger->stop();
+                        SDlogger->stop();
                         LOG_INFO(logger, "Received command BOARD_RESET");
                         miosix::reboot();
                         break;
                     case MAV_CMD_CLOSE_LOG:
-                        logger->stop();
+                        SDlogger->stop();
                         sendTelemetry(MAV_LOGGER_TM_ID);
                         LOG_INFO(logger, "Received command CLOSE_LOG");
                         break;
                     case MAV_CMD_START_LOGGING:
-                        ParafoilTest::getInstance().startLogger();
+                        ParafoilTest::getInstance().startSDlogger();
                         sendTelemetry(MAV_LOGGER_TM_ID);
                         LOG_INFO(logger, "Received command START_LOG");
                         break;
@@ -141,7 +144,7 @@ namespace ParafoilTestDev
 
                 break;
             }
-            
+            /*
             case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
             {
                 float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
@@ -171,13 +174,13 @@ namespace ParafoilTestDev
                 ParafoilTest::getInstance().state_machines->setInitialCoordinates(
                     latitude, longitude);
                 break;
-            }
+            }*/
             case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
             {
                 LOG_DEBUG(logger, "Received RAW_EVENT command");
 
                 // post given event on given topic
-                sEventBroker->post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
+                sEventBroker.post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
                                 mavlink_msg_raw_event_tc_get_Topic_id(&msg));
                 break;
             }
@@ -193,7 +196,7 @@ namespace ParafoilTestDev
                 LOG_DEBUG(logger, "Received message is not of a known type");
                 break;
             }
-        }*/
+        }
     }
 
     bool Radio::sendTelemetry(const uint8_t tm_id)
@@ -273,8 +276,8 @@ namespace ParafoilTestDev
         TaskScheduler::function_t LRfunction([=]() {sendLRTelemetry();});
         
         //Register the LR and HR tasks in the scheduler
-        scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
-        scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
+        //scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
+        //scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
 
         //Set the frame receive callback
         xbee -> setOnFrameReceivedListener(

@@ -125,6 +125,26 @@ namespace ParafoilTestDev
             }
         }
 
+        /**
+         * @brief Method to start the SDlogger singleton
+         */
+        void startSDlogger()
+        {
+            try
+            {
+                SDlogger -> start();
+                //Log in serial
+                LOG_INFO(log, "SDlogger started");
+            }
+            catch(const std::runtime_error& error)
+            {
+                LOG_ERR(log, "SD SDlogger init error");
+                status.setError(&ParafoilTestStatus::logger);
+            }
+            //Log the status
+            SDlogger -> log(SDlogger -> getLoggerStats());
+        }
+
     private:
         
         /**
@@ -160,7 +180,7 @@ namespace ParafoilTestDev
             scheduler = new TaskScheduler();
 
             //Create the sensors
-            SPIBusInterface *spiInterface1 = new SPIBus(SPI5);
+            SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
             //sensors = new Sensors(*spiInterface1, scheduler);
 
             //Create the wing controller
@@ -171,26 +191,6 @@ namespace ParafoilTestDev
 
             //Create a new radio
             radio = new Radio(*spiInterface1, scheduler);
-        }
-
-        /**
-         * @brief Method to start the SDlogger singleton
-         */
-        void startSDlogger()
-        {
-            try
-            {
-                SDlogger -> start();
-                //Log in serial
-                LOG_INFO(log, "SDlogger started");
-            }
-            catch(const std::runtime_error& error)
-            {
-                LOG_ERR(log, "SD SDlogger init error");
-                status.setError(&ParafoilTestStatus::logger);
-            }
-            //Log the status
-            SDlogger -> log(SDlogger -> getLoggerStats());
         }
     };
 }

@@ -33,6 +33,7 @@ namespace ParafoilTestDev
     {
         memset(&status, 0, sizeof(FMMControllerStatus));
         sEventBroker.subscribe(this, TOPIC_FMM);
+        sEventBroker.subscribe(this, TOPIC_TMTC);
     }
 
     FMMController::~FMMController()
