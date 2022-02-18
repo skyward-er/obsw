@@ -133,7 +133,6 @@ namespace ParafoilTestDev
                 }
                 break;
             }
-
             case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
             {
                 uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
@@ -144,37 +143,13 @@ namespace ParafoilTestDev
 
                 break;
             }
-            /*
-            case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
-            {
-                float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
-                float pitch =
-                    mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
-                float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
-                LOG_DEBUG(logger,
-                        "Received SET_INITIAL_ORIENTATION command. roll: {:f}, "
-                        "pitch: {:f}, yaw: {:f}",
-                        roll, pitch, yaw);
-                ParafoilTest::getInstance().state_machines->setInitialOrientation(
-                    roll, pitch, yaw);
-                break;
-            }
+            case MAVLINK_MSG_ID_SET_WING_ALGORITHM_TC: //Set the algorithm to be executed
+                uint8_t algorithm = mavlink_msg_set_wing_algorithm_tc_get_algorithm(&msg);
+                LOG_DEBUG(logger, "Received Algorithm to be executed: algorithm = {:d}", algorithm);
 
-            case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
-            {
-                float latitude =
-                    mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
-                float longitude =
-                    mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
-                LOG_DEBUG(
-                    logger,
-                    "Received SET_INITIAL_COORDINATES command. latitude: {:f}, "
-                    "longitude: {:f}",
-                    latitude, longitude);
-                ParafoilTest::getInstance().state_machines->setInitialCoordinates(
-                    latitude, longitude);
+                //TODO set the algorithm
+
                 break;
-            }*/
             case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
             {
                 LOG_DEBUG(logger, "Received RAW_EVENT command");
@@ -184,13 +159,11 @@ namespace ParafoilTestDev
                                 mavlink_msg_raw_event_tc_get_Topic_id(&msg));
                 break;
             }
-
             case MAVLINK_MSG_ID_PING_TC:
             {
                 LOG_DEBUG(logger, "Ping received");
                 break;
             }
-
             default:
             {
                 LOG_DEBUG(logger, "Received message is not of a known type");

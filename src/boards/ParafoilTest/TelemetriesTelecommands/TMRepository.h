@@ -58,7 +58,6 @@ namespace ParafoilTestDev
                                 uint8_t comp_id = TMTC_MAV_COMPID);
 
     private:
-
         /**
          * @brief Struct containing all TMs in the form of mavlink messages.
          */

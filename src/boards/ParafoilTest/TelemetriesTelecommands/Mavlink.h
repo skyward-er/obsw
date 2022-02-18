@@ -27,7 +27,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#include <mavlink_lib/lynx/mavlink.h>
+#include <mavlink_lib/parafoilTest/mavlink.h>
 #pragma GCC diagnostic pop
 
 #include <drivers/mavlink/MavlinkDriver.h>
@@ -37,7 +37,5 @@ using namespace Boardcore;
 
 namespace ParafoilTestDev
 {
-
     using MavDriver = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
-
 }
