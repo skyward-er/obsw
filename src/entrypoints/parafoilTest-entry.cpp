@@ -22,34 +22,55 @@
 #include <miosix.h>
 #include <ParafoilTest.h>
 #include <Configs/XbeeConfig.h>
+#include <Configs/SensorsConfig.h>
 
 using namespace ParafoilTestDev;	
 
-int main()
+void enablePin()
 {
-	miosix::GpioPin spiSck(GPIOA_BASE, 5);
-	miosix::GpioPin spiMiso(GPIOB_BASE, 4);
-	miosix::GpioPin spiMosi(GPIOA_BASE, 7);
+	GPS_CS.mode(miosix::Mode::OUTPUT);
+	IMU_CS.mode(miosix::Mode::OUTPUT);
+	PRESS_CS.mode(miosix::Mode::OUTPUT);
 
-	spiSck.mode(miosix::Mode::ALTERNATE);
-    spiSck.alternateFunction(5);
-    spiMiso.mode(miosix::Mode::ALTERNATE);
-    spiMiso.alternateFunction(5);
-    spiMosi.mode(miosix::Mode::ALTERNATE);
-    spiMosi.alternateFunction(5);
+	miosix::GpioPin SCK(GPIOA_BASE, 5);
+	miosix::GpioPin MISO(GPIOB_BASE, 4);
+	miosix::GpioPin MOSI(GPIOA_BASE, 7);
+
+	SCK.mode(miosix::Mode::ALTERNATE);
+	MISO.mode(miosix::Mode::ALTERNATE);
+	MOSI.mode(miosix::Mode::ALTERNATE);
+
+	SCK.alternateFunction(5);
+	MISO.alternateFunction(5);
+	MOSI.alternateFunction(5);
+
+	/*XBEE_SCK.mode(miosix::Mode::ALTERNATE);
+    XBEE_SCK.alternateFunction(5);
+    XBEE_MISO.mode(miosix::Mode::ALTERNATE);
+    XBEE_MISO.alternateFunction(5);
+    XBEE_MOSI.mode(miosix::Mode::ALTERNATE);
+    XBEE_MOSI.alternateFunction(5);
 
 	XBEE_CS.mode(miosix::Mode::OUTPUT);
 	XBEE_CS.high();
 
 	XBEE_ATTN.mode(miosix::Mode::INPUT);
 
-	XBEE_RESET.mode(miosix::Mode::OUTPUT);
+	XBEE_RESET.mode(miosix::Mode::OUTPUT);*/
 
+	GPS_CS.high();
+	IMU_CS.high();
+	PRESS_CS.high();
+}
+
+int main()
+{
 	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;  // Enable SPI1 bus
+	RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;  // Enable SPI4 bus
+	enablePin();
 
 	//TODO integrate all the logging stuff
 	ParafoilTest::getInstance().start();
-
 	while(true)
 	{	
 		miosix::Thread::sleep(100);

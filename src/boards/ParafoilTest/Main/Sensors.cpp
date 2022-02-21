@@ -35,22 +35,25 @@ namespace ParafoilTestDev
      */  
     void Sensors::MPU9250init()
     {
+        SPIBusConfig spiConfig{};
+        spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
+        spiConfig.mode         = SPI::Mode::MODE_3;
         //I create first a new SPISlave with all the settings
-        SPISlave slave{spiInterface, IMU_CS, SPIBusConfig{}};
+        SPISlave slave{spiInterface, IMU_CS, spiConfig};
 
         //Instantiate the object
         imu_mpu9250 = new MPU9250(slave, 
                                   IMU_SAMPLE_RATE,
                                   IMU_GYRO_SCALE,
                                   IMU_ACCEL_SCALE,
-                                  SPI::ClockDivider::DIV_4);
+                                  SPI::ClockDivider::DIV_16);
 
         //Bind the information
         SensorInfo info("MPU9250", IMU_SAMPLE_PERIOD,
-                        bind(&Sensors::MPU9250Callback, this), false); 
+                        bind(&Sensors::MPU9250Callback, this), true); 
 
         //Insert the sensor in the common map
-        sensors_map.emplace(std::make_pair(imu_mpu9250, info));
+        //sensors_map.emplace(std::make_pair(imu_mpu9250, info));
 
         //Log the results
         LOG_INFO(log, "IMU MPU9250 Setup done!");
@@ -58,7 +61,9 @@ namespace ParafoilTestDev
 
     void Sensors::MPU9250Callback()
     {
+        MPU9250Data d = imu_mpu9250 -> getLastSample();
         logger -> log(imu_mpu9250 -> getLastSample());
+        LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
     }
 
     void Sensors::UbloxGPSinit()
@@ -68,7 +73,7 @@ namespace ParafoilTestDev
 
         //Bind the information with the callback method
         SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
-                        bind(&Sensors::UbloxGPSCallback, this), false);
+                        bind(&Sensors::UbloxGPSCallback, this), true);
 
         //Insert the sensor in the common map
         sensors_map.emplace(std::make_pair(gps_ublox, info));
@@ -79,7 +84,16 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSCallback()
     {
+        UbloxGPSData d = gps_ublox -> getLastSample();
         logger -> log(gps_ublox -> getLastSample());
+        if(d.fix)
+        {
+            LOG_DEBUG(log, "{:.2f} {:.2f}", d.latitude, d.longitude);
+        }
+        else
+        {
+            LOG_DEBUG(log, "{:d}", d.fix);
+        }
     }
 
     void Sensors::BME280init()
@@ -87,16 +101,17 @@ namespace ParafoilTestDev
         //I first create a SPI slave needed to instantiate the sensor
         SPISlave slave(spiInterface, PRESS_CS, SPIBusConfig{});
 
+        slave.config.clockDivider = SPI::ClockDivider::DIV_16;
+        
         //Instantiate the object
         press_bme280 = new BME280(slave, BME280::BME280_CONFIG_ALL_ENABLED);
         
         //Set the standby time
-        press_bme280 -> setStandbyTime(PRESS_SAMPLE_PERIOD);
+        press_bme280 -> setStandbyTime(PRESS_SAMPLE_RATE);
 
         //Bind the information with the callback method
         SensorInfo info("BME280", PRESS_SAMPLE_PERIOD,
-                        bind(&Sensors::BME280Callback, this), false);
-
+                        bind(&Sensors::BME280Callback, this), true);
         //Insert the sensor in the common map
         sensors_map.emplace(std::make_pair(press_bme280, info));
 
@@ -106,7 +121,9 @@ namespace ParafoilTestDev
 
     void Sensors::BME280Callback()
     {
+        BME280Data d = press_bme280 -> getLastSample();
         logger -> log(press_bme280 -> getLastSample());
+        //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature, d.humidity);
     }
 
     /**

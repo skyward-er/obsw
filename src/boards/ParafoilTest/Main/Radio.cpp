@@ -143,13 +143,13 @@ namespace ParafoilTestDev
 
                 break;
             }
-            case MAVLINK_MSG_ID_SET_WING_ALGORITHM_TC: //Set the algorithm to be executed
+            /*case MAVLINK_MSG_ID_SET_WING_ALGORITHM_TC: //Set the algorithm to be executed
                 uint8_t algorithm = mavlink_msg_set_wing_algorithm_tc_get_algorithm(&msg);
                 LOG_DEBUG(logger, "Received Algorithm to be executed: algorithm = {:d}", algorithm);
 
                 //TODO set the algorithm
 
-                break;
+                break;*/
             case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event
             {
                 LOG_DEBUG(logger, "Received RAW_EVENT command");
@@ -260,6 +260,6 @@ namespace ParafoilTestDev
         Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
         //Enable external interrupt on F10 pin
-        enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+        //enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
     }
 }

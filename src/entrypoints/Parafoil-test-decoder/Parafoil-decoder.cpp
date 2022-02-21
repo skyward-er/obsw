@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Erbetta
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
-#include <drivers/Xbee/Xbee.h>
-
-using namespace Boardcore;
-
-namespace ParafoilTestDev
-{
-    //TODO change the pins to something correct
-    static miosix::GpioPin XBEE_CS(GPIOE_BASE, 4);
-    static miosix::GpioPin XBEE_ATTN(GPIOF_BASE, 10); //Interrupt pin (THE SAME AS THE RADIO.CPP)
-    static miosix::GpioPin XBEE_RESET(GPIOC_BASE, 13);
-
-    static miosix::GpioPin XBEE_SCK(GPIOE_BASE, 2);
-	static miosix::GpioPin XBEE_MISO(GPIOE_BASE, 13);
-	static miosix::GpioPin XBEE_MOSI(GPIOE_BASE, 6);
-
-    //Data rate
-    static const bool XBEE_80KBPS_DATA_RATE = true;
-    static const int XBEE_TIMEOUT           = 5000; //5 seconds
-}
+#include "LogTypes.h"
+#include "logger/decoder/logdecoder.cpp"

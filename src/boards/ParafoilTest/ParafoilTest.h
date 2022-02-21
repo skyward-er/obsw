@@ -89,11 +89,11 @@ namespace ParafoilTestDev
             }
 
             //Start the sensors sampling
-            /*if(!sensors -> start())
+            if(!sensors -> start())
             {
                 LOG_ERR(log, "Error starting sensors");
                 status.setError(&ParafoilTestStatus::sensors);
-            }*/
+            }
 
             //Start the main FSM
             if(!FMM -> start())
@@ -103,11 +103,11 @@ namespace ParafoilTestDev
             }
 
             //Start the radio
-            if(!radio -> start())
+            /*if(!radio -> start())
             {
                 LOG_ERR(log, "Error starting the radio");
                 status.setError(&ParafoilTestStatus::radio);
-            }
+            }*/
 
             //After all the initializations i log the status
             SDlogger -> log(status);
@@ -181,7 +181,7 @@ namespace ParafoilTestDev
 
             //Create the sensors
             SPIBusInterface *spiInterface1 = new SPIBus(SPI1);
-            //sensors = new Sensors(*spiInterface1, scheduler);
+            sensors = new Sensors(*spiInterface1, scheduler);
 
             //Create the wing controller
             //wingController = new WingController(scheduler);
@@ -190,7 +190,7 @@ namespace ParafoilTestDev
             FMM = new FMMController();
 
             //Create a new radio
-            radio = new Radio(*spiInterface1, scheduler);
+            //radio = new Radio(*spiInterface1, scheduler);
         }
     };
 }
