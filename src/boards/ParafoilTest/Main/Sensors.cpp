@@ -113,7 +113,7 @@ namespace ParafoilTestDev
         SensorInfo info("BME280", PRESS_SAMPLE_PERIOD,
                         bind(&Sensors::BME280Callback, this), true);
         //Insert the sensor in the common map
-        sensors_map.emplace(std::make_pair(press_bme280, info));
+        //sensors_map.emplace(std::make_pair(press_bme280, info));
 
         //Log the result
         LOG_INFO(log, "BME280 Setup done!");

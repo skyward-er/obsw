@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/UbloxGPS/UbloxGPSSPI.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <sensors/BME280/BME280.h>
 
@@ -41,7 +41,6 @@ namespace ParafoilTestDev
     static miosix::GpioPin GPS_CS(GPIOG_BASE, 3);
     static constexpr unsigned int GPS_SAMPLE_RATE       = 25;
     static constexpr unsigned int GPS_SAMPLE_PERIOD     = 1000 / GPS_SAMPLE_RATE;
-    static constexpr unsigned int GPS_BAUD_RATE         = 460800;
 
     //IMU MPU9250 settings
     static miosix::GpioPin IMU_CS(GPIOB_BASE, 2);

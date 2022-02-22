@@ -23,7 +23,7 @@
 
 #include <sensors/SensorManager.h>
 #include <sensors/MPU9250/MPU9250.h>
-#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/UbloxGPS/UbloxGPSSPI.h>
 #include <sensors/BME280/BME280.h>
 
 using namespace Boardcore;
@@ -94,7 +94,7 @@ namespace ParafoilTestDev
         /**
          * @brief GPS
          */
-        UbloxGPS* gps_ublox;
+        UbloxGPSSPI* gps_ublox;
 
         /**
          * @brief Barometer
