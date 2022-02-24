@@ -43,10 +43,14 @@ void enablePin()
 	SCK.mode(miosix::Mode::ALTERNATE);
 	MISO.mode(miosix::Mode::ALTERNATE);
 	MOSI.mode(miosix::Mode::ALTERNATE);
+	GPS_TX.mode(miosix::Mode::ALTERNATE);
+	GPS_RX.mode(miosix::Mode::ALTERNATE);
 
 	SCK.alternateFunction(5);
 	MISO.alternateFunction(5);
 	MOSI.alternateFunction(5);
+	GPS_TX.alternateFunction(7);
+	GPS_RX.alternateFunction(7);
 
 	/*XBEE_SCK.mode(miosix::Mode::ALTERNATE);
     XBEE_SCK.alternateFunction(5);
