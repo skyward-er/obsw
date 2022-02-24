@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include <sensors/UbloxGPS/UbloxGPSSPI.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <sensors/BME280/BME280.h>
 

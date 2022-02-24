@@ -23,8 +23,12 @@
 #include <ParafoilTest.h>
 #include <Configs/XbeeConfig.h>
 #include <Configs/SensorsConfig.h>
+#include <diagnostic/CpuMeter.h>
+#include <common/SystemData.h>
 
-using namespace ParafoilTestDev;	
+using namespace miosix;
+using namespace ParafoilTestDev;
+using namespace Boardcore;	
 
 void enablePin()
 {
@@ -65,16 +69,41 @@ void enablePin()
 
 int main()
 {
+	Stats cpu_stat;
+    StatsResult cpu_stat_res;
+    SystemData system_data;
+
 	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;  // Enable SPI1 bus
 	RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;  // Enable SPI4 bus
 	enablePin();
 
 	//TODO integrate all the logging stuff
 	ParafoilTest::getInstance().start();
-	while(true)
-	{	
-		miosix::Thread::sleep(100);
-	}
+	
+	Logger* logger_service = &Logger::getInstance();
 
+    for (;;)
+    {
+        Thread::sleep(1000);
+        logger_service->log(logger_service -> getLoggerStats());
+
+        StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
+
+        system_data.timestamp = miosix::getTick();
+        system_data.cpu_usage = averageCpuUtilization();
+        cpu_stat.add(system_data.cpu_usage);
+
+        cpu_stat_res               = cpu_stat.getStats();
+        system_data.cpu_usage_min  = cpu_stat_res.minValue;
+        system_data.cpu_usage_max  = cpu_stat_res.maxValue;
+        system_data.cpu_usage_mean = cpu_stat_res.mean;
+
+        system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
+        system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
+
+        logger_service->log(system_data);
+        
+        StackLogger::getInstance().log();
+    }
 	return 0;
 } 

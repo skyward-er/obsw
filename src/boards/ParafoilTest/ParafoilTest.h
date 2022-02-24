@@ -39,6 +39,30 @@ using namespace Boardcore;
  */
 namespace ParafoilTestDev
 {
+    enum ThreadIds : uint8_t
+    {
+        THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
+        THID_FMM_FSM,
+        THID_TMTC_FSM,
+        THID_STATS_FSM,
+        THID_ADA_FSM,
+        THID_NAS_FSM,
+        THID_TASK_SCHEDULER
+    }; 
+
+    enum TaskIDs : uint8_t
+    {
+        TASK_SCHEDULER_STATS_ID = 0,
+        TASK_SENSORS_6_MS_ID    = 1,
+        TASK_SENSORS_15_MS_ID   = 2,
+        TASK_SENSORS_20_MS_ID   = 3,
+        TASK_SENSORS_24_MS_ID   = 4,
+        TASK_SENSORS_40_MS_ID   = 5,
+        TASK_SENSORS_1000_MS_ID = 6,
+        TASK_ADA_ID             = 7,
+        TASK_NAS_ID             = 9
+    };
+
     class ParafoilTest : public Singleton<ParafoilTest>
     {
         friend class Singleton<ParafoilTest>;
@@ -96,11 +120,11 @@ namespace ParafoilTestDev
             }
 
             //Start the main FSM
-            if(!FMM -> start())
+            /*if(!FMM -> start())
             {
                 LOG_ERR(log, "Error starting the main FSM");
                 status.setError(&ParafoilTestStatus::FMM);
-            }
+            }*/
 
             //Start the radio
             /*if(!radio -> start())
@@ -187,10 +211,29 @@ namespace ParafoilTestDev
             //wingController = new WingController(scheduler);
 
             //Create the main FSM
-            FMM = new FMMController();
+            //FMM = new FMMController();
 
             //Create a new radio
             //radio = new Radio(*spiInterface1, scheduler);
+        }
+
+        void addSchedulerStatsTask()
+        {
+            // add lambda to log scheduler tasks statistics
+            scheduler->addTask(
+                [&]() {
+                    std::vector<Boardcore::TaskStatsResult> scheduler_stats =
+                        scheduler->getTaskStats();
+
+                    for (TaskStatsResult stat : scheduler_stats)
+                    {
+                        SDlogger->log(stat);
+                    }
+
+                    Boardcore::StackLogger::getInstance().updateStack(THID_TASK_SCHEDULER);
+                },
+                1000,  // 1 hz
+                TASK_SCHEDULER_STATS_ID, Boardcore::TaskScheduler::Policy::SKIP, miosix::getTick());
         }
     };
 }

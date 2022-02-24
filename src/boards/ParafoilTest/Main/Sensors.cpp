@@ -63,7 +63,7 @@ namespace ParafoilTestDev
     {
         MPU9250Data d = imu_mpu9250 -> getLastSample();
         logger -> log(imu_mpu9250 -> getLastSample());
-        LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
+        //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
     }
 
     void Sensors::UbloxGPSinit()
@@ -137,7 +137,7 @@ namespace ParafoilTestDev
 
         //Sensor init
         MPU9250init();
-        UbloxGPSinit();
+        //UbloxGPSinit();
         BME280init();
 
         //Sensor manager instance
