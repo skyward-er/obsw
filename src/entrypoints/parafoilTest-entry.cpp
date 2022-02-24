@@ -36,10 +36,6 @@ void enablePin()
 	IMU_CS.mode(miosix::Mode::OUTPUT);
 	PRESS_CS.mode(miosix::Mode::OUTPUT);
 
-	miosix::GpioPin SCK(GPIOA_BASE, 5);
-	miosix::GpioPin MISO(GPIOB_BASE, 4);
-	miosix::GpioPin MOSI(GPIOA_BASE, 7);
-
 	SCK.mode(miosix::Mode::ALTERNATE);
 	MISO.mode(miosix::Mode::ALTERNATE);
 	MOSI.mode(miosix::Mode::ALTERNATE);
@@ -52,7 +48,7 @@ void enablePin()
 	GPS_TX.alternateFunction(7);
 	GPS_RX.alternateFunction(7);
 
-	/*XBEE_SCK.mode(miosix::Mode::ALTERNATE);
+	XBEE_SCK.mode(miosix::Mode::ALTERNATE);
     XBEE_SCK.alternateFunction(5);
     XBEE_MISO.mode(miosix::Mode::ALTERNATE);
     XBEE_MISO.alternateFunction(5);
@@ -64,7 +60,7 @@ void enablePin()
 
 	XBEE_ATTN.mode(miosix::Mode::INPUT);
 
-	XBEE_RESET.mode(miosix::Mode::OUTPUT);*/
+	XBEE_RESET.mode(miosix::Mode::OUTPUT);
 
 	//GPS_CS.high();
 	IMU_CS.high();

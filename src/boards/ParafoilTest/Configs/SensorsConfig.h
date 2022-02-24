@@ -37,6 +37,11 @@ using namespace Boardcore;
 
 namespace ParafoilTestDev
 {
+    //SPI pinouts
+    static miosix::GpioPin SCK(GPIOA_BASE, 5);
+	static miosix::GpioPin MISO(GPIOB_BASE, 4);
+	static miosix::GpioPin MOSI(GPIOA_BASE, 7);
+
     //GPS settings
     //static miosix::GpioPin GPS_CS(GPIOG_BASE, 3);
     static miosix::GpioPin GPS_TX(GPIOA_BASE, 2);

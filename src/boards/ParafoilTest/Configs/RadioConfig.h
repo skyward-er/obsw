@@ -24,7 +24,7 @@
 namespace ParafoilTestDev
 {
     //TODO update with the correct values
-    static const uint32_t HR_UPDATE_PERIOD = 1;     //Milliseconds
+    static const uint32_t HR_UPDATE_PERIOD = 62;    //Milliseconds
     static const uint32_t LR_UPDATE_PERIOD = 100;   //Milliseconds
 
     //TODO define the correct id

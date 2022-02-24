@@ -22,10 +22,10 @@
 
 #include <Configs/SensorsConfig.h>
 #include <sensors/SensorInfo.h>
+#include <TelemetriesTelecommands/TMRepository.h>
 #include "Sensors.h"
 
 using std::bind;
-
 using namespace Boardcore;
 
 namespace ParafoilTestDev
@@ -61,9 +61,13 @@ namespace ParafoilTestDev
 
     void Sensors::MPU9250Callback()
     {
+        //Log the sample
         MPU9250Data d = imu_mpu9250 -> getLastSample();
         logger -> log(imu_mpu9250 -> getLastSample());
         LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
+
+        //Update the radio repository
+        TMRepository::getInstance().update(d);
     }
 
     void Sensors::UbloxGPSinit()
@@ -87,12 +91,16 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSCallback()
     {
+        //Log the sample
         UbloxGPSData d = gps_ublox -> getLastSample();
         logger -> log(gps_ublox -> getLastSample());
         if(d.fix)
         {
             LOG_DEBUG(log, "{:.2f} {:.2f}", d.latitude, d.longitude);
         }
+
+        //Update the radio repository
+        TMRepository::getInstance().update(d);
     }
 
     void Sensors::BME280init()
@@ -120,9 +128,13 @@ namespace ParafoilTestDev
 
     void Sensors::BME280Callback()
     {
+        //Log the sample
         BME280Data d = press_bme280 -> getLastSample();
         logger -> log(press_bme280 -> getLastSample());
         LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature, d.humidity);
+
+        //Update the radio repository
+        TMRepository::getInstance().update(d);
     }
 
     /**

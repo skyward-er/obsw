@@ -22,6 +22,9 @@
 #pragma once
 
 #include <Singleton.h>
+#include <sensors/MPU9250/MPU9250Data.h>
+#include <sensors/UbloxGPS/UbloxGPSData.h>
+#include <sensors/BME280/BME280Data.h>
 #include <TelemetriesTelecommands/Mavlink.h>
 
 /**
@@ -56,6 +59,13 @@ namespace ParafoilTestDev
          */
         mavlink_message_t packTM(uint8_t req_tm, uint8_t sys_id = TMTC_MAV_SYSID,
                                 uint8_t comp_id = TMTC_MAV_COMPID);
+
+        /**
+         * @brief Update functions
+         */
+        void update(MPU9250Data data);
+        void update(UbloxGPSData data);
+        void update(BME280Data data);
 
     private:
         /**

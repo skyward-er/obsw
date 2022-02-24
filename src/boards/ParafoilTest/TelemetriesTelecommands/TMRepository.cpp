@@ -35,7 +35,12 @@ namespace ParafoilTestDev
 
         switch (req_tm)
         {
-            case MavTMList::MAV_SYS_TM_ID:
+            case MavTMList::MAV_SENSORS_TM_ID:
+                tm_repository.sensors_tm.timestamp = miosix::getTick();
+                mavlink_msg_sensors_tm_encode(sys_id, comp_id, &m, 
+                                            &(tm_repository.sensors_tm));
+                break;
+            /*case MavTMList::MAV_SYS_TM_ID:
                 tm_repository.sys_tm.timestamp = miosix::getTick();
                 mavlink_msg_sys_tm_encode(sys_id, comp_id, &m,
                                         &(tm_repository.sys_tm));
@@ -74,7 +79,7 @@ namespace ParafoilTestDev
                 //tm_repository.tm_repository.lr_tm.timestamp = miosix::getTick();
                 mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
                                         &(tm_repository.lr_tm));
-                break;
+                break;*/
             default:
             {
                 LOG_DEBUG(logger, "Unknown telemetry id: %d", req_tm);
@@ -85,5 +90,46 @@ namespace ParafoilTestDev
             }
         }
         return m;
+    }
+
+    //Implement all the update functions
+    void TMRepository::update(MPU9250Data data)
+    {
+        //Pause the kernel to avoid interructions during this fast operation
+        miosix::PauseKernelLock kLock;   
+        //Update only the sensors message TODO update all the things
+        tm_repository.sensors_tm.bmx160_acc_x = data.accelerationX;
+        tm_repository.sensors_tm.bmx160_acc_y = data.accelerationY;
+        tm_repository.sensors_tm.bmx160_acc_z = data.accelerationZ;
+
+        tm_repository.sensors_tm.bmx160_gyro_x = data.angularVelocityX;
+        tm_repository.sensors_tm.bmx160_gyro_y = data.angularVelocityY;
+        tm_repository.sensors_tm.bmx160_gyro_z = data.angularVelocityZ;
+
+        tm_repository.sensors_tm.bmx160_mag_x = data.magneticFieldX;
+        tm_repository.sensors_tm.bmx160_mag_y = data.magneticFieldY;
+        tm_repository.sensors_tm.bmx160_mag_z = data.magneticFieldZ;
+
+        tm_repository.sensors_tm.bmx160_temp = data.temperature;
+    }
+
+    void TMRepository::update(UbloxGPSData data)
+    {
+        //Pause the kernel to avoid interructions during this fast operation
+        miosix::PauseKernelLock kLock;   
+        //Update only the sensors message TODO update all the things
+        tm_repository.sensors_tm.gps_alt = data.height;
+        tm_repository.sensors_tm.gps_fix = data.fix;
+        tm_repository.sensors_tm.gps_lon = data.longitude;
+        tm_repository.sensors_tm.gps_lat = data.latitude;
+    }
+
+    void TMRepository::update(BME280Data data)
+    {
+        //Pause the kernel to avoid interructions during this fast operation
+        miosix::PauseKernelLock kLock;   
+        //Update only the sensors message TODO update all the things
+        tm_repository.sensors_tm.ms5803_press = data.pressure;
+        tm_repository.sensors_tm.ms5803_temp = data.temperature;
     }
 }

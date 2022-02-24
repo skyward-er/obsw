@@ -186,7 +186,9 @@ namespace ParafoilTestDev
         //in high rate telemetry
         if(HRtelemetry)
         {
-            sendTelemetry(MAV_HR_TM_ID);
+            //sendTelemetry(MAV_HR_TM_ID);
+            //TEST ONLY
+            sendTelemetry(MAV_SENSORS_TM_ID);
         }
     }
 
@@ -224,7 +226,7 @@ namespace ParafoilTestDev
         bool result = mav_driver -> start();
 
         //Start the scheduler
-        result &= scheduler -> start();
+        //result &= scheduler -> start();
 
         return result;
     }
@@ -248,8 +250,11 @@ namespace ParafoilTestDev
         TaskScheduler::function_t HRfunction([=]() {sendHRTelemetry();});
         TaskScheduler::function_t LRfunction([=]() {sendLRTelemetry();});
         
+        //Set the HR telemetry TODO remove this TEST ONLY
+        HRtelemetry = true;
+
         //Register the LR and HR tasks in the scheduler
-        //scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
+        scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
         //scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
 
         //Set the frame receive callback
@@ -260,6 +265,6 @@ namespace ParafoilTestDev
         Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
         //Enable external interrupt on F10 pin
-        //enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+        enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
     }
 }

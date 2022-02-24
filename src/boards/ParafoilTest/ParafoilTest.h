@@ -127,11 +127,11 @@ namespace ParafoilTestDev
             }*/
 
             //Start the radio
-            /*if(!radio -> start())
+            if(!radio -> start())
             {
                 LOG_ERR(log, "Error starting the radio");
                 status.setError(&ParafoilTestStatus::radio);
-            }*/
+            }
 
             //After all the initializations i log the status
             SDlogger -> log(status);
@@ -215,7 +215,8 @@ namespace ParafoilTestDev
             //FMM = new FMMController();
 
             //Create a new radio
-            //radio = new Radio(*spiInterface1, scheduler);
+            SPIBusInterface *spiInterface4 = new SPIBus(SPI4);
+            radio = new Radio(*spiInterface4, scheduler);
         }
 
         void addSchedulerStatsTask()

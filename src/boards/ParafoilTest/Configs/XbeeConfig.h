@@ -28,12 +28,12 @@ using namespace Boardcore;
 namespace ParafoilTestDev
 {
     //TODO change the pins to something correct
-    static miosix::GpioPin XBEE_CS(GPIOE_BASE, 4);
+    static miosix::GpioPin XBEE_CS(GPIOC_BASE, 1);
     static miosix::GpioPin XBEE_ATTN(GPIOF_BASE, 10); //Interrupt pin (THE SAME AS THE RADIO.CPP)
-    static miosix::GpioPin XBEE_RESET(GPIOC_BASE, 13);
+    static miosix::GpioPin XBEE_RESET(GPIOC_BASE, 5);
 
     static miosix::GpioPin XBEE_SCK(GPIOE_BASE, 2);
-	static miosix::GpioPin XBEE_MISO(GPIOE_BASE, 13);
+	static miosix::GpioPin XBEE_MISO(GPIOE_BASE, 5);
 	static miosix::GpioPin XBEE_MOSI(GPIOE_BASE, 6);
 
     //Data rate
