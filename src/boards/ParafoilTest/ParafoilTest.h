@@ -223,10 +223,10 @@ namespace ParafoilTestDev
             // add lambda to log scheduler tasks statistics
             scheduler->addTask(
                 [&]() {
-                    std::vector<Boardcore::TaskStatResult> scheduler_stats =
+                    std::vector<Boardcore::TaskStatsResult> scheduler_stats =
                         scheduler->getTaskStats();
 
-                    for (TaskStatResult stat : scheduler_stats)
+                    for (TaskStatsResult stat : scheduler_stats)
                     {
                         SDlogger->log(stat);
                     }

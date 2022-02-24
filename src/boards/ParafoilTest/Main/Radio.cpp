@@ -25,7 +25,7 @@
 #include <Configs/XbeeConfig.h>
 #include <Configs/RadioConfig.h>
 #include <drivers/spi/SPIDriver.h>
-#include <drivers/Xbee/ATCommands.h>
+#include <radio/Xbee/ATCommands.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <ParafoilTest.h>
 #include <common/events/Topics.h>

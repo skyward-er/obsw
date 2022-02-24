@@ -61,9 +61,9 @@ namespace ParafoilTestDev
 
     void Sensors::MPU9250Callback()
     {
-        //MPU9250Data d = imu_mpu9250 -> getLastSample();
+        MPU9250Data d = imu_mpu9250 -> getLastSample();
         logger -> log(imu_mpu9250 -> getLastSample());
-        //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
+        LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
     }
 
     void Sensors::UbloxGPSinit()
@@ -87,16 +87,12 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSCallback()
     {
-        //UbloxGPSData d = gps_ublox -> getLastSample();
+        UbloxGPSData d = gps_ublox -> getLastSample();
         logger -> log(gps_ublox -> getLastSample());
-        /*if(d.fix)
+        if(d.fix)
         {
             LOG_DEBUG(log, "{:.2f} {:.2f}", d.latitude, d.longitude);
         }
-        else
-        {
-            LOG_DEBUG(log, "{:d}", d.fix);
-        }*/
     }
 
     void Sensors::BME280init()
@@ -124,9 +120,9 @@ namespace ParafoilTestDev
 
     void Sensors::BME280Callback()
     {
-        //BME280Data d = press_bme280 -> getLastSample();
+        BME280Data d = press_bme280 -> getLastSample();
         logger -> log(press_bme280 -> getLastSample());
-        //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature, d.humidity);
+        LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature, d.humidity);
     }
 
     /**
