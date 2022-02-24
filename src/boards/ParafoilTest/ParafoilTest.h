@@ -202,6 +202,7 @@ namespace ParafoilTestDev
 
             //Create the task scheduler
             scheduler = new TaskScheduler();
+            addSchedulerStatsTask();
 
             //Create the sensors
             SPIBusInterface *spiInterface1 = new SPIBus(SPI1);

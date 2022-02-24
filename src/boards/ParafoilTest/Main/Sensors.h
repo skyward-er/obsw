@@ -94,7 +94,7 @@ namespace ParafoilTestDev
         /**
          * @brief GPS
          */
-        UbloxGPSSPI* gps_ublox;
+        UbloxGPS* gps_ublox;
 
         /**
          * @brief Barometer

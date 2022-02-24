@@ -32,7 +32,7 @@ using namespace Boardcore;
 
 void enablePin()
 {
-	GPS_CS.mode(miosix::Mode::OUTPUT);
+	//GPS_CS.mode(miosix::Mode::OUTPUT);
 	IMU_CS.mode(miosix::Mode::OUTPUT);
 	PRESS_CS.mode(miosix::Mode::OUTPUT);
 
@@ -62,7 +62,7 @@ void enablePin()
 
 	XBEE_RESET.mode(miosix::Mode::OUTPUT);*/
 
-	GPS_CS.high();
+	//GPS_CS.high();
 	IMU_CS.high();
 	PRESS_CS.high();
 }

@@ -53,7 +53,7 @@ namespace ParafoilTestDev
                         bind(&Sensors::MPU9250Callback, this), true); 
 
         //Insert the sensor in the common map
-        //sensors_map.emplace(std::make_pair(imu_mpu9250, info));
+        sensors_map.emplace(std::make_pair(imu_mpu9250, info));
 
         //Log the results
         LOG_INFO(log, "IMU MPU9250 Setup done!");
@@ -61,7 +61,7 @@ namespace ParafoilTestDev
 
     void Sensors::MPU9250Callback()
     {
-        MPU9250Data d = imu_mpu9250 -> getLastSample();
+        //MPU9250Data d = imu_mpu9250 -> getLastSample();
         logger -> log(imu_mpu9250 -> getLastSample());
         //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY, d.accelerationZ);
     }
@@ -69,7 +69,10 @@ namespace ParafoilTestDev
     void Sensors::UbloxGPSinit()
     {
         //Instantiate the object TODO set the sample rate and stuff
-        gps_ublox = new UbloxGPSSPI(spiInterface, GPS_CS);
+        gps_ublox = new UbloxGPSSerial(921600, GPS_SAMPLE_RATE, 576000, 2, "gps");
+
+        //Starting GPS thread
+        gps_ublox -> start();
 
         //Bind the information with the callback method
         SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
@@ -84,16 +87,16 @@ namespace ParafoilTestDev
 
     void Sensors::UbloxGPSCallback()
     {
-        UbloxGPSData d = gps_ublox -> getLastSample();
+        //UbloxGPSData d = gps_ublox -> getLastSample();
         logger -> log(gps_ublox -> getLastSample());
-        if(d.fix)
+        /*if(d.fix)
         {
             LOG_DEBUG(log, "{:.2f} {:.2f}", d.latitude, d.longitude);
         }
         else
         {
             LOG_DEBUG(log, "{:d}", d.fix);
-        }
+        }*/
     }
 
     void Sensors::BME280init()
@@ -113,7 +116,7 @@ namespace ParafoilTestDev
         SensorInfo info("BME280", PRESS_SAMPLE_PERIOD,
                         bind(&Sensors::BME280Callback, this), true);
         //Insert the sensor in the common map
-        //sensors_map.emplace(std::make_pair(press_bme280, info));
+        sensors_map.emplace(std::make_pair(press_bme280, info));
 
         //Log the result
         LOG_INFO(log, "BME280 Setup done!");
@@ -121,7 +124,7 @@ namespace ParafoilTestDev
 
     void Sensors::BME280Callback()
     {
-        BME280Data d = press_bme280 -> getLastSample();
+        //BME280Data d = press_bme280 -> getLastSample();
         logger -> log(press_bme280 -> getLastSample());
         //LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature, d.humidity);
     }
@@ -137,7 +140,7 @@ namespace ParafoilTestDev
 
         //Sensor init
         MPU9250init();
-        //UbloxGPSinit();
+        UbloxGPSinit();
         BME280init();
 
         //Sensor manager instance

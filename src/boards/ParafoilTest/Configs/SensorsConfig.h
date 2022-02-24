@@ -37,8 +37,8 @@ using namespace Boardcore;
 
 namespace ParafoilTestDev
 {
-    //GPS settings TODO SPI
-    static miosix::GpioPin GPS_CS(GPIOG_BASE, 3);
+    //GPS settings
+    //static miosix::GpioPin GPS_CS(GPIOG_BASE, 3);
     static constexpr unsigned int GPS_SAMPLE_RATE       = 25;
     static constexpr unsigned int GPS_SAMPLE_PERIOD     = 1000 / GPS_SAMPLE_RATE;
 
@@ -46,8 +46,8 @@ namespace ParafoilTestDev
     static miosix::GpioPin IMU_CS(GPIOB_BASE, 2);
     static MPU9250::MPU9250GyroFSR IMU_GYRO_SCALE       = MPU9250::GYRO_FSR_250DPS;
     static MPU9250::MPU9250AccelFSR IMU_ACCEL_SCALE     = MPU9250::ACCEL_FSR_2G;
-    static constexpr unsigned short IMU_SAMPLE_RATE   = 100;
-    static constexpr unsigned int   IMU_SAMPLE_PERIOD = 1000 / IMU_SAMPLE_RATE;
+    static constexpr unsigned short IMU_SAMPLE_RATE     = 100;
+    static constexpr unsigned int   IMU_SAMPLE_PERIOD   = 1000 / IMU_SAMPLE_RATE;
 
     //Barometer BME280 settings
     static miosix::GpioPin PRESS_CS(GPIOC_BASE, 11);   
