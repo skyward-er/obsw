@@ -30,7 +30,7 @@
 #include <mavlink_lib/lynx/mavlink.h>
 #pragma GCC diagnostic pop
 
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <drivers/mavlink/MavlinkDriver.h>
 #include <Configs/MavlinkConfig.h>
 
 using namespace Boardcore;

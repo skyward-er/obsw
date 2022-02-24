@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <radio/Xbee/Xbee.h>
+#include <drivers/Xbee/Xbee.h>
 
 using namespace Boardcore;
 
