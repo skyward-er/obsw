@@ -43,9 +43,13 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     using namespace ParafoilTestDev;
 
-    if (ParafoilTest::getInstance().radio->xbee != nullptr)
+    /*if (ParafoilTest::getInstance().radio->xbee != nullptr)
     {
         ParafoilTest::getInstance().radio->xbee->handleATTNInterrupt();
+    }*/
+    if(ParafoilTest::getInstance().radio -> module != nullptr)
+    {
+        ParafoilTest::getInstance().radio -> module -> handleDioIRQ();
     }
 }
 
@@ -69,13 +73,14 @@ namespace ParafoilTestDev
         config.clockDivider = SPI::ClockDivider::DIV_16;
 
         //Instantiate the xbee object
-        xbee = new Xbee::Xbee(xbee_bus, config,
+        /*xbee = new Xbee::Xbee(xbee_bus, config,
                               XBEE_CS,
                               XBEE_ATTN,
-                              XBEE_RESET);
+                              XBEE_RESET);*/
+        module = new SX1278(xbee_bus, XBEE_CS);
 
         //Create the mavlink driver
-        mav_driver = new MavDriver(xbee, 
+        mav_driver = new MavDriver(module, 
                                    bind(&Radio::handleMavlinkMessage, this, _1, _2),
                                    SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
         init();
@@ -258,11 +263,11 @@ namespace ParafoilTestDev
         //scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
 
         //Set the frame receive callback
-        xbee -> setOnFrameReceivedListener(
-                bind(&Radio::onXbeeFrameReceived, this, _1));
+        //module -> setOnFrameReceivedListener(
+                //bind(&Radio::onXbeeFrameReceived, this, _1));
 
         //Set the data rate
-        Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
+        //Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
         //Enable external interrupt on F10 pin
         enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);

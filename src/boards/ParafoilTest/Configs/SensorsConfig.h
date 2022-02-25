@@ -53,12 +53,12 @@ namespace ParafoilTestDev
     //IMU MPU9250 settings
     static miosix::GpioPin IMU_CS(GPIOB_BASE, 2);
     static MPU9250::MPU9250GyroFSR IMU_GYRO_SCALE       = MPU9250::GYRO_FSR_250DPS;
-    static MPU9250::MPU9250AccelFSR IMU_ACCEL_SCALE     = MPU9250::ACCEL_FSR_2G;
-    static constexpr unsigned short IMU_SAMPLE_RATE     = 100;
+    static MPU9250::MPU9250AccelFSR IMU_ACCEL_SCALE     = MPU9250::ACCEL_FSR_4G;
+    static constexpr unsigned short IMU_SAMPLE_RATE     = 500;
     static constexpr unsigned int   IMU_SAMPLE_PERIOD   = 1000 / IMU_SAMPLE_RATE;
 
     //Barometer BME280 settings
     static miosix::GpioPin PRESS_CS(GPIOC_BASE, 11);   
-    static BME280::StandbyTime PRESS_SAMPLE_RATE        = BME280::STB_TIME_10;
+    static BME280::StandbyTime PRESS_SAMPLE_RATE        = BME280::STB_TIME_0_5;
     static constexpr unsigned int PRESS_SAMPLE_PERIOD   = 20; 
 }

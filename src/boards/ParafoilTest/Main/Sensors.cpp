@@ -109,8 +109,11 @@ void Sensors::BME280init()
 
     slave.config.clockDivider = SPI::ClockDivider::DIV_16;
 
+    auto config = BME280::BME280_CONFIG_ALL_ENABLED;
+    config.bits.oversamplingPressure = BME280::OVERSAMPLING_4;
+
     // Instantiate the object
-    press_bme280 = new BME280(slave, BME280::BME280_CONFIG_ALL_ENABLED);
+    press_bme280 = new BME280(slave, config);
 
     // Set the standby time
     press_bme280->setStandbyTime(PRESS_SAMPLE_RATE);

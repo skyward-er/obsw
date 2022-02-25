@@ -23,6 +23,7 @@
 
 #include <TelemetriesTelecommands/Mavlink.h>
 #include <radio/Xbee/Xbee.h>
+#include <drivers/SX1278/SX1278.h>
 #include <scheduler/TaskScheduler.h>
 #include <common/events/Events.h>
 
@@ -42,7 +43,8 @@ namespace ParafoilTestDev
         /**
          * @brief The xbee module driver
          */
-        Xbee::Xbee* xbee;
+        //Xbee::Xbee* xbee;
+        SX1278* module;
 
         /**
          * @brief Construct a new Radio object
