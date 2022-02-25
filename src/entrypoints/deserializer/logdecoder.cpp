@@ -34,10 +34,6 @@
 #include <stdexcept>
 #include <string>
 
-// TODO: add here include files of serialized classes
-
-#include "LogTypes.h"
-
 using namespace std;
 using namespace tscpp;
 

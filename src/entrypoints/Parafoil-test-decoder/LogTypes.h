@@ -23,49 +23,51 @@
 #pragma once
 
 #include <sensors/ADS1118/ADS1118Data.h>
-#include <sensors/UbloxGPS/UbloxGPSData.h>
+#include <sensors/BME280/BME280Data.h>
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/BMX160/BMX160WithCorrectionData.h>
 #include <sensors/LIS3MDL/LIS3MDLData.h>
+#include <sensors/MPU9250/MPU9250Data.h>
 #include <sensors/MS5803/MS5803Data.h>
+#include <sensors/UbloxGPS/UbloxGPSData.h>
 #include <sensors/analog/battery/BatteryVoltageSensorData.h>
 #include <sensors/analog/current/CurrentSensorData.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
-#include <sensors/MPU9250/MPU9250Data.h>
-#include <sensors/BME280/BME280Data.h>
 
 #include <fstream>
 #include <iostream>
 
-#include "ApogeeDetectionAlgorithm/ADAData.h"
 #include "AirBrakes/AirBrakesData.h"
+#include "ApogeeDetectionAlgorithm/ADAData.h"
 //#include "AirBrakes/WindData.h"
 #include "DeathStackStatus.h"
 //#include "Deployment/DeploymentData.h"
 #include "FlightModeManager/FMMStatus.h"
 //#include "LogStats.h"
+#include <common/SystemData.h>
+
 #include "Main/SensorsData.h"
 #include "NavigationAttitudeSystem/NASData.h"
 #include "PinHandler/PinHandlerData.h"
-#include "common/SystemData.h"
 #include "diagnostic/PrintLoggerData.h"
 #include "diagnostic/StackData.h"
-#include "drivers/Xbee/APIFramesLog.h"
-#include "drivers/Xbee/XbeeStatus.h"
-#include "drivers/mavlink/MavlinkStatus.h"
 #include "events/EventData.h"
+#include "radio/MavlinkDriver/MavlinkStatus.h"
 //#include "logger/Deserializer.h"
 #include <logger/Deserializer.h>
-#include "scheduler/TaskSchedulerData.h"
-#include "FlightStatsRecorder/FSRData.h"
+#include <scheduler/TaskSchedulerData.h>
+
 #include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
+#include "FlightStatsRecorder/FSRData.h"
+#include "scheduler/TaskSchedulerData.h"
 
 // Serialized classes
 using std::ofstream;
 
 using namespace DeathStackBoard;
+using namespace Boardcore;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -82,7 +84,7 @@ void registerType(Deserializer& ds)
 void registerTypes(Deserializer& ds)
 {
     // Disagnostic
-    registerType<TaskStatResult>(ds);
+    // registerType<TaskStatResult>(ds);
     registerType<StackData>(ds);
     registerType<LoggingString>(ds);
     registerType<SystemData>(ds);
@@ -112,19 +114,11 @@ void registerTypes(Deserializer& ds)
     registerType<SensorsStatus>(ds);
     registerType<FMMStatus>(ds);
     registerType<PinStatus>(ds);
-    //registerType<LogStats>(ds);
-    //registerType<DeploymentStatus>(ds);
+    // registerType<LogStats>(ds);
+    // registerType<DeploymentStatus>(ds);
     registerType<ADAControllerStatus>(ds);
 
-    // XBee
-    registerType<Xbee::APIFrameLog>(ds);
-    registerType<Xbee::ATCommandFrameLog>(ds);
-    registerType<Xbee::ATCommandResponseFrameLog>(ds);
-    registerType<Xbee::ModemStatusFrameLog>(ds);
-    registerType<Xbee::TXRequestFrameLog>(ds);
-    registerType<Xbee::TXStatusFrameLog>(ds);
-    registerType<Xbee::RXPacketFrameLog>(ds);
-    registerType<Xbee::XbeeStatus>(ds);
+    // Mavlink
     registerType<MavlinkStatus>(ds);
 
     // ADA
@@ -147,7 +141,7 @@ void registerTypes(Deserializer& ds)
     registerType<AirBrakesAlgorithmData>(ds);
     registerType<AirBrakesChosenTrajectory>(ds);
 
-     // FlightStatsRecorder
+    // FlightStatsRecorder
     registerType<LiftOffStats>(ds);
     registerType<ApogeeStats>(ds);
     registerType<DrogueDPLStats>(ds);
@@ -160,5 +154,5 @@ void registerTypes(Deserializer& ds)
 
     // Others
     registerType<EventData>(ds);
-    //registerType<WindData>(ds);
+    // registerType<WindData>(ds);
 }

@@ -76,5 +76,8 @@
         "hash_map": "cpp",
         "valarray": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Enabled"
+    "C_Cpp.errorSquiggles": "Enabled",
+    "cSpell.words": [
+        "Ublox"
+    ]
 }

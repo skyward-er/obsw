@@ -14,8 +14,8 @@ struct HILAccelData : public AccelerometerData
 
     void print(std::ostream& os) const
     {
-        os << accel_timestamp << "," << accel_x << "," << accel_y << ","
-           << accel_z << "\n";
+        os << accelerationTimestamp << "," << accelerationX << ","
+           << accelerationY << "," << accelerationZ << "\n";
     }
 };
 
@@ -32,8 +32,8 @@ struct HILGyroscopeData : public GyroscopeData
 
     void print(std::ostream& os) const
     {
-        os << gyro_timestamp << "," << gyro_x << "," << gyro_y << "," << gyro_z
-           << "\n";
+        os << angularVelocityTimestamp << "," << angularVelocityX << ","
+           << angularVelocityY << "," << angularVelocityZ << "\n";
     }
 };
 
@@ -50,8 +50,8 @@ struct HILMagnetometerData : public MagnetometerData
 
     void print(std::ostream& os) const
     {
-        os << mag_timestamp << "," << mag_x << "," << mag_y << "," << mag_z
-           << "\n";
+        os << magneticFieldTimestamp << "," << magneticFieldX << ","
+           << magneticFieldY << "," << magneticFieldZ << "\n";
     }
 };
 
@@ -67,9 +67,12 @@ struct HILImuData : public HILAccelData,
 
     void print(std::ostream& os) const
     {
-        os << accel_timestamp << "," << accel_x << "," << accel_y << "," << accel_z 
-              << "," << gyro_timestamp << "," << gyro_x << "," << gyro_y << "," << gyro_z 
-              << "," << mag_timestamp << "," << mag_x << "," << mag_y << "," << mag_z << "\n";
+        os << accelerationTimestamp << "," << accelerationX << ","
+           << accelerationY << "," << accelerationZ << ","
+           << angularVelocityTimestamp << "," << angularVelocityX << ","
+           << angularVelocityY << "," << angularVelocityZ << ","
+           << magneticFieldTimestamp << "," << magneticFieldX << ","
+           << magneticFieldY << "," << magneticFieldZ << "\n";
     }
 };
 
@@ -92,10 +95,10 @@ struct HILGpsData : public GPSData
 
     void print(std::ostream& os) const
     {
-        os << gps_timestamp << "," << longitude << "," << latitude << ","
-           << height << "," << velocity_north << "," << velocity_east << ","
-           << velocity_down << "," << speed << "," << track << ","
-           << (int)num_satellites << "," << (int)fix << "\n";
+        os << gpsTimestamp << "," << longitude << "," << latitude << ","
+           << height << "," << velocityNorth << "," << velocityEast << ","
+           << velocityDown << "," << speed << "," << track << ","
+           << (int)satellites << "," << (int)fix << "\n";
     }
 };
 
@@ -109,6 +112,6 @@ struct HILBaroData : public PressureData
 
     void print(std::ostream& os) const
     {
-        os << press_timestamp << "," << press << "\n";
+        os << pressureTimestamp << "," << pressure << "\n";
     }
 };
