@@ -44,6 +44,9 @@ sbs_target(parafoilTest-entry stm32f429zi_stm32f4discovery)
 target_include_directories(parafoilTest-entry PRIVATE src/boards/ParafoilTest
 						      src/)
 
+add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
+sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)		  
+
 #-----------------------------------------------------------------------------#
 #                                Tests - Catch                                #
 #-----------------------------------------------------------------------------#
