@@ -3,6 +3,7 @@ BOARDCORE := $(BASE)skyward-boardcore/
 
 all:
 	g++ -std=c++17 -O2 -o logdecoder Parafoil-decoder.cpp \
+					$(BOARDCORE)libs/tscpp/tscpp/stream.cpp \
 					-DCOMPILE_FOR_X86 \
 					-I$(BOARDCORE)libs/tscpp/tscpp \
 					-I$(BASE)src/boards/ParafoilTest \

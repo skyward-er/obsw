@@ -56,7 +56,9 @@
 #include "events/EventData.h"
 #include "radio/MavlinkDriver/MavlinkStatus.h"
 //#include "logger/Deserializer.h"
+#include <ParafoilTestStatus.h>
 #include <logger/Deserializer.h>
+#include <logger/LoggerStats.h>
 #include <scheduler/TaskSchedulerData.h>
 
 #include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
@@ -68,6 +70,7 @@ using std::ofstream;
 
 using namespace DeathStackBoard;
 using namespace Boardcore;
+using namespace ParafoilTestDev;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -84,10 +87,12 @@ void registerType(Deserializer& ds)
 void registerTypes(Deserializer& ds)
 {
     // Disagnostic
-    // registerType<TaskStatResult>(ds);
+    registerType<TaskStatsResult>(ds);
+    registerType<LoggerStats>(ds);
     registerType<StackData>(ds);
     registerType<LoggingString>(ds);
     registerType<SystemData>(ds);
+    registerType<ParafoilTestStatus>(ds);
 
     // Sensors
     registerType<CurrentSensorData>(ds);
