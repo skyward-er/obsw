@@ -24,9 +24,12 @@
 namespace ParafoilTestDev
 {
     //TODO update with the correct values
-    static const uint32_t HR_UPDATE_PERIOD = 62;    //Milliseconds
-    static const uint32_t LR_UPDATE_PERIOD = 100;   //Milliseconds
+    static const uint32_t HR_GROUND_UPDATE_PERIOD = 62;     //Milliseconds
+    static const uint32_t HR_FLIGHT_UPDATE_PERIOD = 10;
+    static const uint32_t LR_UPDATE_PERIOD = 100;           //Milliseconds
 
-    //TODO define the correct id
-    static const uint8_t RADIO_ID = 200;
+    //TODO define the correct ids for task scheduler
+    static const uint8_t RADIO_HR_ID = 200;
+    static const uint8_t RADIO_LR_ID = 201;
+
 }

@@ -201,10 +201,7 @@ namespace ParafoilTestDev
     {
         //I send this telemetry if and only if the status is
         //in low rate telemetry
-        if(!HRtelemetry)
-        {
-            sendTelemetry(MAV_LR_TM_ID);
-        }
+        sendTelemetry(MAV_LR_TM_ID);
     }
 
     void Radio::sendAck(const mavlink_message_t& msg)
@@ -222,7 +219,23 @@ namespace ParafoilTestDev
     {
         //Lock the kernel to avoid context switch during this toggle
         miosix::PauseKernelLock kLock;
+        TaskScheduler::function_t HRfunction([=]() {sendHRTelemetry();});
         HRtelemetry = !HRtelemetry;
+        
+        if(HRtelemetry)
+        {
+            //If we switched to hr telemetry on flight i change the period
+            scheduler -> removeTask(RADIO_HR_ID);
+            //Add the same task with a faster period
+            scheduler -> addTask(HRfunction, HR_FLIGHT_UPDATE_PERIOD, RADIO_HR_ID);
+        }
+        else
+        {
+            //If we switched to hr telemetry on ground i change the period
+            scheduler -> removeTask(RADIO_HR_ID);
+            //Add the same task with a slower period
+            scheduler -> addTask(HRfunction, HR_GROUND_UPDATE_PERIOD, RADIO_HR_ID);
+        }
     }
 
     bool Radio::start()
@@ -259,8 +272,8 @@ namespace ParafoilTestDev
         HRtelemetry = true;
 
         //Register the LR and HR tasks in the scheduler
-        scheduler -> addTask(HRfunction, HR_UPDATE_PERIOD, RADIO_ID);
-        //scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_ID);
+        scheduler -> addTask(HRfunction, HR_GROUND_UPDATE_PERIOD, RADIO_HR_ID);
+        scheduler -> addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_LR_ID);
 
         //Set the frame receive callback
         //module -> setOnFrameReceivedListener(
