@@ -41,7 +41,7 @@ using namespace Boardcore;
  */
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    using namespace ParafoilTestDev;
+    using namespace Parafoil;
 
     /*if (ParafoilTest::getInstance().radio->xbee != nullptr)
     {
@@ -53,11 +53,9 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
     }
 }
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
-/**
- * PUBLIC METHODS
- */
+
 Radio::Radio(SPIBusInterface& xbee_bus, TaskScheduler* scheduler)
     : xbee_bus(xbee_bus)
 {
@@ -260,9 +258,6 @@ void Radio::logStatus()
     // TODO log
 }
 
-/**
- * PRIVATE METHODS
- */
 void Radio::onXbeeFrameReceived(Xbee::APIFrame& frame)
 {
     // Log the thing
@@ -291,4 +286,4 @@ void Radio::init()
     // Enable external interrupt on F10 pin
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 }
-}  // namespace ParafoilTestDev
+}  // namespace Parafoil

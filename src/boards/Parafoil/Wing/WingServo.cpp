@@ -19,57 +19,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #include <Parafoil/Wing/WingServo.h>
 
-namespace ParafoilTestDev
+using namespace Boardcore;
+
+namespace Parafoil
 {
-    /**
-     * PUBLIC METHODS
-     */
-    WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition)
-             :WingServo(timer, pwmChannel, minPosition, maxPosition, minPosition){}
-    
-    WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition, float resetPosition)
-             :ServoInterface(minPosition, maxPosition, resetPosition)
-    {
-        servo = new Servo(timer, pwmChannel, WING_SERVO_MIN_PULSE
-                                           , WING_SERVO_MAX_PULSE
-                                           , WING_SERVO_FREQUENCY);
-    }
 
-    WingServo::~WingServo(){}
-
-    void WingServo::enable()
-    {
-        servo -> enable();
-        //Set the servo position to reset
-        setPosition(RESET_POS);
-    }
-
-    void WingServo::disable()
-    {
-        servo -> disable();
-    }
-
-    void WingServo::selfTest()
-    {
-        setPosition(MIN_POS);
-        miosix::Thread::sleep(1000);
-        setPosition(RESET_POS);
-        miosix::Thread::sleep(1000);
-        setPosition(MAX_POS);
-    }
-
-    /**
-     * PRIVATE METHODS
-     */
-    void WingServo::setPosition(float angle)
-    {
-        servo->setPosition(angle / 180);
-    }
-
-    float WingServo::preprocessPosition(float angle)
-    {
-        return angle;
-    }
+WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel,
+                     float minPosition, float maxPosition)
+    : WingServo(timer, pwmChannel, minPosition, maxPosition, minPosition)
+{
 }
+
+WingServo::WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel,
+                     float minPosition, float maxPosition, float resetPosition)
+    : ServoInterface(minPosition, maxPosition, resetPosition)
+{
+    servo = new Servo(timer, pwmChannel, WING_SERVO_MIN_PULSE,
+                      WING_SERVO_MAX_PULSE, WING_SERVO_FREQUENCY);
+}
+
+WingServo::~WingServo() {}
+
+void WingServo::enable()
+{
+    servo->enable();
+    // Set the servo position to reset
+    setPosition(RESET_POS);
+}
+
+void WingServo::disable() { servo->disable(); }
+
+void WingServo::selfTest()
+{
+    setPosition(MIN_POS);
+    miosix::Thread::sleep(1000);
+    setPosition(RESET_POS);
+    miosix::Thread::sleep(1000);
+    setPosition(MAX_POS);
+}
+
+void WingServo::setPosition(float angle) { servo->setPosition(angle / 180); }
+
+float WingServo::preprocessPosition(float angle) { return angle; }
+}  // namespace Parafoil

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,136 +22,132 @@
 
 #include "FMMController.h"
 
+#include <common/events/Events.h>
+#include <events/EventBroker.h>
 #include <miosix.h>
 
-#include <events/EventBroker.h>
-#include <common/events/Events.h>
+using namespace Boardcore;
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    FMMController::FMMController() : FSM(&FMMController::state_on_ground)
-    {
-        memset(&status, 0, sizeof(FMMControllerStatus));
-        sEventBroker.subscribe(this, TOPIC_FMM);
-        sEventBroker.subscribe(this, TOPIC_TMTC);
-    }
+FMMController::FMMController() : FSM(&FMMController::state_on_ground)
+{
+    memset(&status, 0, sizeof(FMMControllerStatus));
+    sEventBroker.subscribe(this, TOPIC_FMM);
+    sEventBroker.subscribe(this, TOPIC_TMTC);
+}
 
-    FMMController::~FMMController()
-    {
-        sEventBroker.unsubscribe(this);
-    }
+FMMController::~FMMController() { sEventBroker.unsubscribe(this); }
 
-    void FMMController::state_on_ground(const Event& ev)
+void FMMController::state_on_ground(const Event& ev)
+{
+    switch (ev.code)
     {
-        switch (ev.code)
+        case EV_ENTRY:
         {
-            case EV_ENTRY:
-            {
-                // ...
+            // ...
 
-                logStatus(ON_GROUND);
+            logStatus(ON_GROUND);
 
-                LOG_DEBUG(logger, "[FMM] entering state on_ground\n");
-                break;
-            }
-            case EV_EXIT:
-            {
-                // ...
+            LOG_DEBUG(logger, "[FMM] entering state on_ground\n");
+            break;
+        }
+        case EV_EXIT:
+        {
+            // ...
 
-                LOG_DEBUG(logger, "[FMM] exiting state on_ground\n");
-                break;
-            }
-            case EV_LIFTOFF:
-            {
-                transition(&FMMController::state_flying);
-                break;
-            }
-            case EV_TC_TEST_MODE:
-            {
-                transition(&FMMController::state_debug);
-                break;
-            }
-            default:
-            {
-                break;
-            }
+            LOG_DEBUG(logger, "[FMM] exiting state on_ground\n");
+            break;
+        }
+        case EV_LIFTOFF:
+        {
+            transition(&FMMController::state_flying);
+            break;
+        }
+        case EV_TC_TEST_MODE:
+        {
+            transition(&FMMController::state_debug);
+            break;
+        }
+        default:
+        {
+            break;
         }
     }
+}
 
-
-    void FMMController::state_flying(const Event& ev)
+void FMMController::state_flying(const Event& ev)
+{
+    switch (ev.code)
     {
-        switch (ev.code)
+        case EV_ENTRY:
         {
-            case EV_ENTRY:
-            {
-                // ...
+            // ...
 
-                logStatus(FLYING_STATE);
+            logStatus(FLYING_STATE);
 
-                LOG_DEBUG(logger, "[FMM] entering state flying\n");
-                break;
-            }
-            case EV_EXIT:
-            {
-                // ...
+            LOG_DEBUG(logger, "[FMM] entering state flying\n");
+            break;
+        }
+        case EV_EXIT:
+        {
+            // ...
 
-                LOG_DEBUG(logger, "[FMM] exiting state flying\n");
-                break;
-            }
+            LOG_DEBUG(logger, "[FMM] exiting state flying\n");
+            break;
+        }
 
-            default:
-            {
-                break;
-            }
+        default:
+        {
+            break;
         }
     }
+}
 
-
-    void FMMController::state_debug(const Event& ev)
+void FMMController::state_debug(const Event& ev)
+{
+    switch (ev.code)
     {
-        switch (ev.code)
+        case EV_ENTRY:
         {
-            case EV_ENTRY:
-            {
-                // ...
+            // ...
 
-                logStatus(DEBUG_STATE);
+            logStatus(DEBUG_STATE);
 
-                LOG_DEBUG(logger, "[FMM] entering state debug\n");
-                break;
-            }
-            case EV_EXIT:
-            {
-                // ...
+            LOG_DEBUG(logger, "[FMM] entering state debug\n");
+            break;
+        }
+        case EV_EXIT:
+        {
+            // ...
 
-                LOG_DEBUG(logger, "[FMM] exiting state debug\n");
-                break;
-            }
-            case EV_TC_EXIT_TEST_MODE:
-            {
-                transition(&FMMController::state_on_ground);
-                break;
-            }
-            default:
-            {
-                break;
-            }
+            LOG_DEBUG(logger, "[FMM] exiting state debug\n");
+            break;
+        }
+        case EV_TC_EXIT_TEST_MODE:
+        {
+            transition(&FMMController::state_on_ground);
+            break;
+        }
+        default:
+        {
+            break;
         }
     }
+}
 
-    /* --- LOGGER --- */
+/* --- LOGGER --- */
 
-    void FMMController::logStatus(FMMControllerState state)
-    {
-        status.state = state;
-        logStatus();
-    }
+void FMMController::logStatus(FMMControllerState state)
+{
+    status.state = state;
+    logStatus();
+}
 
-    void FMMController::logStatus()
-    {
-        status.timestamp = miosix::getTick();
-        SDlogger -> log(status);
-    }
+void FMMController::logStatus()
+{
+    status.timestamp = miosix::getTick();
+    SDlogger->log(status);
+}
 
-}  // namespace ParafoilTestDev
+}  // namespace Parafoil

@@ -19,72 +19,74 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
+#include <Parafoil/Wing/WingConfig.h>
 #include <common/ServoInterface.h>
 #include <drivers/servo/Servo.h>
-#include <Parafoil/Wing/WingConfig.h>
 
-using namespace Boardcore;
-
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    class WingServo : public ServoInterface
-    {
-    public:
 
-        /**
-         * @brief Construct a new Wing Servo object
-         * It will use the min position as reset
-         * 
-         * @param timer The servo timer that needs to be used
-         * @param pwmChannel The servo pwm port used
-         * @param minPosition The min allowed servo position(degrees)
-         * @param maxPosition The max allowed servo position(degrees)
-         */
-        WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition);
+class WingServo : public ServoInterface
+{
+public:
+    /**
+     * @brief Construct a new Wing Servo object
+     * It will use the min position as reset
+     *
+     * @param timer The servo timer that needs to be used
+     * @param pwmChannel The servo pwm port used
+     * @param minPosition The min allowed servo position(degrees)
+     * @param maxPosition The max allowed servo position(degrees)
+     */
+    WingServo(TIM_TypeDef* timer, Boardcore::TimerUtils::Channel pwmChannel,
+              float minPosition, float maxPosition);
 
-        /**
-         * @brief Construct a new Wing Servo object
-         * 
-         * @param timer The servo timer that needs to be used
-         * @param pwmChannel The servo pwm port used
-         * @param minPosition The min allowed servo position(degrees)
-         * @param maxPosition The max allowed servo position(degrees)
-         * @param resetPosition The position where the servo is when it resets(degrees)
-         */
-        WingServo(TIM_TypeDef* timer, TimerUtils::Channel pwmChannel, float minPosition, float maxPosition, float resetPosition);
+    /**
+     * @brief Construct a new Wing Servo object
+     *
+     * @param timer The servo timer that needs to be used
+     * @param pwmChannel The servo pwm port used
+     * @param minPosition The min allowed servo position(degrees)
+     * @param maxPosition The max allowed servo position(degrees)
+     * @param resetPosition The position where the servo is when it
+     * resets(degrees)
+     */
+    WingServo(TIM_TypeDef* timer, Boardcore::TimerUtils::Channel pwmChannel,
+              float minPosition, float maxPosition, float resetPosition);
 
-        /**
-         * @brief Destroy the Wing Servo object
-         */
-        ~WingServo();
+    /**
+     * @brief Destroy the Wing Servo object
+     */
+    ~WingServo();
 
-        void enable() override;
+    void enable() override;
 
-        void disable() override;
+    void disable() override;
 
-        /**
-         * @brief Execute a self test with the servo
-         */
-        void selfTest() override;
+    /**
+     * @brief Execute a self test with the servo
+     */
+    void selfTest() override;
 
-    private:
-        Servo* servo;
+private:
+    Boardcore::Servo* servo;
 
-    protected:
-        /**
-         * @brief Set the servo position
-         * @param angle sevo position(degrees)
-         */
-        void setPosition(float angle) override;
+protected:
+    /**
+     * @brief Set the servo position
+     * @param angle sevo position(degrees)
+     */
+    void setPosition(float angle) override;
 
-        /**
-         * @brief Method to convert the angle passed by the user to an
-         * useful angle for the servo interface
-         * @param angle The angle(degrees)
-         * @return float The converted angle
-         */
-        float preprocessPosition(float angle) override;
-    };
-}
+    /**
+     * @brief Method to convert the angle passed by the user to an
+     * useful angle for the servo interface
+     * @param angle The angle(degrees)
+     * @return float The converted angle
+     */
+    float preprocessPosition(float angle) override;
+};
+}  // namespace Parafoil

@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- */ 
+ */
 
 /**
  * This class is used to keep track of various main class
@@ -27,49 +27,49 @@
 
 #pragma once
 
-#include <string>
 #include <ostream>
+#include <string>
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    enum ParafoilTestComponentStatus
+enum ParafoilTestComponentStatus
+{
+    ERROR = 0,
+    OK    = 1
+};
+
+struct ParafoilTestStatus
+{
+    // If there is an error, this uint8_t reports it(OR)
+    uint8_t parafoil_test = OK;
+
+    // Specific errors
+    uint8_t logger      = OK;
+    uint8_t eventBroker = OK;
+    uint8_t sensors     = OK;
+    uint8_t FMM         = OK;
+    uint8_t radio       = OK;
+
+    /**
+     * @brief Method to set a specific component in an error state
+     */
+    void setError(uint8_t ParafoilTestStatus::*component)
     {
-        ERROR   = 0,
-        OK      = 1
-    };
+        // Put the passed component to error state
+        this->*component = ERROR;
+        // Logic OR
+        parafoil_test = ERROR;
+    }
 
-    struct ParafoilTestStatus
+    static std::string header()
     {
-        //If there is an error, this uint8_t reports it(OR)
-        uint8_t parafoil_test = OK;
+        return "logger, eventBorker, sensors, radio\n";
+    }
 
-        //Specific errors
-        uint8_t logger          = OK;
-        uint8_t eventBroker     = OK;
-        uint8_t sensors         = OK;
-        uint8_t FMM             = OK;
-        uint8_t radio           = OK;
-
-        /**
-         * @brief Method to set a specific component in an error state
-         */
-        void setError(uint8_t ParafoilTestStatus::*component)
-        {
-            //Put the passed component to error state
-            this->*component  = ERROR;
-            //Logic OR
-            parafoil_test       = ERROR;
-        }
-
-
-        static std::string header()
-        {
-            return "logger, eventBorker, sensors, radio\n";
-        }
-
-        void print(std::ostream& os)
-        {
-            os << (int)logger << "," << (int)eventBroker << "," << (int)sensors << "," << (int)radio << "\n";
-        }
-    };
-}
+    void print(std::ostream& os)
+    {
+        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
+           << "," << (int)radio << "\n";
+    }
+};
+}  // namespace Parafoil

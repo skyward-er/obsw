@@ -21,107 +21,105 @@
  */
 #pragma once
 
-#include <sensors/SensorManager.h>
-#include <sensors/MPU9250/MPU9250.h>
-#include <sensors/UbloxGPS/UbloxGPS.h>
 #include <sensors/BME280/BME280.h>
-
-using namespace Boardcore;
+#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/SensorManager.h>
+#include <sensors/UbloxGPS/UbloxGPS.h>
 
 /**
  * This class memorizes all the sensors instances.
  * Every instance is initialized by the constructor. Also every
  * sensor has its own status
  */
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    class Sensors
-    {
-    private:
-        
-        /**
-         * @brief Sensor manager object
-         */
-        SensorManager* manager;
-        
-        /**
-         * @brief Sensor map that contains every sensor istance
-         * that needs to be sampled by the sensor manager
-         */
-        SensorManager::SensorMap_t sensors_map;
 
-        /**
-         * @brief SPI interface passed via constructor
-         */
-        SPIBusInterface& spiInterface;
+class Sensors
+{
+private:
+    /**
+     * @brief Sensor manager object
+     */
+    Boardcore::SensorManager* manager;
 
-        /**
-         * @brief Sensors serial logger
-         */
-        PrintLogger log = Logging::getLogger("sensors");
+    /**
+     * @brief Sensor map that contains every sensor istance
+     * that needs to be sampled by the sensor manager
+     */
+    Boardcore::SensorManager::SensorMap_t sensors_map;
 
-        /**
-         * @brief SD logger singleton
-         */
-        Logger* logger;
+    /**
+     * @brief SPI interface passed via constructor
+     */
+    Boardcore::SPIBusInterface& spiInterface;
 
-        /**
-         * @brief The MPU9250 IMU init function and
-         * sample callback
-         */
-        void MPU9250init();
-        void MPU9250Callback();
+    /**
+     * @brief Sensors serial logger
+     */
+    Boardcore::PrintLogger log = Boardcore::Logging::getLogger("sensors");
 
-        /**
-         * @brief GPS init function and sample callback
-         */
-        void UbloxGPSinit();
-        void UbloxGPSCallback();
+    /**
+     * @brief SD logger singleton
+     */
+    Boardcore::Logger* logger;
 
-        /**
-         * @brief Barometer BME280 init function and sample callback
-         */
-        void BME280init();
-        void BME280Callback();
+    /**
+     * @brief The MPU9250 IMU init function and
+     * sample callback
+     */
+    void MPU9250init();
+    void MPU9250Callback();
 
-    public:
+    /**
+     * @brief GPS init function and sample callback
+     */
+    void UbloxGPSinit();
+    void UbloxGPSCallback();
 
-        /**
-         * @brief MPU9250IMU
-         */
-        MPU9250* imu_mpu9250;
+    /**
+     * @brief Barometer BME280 init function and sample callback
+     */
+    void BME280init();
+    void BME280Callback();
 
-        /**
-         * @brief GPS
-         */
-        UbloxGPS* gps_ublox;
+public:
+    /**
+     * @brief MPU9250IMU
+     */
+    Boardcore::MPU9250* imu_mpu9250;
 
-        /**
-         * @brief Barometer
-         */
-        BME280* press_bme280;
+    /**
+     * @brief GPS
+     */
+    Boardcore::UbloxGPS* gps_ublox;
 
-        /**
-         * @brief Constructor
-         * @param The spi interface used for the sensors
-         * @param The task scheduler
-         */
-        Sensors(SPIBusInterface& spi, TaskScheduler* scheduler);
+    /**
+     * @brief Barometer
+     */
+    Boardcore::BME280* press_bme280;
 
-        /**
-         * @brief Deconstructor
-         */
-        ~Sensors();
+    /**
+     * @brief Constructor
+     * @param The spi interface used for the sensors
+     * @param The task scheduler
+     */
+    Sensors(Boardcore::SPIBusInterface& spi,
+            Boardcore::TaskScheduler* scheduler);
 
-        /**
-         * @brief Starts the sensor manager to sample data
-         * @return boolean that indicates operation's result
-         */
-        bool start();
+    /**
+     * @brief Deconstructor
+     */
+    ~Sensors();
 
-        /**
-         * @brief Calibrates the sensors that need to
-         */
-        void calibrate();
-    };
-}
+    /**
+     * @brief Starts the sensor manager to sample data
+     * @return boolean that indicates operation's result
+     */
+    bool start();
+
+    /**
+     * @brief Calibrates the sensors that need to
+     */
+    void calibrate();
+};
+}  // namespace Parafoil

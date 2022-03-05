@@ -29,11 +29,9 @@
 using std::bind;
 using namespace Boardcore;
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
-/**
- * PRIVATE METHODS
- */
+
 void Sensors::MPU9250init()
 {
     SPIBusConfig spiConfig{};
@@ -109,7 +107,7 @@ void Sensors::BME280init()
 
     slave.config.clockDivider = SPI::ClockDivider::DIV_16;
 
-    auto config = BME280::BME280_CONFIG_ALL_ENABLED;
+    auto config                      = BME280::BME280_CONFIG_ALL_ENABLED;
     config.bits.oversamplingPressure = BME280::OVERSAMPLING_4;
 
     // Instantiate the object
@@ -140,9 +138,6 @@ void Sensors::BME280Callback()
     TMRepository::getInstance().update(d);
 }
 
-/**
- * PUBLIC METHODS
- */
 Sensors::Sensors(SPIBusInterface& spi, TaskScheduler* scheduler)
     : spiInterface(spi)
 {
@@ -156,6 +151,8 @@ Sensors::Sensors(SPIBusInterface& spi, TaskScheduler* scheduler)
 
     // Sensor manager instance
     // At this point sensors_map contains all the initialized sensors
+    // cppcheck-suppress noCopyConstructor
+    // cppcheck-suppress noOperatorEq
     manager = new SensorManager(sensors_map, scheduler);
 }
 
@@ -175,4 +172,4 @@ bool Sensors::start() { return manager->start(); }
 
 void Sensors::calibrate() {}
 
-}  // namespace ParafoilTestDev
+}  // namespace Parafoil

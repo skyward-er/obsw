@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,34 @@
 
 #pragma once
 
-#include "FMMData.h"
-#include <events/FSM.h>
 #include <diagnostic/PrintLogger.h>
+#include <events/FSM.h>
 
-using namespace Boardcore;
+#include "FMMData.h"
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    /**
-     * @brief FMM state machine
-     */
-    class FMMController : public FSM<FMMController>
-    {
-    public:
-        FMMController();
-        ~FMMController();
+/**
+ * @brief FMM state machine
+ */
+class FMMController : public Boardcore::FSM<FMMController>
+{
+public:
+    FMMController();
+    ~FMMController();
 
-        void state_on_ground(const Event& ev);
-        void state_flying(const Event& ev);
-        void state_debug(const Event& ev);
+    void state_on_ground(const Boardcore::Event& ev);
+    void state_flying(const Boardcore::Event& ev);
+    void state_debug(const Boardcore::Event& ev);
 
-    private:
-        FMMControllerStatus status;
-        PrintLogger logger = Logging::getLogger("FMM");
-        Logger* SDlogger = &Logger::getInstance();
+private:
+    FMMControllerStatus status;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("FMM");
+    Boardcore::Logger* SDlogger   = &Boardcore::Logger::getInstance();
 
-        /* --- LOGGER --- */
+    /* --- LOGGER --- */
 
-        void logStatus(FMMControllerState state);
-        void logStatus();
-    };
-}  // namespace ParafoilTestDev
+    void logStatus(FMMControllerState state);
+    void logStatus();
+};
+}  // namespace Parafoil

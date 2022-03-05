@@ -19,24 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <radio/Xbee/Xbee.h>
 
-using namespace Boardcore;
-
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    //TODO change the pins to something correct
-    static miosix::GpioPin XBEE_CS(GPIOC_BASE, 1);
-    static miosix::GpioPin XBEE_ATTN(GPIOF_BASE, 10); //Interrupt pin (THE SAME AS THE RADIO.CPP)
-    static miosix::GpioPin XBEE_RESET(GPIOC_BASE, 5);
 
-    static miosix::GpioPin XBEE_SCK(GPIOE_BASE, 2);
-	static miosix::GpioPin XBEE_MISO(GPIOE_BASE, 5);
-	static miosix::GpioPin XBEE_MOSI(GPIOE_BASE, 6);
+// TODO change the pins to something correct
+static miosix::GpioPin XBEE_CS(GPIOC_BASE, 1);
+static miosix::GpioPin XBEE_ATTN(GPIOF_BASE, 10);  // Interrupt pin
+static miosix::GpioPin XBEE_RESET(GPIOC_BASE, 5);
 
-    //Data rate
-    static const bool XBEE_80KBPS_DATA_RATE = true;
-    static const int XBEE_TIMEOUT           = 5000; //5 seconds
-}
+static miosix::GpioPin XBEE_SCK(GPIOE_BASE, 2);
+static miosix::GpioPin XBEE_MISO(GPIOE_BASE, 5);
+static miosix::GpioPin XBEE_MOSI(GPIOE_BASE, 6);
+
+// Data rate
+static const bool XBEE_80KBPS_DATA_RATE = true;
+static const int XBEE_TIMEOUT           = 5000;  // [ms]
+
+}  // namespace Parafoil

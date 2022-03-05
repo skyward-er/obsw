@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <string>
 
-namespace ParafoilTestDev
+namespace Parafoil
 {
 
 /**
@@ -48,10 +48,7 @@ struct FMMControllerStatus
     long long timestamp;
     FMMControllerState state;
 
-    static std::string header()
-    {
-        return "timestamp,state\n";
-    }
+    static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
@@ -59,4 +56,4 @@ struct FMMControllerStatus
     }
 };
 
-}  // namespace ParafoilTestDev
+}  // namespace Parafoil

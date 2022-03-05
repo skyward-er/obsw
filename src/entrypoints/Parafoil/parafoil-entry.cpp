@@ -27,7 +27,7 @@
 #include <miosix.h>
 
 using namespace miosix;
-using namespace ParafoilTestDev;
+using namespace Parafoil;
 using namespace Boardcore;
 
 void enablePin()

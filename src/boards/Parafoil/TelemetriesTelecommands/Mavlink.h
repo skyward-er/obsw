@@ -30,12 +30,12 @@
 #include <mavlink_lib/lynx/mavlink.h>
 #pragma GCC diagnostic pop
 
-#include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <Parafoil/Configs/MavlinkConfig.h>
+#include <radio/MavlinkDriver/MavlinkDriver.h>
 
-using namespace Boardcore;
-
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    using MavDriver = MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
+
+using MavDriver = Boardcore::MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
+
 }

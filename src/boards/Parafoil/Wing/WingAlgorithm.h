@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <utils/CSVReader/CSVReader.h>
-#include <common/Algorithm.h>
 #include <Parafoil/Wing/WingServo.h>
+#include <common/Algorithm.h>
+#include <utils/CSVReader/CSVReader.h>
 
 /**
  * @brief This class abstracts the concept of wing timestamp based
@@ -32,114 +32,114 @@
  * We use a CSV parser to properly parse the procedure and every step
  * we check if it is time to advance and in case actuate teh step with
  * the two servos.
- * 
+ *
  * Brief use case:
  * WingServo servo1...
  * WingServo servo2...
- * 
+ *
  * servo1.enable();
  * servo2.enable();
- * 
+ *
  * WingAlgorithm algorithm(&servo1, &servo2, "Optional File")
  * algorithm.init();
- * 
+ *
  * //In case of a non valid file/empty string you can add the steps
  * algorithm.addStep(WingAlgorithmData{timestamp, angle1, angle2});
- * 
+ *
  * algorithm.begin();
- * 
+ *
  * algorithm.update()...
- * 
+ *
  * //End of algorithm
- * 
+ *
  * algorithm.begin();
- * 
+ *
  * algorithm.update()...
  */
 
-using namespace Boardcore;
-
-namespace ParafoilTestDev
+namespace Parafoil
 {
-    struct WingAlgorithmData
-    {
-        uint64_t timestamp; //First timestamp is 0 (in microseconds)
-        float servo1Angle;  //degrees
-        float servo2Angle;  //degrees
-    };
+struct WingAlgorithmData
+{
+    uint64_t timestamp;  // First timestamp is 0 (in microseconds)
+    float servo1Angle;   // degrees
+    float servo2Angle;   // degrees
+};
 
-    class WingAlgorithm : public Algorithm
-    {
-    public:
+class WingAlgorithm : public Algorithm
+{
+public:
+    /**
+     * @brief Construct a new Wing Algorithm object
+     *
+     * @param servo1 The first servo
+     * @param servo2 The second servo
+     * @param filename The csv file where all the operations are stored
+     */
+    WingAlgorithm(ServoInterface* servo1, ServoInterface* servo2,
+                  const char* filename);
 
-        /**
-         * @brief Construct a new Wing Algorithm object
-         * 
-         * @param servo1 The first servo
-         * @param servo2 The second servo
-         * @param filename The csv file where all the operations are stored
-         */
-        WingAlgorithm(ServoInterface* servo1, ServoInterface* servo2, const char* filename);
+    /**
+     * @brief Construct a new Wing Algorithm object
+     *
+     * @param filename The csv file where all the operations are stored
+     */
+    WingAlgorithm(const char* filename);
 
-        /**
-         * @brief Construct a new Wing Algorithm object
-         * 
-         * @param filename The csv file where all the operations are stored
-         */
-        WingAlgorithm(const char* filename);
+    /**
+     * @brief This method parses the file and stores it into a std::vector
+     *
+     * @return true If the initialization finished correctly
+     * @return false If something went wrong
+     */
+    bool init() override;
 
-        /**
-         * @brief This method parses the file and stores it into a std::vector
-         * 
-         * @return true If the initialization finished correctly
-         * @return false If something went wrong
-         */
-        bool init() override;
+    /**
+     * @brief Set the Servos objects
+     * @param servo1 The first algorithm servo
+     * @param servo2 The second algorithm servo
+     */
+    void setServo(ServoInterface* servo1, ServoInterface* servo2);
 
-        /**
-         * @brief Set the Servos objects
-         * @param servo1 The first algorithm servo
-         * @param servo2 The second algorithm servo
-         */
-        void setServo(ServoInterface* servo1, ServoInterface* servo2);
+    /**
+     * @brief Adds manually the step in case of fast debug needs
+     *
+     * @param step The data that describes a step(timestamp, servo1 angle,
+     * servo2 angle)
+     */
+    void addStep(WingAlgorithmData step);
 
-        /**
-         * @brief Adds manually the step in case of fast debug needs
-         * 
-         * @param step The data that describes a step(timestamp, servo1 angle, servo2 angle)
-         */
-        void addStep(WingAlgorithmData step);
+    /**
+     * @brief This sets the reference timestamp for the algorithm
+     */
+    void begin();
 
-        /**
-         * @brief This sets the reference timestamp for the algorithm
-         */
-        void begin();
+    /**
+     * @brief This disables the algorithm
+     */
+    void end();
 
-        /**
-         * @brief This disables the algorithm
-         */
-        void end();
+protected:
+    // Actuators
+    ServoInterface* servo1;
+    ServoInterface* servo2;
+    // Offset timestamp
+    uint64_t timeStart;
+    // Procedure
+    std::vector<WingAlgorithmData> steps;
+    // File parser
+    Boardcore::CSVParser<WingAlgorithmData> parser;
+    bool fileValid = false;
+    // This boolean is used to understand when to reset
+    // the index where the algorithm has stopped.
+    // In case of end call, we want to be able to perform
+    // another time this algorithm starting from 0
+    bool shouldReset = false;
 
-    protected:
-        //Actuators
-        ServoInterface* servo1;
-        ServoInterface* servo2;
-        //Offset timestamp
-        uint64_t timeStart;
-        //Procedure
-        std::vector<WingAlgorithmData> steps;
-        //File parser
-        CSVParser<WingAlgorithmData> parser;
-        bool fileValid      = false;
-        //This boolean is used to understand when to reset
-        //the index where the algorithm has stopped.
-        //In case of end call, we want to be able to perform
-        //another time this algorithm starting from 0
-        bool shouldReset    = false;
-
-        /**
-         * @brief This method implements the algorithm step based on the current timestamp
-         */
-        void step() override;
-    };
-}
+    /**
+     * @brief This method implements the algorithm step based on the current
+     * timestamp
+     */
+    void step() override;
+};
+}  // namespace Parafoil

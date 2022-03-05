@@ -65,13 +65,6 @@
 #include "FlightStatsRecorder/FSRData.h"
 #include "scheduler/TaskSchedulerData.h"
 
-// Serialized classes
-using std::ofstream;
-
-using namespace DeathStackBoard;
-using namespace Boardcore;
-using namespace ParafoilTestDev;
-
 template <typename T>
 void print(T& t, ostream& os)
 {

@@ -31,17 +31,16 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 
-using namespace Boardcore;
-
 /**
  * This class is the main singleton that keeps all the project objects.
  * It has all the instances and initializes all of them.
  */
-namespace ParafoilTestDev
+namespace Parafoil
 {
+
 enum ThreadIds : uint8_t
 {
-    THID_ENTRYPOINT = THID_FIRST_AVAILABLE_ID,
+    THID_ENTRYPOINT = Boardcore::THID_FIRST_AVAILABLE_ID,
     THID_FMM_FSM,
     THID_TMTC_FSM,
     THID_STATS_FSM,
@@ -63,15 +62,15 @@ enum TaskIDs : uint8_t
     TASK_NAS_ID             = 9
 };
 
-class ParafoilTest : public Singleton<ParafoilTest>
+class ParafoilTest : public Boardcore::Singleton<ParafoilTest>
 {
-    friend class Singleton<ParafoilTest>;
+    friend class Boardcore::Singleton<ParafoilTest>;
 
 public:
     /**
      * @brief Event broker
      */
-    EventBroker* broker;
+    Boardcore::EventBroker* broker;
 
     /**
      * @brief Sensors collection
@@ -97,7 +96,7 @@ public:
     /**
      * @brief Task scheduler
      */
-    TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler;
 
     /**
      * @brief Start method
@@ -172,12 +171,12 @@ private:
     /**
      * @brief SDlogger in debug mode
      */
-    PrintLogger log = Logging::getLogger("ParafoilTest");
+    Boardcore::PrintLogger log = Boardcore::Logging::getLogger("ParafoilTest");
 
     /**
      * @brief SDlogger singleton for SD
      */
-    Logger* SDlogger;
+    Boardcore::Logger* SDlogger;
 
     /**
      * @brief Status memory
@@ -190,7 +189,7 @@ private:
     ParafoilTest()
     {
         // Take the singleton instance of SD logger
-        SDlogger = &Logger::getInstance();
+        SDlogger = &Boardcore::Logger::getInstance();
 
         // Start the logging
         startSDlogger();
@@ -199,12 +198,12 @@ private:
         broker = &sEventBroker;
 
         // Create the task scheduler
-        scheduler = new TaskScheduler();
+        scheduler = new Boardcore::TaskScheduler();
         addSchedulerStatsTask();
 
         // Create the sensors
-        SPIBusInterface* spiInterface1 = new SPIBus(SPI1);
-        sensors                        = new Sensors(*spiInterface1, scheduler);
+        Boardcore::SPIBusInterface* spiInterface1 = new Boardcore::SPIBus(SPI1);
+        sensors = new Sensors(*spiInterface1, scheduler);
 
         // Create the wing controller
         // wingController = new WingController(scheduler);
@@ -213,8 +212,8 @@ private:
         // FMM = new FMMController();
 
         // Create a new radio
-        SPIBusInterface* spiInterface4 = new SPIBus(SPI4);
-        radio                          = new Radio(*spiInterface4, scheduler);
+        Boardcore::SPIBusInterface* spiInterface4 = new Boardcore::SPIBus(SPI4);
+        radio = new Radio(*spiInterface4, scheduler);
     }
 
     void addSchedulerStatsTask()
@@ -226,7 +225,7 @@ private:
                 std::vector<Boardcore::TaskStatsResult> scheduler_stats =
                     scheduler->getTaskStats();
 
-                for (TaskStatsResult stat : scheduler_stats)
+                for (Boardcore::TaskStatsResult stat : scheduler_stats)
                 {
                     SDlogger->log(stat);
                 }
@@ -239,4 +238,5 @@ private:
             miosix::getTick());
     }
 };
-}  // namespace ParafoilTestDev
+
+}  // namespace Parafoil
