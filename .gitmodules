@@ -1,4 +1,3 @@
 [submodule "skyward-boardcore"]
 	path = skyward-boardcore
-	url = ../skyward-boardcore.git
-	branch = testing
+	url = ../skyward-boardcore

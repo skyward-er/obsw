@@ -1,6 +1,6 @@
-# Pyxis On-Board Software [![pipeline status](https://git.skywarder.eu/scs/pyxis/obsw/badges/master/pipeline.svg)](https://git.skywarder.eu/scs/pyxis/obsw/commits/master)
+# Parafoil test On-Board Software [![pipeline status](https://git.skywarder.eu/scs/pyxis/obsw/badges/master/pipeline.svg)](https://git.skywarder.eu/scs/pyxis/obsw/commits/master)
 
-*On Board software for Pyxis*
+*On Board software for Parafoil tests*
 
 To clone, use `git clone --recurse-submodules git@git.skywarder.eu:scs/pyxis/obsw.git`.
 

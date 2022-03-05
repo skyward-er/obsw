@@ -29,6 +29,8 @@
 
 #include <ostream>
 
+#include <ostream>
+
 namespace DeathStackBoard
 {
 

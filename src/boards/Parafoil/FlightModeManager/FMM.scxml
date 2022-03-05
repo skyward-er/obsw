@@ -1,0 +1,10 @@
+<scxml version="1.0" xmlns="http://www.w3.org/2005/07/scxml" initial="OnGround">
+    <state id="OnGround">
+        <transition event="FMM.EV_LIFTOFF" target="FlyingState"></transition>
+        <transition event="FMM.EV_TC_TEST_MODE" target="DebugState"></transition>
+    </state>
+    <state id="Flying"></state>
+    <state id="Debug">
+        <transition event="FMM.EV_TC_EXIT_TEST_MODE" target="OnGround"></transition>
+    </state>
+</scxml>
