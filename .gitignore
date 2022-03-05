@@ -1,6 +1,5 @@
 obj/*
 bin/*
-build/*
 
 *.o
 *.a
@@ -12,19 +11,27 @@ build/*
 .*.sw?
 .*.pyc
 
-.project 
-.cproject 
+.project
+.cproject
 .settings
+
+compile_flags.txt
+STM32F429zi_Discovery.xml
 
 ._*
 .DS_Store
 build
+cmake-build-*
 *.sublime-workspace
 *.sublime-project
 
 store.json
-scripts/event_header_generator/generated/
-scripts/event_header_generator/venv/
+**/generated/
+core
+
+__pycache__
+/scripts/generators/generated
+/scripts/generators/scxmls
 
 **/generated
 **/scxmls

@@ -92,5 +92,10 @@
         "specialfunctions": "cpp",
         "splines": "cpp",
         "matrixfunctions": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "Gpio",
+        "leds",
+        "miosix"
+    ]
 }

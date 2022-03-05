@@ -8,16 +8,16 @@
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
-                "_BOARD_stm32f429zi_skyward_death_stack",
-                "_MIOSIX_BOARDNAME=stm32f429zi_skyward_death_stack",
+                "_BOARD_stm32f429zi_skyward_death_stack_x",
+                "_MIOSIX_BOARDNAME=stm32f429zi_skyward_death_stack_x",
                 "HSE_VALUE=8000000",
                 "SYSCLK_FREQ_168MHz=168000000",
                 "_MIOSIX",
                 "__cplusplus=201103L"
             ],
             "includePath": [
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack",
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack_x",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack_x",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
@@ -27,9 +27,8 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
-                "${workspaceFolder}/src/boards/DeathStack",
                 "${workspaceFolder}/src/boards",
-                "${workspaceFolder}/src/common",
+                "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
             ],
             "browse": {
@@ -52,10 +51,8 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
-                    "${workspaceFolder}/src/boards/DeathStack",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests",
-                    "${workspaceFolder}/src/common",
                     "${workspaceFolder}/src"
                 ],
                 "limitSymbolsToIncludedHeaders": true
