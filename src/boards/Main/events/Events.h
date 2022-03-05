@@ -47,25 +47,42 @@ using std::string;
  */
 enum Events : uint8_t
 {
-    DPL_CUT_DROGUE = Boardcore::EV_FIRST_SIGNAL,
+    ABK_DISABLE = Boardcore::EV_FIRST_SIGNAL,
+    ABK_OPEN,
+    ABK_RESET,
+    ABK_SHADOW_MODE_TIMEOUT,
+    ABK_WIGGLE,
+    DPL_CUT_DROGUE,
     DPL_CUT_TIMEOUT,
     DPL_OPEN,
     DPL_OPEN_NC,
     DPL_OPEN_NC_TIMEOUT,
     DPL_RESET,
     DPL_WIGGLE,
+    FLIGHT_APOGEE_DETECTED,
+    FLIGHT_LIFTOFF_DETECTED,
     FLIGHT_NC_DETACHED,
 };
 
 const std::vector<uint8_t> EVENT_LIST{
-    DPL_CUT_DROGUE,      DPL_CUT_TIMEOUT, DPL_OPEN,   DPL_OPEN_NC,
-    DPL_OPEN_NC_TIMEOUT, DPL_RESET,       DPL_WIGGLE, FLIGHT_NC_DETACHED,
+    ABK_DISABLE,
+    ABK_OPEN,
+    ABK_RESET,
+    ABK_SHADOW_MODE_TIMEOUT,
+    ABK_WIGGLE,
+    DPL_CUT_DROGUE,
+    DPL_CUT_TIMEOUT,
+    DPL_OPEN,
+    DPL_OPEN_NC,
+    DPL_OPEN_NC_TIMEOUT,
+    DPL_RESET,
+    DPL_WIGGLE,
+    FLIGHT_APOGEE_DETECTED,
+    FLIGHT_LIFTOFF_DETECTED,
+    FLIGHT_NC_DETACHED,
 };
 
 /**
- * @brief Returns the name of the provided event
- *
- * @param event
- * @return string
+ * @brief Returns the name of the provided event.
  */
 string getEventString(uint8_t event);

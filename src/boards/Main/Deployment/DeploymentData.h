@@ -30,9 +30,6 @@
 namespace MainComputer
 {
 
-/**
- * Enum defining the possible FSM states.
- */
 enum DeploymentControllerState : uint8_t
 {
     INIT = 0,
@@ -41,12 +38,9 @@ enum DeploymentControllerState : uint8_t
     CUTTING,
 };
 
-/**
- * Structure defining the overall controller status.
- */
 struct DeploymentControllerStatus
 {
-    long long timestamp;
+    uint64_t timestamp;
     DeploymentControllerState state;
 
     static std::string header() { return "timestamp,state\n"; }

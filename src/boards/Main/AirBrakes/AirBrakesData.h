@@ -22,38 +22,34 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
+#include <stdint.h>
 
-#include "DeploymentData.h"
+#include <iostream>
+#include <string>
 
 namespace MainComputer
 {
 
-class DeploymentController : public Boardcore::FSM<DeploymentController>
+enum AirBrakesControllerState : uint8_t
 {
-public:
-    DeploymentController();
-    ~DeploymentController();
+    INIT = 0,
+    IDLE,
+    SHADOW_MODE,
+    ACTIVE,
+    END
+};
 
-    void state_init(const Boardcore::Event& ev);
-    void state_idle(const Boardcore::Event& ev);
-    void state_nosecone_ejection(const Boardcore::Event& ev);
-    void state_cutting(const Boardcore::Event& ev);
+struct AirBrakesControllerStatus
+{
+    uint64_t timestamp;
+    AirBrakesControllerState state;
 
-private:
-    DeploymentControllerStatus status;
+    static std::string header() { return "timestamp,state\n"; }
 
-    void wiggle_servo();
-    void start_cutting();
-    void stop_cutting();
-
-    void logStatus(DeploymentControllerState state);
-
-    uint16_t open_nc_timeout_event_id    = 0;
-    uint16_t nc_cutting_timeout_event_id = 0;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.dpl");
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
 }  // namespace MainComputer

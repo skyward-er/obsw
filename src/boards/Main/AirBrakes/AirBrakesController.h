@@ -25,35 +25,33 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
-#include "DeploymentData.h"
+#include "AirBrakesData.h"
 
 namespace MainComputer
 {
 
-class DeploymentController : public Boardcore::FSM<DeploymentController>
+class AirBrakesController : public Boardcore::FSM<AirBrakesController>
 {
 public:
-    DeploymentController();
-    ~DeploymentController();
+    AirBrakesController();
+    ~AirBrakesController();
 
     void state_init(const Boardcore::Event& ev);
     void state_idle(const Boardcore::Event& ev);
-    void state_nosecone_ejection(const Boardcore::Event& ev);
-    void state_cutting(const Boardcore::Event& ev);
+    void state_shadow_mode(const Boardcore::Event& ev);
+    void state_active(const Boardcore::Event& ev);
+    void state_end(const Boardcore::Event& ev);
 
 private:
-    DeploymentControllerStatus status;
+    AirBrakesControllerStatus status;
 
     void wiggle_servo();
-    void start_cutting();
-    void stop_cutting();
 
-    void logStatus(DeploymentControllerState state);
+    void logStatus(AirBrakesControllerState state);
 
-    uint16_t open_nc_timeout_event_id    = 0;
-    uint16_t nc_cutting_timeout_event_id = 0;
+    uint16_t shadow_mode_timeout_event_id = 0;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.dpl");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
 };
 
 }  // namespace MainComputer

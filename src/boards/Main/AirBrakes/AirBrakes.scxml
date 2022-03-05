@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" initial="idle" version="1.0">
+    <state id="init">
+    	<onentry>servo.enable()</onentry>
+    	<onentry>servo.reset()</onentry>
+        <onentry>transitionTo(idle)</onentry>
+    </state>
+    <state id="idle">
+        <transition event="ABK.WIGGLE" target="idle">servo.wiggle()</transition>
+        <transition event="ABK.OPEN" target="idle">servo.open()</transition>
+        <transition event="ABK.RESET" target="idle">servo.reset()</transition>
+        <transition event="FLIGHT.LIFTOFF_DETECTED" target="shadow_mode"/>
+    </state>
+    <state id="shadow_mode">
+        <onentry>postD(ABK.SHADOW_MODE_TIMEOUT)</onentry>
+        <transition event="ABK.SHADOW_MODE_TIMEOUT" target="active"/>
+        <transition event="ABK.DISABLE" target="end"/>
+    </state>
+    <state id="active">
+    	<onentry>algorithm.begin()</onentry>
+        <transition event="FLIGHT.APOGEE_DETECTED" target="end"/>
+        <transition event="ABK.DISABLE" target="end"/>
+    </state>
+    <state id="end">
+        <onentry>algorithm.end()</onentry>
+        <onentry>servo.reset()</onentry>
+    </state>
+</scxml>

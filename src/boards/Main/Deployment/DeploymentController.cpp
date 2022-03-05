@@ -56,7 +56,7 @@ void DeploymentController::state_init(const Event& ev)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().servoExpulsion.setPosition180Deg(
+            Actuators::getInstance().servoExpulsion.setPosition120Deg(
                 DPL_SERVO_RESET_POS);
             Actuators::getInstance().servoExpulsion.enable();
 
@@ -100,14 +100,14 @@ void DeploymentController::state_idle(const Event& ev)
         }
         case DPL_OPEN:
         {
-            Actuators::getInstance().servoExpulsion.setPosition180Deg(
+            Actuators::getInstance().servoExpulsion.setPosition120Deg(
                 DPL_SERVO_EJECT_POS);
             break;
         }
         case DPL_RESET:
         {
 
-            Actuators::getInstance().servoExpulsion.setPosition180Deg(
+            Actuators::getInstance().servoExpulsion.setPosition120Deg(
                 DPL_SERVO_RESET_POS);
             break;
         }
@@ -134,11 +134,12 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().servoExpulsion.setPosition180Deg(
+            Actuators::getInstance().servoExpulsion.setPosition120Deg(
                 DPL_SERVO_EJECT_POS);
 
-            ev_open_nc_timeout_id = sEventBroker.postDelayed<OPEN_NC_TIMEOUT>(
-                Boardcore::Event{DPL_OPEN_NC_TIMEOUT}, TOPIC_DPL);
+            open_nc_timeout_event_id =
+                sEventBroker.postDelayed<OPEN_NC_TIMEOUT>(
+                    Boardcore::Event{DPL_OPEN_NC_TIMEOUT}, TOPIC_DPL);
 
             logStatus(NOSECONE_EJECTION);
             LOG_DEBUG(logger,
@@ -157,7 +158,7 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
         }
         case FLIGHT_NC_DETACHED:
         {
-            sEventBroker.removeDelayed(ev_open_nc_timeout_id);
+            sEventBroker.removeDelayed(open_nc_timeout_event_id);
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -176,8 +177,9 @@ void DeploymentController::state_cutting(const Event& ev)
         {
             start_cutting();
 
-            ev_nc_cutting_timeout_id = sEventBroker.postDelayed<CUT_DURATION>(
-                Boardcore::Event{DPL_CUT_TIMEOUT}, TOPIC_DPL);
+            nc_cutting_timeout_event_id =
+                sEventBroker.postDelayed<CUT_DURATION>(
+                    Boardcore::Event{DPL_CUT_TIMEOUT}, TOPIC_DPL);
 
             logStatus(CUTTING);
             LOG_DEBUG(logger, "[Deployment] entering state cutting\n");
@@ -205,10 +207,10 @@ void DeploymentController::wiggle_servo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().servoExpulsion.setPosition180Deg(
+        Actuators::getInstance().servoExpulsion.setPosition120Deg(
             DPL_SERVO_RESET_POS - DPL_SERVO_WIGGLE_AMPLITUDE);
         miosix::Thread::sleep(500);
-        Actuators::getInstance().servoExpulsion.setPosition180Deg(
+        Actuators::getInstance().servoExpulsion.setPosition120Deg(
             DPL_SERVO_RESET_POS);
         miosix::Thread::sleep(500);
     }
