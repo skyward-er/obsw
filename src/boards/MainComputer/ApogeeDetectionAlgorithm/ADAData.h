@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,38 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
+
+#include <iostream>
 #include <string>
-#include <vector>
 
-using std::string;
-
-enum Topics : uint8_t
+namespace MainComputer
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
+
+enum ADAControllerState : uint8_t
+{
+    IDLE = 0,
+    CALIBRATING,
+    READY,
+    SHADOW_MODE,
+    ACTIVE,
+    PRESSURE_STABILIZATION,
+    DROGUE_DESCENT,
+    TERMINAL_DESCENT,
+    LANDED,
 };
 
-const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
+struct ADAControllerStatus
+{
+    uint64_t timestamp;
+    ADAControllerState state;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
-/**
- * @brief Returns the name of the provided event.
- */
-string getTopicString(uint8_t topic);
+}  // namespace MainComputer

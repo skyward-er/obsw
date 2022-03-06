@@ -35,6 +35,10 @@ string getEventString(uint8_t event)
         {ABK_RESET, "ABK_RESET"},
         {ABK_SHADOW_MODE_TIMEOUT, "ABK_SHADOW_MODE_TIMEOUT"},
         {ABK_WIGGLE, ""},
+        {ADA_CALIBRATE, "ADA_CALIBRATE"},
+        {ADA_PRESS_STAB_TIMEOUT, "ADA_PRESS_STAB_TIMEOUT"},
+        {ADA_READY, "ADA_READY"},
+        {ADA_SHADOW_MODE_TIMEOUT, "ADA_SHADOW_MODE_TIMEOUT"},
         {DPL_CUT_DROGUE, "DPL_CUT_DROGUE"},
         {DPL_CUT_TIMEOUT, "DPL_CUT_TIMEOUT"},
         {DPL_OPEN, "DPL_OPEN"},
@@ -43,6 +47,8 @@ string getEventString(uint8_t event)
         {DPL_RESET, "DPL_RESET"},
         {DPL_WIGGLE, "DPL_WIGGLE"},
         {FLIGHT_APOGEE_DETECTED, "FLIGHT_APOGEE_DETECTED"},
+        {FLIGHT_DPL_ALT_DETECTED, "FLIGHT_DPL_ALT_DETECTED"},
+        {FLIGHT_LANDING_DETECTED, "FLIGHT_LANDING_DETECTED"},
         {FLIGHT_LIFTOFF_DETECTED, "FLIGHT_LIFTOFF_DETECTED"},
         {FLIGHT_NC_DETACHED, "FLIGHT_NC_DETACHED"},
     };
@@ -54,6 +60,7 @@ string getTopicString(uint8_t topic)
 {
     static const map<uint8_t, string> topic_string_map{
         {TOPIC_ABK, "TOPIC_ABK"},
+        {TOPIC_ADA, "TOPIC_ADA"},
         {TOPIC_DPL, "TOPIC_DPL"},
         {TOPIC_FLIGHT, "TOPIC_FLIGHT"},
     };

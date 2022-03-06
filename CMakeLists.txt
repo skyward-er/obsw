@@ -35,6 +35,7 @@ project(SkywardParafoilTest)
 add_executable(catch-tests-main
     src/tests/MainComputer/catch/catch-tests-entry.cpp
     src/tests/MainComputer/catch/test-airbrakes.cpp
+    src/tests/MainComputer/catch/test-ada.cpp
     src/tests/MainComputer/catch/test-deployment.cpp
     ${MAIN_COMPUTER}
 )

@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,20 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-using std::string;
-
-enum Topics : uint8_t
+namespace MainComputer
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-};
 
-const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-};
+namespace ADAConfig
+{
 
-/**
- * @brief Returns the name of the provided event.
- */
-string getTopicString(uint8_t topic);
+#ifdef EUROC
+static constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
+#else
+static constexpr int SHADOW_MODE_TIMEOUT = 8 * 1000;  // [ms]
+#endif
+
+static constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
+
+}  // namespace ADAConfig
+
+}  // namespace MainComputer
