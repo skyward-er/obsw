@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" initial="idle" version="1.0">
+    <state id="idle">
+        <transition event="FLIGHT.LIFTOFF_DETECTED" target="liftoff"/>
+        <transition event="FLIGHT.DPL_ALT_DETECTED" target="main_deployment"/>
+    </state>
+    <state id="liftoff">
+        <onentry>postD(FSR.STATS_TIMEOUT)</onentry>
+        <onexit>logLiftoffStats()</onexit>
+        <transition event="FSR.STATS_TIMEOUT" target="ascending"/>
+    </state>
+    <state id="ascending">
+        <onexit>logLiftoffStats()</onexit>
+        <onexit>logApogeeStats()</onexit>
+        <transition event="FLIGHT.APOGEE_DETECTED" target="ascending">
+            postD(FSR.STATS_TIMEOUT)
+        </transition>
+        <transition event="FSR.STATS_TIMEOUT" target="idle"/>
+    </state>
+    <state id="main_deployment">
+        <onentry>postD(FSR.STATS_TIMEOUT)</onentry>
+        <onexit>logMainDplStats()</onexit>
+        <transition event="FSR.STATS_TIMEOUT" target="idle"/>
+    </state>
+</scxml>

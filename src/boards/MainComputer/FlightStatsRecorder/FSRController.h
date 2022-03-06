@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,35 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <diagnostic/PrintLogger.h>
+#include <events/FSM.h>
 
-using std::string;
+#include "FSRData.h"
 
-enum Topics : uint8_t
+namespace MainComputer
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FSR,
-    TOPIC_NAS,
+
+class FSRController : public Boardcore::FSM<FSRController>
+{
+public:
+    FSRController();
+    ~FSRController();
+
+    void state_idle(const Boardcore::Event& ev);
+    void state_liftoff(const Boardcore::Event& ev);
+    void state_ascending(const Boardcore::Event& ev);
+    void state_main_deployment(const Boardcore::Event& ev);
+
+private:
+    FSRControllerStatus status;
+
+    void log_apogee_stats();
+    void log_liftoff_stats();
+    void log_main_dpl_stats();
+
+    void logStatus(FSRControllerState state);
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.fsr");
 };
 
-const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL, TOPIC_FLIGHT, TOPIC_FSR, TOPIC_NAS,
-};
-
-/**
- * @brief Returns the name of the provided event.
- */
-string getTopicString(uint8_t topic);
+}  // namespace MainComputer

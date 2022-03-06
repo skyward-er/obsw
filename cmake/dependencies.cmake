@@ -30,6 +30,7 @@ set(MAIN_COMPUTER
     src/boards/MainComputer/ApogeeDetectionAlgorithm/ADAController.cpp
     src/boards/MainComputer/Deployment/DeploymentController.cpp
     src/boards/MainComputer/NavigationAttitudeSystem/NASController.cpp
+    src/boards/MainComputer/FlightStatsRecorder/FSRController.cpp
 )
 
 set(PARAFOIL_COMPUTER

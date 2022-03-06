@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Alvise de' Faveri Tron
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,29 +20,19 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-using std::string;
-
-enum Topics : uint8_t
+namespace MainComputer
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FSR,
-    TOPIC_NAS,
-};
 
-const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL, TOPIC_FLIGHT, TOPIC_FSR, TOPIC_NAS,
-};
+namespace FSRConfig
+{
 
-/**
- * @brief Returns the name of the provided event.
- */
-string getTopicString(uint8_t topic);
+static constexpr int LIFTOFF_STATS_TIMEOUT  = 7.5 * 1000;  // [ms]
+static constexpr int APOGEE_STATS_TIMEOUT   = 1 * 1000;    // [ms]
+static constexpr int MAIN_DPL_STATS_TIMEOUT = 10 * 1000;   // [ms]
+
+}  // namespace FSRConfig
+
+}  // namespace MainComputer

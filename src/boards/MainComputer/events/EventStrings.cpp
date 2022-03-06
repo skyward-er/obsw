@@ -51,6 +51,7 @@ string getEventString(uint8_t event)
         {FLIGHT_LANDING_DETECTED, "FLIGHT_LANDING_DETECTED"},
         {FLIGHT_LIFTOFF_DETECTED, "FLIGHT_LIFTOFF_DETECTED"},
         {FLIGHT_NC_DETACHED, "FLIGHT_NC_DETACHED"},
+        {FSR_STATS_TIMEOUT, "FSR_STATS_TIMEOUT"},
         {NAS_CALIBRATE, "NAS_CALIBRATE"},
         {NAS_READY, "NAS_READY"},
     };
@@ -63,7 +64,7 @@ string getTopicString(uint8_t topic)
     static const map<uint8_t, string> topic_string_map{
         {TOPIC_ABK, "TOPIC_ABK"}, {TOPIC_ADA, "TOPIC_ADA"},
         {TOPIC_DPL, "TOPIC_DPL"}, {TOPIC_FLIGHT, "TOPIC_FLIGHT"},
-        {TOPIC_NAS, "TOPIC_NAS"},
+        {TOPIC_FSR, "TOPIC_FSR"}, {TOPIC_NAS, "TOPIC_NAS"},
     };
     auto it = topic_string_map.find(topic);
     return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
