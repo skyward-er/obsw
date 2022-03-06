@@ -28,6 +28,5 @@
     <state id="terminal_descent">
         <transition event="FLIGHT.LANDING_DETECTED" target="landed"/>
     </state>
-    <state id="landed">
-    </state>
+    <state id="landed"/>
 </scxml>

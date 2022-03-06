@@ -37,6 +37,7 @@ add_executable(catch-tests-main
     src/tests/MainComputer/catch/test-airbrakes.cpp
     src/tests/MainComputer/catch/test-ada.cpp
     src/tests/MainComputer/catch/test-deployment.cpp
+    src/tests/MainComputer/catch/test-nas.cpp
     ${MAIN_COMPUTER}
 )
 target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})

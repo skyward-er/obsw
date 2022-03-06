@@ -68,6 +68,8 @@ enum Events : uint8_t
     FLIGHT_LANDING_DETECTED,
     FLIGHT_LIFTOFF_DETECTED,
     FLIGHT_NC_DETACHED,
+    NAS_CALIBRATE,
+    NAS_READY,
 };
 
 const std::vector<uint8_t> EVENT_LIST{
@@ -92,6 +94,8 @@ const std::vector<uint8_t> EVENT_LIST{
     FLIGHT_LANDING_DETECTED,
     FLIGHT_LIFTOFF_DETECTED,
     FLIGHT_NC_DETACHED,
+    NAS_CALIBRATE,
+    NAS_READY,
 };
 
 /**

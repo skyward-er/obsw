@@ -56,7 +56,7 @@ private:
     uint16_t shadow_mode_timeout_event_id = 0;
     uint16_t press_stab_timeout_event_id  = 0;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.dpl");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.ada");
 };
 
 }  // namespace MainComputer
