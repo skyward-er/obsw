@@ -29,7 +29,7 @@
 #include <FlightModeManager/FMMStatus.h>
 #include <FlightStatsRecorder/FSRController.h>
 #include <FlightStatsRecorder/FSRData.h>
-#include <Main/SensorsData.h>
+#include <MainComputer/SensorsData.h>
 #include <NavigationAttitudeSystem/NASData.h>
 #include <PinHandler/PinHandlerData.h>
 #include <Singleton.h>

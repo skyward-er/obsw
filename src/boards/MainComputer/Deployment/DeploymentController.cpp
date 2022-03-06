@@ -22,8 +22,8 @@
 
 #include "DeploymentController.h"
 
-#include <Main/Actuators/Actuators.h>
-#include <Main/events/Events.h>
+#include <MainComputer/Actuators/Actuators.h>
+#include <MainComputer/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <logger/Logger.h>

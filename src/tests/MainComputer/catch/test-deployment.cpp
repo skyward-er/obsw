@@ -24,8 +24,8 @@
 // test them synchronously
 #define protected public
 
-#include <Main/Deployment/DeploymentController.h>
-#include <Main/events/Events.h>
+#include <MainComputer/Deployment/DeploymentController.h>
+#include <MainComputer/events/Events.h>
 #include <miosix.h>
 #include <utils/testutils/TestHelper.h>
 

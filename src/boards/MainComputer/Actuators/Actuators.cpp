@@ -22,8 +22,8 @@
 
 #include "Actuators.h"
 
-#include <Main/AirBrakes/AirBrakesConfig.h>
-#include <Main/Deployment/DeploymentConfig.h>
+#include <MainComputer/AirBrakes/AirBrakesConfig.h>
+#include <MainComputer/Deployment/DeploymentConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;

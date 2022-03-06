@@ -24,10 +24,10 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
-    src/boards/Main/events/EventStrings.cpp
-    src/boards/Main/Actuators/Actuators.cpp
-    src/boards/Main/AirBrakes/AirBrakesController.cpp
-    src/boards/Main/Deployment/DeploymentController.cpp
+    src/boards/MainComputer/events/EventStrings.cpp
+    src/boards/MainComputer/Actuators/Actuators.cpp
+    src/boards/MainComputer/AirBrakes/AirBrakesController.cpp
+    src/boards/MainComputer/Deployment/DeploymentController.cpp
 )
 
 set(PARAFOIL_COMPUTER

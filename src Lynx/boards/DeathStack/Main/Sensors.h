@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Main/SensorsData.h>
+#include <MainComputer/SensorsData.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <drivers/spi/SPIBusInterface.h>

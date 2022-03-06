@@ -24,7 +24,7 @@
 
 #include <ApogeeDetectionAlgorithm/ADAData.h>
 #include <FlightStatsRecorder/FSRData.h>
-#include <Main/SensorsData.h>
+#include <MainComputer/SensorsData.h>
 #include <configs/FlightStatsConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>

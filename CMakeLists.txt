@@ -33,9 +33,9 @@ project(SkywardParafoilTest)
 #-----------------------------------------------------------------------------#
 
 add_executable(catch-tests-main
-    src/tests/Main/catch/catch-tests-entry.cpp
-    src/tests/Main/catch/test-airbrakes.cpp
-    src/tests/Main/catch/test-deployment.cpp
+    src/tests/MainComputer/catch/catch-tests-entry.cpp
+    src/tests/MainComputer/catch/test-airbrakes.cpp
+    src/tests/MainComputer/catch/test-deployment.cpp
     ${MAIN_COMPUTER}
 )
 target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})

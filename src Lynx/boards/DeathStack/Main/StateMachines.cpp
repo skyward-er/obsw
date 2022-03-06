@@ -25,7 +25,7 @@
 #include <Deployment/DeploymentController.h>
 #include <FlightModeManager/FMMController.h>
 #include <FlightStatsRecorder/FSRController.h>
-#include <Main/StateMachines.h>
+#include <MainComputer/StateMachines.h>
 #include <NavigationAttitudeSystem/NASController.h>
 #include <System/TaskID.h>
 
