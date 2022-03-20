@@ -61,12 +61,14 @@ protected:
     AirBrakesController* controller;
 };
 
-TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from init")
+TEST_CASE_METHOD(AirBrakesControllerFixture,
+                 "AirBrakes - Testing transitions from init")
 {
     controller->transition(&AirBrakesController::state_init);
 }
 
-TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from idle")
+TEST_CASE_METHOD(AirBrakesControllerFixture,
+                 "AirBrakes - Testing transitions from idle")
 {
     controller->transition(&AirBrakesController::state_idle);
 
@@ -96,7 +98,7 @@ TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from idle")
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
-                 "Testing transitions from shadow_mode")
+                 "AirBrakes - Testing transitions from shadow_mode")
 {
     controller->transition(&AirBrakesController::state_shadow_mode);
 
@@ -113,7 +115,8 @@ TEST_CASE_METHOD(AirBrakesControllerFixture,
     }
 }
 
-TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from active")
+TEST_CASE_METHOD(AirBrakesControllerFixture,
+                 "AirBrakes - Testing transitions from active")
 {
     controller->transition(&AirBrakesController::state_active);
 
@@ -130,7 +133,8 @@ TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from active")
     }
 }
 
-TEST_CASE_METHOD(AirBrakesControllerFixture, "Testing transitions from end")
+TEST_CASE_METHOD(AirBrakesControllerFixture,
+                 "AirBrakes - Testing transitions from end")
 {
     controller->transition(&AirBrakesController::state_end);
 }

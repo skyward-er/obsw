@@ -61,7 +61,7 @@ protected:
     FSRController* controller;
 };
 
-TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from idle")
+TEST_CASE_METHOD(FSRControllerFixture, "FSR - Testing transitions from idle")
 {
     controller->transition(&FSRController::state_idle);
 
@@ -78,7 +78,7 @@ TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from idle")
     }
 }
 
-TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from liftoff")
+TEST_CASE_METHOD(FSRControllerFixture, "FSR - Testing transitions from liftoff")
 {
     controller->transition(&FSRController::state_liftoff);
 
@@ -89,7 +89,8 @@ TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from liftoff")
     }
 }
 
-TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from ascending")
+TEST_CASE_METHOD(FSRControllerFixture,
+                 "FSR - Testing transitions from ascending")
 {
     controller->transition(&FSRController::state_ascending);
 
@@ -107,7 +108,7 @@ TEST_CASE_METHOD(FSRControllerFixture, "Testing transitions from ascending")
 }
 
 TEST_CASE_METHOD(FSRControllerFixture,
-                 "Testing transitions from main_deployment")
+                 "FSR - Testing transitions from main_deployment")
 {
     controller->transition(&FSRController::state_main_deployment);
 

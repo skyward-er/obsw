@@ -61,12 +61,14 @@ protected:
     DeploymentController* controller;
 };
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from init")
+TEST_CASE_METHOD(DeploymentControllerFixture,
+                 "Deployment - Testing transitions from init")
 {
     controller->transition(&DeploymentController::state_init);
 }
 
-TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from idle")
+TEST_CASE_METHOD(DeploymentControllerFixture,
+                 "Deployment - Testing transitions from idle")
 {
     controller->transition(&DeploymentController::state_idle);
 
@@ -103,7 +105,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture, "Testing transitions from idle")
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from nosecone_ejection")
+                 "Deployment - Testing transitions from nosecone_ejection")
 {
     controller->transition(&DeploymentController::state_nosecone_ejection);
 
@@ -121,7 +123,7 @@ TEST_CASE_METHOD(DeploymentControllerFixture,
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
-                 "Testing transitions from cutting")
+                 "Deployment - Testing transitions from cutting")
 {
     controller->transition(&DeploymentController::state_cutting);
 
