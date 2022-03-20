@@ -24,7 +24,10 @@
 
 #include <MainComputer/AirBrakes/AirBrakesConfig.h>
 #include <MainComputer/Deployment/DeploymentConfig.h>
+
+#ifndef COMPILE_FOR_HOST
 #include <interfaces-impl/hwmapping.h>
+#endif
 
 using namespace miosix;
 using namespace MainComputer::DeploymentConfig;
@@ -32,6 +35,8 @@ using namespace MainComputer::AirBrakesConfigs;
 
 namespace MainComputer
 {
+
+#ifndef COMPILE_FOR_HOST
 
 Actuators::Actuators()
     : servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH),
@@ -41,5 +46,15 @@ Actuators::Actuators()
       cutter(actuators::nosecone::thCut1::ena::getPin())
 {
 }
+
+#else
+
+Actuators::Actuators()
+    : servoExpulsion(), servoAirbrakes(), led1(GpioPin{0, 0}),
+      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), cutter(GpioPin{0, 0})
+{
+}
+
+#endif
 
 }  // namespace MainComputer

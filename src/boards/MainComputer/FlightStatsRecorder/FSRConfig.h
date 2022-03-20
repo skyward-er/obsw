@@ -20,8 +20,10 @@
  * THE SOFTWARE.
  */
 
+#ifndef COMPILE_FOR_HOST
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
+#endif
 
 namespace MainComputer
 {

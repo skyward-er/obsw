@@ -20,8 +20,10 @@
  * THE SOFTWARE.
  */
 
+#ifndef COMPILE_FOR_HOST
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
+#endif
 
 namespace MainComputer
 {
@@ -29,9 +31,11 @@ namespace MainComputer
 namespace DeploymentConfig
 {
 
+#ifndef COMPILE_FOR_HOST
 static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
 static constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
+#endif
 
 static constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
 static constexpr int CUT_DURATION    = 50;        // [ms]

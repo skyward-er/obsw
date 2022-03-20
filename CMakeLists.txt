@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.16)
+enable_testing()
 include(skyward-boardcore/cmake/sbs.cmake)
 
 #-----------------------------------------------------------------------------#
