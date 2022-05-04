@@ -107,12 +107,6 @@ TEST_CASE_METHOD(AirBrakesControllerFixture,
         REQUIRE(testFSMTransition(*controller, Event{ABK_SHADOW_MODE_TIMEOUT},
                                   &AirBrakesController::state_active));
     }
-
-    SECTION("ABK_DISABLE -> END")
-    {
-        REQUIRE(testFSMTransition(*controller, Event{ABK_DISABLE},
-                                  &AirBrakesController::state_end));
-    }
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
