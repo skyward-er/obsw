@@ -24,20 +24,18 @@
 #include <ostream>
 #include <string>
 
-/**
- * This class is used to keep track of various main class
- * initialization errors.
- */
-
 namespace Payload
 {
-enum PayloadTestComponentStatus
+enum PayloadComponentStatus
 {
     ERROR = 0,
     OK    = 1
 };
-
-struct PayloadTestStatus
+/**
+ * @brief This class is used to keep track of various main class
+ * initialization errors.
+ */
+struct PayloadStatus
 {
     // If there is an error, this uint8_t reports it(OR)
     uint8_t payloadTest = OK;
@@ -52,7 +50,7 @@ struct PayloadTestStatus
     /**
      * @brief Method to set a specific component in an error state
      */
-    void setError(uint8_t PayloadTestStatus::*component)
+    void setError(uint8_t PayloadStatus::*component)
     {
         // Put the passed component to error state
         this->*component = ERROR;
@@ -62,13 +60,13 @@ struct PayloadTestStatus
 
     static std::string header()
     {
-        return "logger, eventBorker, sensors, radio\n";
+        return "logger, eventBorker, sensors, FMM, radio\n";
     }
 
     void print(std::ostream& os)
     {
         os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)radio << "\n";
+           << "," << (int)FMM << "," << (int)radio << "\n";
     }
 };
 }  // namespace Payload
