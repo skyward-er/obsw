@@ -39,15 +39,18 @@ AirBrakesController::AirBrakesController()
     : FSM(&AirBrakesController::state_init)
 {
     memset(&status, 0, sizeof(AirBrakesControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_ABK);
-    sEventBroker.subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_ABK);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-AirBrakesController::~AirBrakesController() { sEventBroker.unsubscribe(this); }
+AirBrakesController::~AirBrakesController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
 void AirBrakesController::state_init(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -75,7 +78,7 @@ void AirBrakesController::state_init(const Event& ev)
 
 void AirBrakesController::state_idle(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -120,12 +123,12 @@ void AirBrakesController::state_idle(const Event& ev)
 
 void AirBrakesController::state_shadow_mode(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
             shadow_mode_timeout_event_id =
-                sEventBroker.postDelayed<SHADOW_MODE_TIMEOUT>(
+                EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ABK_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(SHADOW_MODE);
@@ -151,7 +154,7 @@ void AirBrakesController::state_shadow_mode(const Event& ev)
 
 void AirBrakesController::state_active(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -185,7 +188,7 @@ void AirBrakesController::state_active(const Event& ev)
 
 void AirBrakesController::state_end(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {

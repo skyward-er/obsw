@@ -112,7 +112,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // search for the corresponding event and post it
             auto it = tcMap.find(commandId);
             if (it != tcMap.end())
-                sEventBroker.post(Event{it->second}, TOPIC_TMTC);
+                EventBroker::getInstance().post(Event{it->second}, TOPIC_TMTC);
             else
                 LOG_WARN(logger, "Unknown NOARG command {:d}", commandId);
 
@@ -162,8 +162,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             LOG_DEBUG(logger, "Received RAW_EVENT command");
 
             // post given event on given topic
-            sEventBroker.post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
-                              mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+            EventBroker::getInstance().post(
+                {mavlink_msg_raw_event_tc_get_Event_id(&msg)},
+                mavlink_msg_raw_event_tc_get_Topic_id(&msg));
             break;
         }
         case MAVLINK_MSG_ID_PING_TC:

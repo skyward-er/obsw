@@ -38,15 +38,18 @@ namespace MainComputer
 ADAController::ADAController() : FSM(&ADAController::state_idle)
 {
     memset(&status, 0, sizeof(ADAControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_ADA);
-    sEventBroker.subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_ADA);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-ADAController::~ADAController() { sEventBroker.unsubscribe(this); }
+ADAController::~ADAController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
 void ADAController::state_idle(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -73,7 +76,7 @@ void ADAController::state_idle(const Event& ev)
 
 void ADAController::state_calibrating(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -102,7 +105,7 @@ void ADAController::state_calibrating(const Event& ev)
 
 void ADAController::state_ready(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -139,12 +142,12 @@ void ADAController::state_ready(const Event& ev)
 
 void ADAController::state_shadow_mode(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
             shadow_mode_timeout_event_id =
-                sEventBroker.postDelayed<SHADOW_MODE_TIMEOUT>(
+                EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(SHADOW_MODE);
@@ -170,7 +173,7 @@ void ADAController::state_shadow_mode(const Event& ev)
 
 void ADAController::state_active(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -197,12 +200,12 @@ void ADAController::state_active(const Event& ev)
 
 void ADAController::state_pressure_stabilization(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
             press_stab_timeout_event_id =
-                sEventBroker.postDelayed<PRES_STAB_TIMEOUT>(
+                EventBroker::getInstance().postDelayed<PRES_STAB_TIMEOUT>(
                     Boardcore::Event{ADA_PRESS_STAB_TIMEOUT}, TOPIC_ADA);
 
             logStatus(PRESSURE_STABILIZATION);
@@ -228,7 +231,7 @@ void ADAController::state_pressure_stabilization(const Event& ev)
 
 void ADAController::state_drogue_descent(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -255,7 +258,7 @@ void ADAController::state_drogue_descent(const Event& ev)
 
 void ADAController::state_terminal_descent(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -282,7 +285,7 @@ void ADAController::state_terminal_descent(const Event& ev)
 
 void ADAController::state_landed(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {

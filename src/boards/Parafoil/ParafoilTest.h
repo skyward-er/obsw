@@ -195,7 +195,7 @@ private:
         startSDlogger();
 
         // Store the broker
-        broker = &sEventBroker;
+        broker = &Boardcore::EventBroker::getInstance();
 
         // Create the task scheduler
         scheduler = new Boardcore::TaskScheduler();

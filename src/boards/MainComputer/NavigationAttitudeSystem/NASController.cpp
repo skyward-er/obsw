@@ -34,15 +34,18 @@ namespace MainComputer
 NASController::NASController() : FSM(&NASController::state_idle)
 {
     memset(&status, 0, sizeof(NASControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_NAS);
-    sEventBroker.subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-NASController::~NASController() { sEventBroker.unsubscribe(this); }
+NASController::~NASController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
 void NASController::state_idle(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -69,7 +72,7 @@ void NASController::state_idle(const Event& ev)
 
 void NASController::state_calibrating(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -98,7 +101,7 @@ void NASController::state_calibrating(const Event& ev)
 
 void NASController::state_ready(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -130,7 +133,7 @@ void NASController::state_ready(const Event& ev)
 
 void NASController::state_active(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -157,7 +160,7 @@ void NASController::state_active(const Event& ev)
 
 void NASController::state_end(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {

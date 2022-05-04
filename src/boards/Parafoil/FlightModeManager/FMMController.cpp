@@ -33,15 +33,18 @@ namespace Parafoil
 FMMController::FMMController() : FSM(&FMMController::state_on_ground)
 {
     memset(&status, 0, sizeof(FMMControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_FMM);
-    sEventBroker.subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 }
 
-FMMController::~FMMController() { sEventBroker.unsubscribe(this); }
+FMMController::~FMMController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
 void FMMController::state_on_ground(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -78,7 +81,7 @@ void FMMController::state_on_ground(const Event& ev)
 
 void FMMController::state_flying(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -106,7 +109,7 @@ void FMMController::state_flying(const Event& ev)
 
 void FMMController::state_debug(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {

@@ -39,15 +39,18 @@ namespace MainComputer
 FSRController::FSRController() : FSM(&FSRController::state_idle)
 {
     memset(&status, 0, sizeof(FSRControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_FLIGHT);
-    sEventBroker.subscribe(this, TOPIC_FSR);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FSR);
 }
 
-FSRController::~FSRController() { sEventBroker.unsubscribe(this); }
+FSRController::~FSRController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
 void FSRController::state_idle(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -79,11 +82,11 @@ void FSRController::state_idle(const Event& ev)
 
 void FSRController::state_liftoff(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
-            sEventBroker.postDelayed<LIFTOFF_STATS_TIMEOUT>(
+            EventBroker::getInstance().postDelayed<LIFTOFF_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
 
             logStatus(LIFTOFF);
@@ -111,7 +114,7 @@ void FSRController::state_liftoff(const Event& ev)
 
 void FSRController::state_ascending(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -129,7 +132,7 @@ void FSRController::state_ascending(const Event& ev)
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            sEventBroker.postDelayed<APOGEE_STATS_TIMEOUT>(
+            EventBroker::getInstance().postDelayed<APOGEE_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
             break;
         }
@@ -147,11 +150,11 @@ void FSRController::state_ascending(const Event& ev)
 
 void FSRController::state_main_deployment(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
-            sEventBroker.postDelayed<MAIN_DPL_STATS_TIMEOUT>(
+            EventBroker::getInstance().postDelayed<MAIN_DPL_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
 
             logStatus(MAIN_DEPLOYMENT);

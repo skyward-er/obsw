@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Singleton.h>
-#include <drivers/servo/Servo.h>
+#include <actuators/Servo/Servo.h>
 #include <interfaces/gpio.h>
 
 namespace MainComputer

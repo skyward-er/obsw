@@ -47,7 +47,7 @@ using std::string;
  */
 enum Events : uint8_t
 {
-    ABK_DISABLE = Boardcore::EV_FIRST_SIGNAL,
+    ABK_DISABLE = Boardcore::EV_FIRST_CUSTOM,
     ABK_OPEN,
     ABK_RESET,
     ABK_SHADOW_MODE_TIMEOUT,

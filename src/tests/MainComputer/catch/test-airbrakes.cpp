@@ -27,7 +27,7 @@
 #include <MainComputer/AirBrakes/AirBrakesController.h>
 #include <MainComputer/events/Events.h>
 #include <miosix.h>
-#include <utils/testutils/TestHelper.h>
+#include <utils/TestUtils/TestHelper.h>
 
 #include <catch2/catch.hpp>
 
@@ -44,7 +44,7 @@ public:
         // cppcheck-suppress noCopyConstructor
         // cppcheck-suppress noOperatorEq
         controller = new AirBrakesController();
-        sEventBroker.start();
+        EventBroker::getInstance().start();
         controller->start();
     }
 
@@ -52,8 +52,8 @@ public:
     ~AirBrakesControllerFixture()
     {
         controller->stop();
-        sEventBroker.unsubscribe(controller);
-        sEventBroker.clearDelayedEvents();
+        EventBroker::getInstance().unsubscribe(controller);
+        EventBroker::getInstance().clearDelayedEvents();
         delete controller;
     }
 

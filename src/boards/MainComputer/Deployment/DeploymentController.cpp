@@ -41,18 +41,18 @@ DeploymentController::DeploymentController()
     : FSM(&DeploymentController::state_init)
 {
     memset(&status, 0, sizeof(DeploymentControllerStatus));
-    sEventBroker.subscribe(this, TOPIC_DPL);
-    sEventBroker.subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_DPL);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
 DeploymentController::~DeploymentController()
 {
-    sEventBroker.unsubscribe(this);
+    EventBroker::getInstance().unsubscribe(this);
 }
 
 void DeploymentController::state_init(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -80,7 +80,7 @@ void DeploymentController::state_init(const Event& ev)
 
 void DeploymentController::state_idle(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -130,7 +130,7 @@ void DeploymentController::state_idle(const Event& ev)
 
 void DeploymentController::state_nosecone_ejection(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
@@ -138,7 +138,7 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
                 DPL_SERVO_EJECT_POS);
 
             open_nc_timeout_event_id =
-                sEventBroker.postDelayed<OPEN_NC_TIMEOUT>(
+                EventBroker::getInstance().postDelayed<OPEN_NC_TIMEOUT>(
                     Boardcore::Event{DPL_OPEN_NC_TIMEOUT}, TOPIC_DPL);
 
             logStatus(NOSECONE_EJECTION);
@@ -158,7 +158,7 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
         }
         case FLIGHT_NC_DETACHED:
         {
-            sEventBroker.removeDelayed(open_nc_timeout_event_id);
+            EventBroker::getInstance().removeDelayed(open_nc_timeout_event_id);
             transition(&DeploymentController::state_idle);
             break;
         }
@@ -171,14 +171,14 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
 
 void DeploymentController::state_cutting(const Event& ev)
 {
-    switch (ev.code)
+    switch (ev)
     {
         case EV_ENTRY:
         {
             start_cutting();
 
             nc_cutting_timeout_event_id =
-                sEventBroker.postDelayed<CUT_DURATION>(
+                EventBroker::getInstance().postDelayed<CUT_DURATION>(
                     Boardcore::Event{DPL_CUT_TIMEOUT}, TOPIC_DPL);
 
             logStatus(CUTTING);
