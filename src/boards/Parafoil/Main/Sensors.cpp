@@ -37,12 +37,11 @@ void Sensors::MPU9250init()
     SPIBusConfig spiConfig{};
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
     spiConfig.mode         = SPI::Mode::MODE_3;
-    // I create first a new SPISlave with all the settings
-    SPISlave slave{spiInterface, IMU_CS, spiConfig};
 
     // Instantiate the object
-    imu_mpu9250 = new MPU9250(slave, IMU_SAMPLE_RATE, IMU_GYRO_SCALE,
-                              IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
+    imu_mpu9250 =
+        new MPU9250(spiInterface, IMU_CS, spiConfig, IMU_SAMPLE_RATE,
+                    IMU_GYRO_SCALE, IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
 
     // Bind the information
     SensorInfo info("MPU9250", IMU_SAMPLE_PERIOD,
