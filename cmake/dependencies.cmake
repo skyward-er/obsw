@@ -24,14 +24,14 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
-    src/boards/MainComputer/events/EventStrings.cpp
-    src/boards/MainComputer/Actuators/Actuators.cpp
-    src/boards/MainComputer/Radio/Radio.cpp
-    src/boards/MainComputer/StateMachines/AirBrakes/AirBrakesController.cpp
-    src/boards/MainComputer/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
-    src/boards/MainComputer/StateMachines/Deployment/DeploymentController.cpp
-    src/boards/MainComputer/StateMachines/NavigationAttitudeSystem/NASController.cpp
-    src/boards/MainComputer/StateMachines/FlightStatsRecorder/FSRController.cpp
+    src/boards/Main/events/EventStrings.cpp
+    src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Radio/Radio.cpp
+    src/boards/Main/StateMachines/AirBrakes/AirBrakesController.cpp
+    src/boards/Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
+    src/boards/Main/StateMachines/Deployment/DeploymentController.cpp
+    src/boards/Main/StateMachines/NavigationAttitudeSystem/NASController.cpp
+    src/boards/Main/StateMachines/FlightStatsRecorder/FSRController.cpp
 )
 
 set(PARAFOIL_COMPUTER

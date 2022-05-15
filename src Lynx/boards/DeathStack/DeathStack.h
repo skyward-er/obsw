@@ -24,11 +24,11 @@
 
 #include <DeathStackStatus.h>
 #include <LoggerService/LoggerService.h>
-#include <MainComputer/Actuators.h>
-#include <MainComputer/Bus.h>
-#include <MainComputer/Radio.h>
-#include <MainComputer/Sensors.h>
-#include <MainComputer/StateMachines.h>
+#include <Main/Actuators.h>
+#include <Main/Bus.h>
+#include <Main/Radio.h>
+#include <Main/Sensors.h>
+#include <Main/StateMachines.h>
 #include <PinHandler/PinHandler.h>
 #include <System/StackLogger.h>
 #include <System/TaskID.h>

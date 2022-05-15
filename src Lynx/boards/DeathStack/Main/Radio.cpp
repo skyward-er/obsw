@@ -21,7 +21,7 @@
  */
 
 #include <LoggerService/LoggerService.h>
-#include <MainComputer/Radio.h>
+#include <Main/Radio.h>
 #include <TelemetriesTelecommands/TCHandler.h>
 #include <TelemetriesTelecommands/TMTCController.h>
 #include <TelemetriesTelecommands/TmRepository.h>
