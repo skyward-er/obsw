@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Someone
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,20 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
-#include <string>
-
 namespace MainComputer
 {
 
-enum NASControllerState : uint8_t
+namespace ADAConfig
 {
-    IDLE = 0,
-    CALIBRATING,
-    READY,
-    ACTIVE,
-    END,
-};
 
-struct NASControllerStatus
-{
-    long long timestamp;
-    NASControllerState state;
+#ifdef EUROC
+static constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
+#else
+static constexpr int SHADOW_MODE_TIMEOUT = 8 * 1000;  // [ms]
+#endif
 
-    static std::string header() { return "timestamp,state\n"; }
+static constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
+}  // namespace ADAConfig
 
 }  // namespace MainComputer

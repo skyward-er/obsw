@@ -22,8 +22,8 @@
 
 #include "Actuators.h"
 
-#include <MainComputer/AirBrakes/AirBrakesConfig.h>
-#include <MainComputer/Deployment/DeploymentConfig.h>
+#include <MainComputer/StateMachines/AirBrakes/AirBrakesConfig.h>
+#include <MainComputer/StateMachines/Deployment/DeploymentConfig.h>
 
 #ifndef COMPILE_FOR_HOST
 #include <interfaces-impl/hwmapping.h>

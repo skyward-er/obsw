@@ -96,6 +96,7 @@
     "cSpell.words": [
         "Gpio",
         "leds",
-        "miosix"
+        "miosix",
+        "Xbee"
     ]
 }

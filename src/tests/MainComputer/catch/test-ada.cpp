@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <MainComputer/ApogeeDetectionAlgorithm/ADAController.h>
+#include <MainComputer/StateMachines/ApogeeDetectionAlgorithm/ADAController.h>
 #include <MainComputer/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>

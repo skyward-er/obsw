@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,38 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include <iostream>
+#include <string>
+
 namespace MainComputer
 {
 
-namespace ADAConfig
+enum ADAControllerState : uint8_t
 {
+    IDLE = 0,
+    CALIBRATING,
+    READY,
+    SHADOW_MODE,
+    ACTIVE,
+    PRESSURE_STABILIZATION,
+    DROGUE_DESCENT,
+    TERMINAL_DESCENT,
+    LANDED,
+};
 
-#ifdef EUROC
-static constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
-#else
-static constexpr int SHADOW_MODE_TIMEOUT = 8 * 1000;  // [ms]
-#endif
+struct ADAControllerStatus
+{
+    uint64_t timestamp;
+    ADAControllerState state;
 
-static constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
+    static std::string header() { return "timestamp,state\n"; }
 
-}  // namespace ADAConfig
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
 
 }  // namespace MainComputer

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,35 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <diagnostic/PrintLogger.h>
+#include <events/FSM.h>
 
-#include <iostream>
-#include <string>
+#include "FSRData.h"
 
 namespace MainComputer
 {
 
-enum FSRControllerState : uint8_t
+class FSRController : public Boardcore::FSM<FSRController>
 {
-    IDLE = 0,
-    LIFTOFF,
-    ASCENDING,
-    MAIN_DEPLOYMENT,
-};
+public:
+    FSRController();
+    ~FSRController();
 
-struct FSRControllerStatus
-{
-    uint64_t timestamp;
-    FSRControllerState state;
+    void state_idle(const Boardcore::Event& ev);
+    void state_liftoff(const Boardcore::Event& ev);
+    void state_ascending(const Boardcore::Event& ev);
+    void state_main_deployment(const Boardcore::Event& ev);
 
-    static std::string header() { return "timestamp,state\n"; }
+private:
+    FSRControllerStatus status;
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
+    void log_apogee_stats();
+    void log_liftoff_stats();
+    void log_main_dpl_stats();
+
+    void logStatus(FSRControllerState state);
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.fsr");
 };
 
 }  // namespace MainComputer

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,108 +20,57 @@
  * THE SOFTWARE.
  */
 
-#include "NASController.h"
+#include "FSRController.h"
 
 #include <MainComputer/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <logger/Logger.h>
+#include <miosix.h>
+
+#include "FSRConfig.h"
 
 using namespace Boardcore;
+using namespace MainComputer::FSRConfig;
 
 namespace MainComputer
 {
 
-NASController::NASController() : FSM(&NASController::state_idle)
+FSRController::FSRController() : FSM(&FSRController::state_idle)
 {
-    memset(&status, 0, sizeof(NASControllerStatus));
-    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    memset(&status, 0, sizeof(FSRControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FSR);
 }
 
-NASController::~NASController()
+FSRController::~FSRController()
 {
     EventBroker::getInstance().unsubscribe(this);
 }
 
-void NASController::state_idle(const Event& ev)
+void FSRController::state_idle(const Event& ev)
 {
     switch (ev)
     {
         case EV_ENTRY:
         {
             logStatus(IDLE);
-            LOG_DEBUG(logger, "[NAS] entering state idle\n");
+            LOG_DEBUG(logger, "[FSR] entering state idle\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state idle\n");
-            break;
-        }
-        case NAS_CALIBRATE:
-        {
-            transition(&NASController::state_calibrating);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-void NASController::state_calibrating(const Event& ev)
-{
-    switch (ev)
-    {
-        case EV_ENTRY:
-        {
-            calibrate();
-
-            logStatus(CALIBRATING);
-            LOG_DEBUG(logger, "[NAS] entering state calibrating\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NAS] exiting state calibrating\n");
-            break;
-        }
-        case NAS_READY:
-        {
-            transition(&NASController::state_ready);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-void NASController::state_ready(const Event& ev)
-{
-    switch (ev)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(READY);
-            LOG_DEBUG(logger, "[NAS] entering state ready\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NAS] exiting state ready\n");
-            break;
-        }
-        case NAS_CALIBRATE:
-        {
-            transition(&NASController::state_calibrating);
+            LOG_DEBUG(logger, "[FSR] exiting state idle\n");
             break;
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&NASController::state_active);
+            transition(&FSRController::state_liftoff);
+            break;
+        }
+        case FLIGHT_DPL_ALT_DETECTED:
+        {
+            transition(&FSRController::state_main_deployment);
             break;
         }
         default:
@@ -131,24 +80,29 @@ void NASController::state_ready(const Event& ev)
     }
 }
 
-void NASController::state_active(const Event& ev)
+void FSRController::state_liftoff(const Event& ev)
 {
     switch (ev)
     {
         case EV_ENTRY:
         {
-            logStatus(ACTIVE);
-            LOG_DEBUG(logger, "[NAS] entering state active\n");
+            EventBroker::getInstance().postDelayed<LIFTOFF_STATS_TIMEOUT>(
+                Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
+
+            logStatus(LIFTOFF);
+            LOG_DEBUG(logger, "[FSR] entering state liftoff\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state active\n");
+            log_liftoff_stats();
+
+            LOG_DEBUG(logger, "[FSR] exiting state liftoff\n");
             break;
         }
-        case FLIGHT_LANDING_DETECTED:
+        case FSR_STATS_TIMEOUT:
         {
-            transition(&NASController::state_end);
+            transition(&FSRController::state_ascending);
             break;
         }
         default:
@@ -158,22 +112,35 @@ void NASController::state_active(const Event& ev)
     }
 }
 
-void NASController::state_end(const Event& ev)
+void FSRController::state_ascending(const Event& ev)
 {
     switch (ev)
     {
         case EV_ENTRY:
         {
-            logStatus(END);
-            LOG_DEBUG(logger, "[NAS] entering state end\n");
+            logStatus(ASCENDING);
+            LOG_DEBUG(logger, "[FSR] entering state ascending\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state end\n");
+            log_liftoff_stats();
+            log_apogee_stats();
+
+            LOG_DEBUG(logger, "[FSR] exiting state ascending\n");
             break;
         }
-
+        case FLIGHT_APOGEE_DETECTED:
+        {
+            EventBroker::getInstance().postDelayed<APOGEE_STATS_TIMEOUT>(
+                Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
+            break;
+        }
+        case FSR_STATS_TIMEOUT:
+        {
+            transition(&FSRController::state_idle);
+            break;
+        }
         default:
         {
             break;
@@ -181,17 +148,59 @@ void NASController::state_end(const Event& ev)
     }
 }
 
-void NASController::calibrate()
+void FSRController::state_main_deployment(const Event& ev)
+{
+    switch (ev)
+    {
+        case EV_ENTRY:
+        {
+            EventBroker::getInstance().postDelayed<MAIN_DPL_STATS_TIMEOUT>(
+                Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
+
+            logStatus(MAIN_DEPLOYMENT);
+            LOG_DEBUG(logger, "[FSR] entering state main_deployment\n");
+            break;
+        }
+        case EV_EXIT:
+        {
+            log_main_dpl_stats();
+
+            LOG_DEBUG(logger, "[FSR] exiting state main_deployment\n");
+            break;
+        }
+        case FSR_STATS_TIMEOUT:
+        {
+            transition(&FSRController::state_idle);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
+void FSRController::log_apogee_stats()
 {
     // ...
 }
 
-void NASController::logStatus(NASControllerState state)
+void FSRController::log_liftoff_stats()
+{
+    // ...
+}
+
+void FSRController::log_main_dpl_stats()
+{
+    // ...
+}
+
+void FSRController::logStatus(FSRControllerState state)
 {
     status.timestamp = TimestampTimer::getInstance().getTimestamp();
     status.state     = state;
 
-    Logger::getInstance().log(state);
+    Logger::getInstance().log(status);
 }
 
 }  // namespace MainComputer

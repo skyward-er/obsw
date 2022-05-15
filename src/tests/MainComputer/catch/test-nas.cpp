@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <MainComputer/NavigationAttitudeSystem/NASController.h>
+#include <MainComputer/StateMachines/NavigationAttitudeSystem/NASController.h>
 #include <MainComputer/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>

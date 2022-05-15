@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,23 +30,19 @@
 namespace MainComputer
 {
 
-enum ADAControllerState : uint8_t
+enum NASControllerState : uint8_t
 {
     IDLE = 0,
     CALIBRATING,
     READY,
-    SHADOW_MODE,
     ACTIVE,
-    PRESSURE_STABILIZATION,
-    DROGUE_DESCENT,
-    TERMINAL_DESCENT,
-    LANDED,
+    END,
 };
 
-struct ADAControllerStatus
+struct NASControllerStatus
 {
-    uint64_t timestamp;
-    ADAControllerState state;
+    long long timestamp;
+    NASControllerState state;
 
     static std::string header() { return "timestamp,state\n"; }
 
