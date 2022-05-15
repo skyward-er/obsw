@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,41 +20,38 @@
  * THE SOFTWARE.
  */
 
-#include "Actuators.h"
+#pragma once
 
-#include <MainComputer/StateMachines/AirBrakes/AirBrakesConfig.h>
-#include <MainComputer/StateMachines/Deployment/DeploymentConfig.h>
+#include <Singleton.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <miosix.h>
 
-#ifndef COMPILE_FOR_HOST
-#include <interfaces-impl/hwmapping.h>
-#endif
-
-using namespace miosix;
-using namespace MainComputer::DeploymentConfig;
-using namespace MainComputer::AirBrakesConfigs;
-
-namespace MainComputer
+namespace Main
 {
 
-#ifndef COMPILE_FOR_HOST
-
-Actuators::Actuators()
-    : servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH),
-      servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH),
-      led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
-      led3(leds::led_blue1::getPin()),
-      cutter(actuators::nosecone::thermal_cutter_1::enable::getPin())
+struct Buses : public Boardcore::Singleton<Buses>
 {
-}
+    friend class Boardcore::Singleton<Buses>;
 
+    Boardcore::USART uart4;
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+
+private:
+#ifndef USE_MOCK_PERIPHERALS
+    Buses()
+        : uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
+          spi1(SPI1), spi2(SPI2)
+    {
+    }
 #else
-
-Actuators::Actuators()
-    : servoExpulsion(), servoAirbrakes(), led1(GpioPin{0, 0}),
-      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), cutter(GpioPin{0, 0})
-{
-}
-
+    Buses()
+        : uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
+          spi2({})
+    {
+    }
 #endif
+};
 
-}  // namespace MainComputer
+}  // namespace Main

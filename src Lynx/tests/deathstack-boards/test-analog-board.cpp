@@ -33,7 +33,7 @@
  *     SSCDANN030PAA: Absolute pressure sensor with a 0-206kPa range
  *     SSCDRRN015PDA: Differential pressure sensor with a ±103kPa range
  * MS5803: Digital absolute pressure sensor
- * Deatachment pins
+ * Detachment pins
  */
 
 #include <interfaces-impl/hwmapping.h>

@@ -39,7 +39,6 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     miosix::GpioPin led1;
     miosix::GpioPin led2;
     miosix::GpioPin led3;
-    // miosix::GpioPin led4;
 
     miosix::GpioPin cutter;
 

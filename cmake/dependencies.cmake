@@ -26,6 +26,7 @@ set(OBSW_INCLUDE_DIRS
 set(MAIN_COMPUTER
     src/boards/MainComputer/events/EventStrings.cpp
     src/boards/MainComputer/Actuators/Actuators.cpp
+    src/boards/MainComputer/Radio/Radio.cpp
     src/boards/MainComputer/StateMachines/AirBrakes/AirBrakesController.cpp
     src/boards/MainComputer/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
     src/boards/MainComputer/StateMachines/Deployment/DeploymentController.cpp

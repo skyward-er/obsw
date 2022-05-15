@@ -22,35 +22,51 @@
 
 #pragma once
 
+// Ignore warnings as these are auto-generated headers made by a third party
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 #include <mavlink_lib/pyxis/mavlink.h>
+#pragma GCC diagnostic pop
+
+#include <MainComputer/Configs/RadioConfigs.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/Xbee/Xbee.h>
+#include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
 
 namespace Main
 {
 
-using MavDriver =
-    Boardcore::MavlinkDriver<RADIO_PKT_LENGTH, RADIO_OUT_QUEUE_SIZE,
-                             RADIO_MAV_MSG_LENGTH>;
+using MavDriver = Boardcore::MavlinkDriver<RadioConfigs::RADIO_PKT_LENGTH,
+                                           RadioConfigs::RADIO_OUT_QUEUE_SIZE,
+                                           RadioConfigs::RADIO_MAV_MSG_LENGTH>;
 
 class Radio
 {
 public:
-    Boardcore::Xbee::Xbee* transceiver;
+    explicit Radio(Boardcore::TaskScheduler* scheduler);
 
-    Radio(Boardcore::TaskScheduler* scheduler);
-
-    ~Radio();
-
+    /**
+     * @brief Called by the MavlinkDriver when a message is received.
+     *
+     * @param driver Mavlink driver who calls the function.
+     * @param msg Parsed message.
+     */
     void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
+    /**
+     * @brief Used to send the specified telemetry message.
+     *
+     * @param tmId Identifier for the message to send.
+     * @return boolean that indicates the operation's result.
+     */
     bool sendTelemetry(const uint8_t tmId);
 
 private:
-    void sendFlightTelemetry();
+    Boardcore::Transceiver* transceiver;
+    MavDriver* mavDriver;
 
-    void sendStatsTelemetry();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
 }  // namespace Main

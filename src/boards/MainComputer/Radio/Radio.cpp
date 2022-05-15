@@ -19,3 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#include "Radio.h"
+
+#include <MainComputer/Buses.h>
+
+#include <functional>
+
+using std::bind;
+using namespace std::placeholders;
+using namespace Boardcore;
+
+namespace Main
+{
+
+Radio::Radio(Boardcore::TaskScheduler* scheduler)
+{
+    // cppcheck-suppress noCopyConstructor
+    // cppcheck-suppress noOperatorEq
+    transceiver = new SerialTransceiver(Buses::getInstance().uart4);
+    mavDriver   = new MavDriver(transceiver,
+                                bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                                0, RadioConfigs::MAV_OUT_BUFFER_MAX_AGE);
+}
+
+}  // namespace Main
