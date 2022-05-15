@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,21 +19,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#pragma once
 
-#include <drivers/adc/InternalADC.h>
+#include <ostream>
+#include <string>
 
 namespace Payload
 {
-static constexpr float INTERNAL_ADC_VREF = 3.3;
-static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
-    Boardcore::InternalADC::Channel::CH5;
-static constexpr float BATTERY_VOLTAGE_COEFF             = 5.98;
-static constexpr unsigned int PRESS_DIGITAL_TEMP_DIVIDER = 5;
+// TODO Define PITOT
 
-static constexpr unsigned int PRESS_DIGITAL_SAMPLE_PERIOD = 15;
-static constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD =
-    1000;  // only for battery voltage
+enum SensorDriverStatus
+{
+    DRIVER_ERROR = 0,
+    DRIVER_OK    = 1
+};
 
-static constexpr unsigned int PRESS_STATIC_CALIB_SAMPLES_NUM = 50;
+struct SensorsStatus
+{
+    uint8_t BMX160      = DRIVER_OK;
+    uint8_t MS5803      = DRIVER_OK;
+    uint8_t LIS3MDL     = DRIVER_OK;
+    uint8_t GPS         = DRIVER_OK;
+    uint8_t InternalADC = DRIVER_OK;
+    uint8_t ADS1118     = DRIVER_OK;
 
+    static std::string header()
+    {
+        return "BMX160,MS5803,LIS3MDL,GPS,InternalADC,ADS1118\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << (int)BMX160 << "," << (int)MS5803 << "," << (int)LIS3MDL << ","
+           << (int)GPS << "," << (int)InternalADC << "," << (int)ADS1118
+           << "\n";
+    }
+};
 }  // namespace Payload

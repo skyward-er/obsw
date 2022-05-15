@@ -25,6 +25,7 @@
 #include <Payload/Main/Radio.h>
 #include <Payload/Main/Sensors.h>
 #include <Payload/PayloadStatus.h>
+#include <drivers/spi/SPIDriver.h>
 #include <events/EventBroker.h>
 #include <scheduler/TaskScheduler.h>
 
@@ -44,8 +45,15 @@ public:
     // Event broker used all around the code for the event pattern
     Boardcore::EventBroker* broker;
 
-    // Task scheduler to schedule some regular functions over time
-    Boardcore::TaskScheduler* scheduler;
+    // Task scheduler to schedule the sensors sampling over time
+    Boardcore::TaskScheduler* sensorsScheduler;
+
+    // Task scheduler to schedule the algorithm processing
+    Boardcore::TaskScheduler* algorithmScheduler;
+
+    // Task scheduler to schedule the radio minor tasks about automatic
+    // telemetry frequency change
+    Boardcore::TaskScheduler* radioScheduler;
 
     // Collection of all the sensors. It samples it automatically through the
     // task scheduler
@@ -58,12 +66,54 @@ public:
     /**
      * @brief Method to start all the macro obsw elements
      */
-    void start() {}
+    void start()
+    {
+        // First thing is starting the SDlogger
+        // TODO: Verify difference betweeen if and try catch
+        if (!SDlogger->start())
+        {
+            LOG_ERR(logger, "Error starting the SD logger");
+            status.setError(&PayloadStatus::logger);
+        }
 
-    /**
-     * @brief Method to start the SD logging and log the SD status
-     */
-    void startSDlogger() {}
+        // Log the SDlogger status
+        SDlogger->log(SDlogger->getLoggerStats());
+
+        // Start the event broker
+        if (!broker->start())
+        {
+            LOG_ERR(logger, "Error starting the EventBroker");
+            status.setError(&PayloadStatus::eventBroker);
+        }
+
+        // Starting the sensors sampling
+        if (!sensors->start())
+        {
+            LOG_ERR(logger, "Error starting sensors sampling");
+            status.setError(&PayloadStatus::radio);
+        }
+
+        if (!radio->start())
+        {
+            LOG_ERR(logger, "Error starting radio communication");
+            status.setError(&PayloadStatus::radio);
+        }
+
+        // At the end of initialize i log the status
+        SDlogger->log(status);
+
+        // Depending on the initialization status i activate or not the FSMs
+        if (status.payloadTest != OK)
+        {
+            LOG_ERR(logger, "Initialization failed");
+            // TODO add event to inhibit the state machines
+        }
+        else
+        {
+            LOG_INFO(logger, "Initialization OK");
+            // TODO add the event to start the state machines
+        }
+    }
 
 private:
     // Printlogger for debug and errors
@@ -75,7 +125,32 @@ private:
     // Struct that resumes if at macro level there were some problems
     PayloadStatus status{};
 
-    Payload() {}
+    // SPI busses
+    Boardcore::SPIBusInterface* spiInterface1;
+    Boardcore::SPIBusInterface* spiInterface2;
+
+    /**
+     * @brief private constructor used by Singleton getInstance
+     */
+    Payload()
+    {
+        // Extract all the singletons
+        SDlogger = &Boardcore::Logger::getInstance();
+        broker   = &Boardcore::EventBroker::getInstance();
+
+        // Instantiate all the task schedulers
+        sensorsScheduler   = new Boardcore::TaskScheduler();
+        algorithmScheduler = new Boardcore::TaskScheduler();
+        radioScheduler     = new Boardcore::TaskScheduler();
+
+        // Instantiate all the SPIs
+        spiInterface1 = new Boardcore::SPIBus(SPI1);
+        spiInterface2 = new Boardcore::SPIBus(SPI2);
+
+        // Instantiate all the macro obsw objects
+        sensors = new Sensors(*spiInterface1, sensorsScheduler);
+        radio   = new Radio(*spiInterface2, radioScheduler);
+    }
 };
 
 }  // namespace Payload
