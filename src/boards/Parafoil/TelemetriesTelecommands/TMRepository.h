@@ -29,7 +29,7 @@
 
 /**
  * @brief This class represents the collection of data that can
- * be sent via radio communication. This refers to mavlink libriaries
+ * be sent via radio communication. This refers to mavlink libraries
  * and structures created in the correct .xml file.
  *
  * It is necessary that this singleton class handles the structure update

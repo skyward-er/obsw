@@ -33,7 +33,7 @@
  * between the xbee radio module and the on board software. The main tasks are
  * about sending automatic updates to ground based on the current state (High
  * rate telemetry or Low rate telemetry) and handle the messages from the ground
- * station. To handle the various messages there is an apposit callback method
+ * station. To handle the various messages there is an apposite callback method
  * and, to pack the optional reply data we use the TMRepository singleton.
  */
 namespace Parafoil

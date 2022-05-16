@@ -47,14 +47,15 @@ target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)
 sbs_target(catch-tests-main stm32f429zi_skyward_death_stack_x)
 sbs_catch_test(catch-tests-main)
 
+add_executable(main-test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
+target_include_directories(main-test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-test-radio stm32f429zi_skyward_death_stack_x)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#
 
-add_executable(parafoil-entry
-	src/entrypoints/Parafoil/parafoil-entry.cpp
-	${PARAFOIL_COMPUTER}
-)
+add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(parafoil-entry stm32f429zi_stm32f4discovery)
 

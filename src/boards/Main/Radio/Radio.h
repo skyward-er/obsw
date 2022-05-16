@@ -22,17 +22,12 @@
 
 #pragma once
 
-// Ignore warnings as these are auto-generated headers made by a third party
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#include <mavlink_lib/pyxis/mavlink.h>
-#pragma GCC diagnostic pop
-
 #include <Main/Configs/RadioConfigs.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
+
+#include "Mavlink.h"
 
 namespace Main
 {
@@ -48,19 +43,47 @@ public:
 
     /**
      * @brief Called by the MavlinkDriver when a message is received.
-     *
-     * @param driver Mavlink driver who calls the function.
-     * @param msg Parsed message.
      */
     void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
     /**
-     * @brief Used to send the specified telemetry message.
-     *
-     * @param tmId Identifier for the message to send.
-     * @return boolean that indicates the operation's result.
+     * @brief Called by handleMavlinkMessage to handle a command message.
      */
-    bool sendTelemetry(const uint8_t tmId);
+    void handleCommand(const mavlink_message_t& msg);
+
+    /**
+     * @brief Prepares and send an ack message for the given message.
+     *
+     * @param msg The message received that we need to acknowledge.
+     */
+    void sendAck(const mavlink_message_t& msg);
+
+    /**
+     * @brief Prepares and send a nack message for the given message.
+     *
+     * @param msg The message received that we need to not acknowledge.
+     */
+    void sendNack(const mavlink_message_t& msg);
+
+    /**
+     * @brief Starts the MavlinkDriver.
+     */
+    bool start();
+
+    /**
+     * @brief Saves the MavlinkDriver and transceiver status.
+     */
+    void logStatus();
+
+    /**
+     * @brief Used to send the specified system telemetry message.
+     */
+    bool sendSystemTm(const SystemTMList tmId);
+
+    /**
+     * @brief Used to send the specified sensors telemetry message.
+     */
+    bool sendSensorsTm(const SensorsTMList tmId);
 
 private:
     Boardcore::Transceiver* transceiver;

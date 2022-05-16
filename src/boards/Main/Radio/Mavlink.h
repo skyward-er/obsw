@@ -20,38 +20,9 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include <Main/Radio/Mavlink.h>
-
-#include <cstdio>
-
-namespace Main
-{
-
-namespace RadioConfigs
-{
-
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 63;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
-
-// Mavlink driver paramters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
-
-// Mavlink ids
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
-
-// Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 100;  // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;  // [ms]
-
-// Periodic telemetries tasks ids
-constexpr uint8_t FLIGHT_TM_ID       = 200;
-constexpr uint8_t FLIGHT_STATS_TM_ID = 201;
-
-}  // namespace RadioConfigs
-
-}  // namespace Main
+// Ignore warnings as these are auto-generated headers made by a third party
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#include <mavlink_lib/pyxis/mavlink.h>
+#pragma GCC diagnostic pop

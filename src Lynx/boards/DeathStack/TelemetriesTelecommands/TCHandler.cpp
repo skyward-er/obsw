@@ -216,6 +216,7 @@ void handleMavlinkMessage(MavDriver* mav_driver, const mavlink_message_t& msg)
         }
     }
 }
+
 void sendAck(MavDriver* mav_driver, const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;

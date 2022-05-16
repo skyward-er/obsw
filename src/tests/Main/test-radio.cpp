@@ -20,38 +20,21 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Main/Radio/Radio.h>
+#include <miosix.h>
 
-#include <Main/Radio/Mavlink.h>
+using namespace miosix;
+using namespace Boardcore;
+using namespace Main;
 
-#include <cstdio>
-
-namespace Main
+int main()
 {
+    TaskScheduler *scheduler = new TaskScheduler();
+    Radio radio(scheduler);
 
-namespace RadioConfigs
-{
+    radio.start();
+    scheduler->start();
 
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 63;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
-
-// Mavlink driver paramters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
-
-// Mavlink ids
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
-
-// Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 100;  // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;  // [ms]
-
-// Periodic telemetries tasks ids
-constexpr uint8_t FLIGHT_TM_ID       = 200;
-constexpr uint8_t FLIGHT_STATS_TM_ID = 201;
-
-}  // namespace RadioConfigs
-
-}  // namespace Main
+    while (true)
+        Thread::sleep(1000);
+}

@@ -27,6 +27,7 @@ set(MAIN_COMPUTER
     src/boards/Main/events/EventStrings.cpp
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/Radio/Radio.cpp
+    src/boards/Main/TMRepository/TMRepository.cpp
     src/boards/Main/StateMachines/AirBrakes/AirBrakesController.cpp
     src/boards/Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
     src/boards/Main/StateMachines/Deployment/DeploymentController.cpp

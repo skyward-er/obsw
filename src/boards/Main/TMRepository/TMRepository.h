@@ -22,36 +22,25 @@
 
 #pragma once
 
+#include <Main/Configs/RadioConfigs.h>
 #include <Main/Radio/Mavlink.h>
-
-#include <cstdio>
+#include <Singleton.h>
+#include <diagnostic/PrintLogger.h>
 
 namespace Main
 {
 
-namespace RadioConfigs
+class TMRepository : public Boardcore::Singleton<TMRepository>
 {
+    friend class Boardcore::Singleton<TMRepository>;
 
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 63;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+public:
+    mavlink_message_t packSystemTm(SystemTMList reqTm);
 
-// Mavlink driver paramters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
+    mavlink_message_t packSensorsTm(SensorsTMList reqTm);
 
-// Mavlink ids
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
-
-// Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 100;  // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;  // [ms]
-
-// Periodic telemetries tasks ids
-constexpr uint8_t FLIGHT_TM_ID       = 200;
-constexpr uint8_t FLIGHT_STATS_TM_ID = 201;
-
-}  // namespace RadioConfigs
+private:
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
+};
 
 }  // namespace Main
