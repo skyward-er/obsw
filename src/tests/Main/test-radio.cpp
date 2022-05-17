@@ -29,6 +29,8 @@ using namespace Main;
 
 int main()
 {
+    (void)TimestampTimer::getInstance().getTimestamp();
+
     TaskScheduler *scheduler = new TaskScheduler();
     Radio radio(scheduler);
 

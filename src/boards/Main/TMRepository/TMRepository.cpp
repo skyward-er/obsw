@@ -36,33 +36,68 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
     {
         // System telemetries
         case SystemTMList::MAV_SYS_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_FSM_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_PIN_OBS_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_LOGGER_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_MAVLINK_STATS:
+        {
             break;
+        }
         case SystemTMList::MAV_TASK_STATS_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_DPL_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_ADA_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_NAS_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_CAN_ID:
+        {
             break;
+        }
         case SystemTMList::MAV_FLIGHT_ID:
+        {
+            mavlink_rocket_flight_tm_t tm;
+            mavlink_msg_rocket_flight_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
+                                                RadioConfigs::MAV_COMPONENT_ID,
+                                                &msg, &tm);
             break;
+        }
         case SystemTMList::MAV_FLIGHT_STATS_ID:
+        {
+            mavlink_rocket_flight_stats_tm_t tm;
+            mavlink_msg_rocket_flight_stats_tm_encode(
+                RadioConfigs::MAV_SYSTEM_ID, RadioConfigs::MAV_COMPONENT_ID,
+                &msg, &tm);
             break;
+        }
         case SystemTMList::MAV_SENSORS_STATE_ID:
+        {
             break;
+        }
 
         default:
+        {
             LOG_DEBUG(logger, "Unknown telemetry id: {}", reqTm);
             mavlink_nack_tm_t nack;
             nack.recv_msgid = 0;
@@ -71,6 +106,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
                                        RadioConfigs::MAV_COMPONENT_ID, &msg,
                                        &nack);
             break;
+        }
     }
 
     return msg;

@@ -44,6 +44,7 @@ private:
         : uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
           spi1(SPI1), spi2(SPI2)
     {
+        uart4.init();
     }
 #else
     Buses()
