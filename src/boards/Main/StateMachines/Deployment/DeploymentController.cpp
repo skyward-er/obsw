@@ -23,6 +23,8 @@
 #include "DeploymentController.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/Configs/ActuatorsConfigs.h>
+#include <Main/Radio/Radio.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -33,6 +35,7 @@
 
 using namespace Boardcore;
 using namespace Main::DeploymentConfig;
+using namespace Main::ActuatorsConfigs;
 
 namespace Main
 {
@@ -56,9 +59,9 @@ void DeploymentController::state_init(const Event& ev)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                DPL_SERVO_RESET_POS);
-            Actuators::getInstance().servoExpulsion.enable();
+            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                                   DPL_SERVO_EJECT_POS);
+            Actuators::getInstance().enableServo(EXPULSION_SERVO);
 
             transition(&DeploymentController::state_idle);
 
@@ -100,15 +103,14 @@ void DeploymentController::state_idle(const Event& ev)
         }
         case DPL_OPEN:
         {
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                DPL_SERVO_EJECT_POS);
+            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                                   DPL_SERVO_EJECT_POS);
             break;
         }
         case DPL_RESET:
         {
-
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                DPL_SERVO_RESET_POS);
+            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                                   DPL_SERVO_EJECT_POS);
             break;
         }
         case DPL_OPEN_NC:
@@ -134,8 +136,8 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                DPL_SERVO_EJECT_POS);
+            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                                   DPL_SERVO_EJECT_POS);
 
             open_nc_timeout_event_id =
                 EventBroker::getInstance().postDelayed<OPEN_NC_TIMEOUT>(
@@ -207,11 +209,11 @@ void DeploymentController::wiggle_servo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().servoExpulsion.setPosition120Deg(
-            DPL_SERVO_RESET_POS - DPL_SERVO_WIGGLE_AMPLITUDE);
+        Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                               DPL_SERVO_EJECT_POS);
         miosix::Thread::sleep(500);
-        Actuators::getInstance().servoExpulsion.setPosition120Deg(
-            DPL_SERVO_RESET_POS);
+        Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
+                                               DPL_SERVO_RESET_POS);
         miosix::Thread::sleep(500);
     }
 }

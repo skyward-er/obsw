@@ -26,7 +26,8 @@
 #include <string>
 #include <vector>
 
-using std::string;
+namespace Main
+{
 
 enum Topics : uint8_t
 {
@@ -45,4 +46,6 @@ const std::vector<uint8_t> TOPIC_LIST{
 /**
  * @brief Returns the name of the provided event.
  */
-string getTopicString(uint8_t topic);
+std::string getTopicString(uint8_t topic);
+
+}  // namespace Main

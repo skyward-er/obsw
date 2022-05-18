@@ -22,25 +22,101 @@
 
 #include "Actuators.h"
 
-#include <Main/StateMachines/AirBrakes/AirBrakesConfig.h>
-#include <Main/StateMachines/Deployment/DeploymentConfig.h>
+#include <Main/Configs/ActuatorsConfigs.h>
 
 #ifndef COMPILE_FOR_HOST
 #include <interfaces-impl/hwmapping.h>
 #endif
 
 using namespace miosix;
-using namespace Main::DeploymentConfig;
-using namespace Main::AirBrakesConfigs;
+using namespace Main::ActuatorsConfigs;
 
 namespace Main
 {
 
+bool Actuators::setServoAngle(ServosList servoId, float angle)
+{
+    switch (servoId)
+    {
+        case AEROBRAKES_SERVO:
+            servoAirbrakes.setPosition(angle / ABK_SERVO_ROTATION);
+            break;
+        case EXPULSION_SERVO:
+            servoExpulsion.setPosition(angle / DPL_SERVO_ROTATION);
+            break;
+
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+bool Actuators::wiggleServo(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case AEROBRAKES_SERVO:
+            servoAirbrakes.setPosition(1);
+            Thread::sleep(1000);
+            servoAirbrakes.setPosition(0);
+            break;
+        case EXPULSION_SERVO:
+            servoExpulsion.setPosition(1);
+            Thread::sleep(1000);
+            servoExpulsion.setPosition(0);
+            break;
+
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+bool Actuators::enableServo(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case AEROBRAKES_SERVO:
+            servoAirbrakes.enable();
+            break;
+        case EXPULSION_SERVO:
+            servoExpulsion.enable();
+            break;
+
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+bool Actuators::disableServo(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case AEROBRAKES_SERVO:
+            servoAirbrakes.enable();
+            break;
+        case EXPULSION_SERVO:
+            servoAirbrakes.enable();
+            break;
+
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 #ifndef COMPILE_FOR_HOST
 
 Actuators::Actuators()
-    : servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH),
-      servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH),
+    : servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
+                     ABK_SERVO_MAX_PULSE),
+      servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
+                     DPL_SERVO_MAX_PULSE),
       led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
       led3(leds::led_blue1::getPin()),
       cutter(actuators::nosecone::thermal_cutter_1::enable::getPin())

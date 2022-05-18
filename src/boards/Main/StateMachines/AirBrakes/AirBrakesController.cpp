@@ -23,6 +23,7 @@
 #include "AirBrakesController.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/Configs/ActuatorsConfigs.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -31,6 +32,7 @@
 
 using namespace Boardcore;
 using namespace Main::AirBrakesConfigs;
+using namespace Main::ActuatorsConfigs;
 
 namespace Main
 {
@@ -54,9 +56,9 @@ void AirBrakesController::state_init(const Event& ev)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().servoAirbrakes.setPosition120Deg(
-                ABK_SERVO_MIN_POS);
-            Actuators::getInstance().servoAirbrakes.enable();
+            Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO,
+                                                   DPL_SERVO_RESET_POS);
+            Actuators::getInstance().enableServo(AEROBRAKES_SERVO);
 
             transition(&AirBrakesController::state_idle);
 
@@ -98,15 +100,13 @@ void AirBrakesController::state_idle(const Event& ev)
         }
         case ABK_OPEN:
         {
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                ABK_SERVO_MAX_POS);
+            Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO,
+                                                   ABK_SERVO_ROTATION);
             break;
         }
         case ABK_RESET:
         {
-
-            Actuators::getInstance().servoExpulsion.setPosition120Deg(
-                ABK_SERVO_MIN_POS);
+            Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO, 0);
             break;
         }
         case FLIGHT_LIFTOFF_DETECTED:
@@ -194,8 +194,7 @@ void AirBrakesController::state_end(const Event& ev)
         {
             // TODO: algorithm.end()
 
-            Actuators::getInstance().servoAirbrakes.setPosition120Deg(
-                ABK_SERVO_MIN_POS);
+            Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO, 0);
 
             logStatus(END);
             LOG_DEBUG(logger, "[AirBrakes] entering state end\n");
@@ -217,11 +216,10 @@ void AirBrakesController::wiggle_servo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().servoAirbrakes.setPosition120Deg(
-            ABK_SERVO_MIN_POS + ABK_SERVO_WIGGLE_AMPLITUDE);
+        Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO,
+                                               ABK_SERVO_ROTATION);
         miosix::Thread::sleep(500);
-        Actuators::getInstance().servoAirbrakes.setPosition120Deg(
-            ABK_SERVO_MIN_POS);
+        Actuators::getInstance().setServoAngle(AEROBRAKES_SERVO, 0);
         miosix::Thread::sleep(500);
     }
 }

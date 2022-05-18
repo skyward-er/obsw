@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Radio/Mavlink.h>
 #include <Singleton.h>
 #include <actuators/Servo/Servo.h>
 #include <interfaces/gpio.h>
@@ -33,17 +34,39 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    Boardcore::Servo servoExpulsion;
-    Boardcore::Servo servoAirbrakes;
-
     miosix::GpioPin led1;
     miosix::GpioPin led2;
     miosix::GpioPin led3;
 
     miosix::GpioPin cutter;
 
+    /**
+     * @brief Moves the specified servo to the given position
+     *
+     * @param servoId Servo to move.
+     * @param angle Angle to set [degree].
+     * @return True if the the angle was set.
+     */
+    bool setServoAngle(ServosList servoId, float angle);
+
+    /**
+     * @brief Wiggles the servo for few seconds.
+     *
+     * @param servoId Servo to move.
+     * @return true
+     * @return false
+     */
+    bool wiggleServo(ServosList servoId);
+
+    bool enableServo(ServosList servoId);
+
+    bool disableServo(ServosList servoId);
+
 private:
     Actuators();
+
+    Boardcore::Servo servoAirbrakes;
+    Boardcore::Servo servoExpulsion;
 };
 
 }  // namespace Main

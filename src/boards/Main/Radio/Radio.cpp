@@ -22,8 +22,10 @@
 
 #include "Radio.h"
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/Buses.h>
 #include <Main/TMRepository/TMRepository.h>
+#include <Main/events/Events.h>
 #include <events/EventBroker.h>
 
 #include <functional>
@@ -58,7 +60,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
-        {  // Just send the ack at the end of the switch
+        {
+            // Just send the ack at the end
             break;
         }
         case MAVLINK_MSG_ID_COMMAND_TC:
@@ -88,34 +91,69 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
-            float servoId = mavlink_msg_set_servo_angle_tc_get_servo_id(&msg);
-            float angle   = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+            float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             LOG_DEBUG(logger,
                       "Received set servo angle command, servoId: {} angle: {}",
                       servoId, angle);
 
-            // TODO: Apply command
+            // Move the servo, if failed send a nack
+            if (!Actuators::getInstance().setServoAngle(servoId, angle))
+            {
+                sendNack(msg);
+                return;
+            }
+
             break;
         }
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            float servoId = mavlink_msg_wiggle_servo_tc_get_servo_id(&msg);
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             LOG_DEBUG(logger, "Received wiggle servo command, servoId: {}",
                       servoId);
 
-            // TODO: Apply command
+            switch (servoId)
+            {
+                case AEROBRAKES_SERVO:
+                    EventBroker::getInstance().post(TOPIC_ABK, ABK_WIGGLE);
+                    break;
+                case EXPULSION_SERVO:
+                    EventBroker::getInstance().post(TOPIC_DPL, DPL_WIGGLE);
+                    break;
+
+                default:
+                    sendNack(msg);
+                    return;
+            }
+
             break;
         }
         case MAVLINK_MSG_ID_RESET_SERVO_TC:
         {
-            float servoId = mavlink_msg_reset_servo_tc_get_servo_id(&msg);
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
             LOG_DEBUG(logger, "Received reset servo command, servoId: {}",
                       servoId);
 
-            // TODO: Apply command
+            switch (servoId)
+            {
+                case AEROBRAKES_SERVO:
+                    EventBroker::getInstance().post(TOPIC_ABK, ABK_RESET);
+                    break;
+                case EXPULSION_SERVO:
+                    EventBroker::getInstance().post(TOPIC_DPL, DPL_RESET);
+                    break;
+
+                default:
+                    sendNack(msg);
+                    return;
+            }
+
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE:

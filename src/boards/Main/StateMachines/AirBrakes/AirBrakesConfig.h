@@ -22,29 +22,13 @@
 
 #pragma once
 
-#ifndef COMPILE_FOR_HOST
-#include <drivers/timer/PWM.h>
-#endif
-
-#include <utils/Constants.h>
-
 namespace Main
 {
 
 namespace AirBrakesConfigs
 {
 
-#ifndef COMPILE_FOR_HOST
-TIM_TypeDef* const ABK_SERVO_TIMER = TIM8;
-constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_2;
-#endif
-
 static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
-
-static constexpr float ABK_SERVO_MAX_POS          = 50.0;  // [deg]
-static constexpr float ABK_SERVO_MIN_POS          = 0.0;   // [deg]
-static constexpr float ABK_SERVO_WIGGLE_AMPLITUDE = 10.0;  // [deg]
 
 }  // namespace AirBrakesConfigs
 

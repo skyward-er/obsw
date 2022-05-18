@@ -39,7 +39,8 @@
 
 #include "Topics.h"
 
-using std::string;
+namespace Main
+{
 
 /**
  * Definition of all events in the Board software.
@@ -103,4 +104,6 @@ const std::vector<uint8_t> EVENT_LIST{
 /**
  * @brief Returns the name of the provided event.
  */
-string getEventString(uint8_t event);
+std::string getEventString(uint8_t event);
+
+}  // namespace Main

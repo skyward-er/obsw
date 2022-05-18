@@ -25,7 +25,8 @@
 #include "Events.h"
 #include "Topics.h"
 
-using std::map;
+namespace Main
+{
 
 string getEventString(uint8_t event)
 {
@@ -61,7 +62,7 @@ string getEventString(uint8_t event)
 
 string getTopicString(uint8_t topic)
 {
-    static const map<uint8_t, string> topic_string_map{
+    static const std::map<uint8_t, string> topic_string_map{
         {TOPIC_ABK, "TOPIC_ABK"}, {TOPIC_ADA, "TOPIC_ADA"},
         {TOPIC_DPL, "TOPIC_DPL"}, {TOPIC_FLIGHT, "TOPIC_FLIGHT"},
         {TOPIC_FSR, "TOPIC_FSR"}, {TOPIC_NAS, "TOPIC_NAS"},
@@ -69,3 +70,5 @@ string getTopicString(uint8_t topic)
     auto it = topic_string_map.find(topic);
     return it == topic_string_map.end() ? "TOPIC_UNKNOWN" : it->second;
 }
+
+}  // namespace Main
