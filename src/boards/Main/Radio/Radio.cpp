@@ -118,7 +118,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             switch (servoId)
             {
-                case AEROBRAKES_SERVO:
+                case AIRBRAKES_SERVO:
                     EventBroker::getInstance().post(TOPIC_ABK, ABK_WIGGLE);
                     break;
                 case EXPULSION_SERVO:
@@ -142,7 +142,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             switch (servoId)
             {
-                case AEROBRAKES_SERVO:
+                case AIRBRAKES_SERVO:
                     EventBroker::getInstance().post(TOPIC_ABK, ABK_RESET);
                     break;
                 case EXPULSION_SERVO:
@@ -156,10 +156,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE:
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
         {
             float altitude =
-                mavlink_msg_set_reference_altitude_get_ref_altitude(&msg);
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
             LOG_DEBUG(logger,
                       "Received set reference altitude command, altitude: {}",

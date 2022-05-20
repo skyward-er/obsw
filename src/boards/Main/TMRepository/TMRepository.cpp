@@ -85,10 +85,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
         }
         case SystemTMList::MAV_FLIGHT_STATS_ID:
         {
-            mavlink_rocket_flight_stats_tm_t tm;
-            mavlink_msg_rocket_flight_stats_tm_encode(
-                RadioConfigs::MAV_SYSTEM_ID, RadioConfigs::MAV_COMPONENT_ID,
-                &msg, &tm);
+            mavlink_rocket_stats_tm_t tm;
+            mavlink_msg_rocket_stats_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
+                                               RadioConfigs::MAV_COMPONENT_ID,
+                                               &msg, &tm);
             break;
         }
         case SystemTMList::MAV_SENSORS_STATE_ID:

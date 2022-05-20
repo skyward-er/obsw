@@ -24,5 +24,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <mavlink_lib/pyxis/mavlink.h>
 #pragma GCC diagnostic pop
