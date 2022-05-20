@@ -51,16 +51,20 @@ add_executable(main-test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
 target_include_directories(main-test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-test-radio stm32f429zi_skyward_death_stack_x)
 
+add_executable(main-test-sensors src/tests/Main/test-sensors.cpp ${MAIN_COMPUTER})
+target_include_directories(main-test-sensors PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-test-sensors stm32f429zi_skyward_death_stack_x)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#
 
-add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(parafoil-entry stm32f429zi_stm32f4discovery)
+# add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+# target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(parafoil-entry stm32f429zi_stm32f4discovery)
 
-add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
-sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)
+# add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
+# sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)
 
-add_executable(parafoil-test-ublox-uart src/tests/Parafoil/parafoil-test-ublox-uart.cpp)
-sbs_target(parafoil-test-ublox-uart stm32f429zi_stm32f4discovery)
+# add_executable(parafoil-test-ublox-uart src/tests/Parafoil/parafoil-test-ublox-uart.cpp)
+# sbs_target(parafoil-test-ublox-uart stm32f429zi_stm32f4discovery)
