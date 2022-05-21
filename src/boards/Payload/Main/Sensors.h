@@ -30,7 +30,7 @@
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
-#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
@@ -55,7 +55,7 @@ public:
     Boardcore::BMX160* imuBMX160;
     Boardcore::BMX160WithCorrection* correctedImuBMX160;
     Boardcore::LIS3MDL* magnetometerLIS3MDL;
-    Boardcore::UbloxGPS* gpsUblox;
+    Boardcore::UBXGPSSerial* gpsUblox;
 
     /**
      * @brief Construct a new Sensors object

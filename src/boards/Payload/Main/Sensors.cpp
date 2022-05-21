@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Luca Erbetta, Luca Conterio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,13 +103,13 @@ void Sensors::calibrate()
 
     // Mean some digital pressure samples to calibrate the analog sensors
     float mean = 0;
-    for (unsigned int i = 0; i < PRESS_STATIC_CALIB_SAMPLES_NUM; i++)
+    for (unsigned int i = 0; i < STATIC_PRESS_CALIB_SAMPLES_NUM; i++)
     {
         Thread::sleep(PRESS_DIGITAL_SAMPLE_PERIOD);
         mean += digitalPressure->getLastSample().pressure;
     }
     staticPortPressure->setReferencePressure(mean /
-                                             PRESS_STATIC_CALIB_SAMPLES_NUM);
+                                             STATIC_PRESS_CALIB_SAMPLES_NUM);
     staticPortPressure->calibrate();
 
     // Wait for differential and static barometers calibration
@@ -156,13 +156,13 @@ void Sensors::batteryVoltageInit()
 void Sensors::digitalPressureInit()
 {
     // Setup the SPI
-    SPIBusConfig config{};
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    SPIBusConfig spiConfig{};
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Set the digital barometer
     miosix::GpioPin cs = miosix::sensors::ms5803::cs::getPin();
     digitalPressure =
-        new MS5803(spiBus, cs, config, PRESS_DIGITAL_TEMP_DIVIDER);
+        new MS5803(spiBus, cs, spiConfig, PRESS_DIGITAL_TEMP_DIVIDER);
 
     // Create the sensor info
     SensorInfo info("DigitalBarometer", PRESS_DIGITAL_SAMPLE_PERIOD,
@@ -170,6 +170,198 @@ void Sensors::digitalPressureInit()
     sensorsMap.emplace(make_pair(digitalPressure, info));
 
     LOG_INFO(logger, "MS5803 pressure sensor setup done!");
+}
+
+void Sensors::adcADS1118Init()
+{
+    // Setup the SPI
+    SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
+
+    // Setup the ADC
+    ADS1118::ADS1118Config adcConfig = ADS1118::ADS1118_DEFAULT_CONFIG;
+    adcConfig.bits.mode = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
+
+    adcADS1118 = new ADS1118(spiBus, miosix::sensors::ads1118::cs::getPin(),
+                             adcConfig, spiConfig);
+
+    // Enable ADC ports
+    adcADS1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
+                            ADC_PGA_STATIC_PORT);
+    adcADS1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
+                            ADC_PGA_PITOT_PORT);
+    adcADS1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT, ADC_PGA_DPL_PORT);
+    adcADS1118->enableInput(ADC_CH_VREF, ADC_DR_VREF, ADC_PGA_VREF);
+
+    // Create the sensor info
+    SensorInfo info("ADS1118", ADC_ADS1118_SAMPLE_PERIOD,
+                    bind(&Sensors::adcADS1118Callback, this));
+    sensorsMap.emplace(make_pair(adcADS1118, info));
+
+    LOG_INFO(logger, "ADS1118 adc setup done!");
+}
+
+void Sensors::pitotPressureInit()
+{
+    // Create a function to read the analog voltage
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, adcADS1118, ADC_CH_PITOT_PORT));
+
+    // Setup the pitot sensor
+    pitotPressure = new SSCDRRN015PDA(readVoltage, REFERENCE_VOLTAGE,
+                                      PITOT_PRESS_CALIB_SAMPLES_NUM);
+
+    // Create the sensor info
+    SensorInfo info("PitotBarometer", PITOT_PRESS_SAMPLE_PERIOD,
+                    bind(&Sensors::pitotPressureCallback, this));
+
+    sensorsMap.emplace(make_pair(pitotPressure, info));
+
+    LOG_INFO(logger, "PITOT differential pressure sensor setup done!");
+}
+
+void Sensors::dplVanePressureInit()
+{
+    // Create a function to read the analog voltage
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, adcADS1118, ADC_CH_DPL_PORT));
+
+    // Setup the DPL sensor
+    dplVanePressure = new SSCDANN030PAA(readVoltage, REFERENCE_VOLTAGE);
+
+    // Create the sensor info
+    SensorInfo info("DeploymentBarometer", DPL_PRESS_SAMPLE_PERIOD,
+                    bind(&Sensors::dplVanePressureCallback, this));
+    sensorsMap.emplace(make_pair(dplVanePressure, this));
+
+    LOG_INFO(logger, "Deployment pressure sensor setup done!");
+}
+
+void Sensors::staticPortPressureInit()
+{
+    // Create a function to read analog voltage
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, adcADS1118, ADC_CH_STATIC_PORT));
+
+    // Setup the static port sensor
+    staticPortPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE,
+                                        STATIC_PRESS_CALIB_SAMPLES_NUM,
+                                        STATIC_PRESS_MOVING_AVG_COEFF);
+
+    // Create the sensor info
+    SensorInfo info("StaticPortsBarometer", STATIC_PRESS_SAMPLE_PERIOD,
+                    bind(&Sensors::staticPortPressureCallback, this));
+    sensorsMap.emplace(make_pair(staticPortPressure, info));
+
+    LOG_INFO(logger, "Static port pressure sensor setup done!");
+}
+
+void Sensors::imuBMX160Init()
+{
+    // Setup the SPI
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+
+    // Setup the sensor
+    BMX160Config bmxConfig;
+    bmxConfig.fifoMode      = BMX160Config::FifoMode::HEADER;
+    bmxConfig.fifoWatermark = IMU_BMX_FIFO_WATERMARK;
+    bmxConfig.fifoInterrupt = BMX160Config::FifoInterruptPin::PIN_INT1;
+
+    bmxConfig.temperatureDivider = IMU_BMX_TEMP_DIVIDER;
+
+    bmxConfig.accelerometerRange = IMU_BMX_ACC_FULLSCALE_ENUM;
+    bmxConfig.gyroscopeRange     = IMU_BMX_GYRO_FULLSCALE_ENUM;
+
+    bmxConfig.accelerometerDataRate = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmxConfig.gyroscopeDataRate     = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    bmxConfig.magnetometerRate      = IMU_BMX_MAG_ODR_ENUM;
+
+    bmxConfig.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
+
+    imuBMX160 = new BMX160(spiBus, miosix::sensors::bmx160::cs::getPin(),
+                           bmxConfig, spiConfig);
+
+    // Create the sensor info
+    SensorInfo info("BMX160", IMU_BMX_SAMPLE_PERIOD,
+                    bind(&Sensors::imuBMX160Callback, this));
+    sensorsMap.emplace(make_pair(imuBMX160, info));
+
+    LOG_INFO(logger, "BMX160 Setup done!");
+}
+
+void Sensors::correctedImuBMX160Init()
+{
+    // Read the correction parameters
+    BMX160CorrectionParameters correctionParameters =
+        BMX160WithCorrection::readCorrectionParametersFromFile(
+            BMX160_CORRECTION_PARAMETERS_FILE);
+
+    // Print the calibration parameters
+    TRACE("[Sensors] Current accelerometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.accelParams(0, 1),
+          correctionParameters.accelParams(1, 1),
+          correctionParameters.accelParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.accelParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.accelParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.accelParams(2, 0));
+    TRACE("[Sensors] Current magnetometer bias vector\n");
+    TRACE("[Sensors] b = [    % 2.5f    % 2.5f    % 2.5f    ]\n",
+          correctionParameters.magnetoParams(0, 1),
+          correctionParameters.magnetoParams(1, 1),
+          correctionParameters.magnetoParams(2, 1));
+    TRACE("[Sensors] Matrix to be multiplied to the input vector\n");
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n",
+          correctionParameters.magnetoParams(0, 0), 0.f, 0.f);
+    TRACE("[Sensors] M = |    % 2.5f    % 2.5f    % 2.5f    |\n", 0.f,
+          correctionParameters.magnetoParams(1, 0), 0.f);
+    TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
+          correctionParameters.magnetoParams(2, 0));
+    TRACE(
+        "[Sensors] The current minimun number of gyroscope samples for "
+        "calibration is %d\n",
+        correctionParameters.minGyroSamplesForCalibration);
+
+    // Setup the sensor
+    correctedImuBMX160 = new BMX160WithCorrection(
+        imuBMX160, correctionParameters, BMX160_AXIS_ROTATION);
+
+    // Create the sensor info
+    SensorInfo info("BMX160WithCorrection", IMU_BMX_SAMPLE_PERIOD,
+                    bind(&Sensors::correctedImuBMX160Callback, this));
+    sensorsMap.emplace(make_pair(correctedImuBMX160, info));
+
+    LOG_INFO(logger, "BMX160WithCorrection setup done!");
+}
+
+void Sensors::magnetometerLIS3MDLInit()
+{
+    // Configure the spi bus
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    // Configure the sensor
+    LIS3MDL::Config sensorConfig;
+    sensorConfig.odr                = MAG_LIS_ODR_ENUM;
+    sensorConfig.scale              = MAG_LIS_FULLSCALE;
+    sensorConfig.temperatureDivider = 1;
+
+    // Setup the sensor
+    magnetometerLIS3MDL =
+        new LIS3MDL(spiBus, miosix::sensors::lis3mdl::cs::getPin(), spiConfig,
+                    sensorConfig);
+
+    // Create the sensor info
+    SensorInfo info("LIS3MDL", MAG_LIS_SAMPLE_PERIOD,
+                    bind(&Sensors::magnetometerLIS3MDLCallback, this));
+    sensorsMap.emplace(make_pair(magnetometerLIS3MDL, info));
+
+    LOG_INFO(logger, "LIS3MDL Setup done!");
 }
 
 }  // namespace Payload
