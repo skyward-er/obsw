@@ -48,15 +48,13 @@ bool Sensors::start()
     enableExternalInterrupt(bmx160IntPin.getPort(), bmx160IntPin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
 
-    bool smStartResult = sensorManager->start();
-
-    return smStartResult;
+    return sensorManager->start();
 }
 
 Sensors::Sensors()
 {
     // Initialize all the sensors
-    bmx160Init();
+    // bmx160Init();
     lis3mdlInit();
     ms5803Init();
     // ubxGpsInit();
