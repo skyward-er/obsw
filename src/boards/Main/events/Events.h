@@ -72,38 +72,14 @@ enum Events : uint8_t
     FSR_STATS_TIMEOUT,
     NAS_CALIBRATE,
     NAS_READY,
+    TMTC_RESET_BOARD,
+    TMTC_FORCE_INIT,
+    TMTC_ARM,
+    TMTC_DISARM,
+    TMTC_FORCE_LAUNCH,
+    TMTC_FORCE_DROGUE,
+    TMTC_FORCE_MAIN,
+    TMTC_FORCE_LANDING,
 };
-
-const std::vector<uint8_t> EVENT_LIST{
-    ABK_DISABLE,
-    ABK_OPEN,
-    ABK_RESET,
-    ABK_SHADOW_MODE_TIMEOUT,
-    ABK_WIGGLE,
-    ADA_CALIBRATE,
-    ADA_PRESS_STAB_TIMEOUT,
-    ADA_READY,
-    ADA_SHADOW_MODE_TIMEOUT,
-    DPL_CUT_DROGUE,
-    DPL_CUT_TIMEOUT,
-    DPL_OPEN,
-    DPL_OPEN_NC,
-    DPL_OPEN_NC_TIMEOUT,
-    DPL_RESET,
-    DPL_WIGGLE,
-    FLIGHT_APOGEE_DETECTED,
-    FLIGHT_DPL_ALT_DETECTED,
-    FLIGHT_LANDING_DETECTED,
-    FLIGHT_LIFTOFF_DETECTED,
-    FLIGHT_NC_DETACHED,
-    FSR_STATS_TIMEOUT,
-    NAS_CALIBRATE,
-    NAS_READY,
-};
-
-/**
- * @brief Returns the name of the provided event.
- */
-std::string getEventString(uint8_t event);
 
 }  // namespace Main

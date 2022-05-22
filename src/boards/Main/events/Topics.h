@@ -37,15 +37,7 @@ enum Topics : uint8_t
     TOPIC_FLIGHT,
     TOPIC_FSR,
     TOPIC_NAS,
+    TOPIC_TMTC,
 };
-
-const std::vector<uint8_t> TOPIC_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL, TOPIC_FLIGHT, TOPIC_FSR, TOPIC_NAS,
-};
-
-/**
- * @brief Returns the name of the provided event.
- */
-std::string getTopicString(uint8_t topic);
 
 }  // namespace Main

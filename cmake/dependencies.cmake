@@ -24,7 +24,6 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
-    src/boards/Main/events/EventStrings.cpp
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/Radio/Radio.cpp
