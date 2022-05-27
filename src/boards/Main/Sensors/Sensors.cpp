@@ -55,7 +55,7 @@ Sensors::Sensors()
 {
     // Initialize all the sensors
     // bmx160Init();
-    lis3mdlInit();
+    // lis3mdlInit();
     ms5803Init();
     // ubxGpsInit();
     ads1118Init();

@@ -50,8 +50,8 @@ Radio::Radio(Boardcore::TaskScheduler* scheduler)
     // Add to the scheduler the flight and statistics telemetries
     scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
                        FLIGHT_TM_ID);
-    scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
-                       FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
+    // scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
+    //                    FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
 }
 
 void Radio::handleMavlinkMessage(MavDriver* driver,

@@ -22,6 +22,12 @@
 
 #include "TMRepository.h"
 
+#include <Main/Actuators/Actuators.h>
+#include <Main/Sensors/Sensors.h>
+#include <drivers/timer/TimestampTimer.h>
+
+using namespace Boardcore;
+
 namespace Main
 {
 
@@ -78,6 +84,60 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
         case SystemTMList::MAV_FLIGHT_ID:
         {
             mavlink_rocket_flight_tm_t tm;
+            Sensors &sensors = Sensors::getInstance();
+
+            tm.timestamp     = TimestampTimer::getInstance().getTimestamp();
+            tm.ada_state     = 0;
+            tm.fmm_state     = 0;
+            tm.dpl_state     = 0;
+            tm.ab_state      = 0;
+            tm.nas_state     = 0;
+            tm.pressure_ada  = 0;
+            tm.pressure_digi = sensors.ms5803->getLastSample().pressure;
+            tm.pressure_static =
+                sensors.staticPressure->getLastSample().pressure;
+            tm.pressure_dpl   = sensors.dplPressure->getLastSample().pressure;
+            tm.airspeed_pitot = 0;
+            tm.msl_altitude   = 0;
+            tm.ada_vert_speed = 0;
+            tm.ada_vert_accel = 0;
+            // tm.acc_x          =
+            // sensors.bmx160->getLastSample().accelerationX; tm.acc_y =
+            // sensors.bmx160->getLastSample().accelerationY; tm.acc_z =
+            // sensors.bmx160->getLastSample().accelerationZ; tm.gyro_x      =
+            // sensors.bmx160->getLastSample().angularVelocityX; tm.gyro_y =
+            // sensors.bmx160->getLastSample().angularVelocityY; tm.gyro_z =
+            // sensors.bmx160->getLastSample().angularVelocityZ; tm.mag_x =
+            // sensors.bmx160->getLastSample().magneticFieldX; tm.mag_y       =
+            // sensors.bmx160->getLastSample().magneticFieldY; tm.mag_z       =
+            // sensors.bmx160->getLastSample().magneticFieldZ;
+            tm.gps_fix     = 0;
+            tm.gps_lat     = 0;
+            tm.gps_lon     = 0;
+            tm.gps_alt     = 0;
+            tm.vbat        = sensors.batteryVoltage->getLastSample().batVoltage;
+            tm.vsupply_5v  = 0;
+            tm.temperature = sensors.ms5803->getLastSample().temperature;
+            tm.pin_launch  = 0;
+            tm.pin_nosecone = 0;
+            tm.servo_sensor = 0;
+            tm.ab_angle =
+                Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
+            tm.ab_estimated_cd = 0;
+            tm.nas_x           = 0;
+            tm.nas_y           = 0;
+            tm.nas_vx          = 0;
+            tm.nas_vy          = 0;
+            tm.nas_vz          = 0;
+            tm.nas_roll        = 0;
+            tm.nas_pitch       = 0;
+            tm.nas_yaw         = 0;
+            tm.nas_bias0       = 0;
+            tm.nas_bias1       = 0;
+            tm.nas_bias2       = 0;
+            tm.logger_error =
+                Logger::getInstance().getLoggerStats().lastWriteError;
+
             mavlink_msg_rocket_flight_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
                                                 RadioConfigs::MAV_COMPONENT_ID,
                                                 &msg, &tm);

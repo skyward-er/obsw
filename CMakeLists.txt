@@ -47,13 +47,17 @@ target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)
 sbs_target(catch-tests-main stm32f429zi_skyward_death_stack_x)
 sbs_catch_test(catch-tests-main)
 
-add_executable(main-test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
-target_include_directories(main-test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-test-radio stm32f429zi_skyward_death_stack_x)
+add_executable(test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
+target_include_directories(test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-radio stm32f429zi_skyward_death_stack_x)
 
-add_executable(main-test-sensors src/tests/Main/test-sensors.cpp ${MAIN_COMPUTER})
-target_include_directories(main-test-sensors PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-test-sensors stm32f429zi_skyward_death_stack_x)
+add_executable(test-sensors src/tests/Main/test-sensors.cpp ${MAIN_COMPUTER})
+target_include_directories(test-sensors PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-sensors stm32f429zi_skyward_death_stack_x)
+
+add_executable(test-receiver src/tests/Main/test-receiver.cpp)
+target_include_directories(test-receiver PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-receiver stm32f407vg_stm32f4discovery)
 
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #

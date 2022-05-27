@@ -110,6 +110,23 @@ bool Actuators::disableServo(ServosList servoId)
     return true;
 }
 
+float Actuators::getServoPosition(ServosList servoId)
+{
+
+    switch (servoId)
+    {
+        case AIRBRAKES_SERVO:
+            return servoAirbrakes.getPosition();
+        case EXPULSION_SERVO:
+            return servoExpulsion.getPosition();
+
+        default:
+            return 0;
+    }
+
+    return 0;
+}
+
 #ifndef COMPILE_FOR_HOST
 
 Actuators::Actuators()

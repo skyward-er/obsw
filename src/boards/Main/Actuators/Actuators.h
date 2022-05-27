@@ -62,6 +62,8 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     bool disableServo(ServosList servoId);
 
+    float getServoPosition(ServosList servoId);
+
 private:
     Actuators();
 
