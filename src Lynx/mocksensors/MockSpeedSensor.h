@@ -44,8 +44,7 @@ public:
     {
         MockSpeedData data;
 
-        data.timestamp =
-            Boardcore::TimestampTimer::getInstance().getTimestamp();
+        data.timestamp = Boardcore::TimestampTimer::getTimestamp();
 
         if (before_liftoff)
         {

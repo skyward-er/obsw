@@ -356,8 +356,7 @@ void NAS<IMU, Press, GPS>::setInitialOrientation(float roll, float pitch,
 template <typename IMU, typename Press, typename GPS>
 void NAS<IMU, Press, GPS>::updateNASData()
 {
-    nas_data.timestamp =
-        Boardcore::TimestampTimer::getInstance().getTimestamp();
+    nas_data.timestamp = Boardcore::TimestampTimer::getTimestamp();
 
     nas_data.x = x(0);
     nas_data.y = x(1);

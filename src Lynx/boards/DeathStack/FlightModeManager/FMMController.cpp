@@ -53,7 +53,7 @@ FMMController::~FMMController()
 
 void FMMController::logState(FMMState current_state)
 {
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = TimestampTimer::getTimestamp();
     status.state     = current_state;
 
     logger.log(status);

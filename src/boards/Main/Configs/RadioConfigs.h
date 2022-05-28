@@ -45,8 +45,8 @@ constexpr uint8_t MAV_SYSTEM_ID    = 171;
 constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 // Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 500;  // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;  // [ms]
+constexpr uint32_t FLIGHT_TM_PERIOD       = 2000;  // [ms]
+constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;   // [ms]
 
 // Periodic telemetries tasks ids
 constexpr uint8_t FLIGHT_TM_ID       = 200;

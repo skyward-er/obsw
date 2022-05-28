@@ -36,11 +36,11 @@ using MavDriver = Boardcore::MavlinkDriver<RadioConfigs::RADIO_PKT_LENGTH,
                                            RadioConfigs::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfigs::RADIO_MAV_MSG_LENGTH>;
 
-class Radio
+class Radio : public Boardcore::Singleton<Radio>
 {
-public:
-    explicit Radio(Boardcore::TaskScheduler* scheduler);
+    friend class Boardcore::Singleton<Radio>;
 
+public:
     /**
      * @brief Called by the MavlinkDriver when a message is received.
      */
@@ -86,6 +86,9 @@ public:
     bool sendSensorsTm(const SensorsTMList tmId);
 
 private:
+    Radio();
+
+    Boardcore::TaskScheduler scheduler;
     Boardcore::Transceiver* transceiver;
     MavDriver* mavDriver;
 

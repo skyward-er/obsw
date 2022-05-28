@@ -305,8 +305,7 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
             // Log the altitude & vertical speed but don't use kalman pressure
             // while we are on the ramp
             ADAData d;
-            d.timestamp =
-                Boardcore::TimestampTimer::getInstance().getTimestamp();
+            d.timestamp    = Boardcore::TimestampTimer::getTimestamp();
             d.msl_altitude = ada.pressureToAltitude(pressure);
             d.agl_altitude = ada.altitudeMSLtoAGL(d.msl_altitude);
             d.vert_speed   = 0;
@@ -325,9 +324,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 ADAConfigs::APOGEE_VERTICAL_SPEED_TARGET)
             {
                 // Log
-                ApogeeDetected apogee{
-                    Boardcore::TimestampTimer::getInstance().getTimestamp(),
-                    status.state};
+                ApogeeDetected apogee{Boardcore::TimestampTimer::getTimestamp(),
+                                      status.state};
                 logger.log(apogee);
             }
 
@@ -352,9 +350,8 @@ void ADAController<Press, GPS>::updateBaroAccordingToState(float pressure)
                 }
 
                 // Log
-                ApogeeDetected apogee{
-                    Boardcore::TimestampTimer::getInstance().getTimestamp(),
-                    status.state};
+                ApogeeDetected apogee{Boardcore::TimestampTimer::getTimestamp(),
+                                      status.state};
                 logger.log(apogee);
             }
             else if (n_samples_apogee_detected != 0)
@@ -781,7 +778,7 @@ void ADAController<Press, GPS>::logStatus(ADAState state)
 template <typename Press, typename GPS>
 void ADAController<Press, GPS>::logStatus()
 {
-    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getTimestamp();
     logger.log(status);
 
     Boardcore::StackLogger::getInstance().updateStack(THID_ADA_FSM);

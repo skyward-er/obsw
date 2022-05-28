@@ -244,14 +244,14 @@ void elapsedTimeAndCsense(void *args)
     current_sensor.init();
 
     // Save the cuttent timestamp
-    uint64_t t  = TimestampTimer::getInstance().getTimestamp() / 1000;
+    uint64_t t  = TimestampTimer::getTimestamp() / 1000;
     uint64_t t0 = t;
 
     while (t < t0 + MAX_CUTTING_TIME && !finished)
     {
         Thread::sleep(1000 / SAMPLING_FREQUENCY);
 
-        t = TimestampTimer::getInstance().getTimestamp() / 1000;
+        t = TimestampTimer::getTimestamp() / 1000;
         internalADC.sample();
         current_sensor.sample();
 

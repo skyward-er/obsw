@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio, Alberto Nidasio
+ * Authors: Luca Conterio, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {
     if (Main::Sensors::getInstance().bmx160 != nullptr)
         Main::Sensors::getInstance().bmx160->IRQupdateTimestamp(
-            TimestampTimer::getInstance().getTimestamp());
+            TimestampTimer::getTimestamp());
 }
 
 namespace Main
@@ -54,8 +54,8 @@ bool Sensors::start()
 Sensors::Sensors()
 {
     // Initialize all the sensors
-    // bmx160Init();
-    // lis3mdlInit();
+    bmx160Init();
+    lis3mdlInit();
     ms5803Init();
     // ubxGpsInit();
     ads1118Init();
@@ -89,7 +89,7 @@ Sensors::~Sensors()
 void Sensors::bmx160Init()
 {
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     BMX160Config config;
     config.fifoMode      = BMX160Config::FifoMode::HEADER;
@@ -158,6 +158,7 @@ void Sensors::lis3mdlInit()
 void Sensors::ms5803Init()
 {
     SPIBusConfig spiConfig{};
+    spiConfig.mode         = SPI::Mode::MODE_3;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     ms5803 = new MS5803(Buses::getInstance().spi1,
@@ -218,9 +219,7 @@ void Sensors::staticPressureInit()
 {
     function<ADCData()> getVoltage(
         bind(&ADS1118::getVoltage, ads1118, ADC_CH_STATIC_PORT));
-    staticPressure = new MPXHZ6130A(getVoltage, REFERENCE_VOLTAGE,
-                                    PRESS_STATIC_CALIB_SAMPLES_NUM,
-                                    PRESS_STATIC_MOVING_AVG_COEFF);
+    staticPressure = new MPXHZ6130A(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
         "STATIC_PRESSURE", SAMPLE_PERIOD_PRESS_STATIC,
@@ -238,7 +237,7 @@ void Sensors::dplPressureInit()
     dplPressure = new SSCDANN030PAA(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "DeploymentBarometer", SAMPLE_PERIOD_PRESS_DPL,
+        "DPL_PRESSURE", SAMPLE_PERIOD_PRESS_DPL,
         [&]() { Logger::getInstance().log(dplPressure->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(dplPressure, info));
@@ -250,8 +249,7 @@ void Sensors::pitotPressureInit()
 {
     function<ADCData()> getVoltage(
         bind(&ADS1118::getVoltage, ads1118, ADC_CH_PITOT_PORT));
-    pitotPressure = new SSCDRRN015PDA(getVoltage, REFERENCE_VOLTAGE,
-                                      PRESS_PITOT_CALIB_SAMPLES_NUM);
+    pitotPressure = new SSCDRRN015PDA(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info("PITOT", SAMPLE_PERIOD_PRESS_PITOT,
                     bind(&Sensors::pitotPressureCallback, this));

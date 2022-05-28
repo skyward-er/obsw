@@ -197,7 +197,7 @@ void FSRController::log_main_dpl_stats()
 
 void FSRController::logStatus(FSRControllerState state)
 {
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(status);

@@ -267,17 +267,15 @@ void servoBreakIn()
 
     waitUserInput();
 
-    uint64_t start = TimestampTimer::getInstance().getTimestamp();
+    uint64_t start = TimestampTimer::getTimestamp();
 
-    while (TimestampTimer::getInstance().getTimestamp() - start <
-           minutes * 60 * 1000000)
+    while (TimestampTimer::getTimestamp() - start < minutes * 60 * 1000000)
     {
-        uint64_t start2 = TimestampTimer::getInstance().getTimestamp();
+        uint64_t start2 = TimestampTimer::getTimestamp();
         float counter   = 0;
 
         // 10 seconds
-        while (TimestampTimer::getInstance().getTimestamp() - start2 <
-               10 * 1000000)
+        while (TimestampTimer::getTimestamp() - start2 < 10 * 1000000)
         {
             double angolo =
                 servo->MIN_POS + abs(perlin2d(counter, 0, .075, 10)) *

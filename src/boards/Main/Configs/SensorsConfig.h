@@ -1,5 +1,5 @@
 /* Copyright (c) 2015-2021 Skyward Experimental Rocketry
- * Author: Luca Erbetta, Luca Conterio, Alberto Nidasio
+ * Authors: Luca Erbetta, Luca Conterio, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -84,9 +84,7 @@ static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 
-static constexpr unsigned int PRESS_PITOT_CALIB_SAMPLES_NUM  = 500;
-static constexpr unsigned int PRESS_STATIC_CALIB_SAMPLES_NUM = 500;
-static constexpr float PRESS_STATIC_MOVING_AVG_COEFF         = 0.95;
+static constexpr float PRESS_STATIC_MOVING_AVG_COEFF = 0.95;
 
 static constexpr Boardcore::BMX160Config::AccelerometerRange
     IMU_BMX_ACC_FULLSCALE_ENUM =

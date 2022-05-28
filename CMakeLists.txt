@@ -59,6 +59,9 @@ add_executable(test-receiver src/tests/Main/test-receiver.cpp)
 target_include_directories(test-receiver PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(test-receiver stm32f407vg_stm32f4discovery)
 
+add_executable(test-bmx src/tests/Main/sensors/test-bmx160.cpp)
+sbs_target(test-bmx stm32f429zi_skyward_death_stack_x)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#

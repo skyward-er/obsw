@@ -68,8 +68,7 @@ public:
             }
         }
 
-        return PressureData{TimestampTimer::getInstance().getTimestamp(),
-                            press};
+        return PressureData{TimestampTimer::getTimestamp(), press};
     }
 
     void signalLiftoff() { before_liftoff = false; }

@@ -86,7 +86,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             mavlink_rocket_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
 
-            tm.timestamp     = TimestampTimer::getInstance().getTimestamp();
+            tm.timestamp     = TimestampTimer::getTimestamp();
             tm.ada_state     = 0;
             tm.fmm_state     = 0;
             tm.dpl_state     = 0;

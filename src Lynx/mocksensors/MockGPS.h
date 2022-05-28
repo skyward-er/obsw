@@ -54,9 +54,8 @@ public:
 
         MockGPSData data;
 
-        data.gpsTimestamp =
-            Boardcore::TimestampTimer::getInstance().getTimestamp();
-        data.fix = true;
+        data.gpsTimestamp = Boardcore::TimestampTimer::getTimestamp();
+        data.fix          = true;
 
         if (before_liftoff)
         {

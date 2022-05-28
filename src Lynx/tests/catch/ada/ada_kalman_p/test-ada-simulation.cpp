@@ -87,7 +87,7 @@ public:
         }
 
         return Boardcore::PressureData{
-            Boardcore::TimestampTimer::getInstance().getTimestamp(), press};
+            Boardcore::TimestampTimer::getTimestamp(), press};
     }
 
     void signalLiftoff() { before_liftoff = false; }

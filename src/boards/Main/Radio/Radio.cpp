@@ -38,20 +38,18 @@ using namespace Main::RadioConfigs;
 namespace Main
 {
 
-Radio::Radio(Boardcore::TaskScheduler* scheduler)
+Radio::Radio()
 {
-    // cppcheck-suppress noCopyConstructor
-    // cppcheck-suppress noOperatorEq
     transceiver = new SerialTransceiver(Buses::getInstance().uart4);
     mavDriver   = new MavDriver(transceiver,
                                 bind(&Radio::handleMavlinkMessage, this, _1, _2),
                                 0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the flight and statistics telemetries
-    scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
-                       FLIGHT_TM_ID);
-    // scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
-    //                    FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
+    scheduler.addTask([=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
+                      FLIGHT_TM_ID);
+    scheduler.addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
+                      FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
 }
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
@@ -337,12 +335,12 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavDriver->enqueueMsg(nackMsg);
 }
 
-bool Radio::start() { return mavDriver->start(); }
+bool Radio::start() { return scheduler.start() && mavDriver->start(); }
 
 void Radio::logStatus()
 {
     auto status      = mavDriver->getStatus();
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = TimestampTimer::getTimestamp();
     Logger::getInstance().log(status);
     // TODO: Add transceiver status logging
     // Logger::getInstance().log(transceiver->getStatus());

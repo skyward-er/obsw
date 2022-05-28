@@ -226,7 +226,7 @@ void AirBrakesController::wiggle_servo()
 
 void AirBrakesController::logStatus(AirBrakesControllerState state)
 {
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(state);

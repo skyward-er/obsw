@@ -94,8 +94,7 @@ void PinHandler::onLaunchPinTransition(unsigned int p, unsigned char n)
 
     LOG_INFO(log, "Launch pin detached!");
 
-    status_pin_launch.last_detection_time =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_launch.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_launch);
 }
 
@@ -107,8 +106,7 @@ void PinHandler::onNCPinTransition(unsigned int p, unsigned char n)
 
     LOG_INFO(log, "Nosecone detached!");
 
-    status_pin_nosecone.last_detection_time =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_nosecone.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_nosecone);
 }
 
@@ -120,8 +118,7 @@ void PinHandler::onDPLServoPinTransition(unsigned int p, unsigned char n)
     LOG_INFO(log, "Deployment servo actuated!");
 
     // do not post any event, just log the timestamp
-    status_pin_dpl_servo.last_detection_time =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_dpl_servo.last_detection_time = TimestampTimer::getTimestamp();
     logger->log(status_pin_dpl_servo);
 }
 
@@ -131,9 +128,8 @@ void PinHandler::onLaunchPinStateChange(unsigned int p, unsigned char n,
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_launch.state = (uint8_t)state;
-    status_pin_launch.last_state_change =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_launch.state             = (uint8_t)state;
+    status_pin_launch.last_state_change = TimestampTimer::getTimestamp();
     status_pin_launch.num_state_changes += 1;
 
     LOG_INFO(log,
@@ -149,9 +145,8 @@ void PinHandler::onNCPinStateChange(unsigned int p, unsigned char n, int state)
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_nosecone.state = (uint8_t)state;
-    status_pin_nosecone.last_state_change =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_nosecone.state             = (uint8_t)state;
+    status_pin_nosecone.last_state_change = TimestampTimer::getTimestamp();
     status_pin_nosecone.num_state_changes += 1;
 
     LOG_INFO(log, "Nosecone pin state change at time {}: new state = {}",
@@ -166,9 +161,8 @@ void PinHandler::onDPLServoPinStateChange(unsigned int p, unsigned char n,
     UNUSED(p);
     UNUSED(n);
 
-    status_pin_dpl_servo.state = (uint8_t)state;
-    status_pin_dpl_servo.last_state_change =
-        TimestampTimer::getInstance().getTimestamp();
+    status_pin_dpl_servo.state             = (uint8_t)state;
+    status_pin_dpl_servo.last_state_change = TimestampTimer::getTimestamp();
     status_pin_dpl_servo.num_state_changes += 1;
 
     LOG_INFO(log,

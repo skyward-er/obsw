@@ -188,7 +188,7 @@ void NASController::calibrate()
 
 void NASController::logStatus(NASControllerState state)
 {
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(state);
