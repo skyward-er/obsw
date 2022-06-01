@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Authors: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,39 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter.h>
-#include <miosix.h>
+#pragma once
 
-using namespace miosix;
-using namespace Boardcore;
-using namespace Main;
+#include <diagnostic/PrintLogger.h>
+#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/SensorManager.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 
-int main()
+namespace WindGallery
 {
-    Logger::getInstance().start();
-    Sensors::getInstance().start();
 
-    while (true)
-    {
-        printf("Average CPU usage: %.1f%%\n", averageCpuUtilization());
-        Thread::sleep(500);
-    }
-}
+class Sensors : public Boardcore::Singleton<Sensors>
+{
+    friend Boardcore::Singleton<Sensors>;
+
+public:
+    Boardcore::ADS1118 *ads1118             = nullptr;
+    Boardcore::SSCDRRN015PDA *pitotPressure = nullptr;
+
+    bool start();
+
+private:
+    Sensors();
+
+    void ads1118Init();
+
+    void pitotPressureInit();
+    void pitotPressureCallback();
+
+    Boardcore::SensorManager *sensorManager = nullptr;
+
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+};
+
+}  // namespace WindGallery

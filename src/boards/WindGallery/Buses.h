@@ -20,22 +20,39 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter.h>
+#pragma once
+
+#include <Singleton.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
 #include <miosix.h>
 
-using namespace miosix;
-using namespace Boardcore;
-using namespace Main;
-
-int main()
+namespace WindGallery
 {
-    Logger::getInstance().start();
-    Sensors::getInstance().start();
 
-    while (true)
+struct Buses : public Boardcore::Singleton<Buses>
+{
+    friend class Boardcore::Singleton<Buses>;
+
+    Boardcore::USART uart4;
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+
+private:
+#ifndef USE_MOCK_PERIPHERALS
+    Buses()
+        : uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
+          spi1(SPI1), spi2(SPI2)
     {
-        printf("Average CPU usage: %.1f%%\n", averageCpuUtilization());
-        Thread::sleep(500);
+        uart4.init();
     }
-}
+#else
+    Buses()
+        : uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
+          spi2({})
+    {
+    }
+#endif
+};
+
+}  // namespace WindGallery

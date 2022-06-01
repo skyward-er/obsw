@@ -20,22 +20,29 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter.h>
+#include <WindGallery/Sensors/Sensors.h>
 #include <miosix.h>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main;
+using namespace WindGallery;
+
+void print()
+{
+    auto sample = Sensors::getInstance().pitotPressure->getLastSample();
+
+    printf("[%.2f] %f\n", sample.pressureTimestamp / 1e6, sample.pressure);
+}
 
 int main()
 {
     Logger::getInstance().start();
     Sensors::getInstance().start();
 
+    TaskScheduler scheduler;
+    scheduler.addTask(print, 100);
+    scheduler.start();
+
     while (true)
-    {
-        printf("Average CPU usage: %.1f%%\n", averageCpuUtilization());
-        Thread::sleep(500);
-    }
+        Thread::sleep(1000);
 }

@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,27 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter.h>
-#include <miosix.h>
+#pragma once
 
-using namespace miosix;
-using namespace Boardcore;
-using namespace Main;
+#include <sensors/ADS1118/ADS1118.h>
 
-int main()
+namespace WindGallery
 {
-    Logger::getInstance().start();
-    Sensors::getInstance().start();
 
-    while (true)
-    {
-        printf("Average CPU usage: %.1f%%\n", averageCpuUtilization());
-        Thread::sleep(500);
-    }
-}
+namespace SensorsConfigs
+{
+
+static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
+    Boardcore::ADS1118::MUX_AIN1_GND;
+static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
+    Boardcore::ADS1118::DR_860;
+static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+static constexpr float ADC_REFERENCE_VOLTAGE = 5.0;
+
+// Sampling periods in milliseconds
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 6;
+
+}  // namespace SensorsConfigs
+
+}  // namespace WindGallery

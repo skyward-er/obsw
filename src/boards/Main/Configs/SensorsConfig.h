@@ -144,6 +144,7 @@ static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 
 static constexpr float REFERENCE_VOLTAGE = 5.0;
+
 }  // namespace SensorConfigs
 
 }  // namespace Main
