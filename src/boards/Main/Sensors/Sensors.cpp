@@ -126,7 +126,7 @@ void Sensors::bmx160Callback()
 
     Logger::getInstance().log(bmx160->getTemperature());
 
-    for (uint8_t i = 0; i < fifoSize; ++i)
+    for (uint8_t i = 0; i < fifoSize; i++)
         Logger::getInstance().log(fifo.at(i));
 
     Logger::getInstance().log(bmx160->getFifoStats());

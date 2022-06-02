@@ -22,26 +22,63 @@
 
 #include "NASController.h"
 
+#include <Main/BoardScheduler.h>
+#include <Main/Configs/NASConfigs.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
+using namespace Eigen;
 
 namespace Main
 {
 
-NASController::NASController() : FSM(&NASController::state_idle)
+bool NASController::start()
 {
-    memset(&status, 0, sizeof(NASControllerStatus));
-    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&NASController::update, this), NASConfigs::UPDATE_PERIOD,
+        TaskScheduler::Policy::RECOVER);
+
+    // return ActiveObject::start();
+    return true;
 }
 
-NASController::~NASController()
+void NASController::update()
 {
-    EventBroker::getInstance().unsubscribe(this);
+    auto imuData = Sensors::getInstance().bmx160->getLastSample();
+
+    Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
+                          imuData.accelerationZ);
+    Vector3f angularVelocity(imuData.angularVelocityX, imuData.angularVelocityY,
+                             imuData.angularVelocityZ);
+    Vector3f magneticField(imuData.magneticFieldX, imuData.magneticFieldY,
+                           imuData.magneticFieldZ);
+
+    // Calibration
+    {
+        Vector3f offset{-1.63512255486542, 3.46523431469979, -3.08516033954451};
+        angularVelocity = angularVelocity - offset;
+        angularVelocity = angularVelocity / 180 * Constants::PI / 10;
+        Vector3f b{21.5356818859811, -22.7697302909894, -2.68219304319269};
+        Matrix3f A{{0.688760050772712, 0, 0},
+                   {0, 0.637715211784480, 0},
+                   {0, 0, 2.27669720320908}};
+        magneticField = (magneticField - b).transpose() * A;
+    }
+
+    // Predict step
+    nas.predictGyro(angularVelocity);
+    nas.predictAcc(acceleration);
+
+    // Correct step
+    magneticField.normalize();
+    nas.correctMag(magneticField);
 }
+
+NASState NASController::getNasState() { return nas.getState(); }
 
 void NASController::state_idle(const Event& ev)
 {
@@ -76,8 +113,6 @@ void NASController::state_calibrating(const Event& ev)
     {
         case EV_ENTRY:
         {
-            calibrate();
-
             logStatus(CALIBRATING);
             LOG_DEBUG(logger, "[NAS] entering state calibrating\n");
             break;
@@ -181,17 +216,36 @@ void NASController::state_end(const Event& ev)
     }
 }
 
-void NASController::calibrate()
-{
-    // ...
-}
-
 void NASController::logStatus(NASControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(state);
+}
+
+NASController::NASController()
+    : FSM(&NASController::state_idle), nas(NASConfigs::config)
+{
+    memset(&status, 0, sizeof(NASControllerStatus));
+    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+
+    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
+
+    // Set quaternions
+    Vector4f q = SkyQuaternion::eul2quat({0, 0, 0});
+    x(6)       = q(0);
+    x(7)       = q(1);
+    x(8)       = q(2);
+    x(9)       = q(3);
+
+    nas.setX(x);
+}
+
+NASController::~NASController()
+{
+    EventBroker::getInstance().unsubscribe(this);
 }
 
 }  // namespace Main

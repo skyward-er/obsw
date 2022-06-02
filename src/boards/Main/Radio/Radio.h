@@ -88,7 +88,6 @@ public:
 private:
     Radio();
 
-    Boardcore::TaskScheduler scheduler;
     Boardcore::Transceiver* transceiver;
     MavDriver* mavDriver;
 

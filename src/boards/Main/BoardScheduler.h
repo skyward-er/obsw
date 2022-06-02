@@ -23,44 +23,22 @@
 #pragma once
 
 #include <Singleton.h>
-#include <algorithms/NAS/NAS.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "NASData.h"
+#include <scheduler/TaskScheduler.h>
 
 namespace Main
 {
 
-class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Singleton<NASController>
+class BoardScheduler : public Boardcore::Singleton<BoardScheduler>
 {
-    friend Boardcore::Singleton<NASController>;
+    friend Boardcore::Singleton<BoardScheduler>;
 
 public:
-    bool start() override;
-
-    void update();
-
-    Boardcore::NASState getNasState();
-
-    void state_idle(const Boardcore::Event& ev);
-    void state_calibrating(const Boardcore::Event& ev);
-    void state_ready(const Boardcore::Event& ev);
-    void state_active(const Boardcore::Event& ev);
-    void state_end(const Boardcore::Event& ev);
+    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
 
 private:
-    NASController();
-    ~NASController();
+    BoardScheduler() {}
 
-    NASControllerStatus status;
-
-    Boardcore::NAS nas;
-
-    void logStatus(NASControllerState state);
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
+    Boardcore::TaskScheduler scheduler;
 };
 
 }  // namespace Main

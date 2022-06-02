@@ -22,45 +22,39 @@
 
 #pragma once
 
-#include <Singleton.h>
-#include <algorithms/NAS/NAS.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "NASData.h"
+#include <algorithms/NAS/NASConfig.h>
 
 namespace Main
 {
 
-class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Singleton<NASController>
+namespace NASConfigs
 {
-    friend Boardcore::Singleton<NASController>;
 
-public:
-    bool start() override;
+static constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 
-    void update();
+// Magnetic field in Milan
+Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
 
-    Boardcore::NASState getNasState();
-
-    void state_idle(const Boardcore::Event& ev);
-    void state_calibrating(const Boardcore::Event& ev);
-    void state_ready(const Boardcore::Event& ev);
-    void state_active(const Boardcore::Event& ev);
-    void state_end(const Boardcore::Event& ev);
-
-private:
-    NASController();
-    ~NASController();
-
-    NASControllerStatus status;
-
-    Boardcore::NAS nas;
-
-    void logStatus(NASControllerState state);
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
+static const Boardcore::NASConfig config = {
+    1.0f / UPDATE_PERIOD,  // T
+    0.0001f,               // SIGMA_BETA
+    0.3f,                  // SIGMA_W
+    0.1f,                  // SIGMA_MAG
+    10.0f,                 // SIGMA_GPS
+    4.3f,                  // SIGMA_BAR
+    10.0f,                 // SIGMA_POS
+    10.0f,                 // SIGMA_VEL
+    10.0f,                 // SIGMA_PITOT
+    1.0f,                  // P_POS
+    10.0f,                 // P_POS_VERTICAL
+    1.0f,                  // P_VEL
+    10.0f,                 // P_VEL_VERTICAL
+    0.01f,                 // P_ATT
+    0.01f,                 // P_BIAS
+    6.0f,                  // SATS_NUM
+    nedMag                 // NED_MAG
 };
+
+}  // namespace NASConfigs
 
 }  // namespace Main

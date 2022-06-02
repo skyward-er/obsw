@@ -23,6 +23,7 @@
 #include "Radio.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <Main/events/Events.h>
@@ -46,10 +47,11 @@ Radio::Radio()
                                 0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the flight and statistics telemetries
-    scheduler.addTask([=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
-                      FLIGHT_TM_ID);
-    scheduler.addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
-                      FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD, FLIGHT_TM_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
+        FLIGHT_STATS_TM_ID);
 }
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
@@ -335,7 +337,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavDriver->enqueueMsg(nackMsg);
 }
 
-bool Radio::start() { return scheduler.start() && mavDriver->start(); }
+bool Radio::start() { return mavDriver->start(); }
 
 void Radio::logStatus()
 {
