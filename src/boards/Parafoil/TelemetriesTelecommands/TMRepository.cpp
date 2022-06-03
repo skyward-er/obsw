@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
 
 using namespace Boardcore;
@@ -38,10 +39,38 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
     switch (req_tm)
     {
         case MavTMList::MAV_SENSORS_TM_ID:
+        {
             tm_repository.sensors_tm.timestamp = miosix::getTick();
             mavlink_msg_sensors_tm_encode(sys_id, comp_id, &m,
                                           &(tm_repository.sensors_tm));
             break;
+        }
+        case MavTMList::MAV_LOGGER_TM_ID:
+        {
+            tm_repository.logger_tm.timestamp = miosix::getTick();
+
+            // Get the logger stats
+            Boardcore::LoggerStats stats =
+                ParafoilTest::getInstance().SDlogger->getLoggerStats();
+
+            // First i update the logger_tm
+            tm_repository.logger_tm.statLogNumber =
+                ParafoilTest::getInstance().SDlogger->getCurrentLogNumber();
+
+            tm_repository.logger_tm.statBufferFilled    = stats.buffersFilled;
+            tm_repository.logger_tm.statBufferWritten   = stats.buffersWritten;
+            tm_repository.logger_tm.statDroppedSamples  = stats.droppedSamples;
+            tm_repository.logger_tm.statMaxWriteTime    = stats.maxWriteTime;
+            tm_repository.logger_tm.statQueuedSamples   = stats.queuedSamples;
+            tm_repository.logger_tm.statTooLargeSamples = stats.tooLargeSamples;
+            tm_repository.logger_tm.statWriteFailed     = stats.writesFailed;
+            tm_repository.logger_tm.statWriteTime       = stats.writeTime;
+            tm_repository.logger_tm.statWriteError      = stats.lastWriteError;
+
+            mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
+                                         &(tm_repository.logger_tm));
+            break;
+        }
         /*case MavTMList::MAV_SYS_TM_ID:
             tm_repository.sys_tm.timestamp = miosix::getTick();
             mavlink_msg_sys_tm_encode(sys_id, comp_id, &m,
@@ -51,11 +80,6 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             tm_repository.fmm_tm.timestamp = miosix::getTick();
             mavlink_msg_fmm_tm_encode(sys_id, comp_id, &m,
                                     &(tm_repository.fmm_tm));
-            break;
-        case MavTMList::MAV_LOGGER_TM_ID:
-            tm_repository.logger_tm.timestamp = miosix::getTick();
-            mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
-                                        &(tm_repository.logger_tm));
             break;
         case MavTMList::MAV_TMTC_TM_ID:
             tm_repository.tmtc_tm.timestamp = miosix::getTick();
@@ -84,7 +108,7 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             break;*/
         default:
         {
-            LOG_DEBUG(logger, "Unknown telemetry id: %d", req_tm);
+            LOG_DEBUG(logger, "Unknown telemetry id: {:d}", req_tm);
             nack_tm.recv_msgid = 0;
             nack_tm.seq_ack    = 0;
             mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
@@ -115,7 +139,7 @@ void TMRepository::update(MPU9250Data data)
     tm_repository.sensors_tm.bmx160_temp = data.temperature;
 }
 
-void TMRepository::update(UbloxGPSData data)
+void TMRepository::update(UBXGPSData data)
 {
     // Pause the kernel to avoid interructions during this fast operation
     miosix::PauseKernelLock kLock;

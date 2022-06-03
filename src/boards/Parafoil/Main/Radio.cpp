@@ -82,7 +82,6 @@ Radio::Radio(SPIBusInterface& xbee_bus, TaskScheduler* scheduler)
     mav_driver =
         new MavDriver(module, bind(&Radio::handleMavlinkMessage, this, _1, _2),
                       SLEEP_AFTER_SEND, MAV_OUT_BUFFER_MAX_AGE);
-    init();
 }
 
 Radio::~Radio()
@@ -112,7 +111,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // search for the corresponding event and post it
             auto it = tcMap.find(commandId);
             if (it != tcMap.end())
-                EventBroker::getInstance().post(Event{it->second}, TOPIC_TMTC);
+                sEventBroker.post(Event{it->second}, TOPIC_TMTC);
             else
                 LOG_WARN(logger, "Unknown NOARG command {:d}", commandId);
 
@@ -133,6 +132,18 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                     sendTelemetry(MAV_LOGGER_TM_ID);
                     LOG_INFO(logger, "Received command START_LOG");
                     break;
+                case MAV_CMD_TEST_MODE:
+                    // I use the test mode to apply the sequence
+                    ParafoilTest::getInstance().wingController->start();
+                    break;
+                case MAV_CMD_DPL_RESET_SERVO:
+                    // I reset the servo position
+                    ParafoilTest::getInstance().wingController->reset();
+                    break;
+                case MAV_CMD_CALIBRATE_SENSORS:
+                    // I calibrate the sensors inside Sensors.h
+                    ParafoilTest::getInstance().sensors->calibrate();
+                    break;
                 default:
                     break;
             }
@@ -145,6 +156,17 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             // send corresponding telemetry or NACK
             sendTelemetry(tmId);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_AEROBRAKE_ANGLE_TC:
+        {
+            uint8_t algorithmId =
+                mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
+
+            // Set the algorithm (invalid cases are checked inside the method)
+            ParafoilTest::getInstance().wingController->selectAlgorithm(
+                algorithmId);
 
             break;
         }
@@ -162,9 +184,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             LOG_DEBUG(logger, "Received RAW_EVENT command");
 
             // post given event on given topic
-            EventBroker::getInstance().post(
-                {mavlink_msg_raw_event_tc_get_Event_id(&msg)},
-                mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+            sEventBroker.post({mavlink_msg_raw_event_tc_get_Event_id(&msg)},
+                              mavlink_msg_raw_event_tc_get_Topic_id(&msg));
             break;
         }
         case MAVLINK_MSG_ID_PING_TC:
@@ -178,6 +199,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             break;
         }
     }
+
+    // TODO REMOVE THIS ACK DONE BECAUSE OF ACK LOSS
+    sendAck(msg);
 }
 
 bool Radio::sendTelemetry(const uint8_t tm_id)
@@ -191,14 +215,9 @@ bool Radio::sendTelemetry(const uint8_t tm_id)
 
 void Radio::sendHRTelemetry()
 {
-    // I send this telemetry if and only if the status is
-    // in high rate telemetry
-    if (HRtelemetry)
-    {
-        // sendTelemetry(MAV_HR_TM_ID);
-        // TEST ONLY
-        sendTelemetry(MAV_SENSORS_TM_ID);
-    }
+    // sendTelemetry(MAV_HR_TM_ID);
+    // TEST ONLY
+    sendTelemetry(MAV_SENSORS_TM_ID);
 }
 
 void Radio::sendLRTelemetry()
@@ -207,6 +226,8 @@ void Radio::sendLRTelemetry()
     // in low rate telemetry
     sendTelemetry(MAV_LR_TM_ID);
 }
+
+void Radio::sendSDLogTelemetry() { sendTelemetry(MAV_LOGGER_TM_ID); }
 
 void Radio::sendAck(const mavlink_message_t& msg)
 {
@@ -245,6 +266,9 @@ void Radio::toggleHRTelemetry()
 
 bool Radio::start()
 {
+    // Init the radio module
+    init();
+
     // Start the mavlink driver
     bool result = mav_driver->start();
 
@@ -269,22 +293,33 @@ void Radio::init()
     // Create the lambdas to be called
     TaskScheduler::function_t HRfunction([=]() { sendHRTelemetry(); });
     TaskScheduler::function_t LRfunction([=]() { sendLRTelemetry(); });
+    TaskScheduler::function_t SDfunction([=]() { sendSDLogTelemetry(); });
 
-    // Set the HR telemetry TODO remove this TEST ONLY
-    HRtelemetry = true;
+    // Enable external interrupt on F10 pin
+    // TODO for xbee is FALLING
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
+
+    // Init the radio module with default configs
+    SX1278::Config conf;
+    SX1278::Error initError = module->init(conf);
+
+    // Check if there was an error initalizing the SX1278
+    if (initError != SX1278::Error::NONE)
+    {
+        LOG_ERR(logger, "Error starting the SX1278 radio");
+        return;
+    }
 
     // Register the LR and HR tasks in the scheduler
     scheduler->addTask(HRfunction, HR_GROUND_UPDATE_PERIOD, RADIO_HR_ID);
     scheduler->addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_LR_ID);
+    scheduler->addTask(SDfunction, SD_UPDATE_PERIOD, SD_UPDATE_ID);
 
     // Set the frame receive callback
-    // module -> setOnFrameReceivedListener(
+    // xbee -> setOnFrameReceivedListener(
     // bind(&Radio::onXbeeFrameReceived, this, _1));
 
     // Set the data rate
     // Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
-
-    // Enable external interrupt on F10 pin
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 }
 }  // namespace Parafoil

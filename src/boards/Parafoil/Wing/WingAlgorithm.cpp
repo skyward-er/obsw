@@ -54,6 +54,13 @@ bool WingAlgorithm::init()
 
     // Return if the size collected is greater than 0
     fileValid = steps.size() > 0;
+
+    // Communicate it via serial
+    if (fileValid)
+    {
+        LOG_INFO(logger, "File valid");
+    }
+
     return fileValid;
 }
 
@@ -63,26 +70,10 @@ void WingAlgorithm::setServo(ServoInterface* servo1, ServoInterface* servo2)
     {
         this->servo1 = servo1;
     }
-    else
-    {
-        // In this case i create a standard servo from the wing config file
-        servo1 =
-            new WingServo(WING_SERVO1_TIMER, WING_SERVO1_PWM_CHANNEL,
-                          WING_SERVO1_MIN_POSITION, WING_SERVO1_MAX_POSITION,
-                          WING_SERVO1_RESET_POSITION);
-    }
 
     if (servo2 != NULL)
     {
         this->servo2 = servo2;
-    }
-    else
-    {
-        // In this case i create a standard servo from the wing config file
-        servo2 =
-            new WingServo(WING_SERVO2_TIMER, WING_SERVO2_PWM_CHANNEL,
-                          WING_SERVO2_MIN_POSITION, WING_SERVO2_MAX_POSITION,
-                          WING_SERVO2_RESET_POSITION);
     }
 }
 
@@ -131,6 +122,7 @@ void WingAlgorithm::step()
 
     if (stepIndex >= steps.size())
     {
+        LOG_INFO(logger, "Algorithm end");
         // End the procedure so it won't be executed
         end();
         // Set the index to 0 in case of another future execution
@@ -141,7 +133,6 @@ void WingAlgorithm::step()
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
-        // TODO log the action
         // I need to execute the current step (if not null servos)
         if (servo1 != NULL)
         {
@@ -152,8 +143,19 @@ void WingAlgorithm::step()
             servo2->set(steps[stepIndex].servo2Angle);
         }
 
+        // Log the data setting the timestamp to the absolute one
+        WingAlgorithmData data;
+        data.timestamp   = TimestampTimer::getInstance().getTimestamp();
+        data.servo1Angle = steps[stepIndex].servo1Angle;
+        data.servo2Angle = steps[stepIndex].servo2Angle;
+
+        // After copy i can log the actual step
+        SDlogger->log(data);
+
         // finally increment the stepIndex
         stepIndex++;
+
+        LOG_INFO(logger, "Step");
     }
 }
 }  // namespace Parafoil

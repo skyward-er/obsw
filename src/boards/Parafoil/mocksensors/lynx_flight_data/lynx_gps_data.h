@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Luca Conterio, Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Authors: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,16 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Common.h>
 
-#include <cstdio>
-
-namespace Payload
-{
-
-// TODO: update with the correct values
-static const uint32_t HR_GROUND_UPDATE_PERIOD = 62;  // [ms]
-static const uint32_t HR_FLIGHT_UPDATE_PERIOD = 10;
-static const uint32_t LR_UPDATE_PERIOD        = 100;  // [ms]
-static const uint32_t SD_UPDATE_PERIOD        = 10000;
-
-// TODO: define the correct ids for task scheduler
-static const uint8_t RADIO_HR_ID  = 200;
-static const uint8_t RADIO_LR_ID  = 201;
-static const uint8_t SD_UPDATE_ID = 202;
-
-// Mavlink Driver queue settings
-static constexpr unsigned int MAV_OUT_QUEUE_LEN = 10;
-static constexpr unsigned int MAV_PKT_SIZE      = 63;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE  = 200;
-
-// These two values are taken as is
-static const unsigned int TMTC_MAV_SYSID  = 171;
-static const unsigned int TMTC_MAV_COMPID = 96;
-
-// Min guaranteed sleep time after each packet sent
-static const uint16_t SLEEP_AFTER_SEND = 0;  // [ms]
-
-}  // namespace Payload
+/**
+ * Ublox Neo-M9N GPS data from Lynx flight test in Roccaraso.
+ * Sampled at 25 Hz (40 ms period).
+ */
+static constexpr unsigned GPS_DATA_SIZE = 3230;
+extern const float GPS_DATA_LAT[GPS_DATA_SIZE];
+extern const float GPS_DATA_LON[GPS_DATA_SIZE];
+extern const float GPS_DATA_VNORD[GPS_DATA_SIZE];
+extern const float GPS_DATA_VEAST[GPS_DATA_SIZE];
+extern const float GPS_DATA_VDOWN[GPS_DATA_SIZE];
+extern const uint8_t GPS_DATA_NSATS[GPS_DATA_SIZE];

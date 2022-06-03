@@ -101,25 +101,30 @@ void Sensors::calibrate()
     correctedImuBMX160->calibrate();
     SDlogger->log(correctedImuBMX160->getGyroscopeBiases());
 
+    // TODO Decide calibration techinique
     // Mean some digital pressure samples to calibrate the analog sensors
-    float mean = 0;
-    for (unsigned int i = 0; i < STATIC_PRESS_CALIB_SAMPLES_NUM; i++)
-    {
-        Thread::sleep(PRESS_DIGITAL_SAMPLE_PERIOD);
-        mean += digitalPressure->getLastSample().pressure;
-    }
-    staticPortPressure->setReferencePressure(mean /
-                                             STATIC_PRESS_CALIB_SAMPLES_NUM);
-    staticPortPressure->calibrate();
+    // float mean = 0;
+    // for (unsigned int i = 0; i < STATIC_PRESS_CALIB_SAMPLES_NUM; i++)
+    // {
+    //     Thread::sleep(PRESS_DIGITAL_SAMPLE_PERIOD);
+    //     mean += digitalPressure->getLastSample().pressure;
+    // }
+    // staticPortPressure->setReferencePressure(mean /
+    //                                          STATIC_PRESS_CALIB_SAMPLES_NUM);
+    // staticPortPressure->calibrate();
 
-    // Wait for differential and static barometers calibration
-    // TODO check the OR expression, it used to be an AND (?)
-    while (pitotPressure->isCalibrating() ||
-           staticPortPressure->isCalibrating())
-    {
-        Thread::sleep(10);
-    }
+    // // Wait for differential and static barometers calibration
+    // // TODO check the OR expression, it used to be an AND (?)
+    // while (pitotPressure->isCalibrating() ||
+    //        staticPortPressure->isCalibrating())
+    // {
+    //     Thread::sleep(10);
+    // }
 }
+
+/**
+ * INITS
+ */
 
 void Sensors::internalAdcInit()
 {
@@ -208,8 +213,7 @@ void Sensors::pitotPressureInit()
         bind(&ADS1118::getVoltage, adcADS1118, ADC_CH_PITOT_PORT));
 
     // Setup the pitot sensor
-    pitotPressure = new SSCDRRN015PDA(readVoltage, REFERENCE_VOLTAGE,
-                                      PITOT_PRESS_CALIB_SAMPLES_NUM);
+    pitotPressure = new SSCDRRN015PDA(readVoltage, REFERENCE_VOLTAGE);
 
     // Create the sensor info
     SensorInfo info("PitotBarometer", PITOT_PRESS_SAMPLE_PERIOD,
@@ -244,9 +248,7 @@ void Sensors::staticPortPressureInit()
         bind(&ADS1118::getVoltage, adcADS1118, ADC_CH_STATIC_PORT));
 
     // Setup the static port sensor
-    staticPortPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE,
-                                        STATIC_PRESS_CALIB_SAMPLES_NUM,
-                                        STATIC_PRESS_MOVING_AVG_COEFF);
+    staticPortPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE);
 
     // Create the sensor info
     SensorInfo info("StaticPortsBarometer", STATIC_PRESS_SAMPLE_PERIOD,
@@ -361,7 +363,24 @@ void Sensors::magnetometerLIS3MDLInit()
                     bind(&Sensors::magnetometerLIS3MDLCallback, this));
     sensorsMap.emplace(make_pair(magnetometerLIS3MDL, info));
 
-    LOG_INFO(logger, "LIS3MDL Setup done!");
+    LOG_INFO(logger, "LIS3MDL setup done!");
 }
+
+void Sensors::gpsUbloxInit()
+{
+    // On STACK V2 it is connected via serial interface
+    gpsUblox = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, 2, "gps", 9600);
+
+    // Create the sensor info
+    SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
+                    bind(&Sensors::gpsUbloxCallback, this));
+    sensorsMap.emplace(make_pair(gpsUblox, info));
+
+    LOG_INFO(logger, "UbloxGPS setup done!");
+}
+
+/**
+ * CALLBACKS
+ */
 
 }  // namespace Payload

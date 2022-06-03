@@ -88,6 +88,10 @@ static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
 static constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
+static constexpr unsigned int GPS_BAUD_RATE     = 256000;
+static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
+static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
+
 /**
  * SAMPLE PERIODS
  */
@@ -127,6 +131,7 @@ static constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
     Boardcore::LIS3MDL::ODR_80_HZ;
 
 static constexpr unsigned int MAG_LIS_SAMPLE_PERIOD = 15;
+
 /**
  * TODO: ?
  */

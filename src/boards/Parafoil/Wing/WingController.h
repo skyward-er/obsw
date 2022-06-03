@@ -63,6 +63,12 @@ private:
     std::vector<WingAlgorithm*> algorithms;
 
     /**
+     * @brief PrintLogger
+     */
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("ParafoilTest");
+
+    /**
      * @brief The common task scheduler
      */
     Boardcore::TaskScheduler* scheduler;
@@ -132,6 +138,16 @@ public:
      * stops the selected algorithm
      */
     void stop();
+
+    /**
+     * @brief Stops any on going algorithm and flares the wing
+     */
+    void flare();
+
+    /**
+     * @brief Resets the servos in their initial position
+     */
+    void reset();
 
     /**
      * @brief Method that is called every time period

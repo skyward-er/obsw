@@ -21,10 +21,11 @@
  */
 #pragma once
 
+#include <Parafoil/mocksensors/MockPressureSensor.h>
 #include <sensors/BME280/BME280.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <sensors/SensorManager.h>
-#include <sensors/UbloxGPS/UbloxGPS.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
 
 /**
  * This class memorizes all the sensors instances.
@@ -64,6 +65,11 @@ private:
     Boardcore::Logger* logger;
 
     /**
+     * @brief boolean that indicates if the sensors need to calibrate
+     */
+    bool needsCalibration = false;
+
+    /**
      * @brief The MPU9250 IMU init function and
      * sample callback
      */
@@ -91,12 +97,16 @@ public:
     /**
      * @brief GPS
      */
-    Boardcore::UbloxGPS* gps_ublox;
+    Boardcore::UBXGPSSerial* gps_ublox;
 
-    /**
-     * @brief Barometer
-     */
+/**
+ * @brief Barometer
+ */
+#ifdef MOCK_SENSORS
+    MockPressureSensor* mockPressure;
+#else
     Boardcore::BME280* press_bme280;
+#endif
 
     /**
      * @brief Constructor

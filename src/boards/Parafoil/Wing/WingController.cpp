@@ -75,6 +75,7 @@ void WingController::selectAlgorithm(unsigned int index)
 {
     if (index >= 0 && index < algorithms.size())
     {
+        LOG_INFO(logger, "Algorithm {:1} selected", index);
         selectedAlgorithm = index;
     }
     else
@@ -96,8 +97,10 @@ void WingController::start()
         // Begin the selected algorithm
         algorithms[selectedAlgorithm]->begin();
 
-        // Also start the scheduler
+        // In case i start also the task scheduler
         scheduler->start();
+
+        LOG_INFO(logger, "Wing algorithm started");
     }
 }
 
@@ -110,6 +113,27 @@ void WingController::stop()
     {
         algorithms[selectedAlgorithm]->end();
     }
+}
+
+void WingController::flare()
+{
+    // I stop any on going algorithm
+    stop();
+
+    // Set the servo position to flare (pull the two ropes as skydiving people
+    // do)
+    servo1->set(120 - WING_SERVO1_RESET_POSITION);
+    servo2->set(120 - WING_SERVO2_RESET_POSITION);
+}
+
+void WingController::reset()
+{
+    // I stop any on going algorithm
+    stop();
+
+    // Set the servo position to reset
+    servo1->set(WING_SERVO1_RESET_POSITION);
+    servo2->set(WING_SERVO2_RESET_POSITION);
 }
 
 void WingController::update()

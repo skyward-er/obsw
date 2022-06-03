@@ -99,10 +99,21 @@ public:
     Boardcore::TaskScheduler* scheduler;
 
     /**
+     * @brief SDlogger singleton for SD
+     */
+    Boardcore::Logger* SDlogger;
+
+    /**
      * @brief Start method
      */
     void start()
     {
+        // Start the task scheduler
+        if (!scheduler->start())
+        {
+            LOG_ERR(log, "Error starting the main task scheduler");
+        }
+
         // Start the broker
         if (!broker->start())
         {
@@ -131,8 +142,15 @@ public:
             status.setError(&ParafoilTestStatus::radio);
         }
 
+        // wingController->start();
+
         // After all the initializations i log the status
         SDlogger->log(status);
+
+        // Status LED declaration
+        miosix::GpioPin statusLed(GPIOG_BASE, 13);
+        statusLed.mode(miosix::Mode::OUTPUT);
+        statusLed.low();
 
         // If all is ok i can send the signal to the FSMs
         if (status.parafoil_test != OK)
@@ -142,6 +160,7 @@ public:
         }
         else
         {
+            statusLed.high();
             LOG_INFO(log, "Initialization ok");
             // TODO add event to start the state machines
         }
@@ -174,11 +193,6 @@ private:
     Boardcore::PrintLogger log = Boardcore::Logging::getLogger("ParafoilTest");
 
     /**
-     * @brief SDlogger singleton for SD
-     */
-    Boardcore::Logger* SDlogger;
-
-    /**
      * @brief Status memory
      */
     ParafoilTestStatus status{};
@@ -195,7 +209,7 @@ private:
         startSDlogger();
 
         // Store the broker
-        broker = &Boardcore::EventBroker::getInstance();
+        broker = &sEventBroker;
 
         // Create the task scheduler
         scheduler = new Boardcore::TaskScheduler();
@@ -206,8 +220,12 @@ private:
         sensors = new Sensors(*spiInterface1, scheduler);
 
         // Create the wing controller
-        // wingController = new WingController(scheduler);
-
+        wingController = new WingController(scheduler);
+        wingController->addAlgorithm("/sd/servoTerni1.csv");
+        wingController->addAlgorithm("/sd/servoTerni2.csv");
+        wingController->addAlgorithm("/sd/servoCorta.csv");
+        wingController->addAlgorithm("/sd/servoLunga.csv");
+        wingController->selectAlgorithm(0);
         // Create the main FSM
         // FMM = new FMMController();
 

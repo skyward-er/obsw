@@ -23,8 +23,8 @@
 #pragma once
 
 #include <Parafoil/Wing/WingConfig.h>
-#include <actuators/Servo/Servo.h>
 #include <common/ServoInterface.h>
+#include <drivers/servo/Servo.h>
 
 namespace Parafoil
 {

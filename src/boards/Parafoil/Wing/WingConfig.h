@@ -22,6 +22,7 @@
 #pragma once
 
 #include <drivers/timer/PWM.h>
+#include <miosix.h>
 
 /**
  * @brief This class defines all the wing configs
@@ -32,33 +33,47 @@ namespace Parafoil
 /**
  * ALGORITHM CONFIGURATION
  */
-static const uint32_t WING_UPDATE_PERIOD = 10;   // milliseconds
+static const uint32_t WING_UPDATE_PERIOD = 100;  // milliseconds
 static const uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
+
+/**
+ * ALGORITHM START AND FLARE ARMING CONSTANTS
+ */
+static const float WING_ALGORITHM_ARM_ALTITUDE = 1600;  // meters
+static const float WING_ALGORITHM_START_ALTITUE =
+    WING_ALGORITHM_ARM_ALTITUDE - WING_ALGORITHM_ARM_ALTITUDE / 10;  // meters
+static const float WING_FLARE_ALTITUDE = 1275;                       // meters
+
+static float WING_CALIBRATION_PRESSURE    = 101325;  // Pa
+static float WING_CALIBRATION_TEMPERATURE = 300;     // Kelvin
+static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
 /**
  * SERVOS CONFIGURATIONS
  */
+static miosix::GpioPin SERVO1PIN(GPIOB_BASE, 7);
+static miosix::GpioPin SERVO2PIN(GPIOF_BASE, 6);
 
 // 16 bit, 45MHz, no DMA timer
-static TIM_TypeDef* WING_SERVO1_TIMER = TIM13;
-static TIM_TypeDef* WING_SERVO2_TIMER = TIM14;
+static TIM_TypeDef* WING_SERVO1_TIMER = TIM4;
+static TIM_TypeDef* WING_SERVO2_TIMER = TIM10;
 
 static const Boardcore::TimerUtils::Channel WING_SERVO1_PWM_CHANNEL =
-    Boardcore::TimerUtils::Channel::CHANNEL_1;
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 static const Boardcore::TimerUtils::Channel WING_SERVO2_PWM_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 // Servo dipendent variables
-static const unsigned int WING_SERVO_MIN_PULSE = 1000;
-static const unsigned int WING_SERVO_MAX_PULSE = 2500;
+static const unsigned int WING_SERVO_MIN_PULSE = 900;
+static const unsigned int WING_SERVO_MAX_PULSE = 2100;
 static const unsigned int WING_SERVO_FREQUENCY = 50;
 
-static const float WING_SERVO1_MAX_POSITION = 180;  // degrees
-static const float WING_SERVO2_MAX_POSITION = 180;  // degrees
+static const float WING_SERVO1_MAX_POSITION = 120;  // degrees
+static const float WING_SERVO2_MAX_POSITION = 120;  // degrees
 
 static const float WING_SERVO1_MIN_POSITION = 0;  // degrees
 static const float WING_SERVO2_MIN_POSITION = 0;  // degrees
 
-static const float WING_SERVO1_RESET_POSITION = 90;  // degrees
-static const float WING_SERVO2_RESET_POSITION = 90;  // degrees
+static const float WING_SERVO1_RESET_POSITION = 0;    // degrees
+static const float WING_SERVO2_RESET_POSITION = 120;  // degrees
 }  // namespace Parafoil

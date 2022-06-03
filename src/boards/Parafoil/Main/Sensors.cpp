@@ -23,8 +23,12 @@
 #include "Sensors.h"
 
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
+#include <Parafoil/Wing/WingConfig.h>
+#include <math.h>
 #include <sensors/SensorInfo.h>
+#include <utils/aero/AeroUtils.h>
 
 using std::bind;
 using namespace Boardcore;
@@ -37,11 +41,12 @@ void Sensors::MPU9250init()
     SPIBusConfig spiConfig{};
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
     spiConfig.mode         = SPI::Mode::MODE_3;
+    // I create first a new SPISlave with all the settings
+    SPISlave slave{spiInterface, IMU_CS, spiConfig};
 
     // Instantiate the object
-    imu_mpu9250 =
-        new MPU9250(spiInterface, IMU_CS, spiConfig, IMU_SAMPLE_RATE,
-                    IMU_GYRO_SCALE, IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
+    imu_mpu9250 = new MPU9250(slave, IMU_SAMPLE_RATE, IMU_GYRO_SCALE,
+                              IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
 
     // Bind the information
     SensorInfo info("MPU9250", IMU_SAMPLE_PERIOD,
@@ -69,10 +74,7 @@ void Sensors::MPU9250Callback()
 void Sensors::UbloxGPSinit()
 {
     // Instantiate the object TODO set the sample rate and stuff
-    gps_ublox = new UbloxGPS(38400, GPS_SAMPLE_RATE, 2, "gps", 38400);
-
-    // Starting GPS thread
-    gps_ublox->start();
+    gps_ublox = new UBXGPSSerial(921600, GPS_SAMPLE_RATE, 2, "gps", 9600);
 
     // Bind the information with the callback method
     SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,
@@ -88,7 +90,7 @@ void Sensors::UbloxGPSinit()
 void Sensors::UbloxGPSCallback()
 {
     // Log the sample
-    UbloxGPSData d = gps_ublox->getLastSample();
+    UBXGPSData d = gps_ublox->getLastSample();
     logger->log(gps_ublox->getLastSample());
     if (d.fix)
     {
@@ -105,10 +107,24 @@ void Sensors::BME280init()
     SPISlave slave(spiInterface, PRESS_CS, SPIBusConfig{});
 
     slave.config.clockDivider = SPI::ClockDivider::DIV_16;
+    slave.config.mode         = SPI::Mode::MODE_0;
 
     auto config                      = BME280::BME280_CONFIG_ALL_ENABLED;
     config.bits.oversamplingPressure = BME280::OVERSAMPLING_4;
 
+#ifdef MOCK_SENSORS
+    // Instantiate the mock sensor
+    mockPressure = new MockPressureSensor();
+
+    // start the sensor
+    mockPressure->signalLiftoff();
+
+    // Bind the information with the callback method
+    SensorInfo info("BME280", PRESS_SAMPLE_PERIOD,
+                    bind(&Sensors::BME280Callback, this), true);
+    // Insert the sensor in the common map
+    sensors_map.emplace(std::make_pair(mockPressure, info));
+#else
     // Instantiate the object
     press_bme280 = new BME280(slave, config);
 
@@ -120,6 +136,7 @@ void Sensors::BME280init()
                     bind(&Sensors::BME280Callback, this), true);
     // Insert the sensor in the common map
     sensors_map.emplace(std::make_pair(press_bme280, info));
+#endif
 
     // Log the result
     LOG_INFO(log, "BME280 Setup done!");
@@ -128,13 +145,95 @@ void Sensors::BME280init()
 void Sensors::BME280Callback()
 {
     // Log the sample
+
+#ifdef MOCK_SENSORS
+    // Create the d data but with the mock informations
+    BME280Data d;
+    d.pressure          = mockPressure->getLastSample().pressure;
+    d.pressureTimestamp = 25;
+#else
     BME280Data d = press_bme280->getLastSample();
     logger->log(press_bme280->getLastSample());
+#endif
     LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.pressure, d.temperature,
               d.humidity);
 
-    // Update the radio repository
-    TMRepository::getInstance().update(d);
+    // Here i put the logic for wing procedure start and flare
+    static bool procedureArm = false;
+    static bool flareArm     = false;
+    static uint8_t count     = 0;
+    static Boardcore::Stats pressureMean{};
+    static Boardcore::Stats temperatureMean{};
+
+    // If we reache the needed samples
+    if (count == WING_PRESSURE_MEAN_COUNT)
+    {
+        // In case of calibration needed i calibrate
+        if (needsCalibration)
+        {
+            WING_CALIBRATION_PRESSURE = pressureMean.getStats().mean;
+            WING_CALIBRATION_TEMPERATURE =
+                temperatureMean.getStats().mean + 273.15;
+
+            // Reset the mean values
+            count = 0;
+            pressureMean.reset();
+            temperatureMean.reset();
+
+            // Set calibrated status
+            needsCalibration = false;
+
+            // I don't want to calculate stuff
+            return;
+        }
+
+        // Calculate the height
+        float height = aeroutils::relAltitude(pressureMean.getStats().mean,
+                                              WING_CALIBRATION_PRESSURE,
+                                              WING_CALIBRATION_TEMPERATURE);
+
+        // Update the radio repository
+        d.pressure    = pressureMean.getStats().mean;
+        d.temperature = temperatureMean.getStats().mean;
+        TMRepository::getInstance().update(d);
+
+        // Decide what the wing should do
+        if (height > WING_ALGORITHM_ARM_ALTITUDE && !procedureArm)
+        {
+            procedureArm = true;
+        }
+
+        if (height < WING_ALGORITHM_START_ALTITUE && procedureArm)
+        {
+            // Disarm the starting command
+            procedureArm = false;
+
+            // Arm the flare command
+            flareArm = true;
+
+            // Start the algorithm
+            ParafoilTest::getInstance().wingController->start();
+        }
+
+        if (height < WING_FLARE_ALTITUDE && flareArm)
+        {
+            // Disarm the starting command
+            flareArm = false;
+
+            // Flare
+            ParafoilTest::getInstance().wingController->flare();
+        }
+
+        // Reset the mean values
+        count = 0;
+        pressureMean.reset();
+        temperatureMean.reset();
+    }
+
+    // Add the current value to the mean and increase the counting
+    pressureMean.add(d.pressure);
+    temperatureMean.add(d.temperature);
+    count++;
 }
 
 Sensors::Sensors(SPIBusInterface& spi, TaskScheduler* scheduler)
@@ -145,8 +244,11 @@ Sensors::Sensors(SPIBusInterface& spi, TaskScheduler* scheduler)
 
     // Sensor init
     MPU9250init();
+    miosix::Thread::sleep(200);
     UbloxGPSinit();
+    miosix::Thread::sleep(200);
     BME280init();
+    miosix::Thread::sleep(200);
 
     // Sensor manager instance
     // At this point sensors_map contains all the initialized sensors
@@ -160,7 +262,11 @@ Sensors::~Sensors()
     // Delete the sensors
     delete (imu_mpu9250);
     delete (gps_ublox);
+#ifdef MOCK_SENSORS
+    delete (mockPressure);
+#else
     delete (press_bme280);
+#endif
 
     // Sensor manager stop and delete
     manager->stop();
@@ -169,6 +275,10 @@ Sensors::~Sensors()
 
 bool Sensors::start() { return manager->start(); }
 
-void Sensors::calibrate() {}
+void Sensors::calibrate()
+{
+    miosix::PauseKernelLock kLock;
+    this->needsCalibration = true;
+}
 
 }  // namespace Parafoil

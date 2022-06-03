@@ -31,7 +31,6 @@
 
 #include <sensors/BME280/BME280.h>
 #include <sensors/MPU9250/MPU9250.h>
-#include <sensors/UbloxGPS/UbloxGPS.h>
 
 namespace Parafoil
 {
@@ -43,9 +42,9 @@ static miosix::GpioPin MOSI(GPIOA_BASE, 7);
 
 // GPS settings
 // static miosix::GpioPin GPS_CS(GPIOG_BASE, 3);
-static miosix::GpioPin GPS_TX(GPIOA_BASE, 2);
+static miosix::GpioPin GPS_TX(GPIOD_BASE, 5);
 static miosix::GpioPin GPS_RX(GPIOA_BASE, 3);
-static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
+static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 
 // IMU MPU9250 settings

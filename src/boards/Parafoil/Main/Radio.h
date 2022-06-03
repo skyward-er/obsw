@@ -91,6 +91,12 @@ public:
     void sendLRTelemetry();
 
     /**
+     * @brief Method automatically called by the task
+     * scheduler that sends the SD logger infos
+     */
+    void sendSDLogTelemetry();
+
+    /**
      * @brief Every time a message is received we send
      * an ack message to tell the ground station that we
      * received the message

@@ -25,7 +25,6 @@
 #include <Singleton.h>
 #include <sensors/BME280/BME280Data.h>
 #include <sensors/MPU9250/MPU9250Data.h>
-#include <sensors/UbloxGPS/UbloxGPSData.h>
 
 /**
  * @brief This class represents the collection of data that can
@@ -62,7 +61,7 @@ public:
      * @brief Update functions
      */
     void update(Boardcore::MPU9250Data data);
-    void update(Boardcore::UbloxGPSData data);
+    void update(Boardcore::UBXGPSData data);
     void update(Boardcore::BME280Data data);
 
 private:

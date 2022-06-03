@@ -22,8 +22,11 @@
 
 #pragma once
 
+#include <Parafoil/Wing/WingAlgorithmData.h>
 #include <Parafoil/Wing/WingServo.h>
 #include <common/Algorithm.h>
+#include <diagnostic/PrintLogger.h>
+#include <miosix.h>
 #include <utils/CSVReader/CSVReader.h>
 
 /**
@@ -59,12 +62,6 @@
 
 namespace Parafoil
 {
-struct WingAlgorithmData
-{
-    uint64_t timestamp;  // First timestamp is 0 (in microseconds)
-    float servo1Angle;   // degrees
-    float servo2Angle;   // degrees
-};
 
 class WingAlgorithm : public Algorithm
 {
@@ -123,13 +120,36 @@ protected:
     // Actuators
     ServoInterface* servo1;
     ServoInterface* servo2;
-    // Offset timestamp
+
+    /**
+     * @brief Absolute starting timestamp
+     */
     uint64_t timeStart;
-    // Procedure
+
+    /**
+     * @brief Procedure array to memorize all the steps needed to perform the
+     * algorithm
+     */
     std::vector<WingAlgorithmData> steps;
-    // File parser
+
+    /**
+     * @brief CSV format file parser
+     */
     Boardcore::CSVParser<WingAlgorithmData> parser;
+
+    // PrintLogger
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("WingAlgorithm");
+    /**
+     * @brief SD logger (pre started because of the ParafoilTest.h main class)
+     */
+    Boardcore::Logger* SDlogger = &Boardcore::Logger::getInstance();
+
+    /**
+     * @brief Indicates whether the current file of the algorithm is readable
+     */
     bool fileValid = false;
+
     // This boolean is used to understand when to reset
     // the index where the algorithm has stopped.
     // In case of end call, we want to be able to perform

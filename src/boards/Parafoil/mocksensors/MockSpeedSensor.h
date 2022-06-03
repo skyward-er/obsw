@@ -22,23 +22,54 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Common.h>
+#include <mocksensors/MockSensorsData.h>
+#include <mocksensors/lynx_flight_data/lynx_airspeed_data.h>
+#include <sensors/Sensor.h>
+#include <random>
 
-#include <cstdio>
-
-namespace Parafoil
+namespace DeathStackBoard
 {
 
-// Mavlink Driver queue settings
-static constexpr unsigned int MAV_OUT_QUEUE_LEN = 10;
-static constexpr unsigned int MAV_PKT_SIZE      = 63;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE  = 200;
+class MockSpeedSensor : public Sensor<MockSpeedData>
+{
+public:
+    MockSpeedSensor() {}
 
-// These two values are taken as is
-static const unsigned int TMTC_MAV_SYSID  = 171;
-static const unsigned int TMTC_MAV_COMPID = 96;
+    bool init() override { return true; }
 
-// Min guaranteed sleep time after each packet sent
-static const uint16_t SLEEP_AFTER_SEND = 0;  // [ms]
+    bool selfTest() override { return true; }
 
-}  // namespace Parafoil
+    MockSpeedData sampleImpl() override
+    {
+        MockSpeedData data;
+
+        data.timestamp = TimestampTimer::getTimestamp();
+
+        if (before_liftoff)
+        {
+            data.speed = AIRSPEED_DATA[0];
+        }
+        else
+        {
+            if (i < AIRSPEED_DATA_SIZE)
+            {
+                data.speed = AIRSPEED_DATA[i++];
+            }
+            else
+            {
+                data.speed = AIRSPEED_DATA[AIRSPEED_DATA_SIZE - 1];
+            }
+        }
+
+        return data;
+    }
+
+    void signalLiftoff() { before_liftoff = false; }
+
+private:
+    volatile bool before_liftoff = true;
+    volatile unsigned int i      = 0;  // Last index
+};
+
+}  // namespace DeathStackBoard
