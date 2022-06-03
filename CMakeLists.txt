@@ -79,3 +79,11 @@ sbs_target(test-bmx stm32f429zi_skyward_death_stack_x)
 
 # add_executable(parafoil-test-ublox-uart src/tests/Parafoil/parafoil-test-ublox-uart.cpp)
 # sbs_target(parafoil-test-ublox-uart stm32f429zi_stm32f4discovery)
+
+#-----------------------------------------------------------------------------#
+#                                 Wind gallery                                #
+#-----------------------------------------------------------------------------#
+
+add_executable(test-flight-tm src/tests/WindGallery/test-flight-tm.cpp)
+target_include_directories(test-flight-tm PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-flight-tm stm32f429zi_stm32f4discovery)
