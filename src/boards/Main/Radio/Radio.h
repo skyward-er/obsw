@@ -24,7 +24,7 @@
 
 #include <Main/Configs/RadioConfigs.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SerialTransceiver/SerialTransceiver.h>
+#include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
 
 #include "Mavlink.h"
@@ -41,6 +41,9 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
+    Boardcore::Xbee::Xbee* xbee;
+    MavDriver* mavDriver;
+
     /**
      * @brief Called by the MavlinkDriver when a message is received.
      */
@@ -87,9 +90,6 @@ public:
 
 private:
     Radio();
-
-    Boardcore::Transceiver* transceiver;
-    MavDriver* mavDriver;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

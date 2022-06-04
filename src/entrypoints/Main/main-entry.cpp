@@ -65,6 +65,6 @@ int main()
     {
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::averageCpuUtilization());
-        Logger::getInstance().log(Logger::getInstance().getLoggerStats());
+        Logger::getInstance().log(Logger::getInstance().getStats());
     }
 }

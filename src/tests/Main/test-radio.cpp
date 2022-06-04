@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <miosix.h>
@@ -31,9 +32,10 @@ using namespace Main;
 
 void print()
 {
-    auto sample = Sensors::getInstance().lis3mdl->getLastSample();
-    printf("[%.2f] %f %f %f\n", sample.magneticFieldTimestamp / 1e6,
-           sample.magneticFieldX, sample.magneticFieldY, sample.magneticFieldZ);
+    auto status = Radio::getInstance().mavDriver->getStatus();
+
+    printf("[%.2f] %d\n", status.timestamp / 1e6,
+           status.mavStats.packet_rx_success_count);
 }
 
 int main()
@@ -46,6 +48,9 @@ int main()
 
     // Start the radio
     Radio::getInstance().start();
+
+    // Start the board task scheduler
+    BoardScheduler::getInstance().getScheduler().start();
 
     TaskScheduler scheduler;
     scheduler.addTask(print, 1000);

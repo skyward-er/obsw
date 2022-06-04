@@ -27,32 +27,26 @@
 #include <Main/Buses.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <Main/events/Events.h>
+#include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 
 #include <functional>
 
 using namespace std;
+using namespace miosix;
 using namespace placeholders;
 using namespace Boardcore;
 using namespace Main::RadioConfigs;
 
+// Xbee ATTN interrupt
+void __attribute__((used)) EXTI10_IRQHandlerImpl()
+{
+    if (Main::Radio::getInstance().xbee != nullptr)
+        Main::Radio::getInstance().xbee->handleATTNInterrupt();
+}
+
 namespace Main
 {
-
-Radio::Radio()
-{
-    transceiver = new SerialTransceiver(Buses::getInstance().uart4);
-    mavDriver   = new MavDriver(transceiver,
-                                bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                                0, MAV_OUT_BUFFER_MAX_AGE);
-
-    // Add to the scheduler the flight and statistics telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD, FLIGHT_TM_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
-        FLIGHT_STATS_TM_ID);
-}
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
@@ -362,6 +356,28 @@ bool Radio::sendSensorsTm(const SensorsTMList tmId)
         mavDriver->enqueueMsg(TMRepository::getInstance().packSensorsTm(tmId));
     logStatus();
     return result;
+}
+
+Radio::Radio()
+{
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    xbee = new Xbee::Xbee(Buses::getInstance().spi2, config, xbee::cs::getPin(),
+                          xbee::attn::getPin(), xbee::reset::getPin());
+
+    mavDriver =
+        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
+                      MAV_OUT_BUFFER_MAX_AGE);
+
+    // Add to the scheduler the flight and statistics telemetries
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD, FLIGHT_TM_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
+        FLIGHT_STATS_TM_ID);
+
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 }
 
 }  // namespace Main

@@ -135,8 +135,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.nas_bias0       = 0;
             tm.nas_bias1       = 0;
             tm.nas_bias2       = 0;
-            tm.logger_error =
-                Logger::getInstance().getLoggerStats().lastWriteError;
+            tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             mavlink_msg_rocket_flight_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
                                                 RadioConfigs::MAV_COMPONENT_ID,

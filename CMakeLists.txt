@@ -48,7 +48,7 @@ add_executable(catch-tests-main
     src/tests/Main/catch/test-deployment.cpp
     src/tests/Main/catch/test-fsr.cpp
     src/tests/Main/catch/test-nas.cpp
-    ${MAIN_COMPUTER}
+    ${MAIN_COMPUTER_CATCH}
 )
 target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)
