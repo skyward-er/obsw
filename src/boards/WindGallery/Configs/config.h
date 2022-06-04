@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio
+ * Author: Arturo Benedetti
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,45 +22,6 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
-#include <sensors/ADS1118/ADS1118.h>
-#include <sensors/SensorManager.h>
-#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
-#include <utils/AeroUtils/AeroUtils.h>
-
-namespace WindGallery
-{
-
-class Sensors : public Boardcore::Singleton<Sensors>
-{
-    friend Boardcore::Singleton<Sensors>;
-
-public:
-    Boardcore::ADS1118 *ads1118             = nullptr;
-    Boardcore::SSCDRRN015PDA *pitotPressure = nullptr;
-
-    struct AirSpeedPitot
-    {
-        uint64_t timestamp;
-        float airspeed;
-    };
-    
-    AirSpeedPitot aSpeedData;
-
-    bool start();
-
-private:
-    Sensors();
-
-    void ads1118Init();
-
-    void pitotPressureInit();
-    void pitotPressureCallback();
-
-    Boardcore::SensorManager *sensorManager = nullptr;
-    Boardcore::SensorManager::SensorMap_t sensorsMap;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
-};
-
-}  // namespace WindGallery
+static const float DEFAULT_REFERENCE_ALTITUDE = 1420.0f;
+static const float DEFAULT_REFERENCE_PRESSURE = 85389.4f;
+static const float DEFAULT_REFERENCE_TEMPERATURE = 288.15f;

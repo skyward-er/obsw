@@ -24,6 +24,8 @@
 
 #include <WindGallery/Buses.h>
 #include <WindGallery/Configs/SensorsConfig.h>
+#include <WindGallery/Configs/config.h>
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace std;
 using namespace Boardcore;
@@ -84,8 +86,24 @@ void Sensors::pitotPressureInit()
 
 void Sensors::pitotPressureCallback()
 {
-    SSCDRRN015PDAData pressure = pitotPressure->getLastSample();
-    Logger::getInstance().log(pressure);
+    SSCDRRN015PDAData pressureData = pitotPressure->getLastSample();
+    Logger::getInstance().log(pressureData);
+
+    // in the reference code used, the first pressure parameter was misured by a
+    // different digital pressure sensor (MS5803). Here I used the value that
+    // has just been sampled
+    float rel_density = Aeroutils::relDensity(
+        pressureData.pressure, DEFAULT_REFERENCE_PRESSURE,
+        DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_TEMPERATURE);
+
+    if (rel_density != 0.0f)
+    {
+        float airspeed = sqrtf(2 * fabs(pressureData.pressure) / rel_density);
+
+        aSpeedData = AirSpeedPitot{TimestampTimer::getTimestamp(), airspeed};
+
+        Logger::getInstance().log(aSpeedData);
+    }
 }
 
 }  // namespace WindGallery
