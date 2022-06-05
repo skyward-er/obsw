@@ -32,7 +32,7 @@ struct PitotData
     uint64_t timestamp;
     float airspeed;
 
-    static std::string header() { return "timestamp,airspeed"; }
+    static std::string header() { return "timestamp,airspeed\n"; }
 
     void print(std::ostream& os) const
     {
