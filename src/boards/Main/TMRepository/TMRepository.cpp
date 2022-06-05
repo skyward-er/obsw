@@ -23,7 +23,9 @@
 #include "TMRepository.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NavigationAttitudeSystem/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -60,14 +62,50 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
         }
         case SystemTMList::MAV_LOGGER_ID:
         {
+            mavlink_logger_tm_t tm;
+
+            auto stats = Logger::getInstance().getStats();
+
+            tm.timestamp          = stats.timestamp;
+            tm.log_number         = stats.logNumber;
+            tm.too_large_samples  = stats.tooLargeSamples;
+            tm.sdropped_samples   = stats.droppedSamples;
+            tm.queued_samples     = stats.queuedSamples;
+            tm.filled_buffers     = stats.buffersFilled;
+            tm.written_buffers    = stats.buffersWritten;
+            tm.failed_writes      = stats.writesFailed;
+            tm.error_writes       = stats.writesFailed;
+            tm.average_write_time = stats.averageWriteTime;
+            tm.max_write_time     = stats.maxWriteTime;
+
+            mavlink_msg_logger_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
+                                         RadioConfigs::MAV_COMPONENT_ID, &msg,
+                                         &tm);
             break;
         }
         case SystemTMList::MAV_MAVLINK_STATS:
         {
-            break;
-        }
-        case SystemTMList::MAV_TASK_STATS_ID:
-        {
+            mavlink_mavlink_stats_tm_t tm;
+
+            auto stats = Radio::getInstance().getMavlinkStatus();
+
+            tm.timestamp               = stats.timestamp;
+            tm.n_send_queue            = stats.nSendQueue;
+            tm.max_send_queue          = stats.maxSendQueue;
+            tm.n_send_errors           = stats.nSendErrors;
+            tm.msg_received            = stats.mavStats.msg_received;
+            tm.buffer_overrun          = stats.mavStats.buffer_overrun;
+            tm.parse_error             = stats.mavStats.parse_error;
+            tm.parse_state             = stats.mavStats.parse_state;
+            tm.packet_idx              = stats.mavStats.packet_idx;
+            tm.current_rx_seq          = stats.mavStats.current_rx_seq;
+            tm.current_tx_seq          = stats.mavStats.current_tx_seq;
+            tm.packet_rx_success_count = stats.mavStats.packet_rx_success_count;
+            tm.packet_rx_drop_count    = stats.mavStats.packet_rx_drop_count;
+
+            mavlink_msg_mavlink_stats_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
+                                                RadioConfigs::MAV_COMPONENT_ID,
+                                                &msg, &tm);
             break;
         }
         case SystemTMList::MAV_DPL_ID:
