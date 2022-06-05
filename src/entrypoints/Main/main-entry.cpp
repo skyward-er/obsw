@@ -20,23 +20,51 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
+#include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/NavigationAttitudeSystem/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
+#include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
 
+void print()
+{
+    auto state = NASController::getInstance().getNasState();
+
+    printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
+}
+
 int main()
 {
-    Logger::getInstance().start();
+    // Initialize the servo outputs
+    (void)Actuators::getInstance();
+
+    // Start the sensors sampling
     Sensors::getInstance().start();
 
+    // Start the radio
+    Radio::getInstance().start();
+
+    // Start the state machines
+    NASController::getInstance().start();
+
+    // DEBUG PRINT
+    BoardScheduler::getInstance().getScheduler().addTask(print, 20);
+
+    // Start the board task scheduler
+    BoardScheduler::getInstance().getScheduler().start();
+
+    // Periodically log CPU and Logger statistics
     while (true)
     {
-        printf("Average CPU usage: %.1f%%\n",
-               CpuMeter::averageCpuUtilization().mean);
-        Thread::sleep(500);
+        Thread::sleep(1000);
+        Logger::getInstance().log(CpuMeter::averageCpuUtilization());
+        Logger::getInstance().log(Logger::getInstance().getStats());
     }
 }

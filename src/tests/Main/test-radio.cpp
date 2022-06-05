@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <miosix.h>
@@ -28,13 +29,6 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
-
-void print()
-{
-    auto sample = Sensors::getInstance().lis3mdl->getLastSample();
-    printf("[%.2f] %f %f %f\n", sample.magneticFieldTimestamp / 1e6,
-           sample.magneticFieldX, sample.magneticFieldY, sample.magneticFieldZ);
-}
 
 int main()
 {
@@ -47,9 +41,8 @@ int main()
     // Start the radio
     Radio::getInstance().start();
 
-    TaskScheduler scheduler;
-    scheduler.addTask(print, 1000);
-    scheduler.start();
+    // Start the board task scheduler
+    BoardScheduler::getInstance().getScheduler().start();
 
     while (true)
         Thread::sleep(1000);

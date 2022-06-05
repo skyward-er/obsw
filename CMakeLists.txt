@@ -34,6 +34,14 @@ target_include_directories(wind-gallery-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(wind-gallery-entry stm32f429zi_skyward_death_stack_x)
 
 #-----------------------------------------------------------------------------#
+#                              Flight entrypoints                             #
+#-----------------------------------------------------------------------------#
+
+add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-entry stm32f429zi_skyward_death_stack_x)
+
+#-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#
 
@@ -44,7 +52,7 @@ add_executable(catch-tests-main
     src/tests/Main/catch/test-deployment.cpp
     src/tests/Main/catch/test-fsr.cpp
     src/tests/Main/catch/test-nas.cpp
-    ${MAIN_COMPUTER}
+    ${MAIN_COMPUTER_CATCH}
 )
 target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)

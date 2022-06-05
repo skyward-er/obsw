@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <Singleton.h>
+#include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -30,11 +32,17 @@
 namespace Main
 {
 
-class NASController : public Boardcore::FSM<NASController>
+class NASController : public Boardcore::FSM<NASController>,
+                      public Boardcore::Singleton<NASController>
 {
+    friend Boardcore::Singleton<NASController>;
+
 public:
-    NASController();
-    ~NASController();
+    bool start() override;
+
+    void update();
+
+    Boardcore::NASState getNasState();
 
     void state_idle(const Boardcore::Event& ev);
     void state_calibrating(const Boardcore::Event& ev);
@@ -43,9 +51,12 @@ public:
     void state_end(const Boardcore::Event& ev);
 
 private:
+    NASController();
+    ~NASController();
+
     NASControllerStatus status;
 
-    void calibrate();
+    Boardcore::NAS nas;
 
     void logStatus(NASControllerState state);
 

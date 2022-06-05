@@ -85,7 +85,7 @@ int main()
     for (;;)
     {
         Thread::sleep(1000);
-        logger_service->log(logger_service->getLoggerStats());
+        logger_service->log(logger_service->getStats());
 
         StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 

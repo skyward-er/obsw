@@ -22,40 +22,39 @@
 
 #pragma once
 
-#include <Main/Radio/Mavlink.h>
-
-#include <cstdio>
+#include <algorithms/NAS/NASConfig.h>
 
 namespace Main
 {
 
-namespace RadioConfigs
+namespace NASConfigs
 {
 
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+static constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 
-// Mavlink driver parameters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
+// Magnetic field in Milan
+Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
 
-// Mavlink ids
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
+static const Boardcore::NASConfig config = {
+    1.0f / UPDATE_PERIOD,  // T
+    0.0001f,               // SIGMA_BETA
+    0.3f,                  // SIGMA_W
+    0.1f,                  // SIGMA_MAG
+    10.0f,                 // SIGMA_GPS
+    4.3f,                  // SIGMA_BAR
+    10.0f,                 // SIGMA_POS
+    10.0f,                 // SIGMA_VEL
+    10.0f,                 // SIGMA_PITOT
+    1.0f,                  // P_POS
+    10.0f,                 // P_POS_VERTICAL
+    1.0f,                  // P_VEL
+    10.0f,                 // P_VEL_VERTICAL
+    0.01f,                 // P_ATT
+    0.01f,                 // P_BIAS
+    6.0f,                  // SATS_NUM
+    nedMag                 // NED_MAG
+};
 
-// XBee parameters
-constexpr bool XBEE_80KBPS_DATA_RATE = true;
-constexpr int XBEE_TIMEOUT           = 5000;  // [ms]
-
-// Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 2000;  // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 250;   // [ms]
-
-// Periodic telemetries tasks ids
-constexpr uint8_t FLIGHT_TM_ID       = 200;
-constexpr uint8_t FLIGHT_STATS_TM_ID = 201;
-
-}  // namespace RadioConfigs
+}  // namespace NASConfigs
 
 }  // namespace Main

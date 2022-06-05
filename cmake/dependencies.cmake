@@ -35,6 +35,16 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/FlightStatsRecorder/FSRController.cpp
 )
 
+set(MAIN_COMPUTER_CATCH
+    src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Sensors/Sensors.cpp
+    src/boards/Main/StateMachines/AirBrakes/AirBrakesController.cpp
+    src/boards/Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
+    src/boards/Main/StateMachines/Deployment/DeploymentController.cpp
+    src/boards/Main/StateMachines/NavigationAttitudeSystem/NASController.cpp
+    src/boards/Main/StateMachines/FlightStatsRecorder/FSRController.cpp
+)
+
 set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Main/Sensors.cpp
     src/boards/Parafoil/Main/Radio.cpp
