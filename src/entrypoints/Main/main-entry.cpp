@@ -55,7 +55,7 @@ int main()
     NASController::getInstance().start();
 
     // DEBUG PRINT
-    BoardScheduler::getInstance().getScheduler().addTask(print, 20);
+    // BoardScheduler::getInstance().getScheduler().addTask(print, 20);
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
@@ -64,7 +64,8 @@ int main()
     while (true)
     {
         Thread::sleep(1000);
-        Logger::getInstance().log(CpuMeter::averageCpuUtilization());
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
         Logger::getInstance().log(Logger::getInstance().getStats());
     }
 }

@@ -35,8 +35,7 @@ int main()
 
     while (true)
     {
-        printf("Average CPU usage: %.1f%%\n",
-               CpuMeter::averageCpuUtilization().mean);
+        printf("Average CPU usage: %.1f%%\n", CpuMeter::getCpuStats().mean);
         Thread::sleep(500);
     }
 }

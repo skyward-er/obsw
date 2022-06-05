@@ -30,9 +30,10 @@ using namespace WindGallery;
 void print()
 {
     auto pressureSample = Sensors::getInstance().pitotPressure->getLastSample();
-    auto airSpeedData = Sensors::getInstance().aSpeedData;
+    auto airSpeedData   = Sensors::getInstance().aSpeedData;
 
-    printf("[%.2f] %f\n", pressureSample.pressureTimestamp / 1e6, pressureSample.pressure);
+    printf("[%.2f] %f\n", pressureSample.pressureTimestamp / 1e6,
+           pressureSample.pressure);
     printf("[%.2f] %f\n", airSpeedData.timestamp / 1e6, airSpeedData.airspeed);
 }
 
