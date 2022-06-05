@@ -30,14 +30,6 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
 
-void print()
-{
-    auto status = Radio::getInstance().mavDriver->getStatus();
-
-    printf("[%.2f] %d\n", status.timestamp / 1e6,
-           status.mavStats.packet_rx_success_count);
-}
-
 int main()
 {
     // Initialize the servo outputs
@@ -51,10 +43,6 @@ int main()
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
-
-    TaskScheduler scheduler;
-    scheduler.addTask(print, 1000);
-    scheduler.start();
 
     while (true)
         Thread::sleep(1000);
