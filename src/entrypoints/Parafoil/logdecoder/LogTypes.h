@@ -94,7 +94,7 @@ void registerTypes(Deserializer& ds)
     registerType<BMX160Data>(ds);
     registerType<BMX160WithCorrectionData>(ds);
     registerType<BMX160GyroscopeCalibrationBiases>(ds);
-    registerType<BMX160Temperature>(ds);
+    registerType<BMX160TemperatureData>(ds);
     registerType<BMX160FifoStats>(ds);
     registerType<MS5803Data>(ds);
     registerType<MPXHZ6130AData>(ds);
