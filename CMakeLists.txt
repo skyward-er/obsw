@@ -29,10 +29,6 @@ include(skyward-boardcore/cmake/sbs.cmake)
 
 project(SkywardParafoilTest)
 
-add_executable(wind-gallery-entry src/entrypoints/WindGallery/wind-gallery-entry.cpp ${WING_GALLERY})
-target_include_directories(wind-gallery-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(wind-gallery-entry stm32f429zi_skyward_death_stack_x)
-
 #-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
@@ -40,6 +36,10 @@ sbs_target(wind-gallery-entry stm32f429zi_skyward_death_stack_x)
 add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-entry stm32f429zi_skyward_death_stack_x)
+
+add_executable(wind-gallery-entry src/entrypoints/Main/wind-gallery-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(wind-gallery-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(wind-gallery-entry stm32f429zi_skyward_death_stack_x)
 
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #

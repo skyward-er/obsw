@@ -54,7 +54,3 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/WingController.cpp
     src/boards/Parafoil/FlightModeManager/FMMController.cpp
 )
-
-set(WING_GALLERY
-    src/boards/WindGallery/Sensors/Sensors.cpp
-)

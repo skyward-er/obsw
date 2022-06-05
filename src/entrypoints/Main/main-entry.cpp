@@ -27,7 +27,6 @@
 #include <Main/StateMachines/NavigationAttitudeSystem/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
-#include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -42,6 +41,8 @@ void print()
 
 int main()
 {
+    Logger::getInstance().start();
+
     // Initialize the servo outputs
     (void)Actuators::getInstance();
 
@@ -66,6 +67,6 @@ int main()
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
-        Logger::getInstance().log(Logger::getInstance().getStats());
+        Logger::getInstance().logStats();
     }
 }
