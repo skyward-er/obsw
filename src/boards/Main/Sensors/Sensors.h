@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Sensors/Pitot/Pitot.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS1118/ADS1118.h>
@@ -52,6 +53,7 @@ public:
     Boardcore::MPXHZ6130A *staticPressure   = nullptr;
     Boardcore::SSCDANN030PAA *dplPressure   = nullptr;
     Boardcore::SSCDRRN015PDA *pitotPressure = nullptr;
+    Boardcore::Pitot *pitot                 = nullptr;
 
     Boardcore::InternalADC *internalAdc             = nullptr;
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
@@ -80,7 +82,8 @@ private:
     void dplPressureInit();
 
     void pitotPressureInit();
-    void pitotPressureCallback();
+
+    void pitotInit();
 
     void internalAdcInit();
 

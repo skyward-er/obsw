@@ -62,6 +62,7 @@ Sensors::Sensors()
     staticPressureInit();
     dplPressureInit();
     pitotPressureInit();
+    pitotInit();
     internalAdcInit();
     batteryVoltageInit();
 
@@ -251,20 +252,30 @@ void Sensors::pitotPressureInit()
         bind(&ADS1118::getVoltage, ads1118, ADC_CH_PITOT_PORT));
     pitotPressure = new SSCDRRN015PDA(getVoltage, REFERENCE_VOLTAGE);
 
-    SensorInfo info("PITOT", SAMPLE_PERIOD_PRESS_PITOT,
-                    bind(&Sensors::pitotPressureCallback, this));
+    SensorInfo info(
+        "PITOT_PRESSURE", SAMPLE_PERIOD_PITOT,
+        [&]() { Logger::getInstance().log(pitotPressure->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(pitotPressure, info));
 
     LOG_INFO(logger, "Pitot pressure sensor setup done!");
 }
 
-void Sensors::pitotPressureCallback()
+void Sensors::pitotInit()
 {
-    SSCDRRN015PDAData pressure = pitotPressure->getLastSample();
-    Logger::getInstance().log(pressure);
+    function<PressureData()> getPitotPressure(
+        bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
+    function<float()> getStaticPressure(
+        [&]() { return ms5803->getLastSample().pressure; });
+    pitot = new Pitot(getPitotPressure, getStaticPressure);
 
-    // TODO: Implement pitot velocity calculation
+    SensorInfo info("PITOT", SAMPLE_PERIOD_PITOT,
+                    [&]()
+                    { Logger::getInstance().log(pitot->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(pitot, info));
+
+    LOG_INFO(logger, "Pitot sensor setup done!");
 }
 
 void Sensors::internalAdcInit()

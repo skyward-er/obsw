@@ -89,8 +89,8 @@ void Sensors::pitotPressureCallback()
     SSCDRRN015PDAData pressureData = pitotPressure->getLastSample();
     Logger::getInstance().log(pressureData);
 
-    // in the reference code used, the first pressure parameter was misured by a
-    // different digital pressure sensor (MS5803). Here I used the value that
+    // In the reference code used, the first pressure parameter was measured by
+    // a different digital pressure sensor (MS5803). Here I used the value that
     // has just been sampled
     float rel_density = Aeroutils::relDensity(
         pressureData.pressure, DEFAULT_REFERENCE_PRESSURE,

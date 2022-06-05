@@ -77,7 +77,7 @@ static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 6;
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
 static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
 
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_PITOT =
+static constexpr unsigned int SAMPLE_PERIOD_PITOT =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
     SAMPLE_PERIOD_ADC_ADS1118 * 4;
