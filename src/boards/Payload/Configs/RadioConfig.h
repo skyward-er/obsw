@@ -52,4 +52,7 @@ static const unsigned int TMTC_MAV_COMPID = 96;
 // Min guaranteed sleep time after each packet sent
 static const uint16_t SLEEP_AFTER_SEND = 0;  // [ms]
 
+static const bool XBEE_80KBPS_DATA_RATE = true;
+static const int XBEE_TIMEOUT           = 5000;  // [ms]
+
 }  // namespace Payload

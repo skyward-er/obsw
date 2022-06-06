@@ -30,6 +30,7 @@ namespace Payload
 {
 class Radio
 {
+public:
     /**
      * @brief Xbee radio module
      */
@@ -111,12 +112,12 @@ private:
     /**
      * @brief The mavlink driver
      */
-    MavDriver* mav_driver;
+    MavDriver* mavDriver;
 
     /**
      * @brief SPI bus
      */
-    Boardcore::SPIBusInterface& xbee_bus;
+    Boardcore::SPIBusInterface& xbeeBus;
 
     /**
      * @brief Main task scheduler
