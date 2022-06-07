@@ -144,15 +144,24 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.msl_altitude   = 0;
             tm.ada_vert_speed = 0;
             tm.ada_vert_accel = 0;
-            tm.acc_x          = sensors.bmx160->getLastSample().accelerationX;
-            tm.acc_y          = sensors.bmx160->getLastSample().accelerationY;
-            tm.acc_z          = sensors.bmx160->getLastSample().accelerationZ;
-            tm.gyro_x      = sensors.bmx160->getLastSample().angularVelocityX;
-            tm.gyro_y      = sensors.bmx160->getLastSample().angularVelocityY;
-            tm.gyro_z      = sensors.bmx160->getLastSample().angularVelocityZ;
-            tm.mag_x       = sensors.bmx160->getLastSample().magneticFieldX;
-            tm.mag_y       = sensors.bmx160->getLastSample().magneticFieldY;
-            tm.mag_z       = sensors.bmx160->getLastSample().magneticFieldZ;
+            tm.acc_x =
+                sensors.bmx160WithCorrection->getLastSample().accelerationX;
+            tm.acc_y =
+                sensors.bmx160WithCorrection->getLastSample().accelerationY;
+            tm.acc_z =
+                sensors.bmx160WithCorrection->getLastSample().accelerationZ;
+            tm.gyro_x =
+                sensors.bmx160WithCorrection->getLastSample().angularVelocityX;
+            tm.gyro_y =
+                sensors.bmx160WithCorrection->getLastSample().angularVelocityY;
+            tm.gyro_z =
+                sensors.bmx160WithCorrection->getLastSample().angularVelocityZ;
+            tm.mag_x =
+                sensors.bmx160WithCorrection->getLastSample().magneticFieldX;
+            tm.mag_y =
+                sensors.bmx160WithCorrection->getLastSample().magneticFieldY;
+            tm.mag_z =
+                sensors.bmx160WithCorrection->getLastSample().magneticFieldZ;
             tm.gps_fix     = 0;
             tm.gps_lat     = 0;
             tm.gps_lon     = 0;

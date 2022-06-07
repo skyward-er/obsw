@@ -27,6 +27,7 @@
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
@@ -44,10 +45,11 @@ class Sensors : public Boardcore::Singleton<Sensors>
     friend class Boardcore::Singleton<Sensors>;
 
 public:
-    Boardcore::BMX160 *bmx160       = nullptr;
-    Boardcore::LIS3MDL *lis3mdl     = nullptr;
-    Boardcore::MS5803 *ms5803       = nullptr;
-    Boardcore::UBXGPSSerial *ubxGps = nullptr;
+    Boardcore::BMX160 *bmx160                             = nullptr;
+    Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
+    Boardcore::LIS3MDL *lis3mdl                           = nullptr;
+    Boardcore::MS5803 *ms5803                             = nullptr;
+    Boardcore::UBXGPSSerial *ubxGps                       = nullptr;
 
     Boardcore::ADS1118 *ads1118             = nullptr;
     Boardcore::MPXHZ6130A *staticPressure   = nullptr;
@@ -67,6 +69,8 @@ private:
 
     void bmx160Init();
     void bmx160Callback();
+
+    void bmx160WithCorrectionInit();
 
     void lis3mdlInit();
 

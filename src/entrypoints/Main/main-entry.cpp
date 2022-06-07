@@ -61,12 +61,13 @@ int main()
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
 
-    // Periodically log CPU and Logger statistics
+    // Periodically statistics
     while (true)
     {
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
+        Radio::getInstance().logStatus();
     }
 }

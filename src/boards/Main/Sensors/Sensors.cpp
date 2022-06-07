@@ -55,6 +55,7 @@ Sensors::Sensors()
 {
     // Initialize all the sensors
     bmx160Init();
+    bmx160WithCorrectionInit();
     lis3mdlInit();
     ms5803Init();
     // ubxGpsInit();
@@ -117,7 +118,7 @@ void Sensors::bmx160Init()
 
     sensorsMap.emplace(std::make_pair(bmx160, info));
 
-    LOG_INFO(logger, "BMX160 Setup done!");
+    LOG_INFO(logger, "BMX160 setup done!");
 }
 
 void Sensors::bmx160Callback()
@@ -131,6 +132,27 @@ void Sensors::bmx160Callback()
         Logger::getInstance().log(fifo.at(i));
 
     Logger::getInstance().log(bmx160->getFifoStats());
+}
+
+void Sensors::bmx160WithCorrectionInit()
+{
+    // Read the correction parameters
+    BMX160CorrectionParameters correctionParameters =
+        BMX160WithCorrection::readCorrectionParametersFromFile(
+            BMX160_CORRECTION_PARAMETERS_FILE);
+
+    bmx160WithCorrection = new BMX160WithCorrection(
+        bmx160, correctionParameters, BMX160_AXIS_ROTATION);
+
+    SensorInfo info(
+        "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
+        [&]()
+        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); },
+        this);
+
+    sensorsMap.emplace(std::make_pair(bmx160WithCorrection, info));
+
+    LOG_INFO(logger, "BMX160WithCorrection setup done!");
 }
 
 void Sensors::lis3mdlInit()
@@ -153,7 +175,7 @@ void Sensors::lis3mdlInit()
 
     sensorsMap.emplace(std::make_pair(lis3mdl, info));
 
-    LOG_INFO(logger, "LIS3MDL Setup done!");
+    LOG_INFO(logger, "LIS3MDL setup done!");
 }
 
 void Sensors::ms5803Init()
@@ -185,7 +207,7 @@ void Sensors::ubxGpsInit()
 
     sensorsMap.emplace(std::make_pair(ubxGps, info));
 
-    LOG_INFO(logger, "UBXGPS Setup done!");
+    LOG_INFO(logger, "UBXGPS setup done!");
 }
 
 void Sensors::ads1118Init()

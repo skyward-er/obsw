@@ -98,8 +98,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
                         mavDriver->enqueueMsg(msgToSend);
                     }
-
-                    logStatus();
                     break;
                 }
                 default:
@@ -322,13 +320,11 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         case MAV_CMD_START_LOGGING:
             LOG_DEBUG(logger, "Received command start logging");
-
-            // TODO: Apply command
+            Logger::getInstance().start();
             break;
         case MAV_CMD_CLOSE_LOG:
             LOG_DEBUG(logger, "Received command close log");
-
-            // TODO: Apply command
+            Logger::getInstance().stop();
             break;
         case MAV_CMD_TEST_MODE:
             LOG_DEBUG(logger, "Received command test mode");
@@ -388,7 +384,6 @@ bool Radio::sendSystemTm(const SystemTMList tmId)
 {
     bool result =
         mavDriver->enqueueMsg(TMRepository::getInstance().packSystemTm(tmId));
-    logStatus();
     return result;
 }
 
@@ -396,7 +391,6 @@ bool Radio::sendSensorsTm(const SensorsTMList tmId)
 {
     bool result =
         mavDriver->enqueueMsg(TMRepository::getInstance().packSensorsTm(tmId));
-    logStatus();
     return result;
 }
 
