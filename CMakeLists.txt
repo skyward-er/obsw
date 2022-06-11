@@ -80,6 +80,9 @@ sbs_target(main-test-ads131 stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-ms5803 src/tests/Main/sensors/test-ms5803.cpp)
 sbs_target(main-test-ms5803 stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
+sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#

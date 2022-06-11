@@ -22,7 +22,6 @@
 
 #include <drivers/spi/SPIDriver.h>
 #include <drivers/timer/TimestampTimer.h>
-#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <sensors/ADS131M04/ADS131M04.h>
 

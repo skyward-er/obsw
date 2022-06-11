@@ -22,7 +22,6 @@
 
 #include <drivers/spi/SPIDriver.h>
 #include <drivers/timer/TimestampTimer.h>
-#include <interfaces-impl/hwmapping.h>  // TODO: Remove and add gpio pins
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorSampler.h>
 
