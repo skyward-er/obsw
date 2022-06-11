@@ -74,6 +74,12 @@ sbs_target(test-receiver stm32f407vg_stm32f4discovery)
 add_executable(test-bmx src/tests/Main/sensors/test-bmx160.cpp)
 sbs_target(test-bmx stm32f429zi_skyward_death_stack_x)
 
+add_executable(main-test-ads131 src/tests/Main/sensors/test-ads131.cpp)
+sbs_target(main-test-ads131 stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-test-ms5803 src/tests/Main/sensors/test-ms5803.cpp)
+sbs_target(main-test-ms5803 stm32f429zi_skyward_death_stack_v3)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#

@@ -232,6 +232,7 @@
         "Ublox",
         "UBXGPS",
         "undersampling",
+        "uninitdata",
         "usart",
         "usartx",
         "usarty",
