@@ -1,5 +1,5 @@
-/* Copyright (c) 2018 Skyward Experimental Rocketry
- * Author: Nuno Barcellos
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,41 +20,47 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/spi/SPIDriver.h>
-#include <drivers/timer/TimestampTimer.h>
-#include <sensors/MS5803/MS5803.h>
-#include <sensors/SensorSampler.h>
+#include <miosix.h>
 
-using namespace Boardcore;
-using namespace miosix;
+#include "drivers/usart/USART.h"
 
-/**
- * This test is intended to be run on the Death Stack X
- */
+int menu();
+
+void testSerialDebug()
+{
+    iprintf(
+        "If you are seeing the menu why whould you test this?! you f***g "
+        "donkey!\n\n");
+}
+
+void testGPIOInput(::miosix::GpioPin pin);
 
 int main()
 {
-    // Sample temperature every 10 pressure samples
-    SPIBus spiBus(SPI2);
-    SPIBusConfig config;
-    config.clockDivider = SPI::ClockDivider::DIV_32;
-    MS5803 ms5803(spiBus, miosix::sensors::ms5803::cs::getPin(), {}, 10);
-
-    Thread::sleep(100);
-
-    if (!ms5803.init())
-        printf("Init failed\n");
-
-    Thread::sleep(100);
-
     while (true)
     {
-        ms5803.sample();
-
-        MS5803Data data = ms5803.getLastSample();
-        printf("[%f] %f %f\n", data.pressureTimestamp / 1e6, data.pressure,
-               data.temperature);
-
-        Thread::sleep(20);
+        switch (menu())
+        {
+            case 1:
+                testSerialDebug();
+                break;
+        }
     }
+
+    return 0;
+}
+
+int menu()
+{
+    string temp;
+    int choice;
+
+    iprintf(
+        "Type:\n"
+        " 1. for debug-serial test\n");
+    iprintf("\n>> ");
+    getline(cin, temp);
+    stringstream(temp) >> choice;
+
+    return choice;
 }

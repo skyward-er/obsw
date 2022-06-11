@@ -166,10 +166,10 @@ int main()
     volatile int beatLength      = 60;  // determines tempo
     float beatSeparationConstant = 0.3;
 
-    unsigned int a = 4;  // part index
-    unsigned int b = 0;  // song index
-    unsigned int c = 0;  // lyric index
-    unsigned int noteLength;
+    unsigned int a          = 4;  // part index
+    unsigned int b          = 0;  // song index
+    unsigned int c          = 0;  // lyric index
+    unsigned int noteLength = 0;
 
     for (int i = 0; i < 100; i++)
         printf("\n");

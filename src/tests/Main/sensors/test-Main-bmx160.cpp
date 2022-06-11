@@ -30,12 +30,12 @@
 using namespace miosix;
 using namespace Boardcore;
 
-SPIBus bus(SPI1);
+SPIBus bus(SPI4);
 
-BMX160 *sensor = nullptr;
+BMX160* sensor = nullptr;
 uint32_t tick  = 0;
 
-void __attribute__((used)) EXTI5_IRQHandlerImpl()
+void __attribute__((used)) EXTI3_IRQHandlerImpl()
 {
     tick = TimestampTimer::getTimestamp();
 
@@ -47,7 +47,9 @@ int main()
 {
     miosix::sensors::bmx160::cs::high();
 
-    enableExternalInterrupt(GPIOE_BASE, 5, InterruptTrigger::FALLING_EDGE);
+    enableExternalInterrupt(miosix::sensors::bmx160::intr::getPin().getPort(),
+                            miosix::sensors::bmx160::intr::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
 
     BMX160Config config;
     config.fifoMode              = BMX160Config::FifoMode::HEADER;
