@@ -73,6 +73,8 @@ public:
      */
     bool start();
 
+    Boardcore::MavlinkStatus getMavlinkStatus();
+
     /**
      * @brief Saves the MavlinkDriver and transceiver status.
      */

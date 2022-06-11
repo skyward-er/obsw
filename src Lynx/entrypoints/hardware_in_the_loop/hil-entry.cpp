@@ -231,7 +231,7 @@ int main()
     {
         if (counter == 10)
         {
-            TRACE("CPU : %.2f \n", averageCpuUtilization());
+            TRACE("CPU : %.2f \n", getCpuStats());
             counter = 0;
         }
         else

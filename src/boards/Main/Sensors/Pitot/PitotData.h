@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Authors: Alberto Nidasio, Arturo Benedetti
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,22 @@
 
 #pragma once
 
-#include <Main/Radio/Mavlink.h>
+#include <ostream>
 
-#include <cstdio>
-
-namespace Main
+namespace Boardcore
 {
 
-namespace RadioConfigs
+struct PitotData
 {
+    uint64_t timestamp;
+    float airspeed;
 
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+    static std::string header() { return "timestamp,airspeed\n"; }
 
-// Mavlink driver parameters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << airspeed << "\n";
+    }
+};
 
-// Mavlink ids
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
-
-// XBee parameters
-constexpr bool XBEE_80KBPS_DATA_RATE = true;
-constexpr int XBEE_TIMEOUT           = 5000;  // [ms]
-
-// Periodic telemetries frequency
-constexpr uint32_t FLIGHT_TM_PERIOD       = 250;   // [ms]
-constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 2000;  // [ms]
-
-// Periodic telemetries tasks ids
-constexpr uint8_t FLIGHT_TM_TASK_ID = 200;
-constexpr uint8_t STATS_TM_TASK_ID  = 201;
-
-}  // namespace RadioConfigs
-
-}  // namespace Main
+}  // namespace Boardcore

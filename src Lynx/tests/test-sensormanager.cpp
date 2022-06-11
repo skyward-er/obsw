@@ -49,7 +49,7 @@ int main()
 
     for (int i = 0; i < 1 * 3 * 10; i++)
     {
-        s.add(averageCpuUtilization());
+        s.add(getCpuStats());
         Thread::sleep(100);
     }
 

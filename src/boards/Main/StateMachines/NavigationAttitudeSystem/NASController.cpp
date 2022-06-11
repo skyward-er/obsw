@@ -48,7 +48,7 @@ bool NASController::start()
 
 void NASController::update()
 {
-    auto imuData = Sensors::getInstance().bmx160->getLastSample();
+    auto imuData = Sensors::getInstance().bmx160WithCorrection->getLastSample();
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);
@@ -56,18 +56,6 @@ void NASController::update()
                              imuData.angularVelocityZ);
     Vector3f magneticField(imuData.magneticFieldX, imuData.magneticFieldY,
                            imuData.magneticFieldZ);
-
-    // Calibration
-    {
-        Vector3f offset{-1.63512255486542, 3.46523431469979, -3.08516033954451};
-        angularVelocity = angularVelocity - offset;
-        angularVelocity = angularVelocity / 180 * Constants::PI / 10;
-        Vector3f b{21.5356818859811, -22.7697302909894, -2.68219304319269};
-        Matrix3f A{{0.688760050772712, 0, 0},
-                   {0, 0.637715211784480, 0},
-                   {0, 0, 2.27669720320908}};
-        magneticField = (magneticField - b).transpose() * A;
-    }
 
     // Predict step
     nas.predictGyro(angularVelocity);

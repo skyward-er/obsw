@@ -58,7 +58,7 @@ int main()
         StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 
         system_data.timestamp = getTick();
-        system_data.cpu_usage = averageCpuUtilization();
+        system_data.cpu_usage = getCpuStats();
         cpu_stat.add(system_data.cpu_usage);
 
         cpu_stat_res               = cpu_stat.getStats();
