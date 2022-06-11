@@ -83,14 +83,14 @@ add_executable(test-Main-mpu9250 src/tests/Main/sensors/test-Main-mpu9250.cpp)
 target_include_directories(test-Main-mpu9250 PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(test-Main-mpu9250 stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-ads131 src/tests/Main/sensors/test-ads131.cpp)
-sbs_target(main-test-ads131 stm32f429zi_skyward_death_stack_v3)
+add_executable(test-Main-ads131 src/tests/Main/sensors/test-Main-ads131.cpp)
+sbs_target(test-Main-ads131 stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-ms5803 src/tests/Main/sensors/test-ms5803.cpp)
-sbs_target(main-test-ms5803 stm32f429zi_skyward_death_stack_v3)
+add_executable(test-Main-ms5803 src/tests/Main/sensors/test-Main-ms5803.cpp)
+sbs_target(test-Main-ms5803 stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
-sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
+add_executable(test-Main-buzzer src/tests/Main/actuators/test-Main-buzzer.cpp)
+sbs_target(test-Main-buzzer stm32f429zi_skyward_death_stack_v3)
 
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #

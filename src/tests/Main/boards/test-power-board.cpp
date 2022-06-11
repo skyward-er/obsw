@@ -26,7 +26,7 @@
 
 namespace testBuzzer
 {
-#include "../actuators/test-buzzer.cpp"
+#include "../actuators/test-Main-buzzer.cpp"
 }
 
 int menu();
