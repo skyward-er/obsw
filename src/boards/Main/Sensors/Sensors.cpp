@@ -147,8 +147,7 @@ void Sensors::bmx160WithCorrectionInit()
     SensorInfo info(
         "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
         [&]()
-        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); },
-        this);
+        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(bmx160WithCorrection, info));
 

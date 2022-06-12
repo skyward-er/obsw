@@ -29,6 +29,9 @@ namespace Main
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>
 {
 public:
+    FlightModeManager();
+    ~FlightModeManager();
+
     Boardcore::State state_initialization(const Boardcore::Event& event);
 
     /// Super state for when the rocket is on ground.
@@ -49,17 +52,20 @@ public:
     /// The rocket is ready for the ARM command.
     Boardcore::State state_disarmed(const Boardcore::Event& event);
 
+    /// The rocket will accept specific telecommands otherwise considered risky.
+    Boardcore::State state_test_mode(const Boardcore::Event& event);
+
     /// The rocket is ready for the liftoff.
     Boardcore::State state_armed(const Boardcore::Event& event);
 
     /// Super state for when the rocket is in the air.
     Boardcore::State state_flying(const Boardcore::Event& event);
 
-    /// Ascending fase of the trajectory.
+    /// Ascending phase of the trajectory.
     Boardcore::State state_ascending(const Boardcore::Event& event);
 
-    /// Between drouge and main deployment.
-    Boardcore::State state_drouge_descent(const Boardcore::Event& event);
+    /// Between drogue and main deployment.
+    Boardcore::State state_drogue_descent(const Boardcore::Event& event);
 
     /// After main parachute deployment.
     Boardcore::State state_terminal_descent(const Boardcore::Event& event);

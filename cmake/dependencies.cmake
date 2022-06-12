@@ -32,6 +32,7 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
     src/boards/Main/StateMachines/Deployment/DeploymentController.cpp
     src/boards/Main/StateMachines/NavigationAttitudeSystem/NASController.cpp
+    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Main/StateMachines/FlightStatsRecorder/FSRController.cpp
 )
 

@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Authors:Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,9 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
 namespace Main
 {
 
-enum Topics : uint8_t
-{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-};
+static constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 
-}  // namespace Main
+}
