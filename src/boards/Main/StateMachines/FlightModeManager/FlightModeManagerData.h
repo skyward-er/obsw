@@ -30,23 +30,26 @@
 namespace Main
 {
 
-enum ADAControllerState : uint8_t
+enum FlightModeManagerState : uint8_t
 {
-    IDLE = 0,
-    CALIBRATING,
-    READY,
-    SHADOW_MODE,
-    ACTIVE,
-    PRESSURE_STABILIZATION,
+    ON_GROUND = 0,
+    INIT,
+    INIT_ERROR,
+    SENSORS_CALIBRATION,
+    ALGOS_CALIBRATION,
+    DISARMED,
+    TEST_MODE,
+    ARMED,
+    ASCENDING,
     DROGUE_DESCENT,
     TERMINAL_DESCENT,
-    LANDED,
+    LANDED
 };
 
-struct ADAControllerStatus
+struct FlightModeManagerStatus
 {
     uint64_t timestamp;
-    ADAControllerState state;
+    FlightModeManagerState state;
 
     static std::string header() { return "timestamp,state\n"; }
 

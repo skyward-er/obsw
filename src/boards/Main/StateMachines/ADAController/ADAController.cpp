@@ -46,267 +46,165 @@ ADAController::~ADAController()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-void ADAController::state_idle(const Event& ev)
+ADAControllerStatus ADAController::getStatus() { return status; }
+
+void ADAController::state_idle(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(IDLE);
-            LOG_DEBUG(logger, "[ADA] entering state idle\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state idle\n");
-            break;
+            return logStatus(IDLE);
         }
         case ADA_CALIBRATE:
         {
-            transition(&ADAController::state_calibrating);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_calibrating);
         }
     }
 }
 
-void ADAController::state_calibrating(const Event& ev)
+void ADAController::state_calibrating(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            calibrate();
-
             logStatus(CALIBRATING);
-            LOG_DEBUG(logger, "[ADA] entering state calibrating\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state calibrating\n");
-            break;
+
+            return calibrate();
         }
         case ADA_READY:
         {
-            transition(&ADAController::state_ready);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_ready);
         }
     }
 }
 
-void ADAController::state_ready(const Event& ev)
+void ADAController::state_ready(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            // ...
-
-            logStatus(READY);
-
-            LOG_DEBUG(logger, "[ADA] entering state ready\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            // ...
-
-            LOG_DEBUG(logger, "[ADA] exiting state ready\n");
-            break;
+            return logStatus(READY);
         }
         case ADA_CALIBRATE:
         {
-            transition(&ADAController::state_calibrating);
-            break;
+            return transition(&ADAController::state_calibrating);
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&ADAController::state_shadow_mode);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_shadow_mode);
         }
     }
 }
 
-void ADAController::state_shadow_mode(const Event& ev)
+void ADAController::state_shadow_mode(const Event& event)
 {
-    switch (ev)
+    static uint16_t shadowModeTimeoutEventId = -1;
+
+    switch (event)
     {
         case EV_ENTRY:
         {
-            shadow_mode_timeout_event_id =
+            logStatus(SHADOW_MODE);
+
+            shadowModeTimeoutEventId =
                 EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
-
-            logStatus(SHADOW_MODE);
-            LOG_DEBUG(logger, "[ADA] entering state shadow_mode\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state shadow_mode\n");
             break;
         }
         case ADA_SHADOW_MODE_TIMEOUT:
         {
-            transition(&ADAController::state_active);
-            break;
+            return transition(&ADAController::state_active);
         }
-        default:
+        case EV_EXIT:
         {
-            break;
+            EventBroker::getInstance().removeDelayed(shadowModeTimeoutEventId);
         }
     }
 }
 
-void ADAController::state_active(const Event& ev)
+void ADAController::state_active(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(ACTIVE);
-            LOG_DEBUG(logger, "[ADA] entering state active\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state active\n");
-            break;
+            return logStatus(ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            transition(&ADAController::state_pressure_stabilization);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_pressure_stabilization);
         }
     }
 }
 
-void ADAController::state_pressure_stabilization(const Event& ev)
+void ADAController::state_pressure_stabilization(const Event& event)
 {
-    switch (ev)
+    static uint16_t pressStabTimeoutEventId = -1;
+
+    switch (event)
     {
         case EV_ENTRY:
         {
-            press_stab_timeout_event_id =
+            logStatus(PRESSURE_STABILIZATION);
+
+            pressStabTimeoutEventId =
                 EventBroker::getInstance().postDelayed<PRES_STAB_TIMEOUT>(
                     Boardcore::Event{ADA_PRESS_STAB_TIMEOUT}, TOPIC_ADA);
-
-            logStatus(PRESSURE_STABILIZATION);
-            LOG_DEBUG(logger, "[ADA] entering state pressure_stabilization\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state pressure_stabilization\n");
             break;
         }
         case ADA_PRESS_STAB_TIMEOUT:
         {
-            transition(&ADAController::state_drogue_descent);
-            break;
+            return transition(&ADAController::state_drogue_descent);
         }
-        default:
+        case EV_EXIT:
         {
-            break;
+            EventBroker::getInstance().removeDelayed(pressStabTimeoutEventId);
         }
     }
 }
 
-void ADAController::state_drogue_descent(const Event& ev)
+void ADAController::state_drogue_descent(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(DROGUE_DESCENT);
-            LOG_DEBUG(logger, "[ADA] entering state drogue_descent\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state drogue_descent\n");
-            break;
+            return logStatus(DROGUE_DESCENT);
         }
         case FLIGHT_DPL_ALT_DETECTED:
         {
-            transition(&ADAController::state_terminal_descent);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_terminal_descent);
         }
     }
 }
 
-void ADAController::state_terminal_descent(const Event& ev)
+void ADAController::state_terminal_descent(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(TERMINAL_DESCENT);
-            LOG_DEBUG(logger, "[ADA] entering state terminal_descent\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state terminal_descent\n");
-            break;
+            return logStatus(TERMINAL_DESCENT);
         }
         case FLIGHT_LANDING_DETECTED:
         {
-            transition(&ADAController::state_landed);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&ADAController::state_landed);
         }
     }
 }
 
-void ADAController::state_landed(const Event& ev)
+void ADAController::state_landed(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(LANDED);
-            LOG_DEBUG(logger, "[ADA] entering state landed\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[ADA] exiting state landed\n");
-            break;
-        }
-        default:
-        {
-            break;
+            return logStatus(LANDED);
         }
     }
-}
-
-void ADAController::calibrate()
-{
-    // ...
 }
 
 void ADAController::logStatus(ADAControllerState state)
@@ -315,6 +213,11 @@ void ADAController::logStatus(ADAControllerState state)
     status.state     = state;
 
     Logger::getInstance().log(status);
+}
+
+void ADAController::calibrate()
+{
+    // ...
 }
 
 }  // namespace Main

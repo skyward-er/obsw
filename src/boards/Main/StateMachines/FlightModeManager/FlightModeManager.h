@@ -23,6 +23,8 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 
+#include "FlightModeManagerData.h"
+
 namespace Main
 {
 
@@ -31,6 +33,8 @@ class FlightModeManager : public Boardcore::HSM<FlightModeManager>
 public:
     FlightModeManager();
     ~FlightModeManager();
+
+    FlightModeManagerStatus getStatus();
 
     Boardcore::State state_initialization(const Boardcore::Event& event);
 
@@ -74,6 +78,10 @@ public:
     Boardcore::State state_landed(const Boardcore::Event& event);
 
 private:
+    FlightModeManagerStatus status;
+
+    void logStatus(FlightModeManagerState state);
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
 };
 

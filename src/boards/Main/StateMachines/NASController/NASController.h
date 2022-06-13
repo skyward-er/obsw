@@ -27,7 +27,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
-#include "NASData.h"
+#include "NASControllerData.h"
 
 namespace Main
 {
@@ -42,13 +42,15 @@ public:
 
     void update();
 
+    NASControllerStatus getStatus();
+
     Boardcore::NASState getNasState();
 
-    void state_idle(const Boardcore::Event& ev);
-    void state_calibrating(const Boardcore::Event& ev);
-    void state_ready(const Boardcore::Event& ev);
-    void state_active(const Boardcore::Event& ev);
-    void state_end(const Boardcore::Event& ev);
+    void state_idle(const Boardcore::Event& event);
+    void state_calibrating(const Boardcore::Event& event);
+    void state_ready(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
+    void state_end(const Boardcore::Event& event);
 
 private:
     NASController();
@@ -56,9 +58,9 @@ private:
 
     NASControllerStatus status;
 
-    Boardcore::NAS nas;
-
     void logStatus(NASControllerState state);
+
+    Boardcore::NAS nas;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
 };

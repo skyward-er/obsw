@@ -30,18 +30,18 @@
 namespace Main
 {
 
-enum FSRControllerState : uint8_t
+enum FlightModeManagerState : uint8_t
 {
     IDLE = 0,
     LIFTOFF,
     ASCENDING,
-    MAIN_DEPLOYMENT,
+    MAIN_DEPLOYMENT
 };
 
-struct FSRControllerStatus
+struct FlightModeManagerStatus
 {
     uint64_t timestamp;
-    FSRControllerState state;
+    FlightModeManagerState state;
 
     static std::string header() { return "timestamp,state\n"; }
 

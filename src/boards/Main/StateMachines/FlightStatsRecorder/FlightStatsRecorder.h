@@ -36,19 +36,21 @@ public:
     FlightStatsRecorder();
     ~FlightStatsRecorder();
 
-    void state_idle(const Boardcore::Event& ev);
-    void state_liftoff(const Boardcore::Event& ev);
-    void state_ascending(const Boardcore::Event& ev);
-    void state_main_deployment(const Boardcore::Event& ev);
+    FlightModeManagerStatus getStatus();
+
+    void state_idle(const Boardcore::Event& event);
+    void state_liftoff(const Boardcore::Event& event);
+    void state_ascending(const Boardcore::Event& event);
+    void state_main_deployment(const Boardcore::Event& event);
 
 private:
-    FSRControllerStatus status;
+    FlightModeManagerStatus status;
 
-    void log_apogee_stats();
-    void log_liftoff_stats();
-    void log_main_dpl_stats();
+    void logStatus(FlightModeManagerState state);
 
-    void logStatus(FSRControllerState state);
+    void logApogeeStats();
+    void logLiftoffStats();
+    void logMainDplStats();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.fsr");
 };

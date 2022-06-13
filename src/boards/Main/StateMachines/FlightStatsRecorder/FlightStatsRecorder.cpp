@@ -38,7 +38,7 @@ namespace Main
 FlightStatsRecorder::FlightStatsRecorder()
     : FSM(&FlightStatsRecorder::state_idle)
 {
-    memset(&status, 0, sizeof(FSRControllerStatus));
+    memset(&status, 0, sizeof(FlightModeManagerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FSR);
 }
@@ -48,86 +48,62 @@ FlightStatsRecorder::~FlightStatsRecorder()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-void FlightStatsRecorder::state_idle(const Event& ev)
+FlightModeManagerStatus FlightStatsRecorder::getStatus() { return status; }
+
+void FlightStatsRecorder::state_idle(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(IDLE);
-            LOG_DEBUG(logger, "[FSR] entering state idle\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[FSR] exiting state idle\n");
-            break;
+            return logStatus(IDLE);
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&FlightStatsRecorder::state_liftoff);
-            break;
+            return transition(&FlightStatsRecorder::state_liftoff);
         }
         case FLIGHT_DPL_ALT_DETECTED:
         {
-            transition(&FlightStatsRecorder::state_main_deployment);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&FlightStatsRecorder::state_main_deployment);
         }
     }
 }
 
-void FlightStatsRecorder::state_liftoff(const Event& ev)
+void FlightStatsRecorder::state_liftoff(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(LIFTOFF);
+
             EventBroker::getInstance().postDelayed<LIFTOFF_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
-
-            logStatus(LIFTOFF);
-            LOG_DEBUG(logger, "[FSR] entering state liftoff\n");
             break;
         }
         case EV_EXIT:
         {
-            log_liftoff_stats();
-
-            LOG_DEBUG(logger, "[FSR] exiting state liftoff\n");
-            break;
+            return logLiftoffStats();
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FlightStatsRecorder::state_ascending);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&FlightStatsRecorder::state_ascending);
         }
     }
 }
 
-void FlightStatsRecorder::state_ascending(const Event& ev)
+void FlightStatsRecorder::state_ascending(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(ASCENDING);
-            LOG_DEBUG(logger, "[FSR] entering state ascending\n");
-            break;
+            return logStatus(ASCENDING);
         }
         case EV_EXIT:
         {
-            log_liftoff_stats();
-            log_apogee_stats();
-
-            LOG_DEBUG(logger, "[FSR] exiting state ascending\n");
+            logLiftoffStats();
+            logApogeeStats();
             break;
         }
         case FLIGHT_APOGEE_DETECTED:
@@ -138,69 +114,55 @@ void FlightStatsRecorder::state_ascending(const Event& ev)
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FlightStatsRecorder::state_idle);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&FlightStatsRecorder::state_idle);
         }
     }
 }
 
-void FlightStatsRecorder::state_main_deployment(const Event& ev)
+void FlightStatsRecorder::state_main_deployment(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(MAIN_DEPLOYMENT);
+
             EventBroker::getInstance().postDelayed<MAIN_DPL_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
-
-            logStatus(MAIN_DEPLOYMENT);
-            LOG_DEBUG(logger, "[FSR] entering state main_deployment\n");
             break;
         }
         case EV_EXIT:
         {
-            log_main_dpl_stats();
-
-            LOG_DEBUG(logger, "[FSR] exiting state main_deployment\n");
-            break;
+            return logMainDplStats();
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FlightStatsRecorder::state_idle);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&FlightStatsRecorder::state_idle);
         }
     }
 }
 
-void FlightStatsRecorder::log_apogee_stats()
-{
-    // ...
-}
-
-void FlightStatsRecorder::log_liftoff_stats()
-{
-    // ...
-}
-
-void FlightStatsRecorder::log_main_dpl_stats()
-{
-    // ...
-}
-
-void FlightStatsRecorder::logStatus(FSRControllerState state)
+void FlightStatsRecorder::logStatus(FlightModeManagerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(status);
+}
+
+void FlightStatsRecorder::logApogeeStats()
+{
+    // ...
+}
+
+void FlightStatsRecorder::logLiftoffStats()
+{
+    // ...
+}
+
+void FlightStatsRecorder::logMainDplStats()
+{
+    // ...
 }
 
 }  // namespace Main

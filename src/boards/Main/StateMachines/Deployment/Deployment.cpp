@@ -40,60 +40,43 @@ namespace Main
 
 Deployment::Deployment() : FSM(&Deployment::state_init)
 {
-    memset(&status, 0, sizeof(DeploymentControllerStatus));
+    memset(&status, 0, sizeof(DeploymentStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
 Deployment::~Deployment() { EventBroker::getInstance().unsubscribe(this); }
 
-void Deployment::state_init(const Event& ev)
+DeploymentStatus Deployment::getStatus() { return status; }
+
+void Deployment::state_init(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(INIT);
+
             Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
                                                    DPL_SERVO_EJECT_POS);
             Actuators::getInstance().enableServo(EXPULSION_SERVO);
 
-            transition(&Deployment::state_idle);
-
-            logStatus(INIT);
-            LOG_DEBUG(logger, "[Deployment] entering state init\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[Deployment] exiting state init\n");
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&Deployment::state_idle);
         }
     }
 }
 
-void Deployment::state_idle(const Event& ev)
+void Deployment::state_idle(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(IDLE);
-            LOG_DEBUG(logger, "[Deployment] entering state idle\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[Deployment] exiting state idle\n");
-            break;
+            return logStatus(IDLE);
         }
         case DPL_WIGGLE:
         {
-            wiggle_servo();
-            break;
+            return wiggleServo();
         }
         case DPL_OPEN:
         {
@@ -109,97 +92,89 @@ void Deployment::state_idle(const Event& ev)
         }
         case DPL_OPEN_NC:
         {
-            transition(&Deployment::state_nosecone_ejection);
-            break;
+            return transition(&Deployment::state_nosecone_ejection);
         }
         case DPL_CUT_DROGUE:
         {
-            transition(&Deployment::state_cutting);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&Deployment::state_cutting);
         }
     }
 }
 
-void Deployment::state_nosecone_ejection(const Event& ev)
+void Deployment::state_nosecone_ejection(const Event& event)
 {
-    switch (ev)
+    static uint16_t openNcTimeoutEventId = -1;
+
+    switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(NOSECONE_EJECTION);
+
             Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
                                                    DPL_SERVO_EJECT_POS);
 
-            open_nc_timeout_event_id =
+            openNcTimeoutEventId =
                 EventBroker::getInstance().postDelayed<OPEN_NC_TIMEOUT>(
                     Boardcore::Event{DPL_OPEN_NC_TIMEOUT}, TOPIC_DPL);
-
-            logStatus(NOSECONE_EJECTION);
-            LOG_DEBUG(logger,
-                      "[Deployment] entering state nosecone_ejection\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[Deployment] exiting state nosecone_ejection\n");
             break;
         }
         case DPL_OPEN_NC_TIMEOUT:
         {
-            transition(&Deployment::state_idle);
-            break;
+            return transition(&Deployment::state_idle);
         }
         case FLIGHT_NC_DETACHED:
         {
-            EventBroker::getInstance().removeDelayed(open_nc_timeout_event_id);
-            transition(&Deployment::state_idle);
-            break;
+            return transition(&Deployment::state_idle);
         }
-        default:
+        case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(openNcTimeoutEventId);
             break;
         }
     }
 }
 
-void Deployment::state_cutting(const Event& ev)
+void Deployment::state_cutting(const Event& event)
 {
-    switch (ev)
+    static uint16_t ncCuttinTimeoutEventId = -1;
+
+    switch (event)
     {
         case EV_ENTRY:
         {
-            start_cutting();
+            logStatus(CUTTING);
 
-            nc_cutting_timeout_event_id =
+            startCutting();
+
+            ncCuttinTimeoutEventId =
                 EventBroker::getInstance().postDelayed<CUT_DURATION>(
                     Boardcore::Event{DPL_CUT_TIMEOUT}, TOPIC_DPL);
-
-            logStatus(CUTTING);
-            LOG_DEBUG(logger, "[Deployment] entering state cutting\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[Deployment] exiting state cutting\n");
             break;
         }
         case DPL_CUT_TIMEOUT:
         {
-            stop_cutting();
-            transition(&Deployment::state_idle);
-            break;
+            stopCutting();
+
+            return transition(&Deployment::state_idle);
         }
-        default:
+        case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(ncCuttinTimeoutEventId);
             break;
         }
     }
 }
 
-void Deployment::wiggle_servo()
+void Deployment::logStatus(DeploymentState state)
+{
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    Logger::getInstance().log(status);
+}
+
+void Deployment::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
@@ -212,24 +187,16 @@ void Deployment::wiggle_servo()
     }
 }
 
-void Deployment::start_cutting()
+void Deployment::startCutting()
 {
     // TODO: Change with actual cutter
     Actuators::getInstance().led1.high();
 }
 
-void Deployment::stop_cutting()
+void Deployment::stopCutting()
 {
     // TODO: Change with actual cutter
     Actuators::getInstance().led1.low();
-}
-
-void Deployment::logStatus(DeploymentControllerState state)
-{
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
-
-    Logger::getInstance().log(status);
 }
 
 }  // namespace Main

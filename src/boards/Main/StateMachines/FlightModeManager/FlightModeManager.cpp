@@ -25,6 +25,7 @@
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/events/Events.h>
 #include <Main/events/Topics.h>
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
 
@@ -44,6 +45,8 @@ FlightModeManager::~FlightModeManager()
     EventBroker::getInstance().unsubscribe(this);
 }
 
+FlightModeManagerStatus FlightModeManager::getStatus() { return status; }
+
 State FlightModeManager::state_initialization(const Event& event)
 {
     return transition(&FlightModeManager::state_on_ground);
@@ -61,20 +64,24 @@ State FlightModeManager::state_on_ground(const Event& event)
         {
             Logger::getInstance().stop();
             miosix::reboot();
+            return HANDLED;
         }
         default:
         {
             return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_init(const Event& event)
 {
     switch (event)
     {
+        case EV_ENTRY:
+        {
+            logStatus(INIT);
+            return HANDLED;
+        }
         case FMM_INIT_OK:
         {
             return transition(&FlightModeManager::state_init_error);
@@ -92,7 +99,18 @@ State FlightModeManager::state_init(const Event& event)
 
 State FlightModeManager::state_init_error(const Event& event)
 {
-    return HANDLED;
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(INIT_ERROR);
+            return HANDLED;
+        }
+        default:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+    }
 }
 
 State FlightModeManager::state_sensors_calibration(const Event& event)
@@ -101,7 +119,8 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
     {
         case EV_ENTRY:
         {
-            // TODO: Start sensor calibration
+            logStatus(SENSORS_CALIBRATION);
+            return HANDLED;
         }
         case FMM_SENSORS_CAL_DONE:
         {
@@ -112,8 +131,6 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
             return tranSuper(&FlightModeManager::state_on_ground);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_algos_calibration(const Event& event)
@@ -122,7 +139,8 @@ State FlightModeManager::state_algos_calibration(const Event& event)
     {
         case EV_ENTRY:
         {
-            // TODO: Start algorithms calibration
+            logStatus(ALGOS_CALIBRATION);
+            return HANDLED;
         }
         case FMM_ALGOS_CAL_DONE:
         {
@@ -133,8 +151,6 @@ State FlightModeManager::state_algos_calibration(const Event& event)
             return tranSuper(&FlightModeManager::state_on_ground);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_disarmed(const Event& event)
@@ -143,8 +159,9 @@ State FlightModeManager::state_disarmed(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(DISARMED);
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
-            break;
+            return HANDLED;
         }
         case TMTC_ENTER_TEST_MODE:
         {
@@ -167,14 +184,17 @@ State FlightModeManager::state_disarmed(const Event& event)
             return tranSuper(&FlightModeManager::state_on_ground);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_test_mode(const Event& event)
 {
     switch (event)
     {
+        case EV_ENTRY:
+        {
+            logStatus(TEST_MODE);
+            return HANDLED;
+        }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
@@ -184,8 +204,6 @@ State FlightModeManager::state_test_mode(const Event& event)
             return tranSuper(&FlightModeManager::state_on_ground);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_armed(const Event& event)
@@ -194,9 +212,10 @@ State FlightModeManager::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(ARMED);
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             Logger::getInstance().start();
-            break;
+            return HANDLED;
         }
         case TMTC_DISARM:
         {
@@ -212,8 +231,6 @@ State FlightModeManager::state_armed(const Event& event)
             return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_flying(const Event& event)
@@ -231,6 +248,7 @@ State FlightModeManager::state_flying(const Event& event)
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FMM_MISSION_TIMEOUT, TOPIC_FMM);
+            return HANDLED;
         }
 
         // This ensures that the force commands are always fulfilled when in
@@ -238,11 +256,12 @@ State FlightModeManager::state_flying(const Event& event)
         case TMTC_FORCE_DROGUE:
         {
             EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
-            break;
+            return HANDLED;
         }
         case TMTC_FORCE_MAIN:
         {
             EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
+            return HANDLED;
         }
 
         case FMM_MISSION_TIMEOUT:
@@ -252,20 +271,24 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
+            return HANDLED;
         }
         default:
         {
             return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_ascending(const Event& event)
 {
     switch (event)
     {
+        case EV_ENTRY:
+        {
+            logStatus(ASCENDING);
+            return HANDLED;
+        }
         case FLIGHT_APOGEE_DETECTED:
         case TMTC_FORCE_DROGUE:
         {
@@ -274,15 +297,13 @@ State FlightModeManager::state_ascending(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().post(ABK_DISABLE, TOPIC_ABK);
-            break;
+            return HANDLED;
         }
         default:
         {
             return tranSuper(&FlightModeManager::state_flying);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_drogue_descent(const Event& event)
@@ -291,8 +312,9 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(DROGUE_DESCENT);
             EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
-            break;
+            return HANDLED;
         }
         case FLIGHT_DPL_ALT_DETECTED:
         case TMTC_FORCE_MAIN:
@@ -304,8 +326,6 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             return tranSuper(&FlightModeManager::state_flying);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_terminal_descent(const Event& event)
@@ -314,8 +334,9 @@ State FlightModeManager::state_terminal_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(TERMINAL_DESCENT);
             EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
-            break;
+            return HANDLED;
         }
         case FLIGHT_LANDING_DETECTED:
         case TMTC_FORCE_LANDING:
@@ -327,8 +348,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             return tranSuper(&FlightModeManager::state_flying);
         }
     }
-
-    return HANDLED;
 }
 
 State FlightModeManager::state_landed(const Event& event)
@@ -337,16 +356,23 @@ State FlightModeManager::state_landed(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(LANDED);
             Logger::getInstance().stop();
-            break;
+            return HANDLED;
         }
         default:
         {
             return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
+}
 
-    return HANDLED;
+void FlightModeManager::logStatus(FlightModeManagerState state)
+{
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    Logger::getInstance().log(state);
 }
 
 }  // namespace Main

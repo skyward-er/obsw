@@ -25,7 +25,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
-#include "ADAData.h"
+#include "ADAControllerData.h"
 
 namespace Main
 {
@@ -36,25 +36,24 @@ public:
     ADAController();
     ~ADAController();
 
-    void state_idle(const Boardcore::Event& ev);
-    void state_calibrating(const Boardcore::Event& ev);
-    void state_ready(const Boardcore::Event& ev);
-    void state_shadow_mode(const Boardcore::Event& ev);
-    void state_active(const Boardcore::Event& ev);
-    void state_pressure_stabilization(const Boardcore::Event& ev);
-    void state_drogue_descent(const Boardcore::Event& ev);
-    void state_terminal_descent(const Boardcore::Event& ev);
-    void state_landed(const Boardcore::Event& ev);
+    ADAControllerStatus getStatus();
+
+    void state_idle(const Boardcore::Event& event);
+    void state_calibrating(const Boardcore::Event& event);
+    void state_ready(const Boardcore::Event& event);
+    void state_shadow_mode(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
+    void state_pressure_stabilization(const Boardcore::Event& event);
+    void state_drogue_descent(const Boardcore::Event& event);
+    void state_terminal_descent(const Boardcore::Event& event);
+    void state_landed(const Boardcore::Event& event);
 
 private:
     ADAControllerStatus status;
 
-    void calibrate();
-
     void logStatus(ADAControllerState state);
 
-    uint16_t shadow_mode_timeout_event_id = 0;
-    uint16_t press_stab_timeout_event_id  = 0;
+    void calibrate();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.ada");
 };

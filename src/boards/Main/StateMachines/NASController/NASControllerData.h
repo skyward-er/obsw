@@ -36,7 +36,7 @@ enum NASControllerState : uint8_t
     CALIBRATING,
     READY,
     ACTIVE,
-    END,
+    END
 };
 
 struct NASControllerStatus

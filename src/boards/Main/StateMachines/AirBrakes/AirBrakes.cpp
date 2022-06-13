@@ -38,60 +38,43 @@ namespace Main
 
 AirBrakes::AirBrakes() : FSM(&AirBrakes::state_init)
 {
-    memset(&status, 0, sizeof(AirBrakesControllerStatus));
+    memset(&status, 0, sizeof(AirBrakesStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
 AirBrakes::~AirBrakes() { EventBroker::getInstance().unsubscribe(this); }
 
-void AirBrakes::state_init(const Event& ev)
+AirBrakesStatus AirBrakes::getStatus() { return status; }
+
+void AirBrakes::state_init(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(INIT);
+
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
                                                    DPL_SERVO_RESET_POS);
             Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
 
-            transition(&AirBrakes::state_idle);
-
-            logStatus(INIT);
-            LOG_DEBUG(logger, "[AirBrakes] entering state init\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[AirBrakes] exiting state init\n");
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&AirBrakes::state_idle);
         }
     }
 }
 
-void AirBrakes::state_idle(const Event& ev)
+void AirBrakes::state_idle(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(IDLE);
-            LOG_DEBUG(logger, "[AirBrakes] entering state idle\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[AirBrakes] exiting state idle\n");
-            break;
+            return logStatus(IDLE);
         }
         case ABK_WIGGLE:
         {
-            wiggle_servo();
-            break;
+            return wiggleServo();
         }
         case ABK_OPEN:
         {
@@ -106,108 +89,77 @@ void AirBrakes::state_idle(const Event& ev)
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&AirBrakes::state_shadow_mode);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&AirBrakes::state_shadow_mode);
         }
     }
 }
 
-void AirBrakes::state_shadow_mode(const Event& ev)
+void AirBrakes::state_shadow_mode(const Event& event)
 {
-    switch (ev)
+    static uint16_t shadowModeTimeoutEventId = -1;
+
+    switch (event)
     {
         case EV_ENTRY:
         {
-            shadow_mode_timeout_event_id =
+            shadowModeTimeoutEventId =
                 EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ABK_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
-            logStatus(SHADOW_MODE);
-            LOG_DEBUG(logger, "[AirBrakes] entering state shadow mode\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[AirBrakes] exiting state shadow mode\n");
-            break;
+            return logStatus(SHADOW_MODE);
         }
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            transition(&AirBrakes::state_active);
-            break;
+            return transition(&AirBrakes::state_active);
         }
-        default:
+        case EV_EXIT:
         {
-            break;
+            EventBroker::getInstance().removeDelayed(shadowModeTimeoutEventId);
         }
     }
 }
 
-void AirBrakes::state_active(const Event& ev)
+void AirBrakes::state_active(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            // TODO: algorithm.begin()
-
-            logStatus(ACTIVE);
-            LOG_DEBUG(logger, "[AirBrakes] entering state active\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[AirBrakes] exiting state active\n");
-            break;
+            return logStatus(ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            transition(&AirBrakes::state_end);
-            break;
+            return transition(&AirBrakes::state_end);
         }
         case ABK_DISABLE:
         {
-            transition(&AirBrakes::state_end);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&AirBrakes::state_end);
         }
     }
 }
 
-void AirBrakes::state_end(const Event& ev)
+void AirBrakes::state_end(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            // TODO: algorithm.end()
-
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
 
-            logStatus(END);
-            LOG_DEBUG(logger, "[AirBrakes] entering state end\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[AirBrakes] exiting state end\n");
-            break;
-        }
-        default:
-        {
-            break;
+            return logStatus(END);
         }
     }
 }
 
-void AirBrakes::wiggle_servo()
+void AirBrakes::logStatus(AirBrakesState state)
+{
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    Logger::getInstance().log(state);
+}
+
+void AirBrakes::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
@@ -217,14 +169,6 @@ void AirBrakes::wiggle_servo()
         Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
         miosix::Thread::sleep(500);
     }
-}
-
-void AirBrakes::logStatus(AirBrakesControllerState state)
-{
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
-
-    Logger::getInstance().log(state);
 }
 
 }  // namespace Main

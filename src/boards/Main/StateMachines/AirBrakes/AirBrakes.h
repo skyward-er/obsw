@@ -36,20 +36,20 @@ public:
     AirBrakes();
     ~AirBrakes();
 
-    void state_init(const Boardcore::Event& ev);
-    void state_idle(const Boardcore::Event& ev);
-    void state_shadow_mode(const Boardcore::Event& ev);
-    void state_active(const Boardcore::Event& ev);
-    void state_end(const Boardcore::Event& ev);
+    AirBrakesStatus getStatus();
+
+    void state_init(const Boardcore::Event& event);
+    void state_idle(const Boardcore::Event& event);
+    void state_shadow_mode(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
+    void state_end(const Boardcore::Event& event);
 
 private:
-    AirBrakesControllerStatus status;
+    AirBrakesStatus status;
 
-    void wiggle_servo();
+    void logStatus(AirBrakesState state);
 
-    void logStatus(AirBrakesControllerState state);
-
-    uint16_t shadow_mode_timeout_event_id = 0;
+    void wiggleServo();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
 };

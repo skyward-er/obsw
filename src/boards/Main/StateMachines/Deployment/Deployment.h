@@ -36,22 +36,21 @@ public:
     Deployment();
     ~Deployment();
 
-    void state_init(const Boardcore::Event& ev);
-    void state_idle(const Boardcore::Event& ev);
-    void state_nosecone_ejection(const Boardcore::Event& ev);
-    void state_cutting(const Boardcore::Event& ev);
+    DeploymentStatus getStatus();
+
+    void state_init(const Boardcore::Event& event);
+    void state_idle(const Boardcore::Event& event);
+    void state_nosecone_ejection(const Boardcore::Event& event);
+    void state_cutting(const Boardcore::Event& event);
 
 private:
-    DeploymentControllerStatus status;
+    DeploymentStatus status;
 
-    void wiggle_servo();
-    void start_cutting();
-    void stop_cutting();
+    void logStatus(DeploymentState state);
 
-    void logStatus(DeploymentControllerState state);
-
-    uint16_t open_nc_timeout_event_id    = 0;
-    uint16_t nc_cutting_timeout_event_id = 0;
+    void wiggleServo();
+    void startCutting();
+    void stopCutting();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.dpl");
 };

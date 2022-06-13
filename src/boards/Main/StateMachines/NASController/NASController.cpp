@@ -66,140 +66,81 @@ void NASController::update()
     nas.correctMag(magneticField);
 }
 
+NASControllerStatus NASController::getStatus() { return status; }
+
 NASState NASController::getNasState() { return nas.getState(); }
 
-void NASController::state_idle(const Event& ev)
+void NASController::state_idle(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(IDLE);
-            LOG_DEBUG(logger, "[NASController] entering state idle\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NASController] exiting state idle\n");
-            break;
+            return logStatus(IDLE);
         }
         case NAS_CALIBRATE:
         {
-            transition(&NASController::state_calibrating);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&NASController::state_calibrating);
         }
     }
 }
 
-void NASController::state_calibrating(const Event& ev)
+void NASController::state_calibrating(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(CALIBRATING);
-            LOG_DEBUG(logger, "[NASController] entering state calibrating\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NASController] exiting state calibrating\n");
-            break;
+            return logStatus(CALIBRATING);
         }
         case NAS_READY:
         {
-            transition(&NASController::state_ready);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&NASController::state_ready);
         }
     }
 }
 
-void NASController::state_ready(const Event& ev)
+void NASController::state_ready(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(READY);
-            LOG_DEBUG(logger, "[NASController] entering state ready\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NASController] exiting state ready\n");
-            break;
+            return logStatus(READY);
         }
         case NAS_CALIBRATE:
         {
-            transition(&NASController::state_calibrating);
-            break;
+            return transition(&NASController::state_calibrating);
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&NASController::state_active);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&NASController::state_active);
         }
     }
 }
 
-void NASController::state_active(const Event& ev)
+void NASController::state_active(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(ACTIVE);
-            LOG_DEBUG(logger, "[NASController] entering state active\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NASController] exiting state active\n");
-            break;
+            return logStatus(ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
         {
-            transition(&NASController::state_end);
-            break;
-        }
-        default:
-        {
-            break;
+            return transition(&NASController::state_end);
         }
     }
 }
 
-void NASController::state_end(const Event& ev)
+void NASController::state_end(const Event& event)
 {
-    switch (ev)
+    switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(END);
-            LOG_DEBUG(logger, "[NASController] entering state end\n");
-            break;
-        }
-        case EV_EXIT:
-        {
-            LOG_DEBUG(logger, "[NASController] exiting state end\n");
-            break;
-        }
-
-        default:
-        {
-            break;
+            return logStatus(END);
         }
     }
 }

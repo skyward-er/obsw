@@ -30,18 +30,23 @@
 namespace Main
 {
 
-enum DeploymentState : uint8_t
+enum ADAControllerState : uint8_t
 {
-    INIT = 0,
-    IDLE,
-    NOSECONE_EJECTION,
-    CUTTING
+    IDLE = 0,
+    CALIBRATING,
+    READY,
+    SHADOW_MODE,
+    ACTIVE,
+    PRESSURE_STABILIZATION,
+    DROGUE_DESCENT,
+    TERMINAL_DESCENT,
+    LANDED
 };
 
-struct DeploymentStatus
+struct ADAControllerStatus
 {
     uint64_t timestamp;
-    DeploymentState state;
+    ADAControllerState state;
 
     static std::string header() { return "timestamp,state\n"; }
 
