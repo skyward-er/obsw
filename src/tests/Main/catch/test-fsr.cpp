@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <Main/StateMachines/FlightStatsRecorder/FSRController.h>
+#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
@@ -43,7 +43,7 @@ public:
     {
         // cppcheck-suppress noCopyConstructor
         // cppcheck-suppress noOperatorEq
-        controller = new FSRController();
+        controller = new FlightStatsRecorder();
         EventBroker::getInstance().start();
         controller->start();
     }
@@ -58,63 +58,63 @@ public:
     }
 
 protected:
-    FSRController* controller;
+    FlightStatsRecorder* controller;
 };
 
 TEST_CASE_METHOD(FSRControllerFixture, "FSR - Testing transitions from idle")
 {
-    controller->transition(&FSRController::state_idle);
+    controller->transition(&FlightStatsRecorder::state_idle);
 
     SECTION("FLIGHT_LIFTOFF_DETECTED -> LIFTOFF")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
-                                  &FSRController::state_liftoff));
+                                  &FlightStatsRecorder::state_liftoff));
     }
 
     SECTION("FLIGHT_DPL_ALT_DETECTED -> MAIN_DEPLOYMENT")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_DPL_ALT_DETECTED},
-                                  &FSRController::state_main_deployment));
+                                  &FlightStatsRecorder::state_main_deployment));
     }
 }
 
 TEST_CASE_METHOD(FSRControllerFixture, "FSR - Testing transitions from liftoff")
 {
-    controller->transition(&FSRController::state_liftoff);
+    controller->transition(&FlightStatsRecorder::state_liftoff);
 
     SECTION("FSR_STATS_TIMEOUT -> ASCENDING")
     {
         REQUIRE(testFSMTransition(*controller, Event{FSR_STATS_TIMEOUT},
-                                  &FSRController::state_ascending));
+                                  &FlightStatsRecorder::state_ascending));
     }
 }
 
 TEST_CASE_METHOD(FSRControllerFixture,
                  "FSR - Testing transitions from ascending")
 {
-    controller->transition(&FSRController::state_ascending);
+    controller->transition(&FlightStatsRecorder::state_ascending);
 
     SECTION("FLIGHT_APOGEE_DETECTED -> ASCENDING")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_APOGEE_DETECTED},
-                                  &FSRController::state_ascending));
+                                  &FlightStatsRecorder::state_ascending));
     }
 
     SECTION("FSR_STATS_TIMEOUT -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{FSR_STATS_TIMEOUT},
-                                  &FSRController::state_idle));
+                                  &FlightStatsRecorder::state_idle));
     }
 }
 
 TEST_CASE_METHOD(FSRControllerFixture,
                  "FSR - Testing transitions from main_deployment")
 {
-    controller->transition(&FSRController::state_main_deployment);
+    controller->transition(&FlightStatsRecorder::state_main_deployment);
 
     SECTION("FSR_STATS_TIMEOUT -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{FSR_STATS_TIMEOUT},
-                                  &FSRController::state_idle));
+                                  &FlightStatsRecorder::state_idle));
     }
 }

@@ -25,16 +25,16 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
-#include "FSRData.h"
+#include "FlightStatsRecorderData.h"
 
 namespace Main
 {
 
-class FSRController : public Boardcore::FSM<FSRController>
+class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>
 {
 public:
-    FSRController();
-    ~FSRController();
+    FlightStatsRecorder();
+    ~FlightStatsRecorder();
 
     void state_idle(const Boardcore::Event& ev);
     void state_liftoff(const Boardcore::Event& ev);

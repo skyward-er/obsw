@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <Main/StateMachines/Deployment/DeploymentController.h>
+#include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
@@ -43,7 +43,7 @@ public:
     {
         // cppcheck-suppress noCopyConstructor
         // cppcheck-suppress noOperatorEq
-        controller = new DeploymentController();
+        controller = new Deployment();
         EventBroker::getInstance().start();
         controller->start();
     }
@@ -58,78 +58,77 @@ public:
     }
 
 protected:
-    DeploymentController* controller;
+    Deployment* controller;
 };
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
                  "Deployment - Testing transitions from init")
 {
-    controller->transition(&DeploymentController::state_init);
+    controller->transition(&Deployment::state_init);
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
                  "Deployment - Testing transitions from idle")
 {
-    controller->transition(&DeploymentController::state_idle);
+    controller->transition(&Deployment::state_idle);
 
     SECTION("WIGGLE -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_WIGGLE},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 
     SECTION("OPEN -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_OPEN},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 
     SECTION("RESET -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_RESET},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 
     SECTION("OPEN_NC -> NOSECONE_EJECTION")
     {
-        REQUIRE(
-            testFSMTransition(*controller, Event{DPL_OPEN_NC},
-                              &DeploymentController::state_nosecone_ejection));
+        REQUIRE(testFSMTransition(*controller, Event{DPL_OPEN_NC},
+                                  &Deployment::state_nosecone_ejection));
     }
 
     SECTION("CUT_DROGUE -> CUTTING")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_CUT_DROGUE},
-                                  &DeploymentController::state_cutting));
+                                  &Deployment::state_cutting));
     }
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
                  "Deployment - Testing transitions from nosecone_ejection")
 {
-    controller->transition(&DeploymentController::state_nosecone_ejection);
+    controller->transition(&Deployment::state_nosecone_ejection);
 
     SECTION("OPEN_NC_TIMEOUT -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_OPEN_NC_TIMEOUT},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 
     SECTION("NC_DETACHED -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_NC_DETACHED},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 }
 
 TEST_CASE_METHOD(DeploymentControllerFixture,
                  "Deployment - Testing transitions from cutting")
 {
-    controller->transition(&DeploymentController::state_cutting);
+    controller->transition(&Deployment::state_cutting);
 
     SECTION("CUT_TIMEOUT -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{DPL_CUT_TIMEOUT},
-                                  &DeploymentController::state_idle));
+                                  &Deployment::state_idle));
     }
 }

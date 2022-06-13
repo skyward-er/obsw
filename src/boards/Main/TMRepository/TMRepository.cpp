@@ -27,7 +27,7 @@
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/NavigationAttitudeSystem/NASController.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>

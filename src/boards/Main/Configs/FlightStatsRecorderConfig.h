@@ -28,13 +28,13 @@
 namespace Main
 {
 
-namespace FSRConfig
+namespace FlightStatsRecorderConfig
 {
 
 static constexpr int LIFTOFF_STATS_TIMEOUT  = 7.5 * 1000;  // [ms]
 static constexpr int APOGEE_STATS_TIMEOUT   = 1 * 1000;    // [ms]
 static constexpr int MAIN_DPL_STATS_TIMEOUT = 10 * 1000;   // [ms]
 
-}  // namespace FSRConfig
+}  // namespace FlightStatsRecorderConfig
 
 }  // namespace Main

@@ -75,12 +75,12 @@ void NASController::state_idle(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(IDLE);
-            LOG_DEBUG(logger, "[NAS] entering state idle\n");
+            LOG_DEBUG(logger, "[NASController] entering state idle\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state idle\n");
+            LOG_DEBUG(logger, "[NASController] exiting state idle\n");
             break;
         }
         case NAS_CALIBRATE:
@@ -102,12 +102,12 @@ void NASController::state_calibrating(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(CALIBRATING);
-            LOG_DEBUG(logger, "[NAS] entering state calibrating\n");
+            LOG_DEBUG(logger, "[NASController] entering state calibrating\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state calibrating\n");
+            LOG_DEBUG(logger, "[NASController] exiting state calibrating\n");
             break;
         }
         case NAS_READY:
@@ -129,12 +129,12 @@ void NASController::state_ready(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(READY);
-            LOG_DEBUG(logger, "[NAS] entering state ready\n");
+            LOG_DEBUG(logger, "[NASController] entering state ready\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state ready\n");
+            LOG_DEBUG(logger, "[NASController] exiting state ready\n");
             break;
         }
         case NAS_CALIBRATE:
@@ -161,12 +161,12 @@ void NASController::state_active(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(ACTIVE);
-            LOG_DEBUG(logger, "[NAS] entering state active\n");
+            LOG_DEBUG(logger, "[NASController] entering state active\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state active\n");
+            LOG_DEBUG(logger, "[NASController] exiting state active\n");
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -188,12 +188,12 @@ void NASController::state_end(const Event& ev)
         case EV_ENTRY:
         {
             logStatus(END);
-            LOG_DEBUG(logger, "[NAS] entering state end\n");
+            LOG_DEBUG(logger, "[NASController] entering state end\n");
             break;
         }
         case EV_EXIT:
         {
-            LOG_DEBUG(logger, "[NAS] exiting state end\n");
+            LOG_DEBUG(logger, "[NASController] exiting state end\n");
             break;
         }
 

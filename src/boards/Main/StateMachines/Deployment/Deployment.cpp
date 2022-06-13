@@ -20,17 +20,16 @@
  * THE SOFTWARE.
  */
 
-#include "DeploymentController.h"
+#include "Deployment.h"
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfigs.h>
+#include <Main/Configs/DeploymentConfig.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <logger/Logger.h>
 #include <miosix.h>
-
-#include "DeploymentConfig.h"
 
 using namespace Boardcore;
 using namespace Main::DeploymentConfig;
@@ -39,20 +38,16 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-DeploymentController::DeploymentController()
-    : FSM(&DeploymentController::state_init)
+Deployment::Deployment() : FSM(&Deployment::state_init)
 {
     memset(&status, 0, sizeof(DeploymentControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-DeploymentController::~DeploymentController()
-{
-    EventBroker::getInstance().unsubscribe(this);
-}
+Deployment::~Deployment() { EventBroker::getInstance().unsubscribe(this); }
 
-void DeploymentController::state_init(const Event& ev)
+void Deployment::state_init(const Event& ev)
 {
     switch (ev)
     {
@@ -62,7 +57,7 @@ void DeploymentController::state_init(const Event& ev)
                                                    DPL_SERVO_EJECT_POS);
             Actuators::getInstance().enableServo(EXPULSION_SERVO);
 
-            transition(&DeploymentController::state_idle);
+            transition(&Deployment::state_idle);
 
             logStatus(INIT);
             LOG_DEBUG(logger, "[Deployment] entering state init\n");
@@ -80,7 +75,7 @@ void DeploymentController::state_init(const Event& ev)
     }
 }
 
-void DeploymentController::state_idle(const Event& ev)
+void Deployment::state_idle(const Event& ev)
 {
     switch (ev)
     {
@@ -114,12 +109,12 @@ void DeploymentController::state_idle(const Event& ev)
         }
         case DPL_OPEN_NC:
         {
-            transition(&DeploymentController::state_nosecone_ejection);
+            transition(&Deployment::state_nosecone_ejection);
             break;
         }
         case DPL_CUT_DROGUE:
         {
-            transition(&DeploymentController::state_cutting);
+            transition(&Deployment::state_cutting);
             break;
         }
         default:
@@ -129,7 +124,7 @@ void DeploymentController::state_idle(const Event& ev)
     }
 }
 
-void DeploymentController::state_nosecone_ejection(const Event& ev)
+void Deployment::state_nosecone_ejection(const Event& ev)
 {
     switch (ev)
     {
@@ -154,13 +149,13 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
         }
         case DPL_OPEN_NC_TIMEOUT:
         {
-            transition(&DeploymentController::state_idle);
+            transition(&Deployment::state_idle);
             break;
         }
         case FLIGHT_NC_DETACHED:
         {
             EventBroker::getInstance().removeDelayed(open_nc_timeout_event_id);
-            transition(&DeploymentController::state_idle);
+            transition(&Deployment::state_idle);
             break;
         }
         default:
@@ -170,7 +165,7 @@ void DeploymentController::state_nosecone_ejection(const Event& ev)
     }
 }
 
-void DeploymentController::state_cutting(const Event& ev)
+void Deployment::state_cutting(const Event& ev)
 {
     switch (ev)
     {
@@ -194,7 +189,7 @@ void DeploymentController::state_cutting(const Event& ev)
         case DPL_CUT_TIMEOUT:
         {
             stop_cutting();
-            transition(&DeploymentController::state_idle);
+            transition(&Deployment::state_idle);
             break;
         }
         default:
@@ -204,7 +199,7 @@ void DeploymentController::state_cutting(const Event& ev)
     }
 }
 
-void DeploymentController::wiggle_servo()
+void Deployment::wiggle_servo()
 {
     for (int i = 0; i < 2; i++)
     {
@@ -217,19 +212,19 @@ void DeploymentController::wiggle_servo()
     }
 }
 
-void DeploymentController::start_cutting()
+void Deployment::start_cutting()
 {
     // TODO: Change with actual cutter
     Actuators::getInstance().led1.high();
 }
 
-void DeploymentController::stop_cutting()
+void Deployment::stop_cutting()
 {
     // TODO: Change with actual cutter
     Actuators::getInstance().led1.low();
 }
 
-void DeploymentController::logStatus(DeploymentControllerState state)
+void Deployment::logStatus(DeploymentControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;

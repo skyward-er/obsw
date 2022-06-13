@@ -30,11 +30,11 @@
 namespace Main
 {
 
-class DeploymentController : public Boardcore::FSM<DeploymentController>
+class Deployment : public Boardcore::FSM<Deployment>
 {
 public:
-    DeploymentController();
-    ~DeploymentController();
+    Deployment();
+    ~Deployment();
 
     void state_init(const Boardcore::Event& ev);
     void state_idle(const Boardcore::Event& ev);

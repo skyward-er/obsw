@@ -20,15 +20,14 @@
  * THE SOFTWARE.
  */
 
-#include "AirBrakesController.h"
+#include "AirBrakes.h"
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfigs.h>
+#include <Main/Configs/AirBrakesConfig.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
-
-#include "AirBrakesConfig.h"
 
 using namespace Boardcore;
 using namespace Main::AirBrakesConfigs;
@@ -37,20 +36,16 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-AirBrakesController::AirBrakesController()
-    : FSM(&AirBrakesController::state_init)
+AirBrakes::AirBrakes() : FSM(&AirBrakes::state_init)
 {
     memset(&status, 0, sizeof(AirBrakesControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-AirBrakesController::~AirBrakesController()
-{
-    EventBroker::getInstance().unsubscribe(this);
-}
+AirBrakes::~AirBrakes() { EventBroker::getInstance().unsubscribe(this); }
 
-void AirBrakesController::state_init(const Event& ev)
+void AirBrakes::state_init(const Event& ev)
 {
     switch (ev)
     {
@@ -60,7 +55,7 @@ void AirBrakesController::state_init(const Event& ev)
                                                    DPL_SERVO_RESET_POS);
             Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
 
-            transition(&AirBrakesController::state_idle);
+            transition(&AirBrakes::state_idle);
 
             logStatus(INIT);
             LOG_DEBUG(logger, "[AirBrakes] entering state init\n");
@@ -78,7 +73,7 @@ void AirBrakesController::state_init(const Event& ev)
     }
 }
 
-void AirBrakesController::state_idle(const Event& ev)
+void AirBrakes::state_idle(const Event& ev)
 {
     switch (ev)
     {
@@ -111,7 +106,7 @@ void AirBrakesController::state_idle(const Event& ev)
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&AirBrakesController::state_shadow_mode);
+            transition(&AirBrakes::state_shadow_mode);
             break;
         }
         default:
@@ -121,7 +116,7 @@ void AirBrakesController::state_idle(const Event& ev)
     }
 }
 
-void AirBrakesController::state_shadow_mode(const Event& ev)
+void AirBrakes::state_shadow_mode(const Event& ev)
 {
     switch (ev)
     {
@@ -142,7 +137,7 @@ void AirBrakesController::state_shadow_mode(const Event& ev)
         }
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            transition(&AirBrakesController::state_active);
+            transition(&AirBrakes::state_active);
             break;
         }
         default:
@@ -152,7 +147,7 @@ void AirBrakesController::state_shadow_mode(const Event& ev)
     }
 }
 
-void AirBrakesController::state_active(const Event& ev)
+void AirBrakes::state_active(const Event& ev)
 {
     switch (ev)
     {
@@ -171,12 +166,12 @@ void AirBrakesController::state_active(const Event& ev)
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            transition(&AirBrakesController::state_end);
+            transition(&AirBrakes::state_end);
             break;
         }
         case ABK_DISABLE:
         {
-            transition(&AirBrakesController::state_end);
+            transition(&AirBrakes::state_end);
             break;
         }
         default:
@@ -186,7 +181,7 @@ void AirBrakesController::state_active(const Event& ev)
     }
 }
 
-void AirBrakesController::state_end(const Event& ev)
+void AirBrakes::state_end(const Event& ev)
 {
     switch (ev)
     {
@@ -212,7 +207,7 @@ void AirBrakesController::state_end(const Event& ev)
     }
 }
 
-void AirBrakesController::wiggle_servo()
+void AirBrakes::wiggle_servo()
 {
     for (int i = 0; i < 2; i++)
     {
@@ -224,7 +219,7 @@ void AirBrakesController::wiggle_servo()
     }
 }
 
-void AirBrakesController::logStatus(AirBrakesControllerState state)
+void AirBrakes::logStatus(AirBrakesControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;

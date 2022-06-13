@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <Main/StateMachines/AirBrakes/AirBrakesController.h>
+#include <Main/StateMachines/AirBrakes/AirBrakes.h>
 #include <Main/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
@@ -43,7 +43,7 @@ public:
     {
         // cppcheck-suppress noCopyConstructor
         // cppcheck-suppress noOperatorEq
-        controller = new AirBrakesController();
+        controller = new AirBrakes();
         EventBroker::getInstance().start();
         controller->start();
     }
@@ -58,77 +58,77 @@ public:
     }
 
 protected:
-    AirBrakesController* controller;
+    AirBrakes* controller;
 };
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
                  "AirBrakes - Testing transitions from init")
 {
-    controller->transition(&AirBrakesController::state_init);
+    controller->transition(&AirBrakes::state_init);
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
                  "AirBrakes - Testing transitions from idle")
 {
-    controller->transition(&AirBrakesController::state_idle);
+    controller->transition(&AirBrakes::state_idle);
 
     SECTION("ABK_WIGGLE -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{ABK_WIGGLE},
-                                  &AirBrakesController::state_idle));
+                                  &AirBrakes::state_idle));
     }
 
     SECTION("ABK_OPEN -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{ABK_OPEN},
-                                  &AirBrakesController::state_idle));
+                                  &AirBrakes::state_idle));
     }
 
     SECTION("ABK_RESET -> IDLE")
     {
         REQUIRE(testFSMTransition(*controller, Event{ABK_RESET},
-                                  &AirBrakesController::state_idle));
+                                  &AirBrakes::state_idle));
     }
 
     SECTION("FLIGHT_LIFTOFF_DETECTED -> SHADOW_MODE")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
-                                  &AirBrakesController::state_shadow_mode));
+                                  &AirBrakes::state_shadow_mode));
     }
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
                  "AirBrakes - Testing transitions from shadow_mode")
 {
-    controller->transition(&AirBrakesController::state_shadow_mode);
+    controller->transition(&AirBrakes::state_shadow_mode);
 
     SECTION("ABK_SHADOW_MODE_TIMEOUT -> ACTIVE")
     {
         REQUIRE(testFSMTransition(*controller, Event{ABK_SHADOW_MODE_TIMEOUT},
-                                  &AirBrakesController::state_active));
+                                  &AirBrakes::state_active));
     }
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
                  "AirBrakes - Testing transitions from active")
 {
-    controller->transition(&AirBrakesController::state_active);
+    controller->transition(&AirBrakes::state_active);
 
     SECTION("FLIGHT_APOGEE_DETECTED -> END")
     {
         REQUIRE(testFSMTransition(*controller, Event{FLIGHT_APOGEE_DETECTED},
-                                  &AirBrakesController::state_end));
+                                  &AirBrakes::state_end));
     }
 
     SECTION("ABK_DISABLE -> END")
     {
         REQUIRE(testFSMTransition(*controller, Event{ABK_DISABLE},
-                                  &AirBrakesController::state_end));
+                                  &AirBrakes::state_end));
     }
 }
 
 TEST_CASE_METHOD(AirBrakesControllerFixture,
                  "AirBrakes - Testing transitions from end")
 {
-    controller->transition(&AirBrakesController::state_end);
+    controller->transition(&AirBrakes::state_end);
 }

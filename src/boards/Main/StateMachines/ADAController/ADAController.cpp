@@ -22,12 +22,11 @@
 
 #include "ADAController.h"
 
+#include <Main/Configs/ADAConfig.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
-
-#include "ADAConfig.h"
 
 using namespace Boardcore;
 using namespace Main::ADAConfig;

@@ -30,11 +30,11 @@
 namespace Main
 {
 
-class AirBrakesController : public Boardcore::FSM<AirBrakesController>
+class AirBrakes : public Boardcore::FSM<AirBrakes>
 {
 public:
-    AirBrakesController();
-    ~AirBrakesController();
+    AirBrakes();
+    ~AirBrakes();
 
     void state_init(const Boardcore::Event& ev);
     void state_idle(const Boardcore::Event& ev);

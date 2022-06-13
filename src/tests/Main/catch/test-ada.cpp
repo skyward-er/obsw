@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
@@ -61,7 +61,8 @@ protected:
     ADAController* controller;
 };
 
-TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from idle")
+TEST_CASE_METHOD(ADAControllerFixture,
+                 "ADAController - Testing transitions from idle")
 {
     controller->transition(&ADAController::state_idle);
 
@@ -73,7 +74,7 @@ TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from idle")
 }
 
 TEST_CASE_METHOD(ADAControllerFixture,
-                 "ADA - Testing transitions from calibrating")
+                 "ADAController - Testing transitions from calibrating")
 {
     controller->transition(&ADAController::state_calibrating);
 
@@ -84,7 +85,8 @@ TEST_CASE_METHOD(ADAControllerFixture,
     }
 }
 
-TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from ready")
+TEST_CASE_METHOD(ADAControllerFixture,
+                 "ADAController - Testing transitions from ready")
 {
     controller->transition(&ADAController::state_ready);
 
@@ -102,7 +104,7 @@ TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from ready")
 }
 
 TEST_CASE_METHOD(ADAControllerFixture,
-                 "ADA - Testing transitions from shadow_mode")
+                 "ADAController - Testing transitions from shadow_mode")
 {
     controller->transition(&ADAController::state_shadow_mode);
 
@@ -113,7 +115,8 @@ TEST_CASE_METHOD(ADAControllerFixture,
     }
 }
 
-TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from active")
+TEST_CASE_METHOD(ADAControllerFixture,
+                 "ADAController - Testing transitions from active")
 {
     controller->transition(&ADAController::state_active);
 
@@ -125,8 +128,9 @@ TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from active")
     }
 }
 
-TEST_CASE_METHOD(ADAControllerFixture,
-                 "ADA - Testing transitions from pressure_stabilization")
+TEST_CASE_METHOD(
+    ADAControllerFixture,
+    "ADAController - Testing transitions from pressure_stabilization")
 {
     controller->transition(&ADAController::state_pressure_stabilization);
 
@@ -138,7 +142,7 @@ TEST_CASE_METHOD(ADAControllerFixture,
 }
 
 TEST_CASE_METHOD(ADAControllerFixture,
-                 "ADA - Testing transitions from drogue_descent")
+                 "ADAController - Testing transitions from drogue_descent")
 {
     controller->transition(&ADAController::state_drogue_descent);
 
@@ -150,7 +154,7 @@ TEST_CASE_METHOD(ADAControllerFixture,
 }
 
 TEST_CASE_METHOD(ADAControllerFixture,
-                 "ADA - Testing transitions from terminal_descent")
+                 "ADAController - Testing transitions from terminal_descent")
 {
     controller->transition(&ADAController::state_terminal_descent);
 
@@ -161,7 +165,8 @@ TEST_CASE_METHOD(ADAControllerFixture,
     }
 }
 
-TEST_CASE_METHOD(ADAControllerFixture, "ADA - Testing transitions from landed")
+TEST_CASE_METHOD(ADAControllerFixture,
+                 "ADAController - Testing transitions from landed")
 {
     controller->transition(&ADAController::state_landed);
 }

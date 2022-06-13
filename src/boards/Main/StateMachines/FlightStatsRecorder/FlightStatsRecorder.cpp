@@ -20,35 +20,35 @@
  * THE SOFTWARE.
  */
 
-#include "FSRController.h"
+#include "FlightStatsRecorder.h"
 
+#include <Main/Configs/FlightStatsRecorderConfig.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <logger/Logger.h>
 #include <miosix.h>
 
-#include "FSRConfig.h"
-
 using namespace Boardcore;
-using namespace Main::FSRConfig;
+using namespace Main::FlightStatsRecorderConfig;
 
 namespace Main
 {
 
-FSRController::FSRController() : FSM(&FSRController::state_idle)
+FlightStatsRecorder::FlightStatsRecorder()
+    : FSM(&FlightStatsRecorder::state_idle)
 {
     memset(&status, 0, sizeof(FSRControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FSR);
 }
 
-FSRController::~FSRController()
+FlightStatsRecorder::~FlightStatsRecorder()
 {
     EventBroker::getInstance().unsubscribe(this);
 }
 
-void FSRController::state_idle(const Event& ev)
+void FlightStatsRecorder::state_idle(const Event& ev)
 {
     switch (ev)
     {
@@ -65,12 +65,12 @@ void FSRController::state_idle(const Event& ev)
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            transition(&FSRController::state_liftoff);
+            transition(&FlightStatsRecorder::state_liftoff);
             break;
         }
         case FLIGHT_DPL_ALT_DETECTED:
         {
-            transition(&FSRController::state_main_deployment);
+            transition(&FlightStatsRecorder::state_main_deployment);
             break;
         }
         default:
@@ -80,7 +80,7 @@ void FSRController::state_idle(const Event& ev)
     }
 }
 
-void FSRController::state_liftoff(const Event& ev)
+void FlightStatsRecorder::state_liftoff(const Event& ev)
 {
     switch (ev)
     {
@@ -102,7 +102,7 @@ void FSRController::state_liftoff(const Event& ev)
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FSRController::state_ascending);
+            transition(&FlightStatsRecorder::state_ascending);
             break;
         }
         default:
@@ -112,7 +112,7 @@ void FSRController::state_liftoff(const Event& ev)
     }
 }
 
-void FSRController::state_ascending(const Event& ev)
+void FlightStatsRecorder::state_ascending(const Event& ev)
 {
     switch (ev)
     {
@@ -138,7 +138,7 @@ void FSRController::state_ascending(const Event& ev)
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FSRController::state_idle);
+            transition(&FlightStatsRecorder::state_idle);
             break;
         }
         default:
@@ -148,7 +148,7 @@ void FSRController::state_ascending(const Event& ev)
     }
 }
 
-void FSRController::state_main_deployment(const Event& ev)
+void FlightStatsRecorder::state_main_deployment(const Event& ev)
 {
     switch (ev)
     {
@@ -170,7 +170,7 @@ void FSRController::state_main_deployment(const Event& ev)
         }
         case FSR_STATS_TIMEOUT:
         {
-            transition(&FSRController::state_idle);
+            transition(&FlightStatsRecorder::state_idle);
             break;
         }
         default:
@@ -180,22 +180,22 @@ void FSRController::state_main_deployment(const Event& ev)
     }
 }
 
-void FSRController::log_apogee_stats()
+void FlightStatsRecorder::log_apogee_stats()
 {
     // ...
 }
 
-void FSRController::log_liftoff_stats()
+void FlightStatsRecorder::log_liftoff_stats()
 {
     // ...
 }
 
-void FSRController::log_main_dpl_stats()
+void FlightStatsRecorder::log_main_dpl_stats()
 {
     // ...
 }
 
-void FSRController::logStatus(FSRControllerState state)
+void FlightStatsRecorder::logStatus(FSRControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
