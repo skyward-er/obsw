@@ -38,7 +38,7 @@ void testSerialDebug()
         "donkey!\n\n");
 }
 
-void testGPIOInput(::miosix::GpioPin pin);
+void testGPIOInput(GpioPin pin);
 
 int main()
 {
@@ -52,6 +52,8 @@ int main()
             case 2:
                 testBuzzer::main();
                 break;
+            case 99:
+                return 0;
         }
     }
 
@@ -66,7 +68,8 @@ int menu()
     iprintf(
         "Type:\n"
         " 1. for debug-serial test\n"
-        " 2. for buzzer test, enjoy!\n");
+        " 2. for buzzer test, enjoy!\n"
+        " 99. go back\n");
     iprintf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;

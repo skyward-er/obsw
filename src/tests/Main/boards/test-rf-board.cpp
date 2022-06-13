@@ -44,6 +44,8 @@ int main()
             case 1:
                 testSerialDebug();
                 break;
+            case 99:
+                return 0;
         }
     }
 
@@ -57,7 +59,8 @@ int menu()
 
     iprintf(
         "Type:\n"
-        " 1. for debug-serial test\n");
+        " 1. for debug-serial test\n"
+        " 99. go back\n");
     iprintf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;

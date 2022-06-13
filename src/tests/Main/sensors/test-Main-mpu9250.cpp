@@ -67,6 +67,8 @@ int main()
     result = mpu9250.selfTest();
     printf("Self test result: %d\n", result);
 
+    Thread::sleep(2000);
+
     while (true)
     {
         mpu9250.sample();

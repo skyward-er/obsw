@@ -76,6 +76,8 @@ int main()
             case 5:
                 testADS131::main();
                 break;
+            case 99:
+                return 0;
         }
     }
 
@@ -93,7 +95,8 @@ int menu()
         " 2. for IMU bmx160 test\n"
         " 3. for IMU mpu9250 test\n"
         " 4. for digital pressure sensor ms5803 test\n"
-        " 5. for analogic pressure sensors ads131 test\n");
+        " 5. for analogic pressure sensors with ads131 test\n"
+        " 99. go back\n");
     iprintf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;

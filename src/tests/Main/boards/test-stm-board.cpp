@@ -83,6 +83,8 @@ int main()
             case 9:
                 testSDBenchmark::main();
                 break;
+            case 99:
+                return 0;
         }
     }
 
@@ -104,7 +106,8 @@ int menu()
         " 6. for nosecone detachment sense test\n"
         " 7. for auxiliary 1 sense test\n"
         " 8. for auxiliary 2 sense test\n"
-        " 9. for SD benchmark test\n");
+        " 9. for SD benchmark test\n"
+        " 99. go back\n");
     iprintf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;

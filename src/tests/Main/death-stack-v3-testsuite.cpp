@@ -84,22 +84,25 @@ int menu();
 
 int main()
 {
-    switch (menu())
+    while (true)
     {
-        case 1:
-            STMBoard::main();
-            break;
-        case 2:
-            SensorBoard::main();
-            break;
-        case 3:
-            PowerBoard::main();
-            break;
-        case 4:
-            RFBoard::main();
-            break;
-        default:
-            break;
+        switch (menu())
+        {
+            case 1:
+                STMBoard::main();
+                break;
+            case 2:
+                SensorBoard::main();
+                break;
+            case 3:
+                PowerBoard::main();
+                break;
+            case 4:
+                RFBoard::main();
+                break;
+            default:
+                break;
+        }
     }
 }
 
