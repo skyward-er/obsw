@@ -396,26 +396,28 @@ bool Radio::sendSensorsTm(const SensorsTMList tmId)
 
 Radio::Radio()
 {
-    SPIBusConfig config;
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    // SPIBusConfig config;
+    // config.clockDivider = SPI::ClockDivider::DIV_16;
 
-    xbee = new Xbee::Xbee(Buses::getInstance().spi2, config, xbee::cs::getPin(),
-                          xbee::attn::getPin(), xbee::reset::getPin());
-    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
+    // xbee = new Xbee::Xbee(Buses::getInstance().spi2, config,
+    // xbee::cs::getPin(),
+    //                       xbee::attn::getPin(), xbee::reset::getPin());
+    // Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
-    mavDriver =
-        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
-                      MAV_OUT_BUFFER_MAX_AGE);
+    // mavDriver =
+    //     new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2),
+    //     0,
+    //                   MAV_OUT_BUFFER_MAX_AGE);
 
-    // Add to the scheduler the flight and statistics telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
-        FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
-        STATS_TM_TASK_ID);
+    // // Add to the scheduler the flight and statistics telemetries
+    // BoardScheduler::getInstance().getScheduler().addTask(
+    //     [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
+    //     FLIGHT_TM_TASK_ID);
+    // BoardScheduler::getInstance().getScheduler().addTask(
+    //     [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
+    //     STATS_TM_TASK_ID);
 
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+    // enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 }
 
 }  // namespace Main

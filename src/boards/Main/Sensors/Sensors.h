@@ -22,20 +22,17 @@
 
 #pragma once
 
-#include <Main/Sensors/Pitot/Pitot.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
-#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
-#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/MPU9250/MPU9250.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
-#include <sensors/UBXGPS/UBXGPSSerial.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
-#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
-#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
-#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/nxp/MPXH6115A.h>
+#include <sensors/analog/pressure/nxp/MPXH6400A.h>
 
 namespace Main
 {
@@ -47,15 +44,12 @@ class Sensors : public Boardcore::Singleton<Sensors>
 public:
     Boardcore::BMX160 *bmx160                             = nullptr;
     Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
-    Boardcore::LIS3MDL *lis3mdl                           = nullptr;
-    Boardcore::MS5803 *ms5803                             = nullptr;
-    Boardcore::UBXGPSSerial *ubxGps                       = nullptr;
+    Boardcore::MPU9250 *mpu9250                           = nullptr;
+    Boardcore::MS5803 *ms5803 = nullptr;  // digital pressure sensor
 
-    Boardcore::ADS1118 *ads1118             = nullptr;
-    Boardcore::MPXHZ6130A *staticPressure   = nullptr;
-    Boardcore::SSCDANN030PAA *dplPressure   = nullptr;
-    Boardcore::SSCDRRN015PDA *pitotPressure = nullptr;
-    Boardcore::Pitot *pitot                 = nullptr;
+    Boardcore::ADS131M04 *ads131m04      = nullptr;
+    Boardcore::MPXH6115A *staticPressure = nullptr;
+    Boardcore::MPXH6400A *dplPressure    = nullptr;
 
     Boardcore::InternalADC *internalAdc             = nullptr;
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
@@ -72,22 +66,18 @@ private:
 
     void bmx160WithCorrectionInit();
 
-    void lis3mdlInit();
+    void mpu9250Init();
 
     void ms5803Init();
 
     void ubxGpsInit();
     void ubxGpsCallback();
 
-    void ads1118Init();
+    void ads131m04Init();
 
     void staticPressureInit();
 
     void dplPressureInit();
-
-    void pitotPressureInit();
-
-    void pitotInit();
 
     void internalAdcInit();
 

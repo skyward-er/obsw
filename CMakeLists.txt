@@ -63,6 +63,10 @@ add_executable(death-stack-v3-testsuite src/tests/Main/death-stack-v3-testsuite.
 target_include_directories(death-stack-v3-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(death-stack-v3-testsuite stm32f429zi_skyward_death_stack_v3)
 
+add_executable(catch-tests-entry src/tests/Main/catch/catch-tests-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(catch-tests-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(catch-tests-entry stm32f429zi_skyward_death_stack_v3)
+
 add_executable(test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
 target_include_directories(test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(test-radio stm32f429zi_skyward_death_stack_v3)
