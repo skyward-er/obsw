@@ -44,7 +44,8 @@ int main()
     Logger::getInstance().start();
 
     // Initialize the servo outputs
-    (void)Actuators::getInstance();
+    Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
+    Actuators::getInstance().enableServo(EXPULSION_SERVO);
 
     // Start the sensors sampling
     Sensors::getInstance().start();

@@ -36,8 +36,10 @@ namespace Main
 namespace SensorConfigs
 {
 static constexpr float INTERNAL_ADC_VREF = 3.3;
-static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE_CHANNEL =
-    Boardcore::InternalADC::Channel::CH5;
+static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_5V_CURRENT =
+    Boardcore::InternalADC::Channel::CH11;
+static constexpr Boardcore::InternalADC::Channel
+    INTERNAL_ADC_CH_CUTTER_CURRENT = Boardcore::InternalADC::Channel::CH12;
 
 static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
 static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
@@ -51,42 +53,19 @@ static constexpr Boardcore::ADS131M04::Channel ADC_CH_LOAD_CELL =
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_VBAT =
     Boardcore::ADS131M04::Channel::CHANNEL_3;
 
-// static constexpr Boardcore::ADS131M04::ADS131M04DataRate ADC_DR_STATIC_PORT =
-//     Boardcore::ADS131M04::DR_860;
-// static constexpr Boardcore::ADS131M04::ADS131M04DataRate ADC_DR_PITOT_PORT =
-//     Boardcore::ADS131M04::DR_860;
-// static constexpr Boardcore::ADS131M04::ADS131M04DataRate ADC_DR_DPL_PORT =
-//     Boardcore::ADS131M04::DR_860;
-// static constexpr Boardcore::ADS131M04::ADS131M04DataRate ADC_DR_VREF =
-//     Boardcore::ADS131M04::DR_860;
-
-// static constexpr Boardcore::ADS131M04::ADS131M04Pga ADC_PGA_STATIC_PORT =
-//     Boardcore::ADS131M04::FSR_6_144;
-// static constexpr Boardcore::ADS131M04::ADS131M04Pga ADC_PGA_PITOT_PORT =
-//     Boardcore::ADS131M04::FSR_6_144;
-// static constexpr Boardcore::ADS131M04::ADS131M04Pga ADC_PGA_DPL_PORT =
-//     Boardcore::ADS131M04::FSR_6_144;
-// static constexpr Boardcore::ADS131M04::ADS131M04Pga ADC_PGA_VREF =
-//     Boardcore::ADS131M04::FSR_6_144;
-
 // Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC =
-    1000;  // only for battery voltage
 static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
 static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
 
-// all channels sampled at the same time
-// static constexpr unsigned int SAMPLE_PERIOD_PITOT =
-//     SAMPLE_PERIOD_ADC_ADS131M04 * 4;
-// static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
-//     SAMPLE_PERIOD_ADC_ADS131M04 * 4;
-// static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
-//     SAMPLE_PERIOD_ADC_ADS131M04 * 4;
+// Load cell
+static constexpr float LOAD_CELL_MV_TO_V           = 2;   // [mV/V]
+static constexpr unsigned int LOAD_CELL_FULL_SCALE = 10;  // [Kg]
+static constexpr float LOAD_CELL_SUPPLY_VOLTAGE    = 5;   // [V]
 
-static constexpr float PRESS_STATIC_MOVING_AVG_COEFF = 0.95;
-
+// BMX160
 static constexpr Boardcore::BMX160Config::AccelerometerRange
     IMU_BMX_ACC_FULLSCALE_ENUM =
         Boardcore::BMX160Config::AccelerometerRange::G_16;
@@ -138,7 +117,7 @@ static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
 static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU = 50;
 
 // GPS
-static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
+static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 

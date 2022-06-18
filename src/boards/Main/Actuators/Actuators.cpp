@@ -122,8 +122,6 @@ float Actuators::getServoPosition(ServosList servoId)
     return 0;
 }
 
-#ifndef COMPILE_FOR_HOST
-
 Actuators::Actuators()
     : led1(leds::led_green1::getPin()), led2(leds::led_red::getPin()),
       led3(leds::led_blue::getPin()), led4(leds::led_green2::getPin()),
@@ -137,16 +135,5 @@ Actuators::Actuators()
                      DPL_SERVO_MAX_PULSE)
 {
 }
-
-#else
-
-Actuators::Actuators()
-    : servoExpulsion(), servoAirbrakes(), led1(GpioPin{0, 0}),
-      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), led4(GpioPin{0, 0}),
-      cutter1(GpioPin{0, 0}), cutter1Backup(GpioPin{0, 0})
-{
-}
-
-#endif
 
 }  // namespace Main

@@ -61,8 +61,9 @@ Sensors::Sensors()
     ads131m04Init();
     staticPressureInit();
     dplPressureInit();
-    internalAdcInit();
+    loadCellInit();
     batteryVoltageInit();
+    // internalAdcInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
@@ -210,16 +211,7 @@ void Sensors::ads131m04Init()
 void Sensors::staticPressureInit()
 {
     function<ADCData()> getVoltage(
-        [&]()
-        {
-            ADCData adcData;
-            ADS131M04Data adsData    = ads131m04->getLastSample();
-            uint8_t ch               = (uint8_t)(ADC_CH_STATIC_PORT);
-            adcData.voltageTimestamp = adsData.timestamp;
-            adcData.voltage          = adsData.voltage[ch];
-            adcData.channelId        = ch;
-            return adcData;
-        });
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_STATIC_PORT));
 
     staticPressure = new MPXH6115A(getVoltage, REFERENCE_VOLTAGE);
 
@@ -235,16 +227,8 @@ void Sensors::staticPressureInit()
 void Sensors::dplPressureInit()
 {
     function<ADCData()> getVoltage(
-        [&]()
-        {
-            ADCData adcData;
-            ADS131M04Data adsData    = ads131m04->getLastSample();
-            uint8_t ch               = (uint8_t)(ADC_CH_DPL_PORT);
-            adcData.voltageTimestamp = adsData.timestamp;
-            adcData.voltage          = adsData.voltage[ch];
-            adcData.channelId        = ch;
-            return adcData;
-        });
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_DPL_PORT));
+
     dplPressure = new MPXH6400A(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
@@ -256,33 +240,52 @@ void Sensors::dplPressureInit()
     LOG_INFO(logger, "Deployment pressure sensor setup done!");
 }
 
+void Sensors::loadCellInit()
+{
+    function<ADCData()> getVoltage(
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_LOAD_CELL));
+
+    loadCell =
+        new AnalogLoadCell(getVoltage, LOAD_CELL_MV_TO_V, LOAD_CELL_FULL_SCALE,
+                           LOAD_CELL_SUPPLY_VOLTAGE);
+
+    SensorInfo info("LOAD_CELL", SAMPLE_PERIOD_ADC_ADS131M04,
+                    [&]()
+                    { Logger::getInstance().log(loadCell->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+
+    LOG_INFO(logger, "Load cell sensor setup done!");
+}
+
+void Sensors::batteryVoltageInit()
+{
+    function<ADCData()> getVoltage(
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_VBAT));
+    batteryVoltage =
+        new BatteryVoltageSensor(getVoltage, BATTERY_VOLTAGE_COEFF);
+
+    SensorInfo info(
+        "BATTERY_VOLTAGE", SAMPLE_PERIOD_ADC_ADS131M04,
+        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+
+    LOG_INFO(logger, "Battery voltage sensor setup done!");
+}
+
 void Sensors::internalAdcInit()
 {
     internalAdc = new InternalADC(ADC3, INTERNAL_ADC_VREF);
 
-    internalAdc->enableChannel(ADC_BATTERY_VOLTAGE_CHANNEL);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_5V_CURRENT);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_CURRENT);
 
     SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC);
 
     sensorsMap.emplace(std::make_pair(internalAdc, info));
 
     LOG_INFO(logger, "Internal ADC setup done!");
-}
-
-void Sensors::batteryVoltageInit()
-{
-    function<ADCData()> voltage_fun(bind(&InternalADC::getVoltage, internalAdc,
-                                         ADC_BATTERY_VOLTAGE_CHANNEL));
-    batteryVoltage =
-        new BatteryVoltageSensor(voltage_fun, BATTERY_VOLTAGE_COEFF);
-
-    SensorInfo info(
-        "BATTERY_VOLTAGE", SAMPLE_PERIOD_INTERNAL_ADC,
-        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
-
-    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
-
-    LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
 }  // namespace Main
