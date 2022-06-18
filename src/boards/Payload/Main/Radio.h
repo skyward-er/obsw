@@ -22,6 +22,7 @@
 #pragma once
 
 #include <Payload/TelemetriesTelecommands/Mavlink.h>
+#include <Payload/TelemetriesTelecommands/TMRepository.h>
 #include <common/events/Events.h>
 #include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>

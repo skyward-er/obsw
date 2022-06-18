@@ -74,7 +74,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 {
 }
 
-bool Radio::sendTelemetry(const uint8_t tmId) {}
+bool Radio::sendTelemetry(const uint8_t tmId) { return false; }
 
 void Radio::sendAck(const mavlink_message_t& msg)
 {

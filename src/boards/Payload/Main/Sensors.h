@@ -32,9 +32,9 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSerial.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
-#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130A.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
 
 namespace Payload
 {

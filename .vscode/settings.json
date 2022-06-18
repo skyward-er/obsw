@@ -97,5 +97,6 @@
         "Gpio",
         "leds",
         "miosix"
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "Enabled"
 }

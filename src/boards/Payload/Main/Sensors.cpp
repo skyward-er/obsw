@@ -30,6 +30,16 @@
 using namespace Boardcore;
 using namespace std;
 
+// BMX160 Watermark interrupt
+void __attribute__((used)) EXTI5_IRQHandlerImpl()
+{
+    if (Payload::Payload::getInstance().sensors->imuBMX160 != nullptr)
+    {
+        Payload::Payload::getInstance().sensors->imuBMX160->IRQupdateTimestamp(
+            TimestampTimer::getTimestamp());
+    }
+}
+
 namespace Payload
 {
 Sensors::Sensors(SPIBusInterface& spiBus, TaskScheduler* scheduler)
@@ -47,7 +57,8 @@ Sensors::Sensors(SPIBusInterface& spiBus, TaskScheduler* scheduler)
     pitotPressureInit();
     dplVanePressureInit();
     staticPortPressureInit();
-    gpsUbloxInit();
+    // TODO UNCOMMENT THIS
+    //  gpsUbloxInit();
     internalAdcInit();
     batteryVoltageInit();
 
@@ -77,10 +88,6 @@ bool Sensors::start()
     miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
     enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
                             InterruptTrigger::FALLING_EDGE, 0);
-
-    // Start the GPS
-    // TODO uncomment this line with the SERIAL driver
-    // gpsUblox->start();
 
     // Start all the sensors, record the result and log it
     bool startResult = sensorManager->start();
@@ -236,7 +243,7 @@ void Sensors::dplVanePressureInit()
     // Create the sensor info
     SensorInfo info("DeploymentBarometer", DPL_PRESS_SAMPLE_PERIOD,
                     bind(&Sensors::dplVanePressureCallback, this));
-    sensorsMap.emplace(make_pair(dplVanePressure, this));
+    sensorsMap.emplace(make_pair(dplVanePressure, info));
 
     LOG_INFO(logger, "Deployment pressure sensor setup done!");
 }
@@ -382,5 +389,41 @@ void Sensors::gpsUbloxInit()
 /**
  * CALLBACKS
  */
+void Sensors::internalAdcCallback() {}
+
+void Sensors::batteryVoltageCallback() {}
+
+void Sensors::digitalPressureCallback() {}
+
+void Sensors::adcADS1118Callback() {}
+
+void Sensors::dplVanePressureCallback() {}
+
+void Sensors::staticPortPressureCallback() {}
+
+void Sensors::pitotPressureCallback() {}
+
+void Sensors::imuBMX160Callback()
+{
+    Boardcore::BMX160Data data = imuBMX160->getLastSample();
+
+    TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
+          data.accelerationZ);
+}
+
+void Sensors::correctedImuBMX160Callback()
+{
+    // Boardcore::BMX160WithCorrectionData data =
+    //     correctedImuBMX160->getLastSample();
+
+    // TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
+    //       data.accelerationZ);
+}
+
+void Sensors::magnetometerLIS3MDLCallback() {}
+
+void Sensors::gpsUbloxCallback() {}
+
+void Sensors::updateSensorsStatus() {}
 
 }  // namespace Payload

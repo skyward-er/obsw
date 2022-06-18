@@ -32,6 +32,30 @@
 namespace Payload
 {
 
+enum ThreadIds : uint8_t
+{
+    THID_ENTRYPOINT = Boardcore::THID_FIRST_AVAILABLE_ID,
+    THID_FMM_FSM,
+    THID_TMTC_FSM,
+    THID_STATS_FSM,
+    THID_ADA_FSM,
+    THID_NAS_FSM,
+    THID_TASK_SCHEDULER
+};
+
+enum TaskIDs : uint8_t
+{
+    TASK_SCHEDULER_STATS_ID = 0,
+    TASK_SENSORS_6_MS_ID    = 1,
+    TASK_SENSORS_15_MS_ID   = 2,
+    TASK_SENSORS_20_MS_ID   = 3,
+    TASK_SENSORS_24_MS_ID   = 4,
+    TASK_SENSORS_40_MS_ID   = 5,
+    TASK_SENSORS_1000_MS_ID = 6,
+    TASK_ADA_ID             = 7,
+    TASK_NAS_ID             = 9
+};
+
 /**
  * @brief This class represents the main singleton that keeps all the project
  * objects. It has all the instances and its duty is to initialize them.
@@ -55,6 +79,9 @@ public:
     // telemetry frequency change
     Boardcore::TaskScheduler* radioScheduler;
 
+    // General purpose scheduler
+    Boardcore::TaskScheduler* generalScheduler;
+
     // Collection of all the sensors. It samples it automatically through the
     // task scheduler
     Sensors* sensors;
@@ -77,7 +104,19 @@ public:
         }
 
         // Log the SDlogger status
-        SDlogger->log(SDlogger->getLoggerStats());
+        SDlogger->log(SDlogger->getStats());
+
+        // Start the general purpose scheduler
+        if (!generalScheduler->start())
+        {
+            LOG_ERR(logger, "Error starting the general purpose scheduler");
+        }
+
+        // Start the sensors scheduler
+        if (!sensorsScheduler->start())
+        {
+            LOG_ERR(logger, "Error starting the sensors scheduler");
+        }
 
         // Start the event broker
         if (!broker->start())
@@ -106,6 +145,8 @@ public:
         if (status.payloadTest != OK)
         {
             LOG_ERR(logger, "Initialization failed");
+            LOG_ERR(logger, "Sensors: {:d}, Radio: {:d}", status.sensors,
+                    status.radio);
             // TODO add event to inhibit the state machines
         }
         else
@@ -142,6 +183,10 @@ private:
         sensorsScheduler   = new Boardcore::TaskScheduler();
         algorithmScheduler = new Boardcore::TaskScheduler();
         radioScheduler     = new Boardcore::TaskScheduler();
+        generalScheduler   = new Boardcore::TaskScheduler();
+
+        // Add the task logging to the general purpose scheduler
+        addSchedulerStatsTask();
 
         // Instantiate all the SPIs
         spiInterface1 = new Boardcore::SPIBus(SPI1);
@@ -150,6 +195,28 @@ private:
         // Instantiate all the macro obsw objects
         sensors = new Sensors(*spiInterface1, sensorsScheduler);
         radio   = new Radio(*spiInterface2, radioScheduler);
+    }
+
+    void addSchedulerStatsTask()
+    {
+        // add lambda to log scheduler tasks statistics
+        generalScheduler->addTask(
+            [&]()
+            {
+                std::vector<Boardcore::TaskStatsResult> scheduler_stats =
+                    generalScheduler->getTaskStats();
+
+                for (Boardcore::TaskStatsResult stat : scheduler_stats)
+                {
+                    SDlogger->log(stat);
+                }
+
+                Boardcore::StackLogger::getInstance().updateStack(
+                    THID_TASK_SCHEDULER);
+            },
+            1000,  // 1 hz
+            TASK_SCHEDULER_STATS_ID, Boardcore::TaskScheduler::Policy::SKIP,
+            miosix::getTick());
     }
 };
 
