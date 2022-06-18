@@ -96,6 +96,12 @@ sbs_target(test-Main-ms5803 stm32f429zi_skyward_death_stack_v3)
 add_executable(test-Main-buzzer src/tests/Main/actuators/test-Main-buzzer.cpp)
 sbs_target(test-Main-buzzer stm32f429zi_skyward_death_stack_v3)
 
+add_executable(test-bmx160-calibration src/tests/Main/calibration/test-bmx160-calibration.cpp)
+sbs_target(test-bmx160-calibration stm32f429zi_skyward_death_stack_v3)
+
+add_executable(test-Main-nas src/tests/Main/test-nas.cpp)
+sbs_target(test-Main-nas stm32f429zi_skyward_death_stack_v3)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#
