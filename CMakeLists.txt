@@ -98,6 +98,9 @@ sbs_target(test-bmx160-calibration stm32f429zi_skyward_death_stack_v3)
 add_executable(test-Main-nas src/tests/Main/test-nas.cpp)
 sbs_target(test-Main-nas stm32f429zi_skyward_death_stack_v3)
 
+add_executable(test-current-sensing src/tests/Main/sensors/test-current-sensing.cpp)
+sbs_target(test-current-sensing stm32f429zi_skyward_death_stack_v3)
+
 #-----------------------------------------------------------------------------#
 #                              Parafoil Computer                              #
 #-----------------------------------------------------------------------------#
