@@ -142,7 +142,8 @@ Actuators::Actuators()
 
 Actuators::Actuators()
     : servoExpulsion(), servoAirbrakes(), led1(GpioPin{0, 0}),
-      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), led4(GpioPin{0, 0}), cutter1(GpioPin{0, 0}, cutter1Backup(GpioPin{0, 0})
+      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), led4(GpioPin{0, 0}),
+      cutter1(GpioPin{0, 0}), cutter1Backup(GpioPin{0, 0})
 {
 }
 

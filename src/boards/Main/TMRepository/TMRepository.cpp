@@ -163,14 +163,15 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
                 sensors.bmx160WithCorrection->getLastSample().magneticFieldY;
             tm.mag_z =
                 sensors.bmx160WithCorrection->getLastSample().magneticFieldZ;
-            tm.gps_fix     = 0;
-            tm.gps_lat     = 0;
-            tm.gps_lon     = 0;
-            tm.gps_alt     = 0;
-            tm.vbat        = sensors.batteryVoltage->getLastSample().batVoltage;
-            // tm.vsupply_5v  = sensors.ads131m04->getLastSample().voltage[ADC_CH_VREF];
-            tm.temperature = sensors.ms5803->getLastSample().temperature;
-            tm.pin_launch  = 0;
+            tm.gps_fix = 0;
+            tm.gps_lat = 0;
+            tm.gps_lon = 0;
+            tm.gps_alt = 0;
+            tm.vbat    = sensors.batteryVoltage->getLastSample().batVoltage;
+            // tm.vsupply_5v  =
+            // sensors.ads131m04->getLastSample().voltage[ADC_CH_VREF];
+            tm.temperature  = sensors.ms5803->getLastSample().temperature;
+            tm.pin_launch   = 0;
             tm.pin_nosecone = 0;
             tm.servo_sensor = 0;
             tm.ab_angle =

@@ -152,9 +152,9 @@ void step()
     static Vector3f magMean = Vector3f::Zero();
 
     imu->sample();
-    baro->sample();
-    auto imuData  = imu->getLastSample();
-    auto baroData = baro->getLastSample();
+    auto imuData = imu->getLastSample();
+    // baro->sample();
+    // auto baroData = baro->getLastSample();
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);
@@ -229,7 +229,7 @@ void print()
 {
     // auto baroData = baro->getLastSample();
     auto nasState = nas->getState();
-    auto imuData  = imu->getLastSample();
+    // auto imuData  = imu->getLastSample();
 
     // printf("%f, %f, %f\n", imuData.angularVelocityX,
     // imuData.angularVelocityY,
