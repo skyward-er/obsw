@@ -23,53 +23,33 @@
 #pragma once
 
 #include <drivers/canbus/CanProtocol.h>
-#include <sensors/SensorData.h>
 
 namespace common
 {
-
-class PitotMocap
+class AereoBrakes
 {
-public:
-    PitotMocap() {}
+private:
+    miosix::FastMutex m;
+    uint8_t percentage;
+    bool updated;
 
-    Boardcore::PressureData GetData()  // todo update to use pressure data
+public:
+    uint8_t GetPercentage()  // todo update to use pressure data
     {
         m.lock();
         updated = false;
         m.unlock();
-        return data;
+        return percentage;
     }
 
     bool Updated() { return updated; }
 
     void SetData(Boardcore::Canbus::CanData packet)
     {
-        // the pitot packet is a the first 4 byte pressure and the last 4
-        // timestamp
         m.lock();
-        data.pressure          = packet.payload[0] >> 32;
-        data.pressureTimestamp = packet.payload[0] & 0xffffffff;
-
-        updated = true;
+        percentage = packet.payload[0] >> 56;
+        updated    = true;
         m.unlock();
     }
-
-    Boardcore::Canbus::CanData ParseData(
-        Boardcore::PressureData
-            sample)  // code pressure and timestamp into an u_int64
-    {
-        Boardcore::Canbus::CanData tempData;
-        tempData.len = 1;
-        uint32_t temp;
-        memcpy(&temp, &(sample.pressure), sizeof(temp));
-        tempData.payload[0] = temp << 32 & sample.pressureTimestamp >> 2;
-        return tempData;
-    }
-
-private:
-    bool updated = false;
-    Boardcore::PressureData data;
-    miosix::FastMutex m;
 };
 }  // namespace common
