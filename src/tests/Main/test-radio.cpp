@@ -20,7 +20,10 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Radio/Radio.h>
+#include <Main/Sensors/Sensors.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -29,13 +32,17 @@ using namespace Main;
 
 int main()
 {
-    (void)TimestampTimer::getInstance().getTimestamp();
+    // Initialize the servo outputs
+    (void)Actuators::getInstance();
 
-    TaskScheduler *scheduler = new TaskScheduler();
-    Radio radio(scheduler);
+    // Start the sensors sampling
+    Sensors::getInstance().start();
 
-    radio.start();
-    scheduler->start();
+    // Start the radio
+    Radio::getInstance().start();
+
+    // Start the board task scheduler
+    BoardScheduler::getInstance().getScheduler().start();
 
     while (true)
         Thread::sleep(1000);

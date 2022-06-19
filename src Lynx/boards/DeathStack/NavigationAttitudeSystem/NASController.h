@@ -463,7 +463,7 @@ void NASController<IMU, Press, GPS>::setReferenceAltitude(float altitude)
 template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logStatus(NASState state)
 {
-    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getTimestamp();
     status.state     = state;
     logger.log(status);
 
@@ -474,8 +474,7 @@ template <typename IMU, typename Press, typename GPS>
 void NASController<IMU, Press, GPS>::logData()
 {
     NASKalmanState kalman_state = nas.getKalmanState();
-    kalman_state.timestamp =
-        Boardcore::TimestampTimer::getInstance().getTimestamp();
+    kalman_state.timestamp      = Boardcore::TimestampTimer::getTimestamp();
     logger.log(kalman_state);
     logger.log(nas.getLastSample());
 }

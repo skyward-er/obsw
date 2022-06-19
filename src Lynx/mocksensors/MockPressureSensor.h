@@ -45,8 +45,7 @@ public:
     {
         MockPressureData data;
 
-        data.pressureTimestamp =
-            Boardcore::TimestampTimer::getInstance().getTimestamp();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
 
         if (before_liftoff)
         {

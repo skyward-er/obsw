@@ -37,8 +37,12 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     miosix::GpioPin led1;
     miosix::GpioPin led2;
     miosix::GpioPin led3;
+    miosix::GpioPin led4;
 
-    miosix::GpioPin cutter;
+    miosix::GpioPin cutter1;
+    miosix::GpioPin cutter1Backup;
+
+    miosix::GpioPin buzzer;
 
     /**
      * @brief Moves the specified servo to the given position
@@ -61,6 +65,8 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     bool enableServo(ServosList servoId);
 
     bool disableServo(ServosList servoId);
+
+    float getServoPosition(ServosList servoId);
 
 private:
     Actuators();

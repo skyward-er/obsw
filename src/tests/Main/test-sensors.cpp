@@ -21,7 +21,7 @@
  */
 
 #include <Main/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -30,14 +30,12 @@ using namespace Main;
 
 int main()
 {
-    (void)TimestampTimer::getInstance();
-
     Logger::getInstance().start();
     Sensors::getInstance().start();
 
     while (true)
     {
-        printf("Average CPU usage: %.1f%%\n", averageCpuUtilization());
+        printf("Average CPU usage: %.1f%%\n", CpuMeter::getCpuStats().mean);
         Thread::sleep(500);
     }
 }

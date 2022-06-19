@@ -24,16 +24,26 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
-    src/boards/Main/events/EventStrings.cpp
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/TMRepository/TMRepository.cpp
-    src/boards/Main/StateMachines/AirBrakes/AirBrakesController.cpp
-    src/boards/Main/StateMachines/ApogeeDetectionAlgorithm/ADAController.cpp
-    src/boards/Main/StateMachines/Deployment/DeploymentController.cpp
-    src/boards/Main/StateMachines/NavigationAttitudeSystem/NASController.cpp
-    src/boards/Main/StateMachines/FlightStatsRecorder/FSRController.cpp
+    src/boards/Main/StateMachines/AirBrakes/AirBrakes.cpp
+    src/boards/Main/StateMachines/ADAController/ADAController.cpp
+    src/boards/Main/StateMachines/Deployment/Deployment.cpp
+    src/boards/Main/StateMachines/NASController/NASController.cpp
+    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
+)
+
+set(MAIN_COMPUTER_CATCH
+    src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Sensors/Sensors.cpp
+    src/boards/Main/StateMachines/AirBrakes/AirBrakes.cpp
+    src/boards/Main/StateMachines/ADAController/ADAController.cpp
+    src/boards/Main/StateMachines/Deployment/Deployment.cpp
+    src/boards/Main/StateMachines/NASController/NASController.cpp
+    src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
 set(PARAFOIL_COMPUTER

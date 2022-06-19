@@ -253,7 +253,7 @@ void AirBrakesControlAlgorithm<T>::begin()
 
     running = true;
 
-    begin_ts = Boardcore::TimestampTimer::getInstance().getTimestamp();
+    begin_ts = Boardcore::TimestampTimer::getTimestamp();
 
     last_input_ts = (sensor.getLastSample()).timestamp;
 
@@ -275,7 +275,7 @@ void AirBrakesControlAlgorithm<T>::step()
         alpha         = computeAlpha(input, false);
     }
 
-    uint64_t curr_ts = Boardcore::TimestampTimer::getInstance().getTimestamp();
+    uint64_t curr_ts = Boardcore::TimestampTimer::getTimestamp();
 
 #ifdef EUROC
     if (curr_ts - begin_ts <

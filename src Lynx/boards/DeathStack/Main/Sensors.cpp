@@ -45,7 +45,7 @@ void __attribute__((used)) EXTI5_IRQHandlerImpl()
     if (DeathStack::getInstance().sensors->imu_bmx160 != nullptr)
     {
         DeathStack::getInstance().sensors->imu_bmx160->IRQupdateTimestamp(
-            TimestampTimer::getInstance().getTimestamp());
+            TimestampTimer::getTimestamp());
     }
 }
 
@@ -503,8 +503,7 @@ void Sensors::pressPitotCallback()
     {
         float airspeed = sqrtf(2 * fabs(d.pressure) / rel_density);
 
-        AirSpeedPitot aspeed_data{TimestampTimer::getInstance().getTimestamp(),
-                                  airspeed};
+        AirSpeedPitot aspeed_data{TimestampTimer::getTimestamp(), airspeed};
         LoggerService::getInstance().log(aspeed_data);
     }
 }

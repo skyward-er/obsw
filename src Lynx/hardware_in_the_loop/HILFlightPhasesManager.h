@@ -65,7 +65,7 @@ struct Outcomes
 
     Outcomes() : t(0), z(0), vz(0) {}
     Outcomes(float z, float vz)
-        : t(TimestampTimer::getInstance().getTimestamp()), z(z), vz(vz)
+        : t(TimestampTimer::getTimestamp()), z(z), vz(vz)
     {
     }
 
@@ -133,7 +133,7 @@ public:
         // set true when the first packet from the simulator arrives
         if (isSetTrue(SIMULATION_STARTED))
         {
-            t_start = Boardcore::TimestampTimer::getInstance().getTimestamp();
+            t_start = Boardcore::TimestampTimer::getTimestamp();
 
             TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(SIMULATION_STARTED);
@@ -160,8 +160,7 @@ public:
         {
             if (isSetTrue(FLYING))
             {
-                t_liftoff =
-                    Boardcore::TimestampTimer::getInstance().getTimestamp();
+                t_liftoff = Boardcore::TimestampTimer::getTimestamp();
                 sEventBroker.post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
 
                 TRACE("[HIL] ------- LIFTOFF ! ------- \n");
@@ -209,7 +208,7 @@ public:
         else if (isSetTrue(SIMULATION_STOPPED))
         {
             changed_flags.push_back(SIMULATION_STOPPED);
-            t_stop = Boardcore::TimestampTimer::getInstance().getTimestamp();
+            t_stop = Boardcore::TimestampTimer::getTimestamp();
             TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
                   (double)t_stop / 1000000.0f);
             printOutcomes();

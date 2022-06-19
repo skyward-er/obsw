@@ -53,7 +53,7 @@ void ADAAlgorithm::updateBaro(float pressure)
     updatePressureKalman(pressure);
 
     // Convert filter data to altitudes & speeds
-    ada_data.timestamp    = TimestampTimer::getInstance().getTimestamp();
+    ada_data.timestamp    = TimestampTimer::getTimestamp();
     ada_data.msl_altitude = pressureToAltitude(filter.getState()(0, 0));
     ada_data.agl_altitude = altitudeMSLtoAGL(ada_data.msl_altitude);
     ada_data.vert_speed   = aeroutils::verticalSpeed(
@@ -104,7 +104,7 @@ float ADAAlgorithm::altitudeMSLtoAGL(float altitude_msl) const
 ADAKalmanState ADAAlgorithm::getKalmanState()
 {
     ADAKalmanState state;
-    state.timestamp = TimestampTimer::getInstance().getTimestamp();
+    state.timestamp = TimestampTimer::getTimestamp();
 
     state.x0 = filter.getState()(0, 0);
     state.x1 = filter.getState()(1, 0);

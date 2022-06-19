@@ -394,7 +394,7 @@ void AirBrakesController<T>::incrementallyClose()
 template <class T>
 void AirBrakesController<T>::logStatus(AirBrakesControllerState state)
 {
-    status.timestamp = Boardcore::TimestampTimer::getInstance().getTimestamp();
+    status.timestamp = Boardcore::TimestampTimer::getTimestamp();
     status.state     = state;
 
     LoggerService::getInstance().log(status);

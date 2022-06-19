@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Main/Configs/RadioConfigs.h>
+#include <Main/Configs/RadioConfig.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
@@ -32,14 +32,17 @@
 namespace Main
 {
 
-using MavDriver = Boardcore::MavlinkDriver<RadioConfigs::RADIO_PKT_LENGTH,
-                                           RadioConfigs::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfigs::RADIO_MAV_MSG_LENGTH>;
+using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
+                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
+                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
-class Radio
+class Radio : public Boardcore::Singleton<Radio>
 {
+    friend class Boardcore::Singleton<Radio>;
+
 public:
-    explicit Radio(Boardcore::TaskScheduler* scheduler);
+    Boardcore::SerialTransceiver* transceiver;
+    MavDriver* mavDriver;
 
     /**
      * @brief Called by the MavlinkDriver when a message is received.
@@ -70,6 +73,8 @@ public:
      */
     bool start();
 
+    Boardcore::MavlinkStatus getMavlinkStatus();
+
     /**
      * @brief Saves the MavlinkDriver and transceiver status.
      */
@@ -86,8 +91,7 @@ public:
     bool sendSensorsTm(const SensorsTMList tmId);
 
 private:
-    Boardcore::Transceiver* transceiver;
-    MavDriver* mavDriver;
+    Radio();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

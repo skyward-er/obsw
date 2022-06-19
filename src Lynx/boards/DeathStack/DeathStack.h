@@ -217,8 +217,7 @@ private:
     void logEvent(uint8_t event, uint8_t topic)
     {
         Boardcore::EventData ev{
-            (long long)Boardcore::TimestampTimer::getInstance().getTimestamp(),
-            event, topic};
+            (long long)Boardcore::TimestampTimer::getTimestamp(), event, topic};
         logger->log(ev);
 
 #ifdef DEBUG

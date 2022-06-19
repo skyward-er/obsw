@@ -164,7 +164,7 @@ public:
             status.setError(&ParafoilTestStatus::logger);
         }
         // Log the status
-        SDlogger->log(SDlogger->getLoggerStats());
+        SDlogger->log(SDlogger->getStats());
     }
 
 private:

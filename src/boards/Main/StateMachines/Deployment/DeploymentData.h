@@ -30,18 +30,18 @@
 namespace Main
 {
 
-enum DeploymentControllerState : uint8_t
+enum DeploymentState : uint8_t
 {
     INIT = 0,
     IDLE,
     NOSECONE_EJECTION,
-    CUTTING,
+    CUTTING
 };
 
-struct DeploymentControllerStatus
+struct DeploymentStatus
 {
     uint64_t timestamp;
-    DeploymentControllerState state;
+    DeploymentState state;
 
     static std::string header() { return "timestamp,state\n"; }
 

@@ -24,7 +24,7 @@
 // test them synchronously
 #define protected public
 
-#include <Main/StateMachines/NavigationAttitudeSystem/NASController.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <Main/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
@@ -41,9 +41,7 @@ public:
     // This is called at the beginning of each test / section
     NASControllerFixture()
     {
-        // cppcheck-suppress noCopyConstructor
-        // cppcheck-suppress noOperatorEq
-        controller = new NASController();
+        controller = &NASController::getInstance();
         EventBroker::getInstance().start();
         controller->start();
     }
@@ -54,14 +52,14 @@ public:
         controller->stop();
         EventBroker::getInstance().unsubscribe(controller);
         EventBroker::getInstance().clearDelayedEvents();
-        delete controller;
     }
 
 protected:
     NASController* controller;
 };
 
-TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from idle")
+TEST_CASE_METHOD(NASControllerFixture,
+                 "NASController - Testing transitions from idle")
 {
     controller->transition(&NASController::state_idle);
 
@@ -73,7 +71,7 @@ TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from idle")
 }
 
 TEST_CASE_METHOD(NASControllerFixture,
-                 "NAS - Testing transitions from calibrating")
+                 "NASController - Testing transitions from calibrating")
 {
     controller->transition(&NASController::state_calibrating);
 
@@ -84,7 +82,8 @@ TEST_CASE_METHOD(NASControllerFixture,
     }
 }
 
-TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from ready")
+TEST_CASE_METHOD(NASControllerFixture,
+                 "NASController - Testing transitions from ready")
 {
     controller->transition(&NASController::state_ready);
 
@@ -101,7 +100,8 @@ TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from ready")
     }
 }
 
-TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from active")
+TEST_CASE_METHOD(NASControllerFixture,
+                 "NASController - Testing transitions from active")
 {
     controller->transition(&NASController::state_active);
 
@@ -112,7 +112,8 @@ TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from active")
     }
 }
 
-TEST_CASE_METHOD(NASControllerFixture, "NAS - Testing transitions from end")
+TEST_CASE_METHOD(NASControllerFixture,
+                 "NASController - Testing transitions from end")
 {
     controller->transition(&NASController::state_end);
 }

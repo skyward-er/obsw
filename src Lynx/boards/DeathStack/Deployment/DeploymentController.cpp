@@ -49,7 +49,7 @@ DeploymentController::~DeploymentController()
 
 void DeploymentController::logStatus(DeploymentControllerState current_state)
 {
-    status.timestamp      = TimestampTimer::getInstance().getTimestamp();
+    status.timestamp      = TimestampTimer::getTimestamp();
     status.state          = current_state;
     status.servo_position = ejection_servo->getCurrentPosition();
     if (current_state == DeploymentControllerState::CUTTING)

@@ -47,7 +47,7 @@ public:
         }
 
         MockIMUData data;
-        uint64_t t = Boardcore::TimestampTimer::getInstance().getTimestamp();
+        uint64_t t = Boardcore::TimestampTimer::getTimestamp();
 
         data.accelerationTimestamp = t;
         data.accelerationX         = ACCEL_DATA[index][0];

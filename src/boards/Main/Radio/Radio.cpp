@@ -23,36 +23,26 @@
 #include "Radio.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <Main/events/Events.h>
+#include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
+#include <radio/Xbee/ATCommands.h>
 
 #include <functional>
 
 using namespace std;
+using namespace miosix;
 using namespace placeholders;
 using namespace Boardcore;
-using namespace Main::RadioConfigs;
+using namespace Main::RadioConfig;
+
+// TODO: Add transceiver interrupt
 
 namespace Main
 {
-
-Radio::Radio(Boardcore::TaskScheduler* scheduler)
-{
-    // cppcheck-suppress noCopyConstructor
-    // cppcheck-suppress noOperatorEq
-    transceiver = new SerialTransceiver(Buses::getInstance().uart4);
-    mavDriver   = new MavDriver(transceiver,
-                                bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                                0, MAV_OUT_BUFFER_MAX_AGE);
-
-    // Add to the scheduler the flight and statistics telemetries
-    scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
-                       FLIGHT_TM_ID);
-    scheduler->addTask([=]() { sendSystemTm(MAV_FLIGHT_STATS_ID); },
-                       FLIGHT_STATS_TM_PERIOD, FLIGHT_STATS_TM_ID);
-}
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
@@ -73,7 +63,44 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         {
             SystemTMList tmId = static_cast<SystemTMList>(
                 mavlink_msg_system_telemetry_request_tc_get_tm_id(&msg));
-            sendSystemTm(tmId);
+
+            // Send multiple packets for the TASK STATS telemetry
+            switch (tmId)
+            {
+                case SystemTMList::MAV_TASK_STATS_ID:
+                {
+                    auto statsVector = BoardScheduler::getInstance()
+                                           .getScheduler()
+                                           .getTaskStats();
+                    uint64_t timestamp = TimestampTimer::getTimestamp();
+
+                    for (auto stats : statsVector)
+                    {
+                        mavlink_message_t msgToSend;
+                        mavlink_task_stats_tm_t tm;
+
+                        tm.timestamp   = timestamp;
+                        tm.task_id     = stats.id;
+                        tm.task_period = stats.period;
+                        tm.task_min    = stats.periodStats.minValue;
+                        tm.task_max    = stats.periodStats.maxValue;
+                        tm.task_mean   = stats.periodStats.mean;
+                        tm.task_stddev = stats.periodStats.stdDev;
+
+                        mavlink_msg_task_stats_tm_encode(
+                            RadioConfig::MAV_SYSTEM_ID,
+                            RadioConfig::MAV_COMPONENT_ID, &msgToSend, &tm);
+
+                        mavDriver->enqueueMsg(msgToSend);
+                    }
+                    break;
+                }
+                default:
+                {
+                    sendSystemTm(tmId);
+                    break;
+                }
+            }
 
             LOG_DEBUG(logger, "Received system telemetry request, id: {}",
                       tmId);
@@ -288,13 +315,11 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         case MAV_CMD_START_LOGGING:
             LOG_DEBUG(logger, "Received command start logging");
-
-            // TODO: Apply command
+            Logger::getInstance().start();
             break;
         case MAV_CMD_CLOSE_LOG:
             LOG_DEBUG(logger, "Received command close log");
-
-            // TODO: Apply command
+            Logger::getInstance().stop();
             break;
         case MAV_CMD_TEST_MODE:
             LOG_DEBUG(logger, "Received command test mode");
@@ -339,20 +364,21 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 bool Radio::start() { return mavDriver->start(); }
 
+Boardcore::MavlinkStatus Radio::getMavlinkStatus()
+{
+    return mavDriver->getStatus();
+}
+
 void Radio::logStatus()
 {
-    auto status      = mavDriver->getStatus();
-    status.timestamp = TimestampTimer::getInstance().getTimestamp();
-    Logger::getInstance().log(status);
+    Logger::getInstance().log(mavDriver->getStatus());
     // TODO: Add transceiver status logging
-    // Logger::getInstance().log(transceiver->getStatus());
 }
 
 bool Radio::sendSystemTm(const SystemTMList tmId)
 {
     bool result =
         mavDriver->enqueueMsg(TMRepository::getInstance().packSystemTm(tmId));
-    logStatus();
     return result;
 }
 
@@ -360,8 +386,26 @@ bool Radio::sendSensorsTm(const SensorsTMList tmId)
 {
     bool result =
         mavDriver->enqueueMsg(TMRepository::getInstance().packSensorsTm(tmId));
-    logStatus();
     return result;
+}
+
+Radio::Radio()
+{
+    transceiver = new SerialTransceiver(Buses::getInstance().uart4);
+
+    mavDriver = new MavDriver(transceiver,
+                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                              0, MAV_OUT_BUFFER_MAX_AGE);
+
+    // Add to the scheduler the flight and statistics telemetries
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
+        FLIGHT_TM_TASK_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
+        STATS_TM_TASK_ID);
+
+    // TODO: Enable transceiver interrupt
 }
 
 }  // namespace Main

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Main/Configs/RadioConfigs.h>
+#include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Mavlink.h>
 #include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
