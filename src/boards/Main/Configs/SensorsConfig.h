@@ -24,7 +24,7 @@
 
 #include <drivers/adc/InternalADC.h>
 #include <interfaces-impl/hwmapping.h>
-#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/calibration/AxisOrientation.h>
@@ -36,56 +36,36 @@ namespace Main
 namespace SensorConfigs
 {
 static constexpr float INTERNAL_ADC_VREF = 3.3;
-static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE_CHANNEL =
-    Boardcore::InternalADC::Channel::CH5;
+static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_5V_CURRENT =
+    Boardcore::InternalADC::Channel::CH11;
+static constexpr Boardcore::InternalADC::Channel
+    INTERNAL_ADC_CH_CUTTER_CURRENT = Boardcore::InternalADC::Channel::CH12;
 
 static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
 static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
 
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
-    Boardcore::ADS1118::MUX_AIN0_GND;
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
-    Boardcore::ADS1118::MUX_AIN1_GND;
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
-    Boardcore::ADS1118::MUX_AIN2_GND;
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_VREF =
-    Boardcore::ADS1118::MUX_AIN3_GND;
-
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
-    Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
-    Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
-    Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_VREF =
-    Boardcore::ADS1118::DR_860;
-
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_VREF =
-    Boardcore::ADS1118::FSR_6_144;
+static constexpr Boardcore::ADS131M04::Channel ADC_CH_STATIC_PORT =
+    Boardcore::ADS131M04::Channel::CHANNEL_0;
+static constexpr Boardcore::ADS131M04::Channel ADC_CH_DPL_PORT =
+    Boardcore::ADS131M04::Channel::CHANNEL_1;
+static constexpr Boardcore::ADS131M04::Channel ADC_CH_LOAD_CELL =
+    Boardcore::ADS131M04::Channel::CHANNEL_2;
+static constexpr Boardcore::ADS131M04::Channel ADC_CH_VBAT =
+    Boardcore::ADS131M04::Channel::CHANNEL_3;
 
 // Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC =
-    1000;  // only for battery voltage
-static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS1118 = 6;
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1;
 
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
 static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
 
-static constexpr unsigned int SAMPLE_PERIOD_PITOT =
-    SAMPLE_PERIOD_ADC_ADS1118 * 4;
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_DPL =
-    SAMPLE_PERIOD_ADC_ADS1118 * 4;
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_STATIC =
-    SAMPLE_PERIOD_ADC_ADS1118 * 4;
+// Load cell
+static constexpr float LOAD_CELL_MV_TO_V           = 2;   // [mV/V]
+static constexpr unsigned int LOAD_CELL_FULL_SCALE = 10;  // [Kg]
+static constexpr float LOAD_CELL_SUPPLY_VOLTAGE    = 5;   // [V]
 
-static constexpr float PRESS_STATIC_MOVING_AVG_COEFF = 0.95;
-
+// BMX160
 static constexpr Boardcore::BMX160Config::AccelerometerRange
     IMU_BMX_ACC_FULLSCALE_ENUM =
         Boardcore::BMX160Config::AccelerometerRange::G_16;
@@ -133,13 +113,11 @@ static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
-static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS = 15;
-static constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
-    Boardcore::LIS3MDL::ODR_80_HZ;
-static constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
-    Boardcore::LIS3MDL::FS_4_GAUSS;
+// MPU9250
+static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU = 50;
 
-static constexpr unsigned int GPS_SAMPLE_RATE   = 25;
+// GPS
+static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
 static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
 static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 

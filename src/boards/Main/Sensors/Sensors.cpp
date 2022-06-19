@@ -32,7 +32,7 @@ using namespace Boardcore;
 using namespace Main::SensorConfigs;
 
 // BMX160 Watermark interrupt
-void __attribute__((used)) EXTI5_IRQHandlerImpl()
+void __attribute__((used)) EXTI3_IRQHandlerImpl()
 {
     if (Main::Sensors::getInstance().bmx160 != nullptr)
         Main::Sensors::getInstance().bmx160->IRQupdateTimestamp(
@@ -56,16 +56,14 @@ Sensors::Sensors()
     // Initialize all the sensors
     bmx160Init();
     bmx160WithCorrectionInit();
-    lis3mdlInit();
+    mpu9250Init();
     ms5803Init();
-    // ubxGpsInit();
-    ads1118Init();
+    ads131m04Init();
     staticPressureInit();
     dplPressureInit();
-    pitotPressureInit();
-    pitotInit();
-    internalAdcInit();
+    loadCellInit();
     batteryVoltageInit();
+    // internalAdcInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
@@ -74,13 +72,12 @@ Sensors::Sensors()
 Sensors::~Sensors()
 {
     delete bmx160;
-    delete lis3mdl;
+    delete bmx160WithCorrection;
+    delete mpu9250;
     delete ms5803;
-    delete ubxGps;
-    delete ads1118;
+    delete ads131m04;
     delete staticPressure;
     delete dplPressure;
-    delete pitotPressure;
     delete internalAdc;
     delete batteryVoltage;
 
@@ -110,7 +107,7 @@ void Sensors::bmx160Init()
     config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     bmx160 =
-        new BMX160(Buses::getInstance().spi1,
+        new BMX160(Buses::getInstance().spi4,
                    miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
 
     SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
@@ -154,27 +151,17 @@ void Sensors::bmx160WithCorrectionInit()
     LOG_INFO(logger, "BMX160WithCorrection setup done!");
 }
 
-void Sensors::lis3mdlInit()
+void Sensors::mpu9250Init()
 {
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    mpu9250 =
+        new MPU9250(Buses::getInstance().spi4, sensors::mpu9250::cs::getPin());
 
-    LIS3MDL::Config config;
-    config.odr                = MAG_LIS_ODR_ENUM;
-    config.scale              = MAG_LIS_FULLSCALE;
-    config.temperatureDivider = 1;
+    SensorInfo info("MPU9250", SAMPLE_PERIOD_IMU_MPU,
+                    bind(&Sensors::bmx160Callback, this));
 
-    lis3mdl =
-        new LIS3MDL(Buses::getInstance().spi1,
-                    miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
+    sensorsMap.emplace(std::make_pair(mpu9250, info));
 
-    SensorInfo info("LIS3MDL", SAMPLE_PERIOD_MAG_LIS,
-                    [&]()
-                    { Logger::getInstance().log(lis3mdl->getLastSample()); });
-
-    sensorsMap.emplace(std::make_pair(lis3mdl, info));
-
-    LOG_INFO(logger, "LIS3MDL setup done!");
+    LOG_INFO(logger, "MPU9250 setup done!");
 }
 
 void Sensors::ms5803Init()
@@ -183,7 +170,7 @@ void Sensors::ms5803Init()
     spiConfig.mode         = SPI::Mode::MODE_3;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    ms5803 = new MS5803(Buses::getInstance().spi1,
+    ms5803 = new MS5803(Buses::getInstance().spi2,
                         miosix::sensors::ms5803::cs::getPin(), spiConfig,
                         TEMP_DIVIDER_PRESS_DIGITAL);
 
@@ -196,55 +183,40 @@ void Sensors::ms5803Init()
     LOG_INFO(logger, "MS5803 setup done!");
 }
 
-void Sensors::ubxGpsInit()
+void Sensors::ads131m04Init()
 {
-    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE);
-
-    SensorInfo info("UBXGPS", GPS_SAMPLE_PERIOD,
-                    [&]()
-                    { Logger::getInstance().log(ubxGps->getLastSample()); });
-
-    sensorsMap.emplace(std::make_pair(ubxGps, info));
-
-    LOG_INFO(logger, "UBXGPS setup done!");
-}
-
-void Sensors::ads1118Init()
-{
-    SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
+    SPIBusConfig spiConfig = ADS131M04::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ADS1118::ADS1118Config config = ADS1118::ADS1118_DEFAULT_CONFIG;
-    config.bits.mode              = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
+    ads131m04 =
+        new ADS131M04(Buses::getInstance().spi1,
+                      miosix::sensors::ads131m04::cs1::getPin(), spiConfig);
 
-    ads1118 =
-        new ADS1118(Buses::getInstance().spi1,
-                    miosix::sensors::ads1118::cs::getPin(), config, spiConfig);
+    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_0);
+    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_1);
+    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_2);
+    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_3);
+    ads131m04->enableGlobalChopMode();
+    ads131m04->setOversamplingRatio(ADS131M04::OversamplingRatio::OSR_4096);
 
-    ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
-                         ADC_PGA_STATIC_PORT);
-    ads1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
-                         ADC_PGA_PITOT_PORT);
-    ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT, ADC_PGA_DPL_PORT);
-    ads1118->enableInput(ADC_CH_VREF, ADC_DR_VREF, ADC_PGA_VREF);
-
-    SensorInfo info("ADS1118", SAMPLE_PERIOD_ADC_ADS1118,
+    SensorInfo info("ADS131M04", SAMPLE_PERIOD_ADC_ADS131M04,
                     [&]()
-                    { Logger::getInstance().log(ads1118->getLastSample()); });
+                    { Logger::getInstance().log(ads131m04->getLastSample()); });
 
-    sensorsMap.emplace(std::make_pair(ads1118, info));
+    sensorsMap.emplace(std::make_pair(ads131m04, info));
 
-    LOG_INFO(logger, "ADS1118 setup done!");
+    LOG_INFO(logger, "ADS131M04 setup done!");
 }
 
 void Sensors::staticPressureInit()
 {
     function<ADCData()> getVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_STATIC_PORT));
-    staticPressure = new MPXHZ6130A(getVoltage, REFERENCE_VOLTAGE);
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_STATIC_PORT));
+
+    staticPressure = new MPXH6115A(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "STATIC_PRESSURE", SAMPLE_PERIOD_PRESS_STATIC,
+        "STATIC_PRESSURE", SAMPLE_PERIOD_ADC_ADS131M04,
         [&]() { Logger::getInstance().log(staticPressure->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(staticPressure, info));
@@ -255,11 +227,12 @@ void Sensors::staticPressureInit()
 void Sensors::dplPressureInit()
 {
     function<ADCData()> getVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_DPL_PORT));
-    dplPressure = new SSCDANN030PAA(getVoltage, REFERENCE_VOLTAGE);
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_DPL_PORT));
+
+    dplPressure = new MPXH6400A(getVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "DPL_PRESSURE", SAMPLE_PERIOD_PRESS_DPL,
+        "DPL_PRESSURE", SAMPLE_PERIOD_ADC_ADS131M04,
         [&]() { Logger::getInstance().log(dplPressure->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(dplPressure, info));
@@ -267,65 +240,52 @@ void Sensors::dplPressureInit()
     LOG_INFO(logger, "Deployment pressure sensor setup done!");
 }
 
-void Sensors::pitotPressureInit()
+void Sensors::loadCellInit()
 {
     function<ADCData()> getVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_PITOT_PORT));
-    pitotPressure = new SSCDRRN015PDA(getVoltage, REFERENCE_VOLTAGE);
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_LOAD_CELL));
 
-    SensorInfo info(
-        "PITOT_PRESSURE", SAMPLE_PERIOD_PITOT,
-        [&]() { Logger::getInstance().log(pitotPressure->getLastSample()); });
+    loadCell =
+        new AnalogLoadCell(getVoltage, LOAD_CELL_MV_TO_V, LOAD_CELL_FULL_SCALE,
+                           LOAD_CELL_SUPPLY_VOLTAGE);
 
-    sensorsMap.emplace(std::make_pair(pitotPressure, info));
+    SensorInfo info("LOAD_CELL", SAMPLE_PERIOD_ADC_ADS131M04,
+                    [&]()
+                    { Logger::getInstance().log(loadCell->getLastSample()); });
 
-    LOG_INFO(logger, "Pitot pressure sensor setup done!");
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+
+    LOG_INFO(logger, "Load cell sensor setup done!");
 }
 
-void Sensors::pitotInit()
+void Sensors::batteryVoltageInit()
 {
-    function<PressureData()> getPitotPressure(
-        bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
-    function<float()> getStaticPressure(
-        [&]() { return ms5803->getLastSample().pressure; });
-    pitot = new Pitot(getPitotPressure, getStaticPressure);
+    function<ADCData()> getVoltage(
+        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_VBAT));
+    batteryVoltage =
+        new BatteryVoltageSensor(getVoltage, BATTERY_VOLTAGE_COEFF);
 
-    SensorInfo info("PITOT", SAMPLE_PERIOD_PITOT,
-                    [&]()
-                    { Logger::getInstance().log(pitot->getLastSample()); });
+    SensorInfo info(
+        "BATTERY_VOLTAGE", SAMPLE_PERIOD_ADC_ADS131M04,
+        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
 
-    sensorsMap.emplace(std::make_pair(pitot, info));
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
 
-    LOG_INFO(logger, "Pitot sensor setup done!");
+    LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
 void Sensors::internalAdcInit()
 {
     internalAdc = new InternalADC(ADC3, INTERNAL_ADC_VREF);
 
-    internalAdc->enableChannel(ADC_BATTERY_VOLTAGE_CHANNEL);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_5V_CURRENT);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_CURRENT);
 
     SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC);
 
     sensorsMap.emplace(std::make_pair(internalAdc, info));
 
     LOG_INFO(logger, "Internal ADC setup done!");
-}
-
-void Sensors::batteryVoltageInit()
-{
-    function<ADCData()> voltage_fun(bind(&InternalADC::getVoltage, internalAdc,
-                                         ADC_BATTERY_VOLTAGE_CHANNEL));
-    batteryVoltage =
-        new BatteryVoltageSensor(voltage_fun, BATTERY_VOLTAGE_COEFF);
-
-    SensorInfo info(
-        "BATTERY_VOLTAGE", SAMPLE_PERIOD_INTERNAL_ADC,
-        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
-
-    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
-
-    LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
 }  // namespace Main

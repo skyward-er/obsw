@@ -24,7 +24,7 @@
 
 #include <Main/Configs/RadioConfigs.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/Xbee/Xbee.h>
+#include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
 
 #include "Mavlink.h"
@@ -41,7 +41,7 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-    Boardcore::Xbee::Xbee* xbee;
+    Boardcore::SerialTransceiver* transceiver;
     MavDriver* mavDriver;
 
     /**

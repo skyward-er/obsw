@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Alberto Nidasio, Arturo Benedetti
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,50 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
 
-#include <ostream>
+#include "drivers/usart/USART.h"
 
-namespace Boardcore
+int menu();
+
+void testSerialDebug()
 {
+    iprintf(
+        "If you are seeing the menu why whould you test this?! you f***g "
+        "donkey!\n\n");
+}
 
-struct PitotData
+void testGPIOInput(::miosix::GpioPin pin);
+
+int main()
 {
-    uint64_t timestamp;
-    float airspeed;
-
-    static std::string header() { return "timestamp,airspeed\n"; }
-
-    void print(std::ostream& os) const
+    while (true)
     {
-        os << timestamp << "," << airspeed << "\n";
+        switch (menu())
+        {
+            case 1:
+                testSerialDebug();
+                break;
+            case 99:
+                return 0;
+        }
     }
-};
 
-}  // namespace Boardcore
+    return 0;
+}
+
+int menu()
+{
+    string temp;
+    int choice;
+
+    iprintf(
+        "Type:\n"
+        " 1. for debug-serial test\n"
+        " 99. go back\n");
+    iprintf("\n>> ");
+    getline(cin, temp);
+    stringstream(temp) >> choice;
+
+    return choice;
+}

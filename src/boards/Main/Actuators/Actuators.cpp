@@ -44,7 +44,6 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(angle / DPL_SERVO_ROTATION);
             break;
-
         default:
             return false;
     }
@@ -66,7 +65,6 @@ bool Actuators::wiggleServo(ServosList servoId)
             Thread::sleep(1000);
             servoExpulsion.setPosition(0);
             break;
-
         default:
             return false;
     }
@@ -84,7 +82,6 @@ bool Actuators::enableServo(ServosList servoId)
         case EXPULSION_SERVO:
             servoExpulsion.enable();
             break;
-
         default:
             return false;
     }
@@ -102,7 +99,6 @@ bool Actuators::disableServo(ServosList servoId)
         case EXPULSION_SERVO:
             servoAirbrakes.enable();
             break;
-
         default:
             return false;
     }
@@ -119,7 +115,6 @@ float Actuators::getServoPosition(ServosList servoId)
             return servoAirbrakes.getPosition();
         case EXPULSION_SERVO:
             return servoExpulsion.getPosition();
-
         default:
             return 0;
     }
@@ -127,27 +122,18 @@ float Actuators::getServoPosition(ServosList servoId)
     return 0;
 }
 
-#ifndef COMPILE_FOR_HOST
-
 Actuators::Actuators()
-    : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
-      led3(leds::led_blue1::getPin()),
-      cutter(actuators::nosecone::thermal_cutter_1::enable::getPin()),
+    : led1(leds::led_green1::getPin()), led2(leds::led_red::getPin()),
+      led3(leds::led_blue::getPin()), led4(leds::led_green2::getPin()),
+      cutter1(actuators::nosecone::thermal_cutter_1::enable::getPin()),
+      cutter1Backup(
+          actuators::nosecone::thermal_cutter_1_backup::enable::getPin()),
+      buzzer(buzzer::drive::getPin()),
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
                      DPL_SERVO_MAX_PULSE)
 {
 }
-
-#else
-
-Actuators::Actuators()
-    : servoExpulsion(), servoAirbrakes(), led1(GpioPin{0, 0}),
-      led2(GpioPin{0, 0}), led3(GpioPin{0, 0}), cutter(GpioPin{0, 0})
-{
-}
-
-#endif
 
 }  // namespace Main
