@@ -29,7 +29,7 @@
 using namespace std;
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::SensorConfigs;
+using namespace Main::SensorsConfig;
 
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI3_IRQHandlerImpl()

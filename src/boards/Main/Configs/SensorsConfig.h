@@ -33,7 +33,7 @@
 namespace Main
 {
 
-namespace SensorConfigs
+namespace SensorsConfig
 {
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_5V_CURRENT =
@@ -123,6 +123,6 @@ static constexpr unsigned int GPS_BAUD_RATE     = 460800;
 
 static constexpr float REFERENCE_VOLTAGE = 5.0;
 
-}  // namespace SensorConfigs
+}  // namespace SensorsConfig
 
 }  // namespace Main

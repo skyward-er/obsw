@@ -37,7 +37,7 @@ using namespace std;
 using namespace miosix;
 using namespace placeholders;
 using namespace Boardcore;
-using namespace Main::RadioConfigs;
+using namespace Main::RadioConfig;
 
 // TODO: Add transceiver interrupt
 
@@ -88,8 +88,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                         tm.task_stddev = stats.periodStats.stdDev;
 
                         mavlink_msg_task_stats_tm_encode(
-                            RadioConfigs::MAV_SYSTEM_ID,
-                            RadioConfigs::MAV_COMPONENT_ID, &msgToSend, &tm);
+                            RadioConfig::MAV_SYSTEM_ID,
+                            RadioConfig::MAV_COMPONENT_ID, &msgToSend, &tm);
 
                         mavDriver->enqueueMsg(msgToSend);
                     }

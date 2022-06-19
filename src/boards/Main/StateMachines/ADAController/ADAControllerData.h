@@ -45,6 +45,32 @@ enum ADAControllerState : uint8_t
 
 struct ADAControllerStatus
 {
+    uint64_t timestamp       = 0;
+    ADAControllerState state = IDLE;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
+struct ApogeeEvent
+{
+    uint64_t timestamp;
+    ADAControllerState state;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
+struct DeploymentEvent
+{
     uint64_t timestamp;
     ADAControllerState state;
 

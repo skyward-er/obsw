@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Configs/RadioConfigs.h>
+#include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Mavlink.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
@@ -31,7 +31,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
-using namespace RadioConfigs;
+using namespace RadioConfig;
 
 using MavDriver =
     Boardcore::MavlinkDriver<RADIO_PKT_LENGTH, RADIO_OUT_QUEUE_SIZE,

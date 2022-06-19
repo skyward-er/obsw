@@ -29,7 +29,7 @@
 namespace Main
 {
 
-namespace RadioConfigs
+namespace RadioConfig
 {
 
 // Mavlink driver template parameters
@@ -56,6 +56,6 @@ constexpr uint32_t FLIGHT_STATS_TM_PERIOD = 2000;  // [ms]
 constexpr uint8_t FLIGHT_TM_TASK_ID = 200;
 constexpr uint8_t STATS_TM_TASK_ID  = 201;
 
-}  // namespace RadioConfigs
+}  // namespace RadioConfig
 
 }  // namespace Main

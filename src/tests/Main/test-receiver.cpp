@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Configs/RadioConfigs.h>
+#include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Mavlink.h>
 #include <miosix.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
@@ -30,9 +30,9 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
 
-using MavDriver = Boardcore::MavlinkDriver<RadioConfigs::RADIO_PKT_LENGTH,
-                                           RadioConfigs::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfigs::RADIO_MAV_MSG_LENGTH>;
+using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
+                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
+                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
 void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 

@@ -61,7 +61,8 @@ int main()
 {
     init();
 
-    nas              = new NAS(getEKConfig());
+    nas = new NAS(getEKConfig());
+    nas->setReferenceValues({0, 0, 0, 110000, 20 + 273.5});
     stateInitializer = new StateInitializer();
     setInitialOrientation();
 
@@ -215,8 +216,7 @@ void step()
     nas->correctMag(magneticField);
     acceleration.normalize();
     nas->correctAcc(acceleration);
-    nas->correctBaro(100000, Constants::MSL_PRESSURE,
-                     Constants::MSL_TEMPERATURE);
+    nas->correctBaro(100000);
 
     // auto nasState = nas->getState();
 

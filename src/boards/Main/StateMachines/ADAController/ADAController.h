@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <Main/Configs/ADAConfig.h>
+#include <algorithms/ADA/ADA.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -36,7 +38,13 @@ public:
     ADAController();
     ~ADAController();
 
+    bool start() override;
+
+    void update();
+
     ADAControllerStatus getStatus();
+
+    Boardcore::ADAState getAdaState();
 
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
@@ -53,7 +61,18 @@ private:
 
     void logStatus(ADAControllerState state);
 
+    Boardcore::ADA::KalmanFilter::KalmanConfig getADAKalmanConfig();
+
     void calibrate();
+
+    Boardcore::ADA ada;
+
+    uint16_t detectedApogeeEvents     = 0;
+    uint16_t detectedAbkDisableEvents = 0;
+    uint16_t detectedDeploymentEvents = 0;
+    uint16_t detectedLandingEvents    = 0;
+
+    float deploymentAltitude = ADAConfig::DEFAULT_DEPLOYMENT_ALTITUDE;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.ada");
 };

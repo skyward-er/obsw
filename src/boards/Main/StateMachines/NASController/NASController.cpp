@@ -23,7 +23,7 @@
 #include "NASController.h"
 
 #include <Main/BoardScheduler.h>
-#include <Main/Configs/NASConfigs.h>
+#include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -39,11 +39,10 @@ namespace Main
 bool NASController::start()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&NASController::update, this), NASConfigs::UPDATE_PERIOD,
+        std::bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
-    // return ActiveObject::start();
-    return true;
+    return ActiveObject::start();
 }
 
 void NASController::update()
@@ -154,7 +153,7 @@ void NASController::logStatus(NASControllerState state)
 }
 
 NASController::NASController()
-    : FSM(&NASController::state_idle), nas(NASConfigs::config)
+    : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
     memset(&status, 0, sizeof(NASControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);

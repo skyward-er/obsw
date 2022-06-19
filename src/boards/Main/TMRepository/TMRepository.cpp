@@ -33,7 +33,7 @@
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
-using namespace Main::SensorConfigs;
+using namespace Main::SensorsConfig;
 
 namespace Main
 {
@@ -78,8 +78,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.average_write_time = stats.averageWriteTime;
             tm.max_write_time     = stats.maxWriteTime;
 
-            mavlink_msg_logger_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                         RadioConfigs::MAV_COMPONENT_ID, &msg,
+            mavlink_msg_logger_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                         RadioConfig::MAV_COMPONENT_ID, &msg,
                                          &tm);
             break;
         }
@@ -103,8 +103,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.packet_rx_success_count = stats.mavStats.packet_rx_success_count;
             tm.packet_rx_drop_count    = stats.mavStats.packet_rx_drop_count;
 
-            mavlink_msg_mavlink_stats_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                                RadioConfigs::MAV_COMPONENT_ID,
+            mavlink_msg_mavlink_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                RadioConfig::MAV_COMPONENT_ID,
                                                 &msg, &tm);
             break;
         }
@@ -196,8 +196,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.nas_bias2    = nasState.bz;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
-            mavlink_msg_rocket_flight_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                                RadioConfigs::MAV_COMPONENT_ID,
+            mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                RadioConfig::MAV_COMPONENT_ID,
                                                 &msg, &tm);
             break;
         }
@@ -229,8 +229,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.main_dpl_acc          = 0;
             tm.cpu_load              = CpuMeter::getCpuStats().mean;
 
-            mavlink_msg_rocket_stats_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                               RadioConfigs::MAV_COMPONENT_ID,
+            mavlink_msg_rocket_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                               RadioConfig::MAV_COMPONENT_ID,
                                                &msg, &tm);
             break;
         }
@@ -245,8 +245,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             mavlink_nack_tm_t nack;
             nack.recv_msgid = 0;
             nack.seq_ack    = 0;
-            mavlink_msg_nack_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                       RadioConfigs::MAV_COMPONENT_ID, &msg,
+            mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                       RadioConfig::MAV_COMPONENT_ID, &msg,
                                        &nack);
             break;
         }
@@ -293,8 +293,8 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList reqTm)
             mavlink_nack_tm_t nack;
             nack.recv_msgid = 0;
             nack.seq_ack    = 0;
-            mavlink_msg_nack_tm_encode(RadioConfigs::MAV_SYSTEM_ID,
-                                       RadioConfigs::MAV_COMPONENT_ID, &msg,
+            mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                       RadioConfig::MAV_COMPONENT_ID, &msg,
                                        &nack);
             break;
     }

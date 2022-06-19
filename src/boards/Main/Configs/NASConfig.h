@@ -27,7 +27,7 @@
 namespace Main
 {
 
-namespace NASConfigs
+namespace NASConfig
 {
 
 static constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
@@ -55,6 +55,6 @@ static const Boardcore::NASConfig config = {
     nedMag                 // NED_MAG
 };
 
-}  // namespace NASConfigs
+}  // namespace NASConfig
 
 }  // namespace Main
