@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -30,12 +31,12 @@
 namespace Main
 {
 
-class Deployment : public Boardcore::FSM<Deployment>
+class Deployment : public Boardcore::FSM<Deployment>,
+                   public Boardcore::Singleton<Deployment>
 {
-public:
-    Deployment();
-    ~Deployment();
+    friend Boardcore::Singleton<Deployment>;
 
+public:
     DeploymentStatus getStatus();
 
     void state_init(const Boardcore::Event& event);
@@ -44,6 +45,9 @@ public:
     void state_cutting(const Boardcore::Event& event);
 
 private:
+    Deployment();
+    ~Deployment();
+
     DeploymentStatus status;
 
     void logStatus(DeploymentState state);

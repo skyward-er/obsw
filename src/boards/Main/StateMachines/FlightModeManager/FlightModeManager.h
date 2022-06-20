@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 
@@ -28,12 +29,12 @@
 namespace Main
 {
 
-class FlightModeManager : public Boardcore::HSM<FlightModeManager>
+class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
+                          public Boardcore::Singleton<FlightModeManager>
 {
-public:
-    FlightModeManager();
-    ~FlightModeManager();
+    friend Boardcore::Singleton<FlightModeManager>;
 
+public:
     FlightModeManagerStatus getStatus();
 
     Boardcore::State state_initialization(const Boardcore::Event& event);
@@ -78,6 +79,9 @@ public:
     Boardcore::State state_landed(const Boardcore::Event& event);
 
 private:
+    FlightModeManager();
+    ~FlightModeManager();
+
     FlightModeManagerStatus status;
 
     void logStatus(FlightModeManagerState state);

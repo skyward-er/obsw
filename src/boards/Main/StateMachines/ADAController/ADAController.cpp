@@ -37,21 +37,6 @@ using namespace Main::AirBrakesConfigs;
 namespace Main
 {
 
-ADAController::ADAController()
-    : FSM(&ADAController::state_idle),
-      ada({DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_PRESSURE,
-           DEFAULT_REFERENCE_TEMPERATURE},
-          getADAKalmanConfig())
-{
-    EventBroker::getInstance().subscribe(this, TOPIC_ADA);
-    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-}
-
-ADAController::~ADAController()
-{
-    EventBroker::getInstance().unsubscribe(this);
-}
-
 bool ADAController::start()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -67,19 +52,19 @@ void ADAController::update()
 
     switch (status.state)
     {
-        case IDLE:
+        case ADAControllerState::IDLE:
         {
         }
-        case CALIBRATING:
+        case ADAControllerState::CALIBRATING:
         {
             // TODO: Implement calibration
 
             return EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
         }
-        case READY:
+        case ADAControllerState::READY:
         {
         }
-        case SHADOW_MODE:
+        case ADAControllerState::SHADOW_MODE:
         {
             // During shadow mode DO NOT send events
 
@@ -101,7 +86,7 @@ void ADAController::update()
 
             break;
         }
-        case ACTIVE:
+        case ADAControllerState::ACTIVE:
         {
             ada.update(barometerData.pressure);
 
@@ -138,7 +123,7 @@ void ADAController::update()
 
             break;
         }
-        case PRESSURE_STABILIZATION:
+        case ADAControllerState::PRESSURE_STABILIZATION:
         {
             // During pressure stabilization DO NOT send event
 
@@ -159,7 +144,7 @@ void ADAController::update()
 
             break;
         }
-        case DROGUE_DESCENT:
+        case ADAControllerState::DROGUE_DESCENT:
         {
             ada.update(barometerData.pressure);
 
@@ -182,7 +167,7 @@ void ADAController::update()
 
             break;
         }
-        case TERMINAL_DESCENT:
+        case ADAControllerState::TERMINAL_DESCENT:
         {
             ada.update(barometerData.pressure);
 
@@ -195,7 +180,7 @@ void ADAController::update()
                                                     TOPIC_FLIGHT);
             }
         }
-        case LANDED:
+        case ADAControllerState::LANDED:
         {
         }
     }
@@ -213,7 +198,7 @@ void ADAController::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(IDLE);
+            return logStatus(ADAControllerState::IDLE);
         }
         case ADA_CALIBRATE:
         {
@@ -232,7 +217,7 @@ void ADAController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(CALIBRATING);
+            logStatus(ADAControllerState::CALIBRATING);
 
             return calibrate();
         }
@@ -253,7 +238,7 @@ void ADAController::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(READY);
+            return logStatus(ADAControllerState::READY);
         }
         case ADA_CALIBRATE:
         {
@@ -278,7 +263,7 @@ void ADAController::state_shadow_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SHADOW_MODE);
+            logStatus(ADAControllerState::SHADOW_MODE);
 
             shadowModeTimeoutEventId =
                 EventBroker::getInstance()
@@ -307,7 +292,7 @@ void ADAController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(ACTIVE);
+            return logStatus(ADAControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
         {
@@ -328,7 +313,7 @@ void ADAController::state_pressure_stabilization(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(PRESSURE_STABILIZATION);
+            logStatus(ADAControllerState::PRESSURE_STABILIZATION);
 
             pressStabTimeoutEventId =
                 EventBroker::getInstance().postDelayed<PRES_STAB_TIMEOUT>(
@@ -356,7 +341,7 @@ void ADAController::state_drogue_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(DROGUE_DESCENT);
+            return logStatus(ADAControllerState::DROGUE_DESCENT);
         }
         case FLIGHT_DPL_ALT_DETECTED:
         {
@@ -375,7 +360,7 @@ void ADAController::state_terminal_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(TERMINAL_DESCENT);
+            return logStatus(ADAControllerState::TERMINAL_DESCENT);
         }
         case FLIGHT_LANDING_DETECTED:
         {
@@ -394,9 +379,24 @@ void ADAController::state_landed(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(LANDED);
+            return logStatus(ADAControllerState::LANDED);
         }
     }
+}
+
+ADAController::ADAController()
+    : FSM(&ADAController::state_idle),
+      ada({DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_PRESSURE,
+           DEFAULT_REFERENCE_TEMPERATURE},
+          getADAKalmanConfig())
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_ADA);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+}
+
+ADAController::~ADAController()
+{
+    EventBroker::getInstance().unsubscribe(this);
 }
 
 void ADAController::logStatus(ADAControllerState state)

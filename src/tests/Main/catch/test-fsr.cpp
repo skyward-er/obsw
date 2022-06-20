@@ -41,9 +41,7 @@ public:
     // This is called at the beginning of each test / section
     FSRControllerFixture()
     {
-        // cppcheck-suppress noCopyConstructor
-        // cppcheck-suppress noOperatorEq
-        controller = new FlightStatsRecorder();
+        controller = &FlightStatsRecorder::getInstance();
         EventBroker::getInstance().start();
         controller->start();
     }
@@ -54,7 +52,6 @@ public:
         controller->stop();
         EventBroker::getInstance().unsubscribe(controller);
         EventBroker::getInstance().clearDelayedEvents();
-        delete controller;
     }
 
 protected:

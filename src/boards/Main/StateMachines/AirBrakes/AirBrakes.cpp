@@ -36,15 +36,6 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-AirBrakes::AirBrakes() : FSM(&AirBrakes::state_init)
-{
-    memset(&status, 0, sizeof(AirBrakesStatus));
-    EventBroker::getInstance().subscribe(this, TOPIC_ABK);
-    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-}
-
-AirBrakes::~AirBrakes() { EventBroker::getInstance().unsubscribe(this); }
-
 AirBrakesStatus AirBrakes::getStatus() { return status; }
 
 void AirBrakes::state_init(const Event& event)
@@ -53,7 +44,7 @@ void AirBrakes::state_init(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(INIT);
+            logStatus(AirBrakesState::INIT);
 
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
                                                    DPL_SERVO_RESET_POS);
@@ -70,7 +61,7 @@ void AirBrakes::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(IDLE);
+            return logStatus(AirBrakesState::IDLE);
         }
         case ABK_WIGGLE:
         {
@@ -106,7 +97,7 @@ void AirBrakes::state_shadow_mode(const Event& event)
                 EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ABK_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
-            return logStatus(SHADOW_MODE);
+            return logStatus(AirBrakesState::SHADOW_MODE);
         }
         case ABK_SHADOW_MODE_TIMEOUT:
         {
@@ -125,7 +116,7 @@ void AirBrakes::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(ACTIVE);
+            return logStatus(AirBrakesState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
         {
@@ -146,10 +137,18 @@ void AirBrakes::state_end(const Event& event)
         {
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
 
-            return logStatus(END);
+            return logStatus(AirBrakesState::END);
         }
     }
 }
+
+AirBrakes::AirBrakes() : FSM(&AirBrakes::state_init)
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_ABK);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+}
+
+AirBrakes::~AirBrakes() { EventBroker::getInstance().unsubscribe(this); }
 
 void AirBrakes::logStatus(AirBrakesState state)
 {

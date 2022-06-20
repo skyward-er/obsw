@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Configs/ADAConfig.h>
+#include <Singleton.h>
 #include <algorithms/ADA/ADA.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -32,12 +33,12 @@
 namespace Main
 {
 
-class ADAController : public Boardcore::FSM<ADAController>
+class ADAController : public Boardcore::FSM<ADAController>,
+                      public Boardcore::Singleton<ADAController>
 {
-public:
-    ADAController();
-    ~ADAController();
+    friend Boardcore::Singleton<ADAController>;
 
+public:
     bool start() override;
 
     void update();
@@ -57,6 +58,9 @@ public:
     void state_landed(const Boardcore::Event& event);
 
 private:
+    ADAController();
+    ~ADAController();
+
     ADAControllerStatus status;
 
     void logStatus(ADAControllerState state);

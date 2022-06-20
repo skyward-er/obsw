@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum DeploymentState : uint8_t
+enum class DeploymentState : uint8_t
 {
     INIT = 0,
     IDLE,
@@ -40,8 +40,8 @@ enum DeploymentState : uint8_t
 
 struct DeploymentStatus
 {
-    uint64_t timestamp;
-    DeploymentState state;
+    uint64_t timestamp    = 0;
+    DeploymentState state = DeploymentState::INIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

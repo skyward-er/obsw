@@ -75,7 +75,7 @@ void NASController::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(IDLE);
+            return logStatus(NASControllerState::IDLE);
         }
         case NAS_CALIBRATE:
         {
@@ -90,7 +90,7 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(CALIBRATING);
+            return logStatus(NASControllerState::CALIBRATING);
         }
         case NAS_READY:
         {
@@ -105,7 +105,7 @@ void NASController::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(READY);
+            return logStatus(NASControllerState::READY);
         }
         case NAS_CALIBRATE:
         {
@@ -124,7 +124,7 @@ void NASController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(ACTIVE);
+            return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
         {
@@ -139,7 +139,7 @@ void NASController::state_end(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(END);
+            return logStatus(NASControllerState::END);
         }
     }
 }
@@ -155,7 +155,6 @@ void NASController::logStatus(NASControllerState state)
 NASController::NASController()
     : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
-    memset(&status, 0, sizeof(NASControllerStatus));
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 

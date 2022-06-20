@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum NASControllerState : uint8_t
+enum class NASControllerState : uint8_t
 {
     IDLE = 0,
     CALIBRATING,
@@ -41,8 +41,8 @@ enum NASControllerState : uint8_t
 
 struct NASControllerStatus
 {
-    long long timestamp;
-    NASControllerState state;
+    long long timestamp      = 0;
+    NASControllerState state = NASControllerState::IDLE;
 
     static std::string header() { return "timestamp,state\n"; }
 

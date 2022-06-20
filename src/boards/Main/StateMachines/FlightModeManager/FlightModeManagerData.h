@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum FlightModeManagerState : uint8_t
+enum class FlightModeManagerState : uint8_t
 {
     ON_GROUND = 0,
     INIT,
@@ -48,8 +48,8 @@ enum FlightModeManagerState : uint8_t
 
 struct FlightModeManagerStatus
 {
-    uint64_t timestamp;
-    FlightModeManagerState state;
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::INIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

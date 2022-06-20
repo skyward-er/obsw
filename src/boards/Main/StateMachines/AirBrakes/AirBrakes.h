@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -30,12 +31,12 @@
 namespace Main
 {
 
-class AirBrakes : public Boardcore::FSM<AirBrakes>
+class AirBrakes : public Boardcore::FSM<AirBrakes>,
+                  public Boardcore::Singleton<AirBrakes>
 {
-public:
-    AirBrakes();
-    ~AirBrakes();
+    friend Boardcore::Singleton<AirBrakes>;
 
+public:
     AirBrakesStatus getStatus();
 
     void state_init(const Boardcore::Event& event);
@@ -45,6 +46,9 @@ public:
     void state_end(const Boardcore::Event& event);
 
 private:
+    AirBrakes();
+    ~AirBrakes();
+
     AirBrakesStatus status;
 
     void logStatus(AirBrakesState state);

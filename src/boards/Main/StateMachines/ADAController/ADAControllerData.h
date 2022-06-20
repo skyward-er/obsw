@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum ADAControllerState : uint8_t
+enum class ADAControllerState : uint8_t
 {
     IDLE = 0,
     CALIBRATING,
@@ -46,7 +46,7 @@ enum ADAControllerState : uint8_t
 struct ADAControllerStatus
 {
     uint64_t timestamp       = 0;
-    ADAControllerState state = IDLE;
+    ADAControllerState state = ADAControllerState::IDLE;
 
     static std::string header() { return "timestamp,state\n"; }
 

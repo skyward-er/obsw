@@ -35,19 +35,6 @@ using namespace Main::FlightStatsRecorderConfig;
 namespace Main
 {
 
-FlightStatsRecorder::FlightStatsRecorder()
-    : FSM(&FlightStatsRecorder::state_idle)
-{
-    memset(&status, 0, sizeof(FlightModeManagerStatus));
-    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-    EventBroker::getInstance().subscribe(this, TOPIC_FSR);
-}
-
-FlightStatsRecorder::~FlightStatsRecorder()
-{
-    EventBroker::getInstance().unsubscribe(this);
-}
-
 FlightModeManagerStatus FlightStatsRecorder::getStatus() { return status; }
 
 void FlightStatsRecorder::state_idle(const Event& event)
@@ -56,7 +43,7 @@ void FlightStatsRecorder::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(IDLE);
+            return logStatus(FlightModeManagerState::IDLE);
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
@@ -75,7 +62,7 @@ void FlightStatsRecorder::state_liftoff(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(LIFTOFF);
+            logStatus(FlightModeManagerState::LIFTOFF);
 
             EventBroker::getInstance().postDelayed<LIFTOFF_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
@@ -98,7 +85,7 @@ void FlightStatsRecorder::state_ascending(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(ASCENDING);
+            return logStatus(FlightModeManagerState::ASCENDING);
         }
         case EV_EXIT:
         {
@@ -125,7 +112,7 @@ void FlightStatsRecorder::state_main_deployment(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(MAIN_DEPLOYMENT);
+            logStatus(FlightModeManagerState::MAIN_DEPLOYMENT);
 
             EventBroker::getInstance().postDelayed<MAIN_DPL_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
@@ -140,6 +127,18 @@ void FlightStatsRecorder::state_main_deployment(const Event& event)
             return transition(&FlightStatsRecorder::state_idle);
         }
     }
+}
+
+FlightStatsRecorder::FlightStatsRecorder()
+    : FSM(&FlightStatsRecorder::state_idle)
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FSR);
+}
+
+FlightStatsRecorder::~FlightStatsRecorder()
+{
+    EventBroker::getInstance().unsubscribe(this);
 }
 
 void FlightStatsRecorder::logStatus(FlightModeManagerState state)

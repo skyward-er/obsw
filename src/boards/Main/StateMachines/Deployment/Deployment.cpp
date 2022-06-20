@@ -38,15 +38,6 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-Deployment::Deployment() : FSM(&Deployment::state_init)
-{
-    memset(&status, 0, sizeof(DeploymentStatus));
-    EventBroker::getInstance().subscribe(this, TOPIC_DPL);
-    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-}
-
-Deployment::~Deployment() { EventBroker::getInstance().unsubscribe(this); }
-
 DeploymentStatus Deployment::getStatus() { return status; }
 
 void Deployment::state_init(const Event& event)
@@ -55,7 +46,7 @@ void Deployment::state_init(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(INIT);
+            logStatus(DeploymentState::INIT);
 
             Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
                                                    DPL_SERVO_EJECT_POS);
@@ -72,7 +63,7 @@ void Deployment::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(IDLE);
+            return logStatus(DeploymentState::IDLE);
         }
         case DPL_WIGGLE:
         {
@@ -109,7 +100,7 @@ void Deployment::state_nosecone_ejection(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(NOSECONE_EJECTION);
+            logStatus(DeploymentState::NOSECONE_EJECTION);
 
             Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
                                                    DPL_SERVO_EJECT_POS);
@@ -143,7 +134,7 @@ void Deployment::state_cutting(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(CUTTING);
+            logStatus(DeploymentState::CUTTING);
 
             startCutting();
 
@@ -165,6 +156,14 @@ void Deployment::state_cutting(const Event& event)
         }
     }
 }
+
+Deployment::Deployment() : FSM(&Deployment::state_init)
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_DPL);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+}
+
+Deployment::~Deployment() { EventBroker::getInstance().unsubscribe(this); }
 
 void Deployment::logStatus(DeploymentState state)
 {

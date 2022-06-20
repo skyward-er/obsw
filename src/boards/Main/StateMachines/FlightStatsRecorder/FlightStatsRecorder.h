@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -30,12 +31,12 @@
 namespace Main
 {
 
-class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>
+class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>,
+                            public Boardcore::Singleton<FlightStatsRecorder>
 {
-public:
-    FlightStatsRecorder();
-    ~FlightStatsRecorder();
+    friend Boardcore::Singleton<FlightStatsRecorder>;
 
+public:
     FlightModeManagerStatus getStatus();
 
     void state_idle(const Boardcore::Event& event);
@@ -44,6 +45,9 @@ public:
     void state_main_deployment(const Boardcore::Event& event);
 
 private:
+    FlightStatsRecorder();
+    ~FlightStatsRecorder();
+
     FlightModeManagerStatus status;
 
     void logStatus(FlightModeManagerState state);
