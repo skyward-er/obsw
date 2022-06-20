@@ -38,7 +38,7 @@ enum PayloadComponentStatus
 struct PayloadStatus
 {
     // If there is an error, this uint8_t reports it(OR)
-    uint8_t payloadTest = OK;
+    uint8_t payload = OK;
 
     // Specific errors
     uint8_t logger      = OK;
@@ -46,6 +46,7 @@ struct PayloadStatus
     uint8_t sensors     = OK;
     uint8_t FMM         = OK;
     uint8_t radio       = OK;
+    uint8_t pinOBS      = OK;
 
     /**
      * @brief Method to set a specific component in an error state
@@ -55,7 +56,7 @@ struct PayloadStatus
         // Put the passed component to error state
         this->*component = ERROR;
         // Logic OR
-        payloadTest = ERROR;
+        payload = ERROR;
     }
 
     static std::string header()

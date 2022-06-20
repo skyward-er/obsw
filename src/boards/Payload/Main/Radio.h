@@ -38,6 +38,11 @@ public:
     Boardcore::Xbee::Xbee* xbee;
 
     /**
+     * @brief The mavlink driver
+     */
+    MavDriver* mavDriver;
+
+    /**
      * @brief Constructor
      *
      * @param xbeeBus The SPI bus to which the Xbee is connected
@@ -109,11 +114,6 @@ private:
 
         {MAV_CMD_START_RECORDING, EV_TC_START_RECORDING},
         {MAV_CMD_STOP_RECORDING, EV_TC_STOP_RECORDING}};
-
-    /**
-     * @brief The mavlink driver
-     */
-    MavDriver* mavDriver;
 
     /**
      * @brief SPI bus

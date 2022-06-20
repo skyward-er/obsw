@@ -90,6 +90,12 @@ public:
     // ground station requests
     Radio* radio;
 
+    // Struct that resumes if at macro level there were some problems
+    PayloadStatus status{};
+
+    // SD logger accessible to everyone
+    Boardcore::Logger* SDlogger;
+
     /**
      * @brief Method to start all the macro obsw elements
      */
@@ -142,7 +148,7 @@ public:
         SDlogger->log(status);
 
         // Depending on the initialization status i activate or not the FSMs
-        if (status.payloadTest != OK)
+        if (status.payload != OK)
         {
             LOG_ERR(logger, "Initialization failed");
             LOG_ERR(logger, "Sensors: {:d}, Radio: {:d}", status.sensors,
@@ -159,12 +165,6 @@ public:
 private:
     // Printlogger for debug and errors
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Payload");
-
-    // SD logger accessible to everyone
-    Boardcore::Logger* SDlogger;
-
-    // Struct that resumes if at macro level there were some problems
-    PayloadStatus status{};
 
     // SPI busses
     Boardcore::SPIBusInterface* spiInterface1;
