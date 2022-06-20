@@ -66,13 +66,23 @@ public:
 
     /**
      * @brief This method is used to add in send queue
-     * the requested message. It is necessary to call the
+     * the requested system message. It is necessary to call the
      * TMrepository to process the actual packet.
      *
-     * @param tm_id The requested message id
+     * @param tm_id The requested system message id
      * @return boolean that indicates the operation's result
      */
-    bool sendTelemetry(const uint8_t tm_id);
+    bool sendSystemTelemetry(const uint8_t tm_id);
+
+    /**
+     * @brief This method is used to add in send queue
+     * the requested sensor message. It is necessary to call the
+     * TMrepository to process the actual packet.
+     *
+     * @param tm_id The requested sensor message id
+     * @return boolean that indicates the operation's result
+     */
+    bool sendSensorTelemetry(const uint8_t tm_id);
 
     /**
      * @brief Every time a message is received we send

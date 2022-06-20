@@ -169,4 +169,11 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t reqTm, uint8_t sysId,
     }
     return message;
 }
+mavlink_message_t TMRepository::packSensorTM(uint8_t reqTm, uint8_t sysId,
+                                             uint8_t compId)
+{
+    mavlink_message_t message;
+    return message;
+}
+
 }  // namespace Payload
