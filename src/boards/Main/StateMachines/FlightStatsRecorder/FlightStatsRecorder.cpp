@@ -29,13 +29,18 @@
 #include <logger/Logger.h>
 #include <miosix.h>
 
+using namespace miosix;
 using namespace Boardcore;
 using namespace Main::FlightStatsRecorderConfig;
 
 namespace Main
 {
 
-FlightStatsRecorderStatus FlightStatsRecorder::getStatus() { return status; }
+FlightStatsRecorderStatus FlightStatsRecorder::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
 
 void FlightStatsRecorder::state_idle(const Event& event)
 {

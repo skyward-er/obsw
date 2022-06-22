@@ -31,6 +31,7 @@
 #include <logger/Logger.h>
 #include <miosix.h>
 
+using namespace miosix;
 using namespace Boardcore;
 using namespace Main::DeploymentConfig;
 using namespace Main::ActuatorsConfigs;
@@ -38,7 +39,11 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-DeploymentStatus Deployment::getStatus() { return status; }
+DeploymentStatus Deployment::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
 
 void Deployment::state_init(const Event& event)
 {

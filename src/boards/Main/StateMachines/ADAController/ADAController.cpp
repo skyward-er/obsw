@@ -30,6 +30,7 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 
+using namespace miosix;
 using namespace Boardcore;
 using namespace Main::ADAConfig;
 using namespace Main::AirBrakesConfigs;
@@ -189,9 +190,17 @@ void ADAController::update()
     Logger::getInstance().log(ada.getState());
 }
 
-ADAState ADAController::getAdaState() { return ada.getState(); }
+ADAState ADAController::getAdaState()
+{
+    PauseKernelLock lock;
+    return ada.getState();
+}
 
-ADAControllerStatus ADAController::getStatus() { return status; }
+ADAControllerStatus ADAController::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
 
 void ADAController::state_idle(const Event& event)
 {

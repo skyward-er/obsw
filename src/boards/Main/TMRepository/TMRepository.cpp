@@ -27,6 +27,11 @@
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/AirBrakes/AirBrakes.h>
+#include <Main/StateMachines/Deployment/Deployment.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -132,13 +137,22 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             auto ms5803Data = sensors.getMS5803LastSample();
             auto imuData    = sensors.getBMX160WithCorrectionLastSample();
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.ada_state       = 0;
-            tm.fmm_state       = 0;
-            tm.dpl_state       = 0;
-            tm.ab_state        = 0;
-            tm.nas_state       = 0;
-            tm.pressure_ada    = 0;
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // State machines states
+            tm.ada_state = static_cast<uint8_t>(
+                ADAController::getInstance().getStatus().state);
+            tm.fmm_state = static_cast<uint8_t>(
+                FlightModeManager::getInstance().getStatus().state);
+            tm.dpl_state = static_cast<uint8_t>(
+                Deployment::getInstance().getStatus().state);
+            tm.ab_state = static_cast<uint8_t>(
+                AirBrakes::getInstance().getStatus().state);
+            tm.nas_state = static_cast<uint8_t>(
+                NASController::getInstance().getStatus().state);
+
+            // Pressures
+            tm.pressure_ada    = ADAController::getInstance().getAdaState().x0;
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;

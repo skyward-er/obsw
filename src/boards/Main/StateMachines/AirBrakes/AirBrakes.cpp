@@ -29,6 +29,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
+using namespace miosix;
 using namespace Boardcore;
 using namespace Main::AirBrakesConfigs;
 using namespace Main::ActuatorsConfigs;
@@ -36,7 +37,11 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-AirBrakesStatus AirBrakes::getStatus() { return status; }
+AirBrakesStatus AirBrakes::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
 
 void AirBrakes::state_init(const Event& event)
 {

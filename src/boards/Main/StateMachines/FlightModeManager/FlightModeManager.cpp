@@ -27,12 +27,17 @@
 #include <Main/events/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 
+using namespace miosix;
 using namespace Boardcore;
 
 namespace Main
 {
 
-FlightModeManagerStatus FlightModeManager::getStatus() { return status; }
+FlightModeManagerStatus FlightModeManager::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
 
 State FlightModeManager::state_initialization(const Event& event)
 {
