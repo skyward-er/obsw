@@ -25,7 +25,10 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/AirBrakes/AirBrakes.h>
+#include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
@@ -56,9 +59,12 @@ int main()
     Radio::getInstance().start();
 
     // Start the state machines
-    FlightModeManager::getInstance().start();
-    NASController::getInstance().start();
     ADAController::getInstance().start();
+    AirBrakes::getInstance().start();
+    Deployment::getInstance().start();
+    FlightModeManager::getInstance().start();
+    FlightStatsRecorder::getInstance().start();
+    NASController::getInstance().start();
 
     // DEBUG PRINT
     // BoardScheduler::getInstance().getScheduler().addTask(print, 20);

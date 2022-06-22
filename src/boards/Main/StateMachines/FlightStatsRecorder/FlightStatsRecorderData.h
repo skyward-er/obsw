@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum class FlightModeManagerState : uint8_t
+enum class FlightStatsRecorderState : uint8_t
 {
     IDLE = 0,
     LIFTOFF,
@@ -38,10 +38,10 @@ enum class FlightModeManagerState : uint8_t
     MAIN_DEPLOYMENT
 };
 
-struct FlightModeManagerStatus
+struct FlightStatsRecorderStatus
 {
-    uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::IDLE;
+    uint64_t timestamp             = 0;
+    FlightStatsRecorderState state = FlightStatsRecorderState::IDLE;
 
     static std::string header() { return "timestamp,state\n"; }
 

@@ -35,7 +35,7 @@ using namespace Main::FlightStatsRecorderConfig;
 namespace Main
 {
 
-FlightModeManagerStatus FlightStatsRecorder::getStatus() { return status; }
+FlightStatsRecorderStatus FlightStatsRecorder::getStatus() { return status; }
 
 void FlightStatsRecorder::state_idle(const Event& event)
 {
@@ -43,7 +43,7 @@ void FlightStatsRecorder::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(FlightModeManagerState::IDLE);
+            return logStatus(FlightStatsRecorderState::IDLE);
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
@@ -62,7 +62,7 @@ void FlightStatsRecorder::state_liftoff(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::LIFTOFF);
+            logStatus(FlightStatsRecorderState::LIFTOFF);
 
             EventBroker::getInstance().postDelayed<LIFTOFF_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
@@ -85,7 +85,7 @@ void FlightStatsRecorder::state_ascending(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(FlightModeManagerState::ASCENDING);
+            return logStatus(FlightStatsRecorderState::ASCENDING);
         }
         case EV_EXIT:
         {
@@ -112,7 +112,7 @@ void FlightStatsRecorder::state_main_deployment(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::MAIN_DEPLOYMENT);
+            logStatus(FlightStatsRecorderState::MAIN_DEPLOYMENT);
 
             EventBroker::getInstance().postDelayed<MAIN_DPL_STATS_TIMEOUT>(
                 Boardcore::Event{FSR_STATS_TIMEOUT}, TOPIC_FSR);
@@ -141,7 +141,7 @@ FlightStatsRecorder::~FlightStatsRecorder()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-void FlightStatsRecorder::logStatus(FlightModeManagerState state)
+void FlightStatsRecorder::logStatus(FlightStatsRecorderState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;

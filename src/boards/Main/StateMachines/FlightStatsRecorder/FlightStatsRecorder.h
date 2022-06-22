@@ -37,7 +37,7 @@ class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>,
     friend Boardcore::Singleton<FlightStatsRecorder>;
 
 public:
-    FlightModeManagerStatus getStatus();
+    FlightStatsRecorderStatus getStatus();
 
     void state_idle(const Boardcore::Event& event);
     void state_liftoff(const Boardcore::Event& event);
@@ -48,9 +48,9 @@ private:
     FlightStatsRecorder();
     ~FlightStatsRecorder();
 
-    FlightModeManagerStatus status;
+    FlightStatsRecorderStatus status;
 
-    void logStatus(FlightModeManagerState state);
+    void logStatus(FlightStatsRecorderState state);
 
     void logApogeeStats();
     void logLiftoffStats();
