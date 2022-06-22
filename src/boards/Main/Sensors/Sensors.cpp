@@ -51,6 +51,66 @@ bool Sensors::start()
     return sensorManager->start();
 }
 
+Boardcore::BMX160Data Sensors::getBMX160LastSample()
+{
+    PauseKernelLock lock;
+    return bmx160->getLastSample();
+}
+
+Boardcore::BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
+{
+    PauseKernelLock lock;
+    return bmx160WithCorrection->getLastSample();
+}
+
+Boardcore::MPU9250Data Sensors::getMPU9250LastSample()
+{
+    PauseKernelLock lock;
+    return mpu9250->getLastSample();
+}
+
+Boardcore::MS5803Data Sensors::getMS5803LastSample()
+{
+    PauseKernelLock lock;
+    return ms5803->getLastSample();
+}
+
+Boardcore::ADS131M04Data Sensors::getADS131M04LastSample()
+{
+    PauseKernelLock lock;
+    return ads131m04->getLastSample();
+}
+
+Boardcore::MPXH6115AData Sensors::getStaticPressureLastSample()
+{
+    PauseKernelLock lock;
+    return staticPressure->getLastSample();
+}
+
+Boardcore::MPXH6400AData Sensors::getDplPressureLastSample()
+{
+    PauseKernelLock lock;
+    return dplPressure->getLastSample();
+}
+
+Boardcore::AnalogLoadCellData Sensors::getLoadCellLastSample()
+{
+    PauseKernelLock lock;
+    return loadCell->getLastSample();
+}
+
+Boardcore::BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    PauseKernelLock lock;
+    return batteryVoltage->getLastSample();
+}
+
+Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+{
+    PauseKernelLock lock;
+    return internalAdc->getLastSample();
+}
+
 Sensors::Sensors()
 {
     // Initialize all the sensors

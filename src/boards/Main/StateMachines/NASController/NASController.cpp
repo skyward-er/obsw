@@ -47,7 +47,7 @@ bool NASController::start()
 
 void NASController::update()
 {
-    auto imuData = Sensors::getInstance().bmx160WithCorrection->getLastSample();
+    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);

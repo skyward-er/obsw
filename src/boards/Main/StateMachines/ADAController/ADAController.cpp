@@ -48,7 +48,8 @@ bool ADAController::start()
 
 void ADAController::update()
 {
-    auto barometerData = Sensors::getInstance().ms5803->getLastSample();
+    Boardcore::MS5803Data barometerData =
+        Sensors::getInstance().getMS5803LastSample();
 
     switch (status.state)
     {

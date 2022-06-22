@@ -43,20 +43,22 @@ class Sensors : public Boardcore::Singleton<Sensors>
     friend class Boardcore::Singleton<Sensors>;
 
 public:
-    Boardcore::BMX160 *bmx160                             = nullptr;
-    Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
-    Boardcore::MPU9250 *mpu9250                           = nullptr;
-    Boardcore::MS5803 *ms5803                             = nullptr;
-
-    Boardcore::ADS131M04 *ads131m04                 = nullptr;
-    Boardcore::MPXH6115A *staticPressure            = nullptr;
-    Boardcore::MPXH6400A *dplPressure               = nullptr;
-    Boardcore::AnalogLoadCell *loadCell             = nullptr;
-    Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
-
-    Boardcore::InternalADC *internalAdc = nullptr;
-
     bool start();
+
+    Boardcore::BMX160 *bmx160 = nullptr;
+
+    Boardcore::BMX160Data getBMX160LastSample();
+    Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
+    Boardcore::MPU9250Data getMPU9250LastSample();
+    Boardcore::MS5803Data getMS5803LastSample();
+
+    Boardcore::ADS131M04Data getADS131M04LastSample();
+    Boardcore::MPXH6115AData getStaticPressureLastSample();
+    Boardcore::MPXH6400AData getDplPressureLastSample();
+    Boardcore::AnalogLoadCellData getLoadCellLastSample();
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+
+    Boardcore::InternalADCData getInternalADCLastSample();
 
 private:
     Sensors();
@@ -86,6 +88,18 @@ private:
     void batteryVoltageInit();
 
     void internalAdcInit();
+
+    Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
+    Boardcore::MPU9250 *mpu9250                           = nullptr;
+    Boardcore::MS5803 *ms5803                             = nullptr;
+
+    Boardcore::ADS131M04 *ads131m04                 = nullptr;
+    Boardcore::MPXH6115A *staticPressure            = nullptr;
+    Boardcore::MPXH6400A *dplPressure               = nullptr;
+    Boardcore::AnalogLoadCell *loadCell             = nullptr;
+    Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
+
+    Boardcore::InternalADC *internalAdc = nullptr;
 
     Boardcore::SensorManager *sensorManager = nullptr;
 

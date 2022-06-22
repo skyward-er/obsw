@@ -129,48 +129,40 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             mavlink_rocket_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
 
-            tm.timestamp     = TimestampTimer::getTimestamp();
-            tm.ada_state     = 0;
-            tm.fmm_state     = 0;
-            tm.dpl_state     = 0;
-            tm.ab_state      = 0;
-            tm.nas_state     = 0;
-            tm.pressure_ada  = 0;
-            tm.pressure_digi = sensors.ms5803->getLastSample().pressure;
-            tm.pressure_static =
-                sensors.staticPressure->getLastSample().pressure;
-            // tm.pressure_dpl   =
-            // sensors.dplPressure->getLastSample().pressure;
+            auto ms5803Data = sensors.getMS5803LastSample();
+            auto imuData    = sensors.getBMX160WithCorrectionLastSample();
+
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.ada_state       = 0;
+            tm.fmm_state       = 0;
+            tm.dpl_state       = 0;
+            tm.ab_state        = 0;
+            tm.nas_state       = 0;
+            tm.pressure_ada    = 0;
+            tm.pressure_digi   = ms5803Data.pressure;
+            tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
+            tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
             // tm.airspeed_pitot = sensors.pitot->getLastSample().airspeed;
             tm.msl_altitude   = 0;
             tm.ada_vert_speed = 0;
             tm.ada_vert_accel = 0;
-            tm.acc_x =
-                sensors.bmx160WithCorrection->getLastSample().accelerationX;
-            tm.acc_y =
-                sensors.bmx160WithCorrection->getLastSample().accelerationY;
-            tm.acc_z =
-                sensors.bmx160WithCorrection->getLastSample().accelerationZ;
-            tm.gyro_x =
-                sensors.bmx160WithCorrection->getLastSample().angularVelocityX;
-            tm.gyro_y =
-                sensors.bmx160WithCorrection->getLastSample().angularVelocityY;
-            tm.gyro_z =
-                sensors.bmx160WithCorrection->getLastSample().angularVelocityZ;
-            tm.mag_x =
-                sensors.bmx160WithCorrection->getLastSample().magneticFieldX;
-            tm.mag_y =
-                sensors.bmx160WithCorrection->getLastSample().magneticFieldY;
-            tm.mag_z =
-                sensors.bmx160WithCorrection->getLastSample().magneticFieldZ;
-            tm.gps_fix = 0;
-            tm.gps_lat = 0;
-            tm.gps_lon = 0;
-            tm.gps_alt = 0;
-            tm.vbat    = sensors.batteryVoltage->getLastSample().batVoltage;
+            tm.acc_x          = imuData.accelerationX;
+            tm.acc_y          = imuData.accelerationY;
+            tm.acc_z          = imuData.accelerationZ;
+            tm.gyro_x         = imuData.angularVelocityX;
+            tm.gyro_y         = imuData.angularVelocityY;
+            tm.gyro_z         = imuData.angularVelocityZ;
+            tm.mag_x          = imuData.magneticFieldX;
+            tm.mag_y          = imuData.magneticFieldY;
+            tm.mag_z          = imuData.magneticFieldZ;
+            tm.gps_fix        = 0;
+            tm.gps_lat        = 0;
+            tm.gps_lon        = 0;
+            tm.gps_alt        = 0;
+            tm.vbat = sensors.getBatteryVoltageLastSample().batVoltage;
             // tm.vsupply_5v  =
             // sensors.ads131m04->getLastSample().voltage[ADC_CH_VREF];
-            tm.temperature  = sensors.ms5803->getLastSample().temperature;
+            tm.temperature  = ms5803Data.temperature;
             tm.pin_launch   = 0;
             tm.pin_nosecone = 0;
             tm.servo_sensor = 0;
