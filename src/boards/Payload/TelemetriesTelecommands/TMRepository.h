@@ -80,12 +80,12 @@ private:
         mavlink_sensor_state_tm_t sensorsStateTm;
 
         // Sensors telemetries
-        // mavlink_gps_tm_t gpsTm;
-        // mavlink_imu_tm_t imuTm;
-        // mavlink_adc_tm_t adcTm;
-        // mavlink_baro_tm_t barometerTm;
-        // mavlink_temp_tm_t temperatureTm;
-        // mavlink_attitude_tm_t attitudeTm;
+        mavlink_gps_tm_t gpsTm;
+        mavlink_imu_tm_t imuTm;
+        mavlink_adc_tm_t adcTm;
+        mavlink_baro_tm_t barometerTm;
+        mavlink_temp_tm_t temperatureTm;
+        mavlink_attitude_tm_t attitudeTm;
     } tmRepository;
 
     /**

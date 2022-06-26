@@ -405,10 +405,10 @@ void Sensors::pitotPressureCallback() {}
 
 void Sensors::imuBMX160Callback()
 {
-    Boardcore::BMX160Data data = imuBMX160->getLastSample();
+    // Boardcore::BMX160Data data = imuBMX160->getLastSample();
 
-    TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
-          data.accelerationZ);
+    // TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
+    //       data.accelerationZ);
 }
 
 void Sensors::correctedImuBMX160Callback()
@@ -425,5 +425,74 @@ void Sensors::magnetometerLIS3MDLCallback() {}
 void Sensors::gpsUbloxCallback() {}
 
 void Sensors::updateSensorsStatus() {}
+
+/**
+ * KERNEL LOCK GETTERS
+ */
+Boardcore::InternalADCData Sensors::getInternalAdcLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return internalAdc->getLastSample();
+}
+
+Boardcore::BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return batteryVoltage->getLastSample();
+}
+
+Boardcore::MS5803Data Sensors::getDigitalPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return digitalPressure->getLastSample();
+}
+
+Boardcore::ADS1118Data Sensors::getAdcADS1118LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return adcADS1118->getLastSample();
+}
+
+Boardcore::SSCDANN030PAAData Sensors::getDplVanePressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return dplVanePressure->getLastSample();
+}
+
+Boardcore::MPXHZ6130AData Sensors::getStaticPortPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return staticPortPressure->getLastSample();
+}
+
+Boardcore::SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return pitotPressure->getLastSample();
+}
+
+Boardcore::BMX160Data Sensors::getImuBMX160LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return imuBMX160->getLastSample();
+}
+
+Boardcore::BMX160WithCorrectionData Sensors::getCorrectedImuBMX160LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return correctedImuBMX160->getLastSample();
+}
+
+Boardcore::LIS3MDLData Sensors::getMagnetometerLIS3MDLLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return magnetometerLIS3MDL->getLastSample();
+}
+
+Boardcore::UBXGPSData Sensors::getGPSLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return gpsUblox->getLastSample();
+}
 
 }  // namespace Payload

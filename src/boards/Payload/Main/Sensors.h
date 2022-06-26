@@ -57,6 +57,10 @@ public:
     Boardcore::LIS3MDL* magnetometerLIS3MDL;
     Boardcore::UBXGPSSerial* gpsUblox;
 
+    // The sensor manager object. It sets all the tasks inside the sensors
+    // scheduler
+    Boardcore::SensorManager* sensorManager;
+
     /**
      * @brief Construct a new Sensors object
      * @param spiBus The spi bus where all the sensors communicate
@@ -83,13 +87,22 @@ public:
      */
     bool start();
 
+    // Kernel lock getters
+    Boardcore::InternalADCData getInternalAdcLastSample();
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+    Boardcore::MS5803Data getDigitalPressureLastSample();
+    Boardcore::ADS1118Data getAdcADS1118LastSample();
+    Boardcore::SSCDANN030PAAData getDplVanePressureLastSample();
+    Boardcore::MPXHZ6130AData getStaticPortPressureLastSample();
+    Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
+    Boardcore::BMX160Data getImuBMX160LastSample();
+    Boardcore::BMX160WithCorrectionData getCorrectedImuBMX160LastSample();
+    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
+    Boardcore::UBXGPSData getGPSLastSample();
+
 private:
     // The sensors SPI bus
     Boardcore::SPIBusInterface& spiBus;
-
-    // The sensor manager object. It sets all the tasks inside the sensors
-    // scheduler
-    Boardcore::SensorManager* sensorManager;
 
     // The sensor mapping to be passed to the sensor manager that has to know
     // what sensor it should sample
