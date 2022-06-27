@@ -389,42 +389,111 @@ void Sensors::gpsUbloxInit()
 /**
  * CALLBACKS
  */
-void Sensors::internalAdcCallback() {}
+void Sensors::internalAdcCallback()
+{
+    // Log the thing
+    SDlogger->log(internalAdc->getLastSample());
+}
 
-void Sensors::batteryVoltageCallback() {}
+void Sensors::batteryVoltageCallback()
+{
+    // Log the thing
+    SDlogger->log(batteryVoltage->getLastSample());
+}
 
-void Sensors::digitalPressureCallback() {}
+void Sensors::digitalPressureCallback()
+{
+    // Log the thing
+    SDlogger->log(digitalPressure->getLastSample());
+}
 
-void Sensors::adcADS1118Callback() {}
+void Sensors::adcADS1118Callback()
+{
+    // Log the thing
+    SDlogger->log(adcADS1118->getLastSample());
+}
 
-void Sensors::dplVanePressureCallback() {}
+void Sensors::dplVanePressureCallback()
+{
+    // Log the thing
+    SDlogger->log(dplVanePressure->getLastSample());
+}
 
-void Sensors::staticPortPressureCallback() {}
+void Sensors::staticPortPressureCallback()
+{
+    // Log the thing
+    SDlogger->log(staticPortPressure->getLastSample());
+}
 
-void Sensors::pitotPressureCallback() {}
+void Sensors::pitotPressureCallback()
+{
+    // Log the thing
+    SDlogger->log(pitotPressure->getLastSample());
+}
 
 void Sensors::imuBMX160Callback()
 {
-    // Boardcore::BMX160Data data = imuBMX160->getLastSample();
-
-    // TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
-    //       data.accelerationZ);
+    // Log the thing
+    SDlogger->log(imuBMX160->getLastSample());
 }
 
 void Sensors::correctedImuBMX160Callback()
 {
-    // Boardcore::BMX160WithCorrectionData data =
-    //     correctedImuBMX160->getLastSample();
-
-    // TRACE("%.2f %.2f %.2f\n", data.accelerationX, data.accelerationY,
-    //       data.accelerationZ);
+    // Log the thing
+    SDlogger->log(correctedImuBMX160->getLastSample());
 }
 
-void Sensors::magnetometerLIS3MDLCallback() {}
+void Sensors::magnetometerLIS3MDLCallback()
+{
+    // Log the thing
+    SDlogger->log(magnetometerLIS3MDL->getLastSample());
+}
 
-void Sensors::gpsUbloxCallback() {}
+void Sensors::gpsUbloxCallback()
+{
+    // Log the thing
+    SDlogger->log(gpsUblox->getLastSample());
+}
 
-void Sensors::updateSensorsStatus() {}
+void Sensors::updateSensorsStatus()
+{
+    // Check the various sensors
+    SensorInfo info = sensorManager->getSensorInfo(imuBMX160);
+    if (!info.isInitialized)
+    {
+        status.BMX160 = SensorDriverStatus::DRIVER_ERROR;
+    }
+
+    info = sensorManager->getSensorInfo(magnetometerLIS3MDL);
+    if (!info.isInitialized)
+    {
+        status.LIS3MDL = SensorDriverStatus::DRIVER_ERROR;
+    }
+
+    info = sensorManager->getSensorInfo(gpsUblox);
+    if (!info.isInitialized)
+    {
+        status.GPS = SensorDriverStatus::DRIVER_ERROR;
+    }
+
+    info = sensorManager->getSensorInfo(internalAdc);
+    if (!info.isInitialized)
+    {
+        status.InternalADC = SensorDriverStatus::DRIVER_ERROR;
+    }
+
+    info = sensorManager->getSensorInfo(adcADS1118);
+    if (!info.isInitialized)
+    {
+        status.ADS1118 = SensorDriverStatus::DRIVER_ERROR;
+    }
+
+    info = sensorManager->getSensorInfo(digitalPressure);
+    if (!info.isInitialized)
+    {
+        status.MS5803 = SensorDriverStatus::DRIVER_ERROR;
+    }
+}
 
 /**
  * KERNEL LOCK GETTERS
