@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,59 +20,48 @@
  * THE SOFTWARE.
  */
 
+#include <drivers/usart/USART.h>
 #include <miosix.h>
 
-#include "drivers/usart/USART.h"
+#include <thread>
 
-namespace testBuzzer
-{
-#include "../actuators/test-buzzer.cpp"
-}
-
-int menu();
-
-void testSerialDebug()
-{
-    iprintf(
-        "If you are seeing the menu why whould you test this?! you f***g "
-        "donkey!\n\n");
-}
-
-void testGPIOInput(GpioPin pin);
+using namespace miosix;
+using namespace Boardcore;
 
 int main()
 {
+    USART debug(USART1, USARTInterface::Baudrate::B115200);
+    USART hil(USART3, USARTInterface::Baudrate::B115200);
+
+    debug.init();
+    hil.init();
+
+    std::thread debugPing(
+        [&]()
+        {
+            char byte = 'q';
+            while (true)
+            {
+                debug.read(&byte, 1);
+                debug.writeString("You typed something\n\r");
+            }
+        });
+    std::thread hilPing(
+        [&]()
+        {
+            char byte;
+            while (true)
+            {
+                hil.read(&byte, 1);
+                hil.writeString("You typed something\n\r");
+            }
+        });
+
     while (true)
     {
-        switch (menu())
-        {
-            case 1:
-                testSerialDebug();
-                break;
-            case 2:
-                testBuzzer::main();
-                break;
-            case 99:
-                return 0;
-        }
+        debug.writeString("This is the debug port!\n\r");
+        hil.writeString("This is the hil port!\n\r");
+
+        Thread::sleep(500);
     }
-
-    return 0;
-}
-
-int menu()
-{
-    string temp;
-    int choice;
-
-    iprintf(
-        "Type:\n"
-        " 1. for debug-serial test\n"
-        " 2. for buzzer test, enjoy!\n"
-        " 99. go back\n");
-    iprintf("\n>> ");
-    getline(cin, temp);
-    stringstream(temp) >> choice;
-
-    return choice;
 }

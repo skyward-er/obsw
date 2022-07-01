@@ -26,22 +26,22 @@
 
 namespace testBMX160
 {
-#include "../sensors/test-Main-bmx160.cpp"
+#include "../sensors/test-bmx160.cpp"
 }
 
 namespace testMPU9250
 {
-#include "../sensors/test-Main-mpu9250.cpp"
+#include "../sensors/test-mpu9250.cpp"
 }
 
 namespace testMS5803
 {
-#include "../sensors/test-Main-ms5803.cpp"
+#include "../sensors/test-ms5803.cpp"
 }
 
 namespace testADS131
 {
-#include "../sensors/test-Main-ads131.cpp"
+#include "../sensors/test-ads131.cpp"
 }
 
 int menu();
