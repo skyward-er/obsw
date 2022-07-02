@@ -30,9 +30,9 @@
 using namespace Boardcore;
 using namespace miosix;
 
-Servo expulsion(TIM4, TimerUtils::Channel::CHANNEL_2);
-Servo airbrakes(TIM10, TimerUtils::Channel::CHANNEL_1);
-Servo auxiliary(TIM11, TimerUtils::Channel::CHANNEL_1);
+Servo expulsionServo(TIM4, TimerUtils::Channel::CHANNEL_2);
+Servo airbrakesServo(TIM10, TimerUtils::Channel::CHANNEL_1);
+Servo auxiliaryServo(TIM11, TimerUtils::Channel::CHANNEL_1);
 
 // Position to cycle through for the servo 1, 2 and 3
 float positions[] = {0, 0.5, 1.0};
@@ -40,9 +40,9 @@ int lastPosition  = 0;
 
 void moveServo()
 {
-    expulsion.setPosition(positions[lastPosition % 3]);
-    airbrakes.setPosition(positions[(lastPosition + 1) % 3]);
-    auxiliary.setPosition(positions[(lastPosition + 2) % 3]);
+    expulsionServo.setPosition(positions[lastPosition % 3]);
+    airbrakesServo.setPosition(positions[(lastPosition + 1) % 3]);
+    auxiliaryServo.setPosition(positions[(lastPosition + 2) % 3]);
 
     lastPosition++;
 }
@@ -51,9 +51,9 @@ int main()
 {
 
     // Enable the timers
-    expulsion.enable();
-    airbrakes.enable();
-    auxiliary.enable();
+    expulsionServo.enable();
+    airbrakesServo.enable();
+    auxiliaryServo.enable();
 
     // Start a periodic task to move the first three servos
     TaskScheduler scheduler;

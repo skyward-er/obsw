@@ -123,12 +123,10 @@ float Actuators::getServoPosition(ServosList servoId)
 }
 
 Actuators::Actuators()
-    : led1(leds::led_green1::getPin()), led2(leds::led_red::getPin()),
-      led3(leds::led_blue::getPin()), led4(leds::led_green2::getPin()),
-      cutter1(actuators::nosecone::thermal_cutter_1::enable::getPin()),
-      cutter1Backup(
-          actuators::nosecone::thermal_cutter_1_backup::enable::getPin()),
-      buzzer(buzzer::drive::getPin()),
+    : led1(leds::green1::getPin()), led2(leds::red::getPin()),
+      led3(leds::blue::getPin()), led4(leds::green2::getPin()),
+      cutter1(cutter::enable::getPin()),
+      cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,

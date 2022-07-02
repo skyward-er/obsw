@@ -24,10 +24,10 @@
 
 using namespace miosix;
 
-using led1 = miosix::leds::led_green1;
-using led2 = miosix::leds::led_red;
-using led3 = miosix::leds::led_blue;
-using led4 = miosix::leds::led_green2;
+using led1 = miosix::leds::green1;
+using led2 = miosix::leds::red;
+using led3 = miosix::leds::blue;
+using led4 = miosix::leds::green2;
 
 int main()
 {
@@ -56,10 +56,10 @@ int main()
         Thread::sleep(200);
     }
 
-    led4::low();
     led1::low();
     led2::low();
     led3::low();
+    led4::low();
 
     printf("test leds over!\n\n");
 

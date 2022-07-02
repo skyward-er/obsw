@@ -20,9 +20,15 @@
  * THE SOFTWARE.
  */
 
+#include <drivers/usart/USART.h>
 #include <miosix.h>
 
-#include "drivers/usart/USART.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+
+using namespace std;
+using namespace miosix;
 
 namespace testLeds
 {
@@ -43,7 +49,7 @@ int menu();
 
 void testSerialDebug()
 {
-    iprintf(
+    printf(
         "If you are seeing the menu why whould you test this?! you f***g "
         "donkey!\n\n");
 }
@@ -66,19 +72,19 @@ int main()
                 testSerialHIL::main();
                 break;
             case 4:
-                testGPIOInput(inputs::expulsion::getPin());
+                testGPIOInput(expulsion::sense::getPin());
                 break;
             case 5:
-                testGPIOInput(inputs::launchpad::getPin());
+                testGPIOInput(sensors::launchpad_detach::getPin());
                 break;
             case 6:
-                testGPIOInput(inputs::nosecone_detach::getPin());
+                testGPIOInput(expulsion::nosecone_detach::getPin());
                 break;
             case 7:
-                testGPIOInput(aux::sense_aux_1::getPin());
+                testGPIOInput(aux::sense_1::getPin());
                 break;
             case 8:
-                testGPIOInput(aux::sense_aux_2::getPin());
+                testGPIOInput(aux::sense_2::getPin());
                 break;
             case 9:
                 testSDBenchmark::main();
@@ -96,7 +102,7 @@ int menu()
     string temp;
     int choice;
 
-    iprintf(
+    printf(
         "Type:\n"
         " 1. for led wave test\n"
         " 2. for debug-serial test\n"
@@ -108,7 +114,7 @@ int menu()
         " 8. for auxiliary 2 sense test\n"
         " 9. for SD benchmark test\n"
         " 99. go back\n");
-    iprintf("\n>> ");
+    printf("\n>> ");
     getline(cin, temp);
     stringstream(temp) >> choice;
 
