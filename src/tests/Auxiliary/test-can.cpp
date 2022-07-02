@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,48 +20,42 @@
  * THE SOFTWARE.
  */
 
+#include <drivers/canbus/Canbus.h>
 #include <miosix.h>
 
-using namespace miosix;
+using namespace Boardcore;
+using namespace Boardcore::Canbus;
 
-using led1 = miosix::leds::led_green1;
-using led2 = miosix::leds::led_red;
-using led3 = miosix::leds::led_blue;
-using led4 = miosix::leds::led_green2;
+CanbusDriver::AutoBitTiming bt{
+    500000,         // Set baud rate in bits per second
+    87.5f / 100.0f  // Set sample point (in percentage of the bit length)
+};
 
 int main()
 {
-    led4::low();
-    led1::low();
-    led2::low();
-    led3::low();
+    CanbusDriver can(CAN1, {}, bt);
+    can.init();
 
-    for (int i = 0; i < 10; i++)
+    while (true)
     {
-        printf("should blink\n");
-        led4::low();
-        led1::high();
-        Thread::sleep(200);
+        CanPacket p;
+        p.id      = 12345;  // Message identifier
+        p.ext     = true;   // Extended identifier message
+        p.length  = 1;      // Length of the payload
+        p.data[0] = 42;
 
-        led1::low();
-        led2::high();
-        Thread::sleep(200);
+        can.send(p);
+        printf("Sent message\n");
 
-        led2::low();
-        led3::high();
-        Thread::sleep(200);
+        // Check if we have received a packet
+        if (!can.getRXBuffer().isEmpty())
+        {
+            // Remove it from the buffer for further processing
+            Canbus::CanRXPacket prx = can.getRXBuffer().pop();
 
-        led3::low();
-        led4::high();
-        Thread::sleep(200);
+            printf("Received new packet! Payload: %d\n", prx.packet.data[0]);
+        }
+
+        Thread::sleep(100);
     }
-
-    led4::low();
-    led1::low();
-    led2::low();
-    led3::low();
-
-    printf("test leds over!\n\n");
-
-    return 0;
 }

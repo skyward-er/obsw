@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+/* Copyright (c) 2019 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,48 +20,46 @@
  * THE SOFTWARE.
  */
 
+#include <actuators/Servo/Servo.h>
 #include <miosix.h>
+#include <scheduler/TaskScheduler.h>
+#include <utils/ClockUtils.h>
 
+#include <iostream>
+
+using namespace Boardcore;
 using namespace miosix;
 
-using led1 = miosix::leds::led_green1;
-using led2 = miosix::leds::led_red;
-using led3 = miosix::leds::led_blue;
-using led4 = miosix::leds::led_green2;
+Servo expulsion(TIM4, TimerUtils::Channel::CHANNEL_2);
+Servo airbrakes(TIM10, TimerUtils::Channel::CHANNEL_1);
+Servo auxiliary(TIM11, TimerUtils::Channel::CHANNEL_1);
+
+// Position to cycle through for the servo 1, 2 and 3
+float positions[] = {0, 0.5, 1.0};
+int lastPosition  = 0;
+
+void moveServo()
+{
+    expulsion.setPosition(positions[lastPosition % 3]);
+    airbrakes.setPosition(positions[(lastPosition + 1) % 3]);
+    auxiliary.setPosition(positions[(lastPosition + 2) % 3]);
+
+    lastPosition++;
+}
 
 int main()
 {
-    led4::low();
-    led1::low();
-    led2::low();
-    led3::low();
 
-    for (int i = 0; i < 10; i++)
-    {
-        printf("should blink\n");
-        led4::low();
-        led1::high();
-        Thread::sleep(200);
+    // Enable the timers
+    expulsion.enable();
+    airbrakes.enable();
+    auxiliary.enable();
 
-        led1::low();
-        led2::high();
-        Thread::sleep(200);
+    // Start a periodic task to move the first three servos
+    TaskScheduler scheduler;
+    scheduler.addTask(&moveServo, 2 * 1000, 1);
+    scheduler.start();
 
-        led2::low();
-        led3::high();
-        Thread::sleep(200);
-
-        led3::low();
-        led4::high();
-        Thread::sleep(200);
-    }
-
-    led4::low();
-    led1::low();
-    led2::low();
-    led3::low();
-
-    printf("test leds over!\n\n");
-
-    return 0;
+    while (true)
+        Thread::sleep(1000);
 }
