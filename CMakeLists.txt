@@ -66,6 +66,9 @@ sbs_target(main-catch-tests-entry stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
 sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-cutter src/tests/Main/actuators/test-cutter.cpp)
+sbs_target(main-test-cutter stm32f429zi_skyward_death_stack_v3)
+
 add_executable(main-test-servos src/tests/Main/actuators/test-servos.cpp)
 sbs_target(main-test-servos stm32f429zi_skyward_death_stack_v3)
 
