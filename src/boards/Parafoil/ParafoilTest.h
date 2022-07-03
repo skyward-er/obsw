@@ -108,6 +108,16 @@ public:
      */
     void start()
     {
+        // Start the SD logger
+        if (!SDlogger->start())
+        {
+            LOG_ERR(log, "Error starting the logger");
+            status.setError(&ParafoilTestStatus::logger);
+        }
+
+        // Log the logger stats
+        SDlogger->log(SDlogger->getStats());
+
         // Start the task scheduler
         if (!scheduler->start())
         {
@@ -166,26 +176,6 @@ public:
         }
     }
 
-    /**
-     * @brief Method to start the SDlogger singleton
-     */
-    void startSDlogger()
-    {
-        try
-        {
-            SDlogger->start();
-            // Log in serial
-            LOG_INFO(log, "SDlogger started");
-        }
-        catch (const std::runtime_error& error)
-        {
-            LOG_ERR(log, "SD SDlogger init error");
-            status.setError(&ParafoilTestStatus::logger);
-        }
-        // Log the status
-        SDlogger->log(SDlogger->getLoggerStats());
-    }
-
 private:
     /**
      * @brief SDlogger in debug mode
@@ -205,11 +195,8 @@ private:
         // Take the singleton instance of SD logger
         SDlogger = &Boardcore::Logger::getInstance();
 
-        // Start the logging
-        startSDlogger();
-
         // Store the broker
-        broker = &sEventBroker;
+        broker = &Boardcore::EventBroker::getInstance();
 
         // Create the task scheduler
         scheduler = new Boardcore::TaskScheduler();

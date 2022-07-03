@@ -93,7 +93,7 @@ void WingAlgorithm::begin()
     running     = true;
     shouldReset = true;
     // Set the current timestamp
-    timeStart = TimestampTimer::getInstance().getTimestamp();
+    timeStart = TimestampTimer::getTimestamp();
 }
 
 void WingAlgorithm::end()
@@ -110,7 +110,7 @@ void WingAlgorithm::step()
 {
     // Variable to remember what is the step that has to be done
     static unsigned int stepIndex = 0;
-    uint64_t currentTimestamp = TimestampTimer::getInstance().getTimestamp();
+    uint64_t currentTimestamp     = TimestampTimer::getTimestamp();
 
     if (shouldReset)
     {
@@ -145,7 +145,7 @@ void WingAlgorithm::step()
 
         // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;
-        data.timestamp   = TimestampTimer::getInstance().getTimestamp();
+        data.timestamp   = TimestampTimer::getTimestamp();
         data.servo1Angle = steps[stepIndex].servo1Angle;
         data.servo2Angle = steps[stepIndex].servo2Angle;
 

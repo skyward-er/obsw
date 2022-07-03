@@ -51,7 +51,7 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
 
             // Get the logger stats
             Boardcore::LoggerStats stats =
-                ParafoilTest::getInstance().SDlogger->getLoggerStats();
+                ParafoilTest::getInstance().SDlogger->getStats();
 
             // First i update the logger_tm
             tm_repository.logger_tm.statLogNumber =
@@ -64,7 +64,7 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
             tm_repository.logger_tm.statQueuedSamples   = stats.queuedSamples;
             tm_repository.logger_tm.statTooLargeSamples = stats.tooLargeSamples;
             tm_repository.logger_tm.statWriteFailed     = stats.writesFailed;
-            tm_repository.logger_tm.statWriteTime       = stats.writeTime;
+            tm_repository.logger_tm.statWriteTime       = stats.maxWriteTime;
             tm_repository.logger_tm.statWriteError      = stats.lastWriteError;
 
             mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,

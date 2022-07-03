@@ -46,7 +46,7 @@ public:
     {
         MockPressureData data;
 
-        data.pressureTimestamp = TimestampTimer::getInstance().getTimestamp();
+        data.pressureTimestamp = TimestampTimer::getTimestamp();
 
         if (before_liftoff)
         {

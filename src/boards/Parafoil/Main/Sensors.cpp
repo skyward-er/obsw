@@ -28,7 +28,7 @@
 #include <Parafoil/Wing/WingConfig.h>
 #include <math.h>
 #include <sensors/SensorInfo.h>
-#include <utils/aero/AeroUtils.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 using std::bind;
 using namespace Boardcore;
@@ -45,8 +45,9 @@ void Sensors::MPU9250init()
     SPISlave slave{spiInterface, IMU_CS, spiConfig};
 
     // Instantiate the object
-    imu_mpu9250 = new MPU9250(slave, IMU_SAMPLE_RATE, IMU_GYRO_SCALE,
-                              IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
+    imu_mpu9250 =
+        new MPU9250(spiInterface, IMU_CS, spiConfig, IMU_SAMPLE_RATE,
+                    IMU_GYRO_SCALE, IMU_ACCEL_SCALE, SPI::ClockDivider::DIV_16);
 
     // Bind the information
     SensorInfo info("MPU9250", IMU_SAMPLE_PERIOD,
@@ -188,7 +189,7 @@ void Sensors::BME280Callback()
         }
 
         // Calculate the height
-        float height = aeroutils::relAltitude(pressureMean.getStats().mean,
+        float height = Aeroutils::relAltitude(pressureMean.getStats().mean,
                                               WING_CALIBRATION_PRESSURE,
                                               WING_CALIBRATION_TEMPERATURE);
 
