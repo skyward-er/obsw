@@ -49,7 +49,7 @@ enum class FlightModeManagerState : uint8_t
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INIT;
+    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
 

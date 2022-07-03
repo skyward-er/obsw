@@ -23,6 +23,7 @@
 #include "FlightModeManager.h"
 
 #include <Main/Configs/FlightModeManagerConfig.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/events/Events.h>
 #include <Main/events/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -48,6 +49,11 @@ State FlightModeManager::state_on_ground(const Event& event)
 {
     switch (event)
     {
+        case EV_ENTRY:
+        {
+            logStatus(FlightModeManagerState::ON_GROUND);
+            return HANDLED;
+        }
         case EV_INIT:
         {
             return transition(&FlightModeManager::state_init);
@@ -76,11 +82,11 @@ State FlightModeManager::state_init(const Event& event)
         }
         case FMM_INIT_OK:
         {
-            return transition(&FlightModeManager::state_init_error);
+            return transition(&FlightModeManager::state_sensors_calibration);
         }
         case FMM_INIT_ERROR:
         {
-            return transition(&FlightModeManager::state_sensors_calibration);
+            return transition(&FlightModeManager::state_init_error);
         }
         default:
         {
@@ -112,6 +118,10 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
+
+            Sensors::getInstance().calibrate();
+            EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
+
             return HANDLED;
         }
         case FMM_SENSORS_CAL_DONE:

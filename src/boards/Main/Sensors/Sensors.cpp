@@ -24,7 +24,9 @@
 
 #include <Main/Buses.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <events/EventBroker.h>
 
 using namespace std;
 using namespace miosix;
@@ -51,64 +53,89 @@ bool Sensors::start()
     return sensorManager->start();
 }
 
-Boardcore::BMX160Data Sensors::getBMX160LastSample()
+BMX160Data Sensors::getBMX160LastSample()
 {
     PauseKernelLock lock;
     return bmx160->getLastSample();
 }
 
-Boardcore::BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
+BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
     PauseKernelLock lock;
     return bmx160WithCorrection->getLastSample();
 }
 
-Boardcore::MPU9250Data Sensors::getMPU9250LastSample()
+MPU9250Data Sensors::getMPU9250LastSample()
 {
     PauseKernelLock lock;
     return mpu9250->getLastSample();
 }
 
-Boardcore::MS5803Data Sensors::getMS5803LastSample()
+MS5803Data Sensors::getMS5803LastSample()
 {
     PauseKernelLock lock;
     return ms5803->getLastSample();
 }
 
-Boardcore::ADS131M04Data Sensors::getADS131M04LastSample()
+ADS131M04Data Sensors::getADS131M04LastSample()
 {
     PauseKernelLock lock;
     return ads131m04->getLastSample();
 }
 
-Boardcore::MPXH6115AData Sensors::getStaticPressureLastSample()
+MPXH6115AData Sensors::getStaticPressureLastSample()
 {
     PauseKernelLock lock;
     return staticPressure->getLastSample();
 }
 
-Boardcore::MPXH6400AData Sensors::getDplPressureLastSample()
+MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
     return dplPressure->getLastSample();
 }
 
-Boardcore::AnalogLoadCellData Sensors::getLoadCellLastSample()
+AnalogLoadCellData Sensors::getLoadCellLastSample()
 {
     PauseKernelLock lock;
     return loadCell->getLastSample();
 }
 
-Boardcore::BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 {
     PauseKernelLock lock;
     return batteryVoltage->getLastSample();
 }
 
-Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+InternalADCData Sensors::getInternalADCLastSample()
 {
     PauseKernelLock lock;
     return internalAdc->getLastSample();
+}
+
+void Sensors::calibrate()
+{
+    ms5803Stats.reset();
+    staticPressureStats.reset();
+    dplPressureStats.reset();
+    loadCellStats.reset();
+
+    calibrating = true;
+    // bmx160Callback.startCalibration();
+
+    Thread::sleep(CALIBRATION_DURATION);
+
+    calibrating = false;
+    // bmx160WithCalibration.stopCalibration();
+
+    // Calibrate the analog pressure sensor to the digital one
+    float ms5803Mean         = ms5803Stats.getStats().mean;
+    float staticPressureMean = staticPressureStats.getStats().mean;
+    float dplPressureMean    = dplPressureStats.getStats().mean;
+    float loadCellMean       = loadCellStats.getStats().mean;
+    staticPressure->setOffset(staticPressureMean - ms5803Mean);
+    dplPressure->setOffset(dplPressureMean - ms5803Mean);
+    loadCell->setOffset(loadCellMean);
 }
 
 Sensors::Sensors()
@@ -123,10 +150,18 @@ Sensors::Sensors()
     dplPressureInit();
     loadCellInit();
     batteryVoltageInit();
-    // internalAdcInit();
+    internalAdcInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
+
+    // Check if the essential sensors are initialized correctly
+    if (sensorManager->getSensorInfo(bmx160).isInitialized)
+    // && sensorManager->getSensorInfo(gps).isInitialized)
+    {
+        printf("Init ok\n");
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+    }
 }
 
 Sensors::~Sensors()
@@ -234,9 +269,15 @@ void Sensors::ms5803Init()
                         miosix::sensors::ms5803::cs::getPin(), spiConfig,
                         TEMP_DIVIDER_PRESS_DIGITAL);
 
-    SensorInfo info("MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
-                    [&]()
-                    { Logger::getInstance().log(ms5803->getLastSample()); });
+    SensorInfo info(
+        "MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
+        [&]()
+        {
+            Logger::getInstance().log(ms5803->getLastSample());
+
+            if (calibrating && ms5803->getLastSample().pressure != 0)
+                ms5803Stats.add(ms5803->getLastSample().pressure);
+        });
 
     sensorsMap.emplace(std::make_pair(ms5803, info));
 
@@ -277,7 +318,14 @@ void Sensors::staticPressureInit()
 
     SensorInfo info(
         "STATIC_PRESSURE", SAMPLE_PERIOD_ADC_ADS131M04,
-        [&]() { Logger::getInstance().log(staticPressure->getLastSample()); });
+        [&]()
+        {
+            Logger::getInstance().log(staticPressure->getLastSample());
+
+            if (calibrating)
+                staticPressureStats.add(
+                    staticPressure->getLastSample().pressure);
+        });
 
     sensorsMap.emplace(std::make_pair(staticPressure, info));
 
@@ -293,7 +341,13 @@ void Sensors::dplPressureInit()
 
     SensorInfo info(
         "DPL_PRESSURE", SAMPLE_PERIOD_ADC_ADS131M04,
-        [&]() { Logger::getInstance().log(dplPressure->getLastSample()); });
+        [&]()
+        {
+            Logger::getInstance().log(dplPressure->getLastSample());
+
+            if (calibrating)
+                dplPressureStats.add(dplPressure->getLastSample().pressure);
+        });
 
     sensorsMap.emplace(std::make_pair(dplPressure, info));
 
@@ -311,9 +365,14 @@ void Sensors::loadCellInit()
 
     SensorInfo info("LOAD_CELL", SAMPLE_PERIOD_ADC_ADS131M04,
                     [&]()
-                    { Logger::getInstance().log(loadCell->getLastSample()); });
+                    {
+                        Logger::getInstance().log(loadCell->getLastSample());
 
-    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+                        if (calibrating)
+                            loadCellStats.add(loadCell->getLastSample().load);
+                    });
+
+    sensorsMap.emplace(std::make_pair(loadCell, info));
 
     LOG_INFO(logger, "Load cell sensor setup done!");
 }

@@ -35,15 +35,15 @@ namespace Main
 
 namespace SensorsConfig
 {
+
+// Internal ADC
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_5V_CURRENT =
     Boardcore::InternalADC::Channel::CH11;
 static constexpr Boardcore::InternalADC::Channel
     INTERNAL_ADC_CH_CUTTER_CURRENT = Boardcore::InternalADC::Channel::CH12;
 
-static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
-static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
-
+// ADS131M04 and connected sensors
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_STATIC_PORT =
     Boardcore::ADS131M04::Channel::CHANNEL_0;
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_DPL_PORT =
@@ -53,12 +53,9 @@ static constexpr Boardcore::ADS131M04::Channel ADC_CH_LOAD_CELL =
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_VBAT =
     Boardcore::ADS131M04::Channel::CHANNEL_3;
 
-// Sampling periods in milliseconds
-static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1;
-
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
-static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
+static constexpr float REFERENCE_VOLTAGE        = 5.0;
+static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
+static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
 
 // Load cell
 static constexpr float LOAD_CELL_MV_TO_V           = 2;   // [mV/V]
@@ -98,12 +95,6 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
 static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
     1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
 
-// Sample before the fifo is full, but slightly after the watermark level
-// (watermark + 30) ---> high slack due to scheduler imprecision,
-//                       avoid clearing the fifo before the interrupt
-static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
-    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
-
 static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
 // IMU axis rotation
@@ -113,15 +104,25 @@ static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
-// MPU9250
-static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU = 50;
-
 // GPS
-static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
-static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
-static constexpr unsigned int GPS_BAUD_RATE     = 460800;
+static constexpr unsigned int GPS_SAMPLE_RATE = 10;
+static constexpr unsigned int GPS_BAUD_RATE   = 460800;
 
-static constexpr float REFERENCE_VOLTAGE = 5.0;
+// Sampling periods and dividers
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1;
+static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
+static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
+static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU       = 50;
+static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
+
+// Sample before the fifo is full, but slightly after the watermark level
+// (watermark + 30) ---> high slack due to scheduler imprecision,
+//                       avoid clearing the fifo before the interrupt
+static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
+
+static constexpr unsigned int CALIBRATION_DURATION = 2000;
 
 }  // namespace SensorsConfig
 

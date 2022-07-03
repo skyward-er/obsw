@@ -34,6 +34,7 @@
 #include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
+#include <utils/Stats/Stats.h>
 
 namespace Main
 {
@@ -59,6 +60,14 @@ public:
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
     Boardcore::InternalADCData getInternalADCLastSample();
+
+    /**
+     * @brief Blocking function that calibrates the sensors.
+     *
+     * The calibration works by capturing the mean of the sensor readings and
+     * then removing the offsets from the desired values.
+     */
+    void calibrate();
 
 private:
     Sensors();
@@ -104,6 +113,12 @@ private:
     Boardcore::SensorManager *sensorManager = nullptr;
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    bool calibrating = false;
+    Boardcore::Stats ms5803Stats;
+    Boardcore::Stats staticPressureStats;
+    Boardcore::Stats dplPressureStats;
+    Boardcore::Stats loadCellStats;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

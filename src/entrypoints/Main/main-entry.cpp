@@ -39,9 +39,11 @@ using namespace Main;
 
 void print()
 {
-    auto state = NASController::getInstance().getNasState();
+    // auto state = NASController::getInstance().getNasState();
 
-    printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
+    // printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
+
+    printf("%f\n", Sensors::getInstance().getADS131M04LastSample().voltage[0]);
 }
 
 int main()
@@ -51,9 +53,6 @@ int main()
     // Initialize the servo outputs
     Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
     Actuators::getInstance().enableServo(EXPULSION_SERVO);
-
-    // Start the sensors sampling
-    Sensors::getInstance().start();
 
     // Start the radio
     Radio::getInstance().start();
@@ -66,8 +65,11 @@ int main()
     FlightStatsRecorder::getInstance().start();
     NASController::getInstance().start();
 
+    // Start the sensors sampling
+    Sensors::getInstance().start();
+
     // DEBUG PRINT
-    // BoardScheduler::getInstance().getScheduler().addTask(print, 20);
+    // BoardScheduler::getInstance().getScheduler().addTask(print, 250);
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
