@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/Control/Algorithms.h>
 #include <Payload/Main/Radio.h>
 #include <Payload/Main/Sensors.h>
 #include <Payload/PayloadStatus.h>
@@ -90,6 +91,9 @@ public:
     // ground station requests
     Radio* radio;
 
+    // The algorithms that run the payload guidance
+    Algorithms* algorithms;
+
     // Struct that resumes if at macro level there were some problems
     PayloadStatus status{};
 
@@ -144,6 +148,10 @@ public:
             status.setError(&PayloadStatus::radio);
         }
 
+        if (!algorithms->start())
+        {
+        }
+
         // At the end of initialize i log the status
         SDlogger->log(status);
 
@@ -193,8 +201,9 @@ private:
         spiInterface2 = new Boardcore::SPIBus(SPI2);
 
         // Instantiate all the macro obsw objects
-        sensors = new Sensors(*spiInterface1, sensorsScheduler);
-        radio   = new Radio(*spiInterface2, radioScheduler);
+        sensors    = new Sensors(*spiInterface1, sensorsScheduler);
+        radio      = new Radio(*spiInterface2, radioScheduler);
+        algorithms = new Algorithms(algorithmScheduler);
     }
 
     void addSchedulerStatsTask()

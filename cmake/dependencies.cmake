@@ -46,4 +46,5 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Main/Sensors.cpp
     src/boards/Payload/Main/Radio.cpp
     src/boards/Payload/TelemetriesTelecommands/TMRepository.cpp
+    src/boards/Payload/Control/NASController.cpp
 )
