@@ -121,12 +121,12 @@ void Sensors::calibrate()
     loadCellStats.reset();
 
     calibrating = true;
-    // bmx160Callback.startCalibration();
+    bmx160WithCorrection->startCalibration();
 
     Thread::sleep(CALIBRATION_DURATION);
 
     calibrating = false;
-    // bmx160WithCalibration.stopCalibration();
+    bmx160WithCorrection->stopCalibration();
 
     // Calibrate the analog pressure sensor to the digital one
     float ms5803Mean         = ms5803Stats.getStats().mean;

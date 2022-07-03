@@ -58,11 +58,11 @@ void NASController::update()
 
     // Predict step
     nas.predictGyro(angularVelocity);
-    nas.predictAcc(acceleration);
+    // nas.predictAcc(acceleration);
 
     // Correct step
-    magneticField.normalize();
-    nas.correctMag(magneticField);
+    nas.correctMag(magneticField.normalized());
+    nas.correctAcc(acceleration.normalized());
 }
 
 NASControllerStatus NASController::getStatus() { return status; }

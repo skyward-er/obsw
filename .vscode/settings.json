@@ -95,6 +95,8 @@
         "tensorsymmetry": "cpp"
     },
     "cSpell.words": [
+        "accbx",
+        "accby",
         "Aeroutils",
         "AIRBRAKES",
         "Alain",
@@ -161,6 +163,9 @@
         "leds",
         "LSBFIRST",
         "Luca",
+        "magbx",
+        "magby",
+        "magbz",
         "Matteo",
         "mavlink",
         "Mavlink",

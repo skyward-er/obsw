@@ -39,11 +39,11 @@ using namespace Main;
 
 void print()
 {
-    // auto state = NASController::getInstance().getNasState();
+    auto state = NASController::getInstance().getNasState();
+    printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
 
-    // printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
-
-    printf("%f\n", Sensors::getInstance().getADS131M04LastSample().voltage[0]);
+    // printf("%f\n",
+    // Sensors::getInstance().getADS131M04LastSample().voltage[0]);
 }
 
 int main()
@@ -69,7 +69,7 @@ int main()
     Sensors::getInstance().start();
 
     // DEBUG PRINT
-    // BoardScheduler::getInstance().getScheduler().addTask(print, 250);
+    BoardScheduler::getInstance().getScheduler().addTask(print, 100);
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
