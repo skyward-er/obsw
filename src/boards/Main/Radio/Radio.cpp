@@ -56,8 +56,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_COMMAND_TC:
         {
-            handleCommand(msg);
-            break;
+            return handleCommand(msg);
         }
         case MAVLINK_MSG_ID_SYSTEM_TELEMETRY_REQUEST_TC:
         {
@@ -321,6 +320,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             LOG_DEBUG(logger, "Received command close log");
             Logger::getInstance().stop();
             break;
+        case MAV_CMD_FORCE_REBOOT:
+            reboot();
+            break;
         case MAV_CMD_TEST_MODE:
             LOG_DEBUG(logger, "Received command test mode");
 
@@ -338,8 +340,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
 
         default:
-            sendNack(msg);
-            return;
+            return sendNack(msg);
     }
 
     // Acknowledge the message
@@ -357,6 +358,7 @@ void Radio::sendAck(const mavlink_message_t& msg)
 void Radio::sendNack(const mavlink_message_t& msg)
 {
     mavlink_message_t nackMsg;
+    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
     mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
                              msg.msgid, msg.seq);
     mavDriver->enqueueMsg(nackMsg);
@@ -391,7 +393,7 @@ bool Radio::sendSensorsTm(const SensorsTMList tmId)
 
 Radio::Radio()
 {
-    transceiver = new SerialTransceiver(Buses::getInstance().uart4);
+    transceiver = new SerialTransceiver(Buses::getInstance().usart3);
 
     mavDriver = new MavDriver(transceiver,
                               bind(&Radio::handleMavlinkMessage, this, _1, _2),
@@ -402,7 +404,7 @@ Radio::Radio()
         [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
         FLIGHT_TM_TASK_ID);
     BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, FLIGHT_STATS_TM_PERIOD,
+        [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, STATS_TM_PERIOD,
         STATS_TM_TASK_ID);
 
     // TODO: Enable transceiver interrupt

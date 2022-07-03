@@ -134,72 +134,94 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             mavlink_rocket_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
 
+            auto &ada = ADAController::getInstance();
+            auto &fmm = FlightModeManager::getInstance();
+            auto &dpl = Deployment::getInstance();
+            auto &abk = AirBrakes::getInstance();
+            auto &nas = NASController::getInstance();
+
             auto ms5803Data = sensors.getMS5803LastSample();
             auto imuData    = sensors.getBMX160WithCorrectionLastSample();
-
-            tm.timestamp = TimestampTimer::getTimestamp();
-
-            // State machines states
-            tm.ada_state = static_cast<uint8_t>(
-                ADAController::getInstance().getStatus().state);
-            tm.fmm_state = static_cast<uint8_t>(
-                FlightModeManager::getInstance().getStatus().state);
-            tm.dpl_state = static_cast<uint8_t>(
-                Deployment::getInstance().getStatus().state);
-            tm.ab_state = static_cast<uint8_t>(
-                AirBrakes::getInstance().getStatus().state);
-            tm.nas_state = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
-
-            // Pressures
-            tm.pressure_ada    = ADAController::getInstance().getAdaState().x0;
-            tm.pressure_digi   = ms5803Data.pressure;
-            tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
-            tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
-            // tm.airspeed_pitot = sensors.pitot->getLastSample().airspeed;
-            tm.msl_altitude   = 0;
-            tm.ada_vert_speed = 0;
-            tm.ada_vert_accel = 0;
-            tm.acc_x          = imuData.accelerationX;
-            tm.acc_y          = imuData.accelerationY;
-            tm.acc_z          = imuData.accelerationZ;
-            tm.gyro_x         = imuData.angularVelocityX;
-            tm.gyro_y         = imuData.angularVelocityY;
-            tm.gyro_z         = imuData.angularVelocityZ;
-            tm.mag_x          = imuData.magneticFieldX;
-            tm.mag_y          = imuData.magneticFieldY;
-            tm.mag_z          = imuData.magneticFieldZ;
-            tm.gps_fix        = 0;
-            tm.gps_lat        = 0;
-            tm.gps_lon        = 0;
-            tm.gps_alt        = 0;
-            tm.vbat = sensors.getBatteryVoltageLastSample().batVoltage;
-            // tm.vsupply_5v  =
-            // sensors.ads131m04->getLastSample().voltage[ADC_CH_VREF];
-            tm.temperature  = ms5803Data.temperature;
-            tm.pin_launch   = 0;
-            tm.pin_nosecone = 0;
-            tm.servo_sensor = 0;
-            tm.ab_angle =
-                Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
-            tm.ab_estimated_cd = 0;
 
             auto nasState    = NASController::getInstance().getNasState();
             auto orientation = SkyQuaternion::quat2eul(
                 {nasState.qx, nasState.qy, nasState.qz, nasState.qw});
 
-            tm.nas_x        = nasState.n;
-            tm.nas_y        = nasState.e;
-            tm.nas_z        = nasState.d;
-            tm.nas_vx       = nasState.vn;
-            tm.nas_vy       = nasState.ve;
-            tm.nas_vz       = nasState.vd;
-            tm.nas_yaw      = orientation(0);
-            tm.nas_pitch    = orientation(1);
-            tm.nas_roll     = orientation(2);
-            tm.nas_bias0    = nasState.bx;
-            tm.nas_bias1    = nasState.by;
-            tm.nas_bias2    = nasState.bz;
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // State machines states
+            tm.ada_state = ada.isRunning()
+                               ? static_cast<uint8_t>(ada.getStatus().state)
+                               : -1;
+            tm.fmm_state = fmm.isRunning()
+                               ? static_cast<uint8_t>(fmm.getStatus().state)
+                               : -1;
+            tm.dpl_state = dpl.isRunning()
+                               ? static_cast<uint8_t>(dpl.getStatus().state)
+                               : -1;
+            tm.ab_state  = abk.isRunning()
+                               ? static_cast<uint8_t>(abk.getStatus().state)
+                               : -1;
+            tm.nas_state = nas.isRunning()
+                               ? static_cast<uint8_t>(nas.getStatus().state)
+                               : -1;
+
+            // Pressures
+            tm.pressure_ada    = ada.getAdaState().x0;
+            tm.pressure_digi   = ms5803Data.pressure;
+            tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
+            tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
+            tm.airspeed_pitot  = 0;  // TODO: Implement
+
+            // ADA estimation
+            tm.msl_altitude   = 0;
+            tm.ada_vert_speed = 0;
+            tm.ada_vert_accel = 0;
+
+            // IMU
+            tm.acc_x  = imuData.accelerationX;
+            tm.acc_y  = imuData.accelerationY;
+            tm.acc_z  = imuData.accelerationZ;
+            tm.gyro_x = imuData.angularVelocityX;
+            tm.gyro_y = imuData.angularVelocityY;
+            tm.gyro_z = imuData.angularVelocityZ;
+            tm.mag_x  = imuData.magneticFieldX;
+            tm.mag_y  = imuData.magneticFieldY;
+            tm.mag_z  = imuData.magneticFieldZ;
+
+            // GPS
+            tm.gps_fix = 0;
+            tm.gps_lat = 0;
+            tm.gps_lon = 0;
+            tm.gps_alt = 0;
+            // Airbrakes
+            tm.ab_angle =
+                Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
+            tm.ab_estimated_cd = 0;
+
+            // NAS
+            tm.nas_x     = nasState.n;
+            tm.nas_y     = nasState.e;
+            tm.nas_z     = nasState.d;
+            tm.nas_vx    = nasState.vn;
+            tm.nas_vy    = nasState.ve;
+            tm.nas_vz    = nasState.vd;
+            tm.nas_yaw   = orientation(0);
+            tm.nas_pitch = orientation(1);
+            tm.nas_roll  = orientation(2);
+            tm.nas_bias0 = nasState.bx;
+            tm.nas_bias1 = nasState.by;
+            tm.nas_bias2 = nasState.bz;
+
+            // Sensing pins statuses
+            tm.pin_launch   = 0;
+            tm.pin_nosecone = 0;
+            tm.servo_sensor = 0;
+
+            // Board status
+            tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
+            tm.vsupply_5v   = 0;  // TODO: remove
+            tm.temperature  = ms5803Data.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
