@@ -128,7 +128,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                     LOG_INFO(logger, "Received command CLOSE_LOG");
                     break;
                 case MAV_CMD_START_LOGGING:
-                    ParafoilTest::getInstance().startSDlogger();
+                    ParafoilTest::getInstance().SDlogger->start();
                     sendTelemetry(MAV_LOGGER_TM_ID);
                     LOG_INFO(logger, "Received command START_LOG");
                     break;

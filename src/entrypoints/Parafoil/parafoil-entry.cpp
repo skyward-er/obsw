@@ -23,7 +23,7 @@
 #include <Parafoil/Configs/XbeeConfig.h>
 #include <Parafoil/ParafoilTest.h>
 #include <common/SystemData.h>
-#include <diagnostic/CpuMeter.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -85,12 +85,12 @@ int main()
     for (;;)
     {
         Thread::sleep(1000);
-        logger_service->log(logger_service->getLoggerStats());
+        logger_service->log(logger_service->getStats());
 
         StackLogger::getInstance().updateStack(THID_ENTRYPOINT);
 
         system_data.timestamp = miosix::getTick();
-        system_data.cpu_usage = averageCpuUtilization();
+        system_data.cpu_usage = CpuMeter::getCpuStats().mean;
         cpu_stat.add(system_data.cpu_usage);
 
         cpu_stat_res               = cpu_stat.getStats();

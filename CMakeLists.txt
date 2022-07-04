@@ -49,12 +49,12 @@ project(SkywardParafoilTest)
 # -----------------------------------------------------------------------------#
 # Parafoil mockup Computer                              #
 # -----------------------------------------------------------------------------#
-# add_executable(parafoil-mockup-entry
-# src/entrypoints/Parafoil/parafoil-entry.cpp
-# ${PARAFOIL_COMPUTER}
-# )
-# target_include_directories(parafoil-mockup-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(parafoil-mockup-entry stm32f429zi_stm32f4discovery)
+add_executable(parafoil-mockup-entry
+    src/entrypoints/Parafoil/parafoil-entry.cpp
+    ${PARAFOIL_MOCKUP_COMPUTER}
+)
+target_include_directories(parafoil-mockup-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(parafoil-mockup-entry stm32f429zi_stm32f4discovery)
 
 # add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
 # sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)
