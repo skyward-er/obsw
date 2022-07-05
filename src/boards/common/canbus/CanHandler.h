@@ -27,7 +27,7 @@
 // Include the events and topics definitions
 #include <ActiveObject.h>
 #include <common/canbus/SensorMocap/AereoBrakes.h>
-#include <common/canbus/SensorMocap/PitotMocap/PitotMocap.h>
+#include <common/canbus/SensorMocap/PitotMocap.h>
 #include <drivers/canbus/CanProtocol.h>
 #include <drivers/canbus/Canbus.h>
 #include <utils/collections/IRQCircularBuffer.h>
@@ -103,13 +103,13 @@ private:
     Boardcore::Canbus::CanProtocol *can;
 
 public:
-    CanHandler(Boardcore::Canbus::CanbusDriver canPhysical, Boards source,
-               PitotMocap pitotInstance, AereoBrakes brakesInstance)
+    CanHandler(Boardcore::Canbus::CanbusDriver *canPhysical, Boards source,
+               PitotMocap *pitotInstance, AereoBrakes *brakesInstance)
         : source(source)
     {
-        *can   = Boardcore::Canbus::CanProtocol(&canPhysical, &buffer);
-        pitot  = &pitotInstance;
-        brakes = &brakesInstance;
+        *can   = Boardcore::Canbus::CanProtocol(canPhysical, &buffer);
+        pitot  = pitotInstance;
+        brakes = brakesInstance;
 
         can->start();
     }
