@@ -20,13 +20,12 @@
  * THE SOFTWARE.
  */
 #pragma once
-
 #include <common/canbus/CanHandler.h>
 
 #include "events/EventBroker.h"
 #include "events/EventHandler.h"
 
-class MyEventHandler : public EventHandler
+class MyEventHandler : public Boardcore::EventHandler
 {
 public:
     MyEventHandler()
@@ -34,32 +33,33 @@ public:
           last_event(0)
     {
         // make this object to subscribe to TOPIC_CAN_EVENTS
-        EventBroker::getInstance().subscribe(this, CanTopics::TOPIC_CAN_EVENTS);
-        EventBroker::getInstance().subscribe(this,
-                                             CanTopics::TOPIC_CAN_COMMAND);
+        Boardcore::EventBroker::getInstance().subscribe(
+            this, common::CanTopics::TOPIC_CAN_EVENTS);
+        Boardcore::EventBroker::getInstance().subscribe(
+            this, common::CanTopics::TOPIC_CAN_COMMAND);
     }
 
     ~MyEventHandler()
     {
         // unsubscribe from all the topics this object was subscribed to
-        EventBroker::getInstance().unsubscribe(this);
+        Boardcore::EventBroker::getInstance().unsubscribe(this);
     }
 
 protected:
-    void handleEvent(const Event& ev) override
+    void handleEvent(const Boardcore::Event& ev) override
     {
         switch (ev)
         {
-            case CanEv::EV_LIFTOFF:
+            case common::CanEv::EV_LIFTOFF:
                 TRACE("Received EV_LIFTOFF \n");
                 break;
-            case CanEv::EV_APOGEE:
+            case common::CanEv::EV_APOGEE:
                 TRACE("Received EV_APOGEE \n");
                 break;
-            case CanEv::EV_ARMED:
+            case common::CanEv::EV_ARMED:
                 TRACE("Received EV_ARMED \n");
                 break;
-            case CanEv::EV_AEROBRAKE:
+            case common::CanEv::EV_AEROBRAKE:
                 TRACE("Received EV_AEROBRAKE \n");
                 break;
             default:
