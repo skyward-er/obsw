@@ -36,7 +36,7 @@ namespace testSerialHIL
 
 namespace testSDBenchmark
 {
-#include "../../../skyward-boardcore/src/entrypoints/sdcard-benchmark.cpp"
+#include "../../skyward-boardcore/src/entrypoints/sdcard-benchmark.cpp"
 }
 
 int menu();
