@@ -83,6 +83,8 @@ int main()
     // }
 
     // TRACE("Self-test successful!\n");
+
+    // Calculating statistics of the sensor
     const int nSamples = 100;
     Stats stats[9];
 
@@ -128,6 +130,7 @@ int main()
 
     miosix::delayMs(3000);
 
+    // Sampling sensor
     while (true)
     {
         printf("----------------------------\n");

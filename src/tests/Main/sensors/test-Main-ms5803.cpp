@@ -56,6 +56,7 @@ int main()
         Thread::sleep(20);
     }
 
+    // Calculating statistics of the sensor
     const int nSamples = 100;
     Stats stats[2];
 
@@ -84,8 +85,8 @@ int main()
 
     miosix::delayMs(3000);
 
+    // Sampling sensor
     printf("pressureTimestamp,press,temperatureTimestamp,temp\n");
-
     while (true)
     {
         sensor.sample();
