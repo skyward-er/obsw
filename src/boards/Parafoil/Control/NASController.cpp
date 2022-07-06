@@ -21,7 +21,10 @@
  */
 
 #include <Parafoil/Control/NASController.h>
+#include <algorithms/NAS/StateInitializer.h>
 #include <utils/AeroUtils/AeroUtils.h>
+
+#include <Eigen/Core>
 
 using namespace Boardcore;
 using namespace Eigen;
@@ -76,21 +79,37 @@ NASConfig NASController<IMU, GPS>::getDefaultConfig()
 }
 
 template <typename IMU, typename GPS>
-void NASController<IMU, GPS>::setInitialOrientation(Vector3f orientation)
+void NASController<IMU, GPS>::calculateInitialOrientation()
 {
-    this->initialOrientation = orientation;
+    // this->initialOrientation = orientation;
 
-    // Set the initial orientation inside the matrix
-    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
+    // Mean 10 accelerometer values
+    Vector3f accelerometer;
+    Vector3f magnetometer;
+    StateInitializer state;
 
-    // Set quaternions
-    Vector4f q = SkyQuaternion::eul2quat(initialOrientation);
-    x(6)       = q(0);
-    x(7)       = q(1);
-    x(8)       = q(2);
-    x(9)       = q(3);
+    // Mean the values
+    for (int i = 0; i < 10; i++)
+    {
+        IMU measure   = imuGetter();
+        accelerometer = accelerometer + Vector3f(measure.accelerationX,
+                                                 measure.accelerationY,
+                                                 measure.accelerationZ);
+        magnetometer  = magnetometer + Vector3f(measure.magneticFieldX,
+                                                measure.magneticFieldY,
+                                                measure.magneticFieldZ);
+    }
+    accelerometer = accelerometer / 10;
+    magnetometer  = magnetometer / 10;
 
-    nas->setX(x);
+    // Normalize the data
+    accelerometer.normalize();
+    magnetometer.normalize();
+
+    // Triad the initial orientation
+    state.triad(accelerometer, magnetometer, {0.4747, 0.0276, 0.8797});
+
+    nas->setX(state.getInitX());
 }
 
 template <typename IMU, typename GPS>
@@ -166,8 +185,8 @@ void NASController<IMU, GPS>::step()
     // Correct step
     magneticField.normalize();
     nas->correctMag(magneticField);
-    acceleration.normalize();
-    nas->correctAcc(acceleration);
+    // acceleration.normalize();
+    // nas->correctAcc(acceleration);
     if (gpsData.fix)
         nas->correctGPS(gpsCorrection);
     nas->correctBaro(100000);

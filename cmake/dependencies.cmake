@@ -40,6 +40,8 @@ set(PARAFOIL_MOCKUP_COMPUTER
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
     src/boards/Parafoil/FlightModeManager/FMMController.cpp
+    src/boards/Parafoil/Control/Algorithms.cpp
+    src/boards/Parafoil/Control/NASController.cpp
 )
 set(PAYLOAD_COMPUTER
     src/boards/Payload/Main/Sensors.cpp

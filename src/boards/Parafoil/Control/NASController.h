@@ -77,9 +77,9 @@ public:
     Boardcore::NASConfig getDefaultConfig();
 
     /**
-     * @brief Method to set the initial orientation
+     * @brief Method to calculate using triad the initial orientation
      */
-    void setInitialOrientation(Eigen::Vector3f orientation);
+    void calculateInitialOrientation();
 
     /**
      * @brief Method to set the initial gps position
@@ -117,8 +117,8 @@ private:
     Eigen::Vector2f initialPosition;
 
     // Getter functions
-    std::function<IMU> imuGetter;
-    std::function<GPS> gpsGetter;
+    std::function<IMU()> imuGetter;
+    std::function<GPS()> gpsGetter;
 
     // Task scheduler
     Boardcore::TaskScheduler* scheduler;

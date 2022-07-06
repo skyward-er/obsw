@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
 #include <Parafoil/Control/Algorithms.h>
 #include <Parafoil/ParafoilTest.h>
@@ -51,8 +50,10 @@ bool Algorithms::start()
 
 void Algorithms::NASInit()
 {
-    // TODO should we set the initial orientation and position?
     nas->init();
+
+    // Calibrate the NAS using triad
+    nas->calculateInitialOrientation();
 }
 
 /**

@@ -22,6 +22,7 @@
 #pragma once
 
 #include <Parafoil/Control/NASController.h>
+#include <algorithms/NAS/NASState.h>
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/UBXGPS/UBXGPSData.h>
 

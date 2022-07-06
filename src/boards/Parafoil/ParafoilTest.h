@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/Control/Algorithms.h>
 #include <Parafoil/FlightModeManager/FMMController.h>
 #include <Parafoil/Main/Radio.h>
 #include <Parafoil/Main/Sensors.h>
@@ -89,6 +90,11 @@ public:
     Radio* radio;
 
     /**
+     * @brief Algorithms
+     */
+    Algorithms* algorithms;
+
+    /**
      * @brief Main FSM
      */
     FMMController* FMM;
@@ -151,6 +157,9 @@ public:
             LOG_ERR(log, "Error starting the radio");
             status.setError(&ParafoilTestStatus::radio);
         }
+
+        // Start the algorithms
+        algorithms->start();
 
         // wingController->start();
 
@@ -219,6 +228,9 @@ private:
         // Create a new radio
         Boardcore::SPIBusInterface* spiInterface4 = new Boardcore::SPIBus(SPI4);
         radio = new Radio(*spiInterface4, scheduler);
+
+        // Create the algorithms
+        algorithms = new Algorithms(scheduler);
     }
 
     void addSchedulerStatsTask()
