@@ -23,16 +23,21 @@
 
 #include <Parafoil/Control/NASController.h>
 #include <algorithms/NAS/NASState.h>
-#include <sensors/BMX160/BMX160Data.h>
+#include <diagnostic/PrintLogger.h>
+#include <logger/Logger.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/MPU9250/MPU9250Data.h>
 #include <sensors/UBXGPS/UBXGPSData.h>
 
 namespace Parafoil
 {
+using NASControllerType =
+    NASController<Boardcore::MPU9250Data, Boardcore::UBXGPSData>;
 class Algorithms
 {
 public:
     // All the algorithms that need to be started
-    NASController<Boardcore::BMX160Data, Boardcore::UBXGPSData>* nas;
+    NASControllerType* nas;
 
     // The scheduler
     Boardcore::TaskScheduler* scheduler;

@@ -131,5 +131,12 @@ public:
      * @brief Calibrates the sensors that need to
      */
     void calibrate();
+
+    /**
+     * @brief Lock getters
+     */
+    Boardcore::MPU9250Data getMPU9250LastSample();
+    Boardcore::BME280Data getBME280LastSample();
+    Boardcore::UBXGPSData getGPSLastSample();
 };
 }  // namespace Parafoil

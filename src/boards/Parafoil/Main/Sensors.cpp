@@ -282,4 +282,29 @@ void Sensors::calibrate()
     this->needsCalibration = true;
 }
 
+/**
+ * GETTERS WITH LOCK
+ */
+MPU9250Data Sensors::getMPU9250LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return imu_mpu9250->getLastSample();
+}
+
+BME280Data Sensors::getBME280LastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifdef MOCK_SENSORS
+    return BME280Data();
+#else
+    return press_bme280->getLastSample();
+#endif
+}
+
+UBXGPSData Sensors::getGPSLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return gps_ublox->getLastSample();
+}
+
 }  // namespace Parafoil
