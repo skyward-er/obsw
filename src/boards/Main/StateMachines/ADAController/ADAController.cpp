@@ -23,7 +23,7 @@
 #include "ADAController.h"
 
 #include <Main/BoardScheduler.h>
-#include <Main/Configs/AirBrakesConfig.h>
+#include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -33,7 +33,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main::ADAConfig;
-using namespace Main::AirBrakesConfigs;
+using namespace Main::AirBrakesControllerConfigs;
 
 namespace Main
 {

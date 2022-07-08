@@ -28,7 +28,7 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
-#include <Main/StateMachines/AirBrakes/AirBrakes.h>
+#include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
@@ -137,7 +137,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             auto &ada = ADAController::getInstance();
             auto &fmm = FlightModeManager::getInstance();
             auto &dpl = Deployment::getInstance();
-            auto &abk = AirBrakes::getInstance();
+            auto &abk = AirBrakesController::getInstance();
             auto &nas = NASController::getInstance();
 
             auto ms5803Data = sensors.getMS5803LastSample();

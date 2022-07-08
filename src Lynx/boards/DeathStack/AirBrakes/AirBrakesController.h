@@ -190,10 +190,9 @@ void AirBrakesController<T>::state_shadowMode(const Boardcore::Event& ev)
     {
         case Boardcore::EV_ENTRY:
         {
-            ev_shadow_mode_timeout_id =
-                sEventBroker
-                    .postDelayed<AirBrakesConfigs::SHADOW_MODE_DURATION>(
-                        Boardcore::Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
+            ev_shadow_mode_timeout_id = sEventBroker.postDelayed<
+                AirBrakesControllerConfigs::SHADOW_MODE_DURATION>(
+                Boardcore::Event{EV_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
             logStatus(AirBrakesControllerState::SHADOW_MODE);
 

@@ -28,7 +28,7 @@ set(MAIN_COMPUTER
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/TMRepository/TMRepository.cpp
-    src/boards/Main/StateMachines/AirBrakes/AirBrakes.cpp
+    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
     src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/StateMachines/Deployment/Deployment.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp
@@ -39,7 +39,7 @@ set(MAIN_COMPUTER
 set(MAIN_COMPUTER_CATCH
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/Sensors/Sensors.cpp
-    src/boards/Main/StateMachines/AirBrakes/AirBrakes.cpp
+    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
     src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/StateMachines/Deployment/Deployment.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp

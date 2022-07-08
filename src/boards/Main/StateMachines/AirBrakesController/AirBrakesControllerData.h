@@ -30,7 +30,7 @@
 namespace Main
 {
 
-enum class AirBrakesState : uint8_t
+enum class AirBrakesControllerState : uint8_t
 {
     INIT = 0,
     IDLE,
@@ -39,10 +39,10 @@ enum class AirBrakesState : uint8_t
     END
 };
 
-struct AirBrakesStatus
+struct AirBrakesControllerStatus
 {
-    uint64_t timestamp   = 0;
-    AirBrakesState state = AirBrakesState::INIT;
+    uint64_t timestamp             = 0;
+    AirBrakesControllerState state = AirBrakesControllerState::INIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

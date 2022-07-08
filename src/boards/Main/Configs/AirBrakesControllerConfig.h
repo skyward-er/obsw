@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Vincenzo Santomarco
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,17 @@
 
 #pragma once
 
-#include <Singleton.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "AirBrakesData.h"
-
 namespace Main
 {
 
-class AirBrakes : public Boardcore::FSM<AirBrakes>,
-                  public Boardcore::Singleton<AirBrakes>
+namespace AirBrakesControllerConfigs
 {
-    friend Boardcore::Singleton<AirBrakes>;
 
-public:
-    AirBrakesStatus getStatus();
+static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
 
-    void state_init(const Boardcore::Event& event);
-    void state_idle(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
+// Vertical speed limit beyond which the airbrakes need to be disabled.
+constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
 
-private:
-    AirBrakes();
-    ~AirBrakes();
-
-    AirBrakesStatus status;
-
-    void logStatus(AirBrakesState state);
-
-    void wiggleServo();
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
-};
+}  // namespace AirBrakesControllerConfigs
 
 }  // namespace Main

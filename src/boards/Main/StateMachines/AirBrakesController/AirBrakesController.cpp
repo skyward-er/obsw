@@ -20,53 +20,53 @@
  * THE SOFTWARE.
  */
 
-#include "AirBrakes.h"
+#include "AirBrakesController.h"
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfigs.h>
-#include <Main/Configs/AirBrakesConfig.h>
+#include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::AirBrakesConfigs;
+using namespace Main::AirBrakesControllerConfigs;
 using namespace Main::ActuatorsConfigs;
 
 namespace Main
 {
 
-AirBrakesStatus AirBrakes::getStatus()
+AirBrakesControllerStatus AirBrakesController::getStatus()
 {
     PauseKernelLock lock;
     return status;
 }
 
-void AirBrakes::state_init(const Event& event)
+void AirBrakesController::state_init(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(AirBrakesState::INIT);
+            logStatus(AirBrakesControllerState::INIT);
 
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
                                                    DPL_SERVO_RESET_POS);
             Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
 
-            return transition(&AirBrakes::state_idle);
+            return transition(&AirBrakesController::state_idle);
         }
     }
 }
 
-void AirBrakes::state_idle(const Event& event)
+void AirBrakesController::state_idle(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            return logStatus(AirBrakesState::IDLE);
+            return logStatus(AirBrakesControllerState::IDLE);
         }
         case ABK_WIGGLE:
         {
@@ -85,12 +85,12 @@ void AirBrakes::state_idle(const Event& event)
         }
         case FLIGHT_LIFTOFF_DETECTED:
         {
-            return transition(&AirBrakes::state_shadow_mode);
+            return transition(&AirBrakesController::state_shadow_mode);
         }
     }
 }
 
-void AirBrakes::state_shadow_mode(const Event& event)
+void AirBrakesController::state_shadow_mode(const Event& event)
 {
     static uint16_t shadowModeTimeoutEventId = -1;
 
@@ -102,11 +102,11 @@ void AirBrakes::state_shadow_mode(const Event& event)
                 EventBroker::getInstance().postDelayed<SHADOW_MODE_TIMEOUT>(
                     Boardcore::Event{ABK_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
 
-            return logStatus(AirBrakesState::SHADOW_MODE);
+            return logStatus(AirBrakesControllerState::SHADOW_MODE);
         }
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            return transition(&AirBrakes::state_active);
+            return transition(&AirBrakesController::state_active);
         }
         case EV_EXIT:
         {
@@ -115,26 +115,26 @@ void AirBrakes::state_shadow_mode(const Event& event)
     }
 }
 
-void AirBrakes::state_active(const Event& event)
+void AirBrakesController::state_active(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            return logStatus(AirBrakesState::ACTIVE);
+            return logStatus(AirBrakesControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            return transition(&AirBrakes::state_end);
+            return transition(&AirBrakesController::state_end);
         }
         case ABK_DISABLE:
         {
-            return transition(&AirBrakes::state_end);
+            return transition(&AirBrakesController::state_end);
         }
     }
 }
 
-void AirBrakes::state_end(const Event& event)
+void AirBrakesController::state_end(const Event& event)
 {
     switch (event)
     {
@@ -142,20 +142,24 @@ void AirBrakes::state_end(const Event& event)
         {
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
 
-            return logStatus(AirBrakesState::END);
+            return logStatus(AirBrakesControllerState::END);
         }
     }
 }
 
-AirBrakes::AirBrakes() : FSM(&AirBrakes::state_init)
+AirBrakesController::AirBrakesController()
+    : FSM(&AirBrakesController::state_init)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
-AirBrakes::~AirBrakes() { EventBroker::getInstance().unsubscribe(this); }
+AirBrakesController::~AirBrakesController()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
 
-void AirBrakes::logStatus(AirBrakesState state)
+void AirBrakesController::logStatus(AirBrakesControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
@@ -163,7 +167,7 @@ void AirBrakes::logStatus(AirBrakesState state)
     Logger::getInstance().log(state);
 }
 
-void AirBrakes::wiggleServo()
+void AirBrakesController::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {

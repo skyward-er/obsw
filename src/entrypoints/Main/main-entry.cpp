@@ -25,7 +25,7 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
-#include <Main/StateMachines/AirBrakes/AirBrakes.h>
+#include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
@@ -59,7 +59,7 @@ int main()
 
     // Start the state machines
     ADAController::getInstance().start();
-    AirBrakes::getInstance().start();
+    AirBrakesController::getInstance().start();
     Deployment::getInstance().start();
     FlightModeManager::getInstance().start();
     FlightStatsRecorder::getInstance().start();
