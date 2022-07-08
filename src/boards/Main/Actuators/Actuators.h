@@ -45,7 +45,16 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     miosix::GpioPin buzzer;
 
     /**
-     * @brief Moves the specified servo to the given position
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param percentage Angle to set [0-1].
+     * @return True if the the angle was set.
+     */
+    bool setServo(ServosList servoId, float percentage);
+
+    /**
+     * @brief Moves the specified servo to the given position.
      *
      * @param servoId Servo to move.
      * @param angle Angle to set [degree].

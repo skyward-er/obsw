@@ -22,53 +22,11 @@
 
 #pragma once
 
-#include <algorithms/AirBrakes/AirBrakesConfig.h>
+#include <algorithms/AirBrakes/TrajectorySet.h>
 
 namespace Main
 {
 
-namespace AirBrakesControllerConfigs
-{
+const Boardcore::TrajectorySet TRAJECTORY_SET{{}, 0};
 
-static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
-
-// Vertical speed limit beyond which the airbrakes need to be disabled.
-static constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
-
-static const Boardcore::AirBrakesConfig ABK_CONFIG{
-    .N000       = 0,
-    .N100       = 0,
-    .N200       = 0,
-    .N300       = 0,
-    .N400       = 0,
-    .N500       = 0,
-    .N600       = 0,
-    .N010       = 0,
-    .N020       = 0,
-    .N110       = 0,
-    .N120       = 0,
-    .N210       = 0,
-    .N220       = 0,
-    .N310       = 0,
-    .N320       = 0,
-    .N410       = 0,
-    .N420       = 0,
-    .N510       = 0,
-    .N520       = 0,
-    .N001       = 0,
-    .EXTENSION  = 0,
-    .DRAG_STEPS = 0,
-    .EXT_POL_1  = 0,
-    .EXT_POL_2  = 0,
-    .EXT_POL_3  = 0,
-    .EXT_POL_4  = 0,
-    .S0         = 0,
-    .SURFACE    = 0,
-    .KP         = 0,
-    .KI         = 0,
-    .TS         = 0,
-};
-
-}  // namespace AirBrakesControllerConfigs
-
-}  // namespace Main
+}

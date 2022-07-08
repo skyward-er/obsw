@@ -25,9 +25,12 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfigs.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+
+#include "RoccarasoTrajectorySet.h"
 
 using namespace miosix;
 using namespace Boardcore;
@@ -36,6 +39,8 @@ using namespace Main::ActuatorsConfigs;
 
 namespace Main
 {
+
+void AirBrakesController::update() { abk.update(); }
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {
@@ -121,6 +126,8 @@ void AirBrakesController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
+            abk.begin();
+
             return logStatus(AirBrakesControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
@@ -140,6 +147,8 @@ void AirBrakesController::state_end(const Event& event)
     {
         case EV_ENTRY:
         {
+            abk.end();
+
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
 
             return logStatus(AirBrakesControllerState::END);
@@ -148,7 +157,17 @@ void AirBrakesController::state_end(const Event& event)
 }
 
 AirBrakesController::AirBrakesController()
-    : FSM(&AirBrakesController::state_init)
+    : FSM(&AirBrakesController::state_init),
+      abk(
+          []() {
+              return TimedTrajectoryPoint{
+                  NASController::getInstance().getNasState()};
+          },
+          TRAJECTORY_SET, AirBrakesControllerConfigs::ABK_CONFIG,
+          [](float position) {
+              Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
+                                                position);
+          })
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

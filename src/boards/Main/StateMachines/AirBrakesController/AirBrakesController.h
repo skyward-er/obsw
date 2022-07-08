@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Singleton.h>
+#include <algorithms/AirBrakes/AirBrakes.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
@@ -37,6 +38,8 @@ class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
     friend Boardcore::Singleton<AirBrakesController>;
 
 public:
+    void update();
+
     AirBrakesControllerStatus getStatus();
 
     void state_init(const Boardcore::Event& event);
@@ -54,6 +57,8 @@ private:
     void logStatus(AirBrakesControllerState state);
 
     void wiggleServo();
+
+    Boardcore::AirBrakes abk;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
 };

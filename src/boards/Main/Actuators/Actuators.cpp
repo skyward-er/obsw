@@ -34,6 +34,23 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
+bool Actuators::setServo(ServosList servoId, float percentage)
+{
+    switch (servoId)
+    {
+        case AIRBRAKES_SERVO:
+            servoAirbrakes.setPosition(percentage);
+            break;
+        case EXPULSION_SERVO:
+            servoExpulsion.setPosition(percentage);
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
