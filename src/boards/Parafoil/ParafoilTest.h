@@ -102,7 +102,9 @@ public:
     /**
      * @brief Task scheduler
      */
-    Boardcore::TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* generalScheduler;
+    Boardcore::TaskScheduler* sensorsScheduler;
+    Boardcore::TaskScheduler* algorithmsScheduler;
 
     /**
      * @brief SDlogger singleton for SD
@@ -124,10 +126,9 @@ public:
         // Log the logger stats
         SDlogger->log(SDlogger->getStats());
 
-        // Start the task scheduler
-        if (!scheduler->start())
+        if (!generalScheduler->start())
         {
-            LOG_ERR(log, "Error starting the main task scheduler");
+            LOG_ERR(log, "Error starting the general purpose scheduler");
         }
 
         // Start the broker
@@ -138,7 +139,7 @@ public:
         }
 
         // Start the sensors sampling
-        if (!sensors->start())
+        if (!sensors->start() || !sensorsScheduler->start())
         {
             LOG_ERR(log, "Error starting sensors");
             status.setError(&ParafoilTestStatus::sensors);
@@ -152,11 +153,11 @@ public:
         }*/
 
         // Start the radio
-        if (!radio->start())
-        {
-            LOG_ERR(log, "Error starting the radio");
-            status.setError(&ParafoilTestStatus::radio);
-        }
+        // if (!radio->start())
+        // {
+        //     LOG_ERR(log, "Error starting the radio");
+        //     status.setError(&ParafoilTestStatus::radio);
+        // }
 
         // Start the algorithms
         algorithms->start();
@@ -208,15 +209,17 @@ private:
         broker = &Boardcore::EventBroker::getInstance();
 
         // Create the task scheduler
-        scheduler = new Boardcore::TaskScheduler();
+        generalScheduler    = new Boardcore::TaskScheduler();
+        sensorsScheduler    = new Boardcore::TaskScheduler();
+        algorithmsScheduler = new Boardcore::TaskScheduler();
         addSchedulerStatsTask();
 
         // Create the sensors
         Boardcore::SPIBusInterface* spiInterface1 = new Boardcore::SPIBus(SPI1);
-        sensors = new Sensors(*spiInterface1, scheduler);
+        sensors = new Sensors(*spiInterface1, sensorsScheduler);
 
         // Create the wing controller
-        wingController = new WingController(scheduler);
+        wingController = new WingController(generalScheduler);
         wingController->addAlgorithm("/sd/servoTerni1.csv");
         wingController->addAlgorithm("/sd/servoTerni2.csv");
         wingController->addAlgorithm("/sd/servoCorta.csv");
@@ -227,20 +230,20 @@ private:
 
         // Create a new radio
         Boardcore::SPIBusInterface* spiInterface4 = new Boardcore::SPIBus(SPI4);
-        radio = new Radio(*spiInterface4, scheduler);
+        radio = new Radio(*spiInterface4, generalScheduler);
 
         // Create the algorithms
-        algorithms = new Algorithms(scheduler);
+        algorithms = new Algorithms(algorithmsScheduler);
     }
 
     void addSchedulerStatsTask()
     {
         // add lambda to log scheduler tasks statistics
-        scheduler->addTask(
+        generalScheduler->addTask(
             [&]()
             {
                 std::vector<Boardcore::TaskStatsResult> scheduler_stats =
-                    scheduler->getTaskStats();
+                    generalScheduler->getTaskStats();
 
                 for (Boardcore::TaskStatsResult stat : scheduler_stats)
                 {

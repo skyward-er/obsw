@@ -75,7 +75,7 @@ void Sensors::MPU9250Callback()
 void Sensors::UbloxGPSinit()
 {
     // Instantiate the object TODO set the sample rate and stuff
-    gps_ublox = new UBXGPSSerial(921600, GPS_SAMPLE_RATE, 2, "gps", 9600);
+    gps_ublox = new UBXGPSSerial(256000, GPS_SAMPLE_RATE, 2, "gps", 9600);
 
     // Bind the information with the callback method
     SensorInfo info("UbloxGPS", GPS_SAMPLE_PERIOD,

@@ -45,22 +45,16 @@ Algorithms::~Algorithms()
 bool Algorithms::start()
 {
     // Start the scheduler
-    return scheduler->start();
+    return nas->start();
 }
 
 void Algorithms::NASInit()
 {
     // Create the nas
-    nas = new NASControllerType(
-        bind(&Sensors::getMPU9250LastSample,
-             ParafoilTest::getInstance().sensors),
-        bind(&Sensors::getGPSLastSample, ParafoilTest::getInstance().sensors),
-        scheduler);
+    nas = new NASController(scheduler);
 
+    // Init
     nas->init();
-
-    // Calibrate the NAS using triad
-    nas->calculateInitialOrientation();
 }
 
 /**
