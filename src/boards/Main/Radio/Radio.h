@@ -73,6 +73,11 @@ public:
      */
     bool start();
 
+    /**
+     * @brief Tells whether the radio was started.
+     */
+    bool isStarted();
+
     Boardcore::MavlinkStatus getMavlinkStatus();
 
     /**

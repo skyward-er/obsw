@@ -366,6 +366,8 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 bool Radio::start() { return mavDriver->start(); }
 
+bool Radio::isStarted() { return mavDriver->isStarted(); }
+
 Boardcore::MavlinkStatus Radio::getMavlinkStatus()
 {
     return mavDriver->getStatus();

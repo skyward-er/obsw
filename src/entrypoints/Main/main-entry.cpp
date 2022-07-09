@@ -31,6 +31,7 @@
 #include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <events/EventBroker.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -49,6 +50,7 @@ void print()
 int main()
 {
     Logger::getInstance().start();
+    EventBroker::getInstance().start();
 
     // Initialize the servo outputs
     Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
@@ -56,6 +58,8 @@ int main()
 
     // Start the radio
     Radio::getInstance().start();
+
+    // TODO: Start the pin observer
 
     // Start the state machines
     ADAController::getInstance().start();

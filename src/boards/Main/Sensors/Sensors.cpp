@@ -53,6 +53,8 @@ bool Sensors::start()
     return sensorManager->start();
 }
 
+bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
+
 BMX160Data Sensors::getBMX160LastSample()
 {
     PauseKernelLock lock;

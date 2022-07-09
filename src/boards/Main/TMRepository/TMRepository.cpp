@@ -35,6 +35,7 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
@@ -55,10 +56,40 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
         // System telemetries
         case SystemTMList::MAV_SYS_ID:
         {
+            mavlink_sys_tm_t tm;
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            // tm.logger       = Logger::getInstance().isStarted();
+            // tm.event_broker = EventBroker::getInstance().isRunning();
+            // tm.radio        = Radio::getInstance().isStarted();
+            // tm.pin_observer = ;
+            // tm.sensors      = Sensors::getInstance().isStarted();
+            // tm.board_scheduler =
+            //     BoardScheduler::getInstance().getScheduler().isRunning();
+
             break;
         }
         case SystemTMList::MAV_FSM_ID:
         {
+            mavlink_fsm_tm_t tm;
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            // tm.ada_sta   = static_cast<uint8_t>(
+            //     ADAController::getInstance().getStatus().state);
+            // tm.abk_state = static_cast<uint8_t>(
+            //     AirBrakesController::getInstance().getStatus().state);
+            // tm.dpl_state = static_cast<uint8_t>(
+            //     Deployment::getInstance().getStatus().state);
+            // tm.fmm_state = static_cast<uint8_t>(
+            //     FlightModeManager::getInstance().getStatus().state);
+            // tm.fsr_state = static_cast<uint8_t>(
+            //     FlightStatsRecorder::getInstance().getStatus().state);
+            // tm.nas_state = static_cast<uint8_t>(
+            //     NASController::getInstance().getStatus().state);
+
+            mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
             break;
         }
         case SystemTMList::MAV_PIN_OBS_ID:
@@ -79,7 +110,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.filled_buffers     = stats.buffersFilled;
             tm.written_buffers    = stats.buffersWritten;
             tm.failed_writes      = stats.writesFailed;
-            tm.error_writes       = stats.writesFailed;
+            tm.error_writes       = stats.lastWriteError;
             tm.average_write_time = stats.averageWriteTime;
             tm.max_write_time     = stats.maxWriteTime;
 

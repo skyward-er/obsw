@@ -46,6 +46,8 @@ class Sensors : public Boardcore::Singleton<Sensors>
 public:
     bool start();
 
+    bool isStarted();
+
     Boardcore::BMX160 *bmx160 = nullptr;
 
     Boardcore::BMX160Data getBMX160LastSample();
