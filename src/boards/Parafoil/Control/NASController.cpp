@@ -159,8 +159,8 @@ void NASController::step()
     nas->correctBaro(100000);
 
     auto nasState = nas->getState();
-    printf("w%fwa%fab%fbc%fc\n", nasState.qw, nasState.qx, nasState.qy,
-           nasState.qz);
+    // TRACE("w%fwa%fab%fbc%fc\n", nasState.qw, nasState.qx, nasState.qy,
+    //   nasState.qz);
     SDlogger->log(nasState);
 }
 }  // namespace Parafoil

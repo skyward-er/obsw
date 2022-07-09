@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <scheduler/TaskScheduler.h>
 
