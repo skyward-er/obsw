@@ -32,7 +32,8 @@ namespace Main
 
 enum class AirBrakesControllerState : uint8_t
 {
-    INIT = 0,
+    UNINIT = 0,
+    INIT,
     IDLE,
     SHADOW_MODE,
     ACTIVE,
@@ -42,7 +43,7 @@ enum class AirBrakesControllerState : uint8_t
 struct AirBrakesControllerStatus
 {
     uint64_t timestamp             = 0;
-    AirBrakesControllerState state = AirBrakesControllerState::INIT;
+    AirBrakesControllerState state = AirBrakesControllerState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

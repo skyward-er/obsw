@@ -32,7 +32,8 @@ namespace Main
 
 enum class FlightStatsRecorderState : uint8_t
 {
-    IDLE = 0,
+    UNINIT = 0,
+    IDLE,
     LIFTOFF,
     ASCENDING,
     MAIN_DEPLOYMENT
@@ -41,7 +42,7 @@ enum class FlightStatsRecorderState : uint8_t
 struct FlightStatsRecorderStatus
 {
     uint64_t timestamp             = 0;
-    FlightStatsRecorderState state = FlightStatsRecorderState::IDLE;
+    FlightStatsRecorderState state = FlightStatsRecorderState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

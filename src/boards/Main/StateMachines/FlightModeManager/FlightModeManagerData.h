@@ -32,7 +32,8 @@ namespace Main
 
 enum class FlightModeManagerState : uint8_t
 {
-    ON_GROUND = 0,
+    UNINIT = 0,
+    ON_GROUND,
     INIT,
     INIT_ERROR,
     SENSORS_CALIBRATION,
@@ -49,7 +50,7 @@ enum class FlightModeManagerState : uint8_t
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
+    FlightModeManagerState state = FlightModeManagerState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

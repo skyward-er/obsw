@@ -54,17 +54,11 @@ void ADAController::update()
 
     switch (status.state)
     {
-        case ADAControllerState::IDLE:
-        {
-        }
         case ADAControllerState::CALIBRATING:
         {
             // TODO: Implement calibration
 
             return EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
-        }
-        case ADAControllerState::READY:
-        {
         }
         case ADAControllerState::SHADOW_MODE:
         {
@@ -182,6 +176,10 @@ void ADAController::update()
                                                     TOPIC_FLIGHT);
             }
         }
+
+        case ADAControllerState::UNINIT:
+        case ADAControllerState::IDLE:
+        case ADAControllerState::READY:
         case ADAControllerState::LANDED:
         {
         }

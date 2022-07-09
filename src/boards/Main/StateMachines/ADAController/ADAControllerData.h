@@ -32,7 +32,8 @@ namespace Main
 
 enum class ADAControllerState : uint8_t
 {
-    IDLE = 0,
+    UNINIT = 0,
+    IDLE,
     CALIBRATING,
     READY,
     SHADOW_MODE,
@@ -46,7 +47,7 @@ enum class ADAControllerState : uint8_t
 struct ADAControllerStatus
 {
     uint64_t timestamp       = 0;
-    ADAControllerState state = ADAControllerState::IDLE;
+    ADAControllerState state = ADAControllerState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 

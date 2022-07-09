@@ -67,6 +67,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             // tm.board_scheduler =
             //     BoardScheduler::getInstance().getScheduler().isRunning();
 
+            mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
             break;
         }
         case SystemTMList::MAV_FSM_ID:

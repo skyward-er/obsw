@@ -32,7 +32,8 @@ namespace Main
 
 enum class DeploymentState : uint8_t
 {
-    INIT = 0,
+    UNINIT = 0,
+    INIT,
     IDLE,
     NOSECONE_EJECTION,
     CUTTING
@@ -41,7 +42,7 @@ enum class DeploymentState : uint8_t
 struct DeploymentStatus
 {
     uint64_t timestamp    = 0;
-    DeploymentState state = DeploymentState::INIT;
+    DeploymentState state = DeploymentState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 
