@@ -47,6 +47,10 @@ public:
 
     Boardcore::ADAState getAdaState();
 
+    void setReferenceValues(const Boardcore::ReferenceValues reference);
+
+    Boardcore::ReferenceValues getReferenceValues();
+
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);

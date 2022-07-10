@@ -76,8 +76,8 @@ constexpr unsigned int LANDING_N_SAMPLES = 5;
 // Deployment altitude above ground level
 static const float DEFAULT_DEPLOYMENT_ALTITUDE = 350;
 
-// Vertical speed under which the landing is triggered
-constexpr float LANDING_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
+// Vertical speed magnitude under which the landing is triggered
+constexpr float LANDING_VERTICAL_SPEED_MAG_TARGET = 2.5;  // [m/s]
 
 }  // namespace ADAConfig
 

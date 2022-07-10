@@ -69,6 +69,16 @@ NASControllerStatus NASController::getStatus() { return status; }
 
 NASState NASController::getNasState() { return nas.getState(); }
 
+void NASController::setReferenceValues(const ReferenceValues reference)
+{
+    nas.setReferenceValues(reference);
+}
+
+ReferenceValues NASController::getReferenceValues()
+{
+    return nas.getReferenceValues();
+}
+
 void NASController::state_idle(const Event& event)
 {
     switch (event)

@@ -72,8 +72,11 @@ void ADAController::update()
                 detectedApogeeEvents++;
 
                 if (detectedApogeeEvents > APOGEE_N_SAMPLES)
+                {
+                    // Apogee detected in shadow mode!
                     Logger::getInstance().log(ApogeeEvent{
                         TimestampTimer::getTimestamp(), status.state});
+                }
             }
             else
             {
@@ -93,6 +96,7 @@ void ADAController::update()
 
                 if (detectedApogeeEvents > APOGEE_N_SAMPLES)
                 {
+                    // Apogee detected
                     EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
                                                     TOPIC_FLIGHT);
                     Logger::getInstance().log(ApogeeEvent{
@@ -104,7 +108,9 @@ void ADAController::update()
                 detectedApogeeEvents = 0;
             }
 
-            // Check if the airbrakes need to be disabled
+            // Check if the airbrakes need to be disabled. This will happen
+            // before the apogee so that the airbrakes are retracted to prevent
+            // the parachutes cords from entangling.
             if (ada.getState().verticalSpeed < DISABLE_VERTICAL_SPEED_TARGET)
             {
                 detectedAbkDisableEvents++;
@@ -130,8 +136,11 @@ void ADAController::update()
                 detectedDeploymentEvents++;
 
                 if (detectedDeploymentEvents >= DEPLOYMENT_N_SAMPLES)
+                {
+                    // Deployment event detected during pressure stabilization!
                     Logger::getInstance().log(DeploymentEvent{
                         TimestampTimer::getTimestamp(), status.state});
+                }
             }
             else
             {
@@ -150,6 +159,7 @@ void ADAController::update()
 
                 if (detectedDeploymentEvents >= DEPLOYMENT_N_SAMPLES)
                 {
+                    // Deployment event detected
                     EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                                     TOPIC_FLIGHT);
                     Logger::getInstance().log(DeploymentEvent{
@@ -167,13 +177,17 @@ void ADAController::update()
         {
             ada.update(barometerData.pressure);
 
-            if (ada.getState().verticalSpeed < LANDING_VERTICAL_SPEED_TARGET)
+            if (abs(ada.getState().verticalSpeed) <
+                LANDING_VERTICAL_SPEED_MAG_TARGET)
             {
                 detectedLandingEvents++;
 
                 if (detectedLandingEvents > LANDING_N_SAMPLES)
+                {
+                    // Landing detected
                     EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                                     TOPIC_FLIGHT);
+                }
             }
         }
 
@@ -188,16 +202,26 @@ void ADAController::update()
     Logger::getInstance().log(ada.getState());
 }
 
+ADAControllerStatus ADAController::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
+
 ADAState ADAController::getAdaState()
 {
     PauseKernelLock lock;
     return ada.getState();
 }
 
-ADAControllerStatus ADAController::getStatus()
+void ADAController::setReferenceValues(const ReferenceValues reference)
 {
-    PauseKernelLock lock;
-    return status;
+    ada.setReferenceValues(reference);
+}
+
+ReferenceValues ADAController::getReferenceValues()
+{
+    return ada.getReferenceValues();
 }
 
 void ADAController::state_idle(const Event& event)

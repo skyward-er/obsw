@@ -147,16 +147,62 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
                                                 &msg, &tm);
             break;
         }
-        case SystemTMList::MAV_DPL_ID:
-        {
-            break;
-        }
         case SystemTMList::MAV_ADA_ID:
         {
+            mavlink_ada_tm_t tm;
+
+            auto status = ADAController::getInstance().getStatus();
+            auto state  = ADAController::getInstance().getAdaState();
+            auto ref    = ADAController::getInstance().getReferenceValues();
+
+            tm.timestamp       = state.timestamp;
+            tm.state           = static_cast<uint8_t>(status.state);
+            tm.kalman_x0       = state.x0;
+            tm.kalman_x1       = state.x1;
+            tm.kalman_x2       = state.x2;
+            tm.vert_speed      = state.verticalSpeed;
+            tm.msl_altitude    = state.mslAltitude;
+            tm.ref_pressure    = ref.pressure;
+            tm.ref_altitude    = ref.altitude;
+            tm.ref_temperature = ref.temperature;
+
+            mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
             break;
         }
         case SystemTMList::MAV_NAS_ID:
         {
+            mavlink_nas_tm_t tm;
+
+            auto state       = NASController::getInstance().getNasState();
+            auto status      = NASController::getInstance().getStatus();
+            auto orientation = SkyQuaternion::quat2eul(
+                {state.qx, state.qy, state.qz, state.qw});
+            auto ref = NASController::getInstance().getReferenceValues();
+
+            tm.timestamp       = state.timestamp;
+            tm.state           = static_cast<uint8_t>(status.state);
+            tm.x1              = state.n;
+            tm.x2              = state.e;
+            tm.x3              = state.d;
+            tm.x4              = state.vn;
+            tm.x5              = state.ve;
+            tm.x6              = state.vd;
+            tm.x7              = orientation(0);
+            tm.x8              = orientation(1);
+            tm.x9              = orientation(2);
+            tm.x10             = state.bx;
+            tm.x11             = state.by;
+            tm.x12             = state.bz;
+            tm.ref_pressure    = ref.pressure;
+            tm.ref_temperature = ref.temperature;
+            tm.ref_latitude    = ref.startLatitude;
+            tm.ref_longitude   = ref.startLongitude;
+
+            mavlink_msg_nas_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
             break;
         }
         case SystemTMList::MAV_CAN_ID:
