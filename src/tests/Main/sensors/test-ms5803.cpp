@@ -24,6 +24,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorSampler.h>
+#include <utils/Stats/Stats.h>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -48,8 +49,44 @@ int main()
     }
 
     Thread::sleep(100);
-    printf("pressureTimestamp,press,temperatureTimestamp,temp\n");
 
+    for (int i = 0; i < 2; i++)
+    {
+        sensor.sample();
+        Thread::sleep(20);
+    }
+
+    // Calculating statistics of the sensor
+    const int nSamples = 100;
+    Stats stats[2];
+
+    printf("Calculating statistics...\n");
+
+    for (int iSample = 0; iSample < nSamples; iSample++)
+    {
+        sensor.sample();
+
+        MS5803Data data = sensor.getLastSample();
+
+        stats[0].add(data.pressure);
+        stats[1].add(data.temperature);
+
+        miosix::delayMs(20);
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        StatsResult statsResults = stats[i].getStats();
+
+        printf("%d: avg: %+.4f,\tmin: %+.4f,\tmax: %+.4f,\tstd: %.4f\n", i,
+               statsResults.mean, statsResults.minValue, statsResults.maxValue,
+               statsResults.stdDev);
+    }
+
+    miosix::delayMs(3000);
+
+    // Sampling sensor
+    printf("pressureTimestamp,press,temperatureTimestamp,temp\n");
     while (true)
     {
         sensor.sample();

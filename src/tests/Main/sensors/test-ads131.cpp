@@ -24,6 +24,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 #include <sensors/ADS131M04/ADS131M04.h>
+#include <utils/Stats/Stats.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -53,6 +54,45 @@ int main()
     ads131.enableGlobalChopMode();
     ads131.setOversamplingRatio(ADS131M04::OversamplingRatio::OSR_4096);
 
+    miosix::delayMs(1000);
+
+    // Calculating statistics of the sensor
+    const int nSamples = 100;
+    Stats stats[4];
+
+    printf("Calculating statistics...\n");
+
+    for (int iSample = 0; iSample < nSamples; iSample++)
+    {
+        ads131.sample();
+
+        ADS131M04Data data = ads131.getLastSample();
+        float voltage115   = data.voltage[0] / VOLTAGE_DIVIDER;
+        float pressure115  = (voltage115 / 5.15 + 0.095) / 0.009;
+        float voltage400   = data.voltage[1] / VOLTAGE_DIVIDER;
+        float pressure400  = (voltage400 / 5.15 + 0.00842) / 0.002421;
+
+        stats[0].add(pressure115);
+        stats[1].add(pressure400);
+        stats[2].add(data.voltage[2]);
+        stats[3].add(data.voltage[3]);
+
+        miosix::delayMs(50);
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        StatsResult statsResults = stats[i].getStats();
+
+        printf("%d: avg: %+.4f,\tmin: %+.4f,\tmax: %+.4f,\tstd: %.4f\n", i,
+               statsResults.mean, statsResults.minValue, statsResults.maxValue,
+               statsResults.stdDev);
+    }
+
+    miosix::delayMs(3000);
+
+    // Sampling sensor
+    printf("timestamp,Vpress115,Vpress400,VloadCell,Vbat,press115,press400\n");
     while (true)
     {
         ads131.sample();

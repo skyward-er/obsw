@@ -24,6 +24,7 @@
 #include <drivers/timer/GeneralPurposeTimer.h>
 #include <sensors/BMX160/BMX160.h>
 #include <utils/Debug.h>
+#include <utils/Stats/Stats.h>
 
 #include "kernel/logging.h"
 
@@ -83,6 +84,53 @@ int main()
 
     // TRACE("Self-test successful!\n");
 
+    // Calculating statistics of the sensor
+    const int nSamples = 100;
+    Stats stats[9];
+
+    printf("Calculating statistics...\n");
+
+    for (int iSample = 0; iSample < nSamples; iSample++)
+    {
+        miosix::delayMs(100);
+
+        sensor->sample();
+        if (sensor->getLastError() != SensorErrors::NO_ERRORS)
+        {
+            TRACE("Failed to read data!\n");
+            continue;
+        }
+
+        uint8_t len = std::min(sensor->getLastFifoSize(), (uint8_t)5);
+
+        for (uint8_t i = 0; i < len; i++)
+        {
+            BMX160Data data = sensor->getFifoElement(i);
+
+            stats[0].add(data.magneticFieldX);
+            stats[1].add(data.magneticFieldY);
+            stats[2].add(data.magneticFieldZ);
+            stats[3].add(data.angularVelocityX);
+            stats[4].add(data.angularVelocityY);
+            stats[5].add(data.angularVelocityZ);
+            stats[6].add(data.accelerationX);
+            stats[7].add(data.accelerationY);
+            stats[8].add(data.accelerationZ);
+        }
+    }
+
+    for (int i = 0; i < 9; i++)
+    {
+        StatsResult statsResults = stats[i].getStats();
+
+        printf("%d: avg: %+.4f,\tmin: %+.4f,\tmax: %+.4f,\tstd: %.4f\n", i,
+               statsResults.mean, statsResults.minValue, statsResults.maxValue,
+               statsResults.stdDev);
+    }
+
+    miosix::delayMs(3000);
+
+    // Sampling sensor
     while (true)
     {
         printf("----------------------------\n");

@@ -25,6 +25,7 @@
 #include <miosix.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <utils/Debug.h>
+#include <utils/Stats/Stats.h>
 
 using namespace miosix;
 
@@ -67,7 +68,41 @@ int main()
     result = mpu9250.selfTest();
     printf("Self test result: %d\n", result);
 
-    Thread::sleep(2000);
+    Thread::sleep(1000);
+
+    const int nSamples = 1000;
+    Stats stats[9];
+
+    printf("Calculating statistics...\n");
+
+    for (int iSample = 0; iSample < nSamples; iSample++)
+    {
+        mpu9250.sample();
+        MPU9250Data data = mpu9250.getLastSample();
+
+        stats[0].add(data.magneticFieldX);
+        stats[1].add(data.magneticFieldY);
+        stats[2].add(data.magneticFieldZ);
+        stats[3].add(data.angularVelocityX);
+        stats[4].add(data.angularVelocityY);
+        stats[5].add(data.angularVelocityZ);
+        stats[6].add(data.accelerationX);
+        stats[7].add(data.accelerationY);
+        stats[8].add(data.accelerationZ);
+
+        miosix::delayMs(10);
+    }
+
+    for (int i = 0; i < 9; i++)
+    {
+        StatsResult statsResults = stats[i].getStats();
+
+        printf("%d: avg: %+.4f,\tmin: %+.4f,\tmax: %+.4f,\tstd: %.4f\n", i,
+               statsResults.mean, statsResults.minValue, statsResults.maxValue,
+               statsResults.stdDev);
+    }
+
+    miosix::delayMs(3000);
 
     while (true)
     {
