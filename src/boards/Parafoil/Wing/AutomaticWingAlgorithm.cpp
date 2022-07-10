@@ -37,10 +37,16 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     : WingAlgorithm(servo1, servo2, "")
 {
     // TODO define umin and umax for antiwindup purposes
-    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD);
+    controller =
+        new PIController(Kp, Ki, WING_UPDATE_PERIOD, -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
+
+void AutomaticWingAlgorithm::setTarget(Vector2f newTarget)
+{
+    this->target = newTarget;
+}
 
 void AutomaticWingAlgorithm::step()
 {
@@ -50,7 +56,8 @@ void AutomaticWingAlgorithm::step()
     // Acquire the last nas state
     NASState state = ParafoilTest::getInstance().algorithms->getNASLastSample();
 
-    // Target direction in respect to the current one TODO to be verified
+    // Target direction in respect to the current one
+    // TODO to be logged
     Vector2f targetDirection = target - Vector2f(state.n, state.e);
 
     // Compute the angle of the target direciton
@@ -71,16 +78,47 @@ void AutomaticWingAlgorithm::step()
         }
     }
 
-    // Call the PI with the just calculated error
+    // Call the PI with the just calculated error. The result is in RADIANS, if
+    // positive we activate one servo, if negative the other
     result = controller->update(error);
 
-    // TODO Set servo positionings depending on the PI control result
+    // Convert the result from radians back to degrees
+    result = (result / (2 * Constants::PI)) * 360;
+
+    // Actuate the result
+    if (result > 0)
+    {
+        // Activate the servo1 and reset servo2
+        if (servo1 != NULL)
+        {
+            servo1->set(result);
+        }
+        if (servo2 != NULL)
+        {
+            servo2->set(WING_SERVO2_RESET_POSITION);
+        }
+    }
+    else
+    {
+        // Activate the servo2 and reset servo1
+        if (servo1 != NULL)
+        {
+            servo1->set(WING_SERVO1_RESET_POSITION);
+        }
+        if (servo2 != NULL)
+        {
+            // Invert the servo
+            servo2->set(WING_SERVO2_MAX_POSITION - result);
+        }
+    }
 
     // Log the servo positions
-    // WingAlgorithmData data;
-    // data.timestamp   = TimestampTimer::getTimestamp();
-    // data.servo1Angle = servo1Angle;
-    // data.servo2Angle = servo2Angle;
-    // SDlogger->log(data);
+    WingAlgorithmData data;
+    data.timestamp   = TimestampTimer::getTimestamp();
+    data.servo1Angle = servo1 == NULL ? 0 : servo1->getCurrentPosition();
+    data.servo2Angle = servo2 == NULL ? 0 : servo2->getCurrentPosition();
+    data.targetX     = targetDirection[0];
+    data.targetY     = targetDirection[1];
+    SDlogger->log(data);
 }
 }  // namespace Parafoil

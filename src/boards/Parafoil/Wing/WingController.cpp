@@ -122,8 +122,8 @@ void WingController::flare()
 
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    servo1->set(120 - WING_SERVO1_RESET_POSITION);
-    servo2->set(120 - WING_SERVO2_RESET_POSITION);
+    servo1->set(WING_SERVO_MAX_DEGREES - WING_SERVO1_RESET_POSITION);
+    servo2->set(WING_SERVO_MAX_DEGREES - WING_SERVO2_RESET_POSITION);
 }
 
 void WingController::reset()

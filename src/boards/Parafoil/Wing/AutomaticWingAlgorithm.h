@@ -47,6 +47,13 @@ public:
      */
     ~AutomaticWingAlgorithm();
 
+    /**
+     * @brief Set the Target object
+     *
+     * @param newTarget The target that the algorithm has to follow
+     */
+    void setTarget(Eigen::Vector2f newTarget);
+
 protected:
     // PI controller tuned on the Kp and Ki passed through constructor
     Boardcore::PIController* controller;

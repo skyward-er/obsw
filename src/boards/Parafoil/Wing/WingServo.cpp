@@ -61,7 +61,11 @@ void WingServo::selfTest()
     setPosition(MAX_POS);
 }
 
-void WingServo::setPosition(float angle) { servo->setPosition(angle / 180); }
+void WingServo::setPosition(float angle)
+{
+    servo->setPosition(angle / WING_SERVO_MAX_DEGREES);
+    this->currentPosition = angle;
+}
 
 float WingServo::preprocessPosition(float angle) { return angle; }
 }  // namespace Parafoil

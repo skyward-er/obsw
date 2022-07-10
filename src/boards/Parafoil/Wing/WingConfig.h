@@ -64,9 +64,10 @@ static const Boardcore::TimerUtils::Channel WING_SERVO2_PWM_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 // Servo dipendent variables
-static const unsigned int WING_SERVO_MIN_PULSE = 900;
-static const unsigned int WING_SERVO_MAX_PULSE = 2100;
-static const unsigned int WING_SERVO_FREQUENCY = 50;
+static const unsigned int WING_SERVO_MIN_PULSE   = 900;
+static const unsigned int WING_SERVO_MAX_PULSE   = 2100;
+static const unsigned int WING_SERVO_FREQUENCY   = 50;
+static const unsigned int WING_SERVO_MAX_DEGREES = 120;
 
 static const float WING_SERVO1_MAX_POSITION = 120;  // degrees
 static const float WING_SERVO2_MAX_POSITION = 120;  // degrees
