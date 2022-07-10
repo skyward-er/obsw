@@ -103,10 +103,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
     // handle TC
     switch (msg.msgid)
     {
-        case MAVLINK_MSG_ID_NOARG_TC:  // basic command
+        case MAVLINK_MSG_ID_COMMAND_TC:  // basic command
         {
             LOG_DEBUG(logger, "Received NOARG command");
-            uint8_t commandId = mavlink_msg_noarg_tc_get_command_id(&msg);
+            uint8_t commandId = mavlink_msg_command_tc_get_command_id(&msg);
 
             // search for the corresponding event and post it
             auto it = tcMap.find(commandId);
@@ -117,52 +117,59 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             switch (commandId)
             {
-                case MAV_CMD_BOARD_RESET:
+                case MAV_CMD_FORCE_REBOOT:
                     SDlogger->stop();
                     LOG_INFO(logger, "Received command BOARD_RESET");
                     miosix::reboot();
                     break;
                 case MAV_CMD_CLOSE_LOG:
                     SDlogger->stop();
-                    sendTelemetry(MAV_LOGGER_TM_ID);
+                    sendSystemTelemetry(MAV_LOGGER_ID);
                     LOG_INFO(logger, "Received command CLOSE_LOG");
                     break;
                 case MAV_CMD_START_LOGGING:
                     ParafoilTest::getInstance().SDlogger->start();
-                    sendTelemetry(MAV_LOGGER_TM_ID);
+                    sendSystemTelemetry(MAV_LOGGER_ID);
                     LOG_INFO(logger, "Received command START_LOG");
                     break;
                 case MAV_CMD_TEST_MODE:
                     // I use the test mode to apply the sequence
                     ParafoilTest::getInstance().wingController->start();
                     break;
-                case MAV_CMD_DPL_RESET_SERVO:
+                case MAV_CMD_FORCE_LANDING:
                     // I reset the servo position
                     ParafoilTest::getInstance().wingController->reset();
-                    break;
-                case MAV_CMD_CALIBRATE_SENSORS:
-                    // I calibrate the sensors inside Sensors.h
-                    ParafoilTest::getInstance().sensors->calibrate();
                     break;
                 default:
                     break;
             }
             break;
         }
-        case MAVLINK_MSG_ID_TELEMETRY_REQUEST_TC:  // tm request
+        case MAVLINK_MSG_ID_SYSTEM_TELEMETRY_REQUEST_TC:  // tm request
         {
-            uint8_t tmId = mavlink_msg_telemetry_request_tc_get_board_id(&msg);
+            uint8_t tmId =
+                mavlink_msg_system_telemetry_request_tc_get_tm_id(&msg);
             LOG_DEBUG(logger, "Received TM request : id = {:d}", tmId);
 
             // send corresponding telemetry or NACK
-            sendTelemetry(tmId);
+            sendSystemTelemetry(tmId);
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_AEROBRAKE_ANGLE_TC:
+        case MAVLINK_MSG_ID_SENSOR_TELEMETRY_REQUEST_TC:
+        {
+            uint8_t tmId =
+                mavlink_msg_sensor_telemetry_request_tc_get_sensor_id(&msg);
+
+            // Send corresponding telemetry or NACK
+            sendSensorTelemetry(tmId);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
             uint8_t algorithmId =
-                mavlink_msg_set_aerobrake_angle_tc_get_angle(&msg);
+                mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Set the algorithm (invalid cases are checked inside the method)
             ParafoilTest::getInstance().wingController->selectAlgorithm(
@@ -185,8 +192,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             // post given event on given topic
             EventBroker::getInstance().post(
-                {mavlink_msg_raw_event_tc_get_Event_id(&msg)},
-                mavlink_msg_raw_event_tc_get_Topic_id(&msg));
+                {mavlink_msg_raw_event_tc_get_event_id(&msg)},
+                mavlink_msg_raw_event_tc_get_topic_id(&msg));
             break;
         }
         case MAVLINK_MSG_ID_PING_TC:
@@ -205,12 +212,20 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
     sendAck(msg);
 }
 
-bool Radio::sendTelemetry(const uint8_t tm_id)
+bool Radio::sendSystemTelemetry(const uint8_t tm_id)
 {
     // Enqueue the message
     bool result =
-        mav_driver->enqueueMsg(TMRepository::getInstance().packTM(tm_id));
+        mav_driver->enqueueMsg(TMRepository::getInstance().packSystemTM(tm_id));
     // TODO log the operation
+    return result;
+}
+
+bool Radio::sendSensorTelemetry(const uint8_t tm_id)
+{
+    // Enqueue the message
+    bool result =
+        mav_driver->enqueueMsg(TMRepository::getInstance().packSensorTM(tm_id));
     return result;
 }
 
@@ -218,17 +233,17 @@ void Radio::sendHRTelemetry()
 {
     // sendTelemetry(MAV_HR_TM_ID);
     // TEST ONLY
-    sendTelemetry(MAV_SENSORS_TM_ID);
+    sendSystemTelemetry(MAV_FLIGHT_ID);
 }
 
 void Radio::sendLRTelemetry()
 {
     // I send this telemetry if and only if the status is
     // in low rate telemetry
-    sendTelemetry(MAV_LR_TM_ID);
+    sendSystemTelemetry(MAV_FLIGHT_STATS_ID);
 }
 
-void Radio::sendSDLogTelemetry() { sendTelemetry(MAV_LOGGER_TM_ID); }
+void Radio::sendSDLogTelemetry() { sendSystemTelemetry(MAV_LOGGER_ID); }
 
 void Radio::sendAck(const mavlink_message_t& msg)
 {
@@ -313,7 +328,7 @@ void Radio::init()
 
     // Register the LR and HR tasks in the scheduler
     scheduler->addTask(HRfunction, HR_GROUND_UPDATE_PERIOD, RADIO_HR_ID);
-    scheduler->addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_LR_ID);
+    // scheduler->addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_LR_ID);
     scheduler->addTask(SDfunction, SD_UPDATE_PERIOD, SD_UPDATE_ID);
 
     // Set the frame receive callback

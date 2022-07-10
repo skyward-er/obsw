@@ -27,7 +27,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#include <mavlink_lib/lynx/mavlink.h>
+#include <mavlink_lib/pyxis/mavlink.h>
 #pragma GCC diagnostic pop
 
 #include <Parafoil/Configs/MavlinkConfig.h>

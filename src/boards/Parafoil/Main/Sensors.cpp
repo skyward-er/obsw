@@ -67,9 +67,6 @@ void Sensors::MPU9250Callback()
     logger->log(imu_mpu9250->getLastSample());
     LOG_DEBUG(log, "{:.2f} {:.2f} {:.2f}", d.accelerationX, d.accelerationY,
               d.accelerationZ);
-
-    // Update the radio repository
-    TMRepository::getInstance().update(d);
 }
 
 void Sensors::UbloxGPSinit()
@@ -97,9 +94,6 @@ void Sensors::UbloxGPSCallback()
     {
         LOG_DEBUG(log, "{:.2f} {:.2f}", d.latitude, d.longitude);
     }
-
-    // Update the radio repository
-    TMRepository::getInstance().update(d);
 }
 
 void Sensors::BME280init()
@@ -196,7 +190,6 @@ void Sensors::BME280Callback()
         // Update the radio repository
         d.pressure    = pressureMean.getStats().mean;
         d.temperature = temperatureMean.getStats().mean;
-        TMRepository::getInstance().update(d);
 
         // Decide what the wing should do
         if (height > WING_ALGORITHM_ARM_ALTITUDE && !procedureArm)

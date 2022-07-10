@@ -22,14 +22,18 @@
 
 #include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
+#include <utils/SkyQuaternion/SkyQuaternion.h>
+
+#include <Eigen/Core>
 
 using namespace Boardcore;
+using namespace Eigen;
 
 namespace Parafoil
 {
 
-mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
-                                       uint8_t comp_id)
+mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
+                                             uint8_t comp_id)
 {
     mavlink_message_t m;
     mavlink_nack_tm_t nack_tm;
@@ -38,73 +42,120 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
 
     switch (req_tm)
     {
-        case MavTMList::MAV_SENSORS_TM_ID:
+        case SystemTMList::MAV_LOGGER_ID:
         {
-            tm_repository.sensors_tm.timestamp = miosix::getTick();
-            mavlink_msg_sensors_tm_encode(sys_id, comp_id, &m,
-                                          &(tm_repository.sensors_tm));
-            break;
-        }
-        case MavTMList::MAV_LOGGER_TM_ID:
-        {
-            tm_repository.logger_tm.timestamp = miosix::getTick();
+            tmRepository.loggerTm.timestamp = miosix::getTick();
 
             // Get the logger stats
             Boardcore::LoggerStats stats =
                 ParafoilTest::getInstance().SDlogger->getStats();
 
-            // First i update the logger_tm
-            tm_repository.logger_tm.statLogNumber =
+            // First i update the loggerTm
+            tmRepository.loggerTm.log_number =
                 ParafoilTest::getInstance().SDlogger->getCurrentLogNumber();
 
-            tm_repository.logger_tm.statBufferFilled    = stats.buffersFilled;
-            tm_repository.logger_tm.statBufferWritten   = stats.buffersWritten;
-            tm_repository.logger_tm.statDroppedSamples  = stats.droppedSamples;
-            tm_repository.logger_tm.statMaxWriteTime    = stats.maxWriteTime;
-            tm_repository.logger_tm.statQueuedSamples   = stats.queuedSamples;
-            tm_repository.logger_tm.statTooLargeSamples = stats.tooLargeSamples;
-            tm_repository.logger_tm.statWriteFailed     = stats.writesFailed;
-            tm_repository.logger_tm.statWriteTime       = stats.maxWriteTime;
-            tm_repository.logger_tm.statWriteError      = stats.lastWriteError;
+            tmRepository.loggerTm.filled_buffers    = stats.buffersFilled;
+            tmRepository.loggerTm.written_buffers   = stats.buffersWritten;
+            tmRepository.loggerTm.sdropped_samples  = stats.droppedSamples;
+            tmRepository.loggerTm.max_write_time    = stats.maxWriteTime;
+            tmRepository.loggerTm.queued_samples    = stats.queuedSamples;
+            tmRepository.loggerTm.too_large_samples = stats.tooLargeSamples;
+            tmRepository.loggerTm.failed_writes     = stats.writesFailed;
+            tmRepository.loggerTm.max_write_time    = stats.maxWriteTime;
+            tmRepository.loggerTm.error_writes      = stats.lastWriteError;
 
             mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
-                                         &(tm_repository.logger_tm));
+                                         &(tmRepository.loggerTm));
+            break;
+        }
+        case SystemTMList::MAV_FLIGHT_ID:
+        {
+            // I have to send the whole flight tm
+            tmRepository.flightTm.timestamp = miosix::getTick();
+
+            // Get the pressure
+            tmRepository.flightTm.pressure_digi =
+                ParafoilTest::getInstance()
+                    .sensors->getBME280LastSample()
+                    .pressure;
+
+            // Get the IMU data
+            MPU9250Data imu =
+                ParafoilTest::getInstance().sensors->getMPU9250LastSample();
+
+            tmRepository.flightTm.acc_x  = imu.accelerationX;
+            tmRepository.flightTm.acc_y  = imu.accelerationY;
+            tmRepository.flightTm.acc_z  = imu.accelerationZ;
+            tmRepository.flightTm.gyro_x = imu.angularVelocityX;
+            tmRepository.flightTm.gyro_y = imu.angularVelocityY;
+            tmRepository.flightTm.gyro_z = imu.angularVelocityZ;
+            tmRepository.flightTm.mag_x  = imu.magneticFieldX;
+            tmRepository.flightTm.mag_y  = imu.magneticFieldY;
+            tmRepository.flightTm.mag_z  = imu.magneticFieldZ;
+
+            // Get the GPS data
+            UBXGPSData gps =
+                ParafoilTest::getInstance().sensors->getGPSLastSample();
+
+            tmRepository.flightTm.gps_fix = gps.fix;
+            tmRepository.flightTm.gps_lat = gps.latitude;
+            tmRepository.flightTm.gps_lon = gps.longitude;
+            tmRepository.flightTm.gps_alt = gps.height;
+
+            // Get the NAS data
+            NASState state =
+                ParafoilTest::getInstance().algorithms->getNASLastSample();
+
+            tmRepository.flightTm.nas_x  = state.n;
+            tmRepository.flightTm.nas_y  = state.e;
+            tmRepository.flightTm.nas_z  = state.d;
+            tmRepository.flightTm.nas_vx = state.vn;
+            tmRepository.flightTm.nas_vy = state.ve;
+            tmRepository.flightTm.nas_vz = state.vd;
+
+            // TODO discuss about quaternion to euler computation in this
+            // instance
+
+            tmRepository.flightTm.nas_bias0 = state.bx;
+            tmRepository.flightTm.nas_bias1 = state.by;
+            tmRepository.flightTm.nas_bias2 = state.bz;
+
             break;
         }
         /*case MavTMList::MAV_SYS_TM_ID:
-            tm_repository.sys_tm.timestamp = miosix::getTick();
+            tmRepository.sys_tm.timestamp = miosix::getTick();
             mavlink_msg_sys_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.sys_tm));
+                                    &(tmRepository.sys_tm));
             break;
         case MavTMList::MAV_FMM_TM_ID:
-            tm_repository.fmm_tm.timestamp = miosix::getTick();
+            tmRepository.fmm_tm.timestamp = miosix::getTick();
             mavlink_msg_fmm_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.fmm_tm));
+                                    &(tmRepository.fmm_tm));
             break;
         case MavTMList::MAV_TMTC_TM_ID:
-            tm_repository.tmtc_tm.timestamp = miosix::getTick();
+            tmRepository.tmtc_tm.timestamp = miosix::getTick();
             mavlink_msg_tmtc_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.tmtc_tm));
+                                    &(tmRepository.tmtc_tm));
             break;
         case MavTMList::MAV_TASK_STATS_TM_ID:
-            tm_repository.task_stats_tm.timestamp = miosix::getTick();
+            tmRepository.task_stats_tm.timestamp = miosix::getTick();
             mavlink_msg_task_stats_tm_encode(sys_id, comp_id, &m,
-                                            &(tm_repository.task_stats_tm));
+                                            &(tmRepository.task_stats_tm));
             break;
         case MavTMList::MAV_GPS_TM_ID:
-            tm_repository.gps_tm.timestamp = miosix::getTick();
+            tmRepository.gps_tm.timestamp = miosix::getTick();
             mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.gps_tm));
+                                    &(tmRepository.gps_tm));
             break;
         case MavTMList::MAV_HR_TM_ID:
-            tm_repository.hr_tm.timestamp = miosix::getTick();
+            tmRepository.hr_tm.timestamp = miosix::getTick();
             mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.hr_tm));
+                                    &(tmRepository.hr_tm));
             break;
         case MavTMList::MAV_LR_TM_ID:
-            //tm_repository.tm_repository.lr_tm.timestamp = miosix::getTick();
+            //tmRepository.tmRepository.lr_tm.timestamp = miosix::getTick();
             mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
-                                    &(tm_repository.lr_tm));
+                                    &(tmRepository.lr_tm));
             break;*/
         default:
         {
@@ -118,45 +169,15 @@ mavlink_message_t TMRepository::packTM(uint8_t req_tm, uint8_t sys_id,
     return m;
 }
 
-// Implement all the update functions
-void TMRepository::update(MPU9250Data data)
+mavlink_message_t TMRepository::packSensorTM(uint8_t req_tm, uint8_t sys_id,
+                                             uint8_t comp_id)
 {
-    // Pause the kernel to avoid interructions during this fast operation
+    mavlink_message_t m;
+    mavlink_nack_tm_t nack_tm;
+
     miosix::PauseKernelLock kLock;
-    // Update only the sensors message TODO update all the things
-    tm_repository.sensors_tm.bmx160_acc_x = data.accelerationX;
-    tm_repository.sensors_tm.bmx160_acc_y = data.accelerationY;
-    tm_repository.sensors_tm.bmx160_acc_z = data.accelerationZ;
 
-    tm_repository.sensors_tm.bmx160_gyro_x = data.angularVelocityX;
-    tm_repository.sensors_tm.bmx160_gyro_y = data.angularVelocityY;
-    tm_repository.sensors_tm.bmx160_gyro_z = data.angularVelocityZ;
-
-    tm_repository.sensors_tm.bmx160_mag_x = data.magneticFieldX;
-    tm_repository.sensors_tm.bmx160_mag_y = data.magneticFieldY;
-    tm_repository.sensors_tm.bmx160_mag_z = data.magneticFieldZ;
-
-    tm_repository.sensors_tm.bmx160_temp = data.temperature;
-}
-
-void TMRepository::update(UBXGPSData data)
-{
-    // Pause the kernel to avoid interructions during this fast operation
-    miosix::PauseKernelLock kLock;
-    // Update only the sensors message TODO update all the things
-    tm_repository.sensors_tm.gps_alt = data.height;
-    tm_repository.sensors_tm.gps_fix = data.fix;
-    tm_repository.sensors_tm.gps_lon = data.longitude;
-    tm_repository.sensors_tm.gps_lat = data.latitude;
-}
-
-void TMRepository::update(BME280Data data)
-{
-    // Pause the kernel to avoid interructions during this fast operation
-    miosix::PauseKernelLock kLock;
-    // Update only the sensors message TODO update all the things
-    tm_repository.sensors_tm.ms5803_press = data.pressure;
-    tm_repository.sensors_tm.ms5803_temp  = data.temperature;
+    return m;
 }
 
 }  // namespace Parafoil

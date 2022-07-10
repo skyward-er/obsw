@@ -46,7 +46,7 @@ class TMRepository : public Boardcore::Singleton<TMRepository>
 
 public:
     /**
-     * @brief Retrieve a telemetry message in packed form.
+     * @brief Retrieve a system telemetry message in packed form.
      *
      * @param req_tm    required telemetry
      * @param sys_id    system id to pack it with
@@ -54,15 +54,22 @@ public:
      * @return          packed mavlink struct of that telemetry or a NACK_TM if
      *                  the telemetry id was not found.
      */
-    mavlink_message_t packTM(uint8_t req_tm, uint8_t sys_id = TMTC_MAV_SYSID,
-                             uint8_t comp_id = TMTC_MAV_COMPID);
+    mavlink_message_t packSystemTM(uint8_t req_tm,
+                                   uint8_t sys_id  = TMTC_MAV_SYSID,
+                                   uint8_t comp_id = TMTC_MAV_COMPID);
 
     /**
-     * @brief Update functions
+     * @brief Retrieve a sensor telemetry message in packed form.
+     *
+     * @param req_tm    required telemetry
+     * @param sys_id    system id to pack it with
+     * @param comp_id   component id to pack it with
+     * @return          packed mavlink struct of that telemetry or a NACK_TM if
+     *                  the telemetry id was not found.
      */
-    void update(Boardcore::MPU9250Data data);
-    void update(Boardcore::UBXGPSData data);
-    void update(Boardcore::BME280Data data);
+    mavlink_message_t packSensorTM(uint8_t req_tm,
+                                   uint8_t sys_id  = TMTC_MAV_SYSID,
+                                   uint8_t comp_id = TMTC_MAV_COMPID);
 
 private:
     /**
@@ -70,29 +77,29 @@ private:
      */
     struct TmRepository_t
     {
-        mavlink_sys_tm_t sys_tm;
-        mavlink_pin_obs_tm_t pin_obs_tm;
-        mavlink_logger_tm_t logger_tm;
-        mavlink_fmm_tm_t fmm_tm;
-        mavlink_tmtc_tm_t tmtc_tm;
-        mavlink_task_stats_tm_t task_stats_tm;
-        mavlink_dpl_tm_t dpl_tm;
-        mavlink_ada_tm_t ada_tm;
-        mavlink_abk_tm_t abk_tm;
-        mavlink_nas_tm_t nas_tm;
+        // System telemetries
+        mavlink_sys_tm_t sysTm;
+        mavlink_fsm_tm_t fsmTm;
+        mavlink_pin_obs_tm_t pinObsTm;
+        mavlink_logger_tm_t loggerTm;
+        mavlink_mavlink_stats_tm_t mavlinkStatsTm;
+        mavlink_task_stats_tm_t taskStatsTm;
+        mavlink_dpl_tm_t dplTm;
+        mavlink_ada_tm_t adaTm;
+        mavlink_nas_tm_t nasTm;
+        mavlink_can_tm_t canTm;
+        mavlink_payload_flight_tm_t flightTm;
+        mavlink_payload_stats_tm_t stastTm;
+        mavlink_sensor_state_tm_t sensorsStateTm;
 
-        mavlink_ms5803_tm_t digital_baro_tm;
-        mavlink_bmx160_tm_t bmx_tm;
-        mavlink_lis3mdl_tm_t lis3mdl_tm;
-        mavlink_adc_tm_t adc_tm;
-        mavlink_gps_tm_t gps_tm;
-
-        mavlink_hr_tm_t hr_tm;
-        mavlink_lr_tm_t lr_tm;
-        mavlink_windtunnel_tm_t wind_tm;
-        mavlink_sensors_tm_t sensors_tm;
-        mavlink_test_tm_t test_tm;
-    } tm_repository;
+        // Sensors telemetries
+        mavlink_gps_tm_t gpsTm;
+        mavlink_imu_tm_t imuTm;
+        mavlink_adc_tm_t adcTm;
+        mavlink_baro_tm_t barometerTm;
+        mavlink_temp_tm_t temperatureTm;
+        mavlink_attitude_tm_t attitudeTm;
+    } tmRepository;
 
     /**
      * @brief Logger

@@ -70,13 +70,23 @@ public:
 
     /**
      * @brief This method is used to add in send queue
-     * the requested message. It is necessary to call the
+     * the requested system message. It is necessary to call the
      * TMrepository to process the actual packet.
      *
      * @param tm_id The requested message id
      * @return boolean that indicates the operation's result
      */
-    bool sendTelemetry(const uint8_t tm_id);
+    bool sendSystemTelemetry(const uint8_t tm_id);
+
+    /**
+     * @brief This method is used to add in send queue
+     * the requested sensor message. It is necessary to call the
+     * TMrepository to process the actual packet.
+     *
+     * @param tm_id The requested message id
+     * @return boolean that indicates the operation's result
+     */
+    bool sendSensorTelemetry(const uint8_t tm_id);
 
     /**
      * @brief Method automatically called by the task
@@ -120,31 +130,20 @@ private:
         {MAV_CMD_ARM, EV_TC_ARM},
         {MAV_CMD_DISARM, EV_TC_DISARM},
 
-        {MAV_CMD_FORCE_INIT, EV_TC_FORCE_INIT},
         {MAV_CMD_FORCE_LAUNCH, EV_TC_LAUNCH},
+        {MAV_CMD_FORCE_LANDING, EV_TC_LAND},
 
-        {MAV_CMD_NOSECONE_OPEN, EV_TC_NC_OPEN},
-        {MAV_CMD_DPL_RESET_SERVO, EV_TC_DPL_RESET_SERVO},
-        {MAV_CMD_DPL_WIGGLE_SERVO, EV_TC_DPL_WIGGLE_SERVO},
-        {MAV_CMD_CUT_DROGUE, EV_TC_CUT_DROGUE},
-
-        {MAV_CMD_ARB_RESET_SERVO, EV_TC_ABK_RESET_SERVO},
-        {MAV_CMD_ARB_WIGGLE_SERVO, EV_TC_ABK_WIGGLE_SERVO},
-        {MAV_CMD_DISABLE_AEROBRAKES, EV_TC_ABK_DISABLE},
-        {MAV_CMD_TEST_AEROBRAKES, EV_TC_TEST_ABK},
-
-        {MAV_CMD_CALIBRATE_ALGOS, EV_TC_CALIBRATE_ALGOS},
-        {MAV_CMD_CALIBRATE_SENSORS, EV_TC_CALIBRATE_SENSORS},
-
-        {MAV_CMD_SERIAL_TM, EV_TC_SERIAL_TM},
-        {MAV_CMD_RADIO_TM, EV_TC_RADIO_TM},
+        {MAV_CMD_FORCE_EXPULSION, EV_TC_NC_OPEN},
+        {MAV_CMD_FORCE_MAIN, EV_TC_CUT_DROGUE},
 
         {MAV_CMD_START_LOGGING, EV_TC_START_LOG},
         {MAV_CMD_CLOSE_LOG, EV_TC_CLOSE_LOG},
 
+        {MAV_CMD_FORCE_REBOOT, EV_TC_RESET_BOARD},
         {MAV_CMD_TEST_MODE, EV_TC_TEST_MODE},
-        {MAV_CMD_BOARD_RESET, EV_TC_RESET_BOARD},
-        {MAV_CMD_END_MISSION, EV_TC_END_MISSION}};
+
+        {MAV_CMD_START_RECORDING, EV_TC_START_RECORDING},
+        {MAV_CMD_STOP_RECORDING, EV_TC_STOP_RECORDING}};
 
     /**
      * @brief The mavlink driver
