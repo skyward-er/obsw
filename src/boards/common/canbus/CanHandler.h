@@ -37,7 +37,7 @@ namespace common
 
 enum CanEv : uint8_t
 {
-    EV_LIFTOFF = EV_FIRST_CUSTOM,
+    EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
     EV_APOGEE,
     EV_ARMED,
     EV_AEROBRAKE
@@ -49,7 +49,6 @@ enum CanTopics : uint8_t
     TOPIC_CAN_COMMAND  // maybe we can make this a single topic??? not sure
 };
 
-// todo move enum into a separate file in boardcore (makes more sense)
 // sensors
 enum SensorID
 {
@@ -96,7 +95,6 @@ enum Type
 class CanHandler : public Boardcore::ActiveObject
 {
 private:
-    Boardcore::IRQCircularBuffer<Boardcore::Canbus::CanData, NPACKET> buffer;
     Boards source;
     PitotMocap *pitot;
     AereoBrakes *brakes;
@@ -107,32 +105,43 @@ public:
                PitotMocap *pitotInstance, AereoBrakes *brakesInstance)
         : source(source)
     {
-        *can   = Boardcore::Canbus::CanProtocol(canPhysical, &buffer);
+        can    = new Boardcore::Canbus::CanProtocol(canPhysical);
         pitot  = pitotInstance;
         brakes = brakesInstance;
-
-        can->start();
+        (*can).start();
     }
 
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
-                 uint64_t toSend[32], uint8_t nPacket)
+                 Boardcore::Canbus::CanData toSend)
     {
-        if (nPacket > 0)
+        if (toSend.len > 0)
         {
-
-            Boardcore::Canbus::CanData packet;
-            packet.len   = nPacket;
-            packet.canId = (p & idMask.priority) | (t & idMask.type) |
-                           (source & idMask.source) |
-                           (destination & idMask.destination) |
-                           (idT & idMask.idType);
-            memcpy(packet.payload, toSend, nPacket);
-            can->sendCan(packet);
+            toSend.canId =
+                ((p << Boardcore::Canbus::shiftPriority) &
+                 Boardcore::Canbus::priority) |
+                ((t << Boardcore::Canbus::shiftType) &
+                 Boardcore::Canbus::type) |
+                ((source << Boardcore::Canbus::shiftSource) &
+                 Boardcore::Canbus::source) |
+                ((destination << Boardcore::Canbus::shiftDestination) &
+                 Boardcore::Canbus::destination) |
+                ((idT << Boardcore::Canbus::shiftIdType) &
+                 Boardcore::Canbus::idType);
+            can->sendCan(toSend);
         }
+    }
+    void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
+                 uint8_t payload)  // if we have to send a command it is easier
+                                   // to call the function using a int
+    {
+        Boardcore::Canbus::CanData toSend;
+        toSend.len        = 1;
+        toSend.payload[0] = 0;
+        sendCan(destination, p, t, idT, toSend);
     }
 
     /* Destructor */
-    ~CanHandler() {}
+    ~CanHandler() { (*can).~CanProtocol(); }
 
 protected:
     void run() override
@@ -141,15 +150,17 @@ protected:
 
         while (true)
         {
-            buffer.waitUntilNotEmpty();
-            if (!buffer.isEmpty())
+            (*can).waitEmpty();
+            if (!((*can).isEmpty()))
             {
-                data = buffer.pop();
+                data = (*can).getPacket();
 
-                switch (data.canId & idMask.type)
+                switch ((data.canId & Boardcore::Canbus::type) >>
+                        Boardcore::Canbus::shiftType)
                 {
                     case Command:
-                        switch (data.canId & idMask.idType)
+                        switch ((data.canId & Boardcore::Canbus::idType) >>
+                                Boardcore::Canbus::shiftIdType)
                         {
                             case AirBrakes:
                                 (*brakes).SetData(data);
@@ -161,7 +172,8 @@ protected:
                         /* code */
                         break;
                     case Events:
-                        switch (data.canId & idMask.idType)
+                        switch ((data.canId & Boardcore::Canbus::idType) >>
+                                Boardcore::Canbus::shiftIdType)
                         {
                             case Liftoff:
                                 Boardcore::EventBroker::getInstance().post(
@@ -182,7 +194,8 @@ protected:
                         break;
 
                     case Sensor:
-                        switch (data.canId & idMask.idType)
+                        switch ((data.canId & Boardcore::Canbus::idType) >>
+                                Boardcore::Canbus::shiftIdType)
                         {
                             case Pitot:
                                 (*pitot).SetData(data);

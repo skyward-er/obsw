@@ -19,18 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/canbus/CanHandler.h>
-#include <common/canbus/SensorMocap/AereoBrakes.h>
-#include <common/canbus/SensorMocap/PitotMocap.h>
+#include <thread>
 
+#include "common/canbus/CanHandler.h"
+#include "common/canbus/SensorMocap/AereoBrakes.h"
+#include "common/canbus/SensorMocap/PitotMocap.h"
 #include "drivers/canbus/BusLoadEstimation.h"
 #include "drivers/canbus/Canbus.h"
+#include "test-can-event-handler.h"
 #include "utils/collections/CircularBuffer.h"
+
+#define slp 5000
 
 constexpr uint32_t BAUD_RATE = 500 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
-using namespace Boardcore;
 using namespace Boardcore::Canbus;
 using namespace miosix;
 using namespace common;
@@ -42,6 +45,41 @@ using CanTX = Gpio<GPIOA_BASE, 12>;
 using CanRX = Gpio<GPIOA_BASE, 11>;
 using CanTX = Gpio<GPIOA_BASE, 12>;
 #endif
+void checkPressureData(PitotMocap* p)
+{
+    Thread::sleep(10);  // de-synchronize the sending from the receiving;
+    while (true)
+    {
+        if ((*p).Updated())
+        {
+            Boardcore::PressureData temp = (*p).GetData();
+            TRACE("Received pressure packet. Data: %f, timestamp %llu\n",
+                  temp.pressure, temp.pressureTimestamp);
+        }
+        else
+        {
+            TRACE("No Pressure packet received in this time slot\n");
+        }
+        Thread::sleep(slp);
+    }
+}
+void checkAereoData(AereoBrakes* a)
+{
+    Thread::sleep(10);  // de-synchronize the sending from the receiving;
+    while (true)
+    {
+        if ((*a).Updated())
+        {
+            uint8_t temp = (*a).GetData();
+            TRACE("Received Aereo packet. Data: %d\n", temp);
+        }
+        else
+        {
+            TRACE("No Aereo packet received in this time slot\n");
+        }
+        Thread::sleep(slp);
+    }
+}
 
 int main()
 {
@@ -79,16 +117,37 @@ int main()
 
     handler.start();
     // send event, data and command
-    const int slp = 500;
-    CanData toSend;
-    toSend.canId      = 0x01;
-    toSend.len        = 3;
-    toSend.payload[0] = 1;
-    toSend.payload[1] = 2;
-    toSend.payload[2] = 3;
-    for (;;)
+    Boardcore::PressureData t{240, 12354.35};
+    MyEventHandler evh;
+    if (evh.start())
     {
+        std::thread printPressureData(checkPressureData, p);
+        std::thread printAereoData(checkAereoData, a);
 
-        Thread::sleep(slp);
+        for (;;)
+        {
+            TRACE("Sent a packet \n");
+            handler.sendCan(Boards::Payload, common::Priority::Medium,
+                            Type::Sensor, SensorID::Pitot, (*p).ParseData(t));
+
+            handler.sendCan(Boards::Main, common::Priority::Critical,
+                            Type::Command, CommandsID::AirBrakes,
+                            (*a).ParseData(69));
+            // if we have to send a command we use 0 as a payload
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Liftoff, 0);
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Apogee, 0);
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Armed, 0);
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            CommandsID::AirBrakes, 0);
+            Thread::sleep(slp);
+        }
+        evh.stop();  // it posts an EV_EMPTY to wake up the thread
+    }
+    else
+    {
+        TRACE("Failed to start MyEventHandler\n");
     }
 }

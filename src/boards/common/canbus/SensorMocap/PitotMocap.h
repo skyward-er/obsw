@@ -27,7 +27,6 @@
 
 namespace common
 {
-
 class PitotMocap
 {
 public:
@@ -35,24 +34,27 @@ public:
 
     Boardcore::PressureData GetData()  // todo update to use pressure data
     {
-        m.lock();
+        miosix::Lock<miosix::FastMutex> l(mutex);
         updated = false;
-        m.unlock();
         return data;
     }
 
-    bool Updated() { return updated; }
+    bool Updated()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        return updated;
+    }
 
     void SetData(Boardcore::Canbus::CanData packet)
     {
         // the pitot packet is a the first 4 byte pressure and the last 4
         // timestamp
-        m.lock();
-        data.pressure          = packet.payload[0] >> 32;
-        data.pressureTimestamp = packet.payload[0] & 0xffffffff;
 
-        updated = true;
-        m.unlock();
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        uint32_t temp = packet.payload[0] >> 32;
+        memcpy(&data.pressure, &temp, sizeof(data.pressure));
+        data.pressureTimestamp = (packet.payload[0] & 0xfffffff) << 2;
+        updated                = true;
     }
 
     Boardcore::Canbus::CanData ParseData(
@@ -61,15 +63,15 @@ public:
     {
         Boardcore::Canbus::CanData tempData;
         tempData.len = 1;
-        uint32_t temp;
-        memcpy(&temp, &(sample.pressure), sizeof(temp));
-        tempData.payload[0] = temp << 32 & sample.pressureTimestamp >> 2;
+        uint64_t temp;
+        memcpy(&temp, &(sample.pressure), sizeof(sample.pressure));
+        tempData.payload[0] = (temp << 32) | (sample.pressureTimestamp >> 2);
         return tempData;
     }
 
 private:
     bool updated = false;
     Boardcore::PressureData data;
-    miosix::FastMutex m;
+    miosix::FastMutex mutex;
 };
 }  // namespace common

@@ -29,27 +29,36 @@ namespace common
 class AereoBrakes
 {
 private:
-    miosix::FastMutex m;
+    miosix::FastMutex mutex;
     uint8_t percentage;
     bool updated;
 
 public:
-    uint8_t GetPercentage()  // todo update to use pressure data
+    uint8_t GetData()  // todo update to use pressure data
     {
-        m.lock();
+        miosix::Lock<miosix::FastMutex> l(mutex);
         updated = false;
-        m.unlock();
         return percentage;
     }
 
-    bool Updated() { return updated; }
+    bool Updated()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        return updated;
+    }
 
     void SetData(Boardcore::Canbus::CanData packet)
     {
-        m.lock();
-        percentage = packet.payload[0] >> 56;
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        percentage = packet.payload[0];
         updated    = true;
-        m.unlock();
+    }
+    Boardcore::Canbus::CanData ParseData(uint8_t sample)
+    {
+        Boardcore::Canbus::CanData tempData;
+        tempData.len        = 1;
+        tempData.payload[0] = sample;
+        return tempData;
     }
 };
 }  // namespace common
