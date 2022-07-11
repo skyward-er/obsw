@@ -140,6 +140,17 @@ void Sensors::calibrate()
     loadCell->setOffset(loadCellMean);
 }
 
+std::map<string, bool> Sensors::getSensorsState()
+{
+    std::map<string, bool> sensorsState;
+
+    for (auto sensor : sensorsMap)
+        sensorsState[sensor.second.id] =
+            sensorManager->getSensorInfo(sensor.first).isInitialized;
+
+    return sensorsState;
+}
+
 Sensors::Sensors()
 {
     // Initialize all the sensors

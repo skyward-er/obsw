@@ -95,7 +95,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
 
             break;
         }
-        case SystemTMList::MAV_PIN_OBS_ID:
+        case SystemTMList::MAV_PIN_OBS_ID:  // TODO
         {
             break;
         }
@@ -205,7 +205,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
 
             break;
         }
-        case SystemTMList::MAV_CAN_ID:
+        case SystemTMList::MAV_CAN_ID:  // TODO
         {
             break;
         }
@@ -230,21 +230,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // State machines states
-            tm.ada_state = ada.isRunning()
-                               ? static_cast<uint8_t>(ada.getStatus().state)
-                               : -1;
-            tm.fmm_state = fmm.isRunning()
-                               ? static_cast<uint8_t>(fmm.getStatus().state)
-                               : -1;
-            tm.dpl_state = dpl.isRunning()
-                               ? static_cast<uint8_t>(dpl.getStatus().state)
-                               : -1;
-            tm.ab_state  = abk.isRunning()
-                               ? static_cast<uint8_t>(abk.getStatus().state)
-                               : -1;
-            tm.nas_state = nas.isRunning()
-                               ? static_cast<uint8_t>(nas.getStatus().state)
-                               : -1;
+            tm.ada_state = static_cast<uint8_t>(ada.getStatus().state);
+            tm.fmm_state = static_cast<uint8_t>(fmm.getStatus().state);
+            tm.dpl_state = static_cast<uint8_t>(dpl.getStatus().state);
+            tm.ab_state  = static_cast<uint8_t>(abk.getStatus().state);
+            tm.nas_state = static_cast<uint8_t>(nas.getStatus().state);
 
             // Pressures
             tm.pressure_ada    = ada.getAdaState().x0;
@@ -342,17 +332,15 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
                                                &msg, &tm);
             break;
         }
-        case SystemTMList::MAV_SENSORS_STATE_ID:
-        {
-            break;
-        }
 
         default:
         {
-            LOG_DEBUG(logger, "Unknown telemetry id: {}", reqTm);
             mavlink_nack_tm_t nack;
+
             nack.recv_msgid = 0;
             nack.seq_ack    = 0;
+
+            LOG_DEBUG(logger, "Unknown telemetry id: {}", reqTm);
             mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                        RadioConfig::MAV_COMPONENT_ID, &msg,
                                        &nack);

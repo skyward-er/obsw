@@ -25,6 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <Main/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
@@ -92,6 +93,27 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
                         mavDriver->enqueueMsg(msgToSend);
                     }
+
+                    break;
+                }
+                case SystemTMList::MAV_SENSORS_STATE_ID:
+                {
+                    for (auto sensor : Sensors::getInstance().getSensorsState())
+                    {
+                        mavlink_message_t msgToSend;
+                        mavlink_sensor_state_tm_t tm;
+
+                        sensor.first.copy(tm.sensor_id, sizeof(tm.sensor_id),
+                                          0);
+                        tm.state = sensor.second;
+
+                        mavlink_msg_sensor_state_tm_encode(
+                            RadioConfig::MAV_SYSTEM_ID,
+                            RadioConfig::MAV_COMPONENT_ID, &msgToSend, &tm);
+
+                        mavDriver->enqueueMsg(msgToSend);
+                    }
+
                     break;
                 }
                 default:
