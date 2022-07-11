@@ -158,7 +158,7 @@ void NASController::step()
         nas->correctGPS(gpsCorrection);
     nas->correctBaro(100000);
 
-    auto nasState = nas->getState();
+    NASState nasState = nas->getState();
     // TRACE("w%fwa%fab%fbc%fc\n", nasState.qw, nasState.qx, nasState.qy,
     //   nasState.qz);
     SDlogger->log(nasState);

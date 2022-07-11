@@ -64,7 +64,21 @@ void AutomaticWingAlgorithm::step()
     float targetAngle = atan2(targetDirection[1], targetDirection[0]);
 
     // Compute the angle of the current velocity
-    float velocityAngle = atan2(state.ve, state.vn);
+    float velocityAngle;
+
+    // In case of a 0 north velocity i force the angle to 90
+    if (state.vn == 0 && state.ve == 0)
+    {
+        velocityAngle = 0;
+    }
+    else if (state.vn == 0)
+    {
+        velocityAngle = (state.ve > 0 ? 1 : -1) * Constants::PI / 2;
+    }
+    else
+    {
+        velocityAngle = atan2(state.ve, state.vn);
+    }
 
     // Compute the angle difference
     float error = targetAngle - velocityAngle;

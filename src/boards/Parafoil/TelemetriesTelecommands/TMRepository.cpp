@@ -36,7 +36,7 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
                                              uint8_t comp_id)
 {
     mavlink_message_t m;
-    mavlink_nack_tm_t nack_tm;
+    mavlink_nack_tm_t nack;
 
     miosix::PauseKernelLock kLock;
 
@@ -122,47 +122,12 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
 
             break;
         }
-        /*case MavTMList::MAV_SYS_TM_ID:
-            tmRepository.sys_tm.timestamp = miosix::getTick();
-            mavlink_msg_sys_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.sys_tm));
-            break;
-        case MavTMList::MAV_FMM_TM_ID:
-            tmRepository.fmm_tm.timestamp = miosix::getTick();
-            mavlink_msg_fmm_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.fmm_tm));
-            break;
-        case MavTMList::MAV_TMTC_TM_ID:
-            tmRepository.tmtc_tm.timestamp = miosix::getTick();
-            mavlink_msg_tmtc_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.tmtc_tm));
-            break;
-        case MavTMList::MAV_TASK_STATS_TM_ID:
-            tmRepository.task_stats_tm.timestamp = miosix::getTick();
-            mavlink_msg_task_stats_tm_encode(sys_id, comp_id, &m,
-                                            &(tmRepository.task_stats_tm));
-            break;
-        case MavTMList::MAV_GPS_TM_ID:
-            tmRepository.gps_tm.timestamp = miosix::getTick();
-            mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.gps_tm));
-            break;
-        case MavTMList::MAV_HR_TM_ID:
-            tmRepository.hr_tm.timestamp = miosix::getTick();
-            mavlink_msg_hr_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.hr_tm));
-            break;
-        case MavTMList::MAV_LR_TM_ID:
-            //tmRepository.tmRepository.lr_tm.timestamp = miosix::getTick();
-            mavlink_msg_lr_tm_encode(sys_id, comp_id, &m,
-                                    &(tmRepository.lr_tm));
-            break;*/
         default:
         {
             LOG_DEBUG(logger, "Unknown telemetry id: {:d}", req_tm);
-            nack_tm.recv_msgid = 0;
-            nack_tm.seq_ack    = 0;
-            mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack_tm);
+            nack.recv_msgid = 0;
+            nack.seq_ack    = 0;
+            mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack);
             break;
         }
     }
@@ -173,9 +138,87 @@ mavlink_message_t TMRepository::packSensorTM(uint8_t req_tm, uint8_t sys_id,
                                              uint8_t comp_id)
 {
     mavlink_message_t m;
-    mavlink_nack_tm_t nack_tm;
+    mavlink_nack_tm_t nack;
 
-    miosix::PauseKernelLock kLock;
+    // The kernel lock is not necessary because the sensors getters already do
+    // that
+
+    switch (req_tm)
+    {
+        case SensorsTMList::MAV_GPS_ID:
+        {
+            // Get with lock the gps data
+            UBXGPSData gps =
+                ParafoilTest::getInstance().sensors->getGPSLastSample();
+
+            // Update the repository
+            tmRepository.gpsTm.timestamp = miosix::getTick();
+            strcpy(tmRepository.gpsTm.sensor_id, "UbloxGPS\0");
+            tmRepository.gpsTm.fix          = gps.fix;
+            tmRepository.gpsTm.latitude     = gps.latitude;
+            tmRepository.gpsTm.longitude    = gps.longitude;
+            tmRepository.gpsTm.height       = gps.height;
+            tmRepository.gpsTm.vel_north    = gps.velocityNorth;
+            tmRepository.gpsTm.vel_east     = gps.velocityEast;
+            tmRepository.gpsTm.vel_down     = gps.velocityDown;
+            tmRepository.gpsTm.speed        = gps.speed;
+            tmRepository.gpsTm.track        = gps.track;
+            tmRepository.gpsTm.n_satellites = gps.satellites;
+
+            // Encode the message
+            mavlink_msg_gps_tm_encode(sys_id, comp_id, &m,
+                                      &(tmRepository.gpsTm));
+            break;
+        }
+        case SensorsTMList::MAV_MPU9250_ID:
+        {
+            // Get with lock the imu data
+            MPU9250Data imu =
+                ParafoilTest::getInstance().sensors->getMPU9250LastSample();
+
+            // Update the repository
+            tmRepository.imuTm.timestamp = miosix::getTick();
+            strcpy(tmRepository.imuTm.sensor_id, "MPU9250\0");
+            tmRepository.imuTm.acc_x  = imu.accelerationX;
+            tmRepository.imuTm.acc_y  = imu.accelerationY;
+            tmRepository.imuTm.acc_z  = imu.accelerationZ;
+            tmRepository.imuTm.gyro_x = imu.angularVelocityX;
+            tmRepository.imuTm.gyro_y = imu.angularVelocityY;
+            tmRepository.imuTm.gyro_z = imu.angularVelocityZ;
+            tmRepository.imuTm.mag_x  = imu.magneticFieldX;
+            tmRepository.imuTm.mag_y  = imu.magneticFieldY;
+            tmRepository.imuTm.mag_z  = imu.magneticFieldZ;
+
+            // Encode the message
+            mavlink_msg_imu_tm_encode(sys_id, comp_id, &m,
+                                      &(tmRepository.imuTm));
+            break;
+        }
+        case SensorsTMList::MAV_MS5803_ID:
+        {
+            // Get with lock the barometer data
+            BME280Data baro =
+                ParafoilTest::getInstance().sensors->getBME280LastSample();
+
+            // Update the repository
+            tmRepository.barometerTm.timestamp = miosix::getTick();
+            strcpy(tmRepository.barometerTm.sensor_id, "MS5803\0");
+            tmRepository.barometerTm.pressure = baro.pressure;
+
+            // Encode the message
+            mavlink_msg_baro_tm_encode(sys_id, comp_id, &m,
+                                       &(tmRepository.barometerTm));
+            break;
+        }
+        default:
+        {
+            // Send the nack
+            LOG_DEBUG(logger, "Unknown telemetry id: {:d}", req_tm);
+            nack.recv_msgid = 0;
+            nack.seq_ack    = 0;
+            mavlink_msg_nack_tm_encode(sys_id, comp_id, &m, &nack);
+        }
+    }
 
     return m;
 }
