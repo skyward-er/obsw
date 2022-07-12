@@ -19,14 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <Payload/Control/NASController.h>
+#include <algorithms/NAS/NAS.h>
+#include <diagnostic/PrintLogger.h>
+#include <logger/Logger.h>
+#include <scheduler/TaskScheduler.h>
 #include <sensors/BMX160/BMX160Data.h>
 #include <sensors/UBXGPS/UBXGPSData.h>
 
 namespace Payload
 {
+
 class Algorithms
 {
 public:
@@ -66,4 +72,5 @@ private:
     // Init functions
     void NASInit();
 };
+
 }  // namespace Payload

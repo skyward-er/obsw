@@ -22,6 +22,7 @@
 
 #include <Payload/Control/NASController.h>
 #include <utils/AeroUtils/AeroUtils.h>
+#include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
 using namespace Eigen;

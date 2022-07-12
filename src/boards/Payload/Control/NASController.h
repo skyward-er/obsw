@@ -23,7 +23,6 @@
 
 #include <Payload/Payload.h>
 #include <algorithms/NAS/NAS.h>
-#include <algorithms/NAS/NASState.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/Sensor.h>
 
@@ -43,6 +42,7 @@
 
 namespace Payload
 {
+
 /**
  * @brief The class expects some parameters that represent the data type
  *
@@ -130,4 +130,5 @@ private:
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("NASController");
 };
+
 }  // namespace Payload

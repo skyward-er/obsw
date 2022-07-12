@@ -105,7 +105,10 @@ bool Sensors::start()
 void Sensors::calibrate()
 {
     // Calibrate the IMU and log the biases result
-    correctedImuBMX160->calibrate();
+    correctedImuBMX160->startCalibration();
+    Thread::sleep(1000);
+    correctedImuBMX160->stopCalibration();
+
     SDlogger->log(correctedImuBMX160->getGyroscopeBiases());
 
     // TODO Decide calibration techinique
@@ -331,10 +334,6 @@ void Sensors::correctedImuBMX160Init()
           correctionParameters.magnetoParams(1, 0), 0.f);
     TRACE("[Sensors]     |    % 2.5f    % 2.5f    % 2.5f    |\n\n", 0.f, 0.f,
           correctionParameters.magnetoParams(2, 0));
-    TRACE(
-        "[Sensors] The current minimun number of gyroscope samples for "
-        "calibration is %d\n",
-        correctionParameters.minGyroSamplesForCalibration);
 
     // Setup the sensor
     correctedImuBMX160 = new BMX160WithCorrection(
