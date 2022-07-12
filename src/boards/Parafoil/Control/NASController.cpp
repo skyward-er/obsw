@@ -53,7 +53,7 @@ void NASController::calculateInitialOrientation()
     // Mean the values
     for (int i = 0; i < 10; i++)
     {
-        MPU9250Data measure =
+        Boardcore::MPU9250Data measure =
             ParafoilTest::getInstance().sensors->getMPU9250LastSample();
         accelerometer = accelerometer + Eigen::Vector3f(measure.accelerationX,
                                                         measure.accelerationY,
@@ -109,9 +109,9 @@ Boardcore::NASState NASController::getLastSample() { return nas->getState(); }
 void NASController::step()
 {
     // Sample the sensors
-    MPU9250Data imuData =
+    Boardcore::MPU9250Data imuData =
         ParafoilTest::getInstance().sensors->getMPU9250LastSample();
-    UBXGPSData gpsData =
+    Boardcore::UBXGPSData gpsData =
         ParafoilTest::getInstance().sensors->getGPSLastSample();
 
     // Extrapolate all the data
@@ -158,7 +158,7 @@ void NASController::step()
         nas->correctGPS(gpsCorrection);
     nas->correctBaro(100000);
 
-    NASState nasState = nas->getState();
+    Boardcore::NASState nasState = nas->getState();
     // TRACE("w%fwa%fab%fbc%fc\n", nasState.qw, nasState.qx, nasState.qy,
     //   nasState.qz);
     SDlogger->log(nasState);

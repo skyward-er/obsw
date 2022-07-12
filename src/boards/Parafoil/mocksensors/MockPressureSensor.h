@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Parafoil/mocksensors/MockSensorsData.h>
 //#include <mocksensors/lynx_flight_data/lynx_press_data.h>
 #include <Parafoil/mocksensors/lynx_flight_data/lynx_pressure_static_data.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -30,10 +29,12 @@
 
 #include <random>
 
+#include "MockSensorsData.h"
+
 namespace Parafoil
 {
 
-class MockPressureSensor : public Sensor<MockPressureData>
+class MockPressureSensor : public Boardcore::Sensor<MockPressureData>
 {
 public:
     MockPressureSensor(bool with_noise_ = false) : with_noise(with_noise_) {}
@@ -46,7 +47,7 @@ public:
     {
         MockPressureData data;
 
-        data.pressureTimestamp = TimestampTimer::getTimestamp();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
 
         if (before_liftoff)
         {
