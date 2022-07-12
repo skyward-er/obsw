@@ -57,11 +57,13 @@ void AutomaticWingAlgorithm::step()
 
     // Acquire the last nas state
     NASState state = ParafoilTest::getInstance().algorithms->getNASLastSample();
+    UBXGPSData gps = ParafoilTest::getInstance().sensors->getGPSLastSample();
 
     // Target direction in respect to the current one
     // TODO to be logged
     Vector2f targetDirection =
-        WING_TARGET_POSITION - Vector2f(state.n, state.e);
+        ParafoilTest::getInstance().wingController->getTargetPosition() -
+        Vector2f(state.n, state.e);
 
     // Compute the angle of the target direciton
     float targetAngle = atan2(targetDirection[1], targetDirection[0]);
@@ -103,8 +105,9 @@ void AutomaticWingAlgorithm::step()
     result = (result / (2 * Constants::PI)) * 360;
 
     // Actuate the result
-    if (result > 0)
+    if (result < 0)
     {
+        result = -1 * result;
         // Activate the servo1 and reset servo2
         if (servo1 != NULL)
         {
@@ -131,12 +134,13 @@ void AutomaticWingAlgorithm::step()
 
     // Log the servo positions
     WingAlgorithmData data;
-    data.timestamp   = TimestampTimer::getTimestamp();
-    data.servo1Angle = servo1 == NULL ? 0 : servo1->getCurrentPosition();
-    data.servo2Angle = servo2 == NULL ? 0 : servo2->getCurrentPosition();
-    data.targetX     = targetDirection[0];
-    data.targetY     = targetDirection[1];
-    data.targetAngle = targetAngle;
+    data.timestamp     = TimestampTimer::getTimestamp();
+    data.servo1Angle   = servo1 == NULL ? 0 : servo1->getCurrentPosition();
+    data.servo2Angle   = servo2 == NULL ? 0 : servo2->getCurrentPosition();
+    data.targetX       = targetDirection[0];
+    data.targetY       = targetDirection[1];
+    data.targetAngle   = targetAngle;
+    data.velocityAngle = velocityAngle;
     SDlogger->log(data);
 }
 }  // namespace Parafoil

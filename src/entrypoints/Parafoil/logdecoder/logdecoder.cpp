@@ -29,6 +29,7 @@
 #include <Parafoil/Wing/WingAlgorithmData.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/SystemData.h>
+#include <diagnostic/StackData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <logger/LoggerStats.h>
@@ -65,6 +66,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<LoggingString>();
     ds.registerType<SystemData>();
     ds.registerType<ParafoilTestStatus>();
+    ds.registerType<StackData>();
 
     // Parafoil data
     ds.registerType<WingAlgorithmData>();

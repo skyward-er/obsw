@@ -26,6 +26,8 @@
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <scheduler/TaskScheduler.h>
 
+#include <Eigen/Core>
+
 /**
  * @brief This class allows the user to select the wing algorithm
  * that has to be used during the tests. It also registers his
@@ -57,6 +59,11 @@ private:
      */
     ServoInterface* servo1;
     ServoInterface* servo2;
+
+    /**
+     * @brief Target position
+     */
+    Eigen::Vector2f targetPosition;
 
     /**
      * @brief List of loaded algorithms (from SD or not)
@@ -155,5 +162,15 @@ public:
      * to update the internal wing servos states
      */
     void update();
+
+    /**
+     * @brief Method to set the target position
+     */
+    void setTargetPosition(Eigen::Vector2f target);
+
+    /**
+     * @brief target position getter
+     */
+    Eigen::Vector2f getTargetPosition();
 };
 }  // namespace Parafoil

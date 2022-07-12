@@ -224,7 +224,7 @@ private:
         wingController->addAlgorithm("/sd/servoTerni2.csv");
         wingController->addAlgorithm("/sd/servoCorta.csv");
         wingController->addAlgorithm("/sd/servoLunga.csv");
-        wingController->addAlgorithm(new AutomaticWingAlgorithm(1, 0));
+        wingController->addAlgorithm(new AutomaticWingAlgorithm(0.5, 0));
         wingController->addAlgorithm(new AutomaticWingAlgorithm(0.1, 0.01));
         wingController->addAlgorithm(new AutomaticWingAlgorithm(1, 0.1));
         wingController->selectAlgorithm(0);

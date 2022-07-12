@@ -37,7 +37,6 @@ namespace Parafoil
  */
 static const uint32_t WING_UPDATE_PERIOD = 100;  // milliseconds
 static const uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
-static Eigen::Vector2f WING_TARGET_POSITION;
 
 /**
  * ALGORITHM START AND FLARE ARMING CONSTANTS

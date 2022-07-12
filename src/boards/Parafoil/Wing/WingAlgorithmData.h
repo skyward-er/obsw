@@ -31,23 +31,26 @@ namespace Parafoil
  */
 struct WingAlgorithmData
 {
-    uint64_t timestamp;  // First timestamp is 0 (in microseconds)
-    float servo1Angle;   // degrees
-    float servo2Angle;   // degrees
-    float targetAngle;   // degrees (automatic only)
-    float targetX;       // NED (only automatic algorithm)
-    float targetY;       // NED (only automatic algorithm)
+    uint64_t timestamp;   // First timestamp is 0 (in microseconds)
+    float servo1Angle;    // degrees
+    float servo2Angle;    // degrees
+    float targetAngle;    // radians (automatic only)
+    float velocityAngle;  // radians
+    float targetX;        // NED (only automatic algorithm)
+    float targetY;        // NED (only automatic algorithm)
 
     static std::string header()
     {
-        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle,"
+        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle, "
+               "velocityAngle,"
                "targetX,targetY\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << servo1Angle << "," << servo2Angle << ","
-           << targetAngle << "," << targetX << "," << targetY << "\n";
+           << targetAngle << "," << velocityAngle << "," << targetX << ","
+           << targetY << "\n";
     }
 };
 }  // namespace Parafoil

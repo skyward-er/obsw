@@ -191,11 +191,14 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 ParafoilTest::getInstance().sensors->getGPSLastSample();
             if (gps.fix != 0)
             {
-                Eigen::Vector2f ned = Boardcore::Aeroutils::geodetic2NED(
-                    Eigen::Vector2f(lat, lon),
+                ParafoilTest::getInstance().wingController->setTargetPosition(
+                    Boardcore::Aeroutils::geodetic2NED(
+                        Eigen::Vector2f(lat, lon),
+                        Eigen::Vector2f(gps.latitude, gps.longitude)));
+
+                // Set also the initial position of the NASController
+                ParafoilTest::getInstance().algorithms->nas->setInitialPosition(
                     Eigen::Vector2f(gps.latitude, gps.longitude));
-                WING_TARGET_POSITION[0] = ned[0];
-                WING_TARGET_POSITION[1] = ned[1];
             }
             break;
         }

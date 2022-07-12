@@ -171,4 +171,11 @@ void WingController::init()
 
     scheduler->addTask(updateFunction, WING_UPDATE_PERIOD, WING_CONTROLLER_ID);
 }
+
+void WingController::setTargetPosition(Eigen::Vector2f target)
+{
+    this->targetPosition = target;
+}
+
+Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
 }  // namespace Parafoil
