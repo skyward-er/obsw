@@ -66,7 +66,7 @@ struct ParafoilTestStatus
         return "logger, eventBorker, sensors, radio\n";
     }
 
-    void print(std::ostream& os)
+    void print(std::ostream& os) const
     {
         os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
            << "," << (int)radio << "\n";

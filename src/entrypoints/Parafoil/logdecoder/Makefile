@@ -1,4 +1,4 @@
-BASE := ../../../
+BASE := ../../../../
 BOARDCORE := $(BASE)skyward-boardcore/
 
 all:
@@ -6,9 +6,11 @@ all:
 					$(BOARDCORE)libs/tscpp/tscpp/stream.cpp \
 					-DCOMPILE_FOR_X86 \
 					-I$(BOARDCORE)libs/tscpp/tscpp \
-					-I$(BASE)src/boards/ParafoilTest \
-					-I$(BASE)src/boards/DeathStack \
+					-I$(BASE)src/boards/Parafoil \
+					-I$(BASE)src/boards \
+					-I$(BASE)Lynx/boards/DeathStack \
 	 				-I$(BASE)src \
+					-I$(BASE)Lynx \
 	 				-I$(BOARDCORE)src/shared \
 	 				-I$(BOARDCORE)src/tests \
 					-I$(BOARDCORE)libs \

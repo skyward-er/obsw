@@ -41,12 +41,14 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
         new PIController(Kp, Ki, WING_UPDATE_PERIOD, -2.09439, 2.09439);
 }
 
-AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
-
-void AutomaticWingAlgorithm::setTarget(Vector2f newTarget)
+AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki)
+    : WingAlgorithm("")
 {
-    this->target = newTarget;
+    controller =
+        new PIController(Kp, Ki, WING_UPDATE_PERIOD, -2.09439, 2.09439);
 }
+
+AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
@@ -58,7 +60,8 @@ void AutomaticWingAlgorithm::step()
 
     // Target direction in respect to the current one
     // TODO to be logged
-    Vector2f targetDirection = target - Vector2f(state.n, state.e);
+    Vector2f targetDirection =
+        WING_TARGET_POSITION - Vector2f(state.n, state.e);
 
     // Compute the angle of the target direciton
     float targetAngle = atan2(targetDirection[1], targetDirection[0]);
@@ -133,6 +136,7 @@ void AutomaticWingAlgorithm::step()
     data.servo2Angle = servo2 == NULL ? 0 : servo2->getCurrentPosition();
     data.targetX     = targetDirection[0];
     data.targetY     = targetDirection[1];
+    data.targetAngle = targetAngle;
     SDlogger->log(data);
 }
 }  // namespace Parafoil

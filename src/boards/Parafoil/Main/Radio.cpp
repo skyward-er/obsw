@@ -25,10 +25,12 @@
 #include <Parafoil/Main/Radio.h>
 #include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
+#include <Parafoil/Wing/WingConfig.h>
 #include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/spi/SPIDriver.h>
 #include <radio/Xbee/ATCommands.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 using std::bind;
 using namespace std::placeholders;
@@ -175,6 +177,26 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             ParafoilTest::getInstance().wingController->selectAlgorithm(
                 algorithmId);
 
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+        {
+            float lat =
+                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+            float lon =
+                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+
+            // Set the target referencing to GPS coordinates
+            UBXGPSData gps =
+                ParafoilTest::getInstance().sensors->getGPSLastSample();
+            if (gps.fix != 0)
+            {
+                Eigen::Vector2f ned = Boardcore::Aeroutils::geodetic2NED(
+                    Eigen::Vector2f(lat, lon),
+                    Eigen::Vector2f(gps.latitude, gps.longitude));
+                WING_TARGET_POSITION[0] = ned[0];
+                WING_TARGET_POSITION[1] = ned[1];
+            }
             break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:  // post a raw event

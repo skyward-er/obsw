@@ -153,11 +153,11 @@ public:
         }*/
 
         // Start the radio
-        // if (!radio->start())
-        // {
-        //     LOG_ERR(log, "Error starting the radio");
-        //     status.setError(&ParafoilTestStatus::radio);
-        // }
+        if (!radio->start())
+        {
+            LOG_ERR(log, "Error starting the radio");
+            status.setError(&ParafoilTestStatus::radio);
+        }
 
         // Start the algorithms
         algorithms->start();
@@ -224,6 +224,9 @@ private:
         wingController->addAlgorithm("/sd/servoTerni2.csv");
         wingController->addAlgorithm("/sd/servoCorta.csv");
         wingController->addAlgorithm("/sd/servoLunga.csv");
+        wingController->addAlgorithm(new AutomaticWingAlgorithm(1, 0));
+        wingController->addAlgorithm(new AutomaticWingAlgorithm(0.1, 0.01));
+        wingController->addAlgorithm(new AutomaticWingAlgorithm(1, 0.1));
         wingController->selectAlgorithm(0);
         // Create the main FSM
         // FMM = new FMMController();

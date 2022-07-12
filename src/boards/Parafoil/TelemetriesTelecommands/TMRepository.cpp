@@ -120,6 +120,9 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
             tmRepository.flightTm.nas_bias1 = state.by;
             tmRepository.flightTm.nas_bias2 = state.bz;
 
+            mavlink_msg_payload_flight_tm_encode(sys_id, comp_id, &m,
+                                                 &(tmRepository.flightTm));
+
             break;
         }
         default:

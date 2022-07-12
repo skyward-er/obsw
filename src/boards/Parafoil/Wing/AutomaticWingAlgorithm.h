@@ -43,23 +43,21 @@ public:
                            ServoInterface* servo2);
 
     /**
+     * @brief Construct a new Automatic Wing Algorithm object
+     *
+     * @param Kp Proportional value for PI controller
+     * @param Ki Integral value for PI controller
+     */
+    AutomaticWingAlgorithm(float Kp, float Ki);
+
+    /**
      * @brief Destroy the Automatic Wing Algorithm object and the PI
      */
     ~AutomaticWingAlgorithm();
 
-    /**
-     * @brief Set the Target object
-     *
-     * @param newTarget The target that the algorithm has to follow
-     */
-    void setTarget(Eigen::Vector2f newTarget);
-
 protected:
     // PI controller tuned on the Kp and Ki passed through constructor
     Boardcore::PIController* controller;
-
-    // The target position in meters
-    Eigen::Vector2f target;
 
     /**
      * @brief This method implements the automatic algorithm that will steer the

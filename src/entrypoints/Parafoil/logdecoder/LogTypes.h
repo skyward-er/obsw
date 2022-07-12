@@ -22,48 +22,32 @@
 
 #pragma once
 
-#include <sensors/ADS1118/ADS1118Data.h>
+#include <Parafoil/Wing/WingAlgorithmData.h>
+#include <algorithms/NAS/NASState.h>
 #include <sensors/BME280/BME280Data.h>
-#include <sensors/BMX160/BMX160Data.h>
-#include <sensors/BMX160/BMX160WithCorrectionData.h>
-#include <sensors/LIS3MDL/LIS3MDLData.h>
 #include <sensors/MPU9250/MPU9250Data.h>
-#include <sensors/MS5803/MS5803Data.h>
-#include <sensors/UbloxGPS/UbloxGPSData.h>
-#include <sensors/analog/battery/BatteryVoltageSensorData.h>
-#include <sensors/analog/current/CurrentSensorData.h>
-#include <sensors/analog/pressure/MPXHZ6130A/MPXHZ6130AData.h>
-#include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
-#include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
+#include <sensors/UBXGPS/UBXGPSData.h>
 
 #include <fstream>
 #include <iostream>
 
-#include "AirBrakes/AirBrakesData.h"
-#include "ApogeeDetectionAlgorithm/ADAData.h"
 //#include "AirBrakes/WindData.h"
-#include "DeathStackStatus.h"
 //#include "Deployment/DeploymentData.h"
-#include "FlightModeManager/FMMStatus.h"
 //#include "LogStats.h"
 #include <common/SystemData.h>
 
-#include "Main/SensorsData.h"
-#include "NavigationAttitudeSystem/NASData.h"
-#include "PinHandler/PinHandlerData.h"
 #include "diagnostic/PrintLoggerData.h"
-#include "diagnostic/StackData.h"
+// #include "diagnostic/StackData.h"
 #include "events/EventData.h"
-#include "radio/MavlinkDriver/MavlinkStatus.h"
+// #include "radio/MavlinkDriver/MavlinkStatus.h"
 //#include "logger/Deserializer.h"
-#include <ParafoilTestStatus.h>
+#include <Parafoil/ParafoilTestStatus.h>
 #include <logger/Deserializer.h>
 #include <logger/LoggerStats.h>
 #include <scheduler/TaskSchedulerData.h>
 
-#include "../../hardware_in_the_loop/HIL_sensors/HILSensorsData.h"
-#include "FlightStatsRecorder/FSRData.h"
-#include "scheduler/TaskSchedulerData.h"
+using namespace Boardcore;
+using namespace Parafoil;
 
 template <typename T>
 void print(T& t, ostream& os)
@@ -82,73 +66,24 @@ void registerTypes(Deserializer& ds)
     // Disagnostic
     registerType<TaskStatsResult>(ds);
     registerType<LoggerStats>(ds);
-    registerType<StackData>(ds);
+    // registerType<StackData>(ds);
     registerType<LoggingString>(ds);
     registerType<SystemData>(ds);
     registerType<ParafoilTestStatus>(ds);
 
+    // Parafoil data
+    registerType<WingAlgorithmData>(ds);
+
     // Sensors
-    registerType<CurrentSensorData>(ds);
-    registerType<BatteryVoltageSensorData>(ds);
-    registerType<UbloxGPSData>(ds);
-    registerType<BMX160Data>(ds);
-    registerType<BMX160WithCorrectionData>(ds);
-    registerType<BMX160GyroscopeCalibrationBiases>(ds);
-    registerType<BMX160Temperature>(ds);
-    registerType<BMX160FifoStats>(ds);
-    registerType<MS5803Data>(ds);
-    registerType<MPXHZ6130AData>(ds);
-    registerType<SSCDRRN015PDAData>(ds);
-    registerType<SSCDANN030PAAData>(ds);
-    registerType<LIS3MDLData>(ds);
-    registerType<ADS1118Data>(ds);
-    registerType<AirSpeedPitot>(ds);
+    registerType<UBXGPSData>(ds);
     registerType<MPU9250Data>(ds);
     registerType<BME280Data>(ds);
 
-    // Statuses
-    registerType<AirBrakesControllerStatus>(ds);
-    registerType<DeathStackStatus>(ds);
-    registerType<SensorsStatus>(ds);
-    registerType<FMMStatus>(ds);
-    registerType<PinStatus>(ds);
-    // registerType<LogStats>(ds);
-    // registerType<DeploymentStatus>(ds);
-    registerType<ADAControllerStatus>(ds);
+    // Nas state
+    registerType<NASState>(ds);
 
     // Mavlink
-    registerType<MavlinkStatus>(ds);
-
-    // ADA
-    registerType<ADAKalmanState>(ds);
-    registerType<ADAData>(ds);
-    registerType<ADAReferenceValues>(ds);
-    registerType<TargetDeploymentAltitude>(ds);
-    registerType<ApogeeDetected>(ds);
-    registerType<DplAltitudeReached>(ds);
-
-    // NAS
-    registerType<NASStatus>(ds);
-    registerType<NASKalmanState>(ds);
-    registerType<NASReferenceValues>(ds);
-    registerType<NASTriadResult>(ds);
-    registerType<NASData>(ds);
-
-    // Airbrakes
-    registerType<AirBrakesData>(ds);
-    registerType<AirBrakesAlgorithmData>(ds);
-    registerType<AirBrakesChosenTrajectory>(ds);
-
-    // FlightStatsRecorder
-    registerType<LiftOffStats>(ds);
-    registerType<ApogeeStats>(ds);
-    registerType<DrogueDPLStats>(ds);
-    registerType<MainDPLStats>(ds);
-
-    // HIL
-    registerType<HILImuData>(ds);
-    registerType<HILGpsData>(ds);
-    registerType<HILBaroData>(ds);
+    // registerType<MavlinkStatus>(ds);
 
     // Others
     registerType<EventData>(ds);

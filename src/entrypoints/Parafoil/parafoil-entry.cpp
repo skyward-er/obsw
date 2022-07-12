@@ -22,6 +22,7 @@
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/Configs/XbeeConfig.h>
 #include <Parafoil/ParafoilTest.h>
+#include <Parafoil/Wing/WingConfig.h>
 #include <common/SystemData.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
@@ -61,6 +62,12 @@ void enablePin()
     XBEE_ATTN.mode(miosix::Mode::INPUT);
 
     XBEE_RESET.mode(miosix::Mode::OUTPUT);
+
+    SERVO1PIN.mode(miosix::Mode::ALTERNATE);
+    SERVO1PIN.alternateFunction(2);
+
+    SERVO2PIN.mode(miosix::Mode::ALTERNATE);
+    SERVO2PIN.alternateFunction(3);
 
     // GPS_CS.high();
     IMU_CS.high();
