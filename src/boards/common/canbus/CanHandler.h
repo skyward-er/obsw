@@ -22,15 +22,12 @@
 
 #pragma once
 
-// Include the event broker
-#include <events/EventBroker.h>
-
-// Include the events and topics definitions
 #include <ActiveObject.h>
-#include <common/canbus/SensorMocap/AereoBrakes.h>
-#include <common/canbus/SensorMocap/PitotMocap.h>
+#include <common/canbus/MockSensors/MockAirBrakes.h>
+#include <common/canbus/MockSensors/MockPitot.h>
 #include <drivers/canbus/CanProtocol.h>
 #include <drivers/canbus/Canbus.h>
+#include <events/EventBroker.h>
 #include <utils/collections/IRQCircularBuffer.h>
 
 namespace common
@@ -41,22 +38,20 @@ enum CanEvent : uint8_t
     EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
     EV_APOGEE,
     EV_ARMED,
-    EV_AEROBRAKE
+    EV_AIRBRAKES
 };
 
 enum CanTopics : uint8_t
 {
     TOPIC_CAN_EVENTS,
-    TOPIC_CAN_COMMAND  // maybe we can make this a single topic??? not sure
+    TOPIC_CAN_COMMAND  // Maybe we can make this a single topic? not sure
 };
 
-// sensors
 enum SensorID
 {
     Pitot = 0x00
 };
 
-// events
 enum EventsId
 {
     Liftoff = 0x00,
@@ -64,7 +59,6 @@ enum EventsId
     Armed   = 0x02
 };
 
-// commands
 enum CommandsID
 {
     AirBrakes = 0x00
@@ -97,13 +91,13 @@ class CanHandler : public Boardcore::ActiveObject
 {
 private:
     Boards source;
-    PitotMocap *pitot;
-    AereoBrakes *brakes;
+    MockPitot *pitot;
+    MockAirBrakes *brakes;
     Boardcore::Canbus::CanProtocol *can;
 
 public:
     CanHandler(Boardcore::Canbus::CanbusDriver *canPhysical, Boards source,
-               PitotMocap *pitotInstance, AereoBrakes *brakesInstance)
+               MockPitot *pitotInstance, MockAirBrakes *brakesInstance)
         : source(source)
     {
         can    = new Boardcore::Canbus::CanProtocol(canPhysical);
@@ -164,13 +158,12 @@ protected:
                                 Boardcore::Canbus::shiftIdType)
                         {
                             case AirBrakes:
-                                (*brakes).SetData(data);
+                                (*brakes).setData(data);
                                 Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_AEROBRAKE},
+                                    Boardcore::Event{EV_AIRBRAKES},
                                     TOPIC_CAN_COMMAND);
                                 break;
                         }
-                        /* code */
                         break;
                     case Events:
                         switch ((data.canId & Boardcore::Canbus::idType) >>
@@ -199,7 +192,7 @@ protected:
                                 Boardcore::Canbus::shiftIdType)
                         {
                             case Pitot:
-                                (*pitot).SetData(data);
+                                (*pitot).setData(data);
                                 break;
                         }
                         break;

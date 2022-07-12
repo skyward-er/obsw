@@ -19,15 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#include <common/canbus/CanHandler.h>
+#include <drivers/canbus/BusLoadEstimation.h>
+#include <drivers/canbus/Canbus.h>
+#include <utils/collections/CircularBuffer.h>
+
 #include <thread>
 
-#include "common/canbus/CanHandler.h"
-#include "common/canbus/SensorMocap/AereoBrakes.h"
-#include "common/canbus/SensorMocap/PitotMocap.h"
-#include "drivers/canbus/BusLoadEstimation.h"
-#include "drivers/canbus/Canbus.h"
 #include "test-can-event-handler.h"
-#include "utils/collections/CircularBuffer.h"
 
 #define slp 5000
 
@@ -45,34 +45,39 @@ using CanTX = Gpio<GPIOA_BASE, 12>;
 using CanRX = Gpio<GPIOA_BASE, 11>;
 using CanTX = Gpio<GPIOA_BASE, 12>;
 #endif
-void checkPressureData(PitotMocap* p)
-{
-    Thread::sleep(10);  // de-synchronize the sending from the receiving;
-    while (true)
-    {
-        if ((*p).Updated())
-        {
-            Boardcore::PressureData temp = (*p).GetData();
-            TRACE("Received pressure packet. Data: %f, timestamp %llu\n",
-                  temp.pressure, temp.pressureTimestamp);
-        }
-        else
-        {
-            TRACE("No Pressure packet received in this time slot\n");
-        }
-        Thread::sleep(slp);
-    }
-}
-void checkAereoData(AereoBrakes* a)
+
+void checkPressureData(MockPitot* pitot)
 {
     Thread::sleep(10);  // De-synchronize the sending from the receiving;
 
     while (true)
     {
-        if ((*a).Updated())
-            TRACE("Received Aereo packet. Data: %d\n", (*a).GetData());
+        if ((*pitot).isUpdated())
+        {
+            TRACE("Received pressure packet. Data: %f, timestamp %llu\n",
+                  (*pitot).getData().pressure,
+                  (*pitot).getData().pressureTimestamp);
+        }
         else
-            TRACE("No Aereo packet received in this time slot\n");
+        {
+            TRACE("No Pressure packet received in this time slot\n");
+        }
+
+        Thread::sleep(slp);
+    }
+}
+
+void checkAirBrakesData(MockAirBrakes* airbrakes)
+{
+    Thread::sleep(10);  // De-synchronize the sending from the receiving;
+
+    while (true)
+    {
+        if ((*airbrakes).isUpdated())
+            TRACE("Received AirBrakes packet. Data: %d\n",
+                  (*airbrakes).getData());
+        else
+            TRACE("No AirBrakes packet received in this time slot\n");
 
         Thread::sleep(slp);
     }
@@ -101,16 +106,16 @@ int main()
     bt.baudRate    = BAUD_RATE;
     bt.samplePoint = SAMPLE_POINT;
 
-    CanbusDriver* c = new CanbusDriver(CAN1, cfg, bt);
-    PitotMocap* p   = new PitotMocap();
-    AereoBrakes* a  = new AereoBrakes();
-    CanHandler handler(c, Boards::Main, p, a);
+    CanbusDriver* canbus     = new CanbusDriver(CAN1, cfg, bt);
+    MockPitot* pitot         = new MockPitot();
+    MockAirBrakes* airBrakes = new MockAirBrakes();
+    CanHandler handler(canbus, Boards::Main, pitot, airBrakes);
 
     // Allow every message
     Mask32FilterBank f2(0, 0, 0, 0, 0, 0, 0);
 
-    c->addFilter(f2);
-    c->init();
+    canbus->addFilter(f2);
+    canbus->init();
 
     handler.start();
     // send event, data and command
@@ -118,18 +123,19 @@ int main()
     MyEventHandler evh;
     if (evh.start())
     {
-        std::thread printPressureData(checkPressureData, p);
-        std::thread printAereoData(checkAereoData, a);
+        std::thread printPressureData(checkPressureData, pitot);
+        std::thread printAirData(checkAirBrakesData, airBrakes);
 
         for (;;)
         {
             TRACE("Sent a packet \n");
             handler.sendCan(Boards::Payload, common::Priority::Medium,
-                            Type::Sensor, SensorID::Pitot, (*p).ParseData(t));
+                            Type::Sensor, SensorID::Pitot,
+                            (*pitot).parseData(t));
 
             handler.sendCan(Boards::Main, common::Priority::Critical,
                             Type::Command, CommandsID::AirBrakes,
-                            (*a).ParseData(69));
+                            (*airBrakes).parseData(69));
             // if we have to send a command we use 0 as a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
                             EventsId::Liftoff, 0);

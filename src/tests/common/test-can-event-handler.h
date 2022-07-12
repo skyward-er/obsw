@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#include <common/canbus/CanHandler.h>
 
-#include "events/EventBroker.h"
-#include "events/EventHandler.h"
+#pragma once
+
+#include <common/canbus/CanHandler.h>
+#include <events/EventBroker.h>
+#include <events/EventHandler.h>
 
 class MyEventHandler : public Boardcore::EventHandler
 {
@@ -59,8 +60,8 @@ protected:
             case common::CanEvent::EV_ARMED:
                 TRACE("Received EV_ARMED \n");
                 break;
-            case common::CanEvent::EV_AEROBRAKE:
-                TRACE("Received EV_AEROBRAKE \n");
+            case common::CanEvent::EV_AIRBRAKES:
+                TRACE("Received EV_AIRBRAKES \n");
                 break;
             default:
                 TRACE("Invalid event \n");

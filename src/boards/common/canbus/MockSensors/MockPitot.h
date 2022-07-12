@@ -23,42 +23,57 @@
 #pragma once
 
 #include <drivers/canbus/CanProtocol.h>
+#include <sensors/SensorData.h>
 
 namespace common
 {
-class AereoBrakes
-{
-private:
-    miosix::FastMutex mutex;
-    uint8_t percentage;
-    bool updated;
 
+class MockPitot
+{
 public:
-    uint8_t GetData()  // todo update to use pressure data
+    MockPitot() {}
+
+    // TODO: update to use pressure data
+    Boardcore::PressureData getData()
     {
         miosix::Lock<miosix::FastMutex> l(mutex);
         updated = false;
-        return percentage;
+        return data;
     }
 
-    bool Updated()
+    bool isUpdated()
     {
         miosix::Lock<miosix::FastMutex> l(mutex);
         return updated;
     }
 
-    void SetData(Boardcore::Canbus::CanData packet)
+    void setData(Boardcore::Canbus::CanData packet)
     {
+        // Pressure and timestamp coded into an u_int64
+
         miosix::Lock<miosix::FastMutex> l(mutex);
-        percentage = packet.payload[0];
-        updated    = true;
+        uint32_t temp = packet.payload[0] >> 32;
+        memcpy(&data.pressure, &temp, sizeof(data.pressure));
+        data.pressureTimestamp = (packet.payload[0] & 0xfffffff) << 2;
+        updated                = true;
     }
-    Boardcore::Canbus::CanData ParseData(uint8_t sample)
+
+    Boardcore::Canbus::CanData parseData(Boardcore::PressureData sample)
     {
+        // Pressure and timestamp coded into an u_int64
+
         Boardcore::Canbus::CanData tempData;
-        tempData.length     = 1;
-        tempData.payload[0] = sample;
+        tempData.length = 1;
+        uint64_t temp;
+        memcpy(&temp, &(sample.pressure), sizeof(sample.pressure));
+        tempData.payload[0] = (temp << 32) | (sample.pressureTimestamp >> 2);
         return tempData;
     }
+
+private:
+    miosix::FastMutex mutex;
+    Boardcore::PressureData data;
+    bool updated = false;
 };
+
 }  // namespace common
