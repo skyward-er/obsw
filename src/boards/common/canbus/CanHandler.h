@@ -125,17 +125,19 @@ public:
             can->sendData(toSend);
         }
     }
+
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
-                 uint8_t payload)  // if we have to send a command it is easier
-                                   // to call the function using a int
+                 uint8_t payload)
     {
+        // If we have to send a command it is easier to call the function using
+        // a int
+
         Boardcore::Canbus::CanData toSend;
         toSend.length     = 1;
         toSend.payload[0] = 0;
         sendCan(destination, p, t, idT, toSend);
     }
 
-    /* Destructor */
     ~CanHandler() { (*can).~CanProtocol(); }
 
 protected:
@@ -201,4 +203,5 @@ protected:
         }
     }
 };
+
 }  // namespace common
