@@ -94,9 +94,15 @@
         "matrixfunctions": "cpp"
     },
     "cSpell.words": [
+        "Boardcore",
+        "Erbetta",
         "Gpio",
         "leds",
-        "miosix"
+        "Luca",
+        "miosix",
+        "Terraneo",
+        "tscpp",
+        "UBXGPS"
     ],
     "C_Cpp.errorSquiggles": "Enabled"
 }

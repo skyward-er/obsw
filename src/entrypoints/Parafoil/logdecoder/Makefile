@@ -2,22 +2,15 @@ BASE := ../../../../
 BOARDCORE := $(BASE)skyward-boardcore/
 
 all:
-	g++ -std=c++17 -O2 -o logdecoder Parafoil-decoder.cpp \
-					$(BOARDCORE)libs/tscpp/tscpp/stream.cpp \
+	g++ -std=c++17 -O2 -o logdecoder logdecoder.cpp \
 					-DCOMPILE_FOR_X86 \
-					-I$(BOARDCORE)libs/tscpp/tscpp \
-					-I$(BASE)src/boards/Parafoil \
-					-I$(BASE)src/boards \
-					-I$(BASE)Lynx/boards/DeathStack \
-	 				-I$(BASE)src \
-					-I$(BASE)Lynx \
+					$(BOARDCORE)libs/tscpp/tscpp/stream.cpp \
+	 				-I$(BOARDCORE)libs/mavlink-skyward-lib \
+	 				-I$(BOARDCORE)libs/eigen \
+	 				-I$(BOARDCORE)libs/tscpp \
 	 				-I$(BOARDCORE)src/shared \
-	 				-I$(BOARDCORE)src/tests \
-					-I$(BOARDCORE)libs \
-					-I$(BOARDCORE)libs/tscpp \
-					-I$(BOARDCORE)libs/eigen \
-					-I$(BOARDCORE)libs/mavlink_skyward_lib \
-					-I$(BOARDCORE)libs/miosix-kernel/miosix
+					-I$(BASE)src/boards/Parafoil \
+					-I$(BASE)src/boards
 
 clean:
 	rm logdecoder

@@ -24,11 +24,9 @@
 
 #include <sensors/SensorData.h>
 
-using namespace Boardcore;
-
-struct MockIMUData : public AccelerometerData,
-                     public GyroscopeData,
-                     public MagnetometerData
+struct MockIMUData : public Boardcore::AccelerometerData,
+                     public Boardcore::GyroscopeData,
+                     public Boardcore::MagnetometerData
 {
     static std::string header()
     {

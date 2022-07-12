@@ -25,6 +25,17 @@
  * Fill in the TODO to make it work.
  */
 
+#include <Parafoil/ParafoilTestStatus.h>
+#include <Parafoil/Wing/WingAlgorithmData.h>
+#include <algorithms/NAS/NASState.h>
+#include <common/SystemData.h>
+#include <logger/Deserializer.h>
+#include <logger/LogTypes.h>
+#include <logger/LoggerStats.h>
+#include <scheduler/TaskSchedulerData.h>
+#include <sensors/BME280/BME280Data.h>
+#include <sensors/MPU9250/MPU9250Data.h>
+#include <sensors/UBXGPS/UBXGPSData.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <tscpp/stream.h>
@@ -34,8 +45,41 @@
 #include <stdexcept>
 #include <string>
 
-using namespace std;
+#include "diagnostic/PrintLoggerData.h"
+#include "events/EventData.h"
+
 using namespace tscpp;
+using namespace Boardcore;
+using namespace Parafoil;
+
+void registerTypes(Deserializer& ds)
+{
+    // Register all Boardcore types
+    LogTypes::registerTypes(ds);
+
+    // Custom types
+
+    // Diagnostic
+    ds.registerType<TaskStatsResult>();
+    ds.registerType<LoggerStats>();
+    ds.registerType<LoggingString>();
+    ds.registerType<SystemData>();
+    ds.registerType<ParafoilTestStatus>();
+
+    // Parafoil data
+    ds.registerType<WingAlgorithmData>();
+
+    // Sensors
+    ds.registerType<UBXGPSData>();
+    ds.registerType<MPU9250Data>();
+    ds.registerType<BME280Data>();
+
+    // Nas state
+    ds.registerType<NASState>();
+
+    // Others
+    ds.registerType<EventData>();
+}
 
 void showUsage(const string& cmdName)
 {
@@ -48,31 +92,26 @@ void showUsage(const string& cmdName)
 
 bool deserialize(string logName)
 {
-    cout << "Deserializing " << logName << ".dat...\n";
+    std::cout << "Deserializing " << logName << "...\n";
     Deserializer d(logName);
+    LogTypes::registerTypes(d);
     registerTypes(d);
 
     return d.deserialize();
 }
+
 bool deserializeAll()
 {
     for (int i = 0; i < 100; i++)
     {
-        char fn[10];
-        char fnext[11];
-        sprintf(fn, "log%02d", i);
-        sprintf(fnext, "log%02d.dat", i);
+        char nextName[11];
+        sprintf(nextName, "log%02d.dat", i);
         struct stat st;
-        if (stat(fnext, &st) != 0)
-        {
-            // cout << "Skipping " << string(fnext) << "\n ";
+        if (stat(nextName, &st) != 0)
             continue;  // File not found
-        }
         // File found
-        if (!deserialize(string(fn)))
-        {
+        if (!deserialize(string(nextName)))
             return false;
-        }
     }
     return true;
 }
@@ -82,38 +121,29 @@ int main(int argc, char* argv[])
     if (argc < 2)
     {
         showUsage(string(argv[0]));
-        return 1;
+        return 1;  // Error
     }
 
     bool success = false;
-    string arg   = string(argv[1]);
-    if (arg == "-h" || arg == "--help")
+    string arg1  = string(argv[1]);
+
+    // Help message
+    if (arg1 == "-h" || arg1 == "--help")
     {
         showUsage(string(argv[0]));
         return 0;
     }
 
-    if (arg == "-a" || arg == "--all")
-    {
-        cout << "Deserializing all logs in the current directory...\n";
+    // File deserialization
+    if (arg1 == "-a" || arg1 == "--all")
         success = deserializeAll();
-    }
-    else if (arg[0] == '-')
-    {
-        cerr << "Unknown option\n";
-        return 1;
-    }
     else
-    {
-        success = deserialize(arg);
-    }
+        success = deserialize(arg1);
 
+    // End
     if (success)
-    {
-        cout << "Deserialization completed successfully.\n";
-    }
+        std::cout << "Deserialization completed successfully\n";
     else
-    {
-        cout << "Deserialization ended with errors.\n";
-    }
+        std::cout << "Deserialization ended with errors\n";
+    return 0;
 }

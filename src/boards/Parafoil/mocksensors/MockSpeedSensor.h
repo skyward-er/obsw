@@ -26,6 +26,7 @@
 #include <mocksensors/MockSensorsData.h>
 #include <mocksensors/lynx_flight_data/lynx_airspeed_data.h>
 #include <sensors/Sensor.h>
+
 #include <random>
 
 namespace DeathStackBoard

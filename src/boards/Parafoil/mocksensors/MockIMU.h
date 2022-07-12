@@ -23,9 +23,9 @@
 #pragma once
 
 #include <TimestampTimer.h>
-#include <sensors/Sensor.h>
 #include <mocksensors/MockSensorsData.h>
 #include <mocksensors/lynx_flight_data/lynx_imu_data.h>
+#include <sensors/Sensor.h>
 
 namespace DeathStackBoard
 {
