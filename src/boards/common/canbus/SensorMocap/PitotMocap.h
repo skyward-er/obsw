@@ -62,7 +62,7 @@ public:
             sample)  // code pressure and timestamp into an u_int64
     {
         Boardcore::Canbus::CanData tempData;
-        tempData.len = 1;
+        tempData.length = 1;
         uint64_t temp;
         memcpy(&temp, &(sample.pressure), sizeof(sample.pressure));
         tempData.payload[0] = (temp << 32) | (sample.pressureTimestamp >> 2);

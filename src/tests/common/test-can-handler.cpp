@@ -65,18 +65,15 @@ void checkPressureData(PitotMocap* p)
 }
 void checkAereoData(AereoBrakes* a)
 {
-    Thread::sleep(10);  // de-synchronize the sending from the receiving;
+    Thread::sleep(10);  // De-synchronize the sending from the receiving;
+
     while (true)
     {
         if ((*a).Updated())
-        {
-            uint8_t temp = (*a).GetData();
-            TRACE("Received Aereo packet. Data: %d\n", temp);
-        }
+            TRACE("Received Aereo packet. Data: %d\n", (*a).GetData());
         else
-        {
             TRACE("No Aereo packet received in this time slot\n");
-        }
+
         Thread::sleep(slp);
     }
 }

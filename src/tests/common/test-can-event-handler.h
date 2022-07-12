@@ -50,16 +50,16 @@ protected:
     {
         switch (ev)
         {
-            case common::CanEv::EV_LIFTOFF:
+            case common::CanEvent::EV_LIFTOFF:
                 TRACE("Received EV_LIFTOFF \n");
                 break;
-            case common::CanEv::EV_APOGEE:
+            case common::CanEvent::EV_APOGEE:
                 TRACE("Received EV_APOGEE \n");
                 break;
-            case common::CanEv::EV_ARMED:
+            case common::CanEvent::EV_ARMED:
                 TRACE("Received EV_ARMED \n");
                 break;
-            case common::CanEv::EV_AEROBRAKE:
+            case common::CanEvent::EV_AEROBRAKE:
                 TRACE("Received EV_AEROBRAKE \n");
                 break;
             default:

@@ -56,7 +56,7 @@ public:
     Boardcore::Canbus::CanData ParseData(uint8_t sample)
     {
         Boardcore::Canbus::CanData tempData;
-        tempData.len        = 1;
+        tempData.length     = 1;
         tempData.payload[0] = sample;
         return tempData;
     }

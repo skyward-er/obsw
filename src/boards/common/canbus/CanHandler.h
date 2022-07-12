@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 // Include the event broker
@@ -35,7 +36,7 @@
 namespace common
 {
 
-enum CanEv : uint8_t
+enum CanEvent : uint8_t
 {
     EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
     EV_APOGEE,
@@ -114,7 +115,7 @@ public:
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
                  Boardcore::Canbus::CanData toSend)
     {
-        if (toSend.len > 0)
+        if (toSend.length > 0)
         {
             toSend.canId =
                 ((p << Boardcore::Canbus::shiftPriority) &
@@ -127,7 +128,7 @@ public:
                  Boardcore::Canbus::destination) |
                 ((idT << Boardcore::Canbus::shiftIdType) &
                  Boardcore::Canbus::idType);
-            can->sendCan(toSend);
+            can->sendData(toSend);
         }
     }
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
@@ -135,7 +136,7 @@ public:
                                    // to call the function using a int
     {
         Boardcore::Canbus::CanData toSend;
-        toSend.len        = 1;
+        toSend.length     = 1;
         toSend.payload[0] = 0;
         sendCan(destination, p, t, idT, toSend);
     }
@@ -150,8 +151,8 @@ protected:
 
         while (true)
         {
-            (*can).waitEmpty();
-            if (!((*can).isEmpty()))
+            (*can).waitBufferEmpty();
+            if (!((*can).isBufferEmpty()))
             {
                 data = (*can).getPacket();
 
