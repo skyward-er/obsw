@@ -140,8 +140,6 @@ int main()
                             EventsId::Apogee, 0);
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
                             EventsId::Armed, 0);
-            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
-                            CommandsID::AirBrakes, 0);
             Thread::sleep(slp);
         }
         evh.stop();  // it posts an EV_EMPTY to wake up the thread
