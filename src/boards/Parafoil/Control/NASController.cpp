@@ -126,7 +126,7 @@ void NASController::step()
     // Put the GPS converted data into a 4d vector
     Eigen::Vector2f gpsPos(gpsData.latitude, gpsData.longitude);
     gpsPos = Boardcore::Aeroutils::geodetic2NED(gpsPos, initialPosition);
-    Eigen::Vector2f gpsVel(gpsData.velocityNorth, gpsData.velocityNorth);
+    Eigen::Vector2f gpsVel(gpsData.velocityNorth, gpsData.velocityEast);
     Eigen::Vector4f gpsCorrection;
     // cppcheck-suppress constStatement
     gpsCorrection << gpsPos, gpsVel;
