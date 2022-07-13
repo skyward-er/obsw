@@ -186,6 +186,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float lon =
                 mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
 
+            // Set also the barometer reference
+            ParafoilTest::getInstance().sensors->calibrate();
+
             // Set the target referencing to GPS coordinates
             UBXGPSData gps =
                 ParafoilTest::getInstance().sensors->getGPSLastSample();
