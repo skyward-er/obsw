@@ -80,11 +80,10 @@ private:
         // System telemetries
         mavlink_sys_tm_t sysTm;
         mavlink_fsm_tm_t fsmTm;
-        mavlink_pin_obs_tm_t pinObsTm;
+        mavlink_pin_tm_t pinObsTm;
         mavlink_logger_tm_t loggerTm;
         mavlink_mavlink_stats_tm_t mavlinkStatsTm;
         mavlink_task_stats_tm_t taskStatsTm;
-        mavlink_dpl_tm_t dplTm;
         mavlink_ada_tm_t adaTm;
         mavlink_nas_tm_t nasTm;
         mavlink_can_tm_t canTm;

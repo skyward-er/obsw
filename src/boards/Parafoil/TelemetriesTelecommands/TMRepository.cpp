@@ -54,15 +54,15 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
             tmRepository.loggerTm.log_number =
                 ParafoilTest::getInstance().SDlogger->getCurrentLogNumber();
 
-            tmRepository.loggerTm.filled_buffers    = stats.buffersFilled;
-            tmRepository.loggerTm.written_buffers   = stats.buffersWritten;
-            tmRepository.loggerTm.sdropped_samples  = stats.droppedSamples;
+            tmRepository.loggerTm.buffers_filled    = stats.buffersFilled;
+            tmRepository.loggerTm.buffers_written   = stats.buffersWritten;
+            tmRepository.loggerTm.dropped_samples   = stats.droppedSamples;
             tmRepository.loggerTm.max_write_time    = stats.maxWriteTime;
             tmRepository.loggerTm.queued_samples    = stats.queuedSamples;
             tmRepository.loggerTm.too_large_samples = stats.tooLargeSamples;
-            tmRepository.loggerTm.failed_writes     = stats.writesFailed;
+            tmRepository.loggerTm.writes_failed     = stats.writesFailed;
             tmRepository.loggerTm.max_write_time    = stats.maxWriteTime;
-            tmRepository.loggerTm.error_writes      = stats.lastWriteError;
+            tmRepository.loggerTm.last_write_error  = stats.lastWriteError;
 
             mavlink_msg_logger_tm_encode(sys_id, comp_id, &m,
                                          &(tmRepository.loggerTm));
@@ -106,19 +106,21 @@ mavlink_message_t TMRepository::packSystemTM(uint8_t req_tm, uint8_t sys_id,
             NASState state =
                 ParafoilTest::getInstance().algorithms->getNASLastSample();
 
-            tmRepository.flightTm.nas_x  = state.n;
-            tmRepository.flightTm.nas_y  = state.e;
-            tmRepository.flightTm.nas_z  = state.d;
-            tmRepository.flightTm.nas_vx = state.vn;
-            tmRepository.flightTm.nas_vy = state.ve;
-            tmRepository.flightTm.nas_vz = state.vd;
+            tmRepository.flightTm.nas_n  = state.n;
+            tmRepository.flightTm.nas_e  = state.e;
+            tmRepository.flightTm.nas_d  = state.d;
+            tmRepository.flightTm.nas_vn = state.vn;
+            tmRepository.flightTm.nas_ve = state.ve;
+            tmRepository.flightTm.nas_vd = state.vd;
 
-            // TODO discuss about quaternion to euler computation in this
-            // instance
+            tmRepository.flightTm.nas_qx = state.qx;
+            tmRepository.flightTm.nas_qy = state.qy;
+            tmRepository.flightTm.nas_qz = state.qz;
+            tmRepository.flightTm.nas_qw = state.qw;
 
-            tmRepository.flightTm.nas_bias0 = state.bx;
-            tmRepository.flightTm.nas_bias1 = state.by;
-            tmRepository.flightTm.nas_bias2 = state.bz;
+            tmRepository.flightTm.nas_bias_x = state.bx;
+            tmRepository.flightTm.nas_bias_y = state.by;
+            tmRepository.flightTm.nas_bias_z = state.bz;
 
             mavlink_msg_payload_flight_tm_encode(sys_id, comp_id, &m,
                                                  &(tmRepository.flightTm));
@@ -197,7 +199,7 @@ mavlink_message_t TMRepository::packSensorTM(uint8_t req_tm, uint8_t sys_id,
                                       &(tmRepository.imuTm));
             break;
         }
-        case SensorsTMList::MAV_MS5803_ID:
+        case SensorsTMList::MAV_BME280_ID:
         {
             // Get with lock the barometer data
             BME280Data baro =
@@ -205,7 +207,7 @@ mavlink_message_t TMRepository::packSensorTM(uint8_t req_tm, uint8_t sys_id,
 
             // Update the repository
             tmRepository.barometerTm.timestamp = miosix::getTick();
-            strcpy(tmRepository.barometerTm.sensor_id, "MS5803\0");
+            strcpy(tmRepository.barometerTm.sensor_id, "BME280\0");
             tmRepository.barometerTm.pressure = baro.pressure;
 
             // Encode the message

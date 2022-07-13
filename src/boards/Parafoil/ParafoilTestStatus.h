@@ -49,6 +49,7 @@ struct ParafoilTestStatus
     uint8_t sensors     = OK;
     uint8_t FMM         = OK;
     uint8_t radio       = OK;
+    uint8_t algorithms  = OK;
 
     /**
      * @brief Method to set a specific component in an error state
@@ -63,13 +64,13 @@ struct ParafoilTestStatus
 
     static std::string header()
     {
-        return "logger, eventBorker, sensors, radio\n";
+        return "logger, eventBorker, sensors, radio, algorithms\n";
     }
 
     void print(std::ostream& os) const
     {
         os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)radio << "\n";
+           << "," << (int)radio << "," << (int)algorithms << "\n";
     }
 };
 }  // namespace Parafoil

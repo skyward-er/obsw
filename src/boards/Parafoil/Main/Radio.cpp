@@ -147,10 +147,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             }
             break;
         }
-        case MAVLINK_MSG_ID_SYSTEM_TELEMETRY_REQUEST_TC:  // tm request
+        case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:  // tm request
         {
-            uint8_t tmId =
-                mavlink_msg_system_telemetry_request_tc_get_tm_id(&msg);
+            uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
             LOG_DEBUG(logger, "Received TM request : id = {:d}", tmId);
 
             // send corresponding telemetry or NACK
@@ -158,20 +157,19 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             break;
         }
-        case MAVLINK_MSG_ID_SENSOR_TELEMETRY_REQUEST_TC:
+        case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
         {
-            uint8_t tmId =
-                mavlink_msg_sensor_telemetry_request_tc_get_sensor_id(&msg);
+            uint8_t tmId = mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg);
 
             // Send corresponding telemetry or NACK
             sendSensorTelemetry(tmId);
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
+        case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
         {
             uint8_t algorithmId =
-                mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+                mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
 
             // Set the algorithm (invalid cases are checked inside the method)
             ParafoilTest::getInstance().wingController->selectAlgorithm(
@@ -179,12 +177,12 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
         {
             float lat =
-                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
             float lon =
-                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
 
             // Set also the barometer reference
             ParafoilTest::getInstance().sensors->calibrate();
@@ -259,7 +257,7 @@ void Radio::sendLRTelemetry()
 {
     // I send this telemetry if and only if the status is
     // in low rate telemetry
-    sendSystemTelemetry(MAV_FLIGHT_STATS_ID);
+    sendSystemTelemetry(MAV_STATS_ID);
 }
 
 void Radio::sendSDLogTelemetry() { sendSystemTelemetry(MAV_LOGGER_ID); }

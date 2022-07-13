@@ -160,7 +160,11 @@ public:
         }
 
         // Start the algorithms
-        algorithms->start();
+        if (!algorithms->start())
+        {
+            LOG_ERR(log, "Error starting the algorithms");
+            status.setError(&ParafoilTestStatus::algorithms);
+        }
 
         // wingController->start();
 
