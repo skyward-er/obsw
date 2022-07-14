@@ -137,6 +137,9 @@ sbs_target(main-test-serial-ports stm32f429zi_skyward_death_stack_v3)
 add_executable(aux-test-can src/tests/Auxiliary/test-can.cpp)
 sbs_target(aux-test-can stm32f429zi_skyward_pyxis_auxiliary)
 
+add_executable(aux-test-per src/tests/Auxiliary/test-auxiliary-peripherals.cpp)
+sbs_target(aux-test-per stm32f429zi_skyward_pyxis_auxiliary)
+
 #-----------------------------------------------------------------------------#
 #                                 Wind gallery                                #
 #-----------------------------------------------------------------------------#
