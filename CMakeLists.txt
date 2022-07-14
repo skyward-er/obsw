@@ -138,6 +138,13 @@ add_executable(aux-test-can src/tests/Auxiliary/test-can.cpp)
 sbs_target(aux-test-can stm32f429zi_skyward_pyxis_auxiliary)
 
 #-----------------------------------------------------------------------------#
+#                                CIUTI Computer                               #
+#-----------------------------------------------------------------------------#
+
+add_executable(ciuti-test-ina188 src/tests/CIUTI/test-ina188.cpp)
+sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
+
+#-----------------------------------------------------------------------------#
 #                                 Wind gallery                                #
 #-----------------------------------------------------------------------------#
 
