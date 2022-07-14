@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * This class is used to keep track of various main class
- * initialization errors.
- */
-
 #pragma once
 
 #include <ostream>
@@ -33,45 +28,20 @@
 namespace Parafoil
 {
 
-enum ParafoilTestComponentStatus
+struct WingTargetPositionData
 {
-    ERROR = 0,
-    OK    = 1
-};
+    float latitude;
+    float longitude;
 
-struct ParafoilTestStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t parafoil_test = OK;
+    float n;
+    float e;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t algorithms  = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t ParafoilTestStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        parafoil_test = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, radio, algorithms\n";
-    }
+    static std::string header() { return "latitude,longitude,n,e\n"; }
 
     void print(std::ostream& os) const
     {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)radio << "," << (int)algorithms << "\n";
+        os << latitude << "," << longitude << "," << n << "," << e << "\n";
     }
 };
+
 }  // namespace Parafoil

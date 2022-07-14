@@ -38,19 +38,20 @@ struct WingAlgorithmData
     float velocityAngle;  // radians
     float targetX;        // NED (only automatic algorithm)
     float targetY;        // NED (only automatic algorithm)
+    float error;
+    float pidOutput;
 
     static std::string header()
     {
         return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle, "
-               "velocityAngle,"
-               "targetX,targetY\n";
+               "velocityAngle,targetX,targetY,error,pidOutput\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << servo1Angle << "," << servo2Angle << ","
            << targetAngle << "," << velocityAngle << "," << targetX << ","
-           << targetY << "\n";
+           << targetY << "," << error << "," << pidOutput << "\n";
     }
 };
 }  // namespace Parafoil

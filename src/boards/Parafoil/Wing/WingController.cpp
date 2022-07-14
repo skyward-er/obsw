@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #include <Parafoil/Wing/WingConfig.h>
 #include <Parafoil/Wing/WingController.h>
 
@@ -153,7 +154,7 @@ void WingController::update()
 
 void WingController::init()
 {
-    // Instanciate the servos
+    // Instantiate the servos
     servo1 = new WingServo(WING_SERVO1_TIMER, WING_SERVO1_PWM_CHANNEL,
                            WING_SERVO1_MIN_POSITION, WING_SERVO1_MAX_POSITION,
                            WING_SERVO1_RESET_POSITION);
@@ -178,4 +179,5 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 }
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
+
 }  // namespace Parafoil

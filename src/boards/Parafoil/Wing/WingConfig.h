@@ -32,15 +32,12 @@
  */
 namespace Parafoil
 {
-/**
- * ALGORITHM CONFIGURATION
- */
+
+// ALGORITHM CONFIGURATION
 static const uint32_t WING_UPDATE_PERIOD = 100;  // milliseconds
 static const uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
-/**
- * ALGORITHM START AND FLARE ARMING CONSTANTS
- */
+// ALGORITHM START AND FLARE ARMING CONSTANTS
 static const float WING_ALGORITHM_ARM_ALTITUDE = 1600;  // meters
 static const float WING_ALGORITHM_START_ALTITUE =
     WING_ALGORITHM_ARM_ALTITUDE - WING_ALGORITHM_ARM_ALTITUDE / 10;  // meters
@@ -50,9 +47,7 @@ static float WING_CALIBRATION_PRESSURE    = 101325;  // Pa
 static float WING_CALIBRATION_TEMPERATURE = 300;     // Kelvin
 static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
-/**
- * SERVOS CONFIGURATIONS
- */
+// SERVOS CONFIGURATIONS
 static miosix::GpioPin SERVO1PIN(GPIOB_BASE, 7);
 static miosix::GpioPin SERVO2PIN(GPIOF_BASE, 6);
 
@@ -65,7 +60,7 @@ static const Boardcore::TimerUtils::Channel WING_SERVO1_PWM_CHANNEL =
 static const Boardcore::TimerUtils::Channel WING_SERVO2_PWM_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-// Servo dipendent variables
+// Servo dependent variables
 static const unsigned int WING_SERVO_MIN_PULSE   = 900;
 static const unsigned int WING_SERVO_MAX_PULSE   = 2100;
 static const unsigned int WING_SERVO_FREQUENCY   = 50;

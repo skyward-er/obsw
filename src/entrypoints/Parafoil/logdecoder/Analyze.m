@@ -1,8 +1,8 @@
-dataBME = csvread('log02/log02_N9Boardcore10BME280DataE.csv');
-dataGPS = csvread('log02/log02_N9Boardcore12UbloxGPSDataE.csv');
+dataAlgo = readtable('log02/log02_Parafoil::WingAlgorithmData.csv');
 
-pkg load signal
-
-yBME = medfilt1(dataBME(:, 4), 10)
-
-plot(dataGPS(:, 1),dataGPS(:, 4));
+figure
+hold on
+grid on
+plot(dataAlgo.WingAlgorithmTimestamp / 1e6, (dataAlgo.targetAngle - dataAlgo.velocityAngle) / pi * 180)
+% plot(dataAlgo.WingAlgorithmTimestamp / 1e6, dataAlgo.servo1Angle)
+plot(dataAlgo.WingAlgorithmTimestamp / 1e6, dataAlgo.servo2Angle)

@@ -27,6 +27,7 @@
 
 #include <Parafoil/ParafoilTestStatus.h>
 #include <Parafoil/Wing/WingAlgorithmData.h>
+#include <Parafoil/Wing/WingTargetPositionData.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/SystemData.h>
 #include <diagnostic/StackData.h>
@@ -70,6 +71,7 @@ void registerTypes(Deserializer& ds)
 
     // Parafoil data
     ds.registerType<WingAlgorithmData>();
+    ds.registerType<WingTargetPositionData>();
 
     // Sensors
     ds.registerType<UBXGPSData>();

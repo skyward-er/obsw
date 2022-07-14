@@ -26,6 +26,7 @@
 #include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
 #include <Parafoil/Wing/WingConfig.h>
+#include <Parafoil/Wing/WingTargetPositionData.h>
 #include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/spi/SPIDriver.h>
@@ -192,10 +193,16 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 ParafoilTest::getInstance().sensors->getGPSLastSample();
             if (gps.fix != 0)
             {
+                auto targetPosition = Boardcore::Aeroutils::geodetic2NED(
+                    Eigen::Vector2f(lat, lon),
+                    Eigen::Vector2f(gps.latitude, gps.longitude));
+
                 ParafoilTest::getInstance().wingController->setTargetPosition(
-                    Boardcore::Aeroutils::geodetic2NED(
-                        Eigen::Vector2f(lat, lon),
-                        Eigen::Vector2f(gps.latitude, gps.longitude)));
+                    targetPosition);
+
+                Logger::getInstance().log(WingTargetPositionData{
+                    gps.latitude, gps.longitude, targetPosition(0),
+                    targetPosition(1)});
 
                 // Set also the initial position of the NASController
                 ParafoilTest::getInstance().algorithms->nas->setInitialPosition(

@@ -37,15 +37,13 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     : WingAlgorithm(servo1, servo2, "")
 {
     // TODO define umin and umax for antiwindup purposes
-    controller =
-        new PIController(Kp, Ki, WING_UPDATE_PERIOD, -2.09439, 2.09439);
+    controller = new PIController(Kp, Ki, 0.1, -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki)
     : WingAlgorithm("")
 {
-    controller =
-        new PIController(Kp, Ki, WING_UPDATE_PERIOD, -2.09439, 2.09439);
+    controller = new PIController(Kp, Ki, 0.1, -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
@@ -61,9 +59,9 @@ void AutomaticWingAlgorithm::step()
 
     // Target direction in respect to the current one
     // TODO to be logged
-    Vector2f targetDirection =
-        ParafoilTest::getInstance().wingController->getTargetPosition() -
-        Vector2f(state.n, state.e);
+    auto targetPosition =
+        ParafoilTest::getInstance().wingController->getTargetPosition();
+    Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
 
     // Compute the angle of the target direciton
     float targetAngle = atan2(targetDirection[1], targetDirection[0]);
@@ -88,6 +86,7 @@ void AutomaticWingAlgorithm::step()
     // Compute the angle difference
     float error = targetAngle - velocityAngle;
 
+    // Angle difference
     if (error < -Constants::PI || Constants::PI < error)
     {
         int moduledError = (int)fmod(error, 2 * Constants::PI);
@@ -107,29 +106,19 @@ void AutomaticWingAlgorithm::step()
     // Actuate the result
     if (result < 0)
     {
-        result = -1 * result;
         // Activate the servo1 and reset servo2
         if (servo1 != NULL)
-        {
-            servo1->set(result);
-        }
+            servo1->set(-1 * result);
         if (servo2 != NULL)
-        {
             servo2->set(WING_SERVO2_RESET_POSITION);
-        }
     }
     else
     {
         // Activate the servo2 and reset servo1
         if (servo1 != NULL)
-        {
             servo1->set(WING_SERVO1_RESET_POSITION);
-        }
         if (servo2 != NULL)
-        {
-            // Invert the servo
             servo2->set(WING_SERVO2_MAX_POSITION - result);
-        }
     }
 
     // Log the servo positions
@@ -141,6 +130,9 @@ void AutomaticWingAlgorithm::step()
     data.targetY       = targetDirection[1];
     data.targetAngle   = targetAngle;
     data.velocityAngle = velocityAngle;
+    data.error         = error;
+    data.pidOutput     = result;
     SDlogger->log(data);
 }
+
 }  // namespace Parafoil
