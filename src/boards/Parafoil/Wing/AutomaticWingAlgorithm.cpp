@@ -37,15 +37,15 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     : WingAlgorithm(servo1, servo2, "")
 {
     // TODO define umin and umax for antiwindup purposes
-    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0, -2.09439,
-                                  2.09439);
+    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
+                                  -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki)
     : WingAlgorithm("")
 {
-    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0, -2.09439,
-                                  2.09439);
+    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
+                                  -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
