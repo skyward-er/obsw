@@ -19,10 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/Configs/XbeeConfig.h>
 #include <Parafoil/ParafoilTest.h>
-#include <Parafoil/Wing/WingConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <common/SystemData.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>

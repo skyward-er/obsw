@@ -21,11 +21,11 @@
  */
 
 #include <Parafoil/Configs/RadioConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Configs/XbeeConfig.h>
 #include <Parafoil/Main/Radio.h>
 #include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
-#include <Parafoil/Wing/WingConfig.h>
 #include <Parafoil/Wing/WingTargetPositionData.h>
 #include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
