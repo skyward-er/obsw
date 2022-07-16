@@ -23,9 +23,9 @@
 #include "Sensors.h"
 
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/ParafoilTest.h>
 #include <Parafoil/TelemetriesTelecommands/TMRepository.h>
-#include <Parafoil/Wing/WingConfig.h>
 #include <math.h>
 #include <sensors/SensorInfo.h>
 #include <utils/AeroUtils/AeroUtils.h>

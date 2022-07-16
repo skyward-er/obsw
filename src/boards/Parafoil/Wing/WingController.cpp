@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/Wing/WingConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/WingController.h>
 
 using namespace Boardcore;

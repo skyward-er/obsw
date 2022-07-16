@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/Wing/WingConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <actuators/Servo/Servo.h>
 #include <common/ServoInterface.h>
 
