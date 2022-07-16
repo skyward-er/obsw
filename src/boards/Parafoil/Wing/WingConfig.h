@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <drivers/timer/PWM.h>
@@ -38,10 +39,9 @@ static const uint32_t WING_UPDATE_PERIOD = 100;  // milliseconds
 static const uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
 // ALGORITHM START AND FLARE ARMING CONSTANTS
-static const float WING_ALGORITHM_ARM_ALTITUDE = 1600;  // meters
-static const float WING_ALGORITHM_START_ALTITUE =
-    WING_ALGORITHM_ARM_ALTITUDE - WING_ALGORITHM_ARM_ALTITUDE / 10;  // meters
-static const float WING_FLARE_ALTITUDE = 1275;                       // meters
+static const float WING_ALGORITHM_ARM_ALTITUDE  = 250;   // [m]
+static const float WING_ALGORITHM_START_ALTITUE = 200;   // [m]
+static const float WING_FLARE_ALTITUDE          = 1275;  // [m]
 
 static float WING_CALIBRATION_PRESSURE    = 101325;  // Pa
 static float WING_CALIBRATION_TEMPERATURE = 300;     // Kelvin
@@ -74,4 +74,5 @@ static const float WING_SERVO2_MIN_POSITION = 0;  // degrees
 
 static const float WING_SERVO1_RESET_POSITION = 0;    // degrees
 static const float WING_SERVO2_RESET_POSITION = 120;  // degrees
+
 }  // namespace Parafoil

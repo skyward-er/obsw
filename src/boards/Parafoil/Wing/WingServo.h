@@ -77,7 +77,7 @@ private:
 protected:
     /**
      * @brief Set the servo position
-     * @param angle sevo position(degrees)
+     * @param angle Servo position(degrees)
      */
     void setPosition(float angle) override;
 

@@ -136,11 +136,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                     LOG_INFO(logger, "Received command START_LOG");
                     break;
                 case MAV_CMD_TEST_MODE:
-                    // I use the test mode to apply the sequence
+                    // Use the test mode to apply the sequence
                     ParafoilTest::getInstance().wingController->start();
                     break;
                 case MAV_CMD_FORCE_LANDING:
-                    // I reset the servo position
+                    // Reset the servo position
                     ParafoilTest::getInstance().wingController->reset();
                     break;
                 default:
@@ -269,6 +269,26 @@ void Radio::sendLRTelemetry()
 
 void Radio::sendSDLogTelemetry() { sendSystemTelemetry(MAV_LOGGER_ID); }
 
+void Radio::sendServoTelemetry()
+{
+    mavlink_message_t msg;
+    mavlink_servo_tm_t tm;
+
+    tm.servo_id = PARAFOIL_SERVO1;
+    tm.servo_position =
+        ParafoilTest::getInstance().wingController->getServoPosition(
+            PARAFOIL_SERVO1);
+    mavlink_msg_servo_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &msg, &tm);
+    mav_driver->enqueueMsg(msg);
+
+    tm.servo_id = PARAFOIL_SERVO2;
+    tm.servo_position =
+        ParafoilTest::getInstance().wingController->getServoPosition(
+            PARAFOIL_SERVO2);
+    mavlink_msg_servo_tm_encode(TMTC_MAV_SYSID, TMTC_MAV_COMPID, &msg, &tm);
+    mav_driver->enqueueMsg(msg);
+}
+
 void Radio::sendAck(const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
@@ -351,9 +371,10 @@ void Radio::init()
     }
 
     // Register the LR and HR tasks in the scheduler
-    scheduler->addTask(HRfunction, HR_GROUND_UPDATE_PERIOD, RADIO_HR_ID);
+    scheduler->addTask(HRfunction, 250, RADIO_HR_ID);
     // scheduler->addTask(LRfunction, LR_UPDATE_PERIOD, RADIO_LR_ID);
     scheduler->addTask(SDfunction, SD_UPDATE_PERIOD, SD_UPDATE_ID);
+    scheduler->addTask([=]() { sendServoTelemetry(); }, 1000);
 
     // Set the frame receive callback
     // xbee -> setOnFrameReceivedListener(
@@ -362,4 +383,5 @@ void Radio::init()
     // Set the data rate
     // Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 }
+
 }  // namespace Parafoil

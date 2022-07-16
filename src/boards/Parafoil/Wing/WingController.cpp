@@ -180,4 +180,19 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
 
+float WingController::getServoPosition(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case PARAFOIL_SERVO1:
+            return servo1->getCurrentPosition();
+        case PARAFOIL_SERVO2:
+            return servo2->getCurrentPosition();
+        default:
+            return 0;
+    }
+
+    return 0;
+}
+
 }  // namespace Parafoil

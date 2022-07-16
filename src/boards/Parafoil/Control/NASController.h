@@ -130,7 +130,7 @@ private:
     // The nas config
     Boardcore::NASConfig config;
     Eigen::Vector3f initialOrientation;
-    Eigen::Vector2f initialPosition;
+    Eigen::Vector2f initialPosition{42.57182024359364, 12.585861994119355};
 
     // Task scheduler
     Boardcore::TaskScheduler* scheduler;
@@ -142,4 +142,5 @@ private:
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("NASController");
 };
+
 }  // namespace Parafoil

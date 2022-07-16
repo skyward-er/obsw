@@ -28,6 +28,7 @@
 
 namespace Parafoil
 {
+
 NASController::NASController(Boardcore::TaskScheduler* scheduler,
                              Boardcore::NASConfig config)
 {

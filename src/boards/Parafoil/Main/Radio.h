@@ -106,6 +106,8 @@ public:
      */
     void sendSDLogTelemetry();
 
+    void sendServoTelemetry();
+
     /**
      * @brief Every time a message is received we send
      * an ack message to tell the ground station that we

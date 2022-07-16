@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/TelemetriesTelecommands/Mavlink.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <scheduler/TaskScheduler.h>
@@ -172,5 +173,7 @@ public:
      * @brief target position getter
      */
     Eigen::Vector2f getTargetPosition();
+
+    float getServoPosition(ServosList servoId);
 };
 }  // namespace Parafoil
