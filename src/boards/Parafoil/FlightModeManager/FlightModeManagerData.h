@@ -22,41 +22,33 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
+#include <stdint.h>
 
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <iostream>
+#include <string>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+enum class FlightModeManagerState : uint8_t
 {
-public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    UNINIT = 0,
+    ON_GROUND,
+    FLYING_STATE,
+    DEBUG_STATE,
+};
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+struct FlightModeManagerStatus
+{
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::UNINIT;
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    static std::string header() { return "timestamp,state\n"; }
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
 }  // namespace Parafoil

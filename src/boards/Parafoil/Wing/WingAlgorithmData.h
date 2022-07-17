@@ -19,11 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
+
 #include <sensors/SensorData.h>
 
 namespace Parafoil
 {
+
 /**
  * This class represents the algorithm data structure that needs to be logged
  * into the onboard SD card. It has the timestamp(absolute) and the servo
@@ -31,11 +34,11 @@ namespace Parafoil
  */
 struct WingAlgorithmData
 {
-    uint64_t timestamp;   // First timestamp is 0 (in microseconds)
-    float servo1Angle;    // degrees
-    float servo2Angle;    // degrees
-    float targetAngle;    // radians (automatic only)
-    float velocityAngle;  // radians
+    uint64_t timestamp;   // First timestamp is 0 [us]
+    float servo1Angle;    // [deg]
+    float servo2Angle;    // [deg]
+    float targetAngle;    // [rad] (automatic only)
+    float velocityAngle;  // [rad]
     float targetX;        // NED (only automatic algorithm)
     float targetY;        // NED (only automatic algorithm)
     float error;
@@ -54,4 +57,5 @@ struct WingAlgorithmData
            << targetY << "," << error << "," << pidOutput << "\n";
     }
 };
+
 }  // namespace Parafoil

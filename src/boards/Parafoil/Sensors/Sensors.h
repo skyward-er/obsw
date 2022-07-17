@@ -22,41 +22,55 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
-
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <sensors/BME280/BME280.h>
+#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/SensorManager.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+class Sensors : public Boardcore::Singleton<Sensors>
 {
+    friend class Boardcore::Singleton<Sensors>;
+
 public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    bool start();
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+    bool isStarted();
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    Boardcore::MPU9250Data getMpu9250LastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::BME280Data getBme280LastSample();
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+    void calibrate();
+
+    std::map<string, bool> getSensorsState();
+
+private:
+    Sensors();
+
+    ~Sensors();
+
+    void mpu9250init();
+
+    void ubxGpsInit();
+    void ubxGpsCallback();
+
+    void bme280init();
+    void bme280Callback();
+
+    Boardcore::MPU9250* mpu9250;
+    Boardcore::UBXGPSSerial* ubxGps;
+    Boardcore::BME280* bme280;
+
+    bool needsCalibration = false;
+
+    Boardcore::SensorManager* sensorManager = nullptr;
+
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 
 }  // namespace Parafoil

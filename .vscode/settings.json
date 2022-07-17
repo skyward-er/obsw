@@ -94,15 +94,34 @@
         "matrixfunctions": "cpp"
     },
     "cSpell.words": [
+        "Aeroutils",
+        "baro",
         "Boardcore",
+        "Eigen",
         "Erbetta",
         "Gpio",
+        "GPIOA",
+        "GPIOB",
+        "GPIOC",
+        "GPIOD",
+        "GPIOF",
+        "GPIOG",
         "leds",
         "Luca",
+        "Matteo",
+        "Mavlink",
         "miosix",
+        "MOSI",
+        "Nidasio",
+        "pinouts",
         "Terraneo",
+        "tmrepo",
         "tscpp",
-        "UBXGPS"
+        "Ublox",
+        "UBXGPS",
+        "usart",
+        "wingalgo",
+        "wingctrl"
     ],
     "C_Cpp.errorSquiggles": "Enabled"
 }

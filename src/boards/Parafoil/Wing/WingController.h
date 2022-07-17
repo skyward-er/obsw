@@ -22,19 +22,18 @@
 
 #pragma once
 
-#include <Parafoil/TelemetriesTelecommands/Mavlink.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <common/Mavlink.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <Eigen/Core>
 
 /**
- * @brief This class allows the user to select the wing algorithm
- * that has to be used during the tests. It also registers his
- * dedicated function in the task schduler in order to be
- * executed every fixed period and to update the two servos position
- * depending on the selected algorithm.
+ * @brief This class allows the user to select the wing algorithm  that has to
+ * be used during the tests. It also registers his dedicated function in the
+ * task scheduler in order to be executed every fixed period and to update the
+ * two servos position depending on the selected algorithm.
  *
  * Use case example:
  * controller = new WingController(scheduler);
@@ -52,15 +51,12 @@
 
 namespace Parafoil
 {
-class WingController
-{
-private:
-    /**
-     * @brief Servo actuators
-     */
-    ServoInterface* servo1;
-    ServoInterface* servo2;
 
+class WingController : public Boardcore::Singleton<WingController>
+{
+    friend Boardcore::Singleton<WingController>;
+
+private:
     /**
      * @brief Target position
      */
@@ -74,17 +70,11 @@ private:
     /**
      * @brief PrintLogger
      */
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("ParafoilTest");
-
-    /**
-     * @brief The common task scheduler
-     */
-    Boardcore::TaskScheduler* scheduler;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("wingctrl");
 
     /**
      * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumered algorithm
+     * The user using the Ground Station can select the pre-enumerated algorithm
      * to execute
      */
     unsigned int selectedAlgorithm;
@@ -101,12 +91,7 @@ private:
     void init();
 
 public:
-    /**
-     * @brief Construct a new Wing Controller object
-     *
-     * @param scheduler The main used task scheduler
-     */
-    WingController(Boardcore::TaskScheduler* scheduler);
+    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -176,4 +161,5 @@ public:
 
     float getServoPosition(ServosList servoId);
 };
+
 }  // namespace Parafoil

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,35 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
-
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+namespace ActuatorsConfigs
 {
-public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+// Servo 1
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
+static constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
-};
+static constexpr float SERVO_1_ROTATION  = 120;
+static constexpr float SERVO_1_MIN_PULSE = 900;   // [deg]
+static constexpr float SERVO_1_MAX_PULSE = 2100;  // [deg]
+
+// Servo 2
+
+static TIM_TypeDef* const SERVO_2_TIMER = TIM10;
+static constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+
+static constexpr float SERVO_2_ROTATION  = 120;
+static constexpr float SERVO_2_MIN_PULSE = 2100;  // [deg]
+static constexpr float SERVO_2_MAX_PULSE = 900;   // [deg]
+
+}  // namespace ActuatorsConfigs
 
 }  // namespace Parafoil

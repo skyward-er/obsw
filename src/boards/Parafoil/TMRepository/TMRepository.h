@@ -22,41 +22,49 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
+#include <Singleton.h>
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
+#include <sensors/BME280/BME280Data.h>
+#include <sensors/MPU9250/MPU9250Data.h>
 
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+/**
+ * @brief This class represents the collection of data that can be sent via
+ * radio communication. This refers to mavlink libraries and structures created
+ * in the correct .xml file.
+ *
+ * It is necessary that this singleton class handles the structure update
+ * (when a message pack is requested).
+ * The pack method is the core of the class. It returns a mavlink_message
+ * with the message data(specified with the id) requested.
+ */
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+class TMRepository : public Boardcore::Singleton<TMRepository>
 {
+    friend class Boardcore::Singleton<TMRepository>;
+
 public:
     /**
-     * @brief Construct a new Automatic Wing Algorithm object
+     * @brief Retrieve a system telemetry message in packed form.
      *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
+     * @param reqTm Required telemetry.
+     * @return Packed mavlink telemetry or a nack.
      */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    mavlink_message_t packSystemTm(SystemTMList reqTm);
 
     /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
+     * @brief Retrieve a sensor telemetry message in packed form.
+     *
+     * @param reqTm Required telemetry.
+     * @return Packed mavlink telemetry or a nack.
      */
-    ~AutomaticWingAlgorithm();
+    mavlink_message_t packSensorsTm(SensorsTMList reqTm);
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
-
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+private:
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
 };
 
 }  // namespace Parafoil

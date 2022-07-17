@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <drivers/timer/TimestampTimer.h>
 
@@ -27,6 +28,7 @@ using namespace Boardcore;
 
 namespace Parafoil
 {
+
 std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
 {
     input >> data.timestamp;
@@ -35,13 +37,6 @@ std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
     input.ignore(1, ',');
     input >> data.servo2Angle;
     return input;
-}
-
-WingAlgorithm::WingAlgorithm(ServoInterface* servo1, ServoInterface* servo2,
-                             const char* filename)
-    : parser(filename)
-{
-    setServo(servo1, servo2);
 }
 
 WingAlgorithm::WingAlgorithm(const char* filename) : parser(filename) {}
@@ -62,19 +57,6 @@ bool WingAlgorithm::init()
     }
 
     return fileValid;
-}
-
-void WingAlgorithm::setServo(ServoInterface* servo1, ServoInterface* servo2)
-{
-    if (servo1 != NULL)
-    {
-        this->servo1 = servo1;
-    }
-
-    if (servo2 != NULL)
-    {
-        this->servo2 = servo2;
-    }
 }
 
 void WingAlgorithm::addStep(WingAlgorithmData step)
@@ -103,9 +85,6 @@ void WingAlgorithm::end()
     timeStart = 0;
 }
 
-/**
- * PROTECTED METHODS
- */
 void WingAlgorithm::step()
 {
     // Variable to remember what is the step that has to be done
@@ -114,48 +93,37 @@ void WingAlgorithm::step()
 
     if (shouldReset)
     {
-        // If the algorithm has been stopped
-        // i want to start from the beginning
+        // If the algorithm has been stopped i want to start from the beginning
         stepIndex   = 0;
         shouldReset = false;
     }
 
     if (stepIndex >= steps.size())
     {
-        LOG_INFO(logger, "Algorithm end");
         // End the procedure so it won't be executed
         end();
+
         // Set the index to 0 in case of another future execution
         stepIndex = 0;
-        // Terminate here
+
         return;
     }
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
-        // I need to execute the current step (if not null servos)
-        if (servo1 != NULL)
-        {
-            servo1->set(steps[stepIndex].servo1Angle);
-        }
-        if (servo2 != NULL)
-        {
-            servo2->set(steps[stepIndex].servo2Angle);
-        }
+        Actuators::getInstance().setServo(PARAFOIL_SERVO1,
+                                          steps[stepIndex].servo1Angle);
+        Actuators::getInstance().setServo(PARAFOIL_SERVO2,
+                                          steps[stepIndex].servo2Angle);
 
-        // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;
         data.timestamp   = TimestampTimer::getTimestamp();
         data.servo1Angle = steps[stepIndex].servo1Angle;
         data.servo2Angle = steps[stepIndex].servo2Angle;
+        Logger::getInstance().log(data);
 
-        // After copy i can log the actual step
-        SDlogger->log(data);
-
-        // finally increment the stepIndex
         stepIndex++;
-
-        LOG_INFO(logger, "Step");
     }
 }
+
 }  // namespace Parafoil

@@ -22,41 +22,35 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
+#include <diagnostic/PrintLogger.h>
+#include <events/FSM.h>
 
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include "FlightModeManagerData.h"
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+class FlightModeManager : public Boardcore::FSM<FlightModeManager>,
+                          public Boardcore::Singleton<FlightModeManager>
 {
+    friend Boardcore::Singleton<FlightModeManager>;
+
 public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    void state_on_ground(const Boardcore::Event& ev);
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+    void state_flying(const Boardcore::Event& ev);
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    void state_debug(const Boardcore::Event& ev);
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+private:
+    FlightModeManager();
+    ~FlightModeManager();
+
+    FlightModeManagerStatus status;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
+
+    void logStatus(FlightModeManagerState state);
 };
 
 }  // namespace Parafoil

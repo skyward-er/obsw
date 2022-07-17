@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,56 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
-
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <Singleton.h>
+#include <actuators/Servo/Servo.h>
+#include <common/Mavlink.h>
+#include <interfaces/gpio.h>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+struct Actuators : public Boardcore::Singleton<Actuators>
 {
-public:
+    friend class Boardcore::Singleton<Actuators>;
+
     /**
-     * @brief Construct a new Automatic Wing Algorithm object
+     * @brief Moves the specified servo to the given position.
      *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
+     * @param servoId Servo to move.
+     * @param percentage Angle to set [0-1].
+     * @return True if the the angle was set.
      */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    bool setServo(ServosList servoId, float percentage);
 
     /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param angle Angle to set [degree].
+     * @return True if the the angle was set.
      */
-    ~AutomaticWingAlgorithm();
-
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    bool setServoAngle(ServosList servoId, float angle);
 
     /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
+     * @brief Wiggles the servo for few seconds.
+     *
+     * @param servoId Servo to move.
+     * @return true
+     * @return false
      */
-    void step() override;
+    bool wiggleServo(ServosList servoId);
+
+    bool enableServo(ServosList servoId);
+
+    bool disableServo(ServosList servoId);
+
+    float getServoPosition(ServosList servoId);
+
+private:
+    Actuators();
+
+    Boardcore::Servo servo1;
+    Boardcore::Servo servo2;
 };
 
 }  // namespace Parafoil

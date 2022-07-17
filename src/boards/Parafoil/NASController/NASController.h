@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,47 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
+#include <algorithms/NAS/NAS.h>
+#include <algorithms/NAS/StateInitializer.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <functional>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+class NASController : public Boardcore::Singleton<NASController>
 {
+    friend Boardcore::Singleton<NASController>;
+
 public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    void init();
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+    bool start();
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    void update();
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+    void calculateInitialOrientation();
+
+    void setInitialPosition(Eigen::Vector2f position);
+
+    Boardcore::NASState getNasState();
+
+    void setReferenceValues(const Boardcore::ReferenceValues reference);
+
+    Boardcore::ReferenceValues getReferenceValues();
+
+private:
+    NASController();
+
+    Boardcore::NAS nas;
+
+    Eigen::Vector3f initialOrientation;
+    Eigen::Vector2f initialPosition{42.571820, 12.585861};
+
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("parafoil.nas");
 };
 
 }  // namespace Parafoil

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,38 @@
 
 #pragma once
 
-#include <algorithms/PIController.h>
-
-#include <Eigen/Core>
-
-#include "WingAlgorithm.h"
+#include <Singleton.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <miosix.h>
 
 namespace Parafoil
 {
 
-class AutomaticWingAlgorithm : public WingAlgorithm
+struct Buses : public Boardcore::Singleton<Buses>
 {
-public:
-    /**
-     * @brief Construct a new Automatic Wing Algorithm object
-     *
-     * @param Kp Proportional value for PI controller
-     * @param Ki Integral value for PI controller
-     */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    friend class Boardcore::Singleton<Buses>;
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
+    Boardcore::USART usart2;
 
-protected:
-    // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi4;
 
-    /**
-     * @brief This method implements the automatic algorithm that will steer the
-     * parafoil according to its position and velocity. IN THIS METHOD THE
-     * GUIDANCE IS TRANSLATED
-     */
-    void step() override;
+private:
+#ifndef USE_MOCK_PERIPHERALS
+    Buses()
+        : usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+          spi1(SPI1), spi4(SPI4)
+    {
+        usart2.init();
+    }
+#else
+    Buses()
+        : usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+          spi1({}), spi4({})
+    {
+    }
+#endif
 };
 
 }  // namespace Parafoil

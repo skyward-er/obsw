@@ -23,30 +23,14 @@ set(OBSW_INCLUDE_DIRS
     src/boards
 )
 
-# set(MAIN_COMPUTER
-# src/boards/MainComputer/events/EventStrings.cpp
-# src/boards/MainComputer/Actuators/Actuators.cpp
-# src/boards/MainComputer/AirBrakes/AirBrakesController.cpp
-# src/boards/MainComputer/ApogeeDetectionAlgorithm/ADAController.cpp
-# src/boards/MainComputer/Deployment/DeploymentController.cpp
-# src/boards/MainComputer/NavigationAttitudeSystem/NASController.cpp
-# src/boards/MainComputer/FlightStatsRecorder/FSRController.cpp
-# )
-set(PARAFOIL_MOCKUP_COMPUTER
-    src/boards/Parafoil/Main/Sensors.cpp
-    src/boards/Parafoil/Main/Radio.cpp
-    src/boards/Parafoil/TelemetriesTelecommands/TMRepository.cpp
-    src/boards/Parafoil/Wing/WingServo.cpp
+set(PARAFOIL_COMPUTER
+    src/boards/Parafoil/Actuators/Actuators.cpp
+    src/boards/Parafoil/FlightModeManager/FlightModeManager.cpp
+    src/boards/Parafoil/NASController/NASController.cpp
+    src/boards/Parafoil/Radio/Radio.cpp
+    src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/TMRepository/TMRepository.cpp
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
-    src/boards/Parafoil/FlightModeManager/FMMController.cpp
-    src/boards/Parafoil/Control/Algorithms.cpp
-    src/boards/Parafoil/Control/NASController.cpp
-)
-set(PAYLOAD_COMPUTER
-    src/boards/Payload/Main/Sensors.cpp
-    src/boards/Payload/Main/Radio.cpp
-    src/boards/Payload/TelemetriesTelecommands/TMRepository.cpp
-    src/boards/Payload/Control/NASController.cpp
 )

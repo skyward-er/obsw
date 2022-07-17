@@ -24,50 +24,21 @@ enable_testing()
 include(skyward-boardcore/cmake/sbs.cmake)
 
 # -----------------------------------------------------------------------------#
-# Project                                   #
+#                                    Project                                   #
 # -----------------------------------------------------------------------------#
+
 project(SkywardParafoilTest)
 
 # -----------------------------------------------------------------------------#
-# Main Computer                                #
+#                                Parafoil mockup                               #
 # -----------------------------------------------------------------------------#
 
-# add_executable(catch-tests-main
-# src/tests/MainComputer/catch/catch-tests-entry.cpp
-# src/tests/MainComputer/catch/test-airbrakes.cpp
-# src/tests/MainComputer/catch/test-ada.cpp
-# src/tests/MainComputer/catch/test-deployment.cpp
-# src/tests/MainComputer/catch/test-fsr.cpp
-# src/tests/MainComputer/catch/test-nas.cpp
-# ${MAIN_COMPUTER}
-# )
-# target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})
-# target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)
-# sbs_target(catch-tests-main stm32f429zi_skyward_death_stack_x)
-# sbs_catch_test(catch-tests-main)
-
-# -----------------------------------------------------------------------------#
-# Parafoil mockup Computer                              #
-# -----------------------------------------------------------------------------#
-add_executable(parafoil-mockup-entry
-    src/entrypoints/Parafoil/parafoil-entry.cpp
-    ${PARAFOIL_MOCKUP_COMPUTER}
-)
+add_executable(parafoil-mockup-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-mockup-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(parafoil-mockup-entry stm32f429zi_stm32f4discovery)
+sbs_target(parafoil-mockup-entry stm32f429zi_skyward_parafoil)
 
 # add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
-# sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)
+# sbs_target(parafoil-test-bme280 stm32f429zi_skyward_parafoil)
 
 # add_executable(parafoil-test-ublox-uart src/tests/Parafoil/parafoil-test-ublox-uart.cpp)
-# sbs_target(parafoil-test-ublox-uart stm32f429zi_stm32f4discovery)
-
-# -----------------------------------------------------------------------------#
-# Payload computer                              #
-# -----------------------------------------------------------------------------#
-add_executable(payload-entry
-    src/entrypoints/Payload/payload-entry.cpp
-    ${PAYLOAD_COMPUTER}
-)
-target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
+# sbs_target(parafoil-test-ublox-uart stm32f429zi_skyward_parafoil)

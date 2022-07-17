@@ -70,22 +70,23 @@ public:
             Boardcore::TaskScheduler* scheduler);
 
     /**
-     * @brief Destroy the Sensors object and all its sensors
+     * @brief Destroy the Sensors object and all its sensors.
      */
     ~Sensors();
 
     /**
      * @brief Starts all the calibration procedures regarding some of the most
-     * critical sensors
+     * critical sensors.
      */
     void calibrate();
 
     /**
-     * @brief Starts the sensor manager and the task scheduler
-     * @return true If all goes correctly
-     * @return false If something fails
+     * @brief Starts the sensor manager and the task scheduler.
+     * @return True if all goes correctly.
      */
     bool start();
+
+    bool isStarted();
 
     // Kernel lock getters
     Boardcore::InternalADCData getInternalAdcLastSample();
