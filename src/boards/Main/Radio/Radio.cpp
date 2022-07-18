@@ -59,10 +59,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         {
             return handleCommand(msg);
         }
-        case MAVLINK_MSG_ID_SYSTEM_TELEMETRY_REQUEST_TC:
+        case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
         {
             SystemTMList tmId = static_cast<SystemTMList>(
-                mavlink_msg_system_telemetry_request_tc_get_tm_id(&msg));
+                mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
 
             // Send multiple packets for the TASK STATS telemetry
             switch (tmId)
@@ -127,10 +127,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       tmId);
             break;
         }
-        case MAVLINK_MSG_ID_SENSOR_TELEMETRY_REQUEST_TC:
+        case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
         {
             SystemTMList tmId = static_cast<SystemTMList>(
-                mavlink_msg_system_telemetry_request_tc_get_tm_id(&msg));
+                mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
             sendSystemTm(tmId);
 
             LOG_DEBUG(logger, "Received system telemetry request, id: {}",
@@ -428,7 +428,7 @@ Radio::Radio()
         [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
         FLIGHT_TM_TASK_ID);
     BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_STATS_ID); }, STATS_TM_PERIOD,
+        [&]() { sendSystemTm(MAV_STATS_ID); }, STATS_TM_PERIOD,
         STATS_TM_TASK_ID);
 
     // TODO: Enable transceiver interrupt
