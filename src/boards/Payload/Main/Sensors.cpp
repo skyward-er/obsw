@@ -64,6 +64,8 @@ Sensors::Sensors(SPIBusInterface& spiBus, TaskScheduler* scheduler)
 
     // Now create the sensor manager with all the inserted sensors inside the
     // map
+    // cppcheck-suppress noCopyConstructor
+    // cppcheck-suppress noOperatorEq
     sensorManager = new SensorManager(sensorsMap, scheduler);
 }
 

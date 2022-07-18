@@ -175,11 +175,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
         {
             mavlink_nas_tm_t tm;
 
-            auto state       = NASController::getInstance().getNasState();
-            auto status      = NASController::getInstance().getStatus();
-            auto orientation = SkyQuaternion::quat2eul(
-                {state.qx, state.qy, state.qz, state.qw});
-            auto ref = NASController::getInstance().getReferenceValues();
+            auto state  = NASController::getInstance().getNasState();
+            auto status = NASController::getInstance().getStatus();
+            auto ref    = NASController::getInstance().getReferenceValues();
 
             tm.timestamp       = state.timestamp;
             tm.state           = static_cast<uint8_t>(status.state);
