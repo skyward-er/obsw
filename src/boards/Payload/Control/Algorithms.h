@@ -19,55 +19,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <Payload/Control/NASController.h>
+#include <algorithms/NAS/NAS.h>
+#include <diagnostic/PrintLogger.h>
+#include <logger/Logger.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/BMX160/BMX160Data.h>
+#include <sensors/UBXGPS/UBXGPSData.h>
 
 namespace Payload
 {
-enum PayloadComponentStatus
-{
-    ERROR = 0,
-    OK    = 1
-};
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+class Algorithms
+{
+public:
+    // All the algorithms that need to be started
+    NASController<Boardcore::BMX160Data, Boardcore::UBXGPSData>* nas;
+
+    // The scheduler
+    Boardcore::TaskScheduler* scheduler;
 
     /**
-     * @brief Method to set a specific component in an error state
+     * @brief Construct a new Algorithms object
+     *
+     * @param scheduler The algorithms task scheduler
      */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+    Algorithms(Boardcore::TaskScheduler* scheduler);
 
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
+    /**
+     * @brief Destroy the Algorithms object
+     */
+    ~Algorithms();
 
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
+    /**
+     * @brief Method to start the algorithms task scheduler
+     */
+    bool start();
+
+    // Kernel locked getters
+    Boardcore::NASState getNASLastSample();
+
+private:
+    // Debug serial logger
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("algorithms");
+
+    // SD logger
+    Boardcore::Logger* SDlogger = &Boardcore::Logger::getInstance();
+
+    // Init functions
+    void NASInit();
 };
+
 }  // namespace Payload

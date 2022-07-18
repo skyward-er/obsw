@@ -19,55 +19,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <sensors/BME280/BME280.h>
+#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/SensorManager.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
 
-namespace Payload
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+class Sensors : public Boardcore::Singleton<Sensors>
 {
-    ERROR = 0,
-    OK    = 1
+    friend class Boardcore::Singleton<Sensors>;
+
+public:
+    bool start();
+
+    bool isStarted();
+
+    Boardcore::MPU9250Data getMpu9250LastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::BME280Data getBme280LastSample();
+
+    void calibrate();
+
+    std::map<string, bool> getSensorsState();
+
+private:
+    Sensors();
+
+    ~Sensors();
+
+    void mpu9250init();
+
+    void ubxGpsInit();
+    void ubxGpsCallback();
+
+    void bme280init();
+    void bme280Callback();
+
+    Boardcore::MPU9250* mpu9250;
+    Boardcore::UBXGPSSerial* ubxGps;
+    Boardcore::BME280* bme280;
+
+    bool needsCalibration = false;
+
+    Boardcore::SensorManager* sensorManager = nullptr;
+
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
-
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
-}  // namespace Payload
+}  // namespace Parafoil

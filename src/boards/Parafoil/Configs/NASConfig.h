@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,55 +19,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <algorithms/NAS/NASConfig.h>
 
-namespace Payload
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+namespace NASConfig
 {
-    ERROR = 0,
-    OK    = 1
+
+static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+
+// Magnetic field in Milan
+Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
+
+static const Boardcore::NASConfig config = {
+    1.0f / UPDATE_PERIOD,  // T
+    0.0001f,               // SIGMA_BETA
+    0.3f,                  // SIGMA_W
+    0.1f,                  // SIGMA_MAG
+    10.0f,                 // SIGMA_GPS
+    4.3f,                  // SIGMA_BAR
+    10.0f,                 // SIGMA_POS
+    10.0f,                 // SIGMA_VEL
+    10.0f,                 // SIGMA_PITOT
+    1.0f,                  // P_POS
+    10.0f,                 // P_POS_VERTICAL
+    1.0f,                  // P_VEL
+    10.0f,                 // P_VEL_VERTICAL
+    0.01f,                 // P_ATT
+    0.01f,                 // P_BIAS
+    6.0f,                  // SATS_NUM
+    nedMag                 // NED_MAG
 };
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+}  // namespace NASConfig
 
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
-
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
-}  // namespace Payload
+}  // namespace Parafoil

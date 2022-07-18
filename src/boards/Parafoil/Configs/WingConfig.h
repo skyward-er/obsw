@@ -19,55 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <drivers/timer/PWM.h>
+#include <miosix.h>
 
-namespace Payload
+#include <Eigen/Core>
+
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+namespace WingConfig
 {
-    ERROR = 0,
-    OK    = 1
-};
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+// Algorithm configuration
+static constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
+static constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+// Arm, start and flare thresholds
+static constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]
+static constexpr float WING_ALGORITHM_START_ALTITUDE = 200;   // [m]
+static constexpr float WING_FLARE_ALTITUDE           = 1275;  // [m]
 
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
+static float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
+static float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
+static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
-}  // namespace Payload
+}  // namespace WingConfig
+
+}  // namespace Parafoil

@@ -19,55 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
+#include <stdint.h>
+
+#include <iostream>
 #include <string>
 
-namespace Payload
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+enum class FlightModeManagerState : uint8_t
 {
-    ERROR = 0,
-    OK    = 1
+    UNINIT = 0,
+    ON_GROUND,
+    FLYING_STATE,
+    DEBUG_STATE,
 };
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
+
+struct FlightModeManagerStatus
 {
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::UNINIT;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+    static std::string header() { return "timestamp,state\n"; }
 
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
+    void print(std::ostream& os) const
     {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
-
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
+        os << timestamp << "," << (int)state << "\n";
     }
 };
-}  // namespace Payload
+
+}  // namespace Parafoil

@@ -21,53 +21,54 @@
  */
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <Payload/Control/Algorithms.h>
+#include <Payload/Payload.h>
+
+using namespace Boardcore;
+using namespace std;
 
 namespace Payload
 {
-enum PayloadComponentStatus
+Algorithms::Algorithms(TaskScheduler* scheduler)
 {
-    ERROR = 0,
-    OK    = 1
-};
+    this->scheduler = scheduler;
+
+    // Init the algorithms
+    NASInit();
+}
+
+Algorithms::~Algorithms()
+{
+    // Destroy all the algorithms
+    delete nas;
+}
+
+bool Algorithms::start()
+{
+    // Start the scheduler
+    return scheduler->start();
+}
+
+void Algorithms::NASInit()
+{
+    nas = new NASController<BMX160Data, UBXGPSData>(
+        bind(&Sensors::getImuBMX160LastSample,
+             Payload::Payload::getInstance().sensors),
+        bind(&Sensors::getGPSLastSample,
+             Payload::Payload::getInstance().sensors),
+        scheduler);
+
+    // TODO should we set the initial orientation and position?
+    nas->init();
+}
+
 /**
- * @brief This class is used to keep track of various main class
- * initialization errors.
+ * GETTERS
  */
-struct PayloadStatus
+NASState Algorithms::getNASLastSample()
 {
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
-
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
-
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
+    // Pause the kernel for sync purposes
+    miosix::PauseKernelLock lock;
+    return nas->getLastSample();
+}
 }  // namespace Payload

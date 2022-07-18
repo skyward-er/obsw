@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2021 Skyward Experimental Rocketry
+ * Author: Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,33 @@
 
 namespace Payload
 {
-enum PayloadComponentStatus
+// TODO Define PITOT
+
+enum SensorDriverStatus
 {
-    ERROR = 0,
-    OK    = 1
+    DRIVER_ERROR = 0,
+    DRIVER_OK    = 1
 };
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
+
+struct SensorsStatus
 {
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
-
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+    uint8_t BMX160      = DRIVER_OK;
+    uint8_t MS5803      = DRIVER_OK;
+    uint8_t LIS3MDL     = DRIVER_OK;
+    uint8_t GPS         = DRIVER_OK;
+    uint8_t InternalADC = DRIVER_OK;
+    uint8_t ADS1118     = DRIVER_OK;
 
     static std::string header()
     {
-        return "logger, eventBorker, sensors, FMM, radio\n";
+        return "BMX160,MS5803,LIS3MDL,GPS,InternalADC,ADS1118\n";
     }
 
-    void print(std::ostream& os)
+    void print(std::ostream& os) const
     {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
+        os << (int)BMX160 << "," << (int)MS5803 << "," << (int)LIS3MDL << ","
+           << (int)GPS << "," << (int)InternalADC << "," << (int)ADS1118
+           << "\n";
     }
 };
 }  // namespace Payload

@@ -19,55 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <algorithms/PIController.h>
 
-namespace Payload
-{
-enum PayloadComponentStatus
-{
-    ERROR = 0,
-    OK    = 1
-};
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
+#include <Eigen/Core>
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+#include "WingAlgorithm.h"
+
+namespace Parafoil
+{
+
+class AutomaticWingAlgorithm : public WingAlgorithm
+{
+public:
+    /**
+     * @brief Construct a new Automatic Wing Algorithm object
+     *
+     * @param Kp Proportional value for PI controller
+     * @param Ki Integral value for PI controller
+     */
+    AutomaticWingAlgorithm(float Kp, float Ki);
 
     /**
-     * @brief Method to set a specific component in an error state
+     * @brief Destroy the Automatic Wing Algorithm object and the PI
      */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+    ~AutomaticWingAlgorithm();
 
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
+protected:
+    // PI controller tuned on the Kp and Ki passed through constructor
+    Boardcore::PIController* controller;
 
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
+    /**
+     * @brief This method implements the automatic algorithm that will steer the
+     * parafoil according to its position and velocity. IN THIS METHOD THE
+     * GUIDANCE IS TRANSLATED
+     */
+    void step() override;
 };
-}  // namespace Payload
+
+}  // namespace Parafoil

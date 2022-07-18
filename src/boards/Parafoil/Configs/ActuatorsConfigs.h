@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,55 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 
-namespace Payload
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+namespace ActuatorsConfigs
 {
-    ERROR = 0,
-    OK    = 1
-};
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
+// Servo 1
 
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
+static constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
+static constexpr float SERVO_1_ROTATION  = 120;
+static constexpr float SERVO_1_MIN_PULSE = 900;   // [deg]
+static constexpr float SERVO_1_MAX_PULSE = 2100;  // [deg]
 
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
-}  // namespace Payload
+// Servo 2
+
+static TIM_TypeDef* const SERVO_2_TIMER = TIM10;
+static constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+
+static constexpr float SERVO_2_ROTATION  = 120;
+static constexpr float SERVO_2_MIN_PULSE = 2100;  // [deg]
+static constexpr float SERVO_2_MAX_PULSE = 900;   // [deg]
+
+}  // namespace ActuatorsConfigs
+
+}  // namespace Parafoil

@@ -19,55 +19,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <sensors/SensorData.h>
 
-namespace Payload
+namespace Parafoil
 {
-enum PayloadComponentStatus
-{
-    ERROR = 0,
-    OK    = 1
-};
+
 /**
- * @brief This class is used to keep track of various main class
- * initialization errors.
+ * This class represents the algorithm data structure that needs to be logged
+ * into the onboard SD card. It has the timestamp(absolute) and the servo
+ * position set by the selected algorithm
  */
-struct PayloadStatus
+struct WingAlgorithmData
 {
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
-
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
+    uint64_t timestamp;   // First timestamp is 0 [us]
+    float servo1Angle;    // [deg]
+    float servo2Angle;    // [deg]
+    float targetAngle;    // [rad] (automatic only)
+    float velocityAngle;  // [rad]
+    float targetX;        // NED (only automatic algorithm)
+    float targetY;        // NED (only automatic algorithm)
+    float error;
+    float pidOutput;
 
     static std::string header()
     {
-        return "logger, eventBorker, sensors, FMM, radio\n";
+        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle, "
+               "velocityAngle,targetX,targetY,error,pidOutput\n";
     }
 
-    void print(std::ostream& os)
+    void print(std::ostream& os) const
     {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
+        os << timestamp << "," << servo1Angle << "," << servo2Angle << ","
+           << targetAngle << "," << velocityAngle << "," << targetX << ","
+           << targetY << "," << error << "," << pidOutput << "\n";
     }
 };
-}  // namespace Payload
+
+}  // namespace Parafoil

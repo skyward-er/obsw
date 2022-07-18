@@ -19,55 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <diagnostic/PrintLogger.h>
+#include <events/FSM.h>
 
-namespace Payload
+#include "FlightModeManagerData.h"
+
+namespace Parafoil
 {
-enum PayloadComponentStatus
+
+class FlightModeManager : public Boardcore::FSM<FlightModeManager>,
+                          public Boardcore::Singleton<FlightModeManager>
 {
-    ERROR = 0,
-    OK    = 1
+    friend Boardcore::Singleton<FlightModeManager>;
+
+public:
+    void state_on_ground(const Boardcore::Event& ev);
+
+    void state_flying(const Boardcore::Event& ev);
+
+    void state_debug(const Boardcore::Event& ev);
+
+private:
+    FlightModeManager();
+    ~FlightModeManager();
+
+    FlightModeManagerStatus status;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
+
+    void logStatus(FlightModeManagerState state);
 };
-/**
- * @brief This class is used to keep track of various main class
- * initialization errors.
- */
-struct PayloadStatus
-{
-    // If there is an error, this uint8_t reports it(OR)
-    uint8_t payload = OK;
 
-    // Specific errors
-    uint8_t logger      = OK;
-    uint8_t eventBroker = OK;
-    uint8_t sensors     = OK;
-    uint8_t FMM         = OK;
-    uint8_t radio       = OK;
-    uint8_t pinOBS      = OK;
-
-    /**
-     * @brief Method to set a specific component in an error state
-     */
-    void setError(uint8_t PayloadStatus::*component)
-    {
-        // Put the passed component to error state
-        this->*component = ERROR;
-        // Logic OR
-        payload = ERROR;
-    }
-
-    static std::string header()
-    {
-        return "logger, eventBorker, sensors, FMM, radio\n";
-    }
-
-    void print(std::ostream& os)
-    {
-        os << (int)logger << "," << (int)eventBroker << "," << (int)sensors
-           << "," << (int)FMM << "," << (int)radio << "\n";
-    }
-};
-}  // namespace Payload
+}  // namespace Parafoil
