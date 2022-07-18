@@ -25,6 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <Main/events/Events.h>
@@ -67,6 +68,32 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // Send multiple packets for the TASK STATS telemetry
             switch (tmId)
             {
+                case SystemTMList::MAV_PIN_OBS_ID:
+                {
+                    auto pinDataVector =
+                        PinHandler::getInstance().getPinsData();
+
+                    for (auto pinData : pinDataVector)
+                    {
+                        mavlink_message_t msgToSend;
+                        mavlink_pin_tm_t tm;
+
+                        tm.timestamp = TimestampTimer::getTimestamp();
+                        tm.pin_id    = pinData.first;
+                        tm.last_change_timestamp =
+                            pinData.second.lastStateTimestamp;
+                        tm.changes_counter = pinData.second.changesCount;
+                        tm.current_state   = pinData.second.lastState;
+
+                        mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                  RadioConfig::MAV_COMPONENT_ID,
+                                                  &msgToSend, &tm);
+
+                        mavDriver->enqueueMsg(msgToSend);
+                    }
+
+                    break;
+                }
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
                     auto statsVector = BoardScheduler::getInstance()
@@ -116,6 +143,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
                     break;
                 }
+
                 default:
                 {
                     sendSystemTm(tmId);

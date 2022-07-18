@@ -23,11 +23,10 @@
 #pragma once
 
 #include <Main/Configs/RadioConfig.h>
+#include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
-
-#include "Mavlink.h"
 
 namespace Main
 {

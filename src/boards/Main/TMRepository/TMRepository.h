@@ -23,8 +23,8 @@
 #pragma once
 
 #include <Main/Configs/RadioConfig.h>
-#include <Main/Radio/Mavlink.h>
 #include <Singleton.h>
+#include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 
 namespace Main
