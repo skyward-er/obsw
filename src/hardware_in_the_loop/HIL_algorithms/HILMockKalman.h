@@ -23,6 +23,7 @@
 #pragma once
 
 #include "HIL_sensors/HILSensor.h"
+#include "algorithms/AirBrakes/TrajectoryPoint.h"
 
 struct HILKalmanData : public Boardcore::TimedTrajectoryPoint
 {

@@ -58,3 +58,8 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/WingController.cpp
     src/boards/Parafoil/FlightModeManager/FMMController.cpp
 )
+
+set(HIL_TESTS
+    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
+    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
+)

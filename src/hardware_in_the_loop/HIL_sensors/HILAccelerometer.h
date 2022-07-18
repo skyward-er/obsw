@@ -46,12 +46,13 @@ protected:
 
         /* I make a copy of the vector i have to memorize in the sensor
          * struct */
-        Vec3 matlabData = sensorData->accelerometer.measures[sampleCounter];
+        Boardcore::Vec3 matlabData =
+            sensorData->accelerometer.measures[sampleCounter];
 
-        tempData.accel_x         = matlabData.getX();
-        tempData.accel_y         = matlabData.getY();
-        tempData.accel_z         = matlabData.getZ();
-        tempData.accel_timestamp = updateTimestamp();
+        tempData.accelerationX         = matlabData.getX();
+        tempData.accelerationY         = matlabData.getY();
+        tempData.accelerationZ         = matlabData.getZ();
+        tempData.accelerationTimestamp = updateTimestamp();
 
         return tempData;
     }

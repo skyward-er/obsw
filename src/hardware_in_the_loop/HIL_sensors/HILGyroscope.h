@@ -46,12 +46,12 @@ protected:
 
         /* I make a copy of the vector i have to memorize in the sensor
          * struct */
-        Vec3 matlabData = sensorData->gyro.measures[sampleCounter];
+        Boardcore::Vec3 matlabData = sensorData->gyro.measures[sampleCounter];
 
-        tempData.gyro_x         = matlabData.getX();
-        tempData.gyro_y         = matlabData.getY();
-        tempData.gyro_z         = matlabData.getZ();
-        tempData.gyro_timestamp = updateTimestamp();
+        tempData.angularVelocityX         = matlabData.getX();
+        tempData.angularVelocityY         = matlabData.getY();
+        tempData.angularVelocityZ         = matlabData.getZ();
+        tempData.angularVelocityTimestamp = updateTimestamp();
 
         return tempData;
     }

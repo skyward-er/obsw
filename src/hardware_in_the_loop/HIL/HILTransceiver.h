@@ -25,12 +25,13 @@
 #include <utils/Debug.h>
 
 #include "ActiveObject.h"
-#include "HILFlightPhasesManager.h"
+#include "HILConfig.h"
 #include "HIL_sensors/HILTimestampManagement.h"
-#include "common/Algorithm.h"
 #include "drivers/timer/TimestampTimer.h"
 #include "drivers/usart/USART.h"
 #include "old_examples/shared/math/Vec3.h"
+
+class HILFlightPhasesManager;
 
 /**
  * @brief HILTranceiver is a Singleton and provides an easy interface for
@@ -42,7 +43,7 @@ public:
     /**
      * @brief Construct a serial connection attached to a control algorithm
      */
-    HILTransceiver(HILFlightPhasesManager *flightPhasesManager);
+    explicit HILTransceiver(HILFlightPhasesManager *flightPhasesManager);
 
     /**
      * @brief sets the actuator data and then wakes up the MatlabTransceiver
@@ -51,6 +52,7 @@ public:
      * @param actuatorData sets the data that will be sent to the simulator
      */
     void setActuatorData(ActuatorData actuatorData);
+
     /**
      * @brief returns the reference of the SimulatorData
      *
@@ -89,11 +91,11 @@ private:
 
     void run() override;
 
+    HILFlightPhasesManager *flightPhasesManager;
     Boardcore::USART *hilSerial;
     // bool isAirbrakePhase    = false;
     bool receivedFirstPacket = false;
     bool updated             = false;
-    HILFlightPhasesManager *flightPhasesManager;
     SimulatorData sensorData;
     ActuatorData actuatorData;
     std::vector<HILTimestampManagement *> sensorsTimestamp;

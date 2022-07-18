@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "DeathStack/Algorithm.h"
-#include "DeathStack/ServoInterface.h"
-#include "hardware_in_the_loop/HILConfig.h"
+#include "HILConfig.h"
+#include "common/Algorithm.h"
+#include "common/ServoInterface.h"
 #include "miosix.h"
 #include "sensors/Sensor.h"
 
@@ -44,7 +44,7 @@ public:
      * parameter
      * @param servo the actuator that will communicate with the Simulator
      */
-    MockAirbrakeAlgorithm(Sensor<KD>* kalman, ServoInterface* servo)
+    MockAirbrakeAlgorithm(Boardcore::Sensor<KD>* kalman, ServoInterface* servo)
     {
         /* [TODO]
          * Check if the sensors have the data we need
@@ -84,7 +84,8 @@ protected:
 
 private:
     ActuatorData actuatorData;
-    TimestampData lastSample; /**< keeps track of the last timestamp */
-    Sensor<KD>* kalman;       /**< reference to the kalman object */
-    ServoInterface* servo;    /**< reference to the actuator object */
+    Boardcore::TimestampData
+        lastSample;                /**< keeps track of the last timestamp */
+    Boardcore::Sensor<KD>* kalman; /**< reference to the kalman object */
+    ServoInterface* servo;         /**< reference to the actuator object */
 };

@@ -41,8 +41,7 @@ sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
 #                                    HIL Tests                                #
 #-----------------------------------------------------------------------------#
 
-add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp
-    src/hardware_in_the_loop/HILTranceiver/HILTranceiver.cpp)
+add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp ${HIL_TESTS})
 target_include_directories(test-HIL PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-HIL PRIVATE HILSimulation)
 sbs_target(test-HIL stm32f429zi_skyward_death_stack_v3)

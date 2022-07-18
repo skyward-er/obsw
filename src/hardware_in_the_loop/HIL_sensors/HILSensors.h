@@ -22,11 +22,11 @@
 
 #pragma once
 
-// #include "HILAccelerometer.h"
-// #include "HILBarometer.h"
-// #include "HILGps.h"
-// #include "HILGyroscope.h"
-// #include "HILImu.h"
-// #include "HILMagnetometer.h"
+#include "HILAccelerometer.h"
+#include "HILBarometer.h"
+#include "HILGps.h"
+#include "HILGyroscope.h"
+#include "HILImu.h"
+#include "HILMagnetometer.h"
 #include "HILSensor.h"
-// #include "HILTimestampManagement.h"
+#include "HILTimestampManagement.h"

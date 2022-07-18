@@ -45,7 +45,7 @@ protected:
         HILBaroData tempData;
 
         tempData.pressure = sensorData->barometer.measures[sampleCounter];
-        tempData.press_timestamp = updateTimestamp();
+        tempData.pressureTimestamp = updateTimestamp();
 
         return tempData;
     }

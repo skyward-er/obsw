@@ -22,11 +22,8 @@
 
 #pragma once
 
-#include "HILConfig.h"
-#include "HILFlightPhasesManager.h"
-#include "HILTranceiver/HILTransceiver.h"
-#include "HIL_algorithms/HILMockKalman.h"
-#include "HIL_sensors/HILSensors.h"
+#include "HIL/HILFlightPhasesManager.h"
+#include "HIL/HILTransceiver.h"
 
 /**
  * @brief Single interface to the hardware-in-the-loop framework.
@@ -36,8 +33,8 @@ class HIL : public Boardcore::Singleton<HIL>
     friend class Boardcore::Singleton<HIL>;
 
 public:
-    HILFlightPhasesManager* flightPhasesManager;
-    HILTransceiver* simulator;
+    HILTransceiver *simulator;
+    HILFlightPhasesManager *flightPhasesManager;
 
     /**
      * @brief Start the needed hardware-in-the-loop components.
@@ -54,7 +51,8 @@ public:
      */
     void signalLiftoff()
     {
-        flightPhasesManager->setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
+        flightPhasesManager->setFlagFlightPhase(
+            FlightPhases::LIFTOFF_PIN_DETACHED, true);
         simulator->setActuatorData(-1);  // start code
     }
 

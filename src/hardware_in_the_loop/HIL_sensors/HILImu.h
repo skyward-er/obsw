@@ -46,31 +46,31 @@ protected:
     HILImuData updateData() override
     {
         HILImuData tempData;
-        Vec3 matlabData;
+        Boardcore::Vec3 matlabData;
 
         /* I make a copy of the vector i have to memorize in the sensor
          * struct */
-        matlabData       = sensorData->accelerometer.measures[sampleCounter];
-        tempData.accel_x = matlabData.getX();
-        tempData.accel_y = matlabData.getY();
-        tempData.accel_z = matlabData.getZ();
+        matlabData = sensorData->accelerometer.measures[sampleCounter];
+        tempData.accelerationX = matlabData.getX();
+        tempData.accelerationY = matlabData.getY();
+        tempData.accelerationZ = matlabData.getZ();
 
-        matlabData      = sensorData->gyro.measures[sampleCounter];
-        tempData.gyro_x = matlabData.getX();
-        tempData.gyro_y = matlabData.getY();
-        tempData.gyro_z = matlabData.getZ();
+        matlabData                = sensorData->gyro.measures[sampleCounter];
+        tempData.angularVelocityX = matlabData.getX();
+        tempData.angularVelocityY = matlabData.getY();
+        tempData.angularVelocityZ = matlabData.getZ();
 
-        matlabData     = sensorData->magnetometer.measures[sampleCounter];
-        tempData.mag_x = matlabData.getX();
-        tempData.mag_y = matlabData.getY();
-        tempData.mag_z =
+        matlabData = sensorData->magnetometer.measures[sampleCounter];
+        tempData.magneticFieldX = matlabData.getX();
+        tempData.magneticFieldY = matlabData.getY();
+        tempData.magneticFieldZ =
             matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
 
         // only update the timestamp once and use it for all the 3 sensors
         // (this sensor assumes the same frequency for accel, gyro and mag)
-        tempData.accel_timestamp = updateTimestamp();
-        tempData.gyro_timestamp  = tempData.accel_timestamp;
-        tempData.mag_timestamp   = tempData.accel_timestamp;
+        tempData.accelerationTimestamp    = updateTimestamp();
+        tempData.angularVelocityTimestamp = tempData.accelerationTimestamp;
+        tempData.magneticFieldTimestamp   = tempData.accelerationTimestamp;
 
         return tempData;
     }

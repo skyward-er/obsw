@@ -58,13 +58,13 @@ const float MinAlphaDegree = 0.0;
 const float MaxAlphaDegree = 0.84;
 
 /** sensors configuration */
-SensorConfig accelConfig("accel", ACCEL_FREQ);
-SensorConfig gyroConfig("gyro", GYRO_FREQ);
-SensorConfig magnConfig("magn", MAGN_FREQ);
-SensorConfig imuConfig("imu", IMU_FREQ);
-SensorConfig baroConfig("baro", BARO_FREQ);
-SensorConfig gpsConfig("gps", GPS_FREQ);
-SensorConfig kalmConfig("kalm", KALM_FREQ);
+const SensorConfig accelConfig("accel", ACCEL_FREQ);
+const SensorConfig gyroConfig("gyro", GYRO_FREQ);
+const SensorConfig magnConfig("magn", MAGN_FREQ);
+const SensorConfig imuConfig("imu", IMU_FREQ);
+const SensorConfig baroConfig("baro", BARO_FREQ);
+const SensorConfig gpsConfig("gps", GPS_FREQ);
+const SensorConfig kalmConfig("kalm", KALM_FREQ);
 
 /** Number of samples per sensor at each simulator iteration */
 const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;  // 10
@@ -103,6 +103,8 @@ public:
     {
         Boardcore::Vec3 positionMeasures[N_DATA_GPS];
         Boardcore::Vec3 velocityMeasures[N_DATA_GPS];
+        float fix;
+        float num_satellites;
     } gps;
 
     struct Barometer

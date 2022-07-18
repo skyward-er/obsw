@@ -24,10 +24,10 @@
 
 #include <typeinfo>
 
+#include "HIL/HILTransceiver.h"
 #include "HILConfig.h"
 #include "HILSensorsData.h"
 #include "HILTimestampManagement.h"
-#include "HILTranceiver/HILTransceiver.h"
 #include "drivers/timer/TimestampTimer.h"
 #include "old_examples/shared/math/Vec3.h"
 #include "sensors/Sensor.h"

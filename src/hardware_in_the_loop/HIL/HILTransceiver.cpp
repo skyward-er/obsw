@@ -22,6 +22,7 @@
 
 #include "HILTransceiver.h"
 
+#include "HILFlightPhasesManager.h"
 /**
  * @brief Construct a serial connection attached to a control algorithm
  */
@@ -108,7 +109,7 @@ void HILTransceiver::run()
             SimulatorData tempData;
             hilSerial->read(&tempData, sizeof(SimulatorData));
             miosix::PauseKernelLock kLock;
-            memmove(&sensorData, &tempData, sizeof(SimulatorData));
+            memmove(&sensorData, &tempData, sizeof(sensorData));
         }
 
         if (!receivedFirstPacket)

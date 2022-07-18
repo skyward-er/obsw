@@ -46,20 +46,21 @@ protected:
 
         /* I make a copy of the vector i have to memorize in the sensor
          * struct */
-        Vec3 matlabData    = sensorData->gps.positionMeasures[sampleCounter];
+        Boardcore::Vec3 matlabData =
+            sensorData->gps.positionMeasures[sampleCounter];
         tempData.latitude  = matlabData.getX();  // divide by earth radius
         tempData.longitude = matlabData.getY();
         tempData.height    = matlabData.getZ();
 
         matlabData = sensorData->gps.velocityMeasures[sampleCounter];
-        tempData.velocity_north = matlabData.getX();
-        tempData.velocity_east  = matlabData.getY();
-        tempData.velocity_down  = matlabData.getZ();
+        tempData.velocityNorth = matlabData.getX();
+        tempData.velocityEast  = matlabData.getY();
+        tempData.velocityDown  = matlabData.getZ();
 
-        tempData.fix            = (bool)sensorData->gps.fix;
-        tempData.num_satellites = (uint8_t)sensorData->gps.num_satellites;
+        tempData.fix        = (uint8_t)sensorData->gps.fix;
+        tempData.satellites = (uint8_t)sensorData->gps.num_satellites;
 
-        tempData.gps_timestamp = updateTimestamp();
+        tempData.gpsTimestamp = updateTimestamp();
 
         return tempData;
     }

@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "DeathStack/ServoInterface.h"
-#include "hardware_in_the_loop/HILConfig.h"
-#include "hardware_in_the_loop/simulator_communication/HILTransceiver.h"
+#include "HIL/HILTransceiver.h"
+#include "HILConfig.h"
+#include "common/ServoInterface.h"
 
-class HILServo : public DeathStackBoard::ServoInterface
+class HILServo : public ServoInterface
 {
 public:
     /**
@@ -36,7 +36,7 @@ public:
      * the simulator
      */
     HILServo(HILTransceiver *matlab)
-        : DeathStackBoard::ServoInterface(MinAlphaDegree, MaxAlphaDegree)
+        : ServoInterface(MinAlphaDegree, MaxAlphaDegree)
     {
         this->matlab = matlab;
     }

@@ -31,7 +31,8 @@
  * #include "<test-directory>/HILSimulationConfig.h"
  *
  * REMEMBER:
- * when defining the entry in "sbs.conf" you should add to the defines -D<Flag>
+ * when defining the entry in "CMakeLists" you should add
+ * target_compile_definitions(<test-directory> PRIVATE <Flag>)
  *
  * WARNING:
  * You should always CLEAN your board before flashing a new entrypoint. Some
