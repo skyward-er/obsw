@@ -20,7 +20,12 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/Pitot/PitotData.h>
+#include <Main/StateMachines/ADAController/ADAControllerData.h>
+#include <Main/StateMachines/AirBrakesController/AirBrakesControllerData.h>
+#include <Main/StateMachines/Deployment/DeploymentData.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
+#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorderData.h>
+#include <Main/StateMachines/NASController/NASControllerData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -42,6 +47,7 @@
 
 using namespace tscpp;
 using namespace Boardcore;
+using namespace Main;
 
 void registerTypes(Deserializer& ds)
 {
@@ -49,7 +55,14 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
-    ds.registerType<PitotData>();
+    ds.registerType<ADAControllerStatus>();
+    ds.registerType<ApogeeEvent>();
+    ds.registerType<DeploymentEvent>();
+    ds.registerType<AirBrakesControllerStatus>();
+    ds.registerType<DeploymentStatus>();
+    ds.registerType<FlightModeManagerStatus>();
+    ds.registerType<FlightStatsRecorderStatus>();
+    ds.registerType<NASControllerStatus>();
 }
 
 void showUsage(const string& cmdName)

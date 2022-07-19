@@ -387,7 +387,7 @@ void FlightModeManager::logStatus(FlightModeManagerState state)
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
-    Logger::getInstance().log(state);
+    Logger::getInstance().log(status);
 }
 
 }  // namespace Main
