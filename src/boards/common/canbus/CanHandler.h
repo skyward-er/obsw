@@ -147,7 +147,6 @@ public:
                 (Boardcore::Canbus::IDMask::destination
                  << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
         }
-        TRACE(" IDMask %lu, mask %lu\n ", filterId, filterMask);
         Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 0,
                                                        0, 0, 0, 0);
         Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
