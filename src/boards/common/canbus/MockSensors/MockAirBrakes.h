@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/canbus/CanProtocol.h>
+#include <kernel/sync.h>
 
 namespace common
 {
@@ -37,6 +38,12 @@ public:
         updated = false;
         return percentage;
     }
+    bool waitTillUpdated()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        conVar.wait(l);
+        return updated;
+    }
 
     bool isUpdated()
     {
@@ -49,6 +56,7 @@ public:
         miosix::Lock<miosix::FastMutex> l(mutex);
         percentage = packet.payload[0];
         updated    = true;
+        conVar.broadcast();
     }
 
     Boardcore::Canbus::CanData parseData(uint8_t sample)
@@ -62,6 +70,7 @@ public:
 private:
     miosix::FastMutex mutex;
     uint8_t percentage;
+    miosix::ConditionVariable conVar;
     bool updated;
 };
 

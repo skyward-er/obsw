@@ -66,9 +66,10 @@ enum CommandsID
 
 enum Boards
 {
-    Main      = 0x00,
-    Payload   = 0x01,
-    Auxiliary = 0x02
+    Broadcast = 0x00,
+    Main      = 0x01,
+    Payload   = 0x02,
+    Auxiliary = 0x03
 };
 
 enum Priority
@@ -87,6 +88,18 @@ enum Type
 
 };
 
+struct Filter
+{
+    int8_t source      = -1;
+    int8_t destination = -1;
+};
+
+/**
+ * @brief Canbus high level implementation.
+ *
+ * This class takes care of creating the ID of the CanData, sending it to
+ * CanProtocol and receiving incoming packets calling the right events.
+ */
 class CanHandler : public Boardcore::ActiveObject
 {
 private:
@@ -94,18 +107,72 @@ private:
     MockPitot *pitot;
     MockAirBrakes *brakes;
     Boardcore::Canbus::CanProtocol *can;
+    uint32_t BAUD_RATE = 500 * 1000;
+    float SAMPLE_POINT = 87.5f / 100.0f;
 
 public:
-    CanHandler(Boardcore::Canbus::CanbusDriver *canPhysical, Boards source,
-               MockPitot *pitotInstance, MockAirBrakes *brakesInstance)
-        : source(source)
+    /**
+     * @brief Construct a new CanHandler object
+     *
+     * @param source: the Id of the sending board.
+     * @param pitotInstance: An instance of MockPitot.
+     * @param brakesInstance: An instance of MockAirBrakes
+     */
+    CanHandler(Filter filter, Boards source, MockPitot *pitotInstance,
+               MockAirBrakes *brakesInstance)
     {
-        can    = new Boardcore::Canbus::CanProtocol(canPhysical);
-        pitot  = pitotInstance;
-        brakes = brakesInstance;
+        uint32_t filterId   = 0;
+        uint32_t filterMask = 0;
+
+        if (filter.source >= 0)
+        {
+            filterId =
+                (filter.source
+                 << (Boardcore::Canbus::ShiftInformation::shiftSource +
+                     Boardcore::Canbus::ShiftInformation::shiftSequentialInfo));
+            filterMask =
+                (Boardcore::Canbus::IDMask::source
+                 << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
+        }
+
+        if (filter.destination >= 0)
+        {
+            filterId =
+                filterId |
+                (filter.destination
+                 << (Boardcore::Canbus::ShiftInformation::shiftDestination +
+                     Boardcore::Canbus::ShiftInformation::shiftSequentialInfo));
+            filterMask =
+                filterMask |
+                (Boardcore::Canbus::IDMask::destination
+                 << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
+        }
+        TRACE(" IDMask %lu, mask %lu\n ", filterId, filterMask);
+        Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 0,
+                                                       0, 0, 0, 0);
+        Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
+        bt.baudRate    = BAUD_RATE;
+        bt.samplePoint = SAMPLE_POINT;
+        Boardcore::Canbus::CanbusDriver *canbus =
+            new Boardcore::Canbus::CanbusDriver(
+                CAN1, Boardcore::Canbus::CanbusDriver::CanbusConfig{}, bt);
+        canbus->addFilter(filterBank);
+        canbus->init();
+        can          = new Boardcore::Canbus::CanProtocol(canbus);
+        pitot        = pitotInstance;
+        brakes       = brakesInstance;
+        this->source = source;
         (*can).start();
     }
-
+    /**
+     * @brief Calculate the id of the packet and sends it to CanProtocol.
+     *
+     * @param destination: The Id of the destination board.
+     * @param p: The priority of the packet.
+     * @param t: The type of the packet sent.
+     * @param idT: The IDtype of the packet sent.
+     * @param toSend: The packet to be sent.
+     */
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
                  Boardcore::Canbus::CanData toSend)
     {
@@ -126,8 +193,16 @@ public:
         }
     }
 
-    void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
-                 uint8_t payload)
+    /**
+     * @brief Calls sendData when we want to send a event (without creating a
+     * CanData).
+     *
+     * @param destination: The Id of the destination board.
+     * @param p: The priority of the packet.
+     * @param t: The type of the packet sent.
+     * @param idT: The IDtype of the packet sent.
+     */
+    void sendCan(Boards destination, Priority p, Type t, uint8_t idT)
     {
         // If we have to send a command it is easier to call the function using
         // a int
@@ -137,10 +212,13 @@ public:
         toSend.payload[0] = 0;
         sendCan(destination, p, t, idT, toSend);
     }
-
     ~CanHandler() { (*can).~CanProtocol(); }
 
 protected:
+    /**
+     * @brief Keeps listening on CanProtocol for new packets, when a new packet
+     * is received we update data and send events as needed
+     */
     void run() override
     {
         Boardcore::Canbus::CanData data;

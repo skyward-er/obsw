@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/canbus/CanProtocol.h>
+#include <kernel/sync.h>
 #include <sensors/SensorData.h>
 
 namespace common
@@ -47,6 +48,12 @@ public:
         return updated;
     }
 
+    bool waitTillUpdated()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        conVar.wait(l);
+        return updated;
+    }
     void setData(Boardcore::Canbus::CanData packet)
     {
         // Pressure and timestamp coded into an u_int64
@@ -56,6 +63,7 @@ public:
         memcpy(&data.pressure, &temp, sizeof(data.pressure));
         data.pressureTimestamp = (packet.payload[0] & 0xfffffff) << 2;
         updated                = true;
+        conVar.broadcast();
     }
 
     Boardcore::Canbus::CanData parseData(Boardcore::PressureData sample)
@@ -72,6 +80,7 @@ public:
 
 private:
     miosix::FastMutex mutex;
+    miosix::ConditionVariable conVar;
     Boardcore::PressureData data;
     bool updated = false;
 };

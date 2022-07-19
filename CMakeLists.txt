@@ -151,4 +151,16 @@ sbs_target(test-flight-tm stm32f429zi_stm32f4discovery)
 
 add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
 target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(test-can-handler stm32f429zi_stm32f4discovery)
+sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
+
+add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
+target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
+
+add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
+target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-payload-can stm32f429zi_skyward_death_stack_x )
+
+add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
+target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)

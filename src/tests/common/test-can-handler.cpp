@@ -100,25 +100,14 @@ int main()
         CanTX::alternateFunction(9);
 #endif
     }
+    // Allow every message
 
-    CanbusDriver::CanbusConfig cfg{};
-    CanbusDriver::AutoBitTiming bt;
-    bt.baudRate    = BAUD_RATE;
-    bt.samplePoint = SAMPLE_POINT;
-
-    CanbusDriver* canbus     = new CanbusDriver(CAN1, cfg, bt);
     MockPitot* pitot         = new MockPitot();
     MockAirBrakes* airBrakes = new MockAirBrakes();
-    CanHandler handler(canbus, Boards::Main, pitot, airBrakes);
-
-    // Allow every message
-    Mask32FilterBank f2(0, 0, 0, 0, 0, 0, 0);
-
-    canbus->addFilter(f2);
-    canbus->init();
+    CanHandler handler({}, Boards::Main, pitot, airBrakes);
 
     handler.start();
-    // send event, data and command
+    //  send event, data and command
     Boardcore::PressureData t{240, 12354.35};
     MyEventHandler evh;
     if (evh.start())
@@ -138,11 +127,11 @@ int main()
                             (*airBrakes).parseData(69));
             // if we have to send a command we use 0 as a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
-                            EventsId::Liftoff, 0);
+                            EventsId::Liftoff);
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
-                            EventsId::Apogee, 0);
+                            EventsId::Apogee);
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
-                            EventsId::Armed, 0);
+                            EventsId::Armed);
             Thread::sleep(slp);
         }
         evh.stop();  // it posts an EV_EMPTY to wake up the thread
