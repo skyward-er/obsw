@@ -86,11 +86,12 @@ int main()
     // We accept only packet with source main and destination payload
 
     Filter f;
-    f.source                 = Boards::Main;
-    f.destination            = Boards::Broadcast;
-    MockPitot* pitot         = new MockPitot();
-    MockAirBrakes* airBrakes = new MockAirBrakes();
-    handler = new CanHandler(f, Boards::Payload, pitot, airBrakes);
+    f.source         = Boards::Main;
+    f.destination    = Boards::Broadcast;
+    MockPitot* pitot = new MockPitot(Pitot);
+    handler          = new CanHandler(f, Boards::Main);
+
+    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
 
     (*handler).start();
 

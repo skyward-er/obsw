@@ -63,11 +63,12 @@ int main()
 {
     // We accept only packet with source main
     Filter f;
-    f.source                 = Boards::Main;
-    MockPitot* pitot         = new MockPitot();
-    MockAirBrakes* airBrakes = new MockAirBrakes();
-    handler = new CanHandler(f, Boards::Auxiliary, pitot, airBrakes);
+    f.source = Boards::Main;
 
+    MockPitot* pitot         = new MockPitot(Pitot);
+    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
+    handler                  = new CanHandler(f, Boards::Main);
+    (*handler).addMock(airBrakes);
     (*handler).start();
 
     // We expect to receive multiple*100 packet of AereoBrakes packet,and

@@ -22,41 +22,35 @@
 
 #pragma once
 
+#include <common/canbus/CanHandler.h>
 #include <drivers/canbus/CanProtocol.h>
-#include <kernel/sync.h>
 
 namespace common
 {
 
-class MockAirBrakes : public MockSensor
+class MockSensor
 {
 public:
-    MockAirBrakes(SensorID id) : MockSensor(id) {}
-    uint8_t getData()
+    virtual void put(Boardcore::Canbus::CanData packet) = 0;
+    bool isUpdated()
     {
         miosix::Lock<miosix::FastMutex> l(mutex);
-        updated = false;
-        return percentage;
+        return updated;
     }
-
-    void put(Boardcore::Canbus::CanData packet) override
+    bool waitTillUpdated()
     {
         miosix::Lock<miosix::FastMutex> l(mutex);
-        percentage = packet.payload[0];
-        updated    = true;
-        conVar.broadcast();
+        conVar.wait(l);
+        return updated;
     }
 
-    Boardcore::Canbus::CanData parseData(uint8_t sample)
-    {
-        Boardcore::Canbus::CanData tempData;
-        tempData.length     = 1;
-        tempData.payload[0] = sample;
-        return tempData;
-    }
+    SensorID getID() { return id; }
 
-private:
-    uint8_t percentage;
+protected:
+    MockSensor(SensorID i) : id(i){};
+    miosix::FastMutex mutex;
+    miosix::ConditionVariable conVar;
+    bool updated = false;
+    SensorID id;
 };
-
 }  // namespace common

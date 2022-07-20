@@ -43,13 +43,14 @@ enum CanEvent : uint8_t
 
 enum CanTopics : uint8_t
 {
-    TOPIC_CAN_EVENTS,
-    TOPIC_CAN_COMMAND  // Maybe we can make this a single topic? not sure
+    TOPIC_CAN_EVENTS
 };
 
 enum SensorID
 {
-    Pitot = 0x00
+    AirBrakes = 0x00,
+    Pitot     = 0x01,
+    NumberOfSensor
 };
 
 enum EventsId
@@ -57,11 +58,6 @@ enum EventsId
     Liftoff = 0x00,
     Apogee  = 0x01,
     Armed   = 0x02
-};
-
-enum CommandsID
-{
-    AirBrakes = 0x00
 };
 
 enum Boards
@@ -107,8 +103,10 @@ private:
     MockPitot *pitot;
     MockAirBrakes *brakes;
     Boardcore::Canbus::CanProtocol *can;
-    uint32_t BAUD_RATE = 500 * 1000;
-    float SAMPLE_POINT = 87.5f / 100.0f;
+    MockSensor *sensors[NumberOfSensor];
+    uint8_t numberOfObservedSensor = 0;
+    uint32_t BAUD_RATE             = 500 * 1000;
+    float SAMPLE_POINT             = 87.5f / 100.0f;
 
 public:
     /**
@@ -118,8 +116,7 @@ public:
      * @param pitotInstance: An instance of MockPitot.
      * @param brakesInstance: An instance of MockAirBrakes
      */
-    CanHandler(Filter filter, Boards source, MockPitot *pitotInstance,
-               MockAirBrakes *brakesInstance)
+    CanHandler(Filter filter, Boards source)
     {
         uint32_t filterId   = 0;
         uint32_t filterMask = 0;
@@ -158,10 +155,14 @@ public:
         canbus->addFilter(filterBank);
         canbus->init();
         can          = new Boardcore::Canbus::CanProtocol(canbus);
-        pitot        = pitotInstance;
-        brakes       = brakesInstance;
         this->source = source;
         (*can).start();
+    }
+
+    void addMock(MockSensor *newSensor)
+    {
+        sensors[numberOfObservedSensor] = newSensor;
+        numberOfObservedSensor++;
     }
     /**
      * @brief Calculate the id of the packet and sends it to CanProtocol.
@@ -232,18 +233,6 @@ protected:
                 switch ((data.canId & Boardcore::Canbus::type) >>
                         Boardcore::Canbus::shiftType)
                 {
-                    case Command:
-                        switch ((data.canId & Boardcore::Canbus::idType) >>
-                                Boardcore::Canbus::shiftIdType)
-                        {
-                            case AirBrakes:
-                                (*brakes).setData(data);
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_AIRBRAKES},
-                                    TOPIC_CAN_COMMAND);
-                                break;
-                        }
-                        break;
                     case Events:
                         switch ((data.canId & Boardcore::Canbus::idType) >>
                                 Boardcore::Canbus::shiftIdType)
@@ -267,15 +256,19 @@ protected:
                         break;
 
                     case Sensor:
-                        switch ((data.canId & Boardcore::Canbus::idType) >>
-                                Boardcore::Canbus::shiftIdType)
+                        uint8_t tempID =
+                            (data.canId & Boardcore::Canbus::idType) >>
+                            Boardcore::Canbus::shiftIdType;
+                        for (int i = 0; i < numberOfObservedSensor; i++)
                         {
-                            case Pitot:
-                                (*pitot).setData(data);
-                                break;
+                            if (sensors[i]->getID() == tempID)
+                            {
+                                sensors[i]->put(data);
+                            }
                         }
                         break;
                 }
+                break;
             }
         }
     }

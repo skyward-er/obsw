@@ -75,7 +75,7 @@ void sendAirBrakes(MockAirBrakes* airbrakes)
                 miosix::Lock<miosix::FastMutex> l(mutex);
                 (*handler).sendCan(Boards::Auxiliary,
                                    common::Priority::Critical, Type::Command,
-                                   CommandsID::AirBrakes,
+                                   SensorID::AirBrakes,
                                    (*airbrakes).parseData(69));
             }
             Thread::sleep(msWait);
@@ -142,9 +142,10 @@ int main()
     // We accept only packet with destination main
     Filter f;
     f.destination            = Boards::Main;
-    MockPitot* pitot         = new MockPitot();
-    MockAirBrakes* airBrakes = new MockAirBrakes();
-    handler = new CanHandler(f, Boards::Main, pitot, airBrakes);
+    MockPitot* pitot         = new MockPitot(Pitot);
+    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
+    handler                  = new CanHandler(f, Boards::Main);
+    (*handler).addMock(pitot);
 
     (*handler).start();
 

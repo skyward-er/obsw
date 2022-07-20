@@ -26,15 +26,16 @@
 #include <kernel/sync.h>
 #include <sensors/SensorData.h>
 
+#include "MockSensors.h"
+
 namespace common
 {
 
-class MockPitot
+class MockPitot : public MockSensor
 {
 public:
-    MockPitot() {}
+    MockPitot(SensorID id) : MockSensor(id) {}
 
-    // TODO: update to use pressure data
     Boardcore::PressureData getData()
     {
         miosix::Lock<miosix::FastMutex> l(mutex);
@@ -42,19 +43,7 @@ public:
         return data;
     }
 
-    bool isUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        return updated;
-    }
-
-    bool waitTillUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        conVar.wait(l);
-        return updated;
-    }
-    void setData(Boardcore::Canbus::CanData packet)
+    void put(Boardcore::Canbus::CanData packet) override
     {
         // Pressure and timestamp coded into an u_int64
 
@@ -79,10 +68,7 @@ public:
     }
 
 private:
-    miosix::FastMutex mutex;
-    miosix::ConditionVariable conVar;
     Boardcore::PressureData data;
-    bool updated = false;
 };
 
 }  // namespace common

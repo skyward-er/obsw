@@ -26,7 +26,7 @@
 #include <events/EventBroker.h>
 #include <events/EventHandler.h>
 
-#define MULTIPLIER 10
+#define MULTIPLIER 1
 
 #define nPressure 100 * MULTIPLIER
 #define nAir 50 * MULTIPLIER
@@ -42,8 +42,6 @@ public:
         // make this object to subscribe to TOPIC_CAN_EVENTS
         Boardcore::EventBroker::getInstance().subscribe(
             this, common::CanTopics::TOPIC_CAN_EVENTS);
-        Boardcore::EventBroker::getInstance().subscribe(
-            this, common::CanTopics::TOPIC_CAN_COMMAND);
     }
 
     ~MyEventHandler()

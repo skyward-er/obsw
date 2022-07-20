@@ -102,9 +102,11 @@ int main()
     }
     // Allow every message
 
-    MockPitot* pitot         = new MockPitot();
-    MockAirBrakes* airBrakes = new MockAirBrakes();
-    CanHandler handler({}, Boards::Main, pitot, airBrakes);
+    MockPitot* pitot         = new MockPitot(Pitot);
+    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
+    CanHandler handler({}, Boards::Main);
+    handler.addMock(pitot);
+    handler.addMock(airBrakes);
 
     handler.start();
     //  send event, data and command
@@ -123,7 +125,7 @@ int main()
                             (*pitot).parseData(t));
 
             handler.sendCan(Boards::Main, common::Priority::Critical,
-                            Type::Command, CommandsID::AirBrakes,
+                            Type::Command, SensorID::AirBrakes,
                             (*airBrakes).parseData(69));
             // if we have to send a command we use 0 as a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,

@@ -36,8 +36,6 @@ public:
         // make this object to subscribe to TOPIC_CAN_EVENTS
         Boardcore::EventBroker::getInstance().subscribe(
             this, common::CanTopics::TOPIC_CAN_EVENTS);
-        Boardcore::EventBroker::getInstance().subscribe(
-            this, common::CanTopics::TOPIC_CAN_COMMAND);
     }
 
     ~MyEventHandler()
