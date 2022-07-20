@@ -58,7 +58,7 @@ int main()
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
 
-    // Periodically statistics
+    // Periodical statistics
     while (true)
     {
         Thread::sleep(1000);

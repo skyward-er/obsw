@@ -20,42 +20,25 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/adc/InternalADC.h>
-#include <miosix.h>
+#pragma once
 
-using namespace miosix;
-using namespace Boardcore;
+#include <Singleton.h>
+#include <scheduler/TaskScheduler.h>
 
-int main()
+namespace Ciuti
 {
-    ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
-    InternalADC adc(ADC3, 3.3);
-    adc.enableChannel(InternalADC::CH0);
-    adc.enableChannel(InternalADC::CH1);
-    adc.init();
+class BoardScheduler : public Boardcore::Singleton<BoardScheduler>
+{
+    friend Boardcore::Singleton<BoardScheduler>;
 
-    while (true)
-    {
-        adc.sample();
+public:
+    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
 
-        printf("CH0: %1.6f\tCH1: %1.6f\t",
-               adc.getVoltage(InternalADC::CH0).voltage,
-               adc.getVoltage(InternalADC::CH1).voltage);
+private:
+    BoardScheduler() {}
 
-        if (actuators::buttons::record::value())
-        {
-            sensors::ina188::mosfet1::low();
-            sensors::ina188::mosfet2::low();
-            printf("low\n");
-        }
-        else
-        {
-            sensors::ina188::mosfet1::high();
-            sensors::ina188::mosfet2::high();
-            printf("high\n");
-        }
+    Boardcore::TaskScheduler scheduler;
+};
 
-        miosix::delayMs(100);
-    }
-}
+}  // namespace Ciuti

@@ -20,42 +20,29 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/adc/InternalADC.h>
 #include <miosix.h>
+#include <sensors/LIS331HH/LIS331HH.h>
 
 using namespace miosix;
 using namespace Boardcore;
 
 int main()
 {
-    ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
+    SPIBus spi2(SPI2);
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_256;
+    config.mode         = SPI::Mode::MODE_0;
+    LIS331HH lis(spi2, sensors::lis331hh::cs::getPin(), config);
 
-    InternalADC adc(ADC3, 3.3);
-    adc.enableChannel(InternalADC::CH0);
-    adc.enableChannel(InternalADC::CH1);
-    adc.init();
+    lis.init();
 
     while (true)
     {
-        adc.sample();
+        lis.sample();
+        auto data = lis.getLastSample();
+        printf("[%.2f] %.3f %.3f %.3f\n", data.accelerationTimestamp / 1e6,
+               data.accelerationX, data.accelerationY, data.accelerationZ);
 
-        printf("CH0: %1.6f\tCH1: %1.6f\t",
-               adc.getVoltage(InternalADC::CH0).voltage,
-               adc.getVoltage(InternalADC::CH1).voltage);
-
-        if (actuators::buttons::record::value())
-        {
-            sensors::ina188::mosfet1::low();
-            sensors::ina188::mosfet2::low();
-            printf("low\n");
-        }
-        else
-        {
-            sensors::ina188::mosfet1::high();
-            sensors::ina188::mosfet2::high();
-            printf("high\n");
-        }
-
-        miosix::delayMs(100);
+        delayMs(250);
     }
 }

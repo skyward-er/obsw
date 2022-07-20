@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,42 +20,24 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <drivers/adc/InternalADC.h>
-#include <miosix.h>
 
-using namespace miosix;
-using namespace Boardcore;
-
-int main()
+namespace Main
 {
-    ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
-    InternalADC adc(ADC3, 3.3);
-    adc.enableChannel(InternalADC::CH0);
-    adc.enableChannel(InternalADC::CH1);
-    adc.init();
+namespace SensorsConfig
+{
 
-    while (true)
-    {
-        adc.sample();
+// Internal ADC
+static constexpr float INTERNAL_ADC_VREF = 3.3;
+static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_0 =
+    Boardcore::InternalADC::Channel::CH0;
+static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_1 =
+    Boardcore::InternalADC::Channel::CH1;
+static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1;
 
-        printf("CH0: %1.6f\tCH1: %1.6f\t",
-               adc.getVoltage(InternalADC::CH0).voltage,
-               adc.getVoltage(InternalADC::CH1).voltage);
+}  // namespace SensorsConfig
 
-        if (actuators::buttons::record::value())
-        {
-            sensors::ina188::mosfet1::low();
-            sensors::ina188::mosfet2::low();
-            printf("low\n");
-        }
-        else
-        {
-            sensors::ina188::mosfet1::high();
-            sensors::ina188::mosfet2::high();
-            printf("high\n");
-        }
-
-        miosix::delayMs(100);
-    }
-}
+}  // namespace Main

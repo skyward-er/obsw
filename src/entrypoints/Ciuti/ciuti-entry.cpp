@@ -20,24 +20,42 @@
  * THE SOFTWARE.
  */
 
-#include <Main/CanHandler/CanHandler.h>
-#include <miosix.h>
+#include <Ciuti/BoardScheduler.h>
+#include <Ciuti/Sensors/Sensors.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
+
+#include <thread>
 
 using namespace miosix;
-using namespace Main;
+using namespace Boardcore;
+using namespace Ciuti;
+
+void print()
+{
+    auto ch0 =
+        Sensors::getInstance().getInternalADCLastSample(InternalADC::CH0);
+    auto ch1 =
+        Sensors::getInstance().getInternalADCLastSample(InternalADC::CH1);
+
+    printf("[%.2f] CH0: %.6f, CH1: %.6f, log number: %d\n",
+           ch0.voltageTimestamp / 1e6, ch0.voltage, ch1.voltage,
+           Logger::getInstance().getCurrentLogNumber());
+}
 
 int main()
 {
-    CanHandler::getInstance().start();
+    Logger::getInstance().start();
+    Sensors::getInstance().start();
 
+    BoardScheduler::getInstance().getScheduler().addTask(print, 100);
+    BoardScheduler::getInstance().getScheduler().start();
+
+    // Periodical statistics
     while (true)
     {
-        CanHandler::getInstance().sendCamOnEvent();
-        printf("Sent event for cam on\n");
         Thread::sleep(1000);
-
-        CanHandler::getInstance().sendCamOffEvent();
-        printf("Sent event for cam off\n");
-        Thread::sleep(1000);
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
+        Logger::getInstance().logStats();
     }
 }

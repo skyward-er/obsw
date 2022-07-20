@@ -48,6 +48,10 @@ sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
 sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
 
+add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
+target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)
+
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#
@@ -127,25 +131,8 @@ sbs_target(aux-test-per stm32f429zi_skyward_pyxis_auxiliary)
 #                                CIUTI Computer                               #
 #-----------------------------------------------------------------------------#
 
-add_executable(ciuti-test-ina188 src/tests/CIUTI/test-ina188.cpp)
+add_executable(ciuti-test-ina188 src/tests/Ciuti/test-ina188.cpp)
 sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 
-#-----------------------------------------------------------------------------#
-#                                   Can tests                                 #
-#-----------------------------------------------------------------------------#
-
-# add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
-# target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
-
-#  add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
-#  target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
-
-#  add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
-#  target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
-
-#  add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
-#  target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)
+add_executable(ciuti-test-lis331 src/tests/Ciuti/test-lis331.cpp)
+sbs_target(ciuti-test-lis331 stm32f205rc_skyward_ciuti)

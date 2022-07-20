@@ -20,42 +20,40 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
+#include <Singleton.h>
+#include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
-#include <miosix.h>
+#include <sensors/SensorManager.h>
 
-using namespace miosix;
-using namespace Boardcore;
-
-int main()
+namespace Ciuti
 {
-    ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
-    InternalADC adc(ADC3, 3.3);
-    adc.enableChannel(InternalADC::CH0);
-    adc.enableChannel(InternalADC::CH1);
-    adc.init();
+class Sensors : public Boardcore::Singleton<Sensors>
+{
+    friend class Boardcore::Singleton<Sensors>;
 
-    while (true)
-    {
-        adc.sample();
+public:
+    bool start();
 
-        printf("CH0: %1.6f\tCH1: %1.6f\t",
-               adc.getVoltage(InternalADC::CH0).voltage,
-               adc.getVoltage(InternalADC::CH1).voltage);
+    Boardcore::InternalADCData getInternalADCLastSample(
+        Boardcore::InternalADC::Channel channel);
 
-        if (actuators::buttons::record::value())
-        {
-            sensors::ina188::mosfet1::low();
-            sensors::ina188::mosfet2::low();
-            printf("low\n");
-        }
-        else
-        {
-            sensors::ina188::mosfet1::high();
-            sensors::ina188::mosfet2::high();
-            printf("high\n");
-        }
+private:
+    Sensors();
 
-        miosix::delayMs(100);
-    }
-}
+    ~Sensors();
+
+    void internalAdcInit();
+
+    Boardcore::InternalADC *internalAdc = nullptr;
+
+    Boardcore::SensorManager *sensorManager = nullptr;
+
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+};
+
+}  // namespace Ciuti

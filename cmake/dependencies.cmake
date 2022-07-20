@@ -68,3 +68,7 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
 )
+
+set(CIUTI_COMPUTER
+    src/boards/Ciuti/Sensors/Sensors.cpp
+)
