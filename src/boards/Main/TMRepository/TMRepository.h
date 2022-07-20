@@ -35,9 +35,11 @@ class TMRepository : public Boardcore::Singleton<TMRepository>
     friend class Boardcore::Singleton<TMRepository>;
 
 public:
-    mavlink_message_t packSystemTm(SystemTMList reqTm);
+    mavlink_message_t packSystemTm(SystemTMList reqTm, uint8_t msgId,
+                                   uint8_t seq);
 
-    mavlink_message_t packSensorsTm(SensorsTMList reqTm);
+    mavlink_message_t packSensorsTm(SensorsTMList reqTm, uint8_t msgId,
+                                    uint8_t seq);
 
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");

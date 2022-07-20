@@ -87,12 +87,12 @@ public:
     /**
      * @brief Used to send the specified system telemetry message.
      */
-    bool sendSystemTm(const SystemTMList tmId);
+    bool sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq);
 
     /**
      * @brief Used to send the specified sensors telemetry message.
      */
-    bool sendSensorsTm(const SensorsTMList tmId);
+    bool sendSensorsTm(const SensorsTMList tmId, uint8_t msgId, uint8_t seq);
 
 private:
     Radio();

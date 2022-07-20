@@ -142,6 +142,9 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
+
+            EventBroker::getInstance().post(FMM_ALGOS_CAL_DONE, TOPIC_FMM);
+
             return HANDLED;
         }
         case FMM_ALGOS_CAL_DONE:
@@ -197,6 +200,7 @@ State FlightModeManager::state_test_mode(const Event& event)
             logStatus(FlightModeManagerState::TEST_MODE);
             return HANDLED;
         }
+        case TMTC_ENTER_TEST_MODE:
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
