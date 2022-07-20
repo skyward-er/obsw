@@ -22,11 +22,8 @@
 
 #pragma once
 
-#include <drivers/canbus/CanProtocol.h>
-#include <kernel/sync.h>
+#include <common/canbus/MockSensors/MockSensor.h>
 #include <sensors/SensorData.h>
-
-#include "MockSensors.h"
 
 namespace common
 {

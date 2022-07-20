@@ -21,6 +21,8 @@
  */
 
 #include <common/canbus/CanHandler.h>
+#include <common/canbus/MockSensors/MockAirBrakes.h>
+#include <common/canbus/MockSensors/MockPitot.h>
 #include <time.h>
 #include <utils/collections/IRQCircularBuffer.h>
 
@@ -73,10 +75,9 @@ void sendAirBrakes(MockAirBrakes* airbrakes)
         {
             {
                 miosix::Lock<miosix::FastMutex> l(mutex);
-                (*handler).sendCan(Boards::Auxiliary,
-                                   common::Priority::Critical, Type::Command,
-                                   SensorID::AirBrakes,
-                                   (*airbrakes).parseData(69));
+                (*handler).sendCan(
+                    Boards::Auxiliary, common::Priority::Critical, Type::Sensor,
+                    SensorID::AirBrakes, (*airbrakes).parseData(69));
             }
             Thread::sleep(msWait);
         }

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/canbus/CanHandler.h>
+#include <common/canbus/CanConfig.h>
 #include <events/EventBroker.h>
 #include <events/EventHandler.h>
 

@@ -23,66 +23,13 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <common/canbus/MockSensors/MockAirBrakes.h>
-#include <common/canbus/MockSensors/MockPitot.h>
+#include <common/canbus/CanConfig.h>
+#include <common/canbus/MockSensors/MockSensor.h>
 #include <drivers/canbus/CanProtocol.h>
 #include <drivers/canbus/Canbus.h>
-#include <events/EventBroker.h>
-#include <utils/collections/IRQCircularBuffer.h>
 
 namespace common
 {
-
-enum CanEvent : uint8_t
-{
-    EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
-    EV_APOGEE,
-    EV_ARMED,
-    EV_AIRBRAKES
-};
-
-enum CanTopics : uint8_t
-{
-    TOPIC_CAN_EVENTS
-};
-
-enum SensorID
-{
-    AirBrakes = 0x00,
-    Pitot     = 0x01,
-    NumberOfSensor
-};
-
-enum EventsId
-{
-    Liftoff = 0x00,
-    Apogee  = 0x01,
-    Armed   = 0x02
-};
-
-enum Boards
-{
-    Broadcast = 0x00,
-    Main      = 0x01,
-    Payload   = 0x02,
-    Auxiliary = 0x03
-};
-
-enum Priority
-{
-    Critical = 0x00,
-    High     = 0x01,
-    Medium   = 0x02,
-    Low      = 0x03
-};
-
-enum Type
-{
-    Events  = 0x00,
-    Command = 0x01,
-    Sensor  = 0x02
-
-};
 
 struct Filter
 {
@@ -100,13 +47,10 @@ class CanHandler : public Boardcore::ActiveObject
 {
 private:
     Boards source;
-    MockPitot *pitot;
-    MockAirBrakes *brakes;
     Boardcore::Canbus::CanProtocol *can;
     MockSensor *sensors[NumberOfSensor];
     uint8_t numberOfObservedSensor = 0;
-    uint32_t BAUD_RATE             = 500 * 1000;
-    float SAMPLE_POINT             = 87.5f / 100.0f;
+    miosix::FastMutex mutex;
 
 public:
     /**
@@ -159,10 +103,16 @@ public:
         (*can).start();
     }
 
-    void addMock(MockSensor *newSensor)
+    bool addMock(MockSensor *newSensor)
     {
-        sensors[numberOfObservedSensor] = newSensor;
-        numberOfObservedSensor++;
+        if (numberOfObservedSensor < SensorID::NumberOfSensor)
+        {
+            miosix::Lock<miosix::FastMutex> l(mutex);
+            sensors[numberOfObservedSensor] = newSensor;
+            numberOfObservedSensor++;
+            return true;
+        }
+        return false;
     }
     /**
      * @brief Calculate the id of the packet and sends it to CanProtocol.
@@ -261,6 +211,7 @@ protected:
                             Boardcore::Canbus::shiftIdType;
                         for (int i = 0; i < numberOfObservedSensor; i++)
                         {
+                            miosix::Lock<miosix::FastMutex> l(mutex);
                             if (sensors[i]->getID() == tempID)
                             {
                                 sensors[i]->put(data);

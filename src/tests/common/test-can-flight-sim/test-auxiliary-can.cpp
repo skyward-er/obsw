@@ -21,6 +21,8 @@
  */
 
 #include <common/canbus/CanHandler.h>
+#include <common/canbus/MockSensors/MockAirBrakes.h>
+#include <common/canbus/MockSensors/MockPitot.h>
 #include <time.h>
 #include <utils/collections/IRQCircularBuffer.h>
 

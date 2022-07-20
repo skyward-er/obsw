@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,38 +19,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <common/canbus/CanHandler.h>
-#include <drivers/canbus/CanProtocol.h>
-
+#include <events/EventBroker.h>
 namespace common
 {
+uint32_t BAUD_RATE = 500 * 1000;
+float SAMPLE_POINT = 87.5f / 100.0f;
 
-class MockSensor
+enum CanEvent : uint8_t
 {
-public:
-    virtual void put(Boardcore::Canbus::CanData packet) = 0;
-    bool isUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        return updated;
-    }
-    bool waitTillUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        conVar.wait(l);
-        return updated;
-    }
+    EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
+    EV_APOGEE,
+    EV_ARMED,
+    EV_AIRBRAKES
+};
 
-    SensorID getID() { return id; }
+enum CanTopics : uint8_t
+{
+    TOPIC_CAN_EVENTS
+};
 
-protected:
-    MockSensor(SensorID i) : id(i){};
-    miosix::FastMutex mutex;
-    miosix::ConditionVariable conVar;
-    bool updated = false;
-    SensorID id;
+enum SensorID : uint8_t
+{
+    AirBrakes = 0x00,
+    Pitot     = 0x01,
+    NumberOfSensor
+};
+
+enum EventsId : uint8_t
+{
+    Liftoff = 0x00,
+    Apogee  = 0x01,
+    Armed   = 0x02
+};
+
+enum Boards : uint8_t
+{
+    Broadcast = 0x00,
+    Main      = 0x01,
+    Payload   = 0x02,
+    Auxiliary = 0x03
+};
+
+enum Priority : uint8_t
+{
+    Critical = 0x00,
+    High     = 0x01,
+    Medium   = 0x02,
+    Low      = 0x03
+};
+
+enum Type : uint8_t
+{
+    Events = 0x00,
+    Sensor = 0x01
+
 };
 }  // namespace common

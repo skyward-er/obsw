@@ -21,6 +21,8 @@
  */
 
 #include <common/canbus/CanHandler.h>
+#include <common/canbus/MockSensors/MockAirBrakes.h>
+#include <common/canbus/MockSensors/MockPitot.h>
 #include <drivers/canbus/BusLoadEstimation.h>
 #include <drivers/canbus/Canbus.h>
 #include <utils/collections/CircularBuffer.h>
@@ -102,8 +104,8 @@ int main()
     }
     // Allow every message
 
-    MockPitot* pitot         = new MockPitot(Pitot);
-    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
+    MockPitot* pitot         = new MockPitot(SensorID::Pitot);
+    MockAirBrakes* airBrakes = new MockAirBrakes(SensorID::AirBrakes);
     CanHandler handler({}, Boards::Main);
     handler.addMock(pitot);
     handler.addMock(airBrakes);
@@ -125,7 +127,7 @@ int main()
                             (*pitot).parseData(t));
 
             handler.sendCan(Boards::Main, common::Priority::Critical,
-                            Type::Command, SensorID::AirBrakes,
+                            Type::Sensor, SensorID::AirBrakes,
                             (*airBrakes).parseData(69));
             // if we have to send a command we use 0 as a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
