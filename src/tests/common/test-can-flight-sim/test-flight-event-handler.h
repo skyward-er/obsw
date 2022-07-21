@@ -26,7 +26,7 @@
 #include <events/EventBroker.h>
 #include <events/EventHandler.h>
 
-#define MULTIPLIER 1
+#define MULTIPLIER 10
 
 #define nPressure 100 * MULTIPLIER
 #define nAir 50 * MULTIPLIER
@@ -51,27 +51,35 @@ public:
     }
     void checkCounters(int number)
     {
-        if (liftoff == number && apogee == number && armed == number)
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        if (apogee == number && armed == number)
         {
             TRACE("Received %d number of event\n", number);
         }
         else
         {
             TRACE("Expected Value %d\n", number);
-            TRACE("Received Liftoff %d\n", liftoff);
             TRACE("Received Apogee %d\n", apogee);
             TRACE("Received Armed %d\n", armed);
         }
-        resetCounters();
+        apogee = 0;
+        armed  = 0;
+    }
+
+    void waitReset()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        conVar.wait(l);
     }
 
 protected:
     void handleEvent(const Boardcore::Event& ev) override
     {
+        miosix::Lock<miosix::FastMutex> l(mutex);
         switch (ev)
         {
             case common::CanEvent::EV_LIFTOFF:
-                liftoff++;
+                conVar.broadcast();
                 break;
             case common::CanEvent::EV_APOGEE:
                 apogee++;
@@ -89,16 +97,10 @@ protected:
         last_event = ev;
     }
 
-    void resetCounters()
-    {
-        liftoff = 0;
-        apogee  = 0;
-        armed   = 0;
-    }
-
 private:
     uint8_t last_event;
-    int liftoff = 0;
-    int apogee  = 0;
-    int armed   = 0;
+    int apogee = 0;
+    int armed  = 0;
+    miosix::FastMutex mutex;
+    miosix::ConditionVariable conVar;
 };

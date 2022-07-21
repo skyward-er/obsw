@@ -43,15 +43,22 @@ void receivePressure(MockPitot* pitot)
     int counter = 0;
     while (true)
     {
-        clock_t start = clock();
-        for (int i = 0; i < nPressure; i++)
+        while (running)
         {
-            (*pitot).waitTillUpdated();
-            counter++;
-            (*pitot).getData();
+            clock_t start = clock();
+            for (int i = 0; i < nPressure; i++)
+            {
+                (*pitot).waitTillUpdated();
+                counter++;
+                (*pitot).getData();
+            }
+            float time = float(clock() - start) / CLOCKS_PER_SEC;
+            TRACE("received %d packets in %f second\n", nPressure, time);
         }
-        float time = float(clock() - start) / CLOCKS_PER_SEC;
-        TRACE("received %d packets in %f second\n", nPressure, time);
+        while (!running)
+        {
+            Thread::sleep(10);
+        }
     }
 }
 
@@ -99,17 +106,11 @@ void sendAirBrakes(MockAirBrakes* airbrakes)
 void sendCommands()
 {
     int f;
-    int msWait = 1000 / (nEvents * 3);
+    int msWait = 1000 / (nEvents * 2);
     while (true)
     {
         for (f = 0; f < nEvents && running; f++)
         {
-            {
-                miosix::Lock<miosix::FastMutex> l(mutex);
-                (*handler).sendCan(Boards::Broadcast, common::Priority::High,
-                                   Type::Events, EventsId::Liftoff);
-            }
-            Thread::sleep(msWait);
             {
                 miosix::Lock<miosix::FastMutex> l(mutex);
                 (*handler).sendCan(Boards::Broadcast, common::Priority::Low,
@@ -145,7 +146,8 @@ int main()
     f.destination            = Boards::Main;
     MockPitot* pitot         = new MockPitot(Pitot);
     MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
-    handler                  = new CanHandler(f, Boards::Main);
+    handler                  = new CanHandler(Boards::Main);
+    handler->addFilter(f);
     (*handler).addMock(pitot);
 
     (*handler).start();
@@ -163,8 +165,20 @@ int main()
         for (;;)
         {
             running = true;
+            {
+                miosix::Lock<miosix::FastMutex> l(mutex);
+                (*handler).sendCan(Boards::Broadcast,
+                                   common::Priority::Critical, Type::Events,
+                                   EventsId::Liftoff);
+            }
             Thread::sleep(1000);
             running = false;
+            {
+                miosix::Lock<miosix::FastMutex> l(mutex);
+                (*handler).sendCan(Boards::Broadcast,
+                                   common::Priority::Critical, Type::Events,
+                                   EventsId::Liftoff);
+            }
             evh.checkCounters(0);
             // We stop for 100 ms to wait for any unfinished print
             Thread::sleep(100);

@@ -35,6 +35,7 @@ using namespace miosix;
 using namespace common;
 
 CanHandler* handler;
+bool running;
 void receivePressure(MockPitot* pitot)
 {
     while (true)
@@ -49,15 +50,22 @@ void receiveAir(MockAirBrakes* air)
     int counter = 0;
     while (true)
     {
-        clock_t start = clock();
-        for (int i = 0; i < nAir; i++)
+        while (running)
         {
-            (*air).waitTillUpdated();
-            counter++;
-            (*air).getData();
+            clock_t start = clock();
+            for (int i = 0; i < nAir; i++)
+            {
+                (*air).waitTillUpdated();
+                counter++;
+                (*air).getData();
+            }
+            float time = float(clock() - start) / CLOCKS_PER_SEC;
+            TRACE("received %d packets in %f second\n", nAir, time);
         }
-        float time = float(clock() - start) / CLOCKS_PER_SEC;
-        TRACE("received %d packets in %f second\n", nAir, time);
+        while (!running)
+        {
+            Thread::sleep(10);
+        }
     }
 }
 
@@ -69,7 +77,8 @@ int main()
 
     MockPitot* pitot         = new MockPitot(Pitot);
     MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
-    handler                  = new CanHandler(f, Boards::Main);
+    handler                  = new CanHandler(Boards::Main);
+    handler->addFilter(f);
     (*handler).addMock(airBrakes);
     (*handler).start();
 
@@ -84,7 +93,10 @@ int main()
         std::thread recPress(receivePressure, pitot);
         for (;;)
         {
-            Thread::sleep(1000);
+            running = true;
+            evh.waitReset();  // First reset is to start sending
+            evh.waitReset();  // the second to stop
+            running = false;
             evh.checkCounters(nEvents);
             // We stop for 100 ms to wait for any unfinished print
             Thread::sleep(100);

@@ -91,7 +91,8 @@ int main()
     f.source         = Boards::Main;
     f.destination    = Boards::Broadcast;
     MockPitot* pitot = new MockPitot(Pitot);
-    handler          = new CanHandler(f, Boards::Main);
+    handler          = new CanHandler(Boards::Main);
+    handler->addFilter(f);
 
     MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
 
@@ -102,14 +103,14 @@ int main()
     MyEventHandler evh;
     if (evh.start())
     {
-        running = true;
         std::thread sendPress(sendPressure, pitot);
         std::thread recPress(receivePressure, pitot);
         std::thread recAir(receiveAir, airBrakes);
         for (;;)
         {
             running = true;
-            Thread::sleep(1000);
+            evh.waitReset();  // First reset is to start sending
+            evh.waitReset();  // the second to stop
             running = false;
             evh.checkCounters(nEvents);
             // We stop for 100 ms to wait for any unfinished print

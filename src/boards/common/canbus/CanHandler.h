@@ -88,14 +88,13 @@ public:
                 (Boardcore::Canbus::IDMask::destination
                  << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
         }
-        Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 0,
-                                                       0, 0, 0, 0);
+        Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 1,
+                                                       1, 0, 0, 0);
         Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
         bt.baudRate    = BAUD_RATE;
         bt.samplePoint = SAMPLE_POINT;
         Boardcore::Canbus::CanbusDriver *canbus =
-            new Boardcore::Canbus::CanbusDriver(
-                CAN1, Boardcore::Canbus::CanbusDriver::CanbusConfig{}, bt);
+            new Boardcore::Canbus::CanbusDriver(CAN1, {}, bt);
         canbus->addFilter(filterBank);
         canbus->init();
         can          = new Boardcore::Canbus::CanProtocol(canbus);
@@ -175,11 +174,11 @@ protected:
 
         while (true)
         {
-            (*can).waitBufferEmpty();
+            (*can).waitBufferNotEmpty();
             if (!((*can).isBufferEmpty()))
             {
-                data = (*can).getPacket();
 
+                data = (*can).getPacket();
                 switch ((data.canId & Boardcore::Canbus::type) >>
                         Boardcore::Canbus::shiftType)
                 {
@@ -219,7 +218,6 @@ protected:
                         }
                         break;
                 }
-                break;
             }
         }
     }

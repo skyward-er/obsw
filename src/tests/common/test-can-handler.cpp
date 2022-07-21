@@ -31,7 +31,7 @@
 
 #include "test-can-event-handler.h"
 
-#define slp 5000
+#define slp 1000
 
 constexpr uint32_t BAUD_RATE = 500 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
@@ -54,7 +54,7 @@ void checkPressureData(MockPitot* pitot)
 
     while (true)
     {
-        if ((*pitot).isUpdated())
+        if ((*pitot).waitTillUpdated())
         {
             TRACE("Received pressure packet. Data: %f, timestamp %llu\n",
                   (*pitot).getData().pressure,
@@ -75,7 +75,7 @@ void checkAirBrakesData(MockAirBrakes* airbrakes)
 
     while (true)
     {
-        if ((*airbrakes).isUpdated())
+        if ((*airbrakes).waitTillUpdated())
             TRACE("Received AirBrakes packet. Data: %d\n",
                   (*airbrakes).getData());
         else
@@ -129,7 +129,7 @@ int main()
             handler.sendCan(Boards::Main, common::Priority::Critical,
                             Type::Sensor, SensorID::AirBrakes,
                             (*airBrakes).parseData(69));
-            // if we have to send a command we use 0 as a payload
+            // if we have to send a command we do not use a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
                             EventsId::Liftoff);
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
