@@ -106,11 +106,13 @@ int main()
 
     MockPitot* pitot         = new MockPitot(SensorID::Pitot);
     MockAirBrakes* airBrakes = new MockAirBrakes(SensorID::AirBrakes);
-    CanHandler handler({}, Boards::Main);
+    CanHandler handler(Boards::Main);
     handler.addMock(pitot);
     handler.addMock(airBrakes);
+    Filter f;  // empty filter to accept all incoming messages
 
-    handler.start();
+    handler.addFilter(f);
+    handler.startHandler();
     //  send event, data and command
     Boardcore::PressureData t{240, 12354.35};
     MyEventHandler evh;

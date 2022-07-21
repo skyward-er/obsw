@@ -28,6 +28,8 @@
 #include <drivers/canbus/CanProtocol.h>
 #include <drivers/canbus/Canbus.h>
 
+#include <functional>
+
 namespace common
 {
 
@@ -43,7 +45,7 @@ struct Filter
  * This class takes care of creating the ID of the CanData, sending it to
  * CanProtocol and receiving incoming packets calling the right events.
  */
-class CanHandler : public Boardcore::ActiveObject
+class CanHandler
 {
 private:
     Boards source;
@@ -51,6 +53,7 @@ private:
     MockSensor *sensors[NumberOfSensor];
     uint8_t numberOfObservedSensor = 0;
     miosix::FastMutex mutex;
+    Boardcore::Canbus::CanbusDriver *canPhy;
 
 public:
     /**
@@ -60,7 +63,26 @@ public:
      * @param pitotInstance: An instance of MockPitot.
      * @param brakesInstance: An instance of MockAirBrakes
      */
-    CanHandler(Filter filter, Boards source)
+    CanHandler(Boards source)
+    {
+
+        Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
+        bt.baudRate    = BAUD_RATE;
+        bt.samplePoint = SAMPLE_POINT;
+        canPhy         = new Boardcore::Canbus::CanbusDriver(CAN1, {}, bt);
+        this->source   = source;
+        can            = new Boardcore::Canbus::CanProtocol(
+                       canPhy,
+                       std::bind(&CanHandler::callback, this, std::placeholders::_1));
+    }
+
+    void startHandler()
+    {
+        canPhy->init();
+        (*can).start();
+    }
+
+    bool addFilter(Filter filter)
     {
         uint32_t filterId   = 0;
         uint32_t filterMask = 0;
@@ -90,16 +112,7 @@ public:
         }
         Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 1,
                                                        1, 0, 0, 0);
-        Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
-        bt.baudRate    = BAUD_RATE;
-        bt.samplePoint = SAMPLE_POINT;
-        Boardcore::Canbus::CanbusDriver *canbus =
-            new Boardcore::Canbus::CanbusDriver(CAN1, {}, bt);
-        canbus->addFilter(filterBank);
-        canbus->init();
-        can          = new Boardcore::Canbus::CanProtocol(canbus);
-        this->source = source;
-        (*can).start();
+        return canPhy->addFilter(filterBank);
     }
 
     bool addMock(MockSensor *newSensor)
@@ -138,7 +151,7 @@ public:
                  Boardcore::Canbus::destination) |
                 ((idT << Boardcore::Canbus::shiftIdType) &
                  Boardcore::Canbus::idType);
-            can->sendData(toSend);
+            can->send(toSend);
         }
     }
 
@@ -161,64 +174,50 @@ public:
         toSend.payload[0] = 0;
         sendCan(destination, p, t, idT, toSend);
     }
-    ~CanHandler() { (*can).~CanProtocol(); }
+
+    ~CanHandler() { delete canPhy; }
 
 protected:
     /**
      * @brief Keeps listening on CanProtocol for new packets, when a new packet
      * is received we update data and send events as needed
      */
-    void run() override
+    void callback(Boardcore::Canbus::CanData data)
     {
-        Boardcore::Canbus::CanData data;
-
-        while (true)
+        switch ((data.canId & Boardcore::Canbus::type) >>
+                Boardcore::Canbus::shiftType)
         {
-            (*can).waitBufferNotEmpty();
-            if (!((*can).isBufferEmpty()))
-            {
-
-                data = (*can).getPacket();
-                switch ((data.canId & Boardcore::Canbus::type) >>
-                        Boardcore::Canbus::shiftType)
+            case Events:
+                switch ((data.canId & Boardcore::Canbus::idType) >>
+                        Boardcore::Canbus::shiftIdType)
                 {
-                    case Events:
-                        switch ((data.canId & Boardcore::Canbus::idType) >>
-                                Boardcore::Canbus::shiftIdType)
-                        {
-                            case Liftoff:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_LIFTOFF},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                            case Apogee:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_APOGEE},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                            case Armed:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_ARMED},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                        }
+                    case Liftoff:
+                        Boardcore::EventBroker::getInstance().post(
+                            Boardcore::Event{EV_LIFTOFF}, TOPIC_CAN_EVENTS);
                         break;
-
-                    case Sensor:
-                        uint8_t tempID =
-                            (data.canId & Boardcore::Canbus::idType) >>
-                            Boardcore::Canbus::shiftIdType;
-                        for (int i = 0; i < numberOfObservedSensor; i++)
-                        {
-                            miosix::Lock<miosix::FastMutex> l(mutex);
-                            if (sensors[i]->getID() == tempID)
-                            {
-                                sensors[i]->put(data);
-                            }
-                        }
+                    case Apogee:
+                        Boardcore::EventBroker::getInstance().post(
+                            Boardcore::Event{EV_APOGEE}, TOPIC_CAN_EVENTS);
+                        break;
+                    case Armed:
+                        Boardcore::EventBroker::getInstance().post(
+                            Boardcore::Event{EV_ARMED}, TOPIC_CAN_EVENTS);
                         break;
                 }
-            }
+                break;
+
+            case Sensor:
+                uint8_t tempID = (data.canId & Boardcore::Canbus::idType) >>
+                                 Boardcore::Canbus::shiftIdType;
+                for (int i = 0; i < numberOfObservedSensor; i++)
+                {
+                    miosix::Lock<miosix::FastMutex> l(mutex);
+                    if (sensors[i]->getID() == tempID)
+                    {
+                        sensors[i]->put(data);
+                    }
+                }
+                break;
         }
     }
 };

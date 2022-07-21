@@ -80,7 +80,7 @@ int main()
     handler                  = new CanHandler(Boards::Main);
     handler->addFilter(f);
     (*handler).addMock(airBrakes);
-    (*handler).start();
+    (*handler).startHandler();
 
     // We expect to receive multiple*100 packet of AereoBrakes packet,and
     // multiple of each command packet

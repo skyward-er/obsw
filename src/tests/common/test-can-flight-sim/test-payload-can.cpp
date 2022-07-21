@@ -96,7 +96,7 @@ int main()
 
     MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
 
-    (*handler).start();
+    (*handler).startHandler();
 
     // We expect to send multiple*100 packet of Pressure packet and receive
     // multiple of each command packet

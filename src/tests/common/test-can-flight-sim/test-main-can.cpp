@@ -150,7 +150,7 @@ int main()
     handler->addFilter(f);
     (*handler).addMock(pitot);
 
-    (*handler).start();
+    (*handler).startHandler();
 
     // We expect to receive multiple*100 packet of Pressure packet,
     // send multiple*100 AirBrakes Packet and multiple of each command packet
