@@ -23,11 +23,11 @@ cmake_minimum_required(VERSION 3.16)
 enable_testing()
 include(skyward-boardcore/cmake/sbs.cmake)
 
-#-----------------------------------------------------------------------------#
-#                                   Project                                   #
-#-----------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------#
+#                                    Project                                   #
+# -----------------------------------------------------------------------------#
 
-project(SkywardParafoilTest)
+project(OnBoardSoftware)
 
 #-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
@@ -92,6 +92,9 @@ sbs_target(main-test-ms5803 stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-current-sensing src/tests/Main/sensors/test-current-sensing.cpp)
 sbs_target(main-test-current-sensing stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-vn100 src/tests/Main/sensors/test-vn100.cpp)
+sbs_target(main-test-vn100 stm32f429zi_skyward_death_stack_v3)
+
 add_executable(main-test-can src/tests/Main/test-can.cpp)
 sbs_target(main-test-can stm32f429zi_skyward_death_stack_v3)
 
@@ -105,30 +108,12 @@ add_executable(main-test-radio src/tests/Main/test-radio.cpp ${MAIN_COMPUTER})
 target_include_directories(main-test-radio PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-test-radio stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-receiver src/tests/Main/test-receiver.cpp)
-target_include_directories(main-test-receiver PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-test-receiver stm32f407vg_stm32f4discovery)
-
 add_executable(main-test-sensors src/tests/Main/test-sensors.cpp ${MAIN_COMPUTER})
 target_include_directories(main-test-sensors PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-test-sensors stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-serial-ports src/tests/Main/test-serial-ports.cpp)
 sbs_target(main-test-serial-ports stm32f429zi_skyward_death_stack_v3)
-
-#-----------------------------------------------------------------------------#
-#                              Parafoil Computer                              #
-#-----------------------------------------------------------------------------#
-
-# add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-# target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(parafoil-entry stm32f429zi_stm32f4discovery)
-
-# add_executable(parafoil-test-bme280 src/tests/Parafoil/parafoil-test-bme280.cpp)
-# sbs_target(parafoil-test-bme280 stm32f429zi_stm32f4discovery)
-
-# add_executable(parafoil-test-ublox-uart src/tests/Parafoil/parafoil-test-ublox-uart.cpp)
-# sbs_target(parafoil-test-ublox-uart stm32f429zi_stm32f4discovery)
 
 #-----------------------------------------------------------------------------#
 #                              Auxiliary Computer                             #
@@ -148,9 +133,21 @@ add_executable(ciuti-test-ina188 src/tests/CIUTI/test-ina188.cpp)
 sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 
 #-----------------------------------------------------------------------------#
-#                                 Wind gallery                                #
+#                                   Can tests                                 #
 #-----------------------------------------------------------------------------#
 
-add_executable(test-flight-tm src/tests/WindGallery/test-flight-tm.cpp)
-target_include_directories(test-flight-tm PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(test-flight-tm stm32f429zi_stm32f4discovery)
+add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
+target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
+
+# add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
+# target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
+
+# add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
+# target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
+
+# add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
+# target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)

@@ -34,6 +34,7 @@ struct Buses : public Boardcore::Singleton<Buses>
 {
     friend class Boardcore::Singleton<Buses>;
 
+    Boardcore::USART usart1;
     Boardcore::USART usart2;
     Boardcore::USART usart3;
     Boardcore::USART uart4;
@@ -47,18 +48,21 @@ struct Buses : public Boardcore::Singleton<Buses>
 private:
 #ifndef USE_MOCK_PERIPHERALS
     Buses()
-        : usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
+          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
           usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
           spi1(SPI1), spi2(SPI2), spi4(SPI4), spi5(SPI5), spi6(SPI6)
     {
+        usart1.init();
         usart2.init();
         usart3.init();
         uart4.init();
     }
 #else
     Buses()
-        : usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
+          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
           usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
           spi2({}), spi4({}), spi5({}), spi6({})

@@ -234,6 +234,68 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
+        },
+        {
+            "name": "stm32f429zi_skyward_parafoil",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "defines": [
+                "DEBUG",
+                "_ARCH_CORTEXM4_STM32F4",
+                "_BOARD_STM32F429ZI_SKYWARD_PARAFOIL",
+                "_MIOSIX_BOARDNAME=stm32f429zi_skyward_parafoil",
+                "HSE_VALUE=8000000",
+                "SYSCLK_FREQ_168MHz=168000000",
+                "_MIOSIX",
+                "__cplusplus=201103L"
+            ],
+            "includePath": [
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_parafoil",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_parafoil",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
+                "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+                "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
+                "${workspaceFolder}/skyward-boardcore/libs/eigen",
+                "${workspaceFolder}/skyward-boardcore/libs/tscpp",
+                "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+                "${workspaceFolder}/skyward-boardcore/libs",
+                "${workspaceFolder}/skyward-boardcore/src/shared",
+                "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/boards",
+                "${workspaceFolder}/src/tests",
+                "${workspaceFolder}/src"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_parafoil",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_parafoil",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/stdlib_integration",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/interfaces",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/filesystem",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/kernel",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/util",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/e20",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/*",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
+                    "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+                    "${workspaceFolder}/skyward-boardcore/libs/eigen",
+                    "${workspaceFolder}/skyward-boardcore/libs/tscpp",
+                    "${workspaceFolder}/skyward-boardcore/libs/mxgui",
+                    "${workspaceFolder}/skyward-boardcore/libs/fmt",
+                    "${workspaceFolder}/skyward-boardcore/src/shared",
+                    "${workspaceFolder}/skyward-boardcore/src/tests",
+                    "${workspaceFolder}/src/boards",
+                    "${workspaceFolder}/src/tests",
+                    "${workspaceFolder}/src"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

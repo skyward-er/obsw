@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Main/Radio/Mavlink.h>
+#include <common/Mavlink.h>
 
 #include <cstdio>
 

@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#include <common/canbus/CanHandler.h>
 
-#include "events/EventBroker.h"
-#include "events/EventHandler.h"
+#pragma once
+
+#include <common/canbus/CanHandler.h>
+#include <events/EventBroker.h>
+#include <events/EventHandler.h>
 
 class MyEventHandler : public Boardcore::EventHandler
 {
@@ -35,8 +36,6 @@ public:
         // make this object to subscribe to TOPIC_CAN_EVENTS
         Boardcore::EventBroker::getInstance().subscribe(
             this, common::CanTopics::TOPIC_CAN_EVENTS);
-        Boardcore::EventBroker::getInstance().subscribe(
-            this, common::CanTopics::TOPIC_CAN_COMMAND);
     }
 
     ~MyEventHandler()
@@ -50,17 +49,17 @@ protected:
     {
         switch (ev)
         {
-            case common::CanEv::EV_LIFTOFF:
+            case common::CanEvent::EV_LIFTOFF:
                 TRACE("Received EV_LIFTOFF \n");
                 break;
-            case common::CanEv::EV_APOGEE:
+            case common::CanEvent::EV_APOGEE:
                 TRACE("Received EV_APOGEE \n");
                 break;
-            case common::CanEv::EV_ARMED:
+            case common::CanEvent::EV_ARMED:
                 TRACE("Received EV_ARMED \n");
                 break;
-            case common::CanEv::EV_AEROBRAKE:
-                TRACE("Received EV_AEROBRAKE \n");
+            case common::CanEvent::EV_AIRBRAKES:
+                TRACE("Received EV_AIRBRAKES \n");
                 break;
             default:
                 TRACE("Invalid event \n");

@@ -22,18 +22,36 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <common/Mavlink.h>
+
+#include <cstdio>
 
 namespace Parafoil
 {
 
-// TODO: update with the correct values
-static const uint32_t HR_GROUND_UPDATE_PERIOD = 62;  // [ms]
-static const uint32_t HR_FLIGHT_UPDATE_PERIOD = 10;
-static const uint32_t LR_UPDATE_PERIOD        = 100;  // [ms]
+namespace RadioConfig
+{
 
-// TODO: define the correct ids for task scheduler
-static const uint8_t RADIO_HR_ID = 200;
-static const uint8_t RADIO_LR_ID = 201;
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+
+// Mavlink driver parameters
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
+
+// Mavlink ids
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
+
+// Periodic telemetries frequency
+constexpr uint32_t FLIGHT_TM_PERIOD = 250;   // [ms]
+constexpr uint32_t STATS_TM_PERIOD  = 2000;  // [ms]
+
+// Periodic telemetries tasks ids
+constexpr uint8_t FLIGHT_TM_TASK_ID = 200;
+constexpr uint8_t STATS_TM_TASK_ID  = 201;
+
+}  // namespace RadioConfig
 
 }  // namespace Parafoil

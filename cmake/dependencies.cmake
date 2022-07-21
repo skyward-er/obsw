@@ -48,11 +48,13 @@ set(MAIN_COMPUTER_CATCH
 )
 
 set(PARAFOIL_COMPUTER
-    src/boards/Parafoil/Main/Sensors.cpp
-    src/boards/Parafoil/Main/Radio.cpp
-    src/boards/Parafoil/TelemetriesTelecommands/TMRepository.cpp
-    src/boards/Parafoil/Wing/WingServo.cpp
+    src/boards/Parafoil/Actuators/Actuators.cpp
+    src/boards/Parafoil/FlightModeManager/FlightModeManager.cpp
+    src/boards/Parafoil/NASController/NASController.cpp
+    src/boards/Parafoil/Radio/Radio.cpp
+    src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/TMRepository/TMRepository.cpp
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
+    src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
-    src/boards/Parafoil/FlightModeManager/FMMController.cpp
 )

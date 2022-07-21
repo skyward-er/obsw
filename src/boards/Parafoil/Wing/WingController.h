@@ -22,15 +22,18 @@
 
 #pragma once
 
+#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <common/Mavlink.h>
 #include <scheduler/TaskScheduler.h>
 
+#include <Eigen/Core>
+
 /**
- * @brief This class allows the user to select the wing algorithm
- * that has to be used during the tests. It also registers his
- * dedicated function in the task schduler in order to be
- * executed every fixed period and to update the two servos position
- * depending on the selected algorithm.
+ * @brief This class allows the user to select the wing algorithm  that has to
+ * be used during the tests. It also registers his dedicated function in the
+ * task scheduler in order to be executed every fixed period and to update the
+ * two servos position depending on the selected algorithm.
  *
  * Use case example:
  * controller = new WingController(scheduler);
@@ -48,14 +51,16 @@
 
 namespace Parafoil
 {
-class WingController
+
+class WingController : public Boardcore::Singleton<WingController>
 {
+    friend Boardcore::Singleton<WingController>;
+
 private:
     /**
-     * @brief Servo actuators
+     * @brief Target position
      */
-    ServoInterface* servo1;
-    ServoInterface* servo2;
+    Eigen::Vector2f targetPosition;
 
     /**
      * @brief List of loaded algorithms (from SD or not)
@@ -63,13 +68,13 @@ private:
     std::vector<WingAlgorithm*> algorithms;
 
     /**
-     * @brief The common task scheduler
+     * @brief PrintLogger
      */
-    Boardcore::TaskScheduler* scheduler;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("wingctrl");
 
     /**
      * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumered algorithm
+     * The user using the Ground Station can select the pre-enumerated algorithm
      * to execute
      */
     unsigned int selectedAlgorithm;
@@ -86,12 +91,7 @@ private:
     void init();
 
 public:
-    /**
-     * @brief Construct a new Wing Controller object
-     *
-     * @param scheduler The main used task scheduler
-     */
-    WingController(Boardcore::TaskScheduler* scheduler);
+    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -134,9 +134,32 @@ public:
     void stop();
 
     /**
+     * @brief Stops any on going algorithm and flares the wing
+     */
+    void flare();
+
+    /**
+     * @brief Resets the servos in their initial position
+     */
+    void reset();
+
+    /**
      * @brief Method that is called every time period
      * to update the internal wing servos states
      */
     void update();
+
+    /**
+     * @brief Method to set the target position
+     */
+    void setTargetPosition(Eigen::Vector2f target);
+
+    /**
+     * @brief target position getter
+     */
+    Eigen::Vector2f getTargetPosition();
+
+    float getServoPosition(ServosList servoId);
 };
+
 }  // namespace Parafoil

@@ -24,6 +24,7 @@
 
 #include <Main/Configs/PinObserverConfig.h>
 #include <Singleton.h>
+#include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>
 
@@ -56,6 +57,11 @@ public:
      * optical sensor.
      */
     void onDPLServoPinTransition(Boardcore::PinTransition transition);
+
+    /**
+     * @brief Returns a vector with all the pins data.
+     */
+    std::map<PinsList, Boardcore::PinData> getPinsData();
 
 private:
     PinHandler();

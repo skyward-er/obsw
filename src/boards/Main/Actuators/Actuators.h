@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Main/Radio/Mavlink.h>
 #include <Singleton.h>
 #include <actuators/Servo/Servo.h>
+#include <common/Mavlink.h>
 #include <interfaces/gpio.h>
 
 namespace Main

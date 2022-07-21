@@ -56,6 +56,20 @@ void PinHandler::onDPLServoPinTransition(PinTransition transition)
                                         TOPIC_DPL);
 }
 
+std::map<PinsList, PinData> PinHandler::getPinsData()
+{
+    std::map<PinsList, PinData> data;
+
+    data[PinsList::LAUNCH_PIN] = PinObserver::getInstance().getPinData(
+        sensors::launchpad_detach::getPin());
+    data[PinsList::NOSECONE_PIN] = PinObserver::getInstance().getPinData(
+        expulsion::nosecone_detach::getPin());
+    data[PinsList::DEPLOYMENT_PIN] =
+        PinObserver::getInstance().getPinData(expulsion::sense::getPin());
+
+    return data;
+}
+
 PinHandler::PinHandler()
 {
     PinObserver::getInstance().registerPinCallback(

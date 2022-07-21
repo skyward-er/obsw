@@ -19,18 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/canbus/CanHandler.h>
-#include <common/canbus/SensorMocap/AereoBrakes.h>
-#include <common/canbus/SensorMocap/PitotMocap.h>
 
-#include "drivers/canbus/BusLoadEstimation.h"
-#include "drivers/canbus/Canbus.h"
-#include "utils/collections/CircularBuffer.h"
+#include <common/canbus/CanHandler.h>
+#include <common/canbus/MockSensors/MockAirBrakes.h>
+#include <common/canbus/MockSensors/MockPitot.h>
+#include <drivers/canbus/BusLoadEstimation.h>
+#include <drivers/canbus/Canbus.h>
+#include <utils/collections/CircularBuffer.h>
+
+#include <thread>
+
+#include "test-can-event-handler.h"
+
+#define slp 1000
 
 constexpr uint32_t BAUD_RATE = 500 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
-using namespace Boardcore;
 using namespace Boardcore::Canbus;
 using namespace miosix;
 using namespace common;
@@ -42,6 +47,43 @@ using CanTX = Gpio<GPIOA_BASE, 12>;
 using CanRX = Gpio<GPIOA_BASE, 11>;
 using CanTX = Gpio<GPIOA_BASE, 12>;
 #endif
+
+void checkPressureData(MockPitot* pitot)
+{
+    Thread::sleep(10);  // De-synchronize the sending from the receiving;
+
+    while (true)
+    {
+        if ((*pitot).waitTillUpdated())
+        {
+            TRACE("Received pressure packet. Data: %f, timestamp %llu\n",
+                  (*pitot).getData().pressure,
+                  (*pitot).getData().pressureTimestamp);
+        }
+        else
+        {
+            TRACE("No Pressure packet received in this time slot\n");
+        }
+
+        Thread::sleep(slp);
+    }
+}
+
+void checkAirBrakesData(MockAirBrakes* airbrakes)
+{
+    Thread::sleep(10);  // De-synchronize the sending from the receiving;
+
+    while (true)
+    {
+        if ((*airbrakes).waitTillUpdated())
+            TRACE("Received AirBrakes packet. Data: %d\n",
+                  (*airbrakes).getData());
+        else
+            TRACE("No AirBrakes packet received in this time slot\n");
+
+        Thread::sleep(slp);
+    }
+}
 
 int main()
 {
@@ -60,35 +102,48 @@ int main()
         CanTX::alternateFunction(9);
 #endif
     }
-
-    CanbusDriver::CanbusConfig cfg{};
-    CanbusDriver::AutoBitTiming bt;
-    bt.baudRate    = BAUD_RATE;
-    bt.samplePoint = SAMPLE_POINT;
-
-    CanbusDriver* c = new CanbusDriver(CAN1, cfg, bt);
-    PitotMocap* p   = new PitotMocap();
-    AereoBrakes* a  = new AereoBrakes();
-    CanHandler handler(c, Boards::Main, p, a);
-
     // Allow every message
-    Mask32FilterBank f2(0, 0, 0, 0, 0, 0, 0);
 
-    c->addFilter(f2);
-    c->init();
+    MockPitot* pitot         = new MockPitot(SensorID::Pitot);
+    MockAirBrakes* airBrakes = new MockAirBrakes(SensorID::AirBrakes);
+    CanHandler handler(Boards::Main);
+    handler.addMock(pitot);
+    handler.addMock(airBrakes);
+    Filter f;  // empty filter to accept all incoming messages
 
-    handler.start();
-    // send event, data and command
-    const int slp = 500;
-    CanData toSend;
-    toSend.canId      = 0x01;
-    toSend.len        = 3;
-    toSend.payload[0] = 1;
-    toSend.payload[1] = 2;
-    toSend.payload[2] = 3;
-    for (;;)
+    handler.addFilter(f);
+    handler.startHandler();
+    //  send event, data and command
+    Boardcore::PressureData t{240, 12354.35};
+    MyEventHandler evh;
+    if (evh.start())
     {
+        std::thread printPressureData(checkPressureData, pitot);
+        std::thread printAirData(checkAirBrakesData, airBrakes);
 
-        Thread::sleep(slp);
+        for (;;)
+        {
+            TRACE("Sent a packet \n");
+            handler.sendCan(Boards::Payload, common::Priority::Medium,
+                            Type::Sensor, SensorID::Pitot,
+                            (*pitot).parseData(t));
+
+            handler.sendCan(Boards::Main, common::Priority::Critical,
+                            Type::Sensor, SensorID::AirBrakes,
+                            (*airBrakes).parseData(69));
+            // if we have to send a command we do not use a payload
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Liftoff);
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Apogee);
+            handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
+                            EventsId::Armed);
+            Thread::sleep(slp);
+        }
+        evh.stop();  // it posts an EV_EMPTY to wake up the thread
+    }
+    else
+    {
+        TRACE("Failed to start MyEventHandler\n");
     }
 }
