@@ -166,6 +166,17 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             sendSensorsTm(tmId, msg.msgid, msg.seq);
             return;
         }
+        case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
+
+            LOG_DEBUG(logger, "Received servo telemetry request, id: {}",
+                      servoId);
+
+            sendServoTm(servoId, msg.msgid, msg.seq);
+            return;
+        }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
             ServosList servoId = static_cast<ServosList>(
@@ -178,10 +189,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             // Move the servo, if failed send a nack
             if (!Actuators::getInstance().setServoAngle(servoId, angle))
-            {
-                sendNack(msg);
-                return;
-            }
+                return sendNack(msg);
 
             break;
         }
@@ -472,15 +480,22 @@ bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
         TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
 }
 
-bool Radio::sendSensorsTm(const SensorsTMList tmId, uint8_t msgId, uint8_t seq)
+bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
+                          uint8_t seq)
 {
     return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSensorsTm(tmId, msgId, seq));
+        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
+}
+
+bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
 }
 
 Radio::Radio()
 {
-    transceiver = new SerialTransceiver(Buses::getInstance().usart3);
+    transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 
     mavDriver = new MavDriver(transceiver,
                               bind(&Radio::handleMavlinkMessage, this, _1, _2),

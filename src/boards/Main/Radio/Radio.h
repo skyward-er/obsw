@@ -92,7 +92,10 @@ public:
     /**
      * @brief Used to send the specified sensors telemetry message.
      */
-    bool sendSensorsTm(const SensorsTMList tmId, uint8_t msgId, uint8_t seq);
+    bool sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
+                       uint8_t seq);
+
+    bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
 
 private:
     Radio();

@@ -25,6 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -46,7 +47,7 @@ using namespace Main::SensorsConfig;
 namespace Main
 {
 
-mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm, uint8_t msgId,
+mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                              uint8_t seq)
 {
     mavlink_message_t msg;
@@ -54,7 +55,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm, uint8_t msgId,
     // Prevent preemption, MUST not yeld or use the kernel!
     PauseKernelLock kLock;
 
-    switch (reqTm)
+    switch (tmId)
     {
         case SystemTMList::MAV_SYS_ID:
         {
@@ -293,9 +294,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
-            tm.pin_launch   = 0;
-            tm.pin_nosecone = 0;
-            tm.servo_sensor = 0;
+            tm.pin_launch =
+                PinHandler::getInstance().getPinsData()[LAUNCH_PIN].lastState;
+            tm.pin_nosecone =
+                PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
+            tm.servo_sensor = PinHandler::getInstance()
+                                  .getPinsData()[DEPLOYMENT_PIN]
+                                  .lastState;
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
@@ -348,7 +353,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm, uint8_t msgId,
             nack.recv_msgid = msgId;
             nack.seq_ack    = seq;
 
-            LOG_DEBUG(logger, "Unknown telemetry id: {}", reqTm);
+            LOG_DEBUG(logger, "Unknown telemetry id: {}", tmId);
             mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                        RadioConfig::MAV_COMPONENT_ID, &msg,
                                        &nack);
@@ -359,12 +364,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm, uint8_t msgId,
     return msg;
 }
 
-mavlink_message_t TMRepository::packSensorsTm(SensorsTMList reqTm,
+mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                               uint8_t msgId, uint8_t seq)
 {
     mavlink_message_t msg;
 
-    switch (reqTm)
+    switch (sensorId)
     {
         case SensorsTMList::MAV_GPS_ID:  // TODO
         {
@@ -575,15 +580,44 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList reqTm,
         {
             mavlink_nack_tm_t nack;
 
-            nack.recv_msgid = reqTm;
+            nack.recv_msgid = msgId;
             nack.seq_ack    = seq;
 
-            LOG_DEBUG(logger, "Unknown telemetry id: {}", reqTm);
+            LOG_DEBUG(logger, "Unknown telemetry id: {}", sensorId);
             mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                        RadioConfig::MAV_COMPONENT_ID, &msg,
                                        &nack);
             break;
         }
+    }
+
+    return msg;
+}
+
+mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
+                                            uint8_t seq)
+{
+    mavlink_message_t msg;
+
+    if (servoId == AIRBRAKES_SERVO || servoId == EXPULSION_SERVO)
+    {
+        mavlink_servo_tm_t tm;
+
+        tm.servo_id       = servoId;
+        tm.servo_position = Actuators::getInstance().getServoPosition(servoId);
+
+        mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                    RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+    }
+    else
+    {
+        mavlink_nack_tm_t nack;
+
+        nack.recv_msgid = msgId;
+        nack.seq_ack    = seq;
+
+        mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                   RadioConfig::MAV_COMPONENT_ID, &msg, &nack);
     }
 
     return msg;
