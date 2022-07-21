@@ -61,6 +61,9 @@ bool WingAlgorithm::init()
         LOG_INFO(logger, "File valid");
     }
 
+    // Close the file
+    parser.close();
+
     return fileValid;
 }
 

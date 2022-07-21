@@ -131,6 +131,12 @@ public:
             LOG_ERR(log, "Error starting the general purpose scheduler");
         }
 
+        if (!sensorsScheduler->start())
+        {
+            LOG_ERR(log, "Error starting the sensors scheduler");
+            status.setError(&ParafoilTestStatus::logger);
+        }
+
         // Start the broker
         if (!broker->start())
         {
@@ -139,7 +145,7 @@ public:
         }
 
         // Start the sensors sampling
-        if (!sensors->start() || !sensorsScheduler->start())
+        if (!sensors->start())
         {
             LOG_ERR(log, "Error starting sensors");
             status.setError(&ParafoilTestStatus::sensors);

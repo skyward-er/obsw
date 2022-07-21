@@ -333,7 +333,7 @@ bool Radio::start()
     bool result = mav_driver->start();
 
     // Start the scheduler
-    // result &= scheduler -> start();
+    // result &= scheduler->start();
 
     return result;
 }
@@ -361,6 +361,7 @@ void Radio::init()
 
     // Init the radio module with default configs
     SX1278::Config conf;
+    conf.freq_rf            = 430000000;
     SX1278::Error initError = module->init(conf);
 
     // Check if there was an error initalizing the SX1278

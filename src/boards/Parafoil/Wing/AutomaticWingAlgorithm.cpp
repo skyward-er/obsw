@@ -91,11 +91,15 @@ void AutomaticWingAlgorithm::step()
     // Angle difference
     if (error < -Constants::PI || Constants::PI < error)
     {
+        error += Constants::PI;
+
         int moduledError = (int)fmod(error, 2 * Constants::PI);
         if (moduledError == 0 && error > 0)
         {
             error = 2 * Constants::PI;
         }
+
+        error -= Constants::PI;
     }
 
     // Call the PI with the just calculated error. The result is in RADIANS, if
@@ -106,11 +110,11 @@ void AutomaticWingAlgorithm::step()
     result = (result / (2 * Constants::PI)) * 360;
 
     // Actuate the result
-    if (result < 0)
+    if (result > 0)
     {
         // Activate the servo1 and reset servo2
         if (servo1 != NULL)
-            servo1->set(-1 * result);
+            servo1->set(result);
         if (servo2 != NULL)
             servo2->set(WING_SERVO2_RESET_POSITION);
     }
@@ -120,7 +124,7 @@ void AutomaticWingAlgorithm::step()
         if (servo1 != NULL)
             servo1->set(WING_SERVO1_RESET_POSITION);
         if (servo2 != NULL)
-            servo2->set(WING_SERVO2_MAX_POSITION - result);
+            servo2->set(WING_SERVO2_MAX_POSITION + result);
     }
 
     // Log the servo positions
