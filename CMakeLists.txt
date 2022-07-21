@@ -92,6 +92,9 @@ sbs_target(main-test-ms5803 stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-current-sensing src/tests/Main/sensors/test-current-sensing.cpp)
 sbs_target(main-test-current-sensing stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-vn100 src/tests/Main/sensors/test-vn100.cpp)
+sbs_target(main-test-vn100 stm32f429zi_skyward_death_stack_v3)
+
 add_executable(main-test-can src/tests/Main/test-can.cpp)
 sbs_target(main-test-can stm32f429zi_skyward_death_stack_v3)
 
