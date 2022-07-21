@@ -30,6 +30,13 @@ include(skyward-boardcore/cmake/sbs.cmake)
 project(OnBoardSoftware)
 
 #-----------------------------------------------------------------------------#
+#                          Ground station entrypoints                         #
+#-----------------------------------------------------------------------------#
+
+add_executable(gs-entry src/entrypoints/Gs/gs-entry.cpp)
+sbs_target(gs-entry stm32f429zi_skyward_ground_station)
+
+#-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
