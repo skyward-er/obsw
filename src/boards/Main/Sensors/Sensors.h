@@ -71,6 +71,8 @@ public:
      */
     void calibrate();
 
+    std::map<string, bool> getSensorsState();
+
 private:
     Sensors();
 

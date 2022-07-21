@@ -22,6 +22,7 @@
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -33,6 +34,7 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
+#include <utils/PinObserver/PinObserver.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -72,8 +74,12 @@ int main()
     // Start the sensors sampling
     Sensors::getInstance().start();
 
+    // Pins
+    (void)PinHandler::getInstance();
+    PinObserver::getInstance().start();
+
     // DEBUG PRINT
-    BoardScheduler::getInstance().getScheduler().addTask(print, 100);
+    // BoardScheduler::getInstance().getScheduler().addTask(print, 100);
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
