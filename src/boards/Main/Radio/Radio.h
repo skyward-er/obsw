@@ -25,7 +25,8 @@
 #include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SerialTransceiver/SerialTransceiver.h>
+// #include <radio/SerialTransceiver/SerialTransceiver.h>
+#include <radio/SX1278/SX1278.h>
 #include <scheduler/TaskScheduler.h>
 
 namespace Main
@@ -40,7 +41,9 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-    Boardcore::SerialTransceiver* transceiver;
+    // Boardcore::SerialTransceiver* transceiver;
+    Boardcore::SX1278* sx1278;
+
     MavDriver* mavDriver;
 
     /**

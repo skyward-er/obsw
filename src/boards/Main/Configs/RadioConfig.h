@@ -33,7 +33,7 @@ namespace RadioConfig
 {
 
 // Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_PKT_LENGTH     = 63;
 constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
 constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 

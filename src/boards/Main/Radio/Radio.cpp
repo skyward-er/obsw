@@ -41,7 +41,16 @@ using namespace placeholders;
 using namespace Boardcore;
 using namespace Main::RadioConfig;
 
-// TODO: Add transceiver interrupt
+// sx127x interrupt
+void __attribute__((used)) EXTI10_IRQHandlerImpl()
+{
+    using namespace Main;
+
+    if (Radio::getInstance().sx1278)
+    {
+        Radio::getInstance().sx1278->handleDioIRQ();
+    }
+}
 
 namespace Main
 {
@@ -495,11 +504,22 @@ bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
 
 Radio::Radio()
 {
-    transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+    // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 
-    mavDriver = new MavDriver(transceiver,
-                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                              0, MAV_OUT_BUFFER_MAX_AGE);
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+
+    SPIBus bus(SPI5);
+    GpioPin cs = sensors::sx127x::cs::getPin();
+
+    sx1278 = new SX1278(bus, cs);
+
+    // Use default configuration
+    SX1278::Config config;
+    sx1278->init(config);
+
+    mavDriver =
+        new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                      0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the flight and statistics telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -508,8 +528,6 @@ Radio::Radio()
     BoardScheduler::getInstance().getScheduler().addTask(
         [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
         STATS_TM_TASK_ID);
-
-    // TODO: Enable transceiver interrupt
 }
 
 }  // namespace Main
