@@ -35,7 +35,7 @@ namespace ActuatorsConfigs
 
 static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
 static constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_1;
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 
 // TODO: Change rotation with min and max
 static constexpr float DPL_SERVO_ROTATION  = 23;   // [deg]
@@ -47,9 +47,9 @@ static constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;  // [deg]
 
 // Airbrakes servo
 
-TIM_TypeDef* const ABK_SERVO_TIMER = TIM8;
+TIM_TypeDef* const ABK_SERVO_TIMER = TIM10;
 constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_2;
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 // TODO: Change rotation with min and max
 static constexpr float ABK_SERVO_ROTATION  = 67;   // [deg]
