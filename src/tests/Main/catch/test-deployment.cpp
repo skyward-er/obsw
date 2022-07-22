@@ -25,7 +25,7 @@
 #define protected public
 
 #include <Main/StateMachines/Deployment/Deployment.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
 

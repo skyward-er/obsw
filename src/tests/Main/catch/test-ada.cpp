@@ -25,7 +25,7 @@
 #define protected public
 
 #include <Main/StateMachines/ADAController/ADAController.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
 
@@ -95,7 +95,7 @@ TEST_CASE_METHOD(ADAControllerFixture,
 
     SECTION("ADA_EV_LIFTOFF -> SHADOW_MODE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
+        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF},
                                   &ADAController::state_shadow_mode));
     }
 }

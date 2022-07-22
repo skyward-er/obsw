@@ -54,10 +54,6 @@ int main()
     Logger::getInstance().start();
     EventBroker::getInstance().start();
 
-    // Initialize the servo outputs
-    Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
-    Actuators::getInstance().enableServo(EXPULSION_SERVO);
-
     // Start the radio
     Radio::getInstance().start();
 

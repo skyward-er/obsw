@@ -39,9 +39,9 @@ static constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
 
 // TODO: Change rotation with min and max
 static constexpr float DPL_SERVO_ROTATION  = 23;   // [deg]
-static constexpr float DPL_SERVO_MIN_PULSE = 900;  // [deg]
+static constexpr float DPL_SERVO_MIN_PULSE = 900;  // [us]
 static constexpr float DPL_SERVO_MAX_PULSE =
-    900 + 10 * DPL_SERVO_ROTATION;                                // [deg]
+    900 + 10 * DPL_SERVO_ROTATION;                                // [us]
 static constexpr float DPL_SERVO_EJECT_POS = 0;                   // [deg]
 static constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;  // [deg]
 
@@ -52,10 +52,10 @@ constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 // TODO: Change rotation with min and max
-static constexpr float ABK_SERVO_ROTATION  = 67;   // [deg]
-static constexpr float ABK_SERVO_MIN_PULSE = 900;  // [deg]
+static constexpr float ABK_SERVO_ROTATION  = 53;  // [deg]
+static constexpr float ABK_SERVO_MIN_PULSE = 1400;
 static constexpr float ABK_SERVO_MAX_PULSE =
-    900 + 10 * ABK_SERVO_ROTATION;  // [deg]
+    1400 - 10 * ABK_SERVO_ROTATION;  // [us]
 
 }  // namespace ActuatorsConfigs
 

@@ -37,6 +37,15 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
+set(PAYLOAD_COMPUTER
+    src/boards/Payload/Actuators/Actuators.cpp
+    src/boards/Payload/NASController/NASController.cpp
+    src/boards/Payload/Radio/Radio.cpp
+    src/boards/Payload/Sensors/Sensors.cpp
+    src/boards/Payload/PinHandler/PinHandler.cpp
+    src/boards/Payload/TMRepository/TMRepository.cpp
+)
+
 set(MAIN_COMPUTER_CATCH
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/Sensors/Sensors.cpp

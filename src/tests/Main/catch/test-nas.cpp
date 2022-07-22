@@ -25,7 +25,7 @@
 #define protected public
 
 #include <Main/StateMachines/NASController/NASController.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
 
@@ -93,9 +93,9 @@ TEST_CASE_METHOD(NASControllerFixture,
                                   &NASController::state_calibrating));
     }
 
-    SECTION("FLIGHT_LIFTOFF_DETECTED -> ACTIVE")
+    SECTION("FLIGHT_LIFTOFF -> ACTIVE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
+        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF},
                                   &NASController::state_active));
     }
 }

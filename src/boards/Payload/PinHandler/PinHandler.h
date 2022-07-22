@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,55 +22,50 @@
 
 #pragma once
 
-#include <Payload/Control/NASController.h>
-#include <algorithms/NAS/NAS.h>
+#include <Singleton.h>
+#include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
-#include <logger/Logger.h>
-#include <scheduler/TaskScheduler.h>
-#include <sensors/BMX160/BMX160Data.h>
-#include <sensors/UBXGPS/UBXGPSData.h>
+#include <utils/PinObserver/PinObserver.h>
 
 namespace Payload
 {
 
-class Algorithms
+/**
+ * @brief This class contains the handlers for the detach pins on the rocket.
+ *
+ * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
+ * The handlers post an event on the EventBroker.
+ */
+class PinHandler : public Boardcore::Singleton<PinHandler>
 {
+    friend Boardcore::Singleton<PinHandler>;
+
 public:
-    // All the algorithms that need to be started
-    NASController<Boardcore::BMX160Data, Boardcore::UBXGPSData>* nas;
-
-    // The scheduler
-    Boardcore::TaskScheduler* scheduler;
+    /**
+     * @brief Called when a launch pin is detected.
+     */
+    void onLaunchPinTransition(Boardcore::PinTransition transition);
 
     /**
-     * @brief Construct a new Algorithms object
-     *
-     * @param scheduler The algorithms task scheduler
+     * @brief Called when the nosecone pin is detected.
      */
-    Algorithms(Boardcore::TaskScheduler* scheduler);
+    void onNCPinTransition(Boardcore::PinTransition transition);
 
     /**
-     * @brief Destroy the Algorithms object
+     * @brief Called when the deployment servo actuation is detected via the
+     * optical sensor.
      */
-    ~Algorithms();
+    void onDPLServoPinTransition(Boardcore::PinTransition transition);
 
     /**
-     * @brief Method to start the algorithms task scheduler
+     * @brief Returns a vector with all the pins data.
      */
-    bool start();
-
-    // Kernel locked getters
-    Boardcore::NASState getNASLastSample();
+    std::map<PinsList, Boardcore::PinData> getPinsData();
 
 private:
-    // Debug serial logger
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("algorithms");
+    PinHandler();
 
-    // SD logger
-    Boardcore::Logger* SDlogger = &Boardcore::Logger::getInstance();
-
-    // Init functions
-    void NASInit();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 };
 
 }  // namespace Payload

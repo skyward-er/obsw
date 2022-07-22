@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,40 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <interfaces-impl/hwmapping.h>
+#include <miosix.h>
+#include <utils/PinObserver/PinObserver.h>
 
 namespace Payload
 {
-// TODO Define PITOT
 
-enum SensorDriverStatus
-{
-    DRIVER_ERROR = 0,
-    DRIVER_OK    = 1
-};
+static constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
+static constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
+    Boardcore::PinTransition::FALLING_EDGE;
 
-struct SensorsStatus
-{
-    uint8_t BMX160      = DRIVER_OK;
-    uint8_t MS5803      = DRIVER_OK;
-    uint8_t LIS3MDL     = DRIVER_OK;
-    uint8_t GPS         = DRIVER_OK;
-    uint8_t InternalADC = DRIVER_OK;
-    uint8_t ADS1118     = DRIVER_OK;
+static constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
+static constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
+    Boardcore::PinTransition::FALLING_EDGE;
 
-    static std::string header()
-    {
-        return "BMX160,MS5803,LIS3MDL,GPS,InternalADC,ADS1118\n";
-    }
+static constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
+static constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
+    Boardcore::PinTransition::RISING_EDGE;
 
-    void print(std::ostream& os) const
-    {
-        os << (int)BMX160 << "," << (int)MS5803 << "," << (int)LIS3MDL << ","
-           << (int)GPS << "," << (int)InternalADC << "," << (int)ADS1118
-           << "\n";
-    }
-};
 }  // namespace Payload

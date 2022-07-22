@@ -22,27 +22,27 @@
 
 #include "Actuators.h"
 
-#include <Main/Configs/ActuatorsConfigs.h>
+#include <Payload/Configs/ActuatorsConfigs.h>
 
 #ifndef COMPILE_FOR_HOST
 #include <interfaces-impl/hwmapping.h>
 #endif
 
 using namespace miosix;
-using namespace Main::ActuatorsConfigs;
+using namespace Payload::ActuatorsConfigs;
 
-namespace Main
+namespace Payload
 {
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            servoAirbrakes.setPosition(percentage);
+        case PARAFOIL_SERVO1:
+            servo1.setPosition(percentage);
             break;
-        case EXPULSION_SERVO:
-            servoExpulsion.setPosition(percentage);
+        case PARAFOIL_SERVO2:
+            servo2.setPosition(percentage);
             break;
         default:
             return false;
@@ -55,11 +55,11 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            servoAirbrakes.setPosition(angle / ABK_SERVO_ROTATION);
+        case PARAFOIL_SERVO1:
+            servo1.setPosition(angle / SERVO_1_ROTATION);
             break;
-        case EXPULSION_SERVO:
-            servoExpulsion.setPosition(angle / DPL_SERVO_ROTATION);
+        case PARAFOIL_SERVO2:
+            servo2.setPosition(angle / SERVO_2_ROTATION);
             break;
         default:
             return false;
@@ -72,15 +72,15 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            servoAirbrakes.setPosition(1);
+        case PARAFOIL_SERVO1:
+            servo1.setPosition(1);
             Thread::sleep(1000);
-            servoAirbrakes.setPosition(0);
+            servo1.setPosition(0);
             break;
-        case EXPULSION_SERVO:
-            servoExpulsion.setPosition(1);
+        case PARAFOIL_SERVO2:
+            servo2.setPosition(1);
             Thread::sleep(1000);
-            servoExpulsion.setPosition(0);
+            servo2.setPosition(0);
             break;
         default:
             return false;
@@ -93,11 +93,11 @@ bool Actuators::enableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            servoAirbrakes.enable();
+        case PARAFOIL_SERVO1:
+            servo1.enable();
             break;
-        case EXPULSION_SERVO:
-            servoExpulsion.enable();
+        case PARAFOIL_SERVO2:
+            servo2.enable();
             break;
         default:
             return false;
@@ -110,11 +110,11 @@ bool Actuators::disableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            servoAirbrakes.enable();
+        case PARAFOIL_SERVO1:
+            servo1.enable();
             break;
-        case EXPULSION_SERVO:
-            servoAirbrakes.enable();
+        case PARAFOIL_SERVO2:
+            servo1.enable();
             break;
         default:
             return false;
@@ -125,27 +125,13 @@ bool Actuators::disableServo(ServosList servoId)
 
 float Actuators::getServoPosition(ServosList servoId)
 {
+
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
-            return servoAirbrakes.getPosition();
-        case EXPULSION_SERVO:
-            return servoExpulsion.getPosition();
-        default:
-            return 0;
-    }
-
-    return 0;
-}
-
-float Actuators::getServoAngle(ServosList servoId)
-{
-    switch (servoId)
-    {
-        case AIRBRAKES_SERVO:
-            return servoAirbrakes.getPosition() * ABK_SERVO_ROTATION;
-        case EXPULSION_SERVO:
-            return servoExpulsion.getPosition() * DPL_SERVO_ROTATION;
+        case PARAFOIL_SERVO1:
+            return servo1.getPosition();
+        case PARAFOIL_SERVO2:
+            return servo2.getPosition();
         default:
             return 0;
     }
@@ -154,15 +140,13 @@ float Actuators::getServoAngle(ServosList servoId)
 }
 
 Actuators::Actuators()
-    : led1(leds::green1::getPin()), led2(leds::red::getPin()),
-      led3(leds::blue::getPin()), led4(leds::green2::getPin()),
-      cutter1(cutter::enable::getPin()),
-      cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
-      servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
-                     ABK_SERVO_MAX_PULSE),
-      servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
-                     DPL_SERVO_MAX_PULSE)
+    : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
+      led3(leds::led_blue1::getPin()),
+      servo1(SERVO_1_TIMER, SERVO_1_PWM_CH, SERVO_1_MIN_PULSE,
+             SERVO_1_MAX_PULSE),
+      servo2(SERVO_2_TIMER, SERVO_2_PWM_CH, SERVO_2_MIN_PULSE,
+             SERVO_2_MAX_PULSE)
 {
 }
 
-}  // namespace Main
+}  // namespace Payload

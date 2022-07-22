@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Main/Configs/PinObserverConfig.h>
 #include <Singleton.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>

@@ -24,12 +24,13 @@
 
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/events/Events.h>
-#include <Main/events/Topics.h>
+#include <common/events/Events.h>
+#include <common/events/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace miosix;
 using namespace Boardcore;
+using namespace Common;
 
 namespace Main
 {
@@ -227,9 +228,11 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case FLIGHT_LIFTOFF_DETECTED:
+        case FLIGHT_LIFTOFF:
         case TMTC_FORCE_LAUNCH:
         {
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
+
             return transition(&FlightModeManager::state_ascending);
         }
         default:

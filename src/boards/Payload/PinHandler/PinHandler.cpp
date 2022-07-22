@@ -22,7 +22,7 @@
 
 #include "PinHandler.h"
 
-#include <Main/Configs/PinObserverConfig.h>
+#include <Payload/Configs/PinObserverConfig.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 
@@ -34,13 +34,13 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
 
-namespace Main
+namespace Payload
 {
 
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {
     if (transition == LAUNCH_PIN_TRIGGER)
-        EventBroker::getInstance().post(Event{FLIGHT_UMBILICAL_DETACHED},
+        EventBroker::getInstance().post(Event{FLIGHT_LIFTOFF_DETECTED},
                                         TOPIC_FLIGHT);
 }
 
@@ -62,12 +62,12 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 {
     std::map<PinsList, PinData> data;
 
-    data[PinsList::LAUNCH_PIN] = PinObserver::getInstance().getPinData(
-        sensors::launchpad_detach::getPin());
+    data[PinsList::LAUNCH_PIN] =
+        PinObserver::getInstance().getPinData(inputs::launchpad::getPin());
     data[PinsList::NOSECONE_PIN] = PinObserver::getInstance().getPinData(
-        expulsion::nosecone_detach::getPin());
+        inputs::nosecone_detach::getPin());
     data[PinsList::DEPLOYMENT_PIN] =
-        PinObserver::getInstance().getPinData(expulsion::sense::getPin());
+        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
 
     return data;
 }
@@ -75,19 +75,19 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 PinHandler::PinHandler()
 {
     PinObserver::getInstance().registerPinCallback(
-        sensors::launchpad_detach::getPin(),
+        inputs::launchpad::getPin(),
         bind(&PinHandler::onLaunchPinTransition, this, _1),
         LAUNCH_PIN_THRESHOLD);
 
     PinObserver::getInstance().registerPinCallback(
-        expulsion::nosecone_detach::getPin(),
+        inputs::nosecone_detach::getPin(),
         bind(&PinHandler::onLaunchPinTransition, this, _1),
         NC_DETACH_PIN_THRESHOLD);
 
     PinObserver::getInstance().registerPinCallback(
-        expulsion::sense::getPin(),
+        inputs::expulsion::getPin(),
         bind(&PinHandler::onLaunchPinTransition, this, _1),
         DPL_SERVO_PIN_THRESHOLD);
 }
 
-}  // namespace Main
+}  // namespace Payload

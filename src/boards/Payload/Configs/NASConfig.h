@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Luca Erbetta
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,22 +19,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-// Ignore warnings as these are auto-generated headers made with third party
-// tools
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#include <mavlink_lib/pyxis/mavlink.h>
-#pragma GCC diagnostic pop
-
-#include <Payload/Configs/RadioConfig.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <algorithms/NAS/NASConfig.h>
 
 namespace Payload
 {
 
-using MavDriver = Boardcore::MavlinkDriver<MAV_PKT_SIZE, MAV_OUT_QUEUE_LEN>;
+namespace NASConfig
+{
 
-}
+static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+
+// Magnetic field in Milan
+Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
+
+static const Boardcore::NASConfig config = {
+    1.0f / UPDATE_PERIOD,  // T
+    0.0001f,               // SIGMA_BETA
+    0.3f,                  // SIGMA_W
+    0.1f,                  // SIGMA_MAG
+    10.0f,                 // SIGMA_GPS
+    4.3f,                  // SIGMA_BAR
+    10.0f,                 // SIGMA_POS
+    10.0f,                 // SIGMA_VEL
+    10.0f,                 // SIGMA_PITOT
+    1.0f,                  // P_POS
+    10.0f,                 // P_POS_VERTICAL
+    1.0f,                  // P_VEL
+    10.0f,                 // P_VEL_VERTICAL
+    0.01f,                 // P_ATT
+    0.01f,                 // P_BIAS
+    6.0f,                  // SATS_NUM
+    nedMag                 // NED_MAG
+};
+
+}  // namespace NASConfig
+
+}  // namespace Payload

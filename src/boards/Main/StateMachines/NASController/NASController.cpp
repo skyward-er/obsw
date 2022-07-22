@@ -25,13 +25,14 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
 using namespace Eigen;
+using namespace Common;
 
 namespace Main
 {
@@ -121,7 +122,7 @@ void NASController::state_ready(const Event& event)
         {
             return transition(&NASController::state_calibrating);
         }
-        case FLIGHT_LIFTOFF_DETECTED:
+        case FLIGHT_LIFTOFF:
         {
             return transition(&NASController::state_active);
         }

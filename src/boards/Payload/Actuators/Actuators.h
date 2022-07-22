@@ -27,7 +27,7 @@
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
 
-namespace Main
+namespace Payload
 {
 
 struct Actuators : public Boardcore::Singleton<Actuators>
@@ -37,12 +37,6 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     miosix::GpioPin led1;
     miosix::GpioPin led2;
     miosix::GpioPin led3;
-    miosix::GpioPin led4;
-
-    miosix::GpioPin cutter1;
-    miosix::GpioPin cutter1Backup;
-
-    miosix::GpioPin buzzer;
 
     /**
      * @brief Moves the specified servo to the given position.
@@ -77,13 +71,11 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoPosition(ServosList servoId);
 
-    float getServoAngle(ServosList servoId);
-
 private:
     Actuators();
 
-    Boardcore::Servo servoAirbrakes;
-    Boardcore::Servo servoExpulsion;
+    Boardcore::Servo servo1;
+    Boardcore::Servo servo2;
 };
 
-}  // namespace Main
+}  // namespace Payload

@@ -20,47 +20,48 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/Payload.h>
-#include <common/SystemData.h>
+#include <Payload/Actuators/Actuators.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Configs/SensorsConfig.h>
+#include <Payload/NASController/NASController.h>
+#include <Payload/Radio/Radio.h>
+#include <Payload/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <events/EventBroker.h>
 #include <miosix.h>
 
 using namespace miosix;
 using namespace Boardcore;
+using namespace Payload;
 
 int main()
 {
-    Stats cpu_stat;
-    StatsResult cpu_stat_res;
-    SystemData system_data;
+    Logger::getInstance().start();
+    EventBroker::getInstance().start();
 
-    // TODO integrate all the logging stuff
-    Payload::Payload::getInstance().start();
+    // Initialize the servo outputs
+    Actuators::getInstance().enableServo(PARAFOIL_SERVO1);
+    Actuators::getInstance().enableServo(PARAFOIL_SERVO2);
 
-    Logger* logger_service = &Logger::getInstance();
+    // Start the radio
+    Radio::getInstance().start();
 
-    for (;;)
+    // Start algorithms
+    NASController::getInstance().start();
+
+    // Start the sensors sampling
+    Sensors::getInstance().start();
+
+    // Start the board task scheduler
+    BoardScheduler::getInstance().getScheduler().start();
+
+    // Periodically statistics
+    while (true)
     {
         Thread::sleep(1000);
-        logger_service->log(logger_service->getStats());
-
-        StackLogger::getInstance().updateStack(Payload::THID_ENTRYPOINT);
-
-        system_data.timestamp = miosix::getTick();
-        system_data.cpu_usage = CpuMeter::getCpuStats().mean;
-        cpu_stat.add(system_data.cpu_usage);
-
-        cpu_stat_res               = cpu_stat.getStats();
-        system_data.cpu_usage_min  = cpu_stat_res.minValue;
-        system_data.cpu_usage_max  = cpu_stat_res.maxValue;
-        system_data.cpu_usage_mean = cpu_stat_res.mean;
-
-        system_data.min_free_heap = MemoryProfiling::getAbsoluteFreeHeap();
-        system_data.free_heap     = MemoryProfiling::getCurrentFreeHeap();
-
-        logger_service->log(system_data);
-
-        StackLogger::getInstance().log();
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
+        Logger::getInstance().logStats();
+        Radio::getInstance().logStatus();
     }
-    return 0;
 }

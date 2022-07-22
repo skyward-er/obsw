@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Authors: Luca Conterio, Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,20 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
-#include <drivers/adc/InternalADC.h>
-#include <sensors/ADS131M04/ADS131M04.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
-#include <sensors/MPU9250/MPU9250.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
-#include <sensors/analog/AnalogLoadCell.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
-#include <sensors/analog/pressure/nxp/MPXH6115A.h>
-#include <sensors/analog/pressure/nxp/MPXH6400A.h>
-#include <utils/Stats/Stats.h>
+#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
 
-namespace Main
+namespace Payload
 {
 
 class Sensors : public Boardcore::Singleton<Sensors>
@@ -48,20 +47,18 @@ public:
 
     bool isStarted();
 
-    Boardcore::BMX160 *bmx160 = nullptr;
+    Boardcore::BMX160* bmx160;
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
-    Boardcore::MPU9250Data getMPU9250LastSample();
+    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
     Boardcore::MS5803Data getMS5803LastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
 
-    Boardcore::ADS131M04Data getADS131M04LastSample();
-    Boardcore::MPXH6115AData getStaticPressureLastSample();
-    Boardcore::MPXH6400AData getDplPressureLastSample();
-    Boardcore::AnalogLoadCellData getLoadCellLastSample();
-    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-
-    Boardcore::InternalADCData getInternalADCLastSample();
+    Boardcore::ADS1118Data getADS1118LastSample();
+    Boardcore::MPXHZ6130AData getStaticPressureLastSample();
+    Boardcore::SSCDANN030PAAData getDplPressureLastSample();
+    Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -83,37 +80,31 @@ private:
 
     void bmx160WithCorrectionInit();
 
-    void mpu9250Init();
+    void lis3mdlInit();
 
     void ms5803Init();
 
     void ubxGpsInit();
 
-    void ads131m04Init();
+    void ads1118Init();
 
     void staticPressureInit();
 
     void dplPressureInit();
 
-    void loadCellInit();
+    void pitotPressureInit();
 
-    void batteryVoltageInit();
+    Boardcore::BMX160WithCorrection* bmx160WithCorrection;
+    Boardcore::LIS3MDL* lis3mdl;
+    Boardcore::MS5803* ms5803;
+    Boardcore::UBXGPSSerial* ubxGps;
 
-    void internalAdcInit();
+    Boardcore::ADS1118* ads1118;
+    Boardcore::MPXHZ6130A* staticPressure;
+    Boardcore::SSCDANN030PAA* dplPressure;
+    Boardcore::SSCDRRN015PDA* pitotPressure;
 
-    Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
-    Boardcore::MPU9250 *mpu9250                           = nullptr;
-    Boardcore::MS5803 *ms5803                             = nullptr;
-
-    Boardcore::ADS131M04 *ads131m04                 = nullptr;
-    Boardcore::MPXH6115A *staticPressure            = nullptr;
-    Boardcore::MPXH6400A *dplPressure               = nullptr;
-    Boardcore::AnalogLoadCell *loadCell             = nullptr;
-    Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
-
-    Boardcore::InternalADC *internalAdc = nullptr;
-
-    Boardcore::SensorManager *sensorManager = nullptr;
+    Boardcore::SensorManager* sensorManager = nullptr;
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
 
@@ -121,9 +112,9 @@ private:
     Boardcore::Stats ms5803Stats;
     Boardcore::Stats staticPressureStats;
     Boardcore::Stats dplPressureStats;
-    Boardcore::Stats loadCellStats;
+    Boardcore::Stats pitotPressureStats;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 
-}  // namespace Main
+}  // namespace Payload

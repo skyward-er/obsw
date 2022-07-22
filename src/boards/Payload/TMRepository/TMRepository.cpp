@@ -22,18 +22,13 @@
 
 #include "TMRepository.h"
 
-#include <Main/Actuators/Actuators.h>
-#include <Main/BoardScheduler.h>
-#include <Main/Configs/SensorsConfig.h>
-#include <Main/PinHandler/PinHandler.h>
-#include <Main/Radio/Radio.h>
-#include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/ADAController/ADAController.h>
-#include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
-#include <Main/StateMachines/Deployment/Deployment.h>
-#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
-#include <Main/StateMachines/NASController/NASController.h>
+#include <Payload/Actuators/Actuators.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Configs/SensorsConfig.h>
+#include <Payload/NASController/NASController.h>
+#include <Payload/PinHandler/PinHandler.h>
+#include <Payload/Radio/Radio.h>
+#include <Payload/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -42,9 +37,9 @@
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::SensorsConfig;
+using namespace Payload::SensorsConfig;
 
-namespace Main
+namespace Payload
 {
 
 mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
@@ -71,29 +66,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 BoardScheduler::getInstance().getScheduler().isRunning();
 
             mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
-        case SystemTMList::MAV_FSM_ID:
-        {
-            mavlink_fsm_tm_t tm;
-
-            tm.timestamp = TimestampTimer::getTimestamp();
-            tm.ada_state = static_cast<uint8_t>(
-                ADAController::getInstance().getStatus().state);
-            tm.abk_state = static_cast<uint8_t>(
-                AirBrakesController::getInstance().getStatus().state);
-            tm.dpl_state = static_cast<uint8_t>(
-                Deployment::getInstance().getStatus().state);
-            tm.fmm_state = static_cast<uint8_t>(
-                FlightModeManager::getInstance().getStatus().state);
-            tm.fsr_state = static_cast<uint8_t>(
-                FlightStatsRecorder::getInstance().getStatus().state);
-            tm.nas_state = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
-
-            mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
 
             break;
@@ -146,40 +118,15 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                                 &msg, &tm);
             break;
         }
-        case SystemTMList::MAV_ADA_ID:
-        {
-            mavlink_ada_tm_t tm;
-
-            auto status = ADAController::getInstance().getStatus();
-            auto state  = ADAController::getInstance().getAdaState();
-            auto ref    = ADAController::getInstance().getReferenceValues();
-
-            tm.timestamp       = state.timestamp;
-            tm.state           = static_cast<uint8_t>(status.state);
-            tm.kalman_x0       = state.x0;
-            tm.kalman_x1       = state.x1;
-            tm.kalman_x2       = state.x2;
-            tm.vertical_speed  = state.verticalSpeed;
-            tm.msl_altitude    = state.mslAltitude;
-            tm.ref_pressure    = ref.pressure;
-            tm.ref_altitude    = ref.altitude;
-            tm.ref_temperature = ref.temperature;
-
-            mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
         case SystemTMList::MAV_NAS_ID:
         {
             mavlink_nas_tm_t tm;
 
-            auto state  = NASController::getInstance().getNasState();
-            auto status = NASController::getInstance().getStatus();
-            auto ref    = NASController::getInstance().getReferenceValues();
+            auto state = NASController::getInstance().getNasState();
+            auto ref   = NASController::getInstance().getReferenceValues();
 
             tm.timestamp       = state.timestamp;
-            tm.state           = static_cast<uint8_t>(status.state);
+            tm.state           = 0;
             tm.nas_n           = state.n;
             tm.nas_e           = state.e;
             tm.nas_d           = state.d;
@@ -203,32 +150,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             break;
         }
-        case SystemTMList::MAV_CAN_ID:  // TODO
-        {
-            mavlink_can_tm_t tm;
-
-            tm.timestamp    = TimestampTimer::getTimestamp();
-            tm.n_sent       = 0;
-            tm.n_rcv        = 0;
-            tm.last_sent    = 0;
-            tm.last_sent_ts = 0;
-            tm.last_rcv     = 0;
-            tm.last_rcv_ts  = 0;
-
-            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
         case SystemTMList::MAV_FLIGHT_ID:
         {
-            mavlink_rocket_flight_tm_t tm;
+            mavlink_payload_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
-
-            auto &ada = ADAController::getInstance();
-            auto &fmm = FlightModeManager::getInstance();
-            auto &dpl = Deployment::getInstance();
-            auto &abk = AirBrakesController::getInstance();
+            ;
             auto &nas = NASController::getInstance();
 
             auto ms5803Data = sensors.getMS5803LastSample();
@@ -239,14 +165,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // State machines states
-            tm.ada_state = static_cast<uint8_t>(ada.getStatus().state);
-            tm.fmm_state = static_cast<uint8_t>(fmm.getStatus().state);
-            tm.dpl_state = static_cast<uint8_t>(dpl.getStatus().state);
-            tm.abk_state = static_cast<uint8_t>(abk.getStatus().state);
-            tm.nas_state = static_cast<uint8_t>(nas.getStatus().state);
+            tm.ada_state = 0;
+            tm.fmm_state = 0;
+            tm.nas_state = 0;
 
             // Pressures
-            tm.pressure_ada    = ada.getAdaState().x0;
+            tm.pressure_ada    = 0;
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
@@ -273,10 +197,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.gps_lat = 0;
             tm.gps_lon = 0;
             tm.gps_alt = 0;
-            // Airbrakes
-            tm.ab_angle =
-                Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
-            tm.ab_estimated_cd = 0;
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -294,22 +214,19 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
-            tm.pin_launch =
-                PinHandler::getInstance().getPinsData()[LAUNCH_PIN].lastState;
             tm.pin_nosecone =
                 PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
-            tm.servo_sensor = PinHandler::getInstance()
-                                  .getPinsData()[DEPLOYMENT_PIN]
-                                  .lastState;
+
+            // TODO: Add servo positions
 
             // Board status
-            tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
+            tm.vbat         = 0;
             tm.temperature  = ms5803Data.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
-            mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                                RadioConfig::MAV_COMPONENT_ID,
-                                                &msg, &tm);
+            mavlink_msg_payload_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                 RadioConfig::MAV_COMPONENT_ID,
+                                                 &msg, &tm);
             break;
         }
         case SystemTMList::MAV_STATS_ID:
@@ -406,70 +323,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_VN100_ID:  // TODO
-        {
-            mavlink_imu_tm_t tm;
-
-            // auto imuData = Sensors::getInstance().getVN100LastSample();
-
-            // tm.timestamp = imuData.accelerationTimestamp;
-            // strcpy(tm.sensor_id, "VN100");
-            // tm.acc_x     = imuData.accelerationX;
-            // tm.acc_y     = imuData.accelerationY;
-            // tm.acc_z     = imuData.accelerationZ;
-            // tm.gyro_x    = imuData.angularVelocityX;
-            // tm.gyro_y    = imuData.angularVelocityY;
-            // tm.gyro_z    = imuData.angularVelocityZ;
-            // tm.mag_x     = imuData.magneticFieldX;
-            // tm.mag_y     = imuData.magneticFieldY;
-            // tm.mag_z     = imuData.magneticFieldZ;
-
-            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
-        case SensorsTMList::MAV_MPU9250_ID:
-        {
-            mavlink_imu_tm_t tm;
-
-            auto imuData = Sensors::getInstance().getMPU9250LastSample();
-
-            tm.timestamp = imuData.accelerationTimestamp;
-            strcpy(tm.sensor_id, "MPU9250");
-            tm.acc_x  = imuData.accelerationX;
-            tm.acc_y  = imuData.accelerationY;
-            tm.acc_z  = imuData.accelerationZ;
-            tm.gyro_x = imuData.angularVelocityX;
-            tm.gyro_y = imuData.angularVelocityY;
-            tm.gyro_z = imuData.angularVelocityZ;
-            tm.mag_x  = imuData.magneticFieldX;
-            tm.mag_y  = imuData.magneticFieldY;
-            tm.mag_z  = imuData.magneticFieldZ;
-
-            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
-        case SensorsTMList::MAV_ADS_ID:
-        {
-            mavlink_adc_tm_t tm;
-
-            auto adcData = Sensors::getInstance().getADS131M04LastSample();
-
-            tm.timestamp = adcData.timestamp;
-            strcpy(tm.sensor_id, "ADS131M04");
-            tm.channel_0 = adcData.voltage[0];
-            tm.channel_1 = adcData.voltage[1];
-            tm.channel_2 = adcData.voltage[2];
-            tm.channel_3 = adcData.voltage[3];
-
-            mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
         case SensorsTMList::MAV_MS5803_ID:
         {
             mavlink_pressure_tm_t tm;
@@ -559,22 +412,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             break;
         }
-        case SensorsTMList::MAV_STRAIN_GAUGE_ID:
-        {
-            mavlink_load_tm_t tm;
-
-            auto loadData = Sensors::getInstance().getLoadCellLastSample();
-
-            tm.timestamp = loadData.loadTimestamp;
-            strcpy(tm.sensor_id, "LOAD_CELL");
-            tm.load = loadData.load;
-
-            mavlink_msg_load_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                       RadioConfig::MAV_COMPONENT_ID, &msg,
-                                       &tm);
-
-            break;
-        }
 
         default:
         {
@@ -604,7 +441,7 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
         mavlink_servo_tm_t tm;
 
         tm.servo_id       = servoId;
-        tm.servo_position = Actuators::getInstance().getServoAngle(servoId);
+        tm.servo_position = Actuators::getInstance().getServoPosition(servoId);
 
         mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                     RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -623,4 +460,4 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
     return msg;
 }
 
-}  // namespace Main
+}  // namespace Payload

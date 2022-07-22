@@ -25,7 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
@@ -34,6 +34,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Main::ADAConfig;
 using namespace Main::AirBrakesControllerConfigs;
+using namespace Common;
 
 namespace Main
 {
@@ -276,7 +277,7 @@ void ADAController::state_ready(const Event& event)
         {
             return transition(&ADAController::state_calibrating);
         }
-        case FLIGHT_LIFTOFF_DETECTED:
+        case FLIGHT_LIFTOFF:
         {
             return transition(&ADAController::state_shadow_mode);
         }

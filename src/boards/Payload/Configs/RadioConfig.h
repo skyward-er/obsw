@@ -22,37 +22,40 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <common/Mavlink.h>
 
 #include <cstdio>
 
 namespace Payload
 {
 
-// TODO: update with the correct values
-static const uint32_t HR_GROUND_UPDATE_PERIOD = 62;  // [ms]
-static const uint32_t HR_FLIGHT_UPDATE_PERIOD = 10;
-static const uint32_t LR_UPDATE_PERIOD        = 100;  // [ms]
-static const uint32_t SD_UPDATE_PERIOD        = 10000;
+namespace RadioConfig
+{
 
-// TODO: define the correct ids for task scheduler
-static const uint8_t RADIO_HR_ID  = 200;
-static const uint8_t RADIO_LR_ID  = 201;
-static const uint8_t SD_UPDATE_ID = 202;
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-// Mavlink Driver queue settings
-static constexpr unsigned int MAV_OUT_QUEUE_LEN = 10;
-static constexpr unsigned int MAV_PKT_SIZE      = 63;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE  = 200;
+// Mavlink driver parameters
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
 
-// These two values are taken as is
-static const unsigned int TMTC_MAV_SYSID  = 171;
-static const unsigned int TMTC_MAV_COMPID = 96;
+// Mavlink ids
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-// Min guaranteed sleep time after each packet sent
-static const uint16_t SLEEP_AFTER_SEND = 0;  // [ms]
+// XBee parameters
+constexpr bool XBEE_80KBPS_DATA_RATE = true;
+constexpr int XBEE_TIMEOUT           = 5000;  // [ms]
 
-static const bool XBEE_80KBPS_DATA_RATE = true;
-static const int XBEE_TIMEOUT           = 5000;  // [ms]
+// Periodic telemetries frequency
+constexpr uint32_t FLIGHT_TM_PERIOD = 250;   // [ms]
+constexpr uint32_t STATS_TM_PERIOD  = 2000;  // [ms]
+
+// Periodic telemetries tasks ids
+constexpr uint8_t FLIGHT_TM_TASK_ID = 200;
+constexpr uint8_t STATS_TM_TASK_ID  = 201;
+
+}  // namespace RadioConfig
 
 }  // namespace Payload

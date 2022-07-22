@@ -25,7 +25,7 @@
 #define protected public
 
 #include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
 
@@ -62,9 +62,9 @@ TEST_CASE_METHOD(FSRControllerFixture, "FSR - Testing transitions from idle")
 {
     controller->transition(&FlightStatsRecorder::state_idle);
 
-    SECTION("FLIGHT_LIFTOFF_DETECTED -> LIFTOFF")
+    SECTION("FLIGHT_LIFTOFF -> LIFTOFF")
     {
-        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
+        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF},
                                   &FlightStatsRecorder::state_liftoff));
     }
 

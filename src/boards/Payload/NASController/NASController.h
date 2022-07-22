@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,56 +19,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <Payload/Control/Algorithms.h>
-#include <Payload/Payload.h>
+#include <algorithms/NAS/NAS.h>
+#include <algorithms/NAS/StateInitializer.h>
+#include <scheduler/TaskScheduler.h>
 
-using namespace Boardcore;
-using namespace std;
+#include <Eigen/Core>
+#include <functional>
 
 namespace Payload
 {
-Algorithms::Algorithms(TaskScheduler* scheduler)
+
+class NASController : public Boardcore::Singleton<NASController>
 {
-    this->scheduler = scheduler;
+    friend Boardcore::Singleton<NASController>;
 
-    // Init the algorithms
-    NASInit();
-}
+public:
+    void init();
 
-Algorithms::~Algorithms()
-{
-    // Destroy all the algorithms
-    delete nas;
-}
+    bool start();
 
-bool Algorithms::start()
-{
-    // Start the scheduler
-    return scheduler->start();
-}
+    void update();
 
-void Algorithms::NASInit()
-{
-    nas = new NASController<BMX160Data, UBXGPSData>(
-        bind(&Sensors::getImuBMX160LastSample,
-             Payload::Payload::getInstance().sensors),
-        bind(&Sensors::getGPSLastSample,
-             Payload::Payload::getInstance().sensors),
-        scheduler);
+    void calculateInitialOrientation();
 
-    // TODO should we set the initial orientation and position?
-    nas->init();
-}
+    void setInitialPosition(Eigen::Vector2f position);
 
-/**
- * GETTERS
- */
-NASState Algorithms::getNASLastSample()
-{
-    // Pause the kernel for sync purposes
-    miosix::PauseKernelLock lock;
-    return nas->getLastSample();
-}
+    Boardcore::NASState getNasState();
+
+    void setReferenceValues(const Boardcore::ReferenceValues reference);
+
+    Boardcore::ReferenceValues getReferenceValues();
+
+private:
+    NASController();
+
+    Boardcore::NAS nas;
+
+    Eigen::Vector3f initialOrientation;
+    Eigen::Vector2f initialPosition{42.571820, 12.585861};
+
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("parafoil.nas");
+};
+
 }  // namespace Payload

@@ -26,7 +26,7 @@
 #include <Main/Configs/ActuatorsConfigs.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
@@ -36,6 +36,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Main::AirBrakesControllerConfigs;
 using namespace Main::ActuatorsConfigs;
+using namespace Common;
 
 namespace Main
 {
@@ -56,8 +57,7 @@ void AirBrakesController::state_init(const Event& event)
         {
             logStatus(AirBrakesControllerState::INIT);
 
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
-                                                   DPL_SERVO_RESET_POS);
+            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
             Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
 
             return transition(&AirBrakesController::state_idle);
@@ -88,7 +88,7 @@ void AirBrakesController::state_idle(const Event& event)
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
             break;
         }
-        case FLIGHT_LIFTOFF_DETECTED:
+        case FLIGHT_LIFTOFF:
         {
             return transition(&AirBrakesController::state_shadow_mode);
         }

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,12 @@
 
 #pragma once
 
+#include <Payload/Configs/RadioConfig.h>
 #include <Singleton.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 
-/**
- * @brief This class represents the collection of data that can be sent via
- * radio communication. This refers to mavlink libraries and structures created
- * in the correct .xml file.
- *
- * It is necessary that this singleton class handles the structure update
- * (when a message pack is requested).
- * The pack method is the core of the class. It returns a mavlink_message
- * with the message data(specified with the id) requested.
- */
-
-namespace Parafoil
+namespace Payload
 {
 
 class TMRepository : public Boardcore::Singleton<TMRepository>
@@ -45,24 +35,17 @@ class TMRepository : public Boardcore::Singleton<TMRepository>
     friend class Boardcore::Singleton<TMRepository>;
 
 public:
-    /**
-     * @brief Retrieve a system telemetry message in packed form.
-     *
-     * @param reqTm Required telemetry.
-     * @return Packed mavlink telemetry or a nack.
-     */
-    mavlink_message_t packSystemTm(SystemTMList reqTm);
+    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
+                                   uint8_t seq);
 
-    /**
-     * @brief Retrieve a sensor telemetry message in packed form.
-     *
-     * @param reqTm Required telemetry.
-     * @return Packed mavlink telemetry or a nack.
-     */
-    mavlink_message_t packSensorsTm(SensorsTMList reqTm);
+    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
+                                    uint8_t seq);
+
+    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
+                                  uint8_t seq);
 
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
 };
 
-}  // namespace Parafoil
+}  // namespace Payload

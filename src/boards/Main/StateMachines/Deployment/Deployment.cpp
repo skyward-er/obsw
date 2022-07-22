@@ -25,7 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfigs.h>
 #include <Main/Configs/DeploymentConfig.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <logger/Logger.h>
@@ -35,6 +35,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Main::DeploymentConfig;
 using namespace Main::ActuatorsConfigs;
+using namespace Common;
 
 namespace Main
 {

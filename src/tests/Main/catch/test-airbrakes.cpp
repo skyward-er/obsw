@@ -25,7 +25,7 @@
 #define protected public
 
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <miosix.h>
 #include <utils/TestUtils/TestHelper.h>
 
@@ -87,9 +87,9 @@ TEST_CASE_METHOD(AirBrakesControllerFixture,
                                   &AirBrakesController::state_idle));
     }
 
-    SECTION("FLIGHT_LIFTOFF_DETECTED -> SHADOW_MODE")
+    SECTION("FLIGHT_LIFTOFF -> SHADOW_MODE")
     {
-        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF_DETECTED},
+        REQUIRE(testFSMTransition(*controller, Event{FLIGHT_LIFTOFF},
                                   &AirBrakesController::state_shadow_mode));
     }
 }

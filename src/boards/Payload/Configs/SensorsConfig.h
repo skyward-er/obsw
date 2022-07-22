@@ -20,23 +20,23 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/adc/InternalADC.h>
+#include <interfaces-impl/hwmapping.h>
+#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/BMX160/BMX160Config.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/calibration/AxisOrientation.h>
+#include <sensors/calibration/Calibration.h>
 
 namespace Payload
 {
-/**
- * COEFFICIENTS
- */
+
+namespace SensorsConfig
+{
+
 static constexpr float INTERNAL_ADC_VREF                 = 3.3;
 static constexpr float BATTERY_VOLTAGE_COEFF             = 5.98;
 static constexpr unsigned int PRESS_DIGITAL_TEMP_DIVIDER = 5;
 static constexpr float REFERENCE_VOLTAGE                 = 5.0;
-
-/**
- * PORTS AND CHANNELS
- */
-static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
-    Boardcore::InternalADC::Channel::CH5;
 
 static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
     Boardcore::ADS1118::MUX_AIN0_GND;
@@ -65,9 +65,6 @@ static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
 static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_VREF =
     Boardcore::ADS1118::FSR_6_144;
 
-/**
- * CONFIGURATIONS
- */
 static constexpr Boardcore::BMX160Config::AccelerometerRange
     IMU_BMX_ACC_FULLSCALE_ENUM =
         Boardcore::BMX160Config::AccelerometerRange::G_16;
@@ -143,5 +140,9 @@ static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 static constexpr unsigned int STATIC_PRESS_CALIB_SAMPLES_NUM = 50;
 static constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
 static constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
+
+static constexpr unsigned int CALIBRATION_DURATION = 2000;
+
+}  // namespace SensorsConfig
 
 }  // namespace Payload

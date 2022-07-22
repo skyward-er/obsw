@@ -23,7 +23,7 @@
 #include "FlightStatsRecorder.h"
 
 #include <Main/Configs/FlightStatsRecorderConfig.h>
-#include <Main/events/Events.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <logger/Logger.h>
@@ -32,6 +32,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main::FlightStatsRecorderConfig;
+using namespace Common;
 
 namespace Main
 {
@@ -50,7 +51,7 @@ void FlightStatsRecorder::state_idle(const Event& event)
         {
             return logStatus(FlightStatsRecorderState::IDLE);
         }
-        case FLIGHT_LIFTOFF_DETECTED:
+        case FLIGHT_LIFTOFF:
         {
             return transition(&FlightStatsRecorder::state_liftoff);
         }

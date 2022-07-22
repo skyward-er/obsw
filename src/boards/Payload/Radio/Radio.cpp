@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,13 @@
 
 #include "Radio.h"
 
-#include <Main/Actuators/Actuators.h>
-#include <Main/BoardScheduler.h>
-#include <Main/Buses.h>
-#include <Main/PinHandler/PinHandler.h>
-#include <Main/Sensors/Sensors.h>
-#include <Main/TMRepository/TMRepository.h>
+#include <Payload/Actuators/Actuators.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Buses.h>
+#include <Payload/PinHandler/PinHandler.h>
+#include <Payload/Sensors/Sensors.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
-#include <events/EventBroker.h>
 #include <radio/Xbee/ATCommands.h>
 
 #include <functional>
@@ -39,21 +37,20 @@ using namespace std;
 using namespace placeholders;
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::RadioConfig;
+using namespace Payload::RadioConfig;
 using namespace Common;
 
-// sx127x interrupt
+/**
+ * @brief We must define the interrupt handler. This calls
+ * the message handler which is: handleMavlinkMessage
+ */
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    using namespace Main;
-
-    if (Radio::getInstance().sx1278)
-    {
-        Radio::getInstance().sx1278->handleDioIRQ();
-    }
+    if (Payload::Radio::getInstance().xbee != nullptr)
+        Payload::Radio::getInstance().xbee->handleATTNInterrupt();
 }
 
-namespace Main
+namespace Payload
 {
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
@@ -214,10 +211,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             switch (servoId)
             {
                 case AIRBRAKES_SERVO:
-                    EventBroker::getInstance().post(ABK_WIGGLE, TOPIC_ABK);
+                    EventBroker::getInstance().post(TOPIC_ABK, ABK_WIGGLE);
                     break;
                 case EXPULSION_SERVO:
-                    EventBroker::getInstance().post(DPL_WIGGLE, TOPIC_DPL);
+                    EventBroker::getInstance().post(TOPIC_DPL, DPL_WIGGLE);
                     break;
 
                 default:
@@ -328,7 +325,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       topicId, eventId);
 
             EventBroker::getInstance().post(topicId, eventId);
-
             break;
         }
 
@@ -487,41 +483,40 @@ void Radio::logStatus()
 
 bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
 {
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
+    // return mavDriver->enqueueMsg(
+    //     TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
+    return false;
 }
 
 bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
                           uint8_t seq)
 {
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
+    // return mavDriver->enqueueMsg(
+    //     TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
+    return false;
 }
 
 bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
 {
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
+    // return mavDriver->enqueueMsg(
+    //     TMRepository::getInstance().packServoTm(servoId, msgId, seq));
+    return false;
 }
 
 Radio::Radio()
 {
-    // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+    // Create the SPI bus configuration
+    SPIBusConfig config{};
+    config.clockDivider = SPI::ClockDivider::DIV_16;
 
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
-
-    SPIBus bus(SPI5);
-    GpioPin cs = sensors::sx127x::cs::getPin();
-
-    sx1278 = new SX1278(bus, cs);
-
-    // Use default configuration
-    SX1278::Config config;
-    sx1278->init(config);
+    // Create the xbee object
+    xbee = new Xbee::Xbee(
+        Buses::getInstance().spi1, config, miosix::xbee::cs::getPin(),
+        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
 
     mavDriver =
-        new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                      0, MAV_OUT_BUFFER_MAX_AGE);
+        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
+                      MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the flight and statistics telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -530,6 +525,19 @@ Radio::Radio()
     BoardScheduler::getInstance().getScheduler().addTask(
         [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
         STATS_TM_TASK_ID);
+
+    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
+                            miosix::xbee::attn::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
+
+    // Set the callback
+    xbee->setOnFrameReceivedListener(
+        bind(&Radio::onXbeeFrameReceived, this, _1));
+
+    // Set the data rate
+    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 }
 
-}  // namespace Main
+void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
+
+}  // namespace Payload
