@@ -50,14 +50,14 @@ protected:
         switch (ev)
         {
             case common::CanEvent::EV_LIFTOFF:
-                Led.status(common::CanEvent::EV_LIFTOFF);
+                // Led.status(common::CanEvent::EV_LIFTOFF);
                 break;
             case common::CanEvent::EV_APOGEE:
 
                 break;
             case common::CanEvent::EV_ARMED:
-                Led.status(common::CanEvent::EV_ARMED);
-                Runcam.startRecording();
+                // Led.status(common::CanEvent::EV_ARMED);
+                // Runcam.startRecording();//check if the cam1 is recording
                 break;
             default:
                 TRACE("Invalid event \n");

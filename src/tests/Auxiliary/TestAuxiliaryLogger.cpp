@@ -37,7 +37,7 @@ using namespace Boardcore::Canbus;
 using namespace miosix;
 using namespace common;
 
-#define SLP 100
+int SLP = 2000;
 miosix::FastMutex mutex;
 MockPitot p(Pitot);
 
@@ -52,12 +52,16 @@ void print(CanData data)
             {
                 case Liftoff:
                     TRACE("Received event Liftoff\n");
+                    SLP = 100;
                     break;
                 case Apogee:
                     TRACE("Received event Apogee\n");
                     break;
                 case Armed:
                     TRACE("Received event Armed\n");
+                    SLP = 1000;
+                    interfaces::camMosfet::high();
+                    // Enable the runcam the blue led should be blinking
                     break;
                 default:
                     TRACE("Received uknown event id: %d\n",
@@ -109,9 +113,12 @@ int main()
     protocol.start();
 
     TRACE("start \n");
+
     while (true)
     {
-        Thread::sleep(10000);
-        // TRACE("received packet \n");
+        ledOn();
+        Thread::sleep(SLP);
+        ledOff();
+        Thread::sleep(SLP);
     }
 }
