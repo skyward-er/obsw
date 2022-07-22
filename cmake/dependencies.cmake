@@ -58,3 +58,8 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
 )
+
+
+set(COMMON
+    src/boards/common/canbus/CanHandler.cpp
+)

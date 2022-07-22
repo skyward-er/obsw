@@ -21,7 +21,6 @@
  */
 
 #include <common/canbus/CanHandler.h>
-#include <common/canbus/MockSensors/MockAirBrakes.h>
 #include <common/canbus/MockSensors/MockPitot.h>
 #include <time.h>
 #include <utils/collections/IRQCircularBuffer.h>
@@ -45,29 +44,6 @@ void receivePressure(MockPitot* pitot)
         TRACE("ERROR received a pressure \n");
     }
 }
-void receiveAir(MockAirBrakes* air)
-{
-    int counter = 0;
-    while (true)
-    {
-        while (running)
-        {
-            clock_t start = clock();
-            for (int i = 0; i < nAir; i++)
-            {
-                (*air).waitTillUpdated();
-                counter++;
-                (*air).getData();
-            }
-            float time = float(clock() - start) / CLOCKS_PER_SEC;
-            TRACE("received %d packets in %f second\n", nAir, time);
-        }
-        while (!running)
-        {
-            Thread::sleep(10);
-        }
-    }
-}
 
 int main()
 {
@@ -75,11 +51,9 @@ int main()
     Filter f;
     f.source = Boards::Main;
 
-    MockPitot* pitot         = new MockPitot(Pitot);
-    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
-    handler                  = new CanHandler(Boards::Main);
+    MockPitot* pitot = new MockPitot(Pitot);
+    handler          = new CanHandler(Boards::Main);
     handler->addFilter(f);
-    (*handler).addMock(airBrakes);
     (*handler).startHandler();
 
     // We expect to receive multiple*100 packet of AereoBrakes packet,and
@@ -89,7 +63,6 @@ int main()
     TRACE("Start sending\n");
     if (evh.start())
     {
-        std::thread recAir(receiveAir, airBrakes);
         std::thread recPress(receivePressure, pitot);
         for (;;)
         {

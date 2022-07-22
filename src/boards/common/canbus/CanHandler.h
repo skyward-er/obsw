@@ -33,6 +33,11 @@
 namespace common
 {
 
+/**
+ * @brief Simple Struct for filters, to accept all incoming messages do not
+ * change any value
+ *
+ */
 struct Filter
 {
     int8_t source      = -1;
@@ -60,74 +65,34 @@ public:
      * @brief Construct a new CanHandler object
      *
      * @param source: the Id of the sending board.
-     * @param pitotInstance: An instance of MockPitot.
-     * @param brakesInstance: An instance of MockAirBrakes
      */
-    CanHandler(Boards source)
-    {
+    explicit CanHandler(Boards source);
 
-        Boardcore::Canbus::CanbusDriver::AutoBitTiming bt;
-        bt.baudRate    = BAUD_RATE;
-        bt.samplePoint = SAMPLE_POINT;
-        canPhy         = new Boardcore::Canbus::CanbusDriver(CAN1, {}, bt);
-        this->source   = source;
-        can            = new Boardcore::Canbus::CanProtocol(
-                       canPhy,
-                       std::bind(&CanHandler::callback, this, std::placeholders::_1));
-    }
-
-    void startHandler()
-    {
-        canPhy->init();
-        (*can).start();
-    }
-
-    bool addFilter(Filter filter)
-    {
-        uint32_t filterId   = 0;
-        uint32_t filterMask = 0;
-
-        if (filter.source >= 0)
-        {
-            filterId =
-                (filter.source
-                 << (Boardcore::Canbus::ShiftInformation::shiftSource +
-                     Boardcore::Canbus::ShiftInformation::shiftSequentialInfo));
-            filterMask =
-                (Boardcore::Canbus::IDMask::source
-                 << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
-        }
-
-        if (filter.destination >= 0)
-        {
-            filterId =
-                filterId |
-                (filter.destination
-                 << (Boardcore::Canbus::ShiftInformation::shiftDestination +
-                     Boardcore::Canbus::ShiftInformation::shiftSequentialInfo));
-            filterMask =
-                filterMask |
-                (Boardcore::Canbus::IDMask::destination
-                 << Boardcore::Canbus::ShiftInformation::shiftSequentialInfo);
-        }
-        Boardcore::Canbus::Mask32FilterBank filterBank(filterId, filterMask, 1,
-                                                       1, 0, 0, 0);
-        return canPhy->addFilter(filterBank);
-    }
-
-    bool addMock(MockSensor *newSensor)
-    {
-        if (numberOfObservedSensor < SensorID::NumberOfSensor)
-        {
-            miosix::Lock<miosix::FastMutex> l(mutex);
-            sensors[numberOfObservedSensor] = newSensor;
-            numberOfObservedSensor++;
-            return true;
-        }
-        return false;
-    }
     /**
-     * @brief Calculate the id of the packet and sends it to CanProtocol.
+     * @brief Init the physical canbus and start CanProtocol.
+     *
+     * @warning You can only add filters before calling this function
+     */
+    void startHandler();
+
+    /**
+     * @brief Adds filter to the physical canbus .
+     *
+     * @param filter: The filter you want to apply
+     * @warning You can only add filters before calling startHandler()
+     */
+    bool addFilter(Filter filter);
+
+    /**
+     * @brief Adds a MockSensor to the list of watchedSensor .
+     *
+     * @param newSensor: The sensor to add to the watch-list
+     */
+    bool addMock(MockSensor *newSensor);
+
+    /**
+     * @brief Calculate the id of the packet and calls the send function of
+     * CanProtocol.
      *
      * @param destination: The Id of the destination board.
      * @param p: The priority of the packet.
@@ -136,24 +101,7 @@ public:
      * @param toSend: The packet to be sent.
      */
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
-                 Boardcore::Canbus::CanData toSend)
-    {
-        if (toSend.length > 0)
-        {
-            toSend.canId =
-                ((p << Boardcore::Canbus::shiftPriority) &
-                 Boardcore::Canbus::priority) |
-                ((t << Boardcore::Canbus::shiftType) &
-                 Boardcore::Canbus::type) |
-                ((source << Boardcore::Canbus::shiftSource) &
-                 Boardcore::Canbus::source) |
-                ((destination << Boardcore::Canbus::shiftDestination) &
-                 Boardcore::Canbus::destination) |
-                ((idT << Boardcore::Canbus::shiftIdType) &
-                 Boardcore::Canbus::idType);
-            can->send(toSend);
-        }
-    }
+                 Boardcore::Canbus::CanData toSend);
 
     /**
      * @brief Calls sendData when we want to send a event (without creating a
@@ -164,62 +112,20 @@ public:
      * @param t: The type of the packet sent.
      * @param idT: The IDtype of the packet sent.
      */
-    void sendCan(Boards destination, Priority p, Type t, uint8_t idT)
-    {
-        // If we have to send a command it is easier to call the function using
-        // a int
+    void sendCan(Boards destination, Priority p, Type t, uint8_t idT);
 
-        Boardcore::Canbus::CanData toSend;
-        toSend.length     = 1;
-        toSend.payload[0] = 0;
-        sendCan(destination, p, t, idT, toSend);
-    }
-
-    ~CanHandler() { delete canPhy; }
+    ~CanHandler();
 
 protected:
     /**
-     * @brief Keeps listening on CanProtocol for new packets, when a new packet
-     * is received we update data and send events as needed
+     * @brief Function passe to CanProtocol called once a CanData message is
+     * created, based on the id calls the right event or puts the data in the
+     * right sensor is received we update data and send events as needed
+     *
+     * @param data: The CanData message to decode
+     * @warning Execution time should be kept to a minimum
      */
-    void callback(Boardcore::Canbus::CanData data)
-    {
-        switch ((data.canId & Boardcore::Canbus::type) >>
-                Boardcore::Canbus::shiftType)
-        {
-            case Events:
-                switch ((data.canId & Boardcore::Canbus::idType) >>
-                        Boardcore::Canbus::shiftIdType)
-                {
-                    case Liftoff:
-                        Boardcore::EventBroker::getInstance().post(
-                            Boardcore::Event{EV_LIFTOFF}, TOPIC_CAN_EVENTS);
-                        break;
-                    case Apogee:
-                        Boardcore::EventBroker::getInstance().post(
-                            Boardcore::Event{EV_APOGEE}, TOPIC_CAN_EVENTS);
-                        break;
-                    case Armed:
-                        Boardcore::EventBroker::getInstance().post(
-                            Boardcore::Event{EV_ARMED}, TOPIC_CAN_EVENTS);
-                        break;
-                }
-                break;
-
-            case Sensor:
-                uint8_t tempID = (data.canId & Boardcore::Canbus::idType) >>
-                                 Boardcore::Canbus::shiftIdType;
-                for (int i = 0; i < numberOfObservedSensor; i++)
-                {
-                    miosix::Lock<miosix::FastMutex> l(mutex);
-                    if (sensors[i]->getID() == tempID)
-                    {
-                        sensors[i]->put(data);
-                    }
-                }
-                break;
-        }
-    }
+    void callback(Boardcore::Canbus::CanData data);
 };
 
 }  // namespace common

@@ -29,6 +29,10 @@
 namespace common
 {
 
+/**
+ * @brief Class to parse and de-parse a sensor data into a CanData packetS
+ *
+ */
 class MockSensor
 {
 public:

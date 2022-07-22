@@ -58,9 +58,6 @@ protected:
             case common::CanEvent::EV_ARMED:
                 TRACE("Received EV_ARMED \n");
                 break;
-            case common::CanEvent::EV_AIRBRAKES:
-                TRACE("Received EV_AIRBRAKES \n");
-                break;
             default:
                 TRACE("Invalid event \n");
         }
