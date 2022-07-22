@@ -508,16 +508,13 @@ Radio::Radio()
 {
     // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
-
-    SPIBus bus(SPI5);
-    GpioPin cs = sensors::sx127x::cs::getPin();
-
-    sx1278 = new SX1278(bus, cs);
+    sx1278 =
+        new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
     // Use default configuration
-    SX1278::Config config;
-    sx1278->init(config);
+    sx1278->init({});
+
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
 
     mavDriver =
         new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),

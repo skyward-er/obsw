@@ -483,24 +483,21 @@ void Radio::logStatus()
 
 bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
 {
-    // return mavDriver->enqueueMsg(
-    //     TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
-    return false;
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
 }
 
 bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
                           uint8_t seq)
 {
-    // return mavDriver->enqueueMsg(
-    //     TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
-    return false;
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
 }
 
 bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
 {
-    // return mavDriver->enqueueMsg(
-    //     TMRepository::getInstance().packServoTm(servoId, msgId, seq));
-    return false;
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
 }
 
 Radio::Radio()
@@ -511,12 +508,20 @@ Radio::Radio()
 
     // Create the xbee object
     xbee = new Xbee::Xbee(
-        Buses::getInstance().spi1, config, miosix::xbee::cs::getPin(),
+        Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
         miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
+    xbee->setOnFrameReceivedListener(
+        bind(&Radio::onXbeeFrameReceived, this, _1));
+
+    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
     mavDriver =
         new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
                       MAV_OUT_BUFFER_MAX_AGE);
+
+    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
+                            miosix::xbee::attn::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
 
     // Add to the scheduler the flight and statistics telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -525,17 +530,6 @@ Radio::Radio()
     BoardScheduler::getInstance().getScheduler().addTask(
         [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
         STATS_TM_TASK_ID);
-
-    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
-                            miosix::xbee::attn::getPin().getNumber(),
-                            InterruptTrigger::FALLING_EDGE);
-
-    // Set the callback
-    xbee->setOnFrameReceivedListener(
-        bind(&Radio::onXbeeFrameReceived, this, _1));
-
-    // Set the data rate
-    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 }
 
 void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}

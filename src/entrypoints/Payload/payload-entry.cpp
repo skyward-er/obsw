@@ -41,7 +41,9 @@ int main()
 
     // Initialize the servo outputs
     Actuators::getInstance().enableServo(PARAFOIL_SERVO1);
+    Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0);
     Actuators::getInstance().enableServo(PARAFOIL_SERVO2);
+    Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0);
 
     // Start the radio
     Radio::getInstance().start();

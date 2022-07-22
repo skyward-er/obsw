@@ -154,8 +154,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_payload_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
-            ;
-            auto &nas = NASController::getInstance();
 
             auto ms5803Data = sensors.getMS5803LastSample();
             auto imuData    = sensors.getBMX160WithCorrectionLastSample();

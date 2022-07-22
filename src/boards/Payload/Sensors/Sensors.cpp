@@ -82,7 +82,11 @@ MS5803Data Sensors::getMS5803LastSample()
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::PauseKernelLock lock;
-    return ubxGps->getLastSample();
+
+    if (ubxGps != nullptr)
+        return ubxGps->getLastSample();
+    else
+        return {};
 }
 
 ADS1118Data Sensors::getADS1118LastSample()
@@ -153,9 +157,9 @@ Sensors::Sensors()
     bmx160WithCorrectionInit();
     lis3mdlInit();
     ms5803Init();
-    ubxGpsInit();
-    pitotPressureInit();
+    // ubxGpsInit();
     ads1118Init();
+    staticPressureInit();
     dplPressureInit();
     pitotPressureInit();
 
@@ -202,7 +206,7 @@ void Sensors::bmx160Init()
     config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     bmx160 =
-        new BMX160(Buses::getInstance().spi2,
+        new BMX160(Buses::getInstance().spi1,
                    miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
 
     SensorInfo info("BMX160", IMU_BMX_SAMPLE_PERIOD,
@@ -257,7 +261,7 @@ void Sensors::lis3mdlInit()
     config.temperatureDivider = 1;
 
     lis3mdl =
-        new LIS3MDL(Buses::getInstance().spi2,
+        new LIS3MDL(Buses::getInstance().spi1,
                     miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
 
     // Create the sensor info
@@ -275,7 +279,7 @@ void Sensors::ms5803Init()
     spiConfig.mode         = SPI::Mode::MODE_3;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    ms5803 = new MS5803(Buses::getInstance().spi2,
+    ms5803 = new MS5803(Buses::getInstance().spi1,
                         miosix::sensors::ms5803::cs::getPin(), spiConfig,
                         PRESS_DIGITAL_TEMP_DIVIDER);
 
@@ -315,7 +319,7 @@ void Sensors::ads1118Init()
     config.bits.mode              = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
 
     ads1118 =
-        new ADS1118(Buses::getInstance().spi2,
+        new ADS1118(Buses::getInstance().spi1,
                     miosix::sensors::ads1118::cs::getPin(), config, spiConfig);
 
     ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
