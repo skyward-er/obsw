@@ -92,9 +92,13 @@ void AutomaticWingAlgorithm::step()
     if (error < -Constants::PI || Constants::PI < error)
     {
         error += Constants::PI;
+        bool positiveInput = error > 0;
 
-        int moduledError = (int)fmod(error, 2 * Constants::PI);
-        if (moduledError == 0 && error > 0)
+        error =
+            error - floor(error / (2 * Constants::PI)) * (2 * Constants::PI);
+
+        // error = fmod(error, 2 * Constants::PI);
+        if (error == 0 && positiveInput)
         {
             error = 2 * Constants::PI;
         }
@@ -108,6 +112,9 @@ void AutomaticWingAlgorithm::step()
 
     // Convert the result from radians back to degrees
     result = (result / (2 * Constants::PI)) * 360;
+
+    // Flip the servo orientation
+    result *= -1;
 
     // Actuate the result
     if (result > 0)

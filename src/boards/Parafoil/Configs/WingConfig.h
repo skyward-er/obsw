@@ -39,13 +39,13 @@ static const uint32_t WING_UPDATE_PERIOD = 100;  // milliseconds
 static const uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
 // ALGORITHM START AND FLARE ARMING CONSTANTS
-static const float WING_ALGORITHM_ARM_ALTITUDE  = 250;   // [m]
-static const float WING_ALGORITHM_START_ALTITUE = 200;   // [m]
-static const float WING_FLARE_ALTITUDE          = 1275;  // [m]
+static const float WING_ALGORITHM_ARM_ALTITUDE  = 250;  // [m]
+static const float WING_ALGORITHM_START_ALTITUE = 230;  // [m]
+static const float WING_FLARE_ALTITUDE          = 15;   // [m]
 
 static float WING_CALIBRATION_PRESSURE    = 101325;  // Pa
 static float WING_CALIBRATION_TEMPERATURE = 300;     // Kelvin
-static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
+static uint8_t WING_PRESSURE_MEAN_COUNT   = 50;
 
 // SERVOS CONFIGURATIONS
 static miosix::GpioPin SERVO1PIN(GPIOB_BASE, 7);

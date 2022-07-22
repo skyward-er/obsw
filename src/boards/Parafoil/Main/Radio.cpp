@@ -178,12 +178,12 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             break;
         }
-        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
+        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
         {
             float lat =
-                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
+                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
             float lon =
-                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
+                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
 
             // Set also the barometer reference
             ParafoilTest::getInstance().sensors->calibrate();
@@ -201,7 +201,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                     targetPosition);
 
                 Logger::getInstance().log(WingTargetPositionData{
-                    gps.latitude, gps.longitude, targetPosition(0),
+                    lat, lon, gps.latitude, gps.longitude, targetPosition(0),
                     targetPosition(1)});
 
                 // Set also the initial position of the NASController
