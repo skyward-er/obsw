@@ -21,7 +21,6 @@
  */
 
 #include <common/canbus/CanHandler.h>
-#include <common/canbus/MockSensors/MockAirBrakes.h>
 #include <common/canbus/MockSensors/MockPitot.h>
 #include <time.h>
 #include <utils/collections/IRQCircularBuffer.h>
@@ -54,47 +53,6 @@ void receivePressure(MockPitot* pitot)
             }
             float time = float(clock() - start) / CLOCKS_PER_SEC;
             TRACE("received %d packets in %f second\n", nPressure, time);
-        }
-        while (!running)
-        {
-            Thread::sleep(10);
-        }
-    }
-}
-
-void receiveAir(MockAirBrakes* air)
-{
-    while (true)
-    {
-        (*air).waitTillUpdated();
-        (*air).getData();
-        TRACE("ERROR received an AirBrake packet\n");
-    }
-}
-
-void sendAirBrakes(MockAirBrakes* airbrakes)
-{
-    int f;
-    int msWait = 1000 / (nAir);
-    while (true)
-    {
-        for (f = 0; f < nAir && running; f++)
-        {
-            {
-                miosix::Lock<miosix::FastMutex> l(mutex);
-                (*handler).sendCan(
-                    Boards::Auxiliary, common::Priority::Critical, Type::Sensor,
-                    SensorID::AirBrakes, (*airbrakes).parseData(69));
-            }
-            Thread::sleep(msWait);
-        }
-        TRACE("Sent %d airbrakes packets\n", f);
-        if (f == nAir)
-        {
-            while (running)
-            {
-                Thread::sleep(10);
-            }
         }
         while (!running)
         {
@@ -143,10 +101,9 @@ int main()
 {
     // We accept only packet with destination main
     Filter f;
-    f.destination            = Boards::Main;
-    MockPitot* pitot         = new MockPitot(Pitot);
-    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
-    handler                  = new CanHandler(Boards::Main);
+    f.destination    = Boards::Main;
+    MockPitot* pitot = new MockPitot(Pitot);
+    handler          = new CanHandler(Boards::Main);
     handler->addFilter(f);
     (*handler).addMock(pitot);
 
@@ -159,8 +116,6 @@ int main()
     if (evh.start())
     {
         std::thread recPress(receivePressure, pitot);
-        std::thread recAir(receiveAir, airBrakes);
-        std::thread sendAir(sendAirBrakes, airBrakes);
         std::thread sendCmd(sendCommands);
         for (;;)
         {

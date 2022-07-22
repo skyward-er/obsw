@@ -24,15 +24,14 @@
 #include <events/EventBroker.h>
 namespace common
 {
-uint32_t BAUD_RATE = 500 * 1000;
-float SAMPLE_POINT = 87.5f / 100.0f;
+const uint32_t BAUD_RATE = 500 * 1000;
+const float SAMPLE_POINT = 87.5f / 100.0f;
 
 enum CanEvent : uint8_t
 {
     EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
     EV_APOGEE,
-    EV_ARMED,
-    EV_AIRBRAKES
+    EV_ARMED
 };
 
 enum CanTopics : uint8_t
@@ -42,8 +41,7 @@ enum CanTopics : uint8_t
 
 enum SensorID : uint8_t
 {
-    AirBrakes = 0x00,
-    Pitot     = 0x01,
+    Pitot,
     NumberOfSensor
 };
 

@@ -87,9 +87,6 @@ protected:
             case common::CanEvent::EV_ARMED:
                 armed++;
                 break;
-            case common::CanEvent::EV_AIRBRAKES:
-
-                break;
             default:
                 TRACE("Invalid event \n");
         }

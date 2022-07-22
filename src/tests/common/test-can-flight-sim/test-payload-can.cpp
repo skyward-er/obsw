@@ -21,7 +21,6 @@
  */
 
 #include <common/canbus/CanHandler.h>
-#include <common/canbus/MockSensors/MockAirBrakes.h>
 #include <common/canbus/MockSensors/MockPitot.h>
 #include <utils/collections/IRQCircularBuffer.h>
 
@@ -45,15 +44,6 @@ void receivePressure(MockPitot* pitot)
     }
 }
 
-void receiveAir(MockAirBrakes* air)
-{
-    while (true)
-    {
-        (*air).waitTillUpdated();
-        (*air).getData();
-        TRACE("ERROR received an AirBrake packet\n");
-    }
-}
 void sendPressure(MockPitot* pitot)
 {
     CanData temp = pitot->parseData({240, 1234.23});
@@ -94,8 +84,6 @@ int main()
     handler          = new CanHandler(Boards::Main);
     handler->addFilter(f);
 
-    MockAirBrakes* airBrakes = new MockAirBrakes(AirBrakes);
-
     (*handler).startHandler();
 
     // We expect to send multiple*100 packet of Pressure packet and receive
@@ -105,7 +93,6 @@ int main()
     {
         std::thread sendPress(sendPressure, pitot);
         std::thread recPress(receivePressure, pitot);
-        std::thread recAir(receiveAir, airBrakes);
         for (;;)
         {
             running = true;

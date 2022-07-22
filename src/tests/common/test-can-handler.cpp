@@ -21,7 +21,6 @@
  */
 
 #include <common/canbus/CanHandler.h>
-#include <common/canbus/MockSensors/MockAirBrakes.h>
 #include <common/canbus/MockSensors/MockPitot.h>
 #include <drivers/canbus/BusLoadEstimation.h>
 #include <drivers/canbus/Canbus.h>
@@ -33,20 +32,9 @@
 
 #define slp 1000
 
-constexpr uint32_t BAUD_RATE = 500 * 1000;
-constexpr float SAMPLE_POINT = 87.5f / 100.0f;
-
 using namespace Boardcore::Canbus;
 using namespace miosix;
 using namespace common;
-
-#ifdef _ARCH_CORTEXM3_STM32
-using CanRX = Gpio<GPIOA_BASE, 11>;
-using CanTX = Gpio<GPIOA_BASE, 12>;
-#else
-using CanRX = Gpio<GPIOA_BASE, 11>;
-using CanTX = Gpio<GPIOA_BASE, 12>;
-#endif
 
 void checkPressureData(MockPitot* pitot)
 {
@@ -69,46 +57,11 @@ void checkPressureData(MockPitot* pitot)
     }
 }
 
-void checkAirBrakesData(MockAirBrakes* airbrakes)
-{
-    Thread::sleep(10);  // De-synchronize the sending from the receiving;
-
-    while (true)
-    {
-        if ((*airbrakes).waitTillUpdated())
-            TRACE("Received AirBrakes packet. Data: %d\n",
-                  (*airbrakes).getData());
-        else
-            TRACE("No AirBrakes packet received in this time slot\n");
-
-        Thread::sleep(slp);
-    }
-}
-
 int main()
 {
-
-    {
-        miosix::FastInterruptDisableLock dLock;
-
-#ifdef _ARCH_CORTEXM3_STM32
-        CanRX::mode(Mode::ALTERNATE);
-        CanTX::mode(Mode::ALTERNATE);
-#else
-        CanRX::mode(Mode::ALTERNATE);
-        CanTX::mode(Mode::ALTERNATE);
-
-        CanRX::alternateFunction(9);
-        CanTX::alternateFunction(9);
-#endif
-    }
-    // Allow every message
-
-    MockPitot* pitot         = new MockPitot(SensorID::Pitot);
-    MockAirBrakes* airBrakes = new MockAirBrakes(SensorID::AirBrakes);
+    MockPitot* pitot = new MockPitot(SensorID::Pitot);
     CanHandler handler(Boards::Main);
     handler.addMock(pitot);
-    handler.addMock(airBrakes);
     Filter f;  // empty filter to accept all incoming messages
 
     handler.addFilter(f);
@@ -119,7 +72,6 @@ int main()
     if (evh.start())
     {
         std::thread printPressureData(checkPressureData, pitot);
-        std::thread printAirData(checkAirBrakesData, airBrakes);
 
         for (;;)
         {
@@ -127,10 +79,6 @@ int main()
             handler.sendCan(Boards::Payload, common::Priority::Medium,
                             Type::Sensor, SensorID::Pitot,
                             (*pitot).parseData(t));
-
-            handler.sendCan(Boards::Main, common::Priority::Critical,
-                            Type::Sensor, SensorID::AirBrakes,
-                            (*airBrakes).parseData(69));
             // if we have to send a command we do not use a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,
                             EventsId::Liftoff);

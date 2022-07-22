@@ -133,18 +133,18 @@ sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 #                                   Can tests                                 #
 #-----------------------------------------------------------------------------#
 
-add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
+add_executable(test-can-handler src/tests/common/test-can-handler.cpp ${COMMON})
 target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
 
-# add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
-# target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
+ add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp ${COMMON})
+ target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
+ sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
 
-# add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
-# target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
+ add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp ${COMMON})
+ target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
+ sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
 
-# add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
-# target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)
+ add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp ${COMMON})
+ target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
+ sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)
