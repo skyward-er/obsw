@@ -30,13 +30,6 @@ include(skyward-boardcore/cmake/sbs.cmake)
 project(OnBoardSoftware)
 
 #-----------------------------------------------------------------------------#
-#                          Ground station entrypoints                         #
-#-----------------------------------------------------------------------------#
-
-add_executable(gs-entry src/entrypoints/Gs/gs-entry.cpp)
-sbs_target(gs-entry stm32f429zi_skyward_ground_station)
-
-#-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
@@ -48,23 +41,12 @@ add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
+add_executable(gs-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
+sbs_target(gs-entry stm32f429zi_skyward_ground_station)
+
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#
-
-add_executable(catch-tests-main
-    src/tests/Main/catch/catch-tests-main.cpp
-    src/tests/Main/catch/test-airbrakes.cpp
-    src/tests/Main/catch/test-ada.cpp
-    src/tests/Main/catch/test-deployment.cpp
-    src/tests/Main/catch/test-fsr.cpp
-    src/tests/Main/catch/test-nas.cpp
-    ${MAIN_COMPUTER_CATCH}
-)
-target_include_directories(catch-tests-main PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(catch-tests-main PRIVATE USE_MOCK_PERIPHERALS)
-sbs_target(catch-tests-main stm32f429zi_skyward_death_stack_v3)
-sbs_catch_test(catch-tests-main)
 
 add_executable(death-stack-v3-testsuite src/tests/Main/death-stack-v3-testsuite.cpp)
 target_include_directories(death-stack-v3-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})

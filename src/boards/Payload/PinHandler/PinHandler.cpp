@@ -40,8 +40,7 @@ namespace Payload
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {
     if (transition == LAUNCH_PIN_TRIGGER)
-        EventBroker::getInstance().post(Event{FLIGHT_LIFTOFF_DETECTED},
-                                        TOPIC_FLIGHT);
+        EventBroker::getInstance().post(Event{FLIGHT_LIFTOFF}, TOPIC_FLIGHT);
 }
 
 void PinHandler::onNCPinTransition(PinTransition transition)
