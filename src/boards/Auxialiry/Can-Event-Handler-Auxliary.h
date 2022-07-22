@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/canbus/CanHandler.h>
+#include <common/canbus/CanConfig.h>
 #include <events/EventBroker.h>
 #include <events/EventHandler.h>
 
@@ -50,13 +50,14 @@ protected:
         switch (ev)
         {
             case common::CanEvent::EV_LIFTOFF:
-                TRACE("Received EV_LIFTOFF \n");
+                // Led.status(common::CanEvent::EV_LIFTOFF);
                 break;
             case common::CanEvent::EV_APOGEE:
-                TRACE("Received EV_APOGEE \n");
+
                 break;
             case common::CanEvent::EV_ARMED:
-                TRACE("Received EV_ARMED \n");
+                // Led.status(common::CanEvent::EV_ARMED);
+                // Runcam.startRecording();//check if the cam1 is recording
                 break;
             default:
                 TRACE("Invalid event \n");

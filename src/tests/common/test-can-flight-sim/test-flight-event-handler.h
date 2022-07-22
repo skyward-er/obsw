@@ -22,9 +22,15 @@
 
 #pragma once
 
-#include <common/canbus/CanHandler.h>
+#include <common/canbus/CanConfig.h>
 #include <events/EventBroker.h>
 #include <events/EventHandler.h>
+
+#define MULTIPLIER 10
+
+#define nPressure 100 * MULTIPLIER
+#define nAir 50 * MULTIPLIER
+#define nEvents 1 * MULTIPLIER
 
 class MyEventHandler : public Boardcore::EventHandler
 {
@@ -43,20 +49,43 @@ public:
         // unsubscribe from all the topics this object was subscribed to
         Boardcore::EventBroker::getInstance().unsubscribe(this);
     }
+    void checkCounters(int number)
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        if (apogee == number && armed == number)
+        {
+            TRACE("Received %d number of event\n", number);
+        }
+        else
+        {
+            TRACE("Expected Value %d\n", number);
+            TRACE("Received Apogee %d\n", apogee);
+            TRACE("Received Armed %d\n", armed);
+        }
+        apogee = 0;
+        armed  = 0;
+    }
+
+    void waitReset()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        conVar.wait(l);
+    }
 
 protected:
     void handleEvent(const Boardcore::Event& ev) override
     {
+        miosix::Lock<miosix::FastMutex> l(mutex);
         switch (ev)
         {
             case common::CanEvent::EV_LIFTOFF:
-                TRACE("Received EV_LIFTOFF \n");
+                conVar.broadcast();
                 break;
             case common::CanEvent::EV_APOGEE:
-                TRACE("Received EV_APOGEE \n");
+                apogee++;
                 break;
             case common::CanEvent::EV_ARMED:
-                TRACE("Received EV_ARMED \n");
+                armed++;
                 break;
             default:
                 TRACE("Invalid event \n");
@@ -67,4 +96,8 @@ protected:
 
 private:
     uint8_t last_event;
+    int apogee = 0;
+    int armed  = 0;
+    miosix::FastMutex mutex;
+    miosix::ConditionVariable conVar;
 };

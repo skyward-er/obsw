@@ -19,52 +19,59 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <common/canbus/CanHandler.h>
 #include <events/EventBroker.h>
-#include <events/EventHandler.h>
-
-class MyEventHandler : public Boardcore::EventHandler
+namespace common
 {
-public:
-    MyEventHandler()
-        : EventHandler(),  // call parent constructor
-          last_event(0)
-    {
-        // make this object to subscribe to TOPIC_CAN_EVENTS
-        Boardcore::EventBroker::getInstance().subscribe(
-            this, common::CanTopics::TOPIC_CAN_EVENTS);
-    }
+const uint32_t BAUD_RATE = 500 * 1000;
+const float SAMPLE_POINT = 87.5f / 100.0f;
 
-    ~MyEventHandler()
-    {
-        // unsubscribe from all the topics this object was subscribed to
-        Boardcore::EventBroker::getInstance().unsubscribe(this);
-    }
-
-protected:
-    void handleEvent(const Boardcore::Event& ev) override
-    {
-        switch (ev)
-        {
-            case common::CanEvent::EV_LIFTOFF:
-                TRACE("Received EV_LIFTOFF \n");
-                break;
-            case common::CanEvent::EV_APOGEE:
-                TRACE("Received EV_APOGEE \n");
-                break;
-            case common::CanEvent::EV_ARMED:
-                TRACE("Received EV_ARMED \n");
-                break;
-            default:
-                TRACE("Invalid event \n");
-        }
-
-        last_event = ev;
-    }
-
-private:
-    uint8_t last_event;
+enum CanEvent : uint8_t
+{
+    EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
+    EV_APOGEE,
+    EV_ARMED
 };
+
+enum CanTopics : uint8_t
+{
+    TOPIC_CAN_EVENTS
+};
+
+enum SensorID : uint8_t
+{
+    Pitot,
+    NumberOfSensor
+};
+
+enum EventsId : uint8_t
+{
+    Liftoff = 0x00,
+    Apogee  = 0x01,
+    Armed   = 0x02
+};
+
+enum Boards : uint8_t
+{
+    Broadcast = 0x00,
+    Main      = 0x01,
+    Payload   = 0x02,
+    Auxiliary = 0x03
+};
+
+enum Priority : uint8_t
+{
+    Critical = 0x00,
+    High     = 0x01,
+    Medium   = 0x02,
+    Low      = 0x03
+};
+
+enum Type : uint8_t
+{
+    Events = 0x00,
+    Sensor = 0x01
+
+};
+}  // namespace common

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,36 +20,23 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
+using namespace miosix;
 
-#include <drivers/canbus/CanProtocol.h>
-
-namespace common
+// just like test serial, but for the leds and the runcam of the Auxiliary board
+int main()
 {
-class AereoBrakes
-{
-private:
-    miosix::FastMutex m;
-    uint8_t percentage;
-    bool updated;
-
-public:
-    uint8_t GetPercentage()  // todo update to use pressure data
+    interfaces::camMosfet::high();  // enable the runcam the blue led should be
+                                    // blinking
+    while (true)
     {
-        m.lock();
-        updated = false;
-        m.unlock();
-        return percentage;
+        // normal test_serial
+        ledOn();
+        printf("Serial is working!\n");
+        Thread::sleep(1000);
+        ledOff();
+        Thread::sleep(1000);
     }
 
-    bool Updated() { return updated; }
-
-    void SetData(Boardcore::Canbus::CanData packet)
-    {
-        m.lock();
-        percentage = packet.payload[0] >> 56;
-        updated    = true;
-        m.unlock();
-    }
-};
-}  // namespace common
+    return 0;
+}

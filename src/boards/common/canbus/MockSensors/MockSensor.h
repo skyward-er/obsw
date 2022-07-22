@@ -22,54 +22,40 @@
 
 #pragma once
 
+#include <common/canbus/CanConfig.h>
 #include <drivers/canbus/CanProtocol.h>
-#include <sensors/SensorData.h>
+#include <kernel/sync.h>
 
 namespace common
 {
 
-class PitotMocap
+/**
+ * @brief Class to parse and de-parse a sensor data into a CanData packetS
+ *
+ */
+class MockSensor
 {
 public:
-    PitotMocap() {}
-
-    Boardcore::PressureData GetData()  // todo update to use pressure data
+    virtual void put(Boardcore::Canbus::CanData packet) = 0;
+    bool isUpdated()
     {
-        m.lock();
-        updated = false;
-        m.unlock();
-        return data;
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        return updated;
+    }
+    bool waitTillUpdated()
+    {
+        miosix::Lock<miosix::FastMutex> l(mutex);
+        conVar.wait(l);
+        return updated;
     }
 
-    bool Updated() { return updated; }
+    SensorID getID() { return id; }
 
-    void SetData(Boardcore::Canbus::CanData packet)
-    {
-        // the pitot packet is a the first 4 byte pressure and the last 4
-        // timestamp
-        m.lock();
-        data.pressure          = packet.payload[0] >> 32;
-        data.pressureTimestamp = packet.payload[0] & 0xffffffff;
-
-        updated = true;
-        m.unlock();
-    }
-
-    Boardcore::Canbus::CanData ParseData(
-        Boardcore::PressureData
-            sample)  // code pressure and timestamp into an u_int64
-    {
-        Boardcore::Canbus::CanData tempData;
-        tempData.len = 1;
-        uint32_t temp;
-        memcpy(&temp, &(sample.pressure), sizeof(temp));
-        tempData.payload[0] = temp << 32 & sample.pressureTimestamp >> 2;
-        return tempData;
-    }
-
-private:
+protected:
+    MockSensor(SensorID i) : id(i){};
+    miosix::FastMutex mutex;
+    miosix::ConditionVariable conVar;
     bool updated = false;
-    Boardcore::PressureData data;
-    miosix::FastMutex m;
+    SensorID id;
 };
 }  // namespace common

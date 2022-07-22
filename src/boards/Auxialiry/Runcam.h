@@ -19,52 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <common/canbus/CanHandler.h>
-#include <events/EventBroker.h>
-#include <events/EventHandler.h>
-
-class MyEventHandler : public Boardcore::EventHandler
+#include <Singleton.h>
+class Runcam : public Boardcore::Singleton<Runcam>
 {
-public:
-    MyEventHandler()
-        : EventHandler(),  // call parent constructor
-          last_event(0)
+    void Start()
     {
-        // make this object to subscribe to TOPIC_CAN_EVENTS
-        Boardcore::EventBroker::getInstance().subscribe(
-            this, common::CanTopics::TOPIC_CAN_EVENTS);
-    }
-
-    ~MyEventHandler()
-    {
-        // unsubscribe from all the topics this object was subscribed to
-        Boardcore::EventBroker::getInstance().unsubscribe(this);
-    }
-
-protected:
-    void handleEvent(const Boardcore::Event& ev) override
-    {
-        switch (ev)
-        {
-            case common::CanEvent::EV_LIFTOFF:
-                TRACE("Received EV_LIFTOFF \n");
-                break;
-            case common::CanEvent::EV_APOGEE:
-                TRACE("Received EV_APOGEE \n");
-                break;
-            case common::CanEvent::EV_ARMED:
-                TRACE("Received EV_ARMED \n");
-                break;
-            default:
-                TRACE("Invalid event \n");
-        }
-
-        last_event = ev;
+        // tries enabling runcam;
     }
 
 private:
-    uint8_t last_event;
+    Runcam();
 };

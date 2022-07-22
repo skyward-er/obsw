@@ -19,179 +19,113 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-// Include the event broker
-#include <events/EventBroker.h>
-
-// Include the events and topics definitions
 #include <ActiveObject.h>
-#include <common/canbus/SensorMocap/AereoBrakes.h>
-#include <common/canbus/SensorMocap/PitotMocap.h>
+#include <common/canbus/CanConfig.h>
+#include <common/canbus/MockSensors/MockSensor.h>
 #include <drivers/canbus/CanProtocol.h>
 #include <drivers/canbus/Canbus.h>
-#include <utils/collections/IRQCircularBuffer.h>
+
+#include <functional>
 
 namespace common
 {
 
-enum CanEv : uint8_t
+/**
+ * @brief Simple Struct for filters, to accept all incoming messages do not
+ * change any value
+ *
+ */
+struct Filter
 {
-    EV_LIFTOFF = EV_FIRST_CUSTOM,
-    EV_APOGEE,
-    EV_ARMED,
-    EV_AEROBRAKE
+    int8_t source      = -1;
+    int8_t destination = -1;
 };
 
-enum CanTopics : uint8_t
-{
-    TOPIC_CAN_EVENTS,
-    TOPIC_CAN_COMMAND  // maybe we can make this a single topic??? not sure
-};
-
-// todo move enum into a separate file in boardcore (makes more sense)
-// sensors
-enum SensorID
-{
-    Pitot = 0x00
-};
-
-// events
-enum EventsId
-{
-    Liftoff = 0x00,
-    Apogee  = 0x01,
-    Armed   = 0x02
-};
-
-// commands
-enum CommandsID
-{
-    AirBrakes = 0x00
-};
-
-enum Boards
-{
-    Main      = 0x00,
-    Payload   = 0x01,
-    Auxiliary = 0x02
-};
-
-enum Priority
-{
-    Critical = 0x00,
-    High     = 0x01,
-    Medium   = 0x02,
-    Low      = 0x03
-};
-
-enum Type
-{
-    Events  = 0x00,
-    Command = 0x01,
-    Sensor  = 0x02
-
-};
-
-class CanHandler : public Boardcore::ActiveObject
+/**
+ * @brief Canbus high level implementation.
+ *
+ * This class takes care of creating the ID of the CanData, sending it to
+ * CanProtocol and receiving incoming packets calling the right events.
+ */
+class CanHandler
 {
 private:
-    Boardcore::IRQCircularBuffer<Boardcore::Canbus::CanData, NPACKET> buffer;
     Boards source;
-    PitotMocap *pitot;
-    AereoBrakes *brakes;
     Boardcore::Canbus::CanProtocol *can;
+    MockSensor *sensors[NumberOfSensor];
+    uint8_t numberOfObservedSensor = 0;
+    miosix::FastMutex mutex;
+    Boardcore::Canbus::CanbusDriver *canPhy;
 
 public:
-    CanHandler(Boardcore::Canbus::CanbusDriver *canPhysical, Boards source,
-               PitotMocap *pitotInstance, AereoBrakes *brakesInstance)
-        : source(source)
-    {
-        *can   = Boardcore::Canbus::CanProtocol(canPhysical, &buffer);
-        pitot  = pitotInstance;
-        brakes = brakesInstance;
+    /**
+     * @brief Construct a new CanHandler object
+     *
+     * @param source: the Id of the sending board.
+     */
+    explicit CanHandler(Boards source);
 
-        can->start();
-    }
+    /**
+     * @brief Init the physical canbus and start CanProtocol.
+     *
+     * @warning You can only add filters before calling this function
+     */
+    void startHandler();
 
+    /**
+     * @brief Adds filter to the physical canbus .
+     *
+     * @param filter: The filter you want to apply
+     * @warning You can only add filters before calling startHandler()
+     */
+    bool addFilter(Filter filter);
+
+    /**
+     * @brief Adds a MockSensor to the list of watchedSensor .
+     *
+     * @param newSensor: The sensor to add to the watch-list
+     */
+    bool addMock(MockSensor *newSensor);
+
+    /**
+     * @brief Calculate the id of the packet and calls the send function of
+     * CanProtocol.
+     *
+     * @param destination: The Id of the destination board.
+     * @param p: The priority of the packet.
+     * @param t: The type of the packet sent.
+     * @param idT: The IDtype of the packet sent.
+     * @param toSend: The packet to be sent.
+     */
     void sendCan(Boards destination, Priority p, Type t, uint8_t idT,
-                 uint64_t toSend[32], uint8_t nPacket)
-    {
-        if (nPacket > 0)
-        {
+                 Boardcore::Canbus::CanData toSend);
 
-            Boardcore::Canbus::CanData packet;
-            packet.len   = nPacket;
-            packet.canId = (p & idMask.priority) | (t & idMask.type) |
-                           (source & idMask.source) |
-                           (destination & idMask.destination) |
-                           (idT & idMask.idType);
-            memcpy(packet.payload, toSend, nPacket);
-            can->sendCan(packet);
-        }
-    }
+    /**
+     * @brief Calls sendData when we want to send a event (without creating a
+     * CanData).
+     *
+     * @param destination: The Id of the destination board.
+     * @param p: The priority of the packet.
+     * @param t: The type of the packet sent.
+     * @param idT: The IDtype of the packet sent.
+     */
+    void sendCan(Boards destination, Priority p, Type t, uint8_t idT);
 
-    /* Destructor */
-    ~CanHandler() {}
+    ~CanHandler();
 
 protected:
-    void run() override
-    {
-        Boardcore::Canbus::CanData data;
-
-        while (true)
-        {
-            buffer.waitUntilNotEmpty();
-            if (!buffer.isEmpty())
-            {
-                data = buffer.pop();
-
-                switch (data.canId & idMask.type)
-                {
-                    case Command:
-                        switch (data.canId & idMask.idType)
-                        {
-                            case AirBrakes:
-                                (*brakes).SetData(data);
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_AEROBRAKE},
-                                    TOPIC_CAN_COMMAND);
-                                break;
-                        }
-                        /* code */
-                        break;
-                    case Events:
-                        switch (data.canId & idMask.idType)
-                        {
-                            case Liftoff:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_LIFTOFF},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                            case Apogee:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_APOGEE},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                            case Armed:
-                                Boardcore::EventBroker::getInstance().post(
-                                    Boardcore::Event{EV_ARMED},
-                                    TOPIC_CAN_EVENTS);
-                                break;
-                        }
-                        break;
-
-                    case Sensor:
-                        switch (data.canId & idMask.idType)
-                        {
-                            case Pitot:
-                                (*pitot).SetData(data);
-                                break;
-                        }
-                        break;
-                }
-            }
-        }
-    }
+    /**
+     * @brief Function passe to CanProtocol called once a CanData message is
+     * created, based on the id calls the right event or puts the data in the
+     * right sensor is received we update data and send events as needed
+     *
+     * @param data: The CanData message to decode
+     * @warning Execution time should be kept to a minimum
+     */
+    void callback(Boardcore::Canbus::CanData data);
 };
+
 }  // namespace common
