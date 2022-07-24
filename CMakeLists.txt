@@ -33,11 +33,11 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${COMMON})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
 
-add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER} ${COMMON})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
@@ -88,9 +88,6 @@ sbs_target(main-test-current-sensing stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-vn100 src/tests/Main/sensors/test-vn100.cpp)
 sbs_target(main-test-vn100 stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-can src/tests/Main/test-can.cpp)
-sbs_target(main-test-can stm32f429zi_skyward_death_stack_v3)
-
 add_executable(main-test-leds src/tests/Main/test-leds.cpp)
 sbs_target(main-test-leds stm32f429zi_skyward_death_stack_v3)
 
@@ -112,8 +109,8 @@ sbs_target(main-test-serial-ports stm32f429zi_skyward_death_stack_v3)
 #                              Auxiliary Computer                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(aux-test-can src/tests/Auxiliary/test-can.cpp)
-sbs_target(aux-test-can stm32f429zi_skyward_pyxis_auxiliary)
+# add_executable(aux-test-can src/tests/Auxiliary/test-can.cpp)
+# sbs_target(aux-test-can stm32f429zi_skyward_pyxis_auxiliary)
 
 add_executable(aux-test-per src/tests/Auxiliary/test-auxiliary-peripherals.cpp)
 sbs_target(aux-test-per stm32f429zi_skyward_pyxis_auxiliary)
@@ -129,18 +126,18 @@ sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 #                                   Can tests                                 #
 #-----------------------------------------------------------------------------#
 
-add_executable(test-can-handler src/tests/common/test-can-handler.cpp ${COMMON})
-target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
+# add_executable(test-can-handler src/tests/common/test-can-handler.cpp ${COMMON})
+# target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
 
- add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp ${COMMON})
- target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
- sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
+#  add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp ${COMMON})
+#  target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
+#  sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
 
- add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp ${COMMON})
- target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
- sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
+#  add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp ${COMMON})
+#  target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
+#  sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
 
- add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp ${COMMON})
- target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
- sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)
+#  add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp ${COMMON})
+#  target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
+#  sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)

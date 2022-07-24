@@ -22,6 +22,7 @@
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
@@ -54,8 +55,9 @@ int main()
     Logger::getInstance().start();
     EventBroker::getInstance().start();
 
-    // Start the radio
+    // Start the radio and the canbus
     Radio::getInstance().start();
+    CanHandler::getInstance().start();
 
     // TODO: Start the pin observer
 

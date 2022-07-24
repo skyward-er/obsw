@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Federico Mandelli, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,37 @@
 
 #pragma once
 
-#include <common/canbus/CanConfig.h>
-#include <drivers/canbus/CanProtocol.h>
-#include <kernel/sync.h>
+#include <drivers/canbus/CanProtocol/CanProtocol.h>
 
-namespace common
+namespace Main
 {
 
-/**
- * @brief Class to parse and de-parse a sensor data into a CanData packetS
- *
- */
-class MockSensor
+class CanHandler : public Boardcore::Singleton<CanHandler>
 {
+    friend Boardcore::Singleton<CanHandler>;
+
 public:
-    virtual void put(Boardcore::Canbus::CanData packet) = 0;
-    bool isUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        return updated;
-    }
-    bool waitTillUpdated()
-    {
-        miosix::Lock<miosix::FastMutex> l(mutex);
-        conVar.wait(l);
-        return updated;
-    }
+    /**
+     * @brief Starts the CanProtocol.
+     */
+    bool start();
 
-    SensorID getID() { return id; }
+    /**
+     * @brief Tells whether the can protocol was started.
+     */
+    bool isStarted();
 
-protected:
-    MockSensor(SensorID i) : id(i){};
-    miosix::FastMutex mutex;
-    miosix::ConditionVariable conVar;
-    bool updated = false;
-    SensorID id;
+    // Boardcore::Canbus::CanRXStatus getCanStatus();
+
+    // void logStatus();
+
+private:
+    CanHandler();
+
+    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
+
+    Boardcore::Canbus::CanbusDriver *driver;
+    Boardcore::Canbus::CanProtocol *protocol;
 };
-}  // namespace common
+
+}  // namespace Main

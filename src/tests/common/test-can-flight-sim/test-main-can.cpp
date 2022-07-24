@@ -37,6 +37,7 @@ using namespace common;
 CanHandler* handler;
 std::atomic<bool> running;  // 1 element we are active 0 we are inactive
 miosix::FastMutex mutex;
+
 void receivePressure(MockPitot* pitot)
 {
     int counter = 0;

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Federico Mandelli, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,43 +20,46 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/canbus/Canbus.h>
-#include <miosix.h>
+#include "CanHandler.h"
 
-using namespace miosix;
+#include <common/CanConfig.h>
+
+#include <functional>
+
+using namespace std;
+using namespace placeholders;
 using namespace Boardcore;
-using namespace Boardcore::Canbus;
+using namespace Canbus;
+using namespace Common::CanConfig;
 
-CanbusDriver::AutoBitTiming bt{
-    500000,         // Set baud rate in bits per second
-    87.5f / 100.0f  // Set sample point (in percentage of the bit length)
-};
-
-int main()
+namespace Main
 {
-    CanbusDriver can(CAN1, {}, bt);
-    can.init();
 
-    while (true)
-    {
-        CanPacket p;
-        p.id      = 12345;  // Message identifier
-        p.ext     = true;   // Extended identifier message
-        p.length  = 1;      // Length of the payload
-        p.data[0] = 42;
+bool CanHandler::start() { return protocol->start(); }
 
-        can.send(p);
-        printf("Sent message\n");
+bool CanHandler::isStarted() { return protocol->isStarted(); }
 
-        // // Check if we have received a packet
-        // if (!can.getRXBuffer().isEmpty())
-        // {
-        //     // Remove it from the buffer for further processing
-        //     Canbus::CanRXPacket prx = can.getRXBuffer().pop();
+CanHandler::CanHandler()
+{
+    Boardcore::Canbus::CanbusDriver::AutoBitTiming bitTiming;
+    bitTiming.baudRate    = BAUD_RATE;
+    bitTiming.samplePoint = SAMPLE_POINT;
+    driver                = new CanbusDriver(CAN1, {}, bitTiming);
+    driver->init();
 
-        //     printf("Received new packet! Payload: %d\n", prx.packet.data[0]);
-        // }
-
-        delayMs(1000);
-    }
+    protocol =
+        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
 }
+
+void CanHandler::handleCanMessage(const CanMessage &msg)
+{
+    printf("Received packet:\n");
+    printf("\tpriority:       %d\n", msg.getPriority());
+    printf("\tprimary type:   %d\n", msg.getPrimaryType());
+    printf("\tsource:         %d\n", msg.getSource());
+    printf("\tdestination:    %d\n", msg.getDestination());
+    printf("\tsecondary type: %d\n", msg.getSecondaryType());
+    printf("\n");
+}
+
+}  // namespace Main

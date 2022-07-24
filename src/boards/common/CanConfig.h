@@ -19,17 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <events/EventBroker.h>
-namespace common
+#include <stdint.h>
+
+namespace Common
 {
-const uint32_t BAUD_RATE = 500 * 1000;
-const float SAMPLE_POINT = 87.5f / 100.0f;
+
+namespace CanConfig
+{
+
+static constexpr uint32_t BAUD_RATE = 500 * 1000;
+static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
 enum CanEvent : uint8_t
 {
-    EV_LIFTOFF = Boardcore::EV_FIRST_CUSTOM,
+    EV_LIFTOFF,
     EV_APOGEE,
     EV_ARMED
 };
@@ -74,4 +80,7 @@ enum Type : uint8_t
     Sensor = 0x01
 
 };
-}  // namespace common
+
+}  // namespace CanConfig
+
+}  // namespace Common

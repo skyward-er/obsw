@@ -25,6 +25,7 @@ set(OBSW_INCLUDE_DIRS
 
 set(MAIN_COMPUTER
     src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/CanHandler/CanHandler.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
     src/boards/Main/Radio/Radio.cpp
@@ -66,9 +67,4 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
-)
-
-
-set(COMMON
-    src/boards/common/canbus/CanHandler.cpp
 )

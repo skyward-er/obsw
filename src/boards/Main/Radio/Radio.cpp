@@ -48,9 +48,7 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
     using namespace Main;
 
     if (Radio::getInstance().sx1278)
-    {
         Radio::getInstance().sx1278->handleDioIRQ();
-    }
 }
 
 namespace Main
@@ -514,7 +512,7 @@ Radio::Radio()
     // Use default configuration
     sx1278->init({});
 
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::FALLING_EDGE);
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
 
     mavDriver =
         new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
