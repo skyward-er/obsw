@@ -22,6 +22,7 @@
 
 #include "CanHandler.h"
 
+#include <Auxiliary/Actuators/Actuators.h>
 #include <common/CanConfig.h>
 
 #include <functional>
@@ -32,7 +33,7 @@ using namespace Boardcore;
 using namespace Canbus;
 using namespace Common::CanConfig;
 
-namespace Main
+namespace Auxiliary
 {
 
 bool CanHandler::start() { return protocol->start(); }
@@ -45,39 +46,70 @@ CanHandler::CanHandler()
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
     driver                = new CanbusDriver(CAN1, {}, bitTiming);
-    driver->init();
 
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
+
+    protocol->addFilter(static_cast<uint8_t>(Board::Main),
+                        static_cast<uint8_t>(Board::Broadcast));
+    protocol->addFilter(static_cast<uint8_t>(Board::Main),
+                        static_cast<uint8_t>(Board::Auxiliary));
+    driver->init();
+
+    printf("Init done\n");
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {
-    printf("Received packet:\n");
-    printf("\tpriority:       %d\n", msg.getPriority());
-    printf("\tprimary type:   %d\n", msg.getPrimaryType());
-    printf("\tsource:         %d\n", msg.getSource());
-    printf("\tdestination:    %d\n", msg.getDestination());
-    printf("\tsecondary type: %d\n", msg.getSecondaryType());
-    printf("\n");
+    PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
+
+    printf("Received message\n");
+
+    switch (msgType)
+    {
+        case PrimaryType::Events:
+        {
+            handleCanEvent(msg);
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }
 
-void CanHandler::camOn()
+void CanHandler::handleCanEvent(const CanMessage &msg)
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::Critical),
-                           static_cast<uint8_t>(PrimaryType::Events),
-                           static_cast<uint8_t>(Board::Main),
-                           static_cast<uint8_t>(Board::Auxiliary),
-                           static_cast<uint8_t>(EventId::CamOn));
+    EventId eventId = static_cast<EventId>(msg.getSecondaryType());
+
+    printf("Handling event\n");
+
+    switch (eventId)
+    {
+        case EventId::Armed:
+        case EventId::CamOn:
+        {
+            Actuators::getInstance().ledOn();
+            // Actuators::getInstance().camOn();
+            LOG_DEBUG(logger, "Cameras and leds turned on");
+            break;
+        }
+        case EventId::Disarmed:
+        case EventId::CamOff:
+        {
+            Actuators::getInstance().ledOff();
+            // Actuators::getInstance().camOff();
+            LOG_DEBUG(logger, "Cameras and leds turned off");
+            break;
+        }
+
+        default:
+        {
+            LOG_DEBUG(logger, "Received unsupported event: id={}", eventId);
+        }
+    }
 }
 
-void CanHandler::camOff()
-{
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::Critical),
-                           static_cast<uint8_t>(PrimaryType::Events),
-                           static_cast<uint8_t>(Board::Main),
-                           static_cast<uint8_t>(Board::Auxiliary),
-                           static_cast<uint8_t>(EventId::CamOff));
-}
-
-}  // namespace Main
+}  // namespace Auxiliary

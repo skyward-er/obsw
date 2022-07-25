@@ -53,6 +53,91 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 namespace Payload
 {
 
+void Radio::sendAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
+                            msg.seq);
+    mavDriver->enqueueMsg(ackMsg);
+}
+
+void Radio::sendNack(const mavlink_message_t& msg)
+{
+    mavlink_message_t nackMsg;
+    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
+    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
+                             msg.msgid, msg.seq);
+    mavDriver->enqueueMsg(nackMsg);
+}
+
+bool Radio::start() { return mavDriver->start(); }
+
+bool Radio::isStarted() { return mavDriver->isStarted(); }
+
+Boardcore::MavlinkStatus Radio::getMavlinkStatus()
+{
+    return mavDriver->getStatus();
+}
+
+void Radio::logStatus()
+{
+    Logger::getInstance().log(mavDriver->getStatus());
+    // TODO: Add transceiver status logging
+}
+
+bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
+}
+
+bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
+                          uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
+}
+
+bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
+}
+
+Radio::Radio()
+{
+    // Create the SPI bus configuration
+    SPIBusConfig config{};
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Create the xbee object
+    xbee = new Xbee::Xbee(
+        Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
+        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
+    xbee->setOnFrameReceivedListener(
+        bind(&Radio::onXbeeFrameReceived, this, _1));
+
+    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
+
+    mavDriver =
+        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
+                      MAV_OUT_BUFFER_MAX_AGE);
+
+    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
+                            miosix::xbee::attn::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
+
+    // Add to the scheduler the flight and statistics telemetries
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_FLIGHT_ID, 0, 0); }, FLIGHT_TM_PERIOD,
+        FLIGHT_TM_TASK_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
+        STATS_TM_TASK_ID);
+}
+
+void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
+
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
@@ -448,90 +533,5 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     // Acknowledge the message
     sendAck(msg);
 }
-
-void Radio::sendAck(const mavlink_message_t& msg)
-{
-    mavlink_message_t ackMsg;
-    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
-                            msg.seq);
-    mavDriver->enqueueMsg(ackMsg);
-}
-
-void Radio::sendNack(const mavlink_message_t& msg)
-{
-    mavlink_message_t nackMsg;
-    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
-    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
-    mavDriver->enqueueMsg(nackMsg);
-}
-
-bool Radio::start() { return mavDriver->start(); }
-
-bool Radio::isStarted() { return mavDriver->isStarted(); }
-
-Boardcore::MavlinkStatus Radio::getMavlinkStatus()
-{
-    return mavDriver->getStatus();
-}
-
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
-
-bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
-}
-
-bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                          uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
-}
-
-bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
-}
-
-Radio::Radio()
-{
-    // Create the SPI bus configuration
-    SPIBusConfig config{};
-    config.clockDivider = SPI::ClockDivider::DIV_16;
-
-    // Create the xbee object
-    xbee = new Xbee::Xbee(
-        Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
-        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
-    xbee->setOnFrameReceivedListener(
-        bind(&Radio::onXbeeFrameReceived, this, _1));
-
-    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
-
-    mavDriver =
-        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
-                      MAV_OUT_BUFFER_MAX_AGE);
-
-    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
-                            miosix::xbee::attn::getPin().getNumber(),
-                            InterruptTrigger::FALLING_EDGE);
-
-    // Add to the scheduler the flight and statistics telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_ID, 0, 0); }, FLIGHT_TM_PERIOD,
-        FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
-        STATS_TM_TASK_ID);
-}
-
-void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
 
 }  // namespace Payload

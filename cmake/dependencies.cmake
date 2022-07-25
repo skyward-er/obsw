@@ -23,6 +23,11 @@ set(OBSW_INCLUDE_DIRS
     src/boards
 )
 
+set(AUXILIARY_COMPUTER
+    src/boards/Auxiliary/Actuators/Actuators.cpp
+    src/boards/Auxiliary/CanHandler/CanHandler.cpp
+)
+
 set(MAIN_COMPUTER
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/CanHandler/CanHandler.cpp

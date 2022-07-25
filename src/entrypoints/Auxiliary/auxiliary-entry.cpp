@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,58 +20,18 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Auxiliary/CanHandler/CanHandler.h>
+#include <miosix.h>
 
-#include <stdint.h>
+using namespace miosix;
+using namespace Auxiliary;
 
-namespace Common
+int main()
 {
+    CanHandler::getInstance().start();
 
-namespace CanConfig
-{
+    printf("Started\n");
 
-static constexpr uint32_t BAUD_RATE = 500 * 1000;
-static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
-
-enum class Priority : uint8_t
-{
-    Critical = 0,
-    High,
-    Medium,
-    Low
-};
-
-enum class PrimaryType : uint8_t
-{
-    Events = 0,
-    Sensor
-};
-
-/// Used for source and destination
-enum class Board : uint8_t
-{
-    Broadcast = 0,
-    Main,
-    Payload,
-    Auxiliary
-};
-
-enum class SensorID : uint8_t
-{
-    Pitot,
-    NumberOfSensor
-};
-
-enum class EventId : uint8_t
-{
-    Liftoff = 0,
-    Apogee,
-    Armed,
-    Disarmed,
-    CamOn,
-    CamOff
-};
-
-}  // namespace CanConfig
-
-}  // namespace Common
+    while (true)
+        Thread::sleep(1000);
+}

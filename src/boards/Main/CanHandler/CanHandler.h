@@ -46,6 +46,10 @@ public:
 
     // void logStatus();
 
+    void camOn();
+
+    void camOff();
+
 private:
     CanHandler();
 

@@ -54,6 +54,82 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 namespace Main
 {
 
+void Radio::sendAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
+                            msg.seq);
+    mavDriver->enqueueMsg(ackMsg);
+}
+
+void Radio::sendNack(const mavlink_message_t& msg)
+{
+    mavlink_message_t nackMsg;
+    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
+    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
+                             msg.msgid, msg.seq);
+    mavDriver->enqueueMsg(nackMsg);
+}
+
+bool Radio::start() { return mavDriver->start(); }
+
+bool Radio::isStarted() { return mavDriver->isStarted(); }
+
+Boardcore::MavlinkStatus Radio::getMavlinkStatus()
+{
+    return mavDriver->getStatus();
+}
+
+void Radio::logStatus()
+{
+    Logger::getInstance().log(mavDriver->getStatus());
+    // TODO: Add transceiver status logging
+}
+
+bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
+}
+
+bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
+                          uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
+}
+
+bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
+{
+    return mavDriver->enqueueMsg(
+        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
+}
+
+Radio::Radio()
+{
+    // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+
+    sx1278 =
+        new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
+
+    // Use default configuration
+    sx1278->init({});
+
+    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
+
+    mavDriver =
+        new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                      0, MAV_OUT_BUFFER_MAX_AGE);
+
+    // Add to the scheduler the flight and statistics telemetries
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_FLIGHT_ID, 0, 0); }, FLIGHT_TM_PERIOD,
+        FLIGHT_TM_TASK_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
+        STATS_TM_TASK_ID);
+}
+
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
@@ -449,82 +525,6 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
     // Acknowledge the message
     sendAck(msg);
-}
-
-void Radio::sendAck(const mavlink_message_t& msg)
-{
-    mavlink_message_t ackMsg;
-    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
-                            msg.seq);
-    mavDriver->enqueueMsg(ackMsg);
-}
-
-void Radio::sendNack(const mavlink_message_t& msg)
-{
-    mavlink_message_t nackMsg;
-    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
-    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
-    mavDriver->enqueueMsg(nackMsg);
-}
-
-bool Radio::start() { return mavDriver->start(); }
-
-bool Radio::isStarted() { return mavDriver->isStarted(); }
-
-Boardcore::MavlinkStatus Radio::getMavlinkStatus()
-{
-    return mavDriver->getStatus();
-}
-
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
-
-bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
-}
-
-bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                          uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
-}
-
-bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
-}
-
-Radio::Radio()
-{
-    // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
-
-    sx1278 =
-        new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
-
-    // Use default configuration
-    sx1278->init({});
-
-    enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
-
-    mavDriver =
-        new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                      0, MAV_OUT_BUFFER_MAX_AGE);
-
-    // Add to the scheduler the flight and statistics telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_ID, 0, 0); }, FLIGHT_TM_PERIOD,
-        FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
-        STATS_TM_TASK_ID);
 }
 
 }  // namespace Main

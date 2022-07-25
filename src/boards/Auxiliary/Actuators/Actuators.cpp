@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,20 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#include <Singleton.h>
-class Led : public Boardcore::Singleton<Led>
-{
-public:
-    void Start()
-    {
-        // led on
-        // sleep sleep
-        // leed of
-        // sleep
-    }
 
-private:
-    // uint8_t sleep = 1000;
-    Led();
-};
+#include "Actuators.h"
+
+#include <interfaces-impl/bsp_impl.h>
+
+using namespace miosix;
+
+namespace Auxiliary
+{
+
+void Actuators::ledOn() { miosix::ledOn(); }
+
+void Actuators::ledOff() { miosix::ledOff(); }
+
+void Actuators::camOn() { interfaces::camMosfet::high(); }
+
+void Actuators::camOff() { interfaces::camMosfet::low(); }
+
+}  // namespace Auxiliary

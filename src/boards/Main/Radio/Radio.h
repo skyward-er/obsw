@@ -47,16 +47,6 @@ public:
     MavDriver* mavDriver;
 
     /**
-     * @brief Called by the MavlinkDriver when a message is received.
-     */
-    void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
-
-    /**
-     * @brief Called by handleMavlinkMessage to handle a command message.
-     */
-    void handleCommand(const mavlink_message_t& msg);
-
-    /**
      * @brief Prepares and send an ack message for the given message.
      *
      * @param msg The message received that we need to acknowledge.
@@ -87,6 +77,19 @@ public:
      */
     void logStatus();
 
+private:
+    Radio();
+
+    /**
+     * @brief Called by the MavlinkDriver when a message is received.
+     */
+    void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
+
+    /**
+     * @brief Called by handleMavlinkMessage to handle a command message.
+     */
+    void handleCommand(const mavlink_message_t& msg);
+
     /**
      * @brief Used to send the specified system telemetry message.
      */
@@ -99,9 +102,6 @@ public:
                        uint8_t seq);
 
     bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
-
-private:
-    Radio();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

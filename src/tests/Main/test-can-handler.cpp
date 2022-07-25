@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,16 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
-#include <Singleton.h>
-class Runcam : public Boardcore::Singleton<Runcam>
+#include <Main/CanHandler/CanHandler.h>
+#include <miosix.h>
+
+using namespace miosix;
+using namespace Main;
+
+int main()
 {
-    void Start()
-    {
-        // tries enabling runcam;
-    }
+    CanHandler::getInstance().start();
 
-private:
-    Runcam();
-};
+    while (true)
+    {
+        CanHandler::getInstance().camOn();
+        printf("Sent event for cam on\n");
+        Thread::sleep(1000);
+
+        CanHandler::getInstance().camOff();
+        printf("Sent event for cam off\n");
+        Thread::sleep(1000);
+    }
+}

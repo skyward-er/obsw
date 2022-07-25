@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,56 +22,22 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Singleton.h>
 
-namespace Common
+namespace Auxiliary
 {
 
-namespace CanConfig
+struct Actuators : public Boardcore::Singleton<Actuators>
 {
+    friend class Boardcore::Singleton<Actuators>;
 
-static constexpr uint32_t BAUD_RATE = 500 * 1000;
-static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
+    void ledOn();
 
-enum class Priority : uint8_t
-{
-    Critical = 0,
-    High,
-    Medium,
-    Low
+    void ledOff();
+
+    void camOn();
+
+    void camOff();
 };
 
-enum class PrimaryType : uint8_t
-{
-    Events = 0,
-    Sensor
-};
-
-/// Used for source and destination
-enum class Board : uint8_t
-{
-    Broadcast = 0,
-    Main,
-    Payload,
-    Auxiliary
-};
-
-enum class SensorID : uint8_t
-{
-    Pitot,
-    NumberOfSensor
-};
-
-enum class EventId : uint8_t
-{
-    Liftoff = 0,
-    Apogee,
-    Armed,
-    Disarmed,
-    CamOn,
-    CamOff
-};
-
-}  // namespace CanConfig
-
-}  // namespace Common
+}  // namespace Auxiliary

@@ -33,16 +33,20 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${COMMON})
+add_executable(auxiliary-entry src/entrypoints/Auxiliary/auxiliary-entry.cpp ${AUXILIARY_COMPUTER})
+target_include_directories(auxiliary-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(auxiliary-entry stm32f429zi_skyward_pyxis_auxiliary)
+
+add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
 
-add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER} ${COMMON})
+add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
-add_executable(gs-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
-sbs_target(gs-entry stm32f429zi_skyward_ground_station)
+add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
+sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
 
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
@@ -51,6 +55,10 @@ sbs_target(gs-entry stm32f429zi_skyward_ground_station)
 add_executable(death-stack-v3-testsuite src/tests/Main/death-stack-v3-testsuite.cpp)
 target_include_directories(death-stack-v3-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(death-stack-v3-testsuite stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-test-can-handler src/tests/Main/test-can-handler.cpp ${MAIN_COMPUTER})
+target_include_directories(main-test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-test-can-handler stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
 sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
@@ -126,18 +134,18 @@ sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 #                                   Can tests                                 #
 #-----------------------------------------------------------------------------#
 
-# add_executable(test-can-handler src/tests/common/test-can-handler.cpp ${COMMON})
+# add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
 # target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
 # sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
 
-#  add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp ${COMMON})
+#  add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
 #  target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
 #  sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
 
-#  add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp ${COMMON})
+#  add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
 #  target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
 #  sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
 
-#  add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp ${COMMON})
+#  add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
 #  target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
 #  sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)

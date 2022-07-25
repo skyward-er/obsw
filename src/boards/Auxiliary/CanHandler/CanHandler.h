@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Federico Mandelli, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,56 +22,41 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <drivers/canbus/CanProtocol/CanProtocol.h>
 
-namespace Common
+namespace Auxiliary
 {
 
-namespace CanConfig
+class CanHandler : public Boardcore::Singleton<CanHandler>
 {
+    friend Boardcore::Singleton<CanHandler>;
 
-static constexpr uint32_t BAUD_RATE = 500 * 1000;
-static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
+public:
+    /**
+     * @brief Starts the CanProtocol.
+     */
+    bool start();
 
-enum class Priority : uint8_t
-{
-    Critical = 0,
-    High,
-    Medium,
-    Low
+    /**
+     * @brief Tells whether the can protocol was started.
+     */
+    bool isStarted();
+
+    // Boardcore::Canbus::CanRXStatus getCanStatus();
+
+    // void logStatus();
+
+private:
+    CanHandler();
+
+    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
+
+    void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
+
+    Boardcore::Canbus::CanbusDriver *driver;
+    Boardcore::Canbus::CanProtocol *protocol;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 };
 
-enum class PrimaryType : uint8_t
-{
-    Events = 0,
-    Sensor
-};
-
-/// Used for source and destination
-enum class Board : uint8_t
-{
-    Broadcast = 0,
-    Main,
-    Payload,
-    Auxiliary
-};
-
-enum class SensorID : uint8_t
-{
-    Pitot,
-    NumberOfSensor
-};
-
-enum class EventId : uint8_t
-{
-    Liftoff = 0,
-    Apogee,
-    Armed,
-    Disarmed,
-    CamOn,
-    CamOff
-};
-
-}  // namespace CanConfig
-
-}  // namespace Common
+}  // namespace Auxiliary
