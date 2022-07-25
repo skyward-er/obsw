@@ -59,7 +59,7 @@ void checkPressureData(MockPitot* pitot)
 
 int main()
 {
-    MockPitot* pitot = new MockPitot(SensorID::Pitot);
+    MockPitot* pitot = new MockPitot(SensorId::Pitot);
     CanHandler handler(Boards::Main);
     handler.addMock(pitot);
     Filter f;  // empty filter to accept all incoming messages
@@ -77,7 +77,7 @@ int main()
         {
             TRACE("Sent a packet \n");
             handler.sendCan(Boards::Payload, common::Priority::Medium,
-                            Type::Sensor, SensorID::Pitot,
+                            Type::Sensor, SensorId::Pitot,
                             (*pitot).parseData(t));
             // if we have to send a command we do not use a payload
             handler.sendCan(Boards::Main, common::Priority::Low, Type::Events,

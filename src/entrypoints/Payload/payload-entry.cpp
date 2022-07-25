@@ -22,6 +22,7 @@
 
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/NASController/NASController.h>
 #include <Payload/Radio/Radio.h>
@@ -32,6 +33,7 @@
 
 using namespace miosix;
 using namespace Boardcore;
+using namespace Payload;
 using namespace Payload;
 
 int main()
@@ -53,6 +55,7 @@ int main()
 
     // Start the sensors sampling
     Sensors::getInstance().start();
+    CanHandler::getInstance().start();
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();

@@ -54,7 +54,7 @@ void sendPressure(MockPitot* pitot)
         for (f = 0; f < nPressure && running; f++)
         {
             (*handler).sendCan(Boards::Main, common::Priority::Critical,
-                               Type::Sensor, SensorID::Pitot, temp);
+                               Type::Sensor, SensorId::Pitot, temp);
             Thread::sleep(msWait);
         }
         TRACE("Sent %d pressure packets\n", f);

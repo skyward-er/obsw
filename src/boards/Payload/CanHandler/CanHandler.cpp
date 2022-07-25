@@ -22,8 +22,12 @@
 
 #include "CanHandler.h"
 
-#include <Auxiliary/Actuators/Actuators.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Configs/SensorsConfig.h>
+#include <Payload/Sensors/Sensors.h>
 #include <common/CanConfig.h>
+#include <common/events/Events.h>
+#include <events/EventBroker.h>
 
 #include <functional>
 
@@ -31,9 +35,11 @@ using namespace std;
 using namespace placeholders;
 using namespace Boardcore;
 using namespace Canbus;
-using namespace Common::CanConfig;
+using namespace Common;
+using namespace CanConfig;
+using namespace Payload::SensorsConfig;
 
-namespace Auxiliary
+namespace Payload
 {
 
 bool CanHandler::start() { return protocol->start(); }
@@ -46,24 +52,27 @@ CanHandler::CanHandler()
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
     driver                = new CanbusDriver(CAN1, {}, bitTiming);
+    driver->init();
 
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
 
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::AUXILIARY));
-    driver->init();
-
-    printf("Init done\n");
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]()
+        {
+            protocol->enqueueData(static_cast<uint8_t>(Priority::CRITICAL),
+                                  static_cast<uint8_t>(PrimaryType::SENSORS),
+                                  static_cast<uint8_t>(Board::PAYLOAD),
+                                  static_cast<uint8_t>(Board::MAIN),
+                                  static_cast<uint8_t>(SensorId::PITOT),
+                                  Sensors::getInstance().getPitotLastSample());
+        },
+        PITOT_TRANSMISSION_PERIOD);
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {
     PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
-
-    printf("Received message\n");
 
     switch (msgType)
     {
@@ -84,24 +93,16 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
 
-    printf("Handling event\n");
-
     switch (eventId)
     {
         case EventId::ARM:
-        case EventId::CAM_ON:
         {
-            Actuators::getInstance().ledOn();
-            // Actuators::getInstance().camOn();
-            LOG_DEBUG(logger, "Cameras and leds turned on");
+            EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
             break;
         }
         case EventId::DISARM:
-        case EventId::CAM_OFF:
         {
-            Actuators::getInstance().ledOff();
-            // Actuators::getInstance().camOff();
-            LOG_DEBUG(logger, "Cameras and leds turned off");
+            EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
             break;
         }
 
@@ -112,4 +113,4 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
     }
 }
 
-}  // namespace Auxiliary
+}  // namespace Payload

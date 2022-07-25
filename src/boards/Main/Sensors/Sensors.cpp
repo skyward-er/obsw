@@ -58,62 +58,69 @@ bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
 
 BMX160Data Sensors::getBMX160LastSample()
 {
-    PauseKernelLock lock;
-    return bmx160->getLastSample();
+    miosix::PauseKernelLock lock;
+    return bmx160 != nullptr ? bmx160->getLastSample() : BMX160Data{};
 }
 
 BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
-    PauseKernelLock lock;
-    return bmx160WithCorrection->getLastSample();
+    miosix::PauseKernelLock lock;
+    return bmx160WithCorrection != nullptr
+               ? bmx160WithCorrection->getLastSample()
+               : BMX160WithCorrectionData{};
 }
 
 MPU9250Data Sensors::getMPU9250LastSample()
 {
     PauseKernelLock lock;
-    return mpu9250->getLastSample();
+    return mpu9250 != nullptr ? mpu9250->getLastSample() : MPU9250Data{};
 }
 
 MS5803Data Sensors::getMS5803LastSample()
 {
     PauseKernelLock lock;
-    return ms5803->getLastSample();
+    return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
 }
 
 ADS131M04Data Sensors::getADS131M04LastSample()
 {
     PauseKernelLock lock;
-    return ads131m04->getLastSample();
+    return ads131m04 != nullptr ? ads131m04->getLastSample() : ADS131M04Data{};
 }
 
 MPXH6115AData Sensors::getStaticPressureLastSample()
 {
     PauseKernelLock lock;
-    return staticPressure->getLastSample();
+    return staticPressure != nullptr ? staticPressure->getLastSample()
+                                     : MPXH6115AData{};
 }
 
 MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
-    return dplPressure->getLastSample();
+    return dplPressure != nullptr ? dplPressure->getLastSample()
+                                  : MPXH6400AData{};
 }
 
 AnalogLoadCellData Sensors::getLoadCellLastSample()
 {
     PauseKernelLock lock;
-    return loadCell->getLastSample();
+    return loadCell != nullptr ? loadCell->getLastSample()
+                               : AnalogLoadCellData{};
 }
 
 BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 {
     PauseKernelLock lock;
-    return batteryVoltage->getLastSample();
+    return batteryVoltage != nullptr ? batteryVoltage->getLastSample()
+                                     : BatteryVoltageSensorData{};
 }
 
 InternalADCData Sensors::getInternalADCLastSample()
 {
     PauseKernelLock lock;
-    return internalAdc->getLastSample();
+    return internalAdc != nullptr ? internalAdc->getLastSample()
+                                  : InternalADCData{};
 }
 
 void Sensors::calibrate()

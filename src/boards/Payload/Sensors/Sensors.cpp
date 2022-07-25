@@ -58,59 +58,66 @@ bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
 BMX160Data Sensors::getBMX160LastSample()
 {
     miosix::PauseKernelLock lock;
-    return bmx160->getLastSample();
+    return bmx160 != nullptr ? bmx160->getLastSample() : BMX160Data{};
 }
 
 BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
     miosix::PauseKernelLock lock;
-    return bmx160WithCorrection->getLastSample();
+    return bmx160WithCorrection != nullptr
+               ? bmx160WithCorrection->getLastSample()
+               : BMX160WithCorrectionData{};
 }
 
 LIS3MDLData Sensors::getMagnetometerLIS3MDLLastSample()
 {
     miosix::PauseKernelLock lock;
-    return lis3mdl->getLastSample();
+    return lis3mdl != nullptr ? lis3mdl->getLastSample() : LIS3MDLData{};
 }
 
 MS5803Data Sensors::getMS5803LastSample()
 {
     miosix::PauseKernelLock lock;
-    return ms5803->getLastSample();
+    return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
 }
 
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::PauseKernelLock lock;
-
-    if (ubxGps != nullptr)
-        return ubxGps->getLastSample();
-    else
-        return {};
+    return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
 }
 
 ADS1118Data Sensors::getADS1118LastSample()
 {
     miosix::PauseKernelLock lock;
-    return ads1118->getLastSample();
+    return ads1118 != nullptr ? ads1118->getLastSample() : ADS1118Data{};
 }
 
 MPXHZ6130AData Sensors::getStaticPressureLastSample()
 {
     miosix::PauseKernelLock lock;
-    return staticPressure->getLastSample();
+    return staticPressure != nullptr ? staticPressure->getLastSample()
+                                     : MPXHZ6130AData{};
 }
 
 SSCDANN030PAAData Sensors::getDplPressureLastSample()
 {
     miosix::PauseKernelLock lock;
-    return dplPressure->getLastSample();
+    return dplPressure != nullptr ? dplPressure->getLastSample()
+                                  : SSCDANN030PAAData{};
 }
 
 SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
 {
     miosix::PauseKernelLock lock;
-    return pitotPressure->getLastSample();
+    return pitotPressure != nullptr ? pitotPressure->getLastSample()
+                                    : SSCDRRN015PDAData{};
+}
+
+PitotData Sensors::getPitotLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return pitot != nullptr ? pitot->getLastSample() : PitotData{};
 }
 
 void Sensors::calibrate()
@@ -327,7 +334,6 @@ void Sensors::ads1118Init()
     ads1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
                          ADC_PGA_PITOT_PORT);
     ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT, ADC_PGA_DPL_PORT);
-    ads1118->enableInput(ADC_CH_VREF, ADC_DR_VREF, ADC_PGA_VREF);
 
     SensorInfo info("ADS1118", ADC_ADS1118_SAMPLE_PERIOD,
                     [&]()
@@ -393,7 +399,7 @@ void Sensors::pitotPressureInit()
 
     // Create the sensor info
     SensorInfo info(
-        "PitotBarometer", PITOT_PRESS_SAMPLE_PERIOD,
+        "PITOT_PRESS", PITOT_SAMPLE_PERIOD,
         [&]()
         {
             Logger::getInstance().log(pitotPressure->getLastSample());
@@ -405,6 +411,24 @@ void Sensors::pitotPressureInit()
     sensorsMap.emplace(make_pair(pitotPressure, info));
 
     LOG_INFO(logger, "Pitot differential pressure sensor setup done!");
+}
+
+void Sensors::pitotInit()
+{
+    function<PressureData()> getPitotPressure(
+        bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
+    function<float()> getStaticPressure(
+        [&]() { return ms5803->getLastSample().pressure; });
+
+    pitot = new Pitot(getPitotPressure, getStaticPressure);
+
+    SensorInfo info("PITOT", PITOT_SAMPLE_PERIOD,
+                    [&]()
+                    { Logger::getInstance().log(pitot->getLastSample()); });
+
+    sensorsMap.emplace(make_pair(pitot, info));
+
+    LOG_INFO(logger, "Pitot sensor setup done!");
 }
 
 }  // namespace Payload

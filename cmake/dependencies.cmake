@@ -45,21 +45,12 @@ set(MAIN_COMPUTER
 
 set(PAYLOAD_COMPUTER
     src/boards/Payload/Actuators/Actuators.cpp
+    src/boards/Payload/CanHandler/CanHandler.cpp
     src/boards/Payload/NASController/NASController.cpp
     src/boards/Payload/Radio/Radio.cpp
     src/boards/Payload/Sensors/Sensors.cpp
     src/boards/Payload/PinHandler/PinHandler.cpp
     src/boards/Payload/TMRepository/TMRepository.cpp
-)
-
-set(MAIN_COMPUTER_CATCH
-    src/boards/Main/Actuators/Actuators.cpp
-    src/boards/Main/Sensors/Sensors.cpp
-    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
-    src/boards/Main/StateMachines/ADAController/ADAController.cpp
-    src/boards/Main/StateMachines/Deployment/Deployment.cpp
-    src/boards/Main/StateMachines/NASController/NASController.cpp
-    src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
 set(PARAFOIL_COMPUTER

@@ -24,6 +24,7 @@
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>

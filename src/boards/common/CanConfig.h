@@ -35,41 +35,40 @@ static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
 enum class Priority : uint8_t
 {
-    Critical = 0,
-    High,
-    Medium,
-    Low
+    CRITICAL = 0,
+    HIGH,
+    MEDIUM,
+    LOW
 };
 
 enum class PrimaryType : uint8_t
 {
-    Events = 0,
-    Sensor
+    EVENTS = 0,
+    SENSORS
 };
 
 /// Used for source and destination
 enum class Board : uint8_t
 {
-    Broadcast = 0,
-    Main,
-    Payload,
-    Auxiliary
+    BROADCAST = 0,
+    MAIN,
+    PAYLOAD,
+    AUXILIARY
 };
 
-enum class SensorID : uint8_t
+enum class SensorId : uint8_t
 {
-    Pitot,
-    NumberOfSensor
+    PITOT
 };
 
 enum class EventId : uint8_t
 {
-    Liftoff = 0,
-    Apogee,
-    Armed,
-    Disarmed,
-    CamOn,
-    CamOff
+    LIFTOFF = 0,
+    APOGEE,
+    ARM,
+    DISARM,
+    CAM_ON,
+    CAM_OFF
 };
 
 }  // namespace CanConfig

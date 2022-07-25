@@ -24,7 +24,7 @@
 
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 
-namespace Main
+namespace Payload
 {
 
 class CanHandler : public Boardcore::Singleton<CanHandler>
@@ -46,10 +46,6 @@ public:
 
     // void logStatus();
 
-    void camOn();
-
-    void camOff();
-
 private:
     CanHandler();
 
@@ -57,14 +53,10 @@ private:
 
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
 
-    void handleCanSensor(const Boardcore::Canbus::CanMessage &msg);
-
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;
-
-    Boardcore::PitotData pitotData;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 };
 
-}  // namespace Main
+}  // namespace Payload

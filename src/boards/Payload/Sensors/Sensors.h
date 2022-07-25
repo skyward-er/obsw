@@ -31,6 +31,7 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSerial.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/Pitot/Pitot.h>
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
@@ -59,6 +60,7 @@ public:
     Boardcore::MPXHZ6130AData getStaticPressureLastSample();
     Boardcore::SSCDANN030PAAData getDplPressureLastSample();
     Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
+    Boardcore::PitotData getPitotLastSample();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -93,6 +95,7 @@ private:
     void dplPressureInit();
 
     void pitotPressureInit();
+    void pitotInit();
 
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
@@ -103,6 +106,7 @@ private:
     Boardcore::MPXHZ6130A* staticPressure;
     Boardcore::SSCDANN030PAA* dplPressure;
     Boardcore::SSCDRRN015PDA* pitotPressure;
+    Boardcore::Pitot* pitot;
 
     Boardcore::SensorManager* sensorManager = nullptr;
 

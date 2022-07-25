@@ -44,8 +44,6 @@ static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
     Boardcore::ADS1118::MUX_AIN1_GND;
 static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
     Boardcore::ADS1118::MUX_AIN2_GND;
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_VREF =
-    Boardcore::ADS1118::MUX_AIN3_GND;
 
 static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
     Boardcore::ADS1118::DR_860;
@@ -53,16 +51,12 @@ static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
     Boardcore::ADS1118::DR_860;
 static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
     Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_VREF =
-    Boardcore::ADS1118::DR_860;
 
 static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
     Boardcore::ADS1118::FSR_6_144;
 static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
     Boardcore::ADS1118::FSR_6_144;
 static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_VREF =
     Boardcore::ADS1118::FSR_6_144;
 
 static constexpr Boardcore::BMX160Config::AccelerometerRange
@@ -96,12 +90,14 @@ static constexpr unsigned int PRESS_DIGITAL_SAMPLE_PERIOD = 15;
 static constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD =
     1000;  // only for battery voltage
 static constexpr unsigned int ADC_ADS1118_SAMPLE_PERIOD = 6;
-static constexpr unsigned int PITOT_PRESS_SAMPLE_PERIOD =
-    ADC_ADS1118_SAMPLE_PERIOD * 4;
+static constexpr unsigned int PITOT_SAMPLE_PERIOD =
+    ADC_ADS1118_SAMPLE_PERIOD * 3;
 static constexpr unsigned int DPL_PRESS_SAMPLE_PERIOD =
-    ADC_ADS1118_SAMPLE_PERIOD * 4;
+    ADC_ADS1118_SAMPLE_PERIOD * 3;
 static constexpr unsigned int STATIC_PRESS_SAMPLE_PERIOD =
-    ADC_ADS1118_SAMPLE_PERIOD * 4;
+    ADC_ADS1118_SAMPLE_PERIOD * 3;
+
+static constexpr unsigned int PITOT_TRANSMISSION_PERIOD = 50;
 
 // IMU
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;

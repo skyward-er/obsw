@@ -23,6 +23,7 @@
 #include "CanHandler.h"
 
 #include <common/CanConfig.h>
+#include <common/events/Events.h>
 
 #include <functional>
 
@@ -30,7 +31,8 @@ using namespace std;
 using namespace placeholders;
 using namespace Boardcore;
 using namespace Canbus;
-using namespace Common::CanConfig;
+using namespace Common;
+using namespace CanConfig;
 
 namespace Main
 {
@@ -38,6 +40,24 @@ namespace Main
 bool CanHandler::start() { return protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
+
+void CanHandler::camOn()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::CAM_ON));
+}
+
+void CanHandler::camOff()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::CAM_OFF));
+}
 
 CanHandler::CanHandler()
 {
@@ -53,31 +73,69 @@ CanHandler::CanHandler()
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {
-    printf("Received packet:\n");
-    printf("\tpriority:       %d\n", msg.getPriority());
-    printf("\tprimary type:   %d\n", msg.getPrimaryType());
-    printf("\tsource:         %d\n", msg.getSource());
-    printf("\tdestination:    %d\n", msg.getDestination());
-    printf("\tsecondary type: %d\n", msg.getSecondaryType());
-    printf("\n");
+    PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
+
+    switch (msgType)
+    {
+        case PrimaryType::EVENTS:
+        {
+            handleCanEvent(msg);
+            break;
+        }
+        case PrimaryType::SENSORS:
+        {
+            handleCanSensor(msg);
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }
 
-void CanHandler::camOn()
+void CanHandler::handleCanEvent(const CanMessage &msg)
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::Critical),
-                           static_cast<uint8_t>(PrimaryType::Events),
-                           static_cast<uint8_t>(Board::Main),
-                           static_cast<uint8_t>(Board::Auxiliary),
-                           static_cast<uint8_t>(EventId::CamOn));
+    EventId eventId = static_cast<EventId>(msg.getSecondaryType());
+
+    switch (eventId)
+    {
+        case EventId::ARM:
+        {
+            EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
+            break;
+        }
+        case EventId::DISARM:
+        {
+            EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
+            break;
+        }
+
+        default:
+        {
+            LOG_DEBUG(logger, "Received unsupported event: id={}", eventId);
+        }
+    }
 }
 
-void CanHandler::camOff()
+void CanHandler::handleCanSensor(const CanMessage &msg)
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::Critical),
-                           static_cast<uint8_t>(PrimaryType::Events),
-                           static_cast<uint8_t>(Board::Main),
-                           static_cast<uint8_t>(Board::Auxiliary),
-                           static_cast<uint8_t>(EventId::CamOff));
+    SensorId sensorId = static_cast<SensorId>(msg.getSecondaryType());
+
+    switch (sensorId)
+    {
+        case SensorId::PITOT:
+        {
+            break;
+        }
+
+        default:
+        {
+            LOG_DEBUG(logger, "Received unsupported sensor data: id={}",
+                      sensorId);
+        }
+    }
 }
 
 }  // namespace Main
