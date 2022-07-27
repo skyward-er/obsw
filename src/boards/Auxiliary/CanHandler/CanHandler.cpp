@@ -54,16 +54,24 @@ CanHandler::CanHandler()
                         static_cast<uint8_t>(Board::BROADCAST));
     protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
                         static_cast<uint8_t>(Board::AUXILIARY));
+    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+                        static_cast<uint8_t>(Board::AUXILIARY));
     driver->init();
-
-    printf("Init done\n");
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {
     PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
 
-    printf("Received message\n");
+    printf("Received packet:\n");
+    printf("\tpriority:       %d\n", msg.getPriority());
+    printf("\tprimary type:   %d\n", msg.getPrimaryType());
+    printf("\tsource:         %d\n", msg.getSource());
+    printf("\tdestination:    %d\n", msg.getDestination());
+    printf("\tsecondary type: %d\n", msg.getSecondaryType());
+    printf("\n");
 
     switch (msgType)
     {
@@ -84,15 +92,13 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
 
-    printf("Handling event\n");
-
     switch (eventId)
     {
         case EventId::ARM:
         case EventId::CAM_ON:
         {
             Actuators::getInstance().ledOn();
-            // Actuators::getInstance().camOn();
+            Actuators::getInstance().camOn();
             LOG_DEBUG(logger, "Cameras and leds turned on");
             break;
         }
@@ -100,7 +106,7 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
         case EventId::CAM_OFF:
         {
             Actuators::getInstance().ledOff();
-            // Actuators::getInstance().camOff();
+            Actuators::getInstance().camOff();
             LOG_DEBUG(logger, "Cameras and leds turned off");
             break;
         }

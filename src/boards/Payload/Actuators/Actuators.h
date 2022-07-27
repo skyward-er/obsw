@@ -71,6 +71,14 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoPosition(ServosList servoId);
 
+    void ledOn();
+
+    void ledOff();
+
+    void camOn();
+
+    void camOff();
+
 private:
     Actuators();
 

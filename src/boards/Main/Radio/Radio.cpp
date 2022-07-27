@@ -25,6 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/TMRepository/TMRepository.h>
@@ -47,8 +48,8 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     using namespace Main;
 
-    if (Radio::getInstance().sx1278)
-        Radio::getInstance().sx1278->handleDioIRQ();
+    if (Radio::getInstance().transceiver)
+        Radio::getInstance().transceiver->handleDioIRQ();
 }
 
 namespace Main
@@ -109,17 +110,17 @@ Radio::Radio()
 {
     // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 
-    sx1278 =
+    transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
-    // Use default configuration
-    sx1278->init({});
+    // // Use default configuration
+    transceiver->init({});
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
 
-    mavDriver =
-        new MavDriver(sx1278, bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                      0, MAV_OUT_BUFFER_MAX_AGE);
+    mavDriver = new MavDriver(transceiver,
+                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                              0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the flight and statistics telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -431,6 +432,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             LOG_DEBUG(logger, "Received command arm");
 
             EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
+            CanHandler::getInstance().sendArmEvent();
 
             break;
         }
@@ -439,6 +441,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             LOG_DEBUG(logger, "Received command disarm");
 
             EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
+            CanHandler::getInstance().sendArmEvent();
 
             break;
         }
@@ -506,14 +509,14 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             LOG_DEBUG(logger, "Received command start recording");
 
-            // TODO: Apply command
+            CanHandler::getInstance().sendCamOnEvent();
             break;
         }
         case MAV_CMD_STOP_RECORDING:
         {
             LOG_DEBUG(logger, "Received command stop recording");
 
-            // TODO: Apply command
+            CanHandler::getInstance().sendCamOffEvent();
             break;
         }
 

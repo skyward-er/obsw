@@ -30,8 +30,6 @@ int main()
 {
     CanHandler::getInstance().start();
 
-    printf("Started\n");
-
     while (true)
         Thread::sleep(1000);
 }

@@ -37,20 +37,7 @@ using namespace Common;
 namespace Payload
 {
 
-void PinHandler::onLaunchPinTransition(PinTransition transition)
-{
-    if (transition == LAUNCH_PIN_TRIGGER)
-        EventBroker::getInstance().post(Event{FLIGHT_LIFTOFF}, TOPIC_FLIGHT);
-}
-
-void PinHandler::onNCPinTransition(PinTransition transition)
-{
-    if (transition == NC_DETACH_PIN_TRIGGER)
-        EventBroker::getInstance().post(Event{FLIGHT_NC_DETACHED},
-                                        TOPIC_FLIGHT);
-}
-
-void PinHandler::onDPLServoPinTransition(PinTransition transition)
+void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
     if (transition == DPL_SERVO_PIN_TRIGGER)
         EventBroker::getInstance().post(Event{DPL_SERVO_ACTUATION_DETECTED},
@@ -61,10 +48,6 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 {
     std::map<PinsList, PinData> data;
 
-    data[PinsList::LAUNCH_PIN] =
-        PinObserver::getInstance().getPinData(inputs::launchpad::getPin());
-    data[PinsList::NOSECONE_PIN] = PinObserver::getInstance().getPinData(
-        inputs::nosecone_detach::getPin());
     data[PinsList::DEPLOYMENT_PIN] =
         PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
 
@@ -74,18 +57,8 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 PinHandler::PinHandler()
 {
     PinObserver::getInstance().registerPinCallback(
-        inputs::launchpad::getPin(),
-        bind(&PinHandler::onLaunchPinTransition, this, _1),
-        LAUNCH_PIN_THRESHOLD);
-
-    PinObserver::getInstance().registerPinCallback(
-        inputs::nosecone_detach::getPin(),
-        bind(&PinHandler::onLaunchPinTransition, this, _1),
-        NC_DETACH_PIN_THRESHOLD);
-
-    PinObserver::getInstance().registerPinCallback(
         inputs::expulsion::getPin(),
-        bind(&PinHandler::onLaunchPinTransition, this, _1),
+        bind(&PinHandler::onExpulsionPinTransition, this, _1),
         DPL_SERVO_PIN_THRESHOLD);
 }
 

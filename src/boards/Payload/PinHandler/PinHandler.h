@@ -42,20 +42,10 @@ class PinHandler : public Boardcore::Singleton<PinHandler>
 
 public:
     /**
-     * @brief Called when a launch pin is detected.
-     */
-    void onLaunchPinTransition(Boardcore::PinTransition transition);
-
-    /**
-     * @brief Called when the nosecone pin is detected.
-     */
-    void onNCPinTransition(Boardcore::PinTransition transition);
-
-    /**
      * @brief Called when the deployment servo actuation is detected via the
      * optical sensor.
      */
-    void onDPLServoPinTransition(Boardcore::PinTransition transition);
+    void onExpulsionPinTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Returns a vector with all the pins data.

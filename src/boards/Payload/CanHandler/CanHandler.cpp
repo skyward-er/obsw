@@ -22,6 +22,7 @@
 
 #include "CanHandler.h"
 
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/Sensors/Sensors.h>
@@ -46,16 +47,57 @@ bool CanHandler::start() { return protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
+void CanHandler::sendArmEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::PAYLOAD),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::ARM));
+}
+
+void CanHandler::sendDisarmEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::PAYLOAD),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::DISARM));
+}
+
+void CanHandler::sendCamOnEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::PAYLOAD),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::CAM_ON));
+}
+
+void CanHandler::sendCamOffEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::PAYLOAD),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::CAM_OFF));
+}
+
 CanHandler::CanHandler()
 {
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
     driver                = new CanbusDriver(CAN1, {}, bitTiming);
-    driver->init();
 
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
+
+    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+                        static_cast<uint8_t>(Board::PAYLOAD));
+    driver->init();
 
     BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
@@ -98,11 +140,19 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
         case EventId::ARM:
         {
             EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
+        }
+        case EventId::CAM_ON:
+        {
+            Actuators::getInstance().camOn();
             break;
         }
         case EventId::DISARM:
         {
             EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
+        }
+        case EventId::CAM_OFF:
+        {
+            Actuators::getInstance().camOff();
             break;
         }
 

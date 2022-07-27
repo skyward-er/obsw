@@ -32,11 +32,11 @@ int main()
 
     while (true)
     {
-        CanHandler::getInstance().camOn();
+        CanHandler::getInstance().sendCamOnEvent();
         printf("Sent event for cam on\n");
         Thread::sleep(1000);
 
-        CanHandler::getInstance().camOff();
+        CanHandler::getInstance().sendCamOffEvent();
         printf("Sent event for cam off\n");
         Thread::sleep(1000);
     }

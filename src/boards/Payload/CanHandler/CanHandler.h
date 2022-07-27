@@ -46,6 +46,14 @@ public:
 
     // void logStatus();
 
+    void sendArmEvent();
+
+    void sendDisarmEvent();
+
+    void sendCamOnEvent();
+
+    void sendCamOffEvent();
+
 private:
     CanHandler();
 

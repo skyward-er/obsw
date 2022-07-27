@@ -25,6 +25,7 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/events/Events.h>
@@ -438,7 +439,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             LOG_DEBUG(logger, "Received command arm");
 
             EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
-
+            CanHandler::getInstance().sendArmEvent();
             break;
         }
         case MAV_CMD_DISARM:
@@ -446,7 +447,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             LOG_DEBUG(logger, "Received command disarm");
 
             EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
-
+            CanHandler::getInstance().sendDisarmEvent();
             break;
         }
         case MAV_CMD_FORCE_LAUNCH:
@@ -513,14 +514,18 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             LOG_DEBUG(logger, "Received command start recording");
 
-            // TODO: Apply command
+            Actuators::getInstance().camOn();
+            Actuators::getInstance().ledOn();
+            CanHandler::getInstance().sendCamOnEvent();
             break;
         }
         case MAV_CMD_STOP_RECORDING:
         {
             LOG_DEBUG(logger, "Received command stop recording");
 
-            // TODO: Apply command
+            Actuators::getInstance().camOff();
+            Actuators::getInstance().ledOff();
+            CanHandler::getInstance().sendCamOffEvent();
             break;
         }
 

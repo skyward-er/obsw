@@ -23,10 +23,7 @@
 #include "Actuators.h"
 
 #include <Payload/Configs/ActuatorsConfigs.h>
-
-#ifndef COMPILE_FOR_HOST
-#include <interfaces-impl/hwmapping.h>
-#endif
+#include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
 using namespace Payload::ActuatorsConfigs;
@@ -138,6 +135,14 @@ float Actuators::getServoPosition(ServosList servoId)
 
     return 0;
 }
+
+void Actuators::ledOn() { miosix::ledOn(); }
+
+void Actuators::ledOff() { miosix::ledOff(); }
+
+void Actuators::camOn() { interfaces::camMosfet::high(); }
+
+void Actuators::camOff() { interfaces::camMosfet::low(); }
 
 Actuators::Actuators()
     : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),

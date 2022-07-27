@@ -41,7 +41,25 @@ bool CanHandler::start() { return protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
-void CanHandler::camOn()
+void CanHandler::sendArmEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::ARM));
+}
+
+void CanHandler::sendDisarmEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::DISARM));
+}
+
+void CanHandler::sendCamOnEvent()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -50,7 +68,7 @@ void CanHandler::camOn()
                            static_cast<uint8_t>(EventId::CAM_ON));
 }
 
-void CanHandler::camOff()
+void CanHandler::sendCamOffEvent()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -65,10 +83,15 @@ CanHandler::CanHandler()
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
     driver                = new CanbusDriver(CAN1, {}, bitTiming);
-    driver->init();
 
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
+
+    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+    //                     static_cast<uint8_t>(Board::BROADCAST));
+    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+    //                     static_cast<uint8_t>(Board::AUXILIARY));
+    driver->init();
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
