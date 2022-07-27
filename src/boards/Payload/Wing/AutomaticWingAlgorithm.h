@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,49 +19,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <algorithms/NAS/NAS.h>
-#include <algorithms/NAS/StateInitializer.h>
-#include <scheduler/TaskScheduler.h>
+#include <Payload/Wing/WingAlgorithm.h>
+#include <algorithms/PIController.h>
 
 #include <Eigen/Core>
-#include <functional>
 
 namespace Payload
 {
-
-class NASController : public Boardcore::Singleton<NASController>
+class AutomaticWingAlgorithm : public WingAlgorithm
 {
-    friend Boardcore::Singleton<NASController>;
-
 public:
-    void init();
+    /**
+     * @brief Construct a new Automatic Wing Algorithm object
+     *
+     * @param Kp Proportional value for PI controller
+     * @param Ki Integral value for PI controller
+     * @param servo1 The first servo
+     * @param servo2 The second servo
+     */
+    AutomaticWingAlgorithm(float Kp, float Ki, ServosList servo1,
+                           ServosList servo2);
 
-    bool start();
+    /**
+     * @brief Destroy the Automatic Wing Algorithm object and the PI
+     */
+    ~AutomaticWingAlgorithm();
 
-    void update();
+protected:
+    // PI controller tuned on the Kp and Ki passed through constructor
+    Boardcore::PIController* controller;
 
-    void initializeOrientationAndPressure();
-
-    void setInitialPosition(Eigen::Vector2f position);
-
-    Boardcore::NASState getNasState();
-
-    void setReferenceValues(const Boardcore::ReferenceValues reference);
-
-    Boardcore::ReferenceValues getReferenceValues();
-
-private:
-    NASController();
-
-    Boardcore::NAS nas;
-
-    Eigen::Vector3f initialOrientation;
-    Eigen::Vector2f initialPosition{42.571820, 12.585861};
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
+    /**
+     * @brief This method implements the automatic algorithm that will steer the
+     * parafoil according to its position and velocity. IN THIS METHOD THE
+     * GUIDANCE IS TRANSLATED
+     */
+    void step() override;
 };
-
 }  // namespace Payload

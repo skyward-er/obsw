@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,49 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
-
-#include <algorithms/NAS/NAS.h>
-#include <algorithms/NAS/StateInitializer.h>
-#include <scheduler/TaskScheduler.h>
-
-#include <Eigen/Core>
-#include <functional>
+#include <sensors/SensorData.h>
 
 namespace Payload
 {
-
-class NASController : public Boardcore::Singleton<NASController>
+/**
+ * This class represents the algorithm data structure that needs to be logged
+ * into the onboard SD card. It has the timestamp(absolute) and the servo
+ * position set by the selected algorithm
+ */
+struct WingAlgorithmData
 {
-    friend Boardcore::Singleton<NASController>;
+    uint64_t timestamp;   // First timestamp is 0 (in microseconds)
+    float servo1Angle;    // degrees
+    float servo2Angle;    // degrees
+    float targetAngle;    // radians (automatic only)
+    float velocityAngle;  // radians
+    float targetX;        // NED (only automatic algorithm)
+    float targetY;        // NED (only automatic algorithm)
+    float error;
+    float pidOutput;
 
-public:
-    void init();
+    static std::string header()
+    {
+        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle, "
+               "velocityAngle,targetX,targetY,error,pidOutput\n";
+    }
 
-    bool start();
-
-    void update();
-
-    void initializeOrientationAndPressure();
-
-    void setInitialPosition(Eigen::Vector2f position);
-
-    Boardcore::NASState getNasState();
-
-    void setReferenceValues(const Boardcore::ReferenceValues reference);
-
-    Boardcore::ReferenceValues getReferenceValues();
-
-private:
-    NASController();
-
-    Boardcore::NAS nas;
-
-    Eigen::Vector3f initialOrientation;
-    Eigen::Vector2f initialPosition{42.571820, 12.585861};
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << servo1Angle << "," << servo2Angle << ","
+           << targetAngle << "," << velocityAngle << "," << targetX << ","
+           << targetY << "," << error << "," << pidOutput << "\n";
+    }
 };
-
 }  // namespace Payload

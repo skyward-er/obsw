@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,46 +22,30 @@
 
 #pragma once
 
-#include <algorithms/NAS/NAS.h>
-#include <algorithms/NAS/StateInitializer.h>
-#include <scheduler/TaskScheduler.h>
+#include <drivers/timer/PWM.h>
+#include <miosix.h>
 
 #include <Eigen/Core>
-#include <functional>
 
 namespace Payload
 {
 
-class NASController : public Boardcore::Singleton<NASController>
+namespace WingConfig
 {
-    friend Boardcore::Singleton<NASController>;
 
-public:
-    void init();
+// Algorithm configuration
+static constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
+static constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
-    bool start();
+// Arm, start and flare thresholds
+static constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]
+static constexpr float WING_ALGORITHM_START_ALTITUDE = 200;   // [m]
+static constexpr float WING_FLARE_ALTITUDE           = 1275;  // [m]
 
-    void update();
+static float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
+static float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
+static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
-    void initializeOrientationAndPressure();
-
-    void setInitialPosition(Eigen::Vector2f position);
-
-    Boardcore::NASState getNasState();
-
-    void setReferenceValues(const Boardcore::ReferenceValues reference);
-
-    Boardcore::ReferenceValues getReferenceValues();
-
-private:
-    NASController();
-
-    Boardcore::NAS nas;
-
-    Eigen::Vector3f initialOrientation;
-    Eigen::Vector2f initialPosition{42.571820, 12.585861};
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
-};
+}  // namespace WingConfig
 
 }  // namespace Payload

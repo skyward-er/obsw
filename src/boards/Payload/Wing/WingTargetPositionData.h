@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#pragma once
+
+#include <ostream>
+#include <string>
+
+namespace Payload
+{
+
+struct WingTargetPositionData
+{
+    float receivedLat;
+    float receivedLon;
+    float latitude;
+    float longitude;
+
+    float n;
+    float e;
+
+    static std::string header()
+    {
+        return "receivedLat, receivedLon, latitude,longitude,n,e\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << receivedLat << "," << receivedLon << "," << latitude << ","
+           << longitude << "," << n << "," << e << "\n";
+    }
+};
+
+}  // namespace Payload

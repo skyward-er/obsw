@@ -111,7 +111,7 @@ bool Actuators::disableServo(ServosList servoId)
             servo1.enable();
             break;
         case PARAFOIL_SERVO2:
-            servo1.enable();
+            servo2.enable();
             break;
         default:
             return false;

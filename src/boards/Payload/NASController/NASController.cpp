@@ -42,8 +42,8 @@ void NASController::init()
 
 bool NASController::start()
 {
-    // Calculate the initial orientation using triad algorithm
-    calculateInitialOrientation();
+    // Initialize all reference values
+    initializeOrientationAndPressure();
 
     // Add the update task to the scheduler
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -56,8 +56,10 @@ bool NASController::start()
 void NASController::update()
 {
     // Sample the sensors
-    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
-    UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
+    BMX160WithCorrectionData imuData =
+        Sensors::getInstance().getBMX160WithCorrectionLastSample();
+    UBXGPSData gpsData      = Sensors::getInstance().getUbxGpsLastSample();
+    MS5803Data pressureData = Sensors::getInstance().getMS5803LastSample();
 
     // Extrapolate all the data
     Eigen::Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
@@ -76,17 +78,18 @@ void NASController::update()
     // cppcheck-suppress constStatement
     gpsCorrection << gpsPos, gpsVel;
 
-    // Calibration
-    {
-        Eigen::Vector3f biasAcc(-0.1255, 0.2053, -0.2073);
-        acceleration -= biasAcc;
-        Eigen::Vector3f bias(-0.0291, 0.0149, 0.0202);
-        angularVelocity -= bias;
-        Eigen::Vector3f offset(15.9850903462129, -15.6775071377074,
-                               -33.8438469147423);
-        magneticField -= offset;
-        magneticField = {magneticField[1], magneticField[0], -magneticField[2]};
-    }
+    // // Calibration
+    // {
+    //     Eigen::Vector3f biasAcc(-0.1255, 0.2053, -0.2073);
+    //     acceleration -= biasAcc;
+    //     Eigen::Vector3f bias(-0.0291, 0.0149, 0.0202);
+    //     angularVelocity -= bias;
+    //     Eigen::Vector3f offset(15.9850903462129, -15.6775071377074,
+    //                            -33.8438469147423);
+    //     magneticField -= offset;
+    //     magneticField = {magneticField[1], magneticField[0],
+    //     -magneticField[2]};
+    // }
 
     // Predict step
     nas.predictGyro(angularVelocity);
@@ -99,28 +102,37 @@ void NASController::update()
     nas.correctMag(magneticField);
     if (gpsData.fix)
         nas.correctGPS(gpsCorrection);
-    nas.correctBaro(100000);
+    nas.correctBaro(pressureData.pressure);
 
     NASState nasState = nas.getState();
 
     Logger::getInstance().log(nasState);
 }
 
-void NASController::calculateInitialOrientation()
+void NASController::initializeOrientationAndPressure()
 {
     // Mean 10 accelerometer values
     Eigen::Vector3f accelerometer;
     Eigen::Vector3f magnetometer;
+    float pressure = 0;
     StateInitializer state;
 
     // Mean the values
     for (int i = 0; i < 10; i++)
     {
-        auto data = Sensors::getInstance().getBMX160WithCorrectionLastSample();
-        accelerometer += Eigen::Vector3f(data.accelerationX, data.accelerationY,
-                                         data.accelerationZ);
-        magnetometer += Eigen::Vector3f(
-            data.magneticFieldX, data.magneticFieldY, data.magneticFieldZ);
+        // IMU
+        BMX160WithCorrectionData imuData =
+            Sensors::getInstance().getBMX160WithCorrectionLastSample();
+        accelerometer +=
+            Eigen::Vector3f(imuData.accelerationX, imuData.accelerationY,
+                            imuData.accelerationZ);
+        magnetometer +=
+            Eigen::Vector3f(imuData.magneticFieldX, imuData.magneticFieldY,
+                            imuData.magneticFieldZ);
+
+        // Barometer
+        MS5803Data pressureData = Sensors::getInstance().getMS5803LastSample();
+        pressure += pressureData.pressure;
 
         // Wait for some time
         miosix::Thread::sleep(100);
@@ -128,6 +140,7 @@ void NASController::calculateInitialOrientation()
 
     accelerometer /= 10;
     magnetometer /= 10;
+    pressure /= 10;
 
     // Normalize the data
     accelerometer.normalize();

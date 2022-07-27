@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,8 @@
 #include <Payload/NASController/NASController.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/Wing/AutomaticWingAlgorithm.h>
+#include <Payload/Wing/WingController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
@@ -59,6 +61,10 @@ int main()
 
     // Start the board task scheduler
     BoardScheduler::getInstance().getScheduler().start();
+
+    // Set up the wing controller
+    WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
+        0.1, 0.01, PARAFOIL_SERVO1, PARAFOIL_SERVO2));
 
     // Periodically statistics
     while (true)
