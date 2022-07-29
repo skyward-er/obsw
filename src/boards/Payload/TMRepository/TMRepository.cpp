@@ -172,7 +172,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
-            tm.airspeed_pitot  = 0;  // TODO: Implement
+            tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
 
             // ADA estimation
             tm.msl_altitude   = 0;
@@ -392,25 +392,22 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            // auto pressureData =
-            //     Sensors::getInstance().getPitotLastSample();
+            SSCDRRN015PDAData pitot =
+                Sensors::getInstance().getPitotPressureLastSample();
 
-            // tm.timestamp = pressureData.pressureTimestamp;
+            tm.timestamp = pitot.pressureTimestamp;
+            tm.pressure  = pitot.pressure;
             strcpy(tm.sensor_id, "PITOT");
-
-            // tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
                                            &tm);
-
             break;
         }
         case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:  // TODO
         {
             break;
         }
-
         default:
         {
             mavlink_nack_tm_t nack;

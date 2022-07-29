@@ -169,6 +169,7 @@ Sensors::Sensors()
     staticPressureInit();
     dplPressureInit();
     pitotPressureInit();
+    pitotInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);

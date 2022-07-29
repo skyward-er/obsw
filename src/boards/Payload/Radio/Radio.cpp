@@ -142,6 +142,7 @@ void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
+    sendAck(msg);
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -262,7 +263,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
         {
             ServosList servoId = static_cast<ServosList>(
-                mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
+                mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
 
             LOG_DEBUG(logger, "Received servo telemetry request, id: {}",
                       servoId);
