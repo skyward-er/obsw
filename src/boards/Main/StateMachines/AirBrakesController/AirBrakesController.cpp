@@ -156,6 +156,12 @@ void AirBrakesController::state_end(const Event& event)
     }
 }
 
+void AirBrakesController::setActuatorFunction(
+    std::function<void(float)> setActuator)
+{
+    this->abk.setActuatorFunction(setActuator);
+}
+
 AirBrakesController::AirBrakesController()
     : FSM(&AirBrakesController::state_init),
       abk(

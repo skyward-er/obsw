@@ -62,4 +62,13 @@ set(PARAFOIL_COMPUTER
 set(HIL_TESTS
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
+    src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Sensors/Sensors.cpp
+
+    # src/boards/Main/Radio/Radio.cpp
+    # src/boards/Main/TMRepository/TMRepository.cpp
+    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
+    src/boards/Main/StateMachines/ADAController/ADAController.cpp
+    src/boards/Main/StateMachines/Deployment/Deployment.cpp
+    src/boards/Main/StateMachines/NASController/NASController.cpp
 )

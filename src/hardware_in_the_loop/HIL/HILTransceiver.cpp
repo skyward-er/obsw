@@ -27,13 +27,13 @@
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver(HILFlightPhasesManager *flightPhasesManager)
-    : flightPhasesManager(flightPhasesManager), actuatorData(0.0f)
+    : flightPhasesManager(flightPhasesManager),
+      hilSerial(USART3, Boardcore::USARTInterface::Baudrate::B115200),
+      actuatorData(
+          {0.0f, std::list<Boardcore::NASState>(), std::list<ADAdataHIL>()})
 {
-    hilSerial = new Boardcore::USART(
-        USART3, Boardcore::USARTInterface::Baudrate::B115200);
-
     // initializing the serial connection
-    if (!hilSerial->init())
+    if (!hilSerial.init())
     {
         TRACE("[HIL] Wrong initialization\n");
     }
@@ -107,7 +107,7 @@ void HILTransceiver::run()
          * kernel in order to copy the data in the shared structure */
         {
             SimulatorData tempData;
-            hilSerial->read(&tempData, sizeof(SimulatorData));
+            hilSerial.read(&tempData, sizeof(SimulatorData));
             miosix::PauseKernelLock kLock;
             memmove(&sensorData, &tempData, sizeof(sensorData));
         }
@@ -129,10 +129,14 @@ void HILTransceiver::run()
         }
 
         // trigger events relative to the flight phases
+        // TRACE("flags: %f %f %f %f %f %f\n", sensorData.flags.flag_flight,
+        //       sensorData.flags.flag_ascent, sensorData.flags.flag_burning,
+        //       sensorData.flags.flag_airbrakes, sensorData.flags.flag_para1,
+        //       sensorData.flags.flag_para2);
         flightPhasesManager->processFlags(sensorData.flags);
 
         waitActuatorData();
-        hilSerial->write(&actuatorData, sizeof(ActuatorData));
+        hilSerial.write(&actuatorData, sizeof(ActuatorData));
     }
 }
 

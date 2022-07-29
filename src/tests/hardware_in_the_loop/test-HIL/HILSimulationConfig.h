@@ -22,13 +22,17 @@
 
 #pragma once
 
+#include <list>
+
+#include "algorithms/ADA/ADAData.h"
+#include "algorithms/NAS/NASState.h"
 #include "old_examples/shared/math/Vec3.h"
 #include "sensors/SensorInfo.h"
 
 struct SensorConfig : public Boardcore::SensorInfo
 {
     SensorConfig(const std::string s, const uint32_t period)
-        : Boardcore::SensorInfo{s, period, []() {}, false}
+        : Boardcore::SensorInfo{s, period, []() {}, true}
     {
     }
 };
@@ -131,6 +135,44 @@ public:
 };
 
 /**
+ * @brief ADA data sent to the simulator
+ */
+struct ADAdataHIL
+{
+    uint64_t ada_timestamp;
+    float mslAltitude;    // Altitude at mean sea level [m].
+    float verticalSpeed;  // Vertical speed [m/s].
+};
+
+/**
  * @brief Data structure expected by the simulator
  */
-using ActuatorData = float;
+typedef struct
+{
+    // Airbrakes opening (percentage)
+    float airbrakes_opening;
+
+    // NAS
+    std::list<Boardcore::NASState> nasState;
+
+    // ADA
+    std::list<ADAdataHIL> adaState;
+
+    void setAirBrakesOpening(float airbrakes_opening)
+    {
+        this->airbrakes_opening = airbrakes_opening;
+    };
+
+    void addNASState(Boardcore::NASState nasState)
+    {
+        this->nasState.push_back(nasState);
+    };
+
+    void addADAState(Boardcore::ADAState adaState)
+    {
+        ADAdataHIL data{adaState.timestamp, adaState.mslAltitude,
+                        adaState.verticalSpeed};
+
+        this->adaState.push_back(data);
+    };
+} ActuatorData;

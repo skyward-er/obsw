@@ -92,7 +92,7 @@ private:
     void run() override;
 
     HILFlightPhasesManager *flightPhasesManager;
-    Boardcore::USART *hilSerial;
+    Boardcore::USART hilSerial;
     // bool isAirbrakePhase    = false;
     bool receivedFirstPacket = false;
     bool updated             = false;

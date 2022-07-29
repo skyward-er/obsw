@@ -48,6 +48,8 @@ public:
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
+    void setActuatorFunction(std::function<void(float)> setActuator);
+
 private:
     AirBrakesController();
     ~AirBrakesController();
