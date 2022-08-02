@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Sensors/Sensors.h>
 #include <Singleton.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
@@ -56,6 +57,12 @@ public:
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
+    void setImuDataFunction(
+        std::function<Boardcore::BMX160WithCorrectionData()>);
+
+    void setUpdateDataFunction(
+        std::function<void(Boardcore::NASState)> updateData);
+
 private:
     NASController();
     ~NASController();
@@ -67,6 +74,8 @@ private:
     Boardcore::NAS nas;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
+    std::function<Boardcore::BMX160WithCorrectionData()> getImuData;
+    std::function<void(Boardcore::NASState)> updateData;
 };
 
 }  // namespace Main

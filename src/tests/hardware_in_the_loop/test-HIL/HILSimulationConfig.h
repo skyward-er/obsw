@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <utils/Stats/Stats.h>
+
 #include <list>
 
 #include "algorithms/ADA/ADAData.h"
@@ -142,10 +144,66 @@ struct ADAdataHIL
     uint64_t ada_timestamp;
     float mslAltitude;    // Altitude at mean sea level [m].
     float verticalSpeed;  // Vertical speed [m/s].
+
+    ADAdataHIL& operator+=(const ADAdataHIL& x)
+    {
+        this->ada_timestamp += x.ada_timestamp;
+        this->mslAltitude += x.mslAltitude;
+        this->verticalSpeed += x.verticalSpeed;
+
+        return *this;  // return the result by reference
+    }
+
+    ADAdataHIL operator/(int x)
+    {
+        return ADAdataHIL{this->ada_timestamp / x, this->mslAltitude / x,
+                          this->verticalSpeed / x};
+    }
+
+    ADAdataHIL operator*(int x)
+    {
+        return ADAdataHIL{this->ada_timestamp * x, this->mslAltitude * x,
+                          this->verticalSpeed * x};
+    }
+
+    static std::string header()
+    {
+        return "timestamp,mslAltitude,verticalSpeed\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << ada_timestamp << "," << mslAltitude << "," << verticalSpeed
+           << "\n";
+    }
 };
 
 /**
  * @brief Data structure expected by the simulator
+ */
+typedef struct
+{
+    // Airbrakes opening (percentage)
+    float airbrakes_opening;
+
+    // NAS
+    Boardcore::NASState nasState;
+
+    // ADA
+    ADAdataHIL adaState;
+
+    void print() const
+    {
+        printf(
+            "abk:%f\nned:%f,%f,%f\nbody:%f,%f,%f\nq:%f,%f,%f,%f\nada:%f,%f\n\n",
+            airbrakes_opening, nasState.n, nasState.e, nasState.d, nasState.bx,
+            nasState.by, nasState.bz, nasState.qx, nasState.qy, nasState.qz,
+            nasState.qw, adaState.mslAltitude, adaState.verticalSpeed);
+    }
+} ActuatorData;
+
+/**
+ * @brief Data structure in order to store elaborated data by the algorithms
  */
 typedef struct
 {
@@ -161,11 +219,13 @@ typedef struct
     void setAirBrakesOpening(float airbrakes_opening)
     {
         this->airbrakes_opening = airbrakes_opening;
+        TRACE("setted abk opening\n");
     };
 
     void addNASState(Boardcore::NASState nasState)
     {
         this->nasState.push_back(nasState);
+        TRACE("added nas state\n");
     };
 
     void addADAState(Boardcore::ADAState adaState)
@@ -174,5 +234,33 @@ typedef struct
                         adaState.verticalSpeed};
 
         this->adaState.push_back(data);
+        TRACE("added ada state\n");
     };
-} ActuatorData;
+
+    ActuatorData getAvgActuatorData()
+    {
+        // NAS
+        int n                 = nasState.size();
+        float nasTimestampAvg = 0;
+        auto nasXAvg          = this->nasState.front().getX().setZero();
+
+        for (auto it = this->nasState.begin(); it != this->nasState.end(); ++it)
+        {
+            // Eigen::Matrix<float, 13, 1>
+            nasTimestampAvg += (it->timestamp / n);
+            nasXAvg += (it->getX() / n);
+        }
+        Boardcore::NASState nasStateAvg(nasTimestampAvg, nasXAvg);
+
+        // ADA
+        auto adaStateAvg = this->adaState.front() * 0;
+        n                = adaState.size();
+
+        for (auto x : this->adaState)
+        {
+            adaStateAvg += (x / n);
+        }
+
+        return ActuatorData{airbrakes_opening, nasStateAvg, adaStateAvg};
+    }
+} ElaboratedData;

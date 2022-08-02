@@ -34,7 +34,6 @@
  * The control algorithm takes data from the Sensors, elaborates it and sends
  * the result to the actuator.
  */
-template <typename KD>
 class MockAirbrakeAlgorithm : public Algorithm
 {
 public:
@@ -44,13 +43,11 @@ public:
      * parameter
      * @param servo the actuator that will communicate with the Simulator
      */
-    MockAirbrakeAlgorithm(Boardcore::Sensor<KD>* kalman, ServoInterface* servo)
+    MockAirbrakeAlgorithm(
+        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition,
+        std::function<void(float)> setActuator)
+        : getCurrentPosition(getCurrentPosition), setActuator(setActuator)
     {
-        /* [TODO]
-         * Check if the sensors have the data we need
-         */
-        this->kalman         = kalman;
-        this->servo          = servo;
         lastSample.timestamp = 0;
     }
 
@@ -62,10 +59,10 @@ protected:
      */
     void step() override
     {
-        KD state;
+        Boardcore::TimedTrajectoryPoint state;
         {
             // [REVIEW] PauseKernelLock kLock;
-            state = kalman->getLastSample();
+            state = getCurrentPosition();
         }
 
         if (lastSample.timestamp < state.timestamp)
@@ -76,16 +73,13 @@ protected:
              * In here you can put the control algorithm
              */
 
-            actuatorData = MaxAlphaDegree / 2;  // it's more or less 25 degrees
+            setActuator(MaxAlphaDegree / 2);  // it's more or less 25 degrees
         }
-
-        servo->set(actuatorData);
     }
 
 private:
-    ActuatorData actuatorData;
     Boardcore::TimestampData
-        lastSample;                /**< keeps track of the last timestamp */
-    Boardcore::Sensor<KD>* kalman; /**< reference to the kalman object */
-    ServoInterface* servo;         /**< reference to the actuator object */
+        lastSample; /**< keeps track of the last timestamp */
+    std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition;
+    std::function<void(float)> setActuator;
 };

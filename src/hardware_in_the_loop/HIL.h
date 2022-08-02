@@ -55,8 +55,8 @@ public:
             FlightPhases::LIFTOFF_PIN_DETACHED, true);
 
         // start code for the flight
-        actuatorData.setAirBrakesOpening(-1);
-        simulator->setActuatorData(actuatorData);
+        elaboratedData.setAirBrakesOpening(-1);
+        this->send(elaboratedData.getAvgActuatorData());
     }
 
     bool isSimulationStarted()
@@ -74,7 +74,7 @@ public:
         return flightPhasesManager->isSimulationRunning();
     }
 
-    ActuatorData *getActuatorData() { return &actuatorData; }
+    ElaboratedData *getElaboratedData() { return &elaboratedData; }
 
 private:
     HIL()
@@ -83,5 +83,5 @@ private:
         simulator           = new HILTransceiver(flightPhasesManager);
     }
 
-    ActuatorData actuatorData;
+    ElaboratedData elaboratedData;
 };

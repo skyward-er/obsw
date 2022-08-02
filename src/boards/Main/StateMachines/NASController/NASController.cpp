@@ -24,7 +24,6 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/NASConfig.h>
-#include <Main/Sensors/Sensors.h>
 #include <Main/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -42,12 +41,15 @@ bool NASController::start()
         std::bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
+    TRACE("[NAS] starting!\n");
+
     return ActiveObject::start();
 }
 
 void NASController::update()
 {
-    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
+    TRACE("[NAS] update\n");
+    auto imuData = getImuData();
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);
@@ -63,6 +65,9 @@ void NASController::update()
     // Correct step
     nas.correctMag(magneticField.normalized());
     nas.correctAcc(acceleration.normalized());
+
+    // useful only for hil testing
+    updateData(nas.getState());
 }
 
 NASControllerStatus NASController::getStatus() { return status; }
@@ -154,6 +159,18 @@ void NASController::state_end(const Event& event)
     }
 }
 
+void NASController::setImuDataFunction(
+    std::function<Boardcore::BMX160WithCorrectionData()> getImuData)
+{
+    this->getImuData = getImuData;
+}
+
+void NASController::setUpdateDataFunction(
+    std::function<void(Boardcore::NASState)> updateData)
+{
+    this->updateData = updateData;
+}
+
 void NASController::logStatus(NASControllerState state)
 {
     status.timestamp = TimestampTimer::getTimestamp();
@@ -163,7 +180,12 @@ void NASController::logStatus(NASControllerState state)
 }
 
 NASController::NASController()
-    : FSM(&NASController::state_idle), nas(NASConfig::config)
+    : FSM(&NASController::state_idle), nas(NASConfig::config),
+      getImuData(
+          []() {
+              return Sensors::getInstance().getBMX160WithCorrectionLastSample();
+          }),
+      updateData([](Boardcore::NASState) {})
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

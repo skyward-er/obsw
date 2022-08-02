@@ -44,6 +44,8 @@ bool ADAController::start()
         std::bind(&ADAController::update, this), ADAConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
+    TRACE("[ADA] starting\n");
+
     return ActiveObject::start();
 }
 
@@ -200,6 +202,9 @@ void ADAController::update()
     }
 
     Logger::getInstance().log(ada.getState());
+
+    // useful only for hil testing
+    updateData(ada.getState());
 }
 
 ADAControllerStatus ADAController::getStatus()
@@ -416,11 +421,18 @@ void ADAController::state_landed(const Event& event)
     }
 }
 
+void ADAController::setUpdateDataFunction(
+    std::function<void(Boardcore::ADAState)> updateData)
+{
+    this->updateData = updateData;
+}
+
 ADAController::ADAController()
     : FSM(&ADAController::state_idle),
       ada({DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_PRESSURE,
            DEFAULT_REFERENCE_TEMPERATURE},
-          getADAKalmanConfig())
+          getADAKalmanConfig()),
+      updateData([](Boardcore::ADAState) {})
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

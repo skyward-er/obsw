@@ -24,6 +24,7 @@
 #include <events/FSM.h>
 #include <events/utils/EventCounter.h>
 
+#include "Main/BoardScheduler.h"
 #include "drivers/timer/TimestampTimer.h"
 #include "drivers/usart/USART.h"
 #include "miosix.h"
@@ -33,7 +34,7 @@
 /* HIL includes */
 #include "HIL.h"
 // #include "HIL_actuators/HILServo.h"
-// #include "HIL_algorithms/HILMockAerobrakeAlgorithm.h"
+#include "HIL_algorithms/HILMockAerobrakeAlgorithm.h"
 #include "HIL_algorithms/HILMockKalman.h"
 #include "HIL_sensors/HILSensors.h"
 
@@ -56,39 +57,51 @@ using namespace Boardcore;
 
 bool isSimulationRunning;
 
-/**
- * structure that contains all the sensors used in the simulation
- */
-struct StateComplete
-{
-    HILAccelerometer *accelerometer;
-    HILBarometer *barometer;
-    HILGps *gps;
-    HILGyroscope *gyro;
-    HILMagnetometer *magnetometer;
-    HILKalman *kalman;
-} state;
+// /**
+//  * structure that contains all the sensors used in the simulation
+//  */
+// struct StateComplete
+// {
+//     HILAccelerometer *accelerometer;
+//     HILBarometer *barometer;
+//     HILGps *gps;
+//     HILGyroscope *gyro;
+//     HILMagnetometer *magnetometer;
+//     HILKalman *kalman;
+// } state;
 
-uint8_t getNextSchedulerId(TaskScheduler *s)
-{
-    return (s->getTaskStats()).back().id + 1;
-}
+// TimedTrajectoryPoint getCurrentPosition()
+// {
+//     return TimedTrajectoryPoint(
+//         Main::NASController::getInstance().getNasState());
+//     // return
+//     static_cast<TimedTrajectoryPoint>(state.kalman->getLastSample());
+// }
 
-TimedTrajectoryPoint getCurrentPosition()
-{
-    return static_cast<TimedTrajectoryPoint>(state.kalman->getLastSample());
-}
+// BMX160WithCorrectionData getImuData()
+// {
+//     return BMX160WithCorrectionData(
+//         static_cast<AccelerometerData>(state.accelerometer->getLastSample()),
+//         static_cast<GyroscopeData>(state.gyro->getLastSample()),
+//         static_cast<MagnetometerData>(state.magnetometer->getLastSample()));
+// }
 
-void setIsSimulationRunning(bool running) { isSimulationRunning = running; }
+// void setIsSimulationRunning(bool running) { isSimulationRunning = running; }
 
-void setActuator(float airbrakesOpening)
-{
-    HIL &hil                   = HIL::getInstance();
-    ActuatorData *actuatorData = hil.getActuatorData();
+// void setActuator(float airbrakesOpening)
+// {
+//     TRACE("[main] setting actuator\n");
+//     HIL &hil                       = HIL::getInstance();
+//     ElaboratedData *elaboratedData = hil.getElaboratedData();
 
-    actuatorData->setAirBrakesOpening(airbrakesOpening);
-    hil.simulator->setActuatorData(*actuatorData);
-}
+//     elaboratedData->setAirBrakesOpening(airbrakesOpening);
+
+//     ActuatorData actuatorData = elaboratedData->getAvgActuatorData();
+
+//     actuatorData.print();
+
+//     hil.send(actuatorData);
+// }
 
 /**
  * Test in order to see if the framework runs properly. This test just sends
@@ -99,25 +112,25 @@ int main()
     isSimulationRunning = true;
 
     // Definition of the flight phases manager
-    HILFlightPhasesManager *flightPhasesManager =
-        HIL::getInstance().flightPhasesManager;
+    // HILFlightPhasesManager *flightPhasesManager =
+    //     HIL::getInstance().flightPhasesManager;
 
-    flightPhasesManager->setCurrentPositionSource(getCurrentPosition);
+    // flightPhasesManager->setCurrentPositionSource(getCurrentPosition);
 
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STOPPED, bind(&setIsSimulationRunning, false));
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STOPPED, bind(&setIsSimulationRunning,
+    //     false));
 
     /*-------------- [TS] Task Scheduler --------------*/
 
-    TaskScheduler scheduler;
+    // TaskScheduler &scheduler =
+    //     Main::BoardScheduler::getInstance().getScheduler();
 
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STOPPED,
-        bind(&TaskScheduler::stop, &scheduler));
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STOPPED,
+    //     bind(&TaskScheduler::stop, &scheduler));
 
     /*-------------- [HILT] HILTransceiver --------------*/
-
-    // Definition of the transceiver object
 
     // [REMOVE] only in order to test the hil with the discovery
     // u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
@@ -125,24 +138,26 @@ int main()
     // u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
     // u3tx1::getPin().alternateFunction(7);
 
-    HILTransceiver *matlab = HIL::getInstance().simulator;
+    // HILTransceiver *matlab = HIL::getInstance().simulator;
 
-    // registering the HILTransceiver in order to let him know when it has to
-    // wait to the control algorithm or not
+    // registering the HILTransceiver in order to let him know when it has
+    // to wait to the control algorithm or not
     // flightPhasesManager->registerToFlightPhase(
-    //     AEROBRAKES, bind(&HILTransceiver::setIsAirbrakePhase, matlab, true));
+    //     AEROBRAKES, bind(&HILTransceiver::setIsAirbrakePhase, matlab,
+    //     true));
 
     // flightPhasesManager->registerToFlightPhase(
-    //     APOGEE, bind(&HILTransceiver::setIsAirbrakePhase, matlab, false));
+    //     APOGEE, bind(&HILTransceiver::setIsAirbrakePhase, matlab,
+    //     false));
 
     /*-------------- Sensors & Actuators --------------*/
     // Definition of the fake sensors for the simulation
-    state.accelerometer = new HILAccelerometer(matlab, N_DATA_ACCEL);
-    state.barometer     = new HILBarometer(matlab, N_DATA_BARO);
-    state.gps           = new HILGps(matlab, N_DATA_GPS);
-    state.gyro          = new HILGyroscope(matlab, N_DATA_GYRO);
-    state.magnetometer  = new HILMagnetometer(matlab, N_DATA_MAGN);
-    state.kalman        = new HILKalman(matlab, N_DATA_KALM);
+    // state.accelerometer = new HILAccelerometer(matlab, N_DATA_ACCEL);
+    // state.barometer     = new HILBarometer(matlab, N_DATA_BARO);
+    // state.gps           = new HILGps(matlab, N_DATA_GPS);
+    // state.gyro          = new HILGyroscope(matlab, N_DATA_GYRO);
+    // state.magnetometer  = new HILMagnetometer(matlab, N_DATA_MAGN);
+    // state.kalman        = new HILKalman(matlab, N_DATA_KALM);
 
     // // Definition of the fake actuators for the simulation
     // HILServo servo(matlab);
@@ -151,57 +166,56 @@ int main()
     /*-------------- [SM] Sensor Manager --------------*/
 
     // instantiate the sensor manager with the given scheduler
-    SensorManager SM({{state.accelerometer, accelConfig},
-                      {state.barometer, baroConfig},
-                      {state.gps, gpsConfig},
-                      {state.gyro, gyroConfig},
-                      {state.magnetometer, magnConfig},
-                      {state.kalman, kalmConfig}},
-                     &scheduler);
+    // SensorManager SM({{state.accelerometer, accelConfig},
+    //                   {state.barometer, baroConfig},
+    //                   {state.gps, gpsConfig},
+    //                   {state.gyro, gyroConfig},
+    //                   {state.magnetometer, magnConfig},
+    //                   {state.kalman, kalmConfig}},
+    //                  &scheduler);
 
-    // registering the enabling of the sensors to the flightPhasesManager
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        bind(&SensorManager::enableAllSensors, &SM));
+    // // registering the enabling of the sensors to the flightPhasesManager
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STARTED,
+    //     bind(&SensorManager::enableAllSensors, &SM));
 
     /*---------------- [ADA] ADA ---------------*/
-    Main::ADAController &ada_controller = Main::ADAController::getInstance();
+    // Main::ADAController &ada_controller = Main::ADAController::getInstance();
 
-    // start the ada controller when the simulation starts
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        bind(&Main::ADAController::start, &ada_controller));
+    // ada_controller.setUpdateDataFunction(
+    //     [](Boardcore::ADAState state)
+    //     { HIL::getInstance().getElaboratedData()->addADAState(state); });
+
+    // // start the ada controller when the simulation starts
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STARTED,
+    //     bind(&Main::ADAController::start, &ada_controller));
 
     // set reference values when starting calibration
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::CALIBRATION,
-        bind(&Main::ADAController::setReferenceValues, &ada_controller,
-             Boardcore::ReferenceValues(
-                 Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-                 Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-                 Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE)));
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::CALIBRATION,
+    //     bind(&Main::ADAController::setReferenceValues, &ada_controller,
+    //          Boardcore::ReferenceValues(
+    //              Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
+    //              Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
+    //              Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE)));
 
     /*---------------- [NAS] NAS ---------------*/
-    Main::NASController &nas_controller = Main::NASController::getInstance();
+    // Main::NASController &nas_controller = Main::NASController::getInstance();
+    // nas_controller.setImuDataFunction(getImuData);
 
-    // start the ada controller when the simulation starts
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        bind(&Main::NASController::start, &nas_controller));
+    // nas_controller.setUpdateDataFunction(
+    //     [](Boardcore::NASState state)
+    //     { HIL::getInstance().getElaboratedData()->addNASState(state); });
 
     /*-------------- [CA] Control Algorithm --------------*/
-    Main::AirBrakesController &airbrakes_controller =
-        Main::AirBrakesController::getInstance();
+    // Main::AirBrakesController &airbrakes_controller =
+    //     Main::AirBrakesController::getInstance();
 
-    airbrakes_controller.setActuatorFunction(setActuator);
+    // airbrakes_controller.setActuatorFunction(setActuator);
 
-    // start the airbrakes controller when the simulation starts
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        bind(&Main::AirBrakesController::start, &airbrakes_controller));
-
-    // // definition of the control algorithm
-    // MockAirbrakeAlgorithm<HILKalmanData> mockAirbrake(state.kalman, &servo);
+    // definition of the MOCK control algorithm
+    // MockAirbrakeAlgorithm mockAirbrake(getCurrentPosition, setActuator);
 
     // mockAirbrake.init();
     // mockAirbrake.begin();
@@ -217,58 +231,52 @@ int main()
     //     bind(&MockAirbrakeAlgorithm<HILKalmanData>::end, &mockAirbrake));
 
     /*-------------- Adding tasks to scheduler --------------*/
-
     // adding the updating of the algorithm to the scheduler
     {
-        ActuatorData *actuatorData = HIL::getInstance().getActuatorData();
+        // ElaboratedData *elaboratedData =
+        // HIL::getInstance().getElaboratedData();
+
+        // /* update ADA 50 Hz */
+
+        // /* update NAS 50 Hz  */
 
         /* update AirBrakes 10 Hz*/
-        TaskScheduler::function_t update_Airbrake{
-            bind(&Main::AirBrakesController::update, &airbrakes_controller)};
+        // TaskScheduler::function_t update_Airbrake{
+        //     bind(&Main::AirBrakesController::update, &airbrakes_controller)};
 
-        scheduler.addTask(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ),
-                          getNextSchedulerId(&scheduler));
+        // TaskScheduler::function_t update_Airbrake{
+        //     bind(&MockAirbrakeAlgorithm::update, &mockAirbrake)};
 
-        /* update ADA 50 Hz */
-        TaskScheduler::function_t update_ADA{
-            bind(&Main::ADAController::update, &ada_controller)};
-
-        scheduler.addTask(update_ADA,
-                          (uint32_t)(Main::ADAConfig::UPDATE_PERIOD),
-                          getNextSchedulerId(&scheduler));
-
-        TaskScheduler::function_t updateActuatorData_ADA{
-            bind(&ActuatorData::addADAState, actuatorData,
-                 ada_controller.getAdaState())};
-
-        scheduler.addTask(updateActuatorData_ADA,
-                          (uint32_t)(Main::ADAConfig::UPDATE_PERIOD),
-                          getNextSchedulerId(&scheduler));
-
-        /* update NAS 50 Hz  */
-        TaskScheduler::function_t update_NAS{
-            bind(&Main::NASController::update, &nas_controller)};
-
-        scheduler.addTask(update_NAS,
-                          (uint32_t)(Main::NASConfig::UPDATE_PERIOD),
-                          getNextSchedulerId(&scheduler));
-
-        TaskScheduler::function_t updateActuatorData_NAS{
-            bind(&ActuatorData::addNASState, actuatorData,
-                 nas_controller.getNasState())};
-
-        scheduler.addTask(updateActuatorData_NAS,
-                          (uint32_t)(Main::NASConfig::UPDATE_PERIOD),
-                          getNextSchedulerId(&scheduler));
+        // scheduler.addTask(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ));
     }
 
     /*---------- Starting threads --------*/
+    // EventBroker::getInstance().start();
+    // Thread::sleep(100);
+    // HIL::getInstance().start();
+    Thread::sleep(1000);
 
-    HIL::getInstance().start();
-    scheduler.start();  // started only the scheduler instead of the SM
+    // TRACE("starting nas\n");
+    // nas_controller.start();
+    // Thread::sleep(100);
+
+    // TRACE("starting abk\n");
+    // airbrakes_controller.start();
+    // Thread::sleep(20);
+
+    // TRACE("started algorithms\n");
+
+    // scheduler.start();  // started only the scheduler instead of the SM
+    // TRACE("Started everything\n");
+
+    // HIL::getInstance().start();
+    Main::ADAController::getInstance().start();
+    // nas_controller.start();
+    // airbrakes_controller.start();
+    // EventBroker::getInstance().start();
+    // scheduler.start();  // started only the scheduler instead of the SM
 
     /*---------- Normal execution --------*/
-
     while (isSimulationRunning)
     {
         Thread::sleep(1000);

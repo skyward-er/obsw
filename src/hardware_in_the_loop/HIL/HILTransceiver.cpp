@@ -29,8 +29,7 @@
 HILTransceiver::HILTransceiver(HILFlightPhasesManager *flightPhasesManager)
     : flightPhasesManager(flightPhasesManager),
       hilSerial(USART3, Boardcore::USARTInterface::Baudrate::B115200),
-      actuatorData(
-          {0.0f, std::list<Boardcore::NASState>(), std::list<ADAdataHIL>()})
+      actuatorData(ActuatorData{})
 {
     // initializing the serial connection
     if (!hilSerial.init())
@@ -99,7 +98,7 @@ void HILTransceiver::addResetSampleCounter(HILTimestampManagement *t)
  */
 void HILTransceiver::run()
 {
-    TRACE("[HIL] Transceiver started\n");
+    TRACE("[HILT] Transceiver started\n");
 
     while (true)
     {
@@ -107,9 +106,11 @@ void HILTransceiver::run()
          * kernel in order to copy the data in the shared structure */
         {
             SimulatorData tempData;
+            TRACE("[HILT] waiting on sensor Data\n");
             hilSerial.read(&tempData, sizeof(SimulatorData));
+            TRACE("[HILT] Data received\n");
             miosix::PauseKernelLock kLock;
-            memmove(&sensorData, &tempData, sizeof(sensorData));
+            memmove(&sensorData, &tempData, sizeof(SimulatorData));
         }
 
         if (!receivedFirstPacket)
@@ -134,9 +135,10 @@ void HILTransceiver::run()
         //       sensorData.flags.flag_airbrakes, sensorData.flags.flag_para1,
         //       sensorData.flags.flag_para2);
         flightPhasesManager->processFlags(sensorData.flags);
-
         waitActuatorData();
+        TRACE("[HILT] sending actuator data\n");
         hilSerial.write(&actuatorData, sizeof(ActuatorData));
+        TRACE("[HILT] sent actuator data\n");
     }
 }
 
