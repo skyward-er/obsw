@@ -26,8 +26,10 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
+#include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <radio/Xbee/ATCommands.h>
@@ -399,8 +401,25 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "longitude: {}",
                       latitude, longitude);
 
-            // TODO: Apply command
+            NASController::getInstance().setInitialPosition(
+                Eigen::Vector2f(latitude, longitude));
             break;
+        }
+        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
+        {
+            float latitude =
+                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
+
+            float longitude =
+                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
+
+            LOG_DEBUG(logger,
+                      "Received set target coordinates command, latitude: {}, "
+                      "longitude: {}",
+                      latitude, longitude);
+
+            WingController::getInstance().setTargetPosition(
+                Eigen::Vector2f(latitude, longitude));
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {

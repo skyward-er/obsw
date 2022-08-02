@@ -59,7 +59,6 @@ private:
     Boardcore::NAS nas;
 
     Eigen::Vector3f initialOrientation;
-    Eigen::Vector2f initialPosition{42.571820, 12.585861};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };

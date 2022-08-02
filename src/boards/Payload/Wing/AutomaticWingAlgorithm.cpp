@@ -59,7 +59,12 @@ void AutomaticWingAlgorithm::step()
 
     // Target direction in respect to the current one
     // TODO to be logged
-    auto targetPosition = WingController::getInstance().getTargetPosition();
+    ReferenceValues reference =
+        NASController::getInstance().getReferenceValues();
+    Vector2f startingPosition =
+        Vector2f(reference.startLatitude, reference.startLongitude);
+    Vector2f targetPosition = Aeroutils::geodetic2NED(
+        WingController::getInstance().getTargetPosition(), startingPosition);
     Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
 
     // Compute the angle of the target direciton

@@ -46,6 +46,13 @@ static float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
 static float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
 static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
+// TODO change the values below
+static float DEFAULT_GPS_INITIAL_LAT = 42.5;
+static float DEFAULT_GPS_INITIAL_LON = 9.5;
+
+static float DEFAULT_TARGET_LAT = 42;
+static float DEAFULT_TARGET_LON = 9;
+
 }  // namespace WingConfig
 
 }  // namespace Payload

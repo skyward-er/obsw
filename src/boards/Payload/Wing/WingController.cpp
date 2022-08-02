@@ -142,6 +142,10 @@ void WingController::init()
     TaskScheduler::function_t updateFunction([=]() { update(); });
 
     scheduler->addTask(updateFunction, WING_UPDATE_PERIOD, WING_CONTROLLER_ID);
+
+    // Set the target position to the default one
+    targetPosition[0] = DEFAULT_TARGET_LAT;
+    targetPosition[1] = DEAFULT_TARGET_LON;
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)

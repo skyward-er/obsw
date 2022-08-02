@@ -24,6 +24,7 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/NASConfig.h>
+#include <Payload/Configs/WingConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <sensors/MPU9250/MPU9250Data.h>
 #include <sensors/UBXGPS/UBXGPSData.h>
@@ -70,13 +71,13 @@ void NASController::update()
     Eigen::Vector3f magneticField(
         imuData.magneticFieldX, imuData.magneticFieldY, imuData.magneticFieldZ);
 
-    // Put the GPS converted data into a 4d vector
-    Eigen::Vector2f gpsPos(gpsData.latitude, gpsData.longitude);
-    gpsPos = Aeroutils::geodetic2NED(gpsPos, initialPosition);
-    Eigen::Vector2f gpsVel(gpsData.velocityNorth, gpsData.velocityEast);
-    Eigen::Vector4f gpsCorrection;
-    // cppcheck-suppress constStatement
-    gpsCorrection << gpsPos, gpsVel;
+    // // Put the GPS converted data into a 4d vector
+    // Eigen::Vector2f gpsPos(gpsData.latitude, gpsData.longitude);
+    // gpsPos = Aeroutils::geodetic2NED(gpsPos, initialPosition);
+    // Eigen::Vector2f gpsVel(gpsData.velocityNorth, gpsData.velocityEast);
+    // Eigen::Vector4f gpsCorrection;
+    // // cppcheck-suppress constStatement
+    // gpsCorrection << gpsPos, gpsVel;
 
     // // Calibration
     // {
@@ -93,15 +94,16 @@ void NASController::update()
 
     // Predict step
     nas.predictGyro(angularVelocity);
-    if (gpsPos[0] < 1e3 && gpsPos[0] > -1e3 && gpsPos[1] < 1e3 &&
-        gpsPos[1] > -1e3)
-        nas.predictAcc(acceleration);
+    // if (gpsPos[0] < 1e3 && gpsPos[0] > -1e3 && gpsPos[1] < 1e3 &&
+    //     gpsPos[1] > -1e3)
+    nas.predictAcc(acceleration);
 
     // Correct step
     magneticField.normalize();
     nas.correctMag(magneticField);
-    if (gpsData.fix)
-        nas.correctGPS(gpsCorrection);
+    // if (gpsData.fix)
+    //     nas.correctGPS(gpsCorrection);
+    nas.correctGPS(gpsData);
     nas.correctBaro(pressureData.pressure);
 
     NASState nasState = nas.getState();
@@ -114,8 +116,11 @@ void NASController::initializeOrientationAndPressure()
     // Mean 10 accelerometer values
     Eigen::Vector3f accelerometer;
     Eigen::Vector3f magnetometer;
-    float pressure = 0;
+    float pressure    = 0;
+    float temperature = 0;
     StateInitializer state;
+    UBXGPSData gps            = Sensors::getInstance().getUbxGpsLastSample();
+    ReferenceValues reference = nas.getReferenceValues();
 
     // Mean the values
     for (int i = 0; i < 10; i++)
@@ -133,6 +138,7 @@ void NASController::initializeOrientationAndPressure()
         // Barometer
         MS5803Data pressureData = Sensors::getInstance().getMS5803LastSample();
         pressure += pressureData.pressure;
+        temperature += pressureData.temperature;
 
         // Wait for some time
         miosix::Thread::sleep(100);
@@ -141,6 +147,7 @@ void NASController::initializeOrientationAndPressure()
     accelerometer /= 10;
     magnetometer /= 10;
     pressure /= 10;
+    temperature /= 10;
 
     // Normalize the data
     accelerometer.normalize();
@@ -149,12 +156,36 @@ void NASController::initializeOrientationAndPressure()
     // Triad the initial orientation
     state.triad(accelerometer, magnetometer, NASConfig::nedMag);
 
+    // Set the pressure reference using an already existing reference values
+    reference.pressure    = pressure;
+    reference.temperature = temperature;
+
+    // If in this moment the GPS has fix i use that position as starting
+    if (gps.fix != 0)
+    {
+        reference.startLatitude  = gps.latitude;
+        reference.startLongitude = gps.longitude;
+    }
+    else
+    {
+        // Change the initial position if not already set
+        reference.startLatitude  = reference.startLatitude == 0
+                                       ? WingConfig::DEFAULT_GPS_INITIAL_LAT
+                                       : reference.startLatitude;
+        reference.startLongitude = reference.startLongitude == 0
+                                       ? WingConfig::DEFAULT_GPS_INITIAL_LON
+                                       : reference.startLongitude;
+    }
+
     nas.setX(state.getInitX());
+    nas.setReferenceValues(reference);
 }
 
 void NASController::setInitialPosition(Eigen::Vector2f position)
 {
-    initialPosition = position;
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.startLatitude   = position[0];
+    reference.startLongitude  = position[1];
 }
 
 NASState NASController::getNasState() { return nas.getState(); }
