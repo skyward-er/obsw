@@ -21,11 +21,14 @@
  */
 
 #include <drivers/interrupt/external_interrupts.h>
+#include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278.h>
 
 #include <thread>
+
+#define USE_RA01
 
 using namespace miosix;
 using namespace Boardcore;
@@ -46,8 +49,13 @@ const char *stringFromErr(SX1278::Error err)
 }
 
 SX1278 *sx1278 = nullptr;
+USART *usart   = nullptr;
 
+#ifdef USE_RA01
 void __attribute__((used)) EXTI6_IRQHandlerImpl()
+#else
+void __attribute__((used)) EXTI3_IRQHandlerImpl()
+#endif
 {
     if (sx1278)
         sx1278->handleDioIRQ();
@@ -61,8 +69,7 @@ void recvLoop()
         int len = sx1278->receive(msg, sizeof(msg));
         if (len > 0)
         {
-            auto serial = miosix::DefaultConsole::instance().get();
-            serial->writeBlock(msg, len, 0);
+            usart->write(msg, len);
         }
     }
 }
@@ -72,30 +79,44 @@ void sendLoop()
     uint8_t msg[63];
     while (1)
     {
-        auto serial = miosix::DefaultConsole::instance().get();
-        int len     = serial->readBlock(msg, sizeof(msg), 0);
+        int len = usart->read(msg, sizeof(msg));
         if (len > 0)
         {
+            ledOn();
             sx1278->send(msg, len);
+            ledOff();
         }
     }
 }
 
 int main()
 {
-    /*
-    This entrypoint uses the RA01 module instead of the not-so-working sx127x
-    */
+    // FIXME(davide.mor): These get overridden somewhere after BSP, where?
+    interfaces::uart5::tx::mode(Mode::ALTERNATE);
+    interfaces::uart5::tx::alternateFunction(8);
+    interfaces::uart5::rx::mode(Mode::ALTERNATE);
+    interfaces::uart5::rx::alternateFunction(8);
+
+    usart = new USART(UART5, USARTInterface::Baudrate::B19200);
+    usart->init();
 
     // Enable dio0 interrupt
+#ifdef USE_RA01
     enableExternalInterrupt(GPIOF_BASE, 6, InterruptTrigger::RISING_EDGE);
+#else
+    enableExternalInterrupt(GPIOE_BASE, 3, InterruptTrigger::RISING_EDGE);
+#endif
 
     // Run default configuration
     SX1278::Config config;
     SX1278::Error err;
 
     SPIBus bus(SPI4);
+#ifdef USE_RA01
     GpioPin cs = peripherals::ra01::cs::getPin();
+#else
+    GpioPin cs = peripherals::sx127x::cs::getPin();
+#endif
 
     sx1278 = new SX1278(bus, cs);
 
