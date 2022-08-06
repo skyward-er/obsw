@@ -60,10 +60,6 @@ add_executable(death-stack-v3-testsuite src/tests/Main/death-stack-v3-testsuite.
 target_include_directories(death-stack-v3-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(death-stack-v3-testsuite stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-test-can-handler src/tests/Main/test-can-handler.cpp ${MAIN_COMPUTER})
-target_include_directories(main-test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-test-can-handler stm32f429zi_skyward_death_stack_v3)
-
 add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
 sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
 
@@ -136,3 +132,6 @@ sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 
 add_executable(ciuti-test-lis331 src/tests/Ciuti/test-lis331.cpp)
 sbs_target(ciuti-test-lis331 stm32f205rc_skyward_ciuti)
+
+add_executable(ciuti-test-usarts src/tests/Ciuti/test-usarts.cpp)
+sbs_target(ciuti-test-usarts stm32f205rc_skyward_ciuti)
