@@ -33,10 +33,7 @@ struct HILKalmanData : public Boardcore::TimedTrajectoryPoint
 class HILKalman : public HILSensor<HILKalmanData>
 {
 public:
-    HILKalman(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILKalman(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILKalmanData updateData() override

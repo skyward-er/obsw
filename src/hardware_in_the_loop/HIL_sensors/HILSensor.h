@@ -24,7 +24,7 @@
 
 #include <typeinfo>
 
-#include "HIL/HILTransceiver.h"
+#include "HIL.h"
 #include "HILConfig.h"
 #include "HILSensorsData.h"
 #include "HILTimestampManagement.h"
@@ -53,14 +53,14 @@ public:
      * the simulator
      * @param n_data_sensor number of samples in every period of simulation
      */
-    HILSensor(HILTransceiver *matlab, int n_data_sensor)
+    HILSensor(int n_data_sensor)
     {
-        this->sensorData    = matlab->getSensorData();
+        this->sensorData    = HIL::getInstance().simulator->getSensorData();
         this->n_data_sensor = n_data_sensor;
 
         /* Registers the sensor on the MatlabTransceiver to be notified when a
          * new packet of simulated data arrives */
-        matlab->addResetSampleCounter(this);
+        HIL::getInstance().simulator->addResetSampleCounter(this);
     }
 
     /**

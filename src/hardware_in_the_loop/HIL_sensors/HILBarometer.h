@@ -34,10 +34,7 @@
 class HILBarometer : public HILSensor<HILBaroData>
 {
 public:
-    HILBarometer(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILBarometer(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILBaroData updateData() override

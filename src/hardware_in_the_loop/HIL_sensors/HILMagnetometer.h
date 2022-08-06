@@ -34,10 +34,7 @@
 class HILMagnetometer : public HILSensor<HILMagnetometerData>
 {
 public:
-    HILMagnetometer(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILMagnetometer(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILMagnetometerData updateData() override

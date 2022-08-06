@@ -34,10 +34,7 @@
 class HILGps : public HILSensor<HILGpsData>
 {
 public:
-    HILGps(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILGps(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILGpsData updateData() override

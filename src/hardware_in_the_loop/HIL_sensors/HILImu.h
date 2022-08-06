@@ -37,10 +37,7 @@
 class HILImu : public HILSensor<HILImuData>
 {
 public:
-    HILImu(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILImu(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILImuData updateData() override

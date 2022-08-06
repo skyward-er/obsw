@@ -29,4 +29,5 @@
 #include "HILImu.h"
 #include "HILMagnetometer.h"
 #include "HILSensor.h"
+#include "HILTemperature.h"
 #include "HILTimestampManagement.h"

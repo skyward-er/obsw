@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "HIL/HILTransceiver.h"
+#include "HIL.h"
 #include "HILConfig.h"
 #include "common/ServoInterface.h"
 
@@ -35,11 +35,7 @@ public:
      * @param matlab reference of the MatlabTransceiver object that deals with
      * the simulator
      */
-    HILServo(HILTransceiver *matlab)
-        : ServoInterface(MinAlphaDegree, MaxAlphaDegree)
-    {
-        this->matlab = matlab;
-    }
+    HILServo() : ServoInterface(MinAlphaDegree, MaxAlphaDegree) {}
 
     void enable() override
     {
@@ -64,14 +60,33 @@ public:
 
     void selfTest() override { return; }
 
-protected:
+    float getPosition()
+    {
+        miosix::Lock<FastMutex> l(mutex);
+        return position;
+    }
+
     /**
      * @brief sets the actuator data in the MatlabTransceiver object, then will
      * be sent to the simulator
      *
      * @param value opening in radiants
      */
-    void setPosition(ActuatorData value) { matlab->setActuatorData(value); }
+    void setPosition(float value)
+    {
+        miosix::Lock<FastMutex> l(mutex);
+        position = value;
+        // TRACE("[HILServo] setting actuator\n");
+        // actuatorData.print();
+        // TRACE("[HILServo] didn't send abk opening\n");
+        HIL::getInstance().send(value);
+    }
+
+    void sendToSimulator()
+    {
+        miosix::Lock<FastMutex> l(mutex);
+        HIL::getInstance().send(position);
+    }
 
     /*
      * converts the value that the real servo driver accepts to the value the
@@ -79,7 +94,10 @@ protected:
      */
     // float convertToDegree(float x) { return (x * 180 / PI); }
 
-    HILTransceiver *matlab; /**< reference to the MatlabTranceiver */
+protected:
+    miosix::FastMutex mutex;
+    float position = 0;
+
     bool initialized = false;
     bool isEnabled   = true;
 };

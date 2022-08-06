@@ -25,30 +25,24 @@
 #include "HILSensor.h"
 
 /**
- * @brief fake gyroscope sensor used for the simulation.
+ * @brief fake barometer sensor used for the simulation.
  *
  * This class is used to simulate as near as possible the situation of the
  * OBSW during the flight, using fake sensors classes instead of the real
  * ones, taking their data from the data received from a simulator.
  */
-class HILGyroscope : public HILSensor<HILGyroscopeData>
+class HILTemperature : public HILSensor<HILTempData>
 {
 public:
-    HILGyroscope(int n_data_sensor) : HILSensor(n_data_sensor) {}
+    HILTemperature(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
-    HILGyroscopeData updateData() override
+    HILTempData updateData() override
     {
-        HILGyroscopeData tempData;
+        HILTempData tempData;
 
-        /* I make a copy of the vector i have to memorize in the sensor
-         * struct */
-        Boardcore::Vec3 matlabData = sensorData->gyro.measures[sampleCounter];
-
-        tempData.angularVelocityX         = matlabData.getX();
-        tempData.angularVelocityY         = matlabData.getY();
-        tempData.angularVelocityZ         = matlabData.getZ();
-        tempData.angularVelocityTimestamp = updateTimestamp();
+        tempData.temperature          = sensorData->temperature.measure;
+        tempData.temperatureTimestamp = updateTimestamp();
 
         return tempData;
     }

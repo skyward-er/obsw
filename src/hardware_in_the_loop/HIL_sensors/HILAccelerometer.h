@@ -34,10 +34,7 @@
 class HILAccelerometer : public HILSensor<HILAccelData>
 {
 public:
-    HILAccelerometer(HILTransceiver *matlab, int n_data_sensor)
-        : HILSensor(matlab, n_data_sensor)
-    {
-    }
+    HILAccelerometer(int n_data_sensor) : HILSensor(n_data_sensor) {}
 
 protected:
     HILAccelData updateData() override

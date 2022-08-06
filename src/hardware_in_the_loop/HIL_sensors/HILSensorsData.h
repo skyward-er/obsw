@@ -136,3 +136,17 @@ struct HILBaroData : public Boardcore::PressureData
         os << pressureTimestamp << "," << pressure << "\n";
     }
 };
+
+struct HILTempData : public Boardcore::TemperatureData
+{
+    HILTempData() : TemperatureData{0, 0.0} {}
+
+    HILTempData(uint64_t t, float x) : TemperatureData{t, x} {}
+
+    static std::string header() { return "timestamp,press\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << temperatureTimestamp << "," << temperature << "\n";
+    }
+};
