@@ -20,15 +20,13 @@
  * THE SOFTWARE.
  */
 
-#include "HILTransceiver.h"
+#include "HIL.h"
 
-#include "HILFlightPhasesManager.h"
 /**
  * @brief Construct a serial connection attached to a control algorithm
  */
-HILTransceiver::HILTransceiver(HILFlightPhasesManager *flightPhasesManager)
-    : flightPhasesManager(flightPhasesManager),
-      hilSerial(USART3, Boardcore::USARTInterface::Baudrate::B115200),
+HILTransceiver::HILTransceiver()
+    : hilSerial(USART3, Boardcore::USARTInterface::Baudrate::B115200),
       actuatorData(ActuatorData{})
 {
     // initializing the serial connection
@@ -99,6 +97,8 @@ void HILTransceiver::addResetSampleCounter(HILTimestampManagement *t)
 void HILTransceiver::run()
 {
     TRACE("[HILT] Transceiver started\n");
+    HILFlightPhasesManager *flightPhasesManager =
+        HIL::getInstance().flightPhasesManager;
 
     while (true)
     {
@@ -106,9 +106,7 @@ void HILTransceiver::run()
          * kernel in order to copy the data in the shared structure */
         {
             SimulatorData tempData;
-            TRACE("[HILT] waiting on sensor Data\n");
             hilSerial.read(&tempData, sizeof(SimulatorData));
-            TRACE("[HILT] Data received\n");
             miosix::PauseKernelLock kLock;
             memmove(&sensorData, &tempData, sizeof(SimulatorData));
         }
@@ -136,9 +134,8 @@ void HILTransceiver::run()
         //       sensorData.flags.flag_para2);
         flightPhasesManager->processFlags(sensorData.flags);
         waitActuatorData();
-        TRACE("[HILT] sending actuator data\n");
         hilSerial.write(&actuatorData, sizeof(ActuatorData));
-        TRACE("[HILT] sent actuator data\n");
+        actuatorData.print();
     }
 }
 

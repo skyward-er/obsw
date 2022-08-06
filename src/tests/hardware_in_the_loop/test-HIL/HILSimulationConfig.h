@@ -51,6 +51,7 @@ const int GYRO_FREQ  = 100;
 const int MAGN_FREQ  = 100;
 const int IMU_FREQ   = 100;
 const int BARO_FREQ  = 20;
+const int TEMP_FREQ  = 10;
 const int GPS_FREQ   = 10;
 
 /** update frequency of the Navigation System */
@@ -70,14 +71,17 @@ const SensorConfig magnConfig("magn", MAGN_FREQ);
 const SensorConfig imuConfig("imu", IMU_FREQ);
 const SensorConfig baroConfig("baro", BARO_FREQ);
 const SensorConfig gpsConfig("gps", GPS_FREQ);
+const SensorConfig tempConfig("temp", TEMP_FREQ);
 const SensorConfig kalmConfig("kalm", KALM_FREQ);
 
 /** Number of samples per sensor at each simulator iteration */
 const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;  // 10
 const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;   // 10
+const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;    // 10
 const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;   // 2
 const int N_DATA_GPS   = (GPS_FREQ * SIMULATION_PERIOD) / 1000;    // 1
+const int N_DATA_TEMP  = (TEMP_FREQ * SIMULATION_PERIOD) / 1000;   // 1
 const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 1
 
 /**
@@ -117,6 +121,11 @@ public:
     {
         float measures[N_DATA_BARO];
     } barometer;
+
+    struct Temperature
+    {
+        float measure;
+    } temperature;
 
     struct Kalman
     {
@@ -216,16 +225,21 @@ typedef struct
     // ADA
     std::list<ADAdataHIL> adaState;
 
+    void reset()
+    {
+        airbrakes_opening = 0;
+        nasState.clear();
+        adaState.clear();
+    }
+
     void setAirBrakesOpening(float airbrakes_opening)
     {
         this->airbrakes_opening = airbrakes_opening;
-        TRACE("setted abk opening\n");
     };
 
     void addNASState(Boardcore::NASState nasState)
     {
         this->nasState.push_back(nasState);
-        TRACE("added nas state\n");
     };
 
     void addADAState(Boardcore::ADAState adaState)
@@ -234,7 +248,6 @@ typedef struct
                         adaState.verticalSpeed};
 
         this->adaState.push_back(data);
-        TRACE("added ada state\n");
     };
 
     ActuatorData getAvgActuatorData()

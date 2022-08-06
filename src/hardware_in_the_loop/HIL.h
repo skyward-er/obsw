@@ -43,7 +43,14 @@ public:
 
     void stop() { simulator->stop(); }
 
-    void send(ActuatorData d) { simulator->setActuatorData(d); }
+    void send(float airbrakes_opening)
+    {
+        // TRACE("[HIL] Sending\n");
+
+        elaboratedData.setAirBrakesOpening(airbrakes_opening);
+        simulator->setActuatorData(elaboratedData.getAvgActuatorData());
+        elaboratedData.reset();
+    }
 
     /**
      * @brief method that signals to the simulator that the liftoff pin has
@@ -55,8 +62,7 @@ public:
             FlightPhases::LIFTOFF_PIN_DETACHED, true);
 
         // start code for the flight
-        elaboratedData.setAirBrakesOpening(-1);
-        this->send(elaboratedData.getAvgActuatorData());
+        this->send(-1);
     }
 
     bool isSimulationStarted()
@@ -80,7 +86,7 @@ private:
     HIL()
     {
         flightPhasesManager = new HILFlightPhasesManager();
-        simulator           = new HILTransceiver(flightPhasesManager);
+        simulator           = new HILTransceiver();
     }
 
     ElaboratedData elaboratedData;

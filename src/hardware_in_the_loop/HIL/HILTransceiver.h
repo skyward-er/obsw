@@ -43,7 +43,7 @@ public:
     /**
      * @brief Construct a serial connection attached to a control algorithm
      */
-    explicit HILTransceiver(HILFlightPhasesManager *flightPhasesManager);
+    explicit HILTransceiver();
 
     /**
      * @brief sets the actuator data and then wakes up the MatlabTransceiver

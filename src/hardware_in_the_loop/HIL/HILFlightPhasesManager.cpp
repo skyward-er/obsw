@@ -26,7 +26,20 @@ HILFlightPhasesManager::HILFlightPhasesManager()
     : counter_flight_events(sEventBroker), counter_airbrakes(sEventBroker),
       counter_ada(sEventBroker), counter_dpl(sEventBroker)
 {
-    updateFlags({0, 0, 0, 0, 0, 0});
+    flagsFlightPhases = {{FlightPhases::SIMULATION_STARTED, false},
+                         {FlightPhases::CALIBRATION, false},
+                         {FlightPhases::LIFTOFF_PIN_DETACHED, false},
+                         {FlightPhases::FLYING, false},
+                         {FlightPhases::ASCENT, false},
+                         {FlightPhases::BURNING, false},
+                         {FlightPhases::AEROBRAKES, false},
+                         {FlightPhases::SIM_AEROBRAKES, false},
+                         {FlightPhases::APOGEE, false},
+                         {FlightPhases::PARA1, false},
+                         {FlightPhases::PARA2, false},
+                         {FlightPhases::SIMULATION_STOPPED, false}};
+
+    prev_flagsFlightPhases = flagsFlightPhases;
 
     // it was TOPIC_FLIGHT_EVENTS
     counter_flight_events.subscribe(Main::TOPIC_FLIGHT);
@@ -183,23 +196,23 @@ void HILFlightPhasesManager::registerOutcomes(FlightPhases phase)
 
 void HILFlightPhasesManager::printOutcomes()
 {
-    TRACE("OUTCOMES: (times dt from liftoff)\n\n");
-    TRACE("Simulation time: %.3f [sec]\n\n",
-          (double)(t_stop - t_start) / 1000000.0f);
+    printf("OUTCOMES: (times dt from liftoff)\n\n");
+    printf("Simulation time: %.3f [sec]\n\n",
+           (double)(t_stop - t_start) / 1000000.0f);
 
-    TRACE("Motor stopped burning (simulation flag): \n");
+    printf("Motor stopped burning (simulation flag): \n");
     outcomes[FlightPhases::BURNING].print(t_liftoff);
 
-    TRACE("Airbrakes exit shadowmode: \n");
+    printf("Airbrakes exit shadowmode: \n");
     outcomes[FlightPhases::AEROBRAKES].print(t_liftoff);
 
-    TRACE("Apogee: \n");
+    printf("Apogee: \n");
     outcomes[FlightPhases::APOGEE].print(t_liftoff);
 
-    TRACE("Parachute 1: \n");
+    printf("Parachute 1: \n");
     outcomes[FlightPhases::PARA1].print(t_liftoff);
 
-    TRACE("Parachute 2: \n");
+    printf("Parachute 2: \n");
     outcomes[FlightPhases::PARA2].print(t_liftoff);
 }
 
@@ -271,12 +284,10 @@ void HILFlightPhasesManager::checkEvents()
 
 bool HILFlightPhasesManager::isSetTrue(FlightPhases phase)
 {
-    return flagsFlightPhases[phase] == true &&
-           prev_flagsFlightPhases[phase] == false;
+    return flagsFlightPhases[phase] && !prev_flagsFlightPhases[phase];
 }
 
 bool HILFlightPhasesManager::isSetFalse(FlightPhases phase)
 {
-    return flagsFlightPhases[phase] == false &&
-           prev_flagsFlightPhases[phase] == true;
+    return !flagsFlightPhases[phase] && prev_flagsFlightPhases[phase];
 }
