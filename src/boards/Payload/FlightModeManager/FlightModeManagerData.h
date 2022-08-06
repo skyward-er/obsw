@@ -55,5 +55,4 @@ struct FlightModeManagerStatus
         os << timestamp << "," << (int)state << "\n";
     }
 };
-
-}
+}  // namespace Payload
