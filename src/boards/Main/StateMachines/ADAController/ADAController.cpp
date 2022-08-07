@@ -44,8 +44,6 @@ bool ADAController::start()
         std::bind(&ADAController::update, this), ADAConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
-    TRACE("[ADA] starting\n");
-
     return ActiveObject::start();
 }
 
@@ -203,8 +201,10 @@ void ADAController::update()
 
     Logger::getInstance().log(ada.getState());
 
+#ifdef HILSimulation
     // useful only for hil testing
     updateData(ada.getState());
+#endif  // HILSimulation
 }
 
 ADAControllerStatus ADAController::getStatus()

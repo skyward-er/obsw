@@ -43,7 +43,7 @@ sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
 
 add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp ${HIL_TESTS})
 target_include_directories(test-HIL PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS DISABLE_SD_LOGGER)
+target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS)
 sbs_target(test-HIL stm32f407vg_stm32f4discovery)
 
 #-----------------------------------------------------------------------------#

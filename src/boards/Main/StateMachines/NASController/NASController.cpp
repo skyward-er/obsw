@@ -41,15 +41,12 @@ bool NASController::start()
         std::bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
-    TRACE("[NAS] starting!\n");
-
     return ActiveObject::start();
 }
 
 void NASController::update()
 {
-    TRACE("[NAS] update\n");
-    auto imuData = getImuData();
+    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);
@@ -66,8 +63,10 @@ void NASController::update()
     nas.correctMag(magneticField.normalized());
     nas.correctAcc(acceleration.normalized());
 
+#ifdef HILSimulation
     // useful only for hil testing
     updateData(nas.getState());
+#endif  // HILSimulation
 }
 
 NASControllerStatus NASController::getStatus() { return status; }
@@ -84,7 +83,7 @@ ReferenceValues NASController::getReferenceValues()
     return nas.getReferenceValues();
 }
 
-void NASController::state_idle(const Event& event)
+void NASController::state_idle(const Event &event)
 {
     switch (event)
     {
@@ -99,7 +98,7 @@ void NASController::state_idle(const Event& event)
     }
 }
 
-void NASController::state_calibrating(const Event& event)
+void NASController::state_calibrating(const Event &event)
 {
     switch (event)
     {
@@ -114,7 +113,7 @@ void NASController::state_calibrating(const Event& event)
     }
 }
 
-void NASController::state_ready(const Event& event)
+void NASController::state_ready(const Event &event)
 {
     switch (event)
     {
@@ -133,7 +132,7 @@ void NASController::state_ready(const Event& event)
     }
 }
 
-void NASController::state_active(const Event& event)
+void NASController::state_active(const Event &event)
 {
     switch (event)
     {
@@ -148,7 +147,7 @@ void NASController::state_active(const Event& event)
     }
 }
 
-void NASController::state_end(const Event& event)
+void NASController::state_end(const Event &event)
 {
     switch (event)
     {
@@ -157,12 +156,6 @@ void NASController::state_end(const Event& event)
             return logStatus(NASControllerState::END);
         }
     }
-}
-
-void NASController::setImuDataFunction(
-    std::function<Boardcore::BMX160WithCorrectionData()> getImuData)
-{
-    this->getImuData = getImuData;
 }
 
 void NASController::setUpdateDataFunction(
@@ -181,10 +174,6 @@ void NASController::logStatus(NASControllerState state)
 
 NASController::NASController()
     : FSM(&NASController::state_idle), nas(NASConfig::config),
-      getImuData(
-          []() {
-              return Sensors::getInstance().getBMX160WithCorrectionLastSample();
-          }),
       updateData([](Boardcore::NASState) {})
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);

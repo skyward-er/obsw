@@ -203,7 +203,7 @@ typedef struct
 
     void print() const
     {
-        printf(
+        TRACE(
             "abk:%f\nned:%f,%f,%f\nbody:%f,%f,%f\nq:%f,%f,%f,%f\nada:%f,%f\n\n",
             airbrakes_opening, nasState.n, nasState.e, nasState.d, nasState.bx,
             nasState.by, nasState.bz, nasState.qx, nasState.qy, nasState.qz,

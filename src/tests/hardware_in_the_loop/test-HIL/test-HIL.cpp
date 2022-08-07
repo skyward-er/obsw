@@ -65,6 +65,7 @@ using namespace miosix;
 using namespace Boardcore;
 
 bool isSimulationRunning;
+Thread *t;
 
 TimedTrajectoryPoint getCurrentPosition()
 {
@@ -74,7 +75,11 @@ TimedTrajectoryPoint getCurrentPosition()
     // static_cast<TimedTrajectoryPoint>(state.kalman->getLastSample());
 }
 
-// void setIsSimulationRunning(bool running) { isSimulationRunning = running; }
+void setIsSimulationRunning(bool running)
+{
+    isSimulationRunning = running;
+    t->wakeup();
+}
 
 /**
  * Test in order to see if the framework runs properly. This test just sends
@@ -83,6 +88,7 @@ TimedTrajectoryPoint getCurrentPosition()
 int main()
 {
     isSimulationRunning = true;
+    t                   = Thread::getCurrentThread();
 
     // Definition of the flight phases manager
     HILFlightPhasesManager *flightPhasesManager =
@@ -211,7 +217,7 @@ int main()
           miosix::MemoryProfiling::getStackSize());
 
     /*---------- Normal execution --------*/
-    while (true)
+    while (isSimulationRunning)
     {
         Thread::wait();
     }

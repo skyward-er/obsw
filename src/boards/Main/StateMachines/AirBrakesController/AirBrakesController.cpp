@@ -40,7 +40,15 @@ using namespace Main::ActuatorsConfigs;
 namespace Main
 {
 
-void AirBrakesController::update() { abk.update(); }
+void AirBrakesController::update()
+{
+    abk.update();
+
+#ifdef HILSimulation
+    // in order to respond always to the simulator
+    Actuators::getInstance().sendToSimulator();
+#endif  // HILSimulation
+}
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {
@@ -154,12 +162,6 @@ void AirBrakesController::state_end(const Event& event)
             return logStatus(AirBrakesControllerState::END);
         }
     }
-}
-
-void AirBrakesController::setActuatorFunction(
-    std::function<void(float)> setActuator)
-{
-    this->abk.setActuatorFunction(setActuator);
 }
 
 AirBrakesController::AirBrakesController()

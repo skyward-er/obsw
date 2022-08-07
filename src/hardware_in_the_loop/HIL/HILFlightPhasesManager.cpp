@@ -23,10 +23,7 @@
 #include "HILFlightPhasesManager.h"
 
 HILFlightPhasesManager::HILFlightPhasesManager()
-    : counter_flight_events(sEventBroker), counter_airbrakes(sEventBroker),
-      counter_ada(sEventBroker), counter_dpl(sEventBroker)
-{
-    flagsFlightPhases = {{FlightPhases::SIMULATION_STARTED, false},
+    : flagsFlightPhases({{FlightPhases::SIMULATION_STARTED, false},
                          {FlightPhases::CALIBRATION, false},
                          {FlightPhases::LIFTOFF_PIN_DETACHED, false},
                          {FlightPhases::FLYING, false},
@@ -37,8 +34,11 @@ HILFlightPhasesManager::HILFlightPhasesManager()
                          {FlightPhases::APOGEE, false},
                          {FlightPhases::PARA1, false},
                          {FlightPhases::PARA2, false},
-                         {FlightPhases::SIMULATION_STOPPED, false}};
+                         {FlightPhases::SIMULATION_STOPPED, false}}),
+      counter_flight_events(sEventBroker), counter_airbrakes(sEventBroker),
+      counter_ada(sEventBroker), counter_dpl(sEventBroker)
 
+{
     prev_flagsFlightPhases = flagsFlightPhases;
 
     // it was TOPIC_FLIGHT_EVENTS

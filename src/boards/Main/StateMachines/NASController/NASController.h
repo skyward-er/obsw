@@ -57,9 +57,6 @@ public:
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
-    void setImuDataFunction(
-        std::function<Boardcore::BMX160WithCorrectionData()>);
-
     void setUpdateDataFunction(
         std::function<void(Boardcore::NASState)> updateData);
 
@@ -74,7 +71,6 @@ private:
     Boardcore::NAS nas;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
-    std::function<Boardcore::BMX160WithCorrectionData()> getImuData;
     std::function<void(Boardcore::NASState)> updateData;
 };
 
