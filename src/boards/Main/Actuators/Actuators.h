@@ -24,8 +24,13 @@
 
 #include <Main/Radio/Mavlink.h>
 #include <Singleton.h>
-#include <actuators/Servo/Servo.h>
 #include <interfaces/gpio.h>
+#ifndef HILSimulation
+#include <actuators/Servo/Servo.h>
+#else  // HILSimulation
+#include "HIL.h"
+#include "HIL_actuators/HILServo.h"
+#endif  // HILSimulation
 
 namespace Main
 {
@@ -77,11 +82,20 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoPosition(ServosList servoId);
 
+#ifdef HILSimulation
+    void sendToSimulator();
+#endif  // HILSimulation
+
 private:
     Actuators();
 
+#ifndef HILSimulation
     Boardcore::Servo servoAirbrakes;
     Boardcore::Servo servoExpulsion;
+#else   // HILSimulation
+    HILServo servoAirbrakes;
+    HILServo servoExpulsion;
+#endif  // HILSimulation
 };
 
 }  // namespace Main
