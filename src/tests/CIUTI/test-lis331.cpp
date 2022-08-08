@@ -32,7 +32,7 @@ int main()
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_256;
     config.mode         = SPI::Mode::MODE_0;
-    LIS331HH lis(spi2, sensors::lis331hh::cs::getPin(), config);
+    LIS331HH lis(spi2, devices::lis331hh::cs::getPin(), config);
 
     lis.init();
 

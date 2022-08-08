@@ -43,16 +43,16 @@ int main()
                adc.getVoltage(InternalADC::CH0).voltage,
                adc.getVoltage(InternalADC::CH1).voltage);
 
-        if (actuators::buttons::record::value())
+        if (devices::buttons::record::value())
         {
-            sensors::ina188::mosfet1::low();
-            sensors::ina188::mosfet2::low();
+            devices::ina188::mosfet1::low();
+            devices::ina188::mosfet2::low();
             printf("low\n");
         }
         else
         {
-            sensors::ina188::mosfet1::high();
-            sensors::ina188::mosfet2::high();
+            devices::ina188::mosfet1::high();
+            devices::ina188::mosfet2::high();
             printf("high\n");
         }
 
