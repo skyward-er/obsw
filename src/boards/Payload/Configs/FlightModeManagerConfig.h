@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,45 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include "PinHandler.h"
-
-#include <Payload/Configs/PinObserverConfig.h>
-#include <common/events/Events.h>
-#include <events/EventBroker.h>
-
-#include <functional>
-
-using namespace std;
-using namespace std::placeholders;
-using namespace miosix;
-using namespace Boardcore;
-using namespace Common;
+#pragma once
 
 namespace Payload
 {
 
-void PinHandler::onExpulsionPinTransition(PinTransition transition)
-{
-    if (transition == DPL_SERVO_PIN_TRIGGER)
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+static constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
+
 }
-
-std::map<PinsList, PinData> PinHandler::getPinsData()
-{
-    std::map<PinsList, PinData> data;
-
-    data[PinsList::DEPLOYMENT_PIN] =
-        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
-
-    return data;
-}
-
-PinHandler::PinHandler()
-{
-    PinObserver::getInstance().registerPinCallback(
-        inputs::expulsion::getPin(),
-        bind(&PinHandler::onExpulsionPinTransition, this, _1),
-        DPL_SERVO_PIN_THRESHOLD);
-}
-
-}  // namespace Payload

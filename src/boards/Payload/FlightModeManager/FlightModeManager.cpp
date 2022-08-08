@@ -20,7 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/FlightModeManager/FlightModeManager.h>
+#include <Payload/Sensors/Sensors.h>
+#include <Payload/Wing/WingController.h>
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
 using namespace Common;
@@ -113,6 +117,7 @@ State FlightModeManager::state_calibration(const Event& event)
     {
         case EV_ENTRY:
         {
+            Sensors::getInstance().calibrate();
             logStatus(FlightModeManagerState::CALIBRATION);
             return HANDLED;
         }
@@ -145,6 +150,10 @@ State FlightModeManager::state_ready(const Event& event)
             return transition(&FlightModeManager::state_test_mode);
         }
         case FLIGHT_LIFTOFF:
+        {
+            return transition(&FlightModeManager::state_ascending);
+        }
+        case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_ascending);
         }
@@ -182,6 +191,11 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::FLYING);
+
+            // Post a delayed timeout
+            EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
+                FMM_MISSION_TIMEOUT, TOPIC_FMM);
+
             return HANDLED;
         }
         case EV_INIT:
@@ -249,6 +263,8 @@ State FlightModeManager::state_wing_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+            WingController::getInstance().start();
+            // TODO activate the cutter
             logStatus(FlightModeManagerState::WING_DESCENT);
             return HANDLED;
         }
@@ -281,5 +297,26 @@ State FlightModeManager::state_landed(const Event& event)
             return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
+}
+
+FlightModeManager::FlightModeManager()
+    : HSM(&FlightModeManager::state_on_ground)
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+}
+
+FlightModeManager::~FlightModeManager()
+{
+    EventBroker::getInstance().unsubscribe(this);
+}
+
+void FlightModeManager::logStatus(FlightModeManagerState state)
+{
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    Logger::getInstance().log(status);
 }
 }  // namespace Payload

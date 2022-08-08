@@ -25,6 +25,7 @@
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <common/events/Events.h>
+#include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 
@@ -144,6 +145,9 @@ void Sensors::calibrate()
     pitotPressure->setOffset(pitotPressureStats.getStats().mean);
 
     calibrating = true;
+
+    // Publish the calibration end
+    EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
 }
 
 std::map<string, bool> Sensors::getSensorsState()

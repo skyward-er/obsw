@@ -16,6 +16,7 @@
             <transition event="TMTC.CALIBRATE" target="Calibration"/>
             <transition event="TMTC.TEST_MODE" target="TestMode"/>
             <transition event="FLIGHT_EVENTS.LIFTOFF" target="Ascending"/>
+            <transition event="TMTC.FORCE_LAUNCH" target="Ascending"/>
         </state>
         <state id="TestMode">
             <transition event="TMTC.EXIT_TEST_MODE" target="Ready"/>
