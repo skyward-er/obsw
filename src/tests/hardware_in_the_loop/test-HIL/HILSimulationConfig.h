@@ -143,6 +143,96 @@ public:
         float flag_para1;
         float flag_para2;
     } flags;
+
+    void printAccelerometer()
+    {
+        TRACE("accel\n");
+        for (int i = 0; i < N_DATA_ACCEL; i++)
+            TRACE("%+.3f\t%+.3f\t%+.3f\n", accelerometer.measures[i].getX(),
+                  accelerometer.measures[i].getY(),
+                  accelerometer.measures[i].getZ());
+    }
+
+    void printGyro()
+    {
+        TRACE("gyro\n");
+        for (int i = 0; i < N_DATA_GYRO; i++)
+            TRACE("%+.3f\t%+.3f\t%+.3f\n", gyro.measures[i].getX(),
+                  gyro.measures[i].getY(), gyro.measures[i].getZ());
+    }
+
+    void printMagnetometer()
+    {
+        TRACE("magneto\n");
+        for (int i = 0; i < N_DATA_MAGN; i++)
+            TRACE("%+.3f\t%+.3f\t%+.3f\n", magnetometer.measures[i].getX(),
+                  magnetometer.measures[i].getY(),
+                  magnetometer.measures[i].getZ());
+    }
+
+    void printGPS()
+    {
+        TRACE("gps\n");
+        TRACE("pos\n");
+        for (int i = 0; i < N_DATA_GPS; i++)
+            TRACE("%+.3f\t%+.3f\t%+.3f\n", gps.positionMeasures[i].getX(),
+                  gps.positionMeasures[i].getY(),
+                  gps.positionMeasures[i].getZ());
+
+        TRACE("vel\n");
+        for (int i = 0; i < N_DATA_GPS; i++)
+            TRACE("%+.3f\t%+.3f\t%+.3f\n", gps.velocityMeasures[i].getX(),
+                  gps.velocityMeasures[i].getY(),
+                  gps.velocityMeasures[i].getZ());
+        TRACE("fix:%+.3f\tnsat:%+.3f\n", gps.fix, gps.num_satellites);
+    }
+
+    void printBarometer()
+    {
+        TRACE("press\n");
+        for (int i = 0; i < N_DATA_BARO; i++)
+            TRACE("%+.3f\n", barometer.measures[i]);
+    }
+
+    void printTemperature()
+    {
+        TRACE("temp\n");
+        for (int i = 0; i < N_DATA_TEMP; i++)
+            TRACE("%+.3f\n", temperature.measure);
+    }
+
+    void printKalman()
+    {
+        TRACE("kalm\n");
+        TRACE("z:%+.3f\tvz:%+.3f\tvMod:%+.3f\n", kalman.z, kalman.vz,
+              kalman.vMod);
+    }
+
+    void printFlags()
+    {
+        TRACE("flags\n");
+        TRACE(
+            "flight:\t%+.3f\n"
+            "ascent:\t%+.3f\n"
+            "burning:\t%+.3f\n"
+            "airbrakes:\t%+.3f\n"
+            "para1:\t%+.3f\n"
+            "para2:\t%+.3f\n",
+            flags.flag_flight, flags.flag_ascent, flags.flag_burning,
+            flags.flag_airbrakes, flags.flag_para1, flags.flag_para2);
+    }
+
+    void print()
+    {
+        printAccelerometer();
+        printGyro();
+        printMagnetometer();
+        printGPS();
+        printBarometer();
+        printTemperature();
+        printKalman();
+        printFlags();
+    }
 };
 
 /**
@@ -194,6 +284,7 @@ typedef struct
 {
     // Airbrakes opening (percentage)
     float airbrakes_opening;
+    /* here 4 bytes of padding in order to align next field (uint64_t) */
 
     // NAS
     Boardcore::NASState nasState;
@@ -204,10 +295,21 @@ typedef struct
     void print() const
     {
         TRACE(
-            "abk:%f\nned:%f,%f,%f\nbody:%f,%f,%f\nq:%f,%f,%f,%f\nada:%f,%f\n\n",
-            airbrakes_opening, nasState.n, nasState.e, nasState.d, nasState.bx,
-            nasState.by, nasState.bz, nasState.qx, nasState.qy, nasState.qz,
-            nasState.qw, adaState.mslAltitude, adaState.verticalSpeed);
+            "size:%u, %u, %u\n"
+            "abk:%f\n"
+            "tsnas:%f\n"
+            "ned:%f,%f,%f\n"
+            "vned:%f,%f,%f\n"
+            "q:%f,%f,%f,%f\n"
+            "bias:%f,%f,%f\n"
+            "tsada:%f\n"
+            "ada:%f,%f\n\n",
+            sizeof(airbrakes_opening), sizeof(Boardcore::NASState),
+            sizeof(ADAdataHIL), airbrakes_opening, nasState.timestamp,
+            nasState.n, nasState.e, nasState.d, nasState.vn, nasState.ve,
+            nasState.vd, nasState.qx, nasState.qy, nasState.qz, nasState.qw,
+            nasState.bx, nasState.by, nasState.bz, adaState.ada_timestamp,
+            adaState.mslAltitude, adaState.verticalSpeed);
     }
 } ActuatorData;
 

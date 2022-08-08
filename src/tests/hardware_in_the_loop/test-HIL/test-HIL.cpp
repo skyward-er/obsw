@@ -96,17 +96,18 @@ int main()
 
     flightPhasesManager->setCurrentPositionSource(getCurrentPosition);
 
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STOPPED, bind(&setIsSimulationRunning, false));
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STOPPED, bind(&setIsSimulationRunning,
+    //     false));
 
     /*-------------- [TS] Task Scheduler --------------*/
 
     TaskScheduler &scheduler =
         Main::BoardScheduler::getInstance().getScheduler();
 
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STOPPED,
-        bind(&TaskScheduler::stop, &scheduler));
+    // flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STOPPED,
+    //     bind(&TaskScheduler::stop, &scheduler));
 
     /*-------------- [HILT] HILTransceiver --------------*/
 
@@ -217,7 +218,7 @@ int main()
           miosix::MemoryProfiling::getStackSize());
 
     /*---------- Normal execution --------*/
-    while (isSimulationRunning)
+    while (true)
     {
         Thread::wait();
     }

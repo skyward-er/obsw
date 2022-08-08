@@ -97,6 +97,7 @@ void HILTransceiver::addResetSampleCounter(HILTimestampManagement *t)
 void HILTransceiver::run()
 {
     TRACE("[HILT] Transceiver started\n");
+    bool lostUpdate = false;
     HILFlightPhasesManager *flightPhasesManager =
         HIL::getInstance().flightPhasesManager;
 
@@ -109,6 +110,11 @@ void HILTransceiver::run()
             hilSerial.read(&tempData, sizeof(SimulatorData));
             miosix::PauseKernelLock kLock;
             memmove(&sensorData, &tempData, sizeof(SimulatorData));
+            if (updated)
+            {
+                lostUpdate = true;
+                updated    = false;  // we want the last computation
+            }
         }
 
         if (!receivedFirstPacket)
@@ -133,9 +139,20 @@ void HILTransceiver::run()
         //       sensorData.flags.flag_airbrakes, sensorData.flags.flag_para1,
         //       sensorData.flags.flag_para2);
         flightPhasesManager->processFlags(sensorData.flags);
+
+        if (lostUpdate)
+        {
+            // this means also that the number of samples used for the mean sent
+            // to the HIL simulator is made up of more than the number of
+            // samples we thougt
+            TRACE("[HILT] lost updates!\n");
+            lostUpdate = false;
+        }
+
+        // sensorData.print();
         waitActuatorData();
         hilSerial.write(&actuatorData, sizeof(ActuatorData));
-        actuatorData.print();
+        // actuatorData.print();
     }
 }
 
