@@ -20,42 +20,80 @@
  * THE SOFTWARE.
  */
 
+#include <drivers/AD5204/AD5204.h>
 #include <drivers/adc/InternalADC.h>
 #include <miosix.h>
+#include <utils/ButtonHandler/ButtonHandler.h>
+#include <utils/Stats/Stats.h>
 
 using namespace miosix;
 using namespace Boardcore;
+
+void buttonCallback(ButtonEvent event);
+void print();
+
+Stats ch2Stats;
 
 int main()
 {
     ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
-    InternalADC adc(ADC3, 3.3);
+    InternalADC adc(ADC3, 3.289);
     adc.enableChannel(InternalADC::CH0);
     adc.enableChannel(InternalADC::CH1);
     adc.init();
 
+    SPIBus bus(SPI2);
+    SPIBusConfig config;
+    AD5204 ad5204(bus, devices::ad5204::cs::getPin(), config,
+                  AD5204::Resistance::R_10);
+
+    ad5204.setResistance(AD5204::Channel::RDAC_3, 2040);
+    buttonCallback(ButtonEvent::SHORT_PRESS);
+
+    ButtonHandler::getInstance().registerButtonCallback(
+        devices::buttons::record::getPin(), buttonCallback);
+
+    TaskScheduler scheduler;
+    scheduler.addTask(print, 250);
+    scheduler.start();
+
     while (true)
     {
         adc.sample();
+        ch2Stats.add(adc.getVoltage(InternalADC::CH1).voltage);
 
-        printf("CH0: %1.6f\tCH1: %1.6f\t",
-               adc.getVoltage(InternalADC::CH0).voltage,
-               adc.getVoltage(InternalADC::CH1).voltage);
+        Thread::sleep(1);
+    }
+}
 
-        if (devices::buttons::record::value())
+void buttonCallback(ButtonEvent event)
+{
+    static bool mosfetOn = false;
+
+    if (event == ButtonEvent::SHORT_PRESS)
+    {
+        mosfetOn = !mosfetOn;
+
+        if (mosfetOn)
         {
-            devices::ina188::mosfet1::low();
             devices::ina188::mosfet2::low();
-            printf("low\n");
+            devices::leds::led1::high();
+            printf("Mosfet turned on!\n");
         }
         else
         {
-            devices::ina188::mosfet1::high();
             devices::ina188::mosfet2::high();
-            printf("high\n");
+            devices::leds::led1::low();
+            printf("Mosfet turned off!\n");
         }
-
-        miosix::delayMs(100);
     }
+}
+
+void print()
+{
+    float ch2 = ch2Stats.getStats().mean;
+    ch2Stats.reset();
+
+    printf("INA: %6.3fmV -> Ponte: %6.3fmV\n", ch2 * 1000, ch2 * 1000 / 99.6);
 }
