@@ -78,7 +78,7 @@ State FlightModeManager::state_init(const Event& event)
         }
         case FMM_INIT_OK:
         {
-            return transition(&FlightModeManager::state_calibration);
+            return transition(&FlightModeManager::state_sensors_calibration);
         }
         case FMM_INIT_ERROR:
         {
@@ -102,7 +102,7 @@ State FlightModeManager::state_init_error(const Event& event)
         }
         case TMTC_FORCE_INIT:
         {
-            return transition(&FlightModeManager::state_calibration);
+            return transition(&FlightModeManager::state_sensors_calibration);
         }
         default:
         {
@@ -111,7 +111,7 @@ State FlightModeManager::state_init_error(const Event& event)
     }
 }
 
-State FlightModeManager::state_calibration(const Event& event)
+State FlightModeManager::state_sensors_calibration(const Event& event)
 {
     switch (event)
     {
@@ -122,6 +122,27 @@ State FlightModeManager::state_calibration(const Event& event)
             return HANDLED;
         }
         case FMM_SENSORS_CAL_DONE:
+        {
+            return transition(&FlightModeManager::state_algorithms_calibration);
+        }
+        default:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+    }
+}
+
+State FlightModeManager::state_algorithms_calibration(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+            logStatus(FlightModeManagerState::CALIBRATION);
+            return HANDLED;
+        }
+        case NAS_READY:
         {
             return transition(&FlightModeManager::state_ready);
         }
@@ -143,7 +164,11 @@ State FlightModeManager::state_ready(const Event& event)
         }
         case TMTC_CAL_SENSORS:
         {
-            return transition(&FlightModeManager::state_calibration);
+            return transition(&FlightModeManager::state_sensors_calibration);
+        }
+        case TMTC_CAL_ALGOS:
+        {
+            return transition(&FlightModeManager::state_algorithms_calibration);
         }
         case TMTC_ENTER_TEST_MODE:
         {
@@ -305,6 +330,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
 }
 
 FlightModeManager::~FlightModeManager()

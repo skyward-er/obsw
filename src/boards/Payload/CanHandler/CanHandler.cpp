@@ -155,7 +155,15 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
             Actuators::getInstance().camOff();
             break;
         }
-
+        case EventId::LIFTOFF:
+        {
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
+        }
+        case EventId::APOGEE:
+        {
+            EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
+                                            TOPIC_FLIGHT);
+        }
         default:
         {
             LOG_DEBUG(logger, "Received unsupported event: id={}", eventId);

@@ -22,8 +22,12 @@
 
 #pragma once
 
+#include <Payload/NASController/NASControllerData.h>
 #include <algorithms/NAS/NAS.h>
 #include <algorithms/NAS/StateInitializer.h>
+#include <common/events/Events.h>
+#include <common/events/Topics.h>
+#include <events/FSM.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <Eigen/Core>
@@ -32,13 +36,12 @@
 namespace Payload
 {
 
-class NASController : public Boardcore::Singleton<NASController>
+class NASController : public Boardcore::Singleton<NASController>,
+                      public Boardcore::FSM<NASController>
 {
     friend Boardcore::Singleton<NASController>;
 
 public:
-    void init();
-
     bool start();
 
     void update();
@@ -52,6 +55,15 @@ public:
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
     Boardcore::ReferenceValues getReferenceValues();
+
+    // FSM states
+    void state_idle(const Boardcore::Event& event);
+    void state_calibrating(const Boardcore::Event& event);
+    void state_ready(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
+    void state_end(const Boardcore::Event& event);
+
+    void logStatus(NASControllerState state);
 
 private:
     NASController();

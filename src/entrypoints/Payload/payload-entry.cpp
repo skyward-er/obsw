@@ -26,6 +26,7 @@
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/FlightModeManager/FlightModeManager.h>
 #include <Payload/NASController/NASController.h>
+#include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
@@ -105,6 +106,14 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the CAN interface");
+    }
+
+    // Start the pin handler and observer
+    PinHandler::getInstance();
+    if (!PinObserver::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the pin observer");
     }
 
     // Start the board task scheduler

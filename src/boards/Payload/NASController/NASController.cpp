@@ -31,31 +31,27 @@
 
 using namespace std;
 using namespace Boardcore;
+using namespace Common;
 
 namespace Payload
 {
 
-void NASController::init()
-{
-    // Set the reference values (whatever they represent)
-    nas.setReferenceValues({0, 0, 0, 110000, 20 + 273.5});
-}
-
 bool NASController::start()
 {
-    // Initialize all reference values
-    initializeOrientationAndPressure();
-
     // Add the update task to the scheduler
     BoardScheduler::getInstance().getScheduler().addTask(
         bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
-    return true;
+    return ActiveObject::start();
 }
 
 void NASController::update()
 {
+    // If the nas is not active i skip the step
+    if (!this->testState(&NASController::state_active))
+        return;
+
     // Sample the sensors
     BMX160WithCorrectionData imuData =
         Sensors::getInstance().getBMX160WithCorrectionLastSample();
@@ -179,6 +175,9 @@ void NASController::initializeOrientationAndPressure()
 
     nas.setX(state.getInitX());
     nas.setReferenceValues(reference);
+
+    // At the end i publish on the nas topic the end
+    EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
 void NASController::setInitialPosition(Eigen::Vector2f position)
@@ -200,6 +199,133 @@ ReferenceValues NASController::getReferenceValues()
     return nas.getReferenceValues();
 }
 
-NASController::NASController() : nas(NASConfig::config) {}
+NASController::NASController()
+    : nas(NASConfig::config), FSM(&NASController::state_idle)
+{
+    // Subscribe the FSM to the correct topics
+    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+}
+
+/**
+ * FSM Methods
+ */
+
+void NASController::state_idle(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(NASControllerState::IDLE);
+            break;
+        }
+        case NAS_CALIBRATE:
+        {
+            transition(&NASController::state_calibrating);
+            break;
+        }
+    }
+}
+
+void NASController::state_calibrating(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            // Calibrate the NAS
+            initializeOrientationAndPressure();
+
+            // Log the state
+            logStatus(NASControllerState::CALIBRATING);
+            break;
+        }
+        case NAS_READY:
+        {
+            transition(&NASController::state_ready);
+            break;
+        }
+    }
+}
+
+void NASController::state_ready(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(NASControllerState::READY);
+            break;
+        }
+        case NAS_CALIBRATE:
+        {
+            transition(&NASController::state_calibrating);
+            break;
+        }
+        case FLIGHT_LIFTOFF:
+        {
+            transition(&NASController::state_active);
+            break;
+        }
+        case TMTC_FORCE_LAUNCH:
+        {
+            transition(&NASController::state_active);
+            break;
+        }
+    }
+}
+
+void NASController::state_active(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            // The nas is automatically activated because the update method
+            // looks for the active state to execute the update
+            logStatus(NASControllerState::ACTIVE);
+            break;
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+        case TMTC_FORCE_LANDING:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+        case FMM_MISSION_TIMEOUT:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+    }
+}
+
+void NASController::state_end(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(NASControllerState::END);
+            break;
+        }
+    }
+}
+
+void NASController::logStatus(NASControllerState state)
+{
+    NASControllerStatus status;
+    status.timestamp = TimestampTimer::getTimestamp();
+    status.state     = state;
+
+    Logger::getInstance().log(status);
+}
 
 }  // namespace Payload

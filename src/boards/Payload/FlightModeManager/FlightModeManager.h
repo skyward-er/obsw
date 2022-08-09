@@ -47,7 +47,11 @@ public:
     Boardcore::State state_init_error(const Boardcore::Event& event);
 
     // Sensor calibration state, it could be requested via radio
-    Boardcore::State state_calibration(const Boardcore::Event& event);
+    Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
+
+    // Algorithm calibration state, it could be requested via radio
+    Boardcore::State state_algorithms_calibration(
+        const Boardcore::Event& event);
 
     // Ready state waiting for liftoff event
     Boardcore::State state_ready(const Boardcore::Event& event);

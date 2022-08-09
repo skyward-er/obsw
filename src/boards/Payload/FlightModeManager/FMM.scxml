@@ -7,13 +7,16 @@
             <transition event="FMM.INIT_ERROR" target="InitError"/>
         </state>   
         <state id="InitError">
-            <transition event="TMTC.FORCE_INIT" target="Calibration"></transition>
+            <transition event="TMTC.FORCE_INIT" target="SensorsCalibration"></transition>
         </state>
-        <state id="Calibration">
-            <transition event="SENSORS.CALIBRATION_OK" target="Ready"/>
+        <state id="SensorsCalibration">
+            <transition event="SENSORS.CALIBRATION_OK" target="AlgorithmsCalibration"/>
+        </state>
+        <state id="AlgorithmsCalibration">
+            <transition event="NAS.NAS_READY" target="Ready"/>
         </state>
         <state id="Ready">
-            <transition event="TMTC.CALIBRATE" target="Calibration"/>
+            <transition event="TMTC.CALIBRATE" target="SensorsCalibration"/>
             <transition event="TMTC.TEST_MODE" target="TestMode"/>
             <transition event="FLIGHT_EVENTS.LIFTOFF" target="Ascending"/>
             <transition event="TMTC.FORCE_LAUNCH" target="Ascending"/>
