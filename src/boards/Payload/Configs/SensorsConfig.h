@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <drivers/adc/InternalADC.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160Config.h>
@@ -44,6 +45,9 @@ static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
     Boardcore::ADS1118::MUX_AIN1_GND;
 static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
     Boardcore::ADS1118::MUX_AIN2_GND;
+
+static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
+    Boardcore::InternalADC::Channel::CH5;
 
 static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
     Boardcore::ADS1118::DR_860;

@@ -297,19 +297,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             LOG_DEBUG(logger, "Received wiggle servo command, servoId: {}",
                       servoId);
 
-            switch (servoId)
-            {
-                case AIRBRAKES_SERVO:
-                    EventBroker::getInstance().post(TOPIC_ABK, ABK_WIGGLE);
-                    break;
-                case EXPULSION_SERVO:
-                    EventBroker::getInstance().post(TOPIC_DPL, DPL_WIGGLE);
-                    break;
-
-                default:
-                    sendNack(msg);
-                    return;
-            }
+            if (!Actuators::getInstance().wiggleServo(servoId))
+                return sendNack(msg);
 
             break;
         }
@@ -321,19 +310,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             LOG_DEBUG(logger, "Received reset servo command, servoId: {}",
                       servoId);
 
-            switch (servoId)
-            {
-                case AIRBRAKES_SERVO:
-                    EventBroker::getInstance().post(TOPIC_ABK, ABK_RESET);
-                    break;
-                case EXPULSION_SERVO:
-                    EventBroker::getInstance().post(TOPIC_DPL, DPL_RESET);
-                    break;
-
-                default:
-                    sendNack(msg);
-                    return;
-            }
+            if (!Actuators::getInstance().setServo(servoId, 0))
+                return sendNack(msg);
 
             break;
         }
@@ -346,7 +324,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "Received set reference altitude command, altitude: {}",
                       altitude);
 
-            // TODO: Apply command
+            NASController::getInstance().setReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -359,7 +337,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 "Received set reference temperature command, temperature: {}",
                 temperature);
 
-            // TODO: Apply command
+            NASController::getInstance().setReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -386,7 +364,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "pitch: {}, roll: {}",
                       yaw, pitch, roll);
 
-            // TODO: Apply command
+            NASController::getInstance().setInitialOrientation(yaw, pitch,
+                                                               roll);
             break;
         }
         case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:

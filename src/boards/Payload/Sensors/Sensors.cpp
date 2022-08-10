@@ -121,6 +121,20 @@ PitotData Sensors::getPitotLastSample()
     return pitot != nullptr ? pitot->getLastSample() : PitotData{};
 }
 
+InternalADCData Sensors::getInternalADCLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return internalADC != nullptr ? internalADC->getLastSample()
+                                  : InternalADCData{};
+}
+
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return batteryVoltage != nullptr ? batteryVoltage->getLastSample()
+                                     : BatteryVoltageSensorData{};
+}
+
 void Sensors::calibrate()
 {
     calibrating = true;
@@ -174,6 +188,8 @@ Sensors::Sensors()
     dplPressureInit();
     pitotPressureInit();
     pitotInit();
+    internalADCInit();
+    batteryVoltageInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
@@ -434,6 +450,38 @@ void Sensors::pitotInit()
     sensorsMap.emplace(make_pair(pitot, info));
 
     LOG_INFO(logger, "Pitot sensor setup done!");
+}
+
+void Sensors::internalADCInit()
+{
+    internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
+
+    internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
+
+    SensorInfo info(
+        "INTERNAL_ADC", INTERNAL_ADC_SAMPLE_PERIOD,
+        [&]() { Logger::getInstance().log(internalADC->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(internalADC, info));
+
+    LOG_INFO(logger, "InternalADC setup done!");
+}
+
+void Sensors::batteryVoltageInit()
+{
+    function<ADCData()> getADCVoltage(
+        bind(&InternalADC::getVoltage, internalADC, ADC_BATTERY_VOLTAGE));
+
+    batteryVoltage =
+        new BatteryVoltageSensor(getADCVoltage, BATTERY_VOLTAGE_COEFF);
+
+    SensorInfo info(
+        "BATTERY_VOLTAGE", INTERNAL_ADC_SAMPLE_PERIOD,
+        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+
+    LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
 }  // namespace Payload

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
@@ -61,6 +62,8 @@ public:
     Boardcore::SSCDANN030PAAData getDplPressureLastSample();
     Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
+    Boardcore::InternalADCData getInternalADCLastSample();
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -97,6 +100,9 @@ private:
     void pitotPressureInit();
     void pitotInit();
 
+    void internalADCInit();
+    void batteryVoltageInit();
+
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
     Boardcore::MS5803* ms5803;
@@ -107,6 +113,8 @@ private:
     Boardcore::SSCDANN030PAA* dplPressure;
     Boardcore::SSCDRRN015PDA* pitotPressure;
     Boardcore::Pitot* pitot;
+    Boardcore::InternalADC* internalADC;
+    Boardcore::BatteryVoltageSensor* batteryVoltage;
 
     Boardcore::SensorManager* sensorManager = nullptr;
 

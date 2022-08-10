@@ -50,6 +50,12 @@ public:
 
     void setInitialPosition(Eigen::Vector2f position);
 
+    void setInitialOrientation(float yaw, float pitch, float roll);
+
+    void setReferenceAltitude(float altitude);
+
+    void setReferenceTemperature(float temperature);
+
     Boardcore::NASState getNasState();
 
     void setReferenceValues(const Boardcore::ReferenceValues reference);
@@ -64,11 +70,14 @@ public:
     void state_end(const Boardcore::Event& event);
 
     void logStatus(NASControllerState state);
+    NASControllerStatus getStatus();
 
 private:
     NASController();
 
     Boardcore::NAS nas;
+
+    NASControllerStatus status;
 
     Eigen::Vector3f initialOrientation;
 

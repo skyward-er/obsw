@@ -173,8 +173,16 @@ void NASController::initializeOrientationAndPressure()
                                        : reference.startLongitude;
     }
 
-    nas.setX(state.getInitX());
-    nas.setReferenceValues(reference);
+    // Set the values inside the NAS
+    {
+        // Need to pause the kernel because the only invocation comes from the
+        // radio
+        // which is a separate thread
+        miosix::PauseKernelLock klock;
+
+        nas.setX(state.getInitX());
+        nas.setReferenceValues(reference);
+    }
 
     // At the end i publish on the nas topic the end
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
@@ -182,15 +190,61 @@ void NASController::initializeOrientationAndPressure()
 
 void NASController::setInitialPosition(Eigen::Vector2f position)
 {
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock klock;
+
     ReferenceValues reference = nas.getReferenceValues();
     reference.startLatitude   = position[0];
     reference.startLongitude  = position[1];
+    nas.setReferenceValues(reference);
 }
 
-NASState NASController::getNasState() { return nas.getState(); }
+void NASController::setInitialOrientation(float yaw, float pitch, float roll)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock klock;
+
+    NASState state = nas.getState();
+
+    // TODO talk about efficiency reasons
+}
+
+void NASController::setReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock klock;
+
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.altitude        = altitude;
+    nas.setReferenceValues(reference);
+}
+
+void NASController::setReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock klock;
+
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.temperature     = temperature;
+    nas.setReferenceValues(reference);
+}
+
+NASState NASController::getNasState()
+{
+    miosix::PauseKernelLock klock;
+    return nas.getState();
+}
 
 void NASController::setReferenceValues(const ReferenceValues reference)
 {
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock klock;
+
     nas.setReferenceValues(reference);
 }
 
@@ -321,11 +375,12 @@ void NASController::state_end(const Event& event)
 
 void NASController::logStatus(NASControllerState state)
 {
-    NASControllerStatus status;
     status.timestamp = TimestampTimer::getTimestamp();
     status.state     = state;
 
     Logger::getInstance().log(status);
 }
+
+NASControllerStatus NASController::getStatus() { return status; }
 
 }  // namespace Payload

@@ -25,6 +25,7 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/SensorsConfig.h>
+#include <Payload/FlightModeManager/FlightModeManager.h>
 #include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
@@ -164,8 +165,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // State machines states
             tm.ada_state = 0;
-            tm.fmm_state = 0;
-            tm.nas_state = 0;
+            tm.fmm_state =
+                (uint8_t)FlightModeManager::getInstance().getStatus().state;
+            tm.nas_state =
+                (uint8_t)NASController::getInstance().getStatus().state;
 
             // Pressures
             tm.pressure_ada    = 0;
@@ -388,7 +391,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_PITOT_PRESS_ID:  // TODO
+        case SensorsTMList::MAV_PITOT_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;
 
@@ -404,8 +407,20 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                            &tm);
             break;
         }
-        case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:  // TODO
+        case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
         {
+            mavlink_adc_tm_t tm;
+
+            BatteryVoltageSensorData battery =
+                Sensors::getInstance().getBatteryVoltageLastSample();
+
+            tm.timestamp = battery.voltageTimestamp;
+            tm.channel_0 = battery.batVoltage;
+
+            strcpy(tm.sensor_id, "BATTERY_VOLTAGE");
+
+            mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
             break;
         }
         default:
