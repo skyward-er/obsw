@@ -69,10 +69,10 @@ Thread *t;
 
 TimedTrajectoryPoint getCurrentPosition()
 {
-    return TimedTrajectoryPoint(
-        Main::NASController::getInstance().getNasState());
-    // return
-    // static_cast<TimedTrajectoryPoint>(state.kalman->getLastSample());
+    // return TimedTrajectoryPoint(
+    //     Main::NASController::getInstance().getNasState());
+    return static_cast<TimedTrajectoryPoint>(
+        Main::Sensors::getInstance().state.kalman->getLastSample());
 }
 
 void setIsSimulationRunning(bool running)
@@ -122,7 +122,12 @@ int main()
 
     /*-------------- Event Broker --------------*/
     TRACE("Starting event broker\n");
-    EventBroker::getInstance().start();
+    EventBroker &eventBroker = EventBroker::getInstance();
+    eventBroker.start();
+
+    /*---------------- [FMM] FMM ---------------*/
+    TRACE("Starting FMM\n");
+    Main::FlightModeManager::getInstance().start();
 
     /*---------------- [ADA] ADA ---------------*/
     Main::ADAController &ada_controller = Main::ADAController::getInstance();
@@ -145,6 +150,9 @@ int main()
 
     /*---------------- [NAS] NAS ---------------*/
     Main::NASController &nas_controller = Main::NASController::getInstance();
+
+    // TEMPORARY
+    nas_controller.setReferenceValues({0, 0, 0, 110000, 20 + 273.5});
 
     nas_controller.setUpdateDataFunction(
         [](Boardcore::NASState state)
@@ -193,29 +201,98 @@ int main()
         //     bind(&MockAirbrakeAlgorithm::update, &mockAirbrake)};
 
         scheduler.addTask(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ));
+
+        // ONLY FOR DEBUGGING
+        // scheduler.addTask(
+        //     []()
+        //     {
+        //         if (HIL::getInstance().isSimulationRunning())
+        //         {
+        //             Boardcore::ADAState adaState =
+        //                 Main::ADAController::getInstance().getAdaState();
+        //             Boardcore::NASState nasState =
+        //                 Main::NASController::getInstance().getNasState();
+        //             Boardcore::TimedTrajectoryPoint point =
+        //                 Boardcore::TimedTrajectoryPoint(nasState);
+
+        //             TRACE("\nnas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
+        //                   nasState.e, nasState.d);
+        //             TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n",
+        //             nasState.vn,
+        //                   nasState.ve, nasState.vd);
+        //             TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
+        //             TRACE("ada -> msl:%+.3f, vz:%+.3f\n",
+        //             adaState.mslAltitude,
+        //                   adaState.verticalSpeed);
+        //             TRACE("press:%+.3f\n", Main::Sensors::getInstance()
+        //                                        .getMS5803LastSample()
+        //                                        .pressure);
+        //         }
+        //     },
+        //     1000);
+
+        flightPhasesManager->registerToFlightPhase(
+            FlightPhases::SIMULATION_STARTED,
+            [&]()
+            {
+                // following the steps to wait for the launch to begin
+                // TOPIC_FLIGHT
+                // TOPIC_FMM
+                // TOPIC_TMTC
+
+                eventBroker.post(EV_INIT, Main::TOPIC_FMM);
+                Thread::sleep(100);
+
+                // start sensors
+                TRACE("Starting sensors\n");
+                Main::Sensors::getInstance().start();
+
+                TRACE("Calibrating sensors\n");
+                Main::Sensors::getInstance().calibrate();
+                eventBroker.post(Main::FMM_SENSORS_CAL_DONE, Main::TOPIC_FMM);
+                Thread::sleep(50);
+
+                // calibrate algorithms
+                Thread::sleep(50);
+                eventBroker.post(Main::ADA_CALIBRATE, Main::TOPIC_ADA);
+
+                Thread::sleep(50);
+                eventBroker.post(Main::NAS_CALIBRATE, Main::TOPIC_NAS);
+
+                Thread::sleep(50);
+                eventBroker.post(Main::ADA_READY, Main::TOPIC_ADA);
+
+                Thread::sleep(50);
+                eventBroker.post(Main::NAS_READY, Main::TOPIC_NAS);
+
+                // tell that the algorithms have finished the calibration
+                Thread::sleep(50);
+                eventBroker.post(Main::FMM_ALGOS_CAL_DONE, Main::TOPIC_FMM);
+
+                // ask to arm the board and get ready for launch
+                Thread::sleep(50);
+                eventBroker.post(Main::TMTC_ARM, Main::TOPIC_TMTC);
+
+                TRACE("started everything\n");
+
+                TRACE("Available heap %d out of %d Bytes\n",
+                      miosix::MemoryProfiling::getCurrentFreeHeap(),
+                      miosix::MemoryProfiling::getHeapSize());
+
+                TRACE("Available stack %d out of %d Bytes\n",
+                      miosix::MemoryProfiling::getCurrentFreeStack(),
+                      miosix::MemoryProfiling::getStackSize());
+            });
     }
 
     /*---------- Starting threads --------*/
+
+    // initialize FMM
     TRACE("Starting deployment\n");
     Main::Deployment::getInstance().start();
-    TRACE("Starting FMM\n");
-    Main::FlightModeManager::getInstance().start();
-
-    TRACE("Starting sensors\n");
-    Main::Sensors::getInstance().start();
 
     TRACE("Starting board TS\n");
     scheduler.start();
-
-    TRACE("started everything\n");
-
-    TRACE("Available heap %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeHeap(),
-          miosix::MemoryProfiling::getHeapSize());
-
-    TRACE("Available stack %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeStack(),
-          miosix::MemoryProfiling::getStackSize());
 
     /*---------- Normal execution --------*/
     while (true)
