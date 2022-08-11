@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,45 +20,42 @@
  * THE SOFTWARE.
  */
 
-#include "PinHandler.h"
-
-#include <Payload/Configs/PinObserverConfig.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Configs/WingConfig.h>
+#include <Payload/FlightModeManager/FlightModeManager.h>
+#include <Payload/NASController/NASController.h>
+#include <Payload/Wing/AltitudeTrigger.h>
+#include <algorithms/NAS/NASState.h>
 #include <common/events/Events.h>
+#include <common/events/Topics.h>
 #include <events/EventBroker.h>
 
 #include <functional>
 
 using namespace std;
-using namespace std::placeholders;
-using namespace miosix;
+using namespace Payload::WingConfig;
 using namespace Boardcore;
 using namespace Common;
 
 namespace Payload
 {
-
-void PinHandler::onExpulsionPinTransition(PinTransition transition)
+AltitudeTrigger::AltitudeTrigger()
 {
-    if (transition == DPL_SERVO_PIN_TRIGGER)
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_CHECKER_PERIOD,
+        WING_ALTITUDE_CHECKER_TASK_ID);
 }
 
-std::map<PinsList, PinData> PinHandler::getPinsData()
+void AltitudeTrigger::update()
 {
-    std::map<PinsList, PinData> data;
+    if (FlightModeManager::getInstance().getStatus().state ==
+        FlightModeManagerState::DROGUE_DESCENT)
+    {
+        NASState state = NASController::getInstance().getNasState();
 
-    data[PinsList::NOSECONE_PIN] =
-        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
-
-    return data;
+        if (-state.d < WING_ALTITUDE_REFERENCE)
+            EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
+                                            TOPIC_FLIGHT);
+    }
 }
-
-PinHandler::PinHandler()
-{
-    PinObserver::getInstance().registerPinCallback(
-        inputs::expulsion::getPin(),
-        bind(&PinHandler::onExpulsionPinTransition, this, _1),
-        DPL_SERVO_PIN_THRESHOLD);
-}
-
 }  // namespace Payload

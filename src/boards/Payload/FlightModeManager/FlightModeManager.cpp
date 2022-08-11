@@ -60,6 +60,10 @@ State FlightModeManager::state_on_ground(const Event& event)
             miosix::reboot();
             return HANDLED;
         }
+        case EV_EMPTY:
+        {
+            return TRAN;
+        }
         default:
         {
             return tranSuper(&FlightModeManager::Hsm_top);

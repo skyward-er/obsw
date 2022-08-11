@@ -156,10 +156,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             mavlink_payload_flight_tm_t tm;
             Sensors &sensors = Sensors::getInstance();
 
-            auto ms5803Data = sensors.getMS5803LastSample();
-            auto imuData    = sensors.getBMX160WithCorrectionLastSample();
+            MS5803Data ms5803Data = sensors.getMS5803LastSample();
+            BMX160WithCorrectionData imuData =
+                sensors.getBMX160WithCorrectionLastSample();
 
-            auto nasState = NASController::getInstance().getNasState();
+            NASState nasState  = NASController::getInstance().getNasState();
+            UBXGPSData ubxData = sensors.getUbxGpsLastSample();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -194,10 +196,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.mag_z  = imuData.magneticFieldZ;
 
             // GPS
-            tm.gps_fix = 0;
-            tm.gps_lat = 0;
-            tm.gps_lon = 0;
-            tm.gps_alt = 0;
+            tm.gps_fix = ubxData.fix;
+            tm.gps_lat = ubxData.latitude;
+            tm.gps_lon = ubxData.longitude;
+            tm.gps_alt = ubxData.height;
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -221,7 +223,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // TODO: Add servo positions
 
             // Board status
-            tm.vbat         = 0;
+            tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
             tm.temperature  = ms5803Data.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 

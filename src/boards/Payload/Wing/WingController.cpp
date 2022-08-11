@@ -145,7 +145,7 @@ void WingController::init()
 
     // Set the target position to the default one
     targetPosition[0] = DEFAULT_TARGET_LAT;
-    targetPosition[1] = DEAFULT_TARGET_LON;
+    targetPosition[1] = DEFAULT_TARGET_LON;
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)

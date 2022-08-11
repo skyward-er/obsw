@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,21 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
-#include <miosix.h>
-#include <utils/PinObserver/PinObserver.h>
+#include <Payload/FlightModeManager/FlightModeManager.h>
+#include <Singleton.h>
 
 namespace Payload
 {
+class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+{
+    friend class Boardcore::Singleton<AltitudeTrigger>;
 
-static constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
-    Boardcore::PinTransition::FALLING_EDGE;
+public:
+    // Update method that posts a FLIGHT_WING_ALT_REACHED when the correct
+    // altitude is reached
+    void update();
 
-static constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::FALLING_EDGE;
-
-static constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
-    Boardcore::PinTransition::FALLING_EDGE;
-
+private:
+    AltitudeTrigger();
+};
 }  // namespace Payload

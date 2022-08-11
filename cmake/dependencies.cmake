@@ -56,6 +56,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Wing/WingAlgorithm.cpp
     src/boards/Payload/Wing/WingController.cpp
     src/boards/Payload/FlightModeManager/FlightModeManager.cpp
+    src/boards/Payload/Wing/AltitudeTrigger.cpp
 )
 
 set(PARAFOIL_COMPUTER

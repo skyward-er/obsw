@@ -51,7 +51,12 @@ static float DEFAULT_GPS_INITIAL_LAT = 42.5;
 static float DEFAULT_GPS_INITIAL_LON = 9.5;
 
 static float DEFAULT_TARGET_LAT = 42;
-static float DEAFULT_TARGET_LON = 9;
+static float DEFAULT_TARGET_LON = 9;
+
+// Wing altitude checker configs
+static float WING_ALTITUDE_CHECKER_TASK_ID = 230;
+static float WING_ALTITUDE_CHECKER_PERIOD  = 100;  // [ms]
+static float WING_ALTITUDE_REFERENCE       = 400;
 
 }  // namespace WingConfig
 

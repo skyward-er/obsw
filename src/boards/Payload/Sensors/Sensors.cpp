@@ -194,10 +194,10 @@ Sensors::Sensors()
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
 
-    // Check if the essential sensors are initialized correctly
-    if (sensorManager->getSensorInfo(bmx160).isInitialized)
-        // && sensorManager->getSensorInfo(gps).isInitialized)
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+    // // Check if the essential sensors are initialized correctly
+    // if (sensorManager->getSensorInfo(bmx160).isInitialized)
+    //     // && sensorManager->getSensorInfo(gps).isInitialized)
+    //     EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 }
 
 Sensors::~Sensors()

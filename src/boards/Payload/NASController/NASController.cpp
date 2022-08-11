@@ -92,7 +92,7 @@ void NASController::update()
     nas.predictGyro(angularVelocity);
     // if (gpsPos[0] < 1e3 && gpsPos[0] > -1e3 && gpsPos[1] < 1e3 &&
     //     gpsPos[1] > -1e3)
-    nas.predictAcc(acceleration);
+    // nas.predictAcc(acceleration);
 
     // Correct step
     magneticField.normalize();
