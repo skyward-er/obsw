@@ -124,6 +124,13 @@ add_executable(aux-test-per src/tests/Auxiliary/test-auxiliary-peripherals.cpp)
 sbs_target(aux-test-per stm32f429zi_skyward_pyxis_auxiliary)
 
 #-----------------------------------------------------------------------------#
+#                            Groundstation Computer                           #
+#-----------------------------------------------------------------------------#
+
+add_executable(groundstation-parafoil-entry src/entrypoints/Groundstation/groundstation-parafoil-entry.cpp)
+sbs_target(groundstation-parafoil-entry stm32f429zi_stm32f4discovery)
+
+#-----------------------------------------------------------------------------#
 #                                CIUTI Computer                               #
 #-----------------------------------------------------------------------------#
 
