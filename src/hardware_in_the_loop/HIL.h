@@ -39,7 +39,7 @@ public:
     /**
      * @brief Start the needed hardware-in-the-loop components.
      */
-    bool start() { return simulator->start(); }
+    bool start() { return simulator->start() && flightPhasesManager->start(); }
 
     void stop() { simulator->stop(); }
 

@@ -63,6 +63,7 @@ set(HIL_TESTS
 
     # src/boards/Main/Radio/Radio.cpp
     # src/boards/Main/TMRepository/TMRepository.cpp
+    src/boards/common/events/EventStrings.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/boards/Main/Actuators/Actuators.cpp

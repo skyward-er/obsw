@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio
+/* Copyright (c) 2021-22 Skyward Experimental Rocketry
+ * Author: Luca Conterio, Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,18 @@
 
 #pragma once
 
+#include <events/Event.h>
+
 #include <iostream>
 #include <map>
 
 #include "HILTransceiver.h"
+#include "Main/BoardScheduler.h"
 #include "Main/events/Events.h"
 #include "algorithms/AirBrakes/TrajectoryPoint.h"
 #include "common/events/Events.h"
 #include "drivers/timer/TimestampTimer.h"
-#include "events/utils/EventCounter.h"
+#include "events/EventHandler.h"
 #include "miosix.h"
 
 #define sEventBroker Boardcore::EventBroker::getInstance()
@@ -42,6 +45,7 @@ enum class FlightPhases
 {
     SIMULATION_STARTED,
     CALIBRATION,
+    ARMED,
     LIFTOFF_PIN_DETACHED,
     FLYING,
     ASCENT,
@@ -79,7 +83,7 @@ struct Outcomes
  * After his instantiation we need to set the source of the current position in
  * order to be able to save the outcomes for each event.
  */
-class HILFlightPhasesManager
+class HILFlightPhasesManager : public Boardcore::EventHandler
 {
     using FlightPhasesFlags = SimulatorData::Flags;
 
@@ -101,6 +105,9 @@ public:
 
     void processFlags(FlightPhasesFlags hil_flags);
 
+protected:
+    void handleEvent(const Boardcore::Event& e) override;
+
 private:
     void registerOutcomes(FlightPhases phase);
 
@@ -111,8 +118,6 @@ private:
      * and checks for the apogee
      */
     void updateFlags(FlightPhasesFlags hil_flags);
-
-    void checkEvents();
 
     bool isSetTrue(FlightPhases phase);
 
@@ -127,8 +132,5 @@ private:
     std::map<FlightPhases, Outcomes> outcomes;
     std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition;
 
-    Boardcore::EventCounter counter_flight_events;
-    Boardcore::EventCounter counter_airbrakes;
-    Boardcore::EventCounter counter_ada;
-    Boardcore::EventCounter counter_dpl;
+    uint8_t last_event;
 };

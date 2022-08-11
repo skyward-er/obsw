@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio
+/* Copyright (c) 2021-22 Skyward Experimental Rocketry
+ * Author: Luca Conterio, Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,16 @@
 
 #include "HILFlightPhasesManager.h"
 
+#include <events/Event.h>
+
+#include "events/EventBroker.h"
+// #include "events/EventStrings.cpp"
+
 HILFlightPhasesManager::HILFlightPhasesManager()
-    : flagsFlightPhases({{FlightPhases::SIMULATION_STARTED, false},
+    : Boardcore::EventHandler(),
+      flagsFlightPhases({{FlightPhases::SIMULATION_STARTED, false},
                          {FlightPhases::CALIBRATION, false},
+                         {FlightPhases::ARMED, false},
                          {FlightPhases::LIFTOFF_PIN_DETACHED, false},
                          {FlightPhases::FLYING, false},
                          {FlightPhases::ASCENT, false},
@@ -35,17 +42,15 @@ HILFlightPhasesManager::HILFlightPhasesManager()
                          {FlightPhases::PARA1, false},
                          {FlightPhases::PARA2, false},
                          {FlightPhases::SIMULATION_STOPPED, false}}),
-      counter_flight_events(sEventBroker), counter_airbrakes(sEventBroker),
-      counter_ada(sEventBroker), counter_dpl(sEventBroker)
-
+      last_event(0)
 {
     prev_flagsFlightPhases = flagsFlightPhases;
 
-    // it was TOPIC_FLIGHT_EVENTS
-    counter_flight_events.subscribe(Main::TOPIC_FLIGHT);
-    counter_airbrakes.subscribe(Main::TOPIC_ABK);
-    counter_ada.subscribe(Main::TOPIC_ADA);
-    counter_dpl.subscribe(Main::TOPIC_DPL);
+    Boardcore::EventBroker::getInstance().subscribe(this, Main::TOPIC_FLIGHT);
+    Boardcore::EventBroker::getInstance().subscribe(this, Main::TOPIC_FMM);
+    Boardcore::EventBroker::getInstance().subscribe(this, Main::TOPIC_TMTC);
+    Boardcore::EventBroker::getInstance().subscribe(this, Main::TOPIC_ABK);
+    Boardcore::EventBroker::getInstance().subscribe(this, Main::TOPIC_ADA);
 }
 
 void HILFlightPhasesManager::setCurrentPositionSource(
@@ -66,8 +71,7 @@ bool HILFlightPhasesManager::isSimulationStopped()
 
 bool HILFlightPhasesManager::isSimulationRunning()
 {
-    return flagsFlightPhases[FlightPhases::SIMULATION_STARTED] &&
-           !flagsFlightPhases[FlightPhases::SIMULATION_STOPPED];
+    return isSimulationStarted() && !isSimulationStopped();
 }
 
 void HILFlightPhasesManager::registerToFlightPhase(FlightPhases flag,
@@ -86,9 +90,6 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
 {
     updateFlags(hil_flags);
 
-    // check if the obsw triggered relevant flight events
-    checkEvents();
-
     std::vector<FlightPhases> changed_flags;
 
     // set true when the first packet from the simulator arrives
@@ -100,35 +101,13 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         changed_flags.push_back(FlightPhases::SIMULATION_STARTED);
     }
 
-    if (isSetTrue(FlightPhases::CALIBRATION))
-    {
-        TRACE("[HIL] ------- CALIBRATION ! ------- \n");
-        changed_flags.push_back(FlightPhases::CALIBRATION);
-    }
-
-    if (isSetFalse(FlightPhases::CALIBRATION))  // calibration finalized
-    {
-        TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
-    }
-
-    if (isSetTrue(FlightPhases::LIFTOFF_PIN_DETACHED))
-    {
-        TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
-        changed_flags.push_back(FlightPhases::LIFTOFF_PIN_DETACHED);
-    }
-
     if (flagsFlightPhases[FlightPhases::FLYING])
     {
         if (isSetTrue(FlightPhases::FLYING))
         {
-            t_liftoff = Boardcore::TimestampTimer::getTimestamp();
-            sEventBroker.post({EV_UMBILICAL_DETACHED}, TOPIC_FLIGHT_EVENTS);
-
-            TRACE("[HIL] ------- LIFTOFF ! ------- \n");
-            changed_flags.push_back(FlightPhases::FLYING);
-
-            TRACE("[HIL] ------- ASCENT ! ------- \n");
-            changed_flags.push_back(FlightPhases::ASCENT);
+            TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
+            sEventBroker.post(Main::FLIGHT_LIFTOFF_DETECTED,
+                              Main::TOPIC_FLIGHT);
         }
         if (isSetFalse(FlightPhases::BURNING))
         {
@@ -140,18 +119,6 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         {
             registerOutcomes(FlightPhases::SIM_AEROBRAKES);
             changed_flags.push_back(FlightPhases::SIM_AEROBRAKES);
-        }
-        if (isSetTrue(FlightPhases::AEROBRAKES))
-        {
-            registerOutcomes(FlightPhases::AEROBRAKES);
-            TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
-            changed_flags.push_back(FlightPhases::AEROBRAKES);
-        }
-        if (isSetTrue(FlightPhases::APOGEE))
-        {
-            registerOutcomes(FlightPhases::APOGEE);
-            TRACE("[HIL] ------- APOGEE DETECTED ! ------- \n");
-            changed_flags.push_back(FlightPhases::APOGEE);
         }
         if (isSetTrue(FlightPhases::PARA1))
         {
@@ -165,14 +132,6 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
             TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
             changed_flags.push_back(FlightPhases::PARA2);
         }
-    }
-    else if (isSetTrue(FlightPhases::SIMULATION_STOPPED))
-    {
-        changed_flags.push_back(FlightPhases::SIMULATION_STOPPED);
-        t_stop = Boardcore::TimestampTimer::getTimestamp();
-        TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
-              (double)t_stop / 1000000.0f);
-        printOutcomes();
     }
 
     /* calling the callbacks subscribed to the changed flags */
@@ -214,6 +173,9 @@ void HILFlightPhasesManager::printOutcomes()
 
     printf("Parachute 2: \n");
     outcomes[FlightPhases::PARA2].print(t_liftoff);
+
+    printf("Simulation Stopped: \n");
+    outcomes[FlightPhases::SIMULATION_STOPPED].print(t_liftoff);
 }
 
 /**
@@ -236,50 +198,104 @@ void HILFlightPhasesManager::updateFlags(FlightPhasesFlags hil_flags)
         prev_flagsFlightPhases[FlightPhases::SIMULATION_STOPPED];
 }
 
-void HILFlightPhasesManager::checkEvents()
+void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
 {
-    // calibration flag set to true at the beginning of the simulation
-    if (!prev_flagsFlightPhases[FlightPhases::CALIBRATION] &&
-        counter_flight_events.getCount(EV_CALIBRATION_OK) == 0 &&
-        counter_flight_events.getCount(EV_TC_CALIBRATE_SENSORS) > 0)
+    std::vector<FlightPhases> changed_flags;
+
+    switch (e)
     {
-        setFlagFlightPhase(FlightPhases::CALIBRATION, true);
+        case Main::FMM_INIT_OK:
+            setFlagFlightPhase(FlightPhases::CALIBRATION, true);
+            TRACE("[HIL] ------- CALIBRATION ! ------- \n");
+            changed_flags.push_back(FlightPhases::CALIBRATION);
+            break;
+        case Main::FMM_ALGOS_CAL_DONE:
+            setFlagFlightPhase(FlightPhases::CALIBRATION, false);
+            TRACE("[HILFPM] CALIBRATION OK!\n");
+            break;
+        case Main::TMTC_ARM:
+            setFlagFlightPhase(FlightPhases::ARMED, true);
+            TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
+            break;
+        case EV_UMBILICAL_DETACHED:
+            setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
+            TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
+            sEventBroker.post(Main::FLIGHT_LIFTOFF_DETECTED,
+                              Main::TOPIC_FLIGHT);
+            changed_flags.push_back(FlightPhases::LIFTOFF_PIN_DETACHED);
+            break;
+        case Main::FLIGHT_LIFTOFF_DETECTED:
+        case Main::TMTC_FORCE_LAUNCH:
+            t_liftoff = Boardcore::TimestampTimer::getTimestamp();
+            TRACE("[HIL] ------- LIFTOFF -------: %f, %f \n",
+                  getCurrentPosition().z, getCurrentPosition().vz);
+            changed_flags.push_back(FlightPhases::FLYING);
+            changed_flags.push_back(FlightPhases::ASCENT);
+            break;
+        case Main::ABK_SHADOW_MODE_TIMEOUT:
+            setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
+            registerOutcomes(FlightPhases::AEROBRAKES);
+            TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
+            changed_flags.push_back(FlightPhases::AEROBRAKES);
+            break;
+        case Main::ADA_SHADOW_MODE_TIMEOUT:
+            TRACE("[HILFPM] ADA shadow mode timeout\n");
+            break;
+        case Main::ABK_DISABLE:
+            TRACE("[HILFPM] ABK disabled\n");
+            break;
+        case Main::FLIGHT_APOGEE_DETECTED:
+        case Main::TMTC_FORCE_DROGUE:
+            setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
+            registerOutcomes(FlightPhases::APOGEE);
+            TRACE("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
+                  getCurrentPosition().z, getCurrentPosition().vz);
+            changed_flags.push_back(FlightPhases::APOGEE);
+            break;
+        case Main::ADA_PRESS_STAB_TIMEOUT:
+            setFlagFlightPhase(FlightPhases::PARA1, true);
+            registerOutcomes(FlightPhases::PARA1);
+            TRACE("[HIL] ------- PARA1 ! -------%f, %f \n",
+                  getCurrentPosition().z, getCurrentPosition().vz);
+            changed_flags.push_back(FlightPhases::PARA1);
+            break;
+        case Main::FLIGHT_DPL_ALT_DETECTED:
+        case Main::TMTC_FORCE_MAIN:
+            setFlagFlightPhase(FlightPhases::PARA1, false);
+            setFlagFlightPhase(FlightPhases::PARA2, true);
+            registerOutcomes(FlightPhases::PARA2);
+            TRACE("[HIL] ------- PARA2 ! ------- %f, %f \n",
+                  getCurrentPosition().z, getCurrentPosition().vz);
+            changed_flags.push_back(FlightPhases::PARA2);
+            break;
+        case Main::FLIGHT_LANDING_DETECTED:
+        case Main::TMTC_FORCE_LANDING:
+            t_stop = Boardcore::TimestampTimer::getTimestamp();
+            setFlagFlightPhase(FlightPhases::PARA2, false);
+            setFlagFlightPhase(FlightPhases::SIMULATION_STOPPED, true);
+            changed_flags.push_back(FlightPhases::SIMULATION_STOPPED);
+            registerOutcomes(FlightPhases::SIMULATION_STOPPED);
+            TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
+                  (double)t_stop / 1000000.0f);
+            printOutcomes();
+            break;
+        default:
+            TRACE("%s invalid event\n", getEventString(e).c_str());
     }
 
-    // calibration flag turned false when calibration finishes
-    if (prev_flagsFlightPhases[FlightPhases::CALIBRATION] &&
-        counter_flight_events.getCount(EV_CALIBRATION_OK) > 0)
+    /* calling the callbacks subscribed to the changed flags */
+    for (unsigned int i = 0; i < changed_flags.size(); i++)
     {
-        setFlagFlightPhase(FlightPhases::CALIBRATION, false);
+        std::vector<TCallback> callbacksToCall = callbacks[changed_flags[i]];
+        for (unsigned int j = 0; j < callbacksToCall.size(); j++)
+        {
+            callbacksToCall[j]();
+        }
     }
 
-    // airbrakes flag turned true when the shadow mode ended
-    if (!prev_flagsFlightPhases[FlightPhases::AEROBRAKES] &&
-        counter_airbrakes.getCount(EV_SHADOW_MODE_TIMEOUT) > 0)
-    {
-        setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
-    }
+    prev_flagsFlightPhases = flagsFlightPhases;
 
-    // apogee flag turned true when apogee is detected
-    if (!prev_flagsFlightPhases[FlightPhases::APOGEE] &&
-        counter_ada.getCount(EV_ADA_APOGEE_DETECTED) > 0)
-    {
-        setFlagFlightPhase(FlightPhases::APOGEE, true);
-    }
-
-    // parachute 1 flag turned true when apogee is detected
-    if (!prev_flagsFlightPhases[FlightPhases::PARA1] &&
-        counter_dpl.getCount(EV_NC_OPEN) > 0)
-    {
-        setFlagFlightPhase(FlightPhases::PARA1, true);
-    }
-
-    // parachute 2 flag turned true with event deployment altitude detected
-    if (!prev_flagsFlightPhases[FlightPhases::PARA2] &&
-        counter_ada.getCount(EV_ADA_DPL_ALT_DETECTED) > 0)
-    {
-        setFlagFlightPhase(FlightPhases::PARA2, true);
-    }
+    last_event = e;
 }
 
 bool HILFlightPhasesManager::isSetTrue(FlightPhases phase)

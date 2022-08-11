@@ -119,6 +119,7 @@ private:
 
     Boardcore::InternalADC *internalAdc = nullptr;
 #else   // HILSimulation
+public:
     /**
      * structure that contains all the sensors used in the simulation
      */
@@ -133,6 +134,8 @@ private:
         HILImu *imu;
         HILKalman *kalman;
     } state;
+
+private:
 #endif  // HILSimulation
 
     Boardcore::SensorManager *sensorManager = nullptr;
