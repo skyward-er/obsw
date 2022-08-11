@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Configs/ActuatorsConfigs.h>
 #include <algorithms/AirBrakes/AirBrakesConfig.h>
 
 namespace Main
@@ -36,37 +37,38 @@ static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
 static constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
 
 static const Boardcore::AirBrakesConfig ABK_CONFIG{
-    .N000       = 0,
-    .N100       = 0,
-    .N200       = 0,
-    .N300       = 0,
-    .N400       = 0,
-    .N500       = 0,
-    .N600       = 0,
-    .N010       = 0,
-    .N020       = 0,
-    .N110       = 0,
-    .N120       = 0,
-    .N210       = 0,
-    .N220       = 0,
-    .N310       = 0,
-    .N320       = 0,
-    .N410       = 0,
-    .N420       = 0,
-    .N510       = 0,
-    .N520       = 0,
-    .N001       = 0,
-    .EXTENSION  = 0,
-    .DRAG_STEPS = 0,
-    .EXT_POL_1  = 0,
-    .EXT_POL_2  = 0,
-    .EXT_POL_3  = 0,
-    .EXT_POL_4  = 0,
-    .S0         = 0,
-    .SURFACE    = 0,
-    .KP         = 0,
-    .KI         = 0,
-    .TS         = 0,
+    .N000       = 0.4884,
+    .N100       = -1.4391,
+    .N200       = 6.6940,
+    .N300       = -18.4272,
+    .N400       = 29.1044,
+    .N500       = -24.5585,
+    .N600       = 8.6058,
+    .N010       = 9.0426,
+    .N020       = 159.5995,
+    .N110       = 4.8188,
+    .N120       = -208.4471,
+    .N210       = 47.0771,
+    .N220       = 1.9433e+03,
+    .N310       = -205.6689,
+    .N320       = -6.4634e+03,
+    .N410       = 331.0332,
+    .N420       = 8.8763e+03,
+    .N510       = -161.8111,
+    .N520       = -3.9917e+03,
+    .N001       = 2.8025e-06,
+    .EXTENSION  = 0.0373,
+    .DRAG_STEPS = 20,
+    .EXT_POL_1  = -0.009216,
+    .EXT_POL_2  = 0.02492,
+    .EXT_POL_3  = -0.01627,
+    .EXT_POL_4  = 0.03191,
+    .S0         = 0.017671458676443,
+    .SURFACE    = 0.009564 * Main::ActuatorsConfigs::ABK_SERVO_ROTATION *
+               EIGEN_PI / 180.0,
+    .KP = 20,
+    .KI = 5,
+    .TS = 0.1,
 };
 
 }  // namespace AirBrakesControllerConfigs
