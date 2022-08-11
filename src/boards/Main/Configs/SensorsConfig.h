@@ -69,7 +69,6 @@ static constexpr Boardcore::BMX160Config::AccelerometerRange
 static constexpr Boardcore::BMX160Config::GyroscopeRange
     IMU_BMX_GYRO_FULLSCALE_ENUM =
         Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
 static constexpr Boardcore::BMX160Config::OutputDataRate
     IMU_BMX_ACC_GYRO_ODR_ENUM =
@@ -95,12 +94,11 @@ static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
 static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
     1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
 
-static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
-
-// IMU axis rotation
+// Axis rotation
 static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
     Boardcore::Direction::NEGATIVE_X, Boardcore::Direction::POSITIVE_Y};
 
+// Correction parameter file
 static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
@@ -121,6 +119,7 @@ static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
 //                       avoid clearing the fifo before the interrupt
 static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
     IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
+static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
 static constexpr unsigned int CALIBRATION_DURATION = 2000;
 

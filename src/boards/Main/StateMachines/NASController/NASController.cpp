@@ -25,11 +25,13 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
+#include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
+using namespace std;
 using namespace Boardcore;
 using namespace Eigen;
 using namespace Common;
@@ -49,21 +51,143 @@ bool NASController::start()
 void NASController::update()
 {
     auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
-
-    Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
-                          imuData.accelerationZ);
-    Vector3f angularVelocity(imuData.angularVelocityX, imuData.angularVelocityY,
-                             imuData.angularVelocityZ);
-    Vector3f magneticField(imuData.magneticFieldX, imuData.magneticFieldY,
-                           imuData.magneticFieldZ);
+    auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
+    auto pressureData = Sensors::getInstance().getMS5803LastSample();
 
     // Predict step
-    nas.predictGyro(angularVelocity);
-    // nas.predictAcc(acceleration);
+    nas.predictGyro(imuData);
+    nas.predictAcc(imuData);
 
     // Correct step
-    nas.correctMag(magneticField.normalized());
-    nas.correctAcc(acceleration.normalized());
+    nas.correctMag(imuData);
+    nas.correctAcc(imuData);
+    nas.correctGPS(gpsData);
+    nas.correctBaro(pressureData.pressure);
+
+    Logger::getInstance().log(nas.getState());
+}
+
+void NASController::initializeOrientationAndPressure()
+{
+    // Mean 10 accelerometer values
+    Eigen::Vector3f accelerometer;
+    Eigen::Vector3f magnetometer;
+    float pressure    = 0;
+    float temperature = 0;
+    StateInitializer state;
+    UBXGPSData gps            = Sensors::getInstance().getUbxGpsLastSample();
+    ReferenceValues reference = nas.getReferenceValues();
+
+    // Mean the values
+    for (int i = 0; i < 10; i++)
+    {
+        // IMU
+        BMX160WithCorrectionData imuData =
+            Sensors::getInstance().getBMX160WithCorrectionLastSample();
+        accelerometer +=
+            Eigen::Vector3f(imuData.accelerationX, imuData.accelerationY,
+                            imuData.accelerationZ);
+        magnetometer +=
+            Eigen::Vector3f(imuData.magneticFieldX, imuData.magneticFieldY,
+                            imuData.magneticFieldZ);
+
+        // Barometer
+        MS5803Data pressureData = Sensors::getInstance().getMS5803LastSample();
+        pressure += pressureData.pressure;
+        temperature += pressureData.temperature;
+
+        // Wait for some time
+        miosix::Thread::sleep(100);
+    }
+
+    accelerometer /= 10;
+    magnetometer /= 10;
+    pressure /= 10;
+    temperature /= 10;
+
+    // Normalize the data
+    accelerometer.normalize();
+    magnetometer.normalize();
+
+    // Triad the initial orientation
+    state.triad(accelerometer, magnetometer, NASConfig::nedMag);
+
+    // Set the pressure reference using an already existing reference values
+    reference.pressure    = pressure;
+    reference.temperature = temperature;
+
+    // If in this moment the GPS has fix i use that position as starting
+    if (gps.fix != 0)
+    {
+        reference.startLatitude  = gps.latitude;
+        reference.startLongitude = gps.longitude;
+    }
+
+    // Set the values inside the NAS
+    {
+        // Need to pause the kernel because the only invocation comes from the
+        // radio
+        // which is a separate thread
+        miosix::PauseKernelLock klock;
+
+        nas.setX(state.getInitX());
+        nas.setReferenceValues(reference);
+    }
+
+    // At the end i publish on the nas topic the end
+    EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
+}
+
+void NASController::setCoordinates(Eigen::Vector2f position)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.startLatitude   = position[0];
+    reference.startLongitude  = position[1];
+    nas.setReferenceValues(reference);
+}
+
+void NASController::setOrientation(float yaw, float pitch, float roll)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    auto x = nas.getX();
+
+    // Set quaternions
+    Vector4f q = SkyQuaternion::eul2quat({yaw, pitch, roll});
+    x(6)       = q(0);
+    x(7)       = q(1);
+    x(8)       = q(2);
+    x(9)       = q(3);
+
+    nas.setX(x);
+}
+
+void NASController::setReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.altitude        = altitude;
+    nas.setReferenceValues(reference);
+}
+
+void NASController::setReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.temperature     = temperature;
+    nas.setReferenceValues(reference);
 }
 
 NASControllerStatus NASController::getStatus() { return status; }
@@ -101,6 +225,9 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+            // Calibrate the NAS
+            initializeOrientationAndPressure();
+
             return logStatus(NASControllerState::CALIBRATING);
         }
         case NAS_READY:
@@ -123,6 +250,7 @@ void NASController::state_ready(const Event& event)
             return transition(&NASController::state_calibrating);
         }
         case FLIGHT_LIFTOFF:
+        case TMTC_FORCE_LAUNCH:
         {
             return transition(&NASController::state_active);
         }
@@ -138,6 +266,8 @@ void NASController::state_active(const Event& event)
             return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
+        case TMTC_FORCE_LANDING:
+        case FMM_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }
@@ -166,8 +296,10 @@ void NASController::logStatus(NASControllerState state)
 NASController::NASController()
     : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
-    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
 
@@ -179,6 +311,7 @@ NASController::NASController()
     x(9)       = q(3);
 
     nas.setX(x);
+    nas.setReferenceValues(NASConfig::defaultReferenceValues);
 }
 
 NASController::~NASController()

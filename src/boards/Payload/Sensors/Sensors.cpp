@@ -159,9 +159,6 @@ void Sensors::calibrate()
     pitotPressure->setOffset(pitotPressureStats.getStats().mean);
 
     calibrating = true;
-
-    // Publish the calibration end
-    EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
 }
 
 std::map<string, bool> Sensors::getSensorsState()
@@ -182,7 +179,7 @@ Sensors::Sensors()
     bmx160WithCorrectionInit();
     lis3mdlInit();
     ms5803Init();
-    // ubxGpsInit();
+    ubxGpsInit();
     ads1118Init();
     staticPressureInit();
     dplPressureInit();
@@ -237,7 +234,7 @@ void Sensors::bmx160Init()
         new BMX160(Buses::getInstance().spi1,
                    miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
 
-    SensorInfo info("BMX160", IMU_BMX_SAMPLE_PERIOD,
+    SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
                     bind(&Sensors::bmx160Callback, this));
 
     sensorsMap.emplace(make_pair(bmx160, info));
@@ -269,7 +266,7 @@ void Sensors::bmx160WithCorrectionInit()
         bmx160, correctionParameters, BMX160_AXIS_ROTATION);
 
     SensorInfo info(
-        "BMX160WithCorrection", IMU_BMX_SAMPLE_PERIOD,
+        "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
         [&]()
         { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); });
 
@@ -293,7 +290,7 @@ void Sensors::lis3mdlInit()
                     miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
 
     // Create the sensor info
-    SensorInfo info("LIS3MDL", MAG_LIS_SAMPLE_PERIOD,
+    SensorInfo info("LIS3MDL", SAMPLE_PERIOD_MAG_LIS,
                     [&]()
                     { Logger::getInstance().log(lis3mdl->getLastSample()); });
     sensorsMap.emplace(make_pair(lis3mdl, info));
@@ -312,7 +309,7 @@ void Sensors::ms5803Init()
                         PRESS_DIGITAL_TEMP_DIVIDER);
 
     SensorInfo info(
-        "MS5803", PRESS_DIGITAL_SAMPLE_PERIOD,
+        "MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
         [&]()
         {
             Logger::getInstance().log(ms5803->getLastSample());
@@ -330,7 +327,7 @@ void Sensors::ubxGpsInit()
 {
     ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, 2, "gps", 9600);
 
-    SensorInfo info("UBXGPS", GPS_SAMPLE_PERIOD,
+    SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
                     [&]()
                     { Logger::getInstance().log(ubxGps->getLastSample()); });
     sensorsMap.emplace(make_pair(ubxGps, info));
@@ -356,7 +353,7 @@ void Sensors::ads1118Init()
                          ADC_PGA_PITOT_PORT);
     ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT, ADC_PGA_DPL_PORT);
 
-    SensorInfo info("ADS1118", ADC_ADS1118_SAMPLE_PERIOD,
+    SensorInfo info("ADS1118", SAMPLE_PERIOD_ADS1118,
                     [&]()
                     { Logger::getInstance().log(ads1118->getLastSample()); });
     sensorsMap.emplace(make_pair(ads1118, info));
@@ -372,7 +369,7 @@ void Sensors::staticPressureInit()
     staticPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "StaticPortsBarometer", STATIC_PRESS_SAMPLE_PERIOD,
+        "StaticPortsBarometer", SAMPLE_PERIOD_ADS1118 * 4,
         [&]()
         {
             Logger::getInstance().log(staticPressure->getLastSample());
@@ -395,7 +392,7 @@ void Sensors::dplPressureInit()
     dplPressure = new SSCDANN030PAA(readVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "DPL_PRESSURE", DPL_PRESS_SAMPLE_PERIOD,
+        "DPL_PRESSURE", SAMPLE_PERIOD_ADS1118 * 4,
         [&]()
         {
             Logger::getInstance().log(dplPressure->getLastSample());
@@ -420,7 +417,7 @@ void Sensors::pitotPressureInit()
 
     // Create the sensor info
     SensorInfo info(
-        "PITOT_PRESS", PITOT_SAMPLE_PERIOD,
+        "PITOT_PRESS", SAMPLE_PERIOD_ADS1118 * 4,
         [&]()
         {
             Logger::getInstance().log(pitotPressure->getLastSample());
@@ -443,7 +440,7 @@ void Sensors::pitotInit()
 
     pitot = new Pitot(getPitotPressure, getStaticPressure);
 
-    SensorInfo info("PITOT", PITOT_SAMPLE_PERIOD,
+    SensorInfo info("PITOT", SAMPLE_PERIOD_ADS1118 * 4,
                     [&]()
                     { Logger::getInstance().log(pitot->getLastSample()); });
 
@@ -459,7 +456,7 @@ void Sensors::internalADCInit()
     internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
 
     SensorInfo info(
-        "INTERNAL_ADC", INTERNAL_ADC_SAMPLE_PERIOD,
+        "INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
         [&]() { Logger::getInstance().log(internalADC->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(internalADC, info));
@@ -476,7 +473,7 @@ void Sensors::batteryVoltageInit()
         new BatteryVoltageSensor(getADCVoltage, BATTERY_VOLTAGE_COEFF);
 
     SensorInfo info(
-        "BATTERY_VOLTAGE", INTERNAL_ADC_SAMPLE_PERIOD,
+        "BATTERY_VOLTAGE", SAMPLE_PERIOD_INTERNAL_ADC,
         [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
 
     sensorsMap.emplace(std::make_pair(batteryVoltage, info));

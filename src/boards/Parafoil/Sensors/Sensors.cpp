@@ -128,7 +128,7 @@ void Sensors::ubxGpsInit()
     ubxGps = new UBXGPSSerial(256000, GPS_SAMPLE_RATE, 2, "gps", 9600);
 
     SensorInfo info(
-        "UbloxGPS", GPS_SAMPLE_PERIOD,
+        "UbloxGPS", SAMPLE_PERIOD_GPS,
         [&]() { Logger::getInstance().log(ubxGps->getLastSample()); }, true);
 
     sensorsMap.emplace(std::make_pair(ubxGps, info));

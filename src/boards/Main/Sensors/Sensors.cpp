@@ -82,6 +82,12 @@ MS5803Data Sensors::getMS5803LastSample()
     return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
 }
 
+UBXGPSData Sensors::getUbxGpsLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
+}
+
 ADS131M04Data Sensors::getADS131M04LastSample()
 {
     PauseKernelLock lock;
@@ -168,6 +174,7 @@ Sensors::Sensors()
     bmx160WithCorrectionInit();
     mpu9250Init();
     ms5803Init();
+    ubxGpsInit();
     ads131m04Init();
     staticPressureInit();
     dplPressureInit();
@@ -190,6 +197,7 @@ Sensors::~Sensors()
     delete bmx160WithCorrection;
     delete mpu9250;
     delete ms5803;
+    delete ubxGps;
     delete ads131m04;
     delete staticPressure;
     delete dplPressure;
@@ -302,6 +310,20 @@ void Sensors::ms5803Init()
     sensorsMap.emplace(make_pair(ms5803, info));
 
     LOG_INFO(logger, "MS5803 setup done!");
+}
+
+void Sensors::ubxGpsInit()
+{
+    ubxGps =
+        new UBXGPSSpi(Buses::getInstance().spi2, sensors::gps::cs::getPin(),
+                      UBXGPSSpi::getDefaultSPIConfig(), GPS_SAMPLE_RATE);
+
+    SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
+                    [&]()
+                    { Logger::getInstance().log(ubxGps->getLastSample()); });
+    sensorsMap.emplace(make_pair(ubxGps, info));
+
+    LOG_INFO(logger, "UbloxGPS setup done!");
 }
 
 void Sensors::ads131m04Init()

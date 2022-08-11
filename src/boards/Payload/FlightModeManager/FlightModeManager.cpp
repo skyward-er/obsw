@@ -31,6 +31,7 @@ using namespace Common;
 
 namespace Payload
 {
+
 FlightModeManagerStatus FlightModeManager::getStatus()
 {
     miosix::PauseKernelLock lock;
@@ -121,8 +122,11 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
     {
         case EV_ENTRY:
         {
-            Sensors::getInstance().calibrate();
             logStatus(FlightModeManagerState::CALIBRATION);
+
+            Sensors::getInstance().calibrate();
+            EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
+
             return HANDLED;
         }
         case FMM_SENSORS_CAL_DONE:

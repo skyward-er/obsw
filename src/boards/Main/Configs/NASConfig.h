@@ -23,6 +23,7 @@
 #pragma once
 
 #include <algorithms/NAS/NASConfig.h>
+#include <algorithms/ReferenceValues.h>
 
 namespace Main
 {
@@ -53,6 +54,17 @@ static const Boardcore::NASConfig config = {
     0.01f,                 // P_BIAS
     6.0f,                  // SATS_NUM
     nedMag                 // NED_MAG
+};
+
+// Reference values for Milan
+static const Boardcore::ReferenceValues defaultReferenceValues = {
+    130.0f,     // Altitude
+    100000.0f,  // Pressure
+    25.0f,      // Temperature
+    45.501077,  // Start latitude
+    9.1563935,  // Start longitude
+    Boardcore::Constants::MSL_PRESSURE,
+    Boardcore::Constants::MSL_TEMPERATURE,
 };
 
 }  // namespace NASConfig

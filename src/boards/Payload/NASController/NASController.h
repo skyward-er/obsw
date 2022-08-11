@@ -24,7 +24,6 @@
 
 #include <Payload/NASController/NASControllerData.h>
 #include <algorithms/NAS/NAS.h>
-#include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
 #include <common/events/Topics.h>
 #include <events/FSM.h>
@@ -36,25 +35,27 @@
 namespace Payload
 {
 
-class NASController : public Boardcore::Singleton<NASController>,
-                      public Boardcore::FSM<NASController>
+class NASController : public Boardcore::FSM<NASController>,
+                      public Boardcore::Singleton<NASController>
 {
     friend Boardcore::Singleton<NASController>;
 
 public:
-    bool start();
+    bool start() override;
 
     void update();
 
     void initializeOrientationAndPressure();
 
-    void setInitialPosition(Eigen::Vector2f position);
+    void setCoordinates(Eigen::Vector2f position);
 
-    void setInitialOrientation(float yaw, float pitch, float roll);
+    void setOrientation(float yaw, float pitch, float roll);
 
     void setReferenceAltitude(float altitude);
 
     void setReferenceTemperature(float temperature);
+
+    NASControllerStatus getStatus();
 
     Boardcore::NASState getNasState();
 
@@ -62,26 +63,24 @@ public:
 
     Boardcore::ReferenceValues getReferenceValues();
 
-    // FSM states
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
-    void logStatus(NASControllerState state);
-    NASControllerStatus getStatus();
-
 private:
     NASController();
+    ~NASController();
 
-    Boardcore::NAS nas;
+    void logStatus(NASControllerState state);
 
     NASControllerStatus status;
+    Boardcore::NAS nas;
 
     Eigen::Vector3f initialOrientation;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 };
 
 }  // namespace Payload

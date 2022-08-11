@@ -364,8 +364,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "pitch: {}, roll: {}",
                       yaw, pitch, roll);
 
-            NASController::getInstance().setInitialOrientation(yaw, pitch,
-                                                               roll);
+            NASController::getInstance().setOrientation(yaw, pitch, roll);
             break;
         }
         case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
@@ -380,7 +379,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "longitude: {}",
                       latitude, longitude);
 
-            NASController::getInstance().setInitialPosition(
+            NASController::getInstance().setCoordinates(
                 Eigen::Vector2f(latitude, longitude));
             break;
         }

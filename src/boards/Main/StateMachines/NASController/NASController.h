@@ -42,6 +42,16 @@ public:
 
     void update();
 
+    void initializeOrientationAndPressure();
+
+    void setCoordinates(Eigen::Vector2f position);
+
+    void setOrientation(float yaw, float pitch, float roll);
+
+    void setReferenceAltitude(float altitude);
+
+    void setReferenceTemperature(float temperature);
+
     NASControllerStatus getStatus();
 
     Boardcore::NASState getNasState();
@@ -60,13 +70,12 @@ private:
     NASController();
     ~NASController();
 
-    NASControllerStatus status;
-
     void logStatus(NASControllerState state);
 
+    NASControllerStatus status;
     Boardcore::NAS nas;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.nas");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 };
 
 }  // namespace Main

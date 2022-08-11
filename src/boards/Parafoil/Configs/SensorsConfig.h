@@ -40,7 +40,7 @@ namespace SensorsConfig
 
 // GPS settings
 static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
-static constexpr unsigned int GPS_SAMPLE_PERIOD = 1000 / GPS_SAMPLE_RATE;
+static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
 
 // IMU MPU9250 settings
 static const Boardcore::MPU9250::MPU9250GyroFSR IMU_GYRO_SCALE =
