@@ -83,7 +83,7 @@ void NASController::initializeOrientationAndPressure()
     ReferenceValues reference = nas.getReferenceValues();
 
     // Mean the values
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < NASConfig::MEAN_COUNT; i++)
     {
         // IMU
         BMX160WithCorrectionData imuData =
@@ -104,10 +104,10 @@ void NASController::initializeOrientationAndPressure()
         miosix::Thread::sleep(100);
     }
 
-    accelerometer /= 10;
-    magnetometer /= 10;
-    pressure /= 10;
-    temperature /= 10;
+    accelerometer /= NASConfig::MEAN_COUNT;
+    magnetometer /= NASConfig::MEAN_COUNT;
+    pressure /= NASConfig::MEAN_COUNT;
+    temperature /= NASConfig::MEAN_COUNT;
 
     // Normalize the data
     accelerometer.normalize();

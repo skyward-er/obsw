@@ -32,6 +32,7 @@ namespace NASConfig
 {
 
 static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+static constexpr uint8_t MEAN_COUNT     = 10;
 
 // Magnetic field in Milan
 Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
