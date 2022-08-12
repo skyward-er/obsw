@@ -55,7 +55,7 @@ void AutomaticWingAlgorithm::step()
 
     // Acquire the last nas state
     NASState state = NASController::getInstance().getNasState();
-    UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
+    // UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
 
     // Target direction in respect to the current one
     // TODO to be logged

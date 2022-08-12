@@ -1,5 +1,5 @@
-/* Copyright (c) 2021-22 Skyward Experimental Rocketry
- * Author: Luca Conterio, Emilio Corigliano
+/* Copyright (c) 2021-2022 Skyward Experimental Rocketry
+ * Authors: Luca Conterio, Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

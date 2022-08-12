@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,6 +126,28 @@ MS5803Data Sensors::getMS5803LastSample()
 
     return MS5803Data(baroData.pressureTimestamp, baroData.pressure,
                       tempData.temperatureTimestamp, tempData.temperature);
+}
+
+UBXGPSData Sensors::getUbxGpsLastSample()
+{
+    miosix::PauseKernelLock lock;
+    auto data = state.gps->getLastSample();
+    UBXGPSData ubxData;
+
+    ubxData.gpsTimestamp  = data.gpsTimestamp;
+    ubxData.latitude      = data.latitude;
+    ubxData.longitude     = data.longitude;
+    ubxData.height        = data.height;
+    ubxData.velocityNorth = data.velocityNorth;
+    ubxData.velocityEast  = data.velocityEast;
+    ubxData.velocityDown  = data.velocityDown;
+    ubxData.speed         = data.speed;
+    ubxData.track         = data.track;
+    ubxData.positionDOP   = data.positionDOP;
+    ubxData.satellites    = data.satellites;
+    ubxData.fix           = data.fix;
+
+    return UBXGPSData{};
 }
 
 // CONTINUE FROM HERE

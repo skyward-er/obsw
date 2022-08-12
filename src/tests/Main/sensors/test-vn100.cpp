@@ -65,7 +65,7 @@ int main()
         //        sample.angularVelocityY, sample.angularVelocityZ);
 
         sensor.sampleRaw();
-        sampleRaw = sensor.getLastRawSample();
+        // sampleRaw = sensor.getLastRawSample();
 
         Thread::sleep(250);
     }
