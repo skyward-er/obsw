@@ -58,13 +58,18 @@ void NASController::update()
     nas.predictGyro(imuData);
     nas.predictAcc(imuData);
 
-    // Correct step
+    // Correct steps
     nas.correctMag(imuData);
     nas.correctAcc(imuData);
     nas.correctGPS(gpsData);
     nas.correctBaro(pressureData.pressure);
 
     Logger::getInstance().log(nas.getState());
+
+#ifdef HILSimulation
+    // useful only for hil testing
+    updateData(nas.getState());
+#endif  // HILSimulation
 }
 
 void NASController::initializeOrientationAndPressure()
@@ -204,7 +209,7 @@ ReferenceValues NASController::getReferenceValues()
     return nas.getReferenceValues();
 }
 
-void NASController::state_idle(const Event& event)
+void NASController::state_idle(const Event &event)
 {
     switch (event)
     {
@@ -219,7 +224,7 @@ void NASController::state_idle(const Event& event)
     }
 }
 
-void NASController::state_calibrating(const Event& event)
+void NASController::state_calibrating(const Event &event)
 {
     switch (event)
     {
@@ -237,7 +242,7 @@ void NASController::state_calibrating(const Event& event)
     }
 }
 
-void NASController::state_ready(const Event& event)
+void NASController::state_ready(const Event &event)
 {
     switch (event)
     {
@@ -257,7 +262,7 @@ void NASController::state_ready(const Event& event)
     }
 }
 
-void NASController::state_active(const Event& event)
+void NASController::state_active(const Event &event)
 {
     switch (event)
     {
@@ -274,7 +279,7 @@ void NASController::state_active(const Event& event)
     }
 }
 
-void NASController::state_end(const Event& event)
+void NASController::state_end(const Event &event)
 {
     switch (event)
     {
@@ -284,6 +289,14 @@ void NASController::state_end(const Event& event)
         }
     }
 }
+
+#ifdef HILSimulation
+void NASController::setUpdateDataFunction(
+    std::function<void(Boardcore::NASState)> updateData)
+{
+    this->updateData = updateData;
+}
+#endif
 
 void NASController::logStatus(NASControllerState state)
 {
@@ -295,6 +308,10 @@ void NASController::logStatus(NASControllerState state)
 
 NASController::NASController()
     : FSM(&NASController::state_idle), nas(NASConfig::config)
+#ifdef HILSimulation
+      ,
+      updateData([](Boardcore::NASState) {})
+#endif
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);

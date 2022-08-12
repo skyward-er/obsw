@@ -153,15 +153,24 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
+#ifdef HILSimulation
+void Actuators::sendToSimulator() { servoAirbrakes.sendToSimulator(); }
+#endif  // HILSimulation
+
 Actuators::Actuators()
     : led1(leds::green1::getPin()), led2(leds::red::getPin()),
       led3(leds::blue::getPin()), led4(leds::green2::getPin()),
       cutter1(cutter::enable::getPin()),
       cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
+#ifndef HILSimulation
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
                      DPL_SERVO_MAX_PULSE)
+#else   // HILSimulation
+      servoAirbrakes(), servoExpulsion()
+#endif  // HILSimulation
+
 {
 }
 

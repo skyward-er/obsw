@@ -41,7 +41,15 @@ using namespace Common;
 namespace Main
 {
 
-void AirBrakesController::update() { abk.update(); }
+void AirBrakesController::update()
+{
+    abk.update();
+
+#ifdef HILSimulation
+    // in order to respond always to the simulator
+    Actuators::getInstance().sendToSimulator();
+#endif  // HILSimulation
+}
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {

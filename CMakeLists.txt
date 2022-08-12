@@ -49,6 +49,16 @@ add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-e
 sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
 
 #-----------------------------------------------------------------------------#
+#                                    HIL Tests                                #
+#-----------------------------------------------------------------------------#
+
+add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp ${HIL_TESTS})
+target_include_directories(test-HIL PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS)
+# ssbs_target(test-HIL stm32f407vg_stm32f4discovery)
+sbs_target(test-HIL stm32f429zi_skyward_death_stack_v3)
+
+#-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#
 

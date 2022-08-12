@@ -21,6 +21,9 @@
 
 set(OBSW_INCLUDE_DIRS
     src/boards
+    src/hardware_in_the_loop
+    src/tests/hardware_in_the_loop
+    skyward-boardcore
 )
 
 set(AUXILIARY_COMPUTER
@@ -70,3 +73,20 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
 )
+
+set(HIL_TESTS
+
+    # src/boards/Main/Radio/Radio.cpp
+    # src/boards/Main/TMRepository/TMRepository.cpp
+    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
+    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
+    src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Sensors/HILSensors.cpp
+    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
+    src/boards/Main/StateMachines/ADAController/ADAController.cpp
+    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Main/StateMachines/Deployment/Deployment.cpp
+    src/boards/Main/StateMachines/NASController/NASController.cpp
+)
+
+set(MOCK_LOGGER skyward-boardcore/src/shared/mock-Logger.cpp)

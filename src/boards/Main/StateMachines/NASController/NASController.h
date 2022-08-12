@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Sensors/Sensors.h>
 #include <Singleton.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
@@ -66,6 +67,11 @@ public:
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
+#ifdef HILSimulation
+    void setUpdateDataFunction(
+        std::function<void(Boardcore::NASState)> updateData);
+#endif
+
 private:
     NASController();
     ~NASController();
@@ -76,6 +82,9 @@ private:
     Boardcore::NAS nas;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
+#ifdef HILSimulation
+    std::function<void(Boardcore::NASState)> updateData;
+#endif
 };
 
 }  // namespace Main

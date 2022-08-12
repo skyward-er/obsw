@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -116,7 +117,9 @@ void ADAController::update()
             {
                 detectedAbkDisableEvents++;
 
-                if (detectedAbkDisableEvents > ABK_DISABLE_N_SAMPLES)
+                if (detectedAbkDisableEvents > ABK_DISABLE_N_SAMPLES &&
+                    AirBrakesController::getInstance().getStatus().state !=
+                        AirBrakesControllerState::END)
                     EventBroker::getInstance().post(ABK_DISABLE, TOPIC_ABK);
             }
             else
@@ -201,6 +204,11 @@ void ADAController::update()
     }
 
     Logger::getInstance().log(ada.getState());
+
+#ifdef HILSimulation
+    // useful only for hil testing
+    updateData(ada.getState());
+#endif  // HILSimulation
 }
 
 ADAControllerStatus ADAController::getStatus()
@@ -301,7 +309,7 @@ void ADAController::state_shadow_mode(const Event& event)
             shadowModeTimeoutEventId =
                 EventBroker::getInstance()
                     .postDelayed<ADAConfig::SHADOW_MODE_TIMEOUT>(
-                        Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
+                        Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             break;
         }
         case ADA_SHADOW_MODE_TIMEOUT:
@@ -311,6 +319,7 @@ void ADAController::state_shadow_mode(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(shadowModeTimeoutEventId);
+            break;
         }
         case FMM_MISSION_TIMEOUT:
         {
@@ -360,6 +369,7 @@ void ADAController::state_pressure_stabilization(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(pressStabTimeoutEventId);
+            break;
         }
         case FMM_MISSION_TIMEOUT:
         {
@@ -417,11 +427,18 @@ void ADAController::state_landed(const Event& event)
     }
 }
 
+void ADAController::setUpdateDataFunction(
+    std::function<void(Boardcore::ADAState)> updateData)
+{
+    this->updateData = updateData;
+}
+
 ADAController::ADAController()
     : FSM(&ADAController::state_idle),
       ada({DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_PRESSURE,
            DEFAULT_REFERENCE_TEMPERATURE},
-          getADAKalmanConfig())
+          getADAKalmanConfig()),
+      updateData([](Boardcore::ADAState) {})
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

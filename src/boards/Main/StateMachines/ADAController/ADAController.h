@@ -61,6 +61,9 @@ public:
     void state_terminal_descent(const Boardcore::Event& event);
     void state_landed(const Boardcore::Event& event);
 
+    void setUpdateDataFunction(
+        std::function<void(Boardcore::ADAState)> updateData);
+
 private:
     ADAController();
     ~ADAController();
@@ -83,6 +86,7 @@ private:
     float deploymentAltitude = ADAConfig::DEFAULT_DEPLOYMENT_ALTITUDE;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.ada");
+    std::function<void(Boardcore::ADAState)> updateData;
 };
 
 }  // namespace Main
