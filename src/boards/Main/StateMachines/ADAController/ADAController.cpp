@@ -115,7 +115,9 @@ void ADAController::update()
             {
                 detectedAbkDisableEvents++;
 
-                if (detectedAbkDisableEvents > ABK_DISABLE_N_SAMPLES)
+                if (detectedAbkDisableEvents > ABK_DISABLE_N_SAMPLES &&
+                    AirBrakesController::getInstance().getState().state !=
+                        AirBrakesControllerState::END)
                     EventBroker::getInstance().post(ABK_DISABLE, TOPIC_ABK);
             }
             else
@@ -305,7 +307,7 @@ void ADAController::state_shadow_mode(const Event& event)
             shadowModeTimeoutEventId =
                 EventBroker::getInstance()
                     .postDelayed<ADAConfig::SHADOW_MODE_TIMEOUT>(
-                        Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ABK);
+                        Boardcore::Event{ADA_SHADOW_MODE_TIMEOUT}, TOPIC_ADA);
             break;
         }
         case ADA_SHADOW_MODE_TIMEOUT:
@@ -315,6 +317,7 @@ void ADAController::state_shadow_mode(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(shadowModeTimeoutEventId);
+            break;
         }
         case FMM_MISSION_TIMEOUT:
         {
@@ -364,6 +367,7 @@ void ADAController::state_pressure_stabilization(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(pressStabTimeoutEventId);
+            break;
         }
         case FMM_MISSION_TIMEOUT:
         {
