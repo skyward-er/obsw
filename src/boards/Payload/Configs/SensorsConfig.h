@@ -110,8 +110,8 @@ static constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
 // GPS
-static constexpr unsigned int GPS_BAUD_RATE   = 256000;
-static constexpr unsigned int GPS_SAMPLE_RATE = 10;
+static constexpr unsigned int GPS_BAUD_RATE   = 115200;
+static constexpr unsigned int GPS_SAMPLE_RATE = 5;
 
 // Sampling periods and dividers
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;

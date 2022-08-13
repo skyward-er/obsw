@@ -30,6 +30,7 @@
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
+#include <Payload/Wing/FileWingAlgorithm.h>
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <common/events/Topics.h>
@@ -102,11 +103,11 @@ int main()
     }
 
     // Start the can interface
-    if (!CanHandler::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the CAN interface");
-    }
+    // if (!CanHandler::getInstance().start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the CAN interface");
+    // }
 
     // Start the pin handler and observer
     PinHandler::getInstance();
@@ -126,6 +127,10 @@ int main()
     // Set up the wing controller
     WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
         0.1, 0.01, PARAFOIL_SERVO1, PARAFOIL_SERVO2));
+    WingController::getInstance().addAlgorithm(new FileWingAlgorithm(
+        PARAFOIL_SERVO1, PARAFOIL_SERVO2, "servoCorta.csv"));
+
+    WingController::getInstance().selectAlgorithm(1);
 
     // If all is correctly set up i publish the init ok
     if (initResult)

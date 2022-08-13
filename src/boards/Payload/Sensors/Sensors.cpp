@@ -22,11 +22,13 @@
 
 #include "Sensors.h"
 
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <common/events/Events.h>
 #include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
 
 using namespace std;
@@ -325,7 +327,8 @@ void Sensors::ms5803Init()
 
 void Sensors::ubxGpsInit()
 {
-    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, 2, "gps", 9600);
+    ubxGps = new UBXGPSSerial(USARTInterface::Baudrate::B19200, GPS_SAMPLE_RATE,
+                              USART2, USARTInterface::Baudrate::B9600);
 
     SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
                     [&]()
