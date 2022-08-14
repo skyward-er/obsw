@@ -43,6 +43,14 @@ AltitudeTrigger::AltitudeTrigger()
     BoardScheduler::getInstance().getScheduler().addTask(
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_CHECKER_PERIOD,
         WING_ALTITUDE_CHECKER_TASK_ID);
+
+    // Set also the altitude to the default one
+    altitude = WING_ALTITUDE_REFERENCE;
+}
+
+void AltitudeTrigger::setDeploymentAltitude(float altitude)
+{
+    this->altitude = altitude;
 }
 
 void AltitudeTrigger::update()
@@ -52,7 +60,7 @@ void AltitudeTrigger::update()
     {
         NASState state = NASController::getInstance().getNasState();
 
-        if (-state.d < WING_ALTITUDE_REFERENCE)
+        if (-state.d < altitude)
             EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
                                             TOPIC_FLIGHT);
     }

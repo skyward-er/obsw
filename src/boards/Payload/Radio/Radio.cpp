@@ -29,6 +29,7 @@
 #include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/Wing/AltitudeTrigger.h>
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
@@ -246,7 +247,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 default:
                 {
                     sendSystemTm(tmId, msg.msgid, msg.seq);
-                    return;
+                    break;
                 }
             }
             break;
@@ -260,7 +261,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       tmId);
 
             sendSensorsTm(tmId, msg.msgid, msg.seq);
-            return;
+            break;
         }
         case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
         {
@@ -271,7 +272,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       servoId);
 
             sendServoTm(servoId, msg.msgid, msg.seq);
-            return;
+            break;
         }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
@@ -349,7 +350,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                       "Received set deployment altitude command, altitude: {}",
                       altitude);
 
-            // TODO: Apply command
+            AltitudeTrigger::getInstance().setDeploymentAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
@@ -396,6 +397,20 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             WingController::getInstance().setTargetPosition(
                 Eigen::Vector2f(latitude, longitude));
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
+        {
+            uint8_t algorithm =
+                mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
+
+            LOG_DEBUG(logger, "Received set algorithm command, algorithm: {}",
+                      algorithm);
+
+            WingController::getInstance().selectAlgorithm(algorithm);
+
+            break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {
@@ -446,6 +461,12 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             CanHandler::getInstance().sendDisarmEvent();
             break;
         }
+        case MAV_CMD_FORCE_INIT:
+        {
+            LOG_DEBUG(logger, "Received command force init");
+
+            EventBroker::getInstance().post(TMTC_FORCE_INIT, TOPIC_TMTC);
+        }
         case MAV_CMD_FORCE_LAUNCH:
         {
             LOG_DEBUG(logger, "Received command force launch");
@@ -453,6 +474,12 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             EventBroker::getInstance().post(TMTC_FORCE_LAUNCH, TOPIC_TMTC);
 
             break;
+        }
+        case MAV_CMD_FORCE_APOGEE:
+        {
+            LOG_DEBUG(logger, "Received command force apogee");
+
+            EventBroker::getInstance().post(TMTC_FORCE_APOGEE, TOPIC_TMTC);
         }
         case MAV_CMD_FORCE_LANDING:
         {

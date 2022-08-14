@@ -203,12 +203,18 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
+            // Start the wing algorithm
+            WingController::getInstance().start();
+
             logStatus(FlightModeManagerState::TEST_MODE);
             return HANDLED;
         }
         case TMTC_EXIT_TEST_MODE:
         {
-            return transition(&FlightModeManager::state_armed);
+            // Stop the wing algorithm
+            WingController::getInstance().stop();
+
+            return transition(&FlightModeManager::state_ready);
         }
         default:
         {
@@ -259,6 +265,10 @@ State FlightModeManager::state_ascending(const Event& event)
         {
             return transition(&FlightModeManager::state_drogue_descent);
         }
+        case TMTC_FORCE_APOGEE:
+        {
+            return transition(&FlightModeManager::state_drogue_descent);
+        }
         default:
         {
             return tranSuper(&FlightModeManager::state_flying);
@@ -280,6 +290,10 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             return transition(&FlightModeManager::state_wing_descent);
         }
         case FMM_MISSION_TIMEOUT:
+        {
+            return transition(&FlightModeManager::state_landed);
+        }
+        case TMTC_FORCE_LANDING:
         {
             return transition(&FlightModeManager::state_landed);
         }
