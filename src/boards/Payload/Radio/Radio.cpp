@@ -352,12 +352,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // TODO: Apply command
             break;
         }
-        case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
+        case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
         {
-            float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
-            float pitch =
-                mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
-            float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
+            float yaw   = mavlink_msg_set_orientation_tc_get_yaw(&msg);
+            float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
+            float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
 
             LOG_DEBUG(logger,
                       "Received set initial orientation command, yaw: {}, "
@@ -367,12 +366,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             NASController::getInstance().setOrientation(yaw, pitch, roll);
             break;
         }
-        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
         {
-            float latitude =
-                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
             float longitude =
-                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
 
             LOG_DEBUG(logger,
                       "Received set initial coordinates command, latitude: {}, "
