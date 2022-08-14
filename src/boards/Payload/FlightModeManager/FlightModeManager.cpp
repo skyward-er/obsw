@@ -305,6 +305,10 @@ State FlightModeManager::state_wing_descent(const Event& event)
         {
             return transition(&FlightModeManager::state_landed);
         }
+        case TMTC_FORCE_LANDING:
+        {
+            return transition(&FlightModeManager::state_landed);
+        }
         case FMM_MISSION_TIMEOUT:
         {
             return transition(&FlightModeManager::state_landed);

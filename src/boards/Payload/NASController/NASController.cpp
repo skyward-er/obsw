@@ -120,6 +120,11 @@ void NASController::initializeOrientationAndPressure()
     reference.pressure    = pressure;
     reference.temperature = temperature;
 
+    // Set also these two because of differential measure in height (TODO
+    // Discuss)
+    reference.mslPressure    = pressure;
+    reference.mslTemperature = temperature;
+
     // If in this moment the GPS has fix i use that position as starting
     if (gps.fix != 0)
     {

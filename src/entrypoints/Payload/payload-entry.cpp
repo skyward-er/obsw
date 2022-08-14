@@ -29,6 +29,7 @@
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/Wing/AltitudeTrigger.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/FileWingAlgorithm.h>
 #include <Payload/Wing/WingController.h>
@@ -117,11 +118,14 @@ int main()
         LOG_ERR(logger, "Error starting the pin observer");
     }
 
+    // Start the trigger watcher
+    AltitudeTrigger::getInstance();
+
     // Start the board task scheduler
     if (!BoardScheduler::getInstance().getScheduler().start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the General Purpose Scheduelr");
+        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
     // Set up the wing controller
