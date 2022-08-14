@@ -46,7 +46,7 @@ target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
-sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
+sbs_target(groundstation-entry stm32f429zi_skyward_groundstation)
 
 #-----------------------------------------------------------------------------#
 #                                    HIL Tests                                #
@@ -138,7 +138,7 @@ sbs_target(aux-test-per stm32f429zi_skyward_pyxis_auxiliary)
 #-----------------------------------------------------------------------------#
 
 add_executable(groundstation-parafoil-entry src/entrypoints/Groundstation/groundstation-parafoil-entry.cpp)
-sbs_target(groundstation-parafoil-entry stm32f429zi_stm32f4discovery)
+sbs_target(groundstation-parafoil-entry stm32f429zi_skyward_groundstation_parafoil)
 
 #-----------------------------------------------------------------------------#
 #                                CIUTI Computer                               #
