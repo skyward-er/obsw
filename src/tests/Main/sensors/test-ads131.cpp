@@ -99,14 +99,16 @@ int main()
 
         ADS131M04Data data = ads131.getLastSample();
 
-        float voltage115  = data.voltage[0] / VOLTAGE_DIVIDER;
-        float pressure115 = (voltage115 / 5.15 + 0.095) / 0.009;
-        float voltage400  = data.voltage[1] / VOLTAGE_DIVIDER;
-        float pressure400 = (voltage400 / 5.15 + 0.00842) / 0.002421;
+        float voltage115     = data.voltage[0] / VOLTAGE_DIVIDER;
+        float pressure115    = (voltage115 / 5.15 + 0.095) / 0.009;
+        float voltage400     = data.voltage[1] / VOLTAGE_DIVIDER;
+        float pressure400    = (voltage400 / 5.15 + 0.00842) / 0.002421;
+        float batteryVoltage = data.voltage[3] * 11;
 
-        printf("[%f] % 2.5f,% 2.5f,% 2.5f,% 2.5f,% 2.5f,% 2.5f\n",
+        printf("[%f] % 2.5f,% 2.5f,% 2.5f,% 2.5f,% 2.5f,% 2.5f, %.2fV\n",
                data.timestamp / 1e6, data.voltage[0], data.voltage[1],
-               data.voltage[2], data.voltage[3], pressure115, pressure400);
+               data.voltage[2], data.voltage[3], pressure115, pressure400,
+               batteryVoltage);
 
         delayMs(50);
     }
