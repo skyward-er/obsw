@@ -214,7 +214,7 @@ State FlightModeManager::state_test_mode(const Event& event)
             // Stop the wing algorithm
             WingController::getInstance().stop();
 
-            return transition(&FlightModeManager::state_ready);
+            return transition(&FlightModeManager::state_armed);
         }
         default:
         {

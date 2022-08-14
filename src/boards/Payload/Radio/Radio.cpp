@@ -445,6 +445,13 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
     switch (commandId)
     {
+        case MAV_CMD_CALIBRATE:
+        {
+            LOG_DEBUG(logger, "Received command calibrate");
+
+            EventBroker::getInstance().post(TMTC_CAL_SENSORS, TOPIC_TMTC);
+            break;
+        }
         case MAV_CMD_ARM:
         {
             LOG_DEBUG(logger, "Received command arm");
