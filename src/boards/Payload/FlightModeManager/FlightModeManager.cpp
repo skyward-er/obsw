@@ -131,7 +131,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         }
         case FMM_SENSORS_CAL_DONE:
         {
-            return transition(&FlightModeManager::state_algorithms_calibration);
+            return transition(&FlightModeManager::state_algos_calibration);
         }
         default:
         {
@@ -140,7 +140,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
     }
 }
 
-State FlightModeManager::state_algorithms_calibration(const Event& event)
+State FlightModeManager::state_algos_calibration(const Event& event)
 {
     switch (event)
     {
@@ -152,7 +152,7 @@ State FlightModeManager::state_algorithms_calibration(const Event& event)
         }
         case NAS_READY:
         {
-            return transition(&FlightModeManager::state_ready);
+            return transition(&FlightModeManager::state_armed);
         }
         default:
         {
@@ -161,7 +161,7 @@ State FlightModeManager::state_algorithms_calibration(const Event& event)
     }
 }
 
-State FlightModeManager::state_ready(const Event& event)
+State FlightModeManager::state_armed(const Event& event)
 {
     switch (event)
     {
@@ -176,7 +176,7 @@ State FlightModeManager::state_ready(const Event& event)
         }
         case TMTC_CAL_ALGOS:
         {
-            return transition(&FlightModeManager::state_algorithms_calibration);
+            return transition(&FlightModeManager::state_algos_calibration);
         }
         case TMTC_ENTER_TEST_MODE:
         {
@@ -208,7 +208,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_EXIT_TEST_MODE:
         {
-            return transition(&FlightModeManager::state_ready);
+            return transition(&FlightModeManager::state_armed);
         }
         default:
         {

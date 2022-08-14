@@ -25,7 +25,6 @@
 #include <Payload/NASController/NASControllerData.h>
 #include <algorithms/NAS/NAS.h>
 #include <common/events/Events.h>
-#include <common/events/Topics.h>
 #include <events/FSM.h>
 #include <scheduler/TaskScheduler.h>
 

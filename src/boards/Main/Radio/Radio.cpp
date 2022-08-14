@@ -423,104 +423,47 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     MavCommandList commandId = static_cast<MavCommandList>(
         mavlink_msg_command_tc_get_command_id(&msg));
 
-    switch (commandId)
+    static const std::map<MavCommandList, Events> commandToEvent{
+        {MAV_CMD_ARM, TMTC_ARM},
+        {MAV_CMD_DISARM, TMTC_DISARM},
+        {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
+        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
+        {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_DROGUE},
+        {MAV_CMD_FORCE_MAIN, TMTC_FORCE_MAIN},
+        {MAV_CMD_TEST_MODE, TMTC_ENTER_TEST_MODE},
+        {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
+        {MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING},
+    };
+    auto it = commandToEvent.find(commandId);
+
+    if (it != commandToEvent.end())
     {
-        case MAV_CMD_ARM:
+        EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+    }
+    else
+    {
+        switch (commandId)
         {
-            LOG_DEBUG(logger, "Received command arm");
+            case MAV_CMD_START_LOGGING:
+            {
+                Logger::getInstance().start();
+                break;
+            }
+            case MAV_CMD_CLOSE_LOG:
+            {
+                Logger::getInstance().stop();
+                break;
+            }
+            case MAV_CMD_FORCE_REBOOT:
+            {
+                reboot();
+                break;
+            }
 
-            EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
-            CanHandler::getInstance().sendArmEvent();
-
-            break;
-        }
-        case MAV_CMD_DISARM:
-        {
-            LOG_DEBUG(logger, "Received command disarm");
-
-            EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
-            CanHandler::getInstance().sendArmEvent();
-
-            break;
-        }
-        case MAV_CMD_FORCE_LAUNCH:
-        {
-            LOG_DEBUG(logger, "Received command force launch");
-
-            EventBroker::getInstance().post(TMTC_FORCE_LAUNCH, TOPIC_TMTC);
-
-            break;
-        }
-        case MAV_CMD_FORCE_LANDING:
-        {
-            LOG_DEBUG(logger, "Received command force landing");
-
-            EventBroker::getInstance().post(TMTC_FORCE_LANDING, TOPIC_TMTC);
-
-            break;
-        }
-        case MAV_CMD_FORCE_EXPULSION:
-        {
-            LOG_DEBUG(logger, "Received command force expulsion");
-
-            EventBroker::getInstance().post(TMTC_FORCE_DROGUE, TOPIC_TMTC);
-
-            break;
-        }
-        case MAV_CMD_FORCE_MAIN:
-        {
-            LOG_DEBUG(logger, "Received command force main");
-
-            EventBroker::getInstance().post(TMTC_FORCE_MAIN, TOPIC_TMTC);
-
-            break;
-        }
-        case MAV_CMD_START_LOGGING:
-        {
-            LOG_DEBUG(logger, "Received command start logging");
-            Logger::getInstance().start();
-            break;
-        }
-        case MAV_CMD_CLOSE_LOG:
-        {
-            LOG_DEBUG(logger, "Received command close log");
-
-            Logger::getInstance().stop();
-
-            break;
-        }
-        case MAV_CMD_FORCE_REBOOT:
-        {
-            reboot();
-
-            break;
-        }
-        case MAV_CMD_TEST_MODE:
-        {
-            LOG_DEBUG(logger, "Received command test mode");
-
-            EventBroker::getInstance().post(TMTC_ENTER_TEST_MODE, TOPIC_TMTC);
-
-            break;
-        }
-        case MAV_CMD_START_RECORDING:
-        {
-            LOG_DEBUG(logger, "Received command start recording");
-
-            CanHandler::getInstance().sendCamOnEvent();
-            break;
-        }
-        case MAV_CMD_STOP_RECORDING:
-        {
-            LOG_DEBUG(logger, "Received command stop recording");
-
-            CanHandler::getInstance().sendCamOffEvent();
-            break;
-        }
-
-        default:
-        {
-            return sendNack(msg);
+            default:
+            {
+                return sendNack(msg);
+            }
         }
     }
 

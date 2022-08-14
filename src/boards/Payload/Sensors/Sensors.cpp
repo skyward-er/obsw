@@ -26,7 +26,6 @@
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <common/events/Events.h>
-#include <common/events/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>

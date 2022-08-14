@@ -24,7 +24,6 @@
 #include <Payload/FlightModeManager/FlightModeManagerData.h>
 #include <Singleton.h>
 #include <common/events/Events.h>
-#include <common/events/Topics.h>
 #include <events/HSM.h>
 
 namespace Payload
@@ -50,11 +49,10 @@ public:
     Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
 
     // Algorithm calibration state, it could be requested via radio
-    Boardcore::State state_algorithms_calibration(
-        const Boardcore::Event& event);
+    Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
     // Ready state waiting for liftoff event
-    Boardcore::State state_ready(const Boardcore::Event& event);
+    Boardcore::State state_armed(const Boardcore::Event& event);
 
     // Test mode state where certain things are enabled
     Boardcore::State state_test_mode(const Boardcore::Event& event);

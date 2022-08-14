@@ -37,8 +37,6 @@ class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
 public:
     FlightModeManagerStatus getStatus();
 
-    Boardcore::State state_initialization(const Boardcore::Event& event);
-
     /// Super state for when the rocket is on ground.
     Boardcore::State state_on_ground(const Boardcore::Event& event);
 

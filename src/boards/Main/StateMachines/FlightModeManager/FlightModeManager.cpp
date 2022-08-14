@@ -25,7 +25,6 @@
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/events/Events.h>
-#include <common/events/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace miosix;
@@ -39,11 +38,6 @@ FlightModeManagerStatus FlightModeManager::getStatus()
 {
     PauseKernelLock lock;
     return status;
-}
-
-State FlightModeManager::state_initialization(const Event& event)
-{
-    return transition(&FlightModeManager::state_on_ground);
 }
 
 State FlightModeManager::state_on_ground(const Event& event)
@@ -64,6 +58,10 @@ State FlightModeManager::state_on_ground(const Event& event)
             Logger::getInstance().stop();
             miosix::reboot();
             return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return TRAN;
         }
         default:
         {
@@ -377,7 +375,7 @@ State FlightModeManager::state_landed(const Event& event)
 }
 
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_initialization)
+    : HSM(&FlightModeManager::state_on_ground)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);

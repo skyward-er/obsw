@@ -22,8 +22,7 @@
 
 #include "CanHandler.h"
 
-#include <common/CanConfig.h>
-#include <common/events/Events.h>
+#include <Main/Configs/CanHandlerConfig.h>
 
 #include <functional>
 
@@ -33,6 +32,7 @@ using namespace Boardcore;
 using namespace Canbus;
 using namespace Common;
 using namespace CanConfig;
+using namespace Main::CanHandlerConfig;
 
 namespace Main
 {
@@ -61,19 +61,19 @@ void CanHandler::sendDisarmEvent()
 
 void CanHandler::sendCamOnEvent()
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
                            static_cast<uint8_t>(Board::MAIN),
-                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(EventId::CAM_ON));
 }
 
 void CanHandler::sendCamOffEvent()
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
                            static_cast<uint8_t>(Board::MAIN),
-                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(EventId::CAM_OFF));
 }
 
@@ -87,11 +87,14 @@ CanHandler::CanHandler()
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
 
-    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-    //                     static_cast<uint8_t>(Board::BROADCAST));
-    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-    //                     static_cast<uint8_t>(Board::AUXILIARY));
+    // Accept messages only from the payload
+    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+                        static_cast<uint8_t>(Board::MAIN));
     driver->init();
+
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
@@ -121,25 +124,12 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
 void CanHandler::handleCanEvent(const CanMessage &msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
+    auto it         = eventToEvent.find(eventId);
 
-    switch (eventId)
-    {
-        case EventId::ARM:
-        {
-            EventBroker::getInstance().post(TMTC_ARM, TOPIC_TMTC);
-            break;
-        }
-        case EventId::DISARM:
-        {
-            EventBroker::getInstance().post(TMTC_DISARM, TOPIC_TMTC);
-            break;
-        }
-
-        default:
-        {
-            LOG_DEBUG(logger, "Received unsupported event: id={}", eventId);
-        }
-    }
+    if (it != eventToEvent.end())
+        EventBroker::getInstance().post(it->second, TOPIC_TMTC, this);
+    else
+        LOG_DEBUG(logger, "Received unsupported event: id={}", eventId);
 }
 
 void CanHandler::handleCanSensor(const CanMessage &msg)
@@ -150,6 +140,7 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
     {
         case SensorId::PITOT:
         {
+            pitotData = pitotDataFromCanMessage(msg);
             break;
         }
 
@@ -159,6 +150,16 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
                       sensorId);
         }
     }
+}
+
+void CanHandler::handleEvent(const Event &event)
+{
+    auto it = eventToFunction.find(static_cast<Events>(event));
+
+    if (it != eventToFunction.end())
+        it->second(this);
+    else
+        LOG_DEBUG(logger, "Received unsupported event: id={}", event);
 }
 
 }  // namespace Main

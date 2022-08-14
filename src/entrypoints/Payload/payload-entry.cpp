@@ -34,7 +34,6 @@
 #include <Payload/Wing/FileWingAlgorithm.h>
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
-#include <common/events/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>

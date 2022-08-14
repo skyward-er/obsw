@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,41 +20,35 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/BoardScheduler.h>
-#include <Payload/Configs/WingConfig.h>
-#include <Payload/FlightModeManager/FlightModeManager.h>
-#include <Payload/NASController/NASController.h>
-#include <Payload/Wing/AltitudeTrigger.h>
-#include <algorithms/NAS/NASState.h>
+#pragma once
+
+#include <Payload/CanHandler/CanHandler.h>
+#include <common/CanConfig.h>
 #include <common/events/Events.h>
-#include <events/EventBroker.h>
 
 #include <functional>
-
-using namespace std;
-using namespace Payload::WingConfig;
-using namespace Boardcore;
-using namespace Common;
+#include <map>
 
 namespace Payload
 {
-AltitudeTrigger::AltitudeTrigger()
-{
-    BoardScheduler::getInstance().getScheduler().addTask(
-        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_CHECKER_PERIOD,
-        WING_ALTITUDE_CHECKER_TASK_ID);
-}
 
-void AltitudeTrigger::update()
+namespace CanHandlerConfig
 {
-    if (FlightModeManager::getInstance().getStatus().state ==
-        FlightModeManagerState::DROGUE_DESCENT)
-    {
-        NASState state = NASController::getInstance().getNasState();
+static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
+    {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
+    {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
+    {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
+    {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
+};
 
-        if (-state.d < WING_ALTITUDE_REFERENCE)
-            EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
-                                            TOPIC_FLIGHT);
-    }
-}
+static const std::map<Common::Events, std::function<void(CanHandler *)>>
+    eventToFunction{
+        {Common::TMTC_ARM, &CanHandler::sendArmEvent},
+        {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
+        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
+        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
+    };
+
+}  // namespace CanHandlerConfig
+
 }  // namespace Payload
