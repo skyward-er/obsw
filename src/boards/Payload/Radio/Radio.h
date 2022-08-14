@@ -23,9 +23,7 @@
 #pragma once
 
 #include <Payload/Configs/RadioConfig.h>
-#include <Payload/TMRepository/TMRepository.h>
 #include <common/Mavlink.h>
-#include <common/events/Events.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
@@ -76,19 +74,6 @@ public:
      */
     void logStatus();
 
-    /**
-     * @brief Used to send the specified system telemetry message.
-     */
-    bool sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq);
-
-    /**
-     * @brief Used to send the specified sensors telemetry message.
-     */
-    bool sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                       uint8_t seq);
-
-    bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
-
 private:
     Radio();
 
@@ -103,6 +88,19 @@ private:
      * @brief Called by handleMavlinkMessage to handle a command message.
      */
     void handleCommand(const mavlink_message_t& msg);
+
+    /**
+     * @brief Used to send the specified system telemetry message.
+     */
+    bool sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq);
+
+    /**
+     * @brief Used to send the specified sensors telemetry message.
+     */
+    bool sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
+                       uint8_t seq);
+
+    bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

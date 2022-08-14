@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
@@ -40,10 +42,10 @@ public:
     /// Super state for when the rocket is on ground.
     Boardcore::State state_on_ground(const Boardcore::Event& event);
 
-    /// Initialization of all sensors.
+    /// Initialization state.
     Boardcore::State state_init(const Boardcore::Event& event);
 
-    /// If the sensors initialization fails.
+    /// State in which the init has failed.
     Boardcore::State state_init_error(const Boardcore::Event& event);
 
     /// Calibration of all sensors.
@@ -80,9 +82,9 @@ private:
     FlightModeManager();
     ~FlightModeManager();
 
-    FlightModeManagerStatus status;
-
     void logStatus(FlightModeManagerState state);
+
+    FlightModeManagerStatus status;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
 };

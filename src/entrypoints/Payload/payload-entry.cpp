@@ -24,11 +24,11 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/SensorsConfig.h>
-#include <Payload/FlightModeManager/FlightModeManager.h>
-#include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AltitudeTrigger.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/FileWingAlgorithm.h>

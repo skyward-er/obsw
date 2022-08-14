@@ -25,11 +25,11 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/SensorsConfig.h>
-#include <Payload/FlightModeManager/FlightModeManager.h>
-#include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>

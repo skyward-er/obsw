@@ -27,6 +27,7 @@
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
+#include <common/events/Events.h>
 #include <sensors/MPU9250/MPU9250Data.h>
 #include <sensors/UBXGPS/UBXGPSData.h>
 
@@ -54,7 +55,6 @@ void NASController::update()
     if (!this->testState(&NASController::state_active))
         return;
 
-    // Sample the sensors
     auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
     auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
     auto pressureData = Sensors::getInstance().getMS5803LastSample();
@@ -65,6 +65,7 @@ void NASController::update()
 
     // Correct step
     nas.correctMag(imuData);
+    nas.correctAcc(imuData);
     nas.correctGPS(gpsData);
     nas.correctBaro(pressureData.pressure);
 
@@ -144,10 +145,7 @@ void NASController::initializeOrientationAndPressure()
 
     // Set the values inside the NAS
     {
-        // Need to pause the kernel because the only invocation comes from the
-        // radio
-        // which is a separate thread
-        miosix::PauseKernelLock klock;
+        miosix::PauseKernelLock l;
 
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
@@ -209,21 +207,18 @@ void NASController::setReferenceTemperature(float temperature)
     nas.setReferenceValues(reference);
 }
 
+void NASController::setReferenceValues(const ReferenceValues reference)
+{
+    miosix::PauseKernelLock l;
+    nas.setReferenceValues(reference);
+}
+
 NASControllerStatus NASController::getStatus() { return status; }
 
 NASState NASController::getNasState()
 {
     miosix::PauseKernelLock l;
     return nas.getState();
-}
-
-void NASController::setReferenceValues(const ReferenceValues reference)
-{
-    // Need to pause the kernel because the only invocation comes from the radio
-    // which is a separate thread
-    miosix::PauseKernelLock klock;
-
-    nas.setReferenceValues(reference);
 }
 
 ReferenceValues NASController::getReferenceValues()
@@ -237,13 +232,11 @@ void NASController::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(NASControllerState::IDLE);
-            break;
+            return logStatus(NASControllerState::IDLE);
         }
         case NAS_CALIBRATE:
         {
-            transition(&NASController::state_calibrating);
-            break;
+            return transition(&NASController::state_calibrating);
         }
     }
 }
@@ -323,9 +316,8 @@ void NASController::logStatus(NASControllerState state)
 }
 
 NASController::NASController()
-    : nas(NASConfig::config), FSM(&NASController::state_idle)
+    : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
-    // Subscribe the FSM to the correct topics
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);

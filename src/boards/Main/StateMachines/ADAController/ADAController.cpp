@@ -223,6 +223,33 @@ ADAState ADAController::getAdaState()
     return ada.getState();
 }
 
+void ADAController::setDeploymentAltitude(float altitude)
+{
+    deploymentAltitude = altitude;
+}
+
+void ADAController::setReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = ada.getReferenceValues();
+    reference.altitude        = altitude;
+    ada.setReferenceValues(reference);
+}
+
+void ADAController::setReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = ada.getReferenceValues();
+    reference.temperature     = temperature;
+    ada.setReferenceValues(reference);
+}
+
 void ADAController::setReferenceValues(const ReferenceValues reference)
 {
     ada.setReferenceValues(reference);

@@ -2,14 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Show Workspace Folder",
-      "type": "shell",
-      "windows": {
-        "command": "echo ${workspaceFolder}"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "CLEAN",
       "type": "shell",
       "windows": {

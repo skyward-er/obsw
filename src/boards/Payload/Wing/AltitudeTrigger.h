@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Payload/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
 
 namespace Payload

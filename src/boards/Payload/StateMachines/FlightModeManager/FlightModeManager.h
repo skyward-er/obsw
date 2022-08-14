@@ -19,73 +19,73 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <Payload/FlightModeManager/FlightModeManagerData.h>
 #include <Singleton.h>
-#include <common/events/Events.h>
+#include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
+
+#include "FlightModeManagerData.h"
 
 namespace Payload
 {
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
                           public Boardcore::Singleton<FlightModeManager>
 {
-    friend class Boardcore::Singleton<FlightModeManager>;
+    friend Boardcore::Singleton<FlightModeManager>;
 
 public:
     FlightModeManagerStatus getStatus();
 
-    // Super state when the payload is on ground with the rocket
+    /// Super state for when the payload is on ground.
     Boardcore::State state_on_ground(const Boardcore::Event& event);
 
-    // Initialization state
+    /// Initialization state.
     Boardcore::State state_init(const Boardcore::Event& event);
 
-    // State in which the init has failed
+    /// State in which the init has failed.
     Boardcore::State state_init_error(const Boardcore::Event& event);
 
-    // Sensor calibration state, it could be requested via radio
+    /// Calibration of all sensors.
     Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
 
-    // Algorithm calibration state, it could be requested via radio
+    /// Calibration of all algorithms.
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
-    // Ready state waiting for liftoff event
-    Boardcore::State state_armed(const Boardcore::Event& event);
+    /// The rocket is ready for the ARM command.
+    Boardcore::State state_disarmed(const Boardcore::Event& event);
 
-    // Test mode state where certain things are enabled
+    /// The rocket will accept specific telecommands otherwise considered risky.
     Boardcore::State state_test_mode(const Boardcore::Event& event);
 
-    // Super state when the payload is flying
+    /// The rocket is ready for the liftoff.
+    Boardcore::State state_armed(const Boardcore::Event& event);
+
+    /// Super state for when the payload is in the air.
     Boardcore::State state_flying(const Boardcore::Event& event);
 
-    // State in which the payload is waiting for the apogee/detach event
+    /// Ascending phase of the trajectory.
     Boardcore::State state_ascending(const Boardcore::Event& event);
 
-    // State in which the wing algorithm is armed but not active yet
+    /// Between drogue and parafoil deployment.
     Boardcore::State state_drogue_descent(const Boardcore::Event& event);
 
-    // State in which the wing algorithm is triggered
+    /// State in which the wing algorithm is triggered
     Boardcore::State state_wing_descent(const Boardcore::Event& event);
 
-    // Final landing state
+    /// The payload is on the ground after the flight.
     Boardcore::State state_landed(const Boardcore::Event& event);
 
 private:
-    // Constructor
     FlightModeManager();
 
-    // Destructor
     ~FlightModeManager();
 
-    // Log the state inside the SD
     void logStatus(FlightModeManagerState state);
 
-    // The actual status
     FlightModeManagerStatus status;
 
-    // Debug logger
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
 };
 }  // namespace Payload

@@ -22,14 +22,12 @@
 
 #pragma once
 
-#include <Payload/NASController/NASControllerData.h>
+#include <Singleton.h>
 #include <algorithms/NAS/NAS.h>
-#include <common/events/Events.h>
+#include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
-#include <scheduler/TaskScheduler.h>
 
-#include <Eigen/Core>
-#include <functional>
+#include "NASControllerData.h"
 
 namespace Payload
 {
@@ -47,19 +45,13 @@ public:
     void initializeOrientationAndPressure();
 
     void setCoordinates(Eigen::Vector2f position);
-
     void setOrientation(float yaw, float pitch, float roll);
-
     void setReferenceAltitude(float altitude);
-
     void setReferenceTemperature(float temperature);
-
-    NASControllerStatus getStatus();
-
-    Boardcore::NASState getNasState();
-
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
+    NASControllerStatus getStatus();
+    Boardcore::NASState getNasState();
     Boardcore::ReferenceValues getReferenceValues();
 
     void state_idle(const Boardcore::Event& event);

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <stdint.h>
@@ -28,15 +29,17 @@
 
 namespace Payload
 {
+
 enum class FlightModeManagerState : uint8_t
 {
     ON_GROUND = 0,
     INIT,
     INIT_ERROR,
-    CALIBRATION,
-    READY,
+    SENSORS_CALIBRATION,
+    ALGOS_CALIBRATION,
+    DISARMED,
     TEST_MODE,
-    FLYING,
+    ARMED,
     ASCENDING,
     DROGUE_DESCENT,
     WING_DESCENT,
@@ -45,8 +48,8 @@ enum class FlightModeManagerState : uint8_t
 
 struct FlightModeManagerStatus
 {
-    uint64_t timestamp = 0;
-    FlightModeManagerState state;
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
 

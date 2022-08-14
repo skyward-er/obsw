@@ -21,8 +21,8 @@
  */
 
 #include <Payload/Configs/WingConfig.h>
-#include <Payload/NASController/NASController.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/WingController.h>
 #include <algorithms/NAS/NASState.h>

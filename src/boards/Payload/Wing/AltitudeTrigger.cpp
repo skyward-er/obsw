@@ -22,8 +22,8 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WingConfig.h>
-#include <Payload/FlightModeManager/FlightModeManager.h>
-#include <Payload/NASController/NASController.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AltitudeTrigger.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/events/Events.h>

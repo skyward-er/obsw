@@ -31,11 +31,11 @@ namespace Payload
 namespace NASConfig
 {
 
-static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+static constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 static constexpr uint8_t MEAN_COUNT     = 10;
 
 // Magnetic field in Milan
-Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
+const Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
 
 static const Boardcore::NASConfig config = {
     1.0f / UPDATE_PERIOD,  // T
