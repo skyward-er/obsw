@@ -271,8 +271,7 @@ void NASController::state_ready(const Event& event)
         {
             return transition(&NASController::state_calibrating);
         }
-        case FLIGHT_LIFTOFF:
-        case TMTC_FORCE_LAUNCH:
+        case FLIGHT_ARMED:
         {
             return transition(&NASController::state_active);
         }
@@ -288,8 +287,7 @@ void NASController::state_active(const Event& event)
             return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
-        case TMTC_FORCE_LANDING:
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }
@@ -319,9 +317,7 @@ NASController::NASController()
     : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
 

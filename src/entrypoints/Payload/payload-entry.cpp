@@ -103,11 +103,11 @@ int main()
     }
 
     // Start the can interface
-    // if (!CanHandler::getInstance().start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the CAN interface");
-    // }
+    if (!CanHandler::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the CAN interface");
+    }
 
     // Start the pin handler and observer
     PinHandler::getInstance();
@@ -138,6 +138,8 @@ int main()
     // If all is correctly set up i publish the init ok
     if (initResult)
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+    else
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
 
     // Periodically statistics
     while (true)

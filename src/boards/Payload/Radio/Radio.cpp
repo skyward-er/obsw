@@ -270,7 +270,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (!Actuators::getInstance().setServoAngle(servoId, angle))
+            if (FlightModeManager::getInstance().getStatus().state ==
+                    FlightModeManagerState::TEST_MODE &&
+                !Actuators::getInstance().setServoAngle(servoId, angle))
                 return sendNack(msg);
 
             break;
@@ -281,7 +283,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Wiggle the servo, if it fails send a nack
-            if (!Actuators::getInstance().wiggleServo(servoId))
+            if (FlightModeManager::getInstance().getStatus().state ==
+                    FlightModeManagerState::TEST_MODE &&
+                !Actuators::getInstance().wiggleServo(servoId))
                 return sendNack(msg);
 
             break;
@@ -292,7 +296,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
             // Reset the servo, if it fails send a nack
-            if (!Actuators::getInstance().setServo(servoId, 0))
+            if (FlightModeManager::getInstance().getStatus().state ==
+                    FlightModeManagerState::TEST_MODE &&
+                !Actuators::getInstance().setServo(servoId, 0))
                 return sendNack(msg);
 
             break;
@@ -405,6 +411,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
         {MAV_CMD_FORCE_MAIN, TMTC_FORCE_MAIN},
+        {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
+        {MAV_CMD_CLOSE_LOG, TMTC_STOP_LOGGING},
+        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
         {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
         {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
         {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
@@ -413,35 +422,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     auto it = commandToEvent.find(commandId);
 
     if (it != commandToEvent.end())
-    {
         EventBroker::getInstance().post(it->second, TOPIC_TMTC);
-    }
     else
-    {
-        switch (commandId)
-        {
-            case MAV_CMD_START_LOGGING:
-            {
-                Logger::getInstance().start();
-                break;
-            }
-            case MAV_CMD_CLOSE_LOG:
-            {
-                Logger::getInstance().stop();
-                break;
-            }
-            case MAV_CMD_FORCE_REBOOT:
-            {
-                reboot();
-                break;
-            }
-
-            default:
-            {
-                return sendNack(msg);
-            }
-        }
-    }
+        return sendNack(msg);
 
     // Acknowledge the message
     sendAck(msg);

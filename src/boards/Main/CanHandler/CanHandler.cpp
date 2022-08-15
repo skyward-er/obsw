@@ -37,7 +37,7 @@ using namespace Main::CanHandlerConfig;
 namespace Main
 {
 
-bool CanHandler::start() { return protocol->start(); }
+bool CanHandler::start() { return start() && protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
@@ -125,6 +125,9 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
     auto it         = eventToEvent.find(eventId);
+
+    static int count = 0;
+    printf("pippo %d %d\n", count++, static_cast<uint8_t>(eventId));
 
     if (it != eventToEvent.end())
         EventBroker::getInstance().post(it->second, TOPIC_TMTC, this);

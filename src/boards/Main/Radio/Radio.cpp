@@ -393,6 +393,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
         {MAV_CMD_FORCE_MAIN, TMTC_FORCE_MAIN},
+        {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
+        {MAV_CMD_CLOSE_LOG, TMTC_STOP_LOGGING},
+        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
         {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
         {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
         {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
@@ -401,35 +404,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     auto it = commandToEvent.find(commandId);
 
     if (it != commandToEvent.end())
-    {
         EventBroker::getInstance().post(it->second, TOPIC_TMTC);
-    }
     else
-    {
-        switch (commandId)
-        {
-            case MAV_CMD_START_LOGGING:
-            {
-                Logger::getInstance().start();
-                break;
-            }
-            case MAV_CMD_CLOSE_LOG:
-            {
-                Logger::getInstance().stop();
-                break;
-            }
-            case MAV_CMD_FORCE_REBOOT:
-            {
-                reboot();
-                break;
-            }
-
-            default:
-            {
-                return sendNack(msg);
-            }
-        }
-    }
+        return sendNack(msg);
 
     // Acknowledge the message
     sendAck(msg);

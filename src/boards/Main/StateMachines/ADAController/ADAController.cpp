@@ -272,7 +272,7 @@ void ADAController::state_idle(const Event& event)
         {
             return transition(&ADAController::state_calibrating);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -293,7 +293,7 @@ void ADAController::state_calibrating(const Event& event)
         {
             return transition(&ADAController::state_ready);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -316,7 +316,7 @@ void ADAController::state_ready(const Event& event)
         {
             return transition(&ADAController::state_shadow_mode);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -348,7 +348,7 @@ void ADAController::state_shadow_mode(const Event& event)
             EventBroker::getInstance().removeDelayed(shadowModeTimeoutEventId);
             break;
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -367,7 +367,7 @@ void ADAController::state_active(const Event& event)
         {
             return transition(&ADAController::state_pressure_stabilization);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -398,7 +398,7 @@ void ADAController::state_pressure_stabilization(const Event& event)
             EventBroker::getInstance().removeDelayed(pressStabTimeoutEventId);
             break;
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -417,7 +417,7 @@ void ADAController::state_drogue_descent(const Event& event)
         {
             return transition(&ADAController::state_terminal_descent);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }
@@ -436,7 +436,7 @@ void ADAController::state_terminal_descent(const Event& event)
         {
             return transition(&ADAController::state_landed);
         }
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&ADAController::state_landed);
         }

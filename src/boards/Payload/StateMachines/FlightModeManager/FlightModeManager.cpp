@@ -54,6 +54,16 @@ State FlightModeManager::state_on_ground(const Event& event)
         {
             return transition(&FlightModeManager::state_init);
         }
+        case TMTC_START_LOGGING:
+        {
+            Logger::getInstance().start();
+            return HANDLED;
+        }
+        case TMTC_STOP_LOGGING:
+        {
+            Logger::getInstance().stop();
+            return HANDLED;
+        }
         case TMTC_RESET_BOARD:
         {
             Logger::getInstance().stop();
@@ -169,7 +179,10 @@ State FlightModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DISARMED);
+
+            Logger::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
+
             return HANDLED;
         }
         case TMTC_ENTER_TEST_MODE:
@@ -198,11 +211,22 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::TEST_MODE);
+
+            // Start the wing algorithm
+            WingController::getInstance().start();
+
             return HANDLED;
         }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
+        }
+        case EV_EXIT:
+        {
+            // Stop the wing algorithm
+            WingController::getInstance().stop();
+
+            return HANDLED;
         }
         default:
         {
@@ -219,8 +243,8 @@ State FlightModeManager::state_armed(const Event& event)
         {
             logStatus(FlightModeManagerState::ARMED);
 
-            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             Logger::getInstance().start();
+            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
             return HANDLED;
         }
@@ -231,11 +255,11 @@ State FlightModeManager::state_armed(const Event& event)
         case FLIGHT_LIFTOFF:
         case TMTC_FORCE_LAUNCH:
         {
-            return transition(&FlightModeManager::state_ascending);
+            return transition(&FlightModeManager::state_flying);
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::Hsm_top);
         }
     }
 }
@@ -254,25 +278,20 @@ State FlightModeManager::state_flying(const Event& event)
         {
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
-                    FMM_MISSION_TIMEOUT, TOPIC_FMM);
+                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
 
             return HANDLED;
         }
 
         // This ensures that the force commands are always fulfilled when in
         // this super state
-        case TMTC_FORCE_EXPULSION:
-        {
-            EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
-            return HANDLED;
-        }
         case TMTC_FORCE_MAIN:
         {
-            EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
+            // TODO: Cut the drogue parachute through Actuators
             return HANDLED;
         }
 
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&FlightModeManager::state_landed);
         }
@@ -346,8 +365,13 @@ State FlightModeManager::state_wing_descent(const Event& event)
 
             return HANDLED;
         }
-        case FLIGHT_TARGET_REACHED:
         case TMTC_FORCE_LANDING:
+        {
+            EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
+                                            TOPIC_FLIGHT);
+            return HANDLED;
+        }
+        case FLIGHT_LANDING_DETECTED:
         {
             return transition(&FlightModeManager::state_landed);
         }
@@ -398,4 +422,5 @@ void FlightModeManager::logStatus(FlightModeManagerState state)
 
     Logger::getInstance().log(status);
 }
+
 }  // namespace Payload

@@ -45,7 +45,7 @@ using namespace Payload::CanHandlerConfig;
 namespace Payload
 {
 
-bool CanHandler::start() { return protocol->start(); }
+bool CanHandler::start() { return EventHandler::start() && protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 

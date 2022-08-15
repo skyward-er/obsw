@@ -180,7 +180,7 @@ Sensors::Sensors()
     bmx160WithCorrectionInit();
     lis3mdlInit();
     ms5803Init();
-    // ubxGpsInit();
+    ubxGpsInit();
     ads1118Init();
     staticPressureInit();
     dplPressureInit();
