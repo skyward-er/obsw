@@ -74,6 +74,10 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/WingController.cpp
 )
 
+set(CIUTI_COMPUTER
+    src/boards/Ciuti/Sensors/Sensors.cpp
+)
+
 set(HIL_TESTS
 
     # src/boards/Main/Radio/Radio.cpp

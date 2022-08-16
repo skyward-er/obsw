@@ -20,24 +20,29 @@
  * THE SOFTWARE.
  */
 
-#include <Main/CanHandler/CanHandler.h>
 #include <miosix.h>
+#include <sensors/LIS331HH/LIS331HH.h>
 
 using namespace miosix;
-using namespace Main;
+using namespace Boardcore;
 
 int main()
 {
-    CanHandler::getInstance().start();
+    SPIBus spi2(SPI2);
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_256;
+    config.mode         = SPI::Mode::MODE_0;
+    LIS331HH lis(spi2, devices::lis331hh::cs::getPin(), config);
+
+    lis.init();
 
     while (true)
     {
-        CanHandler::getInstance().sendCamOnEvent();
-        printf("Sent event for cam on\n");
-        Thread::sleep(1000);
+        lis.sample();
+        auto data = lis.getLastSample();
+        printf("[%.2f] %.3f %.3f %.3f\n", data.accelerationTimestamp / 1e6,
+               data.accelerationX, data.accelerationY, data.accelerationZ);
 
-        CanHandler::getInstance().sendCamOffEvent();
-        printf("Sent event for cam off\n");
-        Thread::sleep(1000);
+        delayMs(250);
     }
 }

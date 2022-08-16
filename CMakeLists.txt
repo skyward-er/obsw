@@ -58,6 +58,10 @@ target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS)
 # ssbs_target(test-HIL stm32f407vg_stm32f4discovery)
 sbs_target(test-HIL stm32f429zi_skyward_death_stack_v3)
 
+add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
+target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)
+
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#
@@ -65,10 +69,6 @@ sbs_target(test-HIL stm32f429zi_skyward_death_stack_v3)
 add_executable(death-stack-v3-testsuite src/tests/Main/death-stack-v3-testsuite.cpp)
 target_include_directories(death-stack-v3-testsuite PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(death-stack-v3-testsuite stm32f429zi_skyward_death_stack_v3)
-
-add_executable(main-test-can-handler src/tests/Main/test-can-handler.cpp ${MAIN_COMPUTER})
-target_include_directories(main-test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-test-can-handler stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-buzzer src/tests/Main/actuators/test-buzzer.cpp)
 sbs_target(main-test-buzzer stm32f429zi_skyward_death_stack_v3)
@@ -144,25 +144,11 @@ sbs_target(groundstation-parafoil-entry stm32f429zi_skyward_groundstation_parafo
 #                                CIUTI Computer                               #
 #-----------------------------------------------------------------------------#
 
-add_executable(ciuti-test-ina188 src/tests/CIUTI/test-ina188.cpp)
+add_executable(ciuti-test-ina188 src/tests/Ciuti/test-ina188.cpp)
 sbs_target(ciuti-test-ina188 stm32f205rc_skyward_ciuti)
 
-#-----------------------------------------------------------------------------#
-#                                   Can tests                                 #
-#-----------------------------------------------------------------------------#
+add_executable(ciuti-test-lis331 src/tests/Ciuti/test-lis331.cpp)
+sbs_target(ciuti-test-lis331 stm32f205rc_skyward_ciuti)
 
-# add_executable(test-can-handler src/tests/common/test-can-handler.cpp)
-# target_include_directories(test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-can-handler stm32f429zi_skyward_pyxis_auxiliary)
-
-#  add_executable(test-main-can src/tests/common/test-can-flight-sim/test-main-can.cpp)
-#  target_include_directories(test-main-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-main-can stm32f429zi_skyward_pyxis_auxiliary)
-
-#  add_executable(test-payload-can src/tests/common/test-can-flight-sim/test-payload-can.cpp)
-#  target_include_directories(test-payload-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-payload-can stm32f429zi_skyward_pyxis_auxiliary )
-
-#  add_executable(test-auxiliary-can src/tests/common/test-can-flight-sim/test-auxiliary-can.cpp)
-#  target_include_directories(test-auxiliary-can PRIVATE ${OBSW_INCLUDE_DIRS})
-#  sbs_target(test-auxiliary-can stm32f429zi_skyward_pyxis_auxiliary)
+add_executable(ciuti-test-usarts src/tests/Ciuti/test-usarts.cpp)
+sbs_target(ciuti-test-usarts stm32f205rc_skyward_ciuti)
