@@ -150,9 +150,6 @@ void NASController::initializeOrientationAndPressure()
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
     }
-
-    // At the end i publish on the nas topic the end
-    EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
 void NASController::setCoordinates(Eigen::Vector2f position)
@@ -247,10 +244,15 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(NASControllerState::CALIBRATING);
+
             // Calibrate the NAS
             initializeOrientationAndPressure();
 
-            return logStatus(NASControllerState::CALIBRATING);
+            // At the end i publish on the nas topic the end
+            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
+
+            break;
         }
         case NAS_READY:
         {
@@ -290,6 +292,10 @@ void NASController::state_active(const Event& event)
         case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
+        }
+        case FLIGHT_DISARMED:
+        {
+            return transition(&NASController::state_ready);
         }
     }
 }

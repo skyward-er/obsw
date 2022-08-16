@@ -174,7 +174,6 @@ State FlightModeManager::state_algos_calibration(const Event& event)
 
 State FlightModeManager::state_disarmed(const Event& event)
 {
-    printf("Entro in disarmato %d\n", (int)event);
     switch (event)
     {
         case EV_ENTRY:

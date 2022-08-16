@@ -81,7 +81,7 @@ void WingAlgorithm::step()
 
     if (stepIndex >= steps.size())
     {
-        LOG_INFO(logger, "Algorithm end");
+        LOG_INFO(logger, "Algorithm end {:d} >= {:d}", stepIndex, steps.size());
         // End the procedure so it won't be executed
         end();
         // Set the index to 0 in case of another future execution
