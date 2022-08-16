@@ -37,7 +37,7 @@ using namespace Main::CanHandlerConfig;
 namespace Main
 {
 
-bool CanHandler::start() { return start() && protocol->start(); }
+bool CanHandler::start() { return EventHandler::start() && protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
