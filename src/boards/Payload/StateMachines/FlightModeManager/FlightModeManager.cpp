@@ -174,6 +174,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
 
 State FlightModeManager::state_disarmed(const Event& event)
 {
+    printf("Entro in disarmato %d\n", (int)event);
     switch (event)
     {
         case EV_ENTRY:
@@ -259,7 +260,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::Hsm_top);
+            return tranSuper(&FlightModeManager::state_on_ground);
         }
     }
 }
@@ -276,6 +277,7 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case EV_ENTRY:
         {
+            logStatus(FlightModeManagerState::FLYING);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);

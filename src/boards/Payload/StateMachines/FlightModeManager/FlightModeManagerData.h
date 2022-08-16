@@ -40,6 +40,7 @@ enum class FlightModeManagerState : uint8_t
     DISARMED,
     TEST_MODE,
     ARMED,
+    FLYING,
     ASCENDING,
     DROGUE_DESCENT,
     WING_DESCENT,
