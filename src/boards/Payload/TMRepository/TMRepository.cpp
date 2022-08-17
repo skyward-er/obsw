@@ -24,6 +24,7 @@
 
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
@@ -260,7 +261,35 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                                 &msg, &tm);
             break;
         }
+        case SystemTMList::MAV_CAN_ID:
+        {
+            mavlink_can_tm_t tm;
 
+            // TODO
+
+            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+            break;
+        }
+        case SystemTMList::MAV_FSM_ID:
+        {
+            mavlink_fsm_tm_t tm;
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.abk_state = 0;
+            tm.ada_state = 0;
+            tm.dpl_state = 0;
+            tm.fsr_state = 0;
+            tm.fmm_state = static_cast<uint8_t>(
+                FlightModeManager::getInstance().getStatus().state);
+            tm.nas_state = static_cast<uint8_t>(
+                NASController::getInstance().getStatus().state);
+
+            mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
+            break;
+        }
         default:
         {
             mavlink_nack_tm_t nack;
@@ -439,7 +468,7 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 {
     mavlink_message_t msg;
 
-    if (servoId == AIRBRAKES_SERVO || servoId == EXPULSION_SERVO)
+    if (servoId == PARAFOIL_SERVO1 || servoId == PARAFOIL_SERVO2)
     {
         mavlink_servo_tm_t tm;
 

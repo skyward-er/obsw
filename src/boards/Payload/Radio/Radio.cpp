@@ -144,6 +144,9 @@ void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
+    // Acknowledge the message
+    sendAck(msg);
+
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -238,7 +241,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
                     break;
                 }
-
                 default:
                 {
                     sendSystemTm(tmId, msg.msgid, msg.seq);
@@ -253,7 +255,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
 
             sendSensorsTm(sensorId, msg.msgid, msg.seq);
-            return;
+            break;
         }
         case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
         {
@@ -391,9 +393,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             return;
         }
     }
-
-    // Acknowledge the message
-    sendAck(msg);
 }
 
 void Radio::handleCommand(const mavlink_message_t& msg)
