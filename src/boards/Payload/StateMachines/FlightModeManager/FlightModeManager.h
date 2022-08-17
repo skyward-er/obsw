@@ -72,14 +72,13 @@ public:
     Boardcore::State state_drogue_descent(const Boardcore::Event& event);
 
     /// State in which the wing algorithm is triggered
-    Boardcore::State state_wing_descent(const Boardcore::Event& event);
+    Boardcore::State state_terminal_descent(const Boardcore::Event& event);
 
     /// The payload is on the ground after the flight.
     Boardcore::State state_landed(const Boardcore::Event& event);
 
 private:
     FlightModeManager();
-
     ~FlightModeManager();
 
     void logStatus(FlightModeManagerState state);

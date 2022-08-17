@@ -32,7 +32,7 @@ namespace Payload
 
 enum class FlightModeManagerState : uint8_t
 {
-    ON_GROUND = 0,
+    INVALID = 0,
     INIT,
     INIT_ERROR,
     SENSORS_CALIBRATION,
@@ -40,17 +40,16 @@ enum class FlightModeManagerState : uint8_t
     DISARMED,
     TEST_MODE,
     ARMED,
-    FLYING,
     ASCENDING,
     DROGUE_DESCENT,
-    WING_DESCENT,
+    TERMINAL_DESCENT,
     LANDED
 };
 
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
+    FlightModeManagerState state = FlightModeManagerState::INVALID;
 
     static std::string header() { return "timestamp,state\n"; }
 

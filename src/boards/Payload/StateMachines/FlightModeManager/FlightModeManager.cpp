@@ -47,8 +47,15 @@ State FlightModeManager::state_on_ground(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::ON_GROUND);
             return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
         }
         case EV_INIT:
         {
@@ -70,13 +77,9 @@ State FlightModeManager::state_on_ground(const Event& event)
             reboot();
             return HANDLED;
         }
-        case EV_EMPTY:
-        {
-            return TRAN;
-        }
         default:
         {
-            return tranSuper(&FlightModeManager::Hsm_top);
+            return UNHANDLED;
         }
     }
 }
@@ -90,6 +93,18 @@ State FlightModeManager::state_init(const Event& event)
             logStatus(FlightModeManagerState::INIT);
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case FMM_INIT_OK:
         {
             return transition(&FlightModeManager::state_sensors_calibration);
@@ -100,7 +115,7 @@ State FlightModeManager::state_init(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -114,13 +129,25 @@ State FlightModeManager::state_init_error(const Event& event)
             logStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case TMTC_FORCE_INIT:
         {
             return transition(&FlightModeManager::state_sensors_calibration);
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -138,13 +165,25 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case FMM_SENSORS_CAL_DONE:
         {
             return transition(&FlightModeManager::state_algos_calibration);
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -161,13 +200,25 @@ State FlightModeManager::state_algos_calibration(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case NAS_READY:
         {
             return transition(&FlightModeManager::state_disarmed);
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -185,6 +236,18 @@ State FlightModeManager::state_disarmed(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case TMTC_ENTER_TEST_MODE:
         {
             return transition(&FlightModeManager::state_test_mode);
@@ -199,7 +262,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -217,20 +280,26 @@ State FlightModeManager::state_test_mode(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            WingController::getInstance().stop();
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case EV_EXIT:
-        {
-            // Stop the wing algorithm
-            WingController::getInstance().stop();
-
-            return HANDLED;
-        }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -248,6 +317,18 @@ State FlightModeManager::state_armed(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case TMTC_DISARM:
         {
             return transition(&FlightModeManager::state_disarmed);
@@ -259,7 +340,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return UNHANDLED;
         }
     }
 }
@@ -270,40 +351,38 @@ State FlightModeManager::state_flying(const Event& event)
 
     switch (event)
     {
-        case EV_INIT:
-        {
-            return transition(&FlightModeManager::state_ascending);
-        }
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::FLYING);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
-
             return HANDLED;
-        }
-
-        // This ensures that the force commands are always fulfilled when in
-        // this super state
-        case TMTC_FORCE_MAIN:
-        {
-            // TODO: Cut the drogue parachute through Actuators
-            return HANDLED;
-        }
-
-        case FLIGHT_MISSION_TIMEOUT:
-        {
-            return transition(&FlightModeManager::state_landed);
         }
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
+        }
+        case EV_INIT:
+        {
+            return transition(&FlightModeManager::state_ascending);
+        }
+        case TMTC_FORCE_MAIN:
+        {
+            // TODO: Cut the drogue parachute through Actuators
+            return HANDLED;
+        }
+        case FLIGHT_MISSION_TIMEOUT:
+        {
+            return transition(&FlightModeManager::state_landed);
+        }
         default:
         {
-            return tranSuper(&FlightModeManager::Hsm_top);
+            return UNHANDLED;
         }
     }
 }
@@ -317,6 +396,18 @@ State FlightModeManager::state_ascending(const Event& event)
             logStatus(FlightModeManagerState::ASCENDING);
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_flying);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case FLIGHT_APOGEE_DETECTED:
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_APOGEE:
@@ -326,7 +417,7 @@ State FlightModeManager::state_ascending(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return UNHANDLED;
         }
     }
 }
@@ -338,13 +429,24 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
-
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_flying);
+        }
+        case EV_INIT:
+        {
             return HANDLED;
         }
         case FLIGHT_WING_ALT_REACHED:
         case TMTC_FORCE_MAIN:
         {
-            return transition(&FlightModeManager::state_wing_descent);
+            return transition(&FlightModeManager::state_terminal_descent);
         }
         default:
         {
@@ -353,17 +455,29 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     }
 }
 
-State FlightModeManager::state_wing_descent(const Event& event)
+State FlightModeManager::state_terminal_descent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::WING_DESCENT);
+            logStatus(FlightModeManagerState::TERMINAL_DESCENT);
 
             WingController::getInstance().start();
             // TODO activate the cutter
 
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_flying);
+        }
+        case EV_INIT:
+        {
             return HANDLED;
         }
         case TMTC_FORCE_LANDING:
@@ -378,7 +492,7 @@ State FlightModeManager::state_wing_descent(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return UNHANDLED;
         }
     }
 }
@@ -395,9 +509,21 @@ State FlightModeManager::state_landed(const Event& event)
 
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         default:
         {
-            return tranSuper(&FlightModeManager::Hsm_top);
+            return UNHANDLED;
         }
     }
 }
