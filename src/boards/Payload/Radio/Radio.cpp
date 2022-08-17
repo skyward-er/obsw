@@ -88,25 +88,6 @@ void Radio::logStatus()
     // TODO: Add transceiver status logging
 }
 
-bool Radio::sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSystemTm(tmId, msgId, seq));
-}
-
-bool Radio::sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                          uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packSensorsTm(sensorId, msgId, seq));
-}
-
-bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
-{
-    return mavDriver->enqueueMsg(
-        TMRepository::getInstance().packServoTm(servoId, msgId, seq));
-}
-
 Radio::Radio()
 {
     // Create the SPI bus configuration
@@ -132,11 +113,19 @@ Radio::Radio()
 
     // Add to the scheduler the periodic telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_ID, 0, 0); }, FLIGHT_TM_PERIOD,
-        FLIGHT_TM_TASK_ID);
+        [&]()
+        {
+            mavDriver->enqueueMsg(
+                TMRepository::getInstance().packSystemTm(MAV_FLIGHT_ID, 0, 0));
+        },
+        FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
     BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_STATS_ID, 0, 0); }, STATS_TM_PERIOD,
-        STATS_TM_TASK_ID);
+        [&]()
+        {
+            mavDriver->enqueueMsg(
+                TMRepository::getInstance().packSystemTm(MAV_STATS_ID, 0, 0));
+        },
+        STATS_TM_PERIOD, STATS_TM_TASK_ID);
 }
 
 void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
@@ -144,9 +133,6 @@ void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
-    // Acknowledge the message
-    sendAck(msg);
-
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -243,8 +229,15 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 default:
                 {
-                    sendSystemTm(tmId, msg.msgid, msg.seq);
-                    break;
+                    auto response = TMRepository::getInstance().packSystemTm(
+                        tmId, msg.msgid, msg.seq);
+
+                    mavDriver->enqueueMsg(response);
+
+                    if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+                        return;
+                    else
+                        break;
                 }
             }
             break;
@@ -254,16 +247,30 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             SensorsTMList sensorId = static_cast<SensorsTMList>(
                 mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
 
-            sendSensorsTm(sensorId, msg.msgid, msg.seq);
-            break;
+            auto response = TMRepository::getInstance().packSensorsTm(
+                sensorId, msg.msgid, msg.seq);
+
+            mavDriver->enqueueMsg(response);
+
+            if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+                return;
+            else
+                break;
         }
         case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
         {
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
 
-            sendServoTm(servoId, msg.msgid, msg.seq);
-            break;
+            auto response = TMRepository::getInstance().packServoTm(
+                servoId, msg.msgid, msg.seq);
+
+            mavDriver->enqueueMsg(response);
+
+            if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+                return;
+            else
+                break;
         }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
@@ -380,7 +387,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 FlightModeManagerState::TEST_MODE)
                 EventBroker::getInstance().post(topicId, eventId);
             else
-                sendNack(msg);
+                return sendNack(msg);
 
             break;
         }
@@ -393,6 +400,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             return;
         }
     }
+
+    // Acknowledge the message
+    sendAck(msg);
 }
 
 void Radio::handleCommand(const mavlink_message_t& msg)

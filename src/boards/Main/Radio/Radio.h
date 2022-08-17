@@ -88,19 +88,6 @@ private:
      */
     void handleCommand(const mavlink_message_t& msg);
 
-    /**
-     * @brief Used to send the specified system telemetry message.
-     */
-    bool sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq);
-
-    /**
-     * @brief Used to send the specified sensors telemetry message.
-     */
-    bool sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                       uint8_t seq);
-
-    bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
-
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
