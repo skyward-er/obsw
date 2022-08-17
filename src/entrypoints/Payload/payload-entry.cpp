@@ -131,7 +131,7 @@ int main()
     WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
         0.1, 0.01, PARAFOIL_SERVO1, PARAFOIL_SERVO2));
     WingController::getInstance().addAlgorithm(new FileWingAlgorithm(
-        PARAFOIL_SERVO1, PARAFOIL_SERVO2, "servoCorta.csv"));
+        PARAFOIL_SERVO1, PARAFOIL_SERVO2, "/sd/servoCorta.csv"));
 
     WingController::getInstance().selectAlgorithm(1);
 

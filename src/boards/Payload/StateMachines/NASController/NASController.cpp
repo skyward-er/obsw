@@ -273,6 +273,7 @@ void NASController::state_ready(const Event& event)
         {
             return transition(&NASController::state_calibrating);
         }
+        case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
             return transition(&NASController::state_active);
@@ -293,6 +294,7 @@ void NASController::state_active(const Event& event)
         {
             return transition(&NASController::state_end);
         }
+        case NAS_FORCE_STOP:
         case FLIGHT_DISARMED:
         {
             return transition(&NASController::state_ready);

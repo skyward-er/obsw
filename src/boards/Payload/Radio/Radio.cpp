@@ -234,7 +234,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
                     mavDriver->enqueueMsg(response);
 
-                    if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+                    if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
                         return;
                     else
                         break;
@@ -252,7 +252,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             mavDriver->enqueueMsg(response);
 
-            if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
                 return;
             else
                 break;
@@ -267,7 +267,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
             mavDriver->enqueueMsg(response);
 
-            if (msg.msgid == MAVLINK_MSG_ID_NACK_TM)
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
                 return;
             else
                 break;
@@ -279,9 +279,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (FlightModeManager::getInstance().getStatus().state ==
-                    FlightModeManagerState::TEST_MODE &&
-                !Actuators::getInstance().setServoAngle(servoId, angle))
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().setServoAngle(servoId, angle)))
                 return sendNack(msg);
 
             break;
@@ -292,9 +292,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Wiggle the servo, if it fails send a nack
-            if (FlightModeManager::getInstance().getStatus().state ==
-                    FlightModeManagerState::TEST_MODE &&
-                !Actuators::getInstance().wiggleServo(servoId))
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().wiggleServo(servoId)))
                 return sendNack(msg);
 
             break;
@@ -305,9 +305,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
             // Reset the servo, if it fails send a nack
-            if (FlightModeManager::getInstance().getStatus().state ==
-                    FlightModeManagerState::TEST_MODE &&
-                !Actuators::getInstance().setServo(servoId, 0))
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().setServo(servoId, 0)))
                 return sendNack(msg);
 
             break;

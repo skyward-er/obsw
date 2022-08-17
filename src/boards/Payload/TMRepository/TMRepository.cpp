@@ -127,8 +127,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             auto state = NASController::getInstance().getNasState();
             auto ref   = NASController::getInstance().getReferenceValues();
 
-            tm.timestamp       = state.timestamp;
-            tm.state           = 0;
+            tm.timestamp = state.timestamp;
+            tm.state     = static_cast<uint8_t>(
+                NASController::getInstance().getStatus().state);
             tm.nas_n           = state.n;
             tm.nas_e           = state.e;
             tm.nas_d           = state.d;
@@ -315,7 +316,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
     switch (sensorId)
     {
-        case SensorsTMList::MAV_GPS_ID:  // TODO
+        case SensorsTMList::MAV_GPS_ID:
         {
             mavlink_gps_tm_t tm;
 
@@ -438,6 +439,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             tm.timestamp = battery.voltageTimestamp;
             tm.channel_0 = battery.batVoltage;
+            tm.channel_1 = 0;
+            tm.channel_2 = 0;
+            tm.channel_3 = 0;
 
             strcpy(tm.sensor_id, "BATTERY_VOLTAGE");
 

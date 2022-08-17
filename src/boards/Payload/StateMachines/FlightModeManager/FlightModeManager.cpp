@@ -278,11 +278,18 @@ State FlightModeManager::state_test_mode(const Event& event)
             // Start the wing algorithm
             WingController::getInstance().start();
 
+            // Start also the NAS
+            EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+
             return HANDLED;
         }
         case EV_EXIT:
         {
             WingController::getInstance().stop();
+
+            // Stop also the NAS
+            EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -378,6 +385,9 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case FLIGHT_MISSION_TIMEOUT:
         {
+            // Stop eventual wing algorithm
+            WingController::getInstance().stop();
+
             return transition(&FlightModeManager::state_landed);
         }
         default:
@@ -482,12 +492,18 @@ State FlightModeManager::state_terminal_descent(const Event& event)
         }
         case TMTC_FORCE_LANDING:
         {
+            // Stop the wing algorithm
+            WingController::getInstance().stop();
+
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
             return HANDLED;
         }
         case FLIGHT_LANDING_DETECTED:
         {
+            // Stop the wing algorithm
+            WingController::getInstance().stop();
+
             return transition(&FlightModeManager::state_landed);
         }
         default:
