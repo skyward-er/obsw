@@ -384,7 +384,8 @@ typedef struct
 
         // normalize quaternions
         nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT, 0).normalize();
-        // TRACE("normA: %f\n", nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT, 0).norm());
+        // TRACE("normA: %f\n", nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT,
+        // 0).norm());
 
         Boardcore::NASState nasStateAvg(nasTimestampAvg, nasXAvg);
 
