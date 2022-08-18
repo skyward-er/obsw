@@ -27,6 +27,7 @@
 #include <list>
 
 #include "algorithms/ADA/ADAData.h"
+#include "algorithms/NAS/NAS.h"
 #include "algorithms/NAS/NASState.h"
 #include "old_examples/shared/math/Vec3.h"
 #include "sensors/SensorInfo.h"
@@ -51,6 +52,7 @@ const int GYRO_FREQ  = 100;
 const int MAGN_FREQ  = 100;
 const int IMU_FREQ   = 100;
 const int BARO_FREQ  = 20;
+const int PITOT_FREQ = 20;
 const int TEMP_FREQ  = 10;
 const int GPS_FREQ   = 10;
 
@@ -70,6 +72,7 @@ const SensorConfig gyroConfig("gyro", GYRO_FREQ);
 const SensorConfig magnConfig("magn", MAGN_FREQ);
 const SensorConfig imuConfig("imu", IMU_FREQ);
 const SensorConfig baroConfig("baro", BARO_FREQ);
+const SensorConfig pitotConfig("pitot", PITOT_FREQ);
 const SensorConfig gpsConfig("gps", GPS_FREQ);
 const SensorConfig tempConfig("temp", TEMP_FREQ);
 const SensorConfig kalmConfig("kalm", KALM_FREQ);
@@ -80,6 +83,7 @@ const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;    // 10
 const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;   // 2
+const int N_DATA_PITOT = (PITOT_FREQ * SIMULATION_PERIOD) / 1000;  // 2
 const int N_DATA_GPS   = (GPS_FREQ * SIMULATION_PERIOD) / 1000;    // 1
 const int N_DATA_TEMP  = (TEMP_FREQ * SIMULATION_PERIOD) / 1000;   // 1
 const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 1
@@ -121,6 +125,11 @@ public:
     {
         float measures[N_DATA_BARO];
     } barometer;
+
+    struct Pitot
+    {
+        float measures[N_DATA_PITOT];
+    } pitot;
 
     struct Temperature
     {
@@ -194,6 +203,13 @@ public:
             TRACE("%+.3f\n", barometer.measures[i]);
     }
 
+    void printPitot()
+    {
+        TRACE("pitot\n");
+        for (int i = 0; i < N_DATA_PITOT; i++)
+            TRACE("%+.3f\n", pitot.measures[i]);
+    }
+
     void printTemperature()
     {
         TRACE("temp\n");
@@ -229,6 +245,7 @@ public:
         printMagnetometer();
         printGPS();
         printBarometer();
+        printPitot();
         printTemperature();
         printKalman();
         printFlags();
@@ -241,13 +258,13 @@ public:
 struct ADAdataHIL
 {
     uint64_t ada_timestamp;
-    float mslAltitude;    // Altitude at mean sea level [m].
+    float aglAltitude;    // Altitude at mean sea level [m].
     float verticalSpeed;  // Vertical speed [m/s].
 
     ADAdataHIL& operator+=(const ADAdataHIL& x)
     {
         this->ada_timestamp += x.ada_timestamp;
-        this->mslAltitude += x.mslAltitude;
+        this->aglAltitude += x.aglAltitude;
         this->verticalSpeed += x.verticalSpeed;
 
         return *this;  // return the result by reference
@@ -255,24 +272,24 @@ struct ADAdataHIL
 
     ADAdataHIL operator/(int x)
     {
-        return ADAdataHIL{this->ada_timestamp / x, this->mslAltitude / x,
+        return ADAdataHIL{this->ada_timestamp / x, this->aglAltitude / x,
                           this->verticalSpeed / x};
     }
 
     ADAdataHIL operator*(int x)
     {
-        return ADAdataHIL{this->ada_timestamp * x, this->mslAltitude * x,
+        return ADAdataHIL{this->ada_timestamp * x, this->aglAltitude * x,
                           this->verticalSpeed * x};
     }
 
     static std::string header()
     {
-        return "timestamp,mslAltitude,verticalSpeed\n";
+        return "timestamp,aglAltitude,verticalSpeed\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << ada_timestamp << "," << mslAltitude << "," << verticalSpeed
+        os << ada_timestamp << "," << aglAltitude << "," << verticalSpeed
            << "\n";
     }
 };
@@ -309,7 +326,7 @@ typedef struct
             nasState.n, nasState.e, nasState.d, nasState.vn, nasState.ve,
             nasState.vd, nasState.qx, nasState.qy, nasState.qz, nasState.qw,
             nasState.bx, nasState.by, nasState.bz, adaState.ada_timestamp,
-            adaState.mslAltitude, adaState.verticalSpeed);
+            adaState.aglAltitude, adaState.verticalSpeed);
     }
 } ActuatorData;
 
@@ -346,7 +363,7 @@ typedef struct
 
     void addADAState(Boardcore::ADAState adaState)
     {
-        ADAdataHIL data{adaState.timestamp, adaState.mslAltitude,
+        ADAdataHIL data{adaState.timestamp, adaState.aglAltitude,
                         adaState.verticalSpeed};
 
         this->adaState.push_back(data);
@@ -361,10 +378,14 @@ typedef struct
 
         for (auto it = this->nasState.begin(); it != this->nasState.end(); ++it)
         {
-            // Eigen::Matrix<float, 13, 1>
             nasTimestampAvg += (it->timestamp / n);
             nasXAvg += (it->getX() / n);
         }
+
+        // normalize quaternions
+        nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT, 0).normalize();
+        // TRACE("normA: %f\n", nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT, 0).norm());
+
         Boardcore::NASState nasStateAvg(nasTimestampAvg, nasXAvg);
 
         // ADA

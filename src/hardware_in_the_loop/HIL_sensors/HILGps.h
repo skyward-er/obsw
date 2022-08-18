@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "HILSensor.h"
 
 /**
@@ -53,6 +55,9 @@ protected:
         tempData.velocityNorth = matlabData.getX();
         tempData.velocityEast  = matlabData.getY();
         tempData.velocityDown  = matlabData.getZ();
+        tempData.speed = sqrtf(tempData.velocityNorth * tempData.velocityNorth +
+                               tempData.velocityDown * tempData.velocityDown);
+        tempData.positionDOP = 0;  // TODO: what's this?
 
         tempData.fix        = (uint8_t)sensorData->gps.fix;
         tempData.satellites = (uint8_t)sensorData->gps.num_satellites;

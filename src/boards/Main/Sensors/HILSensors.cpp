@@ -147,7 +147,7 @@ UBXGPSData Sensors::getUbxGpsLastSample()
     ubxData.satellites    = data.satellites;
     ubxData.fix           = data.fix;
 
-    return UBXGPSData{};
+    return ubxData;
 }
 
 // CONTINUE FROM HERE
@@ -168,6 +168,18 @@ MPXH6115AData Sensors::getStaticPressureLastSample()
 
     return data;
 }
+
+Boardcore::SSCDRRN015PDAData Sensors::getDifferentialPressureLastSample()
+{
+    PauseKernelLock lock;
+    auto pitotData = state.pitot->getLastSample();
+
+    Boardcore::SSCDRRN015PDAData data;
+    data.pressureTimestamp = pitotData.pressureTimestamp;
+    data.pressure          = pitotData.pressure;
+
+    return data;
+};
 
 // MPXH6400AData Sensors::getDplPressureLastSample()
 // {
@@ -210,20 +222,22 @@ Sensors::Sensors()
 {
     // Definition of the fake sensors for the simulation
     state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
-    state.barometer     = new HILBarometer(N_DATA_BARO);
-    state.gps           = new HILGps(N_DATA_GPS);
     state.gyro          = new HILGyroscope(N_DATA_GYRO);
     state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
     state.imu           = new HILImu(N_DATA_IMU);
+    state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.pitot         = new HILPitot(N_DATA_PITOT);
+    state.gps           = new HILGps(N_DATA_GPS);
     state.temperature   = new HILTemperature(N_DATA_TEMP);
     state.kalman        = new HILKalman(N_DATA_KALM);
 
     sensorsMap = {{state.accelerometer, accelConfig},
-                  {state.barometer, baroConfig},
+                  {state.gyro, gyroConfig},
                   {state.magnetometer, magnConfig},
                   {state.imu, imuConfig},
+                  {state.barometer, baroConfig},
+                  {state.pitot, pitotConfig},
                   {state.gps, gpsConfig},
-                  {state.gyro, gyroConfig},
                   {state.temperature, tempConfig},
                   {state.kalman, kalmConfig}};
 
@@ -238,11 +252,12 @@ Sensors::Sensors()
 Sensors::~Sensors()
 {
     delete state.accelerometer;
-    delete state.barometer;
-    delete state.gps;
     delete state.gyro;
     delete state.magnetometer;
     delete state.imu;
+    delete state.barometer;
+    delete state.pitot;
+    delete state.gps;
     delete state.temperature;
     delete state.kalman;
 
