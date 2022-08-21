@@ -32,55 +32,115 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <common/events/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <utils/PinObserver/PinObserver.h>
 
+#include "kernel/scheduler/priority/priority_scheduler.h"
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
-
-void print()
-{
-    auto state = NASController::getInstance().getNasState();
-    printf("w%fwa%fab%fbc%fc\n", state.qw, state.qx, state.qy, state.qz);
-
-    // printf("%f\n",
-    // Sensors::getInstance().getADS131M04LastSample().voltage[0]);
-}
+using namespace Common;
 
 int main()
 {
-    Logger::getInstance().start();
-    EventBroker::getInstance().start();
+    bool initResult    = true;
+    PrintLogger logger = Logging::getLogger("main");
 
-    // Start the radio and the canbus
-    Radio::getInstance().start();
-    CanHandler::getInstance().start();
+    if (!Logger::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting SD logger");
+    }
 
-    // TODO: Start the pin observer
+    if (!EventBroker::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the EventBroker");
+    }
+
+    // Start the radio
+    if (!Radio::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the radio");
+    }
+
+    // Start the can interface
+    if (!CanHandler::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the CAN interface");
+    }
+
+    // Start the FMM
+    if (!FlightModeManager::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FMM");
+    }
 
     // Start the state machines
-    ADAController::getInstance().start();
-    AirBrakesController::getInstance().start();
-    Deployment::getInstance().start();
-    FlightModeManager::getInstance().start();
-    FlightStatsRecorder::getInstance().start();
-    NASController::getInstance().start();
+    if (!ADAController::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the ADAController");
+    }
+    if (!AirBrakesController::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the AirBrakesController");
+    }
+    if (!Deployment::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Deployment");
+    }
+    if (!FlightModeManager::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FlightModeManager");
+    }
+    if (!FlightStatsRecorder::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FlightStatsRecorder");
+    }
+    if (!NASController::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NASController");
+    }
 
     // Start the sensors sampling
-    Sensors::getInstance().start();
+    if (!Sensors::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the sensors");
+    }
 
-    // Pins
-    (void)PinHandler::getInstance();
-    PinObserver::getInstance().start();
-
-    // DEBUG PRINT
-    // BoardScheduler::getInstance().getScheduler().addTask(print, 100);
+    // Start the pin handler and observer
+    if (!PinObserver::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinObserver");
+    }
 
     // Start the board task scheduler
-    BoardScheduler::getInstance().getScheduler().start();
+    if (!BoardScheduler::getInstance().getScheduler().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the BoardScheduler");
+    }
+
+    // If all is correctly set up i publish the init ok
+    if (initResult)
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+    else
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
 
     // Periodical statistics
     while (true)

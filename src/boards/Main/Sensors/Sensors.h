@@ -37,8 +37,8 @@
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
 #include <utils/Stats/Stats.h>
 #ifdef HILSimulation
-#include "HIL_algorithms/HILMockKalman.h"
-#include "HIL_sensors/HILSensors.h"
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
 
 namespace Main

@@ -23,7 +23,6 @@ set(OBSW_INCLUDE_DIRS
     src/boards
     src/hardware_in_the_loop
     src/tests/hardware_in_the_loop
-    skyward-boardcore
 )
 
 set(AUXILIARY_COMPUTER

@@ -28,6 +28,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -52,6 +53,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -86,6 +88,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -110,6 +113,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -145,6 +149,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -170,6 +175,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -205,6 +211,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -229,6 +236,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -263,6 +271,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -287,6 +296,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -321,6 +331,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -345,6 +356,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -380,6 +392,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -405,6 +418,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests",
                     "${workspaceFolder}/src"
@@ -441,6 +455,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -465,6 +480,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],
@@ -499,6 +515,7 @@
                 "${workspaceFolder}/skyward-boardcore/libs",
                 "${workspaceFolder}/skyward-boardcore/src/shared",
                 "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                 "${workspaceFolder}/src/boards",
                 "${workspaceFolder}/src/tests",
                 "${workspaceFolder}/src"
@@ -523,6 +540,7 @@
                     "${workspaceFolder}/skyward-boardcore/libs/fmt",
                     "${workspaceFolder}/skyward-boardcore/src/shared",
                     "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/hardware_in_the_loop",
                     "${workspaceFolder}/src/boards",
                     "${workspaceFolder}/src/tests"
                 ],

@@ -46,11 +46,8 @@ using namespace Common;
 
 int main()
 {
-    // The final result needed to trigger the FSM
-    bool initResult = true;
-
-    // The printlogger
-    PrintLogger logger = Logging::getLogger("PayloadEntry");
+    bool initResult    = true;
+    PrintLogger logger = Logging::getLogger("main");
 
     if (!Logger::getInstance().start())
     {
@@ -74,32 +71,11 @@ int main()
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
-    // Start the FMM
-    if (!FlightModeManager::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the FMM");
-    }
-
     // Start the radio
     if (!Radio::getInstance().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
-    }
-
-    // Start the sensors sampling
-    if (!Sensors::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the sensors");
-    }
-
-    // Start algorithms
-    if (!NASController::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the NAS algorithm");
     }
 
     // Start the can interface
@@ -109,12 +85,31 @@ int main()
         LOG_ERR(logger, "Error starting the CAN interface");
     }
 
+    // Start the state machines
+    if (!FlightModeManager::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FlightModeManager");
+    }
+    if (!NASController::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NAS algorithm");
+    }
+
+    // Start the sensors sampling
+    if (!Sensors::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the sensors");
+    }
+
     // Start the pin handler and observer
     PinHandler::getInstance();
     if (!PinObserver::getInstance().start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the pin observer");
+        LOG_ERR(logger, "Error starting the PinObserver");
     }
 
     // Start the trigger watcher

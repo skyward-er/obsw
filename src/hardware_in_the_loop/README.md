@@ -5,12 +5,12 @@ This README refers to the OBSW (On-Board Software) and matlab framework used for
 ## HIL framework - OBSW side
 
 ### Dependencies:
-- skyward-boardcore branch: sensors-dev 
+- skyward-boardcore branch: sensors-dev
 - miosix branch: gcc-9.2.0
 
 ### Files:
 - `test-SerialInterface.cpp`: Used to make quick tests of the serial communication with the simulator. It's a pretty simple example of usage of the *SerialInterface* module, used to test if the the serial connection is working properly.
-- `test-HIL.cpp`: Used to test the control algorithms.
+- `test-hil.cpp`: Used to test the control algorithms.
   - enable timestamp timer for the HILsensors
   - define a *HILTransceiver* object
   - define all the sensors and the actuators used by the simulation
@@ -26,7 +26,7 @@ This README refers to the OBSW (On-Board Software) and matlab framework used for
   - `SensorData`: Data structure sent by the simulator
   - `ActuatorData`: Data structure that the simulator expects back
 - `HILConfig.h`: In this file you have to set the right config file to include when a component need the structures or other configuration parameters. You have to choose a *Flag* that represents the config file.
-e.g. 
+e.g.
 ```
 #if defined(HIL_SERIALINTERFACE)
 #include "test-SerialInterface/HILSimulationConfig.h"
@@ -38,7 +38,7 @@ e.g.
   - `addNotifyToBegin` takes an *Algorithm* object as input and starts it when the first packet from the simulator is received
   - `addResetSampleCounter` takes a *HILSensor* as input (or every object that implements *HILTimestampManagement*) and notifies to it that new data has arrived from the simulator
 - `MockAirbrakeAlgorithm.h`: Example of control algorithm. Receives in the constructor a *HILSensor* (or a kalman that implements *HILSensor* as in this case) and a *ServoInterface*. The algorithm have to *getLastSample* from the sensor passed, elaborates it and then sends the output to the actuator calling his *set* method
-- `HILSensor`: Interface implemented by all the sensors and kalmans. To the constructor (templated with the type of the struct used by the sensor to store the last sample) we have to pass the reference to the *HILTransceiver* object, the *simulation period* and the *number of simulated samples* by matlab of this sensor (corresponding to the number of rows of the corresponding field of the sensorData structure in the matlab simulatos). They have to be initialized before use. Everytime the `sample` method is invoked, the sensor takes the last unread sample from the data simulated and creates a timestamp for that sample. If we sample more data then the available one we [continue receiving the last sample/throw an exception/print an error message on the stdin]. We have to register the sensor to the `addResetSampleCounter` queue of *HILTransceiver* in order to be notified when fresh new data is arrived from the simulator, so that the sensor can start reading the data from the beginning of the array. The method `getLastSample` returns the *HILSensorData* structure with the last sample. 
+- `HILSensor`: Interface implemented by all the sensors and kalmans. To the constructor (templated with the type of the struct used by the sensor to store the last sample) we have to pass the reference to the *HILTransceiver* object, the *simulation period* and the *number of simulated samples* by matlab of this sensor (corresponding to the number of rows of the corresponding field of the sensorData structure in the matlab simulatos). They have to be initialized before use. Everytime the `sample` method is invoked, the sensor takes the last unread sample from the data simulated and creates a timestamp for that sample. If we sample more data then the available one we [continue receiving the last sample/throw an exception/print an error message on the stdin]. We have to register the sensor to the `addResetSampleCounter` queue of *HILTransceiver* in order to be notified when fresh new data is arrived from the simulator, so that the sensor can start reading the data from the beginning of the array. The method `getLastSample` returns the *HILSensorData* structure with the last sample.
 - `HILServo`: Is a *ServoInterface* implementation. Interfaces the control algorithm to the HILTransceiver object. Invoking the method `set`, the value passed is converted (if needed) and then sent to the simulator.
 
 ### Usage of the hardware-in-the-loop framework:
@@ -46,7 +46,7 @@ e.g.
 To use this module as-is:
 - The first thing to do is to develop the control algorithm in the `step` method of *MockAirbrakeAlgorithm*. Then you should check that the *HILServo* sends back to the simulator the data in the conversion you want.
 - Now you should create the entrypoint in the `sbs.conf` file. In the *Defines:* field you should add the flag of your entrypoint corresponding to the one used in `HILConfig.h` in order to choose the right config file (e.g. `Defines: -DHIL`)
-- After this you should be able to build the `test-HIL.cpp` and flash the executable on the board. 
+- After this you should be able to build the `test-hil.cpp` and flash the executable on the board.
 - Then you should connect via serial the board to the computer (with a serial adapter). The connections between adapter and board are:
   - adapter_GND to board_GND
   - adapter_RX to board_TX (check table or cheatsheet for available serialPorts and relative pins)
@@ -65,12 +65,12 @@ Now the board is ready for the simulation.
 
 ### Example of usage of the hardware-in-the-loop framework on the OBSW:
 
-A basic example is available in the *src/tests/test-HIL* directory. 
+A basic example is available in the *src/tests/test-hil* directory.
 
 ## HIL framework - Matlab side
 
 ### Files:
-- `serialib.h` and `serialib.cpp`: used to build the C++ code for matlab 
+- `serialib.h` and `serialib.cpp`: used to build the C++ code for matlab
 - `serialbridge.cpp`: the file that implements the serialbridge feature in C++ (not necessary if you don't have to change the framework)
 - `build.m`: used for building the serialbridge.cpp file
 - `serialbridge.mexw64`: the compiled mex file that provides the serialbridge

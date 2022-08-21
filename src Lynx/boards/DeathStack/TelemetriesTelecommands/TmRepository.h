@@ -50,7 +50,7 @@
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDAData.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#include <HIL_sensors/HILSensors.h>
 #elif defined(USE_MOCK_SENSORS)
 #include <mocksensors/MockSensorsData.h>
 #endif

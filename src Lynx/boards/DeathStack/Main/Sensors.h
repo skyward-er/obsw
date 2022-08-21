@@ -44,8 +44,8 @@
 #include <map>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include <hardware_in_the_loop/HIL.h>
-#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#include <HIL.h>
+#include <HIL_sensors/HILSensors.h>
 #elif defined(USE_MOCK_SENSORS)
 #include <mocksensors/MockSensors.h>
 #endif

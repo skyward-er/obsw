@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #include <events/EventBroker.h>
 #include <events/FSM.h>
 #include <events/utils/EventCounter.h>
@@ -34,10 +35,10 @@
 #include "sensors/SensorManager.h"
 
 /* HIL includes */
-#include "HIL.h"
-#include "HIL_algorithms/HILMockAerobrakeAlgorithm.h"
-#include "HIL_algorithms/HILMockKalman.h"
-#include "HIL_sensors/HILSensors.h"
+#include <HIL.h>
+#include <HIL_algorithms/HILMockAerobrakeAlgorithm.h>
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
 
 /* ADA includes */
 #include <Main/Configs/ADAConfig.h>
@@ -113,10 +114,10 @@ int main()
     /*-------------- [HILT] HILTransceiver --------------*/
 
     // [REMOVE] only in order to test the hil with the discovery
-    u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u3rx1::getPin().alternateFunction(7);
-    u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u3tx1::getPin().alternateFunction(7);
+    // u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u3rx1::getPin().alternateFunction(7);
+    // u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u3tx1::getPin().alternateFunction(7);
 
     TRACE("Starting hil\n");
     HIL::getInstance().start();

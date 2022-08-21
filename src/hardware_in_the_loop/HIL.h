@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "HIL/HILFlightPhasesManager.h"
-#include "HIL/HILTransceiver.h"
+#include <HIL/HILFlightPhasesManager.h>
+#include <HIL/HILTransceiver.h>
 
 /**
  * @brief Single interface to the hardware-in-the-loop framework.

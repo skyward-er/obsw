@@ -22,14 +22,14 @@
 
 #pragma once
 
+#include <ActiveObject.h>
+#include <HILConfig.h>
+#include <HIL_sensors/HILTimestampManagement.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <drivers/usart/USART.h>
 #include <utils/Debug.h>
 
-#include "ActiveObject.h"
-#include "HILConfig.h"
-#include "HIL_sensors/HILTimestampManagement.h"
-#include "drivers/timer/TimestampTimer.h"
-#include "drivers/usart/USART.h"
-#include "old_examples/shared/math/Vec3.h"
+#include "Vec3.h"
 
 class HILFlightPhasesManager;
 

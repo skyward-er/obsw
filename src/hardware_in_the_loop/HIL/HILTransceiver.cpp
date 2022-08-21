@@ -26,7 +26,7 @@
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver()
-    : hilSerial(USART3, Boardcore::USARTInterface::Baudrate::B115200),
+    : hilSerial(USART1, Boardcore::USARTInterface::Baudrate::B115200),
       actuatorData(ActuatorData{})
 {
     // initializing the serial connection
