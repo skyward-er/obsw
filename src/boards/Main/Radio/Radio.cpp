@@ -46,11 +46,13 @@ using namespace Main::RadioConfig;
 using namespace Common;
 
 // SX127x interrupt
+#ifndef USE_SERIAL_TRANSCEIVER
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     if (Main::Radio::getInstance().transceiver)
         Main::Radio::getInstance().transceiver->handleDioIRQ();
 }
+#endif
 
 namespace Main
 {
@@ -89,6 +91,9 @@ void Radio::logStatus()
 
 Radio::Radio()
 {
+#ifdef USE_SERIAL_TRANSCEIVER
+    transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+#else
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
@@ -96,6 +101,7 @@ Radio::Radio()
     transceiver->init({});
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
+#endif
 
     mavDriver = new MavDriver(transceiver,
                               bind(&Radio::handleMavlinkMessage, this, _1, _2),
@@ -202,6 +208,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                         mavlink_message_t msgToSend;
                         mavlink_sensor_state_tm_t tm;
 
+                        memset(tm.sensor_id, 0, sizeof(tm.sensor_id));
                         sensor.first.copy(tm.sensor_id, sizeof(tm.sensor_id),
                                           0);
                         tm.state = sensor.second;

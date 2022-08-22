@@ -235,7 +235,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             auto ms5803Data = sensors.getMS5803LastSample();
             auto imuData    = sensors.getBMX160WithCorrectionLastSample();
 
-            auto nasState = NASController::getInstance().getNasState();
+            auto nasState      = NASController::getInstance().getNasState();
+            UBXGPSData ubxData = sensors.getUbxGpsLastSample();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -270,10 +271,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.mag_z  = imuData.magneticFieldZ;
 
             // GPS
-            tm.gps_fix = 0;
-            tm.gps_lat = 0;
-            tm.gps_lon = 0;
-            tm.gps_alt = 0;
+            tm.gps_fix = ubxData.fix;
+            tm.gps_lat = ubxData.latitude;
+            tm.gps_lon = ubxData.longitude;
+            tm.gps_alt = ubxData.height;
+
             // Airbrakes
             tm.ab_angle =
                 Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
@@ -376,7 +378,20 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_gps_tm_t tm;
 
-            // auto gpsData = Sensors::getInstance().getUbxGpsData();
+            UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
+
+            tm.timestamp = gpsData.gpsTimestamp;
+            strcpy(tm.sensor_id, "UBXGPS");
+            tm.fix          = gpsData.fix;
+            tm.height       = gpsData.height;
+            tm.latitude     = gpsData.latitude;
+            tm.longitude    = gpsData.longitude;
+            tm.n_satellites = gpsData.satellites;
+            tm.speed        = gpsData.speed;
+            tm.track        = gpsData.track;
+            tm.vel_down     = gpsData.velocityDown;
+            tm.vel_east     = gpsData.velocityEast;
+            tm.vel_north    = gpsData.velocityNorth;
 
             mavlink_msg_gps_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
