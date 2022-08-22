@@ -325,7 +325,8 @@ void Sensors::ms5803Init()
 
 void Sensors::ubxGpsInit()
 {
-    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, 2, "gps", 9600);
+    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, USART2,
+                              USARTInterface::Baudrate::B9600);
 
     SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
                     [&]()

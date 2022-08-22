@@ -80,65 +80,65 @@ TimedTrajectoryPoint getCurrentPosition()
         Main::NASController::getInstance().getNasState());
 }
 
-/**
- * function that given a thread returns its free stack size (copied from
- * miosix4, sorta)
- */
-unsigned int getAbsoluteFreeStack(miosix::Thread* t)
-{
-    const unsigned int* walk =
-        t->watermark + (WATERMARK_LEN / sizeof(unsigned int));
-    const unsigned int stackSize = t->stacksize;
-    unsigned int count           = 0;
+// /**
+//  * function that given a thread returns its free stack size (copied from
+//  * miosix4, sorta)
+//  */
+// unsigned int getAbsoluteFreeStack(miosix::Thread* t)
+// {
+//     const unsigned int* walk =
+//         t->watermark + (WATERMARK_LEN / sizeof(unsigned int));
+//     const unsigned int stackSize = t->stacksize;
+//     unsigned int count           = 0;
 
-    while (count < stackSize && *walk == miosix::STACK_FILL)
-    {
-        // Count unused stack
-        walk++;
-        count += 4;
-    }
+//     while (count < stackSize && *walk == miosix::STACK_FILL)
+//     {
+//         // Count unused stack
+//         walk++;
+//         count += 4;
+//     }
 
-    // This takes in account CTXSAVE_ON_STACK. It might underestimate
-    // the absolute free stack (by a maximum of CTXSAVE_ON_STACK) but
-    // it will never overestimate it, which is important since this
-    // member function can be used to select stack sizes.
-    if (count <= miosix::CTXSAVE_ON_STACK)
-        return 0;
-    return count - miosix::CTXSAVE_ON_STACK;
-}
+//     // This takes in account CTXSAVE_ON_STACK. It might underestimate
+//     // the absolute free stack (by a maximum of CTXSAVE_ON_STACK) but
+//     // it will never overestimate it, which is important since this
+//     // member function can be used to select stack sizes.
+//     if (count <= miosix::CTXSAVE_ON_STACK)
+//         return 0;
+//     return count - miosix::CTXSAVE_ON_STACK;
+// }
 
-/**
- * function that shows for each thread its free space
- */
-void showThreadStackSizes()
-{
-    TRACE("Absolute free stack of threads\n");
-    for (auto head : miosix::PriorityScheduler::thread_list)
-    {
-        TRACE("priority\n");
-        if (head != nullptr)
-        {
-            auto t = head;
-            TRACE("abs_free: %d/%d\n", getAbsoluteFreeStack(t), t->stacksize);
-            t = t->schedData.next;
-            for (; t != head; t = t->schedData.next)
-            {
-                TRACE("abs_free: %d/%d\n", getAbsoluteFreeStack(t),
-                      t->stacksize);
-            }
-        }
-    }
+// /**
+//  * function that shows for each thread its free space
+//  */
+// void showThreadStackSizes()
+// {
+//     TRACE("Absolute free stack of threads\n");
+//     for (auto head : miosix::PriorityScheduler::thread_list)
+//     {
+//         TRACE("priority\n");
+//         if (head != nullptr)
+//         {
+//             auto t = head;
+//             TRACE("abs_free: %d/%d\n", getAbsoluteFreeStack(t),
+//             t->stacksize); t = t->schedData.next; for (; t != head; t =
+//             t->schedData.next)
+//             {
+//                 TRACE("abs_free: %d/%d\n", getAbsoluteFreeStack(t),
+//                       t->stacksize);
+//             }
+//         }
+//     }
 
-    TRACE("finished\n");
+//     TRACE("finished\n");
 
-    TRACE("Available heap %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeHeap(),
-          miosix::MemoryProfiling::getHeapSize());
+//     TRACE("Available heap %d out of %d Bytes\n",
+//           miosix::MemoryProfiling::getCurrentFreeHeap(),
+//           miosix::MemoryProfiling::getHeapSize());
 
-    TRACE("Available stack %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeStack(),
-          miosix::MemoryProfiling::getStackSize());
-}
+//     TRACE("Available stack %d out of %d Bytes\n",
+//           miosix::MemoryProfiling::getCurrentFreeStack(),
+//           miosix::MemoryProfiling::getStackSize());
+// }
 
 /**
  * Test in order to see if the framework runs properly. This test just sends
@@ -277,16 +277,14 @@ int main()
                 HIL::getInstance()
                     .simulator->getSensorData()
                     ->printAccelerometer();
-                HIL::getInstance().simulator->getSensorData()->printBarometer();
-                HIL::getInstance().simulator->getSensorData()->printGPS();
                 HIL::getInstance().simulator->getSensorData()->printKalman();
+                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
                 TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
                       nasState.e, nasState.d);
                 TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
                       nasState.ve, nasState.vd);
-                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
-                TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
-                      adaState.verticalSpeed);
+                // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
+                //       adaState.verticalSpeed);
             }
         },
         1000);
@@ -325,15 +323,16 @@ int main()
 
             TRACE("started everything\n");
 
-            // To show statistics on the threads 3 seconds after armed
-            Thread::sleep(3000);
-            showThreadStackSizes();
+            // // To show statistics on the threads 3 seconds after armed
+            // Thread::sleep(3000);
+            // showThreadStackSizes();
         });
 
-    // To show statistics on the threads 10 seconds after initialization of all
-    // the components
-    Thread::sleep(10000);
-    showThreadStackSizes();
+    // // To show statistics on the threads 10 seconds after initialization of
+    // all
+    // // the components
+    // Thread::sleep(10000);
+    // showThreadStackSizes();
 
     while (true)
     {

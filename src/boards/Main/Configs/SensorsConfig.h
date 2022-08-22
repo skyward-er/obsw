@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
+#include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160Config.h>
@@ -104,7 +105,8 @@ static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
 
 // GPS
 static constexpr unsigned int GPS_SAMPLE_RATE = 10;
-static constexpr unsigned int GPS_BAUD_RATE   = 460800;
+static constexpr Boardcore::USARTInterface::Baudrate GPS_BAUD_RATE =
+    Boardcore::USARTInterface::Baudrate::B460800;
 
 // Sampling periods and dividers
 static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
