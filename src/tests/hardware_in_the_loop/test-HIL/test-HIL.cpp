@@ -250,8 +250,7 @@ int main()
          Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
          Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
 
-    TRACE("Starting nas\n");
-    nas_controller.start();
+    // starting NAS only when simulation starts
 
     /*---------------- [FMM] FMM ---------------*/
     TRACE("Starting FMM\n");
@@ -268,36 +267,26 @@ int main()
         {
             if (HIL::getInstance().isSimulationRunning())
             {
-                // Boardcore::ADAState adaState =
-                //     Main::ADAController::getInstance().getAdaState();
-                // Boardcore::NASState nasState =
-                //     Main::NASController::getInstance().getNasState();
-                // Boardcore::TimedTrajectoryPoint point =
-                //     Boardcore::TimedTrajectoryPoint(nasState);
+                Boardcore::ADAState adaState =
+                    Main::ADAController::getInstance().getAdaState();
+                Boardcore::NASState nasState =
+                    Main::NASController::getInstance().getNasState();
+                Boardcore::TimedTrajectoryPoint point =
+                    Boardcore::TimedTrajectoryPoint(nasState);
 
-                // HIL::getInstance()
-                //     .simulator->getSensorData()
-                //     ->printAccelerometer();
-                // HIL::getInstance().simulator->getSensorData()->printGPS();
-                // HIL::getInstance().simulator->getSensorData()->printKalman();
-                // TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
-                //       nasState.e, nasState.d);
-                // TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
-                //       nasState.ve, nasState.vd);
-                // TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
-                // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
-                //       adaState.verticalSpeed);
-                //         TRACE("press:%+.3f\n",
-                //         Main::Sensors::getInstance()
-                //                                    .getMS5803LastSample()
-                //                                    .pressure);
-                //         TRACE("pit: %f %f\n",
-                //               Boardcore::TimedTrajectoryPoint(
-                //                   Main::NASController::getInstance().getNasState())
-                //                   .z,
-                //               Boardcore::TimedTrajectoryPoint(
-                //                   Main::NASController::getInstance().getNasState())
-                //                   .vz);
+                HIL::getInstance()
+                    .simulator->getSensorData()
+                    ->printAccelerometer();
+                HIL::getInstance().simulator->getSensorData()->printBarometer();
+                HIL::getInstance().simulator->getSensorData()->printGPS();
+                HIL::getInstance().simulator->getSensorData()->printKalman();
+                TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
+                      nasState.e, nasState.d);
+                TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
+                      nasState.ve, nasState.vd);
+                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
+                TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
+                      adaState.verticalSpeed);
             }
         },
         1000);
@@ -318,37 +307,31 @@ int main()
         FlightPhases::SIMULATION_STARTED,
         [&]()
         {
-            // calibrate algorithms
-            Thread::sleep(50);
-            eventBroker.post(ADA_CALIBRATE, TOPIC_ADA);
+            // starting NAS only when simulation starts in order to avoid
+            // erroneus attitude estimation
+            TRACE("Starting nas\n");
+            nas_controller.start();
+            Thread::sleep(500);
 
+            // calibrate algorithms
+            eventBroker.post(ADA_CALIBRATE, TOPIC_ADA);
             Thread::sleep(50);
+
             eventBroker.post(NAS_CALIBRATE, TOPIC_NAS);
+            Thread::sleep(50);
 
             // ask to arm the board and get ready for launch
-            Thread::sleep(50);
             eventBroker.post(TMTC_ARM, TOPIC_TMTC);
 
             TRACE("started everything\n");
 
-            TRACE("Available heap %d out of %d Bytes\n",
-                  miosix::MemoryProfiling::getCurrentFreeHeap(),
-                  miosix::MemoryProfiling::getHeapSize());
-
-            TRACE("Available stack %d out of %d Bytes\n",
-                  miosix::MemoryProfiling::getCurrentFreeStack(),
-                  miosix::MemoryProfiling::getStackSize());
+            // To show statistics on the threads 3 seconds after armed
+            Thread::sleep(3000);
+            showThreadStackSizes();
         });
 
-    TRACE("Available heap %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeHeap(),
-          miosix::MemoryProfiling::getHeapSize());
-
-    TRACE("Available stack %d out of %d Bytes\n",
-          miosix::MemoryProfiling::getCurrentFreeStack(),
-          miosix::MemoryProfiling::getStackSize());
-
-    // To show statistics on the threads after 10 seconds
+    // To show statistics on the threads 10 seconds after initialization of all
+    // the components
     Thread::sleep(10000);
     showThreadStackSizes();
 
