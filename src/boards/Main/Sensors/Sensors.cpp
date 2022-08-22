@@ -54,7 +54,13 @@ bool Sensors::start()
     return sensorManager->start();
 }
 
-bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
+bool Sensors::isStarted()
+{
+    return sensorManager->getSensorInfo(bmx160).isInitialized &&
+           sensorManager->getSensorInfo(ms5803).isInitialized &&
+           sensorManager->getSensorInfo(ubxGps).isInitialized;
+    // return sensorManager->areAllSensorsInitialized();
+}
 
 BMX160Data Sensors::getBMX160LastSample()
 {
@@ -170,8 +176,6 @@ map<string, bool> Sensors::getSensorsState()
 Sensors::Sensors()
 {
     // Initialize all the sensors
-    bmx160Init();
-    bmx160WithCorrectionInit();
     mpu9250Init();
     ms5803Init();
     ubxGpsInit();
@@ -182,13 +186,12 @@ Sensors::Sensors()
     batteryVoltageInit();
     internalAdcInit();
 
+    // Moved down here because the bmx takes some times to start
+    bmx160Init();
+    bmx160WithCorrectionInit();
+
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
-
-    // Check if the essential sensors are initialized correctly
-    if (sensorManager->getSensorInfo(bmx160).isInitialized)
-        // && sensorManager->getSensorInfo(gps).isInitialized)
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 }
 
 Sensors::~Sensors()
