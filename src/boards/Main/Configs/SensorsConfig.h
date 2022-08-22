@@ -54,7 +54,7 @@ static constexpr Boardcore::ADS131M04::Channel ADC_CH_VBAT =
     Boardcore::ADS131M04::Channel::CHANNEL_3;
 
 static constexpr float REFERENCE_VOLTAGE        = 5.0;
-static constexpr float BATTERY_VOLTAGE_COEFF    = 5.98;
+static constexpr float BATTERY_VOLTAGE_COEFF    = 10.88;
 static constexpr float BATTERY_MIN_SAFE_VOLTAGE = 10.5;  // [V]
 
 // Load cell
