@@ -150,12 +150,11 @@ UBXGPSData Sensors::getUbxGpsLastSample()
     return ubxData;
 }
 
-// CONTINUE FROM HERE
-// ADS131M04Data Sensors::getADS131M04LastSample()
-// {
-//     PauseKernelLock lock;
-//     return ads131m04->getLastSample();
-// }
+ADS131M04Data Sensors::getADS131M04LastSample()
+{
+    PauseKernelLock lock;
+    return ADS131M04Data{};
+}
 
 MPXH6115AData Sensors::getStaticPressureLastSample()
 {
@@ -181,29 +180,29 @@ Boardcore::SSCDRRN015PDAData Sensors::getDifferentialPressureLastSample()
     return data;
 };
 
-// MPXH6400AData Sensors::getDplPressureLastSample()
-// {
-//     PauseKernelLock lock;
-//     return dplPressure->getLastSample();
-// }
+MPXH6400AData Sensors::getDplPressureLastSample()
+{
+    PauseKernelLock lock;
+    return MPXH6400AData{};
+}
 
-// AnalogLoadCellData Sensors::getLoadCellLastSample()
-// {
-//     PauseKernelLock lock;
-//     return loadCell->getLastSample();
-// }
+AnalogLoadCellData Sensors::getLoadCellLastSample()
+{
+    PauseKernelLock lock;
+    return AnalogLoadCellData{};
+}
 
-// BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
-// {
-//     PauseKernelLock lock;
-//     return batteryVoltage->getLastSample();
-// }
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    PauseKernelLock lock;
+    return BatteryVoltageSensorData{};
+}
 
-// InternalADCData Sensors::getInternalADCLastSample()
-// {
-//     PauseKernelLock lock;
-//     return internalAdc->getLastSample();
-// }
+InternalADCData Sensors::getInternalADCLastSample()
+{
+    PauseKernelLock lock;
+    return InternalADCData{};
+}
 
 void Sensors::calibrate() {}
 
