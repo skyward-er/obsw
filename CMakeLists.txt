@@ -46,7 +46,7 @@ target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
-sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
+sbs_target(groundstation-entry stm32f429zi_skyward_groundstation)
 
 #-----------------------------------------------------------------------------#
 #                                    HIL Tests                                #
@@ -54,8 +54,8 @@ sbs_target(groundstation-entry stm32f429zi_skyward_ground_station)
 
 add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp ${HIL_TESTS})
 target_include_directories(test-HIL PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS)
-# ssbs_target(test-HIL stm32f407vg_stm32f4discovery)
+target_compile_definitions(test-HIL PRIVATE HILSimulation USE_MOCK_PERIPHERALS RADIO_SERIAL EUROC)
+# sbs_target(test-HIL stm32f407vg_stm32f4discovery)
 sbs_target(test-HIL stm32f429zi_skyward_death_stack_v3)
 
 #-----------------------------------------------------------------------------#

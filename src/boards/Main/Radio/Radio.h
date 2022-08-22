@@ -41,8 +41,11 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-    // Boardcore::SerialTransceiver* transceiver;
+#ifndef RADIO_SERIAL
     Boardcore::SX1278* transceiver;
+#else   // RADIO_SERIAL
+    Boardcore::SerialTransceiver* transceiver;
+#endif  // RADIO_SERIAL
 
     MavDriver* mavDriver;
 

@@ -43,6 +43,7 @@ using namespace Boardcore;
 using namespace Main::RadioConfig;
 using namespace Common;
 
+#ifndef RADIO_SERIAL
 // sx127x interrupt
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
@@ -51,6 +52,7 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
     if (Radio::getInstance().transceiver)
         Radio::getInstance().transceiver->handleDioIRQ();
 }
+#endif  // RADIO_SERIAL
 
 namespace Main
 {
@@ -108,15 +110,18 @@ bool Radio::sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq)
 
 Radio::Radio()
 {
-    // transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 
+#ifndef RADIO_SERIAL
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
-    // // Use default configuration
+    // Use default configuration
     transceiver->init({});
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
+#else   // RADIO_SERIAL
+    transceiver = new SerialTransceiver(Buses::getInstance().usart2);
+#endif  // RADIO_SERIAL
 
     mavDriver = new MavDriver(transceiver,
                               bind(&Radio::handleMavlinkMessage, this, _1, _2),
