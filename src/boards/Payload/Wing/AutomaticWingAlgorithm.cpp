@@ -21,8 +21,8 @@
  */
 
 #include <Payload/Configs/WingConfig.h>
-#include <Payload/NASController/NASController.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/WingController.h>
 #include <algorithms/NAS/NASState.h>
@@ -136,11 +136,9 @@ void AutomaticWingAlgorithm::step()
 
     // Log the servo positions
     WingAlgorithmData data;
-    data.timestamp = TimestampTimer::getTimestamp();
-    data.servo1Angle =
-        servo1 == NULL ? 0 : Actuators::getInstance().getServoPosition(servo1);
-    data.servo2Angle =
-        servo2 == NULL ? 0 : Actuators::getInstance().getServoPosition(servo2);
+    data.timestamp     = TimestampTimer::getTimestamp();
+    data.servo1Angle   = Actuators::getInstance().getServoPosition(servo1);
+    data.servo2Angle   = Actuators::getInstance().getServoPosition(servo2);
     data.targetX       = targetDirection[0];
     data.targetY       = targetDirection[1];
     data.targetAngle   = targetAngle;

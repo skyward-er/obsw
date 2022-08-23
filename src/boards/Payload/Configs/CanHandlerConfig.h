@@ -20,24 +20,35 @@
  * THE SOFTWARE.
  */
 
-#include <Main/CanHandler/CanHandler.h>
-#include <miosix.h>
+#pragma once
 
-using namespace miosix;
-using namespace Main;
+#include <Payload/CanHandler/CanHandler.h>
+#include <common/CanConfig.h>
+#include <common/events/Events.h>
 
-int main()
+#include <functional>
+#include <map>
+
+namespace Payload
 {
-    CanHandler::getInstance().start();
 
-    while (true)
-    {
-        CanHandler::getInstance().sendCamOnEvent();
-        printf("Sent event for cam on\n");
-        Thread::sleep(1000);
+namespace CanHandlerConfig
+{
+static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
+    {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
+    {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
+    {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
+    {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
+};
 
-        CanHandler::getInstance().sendCamOffEvent();
-        printf("Sent event for cam off\n");
-        Thread::sleep(1000);
-    }
-}
+static const std::map<Common::Events, std::function<void(CanHandler *)>>
+    eventToFunction{
+        {Common::TMTC_ARM, &CanHandler::sendArmEvent},
+        {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
+        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
+        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
+    };
+
+}  // namespace CanHandlerConfig
+
+}  // namespace Payload

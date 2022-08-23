@@ -183,6 +183,13 @@ int main()
     Main::Radio::getInstance().start();
 
     /*-------------- [HILT] HILTransceiver --------------*/
+
+    // [REMOVE] only in order to test the hil with the discovery
+    u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
+    u3rx1::getPin().alternateFunction(7);
+    u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
+    u3tx1::getPin().alternateFunction(7);
+
     TRACE("Starting hil\n");
     HIL::getInstance().start();
 

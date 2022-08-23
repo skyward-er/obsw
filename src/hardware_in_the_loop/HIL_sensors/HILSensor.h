@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <HIL/Vec3.h>
+
 #include <typeinfo>
 
 #include "HIL.h"
@@ -29,7 +31,6 @@
 #include "HILSensorsData.h"
 #include "HILTimestampManagement.h"
 #include "drivers/timer/TimestampTimer.h"
-#include "old_examples/shared/math/Vec3.h"
 #include "sensors/Sensor.h"
 #include "sensors/SensorData.h"
 

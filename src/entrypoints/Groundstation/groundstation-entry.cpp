@@ -33,21 +33,6 @@
 using namespace miosix;
 using namespace Boardcore;
 
-const char *stringFromErr(SX1278::Error err)
-{
-    switch (err)
-    {
-        case SX1278::Error::BAD_VALUE:
-            return "Error::BAD_VALUE";
-
-        case SX1278::Error::BAD_VERSION:
-            return "Error::BAD_VERSION";
-
-        default:
-            return "<unknown>";
-    }
-}
-
 SX1278 *sx1278 = nullptr;
 USART *usart   = nullptr;
 
@@ -61,42 +46,12 @@ void __attribute__((used)) EXTI3_IRQHandlerImpl()
         sx1278->handleDioIRQ();
 }
 
-void recvLoop()
-{
-    uint8_t msg[256];
-    while (1)
-    {
-        int len = sx1278->receive(msg, sizeof(msg));
-        if (len > 0)
-        {
-            usart->write(msg, len);
-        }
-    }
-}
+void recvLoop();
 
-void sendLoop()
-{
-    uint8_t msg[63];
-    while (1)
-    {
-        int len = usart->read(msg, sizeof(msg));
-        if (len > 0)
-        {
-            ledOn();
-            sx1278->send(msg, len);
-            ledOff();
-        }
-    }
-}
+void sendLoop();
 
 int main()
 {
-    // FIXME(davide.mor): These get overridden somewhere after BSP, where?
-    interfaces::uart5::tx::mode(Mode::ALTERNATE);
-    interfaces::uart5::tx::alternateFunction(8);
-    interfaces::uart5::rx::mode(Mode::ALTERNATE);
-    interfaces::uart5::rx::alternateFunction(8);
-
     usart = new USART(UART5, USARTInterface::Baudrate::B19200);
     usart->init();
 
@@ -120,22 +75,52 @@ int main()
 
     sx1278 = new SX1278(bus, cs);
 
-    printf("\n[sx1278] Configuring sx1278...\n");
+    printf("[sx1278] Configuring sx1278...\n");
     if ((err = sx1278->init(config)) != SX1278::Error::NONE)
     {
-        printf("[sx1278] sx1278->init error: %s\n", stringFromErr(err));
-        return -1;
+        while (true)
+        {
+            printf("[SX1278] Initialization failed\n");
+            Thread::sleep(1000);
+        }
     }
-
-    printf("\n[sx1278] Initialization complete!\n");
+    printf("[sx1278] Initialization complete!\n");
 
     std::thread recv([]() { recvLoop(); });
     std::thread send([]() { sendLoop(); });
 
-    for (;;)
-    {
+    while (true)
         miosix::Thread::sleep(100);
-    }
+}
 
-    return 0;
+void recvLoop()
+{
+    uint8_t msg[256];
+
+    while (true)
+    {
+        int len = sx1278->receive(msg, sizeof(msg));
+        if (len > 0)
+        {
+            usart->writeString("This is the message:\r\n");
+            usart->write(msg, len);
+        }
+    }
+}
+
+void sendLoop()
+{
+    uint8_t msg[63];
+
+    while (true)
+    {
+        int len = usart->read(msg, sizeof(msg));
+
+        if (len > 0)
+        {
+            ledOn();
+            sx1278->send(msg, len);
+            ledOff();
+        }
+    }
 }

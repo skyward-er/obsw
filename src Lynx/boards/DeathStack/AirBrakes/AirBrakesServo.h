@@ -30,7 +30,7 @@
 #include <miosix.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include <hardware_in_the_loop/HIL.h>
+#include <HIL.h>
 #endif
 
 namespace DeathStackBoard

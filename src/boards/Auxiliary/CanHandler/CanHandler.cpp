@@ -95,19 +95,21 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
     switch (eventId)
     {
         case EventId::ARM:
-        case EventId::CAM_ON:
         {
             Actuators::getInstance().ledOn();
+        }
+        case EventId::CAM_ON:
+        {
             Actuators::getInstance().camOn();
-            LOG_DEBUG(logger, "Cameras and leds turned on");
             break;
         }
         case EventId::DISARM:
-        case EventId::CAM_OFF:
         {
             Actuators::getInstance().ledOff();
+        }
+        case EventId::CAM_OFF:
+        {
             Actuators::getInstance().camOff();
-            LOG_DEBUG(logger, "Cameras and leds turned off");
             break;
         }
 

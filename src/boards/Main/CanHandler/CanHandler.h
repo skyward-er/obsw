@@ -23,23 +23,19 @@
 #pragma once
 
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
+#include <events/EventHandler.h>
 
 namespace Main
 {
 
-class CanHandler : public Boardcore::Singleton<CanHandler>
+class CanHandler : public Boardcore::Singleton<CanHandler>,
+                   public Boardcore::EventHandler
 {
     friend Boardcore::Singleton<CanHandler>;
 
 public:
-    /**
-     * @brief Starts the CanProtocol.
-     */
     bool start();
 
-    /**
-     * @brief Tells whether the can protocol was started.
-     */
     bool isStarted();
 
     // Boardcore::Canbus::CanRXStatus getCanStatus();
@@ -62,6 +58,8 @@ private:
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
 
     void handleCanSensor(const Boardcore::Canbus::CanMessage &msg);
+
+    void handleEvent(const Boardcore::Event &event) override;
 
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;

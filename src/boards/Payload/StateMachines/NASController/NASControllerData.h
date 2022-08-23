@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <stdint.h>
@@ -28,25 +29,21 @@
 
 namespace Payload
 {
-enum class FlightModeManagerState : uint8_t
+
+enum class NASControllerState : uint8_t
 {
-    ON_GROUND = 0,
-    INIT,
-    INIT_ERROR,
-    CALIBRATION,
+    UNINIT = 0,
+    IDLE,
+    CALIBRATING,
     READY,
-    TEST_MODE,
-    FLYING,
-    ASCENDING,
-    DROGUE_DESCENT,
-    WING_DESCENT,
-    LANDED
+    ACTIVE,
+    END
 };
 
-struct FlightModeManagerStatus
+struct NASControllerStatus
 {
-    uint64_t timestamp = 0;
-    FlightModeManagerState state;
+    long long timestamp      = 0;
+    NASControllerState state = NASControllerState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 
@@ -55,4 +52,5 @@ struct FlightModeManagerStatus
         os << timestamp << "," << (int)state << "\n";
     }
 };
+
 }  // namespace Payload

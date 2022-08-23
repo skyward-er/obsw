@@ -27,13 +27,12 @@
 #include <Main/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace std;
-using namespace Boardcore;
 using namespace Eigen;
+using namespace Boardcore;
 using namespace Common;
 
 namespace Main
@@ -41,8 +40,9 @@ namespace Main
 
 bool NASController::start()
 {
+    // Add the update task to the scheduler
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
+        bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
     return ActiveObject::start();
@@ -50,6 +50,10 @@ bool NASController::start()
 
 void NASController::update()
 {
+    // If the nas is not active i skip the step
+    if (!this->testState(&NASController::state_active))
+        return;
+
     auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
     auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
     auto pressureData = Sensors::getInstance().getMS5803LastSample();
@@ -61,7 +65,7 @@ void NASController::update()
     nas.predictGyro(imuData);
     nas.predictAcc(imuData);
 
-    // Correct steps
+    // Correct step
     nas.correctMag(imuData);
     // nas.correctAcc(imuData);
     nas.correctGPS(gpsMeters);
@@ -88,7 +92,7 @@ void NASController::initializeOrientationAndPressure()
     ReferenceValues reference = nas.getReferenceValues();
 
     // Mean the values
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < NASConfig::MEAN_COUNT; i++)
     {
         // IMU
         BMX160WithCorrectionData imuData =
@@ -109,10 +113,10 @@ void NASController::initializeOrientationAndPressure()
         miosix::Thread::sleep(100);
     }
 
-    accelerometer /= 10;
-    magnetometer /= 10;
-    pressure /= 10;
-    temperature /= 10;
+    accelerometer /= NASConfig::MEAN_COUNT;
+    magnetometer /= NASConfig::MEAN_COUNT;
+    pressure /= NASConfig::MEAN_COUNT;
+    temperature /= NASConfig::MEAN_COUNT;
 
     // Normalize the data
     accelerometer.normalize();
@@ -134,10 +138,7 @@ void NASController::initializeOrientationAndPressure()
 
     // Set the values inside the NAS
     {
-        // Need to pause the kernel because the only invocation comes from the
-        // radio
-        // which is a separate thread
-        miosix::PauseKernelLock klock;
+        miosix::PauseKernelLock l;
 
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
@@ -199,13 +200,18 @@ void NASController::setReferenceTemperature(float temperature)
     nas.setReferenceValues(reference);
 }
 
-NASControllerStatus NASController::getStatus() { return status; }
-
-NASState NASController::getNasState() { return nas.getState(); }
-
 void NASController::setReferenceValues(const ReferenceValues reference)
 {
+    miosix::PauseKernelLock l;
     nas.setReferenceValues(reference);
+}
+
+NASControllerStatus NASController::getStatus() { return status; }
+
+NASState NASController::getNasState()
+{
+    miosix::PauseKernelLock l;
+    return nas.getState();
 }
 
 ReferenceValues NASController::getReferenceValues()
@@ -258,8 +264,7 @@ void NASController::state_ready(const Event &event)
         {
             return transition(&NASController::state_calibrating);
         }
-        case FLIGHT_LIFTOFF:
-        case TMTC_FORCE_LAUNCH:
+        case FLIGHT_ARMED:
         {
             return transition(&NASController::state_active);
         }
@@ -275,8 +280,7 @@ void NASController::state_active(const Event &event)
             return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
-        case TMTC_FORCE_LANDING:
-        case FMM_MISSION_TIMEOUT:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }
@@ -296,7 +300,7 @@ void NASController::state_end(const Event &event)
 
 #ifdef HILSimulation
 void NASController::setUpdateDataFunction(
-    std::function<void(Boardcore::NASState)> updateData)
+    function<void(Boardcore::NASState)> updateData)
 {
     this->updateData = updateData;
 }
@@ -318,9 +322,7 @@ NASController::NASController()
 #endif
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
 

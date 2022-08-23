@@ -20,37 +20,29 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
+#include <sensors/LIS331HH/LIS331HH.h>
 
-#include <stdint.h>
+using namespace miosix;
+using namespace Boardcore;
 
-#include <iostream>
-#include <string>
-
-namespace Payload
+int main()
 {
+    SPIBus spi2(SPI2);
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_256;
+    config.mode         = SPI::Mode::MODE_0;
+    LIS331HH lis(spi2, devices::lis331hh::cs::getPin(), config);
 
-enum class NASControllerState : uint8_t
-{
-    UNINIT = 0,
-    IDLE,
-    CALIBRATING,
-    READY,
-    ACTIVE,
-    END
-};
+    lis.init();
 
-struct NASControllerStatus
-{
-    long long timestamp      = 0;
-    NASControllerState state = NASControllerState::UNINIT;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    while (true)
     {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
+        lis.sample();
+        auto data = lis.getLastSample();
+        printf("[%.2f] %.3f %.3f %.3f\n", data.accelerationTimestamp / 1e6,
+               data.accelerationX, data.accelerationY, data.accelerationZ);
 
-}  // namespace Payload
+        delayMs(250);
+    }
+}

@@ -35,7 +35,7 @@
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAAData.h>
 
 #ifdef HARDWARE_IN_THE_LOOP
-#include <hardware_in_the_loop/HIL_sensors/HILSensors.h>
+#include <HIL_sensors/HILSensors.h>
 #endif
 
 namespace DeathStackBoard

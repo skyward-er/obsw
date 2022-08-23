@@ -24,12 +24,13 @@
 
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/SensorsConfig.h>
-#include <Payload/FlightModeManager/FlightModeManager.h>
-#include <Payload/NASController/NASController.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -126,8 +127,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             auto state = NASController::getInstance().getNasState();
             auto ref   = NASController::getInstance().getReferenceValues();
 
-            tm.timestamp       = state.timestamp;
-            tm.state           = 0;
+            tm.timestamp = state.timestamp;
+            tm.state     = static_cast<uint8_t>(
+                NASController::getInstance().getStatus().state);
             tm.nas_n           = state.n;
             tm.nas_e           = state.e;
             tm.nas_d           = state.d;
@@ -234,38 +236,61 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_STATS_ID:
         {
-            mavlink_rocket_stats_tm_t tm;
+            mavlink_payload_stats_tm_t tm;
 
-            tm.liftoff_ts            = 0;
-            tm.liftoff_max_acc_ts    = 0;
-            tm.liftoff_max_acc       = 0;
-            tm.max_z_speed_ts        = 0;
-            tm.max_z_speed           = 0;
-            tm.max_airspeed_pitot    = 0;
-            tm.max_speed_altitude    = 0;
-            tm.apogee_ts             = 0;
-            tm.apogee_lat            = 0;
-            tm.apogee_lon            = 0;
-            tm.static_min_pressure   = 0;
-            tm.digital_min_pressure  = 0;
-            tm.ada_min_pressure      = 0;
-            tm.baro_max_altitude     = 0;
-            tm.gps_max_altitude      = 0;
-            tm.drogue_dpl_ts         = 0;
-            tm.drogue_dpl_max_acc    = 0;
-            tm.dpl_vane_max_pressure = 0;
-            tm.main_dpl_altitude_ts  = 0;
-            tm.main_dpl_altitude     = 0;
-            tm.main_dpl_zspeed       = 0;
-            tm.main_dpl_acc          = 0;
-            tm.cpu_load              = CpuMeter::getCpuStats().mean;
+            tm.liftoff_ts           = 0;
+            tm.liftoff_max_acc_ts   = 0;
+            tm.liftoff_max_acc      = 0;
+            tm.max_z_speed_ts       = 0;
+            tm.max_z_speed          = 0;
+            tm.max_airspeed_pitot   = 0;
+            tm.max_speed_altitude   = 0;
+            tm.apogee_ts            = 0;
+            tm.apogee_lat           = 0;
+            tm.apogee_lon           = 0;
+            tm.static_min_pressure  = 0;
+            tm.digital_min_pressure = 0;
+            tm.ada_min_pressure     = 0;
+            tm.baro_max_altitude    = 0;
+            tm.gps_max_altitude     = 0;
+            tm.drogue_dpl_ts        = 0;
+            tm.drogue_dpl_max_acc   = 0;
+            tm.cpu_load             = CpuMeter::getCpuStats().mean;
 
-            mavlink_msg_rocket_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                               RadioConfig::MAV_COMPONENT_ID,
-                                               &msg, &tm);
+            mavlink_msg_payload_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                RadioConfig::MAV_COMPONENT_ID,
+                                                &msg, &tm);
             break;
         }
+        case SystemTMList::MAV_CAN_ID:
+        {
+            mavlink_can_tm_t tm;
 
+            // TODO
+
+            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+            break;
+        }
+        case SystemTMList::MAV_FSM_ID:
+        {
+            mavlink_fsm_tm_t tm;
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.abk_state = 0;
+            tm.ada_state = 0;
+            tm.dpl_state = 0;
+            tm.fsr_state = 0;
+            tm.fmm_state = static_cast<uint8_t>(
+                FlightModeManager::getInstance().getStatus().state);
+            tm.nas_state = static_cast<uint8_t>(
+                NASController::getInstance().getStatus().state);
+
+            mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
+
+            break;
+        }
         default:
         {
             mavlink_nack_tm_t nack;
@@ -291,11 +316,24 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
     switch (sensorId)
     {
-        case SensorsTMList::MAV_GPS_ID:  // TODO
+        case SensorsTMList::MAV_GPS_ID:
         {
             mavlink_gps_tm_t tm;
 
-            // auto gpsData = Sensors::getInstance().getUbxGpsData();
+            UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
+
+            tm.timestamp = gpsData.gpsTimestamp;
+            strcpy(tm.sensor_id, "UBXGPS");
+            tm.fix          = gpsData.fix;
+            tm.height       = gpsData.height;
+            tm.latitude     = gpsData.latitude;
+            tm.longitude    = gpsData.longitude;
+            tm.n_satellites = gpsData.satellites;
+            tm.speed        = gpsData.speed;
+            tm.track        = gpsData.track;
+            tm.vel_down     = gpsData.velocityDown;
+            tm.vel_east     = gpsData.velocityEast;
+            tm.vel_north    = gpsData.velocityNorth;
 
             mavlink_msg_gps_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -339,23 +377,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
                                            &tm);
-
-            break;
-        }
-        case SensorsTMList::MAV_CURRENT_SENSE_ID:  // TODO
-        {
-            mavlink_current_tm_t tm;
-
-            // auto currentData =
-            // Sensors::getInstance().getCurrentSensorLastSample();
-
-            // tm.timestamp = currentData.timestamp;
-            strcpy(tm.sensor_id, "5V_CURRENT");
-            // tm.current = currentData.current;
-
-            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                          RadioConfig::MAV_COMPONENT_ID, &msg,
-                                          &tm);
 
             break;
         }
@@ -418,6 +439,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             tm.timestamp = battery.voltageTimestamp;
             tm.channel_0 = battery.batVoltage;
+            tm.channel_1 = 0;
+            tm.channel_2 = 0;
+            tm.channel_3 = 0;
 
             strcpy(tm.sensor_id, "BATTERY_VOLTAGE");
 
@@ -448,7 +472,7 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 {
     mavlink_message_t msg;
 
-    if (servoId == AIRBRAKES_SERVO || servoId == EXPULSION_SERVO)
+    if (servoId == PARAFOIL_SERVO1 || servoId == PARAFOIL_SERVO2)
     {
         mavlink_servo_tm_t tm;
 

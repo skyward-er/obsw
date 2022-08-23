@@ -245,7 +245,7 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             TRACE("[HILFPM] ABK disabled\n");
             break;
         case FLIGHT_APOGEE_DETECTED:
-        case TMTC_FORCE_DROGUE:
+        case TMTC_FORCE_EXPULSION:
             setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
             registerOutcomes(FlightPhases::APOGEE);
             TRACE("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",

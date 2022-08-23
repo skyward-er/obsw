@@ -22,18 +22,17 @@
 
 #pragma once
 
+#include <HIL/HILTransceiver.h>
+#include <Main/BoardScheduler.h>
+#include <algorithms/AirBrakes/TrajectoryPoint.h>
+#include <common/events/Events.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/Event.h>
+#include <events/EventHandler.h>
+#include <miosix.h>
 
 #include <iostream>
 #include <map>
-
-#include "HILTransceiver.h"
-#include "Main/BoardScheduler.h"
-#include "algorithms/AirBrakes/TrajectoryPoint.h"
-#include "common/events/Events.h"
-#include "drivers/timer/TimestampTimer.h"
-#include "events/EventHandler.h"
-#include "miosix.h"
 
 #define sEventBroker Boardcore::EventBroker::getInstance()
 

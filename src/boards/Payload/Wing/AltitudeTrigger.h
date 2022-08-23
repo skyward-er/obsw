@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Payload/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
 
 namespace Payload
@@ -36,7 +36,13 @@ public:
     // altitude is reached
     void update();
 
+    // Method to set the altitude where trigger the dpl event
+    void setDeploymentAltitude(float altitude);
+
 private:
     AltitudeTrigger();
+
+    // The altitude could be different from the default one
+    float altitude;
 };
 }  // namespace Payload

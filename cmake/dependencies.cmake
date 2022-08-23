@@ -23,7 +23,6 @@ set(OBSW_INCLUDE_DIRS
     src/boards
     src/hardware_in_the_loop
     src/tests/hardware_in_the_loop
-    skyward-boardcore
 )
 
 set(AUXILIARY_COMPUTER
@@ -49,17 +48,17 @@ set(MAIN_COMPUTER
 set(PAYLOAD_COMPUTER
     src/boards/Payload/Actuators/Actuators.cpp
     src/boards/Payload/CanHandler/CanHandler.cpp
-    src/boards/Payload/NASController/NASController.cpp
-    src/boards/Payload/Radio/Radio.cpp
     src/boards/Payload/Sensors/Sensors.cpp
     src/boards/Payload/PinHandler/PinHandler.cpp
+    src/boards/Payload/Radio/Radio.cpp
     src/boards/Payload/TMRepository/TMRepository.cpp
+    src/boards/Payload/StateMachines/NASController/NASController.cpp
+    src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Payload/Wing/AltitudeTrigger.cpp
     src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Payload/Wing/FileWingAlgorithm.cpp
     src/boards/Payload/Wing/WingAlgorithm.cpp
     src/boards/Payload/Wing/WingController.cpp
-    src/boards/Payload/FlightModeManager/FlightModeManager.cpp
-    src/boards/Payload/Wing/AltitudeTrigger.cpp
 )
 
 set(PARAFOIL_COMPUTER
@@ -72,6 +71,10 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingController.cpp
+)
+
+set(CIUTI_COMPUTER
+    src/boards/Ciuti/Sensors/Sensors.cpp
 )
 
 set(HIL_TESTS

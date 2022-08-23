@@ -31,30 +31,30 @@ namespace Payload
 namespace NASConfig
 {
 
-static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+static constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 static constexpr uint8_t MEAN_COUNT     = 10;
 
 // Magnetic field in Milan
-Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
+const Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
 
 static const Boardcore::NASConfig config = {
-    1.0f / UPDATE_PERIOD,  // T
-    0.0001f,               // SIGMA_BETA
-    0.3f,                  // SIGMA_W
-    0.1f,                  // SIGMA_MAG
-    10.0f,                 // SIGMA_GPS
-    4.3f,                  // SIGMA_BAR
-    10.0f,                 // SIGMA_POS
-    10.0f,                 // SIGMA_VEL
-    10.0f,                 // SIGMA_PITOT
-    1.0f,                  // P_POS
-    10.0f,                 // P_POS_VERTICAL
-    1.0f,                  // P_VEL
-    10.0f,                 // P_VEL_VERTICAL
-    0.01f,                 // P_ATT
-    0.01f,                 // P_BIAS
-    6.0f,                  // SATS_NUM
-    nedMag                 // NED_MAG
+    UPDATE_PERIOD / 1000.0,  // T
+    0.0001f,                 // SIGMA_BETA
+    0.3f,                    // SIGMA_W
+    0.1f,                    // SIGMA_MAG
+    10.0f,                   // SIGMA_GPS
+    4.3f,                    // SIGMA_BAR
+    10.0f,                   // SIGMA_POS
+    10.0f,                   // SIGMA_VEL
+    10.0f,                   // SIGMA_PITOT
+    1.0f,                    // P_POS
+    10.0f,                   // P_POS_VERTICAL
+    1.0f,                    // P_VEL
+    10.0f,                   // P_VEL_VERTICAL
+    0.01f,                   // P_ATT
+    0.01f,                   // P_BIAS
+    6.0f,                    // SATS_NUM
+    nedMag                   // NED_MAG
 };
 
 // Reference values for Milan

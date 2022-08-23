@@ -26,8 +26,11 @@
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278.h>
-#include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <scheduler/TaskScheduler.h>
+
+#ifdef USE_SERIAL_TRANSCEIVER
+#include <radio/SerialTransceiver/SerialTransceiver.h>
+#endif
 
 namespace Main
 {
@@ -41,11 +44,11 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-#ifndef RADIO_SERIAL
-    Boardcore::SX1278* transceiver;
-#else   // RADIO_SERIAL
+#ifdef USE_SERIAL_TRANSCEIVER
     Boardcore::SerialTransceiver* transceiver;
-#endif  // RADIO_SERIAL
+#else
+    Boardcore::SX1278* transceiver;
+#endif
 
     MavDriver* mavDriver;
 
@@ -92,19 +95,6 @@ private:
      * @brief Called by handleMavlinkMessage to handle a command message.
      */
     void handleCommand(const mavlink_message_t& msg);
-
-    /**
-     * @brief Used to send the specified system telemetry message.
-     */
-    bool sendSystemTm(const SystemTMList tmId, uint8_t msgId, uint8_t seq);
-
-    /**
-     * @brief Used to send the specified sensors telemetry message.
-     */
-    bool sendSensorsTm(const SensorsTMList sensorId, uint8_t msgId,
-                       uint8_t seq);
-
-    bool sendServoTm(const ServosList servoId, uint8_t msgId, uint8_t seq);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

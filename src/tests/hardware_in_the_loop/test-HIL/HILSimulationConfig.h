@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <HIL/Vec3.h>
+#include <utils/Debug.h>
 #include <utils/Stats/Stats.h>
 
 #include <list>
@@ -29,7 +31,6 @@
 #include "algorithms/ADA/ADAData.h"
 #include "algorithms/NAS/NAS.h"
 #include "algorithms/NAS/NASState.h"
-#include "old_examples/shared/math/Vec3.h"
 #include "sensors/SensorInfo.h"
 
 struct SensorConfig : public Boardcore::SensorInfo

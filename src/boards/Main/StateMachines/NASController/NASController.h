@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Main/Sensors/Sensors.h>
 #include <Singleton.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
@@ -46,19 +45,13 @@ public:
     void initializeOrientationAndPressure();
 
     void setCoordinates(Eigen::Vector2f position);
-
     void setOrientation(float yaw, float pitch, float roll);
-
     void setReferenceAltitude(float altitude);
-
     void setReferenceTemperature(float temperature);
-
-    NASControllerStatus getStatus();
-
-    Boardcore::NASState getNasState();
-
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
+    NASControllerStatus getStatus();
+    Boardcore::NASState getNasState();
     Boardcore::ReferenceValues getReferenceValues();
 
     void state_idle(const Boardcore::Event& event);
@@ -81,7 +74,10 @@ private:
     NASControllerStatus status;
     Boardcore::NAS nas;
 
+    Eigen::Vector3f initialOrientation;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
+
 #ifdef HILSimulation
     std::function<void(Boardcore::NASState)> updateData;
 #endif

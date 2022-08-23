@@ -52,6 +52,9 @@ void WingController::addAlgorithm(WingAlgorithm* algorithm)
     // Ensure that the servos are correct
     algorithm->setServo(PARAFOIL_SERVO1, PARAFOIL_SERVO2);
 
+    // Init the algorithm
+    algorithm->init();
+
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
 }

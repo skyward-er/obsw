@@ -43,12 +43,13 @@ public:
 
     void update();
 
-    ADAControllerStatus getStatus();
-
-    Boardcore::ADAState getAdaState();
-
+    void setDeploymentAltitude(float altitude);
+    void setReferenceAltitude(float altitude);
+    void setReferenceTemperature(float temperature);
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
+    ADAControllerStatus getStatus();
+    Boardcore::ADAState getAdaState();
     Boardcore::ReferenceValues getReferenceValues();
 
     void state_idle(const Boardcore::Event& event);

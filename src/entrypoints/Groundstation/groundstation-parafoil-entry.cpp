@@ -23,6 +23,7 @@
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
+#include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278.h>
 
 #include <thread>
@@ -45,24 +46,8 @@ void sendLoop();
 
 int main()
 {
-    GpioPin sck(GPIOE_BASE, 2);
-    GpioPin miso(GPIOE_BASE, 5);
-    GpioPin mosi(GPIOE_BASE, 6);
-    GpioPin cs(GPIOC_BASE, 1);
-    GpioPin dio(GPIOF_BASE, 10);
-
-    sck.mode(Mode::ALTERNATE);
-    sck.alternateFunction(5);
-    miso.mode(Mode::ALTERNATE);
-    miso.alternateFunction(5);
-    mosi.mode(Mode::ALTERNATE);
-    mosi.alternateFunction(5);
-    cs.mode(Mode::OUTPUT);
-    cs.high();
-
-    usart = new USART(USART1, USARTInterface::Baudrate::B19200);
-
-    enableExternalInterrupt(dio.getPort(), dio.getNumber(),
+    enableExternalInterrupt(peripherals::sx127x::dio0::getPin().getPort(),
+                            peripherals::sx127x::dio0::getPin().getNumber(),
                             InterruptTrigger::RISING_EDGE);
 
     // Run default configuration
@@ -71,7 +56,7 @@ int main()
     SX1278::Error err;
 
     SPIBus bus(SPI4);
-    sx1278 = new SX1278(bus, cs);
+    sx1278 = new SX1278(bus, peripherals::sx127x::cs::getPin());
 
     printf("[sx1278] Configuring sx1278...\n");
     if ((err = sx1278->init(config)) != SX1278::Error::NONE)
@@ -84,6 +69,7 @@ int main()
     }
     printf("[sx1278] Initialization complete!\n");
 
+    usart = new USART(USART1, USARTInterface::Baudrate::B19200);
     usart->init();
 
     std::thread recv([]() { recvLoop(); });
@@ -91,8 +77,6 @@ int main()
 
     while (true)
         miosix::Thread::sleep(100);
-
-    return 0;
 }
 
 void recvLoop()
@@ -103,7 +87,10 @@ void recvLoop()
     {
         int len = sx1278->receive(msg, sizeof(msg));
         if (len > 0)
+        {
+            usart->writeString("This is the message:\r\n");
             usart->write(msg, len);
+        }
     }
 }
 
@@ -113,14 +100,13 @@ void sendLoop()
 
     while (true)
     {
-        // int len = usart->read(msg, sizeof(msg));
-        // if (len > 0)
-        // {
-        //     ledOn();
-        //     sx1278->send(msg, len);
-        //     ledOff();
-        // }
-        sx1278->send(msg, 63);
-        // Thread::sleep(50);
+        int len = usart->read(msg, sizeof(msg));
+
+        if (len > 0)
+        {
+            ledOn();
+            sx1278->send(msg, len);
+            ledOff();
+        }
     }
 }
