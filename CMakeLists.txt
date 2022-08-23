@@ -107,6 +107,9 @@ sbs_target(main-test-current-sensing stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-vn100 src/tests/Main/sensors/test-vn100.cpp)
 sbs_target(main-test-vn100 stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-ubxgps src/tests/Main/sensors/test-ubxgps.cpp)
+sbs_target(main-test-ubxgps stm32f429zi_skyward_death_stack_v3)
+
 add_executable(main-test-leds src/tests/Main/test-leds.cpp)
 sbs_target(main-test-leds stm32f429zi_skyward_death_stack_v3)
 
@@ -123,6 +126,9 @@ sbs_target(main-test-sensors stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-serial-ports src/tests/Main/test-serial-ports.cpp)
 sbs_target(main-test-serial-ports stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-test-xbee src/tests/Main/test-xbee.cpp)
+sbs_target(main-test-xbee stm32f429zi_skyward_death_stack_v3)
 
 #-----------------------------------------------------------------------------#
 #                              Auxiliary Computer                             #

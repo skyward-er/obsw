@@ -125,7 +125,8 @@
         "miosix",
         "Nidasio",
         "telecommands",
-        "usart"
+        "usart",
+        "Xbee"
     ],
     "C_Cpp.errorSquiggles": "Enabled"
 }
