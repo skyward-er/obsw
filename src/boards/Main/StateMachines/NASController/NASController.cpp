@@ -60,7 +60,7 @@ void NASController::update()
 
     // Predict step
     nas.predictGyro(imuData);
-    // nas.predictAcc(imuData);
+    nas.predictAcc(imuData);
 
     // Correct step
     nas.correctMag(imuData);

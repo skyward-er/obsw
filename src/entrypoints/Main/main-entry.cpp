@@ -76,13 +76,6 @@ int main()
         LOG_ERR(logger, "Error starting the CAN interface");
     }
 
-    // Start the FMM
-    if (!FlightModeManager::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the FMM");
-    }
-
     // Start the state machines
     if (!ADAController::getInstance().start())
     {
