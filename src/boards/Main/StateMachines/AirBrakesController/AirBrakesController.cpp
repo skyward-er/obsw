@@ -30,6 +30,10 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
+#ifdef HILMockNAS
+#include "Main/Sensors/Sensors.h"
+#endif
+
 #include "RoccarasoTrajectorySet.h"
 
 using namespace miosix;

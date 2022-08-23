@@ -19,46 +19,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <Main/Buses.h>
-#include <events/EventBroker.h>
-#include <events/FSM.h>
-#include <events/utils/EventCounter.h>
-
 #include <cstdio>
 #include <cstdlib>
 
 #include "Main/BoardScheduler.h"
+#include "Main/Buses.h"
 #include "Main/Sensors/Sensors.h"
 #include "drivers/timer/TimestampTimer.h"
 #include "drivers/usart/USART.h"
+#include "events/EventBroker.h"
 #include "kernel/scheduler/priority/priority_scheduler.h"
 #include "miosix.h"
-#include "sensors/SensorManager.h"
 
 /* HIL includes */
 #include "HIL.h"
-#include "HIL_algorithms/HILMockAerobrakeAlgorithm.h"
-#include "HIL_algorithms/HILMockKalman.h"
 #include "HIL_sensors/HILSensors.h"
 
 /* Radio includes */
+#ifdef HILUseRadio
 #include <Main/Radio/Radio.h>
+#endif  // HILUseRadio
 
 /* ADA includes */
-
+#ifdef HILUseADA
 #include <Main/Configs/ADAConfig.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <algorithms/ADA/ADA.h>
+#endif  // HILUseADA
 
 /* NAS includes */
 #ifndef HILMockNAS
 #include <Main/Configs/NASConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#else  // HILMockNAS
+#include "HIL_algorithms/HILMockKalman.h"
 #endif  // HILMockNAS
 
 /* Airbrakes includes */
+#ifndef HILMockAirBrakes
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
+#else  // HILMockAirBrakes
+#include "HIL_algorithms/HILMockAerobrakeAlgorithm.h"
+#endif  // HILMockAirBrakes
 
 /* FlightModeManager includes */
 #include <Main/Configs/FlightModeManagerConfig.h>
@@ -150,6 +153,13 @@ TimedTrajectoryPoint getCurrentPosition()
 /**
  * Test in order to see if the framework runs properly. This test just sends
  * back a valid constant aperture of the airbrakes
+ *
+ * Can be built with these flags:
+ * HILMockNAS: uses the nas state calculated by the simulator
+ * HILMockAirBrakes: uses the mock airBrakes algorithm (returns always 50%)
+ * HILUseADA: uses the real ADA to calculate
+ * HILUseRadio: uses the radio to send telemetry and receive telecommands
+ * USE_SERIAL_TRANSCEIVER: Uses the radio with the serial transceiver
  */
 int main()
 {
@@ -179,8 +189,10 @@ int main()
         Main::BoardScheduler::getInstance().getScheduler();
 
     /*---------------- [Radio] Radio ---------------*/
+#ifdef HILUseRadio
     TRACE("Starting Radio\n");
     Main::Radio::getInstance().start();
+#endif  // HILUseRadio
 
     /*-------------- [HILT] HILTransceiver --------------*/
 
@@ -199,39 +211,31 @@ int main()
     eventBroker.start();
 
     /*-------------- [CA] Control Algorithm --------------*/
+#ifndef HILMockAirBrakes
     Main::AirBrakesController& airbrakes_controller =
         Main::AirBrakesController::getInstance();
 
     TaskScheduler::function_t update_Airbrake{
         bind(&Main::AirBrakesController::update, &airbrakes_controller)};
 
-    // definition of the MOCK control algorithm
-    // MockAirbrakeAlgorithm mockAirbrake(getCurrentPosition, setActuator);
-
-    // mockAirbrake.init();
-    // mockAirbrake.begin();
-
-    // // registering the starting and ending of the algorithm in base of the
-    // // phase
-    // flightPhasesManager->registerToFlightPhase(
-    //     FlightPhases::AEROBRAKES,
-    //     bind(&MockAirbrakeAlgorithm<HILKalmanData>::begin,
-    // &mockAirbrake));
-
-    // flightPhasesManager->registerToFlightPhase(
-    //     FlightPhases::APOGEE,
-    //     bind(&MockAirbrakeAlgorithm<HILKalmanData>::end, &mockAirbrake));
-
-    // TaskScheduler::function_t update_Airbrake{
-    //     bind(&MockAirbrakeAlgorithm::update, &mockAirbrake)};
-
     TRACE("Starting abk\n");
     airbrakes_controller.start();
+#else   // HILMockAirBrakes
+    // definition of the MOCK control algorithm
+    MockAirbrakeAlgorithm mockAirbrake(getCurrentPosition);
+
+    mockAirbrake.init();
+    mockAirbrake.begin();
+
+    TaskScheduler::function_t update_Airbrake{
+        bind(&MockAirbrakeAlgorithm::update, &mockAirbrake)};
+#endif  // HILMockAirBrakes
 
     // adding to the scheduler the update of the AirBrakes
     scheduler.addTask(update_Airbrake, (uint32_t)(1000 / CONTROL_FREQ));
 
     /*---------------- [ADA] ADA ---------------*/
+#ifdef HILUseADA
     Main::ADAController& ada_controller = Main::ADAController::getInstance();
 
     // setting the function that updates the data of the ADA in the struct that
@@ -248,6 +252,7 @@ int main()
 
     TRACE("Starting ada\n");
     ada_controller.start();
+#endif  // HILUseADA
 
 /*---------------- [NAS] NAS ---------------*/
 #ifndef HILMockNAS
@@ -277,46 +282,11 @@ int main()
     TRACE("Starting sensors\n");
     Main::Sensors::getInstance().start();
 
-    /*-------------- Adding other tasks to scheduler --------------*/
-    // PRINTS FOR DEBUGGING
-    scheduler.addTask(
-        []()
-        {
-            if (HIL::getInstance().isSimulationRunning())
-            {
-
-                TRACE("accelN: %f\n", HIL::getInstance()
-                                          .simulator->getSensorData()
-                                          ->accelerometer.measures[0]
-                                          .getX());
-
-#ifndef HILMockNAS
-                Boardcore::NASState nasState =
-                    Main::NASController::getInstance().getNasState();
-                TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
-                      nasState.e, nasState.d);
-                TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
-                      nasState.ve, nasState.vd);
-#else   // HILMockNAS
-                Boardcore::TimedTrajectoryPoint point =
-                    Main::Sensors::getInstance().state.kalman->getLastSample();
-                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
-#endif  // HILMockNAS
-
-                HIL::getInstance().simulator->getSensorData()->printKalman();
-                // Boardcore::ADAState adaState =
-                //     Main::ADAController::getInstance().getAdaState();
-                // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
-                //       adaState.verticalSpeed);
-            }
-        },
-        1000);
-
-    /*---------- Starting threads --------*/
-
+    /*---------- [DPL] Deployment --------*/
     TRACE("Starting deployment\n");
     Main::Deployment::getInstance().start();
 
+    /*---------- [DPL] Deployment --------*/
     TRACE("Starting board TS\n");
     scheduler.start();
 
@@ -336,12 +306,16 @@ int main()
             Thread::sleep(500);
 #endif  // HILMockNAS
 
-            // calibrate algorithms
+#ifdef HILUseADA
+            // calibrate ADA
             eventBroker.post(ADA_CALIBRATE, TOPIC_ADA);
             Thread::sleep(50);
+#endif  // HILUseADA
 
+#ifndef HILMockNAS
             eventBroker.post(NAS_CALIBRATE, TOPIC_NAS);
             Thread::sleep(50);
+#endif  // HILMockNAS
 
             // ask to arm the board and get ready for launch
             eventBroker.post(TMTC_ARM, TOPIC_TMTC);
@@ -353,15 +327,42 @@ int main()
             // showThreadStackSizes();
         });
 
-    // // To show statistics on the threads 10 seconds after initialization of
-    // all
-    // // the components
+    // To show statistics on the threads 10 seconds after initialization of all
+    // the components
     // Thread::sleep(10000);
     // showThreadStackSizes();
 
     while (true)
     {
-        Thread::wait();
+        Thread::sleep(1000);
+
+        if (HIL::getInstance().isSimulationRunning())
+        {
+
+            TRACE("accelN: %f\n", HIL::getInstance()
+                                      .simulator->getSensorData()
+                                      ->accelerometer.measures[0]
+                                      .getX());
+
+#ifndef HILMockNAS
+            Boardcore::NASState nasState =
+                Main::NASController::getInstance().getNasState();
+            TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n, nasState.e,
+                  nasState.d);
+            TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
+                  nasState.ve, nasState.vd);
+#else   // HILMockNAS
+            Boardcore::TimedTrajectoryPoint point =
+                Main::Sensors::getInstance().state.kalman->getLastSample();
+            TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
+#endif  // HILMockNAS
+
+            HIL::getInstance().simulator->getSensorData()->printKalman();
+            // Boardcore::ADAState adaState =
+            //     Main::ADAController::getInstance().getAdaState();
+            // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
+            //       adaState.verticalSpeed);
+        }
     }
 
     return 0;
