@@ -167,10 +167,14 @@ void AirBrakesController::state_end(const Event& event)
 AirBrakesController::AirBrakesController()
     : FSM(&AirBrakesController::state_init),
       abk(
+#ifndef HILMockNAS
           []() {
               return TimedTrajectoryPoint{
                   NASController::getInstance().getNasState()};
           },
+#else   // HILMockNAS
+          []() { return Sensors::getInstance().state.kalman->getLastSample(); },
+#endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfigs::ABK_CONFIG,
           [](float position) {
               Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,

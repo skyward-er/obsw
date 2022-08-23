@@ -45,13 +45,16 @@
 #include <Main/Radio/Radio.h>
 
 /* ADA includes */
+
 #include <Main/Configs/ADAConfig.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <algorithms/ADA/ADA.h>
 
 /* NAS includes */
+#ifndef HILMockNAS
 #include <Main/Configs/NASConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#endif  // HILMockNAS
 
 /* Airbrakes includes */
 #include <Main/Configs/AirBrakesControllerConfig.h>
@@ -76,8 +79,12 @@ using namespace Common;
  */
 TimedTrajectoryPoint getCurrentPosition()
 {
+#ifndef HILMockNAS
     return TimedTrajectoryPoint(
         Main::NASController::getInstance().getNasState());
+#else
+    return Main::Sensors::getInstance().state.kalman->getLastSample();
+#endif  // HILMockNAS
 }
 
 // /**
@@ -147,17 +154,17 @@ TimedTrajectoryPoint getCurrentPosition()
 int main()
 {
     /*-------------- Pin initialization [to be removed] --------------*/
-    // radio
-    u2rx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u2rx1::getPin().alternateFunction(7);
-    u2tx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u2tx1::getPin().alternateFunction(7);
+    // // radio
+    // u2rx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u2rx1::getPin().alternateFunction(7);
+    // u2tx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u2tx1::getPin().alternateFunction(7);
 
-    // hil
-    u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u3rx1::getPin().alternateFunction(7);
-    u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
-    u3tx1::getPin().alternateFunction(7);
+    // // hil
+    // u3rx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u3rx1::getPin().alternateFunction(7);
+    // u3tx1::getPin().mode(miosix::Mode::ALTERNATE);
+    // u3tx1::getPin().alternateFunction(7);
 
     /*-------------- [HILFPM] HILFlightPhasesManager --------------*/
     // Definition of the flight phases manager
@@ -235,7 +242,8 @@ int main()
     TRACE("Starting ada\n");
     ada_controller.start();
 
-    /*---------------- [NAS] NAS ---------------*/
+/*---------------- [NAS] NAS ---------------*/
+#ifndef HILMockNAS
     Main::NASController& nas_controller = Main::NASController::getInstance();
 
     // setting the function that updates the data of the NAS in the struct that
@@ -252,6 +260,8 @@ int main()
 
     // starting NAS only when simulation starts
 
+#endif  // HILMockNAS
+
     /*---------------- [FMM] FMM ---------------*/
     TRACE("Starting FMM\n");
     Main::FlightModeManager::getInstance().start();
@@ -267,22 +277,28 @@ int main()
         {
             if (HIL::getInstance().isSimulationRunning())
             {
-                Boardcore::ADAState adaState =
-                    Main::ADAController::getInstance().getAdaState();
+
+                TRACE("accelN: %f\n", HIL::getInstance()
+                                          .simulator->getSensorData()
+                                          ->accelerometer.measures[0]
+                                          .getX());
+
+#ifndef HILMockNAS
                 Boardcore::NASState nasState =
                     Main::NASController::getInstance().getNasState();
-                Boardcore::TimedTrajectoryPoint point =
-                    Boardcore::TimedTrajectoryPoint(nasState);
-
-                HIL::getInstance()
-                    .simulator->getSensorData()
-                    ->printAccelerometer();
-                HIL::getInstance().simulator->getSensorData()->printKalman();
-                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
                 TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n,
                       nasState.e, nasState.d);
                 TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
                       nasState.ve, nasState.vd);
+#else   // HILMockNAS
+                Boardcore::TimedTrajectoryPoint point =
+                    Main::Sensors::getInstance().state.kalman->getLastSample();
+                TRACE("point -> z:%+.3f, vz:%+.3f\n", point.z, point.vz);
+#endif  // HILMockNAS
+
+                HIL::getInstance().simulator->getSensorData()->printKalman();
+                // Boardcore::ADAState adaState =
+                //     Main::ADAController::getInstance().getAdaState();
                 // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
                 //       adaState.verticalSpeed);
             }
@@ -305,11 +321,13 @@ int main()
         FlightPhases::SIMULATION_STARTED,
         [&]()
         {
+#ifndef HILMockNAS
             // starting NAS only when simulation starts in order to avoid
             // erroneus attitude estimation
             TRACE("Starting nas\n");
             nas_controller.start();
             Thread::sleep(500);
+#endif  // HILMockNAS
 
             // calibrate algorithms
             eventBroker.post(ADA_CALIBRATE, TOPIC_ADA);
