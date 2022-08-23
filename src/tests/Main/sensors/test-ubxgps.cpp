@@ -30,15 +30,15 @@ int main()
 {
     SPIBus spi2(SPI2);
     UBXGPSSpi gps{spi2, sensors::gps::cs::getPin(),
-                  UBXGPSSpi::getDefaultSPIConfig(), 10};
+                  UBXGPSSpi::getDefaultSPIConfig(), 5};
 
-    TRACE("Initializing UBXGPSSpi...\n");
+    printf("Initializing UBXGPSSpi...\n");
 
     while (!gps.init())
     {
-        TRACE("Init failed! (code: %d)\n", gps.getLastError());
+        printf("Init failed! (code: %d)\n", gps.getLastError());
 
-        TRACE("Retrying in 10 seconds...\n");
+        printf("Retrying in 10 seconds...\n");
         miosix::Thread::sleep(10000);
     }
 
@@ -47,7 +47,7 @@ int main()
         gps.sample();
         GPSData sample __attribute__((unused)) = gps.getLastSample();
 
-        TRACE(
+        printf(
             "timestamp: %4.3f, lat: %f, lon: %f, height: %4.1f, velN: %3.2f, "
             "velE: %3.2f, velD: %3.2f, speed: %3.2f, track %3.1f, pDOP: %f, "
             "nsat: %2d, fix: %2d\n",
