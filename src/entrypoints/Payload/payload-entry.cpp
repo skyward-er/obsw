@@ -27,6 +27,7 @@
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/Deployment/Deployment.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AltitudeTrigger.h>
@@ -91,6 +92,13 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
     }
+
+    if (!Deployment::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the deployment state machine");
+    }
+
     if (!NASController::getInstance().start())
     {
         initResult = false;

@@ -79,6 +79,10 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     void camOff();
 
+    void cuttersOn();
+
+    void cuttersOff();
+
 private:
     Actuators();
 
