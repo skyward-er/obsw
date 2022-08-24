@@ -39,7 +39,7 @@ std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
 
 FileWingAlgorithm::FileWingAlgorithm(ServosList servo1, ServosList servo2,
                                      const char* filename)
-    : parser(filename), WingAlgorithm(servo1, servo2)
+    : WingAlgorithm(servo1, servo2), parser(filename)
 {
     setServo(servo1, servo2);
 }
