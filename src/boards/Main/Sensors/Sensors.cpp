@@ -135,6 +135,11 @@ InternalADCData Sensors::getInternalADCLastSample()
                                   : InternalADCData{};
 }
 
+bool Sensors::isCutterPresent()
+{
+    return cutterSensingMean > CUTTER_SENSING_THRESHOLD;
+}
+
 void Sensors::calibrate()
 {
     calibrating = true;
@@ -440,12 +445,30 @@ void Sensors::batteryVoltageInit()
 
 void Sensors::internalAdcInit()
 {
-    internalAdc = new InternalADC(ADC3, INTERNAL_ADC_VREF);
+    internalAdc = new InternalADC(ADC1, INTERNAL_ADC_VREF);
 
     internalAdc->enableChannel(INTERNAL_ADC_CH_5V_CURRENT);
     internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_CURRENT);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_SENSE);
 
-    SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC);
+    SensorInfo info(
+        "INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
+        [&]()
+        {
+            Logger::getInstance().log(
+                internalAdc->getVoltage(INTERNAL_ADC_CH_5V_CURRENT));
+            Logger::getInstance().log(
+                internalAdc->getVoltage(INTERNAL_ADC_CH_CUTTER_CURRENT));
+
+            auto cutterSenseData =
+                internalAdc->getVoltage(INTERNAL_ADC_CH_CUTTER_SENSE);
+            Logger::getInstance().log(cutterSenseData);
+
+            cutterSensingMean =
+                cutterSensingMean * (1 - CUTTER_SENSING_MOV_MEAN_COEFF);
+            cutterSensingMean +=
+                cutterSenseData.voltage * CUTTER_SENSING_MOV_MEAN_COEFF;
+        });
 
     sensorsMap.emplace(make_pair(internalAdc, info));
 

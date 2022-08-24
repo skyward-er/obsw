@@ -69,6 +69,8 @@ public:
 
     Boardcore::InternalADCData getInternalADCLastSample();
 
+    bool isCutterPresent();
+
     /**
      * @brief Blocking function that calibrates the sensors.
      *
@@ -149,6 +151,8 @@ private:
     Boardcore::Stats staticPressureStats;
     Boardcore::Stats dplPressureStats;
     Boardcore::Stats loadCellStats;
+
+    float cutterSensingMean = 0;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

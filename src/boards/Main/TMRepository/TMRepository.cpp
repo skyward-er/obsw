@@ -235,7 +235,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             auto ms5803Data = sensors.getMS5803LastSample();
             auto imuData    = sensors.getBMX160WithCorrectionLastSample();
 
-            auto nasState      = NASController::getInstance().getNasState();
+            auto nasState      = nas.getNasState();
+            auto adaState      = ada.getAdaState();
             UBXGPSData ubxData = sensors.getUbxGpsLastSample();
 
             tm.timestamp = TimestampTimer::getTimestamp();
@@ -255,9 +256,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.airspeed_pitot  = 0;  // TODO: Implement
 
             // ADA estimation
-            tm.msl_altitude   = 0;
-            tm.ada_vert_speed = 0;
-            tm.ada_vert_accel = 0;
+            tm.altitude_agl   = adaState.aglAltitude;
+            tm.ada_vert_speed = adaState.verticalSpeed;
 
             // IMU
             tm.acc_x  = imuData.accelerationX;
@@ -301,9 +301,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 PinHandler::getInstance().getPinsData()[LAUNCH_PIN].lastState;
             tm.pin_nosecone =
                 PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
-            tm.servo_sensor = PinHandler::getInstance()
-                                  .getPinsData()[DEPLOYMENT_PIN]
-                                  .lastState;
+            tm.pin_expulsion = PinHandler::getInstance()
+                                   .getPinsData()[DEPLOYMENT_PIN]
+                                   .lastState;
+
+            // Cutter presence
+            tm.cutter_presence = Sensors::getInstance().isCutterPresent();
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;

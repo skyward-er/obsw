@@ -36,12 +36,17 @@ namespace Main
 namespace SensorsConfig
 {
 
-// Internal ADC
+// Internal ADC and connected sensors
 static constexpr float INTERNAL_ADC_VREF = 3.3;
 static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_5V_CURRENT =
     Boardcore::InternalADC::Channel::CH11;
 static constexpr Boardcore::InternalADC::Channel
     INTERNAL_ADC_CH_CUTTER_CURRENT = Boardcore::InternalADC::Channel::CH12;
+static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_CUTTER_SENSE =
+    Boardcore::InternalADC::Channel::CH15;
+
+static constexpr float CUTTER_SENSING_MOV_MEAN_COEFF = 1.0 / 100.0;
+static constexpr float CUTTER_SENSING_THRESHOLD      = 0.09 + 0.5;
 
 // ADS131M04 and connected sensors
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_STATIC_PORT =

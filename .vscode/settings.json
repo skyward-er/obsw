@@ -121,11 +121,13 @@
         "Eigen",
         "EXTI",
         "GPIOF",
+        "kalman",
         "mavlink",
         "miosix",
         "Nidasio",
         "telecommands",
         "usart",
+        "VREF",
         "Xbee"
     ],
     "C_Cpp.errorSquiggles": "Enabled"

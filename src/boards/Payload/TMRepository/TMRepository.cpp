@@ -181,11 +181,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
             tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
 
-            // ADA estimation
-            tm.msl_altitude   = 0;
-            tm.ada_vert_speed = 0;
-            tm.ada_vert_accel = 0;
-
             // IMU
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;

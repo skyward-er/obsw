@@ -231,7 +231,6 @@ Sensors::Sensors()
     sensorManager = new SensorManager(
         sensorsMap, &Main::BoardScheduler::getInstance().getScheduler());
 
-    printf("Sensors init ok\n");
     EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 }
 
