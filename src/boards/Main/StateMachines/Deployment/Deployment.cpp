@@ -195,13 +195,13 @@ void Deployment::wiggleServo()
 void Deployment::startCutting()
 {
     // TODO: Change with actual cutter
-    Actuators::getInstance().led1.high();
+    Actuators::getInstance().ledRed.high();
 }
 
 void Deployment::stopCutting()
 {
     // TODO: Change with actual cutter
-    Actuators::getInstance().led1.low();
+    Actuators::getInstance().ledRed.low();
 }
 
 }  // namespace Main

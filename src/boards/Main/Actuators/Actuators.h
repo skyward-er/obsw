@@ -39,10 +39,9 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    miosix::GpioPin led1;
-    miosix::GpioPin led2;
-    miosix::GpioPin led3;
-    miosix::GpioPin led4;
+    miosix::GpioPin ledRed;
+    miosix::GpioPin ledGreen;
+    miosix::GpioPin ledBlue;
 
     miosix::GpioPin cutter1;
     miosix::GpioPin cutter1Backup;

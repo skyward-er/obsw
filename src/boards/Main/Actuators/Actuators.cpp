@@ -158,9 +158,8 @@ void Actuators::sendToSimulator() { servoAirbrakes.sendToSimulator(); }
 #endif  // HILSimulation
 
 Actuators::Actuators()
-    : led1(leds::green1::getPin()), led2(leds::red::getPin()),
-      led3(leds::blue::getPin()), led4(leds::green2::getPin()),
-      cutter1(cutter::enable::getPin()),
+    : ledRed(leds::red::getPin()), ledGreen(leds::green::getPin()),
+      ledBlue(leds::blue::getPin()), cutter1(cutter::enable::getPin()),
       cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
 #ifndef HILSimulation
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,

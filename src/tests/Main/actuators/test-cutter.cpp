@@ -35,8 +35,8 @@ InternalADC adc(ADC1, 3.3);
 void print()
 {
     adc.sample();
-    printf("ADC: %f, Presence: %d\n", adc.getVoltage(InternalADC::CH12).voltage,
-           cutter::sense::value());
+    printf("ADC: %f, Presence: %f\n", adc.getVoltage(InternalADC::CH12).voltage,
+           adc.getVoltage(InternalADC::CH15).voltage);
 }
 
 int main()
@@ -44,10 +44,11 @@ int main()
     ADC->CCR |= ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
 
     adc.enableChannel(InternalADC::CH12);
+    adc.enableChannel(InternalADC::CH15);
     adc.init();
 
     TaskScheduler scheduler;
-    scheduler.addTask(print, 500);
+    scheduler.addTask(print, 20);
 
     printf("Starting...\n");
     scheduler.start();
