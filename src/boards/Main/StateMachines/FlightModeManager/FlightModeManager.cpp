@@ -327,7 +327,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case FLIGHT_LIFTOFF:
+        case FLIGHT_UMBILICAL_DETACHED:
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);
@@ -347,6 +347,7 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
