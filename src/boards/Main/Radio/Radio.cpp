@@ -46,7 +46,13 @@ using namespace Main::RadioConfig;
 using namespace Common;
 
 // SX127x interrupt
-#ifndef USE_SERIAL_TRANSCEIVER
+#if defined(USE_XBEE_TRANSCEIVER)
+void __attribute__((used)) EXTI7_IRQHandlerImpl()
+{
+    if (Main::Radio::getInstance().transceiver)
+        Main::Radio::getInstance().transceiver->handleATTNInterrupt();
+}
+#elif !defined(USE_SERIAL_TRANSCEIVER)
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     if (Main::Radio::getInstance().transceiver)
@@ -91,8 +97,22 @@ void Radio::logStatus()
 
 Radio::Radio()
 {
-#ifdef USE_SERIAL_TRANSCEIVER
+#if defined(USE_SERIAL_TRANSCEIVER)
+    Boardcore::SerialTransceiver* transceiver;
     transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+#elif defined(USE_XBEE_TRANSCEIVER)
+    SPIBusConfig config{};
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    using attn = Gpio<GPIOD_BASE, 7>;   // GPIO14
+    using rst  = Gpio<GPIOC_BASE, 13>;  // GPIO8
+
+    transceiver = new Xbee::Xbee(Buses::getInstance().spi5, config,
+                                 sensors::sx127x::cs::getPin(), attn::getPin(),
+                                 rst::getPin());
+    Xbee::setDataRate(*transceiver, true, 5000);
+
+    enableExternalInterrupt(GPIOD_BASE, 7, InterruptTrigger::FALLING_EDGE);
 #else
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());

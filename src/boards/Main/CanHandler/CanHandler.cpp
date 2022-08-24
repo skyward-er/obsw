@@ -126,8 +126,6 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
     auto it         = eventToEvent.find(eventId);
 
-    static int count = 0;
-
     if (it != eventToEvent.end())
         EventBroker::getInstance().post(it->second, TOPIC_TMTC, this);
     else
