@@ -65,11 +65,9 @@ static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
 
 // BMX160
 static constexpr Boardcore::BMX160Config::AccelerometerRange
-    IMU_BMX_ACC_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::AccelerometerRange::G_16;
-static constexpr Boardcore::BMX160Config::GyroscopeRange
-    IMU_BMX_GYRO_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
+    IMU_BMX_ACC_FSR_ENUM = Boardcore::BMX160Config::AccelerometerRange::G_16;
+static constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
+    Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
 static constexpr Boardcore::BMX160Config::OutputDataRate
     IMU_BMX_ACC_GYRO_ODR_ENUM =

@@ -31,6 +31,7 @@
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/VN100/VN100.h>
 #include <sensors/analog/AnalogLoadCell.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
@@ -97,6 +98,8 @@ private:
 
     void ubxGpsInit();
 
+    void vn100Init();
+
     void ads131m04Init();
 
     void staticPressureInit();
@@ -113,7 +116,8 @@ private:
     Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
     Boardcore::MPU9250 *mpu9250                           = nullptr;
     Boardcore::MS5803 *ms5803                             = nullptr;
-    Boardcore::UBXGPSSpi *ubxGps;
+    Boardcore::UBXGPSSpi *ubxGps                          = nullptr;
+    Boardcore::VN100 *vn100                               = nullptr;
 
     Boardcore::ADS131M04 *ads131m04                 = nullptr;
     Boardcore::MPXH6115A *staticPressure            = nullptr;

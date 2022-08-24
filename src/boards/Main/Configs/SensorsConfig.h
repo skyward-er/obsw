@@ -27,6 +27,7 @@
 #include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/MPU9250/MPU9250.h>
 #include <sensors/calibration/AxisOrientation.h>
 #include <sensors/calibration/Calibration.h>
 
@@ -69,11 +70,9 @@ static constexpr float LOAD_CELL_SUPPLY_VOLTAGE    = 5;   // [V]
 
 // BMX160
 static constexpr Boardcore::BMX160Config::AccelerometerRange
-    IMU_BMX_ACC_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::AccelerometerRange::G_16;
-static constexpr Boardcore::BMX160Config::GyroscopeRange
-    IMU_BMX_GYRO_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
+    IMU_BMX_ACC_FSR_ENUM = Boardcore::BMX160Config::AccelerometerRange::G_16;
+static constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
+    Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
 static constexpr Boardcore::BMX160Config::OutputDataRate
     IMU_BMX_ACC_GYRO_ODR_ENUM =
@@ -88,6 +87,12 @@ static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
 static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
+
+// MPU9250
+static constexpr Boardcore::MPU9250::AccelFSR IMU_MPU_ACC_FSR =
+    Boardcore::MPU9250::AccelFSR::ACCEL_FSR_16G;
+static constexpr Boardcore::MPU9250::GyroFSR IMU_MPU_GYRO_FSR =
+    Boardcore::MPU9250::GyroFSR::GYRO_FSR_1000DPS;
 
 // How many bytes go into the fifo each second
 static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
@@ -112,12 +117,13 @@ static constexpr unsigned int GPS_SAMPLE_RATE = 10;
 static constexpr unsigned int GPS_BAUD_RATE   = 460800;
 
 // Sampling periods and dividers
-static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 6;
+static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 1;
 static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1;
 static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
 static constexpr unsigned int TEMP_DIVIDER_PRESS_DIGITAL  = 5;
-static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU       = 50;
-static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
+static constexpr unsigned int SAMPLE_PERIOD_IMU_MPU       = 5;
+static constexpr unsigned int SAMPLE_PERIOD_GPS   = 1000 / GPS_SAMPLE_RATE;
+static constexpr unsigned int SAMPLE_PERIOD_VN100 = 5;
 
 // Sample before the fifo is full, but slightly after the watermark level
 // (watermark + 30) ---> high slack due to scheduler imprecision,

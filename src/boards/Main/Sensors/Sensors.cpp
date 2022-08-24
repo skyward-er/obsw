@@ -228,8 +228,8 @@ void Sensors::bmx160Init()
 
     config.temperatureDivider = IMU_BMX_TEMP_DIVIDER;
 
-    config.accelerometerRange = IMU_BMX_ACC_FULLSCALE_ENUM;
-    config.gyroscopeRange     = IMU_BMX_GYRO_FULLSCALE_ENUM;
+    config.accelerometerRange = IMU_BMX_ACC_FSR_ENUM;
+    config.gyroscopeRange     = IMU_BMX_GYRO_FSR_ENUM;
 
     config.accelerometerDataRate = IMU_BMX_ACC_GYRO_ODR_ENUM;
     config.gyroscopeDataRate     = IMU_BMX_ACC_GYRO_ODR_ENUM;
@@ -284,11 +284,16 @@ void Sensors::bmx160WithCorrectionInit()
 
 void Sensors::mpu9250Init()
 {
-    mpu9250 =
-        new MPU9250(Buses::getInstance().spi4, sensors::mpu9250::cs::getPin());
+    auto spiConfig         = MPU9250::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+
+    mpu9250 = new MPU9250(
+        Buses::getInstance().spi4, sensors::mpu9250::cs::getPin(), spiConfig,
+        1000 / SAMPLE_PERIOD_VN100, IMU_MPU_GYRO_FSR, IMU_MPU_ACC_FSR);
 
     SensorInfo info("MPU9250", SAMPLE_PERIOD_IMU_MPU,
-                    bind(&Sensors::bmx160Callback, this));
+                    [&]()
+                    { Logger::getInstance().log(mpu9250->getLastSample()); });
 
     sensorsMap.emplace(make_pair(mpu9250, info));
 
@@ -332,6 +337,17 @@ void Sensors::ubxGpsInit()
     sensorsMap.emplace(make_pair(ubxGps, info));
 
     LOG_INFO(logger, "UbloxGPS setup done!");
+}
+
+void Sensors::vn100Init()
+{
+    vn100 = new VN100(USART2, USARTInterface::Baudrate::B921600,
+                      VN100::CRCOptions::CRC_ENABLE_16);
+
+    SensorInfo info("VN100", SAMPLE_PERIOD_VN100,
+                    [&]()
+                    { Logger::getInstance().log(vn100->getLastSample()); });
+    sensorsMap.emplace(make_pair(ubxGps, info));
 }
 
 void Sensors::ads131m04Init()
