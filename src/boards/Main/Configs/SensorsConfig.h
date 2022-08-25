@@ -47,7 +47,7 @@ static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_CUTTER_SENSE =
     Boardcore::InternalADC::Channel::CH15;
 
 static constexpr float CUTTER_SENSING_MOV_MEAN_COEFF = 1.0 / 100.0;
-static constexpr float CUTTER_SENSING_THRESHOLD      = 0.09 + 0.5;
+static constexpr float CUTTER_SENSING_THRESHOLD      = 0.1 + 1.3 / 2;
 
 // ADS131M04 and connected sensors
 static constexpr Boardcore::ADS131M04::Channel ADC_CH_STATIC_PORT =
