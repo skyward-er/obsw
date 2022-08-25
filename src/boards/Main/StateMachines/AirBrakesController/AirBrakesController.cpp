@@ -34,7 +34,11 @@
 #include "Main/Sensors/Sensors.h"
 #endif
 
-#include "RoccarasoTrajectorySet.h"
+#ifdef INTERP
+#include "PortugalTrajectorySetInterp.h"
+#else
+#include "PortugalTrajectorySet.h"
+#endif
 
 using namespace miosix;
 using namespace Boardcore;
@@ -102,6 +106,7 @@ void AirBrakesController::state_idle(const Event& event)
         }
         case FLIGHT_LIFTOFF:
         {
+            abk.setLiftoffTimestamp();
             return transition(&AirBrakesController::state_shadow_mode);
         }
     }
@@ -183,7 +188,13 @@ AirBrakesController::AirBrakesController()
           [](float position) {
               Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
                                                 position);
-          })
+          },
+#ifdef INTERP
+          true
+#else
+          false
+#endif
+      )
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
