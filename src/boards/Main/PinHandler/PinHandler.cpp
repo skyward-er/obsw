@@ -44,14 +44,14 @@ void PinHandler::onLaunchPinTransition(PinTransition transition)
                                         TOPIC_FLIGHT);
 }
 
-void PinHandler::onNCPinTransition(PinTransition transition)
+void PinHandler::onDeploymentPinTransition(PinTransition transition)
 {
     if (transition == NC_DETACH_PIN_TRIGGER)
         EventBroker::getInstance().post(Event{FLIGHT_NC_DETACHED},
                                         TOPIC_FLIGHT);
 }
 
-void PinHandler::onDPLServoPinTransition(PinTransition transition)
+void PinHandler::onNoseconePinTransition(PinTransition transition)
 {
     if (transition == DPL_SERVO_PIN_TRIGGER)
         EventBroker::getInstance().post(Event{DPL_SERVO_ACTUATION_DETECTED},
@@ -64,10 +64,10 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 
     data[PinsList::LAUNCH_PIN] = PinObserver::getInstance().getPinData(
         sensors::launchpad_detach::getPin());
-    data[PinsList::NOSECONE_PIN] = PinObserver::getInstance().getPinData(
-        expulsion::nosecone_detach::getPin());
     data[PinsList::DEPLOYMENT_PIN] =
         PinObserver::getInstance().getPinData(expulsion::sense::getPin());
+    data[PinsList::NOSECONE_PIN] = PinObserver::getInstance().getPinData(
+        expulsion::nosecone_detach::getPin());
 
     return data;
 }
@@ -75,19 +75,19 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 PinHandler::PinHandler()
 {
     PinObserver::getInstance().registerPinCallback(
+        expulsion::sense::getPin(),
+        bind(&PinHandler::onDeploymentPinTransition, this, _1),
+        DPL_SERVO_PIN_THRESHOLD, true);
+
+    PinObserver::getInstance().registerPinCallback(
         sensors::launchpad_detach::getPin(),
         bind(&PinHandler::onLaunchPinTransition, this, _1),
         LAUNCH_PIN_THRESHOLD);
 
     PinObserver::getInstance().registerPinCallback(
         expulsion::nosecone_detach::getPin(),
-        bind(&PinHandler::onLaunchPinTransition, this, _1),
-        NC_DETACH_PIN_THRESHOLD);
-
-    PinObserver::getInstance().registerPinCallback(
-        expulsion::sense::getPin(),
-        bind(&PinHandler::onLaunchPinTransition, this, _1),
-        DPL_SERVO_PIN_THRESHOLD);
+        bind(&PinHandler::onNoseconePinTransition, this, _1),
+        NC_DETACH_PIN_THRESHOLD, true);
 }
 
 }  // namespace Main

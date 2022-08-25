@@ -39,6 +39,6 @@ static constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
 
 static constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
 static constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+    Boardcore::PinTransition::FALLING_EDGE;
 
 }  // namespace Main
