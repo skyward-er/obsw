@@ -113,8 +113,7 @@ static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
     "/sd/bmx160_params.csv";
 
 // GPS
-static constexpr unsigned int GPS_SAMPLE_RATE = 10;
-static constexpr unsigned int GPS_BAUD_RATE   = 460800;
+static constexpr unsigned int GPS_SAMPLE_RATE = 5;
 
 // Sampling periods and dividers
 static constexpr unsigned int SAMPLE_PERIOD_ADC_ADS131M04 = 1;
