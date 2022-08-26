@@ -48,9 +48,10 @@ AltitudeTrigger::AltitudeTrigger()
     altitude = WING_ALTITUDE_REFERENCE;
 }
 
-void AltitudeTrigger::setDeploymentAltitude(float altitude)
+void AltitudeTrigger::setDeploymentAltitude(float alt)
 {
-    this->altitude = altitude;
+    miosix::PauseKernelLock lock;
+    this->altitude = alt;
 }
 
 void AltitudeTrigger::update()
