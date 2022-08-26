@@ -22,6 +22,7 @@
 
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/Wing/WingController.h>
+#include <Payload/Wing/WingTargetPositionData.h>
 
 using namespace Boardcore;
 using namespace Payload::WingConfig;
@@ -154,6 +155,13 @@ void WingController::init()
 void WingController::setTargetPosition(Eigen::Vector2f target)
 {
     this->targetPosition = target;
+
+    WingTargetPositionData data;
+    data.latitude  = target[0];
+    data.longitude = target[1];
+
+    // Log the received position
+    Logger::getInstance().log(data);
 }
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }

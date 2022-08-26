@@ -129,10 +129,8 @@ void AutomaticWingAlgorithm::step()
     {
         // Activate the servo2 and reset servo1
         Actuators::getInstance().setServoAngle(servo1, 0);
-        Actuators::getInstance().setServoAngle(servo2, result);
+        Actuators::getInstance().setServoAngle(servo2, result * -1);
     }
-
-    Actuators::getInstance().getServoPosition(servo1);
 
     // Log the servo positions
     WingAlgorithmData data;
