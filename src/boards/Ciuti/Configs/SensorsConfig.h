@@ -31,12 +31,12 @@ namespace SensorsConfig
 {
 
 // Internal ADC
-static constexpr float INTERNAL_ADC_VREF = 3.3;
-static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_0 =
+constexpr float INTERNAL_ADC_VREF = 3.3;
+constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_0 =
     Boardcore::InternalADC::Channel::CH0;
-static constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_1 =
+constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_1 =
     Boardcore::InternalADC::Channel::CH1;
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1;
+constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1;
 
 }  // namespace SensorsConfig
 

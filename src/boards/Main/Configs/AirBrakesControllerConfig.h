@@ -31,10 +31,10 @@ namespace Main
 namespace AirBrakesControllerConfigs
 {
 
-static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
+constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
 
 // Vertical speed limit beyond which the airbrakes need to be disabled.
-static constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
+constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
 
 static const Boardcore::AirBrakesConfig ABK_CONFIG{
     .N000       = 0.4884,

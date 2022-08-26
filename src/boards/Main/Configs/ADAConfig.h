@@ -30,7 +30,7 @@ namespace Main
 namespace ADAConfig
 {
 
-static constexpr uint32_t UPDATE_PERIOD = 20;                  // 50 hz
+constexpr uint32_t UPDATE_PERIOD   = 20;                       // 50 hz
 static const float SAMPLING_PERIOD = UPDATE_PERIOD / 1000.0f;  // in seconds
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
@@ -38,12 +38,12 @@ static const float SAMPLING_PERIOD = UPDATE_PERIOD / 1000.0f;  // in seconds
 static const float KALMAN_INITIAL_ACCELERATION = -500;
 
 #ifdef EUROC
-static constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
+constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
 #else
-static constexpr int SHADOW_MODE_TIMEOUT      = 8 * 1000;  // [ms]
+constexpr int SHADOW_MODE_TIMEOUT             = 8 * 1000;  // [ms]
 #endif
 
-static constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
+constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
 
 // Default reference values settings
 #ifdef EUROC

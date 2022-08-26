@@ -29,16 +29,16 @@
 namespace Main
 {
 
-static constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
+constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 
-static constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
+constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 
-static constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
-static constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
+constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 
 }  // namespace Main

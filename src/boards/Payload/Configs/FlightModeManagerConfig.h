@@ -25,6 +25,6 @@
 namespace Payload
 {
 
-static constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
+constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 
 }

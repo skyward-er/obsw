@@ -34,13 +34,13 @@ namespace WingConfig
 {
 
 // Algorithm configuration
-static constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
-static constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
+constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
+constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
 
 // Arm, start and flare thresholds
-static constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]
-static constexpr float WING_ALGORITHM_START_ALTITUDE = 200;   // [m]
-static constexpr float WING_FLARE_ALTITUDE           = 1275;  // [m]
+constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]
+constexpr float WING_ALGORITHM_START_ALTITUDE = 200;   // [m]
+constexpr float WING_FLARE_ALTITUDE           = 1275;  // [m]
 
 static float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
 static float WING_CALIBRATION_TEMPERATURE = 300;     // [K]

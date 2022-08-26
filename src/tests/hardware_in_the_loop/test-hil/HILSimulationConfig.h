@@ -94,7 +94,6 @@ const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 1
  */
 struct SimulatorData
 {
-public:
     struct Accelerometer
     {
         Boardcore::Vec3 measures[N_DATA_ACCEL];
