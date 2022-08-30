@@ -34,8 +34,6 @@
 #include <Main/TMRepository/TMRepository.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
-#include <interfaces-impl/hwmapping.h>
-#include <radio/Xbee/ATCommands.h>
 
 #include <functional>
 
@@ -102,18 +100,23 @@ Radio::Radio()
     Boardcore::SerialTransceiver* transceiver;
     transceiver = new SerialTransceiver(Buses::getInstance().usart1);
 #elif defined(USE_XBEE_TRANSCEIVER)
-    SPIBusConfig config{};
+    SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_16;
 
     using attn = Gpio<GPIOD_BASE, 7>;   // GPIO14
     using rst  = Gpio<GPIOC_BASE, 13>;  // GPIO8
 
-    transceiver = new Xbee::Xbee(Buses::getInstance().spi5, config,
-                                 sensors::sx127x::cs::getPin(), attn::getPin(),
-                                 rst::getPin());
-    Xbee::setDataRate(*transceiver, true, 5000);
-
+    attn::mode(Mode::INPUT);
     enableExternalInterrupt(GPIOD_BASE, 7, InterruptTrigger::FALLING_EDGE);
+
+    printf("here\n");
+
+    SPIBus spi5(SPI5);
+    transceiver = new Xbee::Xbee(spi5, config, sensors::sx127x::cs::getPin(),
+                                 attn::getPin(), rst::getPin());
+    // Xbee::setDataRate(*transceiver, true, 5000);
+
+    printf("here 2\n");
 #else
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());

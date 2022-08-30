@@ -55,6 +55,24 @@ public:
 
     bool isStarted();
 
+#ifdef HILSimulation
+public:
+    /**
+     * structure that contains all the sensors used in the simulation
+     */
+    struct StateComplete
+    {
+        HILAccelerometer *accelerometer;
+        HILBarometer *barometer;
+        HILGps *gps;
+        HILGyroscope *gyro;
+        HILMagnetometer *magnetometer;
+        HILTemperature *temperature;
+        HILImu *imu;
+        HILKalman *kalman;
+    } state;
+#endif  // HILSimulation
+
     Boardcore::BMX160 *bmx160 = nullptr;
 
     Boardcore::BMX160Data getBMX160LastSample();
@@ -114,7 +132,6 @@ private:
 
     void internalAdcInit();
 
-#ifndef HILSimulation
     Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
     Boardcore::MPU9250 *mpu9250                           = nullptr;
     Boardcore::MS5803 *ms5803                             = nullptr;
@@ -128,26 +145,6 @@ private:
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
 
     Boardcore::InternalADC *internalAdc = nullptr;
-#else   // HILSimulation
-public:
-    /**
-     * structure that contains all the sensors used in the simulation
-     */
-    struct StateComplete
-    {
-        HILAccelerometer *accelerometer;
-        HILBarometer *barometer;
-        HILPitot *pitot;
-        HILGps *gps;
-        HILGyroscope *gyro;
-        HILMagnetometer *magnetometer;
-        HILTemperature *temperature;
-        HILImu *imu;
-        HILKalman *kalman;
-    } state;
-
-private:
-#endif  // HILSimulation
 
     Boardcore::SensorManager *sensorManager = nullptr;
 

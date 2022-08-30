@@ -51,28 +51,30 @@ bool NASController::start()
 void NASController::update()
 {
     // If the nas is not active i skip the step
-    if (!this->testState(&NASController::state_active))
-        return;
+    if (this->testState(&NASController::state_active))
+    {
+        auto imuData =
+            Sensors::getInstance().getBMX160WithCorrectionLastSample();
+        auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
+        auto pressureData = Sensors::getInstance().getMS5803LastSample();
+        auto pitotData =
+            Sensors::getInstance().getDifferentialPressureLastSample();
+        Eigen::Vector4f gpsMeters(gpsData.latitude, gpsData.longitude,
+                                  gpsData.velocityNorth, gpsData.velocityEast);
 
-    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
-    auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-    auto pressureData = Sensors::getInstance().getMS5803LastSample();
-    auto pitotData = Sensors::getInstance().getDifferentialPressureLastSample();
-    Eigen::Vector4f gpsMeters(gpsData.latitude, gpsData.longitude,
-                              gpsData.velocityNorth, gpsData.velocityEast);
+        // Predict step
+        nas.predictGyro(imuData);
+        nas.predictAcc(imuData);
 
-    // Predict step
-    nas.predictGyro(imuData);
-    nas.predictAcc(imuData);
+        // Correct step
+        nas.correctMag(imuData);
+        // nas.correctAcc(imuData);
+        nas.correctGPS(gpsMeters);
+        nas.correctBaro(pressureData.pressure);
+        nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
-    // Correct step
-    nas.correctMag(imuData);
-    // nas.correctAcc(imuData);
-    nas.correctGPS(gpsMeters);
-    nas.correctBaro(pressureData.pressure);
-    nas.correctPitot(pitotData.pressure, pressureData.pressure);
-
-    Logger::getInstance().log(nas.getState());
+        Logger::getInstance().log(nas.getState());
+    }
 
 #ifdef HILSimulation
     // useful only for hil testing

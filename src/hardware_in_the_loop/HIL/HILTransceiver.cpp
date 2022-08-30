@@ -105,7 +105,7 @@ void HILTransceiver::run()
             SimulatorData tempData;
             hilSerial.read(&tempData, sizeof(SimulatorData));
             miosix::PauseKernelLock kLock;
-            memmove(&sensorData, &tempData, sizeof(SimulatorData));
+            sensorData = tempData;
             if (updated)
             {
                 lostUpdate = true;

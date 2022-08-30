@@ -71,9 +71,30 @@ BMX160Data Sensors::getBMX160LastSample()
 BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
     miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
     return bmx160WithCorrection != nullptr
                ? bmx160WithCorrection->getLastSample()
                : BMX160WithCorrectionData{};
+#else
+    auto imuData = state.imu->getLastSample();
+    BMX160WithCorrectionData data;
+
+    data.accelerationTimestamp    = imuData.accelerationTimestamp;
+    data.accelerationX            = imuData.accelerationX;
+    data.accelerationY            = imuData.accelerationY;
+    data.accelerationZ            = imuData.accelerationZ;
+    data.angularVelocityTimestamp = imuData.angularVelocityTimestamp;
+    data.angularVelocityX         = imuData.angularVelocityX;
+    data.angularVelocityY         = imuData.angularVelocityY;
+    data.angularVelocityZ         = imuData.angularVelocityZ;
+    data.magneticFieldTimestamp   = imuData.magneticFieldTimestamp;
+    data.magneticFieldX           = imuData.magneticFieldX;
+    data.magneticFieldY           = imuData.magneticFieldY;
+    data.magneticFieldZ           = imuData.magneticFieldZ;
+
+    return data;
+#endif
 }
 
 MPU9250Data Sensors::getMPU9250LastSample()
@@ -91,7 +112,28 @@ MS5803Data Sensors::getMS5803LastSample()
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
     return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
+#else
+    auto data = state.gps->getLastSample();
+    UBXGPSData ubxData;
+
+    ubxData.gpsTimestamp  = data.gpsTimestamp;
+    ubxData.latitude      = data.latitude;
+    ubxData.longitude     = data.longitude;
+    ubxData.height        = data.height;
+    ubxData.velocityNorth = data.velocityNorth;
+    ubxData.velocityEast  = data.velocityEast;
+    ubxData.velocityDown  = data.velocityDown;
+    ubxData.speed         = data.speed;
+    ubxData.track         = data.track;
+    ubxData.positionDOP   = data.positionDOP;
+    ubxData.satellites    = data.satellites;
+    ubxData.fix           = data.fix;
+
+    return ubxData;
+#endif
 }
 
 ADS131M04Data Sensors::getADS131M04LastSample()
@@ -201,6 +243,27 @@ Sensors::Sensors()
     bmx160Init();
     bmx160WithCorrectionInit();
 
+#ifdef HILSimulation
+    // Definition of the fake sensors for the simulation
+    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
+    state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.gps           = new HILGps(N_DATA_GPS);
+    state.gyro          = new HILGyroscope(N_DATA_GYRO);
+    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
+    state.imu           = new HILImu(N_DATA_IMU);
+    state.temperature   = new HILTemperature(N_DATA_TEMP);
+    state.kalman        = new HILKalman(N_DATA_KALM);
+
+    sensorsMap = {{state.accelerometer, accelConfig},
+                  {state.barometer, baroConfig},
+                  {state.magnetometer, magnConfig},
+                  {state.imu, imuConfig},
+                  {state.gps, gpsConfig},
+                  {state.gyro, gyroConfig},
+                  {state.temperature, tempConfig},
+                  {state.kalman, kalmConfig}};
+#endif
+
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
 }
@@ -217,6 +280,17 @@ Sensors::~Sensors()
     delete dplPressure;
     delete internalAdc;
     delete batteryVoltage;
+
+#ifdef HILSimulation
+    delete state.accelerometer;
+    delete state.barometer;
+    delete state.gps;
+    delete state.gyro;
+    delete state.magnetometer;
+    delete state.imu;
+    delete state.temperature;
+    delete state.kalman;
+#endif
 
     sensorManager->stop();
     delete sensorManager;

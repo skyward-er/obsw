@@ -60,7 +60,9 @@ void ADAController::update()
         {
             // TODO: Implement calibration
 
-            return EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
+            EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
+
+            break;
         }
         case ADAControllerState::SHADOW_MODE:
         {

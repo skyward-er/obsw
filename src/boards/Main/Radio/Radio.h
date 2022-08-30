@@ -25,13 +25,14 @@
 #include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278.h>
 #include <scheduler/TaskScheduler.h>
 
 #if defined(USE_SERIAL_TRANSCEIVER)
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #elif defined(USE_XBEE_TRANSCEIVER)
 #include <radio/Xbee/ATCommands.h>
+#else
+#include <radio/SX1278/SX1278.h>
 #endif
 
 namespace Main

@@ -45,6 +45,11 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
+set(HIL
+    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
+    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
+)
+
 set(PAYLOAD_COMPUTER
     src/boards/Payload/Actuators/Actuators.cpp
     src/boards/Payload/CanHandler/CanHandler.cpp
@@ -76,24 +81,6 @@ set(PARAFOIL_COMPUTER
 
 set(CIUTI_COMPUTER
     src/boards/Ciuti/Sensors/Sensors.cpp
-)
-
-set(HIL_TESTS
-
-    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
-    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
-    src/boards/Main/Actuators/Actuators.cpp
-    src/boards/Main/Sensors/HILSensors.cpp
-    src/boards/Main/StateMachines/AirBrakesController/AirBrakesController.cpp
-    src/boards/Main/StateMachines/ADAController/ADAController.cpp
-    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Main/StateMachines/Deployment/Deployment.cpp
-    src/boards/Main/StateMachines/NASController/NASController.cpp
-    src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
-    src/boards/Main/Radio/Radio.cpp
-    src/boards/Main/TMRepository/TMRepository.cpp
-    src/boards/Main/CanHandler/CanHandler.cpp
-    src/boards/Main/PinHandler/PinHandler.cpp
 )
 
 set(MOCK_LOGGER skyward-boardcore/src/shared/mock-Logger.cpp)

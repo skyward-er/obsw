@@ -40,6 +40,13 @@
 
 #include "kernel/scheduler/priority/priority_scheduler.h"
 
+#ifdef HILSimulation
+#include <HIL.h>
+#include <HIL_algorithms/HILMockAerobrakeAlgorithm.h>
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
+#endif
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
@@ -49,6 +56,22 @@ int main()
 {
     bool initResult    = true;
     PrintLogger logger = Logging::getLogger("main");
+
+#ifdef HILSimulation
+    auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
+
+    flightPhasesManager->setCurrentPositionSource(
+        []()
+        {
+            return TimedTrajectoryPoint{
+                Main::NASController::getInstance().getNasState()};
+        });
+
+    HIL::getInstance().start();
+
+    BoardScheduler::getInstance().getScheduler().addTask(
+        []() { Actuators::getInstance().sendToSimulator(); }, 100);
+#endif
 
     if (!Logger::getInstance().start())
     {
@@ -77,6 +100,17 @@ int main()
     }
 
     // Start the state machines
+#ifdef HILSimulation
+    ADAController::getInstance().setUpdateDataFunction(
+        [](Boardcore::ADAState state)
+        { HIL::getInstance().getElaboratedData()->addADAState(state); });
+
+    // Set reference values when starting calibration
+    ADAController::getInstance().setReferenceValues(
+        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
+         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
+         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
+#endif
     if (!ADAController::getInstance().start())
     {
         initResult = false;
@@ -102,6 +136,11 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightStatsRecorder");
     }
+#ifdef HILSimulation
+    NASController::getInstance().setUpdateDataFunction(
+        [](Boardcore::NASState state)
+        { HIL::getInstance().getElaboratedData()->addNASState(state); });
+#endif
     if (!NASController::getInstance().start())
     {
         initResult = false;
