@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Actuators/Actuators.h>
 #include <algorithms/Algorithm.h>
 
 #include "HILConfig.h"
@@ -44,9 +45,8 @@ public:
      * @param servo the actuator that will communicate with the Simulator
      */
     MockAirbrakeAlgorithm(
-        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition,
-        std::function<void(float)> setActuator)
-        : getCurrentPosition(getCurrentPosition), setActuator(setActuator)
+        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
+        : getCurrentPosition(getCurrentPosition)
     {
         lastSample.timestamp = 0;
     }
@@ -73,7 +73,10 @@ protected:
              * In here you can put the control algorithm
              */
 
-            setActuator(MaxAlphaDegree / 2);  // it's more or less 25 degrees
+            // setting the opening to 50%
+            Main::Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
+                                                    0.5);
+            Main::Actuators::getInstance().sendToSimulator();
         }
     }
 

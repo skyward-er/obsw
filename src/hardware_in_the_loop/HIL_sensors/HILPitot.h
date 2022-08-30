@@ -1,5 +1,5 @@
-/* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,28 @@
 
 #pragma once
 
-#include "HILAccelerometer.h"
-#include "HILBarometer.h"
-#include "HILGps.h"
-#include "HILGyroscope.h"
-#include "HILImu.h"
-#include "HILMagnetometer.h"
-#include "HILPitot.h"
 #include "HILSensor.h"
-#include "HILTemperature.h"
-#include "HILTimestampManagement.h"
+
+/**
+ * @brief fake pitot (differential pressure) sensor used for the simulation.
+ *
+ * This class is used to simulate as near as possible the situation of the
+ * OBSW during the flight, using fake sensors classes instead of the real
+ * ones, taking their data from the data received from a simulator.
+ */
+class HILPitot : public HILSensor<HILPitotData>
+{
+public:
+    HILPitot(int n_data_sensor) : HILSensor(n_data_sensor) {}
+
+protected:
+    HILPitotData updateData() override
+    {
+        HILPitotData tempData;
+
+        tempData.pressure          = sensorData->pitot.measures[sampleCounter];
+        tempData.pressureTimestamp = updateTimestamp();
+
+        return tempData;
+    }
+};

@@ -20,20 +20,16 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Buses.h>
+
 #include "HIL.h"
 
 /**
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver()
-    : hilSerial(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-      actuatorData(ActuatorData{})
+    : hilSerial(Main::Buses::getInstance().usart3), actuatorData(ActuatorData{})
 {
-    // initializing the serial connection
-    if (!hilSerial.init())
-    {
-        TRACE("[HIL] Wrong initialization\n");
-    }
 }
 
 /**

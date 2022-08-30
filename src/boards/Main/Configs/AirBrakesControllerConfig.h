@@ -31,7 +31,11 @@ namespace Main
 namespace AirBrakesControllerConfigs
 {
 
-constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
+#ifdef EUROC
+static constexpr int SHADOW_MODE_TIMEOUT = 5 * 1000;
+#else
+static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
+#endif
 
 // Vertical speed limit beyond which the airbrakes need to be disabled.
 constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;

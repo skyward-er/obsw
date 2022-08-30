@@ -21,6 +21,7 @@
  */
 
 #include <drivers/adc/InternalADC.h>
+#include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160Config.h>
@@ -106,8 +107,9 @@ constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
 // GPS
-constexpr unsigned int GPS_BAUD_RATE   = 115200;
-constexpr unsigned int GPS_SAMPLE_RATE = 5;
+static constexpr Boardcore::USARTInterface::Baudrate GPS_BAUD_RATE =
+    Boardcore::USARTInterface::Baudrate::B256000;
+static constexpr unsigned int GPS_SAMPLE_RATE = 10;
 
 // Sampling periods and dividers
 constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;

@@ -34,6 +34,7 @@
 #include <sensors/VN100/VN100.h>
 #include <sensors/analog/AnalogLoadCell.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
 #include <utils/Stats/Stats.h>
@@ -64,6 +65,7 @@ public:
 
     Boardcore::ADS131M04Data getADS131M04LastSample();
     Boardcore::MPXH6115AData getStaticPressureLastSample();
+    Boardcore::SSCDRRN015PDAData getDifferentialPressureLastSample();
     Boardcore::MPXH6400AData getDplPressureLastSample();
     Boardcore::AnalogLoadCellData getLoadCellLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
@@ -135,6 +137,7 @@ public:
     {
         HILAccelerometer *accelerometer;
         HILBarometer *barometer;
+        HILPitot *pitot;
         HILGps *gps;
         HILGyroscope *gyro;
         HILMagnetometer *magnetometer;

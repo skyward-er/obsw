@@ -57,6 +57,9 @@ void NASController::update()
     auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
     auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
     auto pressureData = Sensors::getInstance().getMS5803LastSample();
+    auto pitotData = Sensors::getInstance().getDifferentialPressureLastSample();
+    Eigen::Vector4f gpsMeters(gpsData.latitude, gpsData.longitude,
+                              gpsData.velocityNorth, gpsData.velocityEast);
 
     // Predict step
     nas.predictGyro(imuData);
@@ -64,9 +67,10 @@ void NASController::update()
 
     // Correct step
     nas.correctMag(imuData);
-    nas.correctAcc(imuData);
-    nas.correctGPS(gpsData);
+    // nas.correctAcc(imuData);
+    nas.correctGPS(gpsMeters);
     nas.correctBaro(pressureData.pressure);
+    nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
     Logger::getInstance().log(nas.getState());
 

@@ -126,7 +126,7 @@ void Sensors::mpu9250init()
 void Sensors::ubxGpsInit()
 {
     ubxGps =
-        new UBXGPSSerial(USARTInterface::Baudrate::B230400, GPS_SAMPLE_RATE,
+        new UBXGPSSerial(USARTInterface::Baudrate::B256000, GPS_SAMPLE_RATE,
                          USART2, USARTInterface::Baudrate::B9600);
 
     SensorInfo info(

@@ -137,6 +137,20 @@ struct HILBaroData : public Boardcore::PressureData
     }
 };
 
+struct HILPitotData : public Boardcore::PressureData
+{
+    HILPitotData() : PressureData{0, 0.0} {}
+
+    HILPitotData(uint64_t t, float p) : PressureData{t, p} {}
+
+    static std::string header() { return "timestamp,differential_press\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << pressureTimestamp << "," << pressure << "\n";
+    }
+};
+
 struct HILTempData : public Boardcore::TemperatureData
 {
     HILTempData() : TemperatureData{0, 0.0} {}

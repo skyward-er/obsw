@@ -107,6 +107,12 @@ MPXH6115AData Sensors::getStaticPressureLastSample()
                                      : MPXH6115AData{};
 }
 
+SSCDRRN015PDAData Sensors::getDifferentialPressureLastSample()
+{
+    // TO BE IMPLEMENTED
+    return SSCDRRN015PDAData{};
+};
+
 MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
