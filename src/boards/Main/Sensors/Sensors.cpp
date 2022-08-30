@@ -106,7 +106,16 @@ MPU9250Data Sensors::getMPU9250LastSample()
 MS5803Data Sensors::getMS5803LastSample()
 {
     PauseKernelLock lock;
+
+#ifndef HILSimulation
     return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
+#else
+    auto baroData = state.barometer->getLastSample();
+    auto tempData = state.temperature->getLastSample();
+
+    return MS5803Data(baroData.pressureTimestamp, baroData.pressure,
+                      tempData.temperatureTimestamp, tempData.temperature);
+#endif
 }
 
 UBXGPSData Sensors::getUbxGpsLastSample()

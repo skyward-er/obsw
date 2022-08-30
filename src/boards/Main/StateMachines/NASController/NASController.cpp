@@ -59,8 +59,6 @@ void NASController::update()
         auto pressureData = Sensors::getInstance().getMS5803LastSample();
         auto pitotData =
             Sensors::getInstance().getDifferentialPressureLastSample();
-        Eigen::Vector4f gpsMeters(gpsData.latitude, gpsData.longitude,
-                                  gpsData.velocityNorth, gpsData.velocityEast);
 
         // Predict step
         nas.predictGyro(imuData);
@@ -68,10 +66,9 @@ void NASController::update()
 
         // Correct step
         nas.correctMag(imuData);
-        // nas.correctAcc(imuData);
-        nas.correctGPS(gpsMeters);
+        nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
-        nas.correctPitot(pitotData.pressure, pressureData.pressure);
+        // nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
     }
@@ -128,8 +125,7 @@ void NASController::initializeOrientationAndPressure()
     state.triad(accelerometer, magnetometer, NASConfig::nedMag);
 
     // Set the pressure reference using an already existing reference values
-    reference.pressure    = pressure;
-    reference.temperature = temperature;
+    reference.pressure = pressure;
 
     // If in this moment the GPS has fix i use that position as starting
     if (gps.fix != 0)

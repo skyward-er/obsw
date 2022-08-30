@@ -59,11 +59,11 @@ static const Boardcore::NASConfig config = {
 
 // Reference values for Milan
 static const Boardcore::ReferenceValues defaultReferenceValues = {
-    130.0f,     // Altitude
-    100000.0f,  // Pressure
-    25.0f,      // Temperature
-    45.501077,  // Start latitude
-    9.1563935,  // Start longitude
+    130.0f,           // [m] Altitude
+    99934.0f,         // [Pa] Pressure
+    34.5f + 273.15f,  // [K] Temperature
+    45.501077,        // [deg] Start latitude
+    9.1563935,        // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
 };
