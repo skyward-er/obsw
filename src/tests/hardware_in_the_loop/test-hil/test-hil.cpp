@@ -246,9 +246,9 @@ int main()
 
     // setting initial reference values
     ada_controller.setReferenceValues(
-        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
+        {Main::NASConfig::defaultReferenceValues.refAltitude,
+         Main::NASConfig::defaultReferenceValues.refPressure,
+         Main::NASConfig::defaultReferenceValues.refTemperature});
 
     TRACE("Starting ada\n");
     ada_controller.start();
@@ -266,9 +266,9 @@ int main()
 
     // setting initial reference values
     nas_controller.setReferenceValues(
-        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
+        {Main::NASConfig::defaultReferenceValues.refAltitude,
+         Main::NASConfig::defaultReferenceValues.refPressure,
+         Main::NASConfig::defaultReferenceValues.refTemperature});
 
     // starting NAS only when simulation starts
 

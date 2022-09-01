@@ -23,12 +23,10 @@
 #pragma once
 
 #include <Singleton.h>
+#include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
-#ifndef HILSimulation
-#include <actuators/Servo/Servo.h>
-#else  // HILSimulation
-#include "HIL.h"
+#ifdef HILSimulation
 #include "HIL_actuators/HILServo.h"
 #endif  // HILSimulation
 
@@ -92,11 +90,10 @@ private:
 
 #ifndef HILSimulation
     Boardcore::Servo servoAirbrakes;
-    Boardcore::Servo servoExpulsion;
 #else   // HILSimulation
     HILServo servoAirbrakes;
-    HILServo servoExpulsion;
 #endif  // HILSimulation
+    Boardcore::Servo servoExpulsion;
 };
 
 }  // namespace Main

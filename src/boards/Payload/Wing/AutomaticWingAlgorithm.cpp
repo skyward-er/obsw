@@ -62,7 +62,7 @@ void AutomaticWingAlgorithm::step()
     ReferenceValues reference =
         NASController::getInstance().getReferenceValues();
     Vector2f startingPosition =
-        Vector2f(reference.startLatitude, reference.startLongitude);
+        Vector2f(reference.refLatitude, reference.refLongitude);
     Vector2f targetPosition = Aeroutils::geodetic2NED(
         WingController::getInstance().getTargetPosition(), startingPosition);
     Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);

@@ -36,6 +36,7 @@ enum class ADAControllerState : uint8_t
     IDLE,
     CALIBRATING,
     READY,
+    ARMED,
     SHADOW_MODE,
     ACTIVE,
     PRESSURE_STABILIZATION,

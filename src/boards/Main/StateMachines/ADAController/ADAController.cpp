@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
+#include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <common/events/Events.h>
@@ -34,7 +35,8 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main::ADAConfig;
-using namespace Main::AirBrakesControllerConfigs;
+using namespace Main::AirBrakesControllerConfig;
+using namespace Main::NASConfig;
 using namespace Common;
 
 namespace Main
@@ -56,13 +58,9 @@ void ADAController::update()
 
     switch (status.state)
     {
-        case ADAControllerState::CALIBRATING:
+        case ADAControllerState::ARMED:
         {
-            // TODO: Implement calibration
-
-            EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
-
-            break;
+            ada.update(barometerData.pressure);
         }
         case ADAControllerState::SHADOW_MODE:
         {
@@ -200,6 +198,7 @@ void ADAController::update()
         case ADAControllerState::UNINIT:
         case ADAControllerState::IDLE:
         case ADAControllerState::READY:
+        case ADAControllerState::CALIBRATING:
         case ADAControllerState::LANDED:
         {
         }
@@ -211,6 +210,31 @@ void ADAController::update()
     // useful only for hil testing
     updateData(ada.getState());
 #endif  // HILSimulation
+}
+
+void ADAController::calibrate()
+{
+    Stats pressure;
+
+    for (int i = 0; i < CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        auto data = Sensors::getInstance().getMS5803LastSample();
+        pressure.add(data.pressure);
+
+        miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
+    }
+
+    // Set the pressure and temperature reference
+    ReferenceValues reference = ada.getReferenceValues();
+    reference.refPressure     = pressure.getStats().mean;
+
+    // Update the algorithm reference values
+    {
+        miosix::PauseKernelLock l;
+        ada.setReferenceValues(reference);
+    }
+
+    EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }
 
 ADAControllerStatus ADAController::getStatus()
@@ -237,7 +261,7 @@ void ADAController::setReferenceAltitude(float altitude)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = ada.getReferenceValues();
-    reference.altitude        = altitude;
+    reference.refAltitude     = altitude;
     ada.setReferenceValues(reference);
 }
 
@@ -248,7 +272,7 @@ void ADAController::setReferenceTemperature(float temperature)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = ada.getReferenceValues();
-    reference.temperature     = temperature;
+    reference.refTemperature  = temperature;
     ada.setReferenceValues(reference);
 }
 
@@ -287,9 +311,10 @@ void ADAController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(ADAControllerState::CALIBRATING);
+            // Calibrate the ADA
+            calibrate();
 
-            return calibrate();
+            return logStatus(ADAControllerState::CALIBRATING);
         }
         case ADA_READY:
         {
@@ -313,6 +338,31 @@ void ADAController::state_ready(const Event& event)
         case ADA_CALIBRATE:
         {
             return transition(&ADAController::state_calibrating);
+        }
+        case ADA_FORCE_START:
+        case FLIGHT_ARMED:
+        {
+            return transition(&ADAController::state_armed);
+        }
+        case FLIGHT_MISSION_TIMEOUT:
+        {
+            return transition(&ADAController::state_landed);
+        }
+    }
+}
+
+void ADAController::state_armed(const Boardcore::Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::ARMED);
+        }
+        case ADA_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            return transition(&ADAController::state_ready);
         }
         case FLIGHT_LIFTOFF:
         {
@@ -463,14 +513,13 @@ void ADAController::setUpdateDataFunction(
 }
 
 ADAController::ADAController()
-    : FSM(&ADAController::state_idle),
-      ada({DEFAULT_REFERENCE_ALTITUDE, DEFAULT_REFERENCE_PRESSURE,
-           DEFAULT_REFERENCE_TEMPERATURE},
-          getADAKalmanConfig()),
+    : FSM(&ADAController::state_idle), ada(getADAKalmanConfig()),
       updateData([](Boardcore::ADAState) {})
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+
+    ada.setReferenceValues(defaultReferenceValues);
 }
 
 ADAController::~ADAController()
@@ -510,13 +559,8 @@ ADA::KalmanFilter::KalmanConfig ADAController::getADAKalmanConfig()
             Q_INIT,
             R_INIT,
             P_INIT,
-            ADA::KalmanFilter::CVectorN(DEFAULT_REFERENCE_PRESSURE, 0,
+            ADA::KalmanFilter::CVectorN(ada.getReferenceValues().refPressure, 0,
                                         KALMAN_INITIAL_ACCELERATION)};
-}
-
-void ADAController::calibrate()
-{
-    // ...
 }
 
 }  // namespace Main

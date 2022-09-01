@@ -42,6 +42,7 @@ public:
     bool start() override;
 
     void update();
+    void calibrate();
 
     void setDeploymentAltitude(float altitude);
     void setReferenceAltitude(float altitude);
@@ -55,6 +56,7 @@ public:
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
+    void state_armed(const Boardcore::Event& event);
     void state_shadow_mode(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_pressure_stabilization(const Boardcore::Event& event);
@@ -74,8 +76,6 @@ private:
     void logStatus(ADAControllerState state);
 
     Boardcore::ADA::KalmanFilter::KalmanConfig getADAKalmanConfig();
-
-    void calibrate();
 
     Boardcore::ADA ada;
 

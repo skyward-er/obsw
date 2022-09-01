@@ -28,8 +28,10 @@
 namespace Main
 {
 
-namespace AirBrakesControllerConfigs
+namespace AirBrakesControllerConfig
 {
+
+constexpr uint32_t UPDATE_PERIOD = 100;  // 10 hz
 
 #ifdef EUROC
 static constexpr int SHADOW_MODE_TIMEOUT = 5 * 1000;
@@ -72,9 +74,9 @@ static const Boardcore::AirBrakesConfig ABK_CONFIG{
                EIGEN_PI / 180.0,
     .KP = 20,
     .KI = 5,
-    .TS = 0.1,
+    .TS = UPDATE_PERIOD / 1000.0,
 };
 
-}  // namespace AirBrakesControllerConfigs
+}  // namespace AirBrakesControllerConfig
 
 }  // namespace Main

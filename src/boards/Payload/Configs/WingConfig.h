@@ -46,10 +46,6 @@ constexpr float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
 constexpr float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
 constexpr uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
-// TODO change the values below
-constexpr float DEFAULT_GPS_INITIAL_LAT = 42.5;
-constexpr float DEFAULT_GPS_INITIAL_LON = 9.5;
-
 constexpr float DEFAULT_TARGET_LAT = 42;
 constexpr float DEFAULT_TARGET_LON = 9;
 

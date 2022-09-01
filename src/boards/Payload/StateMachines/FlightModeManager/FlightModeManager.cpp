@@ -286,10 +286,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             logStatus(FlightModeManagerState::TEST_MODE);
 
-            // Start the wing algorithm
             WingController::getInstance().start();
-
-            // Start also the NAS
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
 
             return HANDLED;
@@ -357,7 +354,6 @@ State FlightModeManager::state_armed(const Event& event)
             return transition(&FlightModeManager::state_disarmed);
         }
         // TODO: Reviews the liftoff event
-        case FLIGHT_LIFTOFF:
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);
@@ -377,6 +373,7 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
@@ -397,16 +394,12 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case TMTC_FORCE_MAIN:
         {
-            // Activate the cutters
             EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
             return HANDLED;
         }
         case FLIGHT_MISSION_TIMEOUT:
         {
-            // Stop eventual wing algorithm
             WingController::getInstance().stop();
-
-            // Stop recording
             Actuators::getInstance().camOff();
 
             return transition(&FlightModeManager::state_landed);
@@ -495,8 +488,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             logStatus(FlightModeManagerState::TERMINAL_DESCENT);
 
             WingController::getInstance().start();
-
-            // Activate the cutters
             EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
 
             return HANDLED;
@@ -515,18 +506,14 @@ State FlightModeManager::state_terminal_descent(const Event& event)
         }
         case TMTC_FORCE_LANDING:
         {
-            // Stop the wing algorithm
             WingController::getInstance().stop();
-
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
             return HANDLED;
         }
         case FLIGHT_LANDING_DETECTED:
         {
-            // Stop the wing algorithm
             WingController::getInstance().stop();
-
             return transition(&FlightModeManager::state_landed);
         }
         default:

@@ -125,7 +125,9 @@
         "mavlink",
         "miosix",
         "Nidasio",
+        "pitot",
         "telecommands",
+        "UBXGPS",
         "usart",
         "VREF",
         "Xbee"

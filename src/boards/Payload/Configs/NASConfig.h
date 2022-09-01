@@ -32,7 +32,9 @@ namespace NASConfig
 {
 
 constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
-constexpr uint8_t MEAN_COUNT     = 10;
+
+constexpr int CALIBRATION_SAMPLES_COUNT = 20;
+constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
 
 // Magnetic field in Milan
 const Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);

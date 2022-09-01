@@ -32,7 +32,9 @@ namespace NASConfig
 {
 
 constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
-constexpr uint8_t MEAN_COUNT     = 10;
+
+constexpr int CALIBRATION_SAMPLES_COUNT = 20;
+constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
 
 // Magnetic field in Milan
 const Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
@@ -57,13 +59,13 @@ static const Boardcore::NASConfig config = {
     nedMag                   // NED_MAG
 };
 
-// Reference values for Milan
+// Reference values for EuRoC
 static const Boardcore::ReferenceValues defaultReferenceValues = {
-    130.0f,           // [m] Altitude
-    99934.0f,         // [Pa] Pressure
-    34.5f + 273.15f,  // [K] Temperature
-    45.501077,        // [deg] Start latitude
-    9.1563935,        // [deg] Start longitude
+    160.0f,     // [m] Altitude
+    99418.0f,   // [Pa] Pressure
+    287.11f,    // [K] Temperature
+    39.389733,  // [deg] Start latitude
+    -8.288992,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
 };

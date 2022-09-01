@@ -161,15 +161,10 @@ Actuators::Actuators()
     : ledRed(leds::red::getPin()), ledGreen(leds::green::getPin()),
       ledBlue(leds::blue::getPin()), cutter1(cutter::enable::getPin()),
       cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
-#ifndef HILSimulation
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
                      DPL_SERVO_MAX_PULSE)
-#else   // HILSimulation
-      servoAirbrakes(), servoExpulsion()
-#endif  // HILSimulation
-
 {
 }
 

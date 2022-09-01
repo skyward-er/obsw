@@ -104,12 +104,6 @@ int main()
     ADAController::getInstance().setUpdateDataFunction(
         [](Boardcore::ADAState state)
         { HIL::getInstance().getElaboratedData()->addADAState(state); });
-
-    // Set reference values when starting calibration
-    ADAController::getInstance().setReferenceValues(
-        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
 #endif
     if (!ADAController::getInstance().start())
     {
