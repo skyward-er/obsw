@@ -64,8 +64,6 @@ private:
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;
 
-    Boardcore::PitotData pitotData;
-
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 };
 

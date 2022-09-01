@@ -23,6 +23,7 @@
 #include "CanHandler.h"
 
 #include <Main/Configs/CanHandlerConfig.h>
+#include <Main/Sensors/Sensors.h>
 
 #include <functional>
 
@@ -140,7 +141,7 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
     {
         case SensorId::PITOT:
         {
-            pitotData = pitotDataFromCanMessage(msg);
+            Sensors::getInstance().setPitotData(pitotDataFromCanMessage(msg));
             break;
         }
 

@@ -34,6 +34,7 @@
 #include <sensors/VN100/VN100.h>
 #include <sensors/analog/AnalogLoadCell.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/Pitot/PitotData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
@@ -64,6 +65,7 @@ public:
     {
         HILAccelerometer *accelerometer;
         HILBarometer *barometer;
+        HILPitot *pitot;
         HILGps *gps;
         HILGyroscope *gyro;
         HILMagnetometer *magnetometer;
@@ -74,6 +76,7 @@ public:
 #endif  // HILSimulation
 
     Boardcore::BMX160 *bmx160 = nullptr;
+    void setPitotData(Boardcore::PitotData data);
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
@@ -83,8 +86,8 @@ public:
 
     Boardcore::ADS131M04Data getADS131M04LastSample();
     Boardcore::MPXH6115AData getStaticPressureLastSample();
-    Boardcore::SSCDRRN015PDAData getDifferentialPressureLastSample();
     Boardcore::MPXH6400AData getDplPressureLastSample();
+    Boardcore::PitotData getPitotData();
     Boardcore::AnalogLoadCellData getLoadCellLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
@@ -138,9 +141,10 @@ private:
     Boardcore::UBXGPSSpi *ubxGps                          = nullptr;
     Boardcore::VN100 *vn100                               = nullptr;
 
-    Boardcore::ADS131M04 *ads131m04                 = nullptr;
-    Boardcore::MPXH6115A *staticPressure            = nullptr;
-    Boardcore::MPXH6400A *dplPressure               = nullptr;
+    Boardcore::ADS131M04 *ads131m04      = nullptr;
+    Boardcore::MPXH6115A *staticPressure = nullptr;
+    Boardcore::MPXH6400A *dplPressure    = nullptr;
+    Boardcore::PitotData pitotData;
     Boardcore::AnalogLoadCell *loadCell             = nullptr;
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
 

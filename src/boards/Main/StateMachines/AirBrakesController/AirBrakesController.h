@@ -38,6 +38,8 @@ class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
     friend Boardcore::Singleton<AirBrakesController>;
 
 public:
+    bool start() override;
+
     void update();
 
     AirBrakesControllerStatus getStatus();

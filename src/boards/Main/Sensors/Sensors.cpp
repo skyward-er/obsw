@@ -62,6 +62,12 @@ bool Sensors::isStarted()
     // return sensorManager->areAllSensorsInitialized();
 }
 
+void Sensors::setPitotData(Boardcore::PitotData data)
+{
+    miosix::PauseKernelLock lock;
+    pitotData = data;
+}
+
 BMX160Data Sensors::getBMX160LastSample()
 {
     miosix::PauseKernelLock lock;
@@ -158,17 +164,28 @@ MPXH6115AData Sensors::getStaticPressureLastSample()
                                      : MPXH6115AData{};
 }
 
-SSCDRRN015PDAData Sensors::getDifferentialPressureLastSample()
-{
-    // TO BE IMPLEMENTED
-    return SSCDRRN015PDAData{};
-};
-
 MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
     return dplPressure != nullptr ? dplPressure->getLastSample()
                                   : MPXH6400AData{};
+}
+
+Boardcore::PitotData Sensors::getPitotData()
+{
+    miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
+    return pitotData;
+#else
+    auto pitotData = state.pitot->getLastSample();
+
+    Boardcore::PitotData data;
+    data.timestamp = pitotData.pressureTimestamp;
+    data.deltaP    = pitotData.pressure;
+
+    return data;
+#endif
 }
 
 AnalogLoadCellData Sensors::getLoadCellLastSample()
@@ -256,6 +273,7 @@ Sensors::Sensors()
     // Definition of the fake sensors for the simulation
     state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
     state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.pitot         = new HILPitot(N_DATA_PITOT);
     state.gps           = new HILGps(N_DATA_GPS);
     state.gyro          = new HILGyroscope(N_DATA_GYRO);
     state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
@@ -265,6 +283,7 @@ Sensors::Sensors()
 
     sensorsMap = {{state.accelerometer, accelConfig},
                   {state.barometer, baroConfig},
+                  {state.pitot, pitotConfig},
                   {state.magnetometer, magnConfig},
                   {state.imu, imuConfig},
                   {state.gps, gpsConfig},
@@ -293,6 +312,7 @@ Sensors::~Sensors()
 #ifdef HILSimulation
     delete state.accelerometer;
     delete state.barometer;
+    delete state.pitot;
     delete state.gps;
     delete state.gyro;
     delete state.magnetometer;
