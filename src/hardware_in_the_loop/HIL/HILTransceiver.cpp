@@ -88,7 +88,7 @@ void HILTransceiver::addResetSampleCounter(HILTimestampManagement *t)
  * - reads the simulated data and copies them in the SensorData structure
  * - notifies every sensor that new data arrived,
  * - waits for the control algorithms to update the actuator data
- * - sends back the value to the simulator
+ * - sends back the values to the simulator
  */
 void HILTransceiver::run()
 {
@@ -105,7 +105,7 @@ void HILTransceiver::run()
             SimulatorData tempData;
             hilSerial.read(&tempData, sizeof(SimulatorData));
             miosix::PauseKernelLock kLock;
-            memmove(&sensorData, &tempData, sizeof(SimulatorData));
+            sensorData = tempData;
             if (updated)
             {
                 lostUpdate = true;

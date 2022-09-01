@@ -196,6 +196,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
             logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
 
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+            EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
 
             return HANDLED;
         }
