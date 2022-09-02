@@ -64,10 +64,6 @@ target_compile_definitions(test-hil PRIVATE HILSimulation HILUseADA HILUseRadio 
 # sbs_target(test-hil stm32f407vg_stm32f4discovery)
 sbs_target(test-hil stm32f429zi_skyward_death_stack_v3)
 
-add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
-target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)
-
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
 #-----------------------------------------------------------------------------#

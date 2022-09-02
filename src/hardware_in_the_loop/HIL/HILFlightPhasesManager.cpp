@@ -25,7 +25,9 @@
 #include <events/Event.h>
 
 #include "events/EventBroker.h"
-// #include "events/EventStrings.cpp"
+
+/* CPUMeter */
+// #include "diagnostic/CpuMeter/CpuMeter.h"
 
 using namespace Common;
 
@@ -33,6 +35,7 @@ HILFlightPhasesManager::HILFlightPhasesManager()
     : Boardcore::EventHandler(),
       flagsFlightPhases({{FlightPhases::SIMULATION_STARTED, false},
                          {FlightPhases::CALIBRATION, false},
+                         {FlightPhases::CALIBRATION_OK, false},
                          {FlightPhases::ARMED, false},
                          {FlightPhases::LIFTOFF_PIN_DETACHED, false},
                          {FlightPhases::FLYING, false},
@@ -53,6 +56,7 @@ HILFlightPhasesManager::HILFlightPhasesManager()
     Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
     Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_ADA);
+    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_NAS);
 }
 
 void HILFlightPhasesManager::setCurrentPositionSource(
@@ -61,19 +65,9 @@ void HILFlightPhasesManager::setCurrentPositionSource(
     this->getCurrentPosition = getCurrentPosition;
 }
 
-bool HILFlightPhasesManager::isSimulationStarted()
+bool HILFlightPhasesManager::isFlagActive(FlightPhases flag)
 {
-    return flagsFlightPhases[FlightPhases::SIMULATION_STARTED];
-}
-
-bool HILFlightPhasesManager::isSimulationStopped()
-{
-    return flagsFlightPhases[FlightPhases::SIMULATION_STOPPED];
-}
-
-bool HILFlightPhasesManager::isSimulationRunning()
-{
-    return isSimulationStarted() && !isSimulationStopped();
+    return flagsFlightPhases[flag];
 }
 
 void HILFlightPhasesManager::registerToFlightPhase(FlightPhases flag,
@@ -177,6 +171,12 @@ void HILFlightPhasesManager::printOutcomes()
 
     printf("Simulation Stopped: \n");
     outcomes[FlightPhases::SIMULATION_STOPPED].print(t_liftoff);
+
+    // auto cpuMeter = Boardcore::CpuMeter::getCpuStats();
+    // printf("max cpu usage: %+.3f\n", cpuMeter.maxValue);
+    // printf("avg cpu usage: %+.3f\n", cpuMeter.mean);
+    // printf("min free heap: %+.3lu\n", cpuMeter.minFreeHeap);
+    // printf("max free stack:%+.3lu\n", cpuMeter.minFreeStack);
 }
 
 /**
@@ -185,6 +185,7 @@ void HILFlightPhasesManager::printOutcomes()
  */
 void HILFlightPhasesManager::updateFlags(FlightPhasesFlags hil_flags)
 {
+    // [TODO] add ifdefs in order to select which flags to take from matlab
     flagsFlightPhases[FlightPhases::ASCENT]  = hil_flags.flag_ascent;
     flagsFlightPhases[FlightPhases::FLYING]  = hil_flags.flag_flight;
     flagsFlightPhases[FlightPhases::BURNING] = hil_flags.flag_burning;
@@ -210,13 +211,16 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             TRACE("[HIL] ------- CALIBRATION ! ------- \n");
             changed_flags.push_back(FlightPhases::CALIBRATION);
             break;
+        case NAS_READY:
         case FMM_ALGOS_CAL_DONE:
-            setFlagFlightPhase(FlightPhases::CALIBRATION, false);
-            TRACE("[HILFPM] CALIBRATION OK!\n");
+            setFlagFlightPhase(FlightPhases::CALIBRATION_OK, true);
+            TRACE("[HIL] CALIBRATION OK!\n");
+            changed_flags.push_back(FlightPhases::CALIBRATION_OK);
             break;
-        case TMTC_ARM:
+        case FLIGHT_ARMED:
             setFlagFlightPhase(FlightPhases::ARMED, true);
-            TRACE("[HIL] ------- READY TO LAUNCH ! ------- \n");
+            printf("[HIL] ------- READY TO LAUNCH ! ------- \n");
+            changed_flags.push_back(FlightPhases::ARMED);
             break;
         case FLIGHT_UMBILICAL_DETACHED:
             setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
@@ -239,10 +243,10 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             changed_flags.push_back(FlightPhases::AEROBRAKES);
             break;
         case ADA_SHADOW_MODE_TIMEOUT:
-            TRACE("[HILFPM] ADA shadow mode timeout\n");
+            TRACE("[HIL] ADA shadow mode timeout\n");
             break;
         case ABK_DISABLE:
-            TRACE("[HILFPM] ABK disabled\n");
+            TRACE("[HIL] ABK disabled\n");
             break;
         case FLIGHT_APOGEE_DETECTED:
         case TMTC_FORCE_EXPULSION:

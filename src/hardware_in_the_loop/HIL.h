@@ -65,21 +65,6 @@ public:
         this->send(-1);
     }
 
-    bool isSimulationStarted()
-    {
-        return flightPhasesManager->isSimulationStarted();
-    }
-
-    bool isSimulationStopped()
-    {
-        return flightPhasesManager->isSimulationStopped();
-    }
-
-    bool isSimulationRunning()
-    {
-        return flightPhasesManager->isSimulationRunning();
-    }
-
     ElaboratedData *getElaboratedData() { return &elaboratedData; }
 
 private:

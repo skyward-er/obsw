@@ -76,6 +76,8 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
 
+Thread* t;
+
 /**
  * function that returns the position estimated by the NAS. To be used in the
  * HILFlightPhasesManager to retrieve z and vz for the outcomes
@@ -85,14 +87,19 @@ TimedTrajectoryPoint getCurrentPosition()
 #ifndef HILMockNAS
     return TimedTrajectoryPoint(
         Main::NASController::getInstance().getNasState());
-#else
+#else   // HILMockNAS
     return Main::Sensors::getInstance().state.kalman->getLastSample();
 #endif  // HILMockNAS
 }
 
+/**
+ * Make the main thread wakeup
+ */
+void wakeMeUp() { t->wakeup(); }  // when it's all over
+
 // /**
 //  * function that given a thread returns its free stack size (copied from
-//  * miosix4, sorta)
+//  * miosix, sorta)
 //  */
 // unsigned int getAbsoluteFreeStack(miosix::Thread* t)
 // {
@@ -163,6 +170,7 @@ TimedTrajectoryPoint getCurrentPosition()
  */
 int main()
 {
+    t = Thread::getCurrentThread();
     /*-------------- Pin initialization [to be removed] --------------*/
     // // radio
     // u2rx1::getPin().mode(miosix::Mode::ALTERNATE);
@@ -210,7 +218,7 @@ int main()
     EventBroker& eventBroker = EventBroker::getInstance();
     eventBroker.start();
 
-    /*-------------- [CA] Control Algorithm --------------*/
+    /*-------------- [ABK] Airbrakes --------------*/
 #ifndef HILMockAirBrakes
     Main::AirBrakesController& airbrakes_controller =
         Main::AirBrakesController::getInstance();
@@ -270,8 +278,8 @@ int main()
          Main::NASConfig::defaultReferenceValues.refPressure,
          Main::NASConfig::defaultReferenceValues.refTemperature});
 
-    // starting NAS only when simulation starts
-
+    TRACE("Starting nas\n");
+    nas_controller.start();
 #endif  // HILMockNAS
 
     /*---------------- [FMM] FMM ---------------*/
@@ -286,59 +294,58 @@ int main()
     TRACE("Starting deployment\n");
     Main::Deployment::getInstance().start();
 
-    /*---------- [DPL] Deployment --------*/
+    /*---------- [TS] starting scheduler --------*/
     TRACE("Starting board TS\n");
     scheduler.start();
 
-    /*---------- Normal execution --------*/
+    /*---------- Waiting for the simulation to start --------*/
+
+    flightPhasesManager->registerToFlightPhase(FlightPhases::SIMULATION_STARTED,
+                                               wakeMeUp);
+
+    // When calibration of the algorithms ends, ask to ARM the board and get
+    // ready for launch
+    flightPhasesManager->registerToFlightPhase(
+        FlightPhases::CALIBRATION_OK,
+        [&]() { eventBroker.post(TMTC_ARM, TOPIC_TMTC); });
+
+    // wake me up again when the board is armed
+    flightPhasesManager->registerToFlightPhase(FlightPhases::ARMED, wakeMeUp);
+
+    printf("[HIL] Waiting for simulation to start!\n");
+
+    // wait for simulation started
+    while (!flightPhasesManager->isFlagActive(FlightPhases::SIMULATION_STARTED))
+    {
+        t->wait();
+    }
 
     // When simulation starts, we make the state machines reach the wanted state
     // (used if we don't want to use the GS to trigger these events)
-    flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        [&]()
-        {
-#ifndef HILMockNAS
-            // starting NAS only when simulation starts in order to avoid
-            // erroneus attitude estimation
-            TRACE("Starting nas\n");
-            nas_controller.start();
-            Thread::sleep(500);
-#endif  // HILMockNAS
+    /*---------- Reaching the ARMED state --------*/
 
-#ifdef HILUseADA
-            // calibrate ADA
-            eventBroker.post(ADA_CALIBRATE, TOPIC_ADA);
-            Thread::sleep(50);
-#endif  // HILUseADA
+    // post FMM_INIT_OK when simulation started, so we will calibrate
+    // the sensors with the simulated data
+    EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 
-#ifndef HILMockNAS
-            eventBroker.post(NAS_CALIBRATE, TOPIC_NAS);
-            Thread::sleep(50);
-#endif  // HILMockNAS
+    // wait for armed
+    while (!flightPhasesManager->isFlagActive(FlightPhases::ARMED))
+    {
+        t->wait();
+    }
 
-            // ask to arm the board and get ready for launch
-            eventBroker.post(TMTC_ARM, TOPIC_TMTC);
-
-            TRACE("started everything\n");
-
-            // // To show statistics on the threads 3 seconds after armed
-            // Thread::sleep(3000);
-            // showThreadStackSizes();
-        });
-
-    // To show statistics on the threads 10 seconds after initialization of all
-    // the components
-    // Thread::sleep(10000);
+    // Show statistics on the threads after armed
     // showThreadStackSizes();
 
-    while (true)
+    while (false)
     {
         Thread::sleep(1000);
 
-        if (HIL::getInstance().isSimulationRunning())
+        if (flightPhasesManager->isFlagActive(
+                FlightPhases::SIMULATION_STARTED) &&
+            !flightPhasesManager->isFlagActive(
+                FlightPhases::SIMULATION_STOPPED))
         {
-
             TRACE("accelN: %f\n", HIL::getInstance()
                                       .simulator->getSensorData()
                                       ->accelerometer.measures[0]
@@ -347,6 +354,9 @@ int main()
 #ifndef HILMockNAS
             D(Boardcore::NASState nasState =
                   Main::NASController::getInstance().getNasState());
+
+            HIL::getInstance().simulator->getSensorData()->printAccelerometer();
+            HIL::getInstance().simulator->getSensorData()->printGPS();
             TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n, nasState.e,
                   nasState.d);
             TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,
@@ -363,6 +373,12 @@ int main()
             // TRACE("ada -> agl:%+.3f, vz:%+.3f\n\n", adaState.mslAltitude,
             //       adaState.verticalSpeed);
         }
+    }
+
+    while (true)
+    {
+        Thread::wait();
+        Thread::sleep(10000);
     }
 
     return 0;
