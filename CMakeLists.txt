@@ -61,7 +61,7 @@ sbs_target(groundstation-entry stm32f429zi_skyward_groundstation)
 add_executable(test-hil src/tests/hardware_in_the_loop/test-hil/test-hil.cpp ${MAIN_COMPUTER} ${HIL})
 target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil PRIVATE HILSimulation HILUseADA HILUseRadio EUROC)
-# ssbs_target(test-hil stm32f407vg_stm32f4discovery)
+# sbs_target(test-hil stm32f407vg_stm32f4discovery)
 sbs_target(test-hil stm32f429zi_skyward_death_stack_v3)
 
 add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})

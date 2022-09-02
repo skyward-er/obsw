@@ -345,8 +345,8 @@ int main()
                                       .getX());
 
 #ifndef HILMockNAS
-            Boardcore::NASState nasState =
-                Main::NASController::getInstance().getNasState();
+            D(Boardcore::NASState nasState =
+                  Main::NASController::getInstance().getNasState());
             TRACE("nas -> n:%+.3f, e:%+.3f  d:%+.3f\n", nasState.n, nasState.e,
                   nasState.d);
             TRACE("nas -> vn:%+.3f, ve:%+.3f  vd:%+.3f\n", nasState.vn,

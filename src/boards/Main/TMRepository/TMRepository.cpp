@@ -256,7 +256,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.airspeed_pitot  = 0;  // TODO: Implement
 
             // ADA estimation
-            tm.altitude_agl   = -adaState.aglAltitude;
+            tm.altitude_agl   = adaState.aglAltitude;
             tm.ada_vert_speed = adaState.verticalSpeed;
 
             // IMU
