@@ -79,16 +79,17 @@ void HILTransceiver::addResetSampleCounter(HILTimestampManagement *t)
 }*/
 
 /**
- * @brief the thread deals with the communication between the simulator and
- * the mock sensors
+ * @brief The thread deals with the communication between the simulator and the
+ * board.
  *
- * The first read is done in the init() function;
+ * TODO: Check:
+ * The first read is done in the init() function
  *
- * After the first time the data is received the loop of this thread is:
- * - reads the simulated data and copies them in the SensorData structure
- * - notifies every sensor that new data arrived,
- * - waits for the control algorithms to update the actuator data
- * - sends back the values to the simulator
+ * After the first time the data is received, the loop of this thread:
+ * - Reads the simulated data and copies them in the SensorData structure;
+ * - Notifies every sensor that new data arrived;
+ * - Waits for the control algorithms to update the actuator data;
+ * - Sends back the value to the simulator.
  */
 void HILTransceiver::run()
 {
@@ -99,20 +100,23 @@ void HILTransceiver::run()
 
     while (true)
     {
-        /* Scope of the temporary data read from serial and pausing the
-         * kernel in order to copy the data in the shared structure */
+        // Pausing the kernel in order to copy the data in the shared structure
         {
             SimulatorData tempData;
             hilSerial.read(&tempData, sizeof(SimulatorData));
+
             miosix::PauseKernelLock kLock;
             sensorData = tempData;
+
             if (updated)
             {
                 lostUpdate = true;
-                updated    = false;  // we want the last computation
+                updated    = false;  // We want the last computation
             }
         }
 
+        // If this is the first packet to be received, then update the flight
+        // phase manager
         if (!receivedFirstPacket)
         {
             receivedFirstPacket = true;
@@ -120,40 +124,30 @@ void HILTransceiver::run()
                 FlightPhases::SIMULATION_STARTED, true);
         }
 
-        /*
-         * notify all sensors that a new set of data is arrived
-         * [REVIEW] Could be moved in HILFlightPhasesManager
-         */
+        // Notify all sensors that a new set of data is arrived
+        //[REVIEW] Could be moved in HILFlightPhasesManager
         for (auto st : sensorsTimestamp)
-        {
             st->resetSampleCounter();
-        }
 
-        // trigger events relative to the flight phases
-        // TRACE("flags: %f %f %f %f %f %f\n", sensorData.flags.flag_flight,
-        //       sensorData.flags.flag_ascent, sensorData.flags.flag_burning,
-        //       sensorData.flags.flag_airbrakes, sensorData.flags.flag_para1,
-        //       sensorData.flags.flag_para2);
+        // Trigger events relative to the flight phases
         flightPhasesManager->processFlags(sensorData.flags);
 
         if (lostUpdate)
         {
-            // this means also that the number of samples used for the mean sent
+            // This means also that the number of samples used for the mean sent
             // to the HIL simulator is made up of more than the number of
-            // samples we thougt
+            // samples we though
             TRACE("[HILT] lost updates!\n");
             lostUpdate = false;
         }
 
-        // sensorData.print();
         waitActuatorData();
         hilSerial.write(&actuatorData, sizeof(ActuatorData));
-        // actuatorData.print();
     }
 }
 
 /**
- * @brief Waits for the control algorithm(s) to update actuatorData.
+ * @brief Waits for the control algorithms to update actuatorData.
  */
 void HILTransceiver::waitActuatorData()
 {

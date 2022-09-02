@@ -254,9 +254,9 @@ int main()
 
     // setting initial reference values
     ada_controller.setReferenceValues(
-        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
+        {Main::NASConfig::defaultReferenceValues.refAltitude,
+         Main::NASConfig::defaultReferenceValues.refPressure,
+         Main::NASConfig::defaultReferenceValues.refTemperature});
 
     TRACE("Starting ada\n");
     ada_controller.start();
@@ -274,9 +274,9 @@ int main()
 
     // setting initial reference values
     nas_controller.setReferenceValues(
-        {Main::ADAConfig::DEFAULT_REFERENCE_ALTITUDE,
-         Main::ADAConfig::DEFAULT_REFERENCE_PRESSURE,
-         Main::ADAConfig::DEFAULT_REFERENCE_TEMPERATURE});
+        {Main::NASConfig::defaultReferenceValues.refAltitude,
+         Main::NASConfig::defaultReferenceValues.refPressure,
+         Main::NASConfig::defaultReferenceValues.refTemperature});
 
     TRACE("Starting nas\n");
     nas_controller.start();
@@ -352,8 +352,8 @@ int main()
                                       .getX());
 
 #ifndef HILMockNAS
-            Boardcore::NASState nasState =
-                Main::NASController::getInstance().getNasState();
+            D(Boardcore::NASState nasState =
+                  Main::NASController::getInstance().getNasState());
 
             HIL::getInstance().simulator->getSensorData()->printAccelerometer();
             HIL::getInstance().simulator->getSensorData()->printGPS();

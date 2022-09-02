@@ -23,6 +23,7 @@
 #include "AirBrakesController.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfigs.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -40,24 +41,27 @@
 #include "PortugalTrajectorySet.h"
 #endif
 
+using namespace std;
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::AirBrakesControllerConfigs;
+using namespace Main::AirBrakesControllerConfig;
 using namespace Main::ActuatorsConfigs;
 using namespace Common;
 
 namespace Main
 {
 
-void AirBrakesController::update()
+bool AirBrakesController::start()
 {
-    abk.update();
+    // Add the update task to the scheduler
+    BoardScheduler::getInstance().getScheduler().addTask(
+        bind(&AirBrakesController::update, this), UPDATE_PERIOD,
+        TaskScheduler::Policy::RECOVER);
 
-#ifdef HILSimulation
-    // in order to respond always to the simulator
-    Actuators::getInstance().sendToSimulator();
-#endif  // HILSimulation
+    return ActiveObject::start();
 }
+
+void AirBrakesController::update() { abk.update(); }
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {
@@ -106,7 +110,6 @@ void AirBrakesController::state_idle(const Event& event)
         }
         case FLIGHT_LIFTOFF:
         {
-            abk.setLiftoffTimestamp();
             return transition(&AirBrakesController::state_shadow_mode);
         }
     }
@@ -148,9 +151,6 @@ void AirBrakesController::state_active(const Event& event)
             return logStatus(AirBrakesControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
-        {
-            return transition(&AirBrakesController::state_end);
-        }
         case ABK_DISABLE:
         {
             return transition(&AirBrakesController::state_end);
@@ -184,17 +184,11 @@ AirBrakesController::AirBrakesController()
 #else   // HILMockNAS
           []() { return Sensors::getInstance().state.kalman->getLastSample(); },
 #endif  // HILMockNAS
-          TRAJECTORY_SET, AirBrakesControllerConfigs::ABK_CONFIG,
+          TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
           [](float position) {
               Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
                                                 position);
-          },
-#ifdef INTERP
-          true
-#else
-          false
-#endif
-      )
+          })
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

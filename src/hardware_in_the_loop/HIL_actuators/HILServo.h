@@ -22,86 +22,29 @@
 
 #pragma once
 
+#include <actuators/Servo/Servo.h>
+
 #include "HIL.h"
 #include "HILConfig.h"
 
-class HILServo
+class HILServo : public Boardcore::Servo
 {
 public:
-    /**
-     * @brief constructor of the fake actuator used for the simulation.
-     *
-     * @param matlab reference of the MatlabTransceiver object that deals with
-     * the simulator
-     */
-    HILServo() {}
-
-    void enable()
+    explicit HILServo(TIM_TypeDef* const timer,
+                      Boardcore::TimerUtils::Channel pwmChannel,
+                      unsigned int minPulse = 1000,
+                      unsigned int maxPulse = 2000, unsigned int frequency = 50)
+        : Servo(timer, pwmChannel, minPulse, maxPulse, frequency)
     {
-        // reset();
-        isEnabled = true;
     }
 
-    void disable()
+    void setPosition(float position, bool limited = true)
     {
-        // reset();
-        isEnabled = false;
-    }
+        Servo::setPosition(position, limited);
 
-    /**
-     * @brief Initializes the fake actuator
-     */
-    bool init()
-    {
-        initialized = true;
-        return true;
-    }
-
-    void selfTest() { return; }
-
-    float getPosition()
-    {
-        miosix::Lock<FastMutex> l(mutex);
-        return position;
-    }
-
-    /**
-     * @brief sets the actuator data in the MatlabTransceiver object, then will
-     * be sent to the simulator
-     *
-     * @param value opening in radiants
-     */
-    void setPosition(float value)
-    {
-        if (value < MinAlphaDegree)
-            value = MinAlphaDegree;
-        if (value > MaxAlphaDegree)
-            value = MaxAlphaDegree;
-
-        miosix::Lock<FastMutex> l(mutex);
-        position = value;
-        // TRACE("[HILServo] setting actuator\n");
-        // actuatorData.print();
-        // TRACE("[HILServo] didn't send abk opening\n");
-        HIL::getInstance().send(value);
-    }
-
-    void sendToSimulator()
-    {
-        miosix::Lock<FastMutex> l(mutex);
+        // Send the position to MatLab
         HIL::getInstance().send(position);
     }
 
-    /*
-     * converts the value that the real servo driver accepts to the value the
-     * matlab simulator accepts
-     */
-    // float convertToDegree(float x) { return (x * 180 / PI); }
-
-protected:
-    miosix::FastMutex mutex;
-    float position = 0;
-
-    bool initialized = false;
-    bool isEnabled   = true;
+    void sendToSimulator() { HIL::getInstance().send(getPosition()); }
 };

@@ -20,46 +20,41 @@
  * THE SOFTWARE.
  */
 
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 using namespace miosix;
-
-using led1 = miosix::leds::green1;
-using led2 = miosix::leds::red;
-using led3 = miosix::leds::blue;
-using led4 = miosix::leds::green2;
+using namespace leds;
 
 int main()
 {
-    led4::low();
-    led1::low();
-    led2::low();
-    led3::low();
+    red::low();
+    green::low();
+    blue::low();
 
     for (int i = 0; i < 10; i++)
     {
         printf("should blink\n");
-        led4::low();
-        led1::high();
+        blue::low();
+        red::high();
         Thread::sleep(200);
 
-        led1::low();
-        led2::high();
+        red::low();
+        green::high();
         Thread::sleep(200);
 
-        led2::low();
-        led3::high();
+        green::low();
+        blue::high();
         Thread::sleep(200);
 
-        led3::low();
-        led4::high();
+        blue::low();
+        red::high();
         Thread::sleep(200);
     }
 
-    led1::low();
-    led2::low();
-    led3::low();
-    led4::low();
+    red::low();
+    green::low();
+    blue::low();
 
     printf("test leds over!\n\n");
 

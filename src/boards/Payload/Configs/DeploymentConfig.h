@@ -22,47 +22,15 @@
 
 #pragma once
 
-#include <Singleton.h>
-#include <algorithms/AirBrakes/AirBrakes.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "AirBrakesControllerData.h"
-
-namespace Main
+namespace Payload
 {
 
-class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
-                            public Boardcore::Singleton<AirBrakesController>
+namespace DeploymentConfig
 {
-    friend Boardcore::Singleton<AirBrakesController>;
 
-public:
-    bool start() override;
+constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
+constexpr int CUT_DURATION    = 50;        // [ms]
 
-    void update();
+}  // namespace DeploymentConfig
 
-    AirBrakesControllerStatus getStatus();
-
-    void state_init(const Boardcore::Event& event);
-    void state_idle(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
-
-private:
-    AirBrakesController();
-    ~AirBrakesController();
-
-    AirBrakesControllerStatus status;
-
-    void logStatus(AirBrakesControllerState state);
-
-    void wiggleServo();
-
-    Boardcore::AirBrakes abk;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
-};
-
-}  // namespace Main
+}  // namespace Payload

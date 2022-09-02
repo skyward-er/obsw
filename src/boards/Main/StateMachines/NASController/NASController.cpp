@@ -27,12 +27,11 @@
 #include <Main/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
-#include <events/EventBroker.h>
-#include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace std;
 using namespace Eigen;
 using namespace Boardcore;
+using namespace Main::NASConfig;
 using namespace Common;
 
 namespace Main
@@ -42,7 +41,7 @@ bool NASController::start()
 {
     // Add the update task to the scheduler
     BoardScheduler::getInstance().getScheduler().addTask(
-        bind(&NASController::update, this), NASConfig::UPDATE_PERIOD,
+        bind(&NASController::update, this), UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
     return ActiveObject::start();
@@ -51,28 +50,26 @@ bool NASController::start()
 void NASController::update()
 {
     // If the nas is not active i skip the step
-    if (!this->testState(&NASController::state_active))
-        return;
+    if (this->testState(&NASController::state_active))
+    {
+        auto imuData =
+            Sensors::getInstance().getBMX160WithCorrectionLastSample();
+        auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
+        auto pressureData = Sensors::getInstance().getMS5803LastSample();
+        auto pitotData    = Sensors::getInstance().getPitotData();
 
-    auto imuData = Sensors::getInstance().getBMX160WithCorrectionLastSample();
-    auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-    auto pressureData = Sensors::getInstance().getMS5803LastSample();
-    auto pitotData = Sensors::getInstance().getDifferentialPressureLastSample();
-    Eigen::Vector4f gpsMeters(gpsData.latitude, gpsData.longitude,
-                              gpsData.velocityNorth, gpsData.velocityEast);
+        // Predict step
+        nas.predictGyro(imuData);
+        nas.predictAcc(imuData);
 
-    // Predict step
-    nas.predictGyro(imuData);
-    nas.predictAcc(imuData);
+        // Correct step
+        nas.correctMag(imuData);
+        nas.correctGPS(gpsData);
+        nas.correctBaro(pressureData.pressure);
+        nas.correctPitot(pitotData.deltaP, pressureData.pressure);
 
-    // Correct step
-    nas.correctMag(imuData);
-    // nas.correctAcc(imuData);
-    nas.correctGPS(gpsMeters);
-    nas.correctBaro(pressureData.pressure);
-    nas.correctPitot(pitotData.pressure, pressureData.pressure);
-
-    Logger::getInstance().log(nas.getState());
+        Logger::getInstance().log(nas.getState());
+    }
 
 #ifdef HILSimulation
     // useful only for hil testing
@@ -80,83 +77,70 @@ void NASController::update()
 #endif  // HILSimulation
 }
 
-void NASController::initializeOrientationAndPressure()
+void NASController::calibrate()
 {
-    // Mean 10 accelerometer values
-    Eigen::Vector3f accelerometer;
-    Eigen::Vector3f magnetometer;
-    float pressure    = 0;
-    float temperature = 0;
-    StateInitializer state;
-    UBXGPSData gps            = Sensors::getInstance().getUbxGpsLastSample();
-    ReferenceValues reference = nas.getReferenceValues();
+    Vector3f acceleration, magneticField;
+    Stats pressure;
 
-    // Mean the values
-    for (int i = 0; i < NASConfig::MEAN_COUNT; i++)
+    for (int i = 0; i < CALIBRATION_SAMPLES_COUNT; i++)
     {
         // IMU
         BMX160WithCorrectionData imuData =
             Sensors::getInstance().getBMX160WithCorrectionLastSample();
-        accelerometer +=
-            Eigen::Vector3f(imuData.accelerationX, imuData.accelerationY,
-                            imuData.accelerationZ);
-        magnetometer +=
-            Eigen::Vector3f(imuData.magneticFieldX, imuData.magneticFieldY,
-                            imuData.magneticFieldZ);
+        acceleration += Vector3f(imuData.accelerationX, imuData.accelerationY,
+                                 imuData.accelerationZ);
+        magneticField +=
+            Vector3f(imuData.magneticFieldX, imuData.magneticFieldY,
+                     imuData.magneticFieldZ);
 
         // Barometer
-        MS5803Data pressureData = Sensors::getInstance().getMS5803LastSample();
-        pressure += pressureData.pressure;
-        temperature += pressureData.temperature;
+        MS5803Data barometerData = Sensors::getInstance().getMS5803LastSample();
+        pressure.add(barometerData.pressure);
 
-        // Wait for some time
-        miosix::Thread::sleep(100);
+        miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
     }
-
-    accelerometer /= NASConfig::MEAN_COUNT;
-    magnetometer /= NASConfig::MEAN_COUNT;
-    pressure /= NASConfig::MEAN_COUNT;
-    temperature /= NASConfig::MEAN_COUNT;
 
     // Normalize the data
-    accelerometer.normalize();
-    magnetometer.normalize();
+    acceleration /= CALIBRATION_SAMPLES_COUNT;
+    magneticField /= CALIBRATION_SAMPLES_COUNT;
+    acceleration.normalize();
+    magneticField.normalize();
 
-    // Triad the initial orientation
-    state.triad(accelerometer, magnetometer, NASConfig::nedMag);
+    // Use the triad algorithm to estimate the initial orientation
+    StateInitializer state;
+    state.triad(acceleration, magneticField, nedMag);
 
     // Set the pressure reference using an already existing reference values
-    reference.pressure    = pressure;
-    reference.temperature = temperature;
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.refPressure     = pressure.getStats().mean;
 
     // If in this moment the GPS has fix i use that position as starting
+    UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
     if (gps.fix != 0)
     {
-        reference.startLatitude  = gps.latitude;
-        reference.startLongitude = gps.longitude;
+        reference.refLatitude  = gps.latitude;
+        reference.refLongitude = gps.longitude;
     }
 
-    // Set the values inside the NAS
+    // Update the algorithm reference values
     {
         miosix::PauseKernelLock l;
-
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
     }
 
-    // At the end i publish on the nas topic the end
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
-void NASController::setCoordinates(Eigen::Vector2f position)
+void NASController::setCoordinates(Vector2f position)
 {
     // Need to pause the kernel because the only invocation comes from the radio
     // which is a separate thread
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = nas.getReferenceValues();
-    reference.startLatitude   = position[0];
-    reference.startLongitude  = position[1];
+    reference.refLatitude     = position[0];
+    reference.refLongitude    = position[1];
     nas.setReferenceValues(reference);
 }
 
@@ -185,7 +169,7 @@ void NASController::setReferenceAltitude(float altitude)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = nas.getReferenceValues();
-    reference.altitude        = altitude;
+    reference.refAltitude     = altitude;
     nas.setReferenceValues(reference);
 }
 
@@ -196,7 +180,7 @@ void NASController::setReferenceTemperature(float temperature)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = nas.getReferenceValues();
-    reference.temperature     = temperature;
+    reference.refTemperature  = temperature;
     nas.setReferenceValues(reference);
 }
 
@@ -241,7 +225,7 @@ void NASController::state_calibrating(const Event &event)
         case EV_ENTRY:
         {
             // Calibrate the NAS
-            initializeOrientationAndPressure();
+            calibrate();
 
             return logStatus(NASControllerState::CALIBRATING);
         }
@@ -264,6 +248,7 @@ void NASController::state_ready(const Event &event)
         {
             return transition(&NASController::state_calibrating);
         }
+        case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
             return transition(&NASController::state_active);
@@ -283,6 +268,11 @@ void NASController::state_active(const Event &event)
         case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
+        }
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            return transition(&NASController::state_ready);
         }
     }
 }
@@ -315,7 +305,7 @@ void NASController::logStatus(NASControllerState state)
 }
 
 NASController::NASController()
-    : FSM(&NASController::state_idle), nas(NASConfig::config)
+    : FSM(&NASController::state_idle), nas(config)
 #ifdef HILSimulation
       ,
       updateData([](Boardcore::NASState) {})
@@ -334,7 +324,7 @@ NASController::NASController()
     x(9)       = q(3);
 
     nas.setX(x);
-    nas.setReferenceValues(NASConfig::defaultReferenceValues);
+    nas.setReferenceValues(defaultReferenceValues);
 }
 
 NASController::~NASController()

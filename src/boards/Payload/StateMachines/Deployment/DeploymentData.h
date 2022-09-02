@@ -22,47 +22,34 @@
 
 #pragma once
 
-#include <Singleton.h>
-#include <algorithms/AirBrakes/AirBrakes.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
+#include <stdint.h>
 
-#include "AirBrakesControllerData.h"
+#include <iostream>
+#include <string>
 
-namespace Main
+namespace Payload
 {
 
-class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
-                            public Boardcore::Singleton<AirBrakesController>
+enum class DeploymentState : uint8_t
 {
-    friend Boardcore::Singleton<AirBrakesController>;
-
-public:
-    bool start() override;
-
-    void update();
-
-    AirBrakesControllerStatus getStatus();
-
-    void state_init(const Boardcore::Event& event);
-    void state_idle(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
-
-private:
-    AirBrakesController();
-    ~AirBrakesController();
-
-    AirBrakesControllerStatus status;
-
-    void logStatus(AirBrakesControllerState state);
-
-    void wiggleServo();
-
-    Boardcore::AirBrakes abk;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
+    UNINIT = 0,
+    INIT,
+    IDLE,
+    NOSECONE_EJECTION,
+    CUTTING
 };
 
-}  // namespace Main
+struct DeploymentStatus
+{
+    uint64_t timestamp    = 0;
+    DeploymentState state = DeploymentState::UNINIT;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
+}  // namespace Payload

@@ -34,22 +34,22 @@ namespace ActuatorsConfigs
 // Servo 1
 
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
-static constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
+constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-static constexpr float SERVO_1_ROTATION  = 120;
-static constexpr float SERVO_1_MIN_PULSE = 900;   // [deg]
-static constexpr float SERVO_1_MAX_PULSE = 2100;  // [deg]
+constexpr float SERVO_1_ROTATION  = 120;
+constexpr float SERVO_1_MIN_PULSE = 900;   // [deg]
+constexpr float SERVO_1_MAX_PULSE = 2100;  // [deg]
 
 // Servo 2
 
 static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
-static constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
+constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-static constexpr float SERVO_2_ROTATION  = 120;
-static constexpr float SERVO_2_MIN_PULSE = 2100;  // [deg]
-static constexpr float SERVO_2_MAX_PULSE = 900;   // [deg]
+constexpr float SERVO_2_ROTATION  = 120;
+constexpr float SERVO_2_MIN_PULSE = 2100;  // [deg]
+constexpr float SERVO_2_MAX_PULSE = 900;   // [deg]
 
 }  // namespace ActuatorsConfigs
 

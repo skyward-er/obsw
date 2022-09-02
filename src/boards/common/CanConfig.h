@@ -30,8 +30,8 @@ namespace Common
 namespace CanConfig
 {
 
-static constexpr uint32_t BAUD_RATE = 500 * 1000;
-static constexpr float SAMPLE_POINT = 87.5f / 100.0f;
+constexpr uint32_t BAUD_RATE = 500 * 1000;
+constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
 enum class Priority : uint8_t
 {

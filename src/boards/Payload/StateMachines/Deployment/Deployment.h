@@ -23,46 +23,40 @@
 #pragma once
 
 #include <Singleton.h>
-#include <algorithms/AirBrakes/AirBrakes.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
-#include "AirBrakesControllerData.h"
+#include "DeploymentData.h"
 
-namespace Main
+namespace Payload
 {
 
-class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
-                            public Boardcore::Singleton<AirBrakesController>
+class Deployment : public Boardcore::FSM<Deployment>,
+                   public Boardcore::Singleton<Deployment>
 {
-    friend Boardcore::Singleton<AirBrakesController>;
+    friend Boardcore::Singleton<Deployment>;
 
 public:
-    bool start() override;
-
-    void update();
-
-    AirBrakesControllerStatus getStatus();
+    DeploymentStatus getStatus();
 
     void state_init(const Boardcore::Event& event);
     void state_idle(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
+    void state_nosecone_ejection(const Boardcore::Event& event);
+    void state_cutting(const Boardcore::Event& event);
 
 private:
-    AirBrakesController();
-    ~AirBrakesController();
+    Deployment();
+    ~Deployment();
 
-    AirBrakesControllerStatus status;
+    DeploymentStatus status;
 
-    void logStatus(AirBrakesControllerState state);
+    void logStatus(DeploymentState state);
 
     void wiggleServo();
+    void startCutting();
+    void stopCutting();
 
-    Boardcore::AirBrakes abk;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.dpl");
 };
 
-}  // namespace Main
+}  // namespace Payload

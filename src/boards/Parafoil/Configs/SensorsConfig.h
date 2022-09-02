@@ -39,21 +39,21 @@ namespace SensorsConfig
 {
 
 // GPS settings
-static constexpr unsigned int GPS_SAMPLE_RATE   = 10;
-static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
+constexpr unsigned int GPS_SAMPLE_RATE   = 10;
+constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
 
 // IMU MPU9250 settings
-static const Boardcore::MPU9250::MPU9250GyroFSR IMU_GYRO_SCALE =
+static const Boardcore::MPU9250::GyroFSR IMU_GYRO_SCALE =
     Boardcore::MPU9250::GYRO_FSR_500DPS;
-static const Boardcore::MPU9250::MPU9250AccelFSR IMU_ACCEL_SCALE =
+static const Boardcore::MPU9250::AccelFSR IMU_ACCEL_SCALE =
     Boardcore::MPU9250::ACCEL_FSR_16G;
-static constexpr unsigned short IMU_SAMPLE_RATE = 500;
-static constexpr unsigned int IMU_SAMPLE_PERIOD = 1000 / IMU_SAMPLE_RATE;
+constexpr unsigned short IMU_SAMPLE_RATE = 500;
+constexpr unsigned int IMU_SAMPLE_PERIOD = 1000 / IMU_SAMPLE_RATE;
 
 // Barometer BME280 settings
 static const Boardcore::BME280::StandbyTime PRESS_SAMPLE_RATE =
     Boardcore::BME280::STB_TIME_0_5;
-static constexpr unsigned int PRESS_SAMPLE_PERIOD = 20;
+constexpr unsigned int PRESS_SAMPLE_PERIOD = 20;
 
 }  // namespace SensorsConfig
 

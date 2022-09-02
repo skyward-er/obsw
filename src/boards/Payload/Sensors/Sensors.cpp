@@ -225,8 +225,8 @@ void Sensors::bmx160Init()
 
     config.temperatureDivider = IMU_BMX_TEMP_DIVIDER;
 
-    config.accelerometerRange = IMU_BMX_ACC_FULLSCALE_ENUM;
-    config.gyroscopeRange     = IMU_BMX_GYRO_FULLSCALE_ENUM;
+    config.accelerometerRange = IMU_BMX_ACC_FSR_ENUM;
+    config.gyroscopeRange     = IMU_BMX_GYRO_FSR_ENUM;
 
     config.accelerometerDataRate = IMU_BMX_ACC_GYRO_ODR_ENUM;
     config.gyroscopeDataRate     = IMU_BMX_ACC_GYRO_ODR_ENUM;

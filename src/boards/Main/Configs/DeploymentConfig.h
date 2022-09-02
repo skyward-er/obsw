@@ -28,8 +28,8 @@ namespace Main
 namespace DeploymentConfig
 {
 
-static constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
-static constexpr int CUT_DURATION    = 50;        // [ms]
+constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
+constexpr int CUT_DURATION    = 50;        // [ms]
 
 }  // namespace DeploymentConfig
 

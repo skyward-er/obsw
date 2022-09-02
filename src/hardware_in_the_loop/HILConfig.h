@@ -44,7 +44,7 @@
 #include "entrypoints/hardware_in_the_loop/HILSimulationConfig.h"
 /* serial simulation with sample manager */
 #elif defined(HILSimulation)
-#include "test-HIL/HILSimulationConfig.h"
+#include <HILSimulationConfig.h>
 #elif defined(HIL_ADA)
 #include "test-HIL+ADA/HILSimulationConfig.h"
 #elif defined(HIL_AEROBRAKE)

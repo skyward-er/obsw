@@ -23,6 +23,7 @@
 #include "CanHandler.h"
 
 #include <Main/Configs/CanHandlerConfig.h>
+#include <Main/Sensors/Sensors.h>
 
 #include <functional>
 
@@ -126,9 +127,6 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
     auto it         = eventToEvent.find(eventId);
 
-    static int count = 0;
-    printf("pippo %d %d\n", count++, static_cast<uint8_t>(eventId));
-
     if (it != eventToEvent.end())
         EventBroker::getInstance().post(it->second, TOPIC_TMTC, this);
     else
@@ -143,7 +141,7 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
     {
         case SensorId::PITOT:
         {
-            pitotData = pitotDataFromCanMessage(msg);
+            Sensors::getInstance().setPitotData(pitotDataFromCanMessage(msg));
             break;
         }
 

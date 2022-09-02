@@ -30,7 +30,7 @@ namespace Parafoil
 namespace NASConfig
 {
 
-static constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
+constexpr uint32_t UPDATE_PERIOD = 50;  // 50 hz
 
 // Magnetic field in Milan
 Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);

@@ -41,8 +41,7 @@ public:
     bool start() override;
 
     void update();
-
-    void initializeOrientationAndPressure();
+    void calibrate();
 
     void setCoordinates(Eigen::Vector2f position);
     void setOrientation(float yaw, float pitch, float roll);

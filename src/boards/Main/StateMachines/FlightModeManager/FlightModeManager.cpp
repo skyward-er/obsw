@@ -189,6 +189,9 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
 
 State FlightModeManager::state_algos_calibration(const Event& event)
 {
+    static bool nasReady = false;
+    static bool adaReady = false;
+
     switch (event)
     {
         case EV_ENTRY:
@@ -214,7 +217,21 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         }
         case NAS_READY:
         {
-            return transition(&FlightModeManager::state_disarmed);
+            nasReady = true;
+
+            if (adaReady)
+                return transition(&FlightModeManager::state_disarmed);
+            else
+                return HANDLED;
+        }
+        case ADA_READY:
+        {
+            adaReady = true;
+
+            if (nasReady)
+                return transition(&FlightModeManager::state_disarmed);
+            else
+                return HANDLED;
         }
         default:
         {
@@ -250,6 +267,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_ENTER_TEST_MODE:
         {
+            Logger::getInstance().start();
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_CALIBRATE:
@@ -274,10 +292,18 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::TEST_MODE);
+
+            EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_NAS);
+            EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+
             return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().post(ADA_FORCE_STOP, TOPIC_NAS);
+            EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            Logger::getInstance().stop();
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -328,7 +354,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case FLIGHT_LIFTOFF:
+        case FLIGHT_UMBILICAL_DETACHED:
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);
@@ -348,6 +374,7 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
@@ -382,7 +409,7 @@ State FlightModeManager::state_flying(const Event& event)
         }
         default:
         {
-            return tranSuper(&FlightModeManager::state_top);
+            return UNHANDLED;
         }
     }
 }
@@ -537,6 +564,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_ADA);
 }
 
 FlightModeManager::~FlightModeManager()

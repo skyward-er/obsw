@@ -62,6 +62,12 @@ bool Sensors::isStarted()
     // return sensorManager->areAllSensorsInitialized();
 }
 
+void Sensors::setPitotData(Boardcore::PitotData data)
+{
+    miosix::PauseKernelLock lock;
+    pitotData = data;
+}
+
 BMX160Data Sensors::getBMX160LastSample()
 {
     miosix::PauseKernelLock lock;
@@ -71,9 +77,30 @@ BMX160Data Sensors::getBMX160LastSample()
 BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
     miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
     return bmx160WithCorrection != nullptr
                ? bmx160WithCorrection->getLastSample()
                : BMX160WithCorrectionData{};
+#else
+    auto imuData = state.imu->getLastSample();
+    BMX160WithCorrectionData data;
+
+    data.accelerationTimestamp    = imuData.accelerationTimestamp;
+    data.accelerationX            = imuData.accelerationX;
+    data.accelerationY            = imuData.accelerationY;
+    data.accelerationZ            = imuData.accelerationZ;
+    data.angularVelocityTimestamp = imuData.angularVelocityTimestamp;
+    data.angularVelocityX         = imuData.angularVelocityX;
+    data.angularVelocityY         = imuData.angularVelocityY;
+    data.angularVelocityZ         = imuData.angularVelocityZ;
+    data.magneticFieldTimestamp   = imuData.magneticFieldTimestamp;
+    data.magneticFieldX           = imuData.magneticFieldX;
+    data.magneticFieldY           = imuData.magneticFieldY;
+    data.magneticFieldZ           = imuData.magneticFieldZ;
+
+    return data;
+#endif
 }
 
 MPU9250Data Sensors::getMPU9250LastSample()
@@ -85,13 +112,43 @@ MPU9250Data Sensors::getMPU9250LastSample()
 MS5803Data Sensors::getMS5803LastSample()
 {
     PauseKernelLock lock;
+
+#ifndef HILSimulation
     return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
+#else
+    auto baroData = state.barometer->getLastSample();
+    auto tempData = state.temperature->getLastSample();
+
+    return MS5803Data(baroData.pressureTimestamp, baroData.pressure,
+                      tempData.temperatureTimestamp, tempData.temperature);
+#endif
 }
 
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
     return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
+#else
+    auto data = state.gps->getLastSample();
+    UBXGPSData ubxData;
+
+    ubxData.gpsTimestamp  = data.gpsTimestamp;
+    ubxData.latitude      = data.latitude;
+    ubxData.longitude     = data.longitude;
+    ubxData.height        = data.height;
+    ubxData.velocityNorth = data.velocityNorth;
+    ubxData.velocityEast  = data.velocityEast;
+    ubxData.velocityDown  = data.velocityDown;
+    ubxData.speed         = data.speed;
+    ubxData.track         = data.track;
+    ubxData.positionDOP   = data.positionDOP;
+    ubxData.satellites    = data.satellites;
+    ubxData.fix           = data.fix;
+
+    return ubxData;
+#endif
 }
 
 ADS131M04Data Sensors::getADS131M04LastSample()
@@ -107,17 +164,28 @@ MPXH6115AData Sensors::getStaticPressureLastSample()
                                      : MPXH6115AData{};
 }
 
-SSCDRRN015PDAData Sensors::getDifferentialPressureLastSample()
-{
-    // TO BE IMPLEMENTED
-    return SSCDRRN015PDAData{};
-};
-
 MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
     return dplPressure != nullptr ? dplPressure->getLastSample()
                                   : MPXH6400AData{};
+}
+
+Boardcore::PitotData Sensors::getPitotData()
+{
+    miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
+    return pitotData;
+#else
+    auto pitotData = state.pitot->getLastSample();
+
+    Boardcore::PitotData data;
+    data.timestamp = pitotData.pressureTimestamp;
+    data.deltaP    = pitotData.pressure;
+
+    return data;
+#endif
 }
 
 AnalogLoadCellData Sensors::getLoadCellLastSample()
@@ -139,6 +207,11 @@ InternalADCData Sensors::getInternalADCLastSample()
     PauseKernelLock lock;
     return internalAdc != nullptr ? internalAdc->getLastSample()
                                   : InternalADCData{};
+}
+
+bool Sensors::isCutterPresent()
+{
+    return cutterSensingMean > CUTTER_SENSING_THRESHOLD;
 }
 
 void Sensors::calibrate()
@@ -196,6 +269,29 @@ Sensors::Sensors()
     bmx160Init();
     bmx160WithCorrectionInit();
 
+#ifdef HILSimulation
+    // Definition of the fake sensors for the simulation
+    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
+    state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.pitot         = new HILPitot(N_DATA_PITOT);
+    state.gps           = new HILGps(N_DATA_GPS);
+    state.gyro          = new HILGyroscope(N_DATA_GYRO);
+    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
+    state.imu           = new HILImu(N_DATA_IMU);
+    state.temperature   = new HILTemperature(N_DATA_TEMP);
+    state.kalman        = new HILKalman(N_DATA_KALM);
+
+    sensorsMap = {{state.accelerometer, accelConfig},
+                  {state.barometer, baroConfig},
+                  {state.pitot, pitotConfig},
+                  {state.magnetometer, magnConfig},
+                  {state.imu, imuConfig},
+                  {state.gps, gpsConfig},
+                  {state.gyro, gyroConfig},
+                  {state.temperature, tempConfig},
+                  {state.kalman, kalmConfig}};
+#endif
+
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
 }
@@ -213,6 +309,18 @@ Sensors::~Sensors()
     delete internalAdc;
     delete batteryVoltage;
 
+#ifdef HILSimulation
+    delete state.accelerometer;
+    delete state.barometer;
+    delete state.pitot;
+    delete state.gps;
+    delete state.gyro;
+    delete state.magnetometer;
+    delete state.imu;
+    delete state.temperature;
+    delete state.kalman;
+#endif
+
     sensorManager->stop();
     delete sensorManager;
 }
@@ -229,8 +337,8 @@ void Sensors::bmx160Init()
 
     config.temperatureDivider = IMU_BMX_TEMP_DIVIDER;
 
-    config.accelerometerRange = IMU_BMX_ACC_FULLSCALE_ENUM;
-    config.gyroscopeRange     = IMU_BMX_GYRO_FULLSCALE_ENUM;
+    config.accelerometerRange = IMU_BMX_ACC_FSR_ENUM;
+    config.gyroscopeRange     = IMU_BMX_GYRO_FSR_ENUM;
 
     config.accelerometerDataRate = IMU_BMX_ACC_GYRO_ODR_ENUM;
     config.gyroscopeDataRate     = IMU_BMX_ACC_GYRO_ODR_ENUM;
@@ -285,11 +393,16 @@ void Sensors::bmx160WithCorrectionInit()
 
 void Sensors::mpu9250Init()
 {
-    mpu9250 =
-        new MPU9250(Buses::getInstance().spi4, sensors::mpu9250::cs::getPin());
+    auto spiConfig         = MPU9250::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+
+    mpu9250 = new MPU9250(
+        Buses::getInstance().spi4, sensors::mpu9250::cs::getPin(), spiConfig,
+        1000 / SAMPLE_PERIOD_VN100, IMU_MPU_GYRO_FSR, IMU_MPU_ACC_FSR);
 
     SensorInfo info("MPU9250", SAMPLE_PERIOD_IMU_MPU,
-                    bind(&Sensors::bmx160Callback, this));
+                    [&]()
+                    { Logger::getInstance().log(mpu9250->getLastSample()); });
 
     sensorsMap.emplace(make_pair(mpu9250, info));
 
@@ -333,6 +446,17 @@ void Sensors::ubxGpsInit()
     sensorsMap.emplace(make_pair(ubxGps, info));
 
     LOG_INFO(logger, "UbloxGPS setup done!");
+}
+
+void Sensors::vn100Init()
+{
+    vn100 = new VN100(USART2, USARTInterface::Baudrate::B921600,
+                      VN100::CRCOptions::CRC_ENABLE_16);
+
+    SensorInfo info("VN100", SAMPLE_PERIOD_VN100,
+                    [&]()
+                    { Logger::getInstance().log(vn100->getLastSample()); });
+    sensorsMap.emplace(make_pair(ubxGps, info));
 }
 
 void Sensors::ads131m04Init()
@@ -446,12 +570,30 @@ void Sensors::batteryVoltageInit()
 
 void Sensors::internalAdcInit()
 {
-    internalAdc = new InternalADC(ADC3, INTERNAL_ADC_VREF);
+    internalAdc = new InternalADC(ADC1, INTERNAL_ADC_VREF);
 
     internalAdc->enableChannel(INTERNAL_ADC_CH_5V_CURRENT);
     internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_CURRENT);
+    internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_SENSE);
 
-    SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC);
+    SensorInfo info(
+        "INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
+        [&]()
+        {
+            Logger::getInstance().log(
+                internalAdc->getVoltage(INTERNAL_ADC_CH_5V_CURRENT));
+            Logger::getInstance().log(
+                internalAdc->getVoltage(INTERNAL_ADC_CH_CUTTER_CURRENT));
+
+            auto cutterSenseData =
+                internalAdc->getVoltage(INTERNAL_ADC_CH_CUTTER_SENSE);
+            Logger::getInstance().log(cutterSenseData);
+
+            cutterSensingMean =
+                cutterSensingMean * (1 - CUTTER_SENSING_MOV_MEAN_COEFF);
+            cutterSensingMean +=
+                cutterSenseData.voltage * CUTTER_SENSING_MOV_MEAN_COEFF;
+        });
 
     sensorsMap.emplace(make_pair(internalAdc, info));
 

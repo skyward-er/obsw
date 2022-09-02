@@ -35,65 +35,62 @@ namespace Payload
 namespace SensorsConfig
 {
 
-static constexpr float INTERNAL_ADC_VREF                 = 3.3;
-static constexpr float BATTERY_VOLTAGE_COEFF             = 5.98;
-static constexpr unsigned int PRESS_DIGITAL_TEMP_DIVIDER = 5;
-static constexpr float REFERENCE_VOLTAGE                 = 5.0;
-static constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
+constexpr float INTERNAL_ADC_VREF                 = 3.3;
+constexpr float BATTERY_VOLTAGE_COEFF             = 5.98;
+constexpr unsigned int PRESS_DIGITAL_TEMP_DIVIDER = 5;
+constexpr float REFERENCE_VOLTAGE                 = 5.0;
+constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
     Boardcore::InternalADC::Channel::CH5;
 
 // ADS1118 and connected sensors
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
     Boardcore::ADS1118::MUX_AIN0_GND;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
     Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
     Boardcore::ADS1118::FSR_6_144;
 
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
     Boardcore::ADS1118::MUX_AIN1_GND;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
     Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
     Boardcore::ADS1118::FSR_6_144;
 
-static constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
     Boardcore::ADS1118::MUX_AIN2_GND;
-static constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
     Boardcore::ADS1118::DR_860;
-static constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
     Boardcore::ADS1118::FSR_6_144;
 
 // BMX160
-static constexpr Boardcore::BMX160Config::AccelerometerRange
-    IMU_BMX_ACC_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::AccelerometerRange::G_16;
-static constexpr Boardcore::BMX160Config::GyroscopeRange
-    IMU_BMX_GYRO_FULLSCALE_ENUM =
-        Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-static constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
-static constexpr Boardcore::BMX160Config::OutputDataRate
-    IMU_BMX_ACC_GYRO_ODR_ENUM =
-        Boardcore::BMX160Config::OutputDataRate::HZ_1600;
-static constexpr unsigned int IMU_BMX_MAG_ODR = 100;
-static constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
+constexpr Boardcore::BMX160Config::AccelerometerRange IMU_BMX_ACC_FSR_ENUM =
+    Boardcore::BMX160Config::AccelerometerRange::G_16;
+constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
+    Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
+constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
+    Boardcore::BMX160Config::OutputDataRate::HZ_1600;
+constexpr unsigned int IMU_BMX_MAG_ODR = 100;
+constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
-static constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
-static constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
-static constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
-static constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
+constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
+constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
+constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
+constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-static constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
+constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
 
 // How many bytes go into the fifo each second
-static constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
+constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
     IMU_BMX_ACC_GYRO_ODR * (IMU_BMX_FIFO_HEADER_SIZE + IMU_BMX_ACC_DATA_SIZE +
                             IMU_BMX_GYRO_DATA_SIZE) +
     IMU_BMX_MAG_ODR * (IMU_BMX_MAG_DATA_SIZE + IMU_BMX_FIFO_HEADER_SIZE);
 
 // How long does it take for the bmx fifo to fill up
-static constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
+constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
     1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
 
 // Axis rotation
@@ -101,13 +98,12 @@ static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
     Boardcore::Direction::NEGATIVE_X, Boardcore::Direction::POSITIVE_Y};
 
 // Correction parameter file
-static constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] =
-    "/sd/bmx160_params.csv";
+constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] = "/sd/bmx160_params.csv";
 
 // LIS magnetometer
-static constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
+constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
     Boardcore::LIS3MDL::ODR_80_HZ;
-static constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
+constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
 // GPS
@@ -116,26 +112,26 @@ static constexpr Boardcore::USARTInterface::Baudrate GPS_BAUD_RATE =
 static constexpr unsigned int GPS_SAMPLE_RATE = 10;
 
 // Sampling periods and dividers
-static constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
-static constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1000;
-static constexpr unsigned int SAMPLE_PERIOD_ADS1118       = 6;
-static constexpr unsigned int SAMPLE_PERIOD_MAG_LIS       = 15;
-static constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
+constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
+constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1000;
+constexpr unsigned int SAMPLE_PERIOD_ADS1118       = 6;
+constexpr unsigned int SAMPLE_PERIOD_MAG_LIS       = 15;
+constexpr unsigned int SAMPLE_PERIOD_GPS           = 1000 / GPS_SAMPLE_RATE;
 
 // Sample before the fifo is full, but slightly after the watermark level
 // (watermark + 30) ---> high slack due to scheduler imprecision,
 //                       avoid clearing the fifo before the interrupt
-static constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
+constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
     IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
-static constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
+constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
 
-static constexpr unsigned int PITOT_TRANSMISSION_PERIOD = 50;
+constexpr unsigned int PITOT_TRANSMISSION_PERIOD = 50;
 
 // Calibration
-static constexpr unsigned int STATIC_PRESS_CALIB_SAMPLES_NUM = 50;
-static constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
-static constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
-static constexpr unsigned int CALIBRATION_DURATION           = 2000;
+constexpr unsigned int STATIC_PRESS_CALIB_SAMPLES_NUM = 50;
+constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
+constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
+constexpr unsigned int CALIBRATION_DURATION           = 2000;
 
 }  // namespace SensorsConfig
 

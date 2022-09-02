@@ -76,7 +76,7 @@ protected:
             // setting the opening to 50%
             Main::Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
                                                     0.5);
-            Main::Actuators::getInstance().sendToSimulator();
+            // Main::Actuators::getInstance().sendToSimulator();
         }
     }
 

@@ -28,8 +28,10 @@
 namespace Main
 {
 
-namespace AirBrakesControllerConfigs
+namespace AirBrakesControllerConfig
 {
+
+constexpr uint32_t UPDATE_PERIOD = 100;  // 10 hz
 
 #ifdef EUROC
 static constexpr int SHADOW_MODE_TIMEOUT = 5 * 1000;
@@ -38,7 +40,7 @@ static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
 #endif
 
 // Vertical speed limit beyond which the airbrakes need to be disabled.
-static constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
+constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
 
 static const Boardcore::AirBrakesConfig ABK_CONFIG{
     .N000       = 0.4884,
@@ -70,15 +72,11 @@ static const Boardcore::AirBrakesConfig ABK_CONFIG{
     .S0         = 0.017671458676443,
     .SURFACE    = 0.009564 * Main::ActuatorsConfigs::ABK_SERVO_ROTATION *
                EIGEN_PI / 180.0,
-    .KP                   = 20,
-    .KI                   = 5,
-    .TS                   = 0.1,
-    .INITIAL_FILTER_COEFF = 0.3,
-    .INITIAL_T_FILTER     = 12,
-    .DELTA_T_FILTER       = 2.5,
-    .FILTER_RATIO         = 2,
+    .KP = 20,
+    .KI = 5,
+    .TS = UPDATE_PERIOD / 1000.0,
 };
 
-}  // namespace AirBrakesControllerConfigs
+}  // namespace AirBrakesControllerConfig
 
 }  // namespace Main

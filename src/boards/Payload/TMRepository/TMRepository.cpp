@@ -143,10 +143,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_x      = state.bx;
             tm.nas_bias_y      = state.by;
             tm.nas_bias_z      = state.bz;
-            tm.ref_pressure    = ref.pressure;
-            tm.ref_temperature = ref.temperature;
-            tm.ref_latitude    = ref.startLatitude;
-            tm.ref_longitude   = ref.startLongitude;
+            tm.ref_pressure    = ref.refPressure;
+            tm.ref_temperature = ref.refTemperature;
+            tm.ref_latitude    = ref.refLatitude;
+            tm.ref_longitude   = ref.refLongitude;
 
             mavlink_msg_nas_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -180,11 +180,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
             tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
-
-            // ADA estimation
-            tm.msl_altitude   = 0;
-            tm.ada_vert_speed = 0;
-            tm.ada_vert_accel = 0;
 
             // IMU
             tm.acc_x  = imuData.accelerationX;

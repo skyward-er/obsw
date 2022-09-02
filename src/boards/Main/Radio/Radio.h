@@ -25,11 +25,14 @@
 #include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278.h>
 #include <scheduler/TaskScheduler.h>
 
-#ifdef USE_SERIAL_TRANSCEIVER
+#if defined(USE_SERIAL_TRANSCEIVER)
 #include <radio/SerialTransceiver/SerialTransceiver.h>
+#elif defined(USE_XBEE_TRANSCEIVER)
+#include <radio/Xbee/ATCommands.h>
+#else
+#include <radio/SX1278/SX1278.h>
 #endif
 
 namespace Main
@@ -44,8 +47,10 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-#ifdef USE_SERIAL_TRANSCEIVER
+#if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
+#elif defined(USE_XBEE_TRANSCEIVER)
+    Boardcore::Xbee::Xbee* transceiver;
 #else
     Boardcore::SX1278* transceiver;
 #endif

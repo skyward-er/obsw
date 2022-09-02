@@ -62,7 +62,7 @@ void AutomaticWingAlgorithm::step()
     ReferenceValues reference =
         NASController::getInstance().getReferenceValues();
     Vector2f startingPosition =
-        Vector2f(reference.startLatitude, reference.startLongitude);
+        Vector2f(reference.refLatitude, reference.refLongitude);
     Vector2f targetPosition = Aeroutils::geodetic2NED(
         WingController::getInstance().getTargetPosition(), startingPosition);
     Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
@@ -129,10 +129,8 @@ void AutomaticWingAlgorithm::step()
     {
         // Activate the servo2 and reset servo1
         Actuators::getInstance().setServoAngle(servo1, 0);
-        Actuators::getInstance().setServoAngle(servo2, result);
+        Actuators::getInstance().setServoAngle(servo2, result * -1);
     }
-
-    Actuators::getInstance().getServoPosition(servo1);
 
     // Log the servo positions
     WingAlgorithmData data;

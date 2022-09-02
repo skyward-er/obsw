@@ -39,8 +39,13 @@ sbs_target(auxiliary-entry stm32f429zi_skyward_pyxis_auxiliary)
 
 add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry PRIVATE USE_SERIAL_TRANSCEIVER)
+# target_compile_definitions(main-entry PRIVATE USE_SERIAL_TRANSCEIVER)
 sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-entry-hil src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(main-entry-hil PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry-hil PRIVATE HILSimulation EUROC)
+sbs_target(main-entry-hil stm32f429zi_skyward_death_stack_v3)
 
 add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -53,11 +58,11 @@ sbs_target(groundstation-entry stm32f429zi_skyward_groundstation)
 #                                    HIL Tests                                #
 #-----------------------------------------------------------------------------#
 
-add_executable(test-HIL src/tests/hardware_in_the_loop/test-HIL/test-HIL.cpp ${HIL_TESTS})
-target_include_directories(test-HIL PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(test-HIL PRIVATE HILSimulation HILUseADA USE_MOCK_PERIPHERALS USE_SERIAL_TRANSCEIVER EUROC)
-# sbs_target(test-HIL stm32f407vg_stm32f4discovery)
-sbs_target(test-HIL stm32f429zi_stm32f4discovery)
+add_executable(test-hil src/tests/hardware_in_the_loop/test-hil/test-hil.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(test-hil PRIVATE HILSimulation HILUseADA HILUseRadio EUROC)
+# sbs_target(test-hil stm32f407vg_stm32f4discovery)
+sbs_target(test-hil stm32f429zi_skyward_death_stack_v3)
 
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #

@@ -31,8 +31,10 @@
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/VN100/VN100.h>
 #include <sensors/analog/AnalogLoadCell.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/Pitot/PitotData.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
@@ -54,7 +56,27 @@ public:
 
     bool isStarted();
 
+#ifdef HILSimulation
+public:
+    /**
+     * structure that contains all the sensors used in the simulation
+     */
+    struct StateComplete
+    {
+        HILAccelerometer *accelerometer;
+        HILBarometer *barometer;
+        HILPitot *pitot;
+        HILGps *gps;
+        HILGyroscope *gyro;
+        HILMagnetometer *magnetometer;
+        HILTemperature *temperature;
+        HILImu *imu;
+        HILKalman *kalman;
+    } state;
+#endif  // HILSimulation
+
     Boardcore::BMX160 *bmx160 = nullptr;
+    void setPitotData(Boardcore::PitotData data);
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
@@ -64,12 +86,14 @@ public:
 
     Boardcore::ADS131M04Data getADS131M04LastSample();
     Boardcore::MPXH6115AData getStaticPressureLastSample();
-    Boardcore::SSCDRRN015PDAData getDifferentialPressureLastSample();
     Boardcore::MPXH6400AData getDplPressureLastSample();
+    Boardcore::PitotData getPitotData();
     Boardcore::AnalogLoadCellData getLoadCellLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
     Boardcore::InternalADCData getInternalADCLastSample();
+
+    bool isCutterPresent();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -97,6 +121,8 @@ private:
 
     void ubxGpsInit();
 
+    void vn100Init();
+
     void ads131m04Init();
 
     void staticPressureInit();
@@ -109,39 +135,20 @@ private:
 
     void internalAdcInit();
 
-#ifndef HILSimulation
     Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
     Boardcore::MPU9250 *mpu9250                           = nullptr;
     Boardcore::MS5803 *ms5803                             = nullptr;
-    Boardcore::UBXGPSSpi *ubxGps;
+    Boardcore::UBXGPSSpi *ubxGps                          = nullptr;
+    Boardcore::VN100 *vn100                               = nullptr;
 
-    Boardcore::ADS131M04 *ads131m04                 = nullptr;
-    Boardcore::MPXH6115A *staticPressure            = nullptr;
-    Boardcore::MPXH6400A *dplPressure               = nullptr;
+    Boardcore::ADS131M04 *ads131m04      = nullptr;
+    Boardcore::MPXH6115A *staticPressure = nullptr;
+    Boardcore::MPXH6400A *dplPressure    = nullptr;
+    Boardcore::PitotData pitotData;
     Boardcore::AnalogLoadCell *loadCell             = nullptr;
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
 
     Boardcore::InternalADC *internalAdc = nullptr;
-#else   // HILSimulation
-public:
-    /**
-     * structure that contains all the sensors used in the simulation
-     */
-    struct StateComplete
-    {
-        HILAccelerometer *accelerometer;
-        HILBarometer *barometer;
-        HILPitot *pitot;
-        HILGps *gps;
-        HILGyroscope *gyro;
-        HILMagnetometer *magnetometer;
-        HILTemperature *temperature;
-        HILImu *imu;
-        HILKalman *kalman;
-    } state;
-
-private:
-#endif  // HILSimulation
 
     Boardcore::SensorManager *sensorManager = nullptr;
 
@@ -152,6 +159,8 @@ private:
     Boardcore::Stats staticPressureStats;
     Boardcore::Stats dplPressureStats;
     Boardcore::Stats loadCellStats;
+
+    float cutterSensingMean = 0;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

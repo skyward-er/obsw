@@ -95,6 +95,7 @@
         "tensorsymmetry": "cpp"
     },
     "cSpell.words": [
+        "Aeroutils",
         "AIRBRAKES",
         "Baro",
         "Boardcore",
@@ -121,11 +122,16 @@
         "Eigen",
         "EXTI",
         "GPIOF",
+        "kalman",
         "mavlink",
         "miosix",
         "Nidasio",
+        "pitot",
+        "stateinitializer",
         "telecommands",
+        "UBXGPS",
         "usart",
+        "VREF",
         "Xbee"
     ],
     "C_Cpp.errorSquiggles": "Enabled"

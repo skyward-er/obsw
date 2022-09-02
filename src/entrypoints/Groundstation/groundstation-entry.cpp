@@ -52,9 +52,6 @@ void sendLoop();
 
 int main()
 {
-    usart = new USART(UART5, USARTInterface::Baudrate::B19200);
-    usart->init();
-
     // Enable dio0 interrupt
 #ifdef USE_RA01
     enableExternalInterrupt(GPIOF_BASE, 6, InterruptTrigger::RISING_EDGE);
@@ -86,6 +83,9 @@ int main()
     }
     printf("[sx1278] Initialization complete!\n");
 
+    usart = new USART(USART1, USARTInterface::Baudrate::B115200);
+    usart->init();
+
     std::thread recv([]() { recvLoop(); });
     std::thread send([]() { sendLoop(); });
 
@@ -101,10 +101,7 @@ void recvLoop()
     {
         int len = sx1278->receive(msg, sizeof(msg));
         if (len > 0)
-        {
-            usart->writeString("This is the message:\r\n");
             usart->write(msg, len);
-        }
     }
 }
 

@@ -23,12 +23,10 @@
 #pragma once
 
 #include <Singleton.h>
+#include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
-#ifndef HILSimulation
-#include <actuators/Servo/Servo.h>
-#else  // HILSimulation
-#include "HIL.h"
+#ifdef HILSimulation
 #include "HIL_actuators/HILServo.h"
 #endif  // HILSimulation
 
@@ -39,10 +37,9 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    miosix::GpioPin led1;
-    miosix::GpioPin led2;
-    miosix::GpioPin led3;
-    miosix::GpioPin led4;
+    miosix::GpioPin ledRed;
+    miosix::GpioPin ledGreen;
+    miosix::GpioPin ledBlue;
 
     miosix::GpioPin cutter1;
     miosix::GpioPin cutter1Backup;
@@ -93,11 +90,10 @@ private:
 
 #ifndef HILSimulation
     Boardcore::Servo servoAirbrakes;
-    Boardcore::Servo servoExpulsion;
 #else   // HILSimulation
     HILServo servoAirbrakes;
-    HILServo servoExpulsion;
 #endif  // HILSimulation
+    Boardcore::Servo servoExpulsion;
 };
 
 }  // namespace Main

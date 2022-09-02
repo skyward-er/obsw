@@ -102,7 +102,7 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         if (isSetTrue(FlightPhases::FLYING))
         {
             TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
-            sEventBroker.post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
+            sEventBroker.post(FLIGHT_UMBILICAL_DETACHED, TOPIC_FLIGHT);
         }
         if (isSetFalse(FlightPhases::BURNING))
         {

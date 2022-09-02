@@ -144,6 +144,18 @@ void Actuators::camOn() { interfaces::camMosfet::high(); }
 
 void Actuators::camOff() { interfaces::camMosfet::low(); }
 
+void Actuators::cuttersOn()
+{
+    actuators::nosecone::thermal_cutter_1::enable::high();
+    actuators::nosecone::thermal_cutter_2::enable::high();
+}
+
+void Actuators::cuttersOff()
+{
+    actuators::nosecone::thermal_cutter_1::enable::low();
+    actuators::nosecone::thermal_cutter_2::enable::low();
+}
+
 Actuators::Actuators()
     : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
       led3(leds::led_blue1::getPin()),
