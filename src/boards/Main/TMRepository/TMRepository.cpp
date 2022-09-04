@@ -280,7 +280,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Airbrakes
             tm.abk_angle =
-                Actuators::getInstance().getServoPosition(AIR_BRAKES_SERVO);
+                Actuators::getInstance().getServoAngle(AIR_BRAKES_SERVO);
             tm.abk_estimated_cd = 0;
 
             // NAS

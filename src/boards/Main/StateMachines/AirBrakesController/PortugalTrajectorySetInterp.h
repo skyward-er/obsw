@@ -3051,6 +3051,7 @@ Boardcore::Trajectory t[] = {
     Boardcore::Trajectory{0.0373, t9, 301}};
 
 const Boardcore::TrajectorySet TRAJECTORY_SET(t, 10);
-const float dz = 10;  // [m] the distance between two consecutive Trajectory points
+const float dz =
+    10;  // [m] the distance between two consecutive Trajectory points
 
 }  // namespace Main

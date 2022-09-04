@@ -71,6 +71,8 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoPosition(ServosList servoId);
 
+    float getServoAngle(ServosList servoId);
+
     void ledOn();
 
     void ledOff();
@@ -86,8 +88,8 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 private:
     Actuators();
 
-    Boardcore::Servo servo1;
-    Boardcore::Servo servo2;
+    Boardcore::Servo leftServo;
+    Boardcore::Servo rightServo;
 };
 
 }  // namespace Payload

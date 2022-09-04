@@ -36,10 +36,10 @@ bool Actuators::setServo(ServosList servoId, float percentage)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(percentage);
+            leftServo.setPosition(percentage);
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(percentage);
+            rightServo.setPosition(percentage);
             break;
         default:
             return false;
@@ -53,10 +53,10 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(angle / SERVO_1_ROTATION);
+            leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(angle / SERVO_2_ROTATION);
+            rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
             break;
         default:
             return false;
@@ -70,14 +70,14 @@ bool Actuators::wiggleServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(1);
+            leftServo.setPosition(1);
             Thread::sleep(1000);
-            servo1.setPosition(0);
+            leftServo.setPosition(0);
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(1);
+            rightServo.setPosition(1);
             Thread::sleep(1000);
-            servo2.setPosition(0);
+            rightServo.setPosition(0);
             break;
         default:
             return false;
@@ -91,10 +91,10 @@ bool Actuators::enableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.enable();
+            leftServo.enable();
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.enable();
+            rightServo.enable();
             break;
         default:
             return false;
@@ -108,10 +108,10 @@ bool Actuators::disableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.enable();
+            leftServo.enable();
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.enable();
+            rightServo.enable();
             break;
         default:
             return false;
@@ -126,9 +126,24 @@ float Actuators::getServoPosition(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            return servo1.getPosition();
+            return leftServo.getPosition();
         case PARAFOIL_RIGHT_SERVO:
-            return servo2.getPosition();
+            return rightServo.getPosition();
+        default:
+            return 0;
+    }
+
+    return 0;
+}
+
+float Actuators::getServoAngle(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            return leftServo.getPosition() * LEFT_SERVO_ROTATION;
+        case PARAFOIL_RIGHT_SERVO:
+            return rightServo.getPosition() * RIGHT_SERVO_ROTATION;
         default:
             return 0;
     }
@@ -159,10 +174,10 @@ void Actuators::cuttersOff()
 Actuators::Actuators()
     : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
       led3(leds::led_blue1::getPin()),
-      servo1(SERVO_1_TIMER, SERVO_1_PWM_CH, SERVO_1_MIN_PULSE,
-             SERVO_1_MAX_PULSE),
-      servo2(SERVO_2_TIMER, SERVO_2_PWM_CH, SERVO_2_MIN_PULSE,
-             SERVO_2_MAX_PULSE)
+      leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
+                LEFT_SERVO_MAX_PULSE),
+      rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
+                 RIGHT_SERVO_MAX_PULSE)
 {
 }
 
