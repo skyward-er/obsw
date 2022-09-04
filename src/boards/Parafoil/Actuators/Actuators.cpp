@@ -38,10 +38,10 @@ bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             servo1.setPosition(percentage);
             break;
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             servo2.setPosition(percentage);
             break;
         default:
@@ -55,10 +55,10 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             servo1.setPosition(angle / SERVO_1_ROTATION);
             break;
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             servo2.setPosition(angle / SERVO_2_ROTATION);
             break;
         default:
@@ -72,12 +72,12 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             servo1.setPosition(1);
             Thread::sleep(1000);
             servo1.setPosition(0);
             break;
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             servo2.setPosition(1);
             Thread::sleep(1000);
             servo2.setPosition(0);
@@ -93,10 +93,10 @@ bool Actuators::enableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             servo1.enable();
             break;
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             servo2.enable();
             break;
         default:
@@ -110,10 +110,10 @@ bool Actuators::disableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             servo1.enable();
             break;
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             servo1.enable();
             break;
         default:
@@ -128,9 +128,9 @@ float Actuators::getServoPosition(ServosList servoId)
 
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
+        case PARAFOIL_LEFT_SERVO:
             return servo1.getPosition();
-        case PARAFOIL_SERVO2:
+        case PARAFOIL_RIGHT_SERVO:
             return servo2.getPosition();
         default:
             return 0;

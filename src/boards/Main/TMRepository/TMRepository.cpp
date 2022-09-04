@@ -279,9 +279,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.gps_alt = ubxData.height;
 
             // Airbrakes
-            tm.ab_angle =
-                Actuators::getInstance().getServoPosition(AIRBRAKES_SERVO);
-            tm.ab_estimated_cd = 0;
+            tm.abk_angle =
+                Actuators::getInstance().getServoPosition(AIR_BRAKES_SERVO);
+            tm.abk_estimated_cd = 0;
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -631,7 +631,7 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 {
     mavlink_message_t msg;
 
-    if (servoId == AIRBRAKES_SERVO || servoId == EXPULSION_SERVO)
+    if (servoId == AIR_BRAKES_SERVO || servoId == EXPULSION_SERVO)
     {
         mavlink_servo_tm_t tm;
 

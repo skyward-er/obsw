@@ -87,8 +87,8 @@ void AirBrakesController::state_init(const Event& event)
         {
             logStatus(AirBrakesControllerState::INIT);
 
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
-            Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
+            Actuators::getInstance().enableServo(AIR_BRAKES_SERVO);
 
             return transition(&AirBrakesController::state_idle);
         }
@@ -109,13 +109,13 @@ void AirBrakesController::state_idle(const Event& event)
         }
         case ABK_OPEN:
         {
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
                                                    ABK_SERVO_ROTATION);
             break;
         }
         case ABK_RESET:
         {
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
             break;
         }
         case FLIGHT_LIFTOFF:
@@ -175,7 +175,7 @@ void AirBrakesController::state_end(const Event& event)
             logStatus(AirBrakesControllerState::END);
 
             abk.end();
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
 
             return;
         }
@@ -196,9 +196,10 @@ AirBrakesController::AirBrakesController()
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
           [](float position)
           {
-              //   Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
+              //   Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
               //                                     position);
-              Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO, 1);
+              Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
+                                                1);
           })
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
@@ -222,10 +223,10 @@ void AirBrakesController::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
+        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
                                                ABK_SERVO_ROTATION);
         miosix::Thread::sleep(500);
-        Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
+        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
         miosix::Thread::sleep(500);
     }
 }

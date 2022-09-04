@@ -38,7 +38,7 @@ bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(percentage);
             break;
         case EXPULSION_SERVO:
@@ -55,7 +55,7 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(angle / ABK_SERVO_ROTATION);
             break;
         case EXPULSION_SERVO:
@@ -72,7 +72,7 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(1);
             Thread::sleep(ABK_WIGGLE_TIME);
             servoAirbrakes.setPosition(0);
@@ -93,7 +93,7 @@ bool Actuators::enableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.enable();
             break;
         case EXPULSION_SERVO:
@@ -110,7 +110,7 @@ bool Actuators::disableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.enable();
             break;
         case EXPULSION_SERVO:
@@ -127,7 +127,7 @@ float Actuators::getServoPosition(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             return servoAirbrakes.getPosition();
         case EXPULSION_SERVO:
             return servoExpulsion.getPosition();
@@ -142,7 +142,7 @@ float Actuators::getServoAngle(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             return servoAirbrakes.getPosition() * ABK_SERVO_ROTATION;
         case EXPULSION_SERVO:
             return servoExpulsion.getPosition() * DPL_SERVO_ROTATION;

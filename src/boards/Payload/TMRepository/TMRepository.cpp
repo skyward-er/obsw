@@ -198,6 +198,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.gps_lon = ubxData.longitude;
             tm.gps_alt = ubxData.height;
 
+            // Servo motors
+            tm.left_servo_angle =
+                Actuators::getInstance().getServoPosition(PARAFOIL_LEFT_SERVO);
+            tm.right_servo_angle =
+                Actuators::getInstance().getServoPosition(PARAFOIL_RIGHT_SERVO);
+
             // NAS
             tm.nas_n      = nasState.n;
             tm.nas_e      = nasState.e;
@@ -467,7 +473,7 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 {
     mavlink_message_t msg;
 
-    if (servoId == PARAFOIL_SERVO1 || servoId == PARAFOIL_SERVO2)
+    if (servoId == PARAFOIL_LEFT_SERVO || servoId == PARAFOIL_RIGHT_SERVO)
     {
         mavlink_servo_tm_t tm;
 

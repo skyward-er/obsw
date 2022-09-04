@@ -63,10 +63,10 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_SERVO1) ||
-        !Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_SERVO2) ||
-        !Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0))
+    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
+        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators");
@@ -132,11 +132,11 @@ int main()
 
     // Set up the wing controller
     WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
-        0.1, 0.01, PARAFOIL_SERVO1, PARAFOIL_SERVO2));
-    WingController::getInstance().addAlgorithm(
-        new AutomaticWingAlgorithm(1, 0, PARAFOIL_SERVO1, PARAFOIL_SERVO2));
+        0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
+    WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
+        1, 0, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
     WingController::getInstance().addAlgorithm(new FileWingAlgorithm(
-        PARAFOIL_SERVO1, PARAFOIL_SERVO2, "/sd/servoCorta.csv"));
+        PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, "/sd/servoCorta.csv"));
 
     WingController::getInstance().selectAlgorithm(1);
 

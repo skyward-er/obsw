@@ -111,9 +111,9 @@ void WingAlgorithm::step()
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
-        Actuators::getInstance().setServo(PARAFOIL_SERVO1,
+        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO,
                                           steps[stepIndex].servo1Angle);
-        Actuators::getInstance().setServo(PARAFOIL_SERVO2,
+        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO,
                                           steps[stepIndex].servo2Angle);
 
         WingAlgorithmData data;
