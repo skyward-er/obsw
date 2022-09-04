@@ -31,18 +31,6 @@ namespace Main
 namespace ActuatorsConfigs
 {
 
-// Deployment servo
-static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
-constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_2;
-
-// TODO: Change rotation with min and max
-constexpr float DPL_SERVO_ROTATION  = 23;                             // [deg]
-constexpr float DPL_SERVO_MIN_PULSE = 900;                            // [us]
-constexpr float DPL_SERVO_MAX_PULSE = 900 + 10 * DPL_SERVO_ROTATION;  // [us]
-constexpr float DPL_SERVO_EJECT_POS = 0;                              // [deg]
-constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
-
 // Airbrakes servo
 static TIM_TypeDef* const ABK_SERVO_TIMER = TIM10;
 constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
@@ -54,6 +42,20 @@ constexpr float ABK_SERVO_ROTATION = 66.4;  // [deg] AirBrakes without end stop
 constexpr float ABK_SERVO_MIN_PULSE = 1410;  // [deg]
 constexpr float ABK_SERVO_MAX_PULSE =
     ABK_SERVO_MIN_PULSE - 10 * ABK_SERVO_ROTATION;  // [us]
+constexpr float ABK_WIGGLE_TIME = 2 * 1000;         // [ms]
+
+// Deployment servo
+static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
+constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
+
+// TODO: Change rotation with min and max
+constexpr float DPL_SERVO_ROTATION  = 23;                             // [deg]
+constexpr float DPL_SERVO_MIN_PULSE = 900;                            // [us]
+constexpr float DPL_SERVO_MAX_PULSE = 900 + 10 * DPL_SERVO_ROTATION;  // [us]
+constexpr float DPL_SERVO_EJECT_POS = 0;                              // [deg]
+constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
+constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
 
 }  // namespace ActuatorsConfigs
 

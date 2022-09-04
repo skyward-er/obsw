@@ -74,12 +74,12 @@ bool Actuators::wiggleServo(ServosList servoId)
     {
         case AIRBRAKES_SERVO:
             servoAirbrakes.setPosition(1);
-            Thread::sleep(1000);
+            Thread::sleep(ABK_WIGGLE_TIME);
             servoAirbrakes.setPosition(0);
             break;
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(1);
-            Thread::sleep(1000);
+            Thread::sleep(DPL_WIGGLE_TIME);
             servoExpulsion.setPosition(0);
             break;
         default:
