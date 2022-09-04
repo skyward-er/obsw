@@ -247,7 +247,7 @@
             }
         },
         {
-            "name": "stm32f429zi_skyward_death_stack_v3_hil",
+            "name": "stm32f429zi_skyward_death_stack_v3_hil_euroc",
             "cStandard": "c11",
             "cppStandard": "c++11",
             "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
@@ -261,7 +261,8 @@
                 "_MIOSIX",
                 "__cplusplus=201103L",
                 "HILSimulation",
-                "USE_XBEE_TRANSCEIVER"
+                "USE_XBEE_TRANSCEIVER",
+                "EUROC"
             ],
             "includePath": [
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack_v3",

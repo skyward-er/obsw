@@ -61,7 +61,17 @@ bool AirBrakesController::start()
     return ActiveObject::start();
 }
 
-void AirBrakesController::update() { abk.update(); }
+void AirBrakesController::update()
+{
+    auto currentPoint =
+        TimedTrajectoryPoint{NASController::getInstance().getNasState()};
+
+    if (!abk.isRunning() && status.state == AirBrakesControllerState::ACTIVE &&
+        currentPoint.getMac() < MACH_LIMIT)
+        abk.begin();
+
+    abk.update();
+}
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {
@@ -146,8 +156,6 @@ void AirBrakesController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            abk.begin();
-
             return logStatus(AirBrakesControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
@@ -164,11 +172,12 @@ void AirBrakesController::state_end(const Event& event)
     {
         case EV_ENTRY:
         {
-            abk.end();
+            logStatus(AirBrakesControllerState::END);
 
+            abk.end();
             Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
 
-            return logStatus(AirBrakesControllerState::END);
+            return;
         }
     }
 }
@@ -185,9 +194,11 @@ AirBrakesController::AirBrakesController()
           []() { return Sensors::getInstance().state.kalman->getLastSample(); },
 #endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
-          [](float position) {
-              Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
-                                                position);
+          [](float position)
+          {
+              //   Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
+              //                                     position);
+              Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO, 1);
           })
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);

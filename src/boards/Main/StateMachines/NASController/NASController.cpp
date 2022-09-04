@@ -56,7 +56,7 @@ void NASController::update()
             Sensors::getInstance().getBMX160WithCorrectionLastSample();
         auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
         auto pressureData = Sensors::getInstance().getMS5803LastSample();
-        auto pitotData    = Sensors::getInstance().getPitotData();
+        auto pitotData    = Sensors::getInstance().getPitotLastSample();
 
         // Predict step
         nas.predictGyro(imuData);
@@ -224,10 +224,12 @@ void NASController::state_calibrating(const Event &event)
     {
         case EV_ENTRY:
         {
+            logStatus(NASControllerState::CALIBRATING);
+
             // Calibrate the NAS
             calibrate();
 
-            return logStatus(NASControllerState::CALIBRATING);
+            return;
         }
         case NAS_READY:
         {

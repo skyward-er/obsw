@@ -232,6 +232,7 @@ void ADAController::calibrate()
     {
         miosix::PauseKernelLock l;
         ada.setReferenceValues(reference);
+        ada.setKalmanConfig(getADAKalmanConfig());
     }
 
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
@@ -311,10 +312,12 @@ void ADAController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(ADAControllerState::CALIBRATING);
+
             // Calibrate the ADA
             calibrate();
 
-            return logStatus(ADAControllerState::CALIBRATING);
+            return;
         }
         case ADA_READY:
         {
