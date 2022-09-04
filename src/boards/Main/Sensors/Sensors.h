@@ -83,11 +83,12 @@ public:
     Boardcore::MPU9250Data getMPU9250LastSample();
     Boardcore::MS5803Data getMS5803LastSample();
     Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::VN100Data getVN100LastSample();
 
     Boardcore::ADS131M04Data getADS131M04LastSample();
     Boardcore::MPXH6115AData getStaticPressureLastSample();
     Boardcore::MPXH6400AData getDplPressureLastSample();
-    Boardcore::PitotData getPitotData();
+    Boardcore::PitotData getPitotLastSample();
     Boardcore::AnalogLoadCellData getLoadCellLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 

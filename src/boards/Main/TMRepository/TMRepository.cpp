@@ -161,10 +161,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.kalman_x1       = state.x1;
             tm.kalman_x2       = state.x2;
             tm.vertical_speed  = state.verticalSpeed;
-            tm.msl_altitude    = state.mslAltitude;
-            tm.ref_pressure    = ref.refPressure;
             tm.ref_altitude    = ref.refAltitude;
+            tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
+            tm.msl_altitude    = state.mslAltitude;
+            tm.msl_pressure    = ref.mslPressure;
+            tm.msl_temperature = ref.mslTemperature;
 
             mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -253,7 +255,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
-            tm.airspeed_pitot  = 0;  // TODO: Implement
+            tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
 
             // ADA estimation
             tm.altitude_agl   = adaState.aglAltitude;
@@ -306,7 +308,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                    .lastState;
 
             // Cutter presence
-            tm.cutter_presence = Sensors::getInstance().isCutterPresent();
+            tm.cutter_presence = sensors.isCutterPresent();
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
@@ -377,7 +379,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
     switch (sensorId)
     {
-        case SensorsTMList::MAV_GPS_ID:  // TODO
+        case SensorsTMList::MAV_GPS_ID:
         {
             mavlink_gps_tm_t tm;
 
@@ -425,23 +427,23 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_VN100_ID:  // TODO
+        case SensorsTMList::MAV_VN100_ID:
         {
             mavlink_imu_tm_t tm;
 
-            // auto imuData = Sensors::getInstance().getVN100LastSample();
+            auto imuData = Sensors::getInstance().getVN100LastSample();
 
-            // tm.timestamp = imuData.accelerationTimestamp;
-            // strcpy(tm.sensor_id, "VN100");
-            // tm.acc_x     = imuData.accelerationX;
-            // tm.acc_y     = imuData.accelerationY;
-            // tm.acc_z     = imuData.accelerationZ;
-            // tm.gyro_x    = imuData.angularVelocityX;
-            // tm.gyro_y    = imuData.angularVelocityY;
-            // tm.gyro_z    = imuData.angularVelocityZ;
-            // tm.mag_x     = imuData.magneticFieldX;
-            // tm.mag_y     = imuData.magneticFieldY;
-            // tm.mag_z     = imuData.magneticFieldZ;
+            tm.timestamp = imuData.accelerationTimestamp;
+            strcpy(tm.sensor_id, "VN100");
+            tm.acc_x  = imuData.accelerationX;
+            tm.acc_y  = imuData.accelerationY;
+            tm.acc_z  = imuData.accelerationZ;
+            tm.gyro_x = imuData.angularVelocityX;
+            tm.gyro_y = imuData.angularVelocityY;
+            tm.gyro_z = imuData.angularVelocityZ;
+            tm.mag_x  = imuData.magneticFieldX;
+            tm.mag_y  = imuData.magneticFieldY;
+            tm.mag_z  = imuData.magneticFieldZ;
 
             mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -556,17 +558,15 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_PITOT_PRESS_ID:  // TODO
+        case SensorsTMList::MAV_PITOT_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;
 
-            // auto pressureData =
-            //     Sensors::getInstance().getPitotLastSample();
+            auto pressureData = Sensors::getInstance().getPitotLastSample();
 
-            // tm.timestamp = pressureData.pressureTimestamp;
+            tm.timestamp = pressureData.timestamp;
             strcpy(tm.sensor_id, "PITOT");
-
-            // tm.pressure = pressureData.pressure;
+            tm.pressure = pressureData.deltaP;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
@@ -574,11 +574,24 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:  // TODO
+        case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
         {
+            mavlink_voltage_tm_t tm;
+
+            auto voltageData =
+                Sensors::getInstance().getBatteryVoltageLastSample();
+
+            tm.timestamp = voltageData.voltageTimestamp;
+            strcpy(tm.sensor_id, "BATTERY_VOLTAGE");
+            tm.voltage = voltageData.voltage;
+
+            mavlink_msg_voltage_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                          RadioConfig::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+
             break;
         }
-        case SensorsTMList::MAV_STRAIN_GAUGE_ID:
+        case SensorsTMList::MAV_LOAD_CELL_ID:
         {
             mavlink_load_tm_t tm;
 

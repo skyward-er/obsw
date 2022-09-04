@@ -47,7 +47,7 @@ namespace Main
 
 bool Sensors::start()
 {
-    GpioPin bmx160IntPin = miosix::sensors::bmx160::intr::getPin();
+    GpioPin bmx160IntPin = sensors::bmx160::intr::getPin();
     enableExternalInterrupt(bmx160IntPin.getPort(), bmx160IntPin.getNumber(),
                             InterruptTrigger::FALLING_EDGE);
 
@@ -64,19 +64,19 @@ bool Sensors::isStarted()
 
 void Sensors::setPitotData(Boardcore::PitotData data)
 {
-    miosix::PauseKernelLock lock;
+    PauseKernelLock lock;
     pitotData = data;
 }
 
 BMX160Data Sensors::getBMX160LastSample()
 {
-    miosix::PauseKernelLock lock;
+    PauseKernelLock lock;
     return bmx160 != nullptr ? bmx160->getLastSample() : BMX160Data{};
 }
 
 BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
 {
-    miosix::PauseKernelLock lock;
+    PauseKernelLock lock;
 
 #ifndef HILSimulation
     return bmx160WithCorrection != nullptr
@@ -126,7 +126,7 @@ MS5803Data Sensors::getMS5803LastSample()
 
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
-    miosix::PauseKernelLock lock;
+    PauseKernelLock lock;
 
 #ifndef HILSimulation
     return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
@@ -151,6 +151,12 @@ UBXGPSData Sensors::getUbxGpsLastSample()
 #endif
 }
 
+VN100Data Sensors::getVN100LastSample()
+{
+    PauseKernelLock lock;
+    return vn100 != nullptr ? vn100->getLastSample() : VN100Data{};
+}
+
 ADS131M04Data Sensors::getADS131M04LastSample()
 {
     PauseKernelLock lock;
@@ -171,9 +177,9 @@ MPXH6400AData Sensors::getDplPressureLastSample()
                                   : MPXH6400AData{};
 }
 
-Boardcore::PitotData Sensors::getPitotData()
+Boardcore::PitotData Sensors::getPitotLastSample()
 {
-    miosix::PauseKernelLock lock;
+    PauseKernelLock lock;
 
 #ifndef HILSimulation
     return pitotData;
@@ -346,9 +352,8 @@ void Sensors::bmx160Init()
 
     config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
-    bmx160 =
-        new BMX160(Buses::getInstance().spi4,
-                   miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
+    bmx160 = new BMX160(Buses::getInstance().spi4,
+                        sensors::bmx160::cs::getPin(), config, spiConfig);
 
     SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
                     bind(&Sensors::bmx160Callback, this));
@@ -415,9 +420,9 @@ void Sensors::ms5803Init()
     spiConfig.mode         = SPI::Mode::MODE_3;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    ms5803 = new MS5803(Buses::getInstance().spi2,
-                        miosix::sensors::ms5803::cs::getPin(), spiConfig,
-                        TEMP_DIVIDER_PRESS_DIGITAL);
+    ms5803 =
+        new MS5803(Buses::getInstance().spi2, sensors::ms5803::cs::getPin(),
+                   spiConfig, TEMP_DIVIDER_PRESS_DIGITAL);
 
     SensorInfo info(
         "MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
@@ -464,9 +469,8 @@ void Sensors::ads131m04Init()
     SPIBusConfig spiConfig = ADS131M04::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ads131m04 =
-        new ADS131M04(Buses::getInstance().spi1,
-                      miosix::sensors::ads131m04::cs1::getPin(), spiConfig);
+    ads131m04 = new ADS131M04(Buses::getInstance().spi1,
+                              sensors::ads131m04::cs1::getPin(), spiConfig);
 
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_0);
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_1);
