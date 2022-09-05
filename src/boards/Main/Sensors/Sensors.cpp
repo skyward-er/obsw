@@ -184,13 +184,7 @@ Boardcore::PitotData Sensors::getPitotLastSample()
 #ifndef HILSimulation
     return pitotData;
 #else
-    auto pitotData = state.pitot->getLastSample();
-
-    Boardcore::PitotData data;
-    data.timestamp = pitotData.pressureTimestamp;
-    data.deltaP    = pitotData.pressure;
-
-    return data;
+    return state.pitot->getLastSample();
 #endif
 }
 

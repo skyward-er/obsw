@@ -194,12 +194,9 @@ AirBrakesController::AirBrakesController()
           []() { return Sensors::getInstance().state.kalman->getLastSample(); },
 #endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
-          [](float position)
-          {
-              //   Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
-              //                                     position);
+          [](float position) {
               Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
-                                                1);
+                                                position);
           })
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);

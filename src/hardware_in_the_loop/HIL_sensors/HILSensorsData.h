@@ -24,14 +24,10 @@
 
 struct HILAccelData : public Boardcore::AccelerometerData
 {
-    HILAccelData() : Boardcore::AccelerometerData{0, 0.0, 0.0, 0.0} {}
-
-    HILAccelData(uint64_t t, float x, float y, float z)
-        : Boardcore::AccelerometerData{t, x, y, z}
+    static std::string header()
     {
+        return "timestamp,accelerationX,accelerationY,accelerationZ\n";
     }
-
-    static std::string header() { return "timestamp,x,y,z\n"; }
 
     void print(std::ostream& os) const
     {
@@ -42,14 +38,10 @@ struct HILAccelData : public Boardcore::AccelerometerData
 
 struct HILGyroscopeData : public Boardcore::GyroscopeData
 {
-    HILGyroscopeData() : GyroscopeData{0, 0.0, 0.0, 0.0} {}
-
-    HILGyroscopeData(uint64_t t, float x, float y, float z)
-        : GyroscopeData{t, x, y, z}
+    static std::string header()
     {
+        return "timestamp,angularVelocityX,angularVelocityY,angularVelocityZ\n";
     }
-
-    static std::string header() { return "timestamp,x,y,z\n"; }
 
     void print(std::ostream& os) const
     {
@@ -60,14 +52,10 @@ struct HILGyroscopeData : public Boardcore::GyroscopeData
 
 struct HILMagnetometerData : public Boardcore::MagnetometerData
 {
-    HILMagnetometerData() : MagnetometerData{0, 0.0, 0.0, 0.0} {}
-
-    HILMagnetometerData(uint64_t t, float x, float y, float z)
-        : MagnetometerData{t, x, y, z}
+    static std::string header()
     {
+        return "timestamp,magneticFieldX,magneticFieldY,magneticFieldZ\n";
     }
-
-    static std::string header() { return "timestamp,x,y,z\n"; }
 
     void print(std::ostream& os) const
     {
@@ -82,8 +70,10 @@ struct HILImuData : public HILAccelData,
 {
     static std::string header()
     {
-        return "accel_timestamp,accel_x,accel_y,accel_z,gyro_timestamp,gyro_x,"
-               "gyro_y,gyro_z,mag_timestamp,mag_x,mag_y,mag_z\n";
+        return "accelerationTimestamp,accelerationX,accelerationY,"
+               "accelerationZ,angularVelocityTimestamp,angularVelocityX,"
+               "angularVelocityY,angularVelocityZ,magneticFieldTimestamp,"
+               "magneticFieldX,magneticFieldY,magneticFieldZ\n";
     }
 
     void print(std::ostream& os) const
@@ -99,37 +89,24 @@ struct HILImuData : public HILAccelData,
 
 struct HILGpsData : public Boardcore::GPSData
 {
-    HILGpsData() : GPSData{0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3, true}
-    {
-    }
-
-    HILGpsData(uint64_t t, float x, float y, float z, float v_x, float v_y,
-               float v_z, float v)
-        : GPSData{t, x, y, z, v_x, v_y, v_z, v, 0.0, 3, true}
-    {
-    }
-
     static std::string header()
     {
-        return "timestamp,x,y,z,v_x,v_y,v_z,v,track,n_sats,fix\n";
+        return "timestamp,latitude,longitude,height,velocityNorth,velocityEast,"
+               "velocityDown,speed,track,positionDOP,satellites,fix\n";
     }
 
     void print(std::ostream& os) const
     {
         os << gpsTimestamp << "," << longitude << "," << latitude << ","
            << height << "," << velocityNorth << "," << velocityEast << ","
-           << velocityDown << "," << speed << "," << track << ","
-           << (int)satellites << "," << (int)fix << "\n";
+           << velocityDown << "," << speed << "," << track << "," << positionDOP
+           << "," << (int)satellites << "," << (int)fix << "\n";
     }
 };
 
 struct HILBaroData : public Boardcore::PressureData
 {
-    HILBaroData() : PressureData{0, 0.0} {}
-
-    HILBaroData(uint64_t t, float p) : PressureData{t, p} {}
-
-    static std::string header() { return "timestamp,press\n"; }
+    static std::string header() { return "timestamp,pressure\n"; }
 
     void print(std::ostream& os) const
     {
@@ -137,27 +114,19 @@ struct HILBaroData : public Boardcore::PressureData
     }
 };
 
-struct HILPitotData : public Boardcore::PressureData
+struct HILPitotData : public Boardcore::PitotData
 {
-    HILPitotData() : PressureData{0, 0.0} {}
-
-    HILPitotData(uint64_t t, float p) : PressureData{t, p} {}
-
-    static std::string header() { return "timestamp,differential_press\n"; }
+    static std::string header() { return "timestamp,deltaP,airspeed\n"; }
 
     void print(std::ostream& os) const
     {
-        os << pressureTimestamp << "," << pressure << "\n";
+        os << timestamp << "," << deltaP << "," << airspeed << "\n";
     }
 };
 
 struct HILTempData : public Boardcore::TemperatureData
 {
-    HILTempData() : TemperatureData{0, 0.0} {}
-
-    HILTempData(uint64_t t, float x) : TemperatureData{t, x} {}
-
-    static std::string header() { return "timestamp,press\n"; }
+    static std::string header() { return "timestamp,temperature\n"; }
 
     void print(std::ostream& os) const
     {

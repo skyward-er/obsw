@@ -39,7 +39,7 @@ static constexpr int SHADOW_MODE_TIMEOUT = 5 * 1000;
 static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
 #endif
 
-constexpr float MACH_LIMIT = 0.6;
+constexpr float MACH_LIMIT = 0.8;
 
 // Vertical speed limit beyond which the airbrakes need to be disabled.
 constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;

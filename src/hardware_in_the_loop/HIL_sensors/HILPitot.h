@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <utils/AeroUtils/AeroUtils.h>
+
 #include "HILSensor.h"
 
 /**
@@ -41,8 +43,12 @@ protected:
     {
         HILPitotData tempData;
 
-        tempData.pressure          = sensorData->pitot.measures[sampleCounter];
-        tempData.pressureTimestamp = updateTimestamp();
+        tempData.deltaP    = sensorData->pitot.measures[sampleCounter];
+        tempData.timestamp = updateTimestamp();
+
+        float airDensity =
+            Boardcore::Aeroutils::relDensity(sensorData->barometer.measures[0]);
+        tempData.airspeed = sqrtf(2 * fabs(tempData.deltaP) / airDensity);
 
         return tempData;
     }
