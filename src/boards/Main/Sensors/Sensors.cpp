@@ -234,9 +234,9 @@ void Sensors::calibrate()
     float staticPressureMean = staticPressureStats.getStats().mean;
     float dplPressureMean    = dplPressureStats.getStats().mean;
     float loadCellMean       = loadCellStats.getStats().mean;
-    staticPressure->setOffset(staticPressureMean - ms5803Mean);
-    dplPressure->setOffset(dplPressureMean - ms5803Mean);
-    loadCell->setOffset(loadCellMean);
+    staticPressure->updateOffset(staticPressureMean - ms5803Mean);
+    dplPressure->updateOffset(dplPressureMean - ms5803Mean);
+    loadCell->updateOffset(loadCellMean);
 
     calibrating = false;
 }
