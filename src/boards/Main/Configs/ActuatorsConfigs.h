@@ -39,7 +39,7 @@ constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
 // TODO: Change rotation with min and max
 constexpr float ABK_SERVO_ROTATION = 66.4;  // [deg] AirBrakes without end stop
 // constexpr float ABK_SERVO_ROTATION  = 65;  // [deg] AirBrakes with end stop
-constexpr float ABK_SERVO_MIN_PULSE = 1410;  // [deg]
+constexpr float ABK_SERVO_MIN_PULSE = 1405;  // [deg]
 constexpr float ABK_SERVO_MAX_PULSE =
     ABK_SERVO_MIN_PULSE - 10 * ABK_SERVO_ROTATION;  // [us]
 constexpr float ABK_WIGGLE_TIME = 2 * 1000;         // [ms]
