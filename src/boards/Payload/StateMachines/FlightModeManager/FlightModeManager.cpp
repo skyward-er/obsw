@@ -79,6 +79,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         case TMTC_STOP_RECORDING:
         {
             Actuators::getInstance().camOff();
+            return HANDLED;
         }
         case TMTC_RESET_BOARD:
         {

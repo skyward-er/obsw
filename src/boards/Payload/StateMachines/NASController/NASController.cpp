@@ -117,6 +117,7 @@ void NASController::calibrate()
     {
         reference.refLatitude  = gps.latitude;
         reference.refLongitude = gps.longitude;
+        reference.refAltitude  = gps.height;
     }
 
     // Update the algorithm reference values
