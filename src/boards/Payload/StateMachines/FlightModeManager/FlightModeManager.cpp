@@ -260,7 +260,6 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_ENTER_TEST_MODE:
         {
-            Logger::getInstance().start();
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_CALIBRATE:
@@ -286,20 +285,14 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             logStatus(FlightModeManagerState::TEST_MODE);
 
-            WingController::getInstance().start();
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            Logger::getInstance().start();
 
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // Stop the algorithm
-            WingController::getInstance().stop();
-
-            // Stop also the NAS
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
-
-            // Stop logging
             Logger::getInstance().stop();
 
             return HANDLED;

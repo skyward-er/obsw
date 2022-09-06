@@ -267,7 +267,6 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_ENTER_TEST_MODE:
         {
-            Logger::getInstance().start();
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_CALIBRATE:
@@ -295,6 +294,7 @@ State FlightModeManager::state_test_mode(const Event& event)
 
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_NAS);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            Logger::getInstance().start();
 
             return HANDLED;
         }
