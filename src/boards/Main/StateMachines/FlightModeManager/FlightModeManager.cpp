@@ -395,7 +395,7 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case TMTC_FORCE_EXPULSION:
         {
-            EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
+            EventBroker::getInstance().post(DPL_NC_OPEN, TOPIC_DPL);
             return HANDLED;
         }
         case TMTC_FORCE_MAIN:
@@ -457,7 +457,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
+            EventBroker::getInstance().post(DPL_NC_OPEN, TOPIC_DPL);
 
             return HANDLED;
         }
@@ -548,6 +548,12 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case EV_INIT:
         {
+            return HANDLED;
+        }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
             return HANDLED;
         }
         default:

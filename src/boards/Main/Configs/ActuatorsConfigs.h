@@ -53,7 +53,7 @@ constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
 constexpr float DPL_SERVO_ROTATION  = 23;                             // [deg]
 constexpr float DPL_SERVO_MIN_PULSE = 900;                            // [us]
 constexpr float DPL_SERVO_MAX_PULSE = 900 + 10 * DPL_SERVO_ROTATION;  // [us]
-constexpr float DPL_SERVO_EJECT_POS = 0;                              // [deg]
+constexpr float DPL_SERVO_EJECT_POS = 1;                              // [deg]
 constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
 constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
 
