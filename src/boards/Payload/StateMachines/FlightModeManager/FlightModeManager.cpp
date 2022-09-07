@@ -306,6 +306,11 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_FORCE_MAIN:
+        {
+            EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
+            return HANDLED;
+        }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);

@@ -29,6 +29,7 @@
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/Deployment/Deployment.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -280,7 +281,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
             tm.ada_state = 0;
-            tm.dpl_state = 0;
+            tm.dpl_state = static_cast<uint8_t>(
+                Deployment::getInstance().getStatus().state);
             tm.fsr_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);

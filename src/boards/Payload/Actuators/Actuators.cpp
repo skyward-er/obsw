@@ -161,12 +161,14 @@ void Actuators::camOff() { interfaces::camMosfet::low(); }
 
 void Actuators::cuttersOn()
 {
+    actuators::nosecone::th_cut_input::high();
     actuators::nosecone::thermal_cutter_1::enable::high();
     actuators::nosecone::thermal_cutter_2::enable::high();
 }
 
 void Actuators::cuttersOff()
 {
+    actuators::nosecone::th_cut_input::low();
     actuators::nosecone::thermal_cutter_1::enable::low();
     actuators::nosecone::thermal_cutter_2::enable::low();
 }
