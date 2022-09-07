@@ -541,6 +541,12 @@ State FlightModeManager::state_landed(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;

@@ -178,7 +178,7 @@ void NASController::setReferenceTemperature(float temperature)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = nas.getReferenceValues();
-    reference.refTemperature  = temperature;
+    reference.refTemperature  = temperature + 273.15f;
     nas.setReferenceValues(reference);
 }
 
