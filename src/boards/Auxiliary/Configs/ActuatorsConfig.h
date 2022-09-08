@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,58 +20,12 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
 #include <stdint.h>
 
-namespace Common
+namespace Auxiliary
 {
 
-namespace CanConfig
-{
+constexpr uint32_t LED_ERROR_PERIOD = 100;
+constexpr uint32_t LED_ARMED_PERIOD = 1000;
 
-constexpr uint32_t BAUD_RATE = 500 * 1000;
-constexpr float SAMPLE_POINT = 87.5f / 100.0f;
-
-enum class Priority : uint8_t
-{
-    CRITICAL = 0,
-    HIGH,
-    MEDIUM,
-    LOW
-};
-
-enum class PrimaryType : uint8_t
-{
-    EVENTS = 0,
-    SENSORS
-};
-
-/// Used for source and destination
-enum class Board : uint8_t
-{
-    BROADCAST = 0,
-    MAIN,
-    PAYLOAD,
-    AUXILIARY
-};
-
-enum class SensorId : uint8_t
-{
-    PITOT
-};
-
-enum class EventId : uint8_t
-{
-    CAM_ON = 0,
-    CAM_OFF,
-    ERROR,
-    ARM,
-    DISARM,
-    LIFTOFF,
-    APOGEE,
-};
-
-}  // namespace CanConfig
-
-}  // namespace Common
+}  // namespace Auxiliary

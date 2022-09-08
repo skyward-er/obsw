@@ -56,6 +56,15 @@ constexpr float DPL_SERVO_EJECT_POS = 1;                              // [deg]
 constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
 constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
 
+// Buzzer
+TIM_TypeDef* const BUZZER_TIMER = TIM8;
+constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+constexpr uint16_t BUZZER_FREQUENCY       = 5000;       // [Hz]
+constexpr uint16_t BUZZER_ERROR_PERIOD    = 100;        // [ms]
+constexpr uint16_t BUZZER_DISARMED_PERIOD = 60 * 1000;  // [ms]
+constexpr uint16_t BUZZER_ARMED_PERIOD    = 1 * 1000;   // [ms]
+
 }  // namespace ActuatorsConfigs
 
 }  // namespace Main

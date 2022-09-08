@@ -153,16 +153,8 @@ void Deployment::wiggleServo()
     }
 }
 
-void Deployment::startCutting()
-{
-    Actuators::getInstance().cutter1.high();
-    Actuators::getInstance().ledRed.high();
-}
+void Deployment::startCutting() { Actuators::getInstance().cutter1.high(); }
 
-void Deployment::stopCutting()
-{
-    Actuators::getInstance().cutter1.low();
-    Actuators::getInstance().ledRed.low();
-}
+void Deployment::stopCutting() { Actuators::getInstance().cutter1.low(); }
 
 }  // namespace Main

@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfigs.h>
 
 #ifndef COMPILE_FOR_HOST
@@ -153,19 +154,60 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
+void Actuators::buzzerError()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
+    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleBuzzer(); }, BUZZER_ERROR_PERIOD);
+}
+
+void Actuators::buzzerDisarmed()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
+    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleBuzzer(); }, BUZZER_DISARMED_PERIOD);
+}
+
+void Actuators::buzzerArmed()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
+    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleBuzzer(); }, BUZZER_ERROR_PERIOD);
+}
+
+void Actuators::buzzerOff()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
+    buzzerTaskId = -1;
+
+    buzzer.disableChannel(BUZZER_CHANNEL);
+    buzzerState = false;
+}
+
 #ifdef HILSimulation
 void Actuators::sendToSimulator() { servoAirbrakes.sendToSimulator(); }
 #endif  // HILSimulation
 
 Actuators::Actuators()
-    : ledRed(leds::red::getPin()), ledGreen(leds::green::getPin()),
-      ledBlue(leds::blue::getPin()), cutter1(cutter::enable::getPin()),
-      cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
+    : cutter1(cutter::enable::getPin()),
+      cutter1Backup(cutter::enable::getPin()),
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
-                     DPL_SERVO_MAX_PULSE)
+                     DPL_SERVO_MAX_PULSE),
+      buzzer(BUZZER_TIMER)
 {
+    buzzer.setFrequency(BUZZER_FREQUENCY);
+}
+
+void Actuators::toggleBuzzer()
+{
+    if (buzzerState)
+        buzzer.disableChannel(BUZZER_CHANNEL);
+    else
+        buzzer.enableChannel(BUZZER_CHANNEL);
+
+    buzzerState = !buzzerState;
 }
 
 }  // namespace Main

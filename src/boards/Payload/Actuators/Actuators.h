@@ -73,27 +73,27 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoAngle(ServosList servoId);
 
+    void ledError();
+    void ledArmed();
     void ledOn();
-
     void ledOff();
 
     void camOn();
-
     void camOff();
 
     void cuttersOn();
-
     void cuttersOff();
-
-    bool isLedOn();
 
 private:
     Actuators();
 
+    void toggleLed();
+
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 
-    bool led = false;
+    bool ledState     = false;
+    uint8_t ledTaskId = -1;
 };
 
 }  // namespace Payload

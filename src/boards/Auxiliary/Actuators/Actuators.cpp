@@ -22,19 +22,56 @@
 
 #include "Actuators.h"
 
+#include <Auxiliary/BoardScheduler.h>
+#include <Auxiliary/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
+using namespace Boardcore;
 
 namespace Auxiliary
 {
 
-void Actuators::ledOn() { miosix::ledOn(); }
-
-void Actuators::ledOff() { miosix::ledOff(); }
+Actuators::Actuators() : led(leds::led1::getPin()) {}
 
 void Actuators::camOn() { interfaces::camMosfet::high(); }
 
 void Actuators::camOff() { interfaces::camMosfet::low(); }
+
+void Actuators::ledArmed()
+{
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    scheduler.addTask([&]() { blinkLed(); }, LED_ARMED_PERIOD);
+}
+
+void Actuators::ledDisarmed()
+{
+    led.high();
+    ledStatus = true;
+}
+
+void Actuators::ledError()
+{
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    scheduler.addTask([&]() { blinkLed(); }, LED_ARMED_PERIOD);
+}
+
+void Actuators::ledOff()
+{
+    led.low();
+    ledStatus = false;
+}
+
+void Actuators::blinkLed()
+{
+    if (ledStatus)
+        led.high();
+    else
+        led.low();
+
+    ledStatus = !ledStatus;
+}
 
 }  // namespace Auxiliary

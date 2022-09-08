@@ -50,6 +50,7 @@ static const std::map<Common::Events, std::function<void(CanHandler *)>>
         {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
         {Common::FLIGHT_LIFTOFF, &CanHandler::sendLiftoffEvent},
         {Common::FLIGHT_APOGEE_DETECTED, &CanHandler::sendApogeeEvent},
+        {Common::FLIGHT_LANDING_DETECTED, &CanHandler::sendLandingEvent},
     };
 
 }  // namespace CanHandlerConfig

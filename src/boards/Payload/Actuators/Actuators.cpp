@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
 #include <interfaces-impl/bsp_impl.h>
 
@@ -151,19 +152,34 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
+void Actuators::ledError()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleLed(); }, LED_ERROR_PERIOD);
+}
+
+void Actuators::ledArmed()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleLed(); }, LED_ARMED_PERIOD);
+}
+
 void Actuators::ledOn()
 {
-    miosix::ledOn();
-    led = true;
+    ledOn();
+    ledState = true;
 }
 
 void Actuators::ledOff()
 {
-    miosix::ledOff();
-    led = false;
-}
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = -1;
 
-bool Actuators::isLedOn() { return led; }
+    ledOff();
+    ledState = false;
+}
 
 void Actuators::camOn() { interfaces::camMosfet::high(); }
 
@@ -191,6 +207,16 @@ Actuators::Actuators()
       rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
                  RIGHT_SERVO_MAX_PULSE)
 {
+}
+
+void Actuators::toggleLed()
+{
+    if (ledState)
+        ledOff();
+    else
+        ledOn();
+
+    ledState = !ledState;
 }
 
 }  // namespace Payload

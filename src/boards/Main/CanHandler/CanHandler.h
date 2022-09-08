@@ -47,16 +47,14 @@ public:
     void sendCamOffEvent();
     void sendLiftoffEvent();
     void sendApogeeEvent();
+    void sendLandingEvent();
 
 private:
     CanHandler();
 
     void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
-
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
-
     void handleCanSensor(const Boardcore::Canbus::CanMessage &msg);
-
     void handleEvent(const Boardcore::Event &event) override;
 
     Boardcore::Canbus::CanbusDriver *driver;

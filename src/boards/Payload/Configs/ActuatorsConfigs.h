@@ -32,26 +32,28 @@ namespace ActuatorsConfigs
 {
 
 // Left servo
-
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-constexpr float LEFT_SERVO_ROTATION  = 120;
-constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [deg]
+constexpr float LEFT_SERVO_ROTATION  = 120;  // [deg]
+constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [us]
 constexpr float LEFT_SERVO_MAX_PULSE =
-    LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [deg]
+    LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
 
 // Right servo
-
 static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-constexpr float RIGHT_SERVO_ROTATION  = 120;
-constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [deg]
+constexpr float RIGHT_SERVO_ROTATION  = 120;   // [deg]
+constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE =
-    RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [deg]
+    RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
+
+// Led
+constexpr uint16_t LED_ERROR_PERIOD = 100;       // [ms]
+constexpr uint16_t LED_ARMED_PERIOD = 1 * 1000;  // [ms]
 
 }  // namespace ActuatorsConfigs
 

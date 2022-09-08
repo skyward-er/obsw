@@ -134,31 +134,17 @@ State FlightModeManager::state_init(const Event& event)
 
 State FlightModeManager::state_init_error(const Event& event)
 {
-    static uint8_t taskId;
-
     switch (event)
     {
         case EV_ENTRY:
         {
-            // The led blinks fast
-            taskId = BoardScheduler::getInstance().getScheduler().addTask(
-                [&]()
-                {
-                    if (Actuators::getInstance().isLedOn())
-                        Actuators::getInstance().ledOff();
-                    else
-                        Actuators::getInstance().ledOn();
-                },
-                100);
-
             logStatus(FlightModeManagerState::INIT_ERROR);
+            Actuators::getInstance().ledError();
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // Remove the blinking task from the board scheduler
-            BoardScheduler::getInstance().getScheduler().removeTask(taskId);
-
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -345,25 +331,13 @@ State FlightModeManager::state_test_mode(const Event& event)
 
 State FlightModeManager::state_armed(const Event& event)
 {
-    static uint8_t taskId;
-
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
 
-            // The led blinks slowly
-            taskId = BoardScheduler::getInstance().getScheduler().addTask(
-                [&]()
-                {
-                    if (Actuators::getInstance().isLedOn())
-                        Actuators::getInstance().ledOff();
-                    else
-                        Actuators::getInstance().ledOn();
-                },
-                1000);
-
+            Actuators::getInstance().ledArmed();
             Logger::getInstance().start();
             Actuators::getInstance().camOn();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
@@ -372,9 +346,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
-            // Remove the blinking task from the board scheduler
-            BoardScheduler::getInstance().getScheduler().removeTask(taskId);
-
+            Actuators::getInstance().ledError();
             return HANDLED;
         }
         case EV_EMPTY:

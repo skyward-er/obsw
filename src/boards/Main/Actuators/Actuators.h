@@ -25,6 +25,7 @@
 #include <Singleton.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
+#include <drivers/timer/PWM.h>
 #include <interfaces/gpio.h>
 #ifdef HILSimulation
 #include "HIL_actuators/HILServo.h"
@@ -37,14 +38,8 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    miosix::GpioPin ledRed;
-    miosix::GpioPin ledGreen;
-    miosix::GpioPin ledBlue;
-
     miosix::GpioPin cutter1;
     miosix::GpioPin cutter1Backup;
-
-    miosix::GpioPin buzzer;
 
     /**
      * @brief Moves the specified servo to the given position.
@@ -81,6 +76,11 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoAngle(ServosList servoId);
 
+    void buzzerError();
+    void buzzerDisarmed();
+    void buzzerArmed();
+    void buzzerOff();
+
 #ifdef HILSimulation
     void sendToSimulator();
 #endif  // HILSimulation
@@ -88,12 +88,18 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 private:
     Actuators();
 
+    void toggleBuzzer();
+
 #ifndef HILSimulation
     Boardcore::Servo servoAirbrakes;
 #else   // HILSimulation
     HILServo servoAirbrakes;
 #endif  // HILSimulation
     Boardcore::Servo servoExpulsion;
+
+    Boardcore::PWM buzzer;
+    bool buzzerState = false;
+    uint8_t buzzerTaskId;
 };
 
 }  // namespace Main
