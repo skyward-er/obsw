@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,18 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
+
+#include <Singleton.h>
+#include <algorithms/NAS/NASState.h>
+#include <common/Mavlink.h>
+#include <sensors/SensorData.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 namespace Payload
 {
-
-namespace DeploymentConfig
+/**
+ * @brief This class records some valuable data that we need to send to quick
+ * analyze the flight in the mean time
+ */
+class FlightStatsRecorder : public Boardcore::Singleton<FlightStatsRecorder>
 {
+    friend class Boardcore::Singleton<FlightStatsRecorder>;
 
-constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
-constexpr int CUT_DURATION    = 500;       // [ms]
+public:
+    void update(Boardcore::AccelerometerData data);
+    void update(Boardcore::NASState state);
+    void update(Boardcore::PitotData data);
+    void update(Boardcore::PressureData data);
+    void setApogee(Boardcore::GPSData data);
 
-}  // namespace DeploymentConfig
+    mavlink_payload_stats_tm_t getStats();
 
+private:
+    mavlink_payload_stats_tm_t stats;
+
+    FlightStatsRecorder();
+};
 }  // namespace Payload

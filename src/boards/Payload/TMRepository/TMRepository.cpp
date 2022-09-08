@@ -240,24 +240,21 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_payload_stats_tm_t tm;
 
-            tm.liftoff_ts           = 0;
-            tm.liftoff_max_acc_ts   = 0;
-            tm.liftoff_max_acc      = 0;
-            tm.max_z_speed_ts       = 0;
-            tm.max_z_speed          = 0;
-            tm.max_airspeed_pitot   = 0;
-            tm.max_speed_altitude   = 0;
-            tm.apogee_ts            = 0;
-            tm.apogee_lat           = 0;
-            tm.apogee_lon           = 0;
-            tm.static_min_pressure  = 0;
-            tm.digital_min_pressure = 0;
-            tm.ada_min_pressure     = 0;
-            tm.baro_max_altitude    = 0;
-            tm.gps_max_altitude     = 0;
-            tm.drogue_dpl_ts        = 0;
-            tm.drogue_dpl_max_acc   = 0;
-            tm.cpu_load             = CpuMeter::getCpuStats().mean;
+            tm.liftoff_max_acc_ts = 0;
+            tm.liftoff_max_acc    = 0;
+            tm.max_z_speed_ts     = 0;
+            tm.max_z_speed        = 0;
+            tm.max_airspeed_pitot = 0;
+            tm.max_speed_altitude = 0;
+            tm.apogee_ts          = 0;
+            tm.apogee_lat         = 0;
+            tm.apogee_lon         = 0;
+            tm.apogee_alt         = 0;
+            tm.min_pressure       = 0;
+            tm.dpl_ts             = 0;
+            tm.dpl_max_acc        = 0;
+            tm.cpu_load           = CpuMeter::getCpuStats().mean;
+            tm.free_heap          = CpuMeter::getCpuStats().freeHeap;
 
             mavlink_msg_payload_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                 RadioConfig::MAV_COMPONENT_ID,

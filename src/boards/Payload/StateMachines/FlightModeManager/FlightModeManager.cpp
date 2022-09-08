@@ -23,6 +23,7 @@
 #include "FlightModeManager.h"
 
 #include <Payload/Configs/FlightModeManagerConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
@@ -436,6 +437,8 @@ State FlightModeManager::state_ascending(const Event& event)
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
+            FlightStatsRecorder::getInstance().setApogee(
+                Sensors::getInstance().getUbxGpsLastSample());
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:

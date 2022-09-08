@@ -65,6 +65,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Wing/WingAlgorithm.cpp
     src/boards/Payload/Wing/WingController.cpp
     src/boards/Payload/StateMachines/Deployment/Deployment.cpp
+    src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
 set(PARAFOIL_COMPUTER

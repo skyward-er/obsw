@@ -25,6 +25,7 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/NASConfig.h>
 #include <Payload/Configs/WingConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
@@ -71,6 +72,7 @@ void NASController::update()
         // nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
+        FlightStatsRecorder::getInstance().update(nas.getState());
     }
 }
 
