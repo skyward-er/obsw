@@ -102,7 +102,7 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         if (isSetTrue(FlightPhases::FLYING))
         {
             TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
-            sEventBroker.post(FLIGHT_UMBILICAL_DETACHED, TOPIC_FLIGHT);
+            sEventBroker.post(FLIGHT_LAUNCH_PIN_DETACHED, TOPIC_FLIGHT);
         }
         if (isSetFalse(FlightPhases::BURNING))
         {
@@ -222,7 +222,7 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             printf("[HIL] ------- READY TO LAUNCH ! ------- \n");
             changed_flags.push_back(FlightPhases::ARMED);
             break;
-        case FLIGHT_UMBILICAL_DETACHED:
+        case FLIGHT_LAUNCH_PIN_DETACHED:
             setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
             TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
             sEventBroker.post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);

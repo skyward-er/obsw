@@ -45,7 +45,7 @@ public:
      * @brief Called when the deployment servo actuation is detected via the
      * optical sensor.
      */
-    void onDeploymentPinTransition(Boardcore::PinTransition transition);
+    void onExpulsionPinTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Called when a launch pin is detected.

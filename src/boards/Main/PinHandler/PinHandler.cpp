@@ -24,6 +24,7 @@
 
 #include <Main/Configs/PinObserverConfig.h>
 #include <common/events/Events.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
 #include <functional>
@@ -40,22 +41,33 @@ namespace Main
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {
     if (transition == LAUNCH_PIN_TRIGGER)
-        EventBroker::getInstance().post(Event{FLIGHT_UMBILICAL_DETACHED},
+    {
+        Logger::getInstance().log(LiftoffEvent{TimestampTimer::getTimestamp()});
+        EventBroker::getInstance().post(Event{FLIGHT_LAUNCH_PIN_DETACHED},
                                         TOPIC_FLIGHT);
+    }
 }
 
-void PinHandler::onDeploymentPinTransition(PinTransition transition)
+void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
     if (transition == NC_DETACH_PIN_TRIGGER)
+    {
+        Logger::getInstance().log(
+            ExpulsionEvent{TimestampTimer::getTimestamp()});
         EventBroker::getInstance().post(Event{FLIGHT_NC_DETACHED},
                                         TOPIC_FLIGHT);
+    }
 }
 
 void PinHandler::onNoseconePinTransition(PinTransition transition)
 {
     if (transition == DPL_SERVO_PIN_TRIGGER)
+    {
+        Logger::getInstance().log(
+            NoseconeEvent{TimestampTimer::getTimestamp()});
         EventBroker::getInstance().post(Event{DPL_SERVO_ACTUATION_DETECTED},
                                         TOPIC_DPL);
+    }
 }
 
 std::map<PinsList, PinData> PinHandler::getPinsData()
@@ -76,7 +88,7 @@ PinHandler::PinHandler()
 {
     PinObserver::getInstance().registerPinCallback(
         expulsion::sense::getPin(),
-        bind(&PinHandler::onDeploymentPinTransition, this, _1),
+        bind(&PinHandler::onExpulsionPinTransition, this, _1),
         DPL_SERVO_PIN_THRESHOLD, true);
 
     PinObserver::getInstance().registerPinCallback(

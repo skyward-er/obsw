@@ -354,7 +354,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case FLIGHT_UMBILICAL_DETACHED:
+        case FLIGHT_LAUNCH_PIN_DETACHED:
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);

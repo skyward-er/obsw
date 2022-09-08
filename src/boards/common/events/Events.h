@@ -58,7 +58,7 @@ enum Events : uint8_t
     FLIGHT_DISARMED,
     FLIGHT_DPL_ALT_DETECTED,
     FLIGHT_LANDING_DETECTED,
-    FLIGHT_UMBILICAL_DETACHED,
+    FLIGHT_LAUNCH_PIN_DETACHED,
     FLIGHT_LIFTOFF,
     FLIGHT_MISSION_TIMEOUT,
     FLIGHT_NC_DETACHED,
@@ -113,7 +113,7 @@ inline string getEventString(uint8_t event)
         {FLIGHT_DISARMED, "FLIGHT_DISARMED"},
         {FLIGHT_DPL_ALT_DETECTED, "FLIGHT_DPL_ALT_DETECTED"},
         {FLIGHT_LANDING_DETECTED, "FLIGHT_LANDING_DETECTED"},
-        {FLIGHT_UMBILICAL_DETACHED, "FLIGHT_UMBILICAL_DETACHED"},
+        {FLIGHT_LAUNCH_PIN_DETACHED, "FLIGHT_LAUNCH_PIN_DETACHED"},
         {FLIGHT_LIFTOFF, "FLIGHT_LIFTOFF"},
         {FLIGHT_NC_DETACHED, "FLIGHT_NC_DETACHED"},
         {FLIGHT_MISSION_TIMEOUT, "FLIGHT_MISSION_TIMEOUT"},
@@ -144,5 +144,59 @@ inline string getEventString(uint8_t event)
     auto it = event_string_map.find(event);
     return it == event_string_map.end() ? "EV_UNKNOWN" : it->second;
 }
+
+struct LiftoffEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct ApogeeEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct NoseconeEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct ExpulsionEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct MainEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct LandingEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
 
 }  // namespace Common
