@@ -78,6 +78,24 @@ void CanHandler::sendCamOffEvent()
                            static_cast<uint8_t>(EventId::CAM_OFF));
 }
 
+void CanHandler::sendLiftoffEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::LIFTOFF));
+}
+
+void CanHandler::sendApogeeEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::APOGEE));
+}
+
 CanHandler::CanHandler()
 {
     CanbusDriver::AutoBitTiming bitTiming;

@@ -132,6 +132,7 @@
         "Setpoint",
         "stateinitializer",
         "telecommands",
+        "TMTC",
         "UBXGPS",
         "usart",
         "VREF",
