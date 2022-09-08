@@ -175,7 +175,7 @@ void Actuators::ledOn()
 void Actuators::ledOff()
 {
     BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
-    ledTaskId = -1;
+    ledTaskId = 0;
 
     ledOff();
     ledState = false;

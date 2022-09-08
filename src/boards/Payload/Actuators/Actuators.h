@@ -93,7 +93,7 @@ private:
     Boardcore::Servo rightServo;
 
     bool ledState     = false;
-    uint8_t ledTaskId = -1;
+    uint8_t ledTaskId = 0;
 };
 
 }  // namespace Payload
