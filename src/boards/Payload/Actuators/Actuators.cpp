@@ -151,9 +151,19 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
-void Actuators::ledOn() { miosix::ledOn(); }
+void Actuators::ledOn()
+{
+    miosix::ledOn();
+    led = true;
+}
 
-void Actuators::ledOff() { miosix::ledOff(); }
+void Actuators::ledOff()
+{
+    miosix::ledOff();
+    led = false;
+}
+
+bool Actuators::isLedOn() { return led; }
 
 void Actuators::camOn() { interfaces::camMosfet::high(); }
 

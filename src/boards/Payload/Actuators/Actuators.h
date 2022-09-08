@@ -85,11 +85,15 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     void cuttersOff();
 
+    bool isLedOn();
+
 private:
     Actuators();
 
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
+
+    bool led = false;
 };
 
 }  // namespace Payload

@@ -22,6 +22,7 @@
 
 #include "FlightModeManager.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
@@ -133,15 +134,31 @@ State FlightModeManager::state_init(const Event& event)
 
 State FlightModeManager::state_init_error(const Event& event)
 {
+    static uint8_t taskId;
+
     switch (event)
     {
         case EV_ENTRY:
         {
+            // The led blinks fast
+            taskId = BoardScheduler::getInstance().getScheduler().addTask(
+                [&]()
+                {
+                    if (Actuators::getInstance().isLedOn())
+                        Actuators::getInstance().ledOff();
+                    else
+                        Actuators::getInstance().ledOn();
+                },
+                100);
+
             logStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
         case EV_EXIT:
         {
+            // Remove the blinking task from the board scheduler
+            BoardScheduler::getInstance().getScheduler().removeTask(taskId);
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -242,6 +259,9 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
 
+            // Turn on the red led to identify the correct state
+            Actuators::getInstance().ledOn();
+
             Logger::getInstance().stop();
             Actuators::getInstance().camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -325,11 +345,24 @@ State FlightModeManager::state_test_mode(const Event& event)
 
 State FlightModeManager::state_armed(const Event& event)
 {
+    static uint8_t taskId;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
+
+            // The led blinks slowly
+            taskId = BoardScheduler::getInstance().getScheduler().addTask(
+                [&]()
+                {
+                    if (Actuators::getInstance().isLedOn())
+                        Actuators::getInstance().ledOff();
+                    else
+                        Actuators::getInstance().ledOn();
+                },
+                1000);
 
             Logger::getInstance().start();
             Actuators::getInstance().camOn();
@@ -339,6 +372,9 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
+            // Remove the blinking task from the board scheduler
+            BoardScheduler::getInstance().getScheduler().removeTask(taskId);
+
             return HANDLED;
         }
         case EV_EMPTY:
