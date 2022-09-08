@@ -22,6 +22,7 @@
 
 #include "FlightModeManager.h"
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/events/Events.h>
@@ -125,11 +126,13 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
+            Actuators::getInstance().buzzerError();
             logStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -247,7 +250,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DISARMED);
-
+            Actuators::getInstance().buzzerDisarmed();
             Logger::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
@@ -255,6 +258,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -332,7 +336,7 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
-
+            Actuators::getInstance().buzzerArmed();
             Logger::getInstance().start();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
@@ -340,6 +344,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
