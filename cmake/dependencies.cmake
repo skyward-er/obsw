@@ -33,6 +33,7 @@ set(AUXILIARY_COMPUTER
 set(MAIN_COMPUTER
     src/boards/Main/Actuators/Actuators.cpp
     src/boards/Main/CanHandler/CanHandler.cpp
+    src/boards/Main/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
     src/boards/Main/Radio/Radio.cpp
@@ -42,7 +43,6 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/Deployment/Deployment.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
 set(HIL
@@ -53,6 +53,7 @@ set(HIL
 set(PAYLOAD_COMPUTER
     src/boards/Payload/Actuators/Actuators.cpp
     src/boards/Payload/CanHandler/CanHandler.cpp
+    src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/boards/Payload/Sensors/Sensors.cpp
     src/boards/Payload/PinHandler/PinHandler.cpp
     src/boards/Payload/Radio/Radio.cpp
@@ -65,7 +66,6 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Wing/WingAlgorithm.cpp
     src/boards/Payload/Wing/WingController.cpp
     src/boards/Payload/StateMachines/Deployment/Deployment.cpp
-    src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
 set(PARAFOIL_COMPUTER

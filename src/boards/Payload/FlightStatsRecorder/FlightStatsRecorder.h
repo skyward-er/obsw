@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <Singleton.h>
@@ -29,9 +30,10 @@
 
 namespace Payload
 {
+
 /**
  * @brief This class records some valuable data that we need to send to quick
- * analyze the flight in the mean time
+ * analyze the flight in the mean time.
  */
 class FlightStatsRecorder : public Boardcore::Singleton<FlightStatsRecorder>
 {
@@ -51,4 +53,5 @@ private:
 
     FlightStatsRecorder();
 };
+
 }  // namespace Payload

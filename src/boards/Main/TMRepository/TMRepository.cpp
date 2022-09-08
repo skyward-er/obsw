@@ -26,6 +26,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
@@ -33,7 +34,6 @@
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -89,8 +89,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 Deployment::getInstance().getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
-            tm.fsr_state = static_cast<uint8_t>(
-                FlightStatsRecorder::getInstance().getStatus().state);
+            tm.fsr_state = 0;
             tm.nas_state = static_cast<uint8_t>(
                 NASController::getInstance().getStatus().state);
 
@@ -324,29 +323,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_rocket_stats_tm_t tm;
 
-            tm.liftoff_ts            = 0;
-            tm.liftoff_max_acc_ts    = 0;
-            tm.liftoff_max_acc       = 0;
-            tm.max_z_speed_ts        = 0;
-            tm.max_z_speed           = 0;
-            tm.max_airspeed_pitot    = 0;
-            tm.max_speed_altitude    = 0;
-            tm.apogee_ts             = 0;
-            tm.apogee_lat            = 0;
-            tm.apogee_lon            = 0;
-            tm.static_min_pressure   = 0;
-            tm.digital_min_pressure  = 0;
-            tm.ada_min_pressure      = 0;
-            tm.baro_max_altitude     = 0;
-            tm.gps_max_altitude      = 0;
-            tm.drogue_dpl_ts         = 0;
-            tm.drogue_dpl_max_acc    = 0;
-            tm.dpl_vane_max_pressure = 0;
-            tm.main_dpl_altitude_ts  = 0;
-            tm.main_dpl_altitude     = 0;
-            tm.main_dpl_zspeed       = 0;
-            tm.main_dpl_acc          = 0;
-            tm.cpu_load              = CpuMeter::getCpuStats().mean;
+            tm           = FlightStatsRecorder::getInstance().getStats();
+            tm.cpu_load  = CpuMeter::getCpuStats().mean;
+            tm.free_heap = CpuMeter::getCpuStats().freeHeap;
 
             mavlink_msg_rocket_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                RadioConfig::MAV_COMPONENT_ID,

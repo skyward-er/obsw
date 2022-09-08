@@ -20,32 +20,34 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
-#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 
 #include <Eigen/Core>
 
 using namespace Boardcore;
 using namespace Eigen;
 
-namespace Payload
+namespace Main
 {
 
 FlightStatsRecorder::FlightStatsRecorder()
 {
-    stats.liftoff_max_acc_ts = 0;
-    stats.dpl_ts             = 0;
-    stats.max_z_speed_ts     = 0;
-    stats.apogee_ts          = 0;
-    stats.liftoff_max_acc    = -1;
-    stats.dpl_max_acc        = -1;
-    stats.max_z_speed        = -1;
-    stats.max_airspeed_pitot = -1;
-    stats.max_speed_altitude = -1;
-    stats.apogee_lat         = -1;
-    stats.apogee_lon         = -1;
-    stats.apogee_alt         = -1;
-    stats.min_pressure       = -1;
+    stats.liftoff_max_acc_ts    = 0;
+    stats.dpl_ts                = 0;
+    stats.max_z_speed_ts        = 0;
+    stats.apogee_ts             = 0;
+    stats.liftoff_max_acc       = -1;
+    stats.dpl_max_acc           = -1;
+    stats.max_z_speed           = -1;
+    stats.max_airspeed_pitot    = -1;
+    stats.max_speed_altitude    = -1;
+    stats.apogee_lat            = -1;
+    stats.apogee_lon            = -1;
+    stats.apogee_alt            = -1;
+    stats.min_pressure          = -1;
+    stats.ada_min_pressure      = -1;
+    stats.dpl_vane_max_pressure = -1;
 }
 
 void FlightStatsRecorder::update(AccelerometerData data)
@@ -67,6 +69,18 @@ void FlightStatsRecorder::update(AccelerometerData data)
     {
         stats.dpl_max_acc = squaredNorm;
         stats.dpl_ts      = data.accelerationTimestamp;
+    }
+}
+
+void FlightStatsRecorder::update(Boardcore::ADAState state)
+{
+    auto fmmState = FlightModeManager::getInstance().getStatus();
+
+    if ((fmmState.state == FlightModeManagerState::ASCENDING ||
+         fmmState.state == FlightModeManagerState::DROGUE_DESCENT) &&
+        (state.x0 < stats.ada_min_pressure || stats.ada_min_pressure == -1))
+    {
+        stats.ada_min_pressure = state.x0;
     }
 }
 
@@ -93,10 +107,23 @@ void FlightStatsRecorder::update(PitotData data)
 
 void FlightStatsRecorder::update(PressureData data)
 {
-    if (FlightModeManager::getInstance().getStatus().state ==
-            FlightModeManagerState::ASCENDING &&
+    auto fmmState = FlightModeManager::getInstance().getStatus();
+
+    if ((fmmState.state == FlightModeManagerState::ASCENDING ||
+         fmmState.state == FlightModeManagerState::DROGUE_DESCENT) &&
         (data.pressure < stats.min_pressure || stats.min_pressure == -1))
         stats.min_pressure = data.pressure;
+}
+
+void FlightStatsRecorder::updateDplVane(PressureData data)
+{
+    auto fmmState = FlightModeManager::getInstance().getStatus();
+
+    if ((fmmState.state == FlightModeManagerState::ASCENDING ||
+         fmmState.state == FlightModeManagerState::DROGUE_DESCENT) &&
+        (data.pressure < stats.dpl_vane_max_pressure ||
+         stats.dpl_vane_max_pressure == -1))
+        stats.dpl_vane_max_pressure = data.pressure;
 }
 
 void FlightStatsRecorder::setApogee(GPSData data)
@@ -106,6 +133,6 @@ void FlightStatsRecorder::setApogee(GPSData data)
     stats.apogee_lon = data.longitude;
 }
 
-mavlink_payload_stats_tm_t FlightStatsRecorder::getStats() { return stats; }
+mavlink_rocket_stats_tm_t FlightStatsRecorder::getStats() { return stats; }
 
-}  // namespace Payload
+}  // namespace Main

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,38 @@
 #pragma once
 
 #include <Singleton.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "FlightStatsRecorderData.h"
+#include <algorithms/ADA/ADAData.h>
+#include <algorithms/NAS/NASState.h>
+#include <common/Mavlink.h>
+#include <sensors/SensorData.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 namespace Main
 {
 
-class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>,
-                            public Boardcore::Singleton<FlightStatsRecorder>
+/**
+ * @brief This class records some valuable data that we need to send to quick
+ * analyze the flight in the mean time.
+ */
+class FlightStatsRecorder : public Boardcore::Singleton<FlightStatsRecorder>
 {
-    friend Boardcore::Singleton<FlightStatsRecorder>;
+    friend class Boardcore::Singleton<FlightStatsRecorder>;
 
 public:
-    FlightStatsRecorderStatus getStatus();
+    void update(Boardcore::AccelerometerData data);
+    void update(Boardcore::ADAState state);
+    void update(Boardcore::NASState state);
+    void update(Boardcore::PitotData data);
+    void update(Boardcore::PressureData data);
+    void updateDplVane(Boardcore::PressureData data);
+    void setApogee(Boardcore::GPSData data);
 
-    void state_idle(const Boardcore::Event& event);
-    void state_liftoff(const Boardcore::Event& event);
-    void state_ascending(const Boardcore::Event& event);
-    void state_main_deployment(const Boardcore::Event& event);
+    mavlink_rocket_stats_tm_t getStats();
 
 private:
+    mavlink_rocket_stats_tm_t stats;
+
     FlightStatsRecorder();
-    ~FlightStatsRecorder();
-
-    FlightStatsRecorderStatus status;
-
-    void logStatus(FlightStatsRecorderState state);
-
-    void logApogeeStats();
-    void logLiftoffStats();
-    void logMainDplStats();
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.fsr");
 };
 
 }  // namespace Main

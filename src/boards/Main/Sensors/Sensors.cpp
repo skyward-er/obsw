@@ -24,6 +24,7 @@
 
 #include <Main/Buses.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
@@ -66,6 +67,8 @@ void Sensors::setPitotData(Boardcore::PitotData data)
 {
     PauseKernelLock lock;
     pitotData = data;
+
+    FlightStatsRecorder::getInstance().update(data);
 }
 
 BMX160Data Sensors::getBMX160LastSample()
@@ -383,7 +386,11 @@ void Sensors::bmx160WithCorrectionInit()
     SensorInfo info(
         "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
         [&]()
-        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); });
+        {
+            Logger::getInstance().log(bmx160WithCorrection->getLastSample());
+            FlightStatsRecorder::getInstance().update(
+                bmx160WithCorrection->getLastSample());
+        });
 
     sensorsMap.emplace(make_pair(bmx160WithCorrection, info));
 
@@ -423,6 +430,7 @@ void Sensors::ms5803Init()
         [&]()
         {
             Logger::getInstance().log(ms5803->getLastSample());
+            FlightStatsRecorder::getInstance().update(ms5803->getLastSample());
 
             if (calibrating && ms5803->getLastSample().pressure != 0)
                 ms5803Stats.add(ms5803->getLastSample().pressure);
@@ -517,6 +525,8 @@ void Sensors::dplPressureInit()
         [&]()
         {
             Logger::getInstance().log(dplPressure->getLastSample());
+            FlightStatsRecorder::getInstance().updateDplVane(
+                dplPressure->getLastSample());
 
             if (calibrating)
                 dplPressureStats.add(dplPressure->getLastSample().pressure);
