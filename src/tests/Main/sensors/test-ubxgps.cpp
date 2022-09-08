@@ -28,8 +28,6 @@ using namespace Boardcore;
 
 int main()
 {
-    miosix::Thread::sleep(10 * 1000);
-
     SPIBus spi2(SPI2);
     UBXGPSSpi gps{spi2, sensors::gps::cs::getPin(),
                   UBXGPSSpi::getDefaultSPIConfig(), 5};
