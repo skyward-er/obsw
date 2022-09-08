@@ -50,7 +50,7 @@ void FlightStatsRecorder::update(AccelerometerData data)
 {
     Vector3f accelerations{data.accelerationX, data.accelerationY,
                            data.accelerationZ};
-    float squaredNorm = accelerations.squaredNorm();
+    float squaredNorm = accelerations.norm();
 
     if (FlightModeManager::getInstance().getStatus().state ==
             FlightModeManagerState::ASCENDING &&
@@ -75,6 +75,7 @@ void FlightStatsRecorder::update(NASState state)
         (-state.vd > stats.max_z_speed || stats.max_z_speed == -1))
     {
         stats.max_z_speed        = -state.vd;
+        stats.max_z_speed_ts     = state.timestamp;
         stats.max_speed_altitude = -state.d;
     }
 }

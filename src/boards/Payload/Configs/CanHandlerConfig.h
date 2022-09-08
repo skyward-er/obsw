@@ -37,6 +37,7 @@ namespace CanHandlerConfig
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
     {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
+    {Common::CanConfig::EventId::LIFTOFF, Common::TMTC_FORCE_LAUNCH},
     {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
     {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
 };

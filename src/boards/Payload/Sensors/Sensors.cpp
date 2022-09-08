@@ -432,9 +432,6 @@ void Sensors::pitotPressureInit()
         [&]()
         {
             Logger::getInstance().log(pitotPressure->getLastSample());
-            FlightStatsRecorder::getInstance().update(
-                pitotPressure->getLastSample());
-
             if (calibrating)
                 pitotPressureStats.add(pitotPressure->getLastSample().pressure);
         });
@@ -453,9 +450,13 @@ void Sensors::pitotInit()
 
     pitot = new Pitot(getPitotPressure, getStaticPressure);
 
-    SensorInfo info("PITOT", SAMPLE_PERIOD_ADS1118 * 4,
-                    [&]()
-                    { Logger::getInstance().log(pitot->getLastSample()); });
+    SensorInfo info(
+        "PITOT", SAMPLE_PERIOD_ADS1118 * 4,
+        [&]()
+        {
+            Logger::getInstance().log(pitot->getLastSample());
+            FlightStatsRecorder::getInstance().update(pitot->getLastSample());
+        });
 
     sensorsMap.emplace(make_pair(pitot, info));
 
