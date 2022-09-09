@@ -22,10 +22,11 @@
 
 #include <stdint.h>
 
-namespace Auxiliary
+namespace Common
 {
 
-constexpr uint32_t LED_ERROR_PERIOD = 100;
-constexpr uint32_t LED_ARMED_PERIOD = 1000;
+constexpr uint16_t LED_TASK_PERIOD  = 100;
+constexpr uint32_t LED_ERROR_PERIOD = 50;
+constexpr uint32_t LED_ARMED_PERIOD = 500;
 
-}  // namespace Auxiliary
+}  // namespace Common

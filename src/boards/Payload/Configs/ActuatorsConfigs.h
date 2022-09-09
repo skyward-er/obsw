@@ -51,10 +51,6 @@ constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE =
     RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
 
-// Led
-constexpr uint16_t LED_ERROR_PERIOD = 100;       // [ms]
-constexpr uint16_t LED_ARMED_PERIOD = 1 * 1000;  // [ms]
-
 }  // namespace ActuatorsConfigs
 
 }  // namespace Payload

@@ -20,35 +20,47 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Main/CanHandler/CanHandler.h>
+#include <miosix.h>
 
-#include <Singleton.h>
-#include <interfaces/gpio.h>
+using namespace miosix;
+using namespace Boardcore;
+using namespace Main;
 
-namespace Auxiliary
+constexpr int PERIOD = 5 * 1000;  // [s]
+
+int main()
 {
+    CanHandler::getInstance().start();
 
-class Actuators : public Boardcore::Singleton<Actuators>
-{
-    friend class Boardcore::Singleton<Actuators>;
+    while (true)
+    {
+        CanHandler::getInstance().sendArmEvent();
+        printf("sendArmEvent\n");
+        Thread::sleep(PERIOD);
 
-public:
-    Actuators();
+        CanHandler::getInstance().sendDisarmEvent();
+        printf("sendDisarmEvent\n");
+        Thread::sleep(PERIOD);
 
-    void camOn();
-    void camOff();
+        CanHandler::getInstance().sendCamOnEvent();
+        printf("sendCamOnEvent\n");
+        Thread::sleep(PERIOD);
 
-    void ledArmed();
-    void ledDisarmed();
-    void ledError();
-    void ledOff();
+        CanHandler::getInstance().sendCamOffEvent();
+        printf("sendCamOffEvent\n");
+        Thread::sleep(PERIOD);
 
-private:
-    miosix::GpioPin led;
-    uint8_t ledTaskId = -1;
-    bool ledState     = false;
+        CanHandler::getInstance().sendLiftoffEvent();
+        printf("sendLiftoffEvent\n");
+        Thread::sleep(PERIOD);
 
-    void toggleLed();
-};
+        CanHandler::getInstance().sendApogeeEvent();
+        printf("sendApogeeEvent\n");
+        Thread::sleep(PERIOD);
 
-}  // namespace Auxiliary
+        CanHandler::getInstance().sendLandingEvent();
+        printf("sendLandingEvent\n");
+        Thread::sleep(PERIOD);
+    }
+}

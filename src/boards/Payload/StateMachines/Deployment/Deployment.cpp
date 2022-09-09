@@ -85,7 +85,6 @@ void Deployment::state_cutting(const Event& event)
             logStatus(DeploymentState::CUTTING);
 
             startCutting();
-            Actuators::getInstance().ledOn();
 
             ncCuttinTimeoutEventId =
                 EventBroker::getInstance().postDelayed<CUT_DURATION>(
@@ -95,7 +94,6 @@ void Deployment::state_cutting(const Event& event)
         case DPL_CUT_TIMEOUT:
         {
             stopCutting();
-            Actuators::getInstance().ledOff();
 
             return transition(&Deployment::state_idle);
         }

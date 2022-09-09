@@ -156,31 +156,31 @@ float Actuators::getServoAngle(ServosList servoId)
 
 void Actuators::buzzerError()
 {
-    buzzerCurrentOverflow = BUZZER_ERROR_PERIOD;
+    buzzerCounterOverflow = BUZZER_ERROR_PERIOD;
     buzzerCounter         = 0;
 }
 
 void Actuators::buzzerDisarmed()
 {
-    buzzerCurrentOverflow = BUZZER_DISARMED_PERIOD;
+    buzzerCounterOverflow = BUZZER_DISARMED_PERIOD;
     buzzerCounter         = 0;
 }
 
 void Actuators::buzzerArmed()
 {
-    buzzerCurrentOverflow = BUZZER_ARMED_PERIOD;
+    buzzerCounterOverflow = BUZZER_ARMED_PERIOD;
     buzzerCounter         = 0;
 }
 
 void Actuators::buzzerLanded()
 {
-    buzzerCurrentOverflow = BUZZER_LANDED_PERIOD;
+    buzzerCounterOverflow = BUZZER_LANDED_PERIOD;
     buzzerCounter         = 0;
 }
 
 void Actuators::buzzerOff()
 {
-    buzzerCurrentOverflow = -1;
+    buzzerCounterOverflow = -1;
     buzzerCounter         = -1;
     buzzer.disableChannel(BUZZER_CHANNEL);
 }
@@ -211,7 +211,7 @@ void Actuators::toggleBuzzer()
     if (buzzerCounter == 0)
     {
         buzzer.enableChannel(BUZZER_CHANNEL);
-        buzzerCounter = buzzerCurrentOverflow / BUZZER_TASK_PERIOD;
+        buzzerCounter = buzzerCounterOverflow / BUZZER_TASK_PERIOD;
     }
     else if (buzzerCounter > 0)
     {

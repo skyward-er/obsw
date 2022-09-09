@@ -22,7 +22,6 @@
 
 #include "FlightModeManager.h"
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
@@ -245,9 +244,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
 
-            // Turn on the red led to identify the correct state
-            Actuators::getInstance().ledOn();
-
+            Actuators::getInstance().ledDisarmed();
             Logger::getInstance().stop();
             Actuators::getInstance().camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -256,6 +253,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -346,7 +344,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
-            Actuators::getInstance().ledError();
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:

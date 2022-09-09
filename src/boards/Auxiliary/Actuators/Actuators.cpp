@@ -23,11 +23,12 @@
 #include "Actuators.h"
 
 #include <Auxiliary/BoardScheduler.h>
-#include <Auxiliary/Configs/ActuatorsConfig.h>
+#include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
 using namespace Boardcore;
+using namespace Common;
 
 namespace Auxiliary
 {
@@ -42,36 +43,39 @@ void Actuators::ledArmed()
 {
     TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
     scheduler.removeTask(ledTaskId);
-    scheduler.addTask([&]() { blinkLed(); }, LED_ARMED_PERIOD);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
 }
 
 void Actuators::ledDisarmed()
 {
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
     led.high();
-    ledStatus = true;
+    ledState = true;
 }
 
 void Actuators::ledError()
 {
     TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
     scheduler.removeTask(ledTaskId);
-    scheduler.addTask([&]() { blinkLed(); }, LED_ARMED_PERIOD);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
 }
 
 void Actuators::ledOff()
 {
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = 0;
+    ledState  = false;
     led.low();
-    ledStatus = false;
 }
 
-void Actuators::blinkLed()
+void Actuators::toggleLed()
 {
-    if (ledStatus)
+    if (ledState)
         led.high();
     else
         led.low();
 
-    ledStatus = !ledStatus;
+    ledState = !ledState;
 }
 
 }  // namespace Auxiliary

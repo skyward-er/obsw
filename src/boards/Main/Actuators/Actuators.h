@@ -100,8 +100,8 @@ private:
 
     Boardcore::PWM buzzer;
     int buzzerCounter         = -1;
-    int buzzerCurrentOverflow = -1;
-    uint8_t buzzerTaskId;
+    int buzzerCounterOverflow = -1;
+    uint8_t buzzerTaskId      = 0;
 };
 
 }  // namespace Main

@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Auxiliary/BoardScheduler.h>
 #include <Auxiliary/CanHandler/CanHandler.h>
 #include <miosix.h>
 
@@ -29,6 +30,7 @@ using namespace Auxiliary;
 int main()
 {
     CanHandler::getInstance().start();
+    BoardScheduler::getInstance().getScheduler().start();
 
     while (true)
         Thread::sleep(1000);

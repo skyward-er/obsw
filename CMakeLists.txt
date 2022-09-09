@@ -114,6 +114,10 @@ sbs_target(main-test-ubxgps stm32f429zi_skyward_death_stack_v3)
 add_executable(main-test-leds src/tests/Main/test-leds.cpp)
 sbs_target(main-test-leds stm32f429zi_skyward_death_stack_v3)
 
+add_executable(main-test-can-handler src/tests/Main/test-can-handler.cpp ${MAIN_COMPUTER})
+target_include_directories(main-test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-test-can-handler stm32f429zi_skyward_death_stack_v3)
+
 add_executable(main-test-nas src/tests/Main/test-nas.cpp)
 sbs_target(main-test-nas stm32f429zi_skyward_death_stack_v3)
 
