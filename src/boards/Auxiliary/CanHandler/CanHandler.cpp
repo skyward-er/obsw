@@ -36,7 +36,11 @@ using namespace Common::CanConfig;
 namespace Auxiliary
 {
 
-bool CanHandler::start() { return protocol->start(); }
+bool CanHandler::start()
+{
+    printf("CanHandler started\n");
+    return protocol->start();
+}
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
@@ -50,20 +54,22 @@ CanHandler::CanHandler()
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
 
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::AUXILIARY));
-    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
-                        static_cast<uint8_t>(Board::AUXILIARY));
+    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+    //                     static_cast<uint8_t>(Board::BROADCAST));
+    // protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+    //                     static_cast<uint8_t>(Board::AUXILIARY));
+    // protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+    //                     static_cast<uint8_t>(Board::BROADCAST));
+    // protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
+    //                     static_cast<uint8_t>(Board::AUXILIARY));
     driver->init();
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {
     PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
+
+    printf("Can message: id=%ld\n", msg.id);
 
     switch (msgType)
     {

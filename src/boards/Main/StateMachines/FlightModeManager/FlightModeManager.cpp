@@ -539,6 +539,7 @@ State FlightModeManager::state_landed(const Event& event)
         {
             logStatus(FlightModeManagerState::LANDED);
 
+            Actuators::getInstance().buzzerLanded();
             Logger::getInstance().stop();
 
             return HANDLED;

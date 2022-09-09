@@ -156,32 +156,33 @@ float Actuators::getServoAngle(ServosList servoId)
 
 void Actuators::buzzerError()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
-    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { toggleBuzzer(); }, BUZZER_ERROR_PERIOD);
+    buzzerCurrentOverflow = BUZZER_ERROR_PERIOD;
+    buzzerCounter         = 0;
 }
 
 void Actuators::buzzerDisarmed()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
-    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { toggleBuzzer(); }, BUZZER_DISARMED_PERIOD);
+    buzzerCurrentOverflow = BUZZER_DISARMED_PERIOD;
+    buzzerCounter         = 0;
 }
 
 void Actuators::buzzerArmed()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
-    buzzerTaskId = BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { toggleBuzzer(); }, BUZZER_ERROR_PERIOD);
+    buzzerCurrentOverflow = BUZZER_ARMED_PERIOD;
+    buzzerCounter         = 0;
+}
+
+void Actuators::buzzerLanded()
+{
+    buzzerCurrentOverflow = BUZZER_LANDED_PERIOD;
+    buzzerCounter         = 0;
 }
 
 void Actuators::buzzerOff()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(buzzerTaskId);
-    buzzerTaskId = -1;
-
+    buzzerCurrentOverflow = -1;
+    buzzerCounter         = -1;
     buzzer.disableChannel(BUZZER_CHANNEL);
-    buzzerState = false;
 }
 
 #ifdef HILSimulation
@@ -198,16 +199,25 @@ Actuators::Actuators()
       buzzer(BUZZER_TIMER)
 {
     buzzer.setFrequency(BUZZER_FREQUENCY);
+    buzzer.setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
+
+    // Start the buzzer task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleBuzzer(); }, BUZZER_TASK_PERIOD);
 }
 
 void Actuators::toggleBuzzer()
 {
-    if (buzzerState)
-        buzzer.disableChannel(BUZZER_CHANNEL);
-    else
+    if (buzzerCounter == 0)
+    {
         buzzer.enableChannel(BUZZER_CHANNEL);
-
-    buzzerState = !buzzerState;
+        buzzerCounter = buzzerCurrentOverflow / BUZZER_TASK_PERIOD;
+    }
+    else if (buzzerCounter > 0)
+    {
+        buzzer.disableChannel(BUZZER_CHANNEL);
+        buzzerCounter--;
+    }
 }
 
 }  // namespace Main

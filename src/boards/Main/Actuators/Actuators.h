@@ -79,6 +79,7 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     void buzzerError();
     void buzzerDisarmed();
     void buzzerArmed();
+    void buzzerLanded();
     void buzzerOff();
 
 #ifdef HILSimulation
@@ -98,7 +99,8 @@ private:
     Boardcore::Servo servoExpulsion;
 
     Boardcore::PWM buzzer;
-    bool buzzerState = false;
+    int buzzerCounter         = -1;
+    int buzzerCurrentOverflow = -1;
     uint8_t buzzerTaskId;
 };
 
