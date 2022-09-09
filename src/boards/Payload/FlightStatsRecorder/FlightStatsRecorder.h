@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,36 @@
 
 #pragma once
 
-#include <Payload/CanHandler/CanHandler.h>
-#include <common/CanConfig.h>
-#include <common/events/Events.h>
-
-#include <functional>
-#include <map>
+#include <Singleton.h>
+#include <algorithms/NAS/NASState.h>
+#include <common/Mavlink.h>
+#include <sensors/SensorData.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 namespace Payload
 {
 
-namespace CanHandlerConfig
+/**
+ * @brief This class records some valuable data that we need to send to quick
+ * analyze the flight in the mean time.
+ */
+class FlightStatsRecorder : public Boardcore::Singleton<FlightStatsRecorder>
 {
+    friend class Boardcore::Singleton<FlightStatsRecorder>;
 
-static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
-    {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
-    {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
-    {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
-    {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
-    {Common::CanConfig::EventId::LIFTOFF, Common::TMTC_FORCE_LAUNCH},
-    {Common::CanConfig::EventId::APOGEE, Common::TMTC_FORCE_APOGEE},
+public:
+    void update(Boardcore::AccelerometerData data);
+    void update(Boardcore::NASState state);
+    void update(Boardcore::PitotData data);
+    void update(Boardcore::PressureData data);
+    void setApogee(Boardcore::GPSData data);
+
+    mavlink_payload_stats_tm_t getStats();
+
+private:
+    mavlink_payload_stats_tm_t stats;
+
+    FlightStatsRecorder();
 };
-
-static const std::map<Common::Events, std::function<void(CanHandler *)>>
-    eventToFunction{
-        {Common::TMTC_ARM, &CanHandler::sendArmEvent},
-        {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
-        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
-        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
-    };
-
-}  // namespace CanHandlerConfig
 
 }  // namespace Payload

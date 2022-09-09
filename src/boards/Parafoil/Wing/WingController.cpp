@@ -106,16 +106,16 @@ void WingController::flare()
 {
     stop();
 
-    Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0);
-    Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0);
+    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
+    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::reset()
 {
     stop();
 
-    Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0);
-    Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0);
+    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
+    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::update()

@@ -88,22 +88,22 @@ void AutomaticWingAlgorithm::step()
     if (result < 0)
     {
         // Activate the servo1 and reset servo2
-        Actuators::getInstance().setServo(PARAFOIL_SERVO1, -result);
-        Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0);
+        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, -result);
+        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
     }
     else
     {
         // Activate the servo2 and reset servo1
-        Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0);
-        Actuators::getInstance().setServo(PARAFOIL_SERVO2, result);
+        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
+        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, result);
     }
 
     WingAlgorithmData data;
     data.timestamp = TimestampTimer::getTimestamp();
     data.servo1Angle =
-        Actuators::getInstance().getServoPosition(PARAFOIL_SERVO1);
+        Actuators::getInstance().getServoPosition(PARAFOIL_LEFT_SERVO);
     data.servo2Angle =
-        Actuators::getInstance().getServoPosition(PARAFOIL_SERVO2);
+        Actuators::getInstance().getServoPosition(PARAFOIL_RIGHT_SERVO);
     data.targetX       = targetDirection[0];
     data.targetY       = targetDirection[1];
     data.targetAngle   = targetAngle;

@@ -22,6 +22,7 @@
 
 #include "FlightModeManager.h"
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/events/Events.h>
@@ -125,11 +126,13 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
+            Actuators::getInstance().buzzerError();
             logStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -247,7 +250,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DISARMED);
-
+            Actuators::getInstance().buzzerDisarmed();
             Logger::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
@@ -255,6 +258,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -267,7 +271,6 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_ENTER_TEST_MODE:
         {
-            Logger::getInstance().start();
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_CALIBRATE:
@@ -295,6 +298,7 @@ State FlightModeManager::state_test_mode(const Event& event)
 
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_NAS);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            Logger::getInstance().start();
 
             return HANDLED;
         }
@@ -332,7 +336,7 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
-
+            Actuators::getInstance().buzzerArmed();
             Logger::getInstance().start();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
@@ -340,6 +344,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -354,7 +359,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        case FLIGHT_UMBILICAL_DETACHED:
+        case FLIGHT_LAUNCH_PIN_DETACHED:
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);
@@ -395,7 +400,7 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case TMTC_FORCE_EXPULSION:
         {
-            EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
+            EventBroker::getInstance().post(DPL_NC_OPEN, TOPIC_DPL);
             return HANDLED;
         }
         case TMTC_FORCE_MAIN:
@@ -457,7 +462,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            EventBroker::getInstance().post(DPL_OPEN, TOPIC_DPL);
+            EventBroker::getInstance().post(DPL_NC_OPEN, TOPIC_DPL);
 
             return HANDLED;
         }
@@ -534,6 +539,7 @@ State FlightModeManager::state_landed(const Event& event)
         {
             logStatus(FlightModeManagerState::LANDED);
 
+            Actuators::getInstance().buzzerLanded();
             Logger::getInstance().stop();
 
             return HANDLED;
@@ -548,6 +554,12 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case EV_INIT:
         {
+            return HANDLED;
+        }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
             return HANDLED;
         }
         default:

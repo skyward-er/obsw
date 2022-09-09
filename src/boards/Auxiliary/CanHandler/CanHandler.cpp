@@ -65,14 +65,6 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
 {
     PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
 
-    printf("Received packet:\n");
-    printf("\tpriority:       %d\n", msg.getPriority());
-    printf("\tprimary type:   %d\n", msg.getPrimaryType());
-    printf("\tsource:         %d\n", msg.getSource());
-    printf("\tdestination:    %d\n", msg.getDestination());
-    printf("\tsecondary type: %d\n", msg.getSecondaryType());
-    printf("\n");
-
     switch (msgType)
     {
         case PrimaryType::EVENTS:
@@ -94,23 +86,28 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
 
     switch (eventId)
     {
-        case EventId::ARM:
-        {
-            Actuators::getInstance().ledOn();
-        }
         case EventId::CAM_ON:
         {
             Actuators::getInstance().camOn();
             break;
         }
-        case EventId::DISARM:
-        {
-            Actuators::getInstance().ledOff();
-        }
         case EventId::CAM_OFF:
         {
             Actuators::getInstance().camOff();
             break;
+        }
+        case EventId::ERROR:
+        {
+            Actuators::getInstance().ledError();
+            break;
+        }
+        case EventId::ARM:
+        {
+            Actuators::getInstance().ledArmed();
+        }
+        case EventId::DISARM:
+        {
+            Actuators::getInstance().ledDisarmed();
         }
 
         default:

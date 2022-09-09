@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfigs.h>
 
 #ifndef COMPILE_FOR_HOST
@@ -38,7 +39,7 @@ bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(percentage);
             break;
         case EXPULSION_SERVO:
@@ -55,7 +56,7 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(angle / ABK_SERVO_ROTATION);
             break;
         case EXPULSION_SERVO:
@@ -72,14 +73,14 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(1);
-            Thread::sleep(1000);
+            Thread::sleep(ABK_WIGGLE_TIME);
             servoAirbrakes.setPosition(0);
             break;
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(1);
-            Thread::sleep(1000);
+            Thread::sleep(DPL_WIGGLE_TIME);
             servoExpulsion.setPosition(0);
             break;
         default:
@@ -93,7 +94,7 @@ bool Actuators::enableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.enable();
             break;
         case EXPULSION_SERVO:
@@ -110,7 +111,7 @@ bool Actuators::disableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             servoAirbrakes.enable();
             break;
         case EXPULSION_SERVO:
@@ -127,7 +128,7 @@ float Actuators::getServoPosition(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             return servoAirbrakes.getPosition();
         case EXPULSION_SERVO:
             return servoExpulsion.getPosition();
@@ -142,7 +143,7 @@ float Actuators::getServoAngle(ServosList servoId)
 {
     switch (servoId)
     {
-        case AIRBRAKES_SERVO:
+        case AIR_BRAKES_SERVO:
             return servoAirbrakes.getPosition() * ABK_SERVO_ROTATION;
         case EXPULSION_SERVO:
             return servoExpulsion.getPosition() * DPL_SERVO_ROTATION;
@@ -153,19 +154,70 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
+void Actuators::buzzerError()
+{
+    buzzerCounterOverflow = BUZZER_ERROR_PERIOD;
+    buzzerCounter         = 0;
+}
+
+void Actuators::buzzerDisarmed()
+{
+    buzzerCounterOverflow = BUZZER_DISARMED_PERIOD;
+    buzzerCounter         = 0;
+}
+
+void Actuators::buzzerArmed()
+{
+    buzzerCounterOverflow = BUZZER_ARMED_PERIOD;
+    buzzerCounter         = 0;
+}
+
+void Actuators::buzzerLanded()
+{
+    buzzerCounterOverflow = BUZZER_LANDED_PERIOD;
+    buzzerCounter         = 0;
+}
+
+void Actuators::buzzerOff()
+{
+    buzzerCounterOverflow = -1;
+    buzzerCounter         = -1;
+    buzzer.disableChannel(BUZZER_CHANNEL);
+}
+
 #ifdef HILSimulation
 void Actuators::sendToSimulator() { servoAirbrakes.sendToSimulator(); }
 #endif  // HILSimulation
 
 Actuators::Actuators()
-    : ledRed(leds::red::getPin()), ledGreen(leds::green::getPin()),
-      ledBlue(leds::blue::getPin()), cutter1(cutter::enable::getPin()),
-      cutter1Backup(cutter::enable::getPin()), buzzer(buzzer::drive::getPin()),
+    : cutter1(cutter::enable::getPin()),
+      cutter1Backup(cutter::enable::getPin()),
       servoAirbrakes(ABK_SERVO_TIMER, ABK_SERVO_PWM_CH, ABK_SERVO_MIN_PULSE,
                      ABK_SERVO_MAX_PULSE),
       servoExpulsion(DPL_SERVO_TIMER, DPL_SERVO_PWM_CH, DPL_SERVO_MIN_PULSE,
-                     DPL_SERVO_MAX_PULSE)
+                     DPL_SERVO_MAX_PULSE),
+      buzzer(BUZZER_TIMER)
 {
+    buzzer.setFrequency(BUZZER_FREQUENCY);
+    buzzer.setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
+
+    // Start the buzzer task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { toggleBuzzer(); }, BUZZER_TASK_PERIOD);
+}
+
+void Actuators::toggleBuzzer()
+{
+    if (buzzerCounter == 0)
+    {
+        buzzer.enableChannel(BUZZER_CHANNEL);
+        buzzerCounter = buzzerCounterOverflow / BUZZER_TASK_PERIOD;
+    }
+    else if (buzzerCounter > 0)
+    {
+        buzzer.disableChannel(BUZZER_CHANNEL);
+        buzzerCounter--;
+    }
 }
 
 }  // namespace Main

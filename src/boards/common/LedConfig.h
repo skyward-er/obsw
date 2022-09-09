@@ -20,43 +20,13 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <stdint.h>
 
-#include <Singleton.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "FlightStatsRecorderData.h"
-
-namespace Main
+namespace Common
 {
 
-class FlightStatsRecorder : public Boardcore::FSM<FlightStatsRecorder>,
-                            public Boardcore::Singleton<FlightStatsRecorder>
-{
-    friend Boardcore::Singleton<FlightStatsRecorder>;
+constexpr uint16_t LED_TASK_PERIOD  = 100;
+constexpr uint32_t LED_ERROR_PERIOD = 50;
+constexpr uint32_t LED_ARMED_PERIOD = 500;
 
-public:
-    FlightStatsRecorderStatus getStatus();
-
-    void state_idle(const Boardcore::Event& event);
-    void state_liftoff(const Boardcore::Event& event);
-    void state_ascending(const Boardcore::Event& event);
-    void state_main_deployment(const Boardcore::Event& event);
-
-private:
-    FlightStatsRecorder();
-    ~FlightStatsRecorder();
-
-    FlightStatsRecorderStatus status;
-
-    void logStatus(FlightStatsRecorderState state);
-
-    void logApogeeStats();
-    void logLiftoffStats();
-    void logMainDplStats();
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.fsr");
-};
-
-}  // namespace Main
+}  // namespace Common

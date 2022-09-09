@@ -34,6 +34,7 @@ namespace Main
 
 namespace CanHandlerConfig
 {
+
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
     {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
@@ -47,6 +48,9 @@ static const std::map<Common::Events, std::function<void(CanHandler *)>>
         {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
         {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
         {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
+        {Common::FLIGHT_LIFTOFF, &CanHandler::sendLiftoffEvent},
+        {Common::FLIGHT_APOGEE_DETECTED, &CanHandler::sendApogeeEvent},
+        {Common::FLIGHT_LANDING_DETECTED, &CanHandler::sendLandingEvent},
     };
 
 }  // namespace CanHandlerConfig

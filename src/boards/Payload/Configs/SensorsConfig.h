@@ -95,7 +95,7 @@ constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
 
 // Axis rotation
 static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
-    Boardcore::Direction::NEGATIVE_X, Boardcore::Direction::POSITIVE_Y};
+    Boardcore::Direction::POSITIVE_Y, Boardcore::Direction::NEGATIVE_X};
 
 // Correction parameter file
 constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] = "/sd/bmx160_params.csv";

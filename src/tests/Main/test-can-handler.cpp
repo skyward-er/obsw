@@ -20,38 +20,47 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Main/CanHandler/CanHandler.h>
+#include <miosix.h>
 
-#include <Payload/CanHandler/CanHandler.h>
-#include <common/CanConfig.h>
-#include <common/events/Events.h>
+using namespace miosix;
+using namespace Boardcore;
+using namespace Main;
 
-#include <functional>
-#include <map>
+constexpr int PERIOD = 5 * 1000;  // [s]
 
-namespace Payload
+int main()
 {
+    CanHandler::getInstance().start();
 
-namespace CanHandlerConfig
-{
+    while (true)
+    {
+        CanHandler::getInstance().sendArmEvent();
+        printf("sendArmEvent\n");
+        Thread::sleep(PERIOD);
 
-static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
-    {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
-    {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
-    {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
-    {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
-    {Common::CanConfig::EventId::LIFTOFF, Common::TMTC_FORCE_LAUNCH},
-    {Common::CanConfig::EventId::APOGEE, Common::TMTC_FORCE_APOGEE},
-};
+        CanHandler::getInstance().sendDisarmEvent();
+        printf("sendDisarmEvent\n");
+        Thread::sleep(PERIOD);
 
-static const std::map<Common::Events, std::function<void(CanHandler *)>>
-    eventToFunction{
-        {Common::TMTC_ARM, &CanHandler::sendArmEvent},
-        {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
-        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
-        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
-    };
+        CanHandler::getInstance().sendCamOnEvent();
+        printf("sendCamOnEvent\n");
+        Thread::sleep(PERIOD);
 
-}  // namespace CanHandlerConfig
+        CanHandler::getInstance().sendCamOffEvent();
+        printf("sendCamOffEvent\n");
+        Thread::sleep(PERIOD);
 
-}  // namespace Payload
+        CanHandler::getInstance().sendLiftoffEvent();
+        printf("sendLiftoffEvent\n");
+        Thread::sleep(PERIOD);
+
+        CanHandler::getInstance().sendApogeeEvent();
+        printf("sendApogeeEvent\n");
+        Thread::sleep(PERIOD);
+
+        CanHandler::getInstance().sendLandingEvent();
+        printf("sendLandingEvent\n");
+        Thread::sleep(PERIOD);
+    }
+}

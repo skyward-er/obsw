@@ -26,9 +26,11 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/SensorsConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/Deployment/Deployment.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -198,6 +200,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.gps_lon = ubxData.longitude;
             tm.gps_alt = ubxData.height;
 
+            // Servo motors
+            tm.left_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+            tm.right_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
+
             // NAS
             tm.nas_n      = nasState.n;
             tm.nas_e      = nasState.e;
@@ -233,24 +241,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_payload_stats_tm_t tm;
 
-            tm.liftoff_ts           = 0;
-            tm.liftoff_max_acc_ts   = 0;
-            tm.liftoff_max_acc      = 0;
-            tm.max_z_speed_ts       = 0;
-            tm.max_z_speed          = 0;
-            tm.max_airspeed_pitot   = 0;
-            tm.max_speed_altitude   = 0;
-            tm.apogee_ts            = 0;
-            tm.apogee_lat           = 0;
-            tm.apogee_lon           = 0;
-            tm.static_min_pressure  = 0;
-            tm.digital_min_pressure = 0;
-            tm.ada_min_pressure     = 0;
-            tm.baro_max_altitude    = 0;
-            tm.gps_max_altitude     = 0;
-            tm.drogue_dpl_ts        = 0;
-            tm.drogue_dpl_max_acc   = 0;
-            tm.cpu_load             = CpuMeter::getCpuStats().mean;
+            tm           = FlightStatsRecorder::getInstance().getStats();
+            tm.cpu_load  = CpuMeter::getCpuStats().mean;
+            tm.free_heap = CpuMeter::getCpuStats().freeHeap;
 
             mavlink_msg_payload_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                 RadioConfig::MAV_COMPONENT_ID,
@@ -274,7 +267,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
             tm.ada_state = 0;
-            tm.dpl_state = 0;
+            tm.dpl_state = static_cast<uint8_t>(
+                Deployment::getInstance().getStatus().state);
             tm.fsr_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
@@ -467,12 +461,12 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 {
     mavlink_message_t msg;
 
-    if (servoId == PARAFOIL_SERVO1 || servoId == PARAFOIL_SERVO2)
+    if (servoId == PARAFOIL_LEFT_SERVO || servoId == PARAFOIL_RIGHT_SERVO)
     {
         mavlink_servo_tm_t tm;
 
         tm.servo_id       = servoId;
-        tm.servo_position = Actuators::getInstance().getServoPosition(servoId);
+        tm.servo_position = Actuators::getInstance().getServoAngle(servoId);
 
         mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                     RadioConfig::MAV_COMPONENT_ID, &msg, &tm);

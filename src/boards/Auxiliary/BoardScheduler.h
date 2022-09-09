@@ -22,34 +22,23 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Singleton.h>
+#include <scheduler/TaskScheduler.h>
 
-#include <iostream>
-#include <string>
-
-namespace Main
+namespace Auxiliary
 {
 
-enum class FlightStatsRecorderState : uint8_t
+class BoardScheduler : public Boardcore::Singleton<BoardScheduler>
 {
-    UNINIT = 0,
-    IDLE,
-    LIFTOFF,
-    ASCENDING,
-    MAIN_DEPLOYMENT
+    friend Boardcore::Singleton<BoardScheduler>;
+
+public:
+    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
+
+private:
+    BoardScheduler() {}
+
+    Boardcore::TaskScheduler scheduler;
 };
 
-struct FlightStatsRecorderStatus
-{
-    uint64_t timestamp             = 0;
-    FlightStatsRecorderState state = FlightStatsRecorderState::UNINIT;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
-
-}  // namespace Main
+}  // namespace Auxiliary

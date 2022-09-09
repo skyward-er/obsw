@@ -23,6 +23,7 @@
 #include "FlightModeManager.h"
 
 #include <Payload/Configs/FlightModeManagerConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
@@ -79,6 +80,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         case TMTC_STOP_RECORDING:
         {
             Actuators::getInstance().camOff();
+            return HANDLED;
         }
         case TMTC_RESET_BOARD:
         {
@@ -136,10 +138,12 @@ State FlightModeManager::state_init_error(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::INIT_ERROR);
+            Actuators::getInstance().ledError();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -240,6 +244,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
 
+            Actuators::getInstance().ledDisarmed();
             Logger::getInstance().stop();
             Actuators::getInstance().camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -248,6 +253,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -260,7 +266,6 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_ENTER_TEST_MODE:
         {
-            Logger::getInstance().start();
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_CALIBRATE:
@@ -286,20 +291,14 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             logStatus(FlightModeManagerState::TEST_MODE);
 
-            WingController::getInstance().start();
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            Logger::getInstance().start();
 
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // Stop the algorithm
-            WingController::getInstance().stop();
-
-            // Stop also the NAS
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
-
-            // Stop logging
             Logger::getInstance().stop();
 
             return HANDLED;
@@ -310,6 +309,11 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case EV_INIT:
         {
+            return HANDLED;
+        }
+        case TMTC_FORCE_MAIN:
+        {
+            EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
             return HANDLED;
         }
         case TMTC_EXIT_TEST_MODE:
@@ -331,6 +335,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             logStatus(FlightModeManagerState::ARMED);
 
+            Actuators::getInstance().ledArmed();
             Logger::getInstance().start();
             Actuators::getInstance().camOn();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
@@ -339,6 +344,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
+            Actuators::getInstance().ledOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -437,6 +443,8 @@ State FlightModeManager::state_ascending(const Event& event)
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
+            FlightStatsRecorder::getInstance().setApogee(
+                Sensors::getInstance().getUbxGpsLastSample());
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
@@ -545,6 +553,12 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case EV_INIT:
         {
+            return HANDLED;
+        }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
             return HANDLED;
         }
         default:

@@ -61,7 +61,17 @@ bool AirBrakesController::start()
     return ActiveObject::start();
 }
 
-void AirBrakesController::update() { abk.update(); }
+void AirBrakesController::update()
+{
+    auto currentPoint =
+        TimedTrajectoryPoint{NASController::getInstance().getNasState()};
+
+    if (!abk.isRunning() && status.state == AirBrakesControllerState::ACTIVE &&
+        currentPoint.getMac() < MACH_LIMIT)
+        abk.begin();
+
+    abk.update();
+}
 
 AirBrakesControllerStatus AirBrakesController::getStatus()
 {
@@ -77,8 +87,8 @@ void AirBrakesController::state_init(const Event& event)
         {
             logStatus(AirBrakesControllerState::INIT);
 
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
-            Actuators::getInstance().enableServo(AIRBRAKES_SERVO);
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
+            Actuators::getInstance().enableServo(AIR_BRAKES_SERVO);
 
             return transition(&AirBrakesController::state_idle);
         }
@@ -99,13 +109,13 @@ void AirBrakesController::state_idle(const Event& event)
         }
         case ABK_OPEN:
         {
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
                                                    ABK_SERVO_ROTATION);
             break;
         }
         case ABK_RESET:
         {
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
             break;
         }
         case FLIGHT_LIFTOFF:
@@ -146,8 +156,6 @@ void AirBrakesController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            abk.begin();
-
             return logStatus(AirBrakesControllerState::ACTIVE);
         }
         case FLIGHT_APOGEE_DETECTED:
@@ -164,11 +172,12 @@ void AirBrakesController::state_end(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(AirBrakesControllerState::END);
+
             abk.end();
+            Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
 
-            Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
-
-            return logStatus(AirBrakesControllerState::END);
+            return;
         }
     }
 }
@@ -186,7 +195,7 @@ AirBrakesController::AirBrakesController()
 #endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
           [](float position) {
-              Actuators::getInstance().setServo(ServosList::AIRBRAKES_SERVO,
+              Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
                                                 position);
           })
 {
@@ -211,10 +220,10 @@ void AirBrakesController::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO,
+        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
                                                ABK_SERVO_ROTATION);
         miosix::Thread::sleep(500);
-        Actuators::getInstance().setServoAngle(AIRBRAKES_SERVO, 0);
+        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
         miosix::Thread::sleep(500);
     }
 }

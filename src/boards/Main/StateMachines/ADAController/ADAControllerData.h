@@ -58,30 +58,4 @@ struct ADAControllerStatus
     }
 };
 
-struct ApogeeEvent
-{
-    uint64_t timestamp;
-    ADAControllerState state;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
-
-struct DeploymentEvent
-{
-    uint64_t timestamp;
-    ADAControllerState state;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
-
 }  // namespace Main

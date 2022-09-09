@@ -61,12 +61,8 @@ sbs_target(groundstation-entry stm32f429zi_skyward_groundstation_v2)
 add_executable(test-hil src/tests/hardware_in_the_loop/test-hil/test-hil.cpp ${MAIN_COMPUTER} ${HIL})
 target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil PRIVATE HILSimulation HILUseADA HILUseRadio EUROC)
-# ssbs_target(test-hil stm32f407vg_stm32f4discovery)
+# sbs_target(test-hil stm32f407vg_stm32f4discovery)
 sbs_target(test-hil stm32f429zi_skyward_death_stack_v3)
-
-add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
-target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)
 
 #-----------------------------------------------------------------------------#
 #                                Main Computer                                #
@@ -117,6 +113,10 @@ sbs_target(main-test-ubxgps stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-leds src/tests/Main/test-leds.cpp)
 sbs_target(main-test-leds stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-test-can-handler src/tests/Main/test-can-handler.cpp ${MAIN_COMPUTER})
+target_include_directories(main-test-can-handler PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(main-test-can-handler stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-nas src/tests/Main/test-nas.cpp)
 sbs_target(main-test-nas stm32f429zi_skyward_death_stack_v3)

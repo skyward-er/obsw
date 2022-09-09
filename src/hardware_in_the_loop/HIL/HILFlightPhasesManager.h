@@ -43,6 +43,7 @@ enum class FlightPhases
 {
     SIMULATION_STARTED,
     CALIBRATION,
+    CALIBRATION_OK,
     ARMED,
     LIFTOFF_PIN_DETACHED,
     FLYING,
@@ -70,9 +71,9 @@ struct Outcomes
 
     void print(uint64_t t_start) const
     {
-        TRACE("@time     : %f [sec]\n", (double)(t - t_start) / 1000000);
-        TRACE("@altitude : %f [m]\n", z);
-        TRACE("@velocity : %f [m/s]\n\n", vz);
+        printf("@time     : %f [sec]\n", (double)(t - t_start) / 1000000);
+        printf("@altitude : %f [m]\n", z);
+        printf("@velocity : %f [m/s]\n\n", vz);
     }
 };
 
@@ -91,11 +92,7 @@ public:
     void setCurrentPositionSource(
         std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition);
 
-    bool isSimulationStarted();
-
-    bool isSimulationStopped();
-
-    bool isSimulationRunning();
+    bool isFlagActive(FlightPhases flag);
 
     void registerToFlightPhase(FlightPhases flag, TCallback func);
 

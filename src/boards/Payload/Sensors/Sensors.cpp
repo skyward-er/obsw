@@ -25,6 +25,7 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/usart/USART.h>
@@ -272,7 +273,11 @@ void Sensors::bmx160WithCorrectionInit()
     SensorInfo info(
         "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
         [&]()
-        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); });
+        {
+            Logger::getInstance().log(bmx160WithCorrection->getLastSample());
+            FlightStatsRecorder::getInstance().update(
+                bmx160WithCorrection->getLastSample());
+        });
 
     sensorsMap.emplace(make_pair(bmx160WithCorrection, info));
 
@@ -317,6 +322,7 @@ void Sensors::ms5803Init()
         [&]()
         {
             Logger::getInstance().log(ms5803->getLastSample());
+            FlightStatsRecorder::getInstance().update(ms5803->getLastSample());
 
             if (calibrating && ms5803->getLastSample().pressure != 0)
                 ms5803Stats.add(ms5803->getLastSample().pressure);
@@ -426,7 +432,6 @@ void Sensors::pitotPressureInit()
         [&]()
         {
             Logger::getInstance().log(pitotPressure->getLastSample());
-
             if (calibrating)
                 pitotPressureStats.add(pitotPressure->getLastSample().pressure);
         });
@@ -445,9 +450,13 @@ void Sensors::pitotInit()
 
     pitot = new Pitot(getPitotPressure, getStaticPressure);
 
-    SensorInfo info("PITOT", SAMPLE_PERIOD_ADS1118 * 4,
-                    [&]()
-                    { Logger::getInstance().log(pitot->getLastSample()); });
+    SensorInfo info(
+        "PITOT", SAMPLE_PERIOD_ADS1118 * 4,
+        [&]()
+        {
+            Logger::getInstance().log(pitot->getLastSample());
+            FlightStatsRecorder::getInstance().update(pitot->getLastSample());
+        });
 
     sensorsMap.emplace(make_pair(pitot, info));
 

@@ -31,25 +31,25 @@ namespace Payload
 namespace ActuatorsConfigs
 {
 
-// Servo 1
-
+// Left servo
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-constexpr float SERVO_1_ROTATION  = 120;
-constexpr float SERVO_1_MIN_PULSE = 900;   // [deg]
-constexpr float SERVO_1_MAX_PULSE = 2100;  // [deg]
+constexpr float LEFT_SERVO_ROTATION  = 120;  // [deg]
+constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [us]
+constexpr float LEFT_SERVO_MAX_PULSE =
+    LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
 
-// Servo 2
-
+// Right servo
 static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-constexpr float SERVO_2_ROTATION  = 120;
-constexpr float SERVO_2_MIN_PULSE = 2100;  // [deg]
-constexpr float SERVO_2_MAX_PULSE = 900;   // [deg]
+constexpr float RIGHT_SERVO_ROTATION  = 120;   // [deg]
+constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
+constexpr float RIGHT_SERVO_MAX_PULSE =
+    RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
 
 }  // namespace ActuatorsConfigs
 

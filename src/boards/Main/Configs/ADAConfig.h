@@ -35,7 +35,7 @@ static const float SAMPLING_PERIOD = UPDATE_PERIOD / 1000.0f;  // in seconds
 
 // Initialize the Kalman filter with a negative (pressure) acceleration in order
 // to make it more responsive during the propulsive phase
-static const float KALMAN_INITIAL_ACCELERATION = -500;
+static const float KALMAN_INITIAL_ACCELERATION = 0;
 
 constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
 

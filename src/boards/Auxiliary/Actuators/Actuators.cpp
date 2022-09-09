@@ -22,19 +22,60 @@
 
 #include "Actuators.h"
 
+#include <Auxiliary/BoardScheduler.h>
+#include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
+using namespace Boardcore;
+using namespace Common;
 
 namespace Auxiliary
 {
 
-void Actuators::ledOn() { miosix::ledOn(); }
-
-void Actuators::ledOff() { miosix::ledOff(); }
+Actuators::Actuators() : led(leds::led1::getPin()) {}
 
 void Actuators::camOn() { interfaces::camMosfet::high(); }
 
 void Actuators::camOff() { interfaces::camMosfet::low(); }
+
+void Actuators::ledArmed()
+{
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
+}
+
+void Actuators::ledDisarmed()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    led.high();
+    ledState = true;
+}
+
+void Actuators::ledError()
+{
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
+}
+
+void Actuators::ledOff()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = 0;
+    ledState  = false;
+    led.low();
+}
+
+void Actuators::toggleLed()
+{
+    if (ledState)
+        led.high();
+    else
+        led.low();
+
+    ledState = !ledState;
+}
 
 }  // namespace Auxiliary

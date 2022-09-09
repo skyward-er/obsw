@@ -75,59 +75,20 @@ void Deployment::state_idle(const Event& event)
         {
             return wiggleServo();
         }
-        case DPL_OPEN:
+        case DPL_NC_OPEN:
         {
-            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
-                                                   DPL_SERVO_EJECT_POS);
+            Actuators::getInstance().setServo(EXPULSION_SERVO,
+                                              DPL_SERVO_EJECT_POS);
             break;
         }
-        case DPL_RESET:
+        case DPL_NC_RESET:
         {
-            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
-                                                   DPL_SERVO_EJECT_POS);
+            Actuators::getInstance().setServo(EXPULSION_SERVO, 0);
             break;
-        }
-        case DPL_OPEN_NC:
-        {
-            return transition(&Deployment::state_nosecone_ejection);
         }
         case DPL_CUT_DROGUE:
         {
             return transition(&Deployment::state_cutting);
-        }
-    }
-}
-
-void Deployment::state_nosecone_ejection(const Event& event)
-{
-    static uint16_t openNcTimeoutEventId = -1;
-
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(DeploymentState::NOSECONE_EJECTION);
-
-            Actuators::getInstance().setServoAngle(EXPULSION_SERVO,
-                                                   DPL_SERVO_EJECT_POS);
-
-            openNcTimeoutEventId =
-                EventBroker::getInstance().postDelayed<OPEN_NC_TIMEOUT>(
-                    Boardcore::Event{DPL_OPEN_NC_TIMEOUT}, TOPIC_DPL);
-            break;
-        }
-        case DPL_OPEN_NC_TIMEOUT:
-        {
-            return transition(&Deployment::state_idle);
-        }
-        case FLIGHT_NC_DETACHED:
-        {
-            return transition(&Deployment::state_idle);
-        }
-        case EV_EXIT:
-        {
-            EventBroker::getInstance().removeDelayed(openNcTimeoutEventId);
-            break;
         }
     }
 }
@@ -192,16 +153,8 @@ void Deployment::wiggleServo()
     }
 }
 
-void Deployment::startCutting()
-{
-    Actuators::getInstance().cutter1.high();
-    Actuators::getInstance().ledRed.high();
-}
+void Deployment::startCutting() { Actuators::getInstance().cutter1.high(); }
 
-void Deployment::stopCutting()
-{
-    Actuators::getInstance().cutter1.low();
-    Actuators::getInstance().ledRed.low();
-}
+void Deployment::stopCutting() { Actuators::getInstance().cutter1.low(); }
 
 }  // namespace Main

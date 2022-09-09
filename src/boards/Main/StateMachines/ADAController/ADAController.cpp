@@ -76,8 +76,8 @@ void ADAController::update()
                 if (detectedApogeeEvents > APOGEE_N_SAMPLES)
                 {
                     // Apogee detected in shadow mode!
-                    Logger::getInstance().log(ApogeeEvent{
-                        TimestampTimer::getTimestamp(), status.state});
+                    Logger::getInstance().log(
+                        ApogeeEvent{TimestampTimer::getTimestamp()});
                 }
             }
             else
@@ -101,8 +101,8 @@ void ADAController::update()
                     // Apogee detected
                     EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
                                                     TOPIC_FLIGHT);
-                    Logger::getInstance().log(ApogeeEvent{
-                        TimestampTimer::getTimestamp(), status.state});
+                    Logger::getInstance().log(
+                        ApogeeEvent{TimestampTimer::getTimestamp()});
                 }
             }
             else
@@ -142,8 +142,8 @@ void ADAController::update()
                 if (detectedDeploymentEvents >= DEPLOYMENT_N_SAMPLES)
                 {
                     // Deployment event detected during pressure stabilization!
-                    Logger::getInstance().log(DeploymentEvent{
-                        TimestampTimer::getTimestamp(), status.state});
+                    Logger::getInstance().log(
+                        MainEvent{TimestampTimer::getTimestamp()});
                 }
             }
             else
@@ -166,8 +166,8 @@ void ADAController::update()
                     // Deployment event detected
                     EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                                     TOPIC_FLIGHT);
-                    Logger::getInstance().log(DeploymentEvent{
-                        TimestampTimer::getTimestamp(), status.state});
+                    Logger::getInstance().log(
+                        MainEvent{TimestampTimer::getTimestamp()});
                 }
             }
             else
@@ -232,6 +232,7 @@ void ADAController::calibrate()
     {
         miosix::PauseKernelLock l;
         ada.setReferenceValues(reference);
+        ada.setKalmanConfig(getADAKalmanConfig());
     }
 
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
@@ -311,10 +312,12 @@ void ADAController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(ADAControllerState::CALIBRATING);
+
             // Calibrate the ADA
             calibrate();
 
-            return logStatus(ADAControllerState::CALIBRATING);
+            return;
         }
         case ADA_READY:
         {

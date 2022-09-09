@@ -22,10 +22,14 @@
 
 #include "Actuators.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
+#include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
+using namespace Boardcore;
+using namespace Common;
 using namespace Payload::ActuatorsConfigs;
 
 namespace Payload
@@ -35,11 +39,11 @@ bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            servo1.setPosition(percentage);
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.setPosition(percentage);
             break;
-        case PARAFOIL_SERVO2:
-            servo2.setPosition(percentage);
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.setPosition(percentage);
             break;
         default:
             return false;
@@ -52,11 +56,11 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            servo1.setPosition(angle / SERVO_1_ROTATION);
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
             break;
-        case PARAFOIL_SERVO2:
-            servo2.setPosition(angle / SERVO_2_ROTATION);
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
             break;
         default:
             return false;
@@ -69,15 +73,15 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            servo1.setPosition(1);
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.setPosition(1);
             Thread::sleep(1000);
-            servo1.setPosition(0);
+            leftServo.setPosition(0);
             break;
-        case PARAFOIL_SERVO2:
-            servo2.setPosition(1);
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.setPosition(1);
             Thread::sleep(1000);
-            servo2.setPosition(0);
+            rightServo.setPosition(0);
             break;
         default:
             return false;
@@ -90,11 +94,11 @@ bool Actuators::enableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            servo1.enable();
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.enable();
             break;
-        case PARAFOIL_SERVO2:
-            servo2.enable();
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.enable();
             break;
         default:
             return false;
@@ -107,11 +111,11 @@ bool Actuators::disableServo(ServosList servoId)
 {
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            servo1.enable();
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.enable();
             break;
-        case PARAFOIL_SERVO2:
-            servo2.enable();
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.enable();
             break;
         default:
             return false;
@@ -125,10 +129,10 @@ float Actuators::getServoPosition(ServosList servoId)
 
     switch (servoId)
     {
-        case PARAFOIL_SERVO1:
-            return servo1.getPosition();
-        case PARAFOIL_SERVO2:
-            return servo2.getPosition();
+        case PARAFOIL_LEFT_SERVO:
+            return leftServo.getPosition();
+        case PARAFOIL_RIGHT_SERVO:
+            return rightServo.getPosition();
         default:
             return 0;
     }
@@ -136,34 +140,84 @@ float Actuators::getServoPosition(ServosList servoId)
     return 0;
 }
 
-void Actuators::ledOn() { miosix::ledOn(); }
+float Actuators::getServoAngle(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            return leftServo.getPosition() * LEFT_SERVO_ROTATION;
+        case PARAFOIL_RIGHT_SERVO:
+            return rightServo.getPosition() * RIGHT_SERVO_ROTATION;
+        default:
+            return 0;
+    }
 
-void Actuators::ledOff() { miosix::ledOff(); }
-
-void Actuators::camOn() { interfaces::camMosfet::high(); }
-
-void Actuators::camOff() { interfaces::camMosfet::low(); }
+    return 0;
+}
 
 void Actuators::cuttersOn()
 {
+    actuators::nosecone::th_cut_input::high();
     actuators::nosecone::thermal_cutter_1::enable::high();
     actuators::nosecone::thermal_cutter_2::enable::high();
 }
 
 void Actuators::cuttersOff()
 {
+    actuators::nosecone::th_cut_input::low();
     actuators::nosecone::thermal_cutter_1::enable::low();
     actuators::nosecone::thermal_cutter_2::enable::low();
 }
 
-Actuators::Actuators()
-    : led1(leds::led_red1::getPin()), led2(leds::led_red2::getPin()),
-      led3(leds::led_blue1::getPin()),
-      servo1(SERVO_1_TIMER, SERVO_1_PWM_CH, SERVO_1_MIN_PULSE,
-             SERVO_1_MAX_PULSE),
-      servo2(SERVO_2_TIMER, SERVO_2_PWM_CH, SERVO_2_MIN_PULSE,
-             SERVO_2_MAX_PULSE)
+void Actuators::camOn() { interfaces::camMosfet::high(); }
+
+void Actuators::camOff() { interfaces::camMosfet::low(); }
+
+void Actuators::ledArmed()
 {
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
+}
+
+void Actuators::ledDisarmed()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    miosix::ledOn();
+    ledState = true;
+}
+
+void Actuators::ledError()
+{
+    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
+    scheduler.removeTask(ledTaskId);
+    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
+}
+
+void Actuators::ledOff()
+{
+    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    ledTaskId = 0;
+    ledState  = false;
+    miosix::ledOff();
+}
+
+Actuators::Actuators()
+    : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
+                LEFT_SERVO_MAX_PULSE),
+      rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
+                 RIGHT_SERVO_MAX_PULSE)
+{
+}
+
+void Actuators::toggleLed()
+{
+    if (ledState)
+        miosix::ledOff();
+    else
+        miosix::ledOn();
+
+    ledState = !ledState;
 }
 
 }  // namespace Payload

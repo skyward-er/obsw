@@ -25,6 +25,7 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/NASConfig.h>
 #include <Payload/Configs/WingConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/events/Events.h>
@@ -71,6 +72,7 @@ void NASController::update()
         // nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
+        FlightStatsRecorder::getInstance().update(nas.getState());
     }
 }
 
@@ -117,6 +119,7 @@ void NASController::calibrate()
     {
         reference.refLatitude  = gps.latitude;
         reference.refLongitude = gps.longitude;
+        reference.refAltitude  = gps.height;
     }
 
     // Update the algorithm reference values
@@ -177,7 +180,7 @@ void NASController::setReferenceTemperature(float temperature)
     miosix::PauseKernelLock l;
 
     ReferenceValues reference = nas.getReferenceValues();
-    reference.refTemperature  = temperature;
+    reference.refTemperature  = temperature + 273.15f;
     nas.setReferenceValues(reference);
 }
 

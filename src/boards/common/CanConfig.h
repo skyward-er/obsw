@@ -63,12 +63,13 @@ enum class SensorId : uint8_t
 
 enum class EventId : uint8_t
 {
-    LIFTOFF = 0,
-    APOGEE,
+    CAM_ON = 0,
+    CAM_OFF,
+    ERROR,
     ARM,
     DISARM,
-    CAM_ON,
-    CAM_OFF
+    LIFTOFF,
+    APOGEE,
 };
 
 }  // namespace CanConfig

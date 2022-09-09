@@ -29,7 +29,7 @@ namespace DeploymentConfig
 {
 
 constexpr int OPEN_NC_TIMEOUT = 5 * 1000;  // [ms]
-constexpr int CUT_DURATION    = 50;        // [ms]
+constexpr int CUT_DURATION    = 500;       // [ms]
 
 }  // namespace DeploymentConfig
 

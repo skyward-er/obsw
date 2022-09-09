@@ -51,7 +51,7 @@ WingController::~WingController() {}
 void WingController::addAlgorithm(WingAlgorithm* algorithm)
 {
     // Ensure that the servos are correct
-    algorithm->setServo(PARAFOIL_SERVO1, PARAFOIL_SERVO2);
+    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
 
     // Init the algorithm
     algorithm->init();
@@ -111,8 +111,8 @@ void WingController::flare()
 
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    Actuators::getInstance().setServo(PARAFOIL_SERVO1, 1);
-    Actuators::getInstance().setServo(PARAFOIL_SERVO2, 1);
+    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 1);
+    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
@@ -121,8 +121,8 @@ void WingController::reset()
     stop();
 
     // Set the servo position to reset
-    Actuators::getInstance().setServo(PARAFOIL_SERVO1, 0);
-    Actuators::getInstance().setServo(PARAFOIL_SERVO2, 0);
+    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
+    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::update()

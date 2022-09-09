@@ -23,21 +23,32 @@
 #pragma once
 
 #include <Singleton.h>
+#include <interfaces/gpio.h>
 
 namespace Auxiliary
 {
 
-struct Actuators : public Boardcore::Singleton<Actuators>
+class Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    void ledOn();
-
-    void ledOff();
+public:
+    Actuators();
 
     void camOn();
-
     void camOff();
+
+    void ledArmed();
+    void ledDisarmed();
+    void ledError();
+    void ledOff();
+
+private:
+    miosix::GpioPin led;
+    uint8_t ledTaskId = -1;
+    bool ledState     = false;
+
+    void toggleLed();
 };
 
 }  // namespace Auxiliary

@@ -1,5 +1,5 @@
-BOARDCORE := ../../../skyward-boardcore/
-OBSW := ../../../src/boards/
+BOARDCORE := ../../../../skyward-boardcore/
+OBSW := ../../../../src/boards/
 
 all:
 	g++ -std=c++17 -O2 -o logdecoder logdecoder.cpp \

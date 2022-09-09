@@ -34,7 +34,7 @@
 class HILFlightPhasesManager;
 
 /**
- * @brief HILTranceiver is a Singleton and provides an easy interface for
+ * @brief HILTransceiver is a Singleton and provides an easy interface for
  * the control algorithms to send and receive data during a simulation
  */
 class HILTransceiver : public Boardcore::ActiveObject

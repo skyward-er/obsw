@@ -31,28 +31,42 @@ namespace Main
 namespace ActuatorsConfigs
 {
 
-// Deployment servo
-static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
-constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_2;
-
-// TODO: Change rotation with min and max
-constexpr float DPL_SERVO_ROTATION  = 23;                             // [deg]
-constexpr float DPL_SERVO_MIN_PULSE = 900;                            // [us]
-constexpr float DPL_SERVO_MAX_PULSE = 900 + 10 * DPL_SERVO_ROTATION;  // [us]
-constexpr float DPL_SERVO_EJECT_POS = 0;                              // [deg]
-constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
-
 // Airbrakes servo
 static TIM_TypeDef* const ABK_SERVO_TIMER = TIM10;
 constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-// TODO: Change rotation with min and max
-constexpr float ABK_SERVO_ROTATION  = 50;    // [deg]
-constexpr float ABK_SERVO_MIN_PULSE = 1410;  // [deg]
+// TODO: Fix rotation value
+constexpr float ABK_SERVO_ROTATION = 66.4;  // [deg] AirBrakes without end stop
+// constexpr float ABK_SERVO_ROTATION  = 65;  // [deg] AirBrakes with end stop
+constexpr float ABK_SERVO_MIN_PULSE = 1405;  // [deg]
 constexpr float ABK_SERVO_MAX_PULSE =
     ABK_SERVO_MIN_PULSE - 10 * ABK_SERVO_ROTATION;  // [us]
+constexpr float ABK_WIGGLE_TIME = 2 * 1000;         // [ms]
+
+// Deployment servo
+static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
+constexpr Boardcore::TimerUtils::Channel DPL_SERVO_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
+
+constexpr float DPL_SERVO_ROTATION  = 23;                             // [deg]
+constexpr float DPL_SERVO_MIN_PULSE = 900;                            // [us]
+constexpr float DPL_SERVO_MAX_PULSE = 900 + 10 * DPL_SERVO_ROTATION;  // [us]
+constexpr float DPL_SERVO_EJECT_POS = 1;                              // [deg]
+constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
+constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
+
+// Buzzer
+TIM_TypeDef* const BUZZER_TIMER = TIM8;
+constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+constexpr float BUZZER_DUTY_CYCLE         = 0.5;
+constexpr uint16_t BUZZER_FREQUENCY       = 5000;       // [Hz]
+constexpr uint16_t BUZZER_TASK_PERIOD     = 100;        // [ms]
+constexpr uint16_t BUZZER_ERROR_PERIOD    = 100;        // [ms]
+constexpr uint16_t BUZZER_DISARMED_PERIOD = 10 * 1000;  // [ms]
+constexpr uint16_t BUZZER_ARMED_PERIOD    = 1 * 1000;   // [ms]
+constexpr uint16_t BUZZER_LANDED_PERIOD   = 2 * 1000;   // [ms]
 
 }  // namespace ActuatorsConfigs
 

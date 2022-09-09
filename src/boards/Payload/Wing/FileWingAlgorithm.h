@@ -33,11 +33,11 @@
  *
  * Brief use case:
  *
- * Actuators::getInstance().enableServo(PARAFOIL_SERVO1);
- * Actuators::getInstance().enableServo(PARAFOIL_SERVO2);
+ * Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO);
+ * Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO);
  *
- * WingAlgorithm algorithm(PARAFOIL_SERVO1, PARAFOIL_SERVO2, "Optional File")
- * algorithm.init();
+ * WingAlgorithm algorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, "Optional
+ * File") algorithm.init();
  *
  * //In case of a non valid file/empty string you can add the steps
  * algorithm.addStep(WingAlgorithmData{timestamp, angle1, angle2});

@@ -34,10 +34,6 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 {
     friend class Boardcore::Singleton<Actuators>;
 
-    miosix::GpioPin led1;
-    miosix::GpioPin led2;
-    miosix::GpioPin led3;
-
     /**
      * @brief Moves the specified servo to the given position.
      *
@@ -71,23 +67,29 @@ struct Actuators : public Boardcore::Singleton<Actuators>
 
     float getServoPosition(ServosList servoId);
 
-    void ledOn();
-
-    void ledOff();
-
-    void camOn();
-
-    void camOff();
+    float getServoAngle(ServosList servoId);
 
     void cuttersOn();
-
     void cuttersOff();
+
+    void camOn();
+    void camOff();
+
+    void ledArmed();
+    void ledDisarmed();
+    void ledError();
+    void ledOff();
 
 private:
     Actuators();
 
-    Boardcore::Servo servo1;
-    Boardcore::Servo servo2;
+    void toggleLed();
+
+    Boardcore::Servo leftServo;
+    Boardcore::Servo rightServo;
+
+    bool ledState     = false;
+    uint8_t ledTaskId = 0;
 };
 
 }  // namespace Payload
