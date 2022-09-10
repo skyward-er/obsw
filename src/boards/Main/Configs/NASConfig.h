@@ -24,6 +24,7 @@
 
 #include <algorithms/NAS/NASConfig.h>
 #include <algorithms/ReferenceValues.h>
+#include <common/ReferenceConfig.h>
 
 namespace Main
 {
@@ -36,38 +37,24 @@ constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 constexpr int CALIBRATION_SAMPLES_COUNT = 20;
 constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
 
-// Magnetic field in Milan
-const Eigen::Vector3f nedMag(0.4747, 0.0276, 0.8797);
-
 static const Boardcore::NASConfig config = {
-    UPDATE_PERIOD / 1000.0,  // T
-    0.0001f,                 // SIGMA_BETA
-    0.3f,                    // SIGMA_W
-    0.1f,                    // SIGMA_MAG
-    10.0f,                   // SIGMA_GPS
-    4.3f,                    // SIGMA_BAR
-    10.0f,                   // SIGMA_POS
-    10.0f,                   // SIGMA_VEL
-    10.0f,                   // SIGMA_PITOT
-    1.0f,                    // P_POS
-    10.0f,                   // P_POS_VERTICAL
-    1.0f,                    // P_VEL
-    10.0f,                   // P_VEL_VERTICAL
-    0.01f,                   // P_ATT
-    0.01f,                   // P_BIAS
-    6.0f,                    // SATS_NUM
-    nedMag                   // NED_MAG
-};
-
-// Reference values for EuRoC
-static const Boardcore::ReferenceValues defaultReferenceValues = {
-    160.0f,     // [m] Altitude
-    99418.0f,   // [Pa] Pressure
-    287.11f,    // [K] Temperature
-    39.389733,  // [deg] Start latitude
-    -8.288992,  // [deg] Start longitude
-    Boardcore::Constants::MSL_PRESSURE,
-    Boardcore::Constants::MSL_TEMPERATURE,
+    UPDATE_PERIOD / 1000.0,          // T
+    0.0001f,                         // SIGMA_BETA
+    0.3f,                            // SIGMA_W
+    0.1f,                            // SIGMA_MAG
+    10.0f,                           // SIGMA_GPS
+    4.3f,                            // SIGMA_BAR
+    10.0f,                           // SIGMA_POS
+    10.0f,                           // SIGMA_VEL
+    10.0f,                           // SIGMA_PITOT
+    1.0f,                            // P_POS
+    10.0f,                           // P_POS_VERTICAL
+    1.0f,                            // P_VEL
+    10.0f,                           // P_VEL_VERTICAL
+    0.01f,                           // P_ATT
+    0.01f,                           // P_BIAS
+    6.0f,                            // SATS_NUM
+    Common::ReferenceConfig::nedMag  // NED_MAG
 };
 
 }  // namespace NASConfig

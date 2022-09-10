@@ -19,6 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <common/ReferenceConfig.h>
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -75,6 +77,7 @@ using namespace std;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
+using namespace Common::ReferenceConfig;
 
 Thread* t;
 
@@ -253,10 +256,9 @@ int main()
         { HIL::getInstance().getElaboratedData()->addADAState(state); });
 
     // setting initial reference values
-    ada_controller.setReferenceValues(
-        {Main::NASConfig::defaultReferenceValues.refAltitude,
-         Main::NASConfig::defaultReferenceValues.refPressure,
-         Main::NASConfig::defaultReferenceValues.refTemperature});
+    ada_controller.setReferenceValues({defaultReferenceValues.refAltitude,
+                                       defaultReferenceValues.refPressure,
+                                       defaultReferenceValues.refTemperature});
 
     TRACE("Starting ada\n");
     ada_controller.start();
@@ -273,10 +275,9 @@ int main()
         { HIL::getInstance().getElaboratedData()->addNASState(state); });
 
     // setting initial reference values
-    nas_controller.setReferenceValues(
-        {Main::NASConfig::defaultReferenceValues.refAltitude,
-         Main::NASConfig::defaultReferenceValues.refPressure,
-         Main::NASConfig::defaultReferenceValues.refTemperature});
+    nas_controller.setReferenceValues({defaultReferenceValues.refAltitude,
+                                       defaultReferenceValues.refPressure,
+                                       defaultReferenceValues.refTemperature});
 
     TRACE("Starting nas\n");
     nas_controller.start();

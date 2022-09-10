@@ -27,6 +27,7 @@
 #include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
+#include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -38,6 +39,7 @@ using namespace Main::ADAConfig;
 using namespace Main::AirBrakesControllerConfig;
 using namespace Main::NASConfig;
 using namespace Common;
+using namespace Common::ReferenceConfig;
 
 namespace Main
 {
