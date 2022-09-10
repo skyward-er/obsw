@@ -238,18 +238,6 @@ void ADAController::calibrate()
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }
 
-ADAControllerStatus ADAController::getStatus()
-{
-    PauseKernelLock lock;
-    return status;
-}
-
-ADAState ADAController::getAdaState()
-{
-    PauseKernelLock lock;
-    return ada.getState();
-}
-
 void ADAController::setDeploymentAltitude(float altitude)
 {
     deploymentAltitude = altitude;
@@ -282,10 +270,24 @@ void ADAController::setReferenceValues(const ReferenceValues reference)
     ada.setReferenceValues(reference);
 }
 
+ADAControllerStatus ADAController::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
+
+ADAState ADAController::getAdaState()
+{
+    PauseKernelLock lock;
+    return ada.getState();
+}
+
 ReferenceValues ADAController::getReferenceValues()
 {
     return ada.getReferenceValues();
 }
+
+float ADAController::getDeploymentAltitude() { return deploymentAltitude; }
 
 void ADAController::state_idle(const Event& event)
 {
@@ -509,15 +511,16 @@ void ADAController::state_landed(const Event& event)
     }
 }
 
+#ifdef HILSimulation
 void ADAController::setUpdateDataFunction(
     std::function<void(Boardcore::ADAState)> updateData)
 {
     this->updateData = updateData;
 }
+#endif
 
 ADAController::ADAController()
-    : FSM(&ADAController::state_idle), ada(getADAKalmanConfig()),
-      updateData([](Boardcore::ADAState) {})
+    : FSM(&ADAController::state_idle), ada(getADAKalmanConfig())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

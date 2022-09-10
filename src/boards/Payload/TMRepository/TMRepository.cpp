@@ -250,16 +250,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                                 &msg, &tm);
             break;
         }
-        case SystemTMList::MAV_CAN_ID:
-        {
-            mavlink_can_tm_t tm;
-
-            // TODO
-
-            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-            break;
-        }
         case SystemTMList::MAV_FSM_ID:
         {
             mavlink_fsm_tm_t tm;
@@ -269,7 +259,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.ada_state = 0;
             tm.dpl_state = static_cast<uint8_t>(
                 Deployment::getInstance().getStatus().state);
-            tm.fsr_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
