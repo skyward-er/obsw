@@ -162,10 +162,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.vertical_speed  = state.verticalSpeed;
             tm.ref_altitude    = ref.refAltitude;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15;
             tm.msl_altitude    = state.mslAltitude;
             tm.msl_pressure    = ref.mslPressure;
-            tm.msl_temperature = ref.mslTemperature;
+            tm.msl_temperature = ref.mslTemperature - 273.15;
             tm.dpl_altitude    = ada.getDeploymentAltitude();
 
             mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -197,7 +197,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y      = state.by;
             tm.nas_bias_z      = state.bz;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
 

@@ -344,6 +344,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float temperature =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
+            temperature += 273.15;
+
             NASController::getInstance().setReferenceTemperature(temperature);
             ADAController::getInstance().setReferenceTemperature(temperature);
             break;
