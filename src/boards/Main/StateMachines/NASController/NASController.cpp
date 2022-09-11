@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
@@ -68,7 +69,11 @@ void NASController::update()
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
-        nas.correctPitot(pitotData.deltaP, pressureData.pressure);
+
+        // Correct the pitot only during ascending
+        if (FlightModeManager::getInstance().getStatus().state ==
+            FlightModeManagerState::ASCENDING)
+            nas.correctPitot(pitotData.deltaP, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
     }
