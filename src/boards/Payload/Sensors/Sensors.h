@@ -73,6 +73,9 @@ public:
      */
     void calibrate();
 
+    void pitotSetReferenceAltitude(float altitude);
+    void pitotSetReferenceTemperature(float temperature);
+
     std::map<string, bool> getSensorsState();
 
 private:

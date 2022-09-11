@@ -169,6 +169,28 @@ void Sensors::calibrate()
     calibrating = true;
 }
 
+void Sensors::pitotSetReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refAltitude     = altitude;
+    pitot->setReferenceValues(reference);
+}
+
+void Sensors::pitotSetReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refTemperature  = temperature + 273.15f;
+    pitot->setReferenceValues(reference);
+}
+
 std::map<string, bool> Sensors::getSensorsState()
 {
     std::map<string, bool> sensorsState;
