@@ -36,9 +36,9 @@
 #endif
 
 #ifdef INTERP
-#include "PortugalTrajectorySetInterp.h"
+#include "TrajectorySetInterp.h"
 #else
-#include "PortugalTrajectorySet.h"
+#include "TrajectorySet.h"
 #endif
 
 using namespace std;
