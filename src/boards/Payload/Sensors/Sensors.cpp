@@ -239,7 +239,7 @@ Sensors::~Sensors()
 void Sensors::bmx160Init()
 {
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
 
     BMX160Config config;
     config.fifoMode      = BMX160Config::FifoMode::HEADER;

@@ -81,7 +81,7 @@ constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
+constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 40;
 
 // How many bytes go into the fifo each second
 constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
