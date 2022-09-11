@@ -60,7 +60,13 @@ constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
 TIM_TypeDef* const BUZZER_TIMER = TIM8;
 constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
-constexpr float BUZZER_DUTY_CYCLE         = 0.5;
+
+#ifdef BUZZER_LOW
+constexpr float BUZZER_DUTY_CYCLE = 0.05;
+#else
+constexpr float BUZZER_DUTY_CYCLE = 0.5;
+#endif
+
 constexpr uint16_t BUZZER_FREQUENCY       = 5000;       // [Hz]
 constexpr uint16_t BUZZER_TASK_PERIOD     = 100;        // [ms]
 constexpr uint16_t BUZZER_ERROR_PERIOD    = 100;        // [ms]
