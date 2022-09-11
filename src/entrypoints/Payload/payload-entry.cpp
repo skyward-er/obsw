@@ -135,12 +135,12 @@ int main()
     // Set up the wing controller
     WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
         0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
-    WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
-        1, 0, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
+    // WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
+    //     1, 0, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
     WingController::getInstance().addAlgorithm(new FileWingAlgorithm(
         PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, "/sd/servoCorta.csv"));
 
-    WingController::getInstance().selectAlgorithm(1);
+    WingController::getInstance().selectAlgorithm(0);
 
     // If all is correctly set up i publish the init ok
     if (initResult)

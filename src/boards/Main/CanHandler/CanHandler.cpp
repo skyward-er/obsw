@@ -60,6 +60,15 @@ void CanHandler::sendDisarmEvent()
                            static_cast<uint8_t>(EventId::DISARM));
 }
 
+void CanHandler::sendCalibrateEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::CALIBRATE));
+}
+
 void CanHandler::sendCamOnEvent()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
