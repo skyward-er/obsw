@@ -97,7 +97,8 @@ public:
         status.setText("READY");
     }
 
-    void updateStats(const Data &data) {
+    void updateStats(const Data &data)
+    {
         tx_bitrate.setText(format_link_speed(data.tx_bitrate));
         sent_count.setText(fmt::format("{}", data.sent_count));
 

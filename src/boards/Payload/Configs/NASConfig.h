@@ -26,8 +26,6 @@
 #include <algorithms/ReferenceValues.h>
 #include <common/ReferenceConfig.h>
 
-using namespace Common::ReferenceConfig;
-
 namespace Payload
 {
 
