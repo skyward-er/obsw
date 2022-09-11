@@ -37,15 +37,32 @@ add_executable(auxiliary-entry src/entrypoints/Auxiliary/auxiliary-entry.cpp ${A
 target_include_directories(auxiliary-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(auxiliary-entry stm32f429zi_skyward_pyxis_auxiliary)
 
-add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
-target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-# target_compile_definitions(main-entry PRIVATE USE_SERIAL_TRANSCEIVER)
-sbs_target(main-entry stm32f429zi_skyward_death_stack_v3)
+add_executable(main-entry-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS} EUROC)
+sbs_target(main-entry-euroc stm32f429zi_skyward_death_stack_v3)
 
-add_executable(main-entry-hil src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
-target_include_directories(main-entry-hil PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry-hil PRIVATE HILSimulation EUROC)
-sbs_target(main-entry-hil stm32f429zi_skyward_death_stack_v3)
+add_executable(main-entry-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(main-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS} ROCCARASO)
+sbs_target(main-entry-roccaraso stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-entry-milano src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+target_include_directories(main-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS} MILANO)
+sbs_target(main-entry-milano stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-entry-hil-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(main-entry-hil-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry-hil-euroc PRIVATE HILSimulation EUROC BUZZER_LOW)
+sbs_target(main-entry-hil-euroc stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-entry-hil-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(main-entry-hil-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry-hil-roccaraso PRIVATE HILSimulation ROCCARASO BUZZER_LOW)
+sbs_target(main-entry-hil-roccaraso stm32f429zi_skyward_death_stack_v3)
+
+add_executable(main-entry-hil-milano src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(main-entry-hil-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry-hil-milano PRIVATE HILSimulation MILANO BUZZER_LOW)
+sbs_target(main-entry-hil-milano stm32f429zi_skyward_death_stack_v3)
 
 add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
