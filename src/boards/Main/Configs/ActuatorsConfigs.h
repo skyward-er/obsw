@@ -62,7 +62,7 @@ constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 #ifdef BUZZER_LOW
-constexpr float BUZZER_DUTY_CYCLE = 0.05;
+constexpr float BUZZER_DUTY_CYCLE = 0.01;
 #else
 constexpr float BUZZER_DUTY_CYCLE = 0.5;
 #endif

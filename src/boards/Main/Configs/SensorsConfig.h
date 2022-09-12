@@ -86,7 +86,7 @@ constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
+constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 40;
 
 // MPU9250
 constexpr Boardcore::MPU9250::AccelFSR IMU_MPU_ACC_FSR =
