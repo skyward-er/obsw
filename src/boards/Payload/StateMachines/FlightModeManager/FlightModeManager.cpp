@@ -139,6 +139,8 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             logStatus(FlightModeManagerState::INIT_ERROR);
             Actuators::getInstance().ledError();
+            EventBroker::getInstance().post(FLIGHT_ERROR_DETECTED,
+                                            TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:

@@ -87,6 +87,15 @@ void CanHandler::sendCamOffEvent()
                            static_cast<uint8_t>(EventId::CAM_OFF));
 }
 
+void CanHandler::sendErrorEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::ERROR));
+}
+
 void CanHandler::sendLiftoffEvent()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
