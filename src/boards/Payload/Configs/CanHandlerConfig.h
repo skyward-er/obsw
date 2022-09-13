@@ -34,7 +34,7 @@ namespace Payload
 
 namespace CanHandlerConfig
 {
-
+// Important to use only TMTC events because the Can sends on that topic
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
     {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},

@@ -44,8 +44,9 @@ AltitudeTrigger::AltitudeTrigger()
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_CHECKER_PERIOD,
         WING_ALTITUDE_CHECKER_TASK_ID);
 
-    // Set also the altitude to the default one
-    altitude = WING_ALTITUDE_REFERENCE;
+    // Set the altitude to the default one
+    altitude   = WING_ALTITUDE_REFERENCE;
+    confidence = 0;
 }
 
 void AltitudeTrigger::setDeploymentAltitude(float alt)
@@ -62,8 +63,16 @@ void AltitudeTrigger::update()
         NASState state = NASController::getInstance().getNasState();
 
         if (-state.d < altitude)
+            confidence++;
+
+        // When we are sure that the altitude is below the set one we trigger
+        // the cutters
+        if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
+        {
+            confidence = 0;
             EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
                                             TOPIC_FLIGHT);
+        }
     }
 }
 }  // namespace Payload

@@ -46,13 +46,22 @@ constexpr float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
 constexpr float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
 constexpr uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 
+#if defined(EUROC)
+constexpr float DEFAULT_TARGET_LAT = 39.389733;
+constexpr float DEFAULT_TARGET_LON = -8.288992;
+#elif defined(ROCCARASO)
+constexpr float DEFAULT_TARGET_LAT = 41.8086605;
+constexpr float DEFAULT_TARGET_LON = 14.0543387;
+#else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 42;
 constexpr float DEFAULT_TARGET_LON = 9;
+#endif
 
 // Wing altitude checker configs
-constexpr float WING_ALTITUDE_CHECKER_TASK_ID = 230;
-constexpr float WING_ALTITUDE_CHECKER_PERIOD  = 100;  // [ms]
-constexpr float WING_ALTITUDE_REFERENCE       = 400;
+constexpr float WING_ALTITUDE_CHECKER_TASK_ID  = 230;
+constexpr float WING_ALTITUDE_CHECKER_PERIOD   = 100;  // [ms]
+constexpr float WING_ALTITUDE_REFERENCE        = 450;
+constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;
 
 }  // namespace WingConfig
 

@@ -54,7 +54,8 @@ bool NASController::start()
 void NASController::update()
 {
     // If the nas is not active i skip the step
-    if (this->testState(&NASController::state_active))
+    if (this->testState(&NASController::state_active) &&
+        Sensors::getInstance().getUbxGpsLastSample().fix != 0)
     {
         auto imuData =
             Sensors::getInstance().getBMX160WithCorrectionLastSample();

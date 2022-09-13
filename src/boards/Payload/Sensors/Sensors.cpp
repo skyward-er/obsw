@@ -166,7 +166,7 @@ void Sensors::calibrate()
     dplPressure->setOffset(dplPressureMean - ms5803Mean);
     pitotPressure->setOffset(pitotPressureStats.getStats().mean);
 
-    calibrating = true;
+    calibrating = false;
 }
 
 void Sensors::pitotSetReferenceAltitude(float altitude)

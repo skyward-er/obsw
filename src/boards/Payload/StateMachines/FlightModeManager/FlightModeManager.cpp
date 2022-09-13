@@ -361,7 +361,6 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        // TODO: Reviews the liftoff event
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);

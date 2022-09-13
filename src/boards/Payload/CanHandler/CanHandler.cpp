@@ -125,6 +125,7 @@ CanHandler::CanHandler()
         PITOT_TRANSMISSION_PERIOD);
 
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
