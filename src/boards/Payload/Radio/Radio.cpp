@@ -35,6 +35,7 @@
 #include <Payload/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
 
 #include <functional>
@@ -82,11 +83,7 @@ Boardcore::MavlinkStatus Radio::getMavlinkStatus()
     return mavDriver->getStatus();
 }
 
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
+void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
 Radio::Radio()
 {
@@ -128,7 +125,81 @@ Radio::Radio()
         STATS_TM_PERIOD, STATS_TM_TASK_ID);
 }
 
-void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame) {}
+void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame)
+{
+    using namespace Xbee;
+    bool logged = false;
+    switch (frame.frameType)
+    {
+        case FTYPE_AT_COMMAND:
+        {
+            ATCommandFrameLog dest;
+            logged = ATCommandFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_AT_COMMAND_RESPONSE:
+        {
+            ATCommandResponseFrameLog dest;
+            logged = ATCommandResponseFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_MODEM_STATUS:
+        {
+            ModemStatusFrameLog dest;
+            logged = ModemStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_REQUEST:
+        {
+            TXRequestFrameLog dest;
+            logged = TXRequestFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_STATUS:
+        {
+            TXStatusFrameLog dest;
+            logged = TXStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_RX_PACKET_FRAME:
+        {
+            RXPacketFrameLog dest;
+            logged = RXPacketFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+    }
+
+    if (!logged)
+    {
+        APIFrameLog api;
+        APIFrameLog::fromAPIFrame(frame, &api);
+        Logger::getInstance().log(api);
+    }
+}
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
@@ -319,6 +390,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
             NASController::getInstance().setReferenceAltitude(altitude);
+            Sensors::getInstance().pitotSetReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -327,6 +399,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
             NASController::getInstance().setReferenceTemperature(temperature);
+            Sensors::getInstance().pitotSetReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:

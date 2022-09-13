@@ -35,6 +35,8 @@
 #include <common/events/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
 #include <miosix.h>
 #include <utils/PinObserver/PinObserver.h>
 
@@ -162,6 +164,15 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
     else
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+
+    // Log all events
+    EventSniffer sniffer(
+        EventBroker::getInstance(), TOPICS_LIST,
+        [](uint8_t event, uint8_t topic)
+        {
+            EventData ev{TimestampTimer::getTimestamp(), event, topic};
+            Logger::getInstance().log(ev);
+        });
 
     // Periodical statistics
     while (true)

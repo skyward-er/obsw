@@ -89,7 +89,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 Deployment::getInstance().getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
-            tm.fsr_state = 0;
             tm.nas_state = static_cast<uint8_t>(
                 NASController::getInstance().getStatus().state);
 
@@ -150,9 +149,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_ada_tm_t tm;
 
-            auto status = ADAController::getInstance().getStatus();
-            auto state  = ADAController::getInstance().getAdaState();
-            auto ref    = ADAController::getInstance().getReferenceValues();
+            ADAController &ada = ADAController::getInstance();
+            auto status        = ada.getStatus();
+            auto state         = ada.getAdaState();
+            auto ref           = ada.getReferenceValues();
 
             tm.timestamp       = state.timestamp;
             tm.state           = static_cast<uint8_t>(status.state);
@@ -162,10 +162,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.vertical_speed  = state.verticalSpeed;
             tm.ref_altitude    = ref.refAltitude;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15;
             tm.msl_altitude    = state.mslAltitude;
             tm.msl_pressure    = ref.mslPressure;
-            tm.msl_temperature = ref.mslTemperature;
+            tm.msl_temperature = ref.mslTemperature - 273.15;
+            tm.dpl_altitude    = ada.getDeploymentAltitude();
 
             mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -196,28 +197,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y      = state.by;
             tm.nas_bias_z      = state.bz;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
 
             mavlink_msg_nas_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-
-            break;
-        }
-        case SystemTMList::MAV_CAN_ID:  // TODO
-        {
-            mavlink_can_tm_t tm;
-
-            tm.timestamp    = TimestampTimer::getTimestamp();
-            tm.n_sent       = 0;
-            tm.n_rcv        = 0;
-            tm.last_sent    = 0;
-            tm.last_sent_ts = 0;
-            tm.last_rcv     = 0;
-            tm.last_rcv_ts  = 0;
-
-            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
 
             break;
@@ -281,6 +265,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.abk_angle =
                 Actuators::getInstance().getServoAngle(AIR_BRAKES_SERVO);
             tm.abk_estimated_cd = 0;
+
+            // Load cell
+            tm.parachute_load = sensors.getLoadCellLastSample().load;
 
             // NAS
             tm.nas_n      = nasState.n;

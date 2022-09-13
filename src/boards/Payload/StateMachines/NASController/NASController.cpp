@@ -28,6 +28,7 @@
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
+#include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
 
 using namespace std;
@@ -35,6 +36,7 @@ using namespace Eigen;
 using namespace Boardcore;
 using namespace Payload::NASConfig;
 using namespace Common;
+using namespace Common::ReferenceConfig;
 
 namespace Payload
 {

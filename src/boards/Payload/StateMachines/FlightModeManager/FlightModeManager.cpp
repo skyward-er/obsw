@@ -139,6 +139,8 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             logStatus(FlightModeManagerState::INIT_ERROR);
             Actuators::getInstance().ledError();
+            EventBroker::getInstance().post(FLIGHT_ERROR_DETECTED,
+                                            TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -359,7 +361,6 @@ State FlightModeManager::state_armed(const Event& event)
         {
             return transition(&FlightModeManager::state_disarmed);
         }
-        // TODO: Reviews the liftoff event
         case TMTC_FORCE_LAUNCH:
         {
             return transition(&FlightModeManager::state_flying);

@@ -60,6 +60,15 @@ void CanHandler::sendDisarmEvent()
                            static_cast<uint8_t>(EventId::DISARM));
 }
 
+void CanHandler::sendCalibrateEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(EventId::CALIBRATE));
+}
+
 void CanHandler::sendCamOnEvent()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
@@ -76,6 +85,15 @@ void CanHandler::sendCamOffEvent()
                            static_cast<uint8_t>(Board::MAIN),
                            static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(EventId::CAM_OFF));
+}
+
+void CanHandler::sendErrorEvent()
+{
+    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
+                           static_cast<uint8_t>(PrimaryType::EVENTS),
+                           static_cast<uint8_t>(Board::MAIN),
+                           static_cast<uint8_t>(Board::AUXILIARY),
+                           static_cast<uint8_t>(EventId::ERROR));
 }
 
 void CanHandler::sendLiftoffEvent()
@@ -123,6 +141,7 @@ CanHandler::CanHandler()
     driver->init();
 
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)

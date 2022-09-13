@@ -183,6 +183,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
             tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
 
+            // Altitude agl
+            tm.altitude_agl = -nasState.d;
+
             // IMU
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;
@@ -225,7 +228,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pin_nosecone =
                 PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
 
-            // TODO: Add servo positions
+            // Servo positions
+            tm.left_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+
+            tm.right_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
@@ -250,16 +258,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                                 &msg, &tm);
             break;
         }
-        case SystemTMList::MAV_CAN_ID:
-        {
-            mavlink_can_tm_t tm;
-
-            // TODO
-
-            mavlink_msg_can_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
-            break;
-        }
         case SystemTMList::MAV_FSM_ID:
         {
             mavlink_fsm_tm_t tm;
@@ -269,7 +267,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.ada_state = 0;
             tm.dpl_state = static_cast<uint8_t>(
                 Deployment::getInstance().getStatus().state);
-            tm.fsr_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
             tm.nas_state = static_cast<uint8_t>(

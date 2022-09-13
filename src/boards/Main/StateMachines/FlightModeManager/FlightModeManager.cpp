@@ -128,6 +128,8 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             Actuators::getInstance().buzzerError();
             logStatus(FlightModeManagerState::INIT_ERROR);
+            EventBroker::getInstance().post(FLIGHT_ERROR_DETECTED,
+                                            TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:

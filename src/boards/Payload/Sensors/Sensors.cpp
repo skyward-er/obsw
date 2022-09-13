@@ -166,7 +166,29 @@ void Sensors::calibrate()
     dplPressure->setOffset(dplPressureMean - ms5803Mean);
     pitotPressure->setOffset(pitotPressureStats.getStats().mean);
 
-    calibrating = true;
+    calibrating = false;
+}
+
+void Sensors::pitotSetReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refAltitude     = altitude;
+    pitot->setReferenceValues(reference);
+}
+
+void Sensors::pitotSetReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refTemperature  = temperature + 273.15f;
+    pitot->setReferenceValues(reference);
 }
 
 std::map<string, bool> Sensors::getSensorsState()
@@ -217,7 +239,7 @@ Sensors::~Sensors()
 void Sensors::bmx160Init()
 {
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
 
     BMX160Config config;
     config.fifoMode      = BMX160Config::FifoMode::HEADER;

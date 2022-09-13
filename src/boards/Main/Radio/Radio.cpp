@@ -121,8 +121,11 @@ Radio::Radio()
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
+    SX1278::Config config = {};
+    config.freq_rf = 412000000;
+
     // Use default configuration
-    transceiver->init({});
+    transceiver->init(config);
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
 #endif
@@ -343,6 +346,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         {
             float temperature =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+
+            temperature += 273.15;
 
             NASController::getInstance().setReferenceTemperature(temperature);
             ADAController::getInstance().setReferenceTemperature(temperature);

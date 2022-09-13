@@ -66,6 +66,7 @@ enum class EventId : uint8_t
     CAM_ON = 0,
     CAM_OFF,
     ERROR,
+    CALIBRATE,
     ARM,
     DISARM,
     LIFTOFF,

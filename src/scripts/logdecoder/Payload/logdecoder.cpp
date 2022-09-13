@@ -27,6 +27,7 @@
 #include <Payload/Wing/WingTargetPositionData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
+#include <radio/Xbee/APIFramesLog.h>
 #include <sensors/analog/Pitot/PitotData.h>
 #include <tscpp/stream.h>
 
@@ -48,6 +49,7 @@
 using namespace tscpp;
 using namespace Boardcore;
 using namespace Payload;
+using namespace Xbee;
 
 void registerTypes(Deserializer& ds)
 {
@@ -61,6 +63,13 @@ void registerTypes(Deserializer& ds)
     ds.registerType<WingAlgorithmData>();
     ds.registerType<WingTargetPositionData>();
     ds.registerType<PitotData>();
+    ds.registerType<APIFrameLog>();
+    ds.registerType<ATCommandFrameLog>();
+    ds.registerType<TXRequestFrameLog>();
+    ds.registerType<ATCommandResponseFrameLog>();
+    ds.registerType<ModemStatusFrameLog>();
+    ds.registerType<TXStatusFrameLog>();
+    ds.registerType<RXPacketFrameLog>();
 }
 
 void showUsage(const string& cmdName)

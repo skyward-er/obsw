@@ -86,7 +86,7 @@ constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
 constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
 constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
 
-constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 80;
+constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 40;
 
 // MPU9250
 constexpr Boardcore::MPU9250::AccelFSR IMU_MPU_ACC_FSR =
@@ -106,7 +106,7 @@ constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
 
 // Axis rotation
 static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
-    Boardcore::Direction::NEGATIVE_X, Boardcore::Direction::POSITIVE_Y};
+    Boardcore::Direction::POSITIVE_Z, Boardcore::Direction::POSITIVE_Y};
 
 // Correction parameter file
 constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] = "/sd/bmx160_params.csv";

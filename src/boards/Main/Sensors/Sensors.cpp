@@ -331,7 +331,7 @@ Sensors::~Sensors()
 void Sensors::bmx160Init()
 {
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
 
     BMX160Config config;
     config.fifoMode      = BMX160Config::FifoMode::HEADER;
@@ -477,6 +477,8 @@ void Sensors::ads131m04Init()
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_0);
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_1);
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_2);
+    ads131m04->setChannelPGA(ADS131M04::Channel::CHANNEL_2,
+                             ADS131M04::PGA::PGA_128);
     ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_3);
     ads131m04->enableGlobalChopMode();
     ads131m04->setOversamplingRatio(ADS131M04::OversamplingRatio::OSR_4096);

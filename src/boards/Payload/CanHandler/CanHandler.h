@@ -46,6 +46,8 @@ public:
 
     void sendDisarmEvent();
 
+    void sendCalibrateEvent();
+
     void sendCamOnEvent();
 
     void sendCamOffEvent();

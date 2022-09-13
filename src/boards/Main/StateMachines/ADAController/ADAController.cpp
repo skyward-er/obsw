@@ -27,6 +27,7 @@
 #include <Main/Configs/NASConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
+#include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -38,6 +39,7 @@ using namespace Main::ADAConfig;
 using namespace Main::AirBrakesControllerConfig;
 using namespace Main::NASConfig;
 using namespace Common;
+using namespace Common::ReferenceConfig;
 
 namespace Main
 {
@@ -238,18 +240,6 @@ void ADAController::calibrate()
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }
 
-ADAControllerStatus ADAController::getStatus()
-{
-    PauseKernelLock lock;
-    return status;
-}
-
-ADAState ADAController::getAdaState()
-{
-    PauseKernelLock lock;
-    return ada.getState();
-}
-
 void ADAController::setDeploymentAltitude(float altitude)
 {
     deploymentAltitude = altitude;
@@ -282,10 +272,24 @@ void ADAController::setReferenceValues(const ReferenceValues reference)
     ada.setReferenceValues(reference);
 }
 
+ADAControllerStatus ADAController::getStatus()
+{
+    PauseKernelLock lock;
+    return status;
+}
+
+ADAState ADAController::getAdaState()
+{
+    PauseKernelLock lock;
+    return ada.getState();
+}
+
 ReferenceValues ADAController::getReferenceValues()
 {
     return ada.getReferenceValues();
 }
+
+float ADAController::getDeploymentAltitude() { return deploymentAltitude; }
 
 void ADAController::state_idle(const Event& event)
 {
@@ -509,15 +513,16 @@ void ADAController::state_landed(const Event& event)
     }
 }
 
+#ifdef HILSimulation
 void ADAController::setUpdateDataFunction(
     std::function<void(Boardcore::ADAState)> updateData)
 {
     this->updateData = updateData;
 }
+#endif
 
 ADAController::ADAController()
-    : FSM(&ADAController::state_idle), ada(getADAKalmanConfig()),
-      updateData([](Boardcore::ADAState) {})
+    : FSM(&ADAController::state_idle), ada(getADAKalmanConfig())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

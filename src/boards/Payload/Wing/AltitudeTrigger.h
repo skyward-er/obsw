@@ -44,5 +44,9 @@ private:
 
     // The altitude could be different from the default one
     float altitude;
+
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
+    int confidence;
 };
 }  // namespace Payload

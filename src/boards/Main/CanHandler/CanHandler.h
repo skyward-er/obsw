@@ -43,8 +43,10 @@ public:
 
     void sendArmEvent();
     void sendDisarmEvent();
+    void sendCalibrateEvent();
     void sendCamOnEvent();
     void sendCamOffEvent();
+    void sendErrorEvent();
     void sendLiftoffEvent();
     void sendApogeeEvent();
     void sendLandingEvent();

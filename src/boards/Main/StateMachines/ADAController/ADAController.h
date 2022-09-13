@@ -52,6 +52,7 @@ public:
     ADAControllerStatus getStatus();
     Boardcore::ADAState getAdaState();
     Boardcore::ReferenceValues getReferenceValues();
+    float getDeploymentAltitude();
 
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
@@ -64,8 +65,10 @@ public:
     void state_terminal_descent(const Boardcore::Event& event);
     void state_landed(const Boardcore::Event& event);
 
+#ifdef HILSimulation
     void setUpdateDataFunction(
         std::function<void(Boardcore::ADAState)> updateData);
+#endif
 
 private:
     ADAController();
@@ -87,7 +90,7 @@ private:
     float deploymentAltitude = ADAConfig::DEFAULT_DEPLOYMENT_ALTITUDE;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.ada");
-    std::function<void(Boardcore::ADAState)> updateData;
+    std::function<void(Boardcore::ADAState)> updateData = nullptr;
 };
 
 }  // namespace Main

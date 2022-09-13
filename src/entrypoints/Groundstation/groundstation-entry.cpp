@@ -25,18 +25,22 @@
 #include <filesystem/console/console_device.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278.h>
+#include <utils/MovingAverage.h>
 
 #include <thread>
 
-#define USE_RA01
+#include "GUI/GUI.h"
+
+#define USE_RA01_PC13
 
 using namespace miosix;
 using namespace Boardcore;
 
 SX1278 *sx1278 = nullptr;
 USART *usart   = nullptr;
+GUI *gui       = nullptr;
 
-#ifdef USE_RA01
+#ifdef USE_RA01_PC13
 void __attribute__((used)) EXTI6_IRQHandlerImpl()
 #else
 void __attribute__((used)) EXTI3_IRQHandlerImpl()
@@ -46,52 +50,23 @@ void __attribute__((used)) EXTI3_IRQHandlerImpl()
         sx1278->handleDioIRQ();
 }
 
-void recvLoop();
+constexpr size_t DELTA_T = 100;
 
-void sendLoop();
-
-int main()
+struct Stats
 {
-    // Enable dio0 interrupt
-#ifdef USE_RA01
-    enableExternalInterrupt(GPIOF_BASE, 6, InterruptTrigger::RISING_EDGE);
-#else
-    enableExternalInterrupt(GPIOE_BASE, 3, InterruptTrigger::RISING_EDGE);
-#endif
+    MovingAverage<size_t, 10> tx;
+    MovingAverage<size_t, 10> rx;
 
-    // Run default configuration
-    SX1278::Config config;
-    SX1278::Error err;
+    size_t cur_tx  = 0;
+    size_t cur_rx  = 0;
+    int sent_count = 0;
+    int recv_count = 0;
+    float rssi     = 0.0f;
+    float fei      = 0.0f;
 
-    SPIBus bus(SPI4);
-#ifdef USE_RA01
-    GpioPin cs = peripherals::ra01::cs::getPin();
-#else
-    GpioPin cs = peripherals::sx127x::cs::getPin();
-#endif
-
-    sx1278 = new SX1278(bus, cs);
-
-    printf("[sx1278] Configuring sx1278...\n");
-    if ((err = sx1278->init(config)) != SX1278::Error::NONE)
-    {
-        while (true)
-        {
-            printf("[SX1278] Initialization failed\n");
-            Thread::sleep(1000);
-        }
-    }
-    printf("[sx1278] Initialization complete!\n");
-
-    usart = new USART(USART1, USARTInterface::Baudrate::B115200);
-    usart->init();
-
-    std::thread recv([]() { recvLoop(); });
-    std::thread send([]() { sendLoop(); });
-
-    while (true)
-        miosix::Thread::sleep(100);
-}
+    size_t txBitrate() { return (tx.getAverage() * 1000) / DELTA_T; }
+    size_t rxBitrate() { return (rx.getAverage() * 1000) / DELTA_T; }
+} stats;
 
 void recvLoop()
 {
@@ -100,8 +75,12 @@ void recvLoop()
     while (true)
     {
         int len = sx1278->receive(msg, sizeof(msg));
-        if (len > 0)
-            usart->write(msg, len);
+        stats.rssi = sx1278->getLastRxRssi();
+        stats.fei = sx1278->getLastRxFei();
+        stats.recv_count++;
+        stats.cur_rx += len;
+
+        usart->write(msg, len);
     }
 }
 
@@ -113,11 +92,101 @@ void sendLoop()
     {
         int len = usart->read(msg, sizeof(msg));
 
-        if (len > 0)
+        ledOn();
+        sx1278->send(msg, len);
+        stats.sent_count++;
+        stats.cur_tx += len;
+        ledOff();        
+    }
+}
+
+void initBoard()
+{
+    // Enable dio0 interrupt
+#ifdef USE_RA01_PC13
+    enableExternalInterrupt(GPIOF_BASE, 6, InterruptTrigger::RISING_EDGE);
+#else
+    enableExternalInterrupt(GPIOE_BASE, 3, InterruptTrigger::RISING_EDGE);
+#endif
+}
+
+void initGUI()
+{
+    // TODO: This should be in bsp
+    using GpioUserBtn = Gpio<GPIOA_BASE, 0>;
+    GpioUserBtn::mode(Mode::INPUT_PULL_DOWN);
+
+    gui = new GUI();
+
+    ButtonHandler::getInstance().registerButtonCallback(
+        GpioUserBtn::getPin(),
+        [](auto event) { gui->screen_manager.onButtonEvent(event); });
+}
+
+void initUART()
+{
+    usart = new USART(USART1, USARTInterface::Baudrate::B115200);
+    usart->init();
+}
+
+int main()
+{
+    initBoard();
+    initGUI();
+
+    // Run default configuration
+    SX1278::Config config;
+    config.freq_rf = 412000000;
+
+    SPIBus bus(SPI4);
+#ifdef USE_RA01_PC13
+    GpioPin cs = peripherals::ra01::pc13::cs::getPin();
+#else
+    GpioPin cs = peripherals::ra01::pe4::cs::getPin();
+#endif
+
+    sx1278 = new SX1278(bus, cs);
+
+    printf("[sx1278] Configuring sx1278...\n");
+    SX1278::Error err;
+    if ((err = sx1278->init(config)) != SX1278::Error::NONE)
+    {
+        gui->stats_screen.updateError(err);
+        while (true)
         {
-            ledOn();
-            sx1278->send(msg, len);
-            ledOff();
+            printf("[SX1278] Initialization failed\n");
+            Thread::sleep(1000);
         }
+    }
+    printf("[sx1278] Initialization complete!\n");
+
+    for (int i = 0; i < 5; i++)
+    {
+        ledOn();
+        Thread::sleep(100);
+        ledOff();
+        Thread::sleep(100);
+    }
+
+    gui->stats_screen.updateReady();
+
+    initUART();
+
+    std::thread recv([]() { recvLoop(); });
+    std::thread send([]() { sendLoop(); });
+
+    while (true)
+    {
+        stats.tx.push(stats.cur_tx);
+        stats.rx.push(stats.cur_rx);
+        stats.cur_rx = 0;
+        stats.cur_tx = 0;
+
+        StatsScreen::Data data = {stats.txBitrate() * 8, stats.rxBitrate() * 8,
+                                  stats.sent_count, stats.recv_count,
+                                  stats.rssi, stats.fei};
+
+        gui->stats_screen.updateStats(data);
+        Thread::sleep(DELTA_T);
     }
 }

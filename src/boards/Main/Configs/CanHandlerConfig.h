@@ -38,16 +38,19 @@ namespace CanHandlerConfig
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::ARM, Common::TMTC_ARM},
     {Common::CanConfig::EventId::DISARM, Common::TMTC_DISARM},
+    {Common::CanConfig::EventId::CALIBRATE, Common::TMTC_CALIBRATE},
     {Common::CanConfig::EventId::CAM_ON, Common::TMTC_START_RECORDING},
     {Common::CanConfig::EventId::CAM_OFF, Common::TMTC_STOP_RECORDING},
 };
 
 static const std::map<Common::Events, std::function<void(CanHandler *)>>
     eventToFunction{
-        {Common::TMTC_ARM, &CanHandler::sendArmEvent},
-        {Common::TMTC_DISARM, &CanHandler::sendDisarmEvent},
+        {Common::FLIGHT_ARMED, &CanHandler::sendArmEvent},
+        {Common::FLIGHT_DISARMED, &CanHandler::sendDisarmEvent},
+        {Common::TMTC_CALIBRATE, &CanHandler::sendCalibrateEvent},
         {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
         {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
+        {Common::FLIGHT_ERROR_DETECTED, &CanHandler::sendErrorEvent},
         {Common::FLIGHT_LIFTOFF, &CanHandler::sendLiftoffEvent},
         {Common::FLIGHT_APOGEE_DETECTED, &CanHandler::sendApogeeEvent},
         {Common::FLIGHT_LANDING_DETECTED, &CanHandler::sendLandingEvent},

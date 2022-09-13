@@ -104,10 +104,12 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
         case EventId::ARM:
         {
             Actuators::getInstance().ledArmed();
+            break;
         }
         case EventId::DISARM:
         {
             Actuators::getInstance().ledDisarmed();
+            break;
         }
 
         default:
