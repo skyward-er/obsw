@@ -35,7 +35,7 @@ namespace WingConfig
 
 // Algorithm configuration
 constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
-constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
+constexpr uint8_t WING_CONTROLLER_ID  = 100;
 
 // Arm, start and flare thresholds
 constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]

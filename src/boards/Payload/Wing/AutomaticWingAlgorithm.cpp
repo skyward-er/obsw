@@ -41,7 +41,6 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                ServosList servo2)
     : WingAlgorithm(servo1, servo2)
 {
-    // TODO define umin and umax for antiwindup purposes
     controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
                                   -2.09439, 2.09439);
 }
@@ -60,7 +59,6 @@ void AutomaticWingAlgorithm::step()
         // UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
 
         // Target direction in respect to the current one
-        // TODO to be logged
         ReferenceValues reference =
             NASController::getInstance().getReferenceValues();
         Vector2f startingPosition =

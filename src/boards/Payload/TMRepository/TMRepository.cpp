@@ -183,6 +183,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
             tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
 
+            // Altitude agl
+            tm.altitude_agl = -nasState.d;
+
             // IMU
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;
@@ -225,7 +228,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pin_nosecone =
                 PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
 
-            // TODO: Add servo positions
+            // Servo positions
+            tm.left_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+
+            tm.right_servo_angle =
+                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
