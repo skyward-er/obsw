@@ -31,6 +31,7 @@
 
 /*
 % Matlab algorithm
+% Author: Marco Marchesi
 testlog = ciutilog;
 testlog.timestamp = testlog.timestamp*1e-6;
 angle_trigger = deg2rad(75);
@@ -59,27 +60,12 @@ for i = 1:length(z_filter)
 end
 */
 
+using namespace Boardcore;
+
 namespace Ciuti
 {
 
-void UprightDetector::start()
-{
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [=]() { this->update(); }, UprightDetectorConfig::ALGO_PERIOD);
-}
-
-void UprightDetector::update()
-{
-    auto sample = Sensors::getInstance().getLIS331HHLastSample();
-
-    if (!triggered)
-    {
-        algoStep(sample.accelerationZ -
-                 Ciuti::SensorsConfig::Z_AXIS_OFFSET_LIS331HH);
-    }
-}
-
-void UprightDetector::algoStep(float axis)
+void UprightDetector::update(float axis)
 {
     filtered.push(axis);
 
@@ -92,17 +78,36 @@ void UprightDetector::algoStep(float axis)
         count = 0;
     }
 
-    if (count > UprightDetectorConfig::DETECT_SAMPLES && !triggered)
-    {
-        triggered = true;
-        trigger();
+    upright = count > UprightDetectorConfig::DETECT_SAMPLES;
+}
+
+void UprightDetectorController::start()
+{
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { this->update(); }, UprightDetectorConfig::ALGO_PERIOD);
+}
+
+void UprightDetectorController::update()
+{
+    auto sample = Sensors::getInstance().getLIS331HHLastSample();
+
+    if(!fired) {
+        algo.update(sample.accelerationZ -
+                 Ciuti::SensorsConfig::Z_AXIS_OFFSET_LIS331HH);
+
+        if(algo.isUpright()) {
+            trigger();
+            fired = true;
+        }
     }
 }
 
-void UprightDetector::trigger()
+void UprightDetectorController::trigger()
 {
     LOG_INFO(logger, "Upright triggered!");
-    // TODO:
+
+    Logger::getInstance().resetStats();
+    Logger::getInstance().start();
 }
 
 }  // namespace Ciuti

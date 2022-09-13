@@ -1,5 +1,5 @@
-/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,16 @@
 
 #pragma once
 
-#include <drivers/adc/InternalADC.h>
+#include <cstdint>
 
-namespace Ciuti
+namespace Ciuti 
 {
 
-namespace SensorsConfig
+struct SerialWatcherStats
 {
+    uint64_t last_timestamp = 0;
+    unsigned int error_count = 0;
+    unsigned int usart_id = 0;
+};
 
-// Internal ADC
-constexpr float INTERNAL_ADC_VREF = 3.3;
-constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_0 =
-    Boardcore::InternalADC::Channel::CH0;
-constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_1 =
-    Boardcore::InternalADC::Channel::CH1;
-constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 200;
-
-// LIS331HH
-constexpr unsigned int SAMPLE_PERIOD_LIS331HH = 1000 / 50;
-constexpr float Z_AXIS_OFFSET_LIS331HH        = 0.2;
-
-}  // namespace SensorsConfig
-
-}  // namespace Ciuti
+}

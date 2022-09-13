@@ -32,25 +32,38 @@
 namespace Ciuti
 {
 
-class UprightDetector : public Boardcore::Singleton<UprightDetector>
+class UprightDetector
 {
-    friend Boardcore::Singleton<UprightDetector>;
-
 public:
     UprightDetector() {}
 
+    void update(float axis);
+    bool isUpright() { return upright; }
+
+private:
+    bool upright = false;
+    int count    = 0;
+    Boardcore::MovingAverage<float, UprightDetectorConfig::MEAN_SAMPLES>
+        filtered;
+};
+
+class UprightDetectorController
+    : public Boardcore::Singleton<UprightDetectorController>
+{
+    friend class Boardcore::Singleton<UprightDetectorController>;
+
+public:
     void start();
 
 private:
+    UprightDetectorController() {}
+
     void update();
-
     void trigger();
-    void algoStep(float axis);
 
-    bool triggered = false;
-    int count      = 0;
-    Boardcore::MovingAverage<float, UprightDetectorConfig::MEAN_SAMPLES>
-        filtered;
+    bool fired = false;
+
+    UprightDetector algo;
 
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("ciuti.uprightdetector");

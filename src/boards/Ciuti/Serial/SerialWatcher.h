@@ -25,6 +25,9 @@
 #include <ActiveObject.h>
 #include <Singleton.h>
 #include <drivers/usart/USART.h>
+#include <diagnostic/PrintLogger.h>
+
+#include "SerialWatcherStats.h"
 
 namespace Ciuti
 {
@@ -32,10 +35,16 @@ namespace Ciuti
 class SerialWatcher : public Boardcore::ActiveObject
 {
 public:
-    SerialWatcher(Boardcore::USART &usart) : usart(usart) {}
+    static constexpr long long PERIOD = 1000;
+
+    SerialWatcher(Boardcore::USART &usart, unsigned int id);
+
+    SerialWatcherStats getStats() { return stats; }
 
 private:
     void run() override;
+
+    SerialWatcherStats stats;
 
     Boardcore::USART &usart;
 };
@@ -47,7 +56,6 @@ class SerialWatcherController
 
 public:
     void start();
-    void stop();
 
 private:
     SerialWatcherController();
@@ -55,6 +63,9 @@ private:
 
     SerialWatcher *serial_watcher1 = nullptr;
     SerialWatcher *serial_watcher2 = nullptr;
+
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("ciuti.serialwatcher");
 };
 
 }  // namespace Ciuti

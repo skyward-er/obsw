@@ -22,25 +22,57 @@
 
 #include "SerialWatcher.h"
 
-#include <utils/Debug.h>
+#include <Ciuti/BoardScheduler.h>
 #include <Ciuti/Buses.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
+#include <utils/Debug.h>
+
+using namespace miosix;
+using namespace Boardcore;
+
+// Simple xorshift RNG
+uint32_t xorshift32()
+{
+    // https://xkcd.com/221/
+    static uint32_t STATE = 0x08104444;
+
+    uint32_t x = STATE;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+
+    // Do I really need to lock this? Nah, introduce extra randomness.
+    return STATE = x;
+}
 
 namespace Ciuti
 {
 
+SerialWatcher::SerialWatcher(USART &usart, unsigned int id) : usart(usart)
+{
+    stats.usart_id = id;
+}
+
 void SerialWatcher::run()
 {
-    while(isRunning()) {
-        uint8_t sent = 25;
-        uint8_t recv;
+    while (isRunning())
+    {
+        long long now = getTick();
 
+        uint32_t sent = xorshift32();
+        uint32_t recv;
+
+        // Perform a loopback read
         usart.clearQueue();
-        usart.write(&sent, 1);
+        usart.write(&sent, 4);
+        usart.read(&recv, 4);
 
-        usart.read(&recv, 1);
+        if (sent != recv)
+            stats.error_count += 1;
 
-        miosix::Thread::sleep(1000);
+        stats.last_timestamp = TimestampTimer::getTimestamp();
+        Thread::sleepUntil(now + SerialWatcher::PERIOD);
     }
 }
 
@@ -48,24 +80,28 @@ void SerialWatcherController::start()
 {
     serial_watcher1->start();
     serial_watcher2->start();
+
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { Logger::getInstance().log(this->serial_watcher1->getStats()); },
+        SerialWatcher::PERIOD);
+
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [=]() { Logger::getInstance().log(this->serial_watcher2->getStats()); },
+        SerialWatcher::PERIOD);
+
+    LOG_INFO(logger, "Serial watcher controller setup done!");
 }
 
-void SerialWatcherController::stop()
+SerialWatcherController::SerialWatcherController()
 {
-    serial_watcher1->stop();
-    serial_watcher2->stop();
+    serial_watcher1 = new SerialWatcher(Ciuti::Buses::getInstance().usart2, 2);
+    serial_watcher2 = new SerialWatcher(Ciuti::Buses::getInstance().usart3, 3);
 }
 
-SerialWatcherController::SerialWatcherController() 
-{
-    serial_watcher1 = new SerialWatcher(Ciuti::Buses::getInstance().usart2);
-    serial_watcher2 = new SerialWatcher(Ciuti::Buses::getInstance().usart3);
-}
-
-SerialWatcherController::~SerialWatcherController() 
+SerialWatcherController::~SerialWatcherController()
 {
     delete serial_watcher1;
     delete serial_watcher2;
 }
 
-}
+}  // namespace Ciuti
