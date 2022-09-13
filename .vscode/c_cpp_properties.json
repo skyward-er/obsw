@@ -74,6 +74,7 @@
                 "HSE_VALUE=8000000",
                 "SYSCLK_FREQ_168MHz=168000000",
                 "_MIOSIX",
+                "HILSimulation",
                 "__cplusplus=201103L"
             ],
             "includePath": [

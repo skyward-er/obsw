@@ -22,47 +22,23 @@
 
 #pragma once
 
-#include <Singleton.h>
-#include <algorithms/AirBrakes/AirBrakes.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-
-#include "AirBrakesControllerData.h"
+#include <AirBrakesControllerConfig.h>
+#include <algorithms/AirBrakes/AirBrakesInterpConfig.h>
 
 namespace Main
 {
 
-class AirBrakesController : public Boardcore::FSM<AirBrakesController>,
-                            public Boardcore::Singleton<AirBrakesController>
+namespace AirBrakesControllerConfig
 {
-    friend Boardcore::Singleton<AirBrakesController>;
 
-public:
-    bool start() override;
+static const Boardcore::AirBrakesInterpConfig ABK_CONFIG(
+    BASE_ABK_CONFIG,
+    0.3,  // INITIAL_FILTER_COEFF
+    12,   // INITIAL_T_FILTER
+    2.5,  // DELTA_T_FILTER
+    2     // FILTER_RATIO
+);
 
-    void update();
-
-    AirBrakesControllerStatus getStatus();
-
-    void state_init(const Boardcore::Event& event);
-    void state_idle(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
-
-private:
-    AirBrakesController();
-    ~AirBrakesController();
-
-    AirBrakesControllerStatus status;
-
-    void logStatus(AirBrakesControllerState state);
-
-    void wiggleServo();
-
-    Boardcore::AirBrakes* abk;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
-};
+}  // namespace AirBrakesControllerConfig
 
 }  // namespace Main

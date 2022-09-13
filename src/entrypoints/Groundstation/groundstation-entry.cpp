@@ -74,9 +74,9 @@ void recvLoop()
 
     while (true)
     {
-        int len = sx1278->receive(msg, sizeof(msg));
+        int len    = sx1278->receive(msg, sizeof(msg));
         stats.rssi = sx1278->getLastRxRssi();
-        stats.fei = sx1278->getLastRxFei();
+        stats.fei  = sx1278->getLastRxFei();
         stats.recv_count++;
         stats.cur_rx += len;
 
@@ -96,7 +96,7 @@ void sendLoop()
         sx1278->send(msg, len);
         stats.sent_count++;
         stats.cur_tx += len;
-        ledOff();        
+        ledOff();
     }
 }
 
@@ -182,9 +182,12 @@ int main()
         stats.cur_rx = 0;
         stats.cur_tx = 0;
 
-        StatsScreen::Data data = {stats.txBitrate() * 8, stats.rxBitrate() * 8,
-                                  stats.sent_count, stats.recv_count,
-                                  stats.rssi, stats.fei};
+        StatsScreen::Data data = {stats.txBitrate() * 8,
+                                  stats.rxBitrate() * 8,
+                                  stats.sent_count,
+                                  stats.recv_count,
+                                  stats.rssi,
+                                  stats.fei};
 
         gui->stats_screen.updateStats(data);
         Thread::sleep(DELTA_T);
