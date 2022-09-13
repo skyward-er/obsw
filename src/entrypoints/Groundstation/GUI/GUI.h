@@ -32,11 +32,21 @@
 std::string format_link_speed(size_t value)
 {
     if (value > 1000000)
-        return fmt::format("{:.2f} mb/s", static_cast<float>(value) / 1000000);
+        return fmt::format("{:.2f} Mb/s", static_cast<float>(value) / 1000000);
     else if (value > 1000)
         return fmt::format("{:.2f} kb/s", static_cast<float>(value) / 1000);
     else
         return fmt::format("{} b/s", value);
+}
+
+std::string format_freq(float value)
+{
+    if (value > 1000000)
+        return fmt::format("{:.2f} MHz", value / 1000000);
+    else if (value > 1000)
+        return fmt::format("{:.2f} kHz", value / 1000);
+    else
+        return fmt::format("{} Hz", value);
 }
 
 class StatsScreen
@@ -49,6 +59,7 @@ public:
         int sent_count;
         int recv_count;
         float rssi;
+        float fei;
     };
 
     StatsScreen()
@@ -64,12 +75,14 @@ public:
         body.setCell(&lbl_rx_bitrate, 2, 0);
         body.setCell(&lbl_recv_count, 3, 0);
         body.setCell(&lbl_rssi, 4, 0);
+        body.setCell(&lbl_fei, 5, 0);
 
         body.setCell(&tx_bitrate, 0, 1);
         body.setCell(&sent_count, 1, 1);
         body.setCell(&rx_bitrate, 2, 1);
         body.setCell(&recv_count, 3, 1);
         body.setCell(&rssi, 4, 1);
+        body.setCell(&fei, 5, 1);
 
         root.addView(&status, 0.1);
         root.addView(&body, 1.0);
@@ -106,23 +119,26 @@ public:
         recv_count.setText(fmt::format("{}", data.recv_count));
 
         rssi.setText(fmt::format("{} dBm", data.rssi));
+        fei.setText(format_freq(data.fei));
     }
 
     Boardcore::VerticalLayout root{10};
     Boardcore::TextView status{"LOADING"};
 
-    Boardcore::GridLayout body{5, 2};
+    Boardcore::GridLayout body{6, 2};
     Boardcore::TextView lbl_tx_bitrate{"Tx bitrate:"};
     Boardcore::TextView lbl_sent_count{"Packet sent:"};
     Boardcore::TextView lbl_rx_bitrate{"Rx bitrate:"};
     Boardcore::TextView lbl_recv_count{"Packet received:"};
     Boardcore::TextView lbl_rssi{"RSSI:"};
+    Boardcore::TextView lbl_fei{"FEI:"};
 
     Boardcore::TextView tx_bitrate{"0 b/s"};
     Boardcore::TextView sent_count{"0"};
     Boardcore::TextView rx_bitrate{"0 b/s"};
     Boardcore::TextView recv_count{"0"};
     Boardcore::TextView rssi{"0 dBm"};
+    Boardcore::TextView fei{"0 Hz"};
 };
 
 class GUI

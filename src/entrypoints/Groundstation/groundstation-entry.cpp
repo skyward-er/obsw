@@ -62,6 +62,7 @@ struct Stats
     int sent_count = 0;
     int recv_count = 0;
     float rssi     = 0.0f;
+    float fei      = 0.0f;
 
     size_t txBitrate() { return (tx.getAverage() * 1000) / DELTA_T; }
     size_t rxBitrate() { return (rx.getAverage() * 1000) / DELTA_T; }
@@ -74,12 +75,12 @@ void recvLoop()
     while (true)
     {
         int len = sx1278->receive(msg, sizeof(msg));
+        stats.rssi = sx1278->getLastRxRssi();
+        stats.fei = sx1278->getLastRxFei();
         stats.recv_count++;
         stats.cur_rx += len;
-        stats.rssi = sx1278->getRssi();
 
-        if (len > 0)
-            usart->write(msg, len);
+        usart->write(msg, len);
     }
 }
 
@@ -91,14 +92,11 @@ void sendLoop()
     {
         int len = usart->read(msg, sizeof(msg));
 
-        if (len > 0)
-        {
-            ledOn();
-            sx1278->send(msg, len);
-            stats.sent_count++;
-            stats.cur_tx += len;
-            ledOff();
-        }
+        ledOn();
+        sx1278->send(msg, len);
+        stats.sent_count++;
+        stats.cur_tx += len;
+        ledOff();        
     }
 }
 
@@ -138,7 +136,7 @@ int main()
 
     // Run default configuration
     SX1278::Config config;
-    SX1278::Error err;
+    config.freq_rf = 412000000;
 
     SPIBus bus(SPI4);
 #ifdef USE_RA01_PC13
@@ -150,6 +148,7 @@ int main()
     sx1278 = new SX1278(bus, cs);
 
     printf("[sx1278] Configuring sx1278...\n");
+    SX1278::Error err;
     if ((err = sx1278->init(config)) != SX1278::Error::NONE)
     {
         gui->stats_screen.updateError(err);
@@ -185,7 +184,7 @@ int main()
 
         StatsScreen::Data data = {stats.txBitrate() * 8, stats.rxBitrate() * 8,
                                   stats.sent_count, stats.recv_count,
-                                  stats.rssi};
+                                  stats.rssi, stats.fei};
 
         gui->stats_screen.updateStats(data);
         Thread::sleep(DELTA_T);
