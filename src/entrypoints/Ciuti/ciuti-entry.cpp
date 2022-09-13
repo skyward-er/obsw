@@ -23,6 +23,8 @@
 #include <Ciuti/BoardScheduler.h>
 #include <Ciuti/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <Ciuti/Algorithm/UprightDetector.h>
+#include <Ciuti/Serial/SerialWatcher.h>
 
 #include <thread>
 
@@ -30,32 +32,22 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Ciuti;
 
-void print()
-{
-    auto ch0 =
-        Sensors::getInstance().getInternalADCLastSample(InternalADC::CH0);
-    auto ch1 =
-        Sensors::getInstance().getInternalADCLastSample(InternalADC::CH1);
-
-    printf("[%.2f] CH0: %.6f, CH1: %.6f, log number: %d\n",
-           ch0.voltageTimestamp / 1e6, ch0.voltage, ch1.voltage,
-           Logger::getInstance().getCurrentLogNumber());
-}
-
 int main()
 {
-    Logger::getInstance().start();
+    // Logger::getInstance().start();
     Sensors::getInstance().start();
+    UprightDetector::getInstance().start();
+    SerialWatcherController::getInstance().start();
 
-    BoardScheduler::getInstance().getScheduler().addTask(print, 100);
     BoardScheduler::getInstance().getScheduler().start();
 
     // Periodical statistics
     while (true)
     {
         Thread::sleep(1000);
-        Logger::getInstance().log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
-        Logger::getInstance().logStats();
+        // Logger::getInstance().log(CpuMeter::getCpuStats());
+        // CpuMeter::resetCpuStats();
+        // Logger::getInstance().logStats();
+        // MemoryProfiling::print();
     }
 }

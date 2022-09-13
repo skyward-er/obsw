@@ -1,5 +1,5 @@
-/* Copyright (c) 2015-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,52 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "SerialWatcher.h"
 
-#include <drivers/adc/InternalADC.h>
+#include <utils/Debug.h>
+#include <Ciuti/Buses.h>
+#include <miosix.h>
 
 namespace Ciuti
 {
 
-namespace SensorsConfig
+void SerialWatcher::run()
 {
+    while(isRunning()) {
+        uint8_t sent = 25;
+        uint8_t recv;
 
-// Internal ADC
-constexpr float INTERNAL_ADC_VREF = 3.3;
-constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_0 =
-    Boardcore::InternalADC::Channel::CH0;
-constexpr Boardcore::InternalADC::Channel INTERNAL_ADC_CH_1 =
-    Boardcore::InternalADC::Channel::CH1;
-constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC = 1;
+        usart.clearQueue();
+        usart.write(&sent, 1);
 
-// LIS331HH
-constexpr unsigned int SAMPLE_PERIOD_LIS331HH = 1000 / 50;
-constexpr float Z_AXIS_OFFSET_LIS331HH        = 0.2;
+        usart.read(&recv, 1);
 
-}  // namespace SensorsConfig
+        miosix::Thread::sleep(1000);
+    }
+}
 
-}  // namespace Ciuti
+void SerialWatcherController::start()
+{
+    serial_watcher1->start();
+    serial_watcher2->start();
+}
+
+void SerialWatcherController::stop()
+{
+    serial_watcher1->stop();
+    serial_watcher2->stop();
+}
+
+SerialWatcherController::SerialWatcherController() 
+{
+    serial_watcher1 = new SerialWatcher(Ciuti::Buses::getInstance().usart2);
+    serial_watcher2 = new SerialWatcher(Ciuti::Buses::getInstance().usart3);
+}
+
+SerialWatcherController::~SerialWatcherController() 
+{
+    delete serial_watcher1;
+    delete serial_watcher2;
+}
+
+}

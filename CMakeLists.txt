@@ -71,6 +71,10 @@ add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
+add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
+target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)
+
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
 sbs_target(groundstation-entry stm32f429zi_skyward_groundstation_v2)
 

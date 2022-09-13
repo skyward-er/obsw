@@ -22,11 +22,12 @@
 
 #include "Sensors.h"
 
+#include <Ciuti/Buses.h>
 #include <Ciuti/Configs/SensorsConfig.h>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Main::SensorsConfig;
+using namespace Ciuti::SensorsConfig;
 
 namespace Ciuti
 {
@@ -40,15 +41,26 @@ Boardcore::InternalADCData Sensors::getInternalADCLastSample(
     return internalAdc->getVoltage(channel);
 }
 
+Boardcore::LIS331HHData Sensors::getLIS331HHLastSample()
+{
+    PauseKernelLock lock;
+    return lis331hh->getLastSample();
+}
+
 Sensors::Sensors()
 {
     internalAdcInit();
+    lis331hhInit();
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
 }
 
-Sensors::~Sensors() {}
+Sensors::~Sensors()
+{
+    delete internalAdc;
+    delete lis331hh;
+}
 
 void Sensors::internalAdcInit()
 {
@@ -58,7 +70,7 @@ void Sensors::internalAdcInit()
     internalAdc->enableChannel(INTERNAL_ADC_CH_1);
 
     SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
-                    [&]()
+                    [=]()
                     {
                         Logger::getInstance().log(
                             internalAdc->getVoltage(INTERNAL_ADC_CH_0));
@@ -69,6 +81,26 @@ void Sensors::internalAdcInit()
     sensorsMap.emplace(std::make_pair(internalAdc, info));
 
     LOG_INFO(logger, "Internal ADC setup done!");
+}
+
+void Sensors::lis331hhInit()
+{
+    SPIBusConfig config;
+
+    lis331hh = new LIS331HH(Buses::getInstance().spi2,
+                            devices::lis331hh::cs::getPin(), config);
+
+    lis331hh->init();
+    lis331hh->setOutputDataRate(LIS331HH::ODR_50);
+    lis331hh->setFullScaleRange(LIS331HH::FS_24);
+
+    SensorInfo info("LIS331HH", SAMPLE_PERIOD_LIS331HH,
+                    [=]()
+                    { Logger::getInstance().log(lis331hh->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(lis331hh, info));
+
+    LOG_INFO(logger, "LIS331HH setup done!");
 }
 
 }  // namespace Ciuti

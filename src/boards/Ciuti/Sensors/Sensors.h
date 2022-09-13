@@ -25,6 +25,7 @@
 #include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
+#include <sensors/LIS331HH/LIS331HH.h>
 #include <sensors/SensorManager.h>
 
 namespace Ciuti
@@ -40,14 +41,17 @@ public:
     Boardcore::InternalADCData getInternalADCLastSample(
         Boardcore::InternalADC::Channel channel);
 
+    Boardcore::LIS331HHData getLIS331HHLastSample();
+
 private:
     Sensors();
-
     ~Sensors();
 
     void internalAdcInit();
+    void lis331hhInit();
 
     Boardcore::InternalADC *internalAdc = nullptr;
+    Boardcore::LIS331HH *lis331hh       = nullptr;
 
     Boardcore::SensorManager *sensorManager = nullptr;
 

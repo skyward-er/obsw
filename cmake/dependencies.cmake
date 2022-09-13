@@ -82,6 +82,8 @@ set(PARAFOIL_COMPUTER
 
 set(CIUTI_COMPUTER
     src/boards/Ciuti/Sensors/Sensors.cpp
+    src/boards/Ciuti/Algorithm/UprightDetector.cpp
+    src/boards/Ciuti/Serial/SerialWatcher.cpp
 )
 
 set(MOCK_LOGGER skyward-boardcore/src/shared/mock-Logger.cpp)
