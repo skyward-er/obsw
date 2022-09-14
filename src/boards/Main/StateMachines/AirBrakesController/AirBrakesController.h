@@ -23,11 +23,16 @@
 #pragma once
 
 #include <Singleton.h>
-#include <algorithms/AirBrakes/AirBrakes.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 
 #include "AirBrakesControllerData.h"
+
+#ifndef INTERP
+#include <algorithms/AirBrakes/AirBrakesPI.h>
+#else
+#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#endif
 
 namespace Main
 {
@@ -60,8 +65,11 @@ private:
 
     void wiggleServo();
 
-    Boardcore::AirBrakes* abk;
-
+#ifndef INTERP
+    Boardcore::AirBrakesPI* abk;
+#else
+    Boardcore::AirBrakesInterp* abk;
+#endif
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("main.abk");
 };
 

@@ -44,7 +44,7 @@ constexpr float MACH_LIMIT = 0.8;
 // Vertical speed limit beyond which the airbrakes need to be disabled.
 constexpr float DISABLE_VERTICAL_SPEED_TARGET = 10.0;
 
-static const Boardcore::AirBrakesConfig BASE_ABK_CONFIG{
+static const Boardcore::AirBrakesConfig ABK_CONFIG{
     .N000       = 0.4884,
     .N100       = -1.4391,
     .N200       = 6.6940,

@@ -43,7 +43,7 @@ public:
         Servo::setPosition(position, limited);
 
         // Send the position to MatLab
-        HIL::getInstance().send(position);
+        // HIL::getInstance().send(position);
     }
 
     void sendToSimulator() { HIL::getInstance().send(getPosition()); }

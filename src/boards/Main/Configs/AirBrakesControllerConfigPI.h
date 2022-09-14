@@ -31,12 +31,8 @@ namespace Main
 namespace AirBrakesControllerConfig
 {
 
-static const Boardcore::AirBrakesPIConfig ABK_CONFIG(BASE_ABK_CONFIG,
-                                                     20,  // KP
-                                                     5,   // KI
-                                                     UPDATE_PERIOD /
-                                                         1000.0  // TS
-);
+static const Boardcore::AirBrakesPIConfig ABK_CONFIG_PI{
+    .KP = 20, .KI = 5, .TS = UPDATE_PERIOD / 1000.0};
 
 }  // namespace AirBrakesControllerConfig
 
