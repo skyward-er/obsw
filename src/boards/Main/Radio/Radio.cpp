@@ -88,11 +88,7 @@ Boardcore::MavlinkStatus Radio::getMavlinkStatus()
     return mavDriver->getStatus();
 }
 
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
+void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
 Radio::Radio()
 {

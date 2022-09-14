@@ -185,12 +185,12 @@ void HILFlightPhasesManager::printOutcomes()
  */
 void HILFlightPhasesManager::updateFlags(FlightPhasesFlags hil_flags)
 {
-    // [TODO] add ifdefs in order to select which flags to take from matlab
+    // TODO: Add ifdefs in order to select which flags to take from matlab
     flagsFlightPhases[FlightPhases::ASCENT]  = hil_flags.flag_ascent;
     flagsFlightPhases[FlightPhases::FLYING]  = hil_flags.flag_flight;
     flagsFlightPhases[FlightPhases::BURNING] = hil_flags.flag_burning;
 
-    /* Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab  */
+    // Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab
     // flagsFlightPhases[SIM_AEROBRAKES] = hil_flags.flag_airbrakes;
     // flagsFlightPhases[PARA1]          = hil_flags.flag_para1;
     // flagsFlightPhases[PARA2]          = hil_flags.flag_para2;

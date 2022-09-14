@@ -473,23 +473,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_CURRENT_SENSE_ID:  // TODO
-        {
-            mavlink_current_tm_t tm;
-
-            // auto currentData =
-            // Sensors::getInstance().getCurrentSensorLastSample();
-
-            // tm.timestamp = currentData.timestamp;
-            strcpy(tm.sensor_id, "5V_CURRENT");
-            // tm.current = currentData.current;
-
-            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                          RadioConfig::MAV_COMPONENT_ID, &msg,
-                                          &tm);
-
-            break;
-        }
         case SensorsTMList::MAV_DPL_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;

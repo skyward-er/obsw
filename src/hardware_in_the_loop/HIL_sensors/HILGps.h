@@ -57,7 +57,7 @@ protected:
         tempData.velocityDown  = matlabData.getZ();
         tempData.speed = sqrtf(tempData.velocityNorth * tempData.velocityNorth +
                                tempData.velocityDown * tempData.velocityDown);
-        tempData.positionDOP = 0;  // TODO: what's this?
+        tempData.positionDOP = 0;
 
         tempData.fix        = (uint8_t)sensorData->gps.fix;
         tempData.satellites = (uint8_t)sensorData->gps.num_satellites;
