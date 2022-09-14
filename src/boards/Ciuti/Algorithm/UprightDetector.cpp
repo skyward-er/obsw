@@ -91,11 +91,13 @@ void UprightDetectorController::update()
 {
     auto sample = Sensors::getInstance().getLIS331HHLastSample();
 
-    if(!fired) {
+    if (!fired)
+    {
         algo.update(sample.accelerationZ -
-                 Ciuti::SensorsConfig::Z_AXIS_OFFSET_LIS331HH);
+                    Ciuti::SensorsConfig::Z_AXIS_OFFSET_LIS331HH);
 
-        if(algo.isUpright()) {
+        if (algo.isUpright())
+        {
             trigger();
             fired = true;
         }

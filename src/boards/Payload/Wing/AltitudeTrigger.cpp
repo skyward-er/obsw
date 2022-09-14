@@ -38,6 +38,7 @@ using namespace Common;
 
 namespace Payload
 {
+
 AltitudeTrigger::AltitudeTrigger()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -75,4 +76,5 @@ void AltitudeTrigger::update()
         }
     }
 }
+
 }  // namespace Payload

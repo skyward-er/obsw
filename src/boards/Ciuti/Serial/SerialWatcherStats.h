@@ -24,14 +24,14 @@
 
 #include <cstdint>
 
-namespace Ciuti 
+namespace Ciuti
 {
 
 struct SerialWatcherStats
 {
-    uint64_t last_timestamp = 0;
+    uint64_t last_timestamp  = 0;
     unsigned int error_count = 0;
-    unsigned int usart_id = 0;
+    unsigned int usart_id    = 0;
 };
 
-}
+}  // namespace Ciuti

@@ -24,8 +24,8 @@
 
 #include <ActiveObject.h>
 #include <Singleton.h>
-#include <drivers/usart/USART.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/usart/USART.h>
 
 #include "SerialWatcherStats.h"
 

@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include <Ciuti/Algorithm/UprightDetector.h>
 #include <Ciuti/BoardScheduler.h>
 #include <Ciuti/Sensors/Sensors.h>
-#include <diagnostic/CpuMeter/CpuMeter.h>
-#include <Ciuti/Algorithm/UprightDetector.h>
 #include <Ciuti/Serial/SerialWatcher.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 
 #include <thread>
 
@@ -34,6 +34,7 @@ using namespace Ciuti;
 
 void printCiutiBanner()
 {
+    // clang-format off
     printf(
         R"( Booting ...                                 )""\n"
         R"( ________  ___  ___  ___  _________  ___     )""\n"
@@ -45,14 +46,14 @@ void printCiutiBanner()
         R"(    \|_______|\|__|\|_______|    \|__|  \|__|)""\n"
         R"(                     On Board Software       )""\n"
     );
+    // clang-format on
 }
 
 int main()
 {
     printCiutiBanner();
 
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("ciuti.main");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ciuti.main");
 
     Sensors::getInstance().start();
     UprightDetectorController::getInstance().start();

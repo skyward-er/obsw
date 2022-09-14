@@ -261,7 +261,6 @@
                 "_MIOSIX",
                 "__cplusplus=201103L",
                 "HILSimulation",
-                "USE_XBEE_TRANSCEIVER",
                 "EUROC"
             ],
             "includePath": [
@@ -325,7 +324,6 @@
                 "_MIOSIX",
                 "__cplusplus=201103L",
                 "HILSimulation",
-                "USE_XBEE_TRANSCEIVER",
                 "ROCCARASO"
             ],
             "includePath": [

@@ -27,6 +27,7 @@
 
 namespace Payload
 {
+
 class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
 {
     friend class Boardcore::Singleton<AltitudeTrigger>;
@@ -49,4 +50,5 @@ private:
     // altitude
     int confidence;
 };
+
 }  // namespace Payload
