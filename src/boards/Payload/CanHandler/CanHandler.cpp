@@ -49,7 +49,7 @@ bool CanHandler::start() { return EventHandler::start() && protocol->start(); }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
 
-void CanHandler::sendArmEvent()
+void CanHandler::sendArmCommand()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -58,7 +58,7 @@ void CanHandler::sendArmEvent()
                            static_cast<uint8_t>(EventId::ARM));
 }
 
-void CanHandler::sendDisarmEvent()
+void CanHandler::sendDisarmCommand()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -67,7 +67,7 @@ void CanHandler::sendDisarmEvent()
                            static_cast<uint8_t>(EventId::DISARM));
 }
 
-void CanHandler::sendCalibrateEvent()
+void CanHandler::sendCalibrateCommand()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -76,7 +76,7 @@ void CanHandler::sendCalibrateEvent()
                            static_cast<uint8_t>(EventId::CALIBRATE));
 }
 
-void CanHandler::sendCamOnEvent()
+void CanHandler::sendCamOnCommand()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
                            static_cast<uint8_t>(PrimaryType::EVENTS),
@@ -85,7 +85,7 @@ void CanHandler::sendCamOnEvent()
                            static_cast<uint8_t>(EventId::CAM_ON));
 }
 
-void CanHandler::sendCamOffEvent()
+void CanHandler::sendCamOffCommand()
 {
     protocol->enqueueEvent(static_cast<uint8_t>(Priority::MEDIUM),
                            static_cast<uint8_t>(PrimaryType::EVENTS),

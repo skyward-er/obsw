@@ -35,20 +35,20 @@ int main()
 
     while (true)
     {
-        CanHandler::getInstance().sendArmEvent();
+        CanHandler::getInstance().sendArmCommand();
         printf("sendArmEvent\n");
         Thread::sleep(PERIOD);
 
-        CanHandler::getInstance().sendDisarmEvent();
-        printf("sendDisarmEvent\n");
+        CanHandler::getInstance().sendDisarmCommand();
+        printf("sendDisarmCommand\n");
         Thread::sleep(PERIOD);
 
-        CanHandler::getInstance().sendCamOnEvent();
-        printf("sendCamOnEvent\n");
+        CanHandler::getInstance().sendCamOnCommand();
+        printf("sendCamOnCommand\n");
         Thread::sleep(PERIOD);
 
-        CanHandler::getInstance().sendCamOffEvent();
-        printf("sendCamOffEvent\n");
+        CanHandler::getInstance().sendCamOffCommand();
+        printf("sendCamOffCommand\n");
         Thread::sleep(PERIOD);
 
         CanHandler::getInstance().sendLiftoffEvent();

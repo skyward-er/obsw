@@ -38,19 +38,15 @@ public:
 
     bool isStarted();
 
-    // Boardcore::Canbus::CanRXStatus getCanStatus();
+    void sendArmCommand();
 
-    // void logStatus();
+    void sendDisarmCommand();
 
-    void sendArmEvent();
+    void sendCalibrateCommand();
 
-    void sendDisarmEvent();
+    void sendCamOnCommand();
 
-    void sendCalibrateEvent();
-
-    void sendCamOnEvent();
-
-    void sendCamOffEvent();
+    void sendCamOffCommand();
 
 private:
     CanHandler();

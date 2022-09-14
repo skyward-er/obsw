@@ -48,11 +48,11 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
 
 static const std::map<Common::Events, std::function<void(CanHandler *)>>
     eventToFunction{
-        {Common::FLIGHT_ARMED, &CanHandler::sendArmEvent},
-        {Common::FLIGHT_DISARMED, &CanHandler::sendDisarmEvent},
-        {Common::TMTC_CALIBRATE, &CanHandler::sendCalibrateEvent},
-        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnEvent},
-        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffEvent},
+        {Common::TMTC_ARM, &CanHandler::sendArmCommand},
+        {Common::TMTC_DISARM, &CanHandler::sendDisarmCommand},
+        {Common::TMTC_CALIBRATE, &CanHandler::sendCalibrateCommand},
+        {Common::TMTC_START_RECORDING, &CanHandler::sendCamOnCommand},
+        {Common::TMTC_STOP_RECORDING, &CanHandler::sendCamOffCommand},
     };
 
 }  // namespace CanHandlerConfig
