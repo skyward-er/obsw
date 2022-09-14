@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
+#include <drivers/adc/InternalTemp.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
@@ -106,6 +107,8 @@ private:
     void internalADCInit();
     void batteryVoltageInit();
 
+    void internalTempInit();
+
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
     Boardcore::MS5803* ms5803;
@@ -118,6 +121,7 @@ private:
     Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
     Boardcore::BatteryVoltageSensor* batteryVoltage;
+    Boardcore::InternalTemp* internalTemp = nullptr;
 
     Boardcore::SensorManager* sensorManager = nullptr;
 

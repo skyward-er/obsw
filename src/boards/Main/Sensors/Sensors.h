@@ -24,6 +24,7 @@
 
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
+#include <drivers/adc/InternalTemp.h>
 #include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
@@ -136,6 +137,8 @@ private:
 
     void internalAdcInit();
 
+    void internalTempInit();
+
     Boardcore::BMX160WithCorrection *bmx160WithCorrection = nullptr;
     Boardcore::MPU9250 *mpu9250                           = nullptr;
     Boardcore::MS5803 *ms5803                             = nullptr;
@@ -149,7 +152,8 @@ private:
     Boardcore::AnalogLoadCell *loadCell             = nullptr;
     Boardcore::BatteryVoltageSensor *batteryVoltage = nullptr;
 
-    Boardcore::InternalADC *internalAdc = nullptr;
+    Boardcore::InternalADC *internalAdc   = nullptr;
+    Boardcore::InternalTemp *internalTemp = nullptr;
 
     Boardcore::SensorManager *sensorManager = nullptr;
 

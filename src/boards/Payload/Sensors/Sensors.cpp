@@ -517,4 +517,17 @@ void Sensors::batteryVoltageInit()
     LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
+void Sensors::internalTempInit()
+{
+    internalTemp = new InternalTemp(InternalADC::CYCLES_480, INTERNAL_ADC_VREF);
+
+    SensorInfo info(
+        "INTERNAL_TEMP", SAMPLE_PERIOD_INTERNAL_TEMP,
+        [&]() { Logger::getInstance().log(internalTemp->getLastSample()); });
+
+    sensorsMap.emplace(make_pair(internalTemp, info));
+
+    LOG_INFO(logger, "Internal TEMP setup done!");
+}
+
 }  // namespace Payload

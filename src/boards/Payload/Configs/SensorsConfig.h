@@ -114,6 +114,7 @@ static constexpr unsigned int GPS_SAMPLE_RATE = 10;
 // Sampling periods and dividers
 constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
 constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1000;
+constexpr unsigned int SAMPLE_PERIOD_INTERNAL_TEMP = 2000;
 constexpr unsigned int SAMPLE_PERIOD_ADS1118       = 6;
 constexpr unsigned int SAMPLE_PERIOD_MAG_LIS       = 15;
 constexpr unsigned int SAMPLE_PERIOD_GPS           = 1000 / GPS_SAMPLE_RATE;

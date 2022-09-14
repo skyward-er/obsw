@@ -580,7 +580,7 @@ void Sensors::batteryVoltageInit()
 
 void Sensors::internalAdcInit()
 {
-    internalAdc = new InternalADC(ADC1, INTERNAL_ADC_VREF);
+    internalAdc = new InternalADC(ADC2, INTERNAL_ADC_VREF);
 
     internalAdc->enableChannel(INTERNAL_ADC_CH_5V_CURRENT);
     internalAdc->enableChannel(INTERNAL_ADC_CH_CUTTER_CURRENT);
@@ -608,6 +608,19 @@ void Sensors::internalAdcInit()
     sensorsMap.emplace(make_pair(internalAdc, info));
 
     LOG_INFO(logger, "Internal ADC setup done!");
+}
+
+void Sensors::internalTempInit()
+{
+    internalTemp = new InternalTemp(InternalADC::CYCLES_480, INTERNAL_ADC_VREF);
+
+    SensorInfo info(
+        "INTERNAL_TEMP", SAMPLE_PERIOD_INTERNAL_TEMP,
+        [&]() { Logger::getInstance().log(internalTemp->getLastSample()); });
+
+    sensorsMap.emplace(make_pair(internalTemp, info));
+
+    LOG_INFO(logger, "Internal TEMP setup done!");
 }
 
 }  // namespace Main
