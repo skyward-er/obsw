@@ -63,11 +63,16 @@ bool AirBrakesController::start()
 
 void AirBrakesController::update()
 {
+#ifndef ROCCARASO
     auto currentPoint =
         TimedTrajectoryPoint{NASController::getInstance().getNasState()};
+#endif
 
-    if (!abk.isRunning() && status.state == AirBrakesControllerState::ACTIVE &&
-        currentPoint.getMac() < MACH_LIMIT)
+    if (!abk.isRunning() && status.state == AirBrakesControllerState::ACTIVE
+#ifndef ROCCARASO
+        && currentPoint.getMac() < MACH_LIMIT
+#endif
+    )
         abk.begin();
 
     abk.update();
