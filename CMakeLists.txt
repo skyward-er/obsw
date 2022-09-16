@@ -67,9 +67,20 @@ target_include_directories(main-entry-hil-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-hil-milano PRIVATE HILSimulation MILANO BUZZER_LOW)
 sbs_target(main-entry-hil-milano stm32f429zi_skyward_death_stack_v3)
 
-add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
-target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
+add_executable(payload-entry-milano src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-milano PRIVATE MILANO)
+sbs_target(payload-entry-milano stm32f429zi_skyward_death_stack_x)
+
+add_executable(payload-entry-roccaraso src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-roccaraso PRIVATE ROCCARASO)
+sbs_target(payload-entry-roccaraso stm32f429zi_skyward_death_stack_x)
+
+add_executable(payload-entry-euroc src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
+sbs_target(payload-entry-euroc stm32f429zi_skyward_death_stack_x)
 
 add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
 target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
