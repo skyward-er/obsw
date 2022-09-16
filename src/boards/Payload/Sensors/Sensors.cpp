@@ -26,6 +26,7 @@
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/usart/USART.h>
@@ -34,6 +35,7 @@
 using namespace std;
 using namespace Boardcore;
 using namespace Common;
+using namespace ReferenceConfig;
 using namespace Payload::SensorsConfig;
 
 // BMX160 Watermark interrupt
@@ -471,6 +473,7 @@ void Sensors::pitotInit()
         [&]() { return ms5803->getLastSample().pressure; });
 
     pitot = new Pitot(getPitotPressure, getStaticPressure);
+    pitot->setReferenceValues(defaultReferenceValues);
 
     SensorInfo info(
         "PITOT", SAMPLE_PERIOD_ADS1118 * 4,
