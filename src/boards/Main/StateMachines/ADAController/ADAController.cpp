@@ -568,7 +568,7 @@ ADA::KalmanFilter::KalmanConfig ADAController::getADAKalmanConfig()
             R_INIT,
             P_INIT,
             ADA::KalmanFilter::CVectorN(ada.getReferenceValues().refPressure, 0,
-                                        KALMAN_INITIAL_ACCELERATION)};
+                                        0)};
 }
 
 }  // namespace Main

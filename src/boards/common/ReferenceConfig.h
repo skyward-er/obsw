@@ -50,8 +50,8 @@ static const Boardcore::ReferenceValues defaultReferenceValues = {
     1414.0,      // [m] Altitude
     85452.0,     // [Pa] Pressure
     278.95,      // [K] Temperature
-    41.8086605,  // [deg] Start latitude
-    14.0543387,  // [deg] Start longitude
+    41.8089005,  // [deg] Start latitude
+    14.0546716,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
 };

@@ -36,7 +36,7 @@ constexpr uint32_t UPDATE_PERIOD = 100;  // 10 hz
 #ifdef EUROC
 static constexpr int SHADOW_MODE_TIMEOUT = 5 * 1000;
 #else
-static constexpr int SHADOW_MODE_TIMEOUT = 3.5 * 1000;
+static constexpr int SHADOW_MODE_TIMEOUT = 3.8 * 1000;
 #endif
 
 constexpr float MACH_LIMIT = 0.8;

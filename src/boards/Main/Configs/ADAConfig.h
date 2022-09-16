@@ -33,16 +33,12 @@ namespace ADAConfig
 constexpr uint32_t UPDATE_PERIOD   = 20;                       // 50 hz
 static const float SAMPLING_PERIOD = UPDATE_PERIOD / 1000.0f;  // in seconds
 
-// Initialize the Kalman filter with a negative (pressure) acceleration in order
-// to make it more responsive during the propulsive phase
-static const float KALMAN_INITIAL_ACCELERATION = 0;
-
 constexpr int PRES_STAB_TIMEOUT = 5 * 1000;  // [ms]
 
 #ifdef EUROC
 constexpr int SHADOW_MODE_TIMEOUT = 16 * 1000;  // [ms]
 #else
-constexpr int SHADOW_MODE_TIMEOUT = 8 * 1000;  // [ms]
+constexpr int SHADOW_MODE_TIMEOUT = 7 * 1000;  // [ms]
 #endif
 
 // When the vertical speed is smaller than this value, apogee is detected.
