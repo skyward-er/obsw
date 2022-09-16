@@ -420,15 +420,24 @@ State FlightModeManager::state_flying(const Event& event)
 
 State FlightModeManager::state_ascending(const Event& event)
 {
+    static uint16_t apogeeDetectionEventId = -1;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ASCENDING);
+
+            apogeeDetectionEventId =
+                EventBroker::getInstance().postDelayed<APOGEE_TIMEOUT>(
+                    FLIGHT_APOGEE_DETECTED, TOPIC_FLIGHT);
+
             return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(apogeeDetectionEventId);
+
             return HANDLED;
         }
         case EV_EMPTY:
