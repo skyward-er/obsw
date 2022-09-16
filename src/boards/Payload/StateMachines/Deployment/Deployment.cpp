@@ -76,7 +76,7 @@ void Deployment::state_idle(const Event& event)
 
 void Deployment::state_cutting(const Event& event)
 {
-    static uint16_t ncCuttinTimeoutEventId = -1;
+    static uint16_t ncCuttingTimeoutEventId = -1;
 
     switch (event)
     {
@@ -86,7 +86,7 @@ void Deployment::state_cutting(const Event& event)
 
             startCutting();
 
-            ncCuttinTimeoutEventId =
+            ncCuttingTimeoutEventId =
                 EventBroker::getInstance().postDelayed<CUT_DURATION>(
                     Boardcore::Event{DPL_CUT_TIMEOUT}, TOPIC_DPL);
             break;
@@ -99,7 +99,7 @@ void Deployment::state_cutting(const Event& event)
         }
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(ncCuttinTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(ncCuttingTimeoutEventId);
             break;
         }
     }
