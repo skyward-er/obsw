@@ -50,8 +50,8 @@ constexpr uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
 #elif defined(ROCCARASO)
-constexpr float DEFAULT_TARGET_LAT = 41.8086605;
-constexpr float DEFAULT_TARGET_LON = 14.0543387;
+constexpr float DEFAULT_TARGET_LAT = 41.8039952;
+constexpr float DEFAULT_TARGET_LON = 14.0535;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 42;
 constexpr float DEFAULT_TARGET_LON = 9;
