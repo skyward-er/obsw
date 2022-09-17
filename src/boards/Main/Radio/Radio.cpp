@@ -119,6 +119,13 @@ Radio::Radio()
 
     SX1278::Config config = {};
     config.freq_rf        = 412000000;
+    config.freq_dev       = 25000;
+    config.bitrate        = 19200;
+    config.rx_bw          = SX1278::RxBw::HZ_83300;
+    config.afc_bw         = SX1278::RxBw::HZ_125000;
+    config.ocp            = 120;
+    config.power          = 17;
+    config.shaping        = SX1278::Shaping::GAUSSIAN_BT_0_5;
 
     // Use default configuration
     transceiver->init(config);
