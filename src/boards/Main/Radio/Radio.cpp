@@ -105,14 +105,10 @@ Radio::Radio()
     attn::mode(Mode::INPUT);
     enableExternalInterrupt(GPIOD_BASE, 7, InterruptTrigger::FALLING_EDGE);
 
-    printf("here\n");
-
     SPIBus spi5(SPI5);
     transceiver = new Xbee::Xbee(spi5, config, sensors::sx127x::cs::getPin(),
                                  attn::getPin(), rst::getPin());
     // Xbee::setDataRate(*transceiver, true, 5000);
-
-    printf("here 2\n");
 #else
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
