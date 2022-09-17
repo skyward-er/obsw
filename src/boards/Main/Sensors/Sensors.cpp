@@ -258,7 +258,7 @@ map<string, bool> Sensors::getSensorsState()
 Sensors::Sensors()
 {
     // Initialize all the sensors
-    mpu9250Init();
+    // mpu9250Init();
     ms5803Init();
     ubxGpsInit();
     ads131m04Init();
