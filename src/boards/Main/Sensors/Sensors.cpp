@@ -267,6 +267,7 @@ Sensors::Sensors()
     loadCellInit();
     batteryVoltageInit();
     internalAdcInit();
+    vn100Init();
 
     // Moved down here because the bmx takes some times to start
     bmx160Init();
