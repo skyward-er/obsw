@@ -193,6 +193,8 @@ void ADAController::update()
                     // Landing detected
                     EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                                     TOPIC_FLIGHT);
+                    Logger::getInstance().log(
+                        LandingEvent{TimestampTimer::getTimestamp()});
                 }
             }
         }
