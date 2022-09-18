@@ -24,8 +24,8 @@
 #include <Main/StateMachines/AirBrakesController/AirBrakesControllerData.h>
 #include <Main/StateMachines/Deployment/DeploymentData.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
-#include <Main/StateMachines/FlightStatsRecorder/FlightStatsRecorderData.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
+#include <algorithms/AirBrakes/AirBrakesData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -45,9 +45,69 @@
  * deserialize.
  */
 
+namespace Common
+{
+
+struct LiftoffEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct ApogeeEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct NoseconeEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct ExpulsionEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct MainEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+struct LandingEvent
+{
+    uint64_t timestamp;
+
+    static std::string header() { return "timestamp\n"; }
+
+    void print(std::ostream& os) const { os << timestamp << "\n"; }
+};
+
+}  // namespace Common
+
 using namespace tscpp;
 using namespace Boardcore;
 using namespace Main;
+using namespace Common;
 
 void registerTypes(Deserializer& ds)
 {
@@ -56,12 +116,16 @@ void registerTypes(Deserializer& ds)
 
     // Custom types
     ds.registerType<ADAControllerStatus>();
+    ds.registerType<LiftoffEvent>();
     ds.registerType<ApogeeEvent>();
-    ds.registerType<DeploymentEvent>();
+    ds.registerType<NoseconeEvent>();
+    ds.registerType<ExpulsionEvent>();
+    ds.registerType<MainEvent>();
+    ds.registerType<LandingEvent>();
+    ds.registerType<AirBrakesChosenTrajectory>();
     ds.registerType<AirBrakesControllerStatus>();
     ds.registerType<DeploymentStatus>();
     ds.registerType<FlightModeManagerStatus>();
-    ds.registerType<FlightStatsRecorderStatus>();
     ds.registerType<NASControllerStatus>();
 }
 
