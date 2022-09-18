@@ -41,9 +41,11 @@ bool Actuators::setServo(ServosList servoId, float percentage)
     {
         case PARAFOIL_LEFT_SERVO:
             leftServo.setPosition(percentage);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
             rightServo.setPosition(percentage);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
@@ -58,9 +60,11 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     {
         case PARAFOIL_LEFT_SERVO:
             leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
             rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
@@ -75,13 +79,17 @@ bool Actuators::wiggleServo(ServosList servoId)
     {
         case PARAFOIL_LEFT_SERVO:
             leftServo.setPosition(1);
+            Logger::getInstance().log(leftServo.getState());
             Thread::sleep(1000);
             leftServo.setPosition(0);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
             rightServo.setPosition(1);
+            Logger::getInstance().log(rightServo.getState());
             Thread::sleep(1000);
             rightServo.setPosition(0);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;

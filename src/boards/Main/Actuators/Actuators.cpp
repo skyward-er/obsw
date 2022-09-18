@@ -30,6 +30,7 @@
 #endif
 
 using namespace miosix;
+using namespace Boardcore;
 using namespace Main::ActuatorsConfigs;
 
 namespace Main
@@ -41,9 +42,11 @@ bool Actuators::setServo(ServosList servoId, float percentage)
     {
         case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(percentage);
+            Logger::getInstance().log(servoAirbrakes.getState());
             break;
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(percentage);
+            Logger::getInstance().log(servoExpulsion.getState());
             break;
         default:
             return false;
@@ -58,9 +61,11 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     {
         case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(angle / ABK_SERVO_ROTATION);
+            Logger::getInstance().log(servoAirbrakes.getState());
             break;
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(angle / DPL_SERVO_ROTATION);
+            Logger::getInstance().log(servoExpulsion.getState());
             break;
         default:
             return false;
@@ -75,13 +80,17 @@ bool Actuators::wiggleServo(ServosList servoId)
     {
         case AIR_BRAKES_SERVO:
             servoAirbrakes.setPosition(1);
+            Logger::getInstance().log(servoAirbrakes.getState());
             Thread::sleep(ABK_WIGGLE_TIME);
             servoAirbrakes.setPosition(0);
+            Logger::getInstance().log(servoAirbrakes.getState());
             break;
         case EXPULSION_SERVO:
             servoExpulsion.setPosition(1);
+            Logger::getInstance().log(servoExpulsion.getState());
             Thread::sleep(DPL_WIGGLE_TIME);
             servoExpulsion.setPosition(0);
+            Logger::getInstance().log(servoExpulsion.getState());
             break;
         default:
             return false;
