@@ -31,10 +31,10 @@ namespace UprightDetectorConfig
 {
 
 constexpr int ALGO_FREQUENCY        = 50;
-constexpr int DETECT_TIME           = 5;
+constexpr int DETECT_TIME           = 120;
 constexpr int MEAN_SAMPLES          = 50;
-constexpr float DETECT_ANGLE        = 80;
-constexpr float THRESHOLD_TOLERANCE = 0.1;
+constexpr float DETECT_ANGLE        = 83;
+constexpr float THRESHOLD_TOLERANCE = 0.2;
 
 constexpr int ALGO_PERIOD    = 1000 / 50;
 constexpr int DETECT_SAMPLES = DETECT_TIME * ALGO_FREQUENCY;

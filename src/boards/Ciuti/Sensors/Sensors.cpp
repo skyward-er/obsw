@@ -24,6 +24,7 @@
 
 #include <Ciuti/Buses.h>
 #include <Ciuti/Configs/SensorsConfig.h>
+#include <miosix.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -68,6 +69,9 @@ void Sensors::internalAdcInit()
 
     internalAdc->enableChannel(INTERNAL_ADC_CH_0);
     internalAdc->enableChannel(INTERNAL_ADC_CH_1);
+
+    devices::ina188::mosfet1::high();
+    devices::ina188::mosfet2::high();
 
     SensorInfo info("INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
                     [=]()

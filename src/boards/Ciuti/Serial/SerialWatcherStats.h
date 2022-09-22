@@ -32,6 +32,16 @@ struct SerialWatcherStats
     uint64_t last_timestamp  = 0;
     unsigned int error_count = 0;
     unsigned int usart_id    = 0;
+
+    static std::string header()
+    {
+        return "last_timestamp,error_count,usart_id\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << last_timestamp << "," << error_count << "," << usart_id << "\n";
+    }
 };
 
 }  // namespace Ciuti

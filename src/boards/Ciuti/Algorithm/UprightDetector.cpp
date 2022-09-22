@@ -25,6 +25,7 @@
 #include <Ciuti/BoardScheduler.h>
 #include <Ciuti/Configs/SensorsConfig.h>
 #include <Ciuti/Sensors/Sensors.h>
+#include <miosix.h>
 #include <utils/Debug.h>
 
 #include <cmath>
@@ -61,6 +62,7 @@ end
 */
 
 using namespace Boardcore;
+using namespace miosix;
 
 namespace Ciuti
 {
@@ -93,7 +95,7 @@ void UprightDetectorController::update()
 
     if (!fired)
     {
-        algo.update(sample.accelerationZ -
+        algo.update(sample.accelerationZ +
                     Ciuti::SensorsConfig::Z_AXIS_OFFSET_LIS331HH);
 
         if (algo.isUpright())
@@ -110,6 +112,9 @@ void UprightDetectorController::trigger()
 
     Logger::getInstance().resetStats();
     Logger::getInstance().start();
+
+    devices::ina188::mosfet1::low();
+    devices::ina188::mosfet2::low();
 }
 
 }  // namespace Ciuti
