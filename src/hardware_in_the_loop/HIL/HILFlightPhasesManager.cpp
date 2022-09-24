@@ -33,21 +33,23 @@ using namespace Common;
 
 HILFlightPhasesManager::HILFlightPhasesManager()
     : Boardcore::EventHandler(),
-      flagsFlightPhases({{FlightPhases::SIMULATION_STARTED, false},
+      flagsFlightPhases({{FlightPhases::SIM_FLYING, false},
+                         {FlightPhases::SIM_ASCENT, false},
+                         {FlightPhases::SIM_BURNING, false},
+                         {FlightPhases::SIM_AEROBRAKES, false},
+                         {FlightPhases::SIM_PARA1, false},
+                         {FlightPhases::SIM_PARA2, false},
+                         {FlightPhases::SIMULATION_STARTED, false},
                          {FlightPhases::CALIBRATION, false},
                          {FlightPhases::CALIBRATION_OK, false},
                          {FlightPhases::ARMED, false},
                          {FlightPhases::LIFTOFF_PIN_DETACHED, false},
-                         {FlightPhases::FLYING, false},
-                         {FlightPhases::ASCENT, false},
-                         {FlightPhases::BURNING, false},
+                         {FlightPhases::LIFTOFF, false},
                          {FlightPhases::AEROBRAKES, false},
-                         {FlightPhases::SIM_AEROBRAKES, false},
                          {FlightPhases::APOGEE, false},
                          {FlightPhases::PARA1, false},
                          {FlightPhases::PARA2, false},
-                         {FlightPhases::SIMULATION_STOPPED, false}}),
-      last_event(0)
+                         {FlightPhases::SIMULATION_STOPPED, false}})
 {
     prev_flagsFlightPhases = flagsFlightPhases;
 
@@ -84,7 +86,7 @@ void HILFlightPhasesManager::setFlagFlightPhase(FlightPhases flag,
 
 void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
 {
-    updateFlags(hil_flags);
+    updateSimulatorFlags(hil_flags);
 
     std::vector<FlightPhases> changed_flags;
 
@@ -97,35 +99,36 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         changed_flags.push_back(FlightPhases::SIMULATION_STARTED);
     }
 
-    if (flagsFlightPhases[FlightPhases::FLYING])
+    if (flagsFlightPhases[FlightPhases::SIM_FLYING])
     {
-        if (isSetTrue(FlightPhases::FLYING))
+        if (isSetTrue(FlightPhases::SIM_FLYING))
         {
             TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
             sEventBroker.post(FLIGHT_LAUNCH_PIN_DETACHED, TOPIC_FLIGHT);
+            changed_flags.push_back(FlightPhases::SIM_FLYING);
         }
-        if (isSetFalse(FlightPhases::BURNING))
+        if (isSetFalse(FlightPhases::SIM_BURNING))
         {
-            registerOutcomes(FlightPhases::BURNING);
+            registerOutcomes(FlightPhases::SIM_BURNING);
             TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
-            changed_flags.push_back(FlightPhases::BURNING);
+            changed_flags.push_back(FlightPhases::SIM_BURNING);
         }
         if (isSetTrue(FlightPhases::SIM_AEROBRAKES))
         {
             registerOutcomes(FlightPhases::SIM_AEROBRAKES);
             changed_flags.push_back(FlightPhases::SIM_AEROBRAKES);
         }
-        if (isSetTrue(FlightPhases::PARA1))
+        if (isSetTrue(FlightPhases::SIM_PARA1))
         {
-            registerOutcomes(FlightPhases::PARA1);
+            registerOutcomes(FlightPhases::SIM_PARA1);
             TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
-            changed_flags.push_back(FlightPhases::PARA1);
+            changed_flags.push_back(FlightPhases::SIM_PARA1);
         }
-        if (isSetTrue(FlightPhases::PARA2))
+        if (isSetTrue(FlightPhases::SIM_PARA2))
         {
-            registerOutcomes(FlightPhases::PARA2);
+            registerOutcomes(FlightPhases::SIM_PARA2);
             TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
-            changed_flags.push_back(FlightPhases::PARA2);
+            changed_flags.push_back(FlightPhases::SIM_PARA2);
         }
     }
 
@@ -155,7 +158,7 @@ void HILFlightPhasesManager::printOutcomes()
            (double)(t_stop - t_start) / 1000000.0f);
 
     printf("Motor stopped burning (simulation flag): \n");
-    outcomes[FlightPhases::BURNING].print(t_liftoff);
+    outcomes[FlightPhases::SIM_BURNING].print(t_liftoff);
 
     printf("Airbrakes exit shadowmode: \n");
     outcomes[FlightPhases::AEROBRAKES].print(t_liftoff);
@@ -183,20 +186,17 @@ void HILFlightPhasesManager::printOutcomes()
  * @brief Updates the flags of the object with the flags sent from matlab
  * and checks for the apogee
  */
-void HILFlightPhasesManager::updateFlags(FlightPhasesFlags hil_flags)
+void HILFlightPhasesManager::updateSimulatorFlags(FlightPhasesFlags hil_flags)
 {
-    // [TODO] add ifdefs in order to select which flags to take from matlab
-    flagsFlightPhases[FlightPhases::ASCENT]  = hil_flags.flag_ascent;
-    flagsFlightPhases[FlightPhases::FLYING]  = hil_flags.flag_flight;
-    flagsFlightPhases[FlightPhases::BURNING] = hil_flags.flag_burning;
-
-    /* Flags PARA1, PARA2 and SIM_AEROBRAKES ignored from matlab  */
-    // flagsFlightPhases[SIM_AEROBRAKES] = hil_flags.flag_airbrakes;
-    // flagsFlightPhases[PARA1]          = hil_flags.flag_para1;
-    // flagsFlightPhases[PARA2]          = hil_flags.flag_para2;
+    flagsFlightPhases[FlightPhases::SIM_ASCENT]     = hil_flags.flag_ascent;
+    flagsFlightPhases[FlightPhases::SIM_FLYING]     = hil_flags.flag_flight;
+    flagsFlightPhases[FlightPhases::SIM_BURNING]    = hil_flags.flag_burning;
+    flagsFlightPhases[FlightPhases::SIM_AEROBRAKES] = hil_flags.flag_airbrakes;
+    flagsFlightPhases[FlightPhases::SIM_PARA1]      = hil_flags.flag_para1;
+    flagsFlightPhases[FlightPhases::SIM_PARA2]      = hil_flags.flag_para2;
 
     flagsFlightPhases[FlightPhases::SIMULATION_STOPPED] =
-        isSetFalse(FlightPhases::FLYING) ||
+        isSetFalse(FlightPhases::SIM_FLYING) ||
         prev_flagsFlightPhases[FlightPhases::SIMULATION_STOPPED];
 }
 
@@ -233,13 +233,13 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             t_liftoff = Boardcore::TimestampTimer::getTimestamp();
             TRACE("[HIL] ------- LIFTOFF -------: %f, %f \n",
                   getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(FlightPhases::FLYING);
-            changed_flags.push_back(FlightPhases::ASCENT);
+            changed_flags.push_back(FlightPhases::LIFTOFF);
             break;
         case ABK_SHADOW_MODE_TIMEOUT:
             setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
             registerOutcomes(FlightPhases::AEROBRAKES);
-            TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
+            TRACE("[HIL] ABK shadow mode timeout\n");
+            // TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
             changed_flags.push_back(FlightPhases::AEROBRAKES);
             break;
         case ADA_SHADOW_MODE_TIMEOUT:
@@ -298,8 +298,6 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
     }
 
     prev_flagsFlightPhases = flagsFlightPhases;
-
-    last_event = e;
 }
 
 bool HILFlightPhasesManager::isSetTrue(FlightPhases phase)

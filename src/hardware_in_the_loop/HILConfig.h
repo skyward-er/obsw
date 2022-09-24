@@ -40,21 +40,8 @@
  */
 
 /* Hardware in the loop entrypoint */
-#if defined(HARDWARE_IN_THE_LOOP)
-#include "entrypoints/hardware_in_the_loop/HILSimulationConfig.h"
-/* serial simulation with sample manager */
-#elif defined(HILSimulation)
+#if defined(HILSimulation)
 #include <HILSimulationConfig.h>
-#elif defined(HIL_ADA)
-#include "test-HIL+ADA/HILSimulationConfig.h"
-#elif defined(HIL_AEROBRAKE)
-#include "test-HIL+Airbrake/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKE)
-#include "test-HIL+ADA+Airbrake/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKECONTROLLER)
-#include "test-HIL+ADA+AirbrakeController/HILSimulationConfig.h"
-#elif defined(HIL_ADA_AEROBRAKECONTROLLER_NAS)
-#include "test-HIL+ADA+AirbrakeController+nas/HILSimulationConfig.h"
 /*
 #elif defined(HIL_<tuoFlag>)
 #include "<test-directory>/HILSimulationConfig.h"
