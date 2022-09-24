@@ -42,6 +42,13 @@
 #include <events/utils/EventSniffer.h>
 #include <miosix.h>
 
+#ifdef HILSimulation
+#include <HIL.h>
+#include <HIL_algorithms/HILMockAerobrakeAlgorithm.h>
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
+#endif
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Payload;
@@ -51,6 +58,23 @@ int main()
 {
     bool initResult    = true;
     PrintLogger logger = Logging::getLogger("main");
+
+#ifdef HILSimulation
+    auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
+
+    flightPhasesManager->setCurrentPositionSource(
+        []() {
+            return TimedTrajectoryPoint{
+                NASController::getInstance().getNasState()};
+        });
+
+    HIL::getInstance().start();
+
+    BoardScheduler::getInstance().getScheduler().addTask(
+        []() { HIL::getInstance().send(0.0f); }, 100);
+
+    // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
+#endif
 
     if (!Logger::getInstance().start())
     {

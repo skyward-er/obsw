@@ -71,6 +71,11 @@ add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f429zi_skyward_death_stack_x)
 
+add_executable(payload-entry-hil src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER} ${HIL})
+target_include_directories(payload-entry-hil PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-hil PRIVATE HILSimulation)
+sbs_target(payload-entry-hil stm32f429zi_skyward_death_stack_x)
+
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
 sbs_target(groundstation-entry stm32f429zi_skyward_groundstation_v2)
 
