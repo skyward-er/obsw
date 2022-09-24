@@ -20,15 +20,21 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Buses.h>
-
 #include "HIL.h"
+
+#ifdef PAYLOAD_ENTRY
+#include <Payload/Buses.h>
+using namespace Payload;
+#else
+#include <Main/Buses.h>
+using namespace Main;
+#endif
 
 /**
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver()
-    : hilSerial(Main::Buses::getInstance().usart3), actuatorData(ActuatorData{})
+    : hilSerial(Buses::getInstance().usart3), actuatorData(ActuatorData{})
 {
 }
 

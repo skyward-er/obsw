@@ -48,11 +48,13 @@ using namespace Payload::RadioConfig;
 using namespace Common;
 
 // XBee interrupt
+#ifndef USE_SERIAL_TRANSCEIVER
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    if (Payload::Radio::getInstance().xbee != nullptr)
-        Payload::Radio::getInstance().xbee->handleATTNInterrupt();
+    if (Payload::Radio::getInstance().transceiver != nullptr)
+        Payload::Radio::getInstance().transceiver->handleATTNInterrupt();
 }
+#endif
 
 namespace Payload
 {
@@ -87,26 +89,31 @@ void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
 Radio::Radio()
 {
+#if defined(USE_SERIAL_TRANSCEIVER)
+    Boardcore::SerialTransceiver* transceiver;
+    transceiver = new SerialTransceiver(Buses::getInstance().usart2);
+#else
     // Create the SPI bus configuration
     SPIBusConfig config{};
     config.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Create the xbee object
-    xbee = new Xbee::Xbee(
+    transceiver = new Xbee::Xbee(
         Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
         miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
-    xbee->setOnFrameReceivedListener(
+    transceiver->setOnFrameReceivedListener(
         bind(&Radio::onXbeeFrameReceived, this, _1));
 
-    Xbee::setDataRate(*xbee, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
-
-    mavDriver =
-        new MavDriver(xbee, bind(&Radio::handleMavlinkMessage, this, _1, _2), 0,
-                      MAV_OUT_BUFFER_MAX_AGE);
+    Xbee::setDataRate(*transceiver, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
 
     enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
                             miosix::xbee::attn::getPin().getNumber(),
                             InterruptTrigger::FALLING_EDGE);
+#endif
+
+    mavDriver = new MavDriver(transceiver,
+                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                              0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the periodic telemetries
     BoardScheduler::getInstance().getScheduler().addTask(
