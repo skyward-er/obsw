@@ -23,7 +23,9 @@
 #include "FlightModeManager.h"
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -73,6 +75,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
+            CanHandler::getInstance().sendCamOffCommand();
             Logger::getInstance().stop();
             reboot();
             return HANDLED;
@@ -126,8 +129,8 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
-            Actuators::getInstance().buzzerError();
             logStatus(FlightModeManagerState::INIT_ERROR);
+            Actuators::getInstance().buzzerError();
             EventBroker::getInstance().post(FLIGHT_ERROR_DETECTED,
                                             TOPIC_FLIGHT);
             return HANDLED;
@@ -252,6 +255,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DISARMED);
+
             Actuators::getInstance().buzzerDisarmed();
             Logger::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -338,6 +342,7 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
+
             Actuators::getInstance().buzzerArmed();
             Logger::getInstance().start();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
@@ -412,7 +417,7 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case FLIGHT_MISSION_TIMEOUT:
         {
-            return transition(&FlightModeManager::state_landed);
+            return transition(&FlightModeManager::state_mission_ended);
         }
         default:
         {
@@ -447,6 +452,8 @@ State FlightModeManager::state_ascending(const Event& event)
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
+            FlightStatsRecorder::getInstance().setApogee(
+                Sensors::getInstance().getUbxGpsLastSample());
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
@@ -535,12 +542,58 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
 State FlightModeManager::state_landed(const Event& event)
 {
+    static uint16_t landingTimeoutEventId = -1;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::LANDED);
+            landingTimeoutEventId =
+                EventBroker::getInstance().postDelayed<LANDING_TIMEOUT>(
+                    FLIGHT_LANDING_TIMEOUT, TOPIC_FLIGHT);
 
+            Actuators::getInstance().buzzerLanded();
+
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            EventBroker::getInstance().removeDelayed(landingTimeoutEventId);
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case FLIGHT_LANDING_TIMEOUT:
+        {
+            return transition(&FlightModeManager::state_mission_ended);
+        }
+        case TMTC_RESET_BOARD:
+        {
+            CanHandler::getInstance().sendCamOffCommand();
+            Logger::getInstance().stop();
+            reboot();
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FlightModeManager::state_mission_ended(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
             Actuators::getInstance().buzzerLanded();
             Logger::getInstance().stop();
 
@@ -560,6 +613,7 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
+            CanHandler::getInstance().sendCamOffCommand();
             Logger::getInstance().stop();
             reboot();
             return HANDLED;

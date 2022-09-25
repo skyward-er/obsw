@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/NASConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <algorithms/NAS/StateInitializer.h>
@@ -76,6 +77,7 @@ void NASController::update()
             nas.correctPitot(pitotData.deltaP, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
+        FlightStatsRecorder::getInstance().update(nas.getState());
     }
 
 #ifdef HILSimulation

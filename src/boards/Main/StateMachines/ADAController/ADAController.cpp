@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/Configs/NASConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesController.h>
 #include <common/ReferenceConfig.h>
@@ -209,6 +210,7 @@ void ADAController::update()
     }
 
     Logger::getInstance().log(ada.getState());
+    FlightStatsRecorder::getInstance().update(ada.getState());
 
 #ifdef HILSimulation
     // useful only for hil testing

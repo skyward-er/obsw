@@ -43,7 +43,8 @@ enum class FlightModeManagerState : uint8_t
     ASCENDING,
     DROGUE_DESCENT,
     TERMINAL_DESCENT,
-    LANDED
+    LANDED,
+    MISSION_ENDED,
 };
 
 struct FlightModeManagerStatus

@@ -81,6 +81,7 @@ void FlightStatsRecorder::update(Boardcore::ADAState state)
         (state.x0 < stats.ada_min_pressure || stats.ada_min_pressure == -1))
     {
         stats.ada_min_pressure = state.x0;
+        stats.apogee_alt       = state.aglAltitude;
     }
 }
 
@@ -112,7 +113,9 @@ void FlightStatsRecorder::update(PressureData data)
     if ((fmmState.state == FlightModeManagerState::ASCENDING ||
          fmmState.state == FlightModeManagerState::DROGUE_DESCENT) &&
         (data.pressure < stats.min_pressure || stats.min_pressure == -1))
+    {
         stats.min_pressure = data.pressure;
+    }
 }
 
 void FlightStatsRecorder::updateDplVane(PressureData data)
@@ -128,7 +131,6 @@ void FlightStatsRecorder::updateDplVane(PressureData data)
 
 void FlightStatsRecorder::setApogee(GPSData data)
 {
-    stats.apogee_alt = data.height;
     stats.apogee_lat = data.latitude;
     stats.apogee_lon = data.longitude;
 }

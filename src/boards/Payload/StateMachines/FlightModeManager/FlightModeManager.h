@@ -77,6 +77,9 @@ public:
     /// The payload is on the ground after the flight.
     Boardcore::State state_landed(const Boardcore::Event& event);
 
+    /// The rocket ended the flight and closes the log.
+    Boardcore::State state_mission_ended(const Boardcore::Event& event);
+
 private:
     FlightModeManager();
     ~FlightModeManager();

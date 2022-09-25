@@ -84,6 +84,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
+            Actuators::getInstance().camOff();
             Logger::getInstance().stop();
             reboot();
             return HANDLED;
@@ -247,8 +248,8 @@ State FlightModeManager::state_disarmed(const Event& event)
             logStatus(FlightModeManagerState::DISARMED);
 
             Actuators::getInstance().ledDisarmed();
-            Logger::getInstance().stop();
             Actuators::getInstance().camOff();
+            Logger::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
             return HANDLED;
@@ -313,11 +314,6 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             return HANDLED;
         }
-        case TMTC_FORCE_MAIN:
-        {
-            EventBroker::getInstance().post(DPL_CUT_DROGUE, TOPIC_DPL);
-            return HANDLED;
-        }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
@@ -338,8 +334,8 @@ State FlightModeManager::state_armed(const Event& event)
             logStatus(FlightModeManagerState::ARMED);
 
             Actuators::getInstance().ledArmed();
-            Logger::getInstance().start();
             Actuators::getInstance().camOn();
+            Logger::getInstance().start();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
             return HANDLED;
@@ -407,9 +403,8 @@ State FlightModeManager::state_flying(const Event& event)
         case FLIGHT_MISSION_TIMEOUT:
         {
             WingController::getInstance().stop();
-            Actuators::getInstance().camOff();
 
-            return transition(&FlightModeManager::state_landed);
+            return transition(&FlightModeManager::state_mission_ended);
         }
         default:
         {
@@ -543,12 +538,57 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
 State FlightModeManager::state_landed(const Event& event)
 {
+    static uint16_t landingTimeoutEventId = -1;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::LANDED);
+            landingTimeoutEventId =
+                EventBroker::getInstance().postDelayed<LANDING_TIMEOUT>(
+                    FLIGHT_LANDING_TIMEOUT, TOPIC_FLIGHT);
 
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            EventBroker::getInstance().removeDelayed(landingTimeoutEventId);
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_top);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case FLIGHT_LANDING_TIMEOUT:
+        {
+            return transition(&FlightModeManager::state_mission_ended);
+        }
+        case TMTC_RESET_BOARD:
+        {
+            Actuators::getInstance().camOff();
+            Logger::getInstance().stop();
+            reboot();
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FlightModeManager::state_mission_ended(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            Actuators::getInstance().camOff();
             Logger::getInstance().stop();
 
             return HANDLED;
@@ -567,6 +607,7 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
+            Actuators::getInstance().camOff();
             Logger::getInstance().stop();
             reboot();
             return HANDLED;
