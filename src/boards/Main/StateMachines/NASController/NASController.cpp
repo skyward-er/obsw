@@ -58,9 +58,10 @@ void NASController::update()
     {
         auto imuData =
             Sensors::getInstance().getBMX160WithCorrectionLastSample();
-        auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
-        auto pressureData = Sensors::getInstance().getMS5803LastSample();
-        auto pitotData    = Sensors::getInstance().getPitotLastSample();
+        auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
+        auto pressureData =
+            Sensors::getInstance().getStaticPressureLastSample();
+        auto pitotData = Sensors::getInstance().getPitotLastSample();
 
         // Predict step
         nas.predictGyro(imuData);
