@@ -495,8 +495,15 @@ void Sensors::ads131m04Init()
 
 void Sensors::staticPressureInit()
 {
-    function<ADCData()> getVoltage(
-        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_STATIC_PORT));
+    function<ADCData()> getVoltage = [&]()
+    {
+        auto data = ads131m04->getVoltage(ADC_CH_STATIC_PORT);
+
+        // Account for the voltage divider with 10K and 2.31K
+        data.voltage = data.voltage * (10 + 2.31) / 2.31;
+
+        return data;
+    };
 
     staticPressure = new MPXH6115A(getVoltage, REFERENCE_VOLTAGE);
 
@@ -518,8 +525,15 @@ void Sensors::staticPressureInit()
 
 void Sensors::dplPressureInit()
 {
-    function<ADCData()> getVoltage(
-        bind(&ADS131M04::getVoltage, ads131m04, ADC_CH_DPL_PORT));
+    function<ADCData()> getVoltage = [&]()
+    {
+        auto data = ads131m04->getVoltage(ADC_CH_DPL_PORT);
+
+        // Account for the voltage divider with 10K and 2.31K
+        data.voltage = data.voltage * (10 + 2.31) / 2.31;
+
+        return data;
+    };
 
     dplPressure = new MPXH6400A(getVoltage, REFERENCE_VOLTAGE);
 
