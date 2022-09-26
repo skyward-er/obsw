@@ -475,13 +475,9 @@ void Sensors::ads131m04Init()
     ads131m04 = new ADS131M04(Buses::getInstance().spi1,
                               sensors::ads131m04::cs1::getPin(), spiConfig);
 
-    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_0);
-    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_1);
-    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_2);
+    // By default all channels are enabled
     ads131m04->setChannelPGA(ADS131M04::Channel::CHANNEL_2,
                              ADS131M04::PGA::PGA_128);
-    ads131m04->enableChannel(ADS131M04::Channel::CHANNEL_3);
-    ads131m04->enableGlobalChopMode();
     ads131m04->setOversamplingRatio(ADS131M04::OversamplingRatio::OSR_4096);
 
     SensorInfo info("ADS131M04", SAMPLE_PERIOD_ADC_ADS131M04,
