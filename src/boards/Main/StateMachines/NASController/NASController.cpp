@@ -30,6 +30,7 @@
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 using namespace std;
 using namespace Eigen;
@@ -104,7 +105,8 @@ void NASController::calibrate()
                      imuData.magneticFieldZ);
 
         // Barometer
-        MS5803Data barometerData = Sensors::getInstance().getMS5803LastSample();
+        auto barometerData =
+            Sensors::getInstance().getStaticPressureLastSample();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
@@ -123,6 +125,8 @@ void NASController::calibrate()
     // Set the pressure reference using an already existing reference values
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = pressure.getStats().mean;
+    reference.refAltitude     = Aeroutils::relAltitude(
+            reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // If in this moment the GPS has fix i use that position as starting
     UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();

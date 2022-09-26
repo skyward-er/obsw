@@ -33,6 +33,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -223,7 +224,7 @@ void ADAController::calibrate()
 
     for (int i = 0; i < CALIBRATION_SAMPLES_COUNT; i++)
     {
-        auto data = Sensors::getInstance().getMS5803LastSample();
+        auto data = Sensors::getInstance().getStaticPressureLastSample();
         pressure.add(data.pressure);
 
         miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
@@ -232,12 +233,15 @@ void ADAController::calibrate()
     // Set the pressure and temperature reference
     ReferenceValues reference = ada.getReferenceValues();
     reference.refPressure     = pressure.getStats().mean;
+    reference.refAltitude     = Aeroutils::relAltitude(
+            reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Update the algorithm reference values
     {
         miosix::PauseKernelLock l;
         ada.setReferenceValues(reference);
         ada.setKalmanConfig(getADAKalmanConfig());
+        ada.update(reference.refPressure);
     }
 
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
