@@ -98,7 +98,7 @@ Radio::Radio()
 {
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
-    transceiver = new SerialTransceiver(Buses::getInstance().usart1);
+    transceiver = new SerialTransceiver(Buses::getInstance().usart2);
 #elif defined(USE_XBEE_TRANSCEIVER)
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_16;

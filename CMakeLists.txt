@@ -69,7 +69,7 @@ sbs_target(main-entry-hil-milano stm32f429zi_stm32f4discovery)
 
 add_executable(main-entry-hil-maker-faire src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
 target_include_directories(main-entry-hil-maker-faire PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry-hil-maker-faire PRIVATE HILSimulation EUROC BUZZER_LOW USE_SERIAL_TRANSCEIVER INTERP)
+target_compile_definitions(main-entry-hil-maker-faire PRIVATE HILSimulation EUROC BUZZER_LOW USE_SERIAL_TRANSCEIVER INTERP DEATHSTACK_V2)
 sbs_target(main-entry-hil-maker-faire stm32f429zi_skyward_death_stack_x_maker_faire)
 # sbs_target(main-entry-hil-maker-faire stm32f429zi_stm32f4discovery)
 

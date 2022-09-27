@@ -32,9 +32,15 @@ namespace ActuatorsConfigs
 {
 
 // Airbrakes servo
+#ifdef DEATHSTACK_V2
+static TIM_TypeDef* const ABK_SERVO_TIMER = TIM8;
+constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
+#else
 static TIM_TypeDef* const ABK_SERVO_TIMER = TIM10;
 constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
+#endif
 
 // TODO: Fix rotation value
 constexpr float ABK_SERVO_ROTATION = 66.4;  // [deg] AirBrakes without end stop
