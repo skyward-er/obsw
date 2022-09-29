@@ -40,10 +40,8 @@ HILServo airbrakesServo(TIM8, TimerUtils::Channel::CHANNEL_2, 1080, 1600);
 
 void moveServo()
 {
-    // Main::Actuators::getInstance().setServo(AIR_BRAKES_SERVO, 1);
     airbrakesServo.setPosition(1);
     Thread::sleep(1000);
-    // Main::Actuators::getInstance().setServo(AIR_BRAKES_SERVO, 0);
     airbrakesServo.setPosition(0);
 }
 
@@ -63,8 +61,6 @@ int main()
     BatteryVoltageSensor batterySensor(get_batVoltage_function, 5.98);
 
     // Enable the timers
-    // Main::Actuators::getInstance().enableServo(AIR_BRAKES_SERVO);
-    // Main::Actuators::getInstance().setServo(AIR_BRAKES_SERVO, 0);
     airbrakesServo.enable();
     airbrakesServo.setPosition(0);
 
