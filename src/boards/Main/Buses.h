@@ -69,6 +69,7 @@ private:
     {
         usart2.init();
         usart3.init();
+        uart4.init();
     }
 #endif
 };

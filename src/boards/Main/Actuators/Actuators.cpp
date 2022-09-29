@@ -112,10 +112,10 @@ bool Actuators::disableServo(ServosList servoId)
     switch (servoId)
     {
         case AIR_BRAKES_SERVO:
-            servoAirbrakes.enable();
+            servoAirbrakes.disable();
             break;
         case EXPULSION_SERVO:
-            servoAirbrakes.enable();
+            servoAirbrakes.disable();
             break;
         default:
             return false;

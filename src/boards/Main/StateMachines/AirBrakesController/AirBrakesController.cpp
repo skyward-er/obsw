@@ -248,10 +248,7 @@ void AirBrakesController::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
-                                               ABK_SERVO_ROTATION);
-        miosix::Thread::sleep(500);
-        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
+        Actuators::getInstance().wiggleServo(AIR_BRAKES_SERVO);
         miosix::Thread::sleep(500);
     }
 }

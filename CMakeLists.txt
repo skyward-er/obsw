@@ -67,7 +67,8 @@ target_include_directories(main-entry-hil-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-hil-milano PRIVATE HILSimulation MILANO BUZZER_LOW USE_SERIAL_TRANSCEIVER)
 sbs_target(main-entry-hil-milano stm32f429zi_stm32f4discovery)
 
-add_executable(main-entry-hil-maker-faire src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
+add_executable(main-entry-hil-maker-faire src/entrypoints/Main/main-entry-maker-faire.cpp ${MAIN_COMPUTER} ${HIL})
+# add_executable(main-entry-hil-maker-faire src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
 target_include_directories(main-entry-hil-maker-faire PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-hil-maker-faire PRIVATE HILSimulation EUROC BUZZER_LOW USE_SERIAL_TRANSCEIVER INTERP DEATHSTACK_V2)
 sbs_target(main-entry-hil-maker-faire stm32f429zi_skyward_death_stack_x_maker_faire)
@@ -114,7 +115,12 @@ add_executable(main-test-cutter src/tests/Main/actuators/test-cutter.cpp)
 sbs_target(main-test-cutter stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-test-servos src/tests/Main/actuators/test-servos.cpp)
-sbs_target(main-test-servos stm32f429zi_skyward_death_stack_v3)
+sbs_target(main-test-servos stm32f429zi_skyward_death_stack_x_maker_faire)
+
+add_executable(test-airbrakes-st src/tests/Main/actuators/test-airbrakes-st.cpp ${MAIN_COMPUTER} ${HIL})
+target_include_directories(test-airbrakes-st PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(test-airbrakes-st PRIVATE HILSimulation)
+sbs_target(test-airbrakes-st stm32f429zi_skyward_death_stack_x_maker_faire)
 
 add_executable(main-test-bmx160-calibration src/tests/Main/calibration/test-bmx160-calibration.cpp)
 sbs_target(main-test-bmx160-calibration stm32f429zi_skyward_death_stack_v3)

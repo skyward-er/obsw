@@ -34,7 +34,7 @@ using namespace Main;
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver()
-    : hilSerial(Buses::getInstance().usart3), actuatorData(ActuatorData{})
+    : hilSerial(Buses::getInstance().uart4), actuatorData(ActuatorData{})
 {
 }
 
