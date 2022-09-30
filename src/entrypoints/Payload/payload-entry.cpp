@@ -165,5 +165,6 @@ int main()
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
         Radio::getInstance().logStatus();
+        StackLogger::getInstance().log();
     }
 }
