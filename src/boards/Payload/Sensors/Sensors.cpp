@@ -58,13 +58,7 @@ bool Sensors::start()
     return sensorManager->start();
 }
 
-bool Sensors::isStarted()
-{
-    return sensorManager->getSensorInfo(bmx160).isInitialized &&
-           sensorManager->getSensorInfo(ms5803).isInitialized &&
-           sensorManager->getSensorInfo(ubxGps).isInitialized;
-    // return sensorManager->areAllSensorsInitialized();
-}
+bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
 
 BMX160Data Sensors::getBMX160LastSample()
 {
