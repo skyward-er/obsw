@@ -264,7 +264,10 @@ Sensors::Sensors()
     ads131m04Init();
     staticPressureInit();
     dplPressureInit();
-    loadCellInit();
+
+    // Problems on the signal still not solved
+    // loadCellInit();
+
     batteryVoltageInit();
     internalAdcInit();
     vn100Init();
