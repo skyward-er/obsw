@@ -456,12 +456,12 @@ void Sensors::ubxGpsInit()
 void Sensors::vn100Init()
 {
     vn100 = new VN100(USART2, USARTInterface::Baudrate::B921600,
-                      VN100::CRCOptions::CRC_ENABLE_16);
+                      VN100::CRCOptions::CRC_ENABLE_16, SAMPLE_PERIOD_VN100);
 
     SensorInfo info("VN100", SAMPLE_PERIOD_VN100,
                     [&]()
                     { Logger::getInstance().log(vn100->getLastSample()); });
-    sensorsMap.emplace(make_pair(ubxGps, info));
+    sensorsMap.emplace(make_pair(vn100, info));
 }
 
 void Sensors::ads131m04Init()
