@@ -115,13 +115,17 @@ void NASController::calibrate()
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = pressure.getStats().mean;
 
+    // Set reference altitude using barometric measure
+    reference.refAltitude = Aeroutils::relAltitude(pressure.getStats().mean);
+
     // If in this moment the GPS has fix i use that position as starting
     UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
     if (gps.fix != 0)
     {
+        // We don't set the altitude with the GPS because of not precise
+        // measurements
         reference.refLatitude  = gps.latitude;
         reference.refLongitude = gps.longitude;
-        reference.refAltitude  = gps.height;
     }
 
     // Update the algorithm reference values
