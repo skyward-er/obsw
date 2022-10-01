@@ -164,15 +164,37 @@ ADS131M04Data Sensors::getADS131M04LastSample()
 MPXH6115AData Sensors::getStaticPressureLastSample()
 {
     PauseKernelLock lock;
+
+#ifndef HILSimulation
     return staticPressure != nullptr ? staticPressure->getLastSample()
                                      : MPXH6115AData{};
+#else
+    auto baroData = state.barometer->getLastSample();
+
+    MPXH6115AData data;
+    data.pressureTimestamp = baroData.pressureTimestamp;
+    data.pressure          = baroData.pressure;
+
+    return data;
+#endif
 }
 
 MPXH6400AData Sensors::getDplPressureLastSample()
 {
     PauseKernelLock lock;
+
+#ifndef HILSimulation
     return dplPressure != nullptr ? dplPressure->getLastSample()
                                   : MPXH6400AData{};
+#else
+    auto baroData = state.barometer->getLastSample();
+
+    MPXH6400AData data;
+    data.pressureTimestamp = baroData.pressureTimestamp;
+    data.pressure          = baroData.pressure;
+
+    return data;
+#endif
 }
 
 Boardcore::PitotData Sensors::getPitotLastSample()
@@ -265,7 +287,7 @@ Sensors::Sensors()
 
     batteryVoltageInit();
     internalAdcInit();
-    vn100Init();
+    // vn100Init();
 
     // Moved down here because the bmx takes some times to start
     bmx160Init();

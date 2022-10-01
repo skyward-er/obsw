@@ -62,7 +62,6 @@ void NASController::update()
         auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
         auto pressureData =
             Sensors::getInstance().getStaticPressureLastSample();
-        auto pitotData = Sensors::getInstance().getPitotLastSample();
 
         // Predict step
         nas.predictGyro(imuData);
@@ -72,11 +71,6 @@ void NASController::update()
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
-
-        // Correct the pitot only during ascending
-        if (FlightModeManager::getInstance().getStatus().state ==
-            FlightModeManagerState::ASCENDING)
-            nas.correctPitot(pitotData.deltaP, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
         FlightStatsRecorder::getInstance().update(nas.getState());

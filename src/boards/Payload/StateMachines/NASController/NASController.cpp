@@ -60,8 +60,6 @@ void NASController::update()
             Sensors::getInstance().getBMX160WithCorrectionLastSample();
         auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
         auto pressureData = Sensors::getInstance().getMS5803LastSample();
-        // auto pitotData =
-        //     Sensors::getInstance().getDifferentialPressureLastSample();
 
         // Predict step
         nas.predictGyro(imuData);
@@ -71,7 +69,6 @@ void NASController::update()
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
-        // nas.correctPitot(pitotData.pressure, pressureData.pressure);
 
         Logger::getInstance().log(nas.getState());
         FlightStatsRecorder::getInstance().update(nas.getState());

@@ -35,7 +35,9 @@ static const Boardcore::AirBrakesInterpConfig ABK_CONFIG_INTERP{
     .INITIAL_FILTER_COEFF = 0.3,
     .INITIAL_T_FILTER     = 12,
     .DELTA_T_FILTER       = 2.5,
-    .FILTER_RATIO         = 2};
+    .FILTER_RATIO         = 2,
+};
+
 }  // namespace AirBrakesControllerConfig
 
 }  // namespace Main
