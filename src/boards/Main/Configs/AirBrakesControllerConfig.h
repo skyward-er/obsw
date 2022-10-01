@@ -74,9 +74,6 @@ static const Boardcore::AirBrakesConfig ABK_CONFIG{
     .S0         = 0.017671458676443,
     .SURFACE    = 0.009564 * Main::ActuatorsConfigs::ABK_SERVO_ROTATION *
                EIGEN_PI / 180.0,
-    .KP = 20,
-    .KI = 5,
-    .TS = UPDATE_PERIOD / 1000.0,
 };
 
 }  // namespace AirBrakesControllerConfig

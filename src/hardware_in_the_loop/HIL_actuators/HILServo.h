@@ -25,25 +25,16 @@
 #include <actuators/Servo/Servo.h>
 
 #include "HIL.h"
-#include "HILConfig.h"
 
 class HILServo : public Boardcore::Servo
 {
 public:
     explicit HILServo(TIM_TypeDef* const timer,
                       Boardcore::TimerUtils::Channel pwmChannel,
-                      unsigned int minPulse = 1000,
-                      unsigned int maxPulse = 2000, unsigned int frequency = 50)
+                      unsigned int minPulse, unsigned int maxPulse,
+                      unsigned int frequency = 50)
         : Servo(timer, pwmChannel, minPulse, maxPulse, frequency)
     {
-    }
-
-    void setPosition(float position, bool limited = true)
-    {
-        Servo::setPosition(position, limited);
-
-        // Send the position to MatLab
-        HIL::getInstance().send(position);
     }
 
     void sendToSimulator() { HIL::getInstance().send(getPosition()); }

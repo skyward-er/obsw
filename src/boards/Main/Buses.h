@@ -67,8 +67,9 @@ private:
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
           spi2({}), spi4({}), spi5({}), spi6({})
     {
-        // usart2.init();
+        usart2.init();
         usart3.init();
+        uart4.init();
     }
 #endif
 };

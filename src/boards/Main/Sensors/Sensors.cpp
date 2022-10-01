@@ -28,6 +28,7 @@
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace std;
 using namespace miosix;

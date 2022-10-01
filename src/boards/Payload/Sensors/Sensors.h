@@ -37,6 +37,10 @@
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
+#ifdef HILSimulation
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
+#endif  // HILSimulation
 
 namespace Payload
 {
@@ -49,6 +53,25 @@ public:
     bool start();
 
     bool isStarted();
+
+#ifdef HILSimulation
+public:
+    /**
+     * structure that contains all the sensors used in the simulation
+     */
+    struct StateComplete
+    {
+        HILAccelerometer* accelerometer;
+        HILBarometer* barometer;
+        HILPitot* pitot;
+        HILGps* gps;
+        HILGyroscope* gyro;
+        HILMagnetometer* magnetometer;
+        HILTemperature* temperature;
+        HILImu* imu;
+        HILKalman* kalman;
+    } state;
+#endif  // HILSimulation
 
     Boardcore::BMX160* bmx160;
 

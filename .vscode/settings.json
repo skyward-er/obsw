@@ -1,10 +1,7 @@
 {
-    "cmake.configureSettings": {
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
-    },
     "cmake.parallelJobs": 1,
     "files.associations": {
+        "**/miosix-kernel/**": "c",
         "sstream": "cpp",
         "format": "cpp",
         "any": "cpp",
@@ -92,7 +89,38 @@
         "specialfunctions": "cpp",
         "splines": "cpp",
         "matrixfunctions": "cpp",
-        "tensorsymmetry": "cpp"
+        "tensorsymmetry": "cpp",
+        "ios": "cpp",
+        "charconv": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "forward_list": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stop_token": "cpp",
+        "xfacet": "cpp",
+        "xhash": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xlocbuf": "cpp",
+        "xlocinfo": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp",
+        "xmemory": "cpp",
+        "xstddef": "cpp",
+        "xstring": "cpp",
+        "xtr1common": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp"
+    },
+    "editor.formatOnSave": true,
+    "[c]": {
+        "editor.formatOnSave": false
+    },
+    "[cmake]": {
+        "editor.formatOnSave": false
     },
     "cSpell.words": [
         "Aeroutils",
@@ -138,5 +166,9 @@
         "VREF",
         "Xbee"
     ],
-    "C_Cpp.errorSquiggles": "Enabled"
+    "C_Cpp.errorSquiggles": "Enabled",
+    "cmake.configureSettings": {
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+    }
 }

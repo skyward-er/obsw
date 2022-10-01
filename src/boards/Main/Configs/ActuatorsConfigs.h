@@ -32,6 +32,20 @@ namespace ActuatorsConfigs
 {
 
 // Airbrakes servo
+#ifdef DEATHSTACK_V2
+// calibrated at
+//  constexpr float ABK_SERVO_MIN_PULSE = 1080;  // [us]
+//  constexpr float ABK_SERVO_MAX_PULSE = 1600;  // [us]
+
+static TIM_TypeDef* const ABK_SERVO_TIMER = TIM8;
+constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
+
+constexpr float ABK_SERVO_ROTATION  = 53;    // [deg] AirBrakes without end stop
+constexpr float ABK_SERVO_MIN_PULSE = 1080;  // [us]
+constexpr float ABK_SERVO_MAX_PULSE = 1500;  // [us]
+#else
+// TODO: Fix rotation value
 static TIM_TypeDef* const ABK_SERVO_TIMER = TIM10;
 constexpr Boardcore::TimerUtils::Channel ABK_SERVO_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
@@ -40,7 +54,9 @@ constexpr float ABK_SERVO_ROTATION  = 66.4;  // [deg] AirBrakes without end stop
 constexpr float ABK_SERVO_MIN_PULSE = 1405;  // [deg]
 constexpr float ABK_SERVO_MAX_PULSE =
     ABK_SERVO_MIN_PULSE - 10 * ABK_SERVO_ROTATION;  // [us]
-constexpr float ABK_WIGGLE_TIME = 2 * 1000;         // [ms]
+#endif
+
+constexpr float ABK_WIGGLE_TIME = 2 * 1000;  // [ms]
 
 // Deployment servo
 static TIM_TypeDef* const DPL_SERVO_TIMER = TIM4;
@@ -55,9 +71,16 @@ constexpr float DPL_SERVO_RESET_POS = DPL_SERVO_ROTATION;             // [deg]
 constexpr float DPL_WIGGLE_TIME     = 5 * 1000;                       // [ms]
 
 // Buzzer
+
+#ifdef DEATHSTACK_V2
+TIM_TypeDef* const BUZZER_TIMER = TIM1;
+constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+#else
 TIM_TypeDef* const BUZZER_TIMER = TIM8;
 constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
+#endif
 
 #ifdef BUZZER_LOW
 constexpr float BUZZER_DUTY_CYCLE = 0.01;

@@ -25,8 +25,9 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfigs.h>
-#include <Main/Configs/AirBrakesControllerConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#include <algorithms/AirBrakes/AirBrakesPI.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -36,8 +37,10 @@
 #endif
 
 #ifdef INTERP
+#include "Main/Configs/AirBrakesControllerConfigInterp.h"
 #include "TrajectorySetInterp.h"
 #else
+#include "Main/Configs/AirBrakesControllerConfigPI.h"
 #include "TrajectorySet.h"
 #endif
 
@@ -125,6 +128,10 @@ void AirBrakesController::state_idle(const Event& event)
         }
         case FLIGHT_LIFTOFF:
         {
+#ifdef INTERP
+            abk.setLiftoffTimestamp();
+#endif
+
             return transition(&AirBrakesController::state_shadow_mode);
         }
     }
@@ -190,6 +197,7 @@ void AirBrakesController::state_end(const Event& event)
 AirBrakesController::AirBrakesController()
     : FSM(&AirBrakesController::state_init),
       abk(
+#ifndef INTERP
 #ifndef HILMockNAS
           []() {
               return TimedTrajectoryPoint{
@@ -199,10 +207,28 @@ AirBrakesController::AirBrakesController()
           []() { return Sensors::getInstance().state.kalman->getLastSample(); },
 #endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
+          AirBrakesControllerConfig::ABK_CONFIG_PI,
           [](float position) {
               Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
                                                 position);
           })
+#else  // INTERP
+#ifndef HILMockNAS
+          []() {
+              return TimedTrajectoryPoint{
+                  NASController::getInstance().getNasState()};
+          },
+#else   // HILMockNAS
+          []() { return Sensors::getInstance().state.kalman->getLastSample(); },
+#endif  // HILMockNAS
+          TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
+          AirBrakesControllerConfig::ABK_CONFIG_INTERP,
+          [](float position) {
+              Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
+                                                position);
+          },
+          Main::dz)
+#endif  // INTERP
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -225,10 +251,7 @@ void AirBrakesController::wiggleServo()
 {
     for (int i = 0; i < 2; i++)
     {
-        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO,
-                                               ABK_SERVO_ROTATION);
-        miosix::Thread::sleep(500);
-        Actuators::getInstance().setServoAngle(AIR_BRAKES_SERVO, 0);
+        Actuators::getInstance().wiggleServo(AIR_BRAKES_SERVO);
         miosix::Thread::sleep(500);
     }
 }

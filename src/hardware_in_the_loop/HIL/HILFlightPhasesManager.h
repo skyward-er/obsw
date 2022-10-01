@@ -41,16 +41,22 @@ class HILTransceiver;
 
 enum class FlightPhases
 {
+    // simulator flags
+    SIM_FLYING,
+    SIM_ASCENT,
+    SIM_BURNING,
+    SIM_AEROBRAKES,
+    SIM_PARA1,
+    SIM_PARA2,
+
+    // flight flags
     SIMULATION_STARTED,
     CALIBRATION,
     CALIBRATION_OK,
     ARMED,
     LIFTOFF_PIN_DETACHED,
-    FLYING,
-    ASCENT,
-    BURNING,
+    LIFTOFF,
     AEROBRAKES,
-    SIM_AEROBRAKES,
     APOGEE,
     PARA1,
     PARA2,
@@ -112,7 +118,7 @@ private:
      * @brief Updates the flags of the object with the flags sent from matlab
      * and checks for the apogee
      */
-    void updateFlags(FlightPhasesFlags hil_flags);
+    void updateSimulatorFlags(FlightPhasesFlags hil_flags);
 
     bool isSetTrue(FlightPhases phase);
 
@@ -126,6 +132,4 @@ private:
     std::map<FlightPhases, vector<TCallback>> callbacks;
     std::map<FlightPhases, Outcomes> outcomes;
     std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition;
-
-    uint8_t last_event;
 };

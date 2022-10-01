@@ -1,5 +1,5 @@
-/* Copyright (c) 2020 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,18 @@
 
 #pragma once
 
-/**
- * @brief Configuration file that includes only the right structures described
- * in the config file of the test.
- *
- * Usage:
- * #elif <Flag>
- * #include "<test-directory>/HILSimulationConfig.h"
- *
- * REMEMBER:
- * when defining the entry in "CMakeLists" you should add
- * target_compile_definitions(<test-directory> PRIVATE <Flag>)
- *
- * WARNING:
- * You should always CLEAN your board before flashing a new entrypoint. Some
- * flags could still be in memory
- */
+#include <Main/Configs/AirBrakesControllerConfig.h>
+#include <algorithms/AirBrakes/AirBrakesPIConfig.h>
 
-/* Hardware in the loop entrypoint */
-#if defined(HILSimulation)
-#include <HILSimulationConfig.h>
-/*
-#elif defined(HIL_<tuoFlag>)
-#include "<test-directory>/HILSimulationConfig.h"
-*/
-#else
-#error You have add the flag of your configuration file for the HIL testing!
-#endif
+namespace Main
+{
+
+namespace AirBrakesControllerConfig
+{
+
+static const Boardcore::AirBrakesPIConfig ABK_CONFIG_PI{
+    .KP = 20, .KI = 5, .TS = UPDATE_PERIOD / 1000.0};
+
+}  // namespace AirBrakesControllerConfig
+
+}  // namespace Main

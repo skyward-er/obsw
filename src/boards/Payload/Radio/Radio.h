@@ -28,6 +28,14 @@
 #include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
 
+#if defined(USE_SERIAL_TRANSCEIVER)
+#include <radio/SerialTransceiver/SerialTransceiver.h>
+#elif defined(USE_XBEE_TRANSCEIVER)
+#include <radio/Xbee/ATCommands.h>
+#else
+#include <radio/SX1278/SX1278.h>
+#endif
+
 namespace Payload
 {
 
@@ -40,7 +48,12 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-    Boardcore::Xbee::Xbee* xbee;
+#if defined(USE_SERIAL_TRANSCEIVER)
+    Boardcore::SerialTransceiver* transceiver;
+#else
+    Boardcore::Xbee::Xbee* transceiver;
+#endif
+
     MavDriver* mavDriver;
 
     /**

@@ -24,7 +24,6 @@
 
 #include <drivers/adc/InternalADC.h>
 #include <drivers/usart/USART.h>
-#include <interfaces-impl/hwmapping.h>
 #include <sensors/ADS131M04/ADS131M04.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
