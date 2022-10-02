@@ -99,6 +99,7 @@ target_compile_definitions(payload-entry-hil PRIVATE PAYLOAD_ENTRY HILSimulation
 sbs_target(payload-entry-hil stm32f429zi_skyward_death_stack_x)
 
 add_executable(groundstation-entry src/entrypoints/Groundstation/groundstation-entry.cpp)
+target_include_directories(groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(groundstation-entry stm32f429zi_skyward_groundstation_v2)
 
 #-----------------------------------------------------------------------------#

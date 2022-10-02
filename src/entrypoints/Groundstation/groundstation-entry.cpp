@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <common/SX1278Config.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
@@ -35,6 +36,7 @@
 
 using namespace miosix;
 using namespace Boardcore;
+using namespace Common;
 
 SX1278 *sx1278 = nullptr;
 USART *usart   = nullptr;
@@ -134,17 +136,6 @@ int main()
     initBoard();
     initGUI();
 
-    // Run default configuration
-    SX1278::Config config;
-    config.freq_rf  = 412000000;
-    config.freq_dev = 25000;
-    config.bitrate  = 19200;
-    config.rx_bw    = SX1278::RxBw::HZ_83300;
-    config.afc_bw   = SX1278::RxBw::HZ_125000;
-    config.ocp      = 120;
-    config.power    = 17;
-    config.shaping  = SX1278::Shaping::GAUSSIAN_BT_0_5;
-
     SPIBus bus(SPI4);
 #ifdef USE_RA01_PC13
     GpioPin cs = peripherals::ra01::pc13::cs::getPin();
@@ -156,7 +147,7 @@ int main()
 
     printf("[sx1278] Configuring sx1278...\n");
     SX1278::Error err;
-    if ((err = sx1278->init(config)) != SX1278::Error::NONE)
+    if ((err = sx1278->init(SX1278_CONFIG)) != SX1278::Error::NONE)
     {
         gui->stats_screen.updateError(err);
         while (true)

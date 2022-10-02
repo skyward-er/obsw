@@ -32,6 +32,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
+#include <common/SX1278Config.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
@@ -114,18 +115,8 @@ Radio::Radio()
     transceiver =
         new SX1278(Buses::getInstance().spi5, sensors::sx127x::cs::getPin());
 
-    SX1278::Config config = {};
-    config.freq_rf        = 412000000;
-    config.freq_dev       = 25000;
-    config.bitrate        = 19200;
-    config.rx_bw          = SX1278::RxBw::HZ_83300;
-    config.afc_bw         = SX1278::RxBw::HZ_125000;
-    config.ocp            = 120;
-    config.power          = 17;
-    config.shaping        = SX1278::Shaping::GAUSSIAN_BT_0_5;
-
     // Use default configuration
-    transceiver->init(config);
+    transceiver->init(SX1278_CONFIG);
 
     enableExternalInterrupt(GPIOF_BASE, 10, InterruptTrigger::RISING_EDGE);
 #endif
