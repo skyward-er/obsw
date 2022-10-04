@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include "HILSensor.h"
 
 /**
@@ -43,6 +45,8 @@ protected:
 
         tempData.temperature          = sensorData->temperature.measure;
         tempData.temperatureTimestamp = updateTimestamp();
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

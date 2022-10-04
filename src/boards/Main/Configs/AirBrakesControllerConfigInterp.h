@@ -31,7 +31,7 @@ namespace Main
 namespace AirBrakesControllerConfig
 {
 
-static const Boardcore::AirBrakesInterpConfig ABK_CONFIG_INTERP{
+static const Boardcore::AirBrakesInterpConfig ABK_CONFIG_ALG{
     .INITIAL_FILTER_COEFF = 0.3,
     .INITIAL_T_FILTER     = 12,
     .DELTA_T_FILTER       = 2.5,

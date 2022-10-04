@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include <cmath>
 
 #include "HILSensor.h"
@@ -63,6 +65,8 @@ protected:
         tempData.satellites = (uint8_t)sensorData->gps.num_satellites;
 
         tempData.gpsTimestamp = updateTimestamp();
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

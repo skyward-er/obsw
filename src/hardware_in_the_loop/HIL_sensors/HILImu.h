@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include "HILAccelerometer.h"
 #include "HILGyroscope.h"
 #include "HILMagnetometer.h"
@@ -68,6 +70,8 @@ protected:
         tempData.accelerationTimestamp    = updateTimestamp();
         tempData.angularVelocityTimestamp = tempData.accelerationTimestamp;
         tempData.magneticFieldTimestamp   = tempData.accelerationTimestamp;
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

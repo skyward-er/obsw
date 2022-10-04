@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <logger/Logger.h>
 #include <utils/AeroUtils/AeroUtils.h>
 
 #include "HILSensor.h"
@@ -49,6 +50,8 @@ protected:
         float airDensity =
             Boardcore::Aeroutils::relDensity(sensorData->barometer.measures[0]);
         tempData.airspeed = sqrtf(2 * fabs(tempData.deltaP) / airDensity);
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

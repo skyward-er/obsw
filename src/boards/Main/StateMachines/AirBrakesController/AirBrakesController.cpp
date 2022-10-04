@@ -197,7 +197,6 @@ void AirBrakesController::state_end(const Event& event)
 AirBrakesController::AirBrakesController()
     : FSM(&AirBrakesController::state_init),
       abk(
-#ifndef INTERP
 #ifndef HILMockNAS
           []() {
               return TimedTrajectoryPoint{
@@ -207,28 +206,16 @@ AirBrakesController::AirBrakesController()
           []() { return Sensors::getInstance().state.kalman->getLastSample(); },
 #endif  // HILMockNAS
           TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
-          AirBrakesControllerConfig::ABK_CONFIG_PI,
+          AirBrakesControllerConfig::ABK_CONFIG_ALG,
           [](float position) {
               Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
                                                 position);
-          })
-#else  // INTERP
-#ifndef HILMockNAS
-          []() {
-              return TimedTrajectoryPoint{
-                  NASController::getInstance().getNasState()};
-          },
-#else   // HILMockNAS
-          []() { return Sensors::getInstance().state.kalman->getLastSample(); },
-#endif  // HILMockNAS
-          TRAJECTORY_SET, AirBrakesControllerConfig::ABK_CONFIG,
-          AirBrakesControllerConfig::ABK_CONFIG_INTERP,
-          [](float position) {
-              Actuators::getInstance().setServo(ServosList::AIR_BRAKES_SERVO,
-                                                position);
-          },
-          Main::dz)
+          }
+#ifdef INTERP
+          ,
+          Main::dz
 #endif  // INTERP
+      )
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);

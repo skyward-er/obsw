@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include "HILSensor.h"
 
 /**
@@ -51,6 +53,8 @@ protected:
         tempData.magneticFieldZ =
             matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
         tempData.magneticFieldTimestamp = updateTimestamp();
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

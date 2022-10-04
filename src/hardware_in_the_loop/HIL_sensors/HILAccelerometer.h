@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include "HILSensor.h"
 
 /**
@@ -50,6 +52,8 @@ protected:
         tempData.accelerationY         = matlabData.getY();
         tempData.accelerationZ         = matlabData.getZ();
         tempData.accelerationTimestamp = updateTimestamp();
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }

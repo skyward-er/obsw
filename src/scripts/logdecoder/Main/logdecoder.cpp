@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <HIL_sensors/HILSensorsData.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <Main/StateMachines/AirBrakesController/AirBrakesControllerData.h>
 #include <Main/StateMachines/Deployment/DeploymentData.h>
@@ -127,6 +128,16 @@ void registerTypes(Deserializer& ds)
     ds.registerType<DeploymentStatus>();
     ds.registerType<FlightModeManagerStatus>();
     ds.registerType<NASControllerStatus>();
+
+    // HIL
+    ds.registerType<HILAccelData>();
+    ds.registerType<HILGyroscopeData>();
+    ds.registerType<HILMagnetometerData>();
+    ds.registerType<HILImuData>();
+    ds.registerType<HILGpsData>();
+    ds.registerType<HILBaroData>();
+    ds.registerType<HILPitotData>();
+    ds.registerType<HILTempData>();
 }
 
 void showUsage(const string& cmdName)

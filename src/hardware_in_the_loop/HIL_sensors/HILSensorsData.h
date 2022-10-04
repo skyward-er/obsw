@@ -21,6 +21,7 @@
  */
 
 #include <sensors/SensorData.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 struct HILAccelData : public Boardcore::AccelerometerData
 {

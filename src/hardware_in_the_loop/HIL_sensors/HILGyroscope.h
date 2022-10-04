@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <logger/Logger.h>
+
 #include "HILSensor.h"
 
 /**
@@ -49,6 +51,8 @@ protected:
         tempData.angularVelocityY         = matlabData.getY();
         tempData.angularVelocityZ         = matlabData.getZ();
         tempData.angularVelocityTimestamp = updateTimestamp();
+
+        Boardcore::Logger::getInstance().log(tempData);
 
         return tempData;
     }
