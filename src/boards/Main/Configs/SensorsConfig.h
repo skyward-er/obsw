@@ -29,7 +29,6 @@
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MPU9250/MPU9250.h>
 #include <sensors/calibration/AxisOrientation.h>
-#include <sensors/calibration/Calibration.h>
 
 namespace Main
 {

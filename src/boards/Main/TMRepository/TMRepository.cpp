@@ -35,6 +35,8 @@
 #include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <algorithms/NAS/StateInitializer.h>
+#include <common/ReferenceConfig.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -276,13 +278,23 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_vn     = nasState.vn;
             tm.nas_ve     = nasState.ve;
             tm.nas_vd     = nasState.vd;
-            tm.nas_qx     = nasState.qx;
-            tm.nas_qy     = nasState.qy;
-            tm.nas_qz     = nasState.qz;
-            tm.nas_qw     = nasState.qw;
             tm.nas_bias_x = nasState.bx;
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
+
+            // Test triad
+            StateInitializer state;
+            state.triad({imuData.accelerationX, imuData.accelerationY,
+                         imuData.accelerationZ},
+                        {imuData.magneticFieldX, imuData.magneticFieldY,
+                         imuData.magneticFieldZ},
+                        Common::ReferenceConfig::nedMag);
+            auto testState = state.getInitX();
+
+            tm.nas_qw = testState(9);
+            tm.nas_qx = testState(6);
+            tm.nas_qy = testState(7);
+            tm.nas_qz = testState(8);
 
             // Sensing pins statuses
             tm.pin_launch =

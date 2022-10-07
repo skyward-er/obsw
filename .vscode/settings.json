@@ -113,7 +113,8 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "BiasCorrector.C": "cpp"
     },
     "editor.formatOnSave": true,
     "[c]": {
@@ -152,15 +153,18 @@
         "GPIOF",
         "KALM",
         "kalman",
+        "magcal",
         "mavlink",
         "miosix",
         "MPXH",
         "Nidasio",
         "pitot",
+        "setb",
         "Setpoint",
         "stateinitializer",
         "telecommands",
         "TMTC",
+        "tparam",
         "UBXGPS",
         "usart",
         "VREF",

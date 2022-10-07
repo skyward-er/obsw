@@ -41,6 +41,7 @@ static const Boardcore::NASConfig config = {
     UPDATE_PERIOD / 1000.0,          // T
     0.0001f,                         // SIGMA_BETA
     0.3f,                            // SIGMA_W
+    0.1f,                            // SIGMA_ACC
     0.1f,                            // SIGMA_MAG
     10.0f,                           // SIGMA_GPS
     4.3f,                            // SIGMA_BAR

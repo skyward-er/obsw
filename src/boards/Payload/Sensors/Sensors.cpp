@@ -384,13 +384,8 @@ void Sensors::bmx160Callback()
 
 void Sensors::bmx160WithCorrectionInit()
 {
-    // Read the correction parameters
-    BMX160CorrectionParameters correctionParameters =
-        BMX160WithCorrection::readCorrectionParametersFromFile(
-            BMX160_CORRECTION_PARAMETERS_FILE);
-
-    bmx160WithCorrection = new BMX160WithCorrection(
-        bmx160, correctionParameters, BMX160_AXIS_ROTATION);
+    bmx160WithCorrection =
+        new BMX160WithCorrection(bmx160, BMX160_AXIS_ROTATION);
 
     SensorInfo info(
         "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,

@@ -64,12 +64,9 @@ public:
      */
     struct StateComplete
     {
-        HILAccelerometer *accelerometer;
         HILBarometer *barometer;
         HILPitot *pitot;
         HILGps *gps;
-        HILGyroscope *gyro;
-        HILMagnetometer *magnetometer;
         HILTemperature *temperature;
         HILImu *imu;
         HILKalman *kalman;

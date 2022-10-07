@@ -27,7 +27,6 @@
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/calibration/AxisOrientation.h>
-#include <sensors/calibration/Calibration.h>
 
 namespace Payload
 {

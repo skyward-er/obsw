@@ -70,6 +70,9 @@ void NASController::update()
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
 
+        // TODO: Add accelerometer correction until the acceleration goes out of
+        // specs
+
         Logger::getInstance().log(nas.getState());
         FlightStatsRecorder::getInstance().update(nas.getState());
     }

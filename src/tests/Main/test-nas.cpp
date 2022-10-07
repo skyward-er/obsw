@@ -61,8 +61,7 @@ int main()
 {
     init();
 
-    nas = new NAS(getEKConfig());
-    nas->setReferenceValues({0, 0, 0, 110000, 20 + 273.5});
+    nas              = new NAS(getEKConfig());
     stateInitializer = new StateInitializer();
     setInitialOrientation();
 
@@ -82,6 +81,7 @@ NASConfig getEKConfig()
     config.T              = 0.02f;
     config.SIGMA_BETA     = 0.0001f;
     config.SIGMA_W        = 0.3f;
+    config.SIGMA_ACC      = 0.1f;
     config.SIGMA_MAG      = 0.1f;
     config.SIGMA_GPS      = 10.0f;
     config.SIGMA_BAR      = 4.3f;
@@ -166,24 +166,11 @@ void step()
 
     // Calibration
     {
-        Vector3f offset{-0.0082, 0.0036, 0.0131};
-        angularVelocity = angularVelocity - offset;
-        Vector3f b{9.41150, -6.49408, 19.60433};
-        Matrix3f A{{0.66017, 0, 0}, {0, 0.66299, 0}, {0, 0, 2.28477}};
-        magneticField = (magneticField + b).transpose() * A;
-    }
+        angularVelocity -= Vector3f{-0.00863, 0.00337, 0.01284};
 
-    // Rotate
-    {
-        acceleration(0)    = -acceleration(0);
-        acceleration(1)    = acceleration(1);
-        acceleration(2)    = -acceleration(2);
-        angularVelocity(0) = -angularVelocity(0);
-        angularVelocity(1) = angularVelocity(1);
-        angularVelocity(2) = -angularVelocity(2);
-        magneticField(0)   = -magneticField(0);
-        magneticField(1)   = magneticField(1);
-        magneticField(2)   = -magneticField(2);
+        Matrix3f A{{0.73726, 0, 0}, {0, 0.59599, 0}, {0, 0, 2.27584}};
+        Vector3f b{39.22325, -17.47903, -13.81505};
+        magneticField = (magneticField - b).transpose() * A;
     }
 
     if (calibrating)
@@ -209,13 +196,15 @@ void step()
 
     // Predict step
     nas->predictGyro(angularVelocity);
-    // nas->predictAcc(acceleration);
+    nas->predictAcc(acceleration);
 
     // Correct step
     magneticField.normalize();
     nas->correctMag(magneticField);
     acceleration.normalize();
     nas->correctAcc(acceleration);
+    nas->correctGPS(
+        Vector4f{Constants::B21_LATITUDE, Constants::B21_LONGITUDE, 0, 0});
     nas->correctBaro(100000);
 
     // auto nasState = nas->getState();

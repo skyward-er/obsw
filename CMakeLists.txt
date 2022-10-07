@@ -49,7 +49,7 @@ sbs_target(main-entry-roccaraso stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-entry-milano src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry-milano PRIVATE MILANO)
+target_compile_definitions(main-entry-milano PRIVATE MILANO BUZZER_LOW INTERP USE_SERIAL_TRANSCEIVER)
 sbs_target(main-entry-milano stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-entry-hil-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${HIL})
