@@ -47,8 +47,6 @@ protected:
         HILImuData tempData;
         Boardcore::Vec3 matlabData;
 
-        /* I make a copy of the vector i have to memorize in the sensor
-         * struct */
         matlabData = sensorData->accelerometer.measures[sampleCounter];
         tempData.accelerationX = matlabData.getX();
         tempData.accelerationY = matlabData.getY();
@@ -62,11 +60,8 @@ protected:
         matlabData = sensorData->magnetometer.measures[sampleCounter];
         tempData.magneticFieldX = matlabData.getX();
         tempData.magneticFieldY = matlabData.getY();
-        tempData.magneticFieldZ =
-            matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
+        tempData.magneticFieldZ = matlabData.getZ();
 
-        // only update the timestamp once and use it for all the 3 sensors
-        // (this sensor assumes the same frequency for accel, gyro and mag)
         tempData.accelerationTimestamp    = updateTimestamp();
         tempData.angularVelocityTimestamp = tempData.accelerationTimestamp;
         tempData.magneticFieldTimestamp   = tempData.accelerationTimestamp;

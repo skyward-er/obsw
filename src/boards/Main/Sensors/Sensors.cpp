@@ -295,25 +295,16 @@ Sensors::Sensors()
 
 #ifdef HILSimulation
     // Definition of the fake sensors for the simulation
-    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
-    state.barometer     = new HILBarometer(N_DATA_BARO);
-    state.pitot         = new HILPitot(N_DATA_PITOT);
-    state.gps           = new HILGps(N_DATA_GPS);
-    state.gyro          = new HILGyroscope(N_DATA_GYRO);
-    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
-    state.imu           = new HILImu(N_DATA_IMU);
-    state.temperature   = new HILTemperature(N_DATA_TEMP);
-    state.kalman        = new HILKalman(N_DATA_KALM);
+    state.barometer   = new HILBarometer(N_DATA_BARO);
+    state.pitot       = new HILPitot(N_DATA_PITOT);
+    state.gps         = new HILGps(N_DATA_GPS);
+    state.imu         = new HILImu(N_DATA_IMU);
+    state.temperature = new HILTemperature(N_DATA_TEMP);
+    state.kalman      = new HILKalman(N_DATA_KALM);
 
-    sensorsMap = {{state.accelerometer, accelConfig},
-                  {state.barometer, baroConfig},
-                  {state.pitot, pitotConfig},
-                  {state.magnetometer, magnConfig},
-                  {state.imu, imuConfig},
-                  {state.gps, gpsConfig},
-                  {state.gyro, gyroConfig},
-                  {state.temperature, tempConfig},
-                  {state.kalman, kalmConfig}};
+    sensorsMap = {{state.barometer, baroConfig},   {state.pitot, pitotConfig},
+                  {state.imu, imuConfig},          {state.gps, gpsConfig},
+                  {state.temperature, tempConfig}, {state.kalman, kalmConfig}};
 #endif
 
     // Create the sensor manager
@@ -334,12 +325,9 @@ Sensors::~Sensors()
     delete batteryVoltage;
 
 #ifdef HILSimulation
-    delete state.accelerometer;
     delete state.barometer;
     delete state.pitot;
     delete state.gps;
-    delete state.gyro;
-    delete state.magnetometer;
     delete state.imu;
     delete state.temperature;
     delete state.kalman;
@@ -396,13 +384,8 @@ void Sensors::bmx160Callback()
 
 void Sensors::bmx160WithCorrectionInit()
 {
-    // Read the correction parameters
-    BMX160CorrectionParameters correctionParameters =
-        BMX160WithCorrection::readCorrectionParametersFromFile(
-            BMX160_CORRECTION_PARAMETERS_FILE);
-
-    bmx160WithCorrection = new BMX160WithCorrection(
-        bmx160, correctionParameters, BMX160_AXIS_ROTATION);
+    bmx160WithCorrection =
+        new BMX160WithCorrection(bmx160, BMX160_AXIS_ROTATION);
 
     SensorInfo info(
         "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,

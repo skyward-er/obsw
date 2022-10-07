@@ -43,15 +43,12 @@ protected:
     {
         HILMagnetometerData tempData;
 
-        /* I make a copy of the vector i have to memorize in the sensor
-         * struct */
         Boardcore::Vec3 matlabData =
             sensorData->magnetometer.measures[sampleCounter];
 
-        tempData.magneticFieldX = matlabData.getX();
-        tempData.magneticFieldY = matlabData.getY();
-        tempData.magneticFieldZ =
-            matlabData.getZ() / 1000.0f;  // from nanotesla to microtesla
+        tempData.magneticFieldX         = matlabData.getX();
+        tempData.magneticFieldY         = matlabData.getY();
+        tempData.magneticFieldZ         = matlabData.getZ();
         tempData.magneticFieldTimestamp = updateTimestamp();
 
         Boardcore::Logger::getInstance().log(tempData);
