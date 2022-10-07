@@ -28,12 +28,12 @@ namespace Common
 Boardcore::SX1278::Config SX1278_CONFIG = {
     .freq_rf  = 412000000,
     .freq_dev = 25000,
-    .bitrate  = 38400,
+    .bitrate  = 19200,
     .rx_bw    = Boardcore::SX1278::RxBw::HZ_83300,
     .afc_bw   = Boardcore::SX1278::RxBw::HZ_125000,
     .ocp      = 120,
     .power    = 17,
-    .shaping  = Boardcore::SX1278::Shaping::GAUSSIAN_BT_0_5,
-};
+    .shaping  = Boardcore::SX1278::Shaping::GAUSSIAN_BT_1_0,
+    .dc_free  = SX1278::DcFree::WHITENING};
 
 }  // namespace Common
