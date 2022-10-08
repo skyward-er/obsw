@@ -34,6 +34,6 @@ Boardcore::SX1278::Config SX1278_CONFIG = {
     .ocp      = 120,
     .power    = 17,
     .shaping  = Boardcore::SX1278::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free  = SX1278::DcFree::WHITENING};
+    .dc_free  = Boardcore::SX1278::DcFree::WHITENING};
 
 }  // namespace Common
