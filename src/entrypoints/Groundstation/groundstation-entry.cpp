@@ -20,8 +20,10 @@
  * THE SOFTWARE.
  */
 
+#include <common/Mavlink.h>
 #include <common/SX1278Config.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
 #include <interfaces-impl/hwmapping.h>
@@ -56,33 +58,77 @@ constexpr size_t DELTA_T = 100;
 
 struct Stats
 {
-    MovingAverage<size_t, 10> tx;
-    MovingAverage<size_t, 10> rx;
+    MovingAverage<uint64_t, 10> tx;
+    MovingAverage<uint64_t, 10> rx;
 
-    size_t cur_tx  = 0;
-    size_t cur_rx  = 0;
-    int sent_count = 0;
-    int recv_count = 0;
-    float rssi     = 0.0f;
-    float fei      = 0.0f;
+    uint64_t cur_tx = 0;
+    uint64_t cur_rx = 0;
+    int sent_count  = 0;
+    int recv_count  = 0;
+    float rssi      = 0.0f;
+    float fei       = 0.0f;
 
-    size_t txBitrate() { return (tx.getAverage() * 1000) / DELTA_T; }
-    size_t rxBitrate() { return (rx.getAverage() * 1000) / DELTA_T; }
+    uint64_t txBitrate() { return (tx.getAverage() * 1000) / DELTA_T; }
+    uint64_t rxBitrate() { return (rx.getAverage() * 1000) / DELTA_T; }
+
+    mavlink_receiver_tm_t toMavlink()
+    {
+        mavlink_receiver_tm_t tm = {};
+        tm.rssi                  = rssi;
+        tm.fei                   = fei;
+        tm.tx_bitrate            = txBitrate();
+        tm.rx_bitrate            = rxBitrate();
+
+        return tm;
+    }
 } stats;
+
+void usartWriteMavlink(const mavlink_message_t &msg)
+{
+    uint8_t temp_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
+                     MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
+    int len = mavlink_msg_to_send_buffer(temp_buf, &msg);
+
+    usart->write(temp_buf, len);
+}
+
+void sendStats()
+{
+    mavlink_receiver_tm_t tm = stats.toMavlink();
+    tm.timestamp             = TimestampTimer::getTimestamp();
+
+    mavlink_message_t msg;
+    mavlink_msg_receiver_tm_encode(0, 0, &msg, &tm);
+
+    usartWriteMavlink(msg);
+}
 
 void recvLoop()
 {
-    uint8_t msg[256];
+    uint8_t buf[63];
+    mavlink_message_t msg;
+    mavlink_status_t status;
 
     while (true)
     {
-        int len    = sx1278->receive(msg, sizeof(msg));
+        int len    = sx1278->receive(buf, sizeof(msg));
         stats.rssi = sx1278->getLastRxRssi();
         stats.fei  = sx1278->getLastRxFei();
         stats.recv_count++;
         stats.cur_rx += len;
 
-        usart->write(msg, len);
+        sendStats();
+
+        for (int i = 0; i < len; i++)
+        {
+            uint8_t result =
+                mavlink_parse_char(MAVLINK_COMM_0, buf[i], &msg, &status);
+
+            if (result == 1)
+                usartWriteMavlink(msg);
+        }
+
+        // usart->write(msg, len);
     }
 }
 

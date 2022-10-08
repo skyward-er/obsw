@@ -29,7 +29,7 @@
 #include <utils/gui/ScreenManager.h>
 #include <utils/gui/VerticalLayout.h>
 
-std::string format_link_speed(size_t value)
+std::string format_link_speed(uint64_t value)
 {
     if (value > 1000000)
         return fmt::format("{:.2f} Mb/s", static_cast<float>(value) / 1000000);
@@ -54,8 +54,8 @@ class StatsScreen
 public:
     struct Data
     {
-        size_t tx_bitrate;
-        size_t rx_bitrate;
+        uint64_t tx_bitrate;
+        uint64_t rx_bitrate;
         int sent_count;
         int recv_count;
         float rssi;
