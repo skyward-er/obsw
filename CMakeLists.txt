@@ -189,6 +189,13 @@ add_executable(main-test-xbee src/tests/Main/test-xbee.cpp)
 sbs_target(main-test-xbee stm32f429zi_skyward_death_stack_v3)
 
 #-----------------------------------------------------------------------------#
+#                               Payload Computer                              #
+#-----------------------------------------------------------------------------#
+
+add_executable(payload-test-nas src/tests/Payload/test-nas.cpp)
+sbs_target(payload-test-nas stm32f429zi_skyward_death_stack_x)
+
+#-----------------------------------------------------------------------------#
 #                              Auxiliary Computer                             #
 #-----------------------------------------------------------------------------#
 
