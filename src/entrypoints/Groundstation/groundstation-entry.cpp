@@ -44,6 +44,8 @@ SX1278 *sx1278 = nullptr;
 USART *usart   = nullptr;
 GUI *gui       = nullptr;
 
+Mutex usart_mutex;
+
 #ifdef USE_RA01_PC13
 void __attribute__((used)) EXTI6_IRQHandlerImpl()
 #else
@@ -54,7 +56,7 @@ void __attribute__((used)) EXTI3_IRQHandlerImpl()
         sx1278->handleDioIRQ();
 }
 
-constexpr size_t DELTA_T = 100;
+constexpr size_t STATS_PERIOD = 250;
 
 struct Stats
 {
@@ -68,8 +70,8 @@ struct Stats
     float rssi      = 0.0f;
     float fei       = 0.0f;
 
-    uint64_t txBitrate() { return (tx.getAverage() * 1000) / DELTA_T; }
-    uint64_t rxBitrate() { return (rx.getAverage() * 1000) / DELTA_T; }
+    uint64_t txBitrate() { return (tx.getAverage() * 1000) / STATS_PERIOD; }
+    uint64_t rxBitrate() { return (rx.getAverage() * 1000) / STATS_PERIOD; }
 
     mavlink_receiver_tm_t toMavlink()
     {
@@ -85,6 +87,8 @@ struct Stats
 
 void usartWriteMavlink(const mavlink_message_t &msg)
 {
+    Lock<Mutex> lock(usart_mutex);
+
     uint8_t temp_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
                      MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
     int len = mavlink_msg_to_send_buffer(temp_buf, &msg);
@@ -116,8 +120,6 @@ void recvLoop()
         stats.fei  = sx1278->getLastRxFei();
         stats.recv_count++;
         stats.cur_rx += len;
-
-        sendStats();
 
         for (int i = 0; i < len; i++)
         {
@@ -221,6 +223,8 @@ int main()
 
     while (true)
     {
+        long long start = miosix::getTick();
+
         stats.tx.push(stats.cur_tx);
         stats.rx.push(stats.cur_rx);
         stats.cur_rx = 0;
@@ -234,6 +238,8 @@ int main()
                                   stats.fei};
 
         gui->stats_screen.updateStats(data);
-        Thread::sleep(DELTA_T);
+        sendStats();
+
+        Thread::sleepUntil(start + STATS_PERIOD);
     }
 }
