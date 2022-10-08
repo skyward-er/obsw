@@ -80,7 +80,6 @@ void NASController::update()
     }
 
 #ifdef HILSimulation
-    // useful only for hil testing
     updateData(nas.getState());
 #endif  // HILSimulation
 }
