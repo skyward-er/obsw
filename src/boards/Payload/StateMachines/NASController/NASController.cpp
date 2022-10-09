@@ -70,8 +70,13 @@ void NASController::update()
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
 
-        // TODO: Add accelerometer correction until the acceleration goes out of
-        // specs
+        // Correct with accelerometer if the acceleration is in specs
+        Vector3f acceleration = static_cast<AccelerometerData>(imuData);
+        if (acceleration.norm() > (9.8 + ACCELERATION_THRESHOLD) ||
+            acceleration.norm() < (9.8 - ACCELERATION_THRESHOLD))
+            accelerationValid = false;
+        if (accelerationValid)
+            nas.correctAcc(imuData);
 
         Logger::getInstance().log(nas.getState());
         FlightStatsRecorder::getInstance().update(nas.getState());
@@ -80,7 +85,8 @@ void NASController::update()
 
 void NASController::calibrate()
 {
-    Vector3f acceleration, magneticField;
+    Vector3f acceleration  = Vector3f::Zero();
+    Vector3f magneticField = Vector3f::Zero();
     Stats pressure;
 
     for (int i = 0; i < CALIBRATION_SAMPLES_COUNT; i++)
@@ -248,6 +254,8 @@ void NASController::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
+            accelerationValid = true;
+
             return logStatus(NASControllerState::READY);
         }
         case NAS_CALIBRATE:

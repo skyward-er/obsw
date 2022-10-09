@@ -69,6 +69,7 @@ private:
     Boardcore::NAS nas;
 
     Eigen::Vector3f initialOrientation;
+    bool accelerationValid = true;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 };

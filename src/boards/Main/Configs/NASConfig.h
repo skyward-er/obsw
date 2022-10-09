@@ -37,6 +37,8 @@ constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
 constexpr int CALIBRATION_SAMPLES_COUNT = 20;
 constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
 
+constexpr float ACCELERATION_THRESHOLD = 0.5;  // [m/s^2]
+
 static const Boardcore::NASConfig config = {
     UPDATE_PERIOD / 1000.0,          // T
     0.0001f,                         // SIGMA_BETA
