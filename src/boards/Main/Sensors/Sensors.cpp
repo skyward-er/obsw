@@ -283,7 +283,7 @@ Sensors::Sensors()
     dplPressureInit();
 
     // Problems on the signal still not solved
-    // loadCellInit();
+    loadCellInit();
 
     batteryVoltageInit();
     internalAdcInit();
@@ -468,6 +468,8 @@ void Sensors::vn100Init()
                     [&]()
                     { Logger::getInstance().log(vn100->getLastSample()); });
     sensorsMap.emplace(make_pair(vn100, info));
+
+    LOG_INFO(logger, "VN100 setup done!");
 }
 
 void Sensors::ads131m04Init()
