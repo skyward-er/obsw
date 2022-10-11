@@ -594,6 +594,8 @@ State FlightModeManager::state_mission_ended(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(FlightModeManagerState::MISSION_ENDED);
+
             Actuators::getInstance().buzzerLanded();
             Logger::getInstance().stop();
 
