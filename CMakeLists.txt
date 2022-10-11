@@ -39,7 +39,7 @@ sbs_target(auxiliary-entry stm32f429zi_skyward_pyxis_auxiliary)
 
 add_executable(main-entry-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry-euroc PRIVATE EUROC BUZZER_LOW INTERP)
+target_compile_definitions(main-entry-euroc PRIVATE EUROC INTERP)
 sbs_target(main-entry-euroc stm32f429zi_skyward_death_stack_v3)
 
 add_executable(main-entry-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
