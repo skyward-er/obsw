@@ -166,6 +166,7 @@
         "telecommands",
         "TMTC",
         "tparam",
+        "Ublox",
         "UBXGPS",
         "usart",
         "VREF",
