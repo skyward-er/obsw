@@ -26,7 +26,7 @@ namespace Common
 {
 
 Boardcore::SX1278::Config SX1278_CONFIG = {
-    .freq_rf  = 412000000,
+    .freq_rf  = 422075000,
     .freq_dev = 25000,
     .bitrate  = 19200,
     .rx_bw    = Boardcore::SX1278::RxBw::HZ_83300,
