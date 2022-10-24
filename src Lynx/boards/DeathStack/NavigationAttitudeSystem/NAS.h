@@ -212,19 +212,19 @@ NASData NAS<IMU, Press, GPS>::sampleImpl()
 
     // update ekf with new accel and gyro measures
     if (imu_data.accelerationTimestamp != last_accel_timestamp &&
-        imu_data.angularVelocityTimestamp != last_gyro_timestamp)
+        imu_data.angularSpeedTimestamp != last_gyro_timestamp)
     {
         last_accel_timestamp = imu_data.accelerationTimestamp;
-        last_gyro_timestamp  = imu_data.angularVelocityTimestamp;
+        last_gyro_timestamp  = imu_data.angularSpeedTimestamp;
 
         Eigen::Vector3f accel_readings(imu_data.accelerationX,
                                        imu_data.accelerationY,
                                        imu_data.accelerationZ);
         filter.predict(accel_readings);
 
-        Eigen::Vector3f gyro_readings(imu_data.angularVelocityX,
-                                      imu_data.angularVelocityY,
-                                      imu_data.angularVelocityZ);
+        Eigen::Vector3f gyro_readings(imu_data.angularSpeedX,
+                                      imu_data.angularSpeedY,
+                                      imu_data.angularSpeedZ);
         filter.predictMEKF(gyro_readings);
     }
 

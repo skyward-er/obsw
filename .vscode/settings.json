@@ -114,7 +114,9 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "BiasCorrector.C": "cpp"
+        "BiasCorrector.C": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp"
     },
     "editor.formatOnSave": true,
     "[c]": {

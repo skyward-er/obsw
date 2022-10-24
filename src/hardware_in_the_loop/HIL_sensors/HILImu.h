@@ -52,19 +52,19 @@ protected:
         tempData.accelerationY = matlabData.getY();
         tempData.accelerationZ = matlabData.getZ();
 
-        matlabData                = sensorData->gyro.measures[sampleCounter];
-        tempData.angularVelocityX = matlabData.getX();
-        tempData.angularVelocityY = matlabData.getY();
-        tempData.angularVelocityZ = matlabData.getZ();
+        matlabData             = sensorData->gyro.measures[sampleCounter];
+        tempData.angularSpeedX = matlabData.getX();
+        tempData.angularSpeedY = matlabData.getY();
+        tempData.angularSpeedZ = matlabData.getZ();
 
         matlabData = sensorData->magnetometer.measures[sampleCounter];
         tempData.magneticFieldX = matlabData.getX();
         tempData.magneticFieldY = matlabData.getY();
         tempData.magneticFieldZ = matlabData.getZ();
 
-        tempData.accelerationTimestamp    = updateTimestamp();
-        tempData.angularVelocityTimestamp = tempData.accelerationTimestamp;
-        tempData.magneticFieldTimestamp   = tempData.accelerationTimestamp;
+        tempData.accelerationTimestamp  = updateTimestamp();
+        tempData.angularSpeedTimestamp  = tempData.accelerationTimestamp;
+        tempData.magneticFieldTimestamp = tempData.accelerationTimestamp;
 
         Boardcore::Logger::getInstance().log(tempData);
 

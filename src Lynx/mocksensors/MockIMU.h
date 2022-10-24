@@ -54,10 +54,10 @@ public:
         data.accelerationY         = ACCEL_DATA[index][1];
         data.accelerationZ         = ACCEL_DATA[index][2];
 
-        data.angularVelocityTimestamp = t;
-        data.angularVelocityX         = GYRO_DATA[index][0];
-        data.angularVelocityY         = GYRO_DATA[index][1];
-        data.angularVelocityZ         = GYRO_DATA[index][2];
+        data.angularSpeedTimestamp = t;
+        data.angularSpeedX         = GYRO_DATA[index][0];
+        data.angularSpeedY         = GYRO_DATA[index][1];
+        data.angularSpeedZ         = GYRO_DATA[index][2];
 
         data.magneticFieldTimestamp = t;
         data.magneticFieldX         = MAG_DATA[index][0];

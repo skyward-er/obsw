@@ -53,8 +53,8 @@ struct HILGyroscopeData : public GyroscopeData
 
     void print(std::ostream& os) const
     {
-        os << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << "\n";
+        os << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << "\n";
     }
 };
 
@@ -90,8 +90,8 @@ struct HILImuData : public HILAccelData,
     {
         os << accelerationTimestamp << "," << accelerationX << ","
            << accelerationY << "," << accelerationZ << ","
-           << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << ","
+           << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << ","
            << magneticFieldTimestamp << "," << magneticFieldX << ","
            << magneticFieldY << "," << magneticFieldZ << "\n";
     }

@@ -62,9 +62,8 @@ void NASController::update()
     // Extrapolate all the data
     Eigen::Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                                  imuData.accelerationZ);
-    Eigen::Vector3f angularVelocity(imuData.angularVelocityX,
-                                    imuData.angularVelocityY,
-                                    imuData.angularVelocityZ);
+    Eigen::Vector3f angularSpeed(imuData.angularSpeedX, imuData.angularSpeedY,
+                                 imuData.angularSpeedZ);
     Eigen::Vector3f magneticField(
         imuData.magneticFieldX, imuData.magneticFieldY, imuData.magneticFieldZ);
 
@@ -81,7 +80,7 @@ void NASController::update()
         Eigen::Vector3f biasAcc(-0.1255, 0.2053, -0.2073);
         acceleration -= biasAcc;
         Eigen::Vector3f bias(-0.0291, 0.0149, 0.0202);
-        angularVelocity -= bias;
+        angularSpeed -= bias;
         Eigen::Vector3f offset(15.9850903462129, -15.6775071377074,
                                -33.8438469147423);
         magneticField -= offset;
@@ -89,7 +88,7 @@ void NASController::update()
     }
 
     // Predict step
-    nas.predictGyro(angularVelocity);
+    nas.predictGyro(angularSpeed);
     if (gpsPos[0] < 1e3 && gpsPos[0] > -1e3 && gpsPos[1] < 1e3 &&
         gpsPos[1] > -1e3)
         nas.predictAcc(acceleration);

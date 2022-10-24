@@ -159,14 +159,14 @@ void step()
 
     Vector3f acceleration(imuData.accelerationX, imuData.accelerationY,
                           imuData.accelerationZ);
-    Vector3f angularVelocity(imuData.angularVelocityX, imuData.angularVelocityY,
-                             imuData.angularVelocityZ);
+    Vector3f angularSpeed(imuData.angularSpeedX, imuData.angularSpeedY,
+                          imuData.angularSpeedZ);
     Vector3f magneticField(imuData.magneticFieldX, imuData.magneticFieldY,
                            imuData.magneticFieldZ);
 
     // Calibration
     {
-        angularVelocity -= Vector3f{-0.00863, 0.00337, 0.01284};
+        angularSpeed -= Vector3f{-0.00863, 0.00337, 0.01284};
 
         Matrix3f A{{0.73726, 0, 0}, {0, 0.59599, 0}, {0, 0, 2.27584}};
         Vector3f b{39.22325, -17.47903, -13.81505};
@@ -195,7 +195,7 @@ void step()
     }
 
     // Predict step
-    nas->predictGyro(angularVelocity);
+    nas->predictGyro(angularSpeed);
     nas->predictAcc(acceleration);
 
     // Correct step
@@ -220,9 +220,9 @@ void print()
     auto nasState = nas->getState();
     // auto imuData  = imu->getLastSample();
 
-    // printf("%f, %f, %f\n", imuData.angularVelocityX,
-    // imuData.angularVelocityY,
-    //        imuData.angularVelocityZ);
+    // printf("%f, %f, %f\n", imuData.angularSpeedX,
+    // imuData.angularSpeedY,
+    //        imuData.angularSpeedZ);
 
     // printf("%f, %f, %f, %f, %f, %f\n", nasState.n, nasState.e, nasState.d,
     //        nasState.vn, nasState.ve, baroData.pressure);

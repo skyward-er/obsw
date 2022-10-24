@@ -77,18 +77,18 @@ BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
     auto imuData = state.imu->getLastSample();
     BMX160WithCorrectionData data;
 
-    data.accelerationTimestamp    = imuData.accelerationTimestamp;
-    data.accelerationX            = imuData.accelerationX;
-    data.accelerationY            = imuData.accelerationY;
-    data.accelerationZ            = imuData.accelerationZ;
-    data.angularVelocityTimestamp = imuData.angularVelocityTimestamp;
-    data.angularVelocityX         = imuData.angularVelocityX;
-    data.angularVelocityY         = imuData.angularVelocityY;
-    data.angularVelocityZ         = imuData.angularVelocityZ;
-    data.magneticFieldTimestamp   = imuData.magneticFieldTimestamp;
-    data.magneticFieldX           = imuData.magneticFieldX;
-    data.magneticFieldY           = imuData.magneticFieldY;
-    data.magneticFieldZ           = imuData.magneticFieldZ;
+    data.accelerationTimestamp  = imuData.accelerationTimestamp;
+    data.accelerationX          = imuData.accelerationX;
+    data.accelerationY          = imuData.accelerationY;
+    data.accelerationZ          = imuData.accelerationZ;
+    data.angularSpeedTimestamp  = imuData.angularSpeedTimestamp;
+    data.angularSpeedX          = imuData.angularSpeedX;
+    data.angularSpeedY          = imuData.angularSpeedY;
+    data.angularSpeedZ          = imuData.angularSpeedZ;
+    data.magneticFieldTimestamp = imuData.magneticFieldTimestamp;
+    data.magneticFieldX         = imuData.magneticFieldX;
+    data.magneticFieldY         = imuData.magneticFieldY;
+    data.magneticFieldZ         = imuData.magneticFieldZ;
 
     return data;
 #endif

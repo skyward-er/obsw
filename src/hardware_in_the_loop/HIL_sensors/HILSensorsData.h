@@ -41,13 +41,13 @@ struct HILGyroscopeData : public Boardcore::GyroscopeData
 {
     static std::string header()
     {
-        return "timestamp,angularVelocityX,angularVelocityY,angularVelocityZ\n";
+        return "timestamp,angularSpeedX,angularSpeedY,angularSpeedZ\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << "\n";
+        os << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << "\n";
     }
 };
 
@@ -72,8 +72,8 @@ struct HILImuData : public HILAccelData,
     static std::string header()
     {
         return "accelerationTimestamp,accelerationX,accelerationY,"
-               "accelerationZ,angularVelocityTimestamp,angularVelocityX,"
-               "angularVelocityY,angularVelocityZ,magneticFieldTimestamp,"
+               "accelerationZ,angularSpeedTimestamp,angularSpeedX,"
+               "angularSpeedY,angularSpeedZ,magneticFieldTimestamp,"
                "magneticFieldX,magneticFieldY,magneticFieldZ\n";
     }
 
@@ -81,8 +81,8 @@ struct HILImuData : public HILAccelData,
     {
         os << accelerationTimestamp << "," << accelerationX << ","
            << accelerationY << "," << accelerationZ << ","
-           << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << ","
+           << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << ","
            << magneticFieldTimestamp << "," << magneticFieldX << ","
            << magneticFieldY << "," << magneticFieldZ << "\n";
     }

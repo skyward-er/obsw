@@ -47,10 +47,10 @@ protected:
          * struct */
         Boardcore::Vec3 matlabData = sensorData->gyro.measures[sampleCounter];
 
-        tempData.angularVelocityX         = matlabData.getX();
-        tempData.angularVelocityY         = matlabData.getY();
-        tempData.angularVelocityZ         = matlabData.getZ();
-        tempData.angularVelocityTimestamp = updateTimestamp();
+        tempData.angularSpeedX         = matlabData.getX();
+        tempData.angularSpeedY         = matlabData.getY();
+        tempData.angularSpeedZ         = matlabData.getZ();
+        tempData.angularSpeedTimestamp = updateTimestamp();
 
         Boardcore::Logger::getInstance().log(tempData);
 

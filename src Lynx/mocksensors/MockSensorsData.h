@@ -39,8 +39,8 @@ struct MockIMUData : public Boardcore::AccelerometerData,
     {
         os << accelerationTimestamp << "," << accelerationX << ","
            << accelerationY << "," << accelerationZ << ","
-           << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << ","
+           << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << ","
            << magneticFieldTimestamp << "," << magneticFieldX << ","
            << magneticFieldY << "," << magneticFieldZ << "\n";
     }

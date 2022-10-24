@@ -179,9 +179,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList reqTm)
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;
             tm.acc_z  = imuData.accelerationZ;
-            tm.gyro_x = imuData.angularVelocityX;
-            tm.gyro_y = imuData.angularVelocityY;
-            tm.gyro_z = imuData.angularVelocityZ;
+            tm.gyro_x = imuData.angularSpeedX;
+            tm.gyro_y = imuData.angularSpeedY;
+            tm.gyro_z = imuData.angularSpeedZ;
             tm.mag_x  = imuData.magneticFieldX;
             tm.mag_y  = imuData.magneticFieldY;
             tm.mag_z  = imuData.magneticFieldZ;
@@ -313,9 +313,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList reqTm)
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;
             tm.acc_z  = imuData.accelerationZ;
-            tm.gyro_x = imuData.angularVelocityX;
-            tm.gyro_y = imuData.angularVelocityY;
-            tm.gyro_z = imuData.angularVelocityZ;
+            tm.gyro_x = imuData.angularSpeedX;
+            tm.gyro_y = imuData.angularSpeedY;
+            tm.gyro_z = imuData.angularSpeedZ;
             tm.mag_x  = imuData.magneticFieldX;
             tm.mag_y  = imuData.magneticFieldY;
             tm.mag_z  = imuData.magneticFieldZ;

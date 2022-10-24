@@ -83,9 +83,9 @@ int main()
         stats[0].add(data.magneticFieldX);
         stats[1].add(data.magneticFieldY);
         stats[2].add(data.magneticFieldZ);
-        stats[3].add(data.angularVelocityX);
-        stats[4].add(data.angularVelocityY);
-        stats[5].add(data.angularVelocityZ);
+        stats[3].add(data.angularSpeedX);
+        stats[4].add(data.angularSpeedY);
+        stats[5].add(data.angularSpeedZ);
         stats[6].add(data.accelerationX);
         stats[7].add(data.accelerationY);
         stats[8].add(data.accelerationZ);
@@ -110,9 +110,8 @@ int main()
         MPU9250Data data = mpu9250.getLastSample();
         printf("%lld,%f,%f,%f;", data.accelerationTimestamp, data.accelerationX,
                data.accelerationY, data.accelerationZ);
-        printf("%lld,%f,%f,%f;", data.angularVelocityTimestamp,
-               data.angularVelocityX, data.angularVelocityY,
-               data.angularVelocityZ);
+        printf("%lld,%f,%f,%f;", data.angularSpeedTimestamp, data.angularSpeedX,
+               data.angularSpeedY, data.angularSpeedZ);
         printf("%lld,%f,%f,%f\n", data.magneticFieldTimestamp,
                data.magneticFieldX, data.magneticFieldY, data.magneticFieldZ);
 
