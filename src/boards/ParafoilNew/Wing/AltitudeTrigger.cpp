@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,8 +58,26 @@ void AltitudeTrigger::setDeploymentAltitude(float alt)
 
 void AltitudeTrigger::update()
 {
-    if (FlightModeManager::getInstance().getStatus().state ==
-        FlightModeManagerState::DROGUE_DESCENT)
+    FlightModeManagerState status =
+        FlightModeManager::getInstance().getStatus().state;
+
+    if (status == FlightModeManagerState::ASCENDING)
+    {
+        NASState state = NASController::getInstance().getNasState();
+
+        if (-state.d > altitude)
+            confidence++;
+
+        // When we are sure that the altitude is below the set one we trigger
+        // the cutters
+        if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
+        {
+            confidence = 0;
+            EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
+                                            TOPIC_FLIGHT);
+        }
+    }
+    else if (status == FlightModeManagerState::DROGUE_DESCENT)
     {
         NASState state = NASController::getInstance().getNasState();
 
@@ -73,6 +91,8 @@ void AltitudeTrigger::update()
             confidence = 0;
             EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
                                             TOPIC_FLIGHT);
+            BoardScheduler::getInstance().getScheduler().removeTask(
+                WING_ALTITUDE_CHECKER_TASK_ID);
         }
     }
 }

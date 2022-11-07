@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
 {
     this->servo1 = servo1;
     this->servo2 = servo2;
+    stepIndex    = 0;
 }
 
 bool WingAlgorithm::init()
@@ -67,9 +68,7 @@ void WingAlgorithm::end()
 
 void WingAlgorithm::step()
 {
-    // Variable to remember what is the step that has to be done
-    static unsigned int stepIndex = 0;
-    uint64_t currentTimestamp     = TimestampTimer::getTimestamp();
+    uint64_t currentTimestamp = TimestampTimer::getTimestamp();
 
     if (shouldReset)
     {

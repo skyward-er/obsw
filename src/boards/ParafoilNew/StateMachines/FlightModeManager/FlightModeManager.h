@@ -39,7 +39,7 @@ public:
     FlightModeManagerStatus getStatus();
 
     /// Super state for when the payload is on ground.
-    // Boardcore::State state_on_ground(const Boardcore::Event& event);
+    Boardcore::State state_on_ground(const Boardcore::Event& event);
 
     /// Initialization state.
     Boardcore::State state_init(const Boardcore::Event& event);
@@ -54,13 +54,13 @@ public:
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
     /// The rocket is ready for the ARM command.
-    // Boardcore::State state_disarmed(const Boardcore::Event& event);
+    Boardcore::State state_disarmed(const Boardcore::Event& event);
 
     /// The rocket will accept specific telecommands otherwise considered risky.
     Boardcore::State state_test_mode(const Boardcore::Event& event);
 
     /// The rocket is ready for the liftoff.
-    // Boardcore::State state_armed(const Boardcore::Event& event);
+    Boardcore::State state_armed(const Boardcore::Event& event);
 
     /// Super state for when the payload is in the air.
     Boardcore::State state_flying(const Boardcore::Event& event);

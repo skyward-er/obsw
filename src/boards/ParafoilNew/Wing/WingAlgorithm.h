@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,9 @@ protected:
     // In case of end call, we want to be able to perform
     // another time this algorithm starting from 0
     bool shouldReset = false;
+
+    // Variable to remember what step that has to be done
+    unsigned int stepIndex;
 
     /**
      * @brief This method implements the algorithm step based on the current

@@ -20,20 +20,17 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/Actuators/Actuators.h>
-#include <Payload/BoardScheduler.h>
-#include <Payload/CanHandler/CanHandler.h>
-#include <Payload/Configs/SensorsConfig.h>
-#include <Payload/PinHandler/PinHandler.h>
-#include <Payload/Radio/Radio.h>
-#include <Payload/Sensors/Sensors.h>
-#include <Payload/StateMachines/Deployment/Deployment.h>
-#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Payload/StateMachines/NASController/NASController.h>
-#include <Payload/Wing/AltitudeTrigger.h>
-#include <Payload/Wing/AutomaticWingAlgorithm.h>
-#include <Payload/Wing/FileWingAlgorithm.h>
-#include <Payload/Wing/WingController.h>
+#include <ParafoilNew/Actuators/Actuators.h>
+#include <ParafoilNew/BoardScheduler.h>
+#include <ParafoilNew/Configs/SensorsConfig.h>
+#include <ParafoilNew/Radio/Radio.h>
+#include <ParafoilNew/Sensors/Sensors.h>
+#include <ParafoilNew/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <ParafoilNew/StateMachines/NASController/NASController.h>
+#include <ParafoilNew/Wing/AltitudeTrigger.h>
+#include <ParafoilNew/Wing/AutomaticWingAlgorithm.h>
+#include <ParafoilNew/Wing/FileWingAlgorithm.h>
+#include <ParafoilNew/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -105,24 +102,11 @@ int main()
         LOG_ERR(logger, "Error starting the radio");
     }
 
-    // Start the can interface
-    if (!CanHandler::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the CAN interface");
-    }
-
     // Start the state machines
     if (!FlightModeManager::getInstance().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
-    }
-
-    if (!Deployment::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the deployment state machine");
     }
 
     if (!NASController::getInstance().start())
@@ -136,14 +120,6 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");
-    }
-
-    // Start the pin handler and observer
-    PinHandler::getInstance();
-    if (!PinObserver::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the PinObserver");
     }
 
     // Start the trigger watcher

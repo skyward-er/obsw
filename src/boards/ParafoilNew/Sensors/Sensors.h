@@ -134,13 +134,14 @@ private:
 
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
-    Boardcore::MS5803* ms5803;
+    Boardcore::MS5803* ms5803;  // barometro digitale
     Boardcore::UBXGPSSerial* ubxGps;
 
-    Boardcore::ADS1118* ads1118;
+    Boardcore::ADS1118* ads1118;  // adc
     Boardcore::MPXHZ6130A* staticPressure;
     Boardcore::SSCDANN030PAA* dplPressure;
     Boardcore::SSCDRRN015PDA* pitotPressure;
+
     Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
     Boardcore::BatteryVoltageSensor* batteryVoltage;
