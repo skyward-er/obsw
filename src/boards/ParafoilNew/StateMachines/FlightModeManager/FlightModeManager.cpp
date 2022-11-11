@@ -23,7 +23,9 @@
 #include "FlightModeManager.h"
 
 #include <ParafoilNew/Configs/FlightModeManagerConfig.h>
+#include <ParafoilNew/Configs/WingConfig.h>
 #include <ParafoilNew/Sensors/Sensors.h>
+#include <ParafoilNew/Wing/WindPrediction.h>
 #include <ParafoilNew/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -249,7 +251,6 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_ENTRY:
         {
             static uint16_t missionTimeoutEventId = -1;
-            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             missionTimeoutEventId =
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
@@ -272,6 +273,13 @@ State FlightModeManager::state_flying(const Event& event)
         {
             WingController::getInstance().stop();
             return transition(&FlightModeManager::state_mission_ended);
+        }
+        case TMTC_FORCE_LANDING:
+        {
+            WingController::getInstance().stop();
+            EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
+                                            TOPIC_FLIGHT);
+            return HANDLED;
         }
         default:
         {
@@ -338,7 +346,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case FLIGHT_WING_ALT_REACHED:
         case TMTC_FORCE_MAIN:
         {
-            return transition(&FlightModeManager::state_terminal_descent);
+            return transition(&FlightModeManager::state_twirling);
         }
         default:
         {
@@ -347,13 +355,68 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     }
 }
 
-State FlightModeManager::state_terminal_descent(const Event& event)
+State FlightModeManager::state_twirling(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::TERMINAL_DESCENT);
+            logStatus(FlightModeManagerState::TWIRLING);
+            /*
+                        static uint16_t missionTimeoutEventId = -1;
+                        missionTimeoutEventId =
+                            EventBroker::getInstance().postDelayed<FLIGHT_WIND_PREDICTION>(
+                                WingConfig::WIND_PREDICTION_TIMEOUT+1000,
+               TOPIC_FLIGHT); missionTimeoutEventId = EventBroker::getInstance()
+                                .postDelayed<FLIGHT_WIND_PREDICTION_CALIBRATION>(
+                                    WingConfig::WIND_PREDICTION_CALIBRATION_TIMEOUT+1000,
+                                    TOPIC_FLIGHT);*/
+
+            // start twirling and the 1st algorithm
+            WingController::getInstance().stop();
+            Actuators::getInstance().startTwirl();
+            WindPrediction::getInstance().startWindPredictionCalibration();
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_flying);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case FLIGHT_WIND_PREDICTION:
+        {
+            Actuators::getInstance().stopTwirl();
+            // now we begin the controlled part of the descent
+            return transition(&FlightModeManager::state_controlled_descent);
+        }
+        case FLIGHT_WIND_PREDICTION_CALIBRATION:
+        {
+            WindPrediction::getInstance().stopWindPredictionCalibration();
+            WindPrediction::getInstance().startWindPrediction();
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FlightModeManager::state_controlled_descent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(FlightModeManagerState::CONTROLLED_DESCENT);
 
             WingController::getInstance().start();
             return HANDLED;
@@ -370,17 +433,10 @@ State FlightModeManager::state_terminal_descent(const Event& event)
         {
             return HANDLED;
         }
-        case TMTC_FORCE_LANDING:
+        case FLIGHT_TWIRL:
         {
             WingController::getInstance().stop();
-            EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
-                                            TOPIC_FLIGHT);
-            return HANDLED;
-        }
-        case FLIGHT_LANDING_DETECTED:
-        {
-            WingController::getInstance().stop();
-            return transition(&FlightModeManager::state_landed);
+            return transition(&FlightModeManager::state_twirling);
         }
         default:
         {

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,14 +81,15 @@ void WingController::start()
     // algorithms array is not empty i start the whole thing
     if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
     {
+        // Register the task
+        BoardScheduler::getInstance().getScheduler().addTask(
+            std::bind(&WingController::update, this), WING_UPDATE_PERIOD,
+            WING_CONTROLLER_ID);
         // Set the boolean that enables the update method to true
         running = true;
 
         // Begin the selected algorithm
         algorithms[selectedAlgorithm]->begin();
-
-        // In case i start also the task scheduler
-        // scheduler->start();
 
         LOG_INFO(logger, "Wing algorithm started");
     }
@@ -96,12 +97,18 @@ void WingController::start()
 
 void WingController::stop()
 {
-    // Set running to false so that the update method doesn't act
-    running = false;
-    // Stop the algorithm if selected
-    if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+    if (running)
     {
-        algorithms[selectedAlgorithm]->end();
+        // Set running to false so that the update method doesn't act
+        running = false;
+        // Stop the algorithm if selected
+        if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+        {
+            algorithms[selectedAlgorithm]->end();
+            // Remove the task
+            BoardScheduler::getInstance().getScheduler().removeTask(
+                WING_CONTROLLER_ID);
+        }
     }
 }
 
@@ -143,11 +150,6 @@ void WingController::update()
 
 void WingController::init()
 {
-    // Register the task
-    BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WingController::update, this), WING_UPDATE_PERIOD,
-        WING_CONTROLLER_ID);
-
     // Set the target position to the default one
     targetPosition[0] = DEFAULT_TARGET_LAT;
     targetPosition[1] = DEFAULT_TARGET_LON;

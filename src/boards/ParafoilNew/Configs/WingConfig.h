@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,19 @@ namespace WingConfig
 // Algorithm configuration
 constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
 constexpr uint8_t WING_CONTROLLER_ID  = 100;
+constexpr uint32_t WIND_PREDICTION_CALIBRATION_TIMEOUT =
+    20 * 1000;  // time needed for the first loop [ms]
+constexpr uint32_t WIND_PREDICTION_TIMEOUT =
+    2 * WIND_PREDICTION_CALIBRATION_TIMEOUT;
+
+constexpr int WIND_CALIBRATION_SAMPLE_NUMBER = 20;
+
+constexpr uint32_t WIND_CALIBRATION_UPDATE_PERIOD =
+    (WIND_PREDICTION_CALIBRATION_TIMEOUT) / WIND_CALIBRATION_SAMPLE_NUMBER -
+    10;  //[ms]
+constexpr uint8_t WIND_CALIBRATION_ID            = 101;
+constexpr uint32_t WIND_PREDICTION_UPDATE_PERIOD = 100;  //[ms]
+constexpr uint8_t WING_PREDICTION_ID             = 102;
 
 // Arm, start and flare thresholds
 constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;  // [m]

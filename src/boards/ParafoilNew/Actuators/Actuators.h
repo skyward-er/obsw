@@ -30,69 +30,54 @@
 namespace Payload
 {
 
-    struct Actuators : public Boardcore::Singleton<Actuators>
-    {
-        friend class Boardcore::Singleton<Actuators>;
+struct Actuators : public Boardcore::Singleton<Actuators>
+{
+    friend class Boardcore::Singleton<Actuators>;
 
-        /**
-         * @brief Moves the specified servo to the given position.
-         *
-         * @param servoId Servo to move.
-         * @param percentage Angle to set [0-1].
-         * @return True if the the angle was set.
-         */
-        bool setServo(ServosList servoId, float percentage);
+    /**
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param percentage Angle to set [0-1].
+     * @return True if the the angle was set.
+     */
+    bool setServo(ServosList servoId, float percentage);
 
-        /**
-         * @brief Moves the specified servo to the given position.
-         *
-         * @param servoId Servo to move.
-         * @param angle Angle to set [degree].
-         * @return True if the the angle was set.
-         */
-        bool setServoAngle(ServosList servoId, float angle);
+    /**
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param angle Angle to set [degree].
+     * @return True if the the angle was set.
+     */
+    bool setServoAngle(ServosList servoId, float angle);
 
-        /**
-         * @brief Wiggles the servo for few seconds.
-         *
-         * @param servoId Servo to move.
-         * @return true
-         * @return false
-         */
-        bool wiggleServo(ServosList servoId);
+    /**
+     * @brief Wiggles the servo for few seconds.
+     *
+     * @param servoId Servo to move.
+     * @return true
+     * @return false
+     */
+    bool wiggleServo(ServosList servoId);
 
-        bool enableServo(ServosList servoId);
+    bool enableServo(ServosList servoId);
 
-        bool disableServo(ServosList servoId);
+    bool disableServo(ServosList servoId);
 
-        float getServoPosition(ServosList servoId);
+    float getServoPosition(ServosList servoId);
 
-        float getServoAngle(ServosList servoId);
+    float getServoAngle(ServosList servoId);
 
-        // not needed
-        /*
-            void cuttersOn();
-            void cuttersOff();
+    void startTwirl();
 
-            void camOn();
-            void camOff();
+    void stopTwirl();
 
-            void ledArmed(); //led maybe??
-            void ledDisarmed();
-            void ledError();
-            void ledOff();
-            */
+private:
+    Actuators();
 
-    private:
-        Actuators();
+    Boardcore::Servo leftServo;
+    Boardcore::Servo rightServo;
+};
 
-        void toggleLed();
-
-        Boardcore::Servo leftServo;
-        Boardcore::Servo rightServo;
-
-        bool ledState = false;
-        uint8_t ledTaskId = 0;
-    };
-
-} // namespace Payload
+}  // namespace Payload

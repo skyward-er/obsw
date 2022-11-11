@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro & Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,23 +44,14 @@ public:
     /// Initialization state.
     Boardcore::State state_init(const Boardcore::Event& event);
 
-    /// State in which the init has failed.
-    Boardcore::State state_init_error(const Boardcore::Event& event);
-
     /// Calibration of all sensors.
     Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
 
     /// Calibration of all algorithms.
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
-    /// The rocket is ready for the ARM command.
-    Boardcore::State state_disarmed(const Boardcore::Event& event);
-
     /// The rocket will accept specific telecommands otherwise considered risky.
-    Boardcore::State state_test_mode(const Boardcore::Event& event);
-
-    /// The rocket is ready for the liftoff.
-    Boardcore::State state_armed(const Boardcore::Event& event);
+    // Boardcore::State state_test_mode(const Boardcore::Event& event);
 
     /// Super state for when the payload is in the air.
     Boardcore::State state_flying(const Boardcore::Event& event);
@@ -71,8 +62,11 @@ public:
     /// Between drogue and parafoil deployment.
     Boardcore::State state_drogue_descent(const Boardcore::Event& event);
 
+    /// State in which the wind prediction algorithm is triggered
+    Boardcore::State state_twirling(const Boardcore::Event& event);
+
     /// State in which the wing algorithm is triggered
-    Boardcore::State state_terminal_descent(const Boardcore::Event& event);
+    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
 
     /// The payload is on the ground after the flight.
     Boardcore::State state_landed(const Boardcore::Event& event);

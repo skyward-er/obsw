@@ -89,6 +89,11 @@ target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
 sbs_target(payload-entry-euroc stm32f429zi_skyward_death_stack_x)
 
+add_executable(parafoil-entry-milano src/entrypoints/ParafoilNew/parafoil-new-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-milano PRIVATE MILANO)
+sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
+
 add_executable(ciuti-entry src/entrypoints/Ciuti/ciuti-entry.cpp ${CIUTI_COMPUTER})
 target_include_directories(ciuti-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(ciuti-entry stm32f205rc_skyward_ciuti)

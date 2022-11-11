@@ -163,65 +163,18 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
-/*
-void Actuators::cuttersOn()
+void Actuators::startTwirl()
 {
-    actuators::nosecone::th_cut_input::high();
-    actuators::nosecone::thermal_cutter_1::enable::high();
-    actuators::nosecone::thermal_cutter_2::enable::high();
+
+    setServo(PARAFOIL_LEFT_SERVO, 1);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
-void Actuators::cuttersOff()
+void Actuators::stopTwirl()
 {
-    actuators::nosecone::th_cut_input::low();
-    actuators::nosecone::thermal_cutter_1::enable::low();
-    actuators::nosecone::thermal_cutter_2::enable::low();
+    setServo(PARAFOIL_LEFT_SERVO, 0);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
-
-void Actuators::camOn() { interfaces::camMosfet::high(); }
-
-void Actuators::camOff() { interfaces::camMosfet::low(); }
-
-void Actuators::ledArmed()
-{
-    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
-    scheduler.removeTask(ledTaskId);
-    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
-}
-
-void Actuators::ledDisarmed()
-{
-    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
-    miosix::ledOn();
-    ledState = true;
-}
-
-void Actuators::ledError()
-{
-    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
-    scheduler.removeTask(ledTaskId);
-    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
-}
-
-void Actuators::ledOff()
-{
-    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
-    ledTaskId = 0;
-    ledState  = false;
-    miosix::ledOff();
-}
-
-
-
-void Actuators::toggleLed()
-{
-    if (ledState)
-        miosix::ledOff();
-    else
-        miosix::ledOn();
-
-    ledState = !ledState;
-}*/
 
 Actuators::Actuators()
     : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,

@@ -23,7 +23,6 @@
 #pragma once
 
 #include <ParafoilNew/Wing/WingAlgorithm.h>
-#include <scheduler/TaskScheduler.h>
 
 #include <Eigen/Core>
 
