@@ -37,7 +37,7 @@ enum class FlightModeManagerState : uint8_t
     INIT_ERROR,
     SENSORS_CALIBRATION,
     ALGOS_CALIBRATION,
-    // TEST_MODE,
+    TEST_MODE,
     ASCENDING,
     DROGUE_DESCENT,
     TWIRLING,

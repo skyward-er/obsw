@@ -105,6 +105,7 @@ void AltitudeTrigger::update()
         }
         else if (fallingAltitude - height > WING_ALTITUDE_DESCEND_CONTROL)
         {
+            fallingAltitude = 0;
             EventBroker::getInstance().post(FLIGHT_TWIRL, TOPIC_FLIGHT);
         }
     }

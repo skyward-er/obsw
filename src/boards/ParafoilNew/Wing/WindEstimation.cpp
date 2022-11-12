@@ -116,9 +116,9 @@ void WindEstimation::WindEstimationSchemeCalibration()
                                 .solve(calibrationMatrixT * calibrationV2);
         logStruct.vx = calibrationMatrix[0];
         logStruct.vy = calibrationMatrix[1];
+        Boardcore::Logger::getInstance().log(logStruct);
+        EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
     }
-    Boardcore::Logger::getInstance().log(logStruct);
-    EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
 }
 
 void WindEstimation::startWindEstimationScheme()
