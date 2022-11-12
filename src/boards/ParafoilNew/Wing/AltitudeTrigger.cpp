@@ -46,8 +46,9 @@ AltitudeTrigger::AltitudeTrigger()
         WING_ALTITUDE_CHECKER_TASK_ID);
 
     // Set the altitude to the default one
-    altitude   = WING_ALTITUDE_REFERENCE;
-    confidence = 0;
+    altitude        = WING_ALTITUDE_REFERENCE;
+    confidence      = 0;
+    fallingAltitude = 0;
 }
 
 void AltitudeTrigger::setDeploymentAltitude(float alt)
@@ -93,6 +94,18 @@ void AltitudeTrigger::update()
                                             TOPIC_FLIGHT);
             BoardScheduler::getInstance().getScheduler().removeTask(
                 WING_ALTITUDE_CHECKER_TASK_ID);
+        }
+    }
+    else if (status == FlightModeManagerState::CONTROLLED_DESCENT)
+    {
+        float height = -NASController::getInstance().getNasState().d;
+        if (fallingAltitude == 0)
+        {
+            fallingAltitude = height;
+        }
+        else if (fallingAltitude - height > WING_ALTITUDE_DESCEND_CONTROL)
+        {
+            EventBroker::getInstance().post(FLIGHT_TWIRL, TOPIC_FLIGHT);
         }
     }
 }

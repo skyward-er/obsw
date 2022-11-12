@@ -25,7 +25,7 @@
 #include <ParafoilNew/Configs/FlightModeManagerConfig.h>
 #include <ParafoilNew/Configs/WingConfig.h>
 #include <ParafoilNew/Sensors/Sensors.h>
-#include <ParafoilNew/Wing/WindPrediction.h>
+#include <ParafoilNew/Wing/WindEstimation.h>
 #include <ParafoilNew/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -362,20 +362,13 @@ State FlightModeManager::state_twirling(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::TWIRLING);
-            /*
-                        static uint16_t missionTimeoutEventId = -1;
-                        missionTimeoutEventId =
-                            EventBroker::getInstance().postDelayed<FLIGHT_WIND_PREDICTION>(
-                                WingConfig::WIND_PREDICTION_TIMEOUT+1000,
-               TOPIC_FLIGHT); missionTimeoutEventId = EventBroker::getInstance()
-                                .postDelayed<FLIGHT_WIND_PREDICTION_CALIBRATION>(
-                                    WingConfig::WIND_PREDICTION_CALIBRATION_TIMEOUT+1000,
-                                    TOPIC_FLIGHT);*/
 
+            static uint16_t timeoutEventId = -1;
             // start twirling and the 1st algorithm
             WingController::getInstance().stop();
             Actuators::getInstance().startTwirl();
-            WindPrediction::getInstance().startWindPredictionCalibration();
+            WindEstimation::getInstance()
+                .startWindEstimationSchemeCalibration();
             return HANDLED;
         }
         case EV_EXIT:
@@ -398,8 +391,10 @@ State FlightModeManager::state_twirling(const Event& event)
         }
         case FLIGHT_WIND_PREDICTION_CALIBRATION:
         {
-            WindPrediction::getInstance().stopWindPredictionCalibration();
-            WindPrediction::getInstance().startWindPrediction();
+            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
+            EventBroker::getInstance().postDelayed<FLIGHT_WIND_PREDICTION>(
+                WingConfig::WIND_PREDICTION_TIMEOUT, TOPIC_FLIGHT);
+            WindEstimation::getInstance().startWindEstimationScheme();
             return HANDLED;
         }
 

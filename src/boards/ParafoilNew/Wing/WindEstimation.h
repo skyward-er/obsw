@@ -23,64 +23,79 @@
 #pragma once
 
 #include <ParafoilNew/Configs/WingConfig.h>
+#include <Singleton.h>
 
 #include <Eigen/Core>
+namespace Payload
+{
+
+struct WindLogging
+{
+    float vx, vy;
+    uint64_t timestamp;
+};
+
 /**
  * @brief This class implements the wind prediction algorithm, the first part is
  * the initial setup, and then the continuos algoritms runs;
  */
-
-namespace Payload
+class WindEstimation : public Boardcore::Singleton<WindEstimation>
 {
-class WindPrediction : public Boardcore::Singleton<WindPrediction>
-{
-    friend class Boardcore::Singleton<WindPrediction>;
+    friend class Boardcore::Singleton<WindEstimation>;
 
 public:
     /**
      * @brief Destroy the Wing Controller object.
      */
-    ~WindPrediction();
+    ~WindEstimation();
 
     /**
      * @brief Destroy the Wing Controller object.
      */
-    void startWindPredictionCalibration();
+    void startWindEstimationSchemeCalibration();
 
     /**
      * @brief Destroy the Wing Controller object.
      */
-    void stopWindPredictionCalibration();
+    void stopWindEstimationSchemeCalibration();
 
     /**
      * @brief Destroy the Wing Controller object.
      */
-    void startWindPrediction();
+    void startWindEstimationScheme();
 
     /**
      * @brief Destroy the Wing Controller object.
      */
-    void stoptWindPrediction();
+    void stoptWindEstimationScheme();
 
-    Eigen::Vector2f getWindPrediction();
+    Eigen::Vector2f getWindEstimationScheme();
 
 private:
     /**
      * @brief Construct a new Wing Controller object
      */
-    WindPrediction();
+    WindEstimation();
+
+    /**
+     * @brief Logs the prediction
+     */
+    void logStatus();
 
     /**
      * @brief Creates the windCalibration matrix with the starting prediction
      * value
      */
-    void windPredictionCalibration();
+    void WindEstimationSchemeCalibration();
+
     /**
      * @brief Updates the wind matrix with the updated wind prediction values
      */
-    void windPrediction();
+    void WindEstimationScheme();
 
-    // Parameters needed for calibration
+    /**
+     * @brief Parameters needed for calibration
+     */
     Eigen::Vector2f windCalibration{0.0f, 0.0f};
     uint8_t nSampleCal = 0;
     Eigen::Matrix<float, WingConfig::WIND_CALIBRATION_SAMPLE_NUMBER, 2>
@@ -90,12 +105,16 @@ private:
     float vy = 0;
     float v2 = 0;
 
-    // Parameters needed for recursive
+    /**
+     * @brief Parameters needed for recursive
+     */
     Eigen::Vector2f wind{0.0f, 0.0f};
     uint8_t nSample = 0;
     Eigen::Matrix2f funv;
 
-    // mutex
+    /**
+     * @brief Mutex
+     */
     FastMutex mutex;
 
     /**
@@ -103,6 +122,11 @@ private:
      */
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("ParafoilTest");
+
+    /**
+     * @brief Logging struct
+     */
+    WindLogging windLogger;
 
     /**
      * @brief Internal running state

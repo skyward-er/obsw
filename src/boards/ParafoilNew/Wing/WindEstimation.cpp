@@ -23,8 +23,8 @@
 #include <ParafoilNew/BoardScheduler.h>
 #include <ParafoilNew/Configs/WingConfig.h>
 #include <ParafoilNew/Sensors/Sensors.h>
-#include <ParafoilNew/Wing/WindPrediction.h>
-#include <common/events/Events.h>win
+#include <ParafoilNew/Wing/WindEstimation.h>
+#include <common/events/Events.h>
 
 using namespace Payload::WingConfig;
 using namespace Boardcore;
@@ -32,20 +32,20 @@ using namespace Common;
 namespace Payload
 {
 
-WindPrediction::WindPrediction()
+WindEstimation::WindEstimation()
 {
     running    = false;
     calRunning = false;
     funv(0)    = 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
 }
 
-WindPrediction::~WindPrediction()
+WindEstimation::~WindEstimation()
 {
-    stopWindPredictionCalibration();
-    stoptWindPrediction();
+    stopWindEstimationSchemeCalibration();
+    stoptWindEstimationScheme();
 }
 
-void WindPrediction::startWindPredictionCalibration()
+void WindEstimation::startWindEstimationSchemeCalibration()
 {
     if (!calRunning)
     {
@@ -56,20 +56,20 @@ void WindPrediction::startWindPredictionCalibration()
         v2         = 0;
         // Register the task
         BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindPrediction::windPredictionCalibration, this),
+            std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
             WIND_CALIBRATION_UPDATE_PERIOD, WIND_CALIBRATION_ID);
-        LOG_INFO(logger, "WindPredictionCalibration started");
+        LOG_INFO(logger, "WindEstimationCalibration started");
     }
 }
 
-void WindPrediction::stopWindPredictionCalibration()
+void WindEstimation::stopWindEstimationSchemeCalibration()
 {
     if (calRunning)
     {
         calRunning = false;
         BoardScheduler::getInstance().getScheduler().removeTask(
             WIND_CALIBRATION_ID);
-        LOG_INFO(logger, "WindPredictionCalibration stopped");
+        LOG_INFO(logger, "WindEstimationSchemeCalibration stopped");
         // logs the value
         Boardcore::Logger::getInstance().log(windCalibration);
         // assign value to the array only if running!= false;
@@ -81,8 +81,9 @@ void WindPrediction::stopWindPredictionCalibration()
     }
 }
 
-void WindPrediction::windPredictionCalibration()
+void WindEstimation::WindEstimationSchemeCalibration()
 {
+    WindLogging logStruct;
     if (nSampleCal < WIND_CALIBRATION_SAMPLE_NUMBER)
     {
         auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
@@ -112,12 +113,15 @@ void WindPrediction::windPredictionCalibration()
             calibrationMatrixT = calibrationMatrix.transpose();
         calibrationMatrix      = (calibrationMatrixT * calibrationMatrix)
                                 .ldlt()
-                                .solve(calibrationMatrixT * calibrationMatrix);
-        EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
+                                .solve(calibrationMatrixT * calibrationV2);
+        logStruct.vx = calibrationMatrix[0];
+        logStruct.vy = calibrationMatrix[1];
     }
+    Boardcore::Logger::getInstance().log(logStruct);
+    EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
 }
 
-void WindPrediction::startWindPrediction()
+void WindEstimation::startWindEstimationScheme()
 {
     if (!running)
     {
@@ -125,29 +129,30 @@ void WindPrediction::startWindPrediction()
         //  Register the task
         nSample = nSampleCal;
         BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindPrediction::windPredictionCalibration, this),
+            std::bind(&WindEstimation::WindEstimationScheme, this),
             WIND_PREDICTION_UPDATE_PERIOD, WING_PREDICTION_ID);
-        LOG_INFO(logger, "WindPrediction started");
+        LOG_INFO(logger, "WindEstimationScheme started");
     }
 }
 
-void WindPrediction::stoptWindPrediction()
+void WindEstimation::stoptWindEstimationScheme()
 {
     if (running)
     {
         running = false;
         BoardScheduler::getInstance().getScheduler().removeTask(
             WING_PREDICTION_ID);
-        LOG_INFO(logger, "WindPrediction ended");
+        LOG_INFO(logger, "WindEstimationScheme ended");
     }
 }
 
-void WindPrediction::windPrediction()
+void WindEstimation::WindEstimationScheme()
 {
     Eigen::Vector2f phi;
     Eigen::Matrix<float, 1, 2> phiT;
     Eigen::Matrix2f temp;
     float y;
+    WindLogging logStruct;
 
     auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
     // update avg
@@ -160,19 +165,27 @@ void WindPrediction::windPrediction()
     y      = 0.5f * ((vx * vx + vy * vy) - v2);
 
     phiT = phi.transpose();
-    temp = ((0.5 * (funv + funv.transpose()) * phi) * y - phiT * wind);
     funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
+    temp = ((0.5 * (funv + funv.transpose()) * phi) * y - phiT * wind);
     {
         miosix::Lock<FastMutex> l(mutex);
-        wind = wind + temp;
+        wind         = wind + temp;
+        logStruct.vx = wind[0];
+        logStruct.vy = wind[1];
+        logStatus();
     }
-    Boardcore::Logger::getInstance().log(wind);
 }
 
-Eigen::Vector2f WindPrediction::getWindPrediction()
+Eigen::Vector2f WindEstimation::getWindEstimationScheme()
 {
     miosix::PauseKernelLock l;
     return wind;
+}
+
+void WindEstimation::logStatus()
+{
+    windLogger.timestamp = TimestampTimer::getTimestamp();
+    Logger::getInstance().log(windLogger);
 }
 
 }  // namespace Payload

@@ -37,7 +37,7 @@ namespace WingConfig
 constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
 constexpr uint8_t WING_CONTROLLER_ID  = 100;
 constexpr uint32_t WIND_PREDICTION_CALIBRATION_TIMEOUT =
-    20 * 1000;  // time needed for the first loop [ms]
+    10 * 1000;  // time needed for the first loop [ms]
 constexpr uint32_t WIND_PREDICTION_TIMEOUT =
     2 * WIND_PREDICTION_CALIBRATION_TIMEOUT;
 
@@ -75,6 +75,7 @@ constexpr float WING_ALTITUDE_CHECKER_TASK_ID  = 230;
 constexpr float WING_ALTITUDE_CHECKER_PERIOD   = 100;  // [ms]
 constexpr float WING_ALTITUDE_REFERENCE        = 450;
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;
+constexpr int WING_ALTITUDE_DESCEND_CONTROL    = 50;  // meter
 
 }  // namespace WingConfig
 
