@@ -48,7 +48,7 @@
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Payload;
+using namespace Parafoil;
 using namespace Common;
 
 int main()

@@ -25,7 +25,7 @@
 #include <Singleton.h>
 #include <scheduler/TaskScheduler.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 class BoardScheduler : public Boardcore::Singleton<BoardScheduler>
@@ -41,4 +41,4 @@ private:
     Boardcore::TaskScheduler scheduler;
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

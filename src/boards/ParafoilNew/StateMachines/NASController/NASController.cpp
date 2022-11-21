@@ -33,11 +33,11 @@
 using namespace std;
 using namespace Eigen;
 using namespace Boardcore;
-using namespace Payload::NASConfig;
+using namespace Parafoil::NASConfig;
 using namespace Common;
 using namespace Common::ReferenceConfig;
 
-namespace Payload
+namespace Parafoil
 {
 
 bool NASController::start()
@@ -331,4 +331,4 @@ NASController::~NASController()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

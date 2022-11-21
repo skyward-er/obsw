@@ -27,7 +27,7 @@
 
 #include <Eigen/Core>
 
-namespace Payload
+namespace Parafoil
 {
 
 namespace WingConfig
@@ -79,4 +79,4 @@ constexpr int WING_ALTITUDE_DESCEND_CONTROL    = 50;  // meter
 
 }  // namespace WingConfig
 
-}  // namespace Payload
+}  // namespace Parafoil

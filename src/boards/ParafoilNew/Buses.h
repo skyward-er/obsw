@@ -27,7 +27,7 @@
 #include <drivers/usart/USART.h>
 #include <miosix.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 struct Buses : public Boardcore::Singleton<Buses>
@@ -70,4 +70,4 @@ private:
 #endif
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

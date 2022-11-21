@@ -30,9 +30,9 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
-using namespace Payload::ActuatorsConfigs;
+using namespace Parafoil::ActuatorsConfigs;
 
-namespace Payload
+namespace Parafoil
 {
 
 bool Actuators::setServo(ServosList servoId, float percentage)
@@ -183,4 +183,4 @@ Actuators::Actuators()
                  RIGHT_SERVO_MAX_PULSE)
 {
 }
-}  // namespace Payload
+}  // namespace Parafoil

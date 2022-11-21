@@ -26,7 +26,7 @@
 
 #include <Eigen/Core>
 
-namespace Payload
+namespace Parafoil
 {
 class AutomaticWingAlgorithm : public WingAlgorithm
 {
@@ -58,4 +58,4 @@ protected:
      */
     void step() override;
 };
-}  // namespace Payload
+}  // namespace Parafoil

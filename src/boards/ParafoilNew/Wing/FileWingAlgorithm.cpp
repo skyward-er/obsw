@@ -25,7 +25,7 @@
 
 using namespace Boardcore;
 
-namespace Payload
+namespace Parafoil
 {
 std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
 {
@@ -65,4 +65,4 @@ bool FileWingAlgorithm::init()
     return fileValid;
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

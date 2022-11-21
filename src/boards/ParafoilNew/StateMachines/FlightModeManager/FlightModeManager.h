@@ -28,7 +28,7 @@
 
 #include "FlightModeManagerData.h"
 
-namespace Payload
+namespace Parafoil
 {
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
                           public Boardcore::Singleton<FlightModeManager>
@@ -84,4 +84,4 @@ private:
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
 };
-}  // namespace Payload
+}  // namespace Parafoil

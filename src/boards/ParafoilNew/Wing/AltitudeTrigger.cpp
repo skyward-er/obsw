@@ -32,11 +32,11 @@
 #include <functional>
 
 using namespace std;
-using namespace Payload::WingConfig;
+using namespace Parafoil::WingConfig;
 using namespace Boardcore;
 using namespace Common;
 
-namespace Payload
+namespace Parafoil
 {
 
 AltitudeTrigger::AltitudeTrigger()
@@ -92,8 +92,8 @@ void AltitudeTrigger::update()
             confidence = 0;
             EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
                                             TOPIC_FLIGHT);
-            BoardScheduler::getInstance().getScheduler().removeTask(
-                WING_ALTITUDE_CHECKER_TASK_ID);
+            /*BoardScheduler::getInstance().getScheduler().removeTask(
+                WING_ALTITUDE_CHECKER_TASK_ID);*/
         }
     }
     else if (status == FlightModeManagerState::CONTROLLED_DESCENT)
@@ -111,4 +111,4 @@ void AltitudeTrigger::update()
     }
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

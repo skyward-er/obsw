@@ -35,17 +35,17 @@ using namespace std;
 using namespace Boardcore;
 using namespace Common;
 using namespace ReferenceConfig;
-using namespace Payload::SensorsConfig;
+using namespace Parafoil::SensorsConfig;
 
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {
-    if (Payload::Sensors::getInstance().bmx160 != nullptr)
-        Payload::Sensors::getInstance().bmx160->IRQupdateTimestamp(
+    if (Parafoil::Sensors::getInstance().bmx160 != nullptr)
+        Parafoil::Sensors::getInstance().bmx160->IRQupdateTimestamp(
             TimestampTimer::getTimestamp());
 }
 
-namespace Payload
+namespace Parafoil
 {
 
 bool Sensors::start()
@@ -615,4 +615,4 @@ void Sensors::internalTempInit()
     LOG_INFO(logger, "Internal TEMP setup done!");
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

@@ -25,7 +25,7 @@
 
 using namespace Boardcore;
 
-namespace Payload
+namespace Parafoil
 {
 WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
 {
@@ -113,4 +113,4 @@ void WingAlgorithm::step()
     }
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

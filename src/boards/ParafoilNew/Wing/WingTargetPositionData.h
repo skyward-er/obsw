@@ -25,7 +25,7 @@
 #include <ostream>
 #include <string>
 
-namespace Payload
+namespace Parafoil
 {
 
 struct WingTargetPositionData
@@ -50,4 +50,4 @@ struct WingTargetPositionData
     }
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

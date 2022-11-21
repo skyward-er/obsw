@@ -27,7 +27,7 @@
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 struct Actuators : public Boardcore::Singleton<Actuators>
@@ -80,4 +80,4 @@ private:
     Boardcore::Servo rightServo;
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

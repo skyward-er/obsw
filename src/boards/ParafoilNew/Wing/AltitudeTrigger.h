@@ -25,7 +25,7 @@
 #include <ParafoilNew/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
@@ -53,4 +53,4 @@ private:
     int confidence;
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

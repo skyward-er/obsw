@@ -27,7 +27,7 @@
 #include <iostream>
 #include <string>
 
-namespace Payload
+namespace Parafoil
 {
 
 enum class FlightModeManagerState : uint8_t
@@ -58,4 +58,4 @@ struct FlightModeManagerStatus
         os << timestamp << "," << (int)state << "\n";
     }
 };
-}  // namespace Payload
+}  // namespace Parafoil

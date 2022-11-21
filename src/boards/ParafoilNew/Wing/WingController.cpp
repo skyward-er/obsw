@@ -26,9 +26,9 @@
 #include <ParafoilNew/Wing/WingTargetPositionData.h>
 
 using namespace Boardcore;
-using namespace Payload::WingConfig;
+using namespace Parafoil::WingConfig;
 
-namespace Payload
+namespace Parafoil
 {
 
 WingController::WingController()
@@ -169,4 +169,4 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
 
-}  // namespace Payload
+}  // namespace Parafoil

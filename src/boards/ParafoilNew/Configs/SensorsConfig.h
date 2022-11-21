@@ -28,7 +28,7 @@
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/calibration/AxisOrientation.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 namespace SensorsConfig
@@ -135,4 +135,4 @@ constexpr unsigned int CALIBRATION_DURATION           = 2000;
 
 }  // namespace SensorsConfig
 
-}  // namespace Payload
+}  // namespace Parafoil

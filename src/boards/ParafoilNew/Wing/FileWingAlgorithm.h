@@ -53,7 +53,7 @@
  * algorithm.update()...
  */
 
-namespace Payload
+namespace Parafoil
 {
 
 class FileWingAlgorithm : public WingAlgorithm
@@ -88,4 +88,4 @@ protected:
      */
     bool fileValid = false;
 };
-}  // namespace Payload
+}  // namespace Parafoil

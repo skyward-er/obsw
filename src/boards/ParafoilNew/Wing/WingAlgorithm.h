@@ -28,7 +28,7 @@
 #include <logger/Logger.h>
 #include <miosix.h>
 
-namespace Payload
+namespace Parafoil
 {
 class WingAlgorithm : public Boardcore::Algorithm
 {
@@ -106,4 +106,4 @@ protected:
      */
     void step() override;
 };
-}  // namespace Payload
+}  // namespace Parafoil

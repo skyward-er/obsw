@@ -26,17 +26,17 @@
 #include <ParafoilNew/Wing/WindEstimation.h>
 #include <common/events/Events.h>
 
-using namespace Payload::WingConfig;
+using namespace Parafoil::WingConfig;
 using namespace Boardcore;
 using namespace Common;
-namespace Payload
+namespace Parafoil
 {
 
 WindEstimation::WindEstimation()
 {
     running    = false;
     calRunning = false;
-    funv(0)    = 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
+    funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
 }
 
 WindEstimation::~WindEstimation()
@@ -70,20 +70,20 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
         BoardScheduler::getInstance().getScheduler().removeTask(
             WIND_CALIBRATION_ID);
         LOG_INFO(logger, "WindEstimationSchemeCalibration stopped");
-        // logs the value
-        Boardcore::Logger::getInstance().log(windCalibration);
         // assign value to the array only if running!= false;
         if (!running)
         {
             miosix::Lock<FastMutex> l(mutex);
-            wind = windCalibration;
+            wind          = windCalibration;
+            windLogger.vx = windCalibration[0];
+            windLogger.vy = windCalibration[1];
+            logStatus();
         }
     }
 }
 
 void WindEstimation::WindEstimationSchemeCalibration()
 {
-    WindLogging logStruct;
     if (nSampleCal < WIND_CALIBRATION_SAMPLE_NUMBER)
     {
         auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
@@ -102,21 +102,18 @@ void WindEstimation::WindEstimationSchemeCalibration()
         vx = vx / nSampleCal;
         vy = vy / nSampleCal;
         v2 = v2 / nSampleCal;
-        for (int i; i < nSampleCal; i++)
+        for (int i = 0; i < nSampleCal; i++)
         {
             calibrationMatrix(i, 0) = calibrationMatrix(i, 0) - vx;
             calibrationMatrix(i, 1) = calibrationMatrix(i, 1) - vy;
             calibrationV2(i)        = 0.5f * (calibrationV2(i) - v2);
         }
 
-        Eigen::Matrix<float, 2, WIND_CALIBRATION_SAMPLE_NUMBER>
-            calibrationMatrixT = calibrationMatrix.transpose();
-        calibrationMatrix      = (calibrationMatrixT * calibrationMatrix)
-                                .ldlt()
-                                .solve(calibrationMatrixT * calibrationV2);
-        logStruct.vx = calibrationMatrix[0];
-        logStruct.vy = calibrationMatrix[1];
-        Boardcore::Logger::getInstance().log(logStruct);
+        // Eigen::Matrix<float, 2, WIND_CALIBRATION_SAMPLE_NUMBER>
+        Eigen::MatrixXf calibrationMatrixT = calibrationMatrix.transpose();
+        windCalibration = (calibrationMatrixT * calibrationMatrix)
+                              .ldlt()
+                              .solve(calibrationMatrixT * calibrationV2);
         EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
     }
 }
@@ -150,9 +147,8 @@ void WindEstimation::WindEstimationScheme()
 {
     Eigen::Vector2f phi;
     Eigen::Matrix<float, 1, 2> phiT;
-    Eigen::Matrix2f temp;
+    Eigen::Vector2f temp;
     float y;
-    WindLogging logStruct;
 
     auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
     // update avg
@@ -166,12 +162,13 @@ void WindEstimation::WindEstimationScheme()
 
     phiT = phi.transpose();
     funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
-    temp = ((0.5 * (funv + funv.transpose()) * phi) * y - phiT * wind);
+    temp = (0.5 * (funv + funv.transpose()) * phi) *
+           (y - phiT * wind);  // maybe moved to mutex ReadOnly
     {
         miosix::Lock<FastMutex> l(mutex);
-        wind         = wind + temp;
-        logStruct.vx = wind[0];
-        logStruct.vy = wind[1];
+        wind          = wind + temp;
+        windLogger.vx = wind[0];
+        windLogger.vy = wind[1];
         logStatus();
     }
 }
@@ -185,7 +182,8 @@ Eigen::Vector2f WindEstimation::getWindEstimationScheme()
 void WindEstimation::logStatus()
 {
     windLogger.timestamp = TimestampTimer::getTimestamp();
-    Logger::getInstance().log(windLogger);
+    Logger::getInstance().log(
+        windLogger);  // ask wether this has to be removed from the mutex or not
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

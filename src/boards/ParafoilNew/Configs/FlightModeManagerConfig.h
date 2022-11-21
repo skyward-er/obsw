@@ -22,11 +22,11 @@
 
 #pragma once
 
-namespace Payload
+namespace Parafoil
 {
 
 constexpr unsigned int APOGEE_TIMEOUT  = 20 * 1000;
 constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 constexpr unsigned int LANDING_TIMEOUT = 2 * 60 * 1000;
 
-}  // namespace Payload
+}  // namespace Parafoil

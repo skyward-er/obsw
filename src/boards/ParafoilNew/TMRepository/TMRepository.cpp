@@ -37,9 +37,9 @@
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Payload::SensorsConfig;
+using namespace Parafoil::SensorsConfig;
 
-namespace Payload
+namespace Parafoil
 {
 
 mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
@@ -457,4 +457,4 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
     return msg;
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

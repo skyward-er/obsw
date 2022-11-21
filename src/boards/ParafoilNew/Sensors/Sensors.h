@@ -42,7 +42,7 @@
 #include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
 
-namespace Payload
+namespace Parafoil
 {
 
 class Sensors : public Boardcore::Singleton<Sensors>
@@ -160,4 +160,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

@@ -47,7 +47,7 @@
  * controller.start(); //If you want to start again from the beginning
  */
 
-namespace Payload
+namespace Parafoil
 {
 class WingController : public Boardcore::Singleton<WingController>
 {
@@ -157,4 +157,4 @@ private:
      */
     void init();
 };
-}  // namespace Payload
+}  // namespace Parafoil

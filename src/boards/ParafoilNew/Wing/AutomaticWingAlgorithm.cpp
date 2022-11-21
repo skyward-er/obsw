@@ -32,9 +32,9 @@
 
 using namespace Boardcore;
 using namespace Eigen;
-using namespace Payload::WingConfig;
+using namespace Parafoil::WingConfig;
 
-namespace Payload
+namespace Parafoil
 {
 AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                ServosList servo1,
@@ -148,4 +148,4 @@ void AutomaticWingAlgorithm::step()
     }
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

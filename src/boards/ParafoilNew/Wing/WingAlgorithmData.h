@@ -22,7 +22,7 @@
 #pragma once
 #include <sensors/SensorData.h>
 
-namespace Payload
+namespace Parafoil
 {
 /**
  * This class represents the algorithm data structure that needs to be logged
@@ -54,4 +54,4 @@ struct WingAlgorithmData
            << targetY << "," << error << "," << pidOutput << "\n";
     }
 };
-}  // namespace Payload
+}  // namespace Parafoil

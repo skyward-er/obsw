@@ -34,7 +34,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
 
-namespace Payload
+namespace Parafoil
 {
 
 FlightModeManagerStatus FlightModeManager::getStatus()
@@ -250,10 +250,10 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
-            static uint16_t missionTimeoutEventId = -1;
-            missionTimeoutEventId =
-                EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
-                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
+            /* static uint16_t missionTimeoutEventId;
+             missionTimeoutEventId =*/
+            EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
+                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -362,8 +362,6 @@ State FlightModeManager::state_twirling(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::TWIRLING);
-
-            static uint16_t timeoutEventId = -1;
             // start twirling and the 1st algorithm
             WingController::getInstance().stop();
             Actuators::getInstance().startTwirl();
@@ -392,8 +390,9 @@ State FlightModeManager::state_twirling(const Event& event)
         case FLIGHT_WIND_PREDICTION_CALIBRATION:
         {
             WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
-            EventBroker::getInstance().postDelayed<FLIGHT_WIND_PREDICTION>(
-                WingConfig::WIND_PREDICTION_TIMEOUT, TOPIC_FLIGHT);
+            EventBroker::getInstance()
+                .postDelayed<WingConfig::WIND_PREDICTION_TIMEOUT>(
+                    FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
             WindEstimation::getInstance().startWindEstimationScheme();
             return HANDLED;
         }
@@ -542,4 +541,4 @@ void FlightModeManager::logStatus(FlightModeManagerState state)
     Logger::getInstance().log(status);
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

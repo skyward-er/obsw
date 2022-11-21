@@ -27,7 +27,7 @@
 #include <iostream>
 #include <string>
 
-namespace Payload
+namespace Parafoil
 {
 
 enum class NASControllerState : uint8_t
@@ -53,4 +53,4 @@ struct NASControllerStatus
     }
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

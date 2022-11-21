@@ -25,7 +25,7 @@
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 namespace ActuatorsConfigs
@@ -53,4 +53,4 @@ constexpr float RIGHT_SERVO_MAX_PULSE =
 
 }  // namespace ActuatorsConfigs
 
-}  // namespace Payload
+}  // namespace Parafoil

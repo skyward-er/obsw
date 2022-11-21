@@ -26,7 +26,7 @@
 #include <Singleton.h>
 
 #include <Eigen/Core>
-namespace Payload
+namespace Parafoil
 {
 
 struct WindLogging
@@ -133,4 +133,4 @@ private:
      */
     bool running, calRunning;
 };
-}  // namespace Payload
+}  // namespace Parafoil

@@ -29,7 +29,7 @@
 
 #include "NASControllerData.h"
 
-namespace Payload
+namespace Parafoil
 {
 
 class NASController : public Boardcore::FSM<NASController>,
@@ -74,4 +74,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

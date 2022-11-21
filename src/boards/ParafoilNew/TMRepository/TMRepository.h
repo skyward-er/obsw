@@ -27,7 +27,7 @@
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 class TMRepository : public Boardcore::Singleton<TMRepository>
@@ -48,4 +48,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

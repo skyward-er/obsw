@@ -26,7 +26,7 @@
 
 #include <cstdio>
 
-namespace Payload
+namespace Parafoil
 {
 
 namespace RadioConfig
@@ -58,4 +58,4 @@ constexpr uint8_t STATS_TM_TASK_ID  = 201;
 
 }  // namespace RadioConfig
 
-}  // namespace Payload
+}  // namespace Parafoil

@@ -36,7 +36,7 @@
 #include <radio/SX1278/SX1278.h>
 #endif
 
-namespace Payload
+namespace Parafoil
 {
 
 using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
@@ -105,4 +105,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

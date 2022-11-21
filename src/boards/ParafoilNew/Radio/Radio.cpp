@@ -42,19 +42,19 @@ using namespace std;
 using namespace placeholders;
 using namespace miosix;
 using namespace Boardcore;
-using namespace Payload::RadioConfig;
+using namespace Parafoil::RadioConfig;
 using namespace Common;
 
 // XBee interrupt
 #ifndef USE_SERIAL_TRANSCEIVER
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    if (Payload::Radio::getInstance().transceiver != nullptr)
-        Payload::Radio::getInstance().transceiver->handleATTNInterrupt();
+    if (Parafoil::Radio::getInstance().transceiver != nullptr)
+        Parafoil::Radio::getInstance().transceiver->handleATTNInterrupt();
 }
 #endif
 
-namespace Payload
+namespace Parafoil
 {
 
 void Radio::sendAck(const mavlink_message_t& msg)
@@ -518,4 +518,4 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     sendAck(msg);
 }
 
-}  // namespace Payload
+}  // namespace Parafoil
