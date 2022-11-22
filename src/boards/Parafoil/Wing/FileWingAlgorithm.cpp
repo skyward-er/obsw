@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <ParafoilNew/Wing/FileWingAlgorithm.h>
+#include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;

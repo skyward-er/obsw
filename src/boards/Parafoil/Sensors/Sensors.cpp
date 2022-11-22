@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Luca Erbetta, Luca Conterio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,234 @@
 
 #include "Sensors.h"
 
+#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
-#include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/Wing/WingController.h>
-#include <sensors/SensorInfo.h>
-#include <utils/AeroUtils/AeroUtils.h>
-
-#include <functional>
+#include <common/ReferenceConfig.h>
+#include <common/events/Events.h>
+#include <drivers/interrupt/external_interrupts.h>
+#include <drivers/usart/USART.h>
+#include <events/EventBroker.h>
 
 using namespace std;
-using namespace miosix;
 using namespace Boardcore;
+using namespace Common;
+using namespace ReferenceConfig;
 using namespace Parafoil::SensorsConfig;
-using namespace Parafoil::WingConfig;
+
+// BMX160 Watermark interrupt
+void __attribute__((used)) EXTI5_IRQHandlerImpl()
+{
+    if (Parafoil::Sensors::getInstance().bmx160 != nullptr)
+        Parafoil::Sensors::getInstance().bmx160->IRQupdateTimestamp(
+            TimestampTimer::getTimestamp());
+}
 
 namespace Parafoil
 {
 
-bool Sensors::start() { return sensorManager->start(); }
+bool Sensors::start()
+{
+    miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
+    enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
+                            InterruptTrigger::FALLING_EDGE, 0);
+
+    return sensorManager->start();
+}
 
 bool Sensors::isStarted() { return sensorManager->areAllSensorsInitialized(); }
 
-MPU9250Data Sensors::getMpu9250LastSample()
+BMX160Data Sensors::getBMX160LastSample()
 {
     miosix::PauseKernelLock lock;
-    return mpu9250->getLastSample();
+    return bmx160 != nullptr ? bmx160->getLastSample() : BMX160Data{};
+}
+
+BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifndef HILSimulation
+    return bmx160WithCorrection != nullptr
+               ? bmx160WithCorrection->getLastSample()
+               : BMX160WithCorrectionData{};
+#else
+    auto imuData = state.imu->getLastSample();
+    BMX160WithCorrectionData data;
+
+    data.accelerationTimestamp  = imuData.accelerationTimestamp;
+    data.accelerationX          = imuData.accelerationX;
+    data.accelerationY          = imuData.accelerationY;
+    data.accelerationZ          = imuData.accelerationZ;
+    data.angularSpeedTimestamp  = imuData.angularSpeedTimestamp;
+    data.angularSpeedX          = imuData.angularSpeedX;
+    data.angularSpeedY          = imuData.angularSpeedY;
+    data.angularSpeedZ          = imuData.angularSpeedZ;
+    data.magneticFieldTimestamp = imuData.magneticFieldTimestamp;
+    data.magneticFieldX         = imuData.magneticFieldX;
+    data.magneticFieldY         = imuData.magneticFieldY;
+    data.magneticFieldZ         = imuData.magneticFieldZ;
+
+    return data;
+#endif
+}
+
+LIS3MDLData Sensors::getMagnetometerLIS3MDLLastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifndef HILSimulation
+    return lis3mdl != nullptr ? lis3mdl->getLastSample() : LIS3MDLData{};
+#else
+    return LIS3MDLData(state.magnetometer->getLastSample(),
+                       state.temperature->getLastSample());
+#endif
+}
+
+MS5803Data Sensors::getMS5803LastSample()
+{
+    miosix::PauseKernelLock lock;
+
+#ifndef HILSimulation
+    return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
+#else
+    auto baroData = state.barometer->getLastSample();
+    auto tempData = state.temperature->getLastSample();
+
+    return MS5803Data(baroData.pressureTimestamp, baroData.pressure,
+                      tempData.temperatureTimestamp, tempData.temperature);
+#endif
 }
 
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::PauseKernelLock lock;
-    return ubxGps->getLastSample();
+#ifndef HILSimulation
+    return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
+#else
+    auto data = state.gps->getLastSample();
+    UBXGPSData ubxData;
+
+    ubxData.gpsTimestamp  = data.gpsTimestamp;
+    ubxData.latitude      = data.latitude;
+    ubxData.longitude     = data.longitude;
+    ubxData.height        = data.height;
+    ubxData.velocityNorth = data.velocityNorth;
+    ubxData.velocityEast  = data.velocityEast;
+    ubxData.velocityDown  = data.velocityDown;
+    ubxData.speed         = data.speed;
+    ubxData.track         = data.track;
+    ubxData.positionDOP   = data.positionDOP;
+    ubxData.satellites    = data.satellites;
+    ubxData.fix           = data.fix;
+
+    return ubxData;
+#endif
 }
 
-BME280Data Sensors::getBme280LastSample()
+ADS1118Data Sensors::getADS1118LastSample()
 {
     miosix::PauseKernelLock lock;
-    return bme280->getLastSample();
+    return ads1118 != nullptr ? ads1118->getLastSample() : ADS1118Data{};
+}
+
+MPXHZ6130AData Sensors::getStaticPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return staticPressure != nullptr ? staticPressure->getLastSample()
+                                     : MPXHZ6130AData{};
+}
+
+SSCDANN030PAAData Sensors::getDplPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return dplPressure != nullptr ? dplPressure->getLastSample()
+                                  : SSCDANN030PAAData{};
+}
+
+SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifndef HILSimulation
+    return pitotPressure != nullptr ? pitotPressure->getLastSample()
+                                    : SSCDRRN015PDAData{};
+#else
+    auto pitotData = state.pitot->getLastSample();
+    SSCDRRN015PDAData data;
+    data.pressureTimestamp = pitotData.timestamp;
+    data.pressure          = pitotData.deltaP;
+    return data;
+#endif
+}
+
+PitotData Sensors::getPitotLastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifndef HILSimulation
+    return pitot != nullptr ? pitot->getLastSample() : PitotData{};
+#else
+    return state.pitot->getLastSample();
+#endif
+}
+
+InternalADCData Sensors::getInternalADCLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return internalADC != nullptr ? internalADC->getLastSample()
+                                  : InternalADCData{};
+}
+
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return batteryVoltage != nullptr ? batteryVoltage->getLastSample()
+                                     : BatteryVoltageSensorData{};
 }
 
 void Sensors::calibrate()
 {
-    miosix::PauseKernelLock kLock;
-    this->needsCalibration = true;
+    calibrating = true;
+
+    ms5803Stats.reset();
+    staticPressureStats.reset();
+    dplPressureStats.reset();
+    pitotPressureStats.reset();
+
+    bmx160WithCorrection->startCalibration();
+
+    Thread::sleep(CALIBRATION_DURATION);
+
+    bmx160WithCorrection->stopCalibration();
+
+    // Calibrate the analog pressure sensor to the digital one
+    float ms5803Mean         = ms5803Stats.getStats().mean;
+    float staticPressureMean = staticPressureStats.getStats().mean;
+    float dplPressureMean    = dplPressureStats.getStats().mean;
+    staticPressure->setOffset(staticPressureMean - ms5803Mean);
+    dplPressure->setOffset(dplPressureMean - ms5803Mean);
+    pitotPressure->setOffset(pitotPressureStats.getStats().mean);
+
+    calibrating = false;
+}
+
+void Sensors::pitotSetReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refAltitude     = altitude;
+    pitot->setReferenceValues(reference);
+}
+
+void Sensors::pitotSetReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refTemperature  = temperature + 273.15f;
+    pitot->setReferenceValues(reference);
 }
 
 std::map<string, bool> Sensors::getSensorsState()
@@ -82,12 +266,43 @@ std::map<string, bool> Sensors::getSensorsState()
 Sensors::Sensors()
 {
     // Initialize all the sensors
-    mpu9250init();
-    miosix::Thread::sleep(200);
+    lis3mdlInit();
+    ms5803Init();
     ubxGpsInit();
-    miosix::Thread::sleep(200);
-    bme280init();
-    miosix::Thread::sleep(200);
+    ads1118Init();
+    staticPressureInit();
+    dplPressureInit();
+    pitotPressureInit();
+    pitotInit();
+    internalADCInit();
+    batteryVoltageInit();
+
+    // Moved down here because the bmx takes some times to start
+    bmx160Init();
+    bmx160WithCorrectionInit();
+
+#ifdef HILSimulation
+    // Definition of the fake sensors for the simulation
+    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
+    state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.pitot         = new HILPitot(N_DATA_PITOT);
+    state.gps           = new HILGps(N_DATA_GPS);
+    state.gyro          = new HILGyroscope(N_DATA_GYRO);
+    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
+    state.imu           = new HILImu(N_DATA_IMU);
+    state.temperature   = new HILTemperature(N_DATA_TEMP);
+    state.kalman        = new HILKalman(N_DATA_KALM);
+
+    sensorsMap = {{state.accelerometer, accelConfig},
+                  {state.barometer, baroConfig},
+                  {state.pitot, pitotConfig},
+                  {state.magnetometer, magnConfig},
+                  {state.imu, imuConfig},
+                  {state.gps, gpsConfig},
+                  {state.gyro, gyroConfig},
+                  {state.temperature, tempConfig},
+                  {state.kalman, kalmConfig}};
+#endif
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
@@ -95,154 +310,309 @@ Sensors::Sensors()
 
 Sensors::~Sensors()
 {
-    delete mpu9250;
+    delete bmx160;
+    delete lis3mdl;
+    delete ms5803;
     delete ubxGps;
-    delete bme280;
+    delete ads1118;
+    delete staticPressure;
+    delete dplPressure;
+    delete pitotPressure;
+
+#ifdef HILSimulation
+    delete state.accelerometer;
+    delete state.barometer;
+    delete state.pitot;
+    delete state.gps;
+    delete state.gyro;
+    delete state.magnetometer;
+    delete state.imu;
+    delete state.temperature;
+    delete state.kalman;
+#endif
 
     sensorManager->stop();
     delete sensorManager;
 }
 
-void Sensors::mpu9250init()
+void Sensors::bmx160Init()
 {
-    SPIBusConfig spiConfig{};
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
-    spiConfig.mode         = SPI::Mode::MODE_3;
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
 
-    mpu9250 =
-        new MPU9250(Buses::getInstance().spi1, sensors::mpu9250::cs::getPin(),
-                    spiConfig, IMU_SAMPLE_RATE, IMU_GYRO_SCALE, IMU_ACCEL_SCALE,
-                    SPI::ClockDivider::DIV_16);
+    BMX160Config config;
+    config.fifoMode      = BMX160Config::FifoMode::HEADER;
+    config.fifoWatermark = IMU_BMX_FIFO_WATERMARK;
+    config.fifoInterrupt = BMX160Config::FifoInterruptPin::PIN_INT1;
+
+    config.temperatureDivider = IMU_BMX_TEMP_DIVIDER;
+
+    config.accelerometerRange = IMU_BMX_ACC_FSR_ENUM;
+    config.gyroscopeRange     = IMU_BMX_GYRO_FSR_ENUM;
+
+    config.accelerometerDataRate = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    config.gyroscopeDataRate     = IMU_BMX_ACC_GYRO_ODR_ENUM;
+    config.magnetometerRate      = IMU_BMX_MAG_ODR_ENUM;
+
+    config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
+
+    bmx160 =
+        new BMX160(Buses::getInstance().spi1,
+                   miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
+
+    SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
+                    bind(&Sensors::bmx160Callback, this));
+
+    sensorsMap.emplace(make_pair(bmx160, info));
+
+    LOG_INFO(logger, "BMX160 setup done!");
+}
+
+void Sensors::bmx160Callback()
+{
+    uint8_t fifoSize = bmx160->getLastFifoSize();
+    auto& fifo       = bmx160->getLastFifo();
+
+    Logger::getInstance().log(bmx160->getTemperature());
+
+    for (uint8_t i = 0; i < fifoSize; i++)
+        Logger::getInstance().log(fifo.at(i));
+
+    Logger::getInstance().log(bmx160->getFifoStats());
+}
+
+void Sensors::bmx160WithCorrectionInit()
+{
+    bmx160WithCorrection =
+        new BMX160WithCorrection(bmx160, BMX160_AXIS_ROTATION);
 
     SensorInfo info(
-        "MPU9250", IMU_SAMPLE_PERIOD,
-        [&]() { Logger::getInstance().log(mpu9250->getLastSample()); }, true);
+        "BMX160WithCorrection", SAMPLE_PERIOD_IMU_BMX,
+        [&]()
+        { Logger::getInstance().log(bmx160WithCorrection->getLastSample()); });
 
-    sensorsMap.emplace(std::make_pair(mpu9250, info));
+    sensorsMap.emplace(make_pair(bmx160WithCorrection, info));
 
-    LOG_INFO(logger, "IMU MPU9250 Setup done!");
+    LOG_INFO(logger, "BMX160WithCorrection setup done!");
+}
+
+void Sensors::lis3mdlInit()
+{
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    LIS3MDL::Config config;
+    config.odr                = MAG_LIS_ODR_ENUM;
+    config.scale              = MAG_LIS_FULLSCALE;
+    config.temperatureDivider = 1;
+
+    lis3mdl =
+        new LIS3MDL(Buses::getInstance().spi1,
+                    miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
+
+    // Create the sensor info
+    SensorInfo info("LIS3MDL", SAMPLE_PERIOD_MAG_LIS,
+                    [&]()
+                    { Logger::getInstance().log(lis3mdl->getLastSample()); });
+    sensorsMap.emplace(make_pair(lis3mdl, info));
+
+    LOG_INFO(logger, "LIS3MDL setup done!");
+}
+
+void Sensors::ms5803Init()
+{
+    SPIBusConfig spiConfig{};
+    spiConfig.mode         = SPI::Mode::MODE_3;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    ms5803 = new MS5803(Buses::getInstance().spi1,
+                        miosix::sensors::ms5803::cs::getPin(), spiConfig,
+                        PRESS_DIGITAL_TEMP_DIVIDER);
+
+    SensorInfo info(
+        "MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
+        [&]()
+        {
+            Logger::getInstance().log(ms5803->getLastSample());
+            if (calibrating && ms5803->getLastSample().pressure != 0)
+                ms5803Stats.add(ms5803->getLastSample().pressure);
+        });
+
+    sensorsMap.emplace(make_pair(ms5803, info));
+
+    LOG_INFO(logger, "MS5803 setup done!");
 }
 
 void Sensors::ubxGpsInit()
 {
-    ubxGps =
-        new UBXGPSSerial(USARTInterface::Baudrate::B256000, GPS_SAMPLE_RATE,
-                         USART2, USARTInterface::Baudrate::B9600);
+    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, USART2,
+                              USARTInterface::Baudrate::B9600);
+
+    SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
+                    [&]()
+                    { Logger::getInstance().log(ubxGps->getLastSample()); });
+    sensorsMap.emplace(make_pair(ubxGps, info));
+
+    LOG_INFO(logger, "UbloxGPS setup done!");
+}
+
+void Sensors::ads1118Init()
+{
+    SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
+
+    ADS1118::ADS1118Config config = ADS1118::ADS1118_DEFAULT_CONFIG;
+    config.bits.mode              = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
+
+    ads1118 =
+        new ADS1118(Buses::getInstance().spi1,
+                    miosix::sensors::ads1118::cs::getPin(), config, spiConfig);
+
+    ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,
+                         ADC_PGA_STATIC_PORT);
+    ads1118->enableInput(ADC_CH_PITOT_PORT, ADC_DR_PITOT_PORT,
+                         ADC_PGA_PITOT_PORT);
+    ads1118->enableInput(ADC_CH_DPL_PORT, ADC_DR_DPL_PORT, ADC_PGA_DPL_PORT);
+
+    SensorInfo info("ADS1118", SAMPLE_PERIOD_ADS1118,
+                    [&]()
+                    { Logger::getInstance().log(ads1118->getLastSample()); });
+    sensorsMap.emplace(make_pair(ads1118, info));
+
+    LOG_INFO(logger, "ADS1118 adc setup done!");
+}
+
+void Sensors::staticPressureInit()
+{
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, ads1118, ADC_CH_STATIC_PORT));
+
+    staticPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE);
 
     SensorInfo info(
-        "UbloxGPS", SAMPLE_PERIOD_GPS,
-        [&]() { Logger::getInstance().log(ubxGps->getLastSample()); }, true);
+        "StaticPortsBarometer", SAMPLE_PERIOD_ADS1118 * 4,
+        [&]()
+        {
+            Logger::getInstance().log(staticPressure->getLastSample());
 
-    sensorsMap.emplace(std::make_pair(ubxGps, info));
+            if (calibrating)
+                staticPressureStats.add(
+                    staticPressure->getLastSample().pressure);
+        });
 
-    LOG_INFO(logger, "Ubx GPS Setup done!");
+    sensorsMap.emplace(make_pair(staticPressure, info));
+
+    LOG_INFO(logger, "Static pressure sensor setup done!");
 }
 
-void Sensors::bme280init()
+void Sensors::dplPressureInit()
 {
-    // I first create a SPI slave needed to instantiate the sensor
-    SPISlave slave(Buses::getInstance().spi1, sensors::bme280::cs::getPin(),
-                   SPIBusConfig{});
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, ads1118, ADC_CH_DPL_PORT));
 
-    slave.config.clockDivider = SPI::ClockDivider::DIV_16;
-    slave.config.mode         = SPI::Mode::MODE_0;
+    dplPressure = new SSCDANN030PAA(readVoltage, REFERENCE_VOLTAGE);
 
-    auto config                      = BME280::BME280_CONFIG_ALL_ENABLED;
-    config.bits.oversamplingPressure = BME280::OVERSAMPLING_4;
+    SensorInfo info(
+        "DPL_PRESSURE", SAMPLE_PERIOD_ADS1118 * 4,
+        [&]()
+        {
+            Logger::getInstance().log(dplPressure->getLastSample());
 
-    // Instantiate the object
-    bme280 = new BME280(slave, config);
+            if (calibrating)
+                dplPressureStats.add(dplPressure->getLastSample().pressure);
+        });
 
-    // Set the standby time
-    bme280->setStandbyTime(PRESS_SAMPLE_RATE);
+    sensorsMap.emplace(make_pair(dplPressure, info));
 
-    // Bind the information with the callback method
-    SensorInfo info("BME280", PRESS_SAMPLE_PERIOD,
-                    bind(&Sensors::bme280Callback, this), true);
-    sensorsMap.emplace(std::make_pair(bme280, info));
-
-    LOG_INFO(logger, "BME280 Setup done!");
+    LOG_INFO(logger, "Deployment pressure sensor setup done!");
 }
 
-void Sensors::bme280Callback()
+void Sensors::pitotPressureInit()
 {
-    auto data = bme280->getLastSample();
-    Logger::getInstance().log(data);
+    // Create a function to read the analog voltage
+    function<ADCData()> readVoltage(
+        bind(&ADS1118::getVoltage, ads1118, ADC_CH_PITOT_PORT));
 
-    // Logic for wing procedure start and flare
-    static uint8_t count = 0;
-    static Boardcore::Stats pressureMean{};
-    static Boardcore::Stats temperatureMean{};
+    // Setup the pitot sensor
+    pitotPressure = new SSCDRRN015PDA(readVoltage, REFERENCE_VOLTAGE);
 
-    // If we reach the needed samples
-    if (count == WING_PRESSURE_MEAN_COUNT)
-    {
-        static bool procedureArm = false;
-        static bool flareArm     = false;
-
-        // In case of calibration needed i calibrate
-        if (needsCalibration)
+    // Create the sensor info
+    SensorInfo info(
+        "PITOT_PRESS", SAMPLE_PERIOD_ADS1118 * 4,
+        [&]()
         {
-            WING_CALIBRATION_PRESSURE = pressureMean.getStats().mean;
-            WING_CALIBRATION_TEMPERATURE =
-                temperatureMean.getStats().mean + 273.15;
+            Logger::getInstance().log(pitotPressure->getLastSample());
+            if (calibrating)
+                pitotPressureStats.add(pitotPressure->getLastSample().pressure);
+        });
 
-            // Reset the mean values
-            count = 0;
-            pressureMean.reset();
-            temperatureMean.reset();
+    sensorsMap.emplace(make_pair(pitotPressure, info));
 
-            // Set calibrated status
-            needsCalibration = false;
+    LOG_INFO(logger, "Pitot differential pressure sensor setup done!");
+}
 
-            // I don't want to calculate stuff
-            return;
-        }
+void Sensors::pitotInit()
+{
+    function<PressureData()> getPitotPressure(
+        bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
+    function<float()> getStaticPressure(
+        [&]() { return ms5803->getLastSample().pressure; });
 
-        // Calculate the height
-        float height = Aeroutils::relAltitude(pressureMean.getStats().mean,
-                                              WING_CALIBRATION_PRESSURE,
-                                              WING_CALIBRATION_TEMPERATURE);
+    pitot = new Pitot(getPitotPressure, getStaticPressure);
+    pitot->setReferenceValues(defaultReferenceValues);
 
-        // Update the radio repository
-        data.pressure    = pressureMean.getStats().mean;
-        data.temperature = temperatureMean.getStats().mean;
+    SensorInfo info("PITOT", SAMPLE_PERIOD_ADS1118 * 4,
+                    [&]()
+                    { Logger::getInstance().log(pitot->getLastSample()); });
 
-        // Decide what the wing should do
-        if (height > WING_ALGORITHM_ARM_ALTITUDE && !procedureArm)
-            procedureArm = true;
+    sensorsMap.emplace(make_pair(pitot, info));
 
-        if (height < WING_ALGORITHM_START_ALTITUDE && procedureArm)
-        {
-            // Disarm the starting command
-            procedureArm = false;
+    LOG_INFO(logger, "Pitot sensor setup done!");
+}
 
-            // Arm the flare command
-            flareArm = true;
+void Sensors::internalADCInit()
+{
+    internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
 
-            // Start the algorithm
-            WingController::getInstance().start();
-        }
+    internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
 
-        if (height < WING_FLARE_ALTITUDE && flareArm)
-        {
-            // Disarm the starting command
-            flareArm = false;
+    SensorInfo info(
+        "INTERNAL_ADC", SAMPLE_PERIOD_INTERNAL_ADC,
+        [&]() { Logger::getInstance().log(internalADC->getLastSample()); });
 
-            // Flare
-            WingController::getInstance().flare();
-        }
+    sensorsMap.emplace(std::make_pair(internalADC, info));
 
-        // Reset the mean values
-        count = 0;
-        pressureMean.reset();
-        temperatureMean.reset();
-    }
+    LOG_INFO(logger, "InternalADC setup done!");
+}
 
-    // Add the current value to the mean and increase the counting
-    pressureMean.add(data.pressure);
-    temperatureMean.add(data.temperature);
-    count++;
+void Sensors::batteryVoltageInit()
+{
+    function<ADCData()> getADCVoltage(
+        bind(&InternalADC::getVoltage, internalADC, ADC_BATTERY_VOLTAGE));
+
+    batteryVoltage =
+        new BatteryVoltageSensor(getADCVoltage, BATTERY_VOLTAGE_COEFF);
+
+    SensorInfo info(
+        "BATTERY_VOLTAGE", SAMPLE_PERIOD_INTERNAL_ADC,
+        [&]() { Logger::getInstance().log(batteryVoltage->getLastSample()); });
+
+    sensorsMap.emplace(std::make_pair(batteryVoltage, info));
+
+    LOG_INFO(logger, "Battery voltage sensor setup done!");
+}
+
+void Sensors::internalTempInit()
+{
+    internalTemp = new InternalTemp(InternalADC::CYCLES_480, INTERNAL_ADC_VREF);
+
+    SensorInfo info(
+        "INTERNAL_TEMP", SAMPLE_PERIOD_INTERNAL_TEMP,
+        [&]() { Logger::getInstance().log(internalTemp->getLastSample()); });
+
+    sensorsMap.emplace(make_pair(internalTemp, info));
+
+    LOG_INFO(logger, "Internal TEMP setup done!");
 }
 
 }  // namespace Parafoil

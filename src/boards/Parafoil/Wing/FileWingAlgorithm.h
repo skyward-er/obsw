@@ -21,7 +21,7 @@
  */
 
 #pragma once
-#include <ParafoilNew/Wing/WingAlgorithm.h>
+#include <Parafoil/Wing/WingAlgorithm.h>
 #include <utils/CSVReader/CSVReader.h>
 
 /**

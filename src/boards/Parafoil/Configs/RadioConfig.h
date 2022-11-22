@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Luca Conterio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ namespace RadioConfig
 
 // Mavlink driver template parameters
 constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
 constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
 // Mavlink driver parameters
@@ -43,6 +43,10 @@ constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
 // Mavlink ids
 constexpr uint8_t MAV_SYSTEM_ID    = 171;
 constexpr uint8_t MAV_COMPONENT_ID = 96;
+
+// XBee parameters
+constexpr bool XBEE_80KBPS_DATA_RATE = true;
+constexpr int XBEE_TIMEOUT           = 5000;  // [ms]
 
 // Periodic telemetries frequency
 constexpr uint32_t FLIGHT_TM_PERIOD = 250;   // [ms]

@@ -20,10 +20,10 @@
  * THE SOFTWARE.
  */
 
-#include <ParafoilNew/BoardScheduler.h>
-#include <ParafoilNew/Configs/WingConfig.h>
-#include <ParafoilNew/Sensors/Sensors.h>
-#include <ParafoilNew/Wing/WindEstimation.h>
+#include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/Wing/WindEstimation.h>
 #include <common/events/Events.h>
 
 using namespace Parafoil::WingConfig;

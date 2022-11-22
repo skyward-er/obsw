@@ -22,8 +22,9 @@
 
 #pragma once
 
-#include <ParafoilNew/Configs/WingConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Singleton.h>
+#include <logger/Logger.h>
 
 #include <Eigen/Core>
 namespace Parafoil

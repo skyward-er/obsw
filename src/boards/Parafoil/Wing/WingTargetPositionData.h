@@ -30,17 +30,23 @@ namespace Parafoil
 
 struct WingTargetPositionData
 {
+    float receivedLat;
+    float receivedLon;
     float latitude;
     float longitude;
 
     float n;
     float e;
 
-    static std::string header() { return "latitude,longitude,n,e\n"; }
+    static std::string header()
+    {
+        return "receivedLat, receivedLon, latitude,longitude,n,e\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << latitude << "," << longitude << "," << n << "," << e << "\n";
+        os << receivedLat << "," << receivedLon << "," << latitude << ","
+           << longitude << "," << n << "," << e << "\n";
     }
 };
 

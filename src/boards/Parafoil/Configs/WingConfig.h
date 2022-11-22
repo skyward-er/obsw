@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,16 +35,47 @@ namespace WingConfig
 
 // Algorithm configuration
 constexpr uint32_t WING_UPDATE_PERIOD = 100;  // [ms]
-constexpr uint8_t WING_CONTROLLER_ID  = 100;  // TODO define a correct ID
+constexpr uint8_t WING_CONTROLLER_ID  = 100;
+constexpr uint32_t WIND_PREDICTION_CALIBRATION_TIMEOUT =
+    10 * 1000;  // time needed for the first loop [ms]
+constexpr uint32_t WIND_PREDICTION_TIMEOUT =
+    2 * WIND_PREDICTION_CALIBRATION_TIMEOUT;
+
+constexpr int WIND_CALIBRATION_SAMPLE_NUMBER = 20;
+
+constexpr uint32_t WIND_CALIBRATION_UPDATE_PERIOD =
+    (WIND_PREDICTION_CALIBRATION_TIMEOUT) / WIND_CALIBRATION_SAMPLE_NUMBER -
+    10;  //[ms]
+constexpr uint8_t WIND_CALIBRATION_ID            = 101;
+constexpr uint32_t WIND_PREDICTION_UPDATE_PERIOD = 100;  //[ms]
+constexpr uint8_t WING_PREDICTION_ID             = 102;
 
 // Arm, start and flare thresholds
-constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;   // [m]
-constexpr float WING_ALGORITHM_START_ALTITUDE = 200;   // [m]
-constexpr float WING_FLARE_ALTITUDE           = 1275;  // [m]
+constexpr float WING_ALGORITHM_ARM_ALTITUDE   = 250;  // [m]
+constexpr float WING_ALGORITHM_START_ALTITUDE = 200;  // [m]
+constexpr float WING_FLARE_ALTITUDE           = 10;   // [m]
 
-static float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
-static float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
-static uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
+constexpr float WING_CALIBRATION_PRESSURE    = 101325;  // [Pa]
+constexpr float WING_CALIBRATION_TEMPERATURE = 300;     // [K]
+constexpr uint8_t WING_PRESSURE_MEAN_COUNT   = 20;
+
+#if defined(EUROC)
+constexpr float DEFAULT_TARGET_LAT = 39.389733;
+constexpr float DEFAULT_TARGET_LON = -8.288992;
+#elif defined(ROCCARASO)
+constexpr float DEFAULT_TARGET_LAT = 41.8039952;
+constexpr float DEFAULT_TARGET_LON = 14.0547223;
+#else  // Milan
+constexpr float DEFAULT_TARGET_LAT = 42;
+constexpr float DEFAULT_TARGET_LON = 9;
+#endif
+
+// Wing altitude checker configs
+constexpr float WING_ALTITUDE_CHECKER_TASK_ID  = 230;
+constexpr float WING_ALTITUDE_CHECKER_PERIOD   = 100;  // [ms]
+constexpr float WING_ALTITUDE_REFERENCE        = 450;
+constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;
+constexpr int WING_ALTITUDE_DESCEND_CONTROL    = 50;  // meter
 
 }  // namespace WingConfig
 

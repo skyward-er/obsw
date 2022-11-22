@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,35 @@
 
 #pragma once
 
-#include <ParafoilNew/Configs/RadioConfig.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
-#include <common/Mavlink.h>
-#include <diagnostic/PrintLogger.h>
 
 namespace Parafoil
 {
 
-class TMRepository : public Boardcore::Singleton<TMRepository>
+class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
 {
-    friend class Boardcore::Singleton<TMRepository>;
+    friend class Boardcore::Singleton<AltitudeTrigger>;
 
 public:
-    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
-                                   uint8_t seq);
+    // Update method that posts a FLIGHT_WING_ALT_REACHED when the correct
+    // altitude is reached
+    void update();
 
-    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
-                                    uint8_t seq);
-
-    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
-                                  uint8_t seq);
+    // Method to set the altitude where trigger the dpl event
+    void setDeploymentAltitude(float altitude);
 
 private:
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
+    AltitudeTrigger();
+
+    // The altitude could be different from the default one
+    float altitude;
+
+    float fallingAltitude;
+
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
+    int confidence;
 };
 
 }  // namespace Parafoil

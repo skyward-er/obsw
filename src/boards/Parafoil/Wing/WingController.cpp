@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,10 @@
  * THE SOFTWARE.
  */
 
-#include "WingController.h"
-
-#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Wing/WingController.h>
+#include <Parafoil/Wing/WingTargetPositionData.h>
 
 using namespace Boardcore;
 using namespace Parafoil::WingConfig;
@@ -34,6 +33,9 @@ namespace Parafoil
 
 WingController::WingController()
 {
+    // Assign the task scheduler
+    // this->scheduler = new TaskScheduler();
+
     // Set the current running state
     this->running = false;
 
@@ -47,41 +49,42 @@ WingController::WingController()
 
 WingController::~WingController() {}
 
-void WingController::addAlgorithm(const char* filename)
-{
-    // Create the algorithm
-    WingAlgorithm* algorithm = new WingAlgorithm(filename);
-
-    // Add the algorithm to the vector and init it
-    algorithms.push_back(algorithm);
-
-    // If init fails[Because of inexistent file or stuff] doesn't matter
-    // Because the algorithm is empty and so it won't do anything
-    algorithms[algorithms.size() - 1]->init();
-}
-
 void WingController::addAlgorithm(WingAlgorithm* algorithm)
 {
+    // Ensure that the servos are correct
+    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+
+    // Init the algorithm
+    algorithm->init();
+
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
 }
 
 void WingController::selectAlgorithm(unsigned int index)
 {
-    if (index < algorithms.size())
+    if (index >= 0 && index < algorithms.size())
+    {
+        LOG_INFO(logger, "Algorithm {:1} selected", index);
         selectedAlgorithm = index;
+    }
     else
+    {
+        // I select the 0 algorithm
         selectedAlgorithm = 0;
-
-    LOG_INFO(logger, "Algorithm {:1} selected", index);
+    }
 }
 
 void WingController::start()
 {
-    // If the selected algorithm is valid --> also the algorithms array is not
-    // empty i start the whole thing
-    if (selectedAlgorithm < algorithms.size())
+    // If the selected algorithm is valid --> also the
+    // algorithms array is not empty i start the whole thing
+    if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
     {
+        // Register the task
+        BoardScheduler::getInstance().getScheduler().addTask(
+            std::bind(&WingController::update, this), WING_UPDATE_PERIOD,
+            WING_CONTROLLER_ID);
         // Set the boolean that enables the update method to true
         running = true;
 
@@ -94,49 +97,74 @@ void WingController::start()
 
 void WingController::stop()
 {
-    // Set running to false so that the update method doesn't act
-    running = false;
-
-    // Stop the algorithm if selected
-    if (selectedAlgorithm < algorithms.size())
-        algorithms[selectedAlgorithm]->end();
+    if (running)
+    {
+        // Set running to false so that the update method doesn't act
+        running = false;
+        // Stop the algorithm if selected
+        if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+        {
+            algorithms[selectedAlgorithm]->end();
+            // Remove the task
+            BoardScheduler::getInstance().getScheduler().removeTask(
+                WING_CONTROLLER_ID);
+        }
+    }
 }
 
 void WingController::flare()
 {
+    // I stop any on going algorithm
     stop();
 
-    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
-    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
+    // Set the servo position to flare (pull the two ropes as skydiving people
+    // do)
+    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 1);
+    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
 {
+    // I stop any on going algorithm
     stop();
 
+    // Set the servo position to reset
     Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
     Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::update()
 {
+    // Check if the algorithm is running
     if (!running)
+    {
         return;
+    }
 
     // If the selected algorithm is valid i can update it
-    if (selectedAlgorithm < algorithms.size())
+    if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+    {
         algorithms[selectedAlgorithm]->update();
+    }
 }
 
 void WingController::init()
 {
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [=]() { update(); }, WING_UPDATE_PERIOD, WING_CONTROLLER_ID);
+    // Set the target position to the default one
+    targetPosition[0] = DEFAULT_TARGET_LAT;
+    targetPosition[1] = DEFAULT_TARGET_LON;
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)
 {
-    targetPosition = target;
+    this->targetPosition = target;
+
+    WingTargetPositionData data;
+    data.latitude  = target[0];
+    data.longitude = target[1];
+
+    // Log the received position
+    Logger::getInstance().log(data);
 }
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }

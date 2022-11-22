@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,16 @@
 #include <Parafoil/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278.h>
+#include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
+
+#if defined(USE_SERIAL_TRANSCEIVER)
+#include <radio/SerialTransceiver/SerialTransceiver.h>
+#elif defined(USE_XBEE_TRANSCEIVER)
+#include <radio/Xbee/ATCommands.h>
+#else
+#include <radio/SX1278/SX1278.h>
+#endif
 
 namespace Parafoil
 {
@@ -40,18 +48,13 @@ class Radio : public Boardcore::Singleton<Radio>
     friend class Boardcore::Singleton<Radio>;
 
 public:
-    Boardcore::SX1278* transceiver;
+#if defined(USE_SERIAL_TRANSCEIVER)
+    Boardcore::SerialTransceiver* transceiver;
+#else
+    Boardcore::Xbee::Xbee* transceiver;
+#endif
+
     MavDriver* mavDriver;
-
-    /**
-     * @brief Called by the MavlinkDriver when a message is received.
-     */
-    void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
-
-    /**
-     * @brief Called by handleMavlinkMessage to handle a command message.
-     */
-    void handleCommand(const mavlink_message_t& msg);
 
     /**
      * @brief Prepares and send an ack message for the given message.
@@ -84,18 +87,20 @@ public:
      */
     void logStatus();
 
-    /**
-     * @brief Used to send the specified system telemetry message.
-     */
-    bool sendSystemTm(const SystemTMList tmId);
-
-    /**
-     * @brief Used to send the specified sensors telemetry message.
-     */
-    bool sendSensorsTm(const SensorsTMList tmId);
-
 private:
     Radio();
+
+    void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
+
+    /**
+     * @brief Called by the MavlinkDriver when a message is received.
+     */
+    void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
+
+    /**
+     * @brief Called by handleMavlinkMessage to handle a command message.
+     */
+    void handleCommand(const mavlink_message_t& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

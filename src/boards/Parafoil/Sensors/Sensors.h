@@ -22,10 +22,25 @@
 
 #pragma once
 
-#include <sensors/BME280/BME280.h>
-#include <sensors/MPU9250/MPU9250.h>
+#include <drivers/adc/InternalADC.h>
+#include <drivers/adc/InternalTemp.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSerial.h>
+#include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/Pitot/Pitot.h>
+#include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
+#include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
+#include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
+#ifdef HILSimulation
+#include <HIL_algorithms/HILMockKalman.h>
+#include <HIL_sensors/HILSensors.h>
+#endif  // HILSimulation
 
 namespace Parafoil
 {
@@ -39,11 +54,51 @@ public:
 
     bool isStarted();
 
-    Boardcore::MPU9250Data getMpu9250LastSample();
-    Boardcore::UBXGPSData getUbxGpsLastSample();
-    Boardcore::BME280Data getBme280LastSample();
+#ifdef HILSimulation
+public:
+    /**
+     * structure that contains all the sensors used in the simulation
+     */
+    struct StateComplete
+    {
+        HILAccelerometer* accelerometer;
+        HILBarometer* barometer;
+        HILPitot* pitot;
+        HILGps* gps;
+        HILGyroscope* gyro;
+        HILMagnetometer* magnetometer;
+        HILTemperature* temperature;
+        HILImu* imu;
+        HILKalman* kalman;
+    } state;
+#endif  // HILSimulation
 
+    Boardcore::BMX160* bmx160;
+
+    Boardcore::BMX160Data getBMX160LastSample();
+    Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
+    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
+    Boardcore::MS5803Data getMS5803LastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
+
+    Boardcore::ADS1118Data getADS1118LastSample();
+    Boardcore::MPXHZ6130AData getStaticPressureLastSample();
+    Boardcore::SSCDANN030PAAData getDplPressureLastSample();
+    Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
+    Boardcore::PitotData getPitotLastSample();
+    Boardcore::InternalADCData getInternalADCLastSample();
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+
+    /**
+     * @brief Blocking function that calibrates the sensors.
+     *
+     * The calibration works by capturing the mean of the sensor readings and
+     * then removing the offsets from the desired values.
+     */
     void calibrate();
+
+    void pitotSetReferenceAltitude(float altitude);
+    void pitotSetReferenceTemperature(float temperature);
 
     std::map<string, bool> getSensorsState();
 
@@ -52,23 +107,55 @@ private:
 
     ~Sensors();
 
-    void mpu9250init();
+    void bmx160Init();
+    void bmx160Callback();
+
+    void bmx160WithCorrectionInit();
+
+    void lis3mdlInit();
+
+    void ms5803Init();
 
     void ubxGpsInit();
-    void ubxGpsCallback();
 
-    void bme280init();
-    void bme280Callback();
+    void ads1118Init();
 
-    Boardcore::MPU9250* mpu9250;
+    void staticPressureInit();
+
+    void dplPressureInit();
+
+    void pitotPressureInit();
+    void pitotInit();
+
+    void internalADCInit();
+    void batteryVoltageInit();
+
+    void internalTempInit();
+
+    Boardcore::BMX160WithCorrection* bmx160WithCorrection;
+    Boardcore::LIS3MDL* lis3mdl;
+    Boardcore::MS5803* ms5803;  // barometro digitale
     Boardcore::UBXGPSSerial* ubxGps;
-    Boardcore::BME280* bme280;
 
-    bool needsCalibration = false;
+    Boardcore::ADS1118* ads1118;  // adc
+    Boardcore::MPXHZ6130A* staticPressure;
+    Boardcore::SSCDANN030PAA* dplPressure;
+    Boardcore::SSCDRRN015PDA* pitotPressure;
+
+    Boardcore::Pitot* pitot;
+    Boardcore::InternalADC* internalADC;
+    Boardcore::BatteryVoltageSensor* batteryVoltage;
+    Boardcore::InternalTemp* internalTemp = nullptr;
 
     Boardcore::SensorManager* sensorManager = nullptr;
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
+
+    bool calibrating = false;
+    Boardcore::Stats ms5803Stats;
+    Boardcore::Stats staticPressureStats;
+    Boardcore::Stats dplPressureStats;
+    Boardcore::Stats pitotPressureStats;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <drivers/timer/TimestampTimer.h>
 
@@ -28,101 +27,89 @@ using namespace Boardcore;
 
 namespace Parafoil
 {
-
-std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
+WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
 {
-    input >> data.timestamp;
-    input.ignore(1, ',');
-    input >> data.servo1Angle;
-    input.ignore(1, ',');
-    input >> data.servo2Angle;
-    return input;
+    this->servo1 = servo1;
+    this->servo2 = servo2;
+    stepIndex    = 0;
 }
-
-WingAlgorithm::WingAlgorithm(const char* filename) : parser(filename) {}
 
 bool WingAlgorithm::init()
 {
-    // Returns a std::vector which contains
-    // all the csv parsed with the data structure in mind
-    steps = parser.collect();
-
-    // Return if the size collected is greater than 0
-    fileValid = steps.size() > 0;
-
-    // Communicate it via serial
-    if (fileValid)
-    {
-        LOG_INFO(logger, "File valid");
-    }
-
-    return fileValid;
+    // Create the vector for algorithm data
+    steps = std::vector<WingAlgorithmData>();
+    return true;  // In this case the init is always true
 }
 
-void WingAlgorithm::addStep(WingAlgorithmData step)
+void WingAlgorithm::setServo(ServosList servo1, ServosList servo2)
 {
-    // I do it if and only if the file is invalid, because
-    // i don't want to mess up with the timestamp order
-    if (!fileValid)
-    {
-        // Add it to the std::vector at the end
-        steps.push_back(step);
-    }
+    this->servo1 = servo1;
+    this->servo2 = servo2;
 }
+
+void WingAlgorithm::addStep(WingAlgorithmData step) { steps.push_back(step); }
 
 void WingAlgorithm::begin()
 {
     running     = true;
     shouldReset = true;
-    // Set the current timestamp
+
+    // Set the reference timestamp
     timeStart = TimestampTimer::getTimestamp();
 }
 
 void WingAlgorithm::end()
 {
     running = false;
-    // Set the offset timestamp to 0
+
+    // Set the reference timestamp to 0
     timeStart = 0;
 }
 
 void WingAlgorithm::step()
 {
-    // Variable to remember what is the step that has to be done
-    static unsigned int stepIndex = 0;
-    uint64_t currentTimestamp     = TimestampTimer::getTimestamp();
+    uint64_t currentTimestamp = TimestampTimer::getTimestamp();
 
     if (shouldReset)
     {
-        // If the algorithm has been stopped i want to start from the beginning
+        // If the algorithm has been stopped
+        // i want to start from the beginning
         stepIndex   = 0;
         shouldReset = false;
     }
 
     if (stepIndex >= steps.size())
     {
+        LOG_INFO(logger, "Algorithm end {:d} >= {:d}", stepIndex, steps.size());
         // End the procedure so it won't be executed
         end();
-
         // Set the index to 0 in case of another future execution
         stepIndex = 0;
-
+        // Terminate here
         return;
     }
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
-        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO,
-                                          steps[stepIndex].servo1Angle);
-        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO,
-                                          steps[stepIndex].servo2Angle);
+        // I need to execute the current step
+        Actuators::getInstance().setServoAngle(servo1,
+                                               steps[stepIndex].servo1Angle);
+        Actuators::getInstance().setServoAngle(servo2,
+                                               steps[stepIndex].servo2Angle);
 
+        // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;
         data.timestamp   = TimestampTimer::getTimestamp();
         data.servo1Angle = steps[stepIndex].servo1Angle;
         data.servo2Angle = steps[stepIndex].servo2Angle;
-        Logger::getInstance().log(data);
 
+        // After copy i can log the actual step
+        SDlogger->log(data);
+
+        // finally increment the stepIndex
         stepIndex++;
+
+        LOG_INFO(logger, "Step");
     }
 }
 

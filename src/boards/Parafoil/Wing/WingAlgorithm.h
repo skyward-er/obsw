@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,72 +19,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
+#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/Wing/WingAlgorithmData.h>
 #include <algorithms/Algorithm.h>
 #include <diagnostic/PrintLogger.h>
+#include <logger/Logger.h>
 #include <miosix.h>
-#include <utils/CSVReader/CSVReader.h>
-
-/**
- * @brief This class abstracts the concept of wing timestamp based
- * algorithm. These algorithms are stored in files (formatted in csv).
- * We use a CSV parser to properly parse the procedure and every step
- * we check if it is time to advance and in case actuate teh step with
- * the two servos.
- *
- * Brief use case:
- * WingServo servo1...
- * WingServo servo2...
- *
- * servo1.enable();
- * servo2.enable();
- *
- * WingAlgorithm algorithm(&servo1, &servo2, "Optional File")
- * algorithm.init();
- *
- * //In case of a non valid file/empty string you can add the steps
- * algorithm.addStep(WingAlgorithmData{timestamp, angle1, angle2});
- *
- * algorithm.begin();
- *
- * algorithm.update()...
- *
- * //End of algorithm
- *
- * algorithm.begin();
- *
- * algorithm.update()...
- */
 
 namespace Parafoil
 {
-
 class WingAlgorithm : public Boardcore::Algorithm
 {
 public:
     /**
      * @brief Construct a new Wing Algorithm object
      *
-     * @param filename The csv file where all the operations are stored
+     * @param servo1 The first servo
+     * @param servo2 The second servo
      */
-    WingAlgorithm(const char* filename);
+    WingAlgorithm(ServosList servo1, ServosList servo2);
 
     /**
-     * @brief This method parses the file and stores it into a std::vector
+     * @brief Method to initialize the algorithm
      *
-     * @return true If the initialization finished correctly
-     * @return false If something went wrong
+     * @return true If the init process goes well
+     * @return false If the init process doesn't go well
      */
     bool init() override;
 
     /**
-     * @brief Adds manually the step in case of fast debug needs
+     * @brief Set the Servos object
      *
-     * @param step The data that describes a step(timestamp, servo1 angle,
-     * servo2 angle)
+     * @param servo1 The first algorithm servo
+     * @param servo2 The second algorithm servo
+     */
+    void setServo(ServosList servo1, ServosList servo2);
+
+    /**
+     * @brief Add a step to the algorithm sequence
+     *
+     * @param step The step to add
      */
     void addStep(WingAlgorithmData step);
 
@@ -94,41 +70,40 @@ public:
     void begin();
 
     /**
-     * @brief This disables the algorithm
+     * @brief This method disables the algorithm
      */
     void end();
 
 protected:
-    /**
-     * @brief Absolute starting timestamp
-     */
+    // The actuators
+    ServosList servo1, servo2;
+
+    // Reference timestamp for relative algorithm timestamps
     uint64_t timeStart;
 
-    /**
-     * @brief Procedure array to memorize all the steps needed to perform the
-     * algorithm
-     */
+    // Procedure array to memorize all the steps needed to perform the algorithm
     std::vector<WingAlgorithmData> steps;
 
-    /**
-     * @brief CSV format file parser
-     */
-    Boardcore::CSVParser<WingAlgorithmData> parser;
-
     // PrintLogger
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("wingalgo");
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("WingAlgorithm");
 
-    /**
-     * @brief Indicates whether the current file of the algorithm is readable.
-     */
-    bool fileValid = false;
+    // SD logger
+    Boardcore::Logger* SDlogger = &Boardcore::Logger::getInstance();
 
-    // This boolean is used to understand when to reset the index where the
-    // algorithm has stopped. In case of end call, we want to be able to perform
+    // This boolean is used to understand when to reset
+    // the index where the algorithm has stopped.
+    // In case of end call, we want to be able to perform
     // another time this algorithm starting from 0
     bool shouldReset = false;
 
+    // Variable to remember what step that has to be done
+    unsigned int stepIndex;
+
+    /**
+     * @brief This method implements the algorithm step based on the current
+     * timestamp
+     */
     void step() override;
 };
-
 }  // namespace Parafoil

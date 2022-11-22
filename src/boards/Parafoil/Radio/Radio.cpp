@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,29 +26,185 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
+#include <Parafoil/Wing/AltitudeTrigger.h>
+#include <Parafoil/Wing/WingController.h>
+#include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
-#include <events/EventBroker.h>
+#include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
 
 #include <functional>
 
 using namespace std;
-using namespace miosix;
 using namespace placeholders;
+using namespace miosix;
 using namespace Boardcore;
 using namespace Parafoil::RadioConfig;
+using namespace Common;
 
+// XBee interrupt
+#ifndef USE_SERIAL_TRANSCEIVER
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    using namespace Parafoil;
-
-    if (Radio::getInstance().transceiver != nullptr)
-        Radio::getInstance().transceiver->handleDioIRQ();
+    if (Parafoil::Radio::getInstance().transceiver != nullptr)
+        Parafoil::Radio::getInstance().transceiver->handleATTNInterrupt();
 }
+#endif
 
 namespace Parafoil
 {
+
+void Radio::sendAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
+                            msg.seq);
+    mavDriver->enqueueMsg(ackMsg);
+}
+
+void Radio::sendNack(const mavlink_message_t& msg)
+{
+    mavlink_message_t nackMsg;
+    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
+    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
+                             msg.msgid, msg.seq);
+    mavDriver->enqueueMsg(nackMsg);
+}
+
+bool Radio::start() { return mavDriver->start(); }
+
+bool Radio::isStarted() { return mavDriver->isStarted(); }
+
+Boardcore::MavlinkStatus Radio::getMavlinkStatus()
+{
+    return mavDriver->getStatus();
+}
+
+void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
+
+Radio::Radio()
+{
+#if defined(USE_SERIAL_TRANSCEIVER)
+    Boardcore::SerialTransceiver* transceiver;
+    transceiver = new SerialTransceiver(Buses::getInstance().usart2);
+#else
+    // Create the SPI bus configuration
+    SPIBusConfig config{};
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Create the xbee object
+    transceiver = new Xbee::Xbee(
+        Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
+        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
+    transceiver->setOnFrameReceivedListener(
+        bind(&Radio::onXbeeFrameReceived, this, _1));
+
+    Xbee::setDataRate(*transceiver, XBEE_80KBPS_DATA_RATE, XBEE_TIMEOUT);
+
+    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
+                            miosix::xbee::attn::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
+#endif
+
+    mavDriver = new MavDriver(transceiver,
+                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                              0, MAV_OUT_BUFFER_MAX_AGE);
+
+    // Add to the scheduler the periodic telemetries
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]()
+        {
+            mavDriver->enqueueMsg(
+                TMRepository::getInstance().packSystemTm(MAV_FLIGHT_ID, 0, 0));
+        },
+        FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]()
+        {
+            mavDriver->enqueueMsg(
+                TMRepository::getInstance().packSystemTm(MAV_STATS_ID, 0, 0));
+        },
+        STATS_TM_PERIOD, STATS_TM_TASK_ID);
+}
+
+void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame)
+{
+    using namespace Xbee;
+    bool logged = false;
+    switch (frame.frameType)
+    {
+        case FTYPE_AT_COMMAND:
+        {
+            ATCommandFrameLog dest;
+            logged = ATCommandFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_AT_COMMAND_RESPONSE:
+        {
+            ATCommandResponseFrameLog dest;
+            logged = ATCommandResponseFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_MODEM_STATUS:
+        {
+            ModemStatusFrameLog dest;
+            logged = ModemStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_REQUEST:
+        {
+            TXRequestFrameLog dest;
+            logged = TXRequestFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_STATUS:
+        {
+            TXStatusFrameLog dest;
+            logged = TXStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_RX_PACKET_FRAME:
+        {
+            RXPacketFrameLog dest;
+            logged = RXPacketFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+    }
+
+    if (!logged)
+    {
+        APIFrameLog api;
+        APIFrameLog::fromAPIFrame(frame, &api);
+        Logger::getInstance().log(api);
+    }
+}
 
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
@@ -69,9 +225,35 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             SystemTMList tmId = static_cast<SystemTMList>(
                 mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
 
-            // Send multiple packets for the TASK STATS telemetry
+            // Send multiple packets for some telemetries
             switch (tmId)
             {
+                /*case SystemTMList::MAV_PIN_OBS_ID:
+                {
+                    auto pinDataVector =
+                        PinHandler::getInstance().getPinsData();
+
+                    for (auto pinData : pinDataVector)
+                    {
+                        mavlink_message_t msgToSend;
+                        mavlink_pin_tm_t tm;
+
+                        tm.timestamp = TimestampTimer::getTimestamp();
+                        tm.pin_id    = pinData.first;
+                        tm.last_change_timestamp =
+                            pinData.second.lastStateTimestamp;
+                        tm.changes_counter = pinData.second.changesCount;
+                        tm.current_state   = pinData.second.lastState;
+
+                        mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                  RadioConfig::MAV_COMPONENT_ID,
+                                                  &msgToSend, &tm);
+
+                        mavDriver->enqueueMsg(msgToSend);
+                    }
+
+                    break;
+                }*/
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
                     auto statsVector = BoardScheduler::getInstance()
@@ -108,6 +290,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                         mavlink_message_t msgToSend;
                         mavlink_sensor_state_tm_t tm;
 
+                        memset(tm.sensor_id, 0, sizeof(tm.sensor_id));
                         sensor.first.copy(tm.sensor_id, sizeof(tm.sensor_id),
                                           0);
                         tm.state = sensor.second;
@@ -123,24 +306,48 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 default:
                 {
-                    sendSystemTm(tmId);
-                    break;
+                    auto response = TMRepository::getInstance().packSystemTm(
+                        tmId, msg.msgid, msg.seq);
+
+                    mavDriver->enqueueMsg(response);
+
+                    if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+                        return;
+                    else
+                        break;
                 }
             }
-
-            LOG_DEBUG(logger, "Received system telemetry request, id: {}",
-                      tmId);
             break;
         }
         case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
         {
-            SystemTMList tmId = static_cast<SystemTMList>(
-                mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
-            sendSystemTm(tmId);
+            SensorsTMList sensorId = static_cast<SensorsTMList>(
+                mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
 
-            LOG_DEBUG(logger, "Received system telemetry request, id: {}",
-                      tmId);
-            break;
+            auto response = TMRepository::getInstance().packSensorsTm(
+                sensorId, msg.msgid, msg.seq);
+
+            mavDriver->enqueueMsg(response);
+
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+                return;
+            else
+                break;
+        }
+        case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
+
+            auto response = TMRepository::getInstance().packServoTm(
+                servoId, msg.msgid, msg.seq);
+
+            mavDriver->enqueueMsg(response);
+
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+                return;
+            else
+                break;
         }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
@@ -148,16 +355,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received set servo angle command, servoId: {} angle: {}",
-                      servoId, angle);
-
-            // Move the servo, if failed send a nack
-            if (!Actuators::getInstance().setServoAngle(servoId, angle))
-            {
-                sendNack(msg);
-                return;
-            }
+            // Move the servo, if it fails send a nack
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().setServoAngle(servoId, angle)))
+                return sendNack(msg);
 
             break;
         }
@@ -166,11 +368,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            LOG_DEBUG(logger, "Received wiggle servo command, servoId: {}",
-                      servoId);
-
-            if (!Actuators::getInstance().wiggleServo(servoId))
-                sendNack(msg);
+            // Wiggle the servo, if it fails send a nack
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().wiggleServo(servoId)))
+                return sendNack(msg);
 
             break;
         }
@@ -179,11 +381,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
-            LOG_DEBUG(logger, "Received reset servo command, servoId: {}",
-                      servoId);
-
-            if (!Actuators::getInstance().setServo(servoId, 0))
-                sendNack(msg);
+            // Reset the servo, if it fails send a nack
+            if (!(FlightModeManager::getInstance().getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  Actuators::getInstance().setServo(servoId, 0)))
+                return sendNack(msg);
 
             break;
         }
@@ -192,11 +394,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float altitude =
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received set reference altitude command, altitude: {}",
-                      altitude);
-
-            // TODO: Apply command
+            NASController::getInstance().setReferenceAltitude(altitude);
+            Sensors::getInstance().pitotSetReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -204,12 +403,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float temperature =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
-            LOG_DEBUG(
-                logger,
-                "Received set reference temperature command, temperature: {}",
-                temperature);
-
-            // TODO: Apply command
+            NASController::getInstance().setReferenceTemperature(temperature);
+            Sensors::getInstance().pitotSetReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -217,41 +412,48 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float altitude =
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received set deployment altitude command, altitude: {}",
-                      altitude);
-
-            // TODO: Apply command
+            AltitudeTrigger::getInstance().setDeploymentAltitude(altitude);
             break;
         }
-        case MAVLINK_MSG_ID_SET_INITIAL_ORIENTATION_TC:
+        case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
         {
-            float yaw = mavlink_msg_set_initial_orientation_tc_get_yaw(&msg);
-            float pitch =
-                mavlink_msg_set_initial_orientation_tc_get_pitch(&msg);
-            float roll = mavlink_msg_set_initial_orientation_tc_get_roll(&msg);
+            float yaw   = mavlink_msg_set_orientation_tc_get_yaw(&msg);
+            float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
+            float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received set initial orientation command, yaw: {}, "
-                      "pitch: {}, roll: {}",
-                      yaw, pitch, roll);
-
-            // TODO: Apply command
+            NASController::getInstance().setOrientation(yaw, pitch, roll);
             break;
         }
-        case MAVLINK_MSG_ID_SET_INITIAL_COORDINATES_TC:
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
+        {
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
+
+            NASController::getInstance().setCoordinates(
+                Eigen::Vector2f(latitude, longitude));
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
         {
             float latitude =
-                mavlink_msg_set_initial_coordinates_tc_get_latitude(&msg);
+                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
+
             float longitude =
-                mavlink_msg_set_initial_coordinates_tc_get_longitude(&msg);
+                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received set initial coordinates command, latitude: {}, "
-                      "longitude: {}",
-                      latitude, longitude);
+            WingController::getInstance().setTargetPosition(
+                Eigen::Vector2f(latitude, longitude));
 
-            // TODO: Apply command
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
+        {
+            uint8_t algorithm =
+                mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
+
+            WingController::getInstance().selectAlgorithm(algorithm);
+
             break;
         }
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
@@ -259,11 +461,13 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
-            LOG_DEBUG(logger,
-                      "Received raw event command, topicId: {}, eventId{}",
-                      topicId, eventId);
+            // Send the event only if the flight mode manager is in test mode
+            if (FlightModeManager::getInstance().getStatus().state ==
+                FlightModeManagerState::TEST_MODE)
+                EventBroker::getInstance().post(topicId, eventId);
+            else
+                return sendNack(msg);
 
-            EventBroker::getInstance().post(topicId, eventId);
             break;
         }
 
@@ -285,134 +489,33 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     MavCommandList commandId = static_cast<MavCommandList>(
         mavlink_msg_command_tc_get_command_id(&msg));
 
-    switch (commandId)
-    {
-        case MAV_CMD_ARM:
-            LOG_DEBUG(logger, "Received command arm");
+    static const std::map<MavCommandList, Events> commandToEvent{
+        {MAV_CMD_ARM, TMTC_ARM},
+        {MAV_CMD_DISARM, TMTC_DISARM},
+        {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
+        {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
+        {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
+        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
+        {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
+        {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
+        {MAV_CMD_FORCE_MAIN, TMTC_FORCE_MAIN},
+        {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
+        {MAV_CMD_STOP_LOGGING, TMTC_STOP_LOGGING},
+        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
+        {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
+        {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
+        {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
+        {MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING},
+    };
+    auto it = commandToEvent.find(commandId);
 
-            // TODO: Apply command
-            break;
-        case MAV_CMD_DISARM:
-            LOG_DEBUG(logger, "Received command disarm");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_FORCE_LAUNCH:
-            LOG_DEBUG(logger, "Received command force launch");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_FORCE_LANDING:
-            LOG_DEBUG(logger, "Received command force landing");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_FORCE_EXPULSION:
-            LOG_DEBUG(logger, "Received command force expulsion");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_FORCE_MAIN:
-            LOG_DEBUG(logger, "Received command force main");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_START_LOGGING:
-            LOG_DEBUG(logger, "Received command start logging");
-            Logger::getInstance().start();
-            break;
-        case MAV_CMD_CLOSE_LOG:
-            LOG_DEBUG(logger, "Received command close log");
-            Logger::getInstance().stop();
-            break;
-        case MAV_CMD_FORCE_REBOOT:
-            reboot();
-            break;
-        case MAV_CMD_TEST_MODE:
-            LOG_DEBUG(logger, "Received command test mode");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_START_RECORDING:
-            LOG_DEBUG(logger, "Received command start recording");
-
-            // TODO: Apply command
-            break;
-        case MAV_CMD_STOP_RECORDING:
-            LOG_DEBUG(logger, "Received command stop recording");
-
-            // TODO: Apply command
-            break;
-
-        default:
-            return sendNack(msg);
-    }
+    if (it != commandToEvent.end())
+        EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+    else
+        return sendNack(msg);
 
     // Acknowledge the message
     sendAck(msg);
-}
-
-void Radio::sendAck(const mavlink_message_t& msg)
-{
-    mavlink_message_t ackMsg;
-    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
-                            msg.seq);
-    mavDriver->enqueueMsg(ackMsg);
-}
-
-void Radio::sendNack(const mavlink_message_t& msg)
-{
-    mavlink_message_t nackMsg;
-    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
-    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
-    mavDriver->enqueueMsg(nackMsg);
-}
-
-bool Radio::start() { return mavDriver->start(); }
-
-bool Radio::isStarted() { return mavDriver->isStarted(); }
-
-Boardcore::MavlinkStatus Radio::getMavlinkStatus()
-{
-    return mavDriver->getStatus();
-}
-
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
-
-bool Radio::sendSystemTm(const SystemTMList tmId)
-{
-    bool result =
-        mavDriver->enqueueMsg(TMRepository::getInstance().packSystemTm(tmId));
-    return result;
-}
-
-bool Radio::sendSensorsTm(const SensorsTMList tmId)
-{
-    bool result =
-        mavDriver->enqueueMsg(TMRepository::getInstance().packSensorsTm(tmId));
-    return result;
-}
-
-Radio::Radio()
-{
-    transceiver = new SX1278(Buses::getInstance().spi4, sx1278::cs::getPin());
-
-    mavDriver = new MavDriver(transceiver,
-                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                              0, MAV_OUT_BUFFER_MAX_AGE);
-
-    // Add to the scheduler the flight and statistics telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_FLIGHT_ID); }, FLIGHT_TM_PERIOD,
-        FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
-        [&]() { sendSystemTm(MAV_STATS_ID); }, STATS_TM_PERIOD,
-        STATS_TM_TASK_ID);
 }
 
 }  // namespace Parafoil

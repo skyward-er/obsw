@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Luca Erbetta, Luca Conterio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,13 @@
  * THE SOFTWARE.
  */
 
-/**
- * This class specifies the sensors constants that the sensor manager
- * needs to know about every device. For example the sample time is
- * essential to understand how much time a sensor should wait before
- * another sample.
- */
-
-#pragma once
-
-#include <sensors/BME280/BME280.h>
-#include <sensors/MPU9250/MPU9250.h>
+#include <drivers/adc/InternalADC.h>
+#include <drivers/usart/USART.h>
+#include <interfaces-impl/hwmapping.h>
+#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/BMX160/BMX160Config.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/calibration/AxisOrientation.h>
 
 namespace Parafoil
 {
@@ -38,22 +34,104 @@ namespace Parafoil
 namespace SensorsConfig
 {
 
-// GPS settings
-constexpr unsigned int GPS_SAMPLE_RATE   = 10;
-constexpr unsigned int SAMPLE_PERIOD_GPS = 1000 / GPS_SAMPLE_RATE;
+constexpr float INTERNAL_ADC_VREF                 = 3.3;
+constexpr float BATTERY_VOLTAGE_COEFF             = 5.98;
+constexpr unsigned int PRESS_DIGITAL_TEMP_DIVIDER = 5;
+constexpr float REFERENCE_VOLTAGE                 = 5.0;
+constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
+    Boardcore::InternalADC::Channel::CH5;
 
-// IMU MPU9250 settings
-static const Boardcore::MPU9250::GyroFSR IMU_GYRO_SCALE =
-    Boardcore::MPU9250::GYRO_FSR_500DPS;
-static const Boardcore::MPU9250::AccelFSR IMU_ACCEL_SCALE =
-    Boardcore::MPU9250::ACCEL_FSR_16G;
-constexpr unsigned short IMU_SAMPLE_RATE = 500;
-constexpr unsigned int IMU_SAMPLE_PERIOD = 1000 / IMU_SAMPLE_RATE;
+// ADS1118 and connected sensors
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_STATIC_PORT =
+    Boardcore::ADS1118::MUX_AIN0_GND;
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_STATIC_PORT =
+    Boardcore::ADS1118::DR_860;
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_STATIC_PORT =
+    Boardcore::ADS1118::FSR_6_144;
 
-// Barometer BME280 settings
-static const Boardcore::BME280::StandbyTime PRESS_SAMPLE_RATE =
-    Boardcore::BME280::STB_TIME_0_5;
-constexpr unsigned int PRESS_SAMPLE_PERIOD = 20;
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_PITOT_PORT =
+    Boardcore::ADS1118::MUX_AIN1_GND;
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_PITOT_PORT =
+    Boardcore::ADS1118::DR_860;
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_PITOT_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+
+constexpr Boardcore::ADS1118::ADS1118Mux ADC_CH_DPL_PORT =
+    Boardcore::ADS1118::MUX_AIN2_GND;
+constexpr Boardcore::ADS1118::ADS1118DataRate ADC_DR_DPL_PORT =
+    Boardcore::ADS1118::DR_860;
+constexpr Boardcore::ADS1118::ADS1118Pga ADC_PGA_DPL_PORT =
+    Boardcore::ADS1118::FSR_6_144;
+
+// BMX160
+constexpr Boardcore::BMX160Config::AccelerometerRange IMU_BMX_ACC_FSR_ENUM =
+    Boardcore::BMX160Config::AccelerometerRange::G_16;
+constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
+    Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
+constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
+    Boardcore::BMX160Config::OutputDataRate::HZ_1600;
+constexpr unsigned int IMU_BMX_MAG_ODR = 100;
+constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
+
+constexpr unsigned int IMU_BMX_FIFO_HEADER_SIZE = 1;
+constexpr unsigned int IMU_BMX_ACC_DATA_SIZE    = 6;
+constexpr unsigned int IMU_BMX_GYRO_DATA_SIZE   = 6;
+constexpr unsigned int IMU_BMX_MAG_DATA_SIZE    = 8;
+
+constexpr unsigned int IMU_BMX_FIFO_WATERMARK = 40;
+
+// How many bytes go into the fifo each second
+constexpr unsigned int IMU_BMX_FIFO_FILL_RATE =
+    IMU_BMX_ACC_GYRO_ODR * (IMU_BMX_FIFO_HEADER_SIZE + IMU_BMX_ACC_DATA_SIZE +
+                            IMU_BMX_GYRO_DATA_SIZE) +
+    IMU_BMX_MAG_ODR * (IMU_BMX_MAG_DATA_SIZE + IMU_BMX_FIFO_HEADER_SIZE);
+
+// How long does it take for the bmx fifo to fill up
+constexpr unsigned int IMU_BMX_FIFO_FILL_TIME =
+    1024 * 1000 / IMU_BMX_FIFO_FILL_RATE;
+
+// Axis rotation
+static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
+    Boardcore::Direction::NEGATIVE_Y, Boardcore::Direction::NEGATIVE_Z};
+
+// Correction parameter file
+constexpr char BMX160_CORRECTION_PARAMETERS_FILE[30] = "/sd/bmx160_params.csv";
+
+// LIS magnetometer
+constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR_ENUM =
+    Boardcore::LIS3MDL::ODR_80_HZ;
+constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
+    Boardcore::LIS3MDL::FS_4_GAUSS;
+
+// GPS
+static constexpr Boardcore::USARTInterface::Baudrate GPS_BAUD_RATE =
+    Boardcore::USARTInterface::Baudrate::B460800;
+static constexpr unsigned int GPS_SAMPLE_RATE = 10;
+
+// Sampling periods and dividers
+constexpr unsigned int SAMPLE_PERIOD_PRESS_DIGITAL = 15;
+constexpr unsigned int SAMPLE_PERIOD_INTERNAL_ADC  = 1000;
+constexpr unsigned int SAMPLE_PERIOD_INTERNAL_TEMP = 2000;
+constexpr unsigned int SAMPLE_PERIOD_ADS1118       = 6;
+constexpr unsigned int SAMPLE_PERIOD_MAG_LIS       = 15;
+constexpr unsigned int SAMPLE_PERIOD_GPS           = 1000 / GPS_SAMPLE_RATE;
+
+// Sample before the fifo is full, but slightly after the watermark level
+// (watermark + 30) ---> high slack due to scheduler imprecision,
+//                       avoid clearing the fifo before the interrupt
+constexpr unsigned int SAMPLE_PERIOD_IMU_BMX =
+    IMU_BMX_FIFO_FILL_TIME * (IMU_BMX_FIFO_WATERMARK + 30) * 4 / 1024;
+constexpr unsigned int IMU_BMX_TEMP_DIVIDER = 1;
+
+constexpr unsigned int PITOT_TRANSMISSION_PERIOD = 50;
+
+// Calibration
+constexpr unsigned int STATIC_PRESS_CALIB_SAMPLES_NUM = 50;
+constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
+constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
+constexpr unsigned int CALIBRATION_DURATION           = 2000;
 
 }  // namespace SensorsConfig
 

@@ -22,10 +22,10 @@
 
 #include "NASController.h"
 
-#include <ParafoilNew/BoardScheduler.h>
-#include <ParafoilNew/Configs/NASConfig.h>
-#include <ParafoilNew/Configs/WingConfig.h>
-#include <ParafoilNew/Sensors/Sensors.h>
+#include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/NASConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/ReferenceConfig.h>
 #include <common/events/Events.h>

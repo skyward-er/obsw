@@ -22,18 +22,16 @@
 
 #pragma once
 
-#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
-#include <common/Mavlink.h>
-#include <scheduler/TaskScheduler.h>
 
 #include <Eigen/Core>
 
 /**
- * @brief This class allows the user to select the wing algorithm  that has to
- * be used during the tests. It also registers his dedicated function in the
- * task scheduler in order to be executed every fixed period and to update the
- * two servos position depending on the selected algorithm.
+ * @brief This class allows the user to select the wing algorithm
+ * that has to be used during the tests. It also registers his
+ * dedicated function in the task scheduler in order to be
+ * executed every fixed period and to update the two servos position
+ * depending on the selected algorithm.
  *
  * Use case example:
  * controller = new WingController(scheduler);
@@ -51,60 +49,15 @@
 
 namespace Parafoil
 {
-
 class WingController : public Boardcore::Singleton<WingController>
 {
-    friend Boardcore::Singleton<WingController>;
-
-private:
-    /**
-     * @brief Target position
-     */
-    Eigen::Vector2f targetPosition;
-
-    /**
-     * @brief List of loaded algorithms (from SD or not)
-     */
-    std::vector<WingAlgorithm*> algorithms;
-
-    /**
-     * @brief PrintLogger
-     */
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("wingctrl");
-
-    /**
-     * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumerated algorithm
-     * to execute
-     */
-    unsigned int selectedAlgorithm;
-
-    /**
-     * @brief Internal running state
-     */
-    bool running;
-
-    /**
-     * @brief Initialization method. It registers the update method
-     * into the task scheduler
-     */
-    void init();
+    friend class Boardcore::Singleton<WingController>;
 
 public:
-    WingController();
-
     /**
      * @brief Destroy the Wing Controller object.
-     * In particular destroys the servo instances
      */
     ~WingController();
-
-    /**
-     * @brief Method to add the algorithm in the list
-     *
-     * @param filename The SD file where to read the instructions
-     */
-    void addAlgorithm(const char* filename);
 
     /**
      * @brief Method to add the algorithm in the list
@@ -159,7 +112,49 @@ public:
      */
     Eigen::Vector2f getTargetPosition();
 
-    float getServoPosition(ServosList servoId);
-};
+private:
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WingController();
 
+    /**
+     * @brief Target position
+     */
+    Eigen::Vector2f targetPosition;
+
+    /**
+     * @brief List of loaded algorithms (from SD or not)
+     */
+    std::vector<WingAlgorithm*> algorithms;
+
+    /**
+     * @brief PrintLogger
+     */
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("ParafoilTest");
+
+    /**
+     * @brief The common task scheduler
+     */
+    // Boardcore::TaskScheduler* scheduler;
+
+    /**
+     * @brief This attribute is modified by the mavlink radio section.
+     * The user using the Ground Station can select the pre-enumered algorithm
+     * to execute
+     */
+    unsigned int selectedAlgorithm;
+
+    /**
+     * @brief Internal running state
+     */
+    bool running;
+
+    /**
+     * @brief Initialization method. It registers the update method
+     * into the task scheduler
+     */
+    void init();
+};
 }  // namespace Parafoil

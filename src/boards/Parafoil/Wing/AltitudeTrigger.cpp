@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <ParafoilNew/BoardScheduler.h>
-#include <ParafoilNew/Configs/WingConfig.h>
-#include <ParafoilNew/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <ParafoilNew/StateMachines/NASController/NASController.h>
-#include <ParafoilNew/Wing/AltitudeTrigger.h>
+#include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/Wing/AltitudeTrigger.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>

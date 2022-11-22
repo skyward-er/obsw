@@ -19,18 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
+#include <Parafoil/Wing/WingAlgorithm.h>
 #include <algorithms/PIController.h>
 
 #include <Eigen/Core>
 
-#include "WingAlgorithm.h"
-
 namespace Parafoil
 {
-
 class AutomaticWingAlgorithm : public WingAlgorithm
 {
 public:
@@ -39,8 +36,11 @@ public:
      *
      * @param Kp Proportional value for PI controller
      * @param Ki Integral value for PI controller
+     * @param servo1 The first servo
+     * @param servo2 The second servo
      */
-    AutomaticWingAlgorithm(float Kp, float Ki);
+    AutomaticWingAlgorithm(float Kp, float Ki, ServosList servo1,
+                           ServosList servo2);
 
     /**
      * @brief Destroy the Automatic Wing Algorithm object and the PI
@@ -58,5 +58,4 @@ protected:
      */
     void step() override;
 };
-
 }  // namespace Parafoil

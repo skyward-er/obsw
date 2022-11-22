@@ -22,11 +22,11 @@
 
 #include "FlightModeManager.h"
 
-#include <ParafoilNew/Configs/FlightModeManagerConfig.h>
-#include <ParafoilNew/Configs/WingConfig.h>
-#include <ParafoilNew/Sensors/Sensors.h>
-#include <ParafoilNew/Wing/WindEstimation.h>
-#include <ParafoilNew/Wing/WingController.h>
+#include <Parafoil/Configs/FlightModeManagerConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/Wing/WindEstimation.h>
+#include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 

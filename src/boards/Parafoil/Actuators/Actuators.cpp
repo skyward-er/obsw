@@ -22,13 +22,14 @@
 
 #include "Actuators.h"
 
+#include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/ActuatorsConfigs.h>
-
-#ifndef COMPILE_FOR_HOST
-#include <interfaces-impl/hwmapping.h>
-#endif
+#include <common/LedConfig.h>
+#include <interfaces-impl/bsp_impl.h>
 
 using namespace miosix;
+using namespace Boardcore;
+using namespace Common;
 using namespace Parafoil::ActuatorsConfigs;
 
 namespace Parafoil
@@ -39,10 +40,12 @@ bool Actuators::setServo(ServosList servoId, float percentage)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(percentage);
+            leftServo.setPosition(percentage);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(percentage);
+            rightServo.setPosition(percentage);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
@@ -56,10 +59,12 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(angle / SERVO_1_ROTATION);
+            leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(angle / SERVO_2_ROTATION);
+            rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
@@ -73,14 +78,18 @@ bool Actuators::wiggleServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.setPosition(1);
+            leftServo.setPosition(1);
+            Logger::getInstance().log(leftServo.getState());
             Thread::sleep(1000);
-            servo1.setPosition(0);
+            leftServo.setPosition(0);
+            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.setPosition(1);
+            rightServo.setPosition(1);
+            Logger::getInstance().log(rightServo.getState());
             Thread::sleep(1000);
-            servo2.setPosition(0);
+            rightServo.setPosition(0);
+            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
@@ -94,10 +103,10 @@ bool Actuators::enableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.enable();
+            leftServo.enable();
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo2.enable();
+            rightServo.enable();
             break;
         default:
             return false;
@@ -111,10 +120,10 @@ bool Actuators::disableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            servo1.enable();
+            leftServo.enable();
             break;
         case PARAFOIL_RIGHT_SERVO:
-            servo1.enable();
+            rightServo.enable();
             break;
         default:
             return false;
@@ -129,9 +138,9 @@ float Actuators::getServoPosition(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            return servo1.getPosition();
+            return leftServo.getPosition();
         case PARAFOIL_RIGHT_SERVO:
-            return servo2.getPosition();
+            return rightServo.getPosition();
         default:
             return 0;
     }
@@ -139,12 +148,39 @@ float Actuators::getServoPosition(ServosList servoId)
     return 0;
 }
 
-Actuators::Actuators()
-    : servo1(SERVO_1_TIMER, SERVO_1_PWM_CH, SERVO_1_MIN_PULSE,
-             SERVO_1_MAX_PULSE),
-      servo2(SERVO_2_TIMER, SERVO_2_PWM_CH, SERVO_2_MIN_PULSE,
-             SERVO_2_MAX_PULSE)
+float Actuators::getServoAngle(ServosList servoId)
 {
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            return leftServo.getPosition() * LEFT_SERVO_ROTATION;
+        case PARAFOIL_RIGHT_SERVO:
+            return rightServo.getPosition() * RIGHT_SERVO_ROTATION;
+        default:
+            return 0;
+    }
+
+    return 0;
 }
 
+void Actuators::startTwirl()
+{
+
+    setServo(PARAFOIL_LEFT_SERVO, 1);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
+}
+
+void Actuators::stopTwirl()
+{
+    setServo(PARAFOIL_LEFT_SERVO, 0);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
+}
+
+Actuators::Actuators()
+    : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
+                LEFT_SERVO_MAX_PULSE),
+      rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
+                 RIGHT_SERVO_MAX_PULSE)
+{
+}
 }  // namespace Parafoil

@@ -20,10 +20,9 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/NASController/NASController.h>
 #include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingController.h>
 #include <algorithms/NAS/NASState.h>
@@ -33,84 +32,120 @@
 
 using namespace Boardcore;
 using namespace Eigen;
+using namespace Parafoil::WingConfig;
 
 namespace Parafoil
 {
-
-AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki)
-    : WingAlgorithm("")
+AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
+                                               ServosList servo1,
+                                               ServosList servo2)
+    : WingAlgorithm(servo1, servo2)
 {
-    controller = new PIController(
-        Kp, Ki, WingConfig::WING_UPDATE_PERIOD / 1000.0f, -2.09439, 2.09439);
+    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
+                                  -2.09439, 2.09439);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
-    auto nas = NASController::getInstance().getNasState();
-
-    // Target direction in respect to the current one
-    // TODO: To be logged
-    auto targetPosition = WingController::getInstance().getTargetPosition();
-    Vector2f targetDirection = targetPosition - Vector2f(nas.n, nas.e);
-
-    // Compute the angle of the target direction
-    float targetAngle = atan2(targetDirection[1], targetDirection[0]);
-
-    // Compute the angle of the current velocity
-    float velocityAngle;
-
-    // In case of a 0 north velocity i force the angle to 90
-    if (nas.vn == 0 && nas.ve == 0)
-        velocityAngle = 0;
-    else if (nas.vn == 0)
-        velocityAngle = (nas.ve > 0 ? 1 : -1) * Constants::PI / 2;
-    else
-        velocityAngle = atan2(nas.ve, nas.vn);
-
-    // Compute the angle difference
-    float error = targetAngle - velocityAngle;
-
-    // Angle difference
-    if (error < -Constants::PI || Constants::PI < error)
+    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
     {
-        int errorModule = (int)fmod(error, 2 * Constants::PI);
-        if (errorModule == 0 && error > 0)
-            error = 2 * Constants::PI;
-    }
+        // The PI calculated result
+        float result;
 
-    // Call the PI with the just calculated error. The result is in servo
-    // percentage position [0-1]
-    float result = controller->update(error);
+        // Acquire the last nas state
+        NASState state = NASController::getInstance().getNasState();
+        // UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
 
-    // Actuate the result
-    if (result < 0)
-    {
-        // Activate the servo1 and reset servo2
-        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, -result);
-        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
-    }
-    else
-    {
-        // Activate the servo2 and reset servo1
-        Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
-        Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, result);
-    }
+        // Target direction in respect to the current one
+        ReferenceValues reference =
+            NASController::getInstance().getReferenceValues();
+        Vector2f startingPosition =
+            Vector2f(reference.refLatitude, reference.refLongitude);
+        Vector2f targetPosition = Aeroutils::geodetic2NED(
+            WingController::getInstance().getTargetPosition(),
+            startingPosition);
+        Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
 
-    WingAlgorithmData data;
-    data.timestamp = TimestampTimer::getTimestamp();
-    data.servo1Angle =
-        Actuators::getInstance().getServoPosition(PARAFOIL_LEFT_SERVO);
-    data.servo2Angle =
-        Actuators::getInstance().getServoPosition(PARAFOIL_RIGHT_SERVO);
-    data.targetX       = targetDirection[0];
-    data.targetY       = targetDirection[1];
-    data.targetAngle   = targetAngle;
-    data.velocityAngle = velocityAngle;
-    data.error         = error;
-    data.pidOutput     = result;
-    Logger::getInstance().log(data);
+        // Compute the angle of the target direciton
+        float targetAngle = atan2(targetDirection[1], targetDirection[0]);
+
+        // Compute the angle of the current velocity
+        float velocityAngle;
+
+        // In case of a 0 north velocity i force the angle to 90
+        if (state.vn == 0 && state.ve == 0)
+        {
+            velocityAngle = 0;
+        }
+        else if (state.vn == 0)
+        {
+            velocityAngle = (state.ve > 0 ? 1 : -1) * Constants::PI / 2;
+        }
+        else
+        {
+            velocityAngle = atan2(state.ve, state.vn);
+        }
+
+        // Compute the angle difference
+        float error = targetAngle - velocityAngle;
+
+        // Angle difference
+        if (error < -Constants::PI || Constants::PI < error)
+        {
+            error += Constants::PI;
+            bool positiveInput = error > 0;
+
+            error = error -
+                    floor(error / (2 * Constants::PI)) * (2 * Constants::PI);
+
+            // error = fmod(error, 2 * Constants::PI);
+            if (error == 0 && positiveInput)
+            {
+                error = 2 * Constants::PI;
+            }
+
+            error -= Constants::PI;
+        }
+
+        // Call the PI with the just calculated error. The result is in RADIANS,
+        // if positive we activate one servo, if negative the other
+        result = controller->update(error);
+
+        // Convert the result from radians back to degrees
+        result = (result / (2 * Constants::PI)) * 360;
+
+        // Flip the servo orientation
+        result *= -1;
+
+        // Actuate the result
+        if (result > 0)
+        {
+            // Activate the servo1 and reset servo2
+            Actuators::getInstance().setServoAngle(servo1, result);
+            Actuators::getInstance().setServoAngle(servo2, 0);
+        }
+        else
+        {
+            // Activate the servo2 and reset servo1
+            Actuators::getInstance().setServoAngle(servo1, 0);
+            Actuators::getInstance().setServoAngle(servo2, result * -1);
+        }
+
+        // Log the servo positions
+        WingAlgorithmData data;
+        data.timestamp     = TimestampTimer::getTimestamp();
+        data.servo1Angle   = Actuators::getInstance().getServoPosition(servo1);
+        data.servo2Angle   = Actuators::getInstance().getServoPosition(servo2);
+        data.targetX       = targetDirection[0];
+        data.targetY       = targetDirection[1];
+        data.targetAngle   = targetAngle;
+        data.velocityAngle = velocityAngle;
+        data.error         = error;
+        data.pidOutput     = result;
+        SDlogger->log(data);
+    }
 }
 
 }  // namespace Parafoil
