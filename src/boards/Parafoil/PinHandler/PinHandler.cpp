@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,47 +20,45 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "PinHandler.h"
 
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Singleton.h>
+#include <Payload/Configs/PinObserverConfig.h>
+#include <common/events/Events.h>
+#include <events/EventBroker.h>
 
-#include <atomic>
+#include <functional>
 
-namespace Parafoil
+using namespace std;
+using namespace std::placeholders;
+using namespace miosix;
+using namespace Boardcore;
+using namespace Common;
+
+namespace Payload
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
+    if (transition == DPL_SERVO_PIN_TRIGGER)
+        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+}
 
-public:
-    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-    // altitude is reached
-    void update();
+std::map<PinsList, PinData> PinHandler::getPinsData()
+{
+    std::map<PinsList, PinData> data;
 
-    // Method to set the altitude where trigger the dpl event
-    void setDeploymentAltitude(float altitude);
+    data[PinsList::NOSECONE_PIN] =
+        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
 
-    void enable();
+    return data;
+}
 
-    void disable();
+PinHandler::PinHandler()
+{
+    PinObserver::getInstance().registerPinCallback(
+        inputs::expulsion::getPin(),
+        bind(&PinHandler::onExpulsionPinTransition, this, _1),
+        DPL_SERVO_PIN_THRESHOLD);
+}
 
-    bool isActive();
-
-private:
-    AltitudeTrigger();
-
-    // The altitude could be different from the default one
-    float altitude;
-
-    float startingAltitude;
-
-    std::atomic<bool> running;
-
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
-    int confidence;
-};
-
-}  // namespace Parafoil
+}  // namespace Payload

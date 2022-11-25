@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,45 +22,40 @@
 
 #pragma once
 
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
+#include <utils/PinObserver/PinObserver.h>
 
-#include <atomic>
-
-namespace Parafoil
+namespace Payload
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+/**
+ * @brief This class contains the handlers for the detach pins on the rocket.
+ *
+ * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
+ * The handlers post an event on the EventBroker.
+ */
+class PinHandler : public Boardcore::Singleton<PinHandler>
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
+    friend Boardcore::Singleton<PinHandler>;
 
 public:
-    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-    // altitude is reached
-    void update();
+    /**
+     * @brief Called when the deployment servo actuation is detected via the
+     * optical sensor.
+     */
+    void onExpulsionPinTransition(Boardcore::PinTransition transition);
 
-    // Method to set the altitude where trigger the dpl event
-    void setDeploymentAltitude(float altitude);
-
-    void enable();
-
-    void disable();
-
-    bool isActive();
+    /**
+     * @brief Returns a vector with all the pins data.
+     */
+    std::map<PinsList, Boardcore::PinData> getPinsData();
 
 private:
-    AltitudeTrigger();
+    PinHandler();
 
-    // The altitude could be different from the default one
-    float altitude;
-
-    float startingAltitude;
-
-    std::atomic<bool> running;
-
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
-    int confidence;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 };
 
-}  // namespace Parafoil
+}  // namespace Payload

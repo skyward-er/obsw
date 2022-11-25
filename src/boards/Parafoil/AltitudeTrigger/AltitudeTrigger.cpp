@@ -46,25 +46,21 @@ AltitudeTrigger::AltitudeTrigger()
         WING_ALTITUDE_CHECKER_TASK_ID);
 
     // Set the altitude to the default one
-    altitude        = WING_ALTITUDE_REFERENCE;
-    confidence      = 0;
-    fallingAltitude = 0;
-    running         = true;
-    flyingStatus    = 0;
+    altitude   = WING_ALTITUDE_REFERENCE;
+    confidence = 0;
+    running    = true;
 }
 
-void AltitudeTrigger::enable() { running = true; }
+void AltitudeTrigger::enable()
+{
+    running          = true;
+    float height     = -NASController::getInstance().getNasState().d;
+    startingAltitude = height;
+}
 
 void AltitudeTrigger::disable() { running = false; }
 
-void AltitudeTrigger::setFlyingStatus(bool flyingStatus)
-{
-    this->flyingStatus = flyingStatus;
-}
-
 bool AltitudeTrigger::isActive() { return running; }
-
-bool AltitudeTrigger::getFlyingStatus() { return flyingStatus; }
 
 void AltitudeTrigger::setDeploymentAltitude(float alt)
 {
@@ -76,61 +72,19 @@ void AltitudeTrigger::update()
 {
     if (running)
     {
-
-        if (flyingStatus == 0)  // we are ascending
+        float height = -NASController::getInstance().getNasState().d;
+        if (startingAltitude - height > altitude)
         {
-            NASState state = NASController::getInstance().getNasState();
-
-            if (-state.d > altitude)
-                confidence++;
-
-            // When we are sure that the altitude is below the set one we
-            // trigger the cutters
-            if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
-            {
-                confidence = 0;
-                EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
-                                                TOPIC_FLIGHT);
-                running = false;  // we stop the altitude trigger
-            }
+            confidence++;
         }
-        else if (flyingStatus == 1)  // we are descending
+        if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
         {
-            NASState state = NASController::getInstance().getNasState();
-
-            if (-state.d < altitude)
-                confidence++;
-
-            // When we are sure that the altitude is below the set one we
-            // trigger the cutters
-            if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
-            {
-                confidence = 0;
-                EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
-                                                TOPIC_FLIGHT);
-                running = false;
-            }
+            confidence       = 0;
+            startingAltitude = 0;
+            EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
+                                            TOPIC_FLIGHT);
+            running = false;
         }
-        // else if (status == FlightModeManagerState::CONTROLLED_DESCENT)
-        //  TODO other case, maybe implement with an
-        //  enum and a switch
-        {
-            float height = -NASController::getInstance().getNasState().d;
-            if (fallingAltitude == 0)
-            {
-                fallingAltitude = height;
-            }
-            else if (fallingAltitude - height > WING_ALTITUDE_DESCEND_CONTROL)
-            {
-                fallingAltitude = 0;
-                EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
-                                                TOPIC_FLIGHT);
-                running = false;
-            }
-        }
-    }  // TODO maybe create a trigger class with the common methods
+    }
 }
-// TODO move into different folder also wes
-// TODO i could post algonextstep event to advance into the algorithm, 1
-// algorithm for entrypoint
 }  // namespace Parafoil

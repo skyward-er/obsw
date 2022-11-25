@@ -27,7 +27,8 @@
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <miosix.h>
-
+// TODO i could post algonextstep event to advance into the algorithm, 1
+// algorithm for entrypoint
 namespace Parafoil
 {
 class WingAlgorithm : public Boardcore::Algorithm

@@ -25,6 +25,7 @@
 #include <Parafoil/Wing/WingAlgorithm.h>
 
 #include <Eigen/Core>
+#include <atomic>
 
 /**
  * @brief This class allows the user to select the wing algorithm
@@ -149,7 +150,7 @@ private:
     /**
      * @brief Internal running state
      */
-    bool running;
+    std::atomic<bool> running;
 
     /**
      * @brief Initialization method. It registers the update method
