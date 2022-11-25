@@ -176,8 +176,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pressure_ada    = 0;
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
-            tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
-            tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
+            tm.pressure_dpl =
+                -1;  // sensors.getDplPressureLastSample().pressure;
+            tm.airspeed_pitot = -1;  // sensors.getPitotLastSample().airspeed;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
@@ -357,7 +358,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_DPL_PRESS_ID:
+        /*case SensorsTMList::MAV_DPL_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;
 
@@ -373,7 +374,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                            &tm);
 
             break;
-        }
+        }*/
         case SensorsTMList::MAV_STATIC_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;

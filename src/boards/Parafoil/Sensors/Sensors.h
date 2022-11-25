@@ -139,10 +139,10 @@ private:
 
     Boardcore::ADS1118* ads1118;  // adc
     Boardcore::MPXHZ6130A* staticPressure;
-    Boardcore::SSCDANN030PAA* dplPressure;
-    Boardcore::SSCDRRN015PDA* pitotPressure;
+    // Boardcore::SSCDANN030PAA* dplPressure;
+    // Boardcore::SSCDRRN015PDA* pitotPressure;
 
-    Boardcore::Pitot* pitot;
+    // Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
     Boardcore::BatteryVoltageSensor* batteryVoltage;
     Boardcore::InternalTemp* internalTemp = nullptr;
