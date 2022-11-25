@@ -21,13 +21,13 @@
  */
 
 #include <Parafoil/Actuators/Actuators.h>
+#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <Parafoil/Wing/AltitudeTrigger.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <Parafoil/Wing/WingController.h>

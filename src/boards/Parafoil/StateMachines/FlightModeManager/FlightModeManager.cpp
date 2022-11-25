@@ -25,7 +25,7 @@
 #include <Parafoil/Configs/FlightModeManagerConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
-#include <Parafoil/Wing/WindEstimation.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -309,7 +309,7 @@ State FlightModeManager::state_ascending(const Event& event)
         {
             return HANDLED;
         }
-        case FLIGHT_WING_ALT_REACHED:
+        case FLIGHT_WING_ALT_PASSED:
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
@@ -343,7 +343,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             return HANDLED;
         }
-        case FLIGHT_WING_ALT_REACHED:
+        case FLIGHT_WING_ALT_PASSED:
         case TMTC_FORCE_MAIN:
         {
             return transition(&FlightModeManager::state_twirling);

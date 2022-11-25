@@ -25,6 +25,8 @@
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
 
+#include <atomic>
+
 namespace Parafoil
 {
 
@@ -33,12 +35,22 @@ class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
     friend class Boardcore::Singleton<AltitudeTrigger>;
 
 public:
-    // Update method that posts a FLIGHT_WING_ALT_REACHED when the correct
+    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();
 
     // Method to set the altitude where trigger the dpl event
     void setDeploymentAltitude(float altitude);
+
+    void enable();
+
+    void disable();
+
+    void setFlyingStatus(bool status);
+
+    bool isActive();
+
+    bool getFlyingStatus();
 
 private:
     AltitudeTrigger();
@@ -47,6 +59,11 @@ private:
     float altitude;
 
     float fallingAltitude;
+
+    std::atomic<bool> running;
+
+    // 0 for ascending, 1 for descending
+    std::atomic<bool> flyingStatus;
 
     // Number of times that the algorithm detects to be below the fixed
     // altitude

@@ -75,12 +75,12 @@ src/boards/Parafoil/Radio/Radio.cpp
 src/boards/Parafoil/TMRepository/TMRepository.cpp
 src/boards/Parafoil/StateMachines/NASController/NASController.cpp
 src/boards/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
-src/boards/Parafoil/Wing/AltitudeTrigger.cpp
+src/boards/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
 src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
 src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
 src/boards/Parafoil/Wing/WingAlgorithm.cpp
 src/boards/Parafoil/Wing/WingController.cpp
-src/boards/Parafoil/Wing/WindEstimation.cpp
+src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
 )
 
 set(CIUTI_COMPUTER

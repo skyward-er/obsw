@@ -23,13 +23,13 @@
 #include "Radio.h"
 
 #include <Parafoil/Actuators/Actuators.h>
+#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
-#include <Parafoil/Wing/AltitudeTrigger.h>
 #include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>

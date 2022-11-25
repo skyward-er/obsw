@@ -23,7 +23,7 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
-#include <Parafoil/Wing/WindEstimation.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/events/Events.h>
 
 using namespace Parafoil::WingConfig;

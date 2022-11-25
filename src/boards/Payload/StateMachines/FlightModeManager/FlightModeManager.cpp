@@ -480,7 +480,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             return HANDLED;
         }
-        case FLIGHT_WING_ALT_REACHED:
+        case FLIGHT_WING_ALT_PASSED:
         case TMTC_FORCE_MAIN:
         {
             return transition(&FlightModeManager::state_terminal_descent);

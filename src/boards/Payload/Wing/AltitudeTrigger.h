@@ -33,7 +33,7 @@ class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
     friend class Boardcore::Singleton<AltitudeTrigger>;
 
 public:
-    // Update method that posts a FLIGHT_WING_ALT_REACHED when the correct
+    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();
 

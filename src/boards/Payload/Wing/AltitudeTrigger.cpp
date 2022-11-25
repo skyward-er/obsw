@@ -71,7 +71,7 @@ void AltitudeTrigger::update()
         if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
         {
             confidence = 0;
-            EventBroker::getInstance().post(FLIGHT_WING_ALT_REACHED,
+            EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
                                             TOPIC_FLIGHT);
         }
     }
