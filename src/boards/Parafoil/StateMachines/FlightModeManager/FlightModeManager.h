@@ -59,14 +59,8 @@ public:
     /// Ascending phase of the trajectory.
     Boardcore::State state_ascending(const Boardcore::Event& event);
 
-    /// Between drogue and parafoil deployment.
-    Boardcore::State state_drogue_descent(const Boardcore::Event& event);
-
     /// State in which the wind prediction algorithm is triggered
-    Boardcore::State state_twirling(const Boardcore::Event& event);
-
-    /// State in which the wing algorithm is triggered
-    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
+    Boardcore::State state_wing_descent(const Boardcore::Event& event);
 
     /// The payload is on the ground after the flight.
     Boardcore::State state_landed(const Boardcore::Event& event);

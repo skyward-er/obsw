@@ -27,8 +27,6 @@
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <miosix.h>
-// TODO i could post algonextstep event to advance into the algorithm, 1
-// algorithm for entrypoint
 namespace Parafoil
 {
 class WingAlgorithm : public Boardcore::Algorithm
@@ -96,7 +94,7 @@ protected:
     // the index where the algorithm has stopped.
     // In case of end call, we want to be able to perform
     // another time this algorithm starting from 0
-    bool shouldReset = false;
+    std::atomic<bool> shouldReset;
 
     // Variable to remember what step that has to be done
     unsigned int stepIndex;

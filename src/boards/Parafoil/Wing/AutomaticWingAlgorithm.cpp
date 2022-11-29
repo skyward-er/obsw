@@ -23,8 +23,8 @@
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
-#include <Parafoil/Wing/WingController.h>
 #include <algorithms/NAS/NASState.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <math.h>

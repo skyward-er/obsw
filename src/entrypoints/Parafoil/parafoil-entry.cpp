@@ -28,9 +28,9 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
-#include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>

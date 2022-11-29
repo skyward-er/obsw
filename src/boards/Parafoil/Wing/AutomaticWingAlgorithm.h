@@ -30,6 +30,7 @@ namespace Parafoil
 {
 class AutomaticWingAlgorithm : public WingAlgorithm
 {
+
 public:
     /**
      * @brief Construct a new Automatic Wing Algorithm object

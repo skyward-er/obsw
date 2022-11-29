@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,35 @@
 
 #pragma once
 
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Singleton.h>
+#include <stdint.h>
 
-#include <atomic>
+#include <iostream>
+#include <string>
 
-namespace Parafoil  // TODO add better comments
+namespace Parafoil
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+enum class WingControllerState : uint8_t
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
+    UNINIT = 0,
+    IDLE,
+    WES,
+    AUTOMATIC,
+    FILE,
+    END
+};
 
-public:
-    // Method to set the altitude where trigger the dpl event
-    void setDeploymentAltitude(float altitude);
+struct WingControllerStatus
+{
+    long long timestamp       = 0;
+    WingControllerState state = WingControllerState::UNINIT;
 
-    void enable();
+    static std::string header() { return "timestamp,state\n"; }
 
-    void disable();
-
-    bool isActive();
-
-private:
-    AltitudeTrigger();
-
-    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-    // altitude is reached
-    void update();
-    // The altitude could be different from the default one
-    float altitude;
-
-    std::atomic<float> startingAltitude;
-
-    std::atomic<bool> running;
-
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
-    int confidence;
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
 }  // namespace Parafoil

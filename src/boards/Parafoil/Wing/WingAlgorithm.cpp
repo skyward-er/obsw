@@ -20,11 +20,15 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
-
+using namespace Parafoil::WingConfig;
+using namespace Common;
 namespace Parafoil
 {
 WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
@@ -32,6 +36,9 @@ WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
     this->servo1 = servo1;
     this->servo2 = servo2;
     stepIndex    = 0;
+    // Register the task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WingAlgorithm::update, this), WING_UPDATE_PERIOD);
 }
 
 bool WingAlgorithm::init()
@@ -53,6 +60,7 @@ void WingAlgorithm::begin()
 {
     running     = true;
     shouldReset = true;
+    shouldReset = false;
 
     // Set the reference timestamp
     timeStart = TimestampTimer::getTimestamp();
@@ -61,6 +69,7 @@ void WingAlgorithm::begin()
 void WingAlgorithm::end()
 {
     running = false;
+    EventBroker::getInstance().post(ALGORITHM_ENDED, TOPIC_ALGOS);
 
     // Set the reference timestamp to 0
     timeStart = 0;
@@ -90,7 +99,7 @@ void WingAlgorithm::step()
     }
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
-    {
+    {  // TODO wait answer from matteo
         // I need to execute the current step
         Actuators::getInstance().setServoAngle(servo1,
                                                steps[stepIndex].servo1Angle);

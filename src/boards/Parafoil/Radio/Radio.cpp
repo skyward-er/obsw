@@ -29,8 +29,8 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
-#include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <radio/Xbee/APIFramesLog.h>

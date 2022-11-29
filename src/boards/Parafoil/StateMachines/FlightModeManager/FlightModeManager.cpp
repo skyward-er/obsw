@@ -25,8 +25,6 @@
 #include <Parafoil/Configs/FlightModeManagerConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
-#include <Parafoil/WindEstimationScheme/WindEstimation.h>
-#include <Parafoil/Wing/WingController.h>
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
@@ -271,12 +269,10 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case FLIGHT_MISSION_TIMEOUT:
         {
-            WingController::getInstance().stop();
             return transition(&FlightModeManager::state_mission_ended);
         }
         case TMTC_FORCE_LANDING:
         {
-            WingController::getInstance().stop();
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
             return HANDLED;
@@ -309,11 +305,11 @@ State FlightModeManager::state_ascending(const Event& event)
         {
             return HANDLED;
         }
-        case FLIGHT_WING_ALT_PASSED:
+        case FLIGHT_WING_ALT_PASSED:  // Pindetach
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
-            return transition(&FlightModeManager::state_drogue_descent);
+            return transition(&FlightModeManager::state_wing_descent);
         }
         default:
         {
@@ -322,13 +318,15 @@ State FlightModeManager::state_ascending(const Event& event)
     }
 }
 
-State FlightModeManager::state_drogue_descent(const Event& event)
+State FlightModeManager::state_wing_descent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::DROGUE_DESCENT);
+            logStatus(FlightModeManagerState::WING_DESCENT);
+
+            EventBroker::getInstance().post(WING_WES, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -342,95 +340,6 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case EV_INIT:
         {
             return HANDLED;
-        }
-        case FLIGHT_WING_ALT_PASSED:
-        case TMTC_FORCE_MAIN:
-        {
-            return transition(&FlightModeManager::state_twirling);
-        }
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State FlightModeManager::state_twirling(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(FlightModeManagerState::TWIRLING);
-            // start twirling and the 1st algorithm
-            WingController::getInstance().stop();
-            Actuators::getInstance().startTwirl();
-            WindEstimation::getInstance()
-                .startWindEstimationSchemeCalibration();
-            return HANDLED;
-        }
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-        case EV_EMPTY:
-        {
-            return tranSuper(&FlightModeManager::state_flying);
-        }
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-        case FLIGHT_WIND_PREDICTION:
-        {
-            Actuators::getInstance().stopTwirl();
-            // now we begin the controlled part of the descent
-            return transition(&FlightModeManager::state_controlled_descent);
-        }
-        case FLIGHT_WIND_PREDICTION_CALIBRATION:
-        {
-            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
-            EventBroker::getInstance()
-                .postDelayed<WingConfig::WIND_PREDICTION_TIMEOUT>(
-                    FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
-            WindEstimation::getInstance().startWindEstimationScheme();
-            return HANDLED;
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State FlightModeManager::state_controlled_descent(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(FlightModeManagerState::CONTROLLED_DESCENT);
-
-            WingController::getInstance().start();
-            return HANDLED;
-        }
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-        case EV_EMPTY:
-        {
-            return tranSuper(&FlightModeManager::state_flying);
-        }
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-        case FLIGHT_TWIRL:
-        {
-            WingController::getInstance().stop();
-            return transition(&FlightModeManager::state_twirling);
         }
         default:
         {

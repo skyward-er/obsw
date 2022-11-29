@@ -69,18 +69,19 @@ set(PAYLOAD_COMPUTER
 )
 
 set(PARAFOIL_COMPUTER
-src/boards/Parafoil/Actuators/Actuators.cpp
-src/boards/Parafoil/Sensors/Sensors.cpp
-src/boards/Parafoil/Radio/Radio.cpp
-src/boards/Parafoil/TMRepository/TMRepository.cpp
-src/boards/Parafoil/StateMachines/NASController/NASController.cpp
-src/boards/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
-src/boards/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
-src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
-src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
-src/boards/Parafoil/Wing/WingAlgorithm.cpp
-src/boards/Parafoil/Wing/WingController.cpp
-src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
+    src/boards/Parafoil/Actuators/Actuators.cpp
+    src/boards/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
+    src/boards/Parafoil/PinHandler/PinHandler.cpp
+    src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/Radio/Radio.cpp
+    src/boards/Parafoil/TMRepository/TMRepository.cpp
+    src/boards/Parafoil/StateMachines/NASController/NASController.cpp
+    src/boards/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Parafoil/StateMachines/WingController/WingController.cpp
+    src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/WingAlgorithm.cpp
+    src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
 )
 
 set(CIUTI_COMPUTER

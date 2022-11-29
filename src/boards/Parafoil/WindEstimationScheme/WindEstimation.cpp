@@ -25,6 +25,7 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/events/Events.h>
+#include <events/EventBroker.h>
 
 using namespace Parafoil::WingConfig;
 using namespace Boardcore;
@@ -114,7 +115,7 @@ void WindEstimation::WindEstimationSchemeCalibration()
         windCalibration = (calibrationMatrixT * calibrationMatrix)
                               .ldlt()
                               .solve(calibrationMatrixT * calibrationV2);
-        EventBroker::getInstance().post(FLIGHT_WIND_PREDICTION, TOPIC_FLIGHT);
+        EventBroker::getInstance().post(WING_WES_CALIBRATION, TOPIC_ALGOS);
     }
 }
 

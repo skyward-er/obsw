@@ -39,9 +39,7 @@ enum class FlightModeManagerState : uint8_t
     ALGOS_CALIBRATION,
     TEST_MODE,
     ASCENDING,
-    DROGUE_DESCENT,
-    TWIRLING,
-    CONTROLLED_DESCENT,
+    WING_DESCENT,
     LANDED,
     MISSION_ENDED,
 };

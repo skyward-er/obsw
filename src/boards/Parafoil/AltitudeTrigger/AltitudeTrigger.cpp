@@ -23,9 +23,7 @@
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <algorithms/NAS/NASState.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 
@@ -48,7 +46,7 @@ AltitudeTrigger::AltitudeTrigger()
     // Set the altitude to the default one
     altitude   = WING_ALTITUDE_REFERENCE;
     confidence = 0;
-    running    = true;
+    running    = false;
 }
 
 void AltitudeTrigger::enable()
@@ -62,11 +60,7 @@ void AltitudeTrigger::disable() { running = false; }
 
 bool AltitudeTrigger::isActive() { return running; }
 
-void AltitudeTrigger::setDeploymentAltitude(float alt)
-{
-    miosix::PauseKernelLock lock;
-    this->altitude = alt;
-}
+void AltitudeTrigger::setDeploymentAltitude(float alt) { this->altitude = alt; }
 
 void AltitudeTrigger::update()
 {
@@ -82,7 +76,7 @@ void AltitudeTrigger::update()
             confidence       = 0;
             startingAltitude = 0;
             EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
-                                            TOPIC_FLIGHT);
+                                            TOPIC_ALGOS);
             running = false;
         }
     }

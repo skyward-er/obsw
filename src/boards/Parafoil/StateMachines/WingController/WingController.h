@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Author: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,14 @@
 
 #pragma once
 
+#include <ActiveObject.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <events/FSM.h>
 
 #include <Eigen/Core>
 #include <atomic>
+
+#include "WingControllerData.h"
 
 /**
  * @brief This class allows the user to select the wing algorithm
@@ -50,11 +54,18 @@
 
 namespace Parafoil
 {
-class WingController : public Boardcore::Singleton<WingController>
+class WingController : public Boardcore::FSM<WingController>,
+                       public Boardcore::Singleton<WingController>
+
 {
     friend class Boardcore::Singleton<WingController>;
 
 public:
+    void state_idle(const Boardcore::Event& event);
+    void state_wes(const Boardcore::Event& event);
+    void state_automatic(const Boardcore::Event& event);
+    void state_file(const Boardcore::Event& event);
+
     /**
      * @brief Destroy the Wing Controller object.
      */
@@ -76,16 +87,15 @@ public:
     void selectAlgorithm(unsigned int index);
 
     /**
-     * @brief Sets the internal state running and
-     * starts the selected algorithm
+     * @brief  starts the selected algorithm
      */
-    void start();
+    void startAlgorithm();
 
     /**
      * @brief Sets the internal state to stop and
      * stops the selected algorithm
      */
-    void stop();
+    void stopAlgorithm();
 
     /**
      * @brief Stops any on going algorithm and flares the wing
@@ -98,10 +108,10 @@ public:
     void reset();
 
     /**
-     * @brief Method that is called every time period
-     * to update the internal wing servos states
+     * @brief Sets the internal state to stop and
+     * stops the selected algorithm
      */
-    void update();
+    void setControlled(bool controlled);
 
     /**
      * @brief Method to set the target position
@@ -118,7 +128,9 @@ private:
      * @brief Construct a new Wing Controller object
      */
     WingController();
+    void logStatus(WingControllerState state);
 
+    WingControllerStatus status;
     /**
      * @brief Target position
      */
@@ -128,6 +140,8 @@ private:
      * @brief List of loaded algorithms (from SD or not)
      */
     std::vector<WingAlgorithm*> algorithms;
+
+    bool controlled = true;
 
     /**
      * @brief PrintLogger
