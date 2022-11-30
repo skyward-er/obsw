@@ -158,14 +158,14 @@ MPXHZ6130AData Sensors::getStaticPressureLastSample()
                                      : MPXHZ6130AData{};
 }
 
-/*SSCDANN030PAAData Sensors::getDplPressureLastSample()
+SSCDANN030PAAData Sensors::getDplPressureLastSample()
 {
     miosix::PauseKernelLock lock;
     return dplPressure != nullptr ? dplPressure->getLastSample()
                                   : SSCDANN030PAAData{};
-}*/
+}
 
-/*SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
+SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
 {
     miosix::PauseKernelLock lock;
 #ifndef HILSimulation
@@ -178,9 +178,9 @@ MPXHZ6130AData Sensors::getStaticPressureLastSample()
     data.pressure          = pitotData.deltaP;
     return data;
 #endif
-}*/
+}
 
-/*PitotData Sensors::getPitotLastSample()
+PitotData Sensors::getPitotLastSample()
 {
     miosix::PauseKernelLock lock;
 #ifndef HILSimulation
@@ -188,7 +188,7 @@ MPXHZ6130AData Sensors::getStaticPressureLastSample()
 #else
     return state.pitot->getLastSample();
 #endif
-}*/
+}
 
 InternalADCData Sensors::getInternalADCLastSample()
 {
@@ -222,15 +222,15 @@ void Sensors::calibrate()
     // Calibrate the analog pressure sensor to the digital one
     float ms5803Mean         = ms5803Stats.getStats().mean;
     float staticPressureMean = staticPressureStats.getStats().mean;
-    // float dplPressureMean    = dplPressureStats.getStats().mean;
+    float dplPressureMean    = dplPressureStats.getStats().mean;
     staticPressure->setOffset(staticPressureMean - ms5803Mean);
-    // dplPressure->setOffset(dplPressureMean - ms5803Mean);
-    // pitotPressure->setOffset(pitotPressureStats.getStats().mean);
+    dplPressure->setOffset(dplPressureMean - ms5803Mean);
+    pitotPressure->setOffset(pitotPressureStats.getStats().mean);
 
     calibrating = false;
 }
 
-/*void Sensors::pitotSetReferenceAltitude(float altitude)
+void Sensors::pitotSetReferenceAltitude(float altitude)
 {
     // Need to pause the kernel because the only invocation comes from the radio
     // which is a separate thread
@@ -239,9 +239,9 @@ void Sensors::calibrate()
     ReferenceValues reference = pitot->getReferenceValues();
     reference.refAltitude     = altitude;
     pitot->setReferenceValues(reference);
-}*/
+}
 
-/*void Sensors::pitotSetReferenceTemperature(float temperature)
+void Sensors::pitotSetReferenceTemperature(float temperature)
 {
     // Need to pause the kernel because the only invocation comes from the radio
     // which is a separate thread
@@ -250,7 +250,7 @@ void Sensors::calibrate()
     ReferenceValues reference = pitot->getReferenceValues();
     reference.refTemperature  = temperature + 273.15f;
     pitot->setReferenceValues(reference);
-}*/
+}
 
 std::map<string, bool> Sensors::getSensorsState()
 {
@@ -271,9 +271,9 @@ Sensors::Sensors()
     ubxGpsInit();
     ads1118Init();
     staticPressureInit();
-    // dplPressureInit();
-    // pitotPressureInit();
-    // pitotInit();
+    dplPressureInit();
+    pitotPressureInit();
+    pitotInit();
     internalADCInit();
     batteryVoltageInit();
 
@@ -316,8 +316,8 @@ Sensors::~Sensors()
     delete ubxGps;
     delete ads1118;
     delete staticPressure;
-    // delete dplPressure;
-    // delete pitotPressure;
+    delete dplPressure;
+    delete pitotPressure;
 
 #ifdef HILSimulation
     delete state.accelerometer;
@@ -505,7 +505,7 @@ void Sensors::staticPressureInit()
     LOG_INFO(logger, "Static pressure sensor setup done!");
 }
 
-/*void Sensors::dplPressureInit()
+void Sensors::dplPressureInit()
 {
     function<ADCData()> readVoltage(
         bind(&ADS1118::getVoltage, ads1118, ADC_CH_DPL_PORT));
@@ -525,9 +525,9 @@ void Sensors::staticPressureInit()
     sensorsMap.emplace(make_pair(dplPressure, info));
 
     LOG_INFO(logger, "Deployment pressure sensor setup done!");
-}*/
+}
 
-/*void Sensors::pitotPressureInit()
+void Sensors::pitotPressureInit()
 {
     // Create a function to read the analog voltage
     function<ADCData()> readVoltage(
@@ -549,9 +549,9 @@ void Sensors::staticPressureInit()
     sensorsMap.emplace(make_pair(pitotPressure, info));
 
     LOG_INFO(logger, "Pitot differential pressure sensor setup done!");
-}*/
+}
 
-/*void Sensors::pitotInit()
+void Sensors::pitotInit()
 {
     function<PressureData()> getPitotPressure(
         bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
@@ -568,7 +568,7 @@ void Sensors::staticPressureInit()
     sensorsMap.emplace(make_pair(pitot, info));
 
     LOG_INFO(logger, "Pitot sensor setup done!");
-}*/
+}
 
 void Sensors::internalADCInit()
 {

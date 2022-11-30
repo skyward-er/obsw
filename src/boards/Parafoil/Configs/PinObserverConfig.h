@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,23 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
-#include <string>
+#include <interfaces-impl/hwmapping.h>
+#include <miosix.h>
+#include <utils/PinObserver/PinObserver.h>
 
 namespace Parafoil
 {
 
-enum class FlightModeManagerState : uint8_t
-{
-    INVALID = 0,
-    INIT,
-    INIT_ERROR,
-    SENSORS_CALIBRATION,
-    ALGOS_CALIBRATION,
-    TEST_MODE,
-    ASCENDING,
-    WING_DESCENT,
-    MISSION_ENDED,
-};
+constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
+    Boardcore::PinTransition::FALLING_EDGE;
 
-struct FlightModeManagerStatus
-{
-    uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
+constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
+    Boardcore::PinTransition::FALLING_EDGE;
 
-    static std::string header() { return "timestamp,state\n"; }
+constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
+constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
+    Boardcore::PinTransition::FALLING_EDGE;
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
 }  // namespace Parafoil

@@ -120,7 +120,6 @@ State FlightModeManager::state_init(const Event& event)
         case FMM_INIT_ERROR:
         {
             logStatus(FlightModeManagerState::INIT_ERROR);
-            EventBroker::getInstance().post(TMTC_RESET_BOARD, TOPIC_FLIGHT);
             return HANDLED;
         }
         default:
@@ -266,16 +265,12 @@ State FlightModeManager::state_flying(const Event& event)
         {
             return transition(&FlightModeManager::state_ascending);
         }
+        case TMTC_FORCE_LANDING:
         case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&FlightModeManager::state_mission_ended);
         }
-        case TMTC_FORCE_LANDING:
-        {
-            EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
-                                            TOPIC_FLIGHT);
-            return HANDLED;
-        }
+
         default:
         {
             return UNHANDLED;
@@ -347,59 +342,14 @@ State FlightModeManager::state_wing_descent(const Event& event)
     }
 }
 
-State FlightModeManager::state_landed(const Event& event)
-{
-    static uint16_t landingTimeoutEventId = -1;
-
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(FlightModeManagerState::LANDED);
-            landingTimeoutEventId =
-                EventBroker::getInstance().postDelayed<LANDING_TIMEOUT>(
-                    FLIGHT_LANDING_TIMEOUT, TOPIC_FLIGHT);
-
-            return HANDLED;
-        }
-        case EV_EXIT:
-        {
-            EventBroker::getInstance().removeDelayed(landingTimeoutEventId);
-            return HANDLED;
-        }
-        case EV_EMPTY:
-        {
-            return tranSuper(&FlightModeManager::state_top);
-        }
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-        case FLIGHT_LANDING_TIMEOUT:
-        {
-            return transition(&FlightModeManager::state_mission_ended);
-        }
-        case TMTC_RESET_BOARD:
-        {
-            Logger::getInstance().stop();
-            reboot();
-            return HANDLED;
-        }
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
 State FlightModeManager::state_mission_ended(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
+            logStatus(FlightModeManagerState::MISSION_ENDED);
             Logger::getInstance().stop();
-
             return HANDLED;
         }
         case EV_EXIT:

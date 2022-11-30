@@ -22,7 +22,7 @@
 
 #include "PinHandler.h"
 
-#include <Payload/Configs/PinObserverConfig.h>
+#include <Parafoil/Configs/PinObserverConfig.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 
@@ -34,7 +34,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
 
-namespace Payload
+namespace Parafoil
 {
 
 void PinHandler::onExpulsionPinTransition(PinTransition transition)
@@ -62,4 +62,4 @@ PinHandler::PinHandler()
         DPL_SERVO_PIN_THRESHOLD);
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

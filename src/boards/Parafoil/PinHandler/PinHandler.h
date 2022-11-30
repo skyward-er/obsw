@@ -27,7 +27,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 /**
@@ -58,4 +58,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil

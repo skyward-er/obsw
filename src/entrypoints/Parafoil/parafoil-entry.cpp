@@ -24,6 +24,7 @@
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -136,6 +137,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
+    }
+
+    if (!PinObserver::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinObserver");
     }
 
     // If all is correctly set up i publish the init ok

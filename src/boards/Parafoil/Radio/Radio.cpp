@@ -26,6 +26,7 @@
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
+#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
@@ -228,7 +229,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // Send multiple packets for some telemetries
             switch (tmId)
             {
-                /*case SystemTMList::MAV_PIN_OBS_ID:
+                case SystemTMList::MAV_PIN_OBS_ID:
                 {
                     auto pinDataVector =
                         PinHandler::getInstance().getPinsData();
@@ -253,7 +254,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                     }
 
                     break;
-                }*/
+                }
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
                     auto statsVector = BoardScheduler::getInstance()

@@ -358,7 +358,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        /*case SensorsTMList::MAV_DPL_PRESS_ID:
+        case SensorsTMList::MAV_DPL_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;
 
@@ -374,7 +374,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                            &tm);
 
             break;
-        }*/
+        }
         case SensorsTMList::MAV_STATIC_PRESS_ID:
         {
             mavlink_pressure_tm_t tm;

@@ -221,7 +221,7 @@ void NASController::state_idle(const Event &event)
         {
             return logStatus(NASControllerState::IDLE);
         }
-        case NAS_CALIBRATE:
+        case NAS_CALIBRATE:  // TODO make the nas start with the FMM
         {
             return transition(&NASController::state_calibrating);
         }
