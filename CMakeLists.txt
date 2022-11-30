@@ -201,6 +201,15 @@ add_executable(payload-test-nas src/tests/Payload/test-nas.cpp)
 sbs_target(payload-test-nas stm32f429zi_skyward_death_stack_x)
 
 #-----------------------------------------------------------------------------#
+#                               Parafoil Computer                             #
+#-----------------------------------------------------------------------------#
+
+add_executable(parafoil-test-wes src/tests/Parafoil/parafoil-test-WES.cpp ${PARAFOIL_COMPUTER} ${HIL})
+target_include_directories(parafoil-test-wes PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-test-wes PRIVATE HILSimulation)
+sbs_target(parafoil-test-wes stm32f429zi_skyward_death_stack_x)
+
+#-----------------------------------------------------------------------------#
 #                              Auxiliary Computer                             #
 #-----------------------------------------------------------------------------#
 

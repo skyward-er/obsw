@@ -39,15 +39,26 @@ namespace Parafoil
 WindEstimation::WindEstimation() : running(false), calRunning(false)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
-                                     // Register the calibration task
+    // Register the calibration task
+
+#ifdef HILSimulation
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WindEstimation::WindEstimationSchemeCalibration, this), 100);
+
+    // Register the WES task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WindEstimation::WindEstimationScheme, this), 100);
+#else
+
     BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
-        WES_PREDICTION_UPDATE_PERIOD);
+        WES_CALIBRATION_UPDATE_PERIOD);
 
     // Register the WES task
     BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
+#endif
 }
 
 WindEstimation::~WindEstimation()
@@ -55,6 +66,7 @@ WindEstimation::~WindEstimation()
     stopWindEstimationSchemeCalibration();
     stoptWindEstimationScheme();
 }
+bool WindEstimation::getStatus() { return running; }
 
 void WindEstimation::startWindEstimationSchemeCalibration()
 {
@@ -89,37 +101,46 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
 
 void WindEstimation::WindEstimationSchemeCalibration()
 {
-    if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
+    if (calRunning)
     {
-        auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-        calibrationMatrix(nSampleCal, 0) = gpsData.velocityNorth;
-        calibrationMatrix(nSampleCal, 1) = gpsData.velocityEast;
-        calibrationV2(nSampleCal) =
-            gpsData.velocityNorth * gpsData.velocityNorth +
-            gpsData.velocityEast * gpsData.velocityEast;
-        vx += calibrationMatrix(nSampleCal, 0);
-        vy += calibrationMatrix(nSampleCal, 1);
-        v2 += calibrationV2(nSampleCal);
-        nSampleCal++;
-    }
-    else
-    {
-        vx = vx / nSampleCal;
-        vy = vy / nSampleCal;
-        v2 = v2 / nSampleCal;
-        for (int i = 0; i < nSampleCal; i++)
+        if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
         {
-            calibrationMatrix(i, 0) = calibrationMatrix(i, 0) - vx;
-            calibrationMatrix(i, 1) = calibrationMatrix(i, 1) - vy;
-            calibrationV2(i)        = 0.5f * (calibrationV2(i) - v2);
-        }
+            float gpsN = 0, gpsE = 0;
 
-        // Eigen::Matrix<float, 2, WIND_CALIBRATION_SAMPLE_NUMBER>
-        Eigen::MatrixXf calibrationMatrixT = calibrationMatrix.transpose();
-        windCalibration = (calibrationMatrixT * calibrationMatrix)
-                              .ldlt()
-                              .solve(calibrationMatrixT * calibrationV2);
-        EventBroker::getInstance().post(WING_WES_CALIBRATION, TOPIC_ALGOS);
+#ifdef HILSimulation
+            gpsN = (*testValue)[index][0];
+            gpsE = (*testValue)[index][1];
+            index++;
+#else
+            auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
+            gpsN         = gpsData.velocityNorth;
+            gpsE         = gpsData.velocityEast;
+#endif
+            calibrationMatrix(nSampleCal, 0) = gpsN;
+            calibrationMatrix(nSampleCal, 1) = gpsE;
+            calibrationV2(nSampleCal)        = gpsN * gpsN + gpsE * gpsE;
+            vx += calibrationMatrix(nSampleCal, 0);
+            vy += calibrationMatrix(nSampleCal, 1);
+            v2 += calibrationV2(nSampleCal);
+            nSampleCal++;
+        }
+        else
+        {
+            vx = vx / nSampleCal;
+            vy = vy / nSampleCal;
+            v2 = v2 / nSampleCal;
+            for (int i = 0; i < nSampleCal; i++)
+            {
+                calibrationMatrix(i, 0) = calibrationMatrix(i, 0) - vx;
+                calibrationMatrix(i, 1) = calibrationMatrix(i, 1) - vy;
+                calibrationV2(i)        = 0.5f * (calibrationV2(i) - v2);
+            }
+            Eigen::MatrixXf calibrationMatrixT = calibrationMatrix.transpose();
+            windCalibration = (calibrationMatrixT * calibrationMatrix)
+                                  .ldlt()
+                                  .solve(calibrationMatrixT * calibrationV2);
+            EventBroker::getInstance().post(WING_WES_CALIBRATION, TOPIC_ALGOS);
+        }
     }
 }
 
@@ -145,31 +166,48 @@ void WindEstimation::stoptWindEstimationScheme()
 
 void WindEstimation::WindEstimationScheme()
 {
-    Eigen::Vector2f phi;
-    Eigen::Matrix<float, 1, 2> phiT;
-    Eigen::Vector2f temp;
-    float y;
-
-    auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-    // update avg
-    vx = (wind(0) * nSample + gpsData.velocityNorth) / (nSample + 1);
-    vy = (wind(1) * nSample + gpsData.velocityEast) / (nSample + 1);
-    v2 = (v2 * nSample + (vx * vx + vy * vy)) / (nSample + 1);
-    nSample++;
-    phi(0) = gpsData.velocityNorth - vx;
-    phi(1) = gpsData.velocityEast - vy;
-    y      = 0.5f * ((vx * vx + vy * vy) - v2);
-
-    phiT = phi.transpose();
-    funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
-    temp = (0.5 * (funv + funv.transpose()) * phi) *
-           (y - phiT * wind);  // maybe moved to mutex ReadOnly
+    if (running)
     {
-        miosix::Lock<FastMutex> l(mutex);
-        wind          = wind + temp;
-        windLogger.vx = wind[0];
-        windLogger.vy = wind[1];
-        logStatus();
+        Eigen::Vector2f phi;
+        Eigen::Matrix<float, 1, 2> phiT;
+        Eigen::Vector2f temp;
+        float y, gpsN = 0, gpsE = 0;
+#ifdef HILSimulation
+        if (index < testValue->size())
+        {
+            gpsN = (*testValue)[index][0];
+            gpsE = (*testValue)[index][1];
+            index++;
+        }
+        else
+        {
+            running = false;
+        }
+#else
+        auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
+        gpsN         = gpsData.velocityNorth;
+        gpsE         = gpsData.velocityEast;
+#endif
+        // update avg
+        vx = (wind(0) * nSample + gpsN) / (nSample + 1);
+        vy = (wind(1) * nSample + gpsE) / (nSample + 1);
+        v2 = (v2 * nSample + (vx * vx + vy * vy)) / (nSample + 1);
+        nSample++;
+        phi(0) = gpsN - vx;
+        phi(1) = gpsE - vy;
+        y      = 0.5f * ((vx * vx + vy * vy) - v2);
+
+        phiT = phi.transpose();
+        funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
+        temp = (0.5 * (funv + funv.transpose()) * phi) *
+               (y - phiT * wind);  // maybe moved to mutex ReadOnly
+        {
+            miosix::Lock<FastMutex> l(mutex);
+            wind          = wind + temp;
+            windLogger.vx = wind[0];
+            windLogger.vy = wind[1];
+            logStatus();
+        }
     }
 }
 

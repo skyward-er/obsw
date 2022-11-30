@@ -37,6 +37,8 @@ constexpr uint32_t WES_TIMEOUT =
 
 constexpr int WES_CALIBRATION_SAMPLE_NUMBER =
     20;  // number to sample to take in the first loop
+constexpr uint32_t WES_CALIBRATION_UPDATE_PERIOD =
+    WES_CALIBRATION_TIMEOUT / WES_CALIBRATION_SAMPLE_NUMBER;
 constexpr uint32_t WES_PREDICTION_UPDATE_PERIOD =
     100;  // update period of WES[ms]
 

@@ -61,9 +61,22 @@ public:
 
     void stoptWindEstimationScheme();
 
+    bool getStatus();
+
     Eigen::Vector2f getWindEstimationScheme();
 
+#ifdef HILSimulation
+    void setTestValue(vector<vector<float>> *testValue)
+    {
+        this->testValue = testValue;
+    }
+#endif
+
 private:
+#ifdef HILSimulation
+    vector<vector<float>> *testValue;
+    size_t index = 1;
+#endif
     /**
      * @brief Construct a new Wing Controller object
      */
