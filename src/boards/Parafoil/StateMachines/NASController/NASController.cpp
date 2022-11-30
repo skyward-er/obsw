@@ -221,7 +221,7 @@ void NASController::state_idle(const Event &event)
         {
             return logStatus(NASControllerState::IDLE);
         }
-        case NAS_CALIBRATE:  // TODO make the nas start with the FMM
+        case NAS_CALIBRATE:
         {
             return transition(&NASController::state_calibrating);
         }
@@ -241,28 +241,7 @@ void NASController::state_calibrating(const Event &event)
         }
         case NAS_READY:
         {
-            return transition(&NASController::state_ready);
-        }
-    }
-}
-
-void NASController::state_ready(const Event &event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
             accelerationValid = true;
-
-            return logStatus(NASControllerState::READY);
-        }
-        case NAS_CALIBRATE:
-        {
-            return transition(&NASController::state_calibrating);
-        }
-        case NAS_FORCE_START:
-        case FLIGHT_ARMED:
-        {
             return transition(&NASController::state_active);
         }
     }
@@ -284,7 +263,7 @@ void NASController::state_active(const Event &event)
         case NAS_FORCE_STOP:
         case FLIGHT_DISARMED:
         {
-            return transition(&NASController::state_ready);
+            return transition(&NASController::state_calibrating);
         }
     }
 }
