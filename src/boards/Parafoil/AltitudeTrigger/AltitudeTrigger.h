@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Singleton.h>
 
 #include <atomic>
@@ -35,7 +34,7 @@ class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
     friend class Boardcore::Singleton<AltitudeTrigger>;
 
 public:
-    // Method to set the altitude where trigger the dpl event
+    // Method to set the altitude where to trigger the dpl event
     void setDeploymentAltitude(float altitude);
 
     void enable();
@@ -50,8 +49,6 @@ private:
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();
-    // The altitude could be different from the default one
-    float altitude;
 
     std::atomic<float> startingAltitude;
 

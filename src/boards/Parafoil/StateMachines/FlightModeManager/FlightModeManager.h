@@ -51,7 +51,7 @@ public:
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
     /// The rocket will accept specific telecommands otherwise considered risky.
-    // Boardcore::State state_test_mode(const Boardcore::Event& event);
+    Boardcore::State state_test_mode(const Boardcore::Event& event);
 
     /// Super state for when the payload is in the air.
     Boardcore::State state_flying(const Boardcore::Event& event);

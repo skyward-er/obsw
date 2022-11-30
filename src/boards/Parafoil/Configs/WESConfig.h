@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+ * Authors: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,24 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
-#include <string>
+#include <miosix.h>
 
 namespace Parafoil
 {
 
-enum class WingControllerState : uint8_t
+namespace WESConfig
 {
-    UNINIT = 0,
-    IDLE,
-    WES,
-    AUTOMATIC,
-    FILE,
-    END
-};
 
-struct WingControllerStatus
-{
-    long long timestamp       = 0;
-    WingControllerState state = WingControllerState::UNINIT;
+constexpr uint32_t WES_CALIBRATION_TIMEOUT =
+    10 * 1000;  // time needed for the first loop [ms]
+constexpr uint32_t WES_TIMEOUT =
+    2 * WES_CALIBRATION_TIMEOUT;  // time needed for the second loop
 
-    static std::string header() { return "timestamp,state\n"; }
+constexpr int WES_CALIBRATION_SAMPLE_NUMBER =
+    20;  // number to sample to take in the first loop
+constexpr uint32_t WES_PREDICTION_UPDATE_PERIOD =
+    100;  // update period of WES[ms]
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
+}  // namespace WESConfig
 
 }  // namespace Parafoil

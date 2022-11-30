@@ -20,24 +20,34 @@
  * THE SOFTWARE.
  */
 
+#include "WindEstimation.h"
+
 #include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
-#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 
-using namespace Parafoil::WingConfig;
+using namespace Parafoil::WESConfig;
 using namespace Boardcore;
 using namespace Common;
+using namespace miosix;
+
 namespace Parafoil
 {
 
-WindEstimation::WindEstimation()
+WindEstimation::WindEstimation() : running(false), calRunning(false)
 {
-    running    = false;
-    calRunning = false;
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
+                                     // Register the calibration task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
+        WES_PREDICTION_UPDATE_PERIOD);
+
+    // Register the WES task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WindEstimation::WindEstimationScheme, this),
+        WES_PREDICTION_UPDATE_PERIOD);
 }
 
 WindEstimation::~WindEstimation()
@@ -55,10 +65,6 @@ void WindEstimation::startWindEstimationSchemeCalibration()
         vx         = 0;
         vy         = 0;
         v2         = 0;
-        // Register the task
-        BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
-            WIND_CALIBRATION_UPDATE_PERIOD, WIND_CALIBRATION_ID);
         LOG_INFO(logger, "WindEstimationCalibration started");
     }
 }
@@ -68,10 +74,8 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
     if (calRunning)
     {
         calRunning = false;
-        BoardScheduler::getInstance().getScheduler().removeTask(
-            WIND_CALIBRATION_ID);
         LOG_INFO(logger, "WindEstimationSchemeCalibration stopped");
-        // assign value to the array only if running!= false;
+        // assign value to the array only if running != false;
         if (!running)
         {
             miosix::Lock<FastMutex> l(mutex);
@@ -85,7 +89,7 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
 
 void WindEstimation::WindEstimationSchemeCalibration()
 {
-    if (nSampleCal < WIND_CALIBRATION_SAMPLE_NUMBER)
+    if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
     {
         auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
         calibrationMatrix(nSampleCal, 0) = gpsData.velocityNorth;
@@ -126,9 +130,6 @@ void WindEstimation::startWindEstimationScheme()
         running = true;
         //  Register the task
         nSample = nSampleCal;
-        BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindEstimation::WindEstimationScheme, this),
-            WIND_PREDICTION_UPDATE_PERIOD, WING_PREDICTION_ID);
         LOG_INFO(logger, "WindEstimationScheme started");
     }
 }
@@ -138,8 +139,6 @@ void WindEstimation::stoptWindEstimationScheme()
     if (running)
     {
         running = false;
-        BoardScheduler::getInstance().getScheduler().removeTask(
-            WING_PREDICTION_ID);
         LOG_INFO(logger, "WindEstimationScheme ended");
     }
 }
@@ -176,7 +175,7 @@ void WindEstimation::WindEstimationScheme()
 
 Eigen::Vector2f WindEstimation::getWindEstimationScheme()
 {
-    miosix::PauseKernelLock l;
+    miosix::Lock<FastMutex> l(mutex);
     return wind;
 }
 

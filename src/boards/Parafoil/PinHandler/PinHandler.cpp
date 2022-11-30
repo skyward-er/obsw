@@ -40,7 +40,8 @@ namespace Payload
 void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
     if (transition == DPL_SERVO_PIN_TRIGGER)
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
+                                        TOPIC_FLIGHT);
 }
 
 std::map<PinsList, PinData> PinHandler::getPinsData()

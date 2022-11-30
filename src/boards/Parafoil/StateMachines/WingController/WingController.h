@@ -71,46 +71,6 @@ public:
      */
     ~WingController();
 
-    /**
-     * @brief Method to add the algorithm in the list
-     *
-     * @param algorithm The algorithm with
-     * all already done (e.g. steps already registered)
-     */
-    void addAlgorithm(WingAlgorithm* algorithm);
-
-    /**
-     * @brief Selects the algorithm if present.
-     *
-     * @param index The algorithms vector index
-     */
-    void selectAlgorithm(unsigned int index);
-
-    /**
-     * @brief  starts the selected algorithm
-     */
-    void startAlgorithm();
-
-    /**
-     * @brief Sets the internal state to stop and
-     * stops the selected algorithm
-     */
-    void stopAlgorithm();
-
-    /**
-     * @brief Stops any on going algorithm and flares the wing
-     */
-    void flare();
-
-    /**
-     * @brief Resets the servos in their initial position
-     */
-    void reset();
-
-    /**
-     * @brief Sets the internal state to stop and
-     * stops the selected algorithm
-     */
     void setControlled(bool controlled);
 
     /**
@@ -123,11 +83,19 @@ public:
      */
     Eigen::Vector2f getTargetPosition();
 
+    /**
+     * @brief Selects the algorithm if present.
+     *
+     * @param index The algorithms vector index
+     */
+    void selectAlgorithm(unsigned int index);
+
 private:
     /**
      * @brief Construct a new Wing Controller object
      */
     WingController();
+
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;
@@ -150,26 +118,45 @@ private:
         Boardcore::Logging::getLogger("ParafoilTest");
 
     /**
-     * @brief The common task scheduler
+     * @brief Internal running state
      */
-    // Boardcore::TaskScheduler* scheduler;
-
+    std::atomic<bool> running;
     /**
      * @brief This attribute is modified by the mavlink radio section.
      * The user using the Ground Station can select the pre-enumered algorithm
      * to execute
      */
-    unsigned int selectedAlgorithm;
+    size_t selectedAlgorithm;
 
     /**
-     * @brief Internal running state
+     * @brief Method to add the algorithm in the list
+     *
+     * @param algorithm The algorithm with
+     * all already done (e.g. steps already registered)
      */
-    std::atomic<bool> running;
+    void addAlgorithm(WingAlgorithm* algorithm);
 
     /**
-     * @brief Initialization method. It registers the update method
-     * into the task scheduler
+     * @brief  starts the selected algorithm
      */
-    void init();
+    void startAlgorithm();
+
+    /**
+     * @brief Sets the internal state to stop and
+     * stops the selected algorithm
+     */
+    void stopAlgorithm();
+
+    /**
+     * @brief Stops any on going algorithm and flares the wing
+     */
+    void flare();
+
+    /**
+     * @brief Resets the servos in their initial position
+     */
+    void reset();
+
+    void update();
 };
 }  // namespace Parafoil

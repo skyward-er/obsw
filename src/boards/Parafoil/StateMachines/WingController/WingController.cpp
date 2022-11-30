@@ -19,10 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "WingController.h"
 
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
-#include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/Configs/WESConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
@@ -35,42 +37,45 @@
 
 using namespace Boardcore;
 using namespace Parafoil::WingConfig;
+using namespace Parafoil::WESConfig;
 using namespace Common;
 using namespace Boardcore;
 
 namespace Parafoil
 {
 
-WingController::WingController() : FSM(&WingController::state_idle)
+WingController::WingController()
+    : FSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
-    // Set the current running state
-    this->running = false;
-
-    // Set the current selected algorithm to 0
-    this->selectedAlgorithm = 0;
+    // setting up the 2 type of algorithm
     addAlgorithm(new AutomaticWingAlgorithm(0.1, 0.01, PARAFOIL_LEFT_SERVO,
                                             PARAFOIL_RIGHT_SERVO));
     WingAlgorithm* timedDescent =
         new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+    timedDescent->init();
     WingAlgorithmData step;
-    step.servo1Angle = 0;  // TODO transform percentage in degree if needed
+    step.servo1Angle = 0;
     step.servo2Angle = 0;
     step.timestamp   = 0;
     timedDescent->addStep(step);
-    step.servo1Angle = 1;
-    step.servo2Angle = 1;
-    step.timestamp += WingConfig::STRAIGHT_FLIGHT_TIMEOUT;
+    step.servo1Angle = 120;
+    step.servo2Angle = 120;
+    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
     timedDescent->addStep(step);
     step.servo1Angle = 0;
     step.servo2Angle = 0;
-    step.timestamp += WingConfig::STRAIGHT_FLIGHT_TIMEOUT;
+    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
     timedDescent->addStep(step);
     addAlgorithm(timedDescent);
 
-    // Initialize the servos, enable them
-    init();
+    targetPosition[0] = DEFAULT_TARGET_LAT;
+    targetPosition[1] = DEFAULT_TARGET_LON;
+
+    // Register the task
+    BoardScheduler::getInstance().getScheduler().addTask(
+        std::bind(&WingController::update, this), WING_UPDATE_PERIOD);
 }
 
 WingController::~WingController()
@@ -99,17 +104,16 @@ void WingController::state_wes(const Boardcore::Event& event)
         case EV_ENTRY:  // starts  twirling and calibration wes
         {
             Actuators::getInstance().startTwirl();
-            EventBroker::getInstance().postDelayed<WIND_PREDICTION_TIMEOUT>(
-                WING_CONTROLLED, TOPIC_ALGOS);
+            EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,
+                                                                TOPIC_ALGOS);
             WindEstimation::getInstance()
                 .startWindEstimationSchemeCalibration();
             return logStatus(WingControllerState::WES);
         }
-        case WING_WES_CALIBRATION:  // stop calibration wes
+        case WING_WES_CALIBRATION:  // stop calibration and start wes
         {
-            WindEstimation::getInstance()
-                .startWindEstimationSchemeCalibration();
-            WindEstimation::getInstance().stoptWindEstimationScheme();
+            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
+            WindEstimation::getInstance().startWindEstimationScheme();
         }
         case WING_CONTROLLED:  // stop twirling
         {
@@ -139,6 +143,7 @@ void WingController::state_automatic(const Boardcore::Event& event)
         case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
         {
             stopAlgorithm();
+            AltitudeTrigger::getInstance().disable();
             return transition(&WingController::state_wes);
         }  // start the algorithm, inside we add the task to the scheduler
     }
@@ -179,9 +184,10 @@ void WingController::addAlgorithm(WingAlgorithm* algorithm)
     algorithms.push_back(algorithm);
 }
 
-void WingController::selectAlgorithm(unsigned int index)
+void WingController::selectAlgorithm(size_t index)
 {
-    if (index >= 0 && index < algorithms.size())
+    stopAlgorithm();
+    if (index < algorithms.size())
     {
         LOG_INFO(logger, "Algorithm {:1} selected", index);
         selectedAlgorithm = index;
@@ -197,7 +203,7 @@ void WingController::startAlgorithm()
 {
     // If the selected algorithm is valid --> also the
     // algorithms array is not empty i start the whole thing
-    if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+    if (selectedAlgorithm < algorithms.size())
     {
         running = true;
 
@@ -215,18 +221,24 @@ void WingController::stopAlgorithm()
         // Set running to false
         running = false;
         // Stop the algorithm if selected
-        if (selectedAlgorithm >= 0 && selectedAlgorithm < algorithms.size())
+        if (selectedAlgorithm < algorithms.size())
         {
             algorithms[selectedAlgorithm]->end();
+            reset();
         }
+    }
+}
+
+void WingController::update()
+{
+    if (running)
+    {
+        algorithms[selectedAlgorithm]->step();
     }
 }
 
 void WingController::flare()
 {
-    // I stop any on going algorithm
-    stop();
-
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
     Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 1);
@@ -235,19 +247,9 @@ void WingController::flare()
 
 void WingController::reset()
 {
-    // I stop any on going algorithm
-    stop();
-
     // Set the servo position to reset
     Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
     Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
-}
-
-void WingController::init()
-{
-    // Set the target position to the default one
-    targetPosition[0] = DEFAULT_TARGET_LAT;
-    targetPosition[1] = DEFAULT_TARGET_LON;
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)

@@ -36,9 +36,6 @@ WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
     this->servo1 = servo1;
     this->servo2 = servo2;
     stepIndex    = 0;
-    // Register the task
-    BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WingAlgorithm::update, this), WING_UPDATE_PERIOD);
 }
 
 bool WingAlgorithm::init()
@@ -99,7 +96,7 @@ void WingAlgorithm::step()
     }
 
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
-    {  // TODO wait answer from matteo
+    {
         // I need to execute the current step
         Actuators::getInstance().setServoAngle(servo1,
                                                steps[stepIndex].servo1Angle);

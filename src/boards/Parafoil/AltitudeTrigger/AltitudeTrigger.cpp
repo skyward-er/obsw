@@ -40,34 +40,27 @@ namespace Parafoil
 AltitudeTrigger::AltitudeTrigger()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
-        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_CHECKER_PERIOD,
-        WING_ALTITUDE_CHECKER_TASK_ID);
-
-    // Set the altitude to the default one
-    altitude   = WING_ALTITUDE_REFERENCE;
+        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
     confidence = 0;
     running    = false;
 }
 
 void AltitudeTrigger::enable()
 {
+    startingAltitude = -NASController::getInstance().getNasState().d;
     running          = true;
-    float height     = -NASController::getInstance().getNasState().d;
-    startingAltitude = height;
 }
 
 void AltitudeTrigger::disable() { running = false; }
 
 bool AltitudeTrigger::isActive() { return running; }
 
-void AltitudeTrigger::setDeploymentAltitude(float alt) { this->altitude = alt; }
-
 void AltitudeTrigger::update()
 {
     if (running)
     {
         float height = -NASController::getInstance().getNasState().d;
-        if (startingAltitude - height > altitude)
+        if (startingAltitude - height > WING_ALTITUDE_TRIGGER_FALL)
         {
             confidence++;
         }

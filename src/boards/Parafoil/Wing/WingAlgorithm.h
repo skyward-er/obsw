@@ -72,6 +72,11 @@ public:
      * @brief This method disables the algorithm
      */
     void end();
+    /**
+     * @brief This method implements the algorithm step based on the current
+     * timestamp
+     */
+    void step() override;
 
 protected:
     // The actuators
@@ -98,11 +103,5 @@ protected:
 
     // Variable to remember what step that has to be done
     unsigned int stepIndex;
-
-    /**
-     * @brief This method implements the algorithm step based on the current
-     * timestamp
-     */
-    void step() override;
 };
 }  // namespace Parafoil

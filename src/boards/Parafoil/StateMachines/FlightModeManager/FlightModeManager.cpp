@@ -201,8 +201,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
     }
 }
 
-/*State FlightModeManager::state_test_mode(const Event& event) // we'll see if
-needed
+State FlightModeManager::state_test_mode(const Event& event)
 {
     switch (event)
     {
@@ -232,31 +231,31 @@ needed
         }
         case TMTC_EXIT_TEST_MODE:
         {
-            return transition(&FlightModeManager::state_disarmed);
+            return transition(&FlightModeManager::state_mission_ended);
         }
         default:
         {
             return UNHANDLED;
         }
     }
-}*/
+}
 
 State FlightModeManager::state_flying(const Event& event)
 {
 
+    static uint16_t missionTimeoutEventId;
     switch (event)
     {
         case EV_ENTRY:
         {
-            /* static uint16_t missionTimeoutEventId;
-             missionTimeoutEventId =*/
-            EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
+            missionTimeoutEventId =
+                EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
+                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -305,7 +304,7 @@ State FlightModeManager::state_ascending(const Event& event)
         {
             return HANDLED;
         }
-        case FLIGHT_WING_ALT_PASSED:  // Pindetach
+        case FLIGHT_LAUNCH_PIN_DETACHED:
         case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
@@ -326,7 +325,7 @@ State FlightModeManager::state_wing_descent(const Event& event)
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
 
-            EventBroker::getInstance().post(WING_WES, TOPIC_FLIGHT);
+            EventBroker::getInstance().post(WING_WES, TOPIC_ALGOS);
             return HANDLED;
         }
         case EV_EXIT:

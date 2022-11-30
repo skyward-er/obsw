@@ -47,7 +47,7 @@ struct Actuators : public Boardcore::Singleton<Actuators>
      * @brief Moves the specified servo to the given position.
      *
      * @param servoId Servo to move.
-     * @param angle Angle to set [degree].
+     * @param angle Angle to set [degree] 0-120.
      * @return True if the the angle was set.
      */
     bool setServoAngle(ServosList servoId, float angle);

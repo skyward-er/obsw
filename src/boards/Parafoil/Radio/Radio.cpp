@@ -409,10 +409,12 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
         {
-            float altitude =
-                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+            /*float altitude =
+                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            AltitudeTrigger::getInstance().setDeploymentAltitude(altitude);
+                //
+               AltitudeTrigger::getInstance().setDeploymentAltitude(altitude);
+                */
             break;
         }
         case MAVLINK_MSG_ID_SET_ORIENTATION_TC:

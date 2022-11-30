@@ -22,11 +22,14 @@
 
 #pragma once
 
-#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Configs/WESConfig.h>
 #include <Singleton.h>
+#include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
+#include <miosix.h>
 
 #include <Eigen/Core>
+#include <atomic>
 namespace Parafoil
 {
 
@@ -50,24 +53,12 @@ public:
      */
     ~WindEstimation();
 
-    /**
-     * @brief Destroy the Wing Controller object.
-     */
     void startWindEstimationSchemeCalibration();
 
-    /**
-     * @brief Destroy the Wing Controller object.
-     */
     void stopWindEstimationSchemeCalibration();
 
-    /**
-     * @brief Destroy the Wing Controller object.
-     */
     void startWindEstimationScheme();
 
-    /**
-     * @brief Destroy the Wing Controller object.
-     */
     void stoptWindEstimationScheme();
 
     Eigen::Vector2f getWindEstimationScheme();
@@ -99,9 +90,10 @@ private:
      */
     Eigen::Vector2f windCalibration{0.0f, 0.0f};
     uint8_t nSampleCal = 0;
-    Eigen::Matrix<float, WingConfig::WIND_CALIBRATION_SAMPLE_NUMBER, 2>
+    Eigen::Matrix<float, WESConfig::WES_CALIBRATION_SAMPLE_NUMBER, 2>
         calibrationMatrix;
-    Eigen::Vector<float, 20> calibrationV2;
+    Eigen::Vector<float, WESConfig::WES_CALIBRATION_SAMPLE_NUMBER>
+        calibrationV2;
     float vx = 0;
     float vy = 0;
     float v2 = 0;
@@ -116,7 +108,7 @@ private:
     /**
      * @brief Mutex
      */
-    FastMutex mutex;
+    miosix::FastMutex mutex;
 
     /**
      * @brief PrintLogger
@@ -127,11 +119,12 @@ private:
     /**
      * @brief Logging struct
      */
-    WindLogging windLogger;
+    WindLogging windLogger{0, 0, 0};
 
     /**
      * @brief Internal running state
      */
-    bool running, calRunning;
+    std::atomic<bool> running;
+    std::atomic<bool> calRunning;
 };
 }  // namespace Parafoil
