@@ -90,6 +90,8 @@ public:
      */
     void selectAlgorithm(unsigned int index);
 
+    WingControllerState getStatus();
+
 private:
     /**
      * @brief Construct a new Wing Controller object

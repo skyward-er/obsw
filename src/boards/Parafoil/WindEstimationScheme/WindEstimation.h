@@ -65,7 +65,7 @@ public:
 
     Eigen::Vector2f getWindEstimationScheme();
 
-#ifdef HILSimulation
+#ifdef PRF_TEST
     void setTestValue(vector<vector<float>> *testValue)
     {
         this->testValue = testValue;
@@ -73,9 +73,9 @@ public:
 #endif
 
 private:
-#ifdef HILSimulation
+#ifdef PRF_TEST
     vector<vector<float>> *testValue;
-    size_t index = 1;
+    size_t index = 0;
 #endif
     /**
      * @brief Construct a new Wing Controller object

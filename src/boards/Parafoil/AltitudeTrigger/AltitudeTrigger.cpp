@@ -47,8 +47,13 @@ AltitudeTrigger::AltitudeTrigger()
 
 void AltitudeTrigger::enable()
 {
+#ifdef PRF_TEST
+    startingAltitude = 0;
+    TRACE("OKOK\n");
+#else
     startingAltitude = -NASController::getInstance().getNasState().d;
-    running          = true;
+#endif
+    running = true;
 }
 
 void AltitudeTrigger::disable() { running = false; }
@@ -59,7 +64,14 @@ void AltitudeTrigger::update()
 {
     if (running)
     {
+#ifdef PRF_TEST
+        float height     = 0;
+        startingAltitude = startingAltitude + 2.5;
+        TRACE("OKOK\n");
+#else
+        TRACE("zoccaol\n");
         float height = -NASController::getInstance().getNasState().d;
+#endif
         if (startingAltitude - height > WING_ALTITUDE_TRIGGER_FALL)
         {
             confidence++;

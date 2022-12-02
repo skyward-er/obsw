@@ -41,13 +41,13 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
     // Register the calibration task
 
-#ifdef HILSimulation
+#ifdef PRF_TEST
     BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this), 100);
 
     // Register the WES task
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WindEstimation::WindEstimationScheme, this), 100);
+        std::bind(&WindEstimation::WindEstimationScheme, this), 10);
 #else
 
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -83,19 +83,16 @@ void WindEstimation::startWindEstimationSchemeCalibration()
 
 void WindEstimation::stopWindEstimationSchemeCalibration()
 {
-    if (calRunning)
+    calRunning = false;
+    LOG_INFO(logger, "WindEstimationSchemeCalibration stopped");
+    // assign value to the array only if running != false;
+    if (!running)
     {
-        calRunning = false;
-        LOG_INFO(logger, "WindEstimationSchemeCalibration stopped");
-        // assign value to the array only if running != false;
-        if (!running)
-        {
-            miosix::Lock<FastMutex> l(mutex);
-            wind          = windCalibration;
-            windLogger.vx = windCalibration[0];
-            windLogger.vy = windCalibration[1];
-            logStatus();
-        }
+        miosix::Lock<FastMutex> l(mutex);
+        wind          = windCalibration;
+        windLogger.vx = windCalibration[0];
+        windLogger.vy = windCalibration[1];
+        logStatus();
     }
 }
 
@@ -107,7 +104,7 @@ void WindEstimation::WindEstimationSchemeCalibration()
         {
             float gpsN = 0, gpsE = 0;
 
-#ifdef HILSimulation
+#ifdef PRF_TEST
             gpsN = (*testValue)[index][0];
             gpsE = (*testValue)[index][1];
             index++;
@@ -119,13 +116,15 @@ void WindEstimation::WindEstimationSchemeCalibration()
             calibrationMatrix(nSampleCal, 0) = gpsN;
             calibrationMatrix(nSampleCal, 1) = gpsE;
             calibrationV2(nSampleCal)        = gpsN * gpsN + gpsE * gpsE;
-            vx += calibrationMatrix(nSampleCal, 0);
-            vy += calibrationMatrix(nSampleCal, 1);
-            v2 += calibrationV2(nSampleCal);
+
+            vx += gpsN;
+            vy += gpsE;
+            v2 += gpsN * gpsN + gpsE * gpsE;
             nSampleCal++;
         }
         else
         {
+
             vx = vx / nSampleCal;
             vy = vy / nSampleCal;
             v2 = v2 / nSampleCal;
@@ -140,6 +139,7 @@ void WindEstimation::WindEstimationSchemeCalibration()
                                   .ldlt()
                                   .solve(calibrationMatrixT * calibrationV2);
             EventBroker::getInstance().post(WING_WES_CALIBRATION, TOPIC_ALGOS);
+            calRunning = false;
         }
     }
 }
@@ -172,7 +172,7 @@ void WindEstimation::WindEstimationScheme()
         Eigen::Matrix<float, 1, 2> phiT;
         Eigen::Vector2f temp;
         float y, gpsN = 0, gpsE = 0;
-#ifdef HILSimulation
+#ifdef PRF_TEST
         if (index < testValue->size())
         {
             gpsN = (*testValue)[index][0];
@@ -182,6 +182,7 @@ void WindEstimation::WindEstimationScheme()
         else
         {
             running = false;
+            return;
         }
 #else
         auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
@@ -189,18 +190,20 @@ void WindEstimation::WindEstimationScheme()
         gpsE         = gpsData.velocityEast;
 #endif
         // update avg
-        vx = (wind(0) * nSample + gpsN) / (nSample + 1);
-        vy = (wind(1) * nSample + gpsE) / (nSample + 1);
-        v2 = (v2 * nSample + (vx * vx + vy * vy)) / (nSample + 1);
         nSample++;
+        vx = (vx * nSample + gpsN) / (nSample + 1);
+        vy = (vy * nSample + gpsE) / (nSample + 1);
+        v2 = (v2 * nSample + (gpsN * gpsN + gpsE * gpsE)) / (nSample + 1);
+        // TRACE("avg vx %f,vy %f,v2 %f\n", vx, vy, v2);
         phi(0) = gpsN - vx;
         phi(1) = gpsE - vy;
-        y      = 0.5f * ((vx * vx + vy * vy) - v2);
+        y      = 0.5f * ((gpsN * gpsN + gpsE * gpsE) - v2);
 
         phiT = phi.transpose();
         funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
         temp = (0.5 * (funv + funv.transpose()) * phi) *
                (y - phiT * wind);  // maybe moved to mutex ReadOnly
+        // TRACE("res vx %f,vy %f\n", temp(0), temp(1));
         {
             miosix::Lock<FastMutex> l(mutex);
             wind          = wind + temp;

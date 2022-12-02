@@ -33,19 +33,14 @@ using namespace std;
 int main()
 {
     vector<vector<float>> *values = new vector<vector<float>>{
-        {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23},
-        {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23},
-        {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23},
-        {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23},
-        {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23}, {34, 23},
-
-    };
+        {-100.0000, 78.7071}, {-99.9686, 78.7290}, {-99.9372, 78.7501}};
+    TRACE("values size %d\n", (*values).size());
     BoardScheduler::getInstance().getScheduler().start();
     WindEstimation::getInstance().setTestValue(values);
     WindEstimation::getInstance().startWindEstimationSchemeCalibration();
     Thread::sleep(2500);
     WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
-    TRACE("Calibration result: n= %f, e= %f \n",
+    TRACE("Calibration result: n= %f, e= %f \n\n\n\n",
           WindEstimation::getInstance().getWindEstimationScheme()(0),
           WindEstimation::getInstance().getWindEstimationScheme()(1));
     WindEstimation::getInstance().startWindEstimationScheme();
@@ -53,7 +48,7 @@ int main()
     {
         Thread::sleep(1000);
     }
-    TRACE("test ended wes result: n= %f, e= %f \n",
+    TRACE("test ended wes result: n= %f, e= %f \n\n\n\n",
           WindEstimation::getInstance().getWindEstimationScheme()(0),
           WindEstimation::getInstance().getWindEstimationScheme()(1));
     while (1)

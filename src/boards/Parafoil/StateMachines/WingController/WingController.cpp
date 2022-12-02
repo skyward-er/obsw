@@ -39,7 +39,7 @@ using namespace Boardcore;
 using namespace Parafoil::WingConfig;
 using namespace Parafoil::WESConfig;
 using namespace Common;
-using namespace Boardcore;
+using namespace miosix;
 
 namespace Parafoil
 {
@@ -83,6 +83,12 @@ WingController::~WingController()
     EventBroker::getInstance().unsubscribe(this);
 }
 
+WingControllerState WingController::getStatus()
+{
+    PauseKernelLock lock;
+    return status.state;
+}
+
 void WingController::state_idle(const Boardcore::Event& event)
 {
     switch (event)
@@ -106,17 +112,22 @@ void WingController::state_wes(const Boardcore::Event& event)
             Actuators::getInstance().startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,
                                                                 TOPIC_ALGOS);
+#ifndef PRF_TEST
             WindEstimation::getInstance()
                 .startWindEstimationSchemeCalibration();
+#endif
             return logStatus(WingControllerState::WES);
         }
         case WING_WES_CALIBRATION:  // stop calibration and start wes
         {
+#ifndef PRF_TEST
             WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
             WindEstimation::getInstance().startWindEstimationScheme();
+#endif
         }
         case WING_CONTROLLED:  // stop twirling
         {
+            TRACE("Controlled\n");
             Actuators::getInstance().stopTwirl();
             if (controlled)
             {

@@ -119,7 +119,7 @@ int main()
     if (!WingController::getInstance().start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the FlightModeManager");
+        LOG_ERR(logger, "Error starting the WingController");
     }
 
     // Start the sensors sampling
