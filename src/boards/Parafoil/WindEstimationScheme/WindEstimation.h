@@ -30,14 +30,10 @@
 
 #include <Eigen/Core>
 #include <atomic>
+
+#include "WindEstimationData.h"
 namespace Parafoil
 {
-
-struct WindLogging
-{
-    float vx, vy;
-    uint64_t timestamp;
-};
 
 /**
  * @brief This class implements the wind prediction algorithm, the first part is

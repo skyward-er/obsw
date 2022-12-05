@@ -26,7 +26,7 @@ namespace Parafoil
 {
 
 constexpr unsigned int APOGEE_TIMEOUT  = 20 * 1000;
-constexpr unsigned int MISSION_TIMEOUT = 60 * 60 * 1000;
+constexpr unsigned int MISSION_TIMEOUT = 7 * 60 * 1000;
 constexpr unsigned int LANDING_TIMEOUT = 2 * 60 * 1000;
 
 }  // namespace Parafoil

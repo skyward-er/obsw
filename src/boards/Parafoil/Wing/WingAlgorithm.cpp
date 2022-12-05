@@ -36,12 +36,12 @@ WingAlgorithm::WingAlgorithm(ServosList servo1, ServosList servo2)
     this->servo1 = servo1;
     this->servo2 = servo2;
     stepIndex    = 0;
+    // Create the vector for algorithm data
+    steps = std::vector<WingAlgorithmData>();
 }
 
 bool WingAlgorithm::init()
 {
-    // Create the vector for algorithm data
-    steps = std::vector<WingAlgorithmData>();
     return true;  // In this case the init is always true
 }
 
@@ -57,7 +57,6 @@ void WingAlgorithm::begin()
 {
     running     = true;
     shouldReset = true;
-    shouldReset = false;
 
     // Set the reference timestamp
     timeStart = TimestampTimer::getTimestamp();
@@ -66,7 +65,6 @@ void WingAlgorithm::begin()
 void WingAlgorithm::end()
 {
     running = false;
-    EventBroker::getInstance().post(ALGORITHM_ENDED, TOPIC_ALGOS);
 
     // Set the reference timestamp to 0
     timeStart = 0;
@@ -88,10 +86,10 @@ void WingAlgorithm::step()
     {
         LOG_INFO(logger, "Algorithm end {:d} >= {:d}", stepIndex, steps.size());
         // End the procedure so it won't be executed
-        end();
         // Set the index to 0 in case of another future execution
         stepIndex = 0;
         // Terminate here
+        EventBroker::getInstance().post(ALGORITHM_ENDED, TOPIC_ALGOS);
         return;
     }
 

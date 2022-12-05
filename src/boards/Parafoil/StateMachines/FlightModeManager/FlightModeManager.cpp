@@ -79,6 +79,10 @@ State FlightModeManager::state_on_ground(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_ENTER_TEST_MODE:
+        {
+            return transition(&FlightModeManager::state_test_mode);
+        }
         case TMTC_RESET_BOARD:
         {
             Logger::getInstance().stop();
@@ -113,6 +117,7 @@ State FlightModeManager::state_init(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_FORCE_INIT:
         case FMM_INIT_OK:
         {
             return transition(&FlightModeManager::state_sensors_calibration);
@@ -242,19 +247,15 @@ State FlightModeManager::state_test_mode(const Event& event)
 State FlightModeManager::state_flying(const Event& event)
 {
 
-    static uint16_t missionTimeoutEventId;
     switch (event)
     {
         case EV_ENTRY:
         {
-            missionTimeoutEventId =
-                EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
-                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
+
             return HANDLED;
         }
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -270,7 +271,10 @@ State FlightModeManager::state_flying(const Event& event)
         {
             return transition(&FlightModeManager::state_mission_ended);
         }
-
+        case TMTC_ENTER_TEST_MODE:
+        {
+            return transition(&FlightModeManager::state_test_mode);
+        }
         default:
         {
             return UNHANDLED;
@@ -300,7 +304,6 @@ State FlightModeManager::state_ascending(const Event& event)
             return HANDLED;
         }
         case FLIGHT_LAUNCH_PIN_DETACHED:
-        case TMTC_FORCE_APOGEE:
         case TMTC_FORCE_EXPULSION:
         {
             return transition(&FlightModeManager::state_wing_descent);
@@ -314,17 +317,23 @@ State FlightModeManager::state_ascending(const Event& event)
 
 State FlightModeManager::state_wing_descent(const Event& event)
 {
+
+    static uint16_t missionTimeoutEventId;
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
+            missionTimeoutEventId =
+                EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
+                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
 
             EventBroker::getInstance().post(WING_WES, TOPIC_ALGOS);
             return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:

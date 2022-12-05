@@ -112,23 +112,23 @@ void WingController::state_wes(const Boardcore::Event& event)
             Actuators::getInstance().startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,
                                                                 TOPIC_ALGOS);
-#ifndef PRF_TEST
             WindEstimation::getInstance()
                 .startWindEstimationSchemeCalibration();
-#endif
             return logStatus(WingControllerState::WES);
         }
         case WING_WES_CALIBRATION:  // stop calibration and start wes
         {
+
 #ifndef PRF_TEST
             WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
             WindEstimation::getInstance().startWindEstimationScheme();
+            return logStatus(WingControllerState::WES);
 #endif
         }
         case WING_CONTROLLED:  // stop twirling
         {
-            TRACE("Controlled\n");
             Actuators::getInstance().stopTwirl();
+            logStatus(WingControllerState::WES);
             if (controlled)
             {
                 return transition(&WingController::state_automatic);

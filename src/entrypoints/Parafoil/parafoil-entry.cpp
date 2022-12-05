@@ -121,7 +121,7 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-
+    WingController::getInstance().setControlled(false);
     // Start the sensors sampling
     if (!Sensors::getInstance().start())
     {

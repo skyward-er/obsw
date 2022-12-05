@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,25 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include <iostream>
+#include <string>
+
 namespace Parafoil
 {
 
-namespace WingConfig
+struct WindLogging
 {
-// Algorithm configuration
-constexpr int WING_UPDATE_PERIOD           = 100;  // [ms]
-constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 100;  //[ms]
+    long long timestamp = 0;
+    float vx = 0, vy = 0;
 
-#if defined(EUROC)
-constexpr float DEFAULT_TARGET_LAT = 39.389733;
-constexpr float DEFAULT_TARGET_LON = -8.288992;
-#elif defined(ROCCARASO)
-constexpr float DEFAULT_TARGET_LAT = 41.8039952;
-constexpr float DEFAULT_TARGET_LON = 14.0547223;
-#else  // Milan
-constexpr float DEFAULT_TARGET_LAT = 42;
-constexpr float DEFAULT_TARGET_LON = 9;
-#endif
+    static std::string header() { return "timestamp,vx,vy\n"; }
 
-// Wing altitude checker configs
-constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;   // [number of sample]
-constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
-constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 3 * 1000000;  // [us]
-
-}  // namespace WingConfig
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << vx << "," << vy << "\n";
+    }
+};
 
 }  // namespace Parafoil
