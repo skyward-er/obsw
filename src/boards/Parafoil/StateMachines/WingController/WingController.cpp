@@ -54,7 +54,6 @@ WingController::WingController()
                                             PARAFOIL_RIGHT_SERVO));
     WingAlgorithm* timedDescent =
         new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-    timedDescent->init();
     WingAlgorithmData step;
     step.servo1Angle = 0;
     step.servo2Angle = 0;

@@ -121,8 +121,9 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-    WingController::getInstance().setControlled(false);
-    // Start the sensors sampling
+    // WingController::getInstance().setControlled(false);//set the algorithm to
+    // sequence
+    //   Start the sensors sampling
     if (!Sensors::getInstance().start())
     {
         initResult = false;
@@ -139,6 +140,8 @@ int main()
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
+    // Start the pin handler and observer
+    PinHandler::getInstance();
     if (!PinObserver::getInstance().start())
     {
         initResult = false;
