@@ -31,7 +31,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
-
+// TODO better organize fmm
 namespace Parafoil
 {
 
@@ -328,7 +328,8 @@ State FlightModeManager::state_wing_descent(const Event& event)
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
 
-            EventBroker::getInstance().post(WING_WES, TOPIC_ALGOS);
+            EventBroker::getInstance().post(
+                WING_WES, TOPIC_ALGOS);  // TODO change event name
             return HANDLED;
         }
         case EV_EXIT:

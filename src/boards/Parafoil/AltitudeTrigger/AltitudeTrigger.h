@@ -56,7 +56,7 @@ private:
 
     // Number of times that the algorithm detects to be below the fixed
     // altitude
-    int confidence;
+    std::atomic<int> confidence;
 };
 
 }  // namespace Parafoil

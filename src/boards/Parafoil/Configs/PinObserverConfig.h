@@ -29,15 +29,15 @@
 namespace Parafoil
 {
 
-constexpr unsigned int LAUNCH_PIN_THRESHOLD = 10;
+constexpr unsigned int LAUNCH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 
-constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 10;
+constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 
-constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 10;
+constexpr unsigned int DPL_SERVO_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition DPL_SERVO_PIN_TRIGGER =
     Boardcore::PinTransition::FALLING_EDGE;
 

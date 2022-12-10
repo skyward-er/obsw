@@ -52,7 +52,8 @@ void AltitudeTrigger::enable()
 #else
     startingAltitude = -NASController::getInstance().getNasState().d;
 #endif
-    running = true;
+    confidence = 0;
+    running    = true;
 }
 
 void AltitudeTrigger::disable() { running = false; }
@@ -71,7 +72,8 @@ void AltitudeTrigger::update()
 #endif
         if (startingAltitude - height > WING_ALTITUDE_TRIGGER_FALL)
         {
-            confidence++;
+            confidence++;  // TODO check whether to reset confidence or not
+                           // after a false if
         }
         if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
         {

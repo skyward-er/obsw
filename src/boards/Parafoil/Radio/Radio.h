@@ -35,6 +35,7 @@
 #else
 #include <radio/SX1278/SX1278.h>
 #endif
+// TODO add wingcontroller status, WES
 
 namespace Parafoil
 {

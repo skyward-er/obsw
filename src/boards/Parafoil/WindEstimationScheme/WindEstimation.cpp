@@ -89,17 +89,17 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
     if (!running)
     {
         miosix::Lock<FastMutex> l(mutex);
-        wind          = windCalibration;
-        windLogger.vx = windCalibration[0];
-        windLogger.vy = windCalibration[1];
-        logStatus();
+        wind = windCalibration;  // TODO check if this work as intended
     }
+    windLogger.vx = windCalibration[0];
+    windLogger.vy = windCalibration[1];
+    logStatus();
 }
 
 void WindEstimation::WindEstimationSchemeCalibration()
 {
 #ifndef PRF_TEST
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)  // TODO swap ifs
 #endif
     {
         if (calRunning)
@@ -126,7 +126,7 @@ void WindEstimation::WindEstimationSchemeCalibration()
                 v2 += gpsN * gpsN + gpsE * gpsE;
                 nSampleCal++;
             }
-            else
+            else  // TODO check out stats (terraneo class)
             {
 
                 vx = vx / nSampleCal;
@@ -157,8 +157,8 @@ void WindEstimation::startWindEstimationScheme()
     if (!running)
     {
         running = true;
-        //  Register the task
-        nSample = nSampleCal;
+        nSample = nSampleCal;  // TODO explicit that nSample has to be reset
+                               // only the first time startWES is called
         LOG_INFO(logger, "WindEstimationScheme started");
     }
 }
@@ -178,7 +178,7 @@ void WindEstimation::WindEstimationScheme()
     if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
 #endif
     {
-        if (running)
+        if (running)  // TODO swap ifs
         {
             Eigen::Vector2f phi;
             Eigen::Matrix<float, 1, 2> phiT;
@@ -206,7 +206,6 @@ void WindEstimation::WindEstimationScheme()
             vx = (vx * nSample + gpsN) / (nSample + 1);
             vy = (vy * nSample + gpsE) / (nSample + 1);
             v2 = (v2 * nSample + (gpsN * gpsN + gpsE * gpsE)) / (nSample + 1);
-            // TRACE("avg vx %f,vy %f,v2 %f\n", vx, vy, v2);
             phi(0) = gpsN - vx;
             phi(1) = gpsE - vy;
             y      = 0.5f * ((gpsN * gpsN + gpsE * gpsE) - v2);
@@ -215,15 +214,14 @@ void WindEstimation::WindEstimationScheme()
             funv =
                 (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
             temp = (0.5 * (funv + funv.transpose()) * phi) *
-                   (y - phiT * wind);  // maybe moved to mutex ReadOnly
-            // TRACE("res vx %f,vy %f\n", temp(0), temp(1));
+                   (y - phiT * getWindEstimationScheme());
             {
                 miosix::Lock<FastMutex> l(mutex);
                 wind          = wind + temp;
                 windLogger.vx = wind[0];
                 windLogger.vy = wind[1];
-                logStatus();
             }
+            logStatus();
         }
     }
 }
@@ -237,8 +235,7 @@ Eigen::Vector2f WindEstimation::getWindEstimationScheme()
 void WindEstimation::logStatus()
 {
     windLogger.timestamp = TimestampTimer::getTimestamp();
-    Logger::getInstance().log(
-        windLogger);  // ask wether this has to be removed from the mutex or not
+    Logger::getInstance().log(windLogger);
 }
 
 }  // namespace Parafoil

@@ -25,6 +25,7 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -221,6 +222,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
+            tm.pin_nosecone =
+                PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
 
             // Servo positions
             tm.left_servo_angle =

@@ -52,8 +52,9 @@ WingController::WingController()
     // setting up the 2 type of algorithm
     addAlgorithm(new AutomaticWingAlgorithm(0.1, 0.01, PARAFOIL_LEFT_SERVO,
                                             PARAFOIL_RIGHT_SERVO));
-    WingAlgorithm* timedDescent =
-        new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+    WingAlgorithm* timedDescent = new WingAlgorithm(
+        PARAFOIL_LEFT_SERVO,
+        PARAFOIL_RIGHT_SERVO);  // TODO encapsulate in a method
     WingAlgorithmData step;
     step.servo1Angle = 0;
     step.servo2Angle = 0;
@@ -106,7 +107,7 @@ void WingController::state_wes(const Boardcore::Event& event)
 {
     switch (event)
     {
-        case EV_ENTRY:  // starts  twirling and calibration wes
+        case EV_ENTRY:  // starts twirling and calibration wes
         {
             Actuators::getInstance().startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,

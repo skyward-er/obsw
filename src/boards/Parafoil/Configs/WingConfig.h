@@ -31,7 +31,7 @@ namespace WingConfig
 constexpr int WING_UPDATE_PERIOD           = 100;  // [ms]
 constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 100;  //[ms]
 
-#if defined(EUROC)
+#if defined(EUROC)  // TODO add terni
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
 #elif defined(ROCCARASO)
