@@ -34,12 +34,13 @@ struct WindLogging
 {
     long long timestamp = 0;
     float vx = 0, vy = 0;
+    bool cal = 0;
 
     static std::string header() { return "timestamp,vx,vy\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << vx << "," << vy << "\n";
+        os << timestamp << "," << vx << "," << vy << "," << cal << "\n ";
     }
 };
 

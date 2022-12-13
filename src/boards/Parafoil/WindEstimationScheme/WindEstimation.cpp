@@ -91,8 +91,9 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
         miosix::Lock<FastMutex> l(mutex);
         wind = windCalibration;  // TODO check if this work as intended
     }
-    windLogger.vx = windCalibration[0];
-    windLogger.vy = windCalibration[1];
+    windLogger.cal = true;
+    windLogger.vx  = windCalibration[0];
+    windLogger.vy  = windCalibration[1];
     logStatus();
 }
 
@@ -144,8 +145,9 @@ void WindEstimation::WindEstimationSchemeCalibration()
                     (calibrationMatrixT * calibrationMatrix)
                         .ldlt()
                         .solve(calibrationMatrixT * calibrationV2);
-                EventBroker::getInstance().post(WING_WES_CALIBRATION,
-                                                TOPIC_ALGOS);
+                EventBroker::getInstance().post(
+                    WING_WES_CALIBRATION,
+                    TOPIC_ALGOS);  // TODO maybe stop here
                 calRunning = false;
             }
         }
@@ -217,9 +219,10 @@ void WindEstimation::WindEstimationScheme()
                    (y - phiT * getWindEstimationScheme());
             {
                 miosix::Lock<FastMutex> l(mutex);
-                wind          = wind + temp;
-                windLogger.vx = wind[0];
-                windLogger.vy = wind[1];
+                wind           = wind + temp;
+                windLogger.vx  = wind[0];
+                windLogger.vy  = wind[1];
+                windLogger.cal = 0;
             }
             logStatus();
         }
