@@ -36,6 +36,7 @@
 #include <drivers/interrupt/external_interrupts.h>
 #include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include <functional>
 
@@ -88,6 +89,8 @@ void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
 Radio::Radio()
 {
+    ModuleManager& modules = ModuleManager::getInstance();
+
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
     transceiver = new SerialTransceiver(Buses::getInstance().usart2);
@@ -115,14 +118,14 @@ Radio::Radio()
                               0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the periodic telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 TMRepository::getInstance().packSystemTm(MAV_FLIGHT_ID, 0, 0));
         },
         FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
@@ -210,6 +213,8 @@ void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame)
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
+
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -257,8 +262,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
-                    auto statsVector = BoardScheduler::getInstance()
-                                           .getScheduler()
+                    auto statsVector = modules.get<BoardScheduler>()->getScheduler()
                                            .getTaskStats();
                     uint64_t timestamp = TimestampTimer::getTimestamp();
 

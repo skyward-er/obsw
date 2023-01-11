@@ -27,6 +27,7 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <miosix.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -35,6 +36,7 @@ using namespace Common;
 
 int main()
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger = Logging::getLogger("main");
 
     if (!EventBroker::getInstance().start())
@@ -63,7 +65,7 @@ int main()
     }
 
     // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!modules.get<BoardScheduler>()->getScheduler().start())
     {
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }

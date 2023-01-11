@@ -29,6 +29,7 @@
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/ReferenceConfig.h>
 #include <common/events/Events.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace std;
 using namespace Eigen;
@@ -43,7 +44,7 @@ namespace Parafoil
 bool NASController::start()
 {
     // Add the update task to the scheduler
-    BoardScheduler::getInstance().getScheduler().addTask(
+    ModuleManager::getInstance().get<BoardScheduler>()->getScheduler().addTask(
         bind(&NASController::update, this), UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 

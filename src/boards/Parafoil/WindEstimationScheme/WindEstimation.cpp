@@ -27,6 +27,7 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Parafoil::WESConfig;
 using namespace Boardcore;
@@ -39,23 +40,25 @@ namespace Parafoil
 WindEstimation::WindEstimation() : running(false), calRunning(false)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
+    ModuleManager& modules = ModuleManager::getInstance();
+
     // Register the calibration task
 
 #ifdef PRF_TEST
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this), 100);
 
     // Register the WES task
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationScheme, this), 10);
 #else
 
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
         WES_CALIBRATION_UPDATE_PERIOD);
 
     // Register the WES task
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif

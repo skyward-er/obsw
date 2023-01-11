@@ -35,6 +35,7 @@
 #include <events/EventBroker.h>
 #include <utils/PinObserver/PinObserver.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -46,6 +47,7 @@ namespace Parafoil
 mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                              uint8_t seq)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
 
     // Prevent preemption, MUST not yeld or use the kernel!
@@ -64,7 +66,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pin_observer = PinObserver::getInstance().isRunning();
             tm.sensors      = Sensors::getInstance().isStarted();
             tm.board_scheduler =
-                BoardScheduler::getInstance().getScheduler().isRunning();
+                modules.get<BoardScheduler>()->getScheduler().isRunning();
 
             mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);

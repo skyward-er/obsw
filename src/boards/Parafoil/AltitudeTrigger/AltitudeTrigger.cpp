@@ -26,6 +26,7 @@
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include <functional>
 
@@ -39,7 +40,7 @@ namespace Parafoil
 
 AltitudeTrigger::AltitudeTrigger()
 {
-    BoardScheduler::getInstance().getScheduler().addTask(
+    ModuleManager::getInstance().get<BoardScheduler>()->getScheduler().addTask(
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
     confidence = 0;
     running    = false;
