@@ -23,6 +23,7 @@
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <miosix.h>
 #include <utils/Debug.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include <vector>
 
@@ -32,10 +33,12 @@ using namespace std;
 
 int main()
 {
+    Boardcore::ModuleManager& modules = Boardcore::ModuleManager::getInstance();
+
     vector<vector<float>> *values = new vector<vector<float>>{
         {-100.0000, 78.7071}, {-99.9686, 78.7290}, {-99.9372, 78.7501}};
     TRACE("values size %d\n", (*values).size());
-    BoardScheduler::getInstance().getScheduler().start();
+    modules.get<BoardScheduler>()->getScheduler().start();
     WindEstimation::getInstance().setTestValue(values);
     WindEstimation::getInstance().startWindEstimationSchemeCalibration();
     Thread::sleep(2500);
