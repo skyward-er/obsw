@@ -30,6 +30,8 @@
 #include <math.h>
 #include <utils/Constants.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace Boardcore;
 using namespace Eigen;
 using namespace Parafoil::WingConfig;
@@ -49,14 +51,16 @@ AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    if (modules.get<Sensors>()->getUbxGpsLastSample().fix != 0)
     {
         // The PI calculated result
         float result;
 
         // Acquire the last nas state
         NASState state = NASController::getInstance().getNasState();
-        // UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
+        // UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
 
         // Target direction in respect to the current one
         ReferenceValues reference =
