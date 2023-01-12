@@ -35,6 +35,7 @@
 #include <events/EventBroker.h>
 #include <utils/PinObserver/PinObserver.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
@@ -157,7 +158,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         case SystemTMList::MAV_FLIGHT_ID:
         {
             mavlink_payload_flight_tm_t tm;
-            Sensors &sensors = Sensors::getInstance();
+            Sensors& sensors = Sensors::getInstance();
 
             MS5803Data ms5803Data = sensors.getMS5803LastSample();
             BMX160WithCorrectionData imuData =

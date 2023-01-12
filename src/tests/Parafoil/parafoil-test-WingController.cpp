@@ -27,6 +27,7 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <miosix.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
@@ -37,7 +38,7 @@ using namespace Common;
 int main()
 {
     ModuleManager& modules = ModuleManager::getInstance();
-    PrintLogger logger = Logging::getLogger("main");
+    PrintLogger logger     = Logging::getLogger("main");
 
     if (!EventBroker::getInstance().start())
     {

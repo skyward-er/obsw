@@ -34,6 +34,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Boardcore;

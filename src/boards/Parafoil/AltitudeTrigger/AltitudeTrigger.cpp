@@ -26,9 +26,9 @@
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include <functional>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace std;
 using namespace Parafoil::WingConfig;

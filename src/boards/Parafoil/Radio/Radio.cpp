@@ -36,9 +36,9 @@
 #include <drivers/interrupt/external_interrupts.h>
 #include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include <functional>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace std;
 using namespace placeholders;
@@ -262,7 +262,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
-                    auto statsVector = modules.get<BoardScheduler>()->getScheduler()
+                    auto statsVector = modules.get<BoardScheduler>()
+                                           ->getScheduler()
                                            .getTaskStats();
                     uint64_t timestamp = TimestampTimer::getTimestamp();
 
