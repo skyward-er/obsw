@@ -38,7 +38,9 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 #include <miosix.h>
+
 
 #ifdef HILSimulation
 #include <HIL.h>
@@ -55,6 +57,7 @@ using namespace Common;
 int main()
 {
     bool initResult    = true;
+    ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger = Logging::getLogger("main");
 
 #ifdef HILSimulation
@@ -68,7 +71,7 @@ int main()
 
     HIL::getInstance().start();
 
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         []() { HIL::getInstance().send(0.0f); }, 100);
 
     // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
@@ -135,7 +138,7 @@ int main()
     AltitudeTrigger::getInstance();
 
     // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!modules.get<BoardScheduler>()->getScheduler().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");

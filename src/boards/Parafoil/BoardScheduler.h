@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <scheduler/TaskScheduler.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
 
-class BoardScheduler : public Module
+class BoardScheduler : public Boardcore::Module
 {
 
 public:
