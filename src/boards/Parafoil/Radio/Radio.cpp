@@ -365,7 +365,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // Move the servo, if it fails send a nack
             if (!(FlightModeManager::getInstance().getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
-                  Actuators::getInstance().setServoAngle(servoId, angle)))
+                  modules.get<Actuators>()->setServoAngle(servoId, angle)))
                 return sendNack(msg);
 
             break;
@@ -378,7 +378,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // Wiggle the servo, if it fails send a nack
             if (!(FlightModeManager::getInstance().getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
-                  Actuators::getInstance().wiggleServo(servoId)))
+                  modules.get<Actuators>()->wiggleServo(servoId)))
                 return sendNack(msg);
 
             break;
@@ -391,7 +391,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // Reset the servo, if it fails send a nack
             if (!(FlightModeManager::getInstance().getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
-                  Actuators::getInstance().setServo(servoId, 0)))
+                  modules.get<Actuators>()->setServo(servoId, 0)))
                 return sendNack(msg);
 
             break;

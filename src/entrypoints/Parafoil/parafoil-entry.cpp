@@ -90,10 +90,10 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
+    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators");

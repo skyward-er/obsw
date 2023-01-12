@@ -110,11 +110,13 @@ void WingController::state_wes(
     const Boardcore::Event& event)  // TODO Redo the FSM and create a HSM with a
                                     // end state called by FMM:state_Landed
 {
+    ModuleManager& modules = ModuleManager::getInstance();
+
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
-            Actuators::getInstance().startTwirl();
+            modules.get<Actuators>()->startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,
                                                                 TOPIC_ALGOS);
             WindEstimation::getInstance()
@@ -132,7 +134,7 @@ void WingController::state_wes(
         }
         case WING_CONTROLLED:  // stop twirling
         {
-            Actuators::getInstance().stopTwirl();
+            modules.get<Actuators>()->stopTwirl();
             logStatus(WingControllerState::WES);
             if (controlled)
             {
@@ -255,17 +257,21 @@ void WingController::update()
 
 void WingController::flare()
 {
+    Actuators& actuators = *(ModuleManager::getInstance().get<Actuators>());
+
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 1);
-    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 1);
+    actuators.setServo(PARAFOIL_LEFT_SERVO, 1);
+    actuators.setServo(PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
 {
+    Actuators& actuators = *(ModuleManager::getInstance().get<Actuators>());
+
     // Set the servo position to reset
-    Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0);
-    Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0);
+    actuators.setServo(PARAFOIL_LEFT_SERVO, 0);
+    actuators.setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)
