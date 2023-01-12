@@ -23,6 +23,7 @@
 #pragma once
 
 #include <scheduler/TaskScheduler.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil

@@ -38,9 +38,9 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <miosix.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #ifdef HILSimulation
 #include <HIL.h>
@@ -56,9 +56,9 @@ using namespace Common;
 
 int main()
 {
-    bool initResult    = true;
+    bool initResult        = true;
     ModuleManager& modules = ModuleManager::getInstance();
-    PrintLogger logger = Logging::getLogger("main");
+    PrintLogger logger     = Logging::getLogger("main");
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;

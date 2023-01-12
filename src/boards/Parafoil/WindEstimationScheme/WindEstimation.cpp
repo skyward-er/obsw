@@ -27,6 +27,7 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Parafoil::WESConfig;
