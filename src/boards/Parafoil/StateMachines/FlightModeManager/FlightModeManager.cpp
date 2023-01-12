@@ -28,6 +28,8 @@
 #include <common/events/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
@@ -136,13 +138,15 @@ State FlightModeManager::state_init(const Event& event)
 
 State FlightModeManager::state_sensors_calibration(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
 
-            Sensors::getInstance().calibrate();
+            modules.get<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
 
             return HANDLED;

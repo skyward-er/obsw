@@ -291,7 +291,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 case SystemTMList::MAV_SENSORS_STATE_ID:
                 {
-                    for (auto sensor : Sensors::getInstance().getSensorsState())
+                    for (auto sensor :
+                         modules.get<Sensors>()->getSensorsState())
                     {
                         mavlink_message_t msgToSend;
                         mavlink_sensor_state_tm_t tm;
@@ -401,7 +402,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
             NASController::getInstance().setReferenceAltitude(altitude);
-            Sensors::getInstance().pitotSetReferenceAltitude(altitude);
+            modules.get<Sensors>()->pitotSetReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -410,7 +411,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
             NASController::getInstance().setReferenceTemperature(temperature);
-            Sensors::getInstance().pitotSetReferenceTemperature(temperature);
+            modules.get<Sensors>()->pitotSetReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:

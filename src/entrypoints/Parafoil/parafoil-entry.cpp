@@ -127,7 +127,7 @@ int main()
     WingController::getInstance().setControlled(false);  // set the algorithm to
     // sequence
     //   Start the sensors sampling
-    if (!Sensors::getInstance().start())
+    if (!modules.get<Sensors>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");

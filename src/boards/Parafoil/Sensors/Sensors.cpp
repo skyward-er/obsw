@@ -31,6 +31,8 @@
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace std;
 using namespace Boardcore;
 using namespace Common;
@@ -40,8 +42,11 @@ using namespace Parafoil::SensorsConfig;
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {
-    if (Parafoil::Sensors::getInstance().bmx160 != nullptr)
-        Parafoil::Sensors::getInstance().bmx160->IRQupdateTimestamp(
+    Parafoil::Sensors* sensors_module =
+        ModuleManager::getInstance().get<Parafoil::Sensors>();
+
+    if (sensors_module->bmx160 != nullptr)
+        sensors_module->bmx160->IRQupdateTimestamp(
             TimestampTimer::getTimestamp());
 }
 

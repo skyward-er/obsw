@@ -65,7 +65,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.event_broker = EventBroker::getInstance().isRunning();
             tm.radio        = Radio::getInstance().isStarted();
             tm.pin_observer = PinObserver::getInstance().isRunning();
-            tm.sensors      = Sensors::getInstance().isStarted();
+            tm.sensors      = modules.get<Sensors>()->isStarted();
             tm.board_scheduler =
                 modules.get<BoardScheduler>()->getScheduler().isRunning();
 
@@ -158,7 +158,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         case SystemTMList::MAV_FLIGHT_ID:
         {
             mavlink_payload_flight_tm_t tm;
-            Sensors& sensors = Sensors::getInstance();
+            Sensors& sensors = *(modules.get<Sensors>());
 
             MS5803Data ms5803Data = sensors.getMS5803LastSample();
             BMX160WithCorrectionData imuData =
@@ -295,6 +295,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                               uint8_t msgId, uint8_t seq)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
 
     switch (sensorId)
@@ -303,7 +304,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_gps_tm_t tm;
 
-            UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
+            UBXGPSData gpsData = modules.get<Sensors>()->getUbxGpsLastSample();
 
             tm.timestamp = gpsData.gpsTimestamp;
             strcpy(tm.sensor_id, "UBXGPS");
@@ -328,7 +329,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_imu_tm_t tm;
 
             auto imuData =
-                Sensors::getInstance().getBMX160WithCorrectionLastSample();
+                modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
 
             tm.timestamp = imuData.accelerationTimestamp;
             strcpy(tm.sensor_id, "BMX160");
@@ -351,7 +352,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData = Sensors::getInstance().getMS5803LastSample();
+            auto pressureData = modules.get<Sensors>()->getMS5803LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_id, "MS5803");
@@ -368,7 +369,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_pressure_tm_t tm;
 
             auto pressureData =
-                Sensors::getInstance().getDplPressureLastSample();
+                modules.get<Sensors>()->getDplPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_id, "DPL_PRESSURE");
@@ -385,7 +386,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_pressure_tm_t tm;
 
             auto pressureData =
-                Sensors::getInstance().getStaticPressureLastSample();
+                modules.get<Sensors>()->getStaticPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_id, "STATIC_PRESSURE");
@@ -402,7 +403,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_pressure_tm_t tm;
 
             SSCDRRN015PDAData pitot =
-                Sensors::getInstance().getPitotPressureLastSample();
+                modules.get<Sensors>()->getPitotPressureLastSample();
 
             tm.timestamp = pitot.pressureTimestamp;
             tm.pressure  = pitot.pressure;
@@ -418,7 +419,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_adc_tm_t tm;
 
             BatteryVoltageSensorData battery =
-                Sensors::getInstance().getBatteryVoltageLastSample();
+                modules.get<Sensors>()->getBatteryVoltageLastSample();
 
             tm.timestamp = battery.voltageTimestamp;
             tm.channel_0 = battery.batVoltage;

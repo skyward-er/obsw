@@ -104,7 +104,11 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
 void WindEstimation::WindEstimationSchemeCalibration()
 {
 #ifndef PRF_TEST
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)  // TODO swap ifs
+    // TODO swap ifs
+    if (ModuleManager::getInstance()
+            .get<Sensors>()
+            ->getUbxGpsLastSample()
+            .fix != 0)
 #endif
     {
         if (calRunning)
@@ -118,9 +122,11 @@ void WindEstimation::WindEstimationSchemeCalibration()
                 gpsE = (*testValue)[index][1];
                 index++;
 #else
-                auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-                gpsN         = gpsData.velocityNorth;
-                gpsE         = gpsData.velocityEast;
+                auto gpsData = ModuleManager::getInstance()
+                                   .get<Sensors>()
+                                   ->getUbxGpsLastSample();
+                gpsN = gpsData.velocityNorth;
+                gpsE = gpsData.velocityEast;
 #endif
                 calibrationMatrix(nSampleCal, 0) = gpsN;
                 calibrationMatrix(nSampleCal, 1) = gpsE;
@@ -181,7 +187,10 @@ void WindEstimation::stoptWindEstimationScheme()
 void WindEstimation::WindEstimationScheme()
 {
 #ifndef PRF_TEST
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+    if (ModuleManager::getInstance()
+            .get<Sensors>()
+            ->getUbxGpsLastSample()
+            .fix != 0)
 #endif
     {
         if (running)  // TODO swap ifs
@@ -203,9 +212,11 @@ void WindEstimation::WindEstimationScheme()
                 return;
             }
 #else
-            auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-            gpsN         = gpsData.velocityNorth;
-            gpsE         = gpsData.velocityEast;
+            auto gpsData = ModuleManager::getInstance()
+                               .get<Sensors>()
+                               ->getUbxGpsLastSample();
+            gpsN = gpsData.velocityNorth;
+            gpsE = gpsData.velocityEast;
 #endif
             // update avg
             nSample++;

@@ -41,13 +41,13 @@
 #include <HIL_algorithms/HILMockKalman.h>
 #include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
 
-class Sensors : public Boardcore::Singleton<Sensors>
+class Sensors : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<Sensors>;
 
 public:
     bool start();
