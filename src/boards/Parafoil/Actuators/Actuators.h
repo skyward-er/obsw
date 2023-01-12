@@ -22,18 +22,17 @@
 
 #pragma once
 
-#include <Singleton.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 namespace Parafoil
 {
 
-struct Actuators : public Boardcore::Singleton<Actuators>
+struct Actuators : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<Actuators>;
-
     /**
      * @brief Moves the specified servo to the given position.
      *

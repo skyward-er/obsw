@@ -205,9 +205,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Servo motors
             tm.left_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+                modules.get<Actuators>()->getServoAngle(PARAFOIL_LEFT_SERVO);
             tm.right_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
+                modules.get<Actuators>()->getServoAngle(PARAFOIL_RIGHT_SERVO);
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -230,10 +230,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Servo positions
             tm.left_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+                modules.get<Actuators>()->getServoAngle(PARAFOIL_LEFT_SERVO);
 
             tm.right_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
+                modules.get<Actuators>()->getServoAngle(PARAFOIL_RIGHT_SERVO);
 
             // Board status
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
@@ -458,10 +458,11 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
 
     if (servoId == PARAFOIL_LEFT_SERVO || servoId == PARAFOIL_RIGHT_SERVO)
     {
+        Actuators& actuators = *ModuleManager::getInstance().get<Actuators>();
         mavlink_servo_tm_t tm;
 
         tm.servo_id       = servoId;
-        tm.servo_position = Actuators::getInstance().getServoAngle(servoId);
+        tm.servo_position = actuators.getServoAngle(servoId);
 
         mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                     RadioConfig::MAV_COMPONENT_ID, &msg, &tm);

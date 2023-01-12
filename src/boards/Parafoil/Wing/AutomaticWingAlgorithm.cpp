@@ -127,21 +127,21 @@ void AutomaticWingAlgorithm::step()
         if (result > 0)
         {
             // Activate the servo1 and reset servo2
-            Actuators::getInstance().setServoAngle(servo1, result);
-            Actuators::getInstance().setServoAngle(servo2, 0);
+            modules.get<Actuators>()->setServoAngle(servo1, result);
+            modules.get<Actuators>()->setServoAngle(servo2, 0);
         }
         else
         {
             // Activate the servo2 and reset servo1
-            Actuators::getInstance().setServoAngle(servo1, 0);
-            Actuators::getInstance().setServoAngle(servo2, result * -1);
+            modules.get<Actuators>()->setServoAngle(servo1, 0);
+            modules.get<Actuators>()->setServoAngle(servo2, result * -1);
         }
 
         // Log the servo positions
         WingAlgorithmData data;
         data.timestamp     = TimestampTimer::getTimestamp();
-        data.servo1Angle   = Actuators::getInstance().getServoPosition(servo1);
-        data.servo2Angle   = Actuators::getInstance().getServoPosition(servo2);
+        data.servo1Angle   = modules.get<Actuators>()->getServoPosition(servo1);
+        data.servo2Angle   = modules.get<Actuators>()->getServoPosition(servo2);
         data.targetX       = targetDirection[0];
         data.targetY       = targetDirection[1];
         data.targetAngle   = targetAngle;

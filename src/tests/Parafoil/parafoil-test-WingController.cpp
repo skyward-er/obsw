@@ -46,10 +46,10 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
+    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         LOG_ERR(logger, "Error starting the Actuators");
     }
@@ -90,9 +90,9 @@ int main()
         {  // wait until we change state
 
             TRACE("1servo Right: %f, Left: %f \n\n",
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_RIGHT_SERVO),
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(1000);
         }
@@ -100,9 +100,9 @@ int main()
                WingControllerState::WES)
         {  // wait until we return to WES
             TRACE("3servo Right: %f, Left: %f \n\n",
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_RIGHT_SERVO),
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(500);
         }
