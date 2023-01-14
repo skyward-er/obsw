@@ -43,8 +43,8 @@ constexpr float DEFAULT_TARGET_LON = 9;
 #endif
 
 // Wing altitude checker configs
-constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;   // [number of sample]
-constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
+constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;  // [number of sample]
+constexpr int WING_ALTITUDE_TRIGGER_FALL       = 3;  // [meters] TODO update
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 3 * 1000000;  // [us]
 
 }  // namespace WingConfig

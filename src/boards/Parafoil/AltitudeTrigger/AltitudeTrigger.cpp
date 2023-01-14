@@ -75,6 +75,10 @@ void AltitudeTrigger::update()
             confidence++;  // TODO check whether to reset confidence or not
                            // after a false if
         }
+        else
+        {
+            confidence = 0;
+        }
         if (confidence >= WING_ALTITUDE_TRIGGER_CONFIDENCE)
         {
             confidence       = 0;

@@ -71,11 +71,28 @@ void NASController::update()
 
         // Correct with accelerometer if the acceleration is in specs
         Vector3f acceleration = static_cast<AccelerometerData>(imuData);
-        if (acceleration.norm() > (9.8 + ACCELERATION_THRESHOLD) ||
-            acceleration.norm() < (9.8 - ACCELERATION_THRESHOLD))
+        if (accelerationValid &&
+            (acceleration.norm() > (9.8 + ACCELERATION_THRESHOLD) ||
+             acceleration.norm() < (9.8 - ACCELERATION_THRESHOLD)))
             accelerationValid = false;
         if (accelerationValid)
             nas.correctAcc(imuData);
+
+        if (!accelerationValid &&
+            (acceleration.norm() < (9.8 + ACCELERATION_THRESHOLD) ||
+             acceleration.norm() > (9.8 - ACCELERATION_THRESHOLD)))
+        {
+            accSampleAfterSpike++;
+        }
+        else
+        {
+            accSampleAfterSpike = 0;
+        }
+        if (accSampleAfterSpike > 50)
+        {
+            accSampleAfterSpike = 0;
+            accelerationValid   = true;
+        }
 
         Logger::getInstance().log(nas.getState());
     }

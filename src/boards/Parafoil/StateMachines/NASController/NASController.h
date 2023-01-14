@@ -66,6 +66,7 @@ private:
 
     NASControllerStatus status;
     Boardcore::NAS nas;
+    u_int8_t accSampleAfterSpike = 0;
 
     Eigen::Vector3f initialOrientation;
     bool accelerationValid = true;

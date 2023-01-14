@@ -99,11 +99,12 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
 
 void WindEstimation::WindEstimationSchemeCalibration()
 {
-#ifndef PRF_TEST
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)  // TODO swap ifs
-#endif
+
+    if (calRunning)
     {
-        if (calRunning)
+#ifndef PRF_TEST
+        if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+#endif
         {
             if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
             {
@@ -176,11 +177,11 @@ void WindEstimation::stoptWindEstimationScheme()
 
 void WindEstimation::WindEstimationScheme()
 {
-#ifndef PRF_TEST
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
-#endif
+    if (running)
     {
-        if (running)  // TODO swap ifs
+#ifndef PRF_TEST
+        if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+#endif
         {
             Eigen::Vector2f phi;
             Eigen::Matrix<float, 1, 2> phiT;
