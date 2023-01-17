@@ -33,11 +33,11 @@ class BoardScheduler : public Boardcore::Module
 {
 
 public:
+    BoardScheduler() {}
+
     Boardcore::TaskScheduler& getScheduler() { return scheduler; }
 
 private:
-    BoardScheduler() {}
-
     Boardcore::TaskScheduler scheduler;
 };
 

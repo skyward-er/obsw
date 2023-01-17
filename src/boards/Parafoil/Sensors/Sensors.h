@@ -50,6 +50,10 @@ class Sensors : public Boardcore::Module
 {
 
 public:
+    Sensors();
+
+    ~Sensors();
+
     bool start();
 
     bool isStarted();
@@ -103,10 +107,6 @@ public:
     std::map<string, bool> getSensorsState();
 
 private:
-    Sensors();
-
-    ~Sensors();
-
     void bmx160Init();
     void bmx160Callback();
 

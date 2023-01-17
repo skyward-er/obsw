@@ -33,6 +33,8 @@ namespace Parafoil
 
 struct Actuators : public Boardcore::Module
 {
+    Actuators();
+
     /**
      * @brief Moves the specified servo to the given position.
      *
@@ -73,8 +75,6 @@ struct Actuators : public Boardcore::Module
     void stopTwirl();
 
 private:
-    Actuators();
-
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 };
