@@ -64,6 +64,7 @@ int main()
     modules.insert<BoardScheduler>(new BoardScheduler());
     modules.insert<Actuators>(new Actuators());
     modules.insert<Sensors>(new Sensors());
+    modules.insert<PinHandler>(new PinHandler());
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
@@ -149,7 +150,6 @@ int main()
     }
 
     // Start the pin handler and observer
-    PinHandler::getInstance();
     if (!PinObserver::getInstance().start())
     {
         initResult = false;
