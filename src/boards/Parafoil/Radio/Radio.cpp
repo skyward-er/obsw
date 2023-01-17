@@ -124,14 +124,14 @@ Radio::Radio()
         [&]()
         {
             mavDriver->enqueueMsg(
-                TMRepository::getInstance().packSystemTm(MAV_FLIGHT_ID, 0, 0));
+                modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
         },
         FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
     modules.get<BoardScheduler>()->getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
-                TMRepository::getInstance().packSystemTm(MAV_STATS_ID, 0, 0));
+                modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
         STATS_TM_PERIOD, STATS_TM_TASK_ID);
 }
@@ -315,7 +315,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 default:
                 {
-                    auto response = TMRepository::getInstance().packSystemTm(
+                    auto response = modules.get<TMRepository>()->packSystemTm(
                         tmId, msg.msgid, msg.seq);
 
                     mavDriver->enqueueMsg(response);
@@ -333,7 +333,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             SensorsTMList sensorId = static_cast<SensorsTMList>(
                 mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
 
-            auto response = TMRepository::getInstance().packSensorsTm(
+            auto response = modules.get<TMRepository>()->packSensorsTm(
                 sensorId, msg.msgid, msg.seq);
 
             mavDriver->enqueueMsg(response);
@@ -348,7 +348,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
 
-            auto response = TMRepository::getInstance().packServoTm(
+            auto response = modules.get<TMRepository>()->packServoTm(
                 servoId, msg.msgid, msg.seq);
 
             mavDriver->enqueueMsg(response);
