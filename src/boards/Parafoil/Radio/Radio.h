@@ -28,6 +28,8 @@
 #include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 #if defined(USE_SERIAL_TRANSCEIVER)
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #elif defined(USE_XBEE_TRANSCEIVER)
@@ -44,10 +46,8 @@ using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
-class Radio : public Boardcore::Singleton<Radio>
+class Radio : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<Radio>;
-
 public:
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
@@ -56,6 +56,8 @@ public:
 #endif
 
     MavDriver* mavDriver;
+
+    Radio();
 
     /**
      * @brief Prepares and send an ack message for the given message.
@@ -89,8 +91,6 @@ public:
     void logStatus();
 
 private:
-    Radio();
-
     void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
 
     /**

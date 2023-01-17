@@ -65,6 +65,7 @@ int main()
     modules.insert<Actuators>(new Actuators());
     modules.insert<Sensors>(new Sensors());
     modules.insert<PinHandler>(new PinHandler());
+    modules.insert<Radio>(new Radio());
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
@@ -106,7 +107,7 @@ int main()
     }
 
     // Start the radio
-    if (!Radio::getInstance().start())
+    if (!modules.get<Radio>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
@@ -178,7 +179,7 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
-        Radio::getInstance().logStatus();
+        modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 }

@@ -63,7 +63,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp    = TimestampTimer::getTimestamp();
             tm.logger       = Logger::getInstance().isStarted();
             tm.event_broker = EventBroker::getInstance().isRunning();
-            tm.radio        = Radio::getInstance().isStarted();
+            tm.radio        = modules.get<Radio>()->isStarted();
             tm.pin_observer = PinObserver::getInstance().isRunning();
             tm.sensors      = modules.get<Sensors>()->isStarted();
             tm.board_scheduler =
@@ -101,7 +101,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_mavlink_stats_tm_t tm;
 
-            auto stats = Radio::getInstance().getMavlinkStatus();
+            auto stats = modules.get<Radio>()->getMavlinkStatus();
 
             tm.timestamp               = stats.timestamp;
             tm.n_send_queue            = stats.nSendQueue;

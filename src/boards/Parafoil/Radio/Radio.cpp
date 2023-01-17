@@ -51,8 +51,10 @@ using namespace Common;
 #ifndef USE_SERIAL_TRANSCEIVER
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
-    if (Parafoil::Radio::getInstance().transceiver != nullptr)
-        Parafoil::Radio::getInstance().transceiver->handleATTNInterrupt();
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    if (modules.get<Parafoil::Radio>()->transceiver != nullptr)
+        modules.get<Parafoil::Radio>()->transceiver->handleATTNInterrupt();
 }
 #endif
 
