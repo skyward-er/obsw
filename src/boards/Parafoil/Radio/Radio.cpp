@@ -422,7 +422,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                  mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
                 //
-               AltitudeTrigger::getInstance().setDeploymentAltitude(altitude);
+               modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
                 */
             break;
         }
