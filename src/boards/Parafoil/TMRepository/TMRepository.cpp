@@ -225,8 +225,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
-            tm.pin_nosecone =
-                PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
+            tm.pin_nosecone = modules.get<PinHandler>()
+                                  ->getPinsData()[NOSECONE_PIN]
+                                  .lastState;
 
             // Servo positions
             tm.left_servo_angle =

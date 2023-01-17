@@ -237,7 +237,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 case SystemTMList::MAV_PIN_OBS_ID:
                 {
                     auto pinDataVector =
-                        PinHandler::getInstance().getPinsData();
+                        modules.get<PinHandler>()->getPinsData();
 
                     for (auto pinData : pinDataVector)
                     {
