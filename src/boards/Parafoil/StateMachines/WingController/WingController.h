@@ -28,6 +28,7 @@
 
 #include <Eigen/Core>
 #include <atomic>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "WingControllerData.h"
 
@@ -55,16 +56,19 @@
 namespace Parafoil
 {
 class WingController : public Boardcore::FSM<WingController>,
-                       public Boardcore::Singleton<WingController>
+                       public Boardcore::Module
 
 {
-    friend class Boardcore::Singleton<WingController>;
-
 public:
     void state_idle(const Boardcore::Event& event);
     void state_wes(const Boardcore::Event& event);
     void state_automatic(const Boardcore::Event& event);
     void state_file(const Boardcore::Event& event);
+
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -93,11 +97,6 @@ public:
     WingControllerState getStatus();
 
 private:
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WingController();
-
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;

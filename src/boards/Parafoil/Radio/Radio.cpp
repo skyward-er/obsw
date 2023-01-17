@@ -453,7 +453,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float longitude =
                 mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
 
-            WingController::getInstance().setTargetPosition(
+            modules.get<WingController>()->setTargetPosition(
                 Eigen::Vector2f(latitude, longitude));
 
             break;
@@ -463,7 +463,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             uint8_t algorithm =
                 mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
 
-            WingController::getInstance().selectAlgorithm(algorithm);
+            modules.get<WingController>()->selectAlgorithm(algorithm);
 
             break;
         }

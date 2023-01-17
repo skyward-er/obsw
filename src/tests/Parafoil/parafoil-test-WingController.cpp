@@ -23,6 +23,7 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
@@ -43,6 +44,8 @@ int main()
     // Initialize the modules
     modules.insert<BoardScheduler>(new BoardScheduler());
     modules.insert<Actuators>(new Actuators());
+    modules.insert<WindEstimation>(new WindEstimation());
+    modules.insert<WingController>(new WingController());
 
     if (!EventBroker::getInstance().start())
     {
@@ -64,7 +67,7 @@ int main()
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }*/
 
-    if (!WingController::getInstance().start())
+    if (!modules.get<WingController>()->start())
     {
         LOG_ERR(logger, "Error starting the WingController");
     }
@@ -82,14 +85,14 @@ int main()
     {
         if (i % 2 == 0)
         {
-            WingController::getInstance().setControlled(1);
+            modules.get<WingController>()->setControlled(1);
         }
         else
         {
-            WingController::getInstance().setControlled(1);
+            modules.get<WingController>()->setControlled(1);
         }
         i++;
-        while (WingController::getInstance().getStatus() ==
+        while (modules.get<WingController>()->getStatus() ==
                WingControllerState::WES)
         {  // wait until we change state
 
@@ -100,7 +103,7 @@ int main()
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(1000);
         }
-        while (WingController::getInstance().getStatus() !=
+        while (modules.get<WingController>()->getStatus() !=
                WingControllerState::WES)
         {  // wait until we return to WES
             TRACE("3servo Right: %f, Left: %f \n\n",

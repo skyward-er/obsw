@@ -72,6 +72,7 @@ int main()
     modules.insert<Sensors>(new Sensors());
     modules.insert<WindEstimation>(
         new WindEstimation());  // used indirectly by WingController
+    modules.insert<WingController>(new WingController());
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
@@ -132,13 +133,13 @@ int main()
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }
 
-    if (!WingController::getInstance().start())
+    if (!modules.get<WingController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-    // WingController::getInstance().setControlled(false);  // set the algorithm
-    // to sequence
+    // modules.get<WingController>()->setControlled(false);  // set the
+    // algorithm to sequence
     //   Start the sensors sampling
     if (!modules.get<Sensors>()->start())
     {
