@@ -22,18 +22,17 @@
 
 #pragma once
 
-#include <Singleton.h>
-
 #include <atomic>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil  // TODO add better comments
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+class AltitudeTrigger : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
-
 public:
+    AltitudeTrigger();
+
     // Method to set the altitude where to trigger the dpl event
     void setDeploymentAltitude(float altitude);
 
@@ -44,8 +43,6 @@ public:
     bool isActive();
 
 private:
-    AltitudeTrigger();
-
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();

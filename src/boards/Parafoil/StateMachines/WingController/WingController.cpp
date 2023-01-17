@@ -147,19 +147,21 @@ void WingController::state_wes(const Boardcore::Event& event)
 }
 void WingController::state_automatic(const Boardcore::Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
+
     switch (event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
             selectAlgorithm(0);
-            AltitudeTrigger::getInstance().enable();
+            modules.get<AltitudeTrigger>()->enable();
             startAlgorithm();
             return logStatus(WingControllerState::AUTOMATIC);
         }
         case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
         {
             stopAlgorithm();
-            AltitudeTrigger::getInstance().disable();
+            modules.get<AltitudeTrigger>()->disable();
             return transition(&WingController::state_wes);
         }  // start the algorithm, inside we add the task to the scheduler
     }

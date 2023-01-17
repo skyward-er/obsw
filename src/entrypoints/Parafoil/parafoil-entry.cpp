@@ -61,11 +61,12 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
 
     // Initialize the modules
-    modules.insert<BoardScheduler>(new BoardScheduler());
     modules.insert<Actuators>(new Actuators());
-    modules.insert<Sensors>(new Sensors());
+    modules.insert<AltitudeTrigger>(new AltitudeTrigger());
+    modules.insert<BoardScheduler>(new BoardScheduler());
     modules.insert<PinHandler>(new PinHandler());
     modules.insert<Radio>(new Radio());
+    modules.insert<Sensors>(new Sensors());
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
@@ -139,9 +140,6 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");
     }
-
-    // Start the trigger watcher
-    AltitudeTrigger::getInstance();
 
     // Start the board task scheduler
     if (!modules.get<BoardScheduler>()->getScheduler().start())
