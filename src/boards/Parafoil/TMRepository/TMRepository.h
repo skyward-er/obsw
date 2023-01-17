@@ -23,18 +23,21 @@
 #pragma once
 
 #include <Parafoil/Configs/RadioConfig.h>
-#include <Singleton.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
 
-class TMRepository : public Boardcore::Singleton<TMRepository>
+class TMRepository : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<TMRepository>;
-
 public:
+    TMRepository() = default;
+
+    ~TMRepository() = default;
+
     mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
                                    uint8_t seq);
 
