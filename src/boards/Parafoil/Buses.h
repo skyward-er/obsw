@@ -22,18 +22,17 @@
 
 #pragma once
 
-#include <Singleton.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <miosix.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 namespace Parafoil
 {
 
-struct Buses : public Boardcore::Singleton<Buses>
+struct Buses : public Boardcore::Module
 {
-    friend class Boardcore::Singleton<Buses>;
-
     Boardcore::USART usart1;
     Boardcore::USART usart2;
     Boardcore::USART usart3;
@@ -42,7 +41,7 @@ struct Buses : public Boardcore::Singleton<Buses>
     Boardcore::SPIBus spi1;
     Boardcore::SPIBus spi2;
 
-private:
+public:
 #ifndef USE_MOCK_PERIPHERALS
     Buses()
         : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),

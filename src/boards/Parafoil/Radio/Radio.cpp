@@ -95,7 +95,7 @@ Radio::Radio()
 
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
-    transceiver = new SerialTransceiver(Buses::getInstance().usart2);
+    transceiver = new SerialTransceiver(modules.get<Buses>()->usart2);
 #else
     // Create the SPI bus configuration
     SPIBusConfig config{};
@@ -103,7 +103,7 @@ Radio::Radio()
 
     // Create the xbee object
     transceiver = new Xbee::Xbee(
-        Buses::getInstance().spi2, config, miosix::xbee::cs::getPin(),
+        modules.get<Buses>()->spi2, config, miosix::xbee::cs::getPin(),
         miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
     transceiver->setOnFrameReceivedListener(
         bind(&Radio::onXbeeFrameReceived, this, _1));
