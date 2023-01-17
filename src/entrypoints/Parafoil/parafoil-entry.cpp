@@ -30,6 +30,7 @@
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <common/events/Events.h>
@@ -67,6 +68,8 @@ int main()
     modules.insert<PinHandler>(new PinHandler());
     modules.insert<Radio>(new Radio());
     modules.insert<Sensors>(new Sensors());
+    modules.insert<WindEstimation>(
+        new WindEstimation());  // used indirectly by WingController
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
