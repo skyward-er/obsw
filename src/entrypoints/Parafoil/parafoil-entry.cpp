@@ -23,6 +23,7 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
@@ -65,6 +66,7 @@ int main()
     modules.insert<Actuators>(new Actuators());
     modules.insert<AltitudeTrigger>(new AltitudeTrigger());
     modules.insert<BoardScheduler>(new BoardScheduler());
+    modules.insert<Buses>(new Buses());
     modules.insert<PinHandler>(new PinHandler());
     modules.insert<Radio>(new Radio());
     modules.insert<Sensors>(new Sensors());
