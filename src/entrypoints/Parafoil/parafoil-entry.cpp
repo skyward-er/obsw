@@ -60,6 +60,11 @@ int main()
     ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
 
+    // Initialize the modules
+    modules.insert<BoardScheduler>(new BoardScheduler());
+    modules.insert<Actuators>(new Actuators());
+    modules.insert<Sensors>(new Sensors());
+
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
 

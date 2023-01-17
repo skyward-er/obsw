@@ -40,6 +40,10 @@ int main()
     ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
 
+    // Initialize the modules
+    modules.insert<BoardScheduler>(new BoardScheduler());
+    modules.insert<Actuators>(new Actuators());
+
     if (!EventBroker::getInstance().start())
     {
         LOG_ERR(logger, "Error starting the EventBroker");
