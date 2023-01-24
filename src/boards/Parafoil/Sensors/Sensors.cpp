@@ -412,7 +412,7 @@ void Sensors::lis3mdlInit()
     config.temperatureDivider = 1;
 
     lis3mdl =
-        new LIS3MDL(Buses::getInstance().spi1,
+        new LIS3MDL(ModuleManager::getInstance().get<Buses>()->spi1,
                     miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
 
     // Create the sensor info
