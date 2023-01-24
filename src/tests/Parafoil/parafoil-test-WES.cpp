@@ -36,8 +36,15 @@ int main()
     Boardcore::ModuleManager& modules = Boardcore::ModuleManager::getInstance();
 
     // Initialize the modules
-    modules.insert<BoardScheduler>(new BoardScheduler());
-    modules.insert<WindEstimation>(new WindEstimation());
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        TRACE("Error initializing the WindEstimation");
+    }
+
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        TRACE("Error initializing the WindEstimation");
+    }
     // TODO: probably should add other modules here
 
     WindEstimation& wind_estimation_module = *(modules.get<WindEstimation>());

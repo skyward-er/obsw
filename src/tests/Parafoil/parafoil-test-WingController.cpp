@@ -42,10 +42,25 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
 
     // Initialize the modules
-    modules.insert<BoardScheduler>(new BoardScheduler());
-    modules.insert<Actuators>(new Actuators());
-    modules.insert<WindEstimation>(new WindEstimation());
-    modules.insert<WingController>(new WingController());
+    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
+    {
+        LOG_ERR(logger, "Error initializing the BoardScheduler");
+    }
+
+    if (!modules.insert<Actuators>(new Actuators()))
+    {
+        LOG_ERR(logger, "Error initializing the Actuators");
+    }
+
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        LOG_ERR(logger, "Error initializing the WindEstimation");
+    }
+
+    if (!modules.insert<WingController>(new WingController()))
+    {
+        LOG_ERR(logger, "Error initializing the WingController");
+    }
 
     if (!EventBroker::getInstance().start())
     {
