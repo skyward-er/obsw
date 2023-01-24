@@ -63,16 +63,61 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
 
     // Initialize the modules
-    modules.insert<Actuators>(new Actuators());
-    modules.insert<AltitudeTrigger>(new AltitudeTrigger());
-    modules.insert<BoardScheduler>(new BoardScheduler());
-    modules.insert<Buses>(new Buses());
-    modules.insert<PinHandler>(new PinHandler());
-    modules.insert<Radio>(new Radio());
-    modules.insert<Sensors>(new Sensors());
-    modules.insert<WindEstimation>(
-        new WindEstimation());  // used indirectly by WingController
-    modules.insert<WingController>(new WingController());
+
+    if (!modules.insert<Actuators>(new Actuators()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Actuators module");
+    }
+
+    if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing AltitudeTrigger module");
+    }
+
+    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing BoardScheduler module");
+    }
+
+    if (!modules.insert<Buses>(new Buses()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Buses module");
+    }
+
+    if (!modules.insert<PinHandler>(new PinHandler()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing PinHandler module");
+    }
+
+    if (!modules.insert<Radio>(new Radio()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Radio module");
+    }
+
+    if (!modules.insert<Sensors>(new Sensors()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Sensors module");
+    }
+
+    // used indirectly by WingController
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WindEstimation module");
+    }
+
+    if (!modules.insert<WingController>(new WingController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WingController module");
+    }
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
