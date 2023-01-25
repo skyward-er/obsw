@@ -76,7 +76,7 @@ int main()
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
-    /*if (!NASController::getInstance().start())
+    /*if (!modules.get<NASController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");

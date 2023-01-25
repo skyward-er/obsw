@@ -126,12 +126,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_nas_tm_t tm;
 
-            auto state = NASController::getInstance().getNasState();
-            auto ref   = NASController::getInstance().getReferenceValues();
+            auto state = modules.get<NASController>()->getNasState();
+            auto ref   = modules.get<NASController>()->getReferenceValues();
 
             tm.timestamp = state.timestamp;
             tm.state     = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
+                modules.get<NASController>()->getStatus().state);
             tm.nas_n           = state.n;
             tm.nas_e           = state.e;
             tm.nas_d           = state.d;
@@ -164,7 +164,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             BMX160WithCorrectionData imuData =
                 sensors.getBMX160WithCorrectionLastSample();
 
-            NASState nasState  = NASController::getInstance().getNasState();
+            NASState nasState  = modules.get<NASController>()->getNasState();
             UBXGPSData ubxData = sensors.getUbxGpsLastSample();
 
             tm.timestamp = TimestampTimer::getTimestamp();
@@ -174,7 +174,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.fmm_state =
                 (uint8_t)FlightModeManager::getInstance().getStatus().state;
             tm.nas_state =
-                (uint8_t)NASController::getInstance().getStatus().state;
+                (uint8_t)modules.get<NASController>()->getStatus().state;
 
             // Pressures
             tm.pressure_ada    = 0;
@@ -268,7 +268,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.fmm_state = static_cast<uint8_t>(
                 FlightModeManager::getInstance().getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
+                modules.get<NASController>()->getStatus().state);
 
             mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
