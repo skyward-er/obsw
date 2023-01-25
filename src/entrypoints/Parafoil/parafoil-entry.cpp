@@ -88,6 +88,12 @@ int main()
         LOG_ERR(logger, "Error initializing Buses module");
     }
 
+    if (!modules.insert<NASController>(new NASController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing NASController module");
+    }
+
     if (!modules.insert<PinHandler>(new PinHandler()))
     {
         initResult = false;
@@ -125,7 +131,7 @@ int main()
     flightPhasesManager->setCurrentPositionSource(
         []() {
             return TimedTrajectoryPoint{
-                NASController::getInstance().getNasState()};
+                modules.get<NASController>()->getNasState()};
         });
 
     HIL::getInstance().start();
@@ -172,7 +178,7 @@ int main()
         LOG_ERR(logger, "Error starting the FlightModeManager");
     }
 
-    if (!NASController::getInstance().start())
+    if (!modules.get<NASController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");

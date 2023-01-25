@@ -51,7 +51,8 @@ void AltitudeTrigger::enable()
 #ifdef PRF_TEST
     startingAltitude = 0;
 #else
-    startingAltitude = -NASController::getInstance().getNasState().d;
+    startingAltitude =
+        -ModuleManager::getInstance().get<NASController>()->getNasState().d;
 #endif
     confidence = 0;
     running    = true;
@@ -69,7 +70,8 @@ void AltitudeTrigger::update()
         float height     = 0;
         startingAltitude = startingAltitude + 2.5;
 #else
-        float height = -NASController::getInstance().getNasState().d;
+        float height =
+            -ModuleManager::getInstance().get<NASController>()->getNasState().d;
 #endif
         if (startingAltitude - height > WING_ALTITUDE_TRIGGER_FALL)
         {

@@ -403,7 +403,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float altitude =
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
-            NASController::getInstance().setReferenceAltitude(altitude);
+            modules.get<NASController>()->setReferenceAltitude(altitude);
             modules.get<Sensors>()->pitotSetReferenceAltitude(altitude);
             break;
         }
@@ -412,7 +412,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float temperature =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
-            NASController::getInstance().setReferenceTemperature(temperature);
+            modules.get<NASController>()->setReferenceTemperature(temperature);
             modules.get<Sensors>()->pitotSetReferenceTemperature(temperature);
             break;
         }
@@ -432,7 +432,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
             float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
 
-            NASController::getInstance().setOrientation(yaw, pitch, roll);
+            modules.get<NASController>()->setOrientation(yaw, pitch, roll);
             break;
         }
         case MAVLINK_MSG_ID_SET_COORDINATES_TC:
@@ -441,7 +441,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float longitude =
                 mavlink_msg_set_coordinates_tc_get_longitude(&msg);
 
-            NASController::getInstance().setCoordinates(
+            modules.get<NASController>()->setCoordinates(
                 Eigen::Vector2f(latitude, longitude));
             break;
         }

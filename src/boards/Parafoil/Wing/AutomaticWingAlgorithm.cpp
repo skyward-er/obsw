@@ -59,12 +59,12 @@ void AutomaticWingAlgorithm::step()
         float result;
 
         // Acquire the last nas state
-        NASState state = NASController::getInstance().getNasState();
+        NASState state = modules.get<NASController>()->getNasState();
         // UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
 
         // Target direction in respect to the current one
         ReferenceValues reference =
-            NASController::getInstance().getReferenceValues();
+            modules.get<NASController>()->getReferenceValues();
         Vector2f startingPosition =
             Vector2f(reference.refLatitude, reference.refLongitude);
         Vector2f targetPosition = Aeroutils::geodetic2NED(
