@@ -22,20 +22,22 @@
 
 #pragma once
 
-#include <Singleton.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "FlightModeManagerData.h"
 
 namespace Parafoil
 {
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
-                          public Boardcore::Singleton<FlightModeManager>
+                          public Boardcore::Module
 {
-    friend Boardcore::Singleton<FlightModeManager>;
-
 public:
+    FlightModeManager();
+    ~FlightModeManager();
+
     FlightModeManagerStatus getStatus();
 
     /// Super state for when the payload is on ground.
@@ -66,9 +68,6 @@ public:
     Boardcore::State state_mission_ended(const Boardcore::Event& event);
 
 private:
-    FlightModeManager();
-    ~FlightModeManager();
-
     void logStatus(FlightModeManagerState state);
 
     FlightModeManagerStatus status;

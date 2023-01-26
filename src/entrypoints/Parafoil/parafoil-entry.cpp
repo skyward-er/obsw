@@ -94,6 +94,12 @@ int main()
         LOG_ERR(logger, "Error initializing NASController module");
     }
 
+    if (!modules.insert<FlightModeManager>(new FlightModeManager()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing FlightModeManager module");
+    }
+
     if (!modules.insert<PinHandler>(new PinHandler()))
     {
         initResult = false;
@@ -172,7 +178,7 @@ int main()
     }
 
     // Start the state machines
-    if (!FlightModeManager::getInstance().start())
+    if (!modules.get<FlightModeManager>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
