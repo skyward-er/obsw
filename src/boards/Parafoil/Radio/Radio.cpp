@@ -365,7 +365,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (!(FlightModeManager::getInstance().getStatus().state ==
+            if (!(modules.get<FlightModeManager>()->getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
                   modules.get<Actuators>()->setServoAngle(servoId, angle)))
                 return sendNack(msg);
@@ -378,7 +378,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Wiggle the servo, if it fails send a nack
-            if (!(FlightModeManager::getInstance().getStatus().state ==
+            if (!(modules.get<FlightModeManager>()->getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
                   modules.get<Actuators>()->wiggleServo(servoId)))
                 return sendNack(msg);
@@ -391,7 +391,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
             // Reset the servo, if it fails send a nack
-            if (!(FlightModeManager::getInstance().getStatus().state ==
+            if (!(modules.get<FlightModeManager>()->getStatus().state ==
                       FlightModeManagerState::TEST_MODE &&
                   modules.get<Actuators>()->setServo(servoId, 0)))
                 return sendNack(msg);
@@ -473,7 +473,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
             // Send the event only if the flight mode manager is in test mode
-            if (FlightModeManager::getInstance().getStatus().state ==
+            if (modules.get<FlightModeManager>()->getStatus().state ==
                 FlightModeManagerState::TEST_MODE)
                 EventBroker::getInstance().post(topicId, eventId);
             else

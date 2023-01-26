@@ -172,7 +172,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // State machines states
             tm.ada_state = 0;
             tm.fmm_state =
-                (uint8_t)FlightModeManager::getInstance().getStatus().state;
+                (uint8_t)modules.get<FlightModeManager>()->getStatus().state;
             tm.nas_state =
                 (uint8_t)modules.get<NASController>()->getStatus().state;
 
@@ -266,7 +266,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.abk_state = 0;
             tm.ada_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
-                FlightModeManager::getInstance().getStatus().state);
+                modules.get<FlightModeManager>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
 
