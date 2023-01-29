@@ -24,6 +24,7 @@
 #include <miosix.h>
 #include <utils/Debug.h>
 
+#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 #include <vector>
 
@@ -33,19 +34,13 @@ using namespace std;
 
 int main()
 {
-    Boardcore::ModuleManager& modules = Boardcore::ModuleManager::getInstance();
+    ModuleHelper& module_helper = ModuleHelper::getInstance();
 
     // Initialize the modules
-    if (!modules.insert<WindEstimation>(new WindEstimation()))
-    {
-        TRACE("Error initializing the WindEstimation");
-    }
+    module_helper.setUpWindEstimation();
+    module_helper.setUpBoardScheduler();
 
-    if (!modules.insert<WindEstimation>(new WindEstimation()))
-    {
-        TRACE("Error initializing the WindEstimation");
-    }
-    // TODO: probably should add other modules here
+    Boardcore::ModuleManager& modules = module_helper.getModules();
 
     WindEstimation& wind_estimation_module = *(modules.get<WindEstimation>());
 

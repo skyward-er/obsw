@@ -23,12 +23,12 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
-#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/events/Events.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <miosix.h>
 
+#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
@@ -38,29 +38,17 @@ using namespace Common;
 
 int main()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    PrintLogger logger     = Logging::getLogger("main");
+    ModuleHelper& module_helper = ModuleHelper::getInstance();
 
     // Initialize the modules
-    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
-    {
-        LOG_ERR(logger, "Error initializing the BoardScheduler");
-    }
+    module_helper.setUpBoardScheduler();
+    module_helper.setUpActuators();
+    module_helper.setUpWindEstimation();
+    module_helper.setUpWingController();
+    module_helper.setUpNASController();
 
-    if (!modules.insert<Actuators>(new Actuators()))
-    {
-        LOG_ERR(logger, "Error initializing the Actuators");
-    }
-
-    if (!modules.insert<WindEstimation>(new WindEstimation()))
-    {
-        LOG_ERR(logger, "Error initializing the WindEstimation");
-    }
-
-    if (!modules.insert<WingController>(new WingController()))
-    {
-        LOG_ERR(logger, "Error initializing the WingController");
-    }
+    ModuleManager& modules = module_helper.getModules();
+    PrintLogger logger     = Logging::getLogger("main");
 
     if (!EventBroker::getInstance().start())
     {
