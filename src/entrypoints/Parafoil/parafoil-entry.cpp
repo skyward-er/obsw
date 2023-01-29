@@ -42,6 +42,7 @@
 #include <events/utils/EventSniffer.h>
 #include <miosix.h>
 
+#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 #ifdef HILSimulation
@@ -58,78 +59,20 @@ using namespace Common;
 
 int main()
 {
-    bool initResult        = true;
-    ModuleManager& modules = ModuleManager::getInstance();
+    bool initResult      = true;
+    ModuleHelper& helper = ModuleHelper::getInstance();
+
+    // Initialize all modules
+    helper.setUpBoardScheduler();
+    helper.setUpActuators();
+    helper.setUpFlightModeManager();
+    helper.setUpNASController();
+    helper.setUpRadio();
+    helper.setUpSensors();
+    helper.setUpWingController();
+
+    ModuleManager& modules = helper.getModules();
     PrintLogger logger     = Logging::getLogger("main");
-
-    // Initialize the modules
-
-    if (!modules.insert<Actuators>(new Actuators()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Actuators module");
-    }
-
-    if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing AltitudeTrigger module");
-    }
-
-    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing BoardScheduler module");
-    }
-
-    if (!modules.insert<Buses>(new Buses()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Buses module");
-    }
-
-    if (!modules.insert<NASController>(new NASController()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing NASController module");
-    }
-
-    if (!modules.insert<FlightModeManager>(new FlightModeManager()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing FlightModeManager module");
-    }
-
-    if (!modules.insert<PinHandler>(new PinHandler()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing PinHandler module");
-    }
-
-    if (!modules.insert<Radio>(new Radio()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Radio module");
-    }
-
-    if (!modules.insert<Sensors>(new Sensors()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Sensors module");
-    }
-
-    // used indirectly by WingController
-    if (!modules.insert<WindEstimation>(new WindEstimation()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing WindEstimation module");
-    }
-
-    if (!modules.insert<WingController>(new WingController()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing WingController module");
-    }
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
