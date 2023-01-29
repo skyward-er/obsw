@@ -29,6 +29,7 @@
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
@@ -48,6 +49,7 @@
 // - AT: AltitudeTrigger
 // - SE: Sensors
 // - TM: TMRepository
+// - FM: FlightModeManager
 // - RA: Radio
 // - WC: WingController
 // - NAS: NASController
@@ -61,6 +63,7 @@
 // AT :  .     .     x     .     .     .     .     .     .     .     x
 // SE :  .     .     .     .     x     .     x     .     .     .     .
 // TM :  x     x     x     .     .     .     x     .     x     .     x
+// FM :  .     .     .     .     .     x     .     .     .     .     .
 // RA :  x     x     x     .     x     x     x     x     x     x     x
 // WC :  .     x     x     x     .     x     .     .     .     .     .
 // NAS:  .     .     x     .     .     .     x     .     .     .     .
@@ -79,6 +82,7 @@ enum class ModuleType
     WingController,
     WindEstimation,
     TMRepository,
+    FlightModeManager,
 };
 
 /**
@@ -119,6 +123,15 @@ public:
     {
         // set up Actuators
         insert(new Actuators(), ModuleType::Actuators);
+    }
+
+    void setUpFlightModeManager()
+    {
+        // dependencies: Sensors
+        setUpSensors();
+
+        // set up FlightModeManager
+        insert(new FlightModeManager(), ModuleType::FlightModeManager);
     }
 
     void setUpSensors()
