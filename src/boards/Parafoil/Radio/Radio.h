@@ -23,12 +23,11 @@
 #pragma once
 
 #include <Parafoil/Configs/RadioConfig.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #if defined(USE_SERIAL_TRANSCEIVER)
 #include <radio/SerialTransceiver/SerialTransceiver.h>
@@ -46,7 +45,7 @@ using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
-class Radio : public Boardcore::Module
+class Radio : public ParafoilModule
 {
 public:
 #if defined(USE_SERIAL_TRANSCEIVER)
@@ -76,7 +75,7 @@ public:
     /**
      * @brief Starts the MavlinkDriver.
      */
-    bool start();
+    bool start() override;
 
     /**
      * @brief Tells whether the radio was started.

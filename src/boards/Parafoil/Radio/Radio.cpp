@@ -78,7 +78,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavDriver->enqueueMsg(nackMsg);
 }
 
-bool Radio::start() { return mavDriver->start(); }
+Radio::Radio() {}
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
 
@@ -89,7 +89,7 @@ Boardcore::MavlinkStatus Radio::getMavlinkStatus()
 
 void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
-Radio::Radio()
+bool Radio::start()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
@@ -134,6 +134,8 @@ Radio::Radio()
                 modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
         STATS_TM_PERIOD, STATS_TM_TASK_ID);
+
+    return mavDriver->start();
 }
 
 void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame)

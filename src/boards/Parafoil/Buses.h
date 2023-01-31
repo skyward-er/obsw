@@ -22,16 +22,15 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <miosix.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 namespace Parafoil
 {
 
-struct Buses : public Boardcore::Module
+struct Buses : public ParafoilModule
 {
     Boardcore::USART usart1;
     Boardcore::USART usart2;
@@ -50,10 +49,6 @@ public:
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
           spi1(SPI1), spi2(SPI2)
     {
-        usart1.init();
-        usart2.init();
-        usart3.init();
-        uart4.init();
     }
 #else
     Buses()
@@ -63,8 +58,26 @@ public:
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
           spi2({})
     {
+    }
+#endif
+
+#ifndef USE_MOCK_PERIPHERALS
+    bool start() override
+    {
+        usart1.init();
         usart2.init();
         usart3.init();
+        uart4.init();
+
+        return true;
+    }
+#else
+    bool start() override
+    {
+        usart2.init();
+        usart3.init();
+
+        return true;
     }
 #endif
 };

@@ -23,12 +23,12 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/FSM.h>
 
 #include <Eigen/Core>
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "WingControllerData.h"
 
@@ -56,7 +56,7 @@
 namespace Parafoil
 {
 class WingController : public Boardcore::FSM<WingController>,
-                       public Boardcore::Module
+                       public ParafoilModule
 
 {
 public:
@@ -74,6 +74,8 @@ public:
      * @brief Destroy the Wing Controller object.
      */
     ~WingController();
+
+    bool start() override;
 
     void setControlled(bool controlled);
 

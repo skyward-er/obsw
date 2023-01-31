@@ -22,11 +22,10 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "NASControllerData.h"
 
@@ -34,7 +33,7 @@ namespace Parafoil
 {
 
 class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Module
+                      public ParafoilModule
 {
 public:
     NASController();

@@ -22,16 +22,19 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
+
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil  // TODO add better comments
 {
 
-class AltitudeTrigger : public Boardcore::Module
+class AltitudeTrigger : public ParafoilModule
 {
 public:
-    AltitudeTrigger();
+    AltitudeTrigger() {}
+
+    bool start() override;
 
     // Method to set the altitude where to trigger the dpl event
     void setDeploymentAltitude(float altitude);
