@@ -22,18 +22,19 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 namespace Parafoil
 {
 
-struct Actuators : public Boardcore::Module
+struct Actuators : public ParafoilModule
 {
     Actuators();
+
+    bool start() override { return true; }
 
     /**
      * @brief Moves the specified servo to the given position.

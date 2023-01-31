@@ -41,12 +41,12 @@
 #include <HIL_algorithms/HILMockKalman.h>
 #include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 
 namespace Parafoil
 {
 
-class Sensors : public Boardcore::Module
+class Sensors : public ParafoilModule
 {
 
 public:
@@ -54,7 +54,7 @@ public:
 
     ~Sensors();
 
-    bool start();
+    bool start() override;
 
     bool isStarted();
 

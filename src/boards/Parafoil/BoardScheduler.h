@@ -22,20 +22,21 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
 
-class BoardScheduler : public Boardcore::Module
+class BoardScheduler : public ParafoilModule
 {
 
 public:
     BoardScheduler() {}
 
     Boardcore::TaskScheduler& getScheduler() { return scheduler; }
+
+    bool start() override { return true; }
 
 private:
     Boardcore::TaskScheduler scheduler;

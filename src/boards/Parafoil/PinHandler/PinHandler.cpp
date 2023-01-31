@@ -54,12 +54,14 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
     return data;
 }
 
-PinHandler::PinHandler()
+bool PinHandler::start()
 {
     PinObserver::getInstance().registerPinCallback(
         inputs::expulsion::getPin(),
         bind(&PinHandler::onExpulsionPinTransition, this, _1),
         DPL_SERVO_PIN_THRESHOLD);
+
+    return true;
 }
 
 }  // namespace Parafoil

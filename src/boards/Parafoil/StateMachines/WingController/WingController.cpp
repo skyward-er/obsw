@@ -49,6 +49,10 @@ namespace Parafoil
 WingController::WingController()
     : FSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
 {
+}
+
+bool WingController::start()
+{
 
     ModuleManager& modules = ModuleManager::getInstance();
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
@@ -79,6 +83,8 @@ WingController::WingController()
     // Register the task
     modules.get<BoardScheduler>()->getScheduler().addTask(
         std::bind(&WingController::update, this), WING_UPDATE_PERIOD);
+
+    return true;
 }
 
 WingController::~WingController()

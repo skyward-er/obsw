@@ -38,7 +38,9 @@ using namespace miosix;
 namespace Parafoil
 {
 
-WindEstimation::WindEstimation() : running(false), calRunning(false)
+WindEstimation::WindEstimation() : running(false), calRunning(false) {}
+
+bool WindEstimation::start()
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
     ModuleManager& modules = ModuleManager::getInstance();
@@ -63,6 +65,8 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
         std::bind(&WindEstimation::WindEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif
+
+    return true;
 }
 
 WindEstimation::~WindEstimation()
@@ -70,6 +74,7 @@ WindEstimation::~WindEstimation()
     stopWindEstimationSchemeCalibration();
     stoptWindEstimationScheme();
 }
+
 bool WindEstimation::getStatus() { return running; }
 
 void WindEstimation::startWindEstimationSchemeCalibration()

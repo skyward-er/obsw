@@ -22,21 +22,22 @@
 
 #pragma once
 
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "FlightModeManagerData.h"
 
 namespace Parafoil
 {
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
-                          public Boardcore::Module
+                          public ParafoilModule
 {
 public:
     FlightModeManager();
     ~FlightModeManager();
+
+    bool start() override { return true; }
 
     FlightModeManagerStatus getStatus();
 
