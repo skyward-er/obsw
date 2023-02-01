@@ -103,7 +103,9 @@ void WingController::state_idle(const Boardcore::Event& event)
         }
     }
 }
-void WingController::state_wes(const Boardcore::Event& event)
+void WingController::state_wes(
+    const Boardcore::Event& event)  // TODO Redo the FSM and create a HSM with a
+                                    // end state called by FMM:state_Landed
 {
     switch (event)
     {

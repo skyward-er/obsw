@@ -89,7 +89,7 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
     if (!running)
     {
         miosix::Lock<FastMutex> l(mutex);
-        wind = windCalibration;  // TODO check if this work as intended
+        wind = windCalibration;
     }
     windLogger.cal = true;
     windLogger.vx  = windCalibration[0];
