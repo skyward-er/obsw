@@ -40,6 +40,8 @@ int main()
     module_helper.setUpWindEstimation();
     module_helper.setUpBoardScheduler();
 
+    module_helper.startAllModules();
+
     Boardcore::ModuleManager& modules = module_helper.getModules();
 
     WindEstimation& wind_estimation_module = *(modules.get<WindEstimation>());

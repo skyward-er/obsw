@@ -101,6 +101,23 @@ public:
 
     Boardcore::ModuleManager& getModules() { return modules; }
 
+    bool startAllModules()
+    {
+        bool failed = false;
+
+        // start all modules
+        for (ModuleType type : moduleList)
+        {
+            // start module
+            if (!startModule(type))
+            {
+                failed = true;
+            }
+        }
+
+        return !failed;
+    }
+
     void setUpBoardScheduler()
     {
         // set up BoardScheduler
@@ -247,13 +264,57 @@ private:
     bool insert(T* module, ModuleType type)
     {
         // check if module is already set up
-        if (std::find(moduleList.begin(), moduleList.end(), type) !=
-            moduleList.end())
+        if (moduleSetUp(type))
         {
             return false;
         }
 
         return modules.insert<T>(module);
+    }
+
+    template <class T>
+    T* get()
+    {
+        return modules.get<T>();
+    }
+
+    bool moduleSetUp(ModuleType type)
+    {
+        return std::find(moduleList.begin(), moduleList.end(), type) !=
+               moduleList.end();
+    }
+
+    bool startModule(ModuleType type)
+    {
+        switch (type)
+        {
+            case ModuleType::BoardScheduler:
+                return get<BoardScheduler>()->start();
+            case ModuleType::PinHandler:
+                return get<PinHandler>()->start();
+            case ModuleType::Buses:
+                return get<Buses>()->start();
+            case ModuleType::Sensors:
+                return get<Sensors>()->start();
+            case ModuleType::Radio:
+                return get<Radio>()->start();
+            case ModuleType::Actuators:
+                return get<Actuators>()->start();
+            case ModuleType::AltitudeTrigger:
+                return get<AltitudeTrigger>()->start();
+            case ModuleType::NASController:
+                return get<NASController>()->start();
+            case ModuleType::WingController:
+                return get<WingController>()->start();
+            case ModuleType::WindEstimation:
+                return get<WindEstimation>()->start();
+            case ModuleType::TMRepository:
+                return get<TMRepository>()->start();
+            case ModuleType::FlightModeManager:
+                return get<FlightModeManager>()->start();
+            default:
+                return false;
+        }
     }
 };
 }  // namespace Parafoil
