@@ -47,6 +47,8 @@ int main()
     module_helper.setUpWingController();
     module_helper.setUpNASController();
 
+    module_helper.startAllModules();
+
     ModuleManager& modules = module_helper.getModules();
     PrintLogger logger     = Logging::getLogger("main");
 
