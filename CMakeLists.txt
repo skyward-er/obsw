@@ -215,6 +215,12 @@ target_include_directories(parafoil-test-wing-controller PRIVATE ${OBSW_INCLUDE_
 target_compile_definitions(parafoil-test-wing-controller PRIVATE PRF_TEST)
 sbs_target(parafoil-test-wing-controller stm32f429zi_skyward_death_stack_x)
 
+add_executable(parafoil-test-altitude-trigger src/tests/Parafoil/parafoil-test-AltitudeTrigger.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-test-altitude-trigger PRIVATE ${OBSW_INCLUDE_DIRS})
+# target_compile_definitions(parafoil-test-altitude-trigger PRIVATE PRF_TEST)
+# sbs_target(parafoil-test-altitude-trigger stm32f407vg_stm32f4discovery)
+sbs_target(parafoil-test-altitude-trigger stm32f429zi_skyward_death_stack_x)
+
 #-----------------------------------------------------------------------------#
 #                              Auxiliary Computer                             #
 #-----------------------------------------------------------------------------#

@@ -52,7 +52,7 @@ public:
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
     NASControllerStatus getStatus();
-    Boardcore::NASState getNasState();
+    virtual Boardcore::NASState getNasState();
     Boardcore::ReferenceValues getReferenceValues();
 
     void state_idle(const Boardcore::Event& event);
