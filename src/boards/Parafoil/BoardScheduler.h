@@ -36,7 +36,11 @@ public:
 
     Boardcore::TaskScheduler& getScheduler() { return scheduler; }
 
-    bool start() override { return true; }
+    bool start() override
+    {
+        scheduler.start();
+        return true;
+    }
 
 private:
     Boardcore::TaskScheduler scheduler;

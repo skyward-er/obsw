@@ -184,7 +184,7 @@ public:
     {
         // dependencies: BoardScheduler, NASController
         setUpBoardScheduler();
-        setUpNASController();
+        // setUpNASController();
 
         // set up AltitudeTrigger
         insert(new AltitudeTrigger(), ModuleType::AltitudeTrigger);

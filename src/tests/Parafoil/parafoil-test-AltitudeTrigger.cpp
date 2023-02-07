@@ -37,7 +37,7 @@ class NASMock : public NASController
 {
 public:
     // default constructor
-    NASMock() : NASController(), mocked_altitude(0) {}
+    NASMock() : mocked_altitude(0) {}
 
     // default destructor
     ~NASMock() {}
@@ -58,11 +58,11 @@ int main()
 {
     ModuleHelper& module_helper = ModuleHelper::getInstance();
     PrintLogger logger          = Logging::getLogger("main");
-    NASMock nas                 = NASMock();  // FIXME
     // EventBroker& broker         = EventBroker::getInstance();
 
     // Mock up the modules
-    if (!module_helper.mockUp<NASController>(&nas, ModuleType::NASController))
+    if (!module_helper.mockUp<NASController>(new NASMock(),
+                                             ModuleType::NASController))
     {
         LOG_ERR(logger, "Error mocking up the NAS Controller");
     }
