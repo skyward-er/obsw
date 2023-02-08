@@ -27,7 +27,7 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/PinHandler/PinHandler.h>
-#include <Parafoil/Radio/Radio.h>
+// #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
@@ -218,7 +218,7 @@ public:
         setUpNASController();
 
         // set up Radio
-        insert(new Radio(), ModuleType::Radio);
+        // insert(new Radio(), ModuleType::Radio);
     }
 
     void setUpTMRepository()
@@ -296,8 +296,8 @@ private:
                 return get<Buses>()->start();
             case ModuleType::Sensors:
                 return get<Sensors>()->start();
-            case ModuleType::Radio:
-                return get<Radio>()->start();
+            // case ModuleType::Radio:
+            // return get<Radio>()->start();
             case ModuleType::Actuators:
                 return get<Actuators>()->start();
             case ModuleType::AltitudeTrigger:
