@@ -29,6 +29,6 @@ namespace Parafoil
 class ParafoilModule : public Boardcore::Module
 {
 public:
-    virtual bool start();
+    [[nodiscard]] virtual bool start() { return false; }
 };
 }  // namespace Parafoil
