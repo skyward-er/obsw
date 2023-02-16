@@ -22,3 +22,8 @@
 set(OBSW_INCLUDE_DIRS
     src/boards
 )
+
+set(GSE_COMRIG_COMPUTER
+    src/boards/GSE_comrig/Buttons/Buttons.cpp
+    src/boards/GSE_comrig/Radio/Radio.cpp
+)

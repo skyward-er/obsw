@@ -32,3 +32,7 @@ project(OnBoardSoftware)
 #-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
+
+add_executable(gse-comrig-entry src/entrypoints/GSE_comrig/comrig-entry.cpp ${GSE_COMRIG_COMPUTER})
+target_include_directories(gse-comrig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(gse-comrig-entry stm32f429zi_stm32f4discovery)

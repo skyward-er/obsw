@@ -37,3 +37,5 @@ __pycache__
 **/scxmls
 
 scripts/logdecoder/logdecoder
+
+.cache
