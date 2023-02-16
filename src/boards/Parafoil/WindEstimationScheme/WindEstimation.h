@@ -87,12 +87,12 @@ private:
      * @brief Creates the windCalibration matrix with the starting prediction
      * value
      */
-    void WindEstimationSchemeCalibration();
+    void windEstimationSchemeCalibration();
 
     /**
      * @brief Updates the wind matrix with the updated wind prediction values
      */
-    void WindEstimationScheme();
+    void windEstimationScheme();
 
     /**
      * @brief Parameters needed for calibration
