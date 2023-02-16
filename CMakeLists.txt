@@ -32,3 +32,32 @@ project(OnBoardSoftware)
 #-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
+
+add_executable(parafoil-entry-milano src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-milano PRIVATE MILANO)
+sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-entry-terni-sequence src/entrypoints/Parafoil/parafoil-entry-sequence.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-terni-sequence PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-terni-sequence PRIVATE TERNI)
+sbs_target(parafoil-entry-terni-sequence stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-entry-terni-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-terni-guided PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-terni-guided PRIVATE TERNI)
+sbs_target(parafoil-entry-terni-guided stm32f429zi_skyward_death_stack_x)
+#-----------------------------------------------------------------------------#
+#                               Parafoil Computer                             #
+#-----------------------------------------------------------------------------#
+
+add_executable(parafoil-test-wes src/tests/Parafoil/parafoil-test-WES.cpp ${PARAFOIL_COMPUTER} )
+target_include_directories(parafoil-test-wes PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-test-wes PRIVATE PRF_TEST)
+sbs_target(parafoil-test-wes stm32f429zi_skyward_death_stack_x)
+
+
+add_executable(parafoil-test-wing-controller src/tests/Parafoil/parafoil-test-WingController.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-test-wing-controller PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-test-wing-controller PRIVATE PRF_TEST)
+sbs_target(parafoil-test-wing-controller stm32f429zi_skyward_death_stack_x)

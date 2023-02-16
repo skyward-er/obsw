@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,30 +22,35 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+namespace ActuatorsConfigs
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
-};
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
+// Left servo
+static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
+constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-}  // namespace Common
+constexpr float LEFT_SERVO_ROTATION  = 120;  // [deg]
+constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [us]
+constexpr float LEFT_SERVO_MAX_PULSE =
+    LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
+
+// Right servo
+static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
+constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
+
+constexpr float RIGHT_SERVO_ROTATION  = 120;   // [deg]
+constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
+constexpr float RIGHT_SERVO_MAX_PULSE =
+    RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
+
+}  // namespace ActuatorsConfigs
+
+}  // namespace Parafoil
