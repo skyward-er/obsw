@@ -31,6 +31,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
+
 // TODO better organize fmm
 namespace Parafoil
 {
