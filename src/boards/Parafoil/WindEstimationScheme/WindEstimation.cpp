@@ -43,7 +43,7 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
 
 #ifdef PRF_TEST
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WindEstimation::WindEstimationSchemeCalibration, this), 100);
+        std::bind(&WindEstimation::windEstimationSchemeCalibration, this), 100);
 
     // Register the WES task
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -51,12 +51,12 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
 #else
 
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
+        std::bind(&WindEstimation::windEstimationSchemeCalibration, this),
         WES_CALIBRATION_UPDATE_PERIOD);
 
     // Register the WES task
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WindEstimation::WindEstimationScheme, this),
+        std::bind(&WindEstimation::windEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif
 }
@@ -97,7 +97,7 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
     logStatus();
 }
 
-void WindEstimation::WindEstimationSchemeCalibration()
+void WindEstimation::windEstimationSchemeCalibration()
 {
 
     if (calRunning)
@@ -175,7 +175,7 @@ void WindEstimation::stoptWindEstimationScheme()
     }
 }
 
-void WindEstimation::WindEstimationScheme()
+void WindEstimation::windEstimationScheme()
 {
     if (running)
     {
