@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,47 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <miosix.h>
 
-#include <cstdint>
-#include <string>
-#include <vector>
+using namespace miosix;
 
-namespace Common
+int menu();
+
+void testSerialDebug()
 {
+    iprintf(
+        "If you are seeing the menu why whould you test this?! you f***g "
+        "donkey!\n\n");
+}
 
-enum Topics : uint8_t
+void testGPIOInput(GpioPin pin);
+
+int main()
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-};
+    while (true)
+    {
+        switch (menu())
+        {
+            case 1:
+                testSerialDebug();
+                break;
+        }
+    }
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL,  TOPIC_FLIGHT, TOPIC_FMM,
-    TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_ALGOS,
-};
+    return 0;
+}
 
-}  // namespace Common
+int menu()
+{
+    string temp;
+    int choice;
+
+    iprintf(
+        "Type:\n"
+        " 1. for bho\n");
+    iprintf("\n>> ");
+    getline(cin, temp);
+    stringstream(temp) >> choice;
+
+    return choice;
+}

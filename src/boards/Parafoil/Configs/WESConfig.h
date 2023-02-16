@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,26 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <miosix.h>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+namespace WESConfig
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-};
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL,  TOPIC_FLIGHT, TOPIC_FMM,
-    TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_ALGOS,
-};
+constexpr uint32_t WES_CALIBRATION_TIMEOUT =
+    15 * 1000;  // time needed for the first loop [ms]
+constexpr uint32_t WES_TIMEOUT =
+    2 * WES_CALIBRATION_TIMEOUT;  // time needed for the second loop
 
-}  // namespace Common
+constexpr int WES_CALIBRATION_SAMPLE_NUMBER =
+    20;  // number to sample to take in the first loop
+constexpr uint32_t WES_CALIBRATION_UPDATE_PERIOD =
+    WES_CALIBRATION_TIMEOUT / WES_CALIBRATION_SAMPLE_NUMBER;
+constexpr uint32_t WES_PREDICTION_UPDATE_PERIOD =
+    100;  // update period of WES[ms]
+
+}  // namespace WESConfig
+
+}  // namespace Parafoil
