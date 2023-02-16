@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,32 +20,13 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <stdint.h>
 
 namespace Common
 {
 
-enum Topics : uint8_t
-{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-};
-
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL,  TOPIC_FLIGHT, TOPIC_FMM,
-    TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_ALGOS,
-};
+constexpr uint16_t LED_TASK_PERIOD  = 100;
+constexpr uint32_t LED_ERROR_PERIOD = 50;
+constexpr uint32_t LED_ARMED_PERIOD = 500;
 
 }  // namespace Common

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,30 +22,30 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <Parafoil/Configs/RadioConfig.h>
+#include <Singleton.h>
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+class TMRepository : public Boardcore::Singleton<TMRepository>
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
+    friend class Boardcore::Singleton<TMRepository>;
+
+public:
+    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
+                                   uint8_t seq);
+
+    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
+                                    uint8_t seq);
+
+    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
+                                  uint8_t seq);
+
+private:
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tmrepo");
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA, TOPIC_DPL,  TOPIC_FLIGHT, TOPIC_FMM,
-    TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_ALGOS,
-};
-
-}  // namespace Common
+}  // namespace Parafoil
