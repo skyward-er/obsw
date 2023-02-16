@@ -47,7 +47,7 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
 
     // Register the WES task
     BoardScheduler::getInstance().getScheduler().addTask(
-        std::bind(&WindEstimation::WindEstimationScheme, this), 10);
+        std::bind(&WindEstimation::windEstimationScheme, this), 10);
 #else
 
     BoardScheduler::getInstance().getScheduler().addTask(

@@ -33,13 +33,12 @@ using namespace std::placeholders;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
-// TODO add logging struct
 namespace Parafoil
 {
 
 void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
-    if (transition == DPL_SERVO_PIN_TRIGGER)  // TODO change policy name
+    if (transition == DPL_SERVO_PIN_TRIGGER)
         EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
                                         TOPIC_FLIGHT);
 }

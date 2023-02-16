@@ -26,7 +26,7 @@
 
 #include <atomic>
 
-namespace Parafoil  // TODO add better comments
+namespace Parafoil
 {
 
 class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
@@ -34,9 +34,6 @@ class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
     friend class Boardcore::Singleton<AltitudeTrigger>;
 
 public:
-    // Method to set the altitude where to trigger the dpl event
-    void setDeploymentAltitude(float altitude);
-
     void enable();
 
     void disable();
@@ -54,8 +51,8 @@ private:
 
     std::atomic<bool> running;
 
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
+    // Number of times that we have to be below the fixed altitude before
+    // posting the event
     std::atomic<int> confidence;
 };
 
