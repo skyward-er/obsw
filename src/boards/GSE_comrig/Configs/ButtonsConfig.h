@@ -35,6 +35,10 @@ namespace GSE_comrig
 namespace ButtonsConfig
 {
 
+static constexpr uint32_t BUTTON_SAMPLE_PERIOD = 20; // 50Hz
+
+constexpr uint8_t CHECK_BUTTON_STATE_TASK_ID = 150;
+
 }  // namespace ButtonsConfig
 
 }  // namespace GSE_comrig

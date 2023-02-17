@@ -22,12 +22,35 @@
 
 #pragma once
 
-#include <sensors/SensorManager.h>
-
+#include <diagnostic/PrintLogger.h>
+#include <common/Mavlink.h>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace GSE_comrig
 {
+
+struct ButtonsState{
+    bool ignition;
+    bool fillin_valve;
+    bool venting_valve;
+    bool release_filling_line_pressure;
+    bool detach_quick_connector;
+    bool startup_tars;
+
+    // FIXME: mavlink_send_comrig_state_tc_t
+    // mavlink_send_comrig_state_tc_t buttonsToMavlink()
+    // {
+    //     mavlink_send_comrig_state_tc_t tc = {};
+    //     tc.ignition_btn = ignition;
+    //     tc.filling_valve_btn = fillin_valve;
+    //     tc.venting_valve_btn = venting_valve;
+    //     tc.release_pressure_btn = release_filling_line_pressure;
+    //     tc.quick_connector_btn = detach_quick_connector;
+    //     tc.start_tars_btn = startup_tars;
+
+    //     return tc;
+    // }
+};
 
 class Buttons : public Boardcore::Module
 {
@@ -37,11 +60,20 @@ public:
 
     ~Buttons();
 
-    bool start();
+    bool start() { return true; };
 
-    bool isStarted();
+    bool isStarted() { return true; };
+
+    ButtonsState getState();
+    void resetState();
+    int shouldArm();
 
 private:
+    ButtonsState state;
+    bool isArmed;
+    bool wasArmed;
+    void periodicStatusCheck();
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };
 

@@ -23,6 +23,7 @@
 #include "Buttons.h"
 
 #include <GSE_comrig/Buses.h>
+#include <GSE_comrig/BoardScheduler.h>
 #include <GSE_comrig/Configs/ButtonsConfig.h>
 
 #include <functional>
@@ -35,18 +36,78 @@ using namespace GSE_comrig::ButtonsConfig;
 namespace GSE_comrig
 {
 
-bool Buttons::start() { return true; }
-
-bool Buttons::isStarted() { return true; }
-
 Buttons::Buttons()
 {
-    // Initialize all the buttons
+    isArmed = false;
+    wasArmed = false;
+    resetState();
+
+    ModuleManager& modules = ModuleManager::getInstance();
+    modules.get<BoardScheduler>()->getScheduler().addTask(
+        [&]() { periodicStatusCheck(); }, BUTTON_SAMPLE_PERIOD, CHECK_BUTTON_STATE_TASK_ID);
 }
 
 Buttons::~Buttons()
 {
     // Delete all the buttons
+}
+
+void Buttons::resetState(){
+    wasArmed = isArmed;
+    state.ignition = false;
+    state.fillin_valve = false;
+    state.venting_valve = false;
+    state.release_filling_line_pressure = false;
+    state.detach_quick_connector = false;
+    state.startup_tars = false;
+}
+
+void Buttons::periodicStatusCheck(){
+
+    // TODO: This should be in bsp
+    // TODO: fix gpio values
+    using GpioIgnitionBtn = Gpio<GPIOA_BASE, 0>;
+    using GpioFillinValveBtn = Gpio<GPIOA_BASE, 1>;
+    using GpioVentingValveBtn = Gpio<GPIOA_BASE, 2>;
+    using GpioReleasePressureBtn = Gpio<GPIOA_BASE, 3>;
+    using GpioQuickConnectorBtn = Gpio<GPIOA_BASE, 4>;
+    using GpioStartTarsBtn = Gpio<GPIOA_BASE, 5>;
+
+    // Note: The button is assumed to be pressed if the pin value is low
+    // (pulldown)
+    if (!GpioIgnitionBtn::getPin().value()) {
+        state.ignition = true;
+    }
+    if (!GpioFillinValveBtn::getPin().value()) {
+        state.fillin_valve = true;
+    }
+    if (!GpioVentingValveBtn::getPin().value()) {
+        state.venting_valve = true;
+    }
+    if (!GpioReleasePressureBtn::getPin().value()) {
+        state.release_filling_line_pressure = true;
+    }
+    if (!GpioQuickConnectorBtn::getPin().value()) {
+        state.release_filling_line_pressure = true;
+    }
+    if (!GpioStartTarsBtn::getPin().value()) {
+        state.startup_tars = true;
+    }
+
+    using GpioArmedSwitch = Gpio<GPIOA_BASE, 6>;
+    isArmed = !GpioArmedSwitch::getPin().value();
+
+}
+
+// 0 if nothing changes, 1 if should arm, -1 if should disarm
+int Buttons::shouldArm(){
+    if (isArmed && !wasArmed){
+        return 1;
+    }
+    if (wasArmed && !isArmed){
+        return -1;
+    }
+    return 0;
 }
 
 }  // namespace GSE_comrig

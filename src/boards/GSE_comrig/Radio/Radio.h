@@ -22,12 +22,11 @@
 
 #pragma once
 
+#include <diagnostic/PrintLogger.h>
 #include <GSE_comrig/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278.h>
-#include <scheduler/TaskScheduler.h>
-
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace GSE_comrig
