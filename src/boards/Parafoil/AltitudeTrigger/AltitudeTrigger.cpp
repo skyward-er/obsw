@@ -74,6 +74,7 @@ void AltitudeTrigger::update()
         float height =
             -ModuleManager::getInstance().get<NASController>()->getNasState().d;
 #endif
+        TRACE("%f \n", height);
         if (startingAltitude - height > WING_ALTITUDE_TRIGGER_FALL)
         {
             confidence++;  // TODO check whether to reset confidence or not

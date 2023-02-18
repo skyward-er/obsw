@@ -37,14 +37,14 @@ class NASMock : public NASController
 {
 public:
     // default constructor
-    NASMock() : mocked_altitude(0) {}
+    NASMock() : mocked_altitude(-500) {}
 
     // default destructor
     ~NASMock() {}
 
     NASState getNasState() override
     {
-        mocked_altitude += 2.5;
+        mocked_altitude += 0.5;
         NASState n = NASState();
         n.d        = mocked_altitude;
         return n;
@@ -56,49 +56,49 @@ private:
 
 int main()
 {
-    ModuleHelper& module_helper = ModuleHelper::getInstance();
-    PrintLogger logger          = Logging::getLogger("main");
-    // EventBroker& broker         = EventBroker::getInstance();
 
-    // Mock up the modules
-    if (!module_helper.mockUp<NASController>(new NASMock(),
-                                             ModuleType::NASController))
-    {
-        LOG_ERR(logger, "Error mocking up the NAS Controller");
-    }
-
-    // Initialize the modules
-    module_helper.setUpAltitudeTrigger();
-
-    // start the modules
-    module_helper.startAllModules();
-
+    // ModuleHelper& module_helper = ModuleHelper::getInstance();
     // get the modules
-    ModuleManager& modules = module_helper.getModules();
-    AltitudeTrigger* alt   = modules.get<AltitudeTrigger>();
-
+    // PrintLogger logger          = Logging::getLogger("main");
+    //  EventBroker& broker         = EventBroker::getInstance();
+    // start the modules
+    ModuleManager::getInstance().insert<BoardScheduler>(new BoardScheduler());
+    // Initialize the modules
     // start the scheduler
-    if (!modules.get<BoardScheduler>()->getScheduler().start())
+    ModuleManager::getInstance().insert<NASController>(new NASMock());
+    ModuleManager::getInstance().insert<AltitudeTrigger>(new AltitudeTrigger());
+    if (!ModuleManager::getInstance().get<BoardScheduler>()->start())
     {
-        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
+        TRACE("Error starting the General Purpose Scheduler\n");
     }
 
-    // enable the altitude trigger
-    alt->enable();
+    if (!ModuleManager::getInstance().get<NASController>()->start())
+    {
+        TRACE("Error starting the NAS Controller\n");
+    }
+    if (!ModuleManager::getInstance().get<AltitudeTrigger>()->start())
+    {
+        TRACE("Error starting the NAS Controller\n");
+    }
 
+    ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+
+    TRACE("Starting... \n");
     // wait for the trigger
     int count = 0;
-    while (alt->isActive())
+    while (ModuleManager::getInstance().get<AltitudeTrigger>()->isActive())
     {
         Thread::sleep(100);
         count++;
 
         if (count > 100)
         {
-            LOG_ERR(logger, "Altitude Trigger not working");
+            TRACE("Altitude Trigger not working \n");
             break;
         }
     }
-
-    LOG_INFO(logger, "Altitude Triggered");
+    if (count < 100)
+    {
+        TRACE("Altitude Triggered \n");
+    }
 }
