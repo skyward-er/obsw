@@ -67,3 +67,8 @@ set(RIG_COMPUTER
     src/boards/RIG/CanHandler/CanHandler.cpp
     src/boards/RIG/StatesMonitor/StatesMonitor.cpp
 )
+
+set(CON_RIG_COMPUTER
+    src/boards/con_RIG/Buttons/Buttons.cpp
+    src/boards/con_RIG/Radio/Radio.cpp
+)
