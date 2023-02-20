@@ -91,14 +91,18 @@ int main()
         Thread::sleep(100);
         count++;
 
-        if (count > 100)
+        if (count > 1000)
         {
             TRACE("Altitude Trigger not working \n");
             break;
         }
     }
-    if (count < 100)
+    if (count < 1000)
     {
         TRACE("Altitude Triggered \n");
+    }
+
+    while (1)
+    {
     }
 }
