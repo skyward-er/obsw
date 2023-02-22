@@ -291,9 +291,9 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                         mavlink_message_t msgToSend;
                         mavlink_sensor_state_tm_t tm;
 
-                        memset(tm.sensor_id, 0, sizeof(tm.sensor_id));
-                        sensor.first.copy(tm.sensor_id, sizeof(tm.sensor_id),
-                                          0);
+                        memset(tm.sensor_name, 0, sizeof(tm.sensor_name));
+                        sensor.first.copy(tm.sensor_name,
+                                          sizeof(tm.sensor_name), 0);
                         tm.state = sensor.second;
 
                         mavlink_msg_sensor_state_tm_encode(

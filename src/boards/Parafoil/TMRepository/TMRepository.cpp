@@ -167,14 +167,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // State machines states
-            tm.ada_state = 0;
             tm.fmm_state =
                 (uint8_t)FlightModeManager::getInstance().getStatus().state;
             tm.nas_state =
                 (uint8_t)NASController::getInstance().getStatus().state;
 
             // Pressures
-            tm.pressure_ada    = 0;
             tm.pressure_digi   = ms5803Data.pressure;
             tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
             tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
@@ -303,7 +301,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
 
             tm.timestamp = gpsData.gpsTimestamp;
-            strcpy(tm.sensor_id, "UBXGPS");
+            strcpy(tm.sensor_name, "UBXGPS");
             tm.fix          = gpsData.fix;
             tm.height       = gpsData.height;
             tm.latitude     = gpsData.latitude;
@@ -328,7 +326,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                 Sensors::getInstance().getBMX160WithCorrectionLastSample();
 
             tm.timestamp = imuData.accelerationTimestamp;
-            strcpy(tm.sensor_id, "BMX160");
+            strcpy(tm.sensor_name, "BMX160");
             tm.acc_x  = imuData.accelerationX;
             tm.acc_y  = imuData.accelerationY;
             tm.acc_z  = imuData.accelerationZ;
@@ -351,7 +349,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             auto pressureData = Sensors::getInstance().getMS5803LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_id, "MS5803");
+            strcpy(tm.sensor_name, "MS5803");
             tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -368,7 +366,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                 Sensors::getInstance().getDplPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_id, "DPL_PRESSURE");
+            strcpy(tm.sensor_name, "DPL_PRESSURE");
             tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -385,7 +383,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                 Sensors::getInstance().getStaticPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_id, "STATIC_PRESSURE");
+            strcpy(tm.sensor_name, "STATIC_PRESSURE");
             tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -403,7 +401,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             tm.timestamp = pitot.pressureTimestamp;
             tm.pressure  = pitot.pressure;
-            strcpy(tm.sensor_id, "PITOT");
+            strcpy(tm.sensor_name, "PITOT");
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
@@ -423,7 +421,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             tm.channel_2 = 0;
             tm.channel_3 = 0;
 
-            strcpy(tm.sensor_id, "BATTERY_VOLTAGE");
+            strcpy(tm.sensor_name, "BATTERY_VOLTAGE");
 
             mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
