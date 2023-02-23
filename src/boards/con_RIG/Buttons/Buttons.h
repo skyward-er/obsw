@@ -22,14 +22,16 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
 #include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace con_RIG
 {
 
-struct ButtonsState{
+struct ButtonsState
+{
     bool ignition;
     bool fillin_valve;
     bool venting_valve;
@@ -37,26 +39,25 @@ struct ButtonsState{
     bool detach_quick_connector;
     bool startup_tars;
 
-    bool empty(){
-        return !(ignition || fillin_valve || venting_valve
-            || release_filling_line_pressure || startup_tars
-            || detach_quick_connector
-        );
+    bool empty()
+    {
+        return !(ignition || fillin_valve || venting_valve ||
+                 release_filling_line_pressure || startup_tars ||
+                 detach_quick_connector);
     }
 
-    // FIXME: mavlink_send_comrig_state_tc_t
-    // mavlink_send_comrig_state_tc_t buttonsToMavlink()
-    // {
-    //     mavlink_send_comrig_state_tc_t tc = {};
-    //     tc.ignition_btn = ignition;
-    //     tc.filling_valve_btn = fillin_valve;
-    //     tc.venting_valve_btn = venting_valve;
-    //     tc.release_pressure_btn = release_filling_line_pressure;
-    //     tc.quick_connector_btn = detach_quick_connector;
-    //     tc.start_tars_btn = startup_tars;
+    mavlink_conrig_state_tc_t buttonsToMavlink()
+    {
+        mavlink_conrig_state_tc_t tc = {};
+        tc.ignition_btn              = ignition;
+        tc.filling_valve_btn         = fillin_valve;
+        tc.venting_valve_btn         = venting_valve;
+        tc.release_pressure_btn      = release_filling_line_pressure;
+        tc.quick_connector_btn       = detach_quick_connector;
+        tc.start_tars_btn            = startup_tars;
 
-    //     return tc;
-    // }
+        return tc;
+    }
 };
 
 class Buttons : public Boardcore::Module
@@ -74,6 +75,8 @@ public:
     ButtonsState getState();
     void resetState();
     int shouldArm();
+
+    void setRemoteArmState(int state);
 
 private:
     ButtonsState state;

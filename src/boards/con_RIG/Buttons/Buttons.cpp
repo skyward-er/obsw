@@ -22,8 +22,8 @@
 
 #include "Buttons.h"
 
-#include <con_RIG/Buses.h>
 #include <con_RIG/BoardScheduler.h>
+#include <con_RIG/Buses.h>
 #include <con_RIG/Configs/ButtonsConfig.h>
 
 using namespace std;
@@ -36,13 +36,14 @@ namespace con_RIG
 
 Buttons::Buttons()
 {
-    isArmed = false;
+    isArmed  = false;
     wasArmed = false;
     resetState();
 
     ModuleManager& modules = ModuleManager::getInstance();
     modules.get<BoardScheduler>()->getScheduler().addTask(
-        [&]() { periodicStatusCheck(); }, BUTTON_SAMPLE_PERIOD, CHECK_BUTTON_STATE_TASK_ID);
+        [&]() { periodicStatusCheck(); }, BUTTON_SAMPLE_PERIOD,
+        CHECK_BUTTON_STATE_TASK_ID);
 }
 
 Buttons::~Buttons()
@@ -50,66 +51,90 @@ Buttons::~Buttons()
     // Delete all the buttons
 }
 
-ButtonsState Buttons::getState(){
-    return state;
-}
+ButtonsState Buttons::getState() { return state; }
 
-void Buttons::resetState(){
-    wasArmed = isArmed;
-    state.ignition = false;
-    state.fillin_valve = false;
-    state.venting_valve = false;
+void Buttons::resetState()
+{
+    wasArmed                            = isArmed;
+    state.ignition                      = false;
+    state.fillin_valve                  = false;
+    state.venting_valve                 = false;
     state.release_filling_line_pressure = false;
-    state.detach_quick_connector = false;
-    state.startup_tars = false;
+    state.detach_quick_connector        = false;
+    state.startup_tars                  = false;
 }
 
-void Buttons::periodicStatusCheck(){
+void Buttons::periodicStatusCheck()
+{
 
     // TODO: This should be in bsp
     // TODO: fix gpio values
-    using GpioIgnitionBtn = Gpio<GPIOA_BASE, 0>;
-    using GpioFillinValveBtn = Gpio<GPIOA_BASE, 1>;
-    using GpioVentingValveBtn = Gpio<GPIOA_BASE, 2>;
+    using GpioIgnitionBtn        = Gpio<GPIOA_BASE, 0>;
+    using GpioFillinValveBtn     = Gpio<GPIOA_BASE, 1>;
+    using GpioVentingValveBtn    = Gpio<GPIOA_BASE, 2>;
     using GpioReleasePressureBtn = Gpio<GPIOA_BASE, 3>;
-    using GpioQuickConnectorBtn = Gpio<GPIOA_BASE, 4>;
-    using GpioStartTarsBtn = Gpio<GPIOA_BASE, 5>;
+    using GpioQuickConnectorBtn  = Gpio<GPIOA_BASE, 4>;
+    using GpioStartTarsBtn       = Gpio<GPIOA_BASE, 5>;
 
     // Note: The button is assumed to be pressed if the pin value is low
     // (pulldown)
-    if (!GpioIgnitionBtn::getPin().value()) {
+    if (!GpioIgnitionBtn::getPin().value())
+    {
         state.ignition = true;
     }
-    if (!GpioFillinValveBtn::getPin().value()) {
+    if (!GpioFillinValveBtn::getPin().value())
+    {
         state.fillin_valve = true;
     }
-    if (!GpioVentingValveBtn::getPin().value()) {
+    if (!GpioVentingValveBtn::getPin().value())
+    {
         state.venting_valve = true;
     }
-    if (!GpioReleasePressureBtn::getPin().value()) {
+    if (!GpioReleasePressureBtn::getPin().value())
+    {
         state.release_filling_line_pressure = true;
     }
-    if (!GpioQuickConnectorBtn::getPin().value()) {
+    if (!GpioQuickConnectorBtn::getPin().value())
+    {
         state.release_filling_line_pressure = true;
     }
-    if (!GpioStartTarsBtn::getPin().value()) {
+    if (!GpioStartTarsBtn::getPin().value())
+    {
         state.startup_tars = true;
     }
 
     using GpioArmedSwitch = Gpio<GPIOA_BASE, 6>;
-    isArmed = !GpioArmedSwitch::getPin().value();
-
+    isArmed               = !GpioArmedSwitch::getPin().value();
 }
 
 // 0 if nothing changes, 1 if should arm, -1 if should disarm
-int Buttons::shouldArm(){
-    if (isArmed && !wasArmed){
+int Buttons::shouldArm()
+{
+    if (isArmed && !wasArmed)
+    {
         return 1;
     }
-    if (wasArmed && !isArmed){
+    if (wasArmed && !isArmed)
+    {
         return -1;
     }
     return 0;
+}
+
+// 1 if rocket is armed, 0 if disarmed
+void Buttons::setRemoteArmState(int armed)
+{
+    // TODO: This should be in bsp
+    // TODO: fix gpio values
+    using armed_led = Gpio<GPIOC_BASE, 9>;
+    if (armed)
+    {
+        armed_led::high();
+    }
+    else
+    {
+        armed_led::low();
+    }
 }
 
 }  // namespace con_RIG

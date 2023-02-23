@@ -22,11 +22,12 @@
 
 #pragma once
 
-#include <diagnostic/PrintLogger.h>
-#include <con_RIG/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
+#include <con_RIG/Configs/RadioConfig.h>
+#include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace con_RIG
@@ -44,10 +45,6 @@ public:
     MavDriver* mavDriver;
 
     Radio();
-
-    void sendAck(const mavlink_message_t& msg);
-
-    void sendNack(const mavlink_message_t& msg);
 
     bool start();
 
@@ -67,6 +64,10 @@ private:
     void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
     void mavlinkWriteToUsart(const mavlink_message_t& msg);
+
+    void sendAck(const mavlink_message_t& msg);
+
+    void sendNack(const mavlink_message_t& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

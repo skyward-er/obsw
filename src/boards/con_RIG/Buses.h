@@ -57,4 +57,3 @@ public:
 };
 
 }  // namespace con_RIG
-
