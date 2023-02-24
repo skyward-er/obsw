@@ -39,6 +39,7 @@ enum Topics : uint8_t
     TOPIC_FSR,
     TOPIC_NAS,
     TOPIC_TMTC,
+    TOPIC_MOTOR,
 };
 
 const std::vector<uint8_t> TOPICS_LIST{
