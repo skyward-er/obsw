@@ -36,9 +36,8 @@ namespace con_RIG
 
 Buttons::Buttons()
 {
-    isArmed  = false;
-    wasArmed = false;
     resetState();
+    state.armed = false;
 
     ModuleManager& modules = ModuleManager::getInstance();
     modules.get<BoardScheduler>()->getScheduler().addTask(
@@ -55,7 +54,6 @@ ButtonsState Buttons::getState() { return state; }
 
 void Buttons::resetState()
 {
-    wasArmed                            = isArmed;
     state.ignition                      = false;
     state.fillin_valve                  = false;
     state.venting_valve                 = false;
@@ -68,57 +66,43 @@ void Buttons::periodicStatusCheck()
 {
 
     // TODO: This should be in bsp
-    // TODO: fix gpio values
-    using GpioIgnitionBtn        = Gpio<GPIOA_BASE, 0>;
-    using GpioFillinValveBtn     = Gpio<GPIOA_BASE, 1>;
-    using GpioVentingValveBtn    = Gpio<GPIOA_BASE, 2>;
-    using GpioReleasePressureBtn = Gpio<GPIOA_BASE, 3>;
-    using GpioQuickConnectorBtn  = Gpio<GPIOA_BASE, 4>;
-    using GpioStartTarsBtn       = Gpio<GPIOA_BASE, 5>;
+    using GpioIgnitionBtn        = Gpio<GPIOB_BASE, 4>;
+    using GpioFillinValveBtn     = Gpio<GPIOE_BASE, 6>;
+    using GpioVentingValveBtn    = Gpio<GPIOE_BASE, 4>;
+    using GpioReleasePressureBtn = Gpio<GPIOG_BASE, 9>;
+    using GpioQuickConnectorBtn  = Gpio<GPIOD_BASE, 7>;
+    using GpioStartTarsBtn       = Gpio<GPIOD_BASE, 5>;
+    using GpioArmedSwitch        = Gpio<GPIOE_BASE, 2>;
 
-    // Note: The button is assumed to be pressed if the pin value is low
-    // (pulldown)
-    if (!GpioIgnitionBtn::getPin().value())
+    using armed_led = Gpio<GPIOC_BASE, 13>;
+    armed_led::high();
+
+    state.armed = GpioArmedSwitch::getPin().value();
+
+    if (!GpioIgnitionBtn::getPin().value() && state.armed)
     {
         state.ignition = true;
     }
-    if (!GpioFillinValveBtn::getPin().value())
+    if (GpioFillinValveBtn::getPin().value())
     {
         state.fillin_valve = true;
     }
-    if (!GpioVentingValveBtn::getPin().value())
+    if (GpioVentingValveBtn::getPin().value())
     {
         state.venting_valve = true;
     }
-    if (!GpioReleasePressureBtn::getPin().value())
+    if (GpioReleasePressureBtn::getPin().value())
     {
         state.release_filling_line_pressure = true;
     }
-    if (!GpioQuickConnectorBtn::getPin().value())
+    if (GpioQuickConnectorBtn::getPin().value())
     {
         state.release_filling_line_pressure = true;
     }
-    if (!GpioStartTarsBtn::getPin().value())
+    if (GpioStartTarsBtn::getPin().value())
     {
         state.startup_tars = true;
     }
-
-    using GpioArmedSwitch = Gpio<GPIOA_BASE, 6>;
-    isArmed               = !GpioArmedSwitch::getPin().value();
-}
-
-// 0 if nothing changes, 1 if should arm, -1 if should disarm
-int Buttons::shouldArm()
-{
-    if (isArmed && !wasArmed)
-    {
-        return 1;
-    }
-    if (wasArmed && !isArmed)
-    {
-        return -1;
-    }
-    return 0;
 }
 
 // 1 if rocket is armed, 0 if disarmed
@@ -126,8 +110,8 @@ void Buttons::setRemoteArmState(int armed)
 {
     // TODO: This should be in bsp
     // TODO: fix gpio values
-    using armed_led = Gpio<GPIOC_BASE, 9>;
-    if (armed)
+    using armed_led = Gpio<GPIOC_BASE, 13>;
+    if (armed == 1)
     {
         armed_led::high();
     }

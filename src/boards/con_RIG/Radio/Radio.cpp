@@ -32,8 +32,6 @@
 
 #include <thread>
 
-#include "mavlink_lib/gemini/mavlink_msg_rocket_flight_tm.h"
-
 using namespace std;
 using namespace miosix;
 using namespace placeholders;
@@ -50,25 +48,19 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 {
     switch (msg.msgid)
     {
-        case MAVLINK_MSG_ID_ROCKET_FLIGHT_TM:
+        case MAVLINK_MSG_ID_GSE_TM:
         {
-            int fmm_state = mavlink_msg_rocket_flight_tm_get_fmm_state(&msg);
-            // FlightModeManagerState.ARMED
-            if (fmm_state == 4)
-            {
-                ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
-                    1);
-            }
-            else
-            {
-                ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
-                    0);
-            }
+            int arming_state = mavlink_msg_gse_tm_get_arming_state(&msg);
+            ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
+                arming_state);
+        }
+        case MAVLINK_MSG_ID_ACK_TM:
+        {
+            ModuleManager::getInstance().get<Buttons>()->resetState();
         }
     }
     mavlinkWriteToUsart(msg);
     // Acknowledge the message
-    sendAck(msg);
 }
 
 void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
@@ -83,48 +75,22 @@ void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
 
 void Radio::sendMessages()
 {
-
     Buttons* buttons   = ModuleManager::getInstance().get<Buttons>();
     ButtonsState state = buttons->getState();
 
-    if (!state.empty())
-    {
-        mavlink_message_t msg;
-        mavlink_conrig_state_tc_t button_msg = state.buttonsToMavlink();
-        mavlink_msg_conrig_state_tc_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMPONENT_ID, &msg,
-                                           &button_msg);
-        messages.push_back(msg);
-    }
-    int should_arm = buttons->shouldArm();
-    if (should_arm == 1)
-    {
-        mavlink_message_t msg;
-        mavlink_command_tc_t tc;
-        tc.command_id = MAV_CMD_ARM;
-        mavlink_msg_command_tc_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tc);
-        messages.push_back(msg);
-    }
-    else if (should_arm == -1)
-    {
-        mavlink_message_t msg;
-        mavlink_command_tc_t tc;
-        tc.command_id = MAV_CMD_DISARM;
-        mavlink_msg_command_tc_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tc);
-        messages.push_back(msg);
-    }
+    mavlink_message_t msg;
+    mavlink_conrig_state_tc_t tc = {};
+    tc.ignition_btn              = state.ignition;
+    tc.filling_valve_btn         = state.fillin_valve;
+    tc.venting_valve_btn         = state.venting_valve;
+    tc.release_pressure_btn      = state.release_filling_line_pressure;
+    tc.quick_connector_btn       = state.detach_quick_connector;
+    tc.start_tars_btn            = state.startup_tars;
+    tc.arm_switch                = state.armed;
+    mavlink_msg_conrig_state_tc_encode(
+        RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMPONENT_ID, &msg, &tc);
+    messages.push_back(msg);
 
-    if (messages.empty())
-    {
-        mavlink_message_t msg;
-        mavlink_ping_tc_t ping;
-        ping.timestamp = TimestampTimer::getTimestamp();
-        mavlink_msg_ping_tc_encode(RadioConfig::MAV_SYSTEM_ID,
-                                   RadioConfig::MAV_COMPONENT_ID, &msg, &ping);
-        messages.push_back(msg);
-    }
     for (auto& message : messages)
     {
         mavDriver->enqueueMsg(message);
@@ -151,23 +117,6 @@ void Radio::loopReadFromUsart()
             messages.push_back(msg);
         }
     }
-}
-
-void Radio::sendAck(const mavlink_message_t& msg)
-{
-    mavlink_message_t ackMsg;
-    mavlink_msg_ack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &ackMsg, msg.msgid,
-                            msg.seq);
-    mavDriver->enqueueMsg(ackMsg);
-}
-
-void Radio::sendNack(const mavlink_message_t& msg)
-{
-    mavlink_message_t nackMsg;
-    LOG_DEBUG(logger, "Sending NACK for message {}", msg.msgid);
-    mavlink_msg_nack_tm_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
-    mavDriver->enqueueMsg(nackMsg);
 }
 
 bool Radio::start()

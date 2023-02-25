@@ -43,6 +43,18 @@ int main()
     ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
 
+    if (!Logger::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting logger");
+    }
+
+    if (!EventBroker::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the EventBroker");
+    }
+
     if (!modules.insert<BoardScheduler>(new BoardScheduler()))
     {
         initResult = false;
@@ -67,23 +79,11 @@ int main()
         LOG_ERR(logger, "Error initializing Buttons module");
     }
 
-    if (!Logger::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting logger");
-    }
-
-    if (!EventBroker::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the EventBroker");
-    }
-
-    if (!modules.get<Radio>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the radio");
-    }
+    // if (!modules.get<Radio>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the radio");
+    // }
 
     if (!modules.get<Buttons>()->start())
     {
@@ -97,7 +97,7 @@ int main()
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
-   if (initResult)
+    if (initResult)
     {
         // POST OK
         // EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
@@ -106,7 +106,7 @@ int main()
     {
         // POST ERROR
         // EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-    }    
+    }
 
     // Periodical statistics
     while (true)
@@ -115,7 +115,7 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
-        modules.get<Radio>()->logStatus();
+        // modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 }

@@ -38,26 +38,7 @@ struct ButtonsState
     bool release_filling_line_pressure;
     bool detach_quick_connector;
     bool startup_tars;
-
-    bool empty()
-    {
-        return !(ignition || fillin_valve || venting_valve ||
-                 release_filling_line_pressure || startup_tars ||
-                 detach_quick_connector);
-    }
-
-    mavlink_conrig_state_tc_t buttonsToMavlink()
-    {
-        mavlink_conrig_state_tc_t tc = {};
-        tc.ignition_btn              = ignition;
-        tc.filling_valve_btn         = fillin_valve;
-        tc.venting_valve_btn         = venting_valve;
-        tc.release_pressure_btn      = release_filling_line_pressure;
-        tc.quick_connector_btn       = detach_quick_connector;
-        tc.start_tars_btn            = startup_tars;
-
-        return tc;
-    }
+    bool armed;
 };
 
 class Buttons : public Boardcore::Module
@@ -80,9 +61,6 @@ public:
 
 private:
     ButtonsState state;
-    bool isArmed;
-    bool isArmedConfirmed;
-    bool wasArmed;
     void periodicStatusCheck();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
