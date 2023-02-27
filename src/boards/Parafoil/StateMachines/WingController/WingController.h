@@ -90,7 +90,7 @@ public:
      */
     void selectAlgorithm(unsigned int index);
 
-    WingControllerState getStatus();
+    WingControllerStatus getStatus();
 
 private:
     /**

@@ -30,6 +30,8 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -56,7 +58,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         case SystemTMList::MAV_SYS_ID:
         {
             mavlink_sys_tm_t tm;
-
             tm.timestamp    = TimestampTimer::getTimestamp();
             tm.logger       = Logger::getInstance().isStarted();
             tm.event_broker = EventBroker::getInstance().isRunning();
@@ -164,6 +165,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             NASState nasState  = NASController::getInstance().getNasState();
             UBXGPSData ubxData = sensors.getUbxGpsLastSample();
 
+            Eigen::Vector2f wesData =
+                WindEstimation::getInstance().getWindEstimationScheme();
+
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // State machines states
@@ -171,6 +175,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 (uint8_t)FlightModeManager::getInstance().getStatus().state;
             tm.nas_state =
                 (uint8_t)NASController::getInstance().getStatus().state;
+
+            tm.wes_state =
+                (uint8_t)WingController::getInstance().getStatus().state;
 
             // Pressures
             tm.pressure_digi   = ms5803Data.pressure;
@@ -234,6 +241,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
             tm.temperature  = ms5803Data.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
+
+            // wind estimation
+            tm.wes_e = wesData[0];
+            tm.wes_n = wesData[1];
 
             mavlink_msg_payload_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                  RadioConfig::MAV_COMPONENT_ID,

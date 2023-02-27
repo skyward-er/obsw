@@ -83,10 +83,10 @@ WingController::~WingController()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-WingControllerState WingController::getStatus()
+WingControllerStatus WingController::getStatus()
 {
     PauseKernelLock lock;
-    return status.state;
+    return status;  // TODO checks if the lock is needed
 }
 
 void WingController::state_idle(const Boardcore::Event& event)
