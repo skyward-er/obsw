@@ -32,8 +32,6 @@
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #elif defined(USE_XBEE_TRANSCEIVER)
 #include <radio/Xbee/ATCommands.h>
-#else
-#include <radio/SX1278/SX1278.h>
 #endif
 // TODO add wingcontroller status, WES
 

@@ -82,7 +82,7 @@ int main()
             WingController::getInstance().setControlled(1);
         }
         i++;
-        while (WingController::getInstance().getStatus() ==
+        while (WingController::getInstance().getStatus().state ==
                WingControllerState::WES)
         {  // wait until we change state
 
@@ -93,7 +93,7 @@ int main()
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(1000);
         }
-        while (WingController::getInstance().getStatus() !=
+        while (WingController::getInstance().getStatus().state !=
                WingControllerState::WES)
         {  // wait until we return to WES
             TRACE("3servo Right: %f, Left: %f \n\n",
