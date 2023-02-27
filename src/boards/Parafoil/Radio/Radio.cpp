@@ -323,7 +323,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
         {
             SensorsTMList sensorId = static_cast<SensorsTMList>(
-                mavlink_msg_sensor_tm_request_tc_get_sensor_id(&msg));
+                mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg));
 
             auto response = TMRepository::getInstance().packSensorsTm(
                 sensorId, msg.msgid, msg.seq);
