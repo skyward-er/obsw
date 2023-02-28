@@ -74,9 +74,6 @@ void Buttons::periodicStatusCheck()
     using GpioStartTarsBtn       = Gpio<GPIOD_BASE, 5>;
     using GpioArmedSwitch        = Gpio<GPIOE_BASE, 2>;
 
-    using armed_led = Gpio<GPIOC_BASE, 13>;
-    armed_led::high();
-
     state.armed = GpioArmedSwitch::getPin().value();
 
     if (!GpioIgnitionBtn::getPin().value() && state.armed)
@@ -111,13 +108,29 @@ void Buttons::setRemoteArmState(int armed)
     // TODO: This should be in bsp
     // TODO: fix gpio values
     using armed_led = Gpio<GPIOC_BASE, 13>;
+    armed_led::mode(Mode::OUTPUT);
+
+    using buzzer = Gpio<GPIOB_BASE, 7>;
+    buzzer::mode(Mode::OUTPUT);
+
+    ModuleManager& modules = ModuleManager::getInstance();
+
     if (armed == 1)
     {
         armed_led::high();
+        modules.get<BoardScheduler>()->getScheduler().addTask(
+            [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
+        modules.get<BoardScheduler>()->getScheduler().addTask(
+            [&]() { buzzer::high(); }, BUZZER_DELAY, BUZZER_OFF_TASK_ID,
+            TaskScheduler::Policy::RECOVER, miosix::getTick() + BUZZER_PERIOD);
     }
     else
     {
         armed_led::low();
+        modules.get<BoardScheduler>()->getScheduler().removeTask(
+            BUZZER_ON_TASK_ID);
+        modules.get<BoardScheduler>()->getScheduler().removeTask(
+            BUZZER_OFF_TASK_ID);
     }
 }
 

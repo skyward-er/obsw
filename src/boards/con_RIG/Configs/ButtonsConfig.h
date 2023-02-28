@@ -39,6 +39,11 @@ static constexpr uint32_t BUTTON_SAMPLE_PERIOD = 20;  // 50Hz
 
 constexpr uint8_t CHECK_BUTTON_STATE_TASK_ID = 150;
 
+static constexpr uint32_t BUZZER_PERIOD = 100;
+static constexpr uint32_t BUZZER_DELAY  = 3000;
+constexpr uint8_t BUZZER_ON_TASK_ID     = 160;
+constexpr uint8_t BUZZER_OFF_TASK_ID    = 161;
+
 }  // namespace ButtonsConfig
 
 }  // namespace con_RIG
