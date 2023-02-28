@@ -52,8 +52,6 @@ public:
 
     Boardcore::MavlinkStatus getMavlinkStatus();
 
-    std::vector<mavlink_message_t> messages;
-
     void sendMessages();
 
     void loopReadFromUsart();
@@ -68,6 +66,10 @@ private:
     void sendAck(const mavlink_message_t& msg);
 
     void sendNack(const mavlink_message_t& msg);
+
+    mavlink_message_t message_queue[RadioConfig::MAVLINK_QUEUE_SIZE];
+    uint8_t message_queue_index;
+    miosix::FastMutex mutex;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

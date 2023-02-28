@@ -55,13 +55,13 @@ public:
 
     ButtonsState getState();
     void resetState();
-    int shouldArm();
 
     void setRemoteArmState(int state);
 
 private:
     ButtonsState state;
     void periodicStatusCheck();
+    bool remoteArm;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };

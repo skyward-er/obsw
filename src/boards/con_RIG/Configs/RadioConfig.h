@@ -43,10 +43,12 @@ constexpr uint8_t MAV_SYSTEM_ID    = 171;
 constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 // Periodic telemetries frequency
-constexpr uint32_t PING_GSE_PERIOD = 100;  // [ms]
+constexpr uint32_t PING_GSE_PERIOD = 1000;  // [ms]
 
 // Periodic telemetries tasks ids
 constexpr uint8_t PING_GSE_TASK_ID = 200;
+
+constexpr uint32_t MAVLINK_QUEUE_SIZE = 9;
 
 }  // namespace RadioConfig
 

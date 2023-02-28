@@ -39,6 +39,9 @@ Buttons::Buttons()
     resetState();
     state.armed = false;
 
+    remoteArm = 1;
+    setRemoteArmState(0);
+
     ModuleManager& modules = ModuleManager::getInstance();
     modules.get<BoardScheduler>()->getScheduler().addTask(
         [&]() { periodicStatusCheck(); }, BUTTON_SAMPLE_PERIOD,
@@ -106,17 +109,16 @@ void Buttons::periodicStatusCheck()
 void Buttons::setRemoteArmState(int armed)
 {
     // TODO: This should be in bsp
-    // TODO: fix gpio values
     using armed_led = Gpio<GPIOC_BASE, 13>;
     armed_led::mode(Mode::OUTPUT);
-
     using buzzer = Gpio<GPIOB_BASE, 7>;
     buzzer::mode(Mode::OUTPUT);
 
     ModuleManager& modules = ModuleManager::getInstance();
 
-    if (armed == 1)
+    if (armed == 1 && !remoteArm)
     {
+        remoteArm = true;
         armed_led::high();
         modules.get<BoardScheduler>()->getScheduler().addTask(
             [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
@@ -124,13 +126,15 @@ void Buttons::setRemoteArmState(int armed)
             [&]() { buzzer::high(); }, BUZZER_DELAY, BUZZER_OFF_TASK_ID,
             TaskScheduler::Policy::RECOVER, miosix::getTick() + BUZZER_PERIOD);
     }
-    else
+    else if (armed != 1 && remoteArm)
     {
+        remoteArm = false;
         armed_led::low();
         modules.get<BoardScheduler>()->getScheduler().removeTask(
             BUZZER_ON_TASK_ID);
         modules.get<BoardScheduler>()->getScheduler().removeTask(
             BUZZER_OFF_TASK_ID);
+        buzzer::high();
     }
 }
 

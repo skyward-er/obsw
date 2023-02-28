@@ -56,11 +56,15 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_ACK_TM:
         {
-            ModuleManager::getInstance().get<Buttons>()->resetState();
+            int id = mavlink_msg_ack_tm_get_recv_msgid(&msg);
+            // we assume this ack is about the last sent message
+            if (id == MAVLINK_MSG_ID_CONRIG_STATE_TC)
+            {
+                ModuleManager::getInstance().get<Buttons>()->resetState();
+            }
         }
     }
     mavlinkWriteToUsart(msg);
-    // Acknowledge the message
 }
 
 void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
@@ -89,15 +93,15 @@ void Radio::sendMessages()
     tc.arm_switch                = state.armed;
     mavlink_msg_conrig_state_tc_encode(
         RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMPONENT_ID, &msg, &tc);
-    messages.push_back(msg);
 
-    for (auto& message : messages)
+    Lock<FastMutex> lock(mutex);
+
+    message_queue[message_queue_index + 1] = msg;
+    for (auto i = message_queue_index + 1; i >= 0; i--)
     {
-        mavDriver->enqueueMsg(message);
+        mavDriver->enqueueMsg(message_queue[i]);
     }
-
-    // TODO: syncronize with loopReadFromUsart
-    messages.clear();
+    message_queue_index = 0;
 }
 
 void Radio::loopReadFromUsart()
@@ -113,8 +117,23 @@ void Radio::loopReadFromUsart()
             ModuleManager::getInstance().get<Buses>()->usart1.read(&byte, 1);
         if (len && mavlink_parse_char(chan, byte, &msg, &status))
         {
-            // TODO: syncronize with sendMessages
-            messages.push_back(msg);
+            if (message_queue_index == MAVLINK_QUEUE_SIZE)
+            {
+                mavlink_message_t nack_msg;
+                mavlink_nack_tm_t nack_tm;
+                nack_tm.recv_msgid = msg.msgid;
+                nack_tm.seq_ack    = msg.seq;
+                mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMPONENT_ID,
+                                           &nack_msg, &nack_tm);
+                mavlinkWriteToUsart(nack_msg);
+            }
+            else
+            {
+                Lock<FastMutex> lock(mutex);
+                message_queue_index += 1;
+                message_queue[message_queue_index] = msg;
+            }
         }
     }
 }
