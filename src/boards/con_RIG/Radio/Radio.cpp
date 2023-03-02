@@ -138,10 +138,69 @@ void Radio::loopReadFromUsart()
     }
 }
 
+void __attribute__((used)) EXTI5_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Radio>()->transceiver != nullptr)
+    {
+        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO0);
+    }
+}
+
+void __attribute__((used)) EXTI12_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Radio>()->transceiver != nullptr)
+    {
+        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO1);
+    }
+}
+
+void __attribute__((used)) EXTI13_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Radio>()->transceiver != nullptr)
+    {
+        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO3);
+    }
+}
+
 bool Radio::start()
 {
-    std::thread read([&]() { loopReadFromUsart(); });
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // TODO: constants should be in bps
+    enableExternalInterrupt(GPIOD_BASE, 11, InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(GPIOD_BASE, 12, InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(GPIOD_BASE, 13, InterruptTrigger::RISING_EDGE);
+
+    // Config the transceiver
+    SX1278Lora::Config config{};
+    config.pa_boost         = true;
+    config.power            = 2;
+    config.ocp              = 0;  // Over current protection
+    config.coding_rate      = SX1278Lora::Config::Cr::CR_1;
+    config.spreading_factor = SX1278Lora::Config::Sf::SF_7;
+
+    auto error = transceiver->init(config);
+
+    // Config mavDriver
+    mavDriver = new MavDriver(transceiver,
+                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
+                              0, MAV_OUT_BUFFER_MAX_AGE);
+
+    // In case of failure the mav driver must be created at least
+    if (error != SX1278Lora::Error::NONE)
+    {
+        return false;
+    }
+
     return mavDriver->start();
+
+    modules.get<BoardScheduler>()->getScheduler().addTask(
+        [&]() { sendMessages(); }, PING_GSE_PERIOD, PING_GSE_TASK_ID);
+
+    std::thread read([&]() { loopReadFromUsart(); });
 }
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
@@ -159,19 +218,18 @@ void Radio::logStatus()
 
 Radio::Radio()
 {
-
     ModuleManager& modules = ModuleManager::getInstance();
 
-    // TODO: change to new radio
-    transceiver =
-        new SX1278(modules.get<Buses>()->spi2, Gpio<GPIOC_BASE, 1>::getPin());
+    SPIBusConfig spiConfig{};
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.mode         = SPI::Mode::MODE_0;
+    spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
 
-    mavDriver = new MavDriver(transceiver,
-                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                              0, MAV_OUT_BUFFER_MAX_AGE);
-
-    modules.get<BoardScheduler>()->getScheduler().addTask(
-        [&]() { sendMessages(); }, PING_GSE_PERIOD, PING_GSE_TASK_ID);
+    // TODO: constants should be in bps
+    transceiver = new EbyteLora(
+        SPISlave(modules.get<Buses>()->spi1, Gpio<GPIOF_BASE, 6>::getPin(),
+                 spiConfig),
+        Gpio<GPIOG_BASE, 2>::getPin(), Gpio<GPIOG_BASE, 3>::getPin());
 }
 
 }  // namespace con_RIG

@@ -26,8 +26,9 @@
 #include <con_RIG/Configs/RadioConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278.h>
+#include <radio/SX1278/Ebyte.h>
 
+#include <cstdint>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace con_RIG
@@ -40,7 +41,7 @@ using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
 class Radio : public Boardcore::Module
 {
 public:
-    Boardcore::SX1278* transceiver;
+    Boardcore::SX1278Lora* transceiver;
 
     MavDriver* mavDriver;
 

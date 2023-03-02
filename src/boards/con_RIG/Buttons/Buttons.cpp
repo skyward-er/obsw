@@ -23,7 +23,6 @@
 #include "Buttons.h"
 
 #include <con_RIG/BoardScheduler.h>
-#include <con_RIG/Buses.h>
 #include <con_RIG/Configs/ButtonsConfig.h>
 
 using namespace std;
