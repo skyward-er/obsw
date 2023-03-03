@@ -22,17 +22,15 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 
 #include <atomic>
 
 namespace Parafoil
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+class AltitudeTrigger : public ParafoilModule
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
-
 public:
     void enable();
 
@@ -41,8 +39,6 @@ public:
     bool isActive();
 
 private:
-    AltitudeTrigger();
-
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();

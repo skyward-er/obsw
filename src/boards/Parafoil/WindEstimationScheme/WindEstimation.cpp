@@ -28,6 +28,8 @@
 #include <common/Events.h>
 #include <events/EventBroker.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace Parafoil::WESConfig;
 using namespace Boardcore;
 using namespace Common;
@@ -36,9 +38,13 @@ using namespace miosix;
 namespace Parafoil
 {
 
-WindEstimation::WindEstimation() : running(false), calRunning(false)
+WindEstimation::WindEstimation() : running(false), calRunning(false) {}
+
+bool WindEstimation::start()
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
+    ModuleManager& modules = ModuleManager::getInstance();
+
     // Register the calibration task
 
 #ifdef PRF_TEST
@@ -59,6 +65,8 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
         std::bind(&WindEstimation::windEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif
+
+    return true;
 }
 
 WindEstimation::~WindEstimation()
@@ -66,6 +74,7 @@ WindEstimation::~WindEstimation()
     stopWindEstimationSchemeCalibration();
     stopWindEstimationScheme();
 }
+
 bool WindEstimation::getStatus() { return running; }
 
 void WindEstimation::startWindEstimationSchemeCalibration()
@@ -103,7 +112,10 @@ void WindEstimation::windEstimationSchemeCalibration()
     if (calRunning)
     {
 #ifndef PRF_TEST
-        if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+        if (ModuleManager::getInstance()
+                .get<Sensors>()
+                ->getUbxGpsLastSample()
+                .fix != 0)
 #endif
         {
             if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
@@ -115,9 +127,11 @@ void WindEstimation::windEstimationSchemeCalibration()
                 gpsE = (*testValue)[index][1];
                 index++;
 #else
-                auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-                gpsN         = gpsData.velocityNorth;
-                gpsE         = gpsData.velocityEast;
+                auto gpsData = ModuleManager::getInstance()
+                                   .get<Sensors>()
+                                   ->getUbxGpsLastSample();
+                gpsN = gpsData.velocityNorth;
+                gpsE = gpsData.velocityEast;
 #endif
                 calibrationMatrix(nSampleCal, 0) = gpsN;
                 calibrationMatrix(nSampleCal, 1) = gpsE;
@@ -179,7 +193,10 @@ void WindEstimation::windEstimationScheme()
     if (running)
     {
 #ifndef PRF_TEST
-        if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+        if (ModuleManager::getInstance()
+                .get<Sensors>()
+                ->getUbxGpsLastSample()
+                .fix != 0)
 #endif
         {
             Eigen::Vector2f phi;
@@ -199,9 +216,11 @@ void WindEstimation::windEstimationScheme()
                 return;
             }
 #else
-            auto gpsData = Sensors::getInstance().getUbxGpsLastSample();
-            gpsN         = gpsData.velocityNorth;
-            gpsE         = gpsData.velocityEast;
+            auto gpsData = ModuleManager::getInstance()
+                               .get<Sensors>()
+                               ->getUbxGpsLastSample();
+            gpsN = gpsData.velocityNorth;
+            gpsE = gpsData.velocityEast;
 #endif
             // update avg
             nSample++;

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
@@ -30,9 +30,11 @@
 namespace Parafoil
 {
 
-struct Actuators : public Boardcore::Singleton<Actuators>
+struct Actuators : public ParafoilModule
 {
-    friend class Boardcore::Singleton<Actuators>;
+    Actuators();
+
+    bool start() override { return true; }
 
     /**
      * @brief Moves the specified servo to the given position.
@@ -74,8 +76,6 @@ struct Actuators : public Boardcore::Singleton<Actuators>
     void stopTwirl();
 
 private:
-    Actuators();
-
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 };

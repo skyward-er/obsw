@@ -41,6 +41,8 @@
 #include <events/utils/EventSniffer.h>
 #include <miosix.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 #ifdef HILSimulation
 #include <HIL.h>
 #include <HIL_algorithms/HILMockAerobrakeAlgorithm.h>
@@ -55,25 +57,9 @@ using namespace Common;
 
 int main()
 {
-    bool initResult    = true;
-    PrintLogger logger = Logging::getLogger("main");
-
-#ifdef HILSimulation
-    auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
-
-    flightPhasesManager->setCurrentPositionSource(
-        []() {
-            return TimedTrajectoryPoint{
-                NASController::getInstance().getNasState()};
-        });
-
-    HIL::getInstance().start();
-
-    BoardScheduler::getInstance().getScheduler().addTask(
-        []() { HIL::getInstance().send(0.0f); }, 100);
-
-    // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
-#endif
+    bool initResult        = true;
+    PrintLogger logger     = Logging::getLogger("main");
+    ModuleManager& modules = ModuleManager::getInstance();
 
     if (!Logger::getInstance().start())
     {
@@ -88,64 +74,79 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
+    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
     // Start the radio
-    if (!Radio::getInstance().start())
+    if (!modules.get<Radio>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
     }
 
     // Start the state machines
-    if (!FlightModeManager::getInstance().start())
+    if (!modules.get<FlightModeManager>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
     }
 
-    if (!NASController::getInstance().start())
+    if (!modules.get<NASController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }
-    // TODO encapsulate in a method
-    if (!WingController::getInstance().start())
+
+    if (!modules.get<WingController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-    //     Start the sensors sampling
-    if (!Sensors::getInstance().start())
+    // set the algorithm to sequence
+    modules.get<WingController>()->setControlled(false);
+
+    // Start the sensors sampling
+    if (!modules.get<Sensors>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");
     }
 
-    // Start the trigger watcher
-    AltitudeTrigger::getInstance();
-
     // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!modules.get<BoardScheduler>()->getScheduler().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
-    // Start the pin handler and observer
-    PinHandler::getInstance();
     if (!PinObserver::getInstance().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the PinObserver");
     }
+
+#ifdef HILSimulation
+    auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
+
+    flightPhasesManager->setCurrentPositionSource(
+        []() {
+            return TimedTrajectoryPoint{
+                modules.get<NASController>()->getNasState()};
+        });
+
+    HIL::getInstance().start();
+
+    modules.get<BoardScheduler>()->getScheduler().addTask(
+        []() { HIL::getInstance().send(0.0f); }, 100);
+
+    // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
+#endif
 
     // If all is correctly set up i publish the init ok
     if (initResult)
@@ -187,7 +188,7 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
-        Radio::getInstance().logStatus();
+        modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 }

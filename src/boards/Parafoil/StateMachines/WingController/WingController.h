@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/HSM.h>
 
@@ -58,14 +59,17 @@ class WingController : public Boardcore::HSM<WingController>,
                        public Boardcore::Singleton<WingController>
 
 {
-    friend class Boardcore::Singleton<WingController>;
-
 public:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_flying(const Boardcore::Event& event);
     Boardcore::State state_calibration(const Boardcore::Event& event);
     Boardcore::State state_controlled_descent(const Boardcore::Event& event);
     Boardcore::State state_on_ground(const Boardcore::Event& event);
+
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -100,11 +104,6 @@ public:
     void addAlgorithm(WingAlgorithm* algorithm);
 
 private:
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WingController();
-
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;

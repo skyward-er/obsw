@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/WESConfig.h>
-#include <Singleton.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <miosix.h>
@@ -39,15 +39,20 @@ namespace Parafoil
  * @brief This class implements the wind prediction algorithm, the first part is
  * the initial setup, and then the continuos algoritms runs;
  */
-class WindEstimation : public Boardcore::Singleton<WindEstimation>
+class WindEstimation : public ParafoilModule
 {
-    friend class Boardcore::Singleton<WindEstimation>;
-
 public:
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WindEstimation();
+
     /**
      * @brief Destroy the Wing Controller object.
      */
     ~WindEstimation();
+
+    bool start() override;
 
     void startWindEstimationSchemeCalibration();
 
@@ -73,10 +78,6 @@ private:
     vector<vector<float>> *testValue;
     size_t index = 0;
 #endif
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WindEstimation();
 
     /**
      * @brief Logs the prediction

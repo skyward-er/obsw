@@ -23,6 +23,7 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
@@ -30,6 +31,7 @@
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <common/Events.h>
@@ -39,6 +41,8 @@
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
 #include <miosix.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #ifdef HILSimulation
 #include <HIL.h>
@@ -54,8 +58,78 @@ using namespace Common;
 
 int main()
 {
-    bool initResult    = true;
-    PrintLogger logger = Logging::getLogger("main");
+    bool initResult        = true;
+    ModuleManager& modules = ModuleManager::getInstance();
+    PrintLogger logger     = Logging::getLogger("main");
+
+    // Initialize the modules
+
+    if (!modules.insert<Actuators>(new Actuators()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Actuators module");
+    }
+
+    if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing AltitudeTrigger module");
+    }
+
+    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing BoardScheduler module");
+    }
+
+    if (!modules.insert<Buses>(new Buses()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Buses module");
+    }
+
+    if (!modules.insert<NASController>(new NASController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing NASController module");
+    }
+
+    if (!modules.insert<FlightModeManager>(new FlightModeManager()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing FlightModeManager module");
+    }
+
+    if (!modules.insert<PinHandler>(new PinHandler()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing PinHandler module");
+    }
+
+    if (!modules.insert<Radio>(new Radio()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Radio module");
+    }
+
+    if (!modules.insert<Sensors>(new Sensors()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Sensors module");
+    }
+
+    // used indirectly by WingController
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WindEstimation module");
+    }
+
+    if (!modules.insert<WingController>(new WingController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WingController module");
+    }
 
 #ifdef HILSimulation
     auto flightPhasesManager = HIL::getInstance().flightPhasesManager;
@@ -63,12 +137,12 @@ int main()
     flightPhasesManager->setCurrentPositionSource(
         []() {
             return TimedTrajectoryPoint{
-                NASController::getInstance().getNasState()};
+                modules.get<NASController>()->getNasState()};
         });
 
     HIL::getInstance().start();
 
-    BoardScheduler::getInstance().getScheduler().addTask(
+    modules.get<BoardScheduler>()->getScheduler().addTask(
         []() { HIL::getInstance().send(0.0f); }, 100);
 
     // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
@@ -87,62 +161,57 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
+    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
     // Start the radio
-    if (!Radio::getInstance().start())
+    if (!modules.get<Radio>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
     }
 
     // Start the state machines
-    if (!FlightModeManager::getInstance().start())
+    if (!modules.get<FlightModeManager>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
     }
 
-    if (!NASController::getInstance().start())
+    if (!modules.get<NASController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }
 
-    if (!WingController::getInstance().start())
+    if (!modules.get<WingController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-    // WingController::getInstance().setControlled(false);  // set the algorithm
-    //  to
-    //   sequence
-    //     Start the sensors sampling
-    if (!Sensors::getInstance().start())
+    // modules.get<WingController>()->setControlled(false);  // set the
+    // algorithm to sequence
+    //   Start the sensors sampling
+    if (!modules.get<Sensors>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");
     }
 
-    // Start the trigger watcher
-    AltitudeTrigger::getInstance();
-
     // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!modules.get<BoardScheduler>()->getScheduler().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
     // Start the pin handler and observer
-    PinHandler::getInstance();
     if (!PinObserver::getInstance().start())
     {
         initResult = false;
@@ -175,7 +244,7 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
-        Radio::getInstance().logStatus();
+        modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 }
