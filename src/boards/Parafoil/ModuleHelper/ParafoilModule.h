@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,13 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
-#include <common/Mavlink.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/PinObserver/PinObserver.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
-
-/**
- * @brief This class contains the handlers for the detach pins on the rocket.
- *
- * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
- * The handlers post an event on the EventBroker.
- */
-class PinHandler : public ParafoilModule
+class ParafoilModule : public Boardcore::Module
 {
 public:
-    PinHandler() {}
-
-    bool start() override;
-
-    /**
-     * @brief Called when the deployment servo actuation is detected via the
-     * optical sensor.
-     */
-    void onExpulsionPinTransition(Boardcore::PinTransition transition);
-
-    /**
-     * @brief Returns a vector with all the pins data.
-     */
-    std::map<PinsList, Boardcore::PinData> getPinsData();
-
-private:
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+    [[nodiscard]] virtual bool start() { return false; }
 };
-
 }  // namespace Parafoil

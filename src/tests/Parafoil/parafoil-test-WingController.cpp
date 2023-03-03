@@ -28,6 +28,9 @@
 #include <events/EventData.h>
 #include <miosix.h>
 
+#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Parafoil;
@@ -35,7 +38,19 @@ using namespace Common;
 
 int main()
 {
-    PrintLogger logger = Logging::getLogger("main");
+    ModuleHelper& module_helper = ModuleHelper::getInstance();
+
+    // Initialize the modules
+    module_helper.setUpBoardScheduler();
+    module_helper.setUpActuators();
+    module_helper.setUpWindEstimation();
+    module_helper.setUpWingController();
+    module_helper.setUpNASController();
+
+    module_helper.startAllModules();
+
+    ModuleManager& modules = module_helper.getModules();
+    PrintLogger logger     = Logging::getLogger("main");
 
     if (!EventBroker::getInstance().start())
     {
@@ -43,27 +58,27 @@ int main()
     }
 
     // Initialize the servo outputs
-    if (!Actuators::getInstance().enableServo(PARAFOIL_LEFT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !Actuators::getInstance().enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !Actuators::getInstance().setServo(PARAFOIL_RIGHT_SERVO, 0))
+    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
+        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
+        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
     {
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
-    /*if (!NASController::getInstance().start())
+    /*if (!modules.get<NASController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }*/
 
-    if (!WingController::getInstance().start())
+    if (!modules.get<WingController>()->start())
     {
         LOG_ERR(logger, "Error starting the WingController");
     }
 
     // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!modules.get<BoardScheduler>()->getScheduler().start())
     {
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
@@ -75,31 +90,31 @@ int main()
     {
         if (i % 2 == 0)
         {
-            WingController::getInstance().setControlled(1);
+            modules.get<WingController>()->setControlled(1);
         }
         else
         {
-            WingController::getInstance().setControlled(1);
+            modules.get<WingController>()->setControlled(1);
         }
         i++;
-        while (WingController::getInstance().getStatus() ==
+        while (modules.get<WingController>()->getStatus() ==
                WingControllerState::WES)
         {  // wait until we change state
 
             TRACE("1servo Right: %f, Left: %f \n\n",
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_RIGHT_SERVO),
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(1000);
         }
-        while (WingController::getInstance().getStatus() !=
+        while (modules.get<WingController>()->getStatus() !=
                WingControllerState::WES)
         {  // wait until we return to WES
             TRACE("3servo Right: %f, Left: %f \n\n",
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_RIGHT_SERVO),
-                  Actuators::getInstance().getServoPosition(
+                  modules.get<Actuators>()->getServoPosition(
                       ServosList::PARAFOIL_LEFT_SERVO));
             Thread::sleep(500);
         }

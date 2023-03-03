@@ -62,4 +62,6 @@ PinHandler::PinHandler()
         DPL_SERVO_PIN_THRESHOLD);
 }
 
+bool PinHandler::start() { return true; }
+
 }  // namespace Parafoil

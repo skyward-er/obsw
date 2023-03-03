@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/RadioConfig.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/Xbee/Xbee.h>
@@ -44,10 +45,8 @@ using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
-class Radio : public Boardcore::Singleton<Radio>
+class Radio : public ParafoilModule
 {
-    friend class Boardcore::Singleton<Radio>;
-
 public:
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
@@ -56,6 +55,8 @@ public:
 #endif
 
     MavDriver* mavDriver;
+
+    Radio();
 
     /**
      * @brief Prepares and send an ack message for the given message.
@@ -74,7 +75,7 @@ public:
     /**
      * @brief Starts the MavlinkDriver.
      */
-    bool start();
+    bool start() override;
 
     /**
      * @brief Tells whether the radio was started.
@@ -89,8 +90,6 @@ public:
     void logStatus();
 
 private:
-    Radio();
-
     void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
 
     /**

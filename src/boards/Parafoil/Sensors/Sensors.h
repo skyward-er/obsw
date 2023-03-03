@@ -41,16 +41,20 @@
 #include <HIL_algorithms/HILMockKalman.h>
 #include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 
 namespace Parafoil
 {
 
-class Sensors : public Boardcore::Singleton<Sensors>
+class Sensors : public ParafoilModule
 {
-    friend class Boardcore::Singleton<Sensors>;
 
 public:
-    bool start();
+    Sensors();
+
+    ~Sensors();
+
+    bool start() override;
 
     bool isStarted();
 
@@ -103,10 +107,6 @@ public:
     std::map<string, bool> getSensorsState();
 
 private:
-    Sensors();
-
-    ~Sensors();
-
     void bmx160Init();
     void bmx160Callback();
 

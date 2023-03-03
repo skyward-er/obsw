@@ -31,6 +31,8 @@
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace std;
 using namespace Boardcore;
 using namespace Common;
@@ -40,8 +42,11 @@ using namespace Parafoil::SensorsConfig;
 // BMX160 Watermark interrupt
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {
-    if (Parafoil::Sensors::getInstance().bmx160 != nullptr)
-        Parafoil::Sensors::getInstance().bmx160->IRQupdateTimestamp(
+    Parafoil::Sensors* sensors_module =
+        ModuleManager::getInstance().get<Parafoil::Sensors>();
+
+    if (sensors_module->bmx160 != nullptr)
+        sensors_module->bmx160->IRQupdateTimestamp(
             TimestampTimer::getTimestamp());
 }
 
@@ -357,7 +362,7 @@ void Sensors::bmx160Init()
     config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     bmx160 =
-        new BMX160(Buses::getInstance().spi1,
+        new BMX160(ModuleManager::getInstance().get<Buses>()->spi1,
                    miosix::sensors::bmx160::cs::getPin(), config, spiConfig);
 
     SensorInfo info("BMX160", SAMPLE_PERIOD_IMU_BMX,
@@ -407,7 +412,7 @@ void Sensors::lis3mdlInit()
     config.temperatureDivider = 1;
 
     lis3mdl =
-        new LIS3MDL(Buses::getInstance().spi1,
+        new LIS3MDL(ModuleManager::getInstance().get<Buses>()->spi1,
                     miosix::sensors::lis3mdl::cs::getPin(), spiConfig, config);
 
     // Create the sensor info
@@ -425,7 +430,7 @@ void Sensors::ms5803Init()
     spiConfig.mode         = SPI::Mode::MODE_3;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    ms5803 = new MS5803(Buses::getInstance().spi1,
+    ms5803 = new MS5803(ModuleManager::getInstance().get<Buses>()->spi1,
                         miosix::sensors::ms5803::cs::getPin(), spiConfig,
                         PRESS_DIGITAL_TEMP_DIVIDER);
 
@@ -465,7 +470,7 @@ void Sensors::ads1118Init()
     config.bits.mode              = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
 
     ads1118 =
-        new ADS1118(Buses::getInstance().spi1,
+        new ADS1118(ModuleManager::getInstance().get<Buses>()->spi1,
                     miosix::sensors::ads1118::cs::getPin(), config, spiConfig);
 
     ads1118->enableInput(ADC_CH_STATIC_PORT, ADC_DR_STATIC_PORT,

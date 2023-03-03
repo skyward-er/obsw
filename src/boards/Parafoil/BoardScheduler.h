@@ -22,22 +22,23 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <scheduler/TaskScheduler.h>
 
 namespace Parafoil
 {
 
-class BoardScheduler : public Boardcore::Singleton<BoardScheduler>
+class BoardScheduler : public ParafoilModule
 {
-    friend Boardcore::Singleton<BoardScheduler>;
 
 public:
-    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
-
-private:
     BoardScheduler() {}
 
+    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
+
+    bool start() override { return true; }
+
+private:
     Boardcore::TaskScheduler scheduler;
 };
 

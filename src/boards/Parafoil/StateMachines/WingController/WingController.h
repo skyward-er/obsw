@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/FSM.h>
 
@@ -55,11 +56,9 @@
 namespace Parafoil
 {
 class WingController : public Boardcore::FSM<WingController>,
-                       public Boardcore::Singleton<WingController>
+                       public ParafoilModule
 
 {
-    friend class Boardcore::Singleton<WingController>;
-
 public:
     void state_idle(const Boardcore::Event& event);
     void state_wes(const Boardcore::Event& event);
@@ -67,9 +66,16 @@ public:
     void state_file(const Boardcore::Event& event);
 
     /**
+     * @brief Construct a new Wing Controller object
+     */
+    WingController();
+
+    /**
      * @brief Destroy the Wing Controller object.
      */
     ~WingController();
+
+    bool start() override;
 
     void setControlled(bool controlled);
 
@@ -93,11 +99,6 @@ public:
     WingControllerState getStatus();
 
 private:
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WingController();
-
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;
