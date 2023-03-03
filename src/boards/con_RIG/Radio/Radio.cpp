@@ -36,7 +36,37 @@ using namespace std;
 using namespace miosix;
 using namespace placeholders;
 using namespace Boardcore;
-using namespace con_RIG::RadioConfig;
+using namespace con_RIG::Config::Radio;
+
+void __attribute__((used)) EXTI1_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
+    {
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
+            SX1278::Dio::DIO0);
+    }
+}
+
+void __attribute__((used)) EXTI12_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
+    {
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
+            SX1278::Dio::DIO1);
+    }
+}
+
+void __attribute__((used)) EXTI13_IRQHandlerImpl()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
+    {
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
+            SX1278::Dio::DIO3);
+    }
+}
 
 namespace con_RIG
 {
@@ -85,23 +115,26 @@ void Radio::sendMessages()
     mavlink_message_t msg;
     mavlink_conrig_state_tc_t tc = {};
     tc.ignition_btn              = state.ignition;
-    tc.filling_valve_btn         = state.fillin_valve;
+    tc.filling_valve_btn         = state.filling_valve;
     tc.venting_valve_btn         = state.venting_valve;
     tc.release_pressure_btn      = state.release_filling_line_pressure;
     tc.quick_connector_btn       = state.detach_quick_connector;
     tc.start_tars_btn            = state.startup_tars;
     tc.arm_switch                = state.armed;
-    mavlink_msg_conrig_state_tc_encode(
-        RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMPONENT_ID, &msg, &tc);
+    mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tc);
 
-    Lock<FastMutex> lock(mutex);
-
-    message_queue[message_queue_index + 1] = msg;
-    for (auto i = message_queue_index + 1; i >= 0; i--)
     {
-        mavDriver->enqueueMsg(message_queue[i]);
+        Lock<FastMutex> lock(mutex);
+
+        message_queue[message_queue_index + 1] = msg;
+        for (uint8_t i = 0; i <= message_queue_index + 1; i++)
+        {
+            mavDriver->enqueueMsg(message_queue[i]);
+        }
+        message_queue_index = 0;
     }
-    message_queue_index = 0;
 }
 
 void Radio::loopReadFromUsart()
@@ -123,8 +156,8 @@ void Radio::loopReadFromUsart()
                 mavlink_nack_tm_t nack_tm;
                 nack_tm.recv_msgid = msg.msgid;
                 nack_tm.seq_ack    = msg.seq;
-                mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMPONENT_ID,
+                mavlink_msg_nack_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
                                            &nack_msg, &nack_tm);
                 mavlinkWriteToUsart(nack_msg);
             }
@@ -138,41 +171,19 @@ void Radio::loopReadFromUsart()
     }
 }
 
-void __attribute__((used)) EXTI5_IRQHandlerImpl()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Radio>()->transceiver != nullptr)
-    {
-        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO0);
-    }
-}
-
-void __attribute__((used)) EXTI12_IRQHandlerImpl()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Radio>()->transceiver != nullptr)
-    {
-        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO1);
-    }
-}
-
-void __attribute__((used)) EXTI13_IRQHandlerImpl()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Radio>()->transceiver != nullptr)
-    {
-        modules.get<Radio>()->transceiver->handleDioIRQ(SX1278::Dio::DIO3);
-    }
-}
-
 bool Radio::start()
 {
+    // TODO: constants should be in bps
+    using dio0 = Gpio<GPIOB_BASE, 1>;
+    using dio1 = Gpio<GPIOD_BASE, 12>;
+    using dio3 = Gpio<GPIOD_BASE, 13>;
+
     ModuleManager& modules = ModuleManager::getInstance();
 
-    // TODO: constants should be in bps
-    enableExternalInterrupt(GPIOD_BASE, 11, InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(GPIOD_BASE, 12, InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(GPIOD_BASE, 13, InterruptTrigger::RISING_EDGE);
+    SPIBusConfig spiConfig{};
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.mode         = SPI::Mode::MODE_0;
+    spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
 
     // Config the transceiver
     SX1278Lora::Config config{};
@@ -182,7 +193,22 @@ bool Radio::start()
     config.coding_rate      = SX1278Lora::Config::Cr::CR_1;
     config.spreading_factor = SX1278Lora::Config::Sf::SF_7;
 
-    auto error = transceiver->init(config);
+    transceiver = new EbyteLora(
+        SPISlave(modules.get<Buses>()->spi1, Gpio<GPIOF_BASE, 6>::getPin(),
+                 spiConfig),
+        Gpio<GPIOG_BASE, 2>::getPin(), Gpio<GPIOG_BASE, 3>::getPin());
+
+    enableExternalInterrupt(dio0::getPin().getPort(),
+                            dio0::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(dio1::getPin().getPort(),
+                            dio1::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(dio3::getPin().getPort(),
+                            dio3::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+
+    SX1278Lora::Error error = transceiver->init(config);
 
     // Config mavDriver
     mavDriver = new MavDriver(transceiver,
@@ -195,12 +221,12 @@ bool Radio::start()
         return false;
     }
 
+    scheduler->addTask([&]() { sendMessages(); }, PING_GSE_PERIOD,
+                       PING_GSE_TASK_ID);
+
+    // std::thread read([&]() { loopReadFromUsart(); });
+
     return mavDriver->start();
-
-    modules.get<BoardScheduler>()->getScheduler().addTask(
-        [&]() { sendMessages(); }, PING_GSE_PERIOD, PING_GSE_TASK_ID);
-
-    std::thread read([&]() { loopReadFromUsart(); });
 }
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
@@ -210,26 +236,6 @@ Boardcore::MavlinkStatus Radio::getMavlinkStatus()
     return mavDriver->getStatus();
 }
 
-void Radio::logStatus()
-{
-    Logger::getInstance().log(mavDriver->getStatus());
-    // TODO: Add transceiver status logging
-}
-
-Radio::Radio()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-
-    SPIBusConfig spiConfig{};
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
-    spiConfig.mode         = SPI::Mode::MODE_0;
-    spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
-
-    // TODO: constants should be in bps
-    transceiver = new EbyteLora(
-        SPISlave(modules.get<Buses>()->spi1, Gpio<GPIOF_BASE, 6>::getPin(),
-                 spiConfig),
-        Gpio<GPIOG_BASE, 2>::getPin(), Gpio<GPIOG_BASE, 3>::getPin());
-}
+Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
 
 }  // namespace con_RIG

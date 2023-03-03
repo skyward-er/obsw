@@ -29,16 +29,36 @@
 namespace con_RIG
 {
 
+/**
+ * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
+ * There is a task scheduler for every miosix priority
+ */
 class BoardScheduler : public Boardcore::Module
 {
-
 public:
-    BoardScheduler() {}
+    BoardScheduler();
 
-    Boardcore::TaskScheduler& getScheduler() { return scheduler; }
+    /**
+     * @brief Get the Scheduler object relative to the requested priority
+     *
+     * @param priority The task scheduler priority
+     * @return Boardcore::TaskScheduler& Reference to the requested task
+     * scheduler.
+     * @note Min priority scheduler is returned in case of non valid priority.
+     */
+    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
+
+    [[nodiscard]] bool start();
+
+    /**
+     * @brief Returns if all the schedulers are up and running
+     */
+    bool isStarted();
 
 private:
-    Boardcore::TaskScheduler scheduler;
+    Boardcore::TaskScheduler* scheduler1;
+    Boardcore::TaskScheduler* scheduler2;
+    Boardcore::TaskScheduler* scheduler3;
+    Boardcore::TaskScheduler* scheduler4;
 };
-
 }  // namespace con_RIG

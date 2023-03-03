@@ -27,7 +27,9 @@
 namespace con_RIG
 {
 
-namespace RadioConfig
+namespace Config
+{
+namespace Radio
 {
 
 // Mavlink driver template parameters
@@ -43,13 +45,13 @@ constexpr uint8_t MAV_SYSTEM_ID    = 171;
 constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 // Periodic telemetries frequency
-constexpr uint32_t PING_GSE_PERIOD = 1000;  // [ms]
+constexpr uint32_t PING_GSE_PERIOD = 500;  // [ms]
 
 // Periodic telemetries tasks ids
 constexpr uint8_t PING_GSE_TASK_ID = 200;
 
 constexpr uint32_t MAVLINK_QUEUE_SIZE = 9;
 
-}  // namespace RadioConfig
-
+}  // namespace Radio
+}  // namespace Config
 }  // namespace con_RIG

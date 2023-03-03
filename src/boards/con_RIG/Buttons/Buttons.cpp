@@ -28,23 +28,24 @@
 using namespace std;
 using namespace miosix;
 using namespace Boardcore;
-using namespace con_RIG::ButtonsConfig;
+using namespace con_RIG::Config::Buttons;
 
 namespace con_RIG
 {
 
-Buttons::Buttons()
+Buttons::Buttons(TaskScheduler* sched) : scheduler(sched)
 {
     resetState();
     state.armed = false;
 
     remoteArm = 1;
     setRemoteArmState(0);
+}
 
-    ModuleManager& modules = ModuleManager::getInstance();
-    modules.get<BoardScheduler>()->getScheduler().addTask(
-        [&]() { periodicStatusCheck(); }, BUTTON_SAMPLE_PERIOD,
-        CHECK_BUTTON_STATE_TASK_ID);
+bool Buttons::start()
+{
+    return scheduler->addTask([&]() { periodicStatusCheck(); },
+                              BUTTON_SAMPLE_PERIOD, CHECK_BUTTON_STATE_TASK_ID);
 }
 
 Buttons::~Buttons()
@@ -57,7 +58,7 @@ ButtonsState Buttons::getState() { return state; }
 void Buttons::resetState()
 {
     state.ignition                      = false;
-    state.fillin_valve                  = false;
+    state.filling_valve                 = false;
     state.venting_valve                 = false;
     state.release_filling_line_pressure = false;
     state.detach_quick_connector        = false;
@@ -84,7 +85,7 @@ void Buttons::periodicStatusCheck()
     }
     if (GpioFillinValveBtn::getPin().value())
     {
-        state.fillin_valve = true;
+        state.filling_valve = true;
     }
     if (GpioVentingValveBtn::getPin().value())
     {
@@ -107,33 +108,29 @@ void Buttons::periodicStatusCheck()
 // 1 if rocket is armed, 0 if disarmed
 void Buttons::setRemoteArmState(int armed)
 {
-    // TODO: This should be in bsp
     using armed_led = Gpio<GPIOC_BASE, 13>;
-    armed_led::mode(Mode::OUTPUT);
-    using buzzer = Gpio<GPIOB_BASE, 7>;
-    buzzer::mode(Mode::OUTPUT);
-
-    ModuleManager& modules = ModuleManager::getInstance();
+    using buzzer    = Gpio<GPIOB_BASE, 7>;
 
     if (armed == 1 && !remoteArm)
     {
         remoteArm = true;
-        armed_led::high();
-        modules.get<BoardScheduler>()->getScheduler().addTask(
-            [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
-        modules.get<BoardScheduler>()->getScheduler().addTask(
-            [&]() { buzzer::high(); }, BUZZER_DELAY, BUZZER_OFF_TASK_ID,
-            TaskScheduler::Policy::RECOVER, miosix::getTick() + BUZZER_PERIOD);
+        // armed_led::high();
+        // modules.get<BoardScheduler>()->getScheduler().addTask(
+        //     [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
+        // modules.get<BoardScheduler>()->getScheduler().addTask(
+        //     [&]() { buzzer::high(); }, BUZZER_DELAY, BUZZER_OFF_TASK_ID,
+        //     TaskScheduler::Policy::RECOVER, miosix::getTick() +
+        //     BUZZER_PERIOD);
     }
     else if (armed != 1 && remoteArm)
     {
         remoteArm = false;
-        armed_led::low();
-        modules.get<BoardScheduler>()->getScheduler().removeTask(
-            BUZZER_ON_TASK_ID);
-        modules.get<BoardScheduler>()->getScheduler().removeTask(
-            BUZZER_OFF_TASK_ID);
-        buzzer::high();
+        // armed_led::low();
+        // modules.get<BoardScheduler>()->getScheduler().removeTask(
+        //     BUZZER_ON_TASK_ID);
+        // modules.get<BoardScheduler>()->getScheduler().removeTask(
+        //     BUZZER_OFF_TASK_ID);
+        // buzzer::high();
     }
 }
 

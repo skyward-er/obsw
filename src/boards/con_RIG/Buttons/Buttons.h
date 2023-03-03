@@ -24,6 +24,7 @@
 
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -33,7 +34,7 @@ namespace con_RIG
 struct ButtonsState
 {
     bool ignition;
-    bool fillin_valve;
+    bool filling_valve;
     bool venting_valve;
     bool release_filling_line_pressure;
     bool detach_quick_connector;
@@ -45,15 +46,14 @@ class Buttons : public Boardcore::Module
 {
 
 public:
-    Buttons();
+    Buttons(Boardcore::TaskScheduler* sched);
 
     ~Buttons();
 
-    bool start() { return true; };
-
-    bool isStarted() { return true; };
+    bool start();
 
     ButtonsState getState();
+
     void resetState();
 
     void setRemoteArmState(int state);
@@ -62,6 +62,8 @@ private:
     ButtonsState state;
     void periodicStatusCheck();
     bool remoteArm;
+
+    Boardcore::TaskScheduler* scheduler = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };

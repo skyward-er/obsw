@@ -31,8 +31,9 @@
 
 namespace con_RIG
 {
-
-namespace ButtonsConfig
+namespace Config
+{
+namespace Buttons
 {
 
 static constexpr uint32_t BUTTON_SAMPLE_PERIOD = 20;  // 50Hz
@@ -44,6 +45,7 @@ static constexpr uint32_t BUZZER_DELAY  = 3000;
 constexpr uint8_t BUZZER_ON_TASK_ID     = 160;
 constexpr uint8_t BUZZER_OFF_TASK_ID    = 161;
 
-}  // namespace ButtonsConfig
+}  // namespace Buttons
+}  // namespace Config
 
 }  // namespace con_RIG

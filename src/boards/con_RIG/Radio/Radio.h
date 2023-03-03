@@ -27,6 +27,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/Ebyte.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <cstdint>
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -34,9 +35,9 @@
 namespace con_RIG
 {
 
-using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
-                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
+using MavDriver = Boardcore::MavlinkDriver<Config::Radio::RADIO_PKT_LENGTH,
+                                           Config::Radio::RADIO_OUT_QUEUE_SIZE,
+                                           Config::Radio::RADIO_MAV_MSG_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
@@ -45,7 +46,7 @@ public:
 
     MavDriver* mavDriver;
 
-    Radio();
+    Radio(Boardcore::TaskScheduler* sched);
 
     bool start();
 
@@ -57,21 +58,16 @@ public:
 
     void loopReadFromUsart();
 
-    void logStatus();
-
 private:
     void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
     void mavlinkWriteToUsart(const mavlink_message_t& msg);
 
-    void sendAck(const mavlink_message_t& msg);
-
-    void sendNack(const mavlink_message_t& msg);
-
-    mavlink_message_t message_queue[RadioConfig::MAVLINK_QUEUE_SIZE];
+    mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
     uint8_t message_queue_index;
     miosix::FastMutex mutex;
 
+    Boardcore::TaskScheduler* scheduler = nullptr;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
