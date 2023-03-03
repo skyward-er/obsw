@@ -39,7 +39,7 @@ namespace Parafoil
 class PinHandler : public ParafoilModule
 {
 public:
-    PinHandler() {}
+    PinHandler();
 
     bool start() override;
 
