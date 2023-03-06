@@ -120,14 +120,14 @@ bool Radio::start()
                               0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the periodic telemetries
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
         },
         FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
@@ -266,8 +266,8 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 }
                 case SystemTMList::MAV_TASK_STATS_ID:
                 {
-                    auto statsVector = modules.get<BoardScheduler>()
-                                           ->getScheduler()
+                    auto statsVector = BoardScheduler::getInstance()
+                                           .getScheduler()
                                            .getTaskStats();
                     uint64_t timestamp = TimestampTimer::getTimestamp();
 

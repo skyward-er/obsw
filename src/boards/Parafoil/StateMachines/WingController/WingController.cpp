@@ -62,7 +62,7 @@ bool WingController::start()
     targetPosition[1] = DEFAULT_TARGET_LON;
 
     // Register the task
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WingController::update, this), WING_UPDATE_PERIOD);
 
     return true;

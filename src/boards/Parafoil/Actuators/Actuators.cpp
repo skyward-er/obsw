@@ -22,7 +22,6 @@
 
 #include "Actuators.h"
 
-#include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/ActuatorsConfigs.h>
 #include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>

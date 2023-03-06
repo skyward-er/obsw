@@ -24,7 +24,6 @@
 
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
-#include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
@@ -43,7 +42,6 @@
 // legend:
 // - PH: PinHandler
 // - AC: Actuators
-// - BS: BoardScheduler
 // - WES: WindEstimationScheme
 // - BU: Buses
 // - AT: AltitudeTrigger
@@ -54,24 +52,22 @@
 // - WC: WingController
 // - NAS: NASController
 //
-// PH  | AC  | BS  | WES | BU  | AT  | SE  | TM  | RA  | WC  | NAS
-// PH :  .     .     .     .     .     .     .     .     .     .     .
-// AC :  .     .     .     .     .     .     .     .     .     .     .
-// BS :  .     .     .     .     .     .     .     .     .     .     .
-// WES:  .     .     x     .     .     .     x     .     .     .     .
-// BU :  .     .     .     .     .     .     .     .     .     .     .
-// AT :  .     .     x     .     .     .     .     .     .     .     x
-// SE :  .     .     .     .     x     .     x     .     .     .     .
-// TM :  x     x     x     .     .     .     x     .     x     .     x
-// FM :  .     .     .     .     .     x     .     .     .     .     .
-// RA :  x     x     x     .     x     x     x     x     x     x     x
-// WC :  .     x     x     x     .     x     .     .     .     .     .
-// NAS:  .     .     x     .     .     .     x     .     .     .     .
+// PH  | AC  | WES | BU  | AT  | SE  | TM  | RA  | WC  | NAS
+// PH :  .     .     .     .     .     .     .     .     .     .
+// AC :  .     .     .     .     .     .     .     .     .     .
+// WES:  .     x     .     .     .     x     .     .     .     .
+// BU :  .     .     .     .     .     .     .     .     .     .
+// AT :  .     x     .     .     .     .     .     .     .     x
+// SE :  .     .     .     x     .     x     .     .     .     .
+// TM :  x     x     .     .     .     x     .     x     .     x
+// FM :  .     .     .     .     x     .     .     .     .     .
+// RA :  x     x     .     x     x     x     x     x     x     x
+// WC :  .     x     x     .     x     .     .     .     .     .
+// NAS:  .     x     .     .     .     x     .     .     .     .
 namespace Parafoil
 {
 enum class ModuleType
 {
-    BoardScheduler,
     PinHandler,
     Buses,
     Sensors,
@@ -118,12 +114,6 @@ public:
         return !failed;
     }
 
-    void setUpBoardScheduler()
-    {
-        // set up BoardScheduler
-        insert(new BoardScheduler(), ModuleType::BoardScheduler);
-    }
-
     void setUpPinHandler()
     {
         // set up PinHandler
@@ -162,8 +152,7 @@ public:
 
     void setUpNASController()
     {
-        // dependencies: BoardScheduler, Sensors
-        setUpBoardScheduler();
+        // dependencies: Sensors
         setUpSensors();
 
         // set up NASController
@@ -172,8 +161,7 @@ public:
 
     void setUpWindEstimation()
     {
-        // dependencies: BoardScheduler, Sensors
-        setUpBoardScheduler();
+        // dependencies: Sensors
         setUpSensors();
 
         // set up WindEstimation
@@ -182,8 +170,7 @@ public:
 
     void setUpAltitudeTrigger()
     {
-        // dependencies: BoardScheduler, NASController
-        setUpBoardScheduler();
+        // dependencies: NASController
         setUpNASController();
 
         // set up AltitudeTrigger
@@ -192,10 +179,9 @@ public:
 
     void setUpWingController()
     {
-        // dependencies: Actuators, BoardScheduler, WindEstimationScheme,
+        // dependencies: Actuators, WindEstimationScheme,
         // AltitudeTrigger
         setUpActuators();
-        setUpBoardScheduler();
         setUpWindEstimation();
         setUpAltitudeTrigger();
 
@@ -205,11 +191,10 @@ public:
 
     void setUpRadio()
     {
-        // dependencies: PinHandler, Actuators, BoardScheduler, Buses,
+        // dependencies: PinHandler, Actuators, Buses,
         // AltitudeTrigger, Sensors, TMRepository, WingController, NASController
         setUpPinHandler();
         setUpActuators();
-        setUpBoardScheduler();
         setUpBuses();
         setUpAltitudeTrigger();
         setUpSensors();
@@ -223,11 +208,10 @@ public:
 
     void setUpTMRepository()
     {
-        // dependencies: PinHandler, Actuators, BoardScheduler, Sensors, Radio,
+        // dependencies: PinHandler, Actuators, Sensors, Radio,
         // NASController
         setUpPinHandler();
         setUpActuators();
-        setUpBoardScheduler();
         setUpSensors();
         setUpRadio();
         setUpNASController();
@@ -288,8 +272,6 @@ private:
     {
         switch (type)
         {
-            case ModuleType::BoardScheduler:
-                return get<BoardScheduler>()->start();
             case ModuleType::PinHandler:
                 return get<PinHandler>()->start();
             case ModuleType::Buses:

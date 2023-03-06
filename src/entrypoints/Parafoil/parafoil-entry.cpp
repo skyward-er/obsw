@@ -76,12 +76,6 @@ int main()
         LOG_ERR(logger, "Error initializing AltitudeTrigger module");
     }
 
-    if (!modules.insert<BoardScheduler>(new BoardScheduler()))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing BoardScheduler module");
-    }
-
     if (!modules.insert<Buses>(new Buses()))
     {
         initResult = false;
@@ -205,7 +199,7 @@ int main()
     }
 
     // Start the board task scheduler
-    if (!modules.get<BoardScheduler>()->getScheduler().start())
+    if (!BoardScheduler::getInstance().getScheduler().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");

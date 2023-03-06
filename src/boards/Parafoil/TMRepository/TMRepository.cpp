@@ -68,7 +68,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pin_observer = PinObserver::getInstance().isRunning();
             tm.sensors      = modules.get<Sensors>()->isStarted();
             tm.board_scheduler =
-                modules.get<BoardScheduler>()->getScheduler().isRunning();
+                BoardScheduler::getInstance().getScheduler().isRunning();
 
             mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
