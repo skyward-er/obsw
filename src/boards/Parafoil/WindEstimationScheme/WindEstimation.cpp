@@ -38,15 +38,11 @@ using namespace miosix;
 namespace Parafoil
 {
 
-WindEstimation::WindEstimation() : running(false), calRunning(false) {}
-
-bool WindEstimation::start()
+WindEstimation::WindEstimation() : running(false), calRunning(false)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
-    ModuleManager& modules = ModuleManager::getInstance();
 
     // Register the calibration task
-
 #ifdef PRF_TEST
     BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::windEstimationSchemeCalibration, this), 100);
@@ -65,8 +61,6 @@ bool WindEstimation::start()
         std::bind(&WindEstimation::windEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif
-
-    return true;
 }
 
 WindEstimation::~WindEstimation()

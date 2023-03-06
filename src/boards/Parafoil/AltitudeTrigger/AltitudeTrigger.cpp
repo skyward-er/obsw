@@ -38,13 +38,12 @@ using namespace Common;
 namespace Parafoil
 {
 
-bool AltitudeTrigger::start()
+AltitudeTrigger::AltitudeTrigger()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
     confidence = 0;
     running    = false;
-    return true;
 }
 
 void AltitudeTrigger::enable()
