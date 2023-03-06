@@ -48,20 +48,20 @@ bool WindEstimation::start()
     // Register the calibration task
 
 #ifdef PRF_TEST
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this), 100);
 
     // Register the WES task
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationScheme, this), 10);
 #else
 
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationSchemeCalibration, this),
         WES_CALIBRATION_UPDATE_PERIOD);
 
     // Register the WES task
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::WindEstimationScheme, this),
         WES_PREDICTION_UPDATE_PERIOD);
 #endif

@@ -41,7 +41,6 @@ int main()
     ModuleHelper& module_helper = ModuleHelper::getInstance();
 
     // Initialize the modules
-    module_helper.setUpBoardScheduler();
     module_helper.setUpActuators();
     module_helper.setUpWindEstimation();
     module_helper.setUpWingController();
@@ -78,7 +77,7 @@ int main()
     }
 
     // Start the board task scheduler
-    if (!modules.get<BoardScheduler>()->getScheduler().start())
+    if (!BoardScheduler::getInstance().getScheduler().start())
     {
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }

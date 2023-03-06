@@ -45,7 +45,7 @@ namespace Parafoil
 bool NASController::start()
 {
     // Add the update task to the scheduler
-    ModuleManager::getInstance().get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         bind(&NASController::update, this), UPDATE_PERIOD,
         TaskScheduler::Policy::RECOVER);
 

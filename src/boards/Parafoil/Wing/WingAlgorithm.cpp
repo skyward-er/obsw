@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <common/Events.h>

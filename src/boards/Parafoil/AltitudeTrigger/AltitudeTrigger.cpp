@@ -40,7 +40,7 @@ namespace Parafoil
 
 bool AltitudeTrigger::start()
 {
-    ModuleManager::getInstance().get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
     confidence = 0;
     running    = false;

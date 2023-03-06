@@ -118,7 +118,7 @@ int main()
     }
 
     // Start the board task scheduler
-    if (!modules.get<BoardScheduler>()->getScheduler().start())
+    if (!BoardScheduler::getInstance().getScheduler().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
@@ -141,7 +141,7 @@ int main()
 
     HIL::getInstance().start();
 
-    modules.get<BoardScheduler>()->getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         []() { HIL::getInstance().send(0.0f); }, 100);
 
     // flightPhasesManager->registerToFlightPhase(FlightPhases::FLYING, )
