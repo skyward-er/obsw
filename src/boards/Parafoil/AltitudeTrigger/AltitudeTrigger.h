@@ -32,9 +32,9 @@ namespace Parafoil  // TODO add better comments
 class AltitudeTrigger : public ParafoilModule
 {
 public:
-    AltitudeTrigger() {}
+    AltitudeTrigger();
 
-    bool start() override;
+    bool start() override { return true; }
 
     // Method to set the altitude where to trigger the dpl event
     void setDeploymentAltitude(float altitude);

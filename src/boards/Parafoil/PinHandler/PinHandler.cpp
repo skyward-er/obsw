@@ -61,7 +61,4 @@ PinHandler::PinHandler()
         bind(&PinHandler::onExpulsionPinTransition, this, _1),
         DPL_SERVO_PIN_THRESHOLD);
 }
-
-bool PinHandler::start() { return true; }
-
 }  // namespace Parafoil

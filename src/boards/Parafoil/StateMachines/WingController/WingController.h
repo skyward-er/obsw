@@ -75,7 +75,7 @@ public:
      */
     ~WingController();
 
-    bool start() override;
+    bool start() override { return true; }
 
     void setControlled(bool controlled);
 
