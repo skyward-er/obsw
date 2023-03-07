@@ -37,9 +37,7 @@ Buttons::Buttons(TaskScheduler* sched) : scheduler(sched)
 {
     resetState();
     state.armed = false;
-
-    remoteArm = 1;
-    setRemoteArmState(0);
+    remoteArm   = 0;
 }
 
 bool Buttons::start()
@@ -111,10 +109,10 @@ void Buttons::setRemoteArmState(int armed)
     using armed_led = Gpio<GPIOC_BASE, 13>;
     using buzzer    = Gpio<GPIOB_BASE, 7>;
 
-    if (armed == 1 && !remoteArm)
+    if (armed)
     {
         remoteArm = true;
-        // armed_led::high();
+        armed_led::high();
         // modules.get<BoardScheduler>()->getScheduler().addTask(
         //     [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
         // modules.get<BoardScheduler>()->getScheduler().addTask(
@@ -122,10 +120,10 @@ void Buttons::setRemoteArmState(int armed)
         //     TaskScheduler::Policy::RECOVER, miosix::getTick() +
         //     BUZZER_PERIOD);
     }
-    else if (armed != 1 && remoteArm)
+    else
     {
         remoteArm = false;
-        // armed_led::low();
+        armed_led::low();
         // modules.get<BoardScheduler>()->getScheduler().removeTask(
         //     BUZZER_ON_TASK_ID);
         // modules.get<BoardScheduler>()->getScheduler().removeTask(

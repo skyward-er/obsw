@@ -50,7 +50,7 @@ constexpr uint32_t PING_GSE_PERIOD = 500;  // [ms]
 // Periodic telemetries tasks ids
 constexpr uint8_t PING_GSE_TASK_ID = 200;
 
-constexpr uint32_t MAVLINK_QUEUE_SIZE = 9;
+constexpr uint32_t MAVLINK_QUEUE_SIZE = 3;
 
 }  // namespace Radio
 }  // namespace Config

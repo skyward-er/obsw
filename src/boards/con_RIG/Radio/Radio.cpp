@@ -26,6 +26,7 @@
 #include <con_RIG/BoardScheduler.h>
 #include <con_RIG/Buses.h>
 #include <con_RIG/Buttons/Buttons.h>
+#include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 #include <radio/Xbee/ATCommands.h>
@@ -71,8 +72,6 @@ void __attribute__((used)) EXTI13_IRQHandlerImpl()
 namespace con_RIG
 {
 
-Mutex usart_mutex;
-
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
@@ -99,12 +98,12 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
 
 void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
 {
-    Lock<Mutex> lock(usart_mutex);
-
     uint8_t temp_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
                      MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
     int len = mavlink_msg_to_send_buffer(temp_buf, &msg);
-    ModuleManager::getInstance().get<Buses>()->usart1.write(temp_buf, len);
+
+    auto serial = miosix::DefaultConsole::instance().get();
+    serial->writeBlock(temp_buf, len, 0);
 }
 
 void Radio::sendMessages()
@@ -125,16 +124,14 @@ void Radio::sendMessages()
                                        Config::Radio::MAV_COMPONENT_ID, &msg,
                                        &tc);
 
+    for (uint8_t i = 0; i < message_queue_index; i++)
     {
-        Lock<FastMutex> lock(mutex);
-
-        message_queue[message_queue_index + 1] = msg;
-        for (uint8_t i = 0; i <= message_queue_index + 1; i++)
-        {
-            mavDriver->enqueueMsg(message_queue[i]);
-        }
-        message_queue_index = 0;
+        mavDriver->enqueueMsg(message_queue[i]);
     }
+    message_queue_index = 0;
+
+    // The last is the button state message
+    mavDriver->enqueueMsg(msg);
 }
 
 void Radio::loopReadFromUsart()
@@ -146,11 +143,12 @@ void Radio::loopReadFromUsart()
 
     while (true)
     {
-        int len =
-            ModuleManager::getInstance().get<Buses>()->usart1.read(&byte, 1);
+        auto serial = miosix::DefaultConsole::instance().get();
+        int len     = serial->readBlock(&byte, 1, 0);
+
         if (len && mavlink_parse_char(chan, byte, &msg, &status))
         {
-            if (message_queue_index == MAVLINK_QUEUE_SIZE)
+            if (message_queue_index == MAVLINK_QUEUE_SIZE - 1)
             {
                 mavlink_message_t nack_msg;
                 mavlink_nack_tm_t nack_tm;
@@ -181,7 +179,7 @@ bool Radio::start()
     ModuleManager& modules = ModuleManager::getInstance();
 
     SPIBusConfig spiConfig{};
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
     spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
 
@@ -222,9 +220,9 @@ bool Radio::start()
     }
 
     scheduler->addTask([&]() { sendMessages(); }, PING_GSE_PERIOD,
-                       PING_GSE_TASK_ID);
+                       PING_GSE_TASK_ID, TaskScheduler::Policy::RECOVER);
 
-    // std::thread read([&]() { loopReadFromUsart(); });
+    receiverLooper = std::thread([=]() { loopReadFromUsart(); });
 
     return mavDriver->start();
 }

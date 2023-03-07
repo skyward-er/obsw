@@ -30,6 +30,7 @@
 #include <scheduler/TaskScheduler.h>
 
 #include <cstdint>
+#include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace con_RIG
@@ -64,9 +65,10 @@ private:
     void mavlinkWriteToUsart(const mavlink_message_t& msg);
 
     mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
-    uint8_t message_queue_index;
+    uint8_t message_queue_index = 0;
     miosix::FastMutex mutex;
 
+    std::thread receiverLooper;
     Boardcore::TaskScheduler* scheduler = nullptr;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

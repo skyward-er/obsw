@@ -33,27 +33,11 @@ namespace con_RIG
 
 struct Buses : public Boardcore::Module
 {
-    Boardcore::USART usart1;
-    Boardcore::USART usart2;
-    Boardcore::USART usart3;
-    Boardcore::USART uart4;
-
     Boardcore::SPIBus spi1;
     Boardcore::SPIBus spi2;
 
 public:
-    Buses()
-        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
-          usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
-          uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
-          spi1(SPI1), spi2(SPI2)
-    {
-        usart1.init();
-        usart2.init();
-        usart3.init();
-        uart4.init();
-    }
+    Buses() : spi1(SPI1), spi2(SPI2) {}
 };
 
 }  // namespace con_RIG

@@ -30,6 +30,7 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 
+#include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
@@ -72,6 +73,16 @@ void initPins()
 
     cs::high();
     nrst::high();
+
+    // USART 1
+    using tx = Gpio<GPIOA_BASE, 9>;
+    using rx = Gpio<GPIOA_BASE, 10>;
+
+    tx::mode(Mode::ALTERNATE);
+    rx::mode(Mode::ALTERNATE);
+
+    tx::alternateFunction(7);
+    rx::alternateFunction(7);
 
     // Buttons and switch
     using GpioIgnitionBtn        = Gpio<GPIOB_BASE, 4>;

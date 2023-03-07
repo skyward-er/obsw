@@ -61,7 +61,7 @@ public:
 private:
     ButtonsState state;
     void periodicStatusCheck();
-    bool remoteArm;
+    std::atomic<bool> remoteArm{false};
 
     Boardcore::TaskScheduler* scheduler = nullptr;
 
