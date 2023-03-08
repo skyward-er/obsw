@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <miosix.h>
 #include <utils/Debug.h>
@@ -29,19 +30,91 @@
 #include <vector>
 
 using namespace miosix;
+using namespace Boardcore;
 using namespace Parafoil;
 using namespace std;
 
+class SensorsMock : public Sensors
+{
+public:
+    SensorsMock() {}
+
+    bool start() override { return true; }
+
+    UBXGPSData getUbxGpsLastSample()
+    {
+        UBXGPSData data;
+
+        // if out of bounds set fix to 0
+        if (index >= testValue->size() - 1)
+        {
+            return data;
+        }
+
+        // else fake data
+        data.fix           = 1;
+        data.velocityNorth = (*testValue)[index][0];
+        data.velocityEast  = (*testValue)[index][1];
+        index++;
+        return data;
+    }
+
+    void setTestValue(vector<vector<float>>* testValue)
+    {
+        this->testValue = testValue;
+    }
+
+private:
+    vector<vector<float>>* testValue;
+    size_t index = 0;
+};
+
+class WindEstimationMock : public WindEstimation
+{
+public:
+    WindEstimationMock() : WindEstimation() {}
+
+    bool start() override
+    {
+        BoardScheduler::getInstance().getScheduler().addTask(
+            std::bind(&WindEstimationSchemeCalibration, this), 100);
+
+        // Register the WES task
+        BoardScheduler::getInstance().getScheduler().addTask(
+            std::bind(&WindEstimationScheme, this), 10);
+
+        return true;
+    }
+};
+
 int main()
 {
-    ModuleHelper& module_helper = ModuleHelper::getInstance();
+    ModuleManager& modules = ModuleManager::getInstance();
 
     // Initialize the modules
-    module_helper.setUpWindEstimation();
+    Sensors* sensors                = new SensorsMock();
+    WindEstimation* wind_estimation = new WindEstimationMock();
 
-    module_helper.startAllModules();
+    // Insert the modules
+    modules.insert<Sensors>(sensors);
+    modules.insert<WindEstimation>(wind_estimation);
 
-    Boardcore::ModuleManager& modules = module_helper.getModules();
+    // start the scheduler
+    if (!BoardScheduler::getInstance().getScheduler().start())
+    {
+        TRACE("Error starting the General Purpose Scheduler\n");
+    }
+
+    // Start the modules
+    if (!ModuleManager::getInstance().get<Sensors>()->start())
+    {
+        TRACE("Error starting Sensors\n");
+    }
+
+    if (!ModuleManager::getInstance().get<WindEstimation>()->start())
+    {
+        TRACE("Error starting WindEstimation\n");
+    }
 
     WindEstimation& wind_estimation_module = *(modules.get<WindEstimation>());
 
@@ -49,7 +122,7 @@ int main()
         {-100.0000, 78.7071}, {-99.9686, 78.7290}, {-99.9372, 78.7501}};
     TRACE("values size %d\n", (*values).size());
     BoardScheduler::getInstance().getScheduler().start();
-    wind_estimation_module.setTestValue(values);
+    ((SensorsMock*)sensors)->setTestValue(values);
     wind_estimation_module.startWindEstimationSchemeCalibration();
     Thread::sleep(2500);
     wind_estimation_module.stopWindEstimationSchemeCalibration();
