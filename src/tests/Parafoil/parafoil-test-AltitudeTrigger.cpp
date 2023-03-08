@@ -25,7 +25,6 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 
-#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 // using namespace miosix;
@@ -56,13 +55,8 @@ private:
 
 int main()
 {
-    // ModuleHelper& module_helper = ModuleHelper::getInstance();
-    // get the modules
-    // PrintLogger logger          = Logging::getLogger("main");
-    //  EventBroker& broker         = EventBroker::getInstance();
-
     // Initialize the modules
-    NASController* nas_controller     = new NASController();
+    NASController* nas_controller     = new NASMock();
     AltitudeTrigger* altitude_trigger = new AltitudeTrigger();
 
     // Insert the modules
