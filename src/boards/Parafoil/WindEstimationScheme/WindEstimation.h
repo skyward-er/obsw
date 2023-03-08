@@ -52,7 +52,7 @@ public:
      */
     ~WindEstimation();
 
-    bool start() override { return true; }
+    bool start() override;
 
     void startWindEstimationSchemeCalibration();
 
@@ -66,24 +66,7 @@ public:
 
     Eigen::Vector2f getWindEstimationScheme();
 
-#ifdef PRF_TEST
-    void setTestValue(vector<vector<float>> *testValue)
-    {
-        this->testValue = testValue;
-    }
-#endif
-
-private:
-#ifdef PRF_TEST
-    vector<vector<float>> *testValue;
-    size_t index = 0;
-#endif
-
-    /**
-     * @brief Logs the prediction
-     */
-    void logStatus();
-
+protected:
     /**
      * @brief Creates the windCalibration matrix with the starting prediction
      * value
@@ -94,6 +77,12 @@ private:
      * @brief Updates the wind matrix with the updated wind prediction values
      */
     void windEstimationScheme();
+
+private:
+    /**
+     * @brief Logs the prediction
+     */
+    void logStatus();
 
     /**
      * @brief Parameters needed for calibration
