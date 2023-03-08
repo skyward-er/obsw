@@ -123,15 +123,17 @@ void Radio::sendMessages()
     mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,
                                        &tc);
-
-    for (uint8_t i = 0; i < message_queue_index; i++)
     {
-        mavDriver->enqueueMsg(message_queue[i]);
-    }
-    message_queue_index = 0;
+        Lock<FastMutex> lock(mutex);
+        for (uint8_t i = 0; i < message_queue_index; i++)
+        {
+            mavDriver->enqueueMsg(message_queue[i]);
+        }
+        message_queue_index = 0;
 
-    // The last is the button state message
-    mavDriver->enqueueMsg(msg);
+        // The last is the button state message
+        mavDriver->enqueueMsg(msg);
+    }
 }
 
 void Radio::loopReadFromUsart()
@@ -162,8 +164,8 @@ void Radio::loopReadFromUsart()
             else
             {
                 Lock<FastMutex> lock(mutex);
-                message_queue_index += 1;
                 message_queue[message_queue_index] = msg;
+                message_queue_index += 1;
             }
         }
     }
@@ -179,7 +181,7 @@ bool Radio::start()
     ModuleManager& modules = ModuleManager::getInstance();
 
     SPIBusConfig spiConfig{};
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
     spiConfig.mode         = SPI::Mode::MODE_0;
     spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
 
