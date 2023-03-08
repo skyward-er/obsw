@@ -107,28 +107,16 @@ void Buttons::periodicStatusCheck()
 void Buttons::setRemoteArmState(int armed)
 {
     using armed_led = Gpio<GPIOC_BASE, 13>;
-    using buzzer    = Gpio<GPIOB_BASE, 7>;
 
     if (armed)
     {
         remoteArm = true;
         armed_led::high();
-        // modules.get<BoardScheduler>()->getScheduler().addTask(
-        //     [&]() { buzzer::low(); }, BUZZER_DELAY, BUZZER_ON_TASK_ID);
-        // modules.get<BoardScheduler>()->getScheduler().addTask(
-        //     [&]() { buzzer::high(); }, BUZZER_DELAY, BUZZER_OFF_TASK_ID,
-        //     TaskScheduler::Policy::RECOVER, miosix::getTick() +
-        //     BUZZER_PERIOD);
     }
     else
     {
         remoteArm = false;
         armed_led::low();
-        // modules.get<BoardScheduler>()->getScheduler().removeTask(
-        //     BUZZER_ON_TASK_ID);
-        // modules.get<BoardScheduler>()->getScheduler().removeTask(
-        //     BUZZER_OFF_TASK_ID);
-        // buzzer::high();
     }
 }
 

@@ -75,7 +75,6 @@ namespace con_RIG
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
-
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_GSE_TM:
@@ -83,7 +82,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             int arming_state = mavlink_msg_gse_tm_get_arming_state(&msg);
             ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
                 arming_state);
-            messageReceived++;
+            messageReceived +=
+                arming_state == 1
+                    ? 10
+                    : 1;  // The beep increments in speed as the state is armed
         }
         case MAVLINK_MSG_ID_ACK_TM:
         {
