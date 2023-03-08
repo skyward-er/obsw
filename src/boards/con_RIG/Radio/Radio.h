@@ -43,11 +43,7 @@ using MavDriver = Boardcore::MavlinkDriver<Config::Radio::RADIO_PKT_LENGTH,
 class Radio : public Boardcore::Module
 {
 public:
-    Boardcore::SX1278Lora* transceiver;
-
-    MavDriver* mavDriver;
-
-    Radio(Boardcore::TaskScheduler* sched);
+    explicit Radio(Boardcore::TaskScheduler* sched);
 
     bool start();
 
@@ -59,6 +55,9 @@ public:
 
     void loopReadFromUsart();
 
+    Boardcore::SX1278Lora* transceiver = nullptr;
+    MavDriver* mavDriver               = nullptr;
+
 private:
     void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
 
@@ -69,6 +68,8 @@ private:
     miosix::FastMutex mutex;
 
     std::thread receiverLooper;
+    std::thread beeperLooper;
+    std::atomic<uint8_t> messageReceived{0};
     Boardcore::TaskScheduler* scheduler = nullptr;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

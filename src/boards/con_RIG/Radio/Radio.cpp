@@ -75,6 +75,7 @@ namespace con_RIG
 void Radio::handleMavlinkMessage(MavDriver* driver,
                                  const mavlink_message_t& msg)
 {
+
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_GSE_TM:
@@ -82,6 +83,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             int arming_state = mavlink_msg_gse_tm_get_arming_state(&msg);
             ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
                 arming_state);
+            messageReceived++;
         }
         case MAVLINK_MSG_ID_ACK_TM:
         {
@@ -225,16 +227,31 @@ bool Radio::start()
                        PING_GSE_TASK_ID, TaskScheduler::Policy::RECOVER);
 
     receiverLooper = std::thread([=]() { loopReadFromUsart(); });
+    beeperLooper   = std::thread(
+        [&]()
+        {
+            using buzzer = Gpio<GPIOB_BASE, 7>;
+            while (true)
+            {
+                Thread::sleep(100);
+                // Doesn't matter the precision, the important thing is
+                // the beep, this is because an atomic is used
+                if (messageReceived > 5)
+                {
+                    messageReceived = 0;
+                    buzzer::low();
+                    Thread::sleep(100);
+                    buzzer::high();
+                }
+            }
+        });
 
     return mavDriver->start();
 }
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
 
-Boardcore::MavlinkStatus Radio::getMavlinkStatus()
-{
-    return mavDriver->getStatus();
-}
+MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
 Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
 

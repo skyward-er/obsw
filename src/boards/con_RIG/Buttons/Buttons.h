@@ -46,7 +46,7 @@ class Buttons : public Boardcore::Module
 {
 
 public:
-    Buttons(Boardcore::TaskScheduler* sched);
+    explicit Buttons(Boardcore::TaskScheduler* sched);
 
     ~Buttons();
 
