@@ -25,7 +25,6 @@
 #include <miosix.h>
 #include <utils/Debug.h>
 
-#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 #include <vector>
 
