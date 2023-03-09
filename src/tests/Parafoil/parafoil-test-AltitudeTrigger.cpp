@@ -41,6 +41,9 @@ public:
     // default destructor
     ~NASMock() {}
 
+    // mocked version of the getNasState function
+    // it returns a NASState with a mocked altitude
+    // that increases by 0.5 every time it is called
     NASState getNasState()
     {
         mocked_altitude += 0.5;
