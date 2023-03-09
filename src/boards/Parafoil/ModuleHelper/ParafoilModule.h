@@ -29,6 +29,10 @@ namespace Parafoil
 class ParafoilModule : public Boardcore::Module
 {
 public:
+    /**
+     * @brief Start should contain the code that is executed when the module is
+     * started and it must be called before the main logic, just after the init
+     */
     [[nodiscard]] virtual bool start() { return false; }
 };
 }  // namespace Parafoil
