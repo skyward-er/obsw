@@ -166,7 +166,7 @@ float Actuators::getServoAngle(ServosList servoId)
 void Actuators::startTwirl()
 {
 
-    setServo(PARAFOIL_LEFT_SERVO, 1);  // TODO add as a parameter in config
+    setServo(PARAFOIL_LEFT_SERVO, SERVO_TWIRL_RADIUS);
     setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Federico Mandelli
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include <ActiveObject.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
-#include <events/FSM.h>
+#include <events/HSM.h>
 
 #include <Eigen/Core>
 #include <atomic>
@@ -54,24 +54,23 @@
 
 namespace Parafoil
 {
-class WingController : public Boardcore::FSM<WingController>,
+class WingController : public Boardcore::HSM<WingController>,
                        public Boardcore::Singleton<WingController>
 
 {
     friend class Boardcore::Singleton<WingController>;
 
 public:
-    void state_idle(const Boardcore::Event& event);
-    void state_wes(const Boardcore::Event& event);
-    void state_automatic(const Boardcore::Event& event);
-    void state_file(const Boardcore::Event& event);
+    Boardcore::State state_idle(const Boardcore::Event& event);
+    Boardcore::State state_flying(const Boardcore::Event& event);
+    Boardcore::State state_calibration(const Boardcore::Event& event);
+    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
+    Boardcore::State state_on_ground(const Boardcore::Event& event);
 
     /**
      * @brief Destroy the Wing Controller object.
      */
     ~WingController();
-
-    void setControlled(bool controlled);
 
     /**
      * @brief Method to set the target position
@@ -92,6 +91,14 @@ public:
 
     WingControllerStatus getStatus();
 
+    /**
+     * @brief Method to add the algorithm in the list
+     *
+     * @param algorithm The algorithm with
+     * all already done (e.g. steps already registered)
+     */
+    void addAlgorithm(WingAlgorithm* algorithm);
+
 private:
     /**
      * @brief Construct a new Wing Controller object
@@ -111,8 +118,6 @@ private:
      */
     std::vector<WingAlgorithm*> algorithms;
 
-    bool controlled = true;
-
     /**
      * @brief PrintLogger
      */
@@ -129,14 +134,6 @@ private:
      * to execute
      */
     size_t selectedAlgorithm;
-
-    /**
-     * @brief Method to add the algorithm in the list
-     *
-     * @param algorithm The algorithm with
-     * all already done (e.g. steps already registered)
-     */
-    void addAlgorithm(WingAlgorithm* algorithm);
 
     /**
      * @brief  starts the selected algorithm

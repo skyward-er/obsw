@@ -21,7 +21,7 @@
  */
 
 #pragma once
-
+// TODO put things to change between flight in this file
 namespace Parafoil
 {
 
@@ -31,7 +31,7 @@ namespace WingConfig
 constexpr int WING_UPDATE_PERIOD           = 100;  // [ms]
 constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 100;  //[ms]
 
-#if defined(EUROC)  // TODO add terni
+#if defined(EUROC)
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
 #elif defined(ROCCARASO)

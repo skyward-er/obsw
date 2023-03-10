@@ -33,7 +33,6 @@
 #elif defined(USE_XBEE_TRANSCEIVER)
 #include <radio/Xbee/ATCommands.h>
 #endif
-// TODO add wingcontroller status, WES
 
 namespace Parafoil
 {

@@ -24,6 +24,7 @@
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
@@ -115,14 +116,12 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS algorithm");
     }
-
+    // TODO encapsulate in a method
     if (!WingController::getInstance().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController");
     }
-    // set the algorithm to sequence
-    WingController::getInstance().setControlled(false);
     //     Start the sensors sampling
     if (!Sensors::getInstance().start())
     {
@@ -162,6 +161,24 @@ int main()
             EventData ev{TimestampTimer::getTimestamp(), event, topic};
             Logger::getInstance().log(ev);
         });
+
+    WingAlgorithm* timedDescent =
+        new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+    WingAlgorithmData step;
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp   = 0;
+    timedDescent->addStep(step);
+    step.servo1Angle = 120;
+    step.servo2Angle = 120;
+    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+    timedDescent->addStep(step);
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+    timedDescent->addStep(step);
+    WingController::getInstance().addAlgorithm(timedDescent);
+    WingController::getInstance().selectAlgorithm(0);
 
     // Periodically statistics
     while (true)

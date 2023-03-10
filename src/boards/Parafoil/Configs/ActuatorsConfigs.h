@@ -31,6 +31,8 @@ namespace Parafoil
 namespace ActuatorsConfigs
 {
 
+constexpr float SERVO_TWIRL_RADIUS = 0.5f;
+
 // Left servo
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =

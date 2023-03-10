@@ -242,6 +242,10 @@ void NASController::state_idle(const Event &event)
         {
             return transition(&NASController::state_calibrating);
         }
+        case NAS_READY:
+        {
+            return transition(&NASController::state_active);
+        }
     }
 }
 

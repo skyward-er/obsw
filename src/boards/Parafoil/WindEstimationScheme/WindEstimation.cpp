@@ -64,7 +64,7 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
 WindEstimation::~WindEstimation()
 {
     stopWindEstimationSchemeCalibration();
-    stoptWindEstimationScheme();
+    stopWindEstimationScheme();
 }
 bool WindEstimation::getStatus() { return running; }
 
@@ -146,9 +146,8 @@ void WindEstimation::windEstimationSchemeCalibration()
                     (calibrationMatrixT * calibrationMatrix)
                         .ldlt()
                         .solve(calibrationMatrixT * calibrationV2);
-                EventBroker::getInstance().post(
-                    WING_WES_CALIBRATION,
-                    TOPIC_ALGOS);  // TODO maybe stop here
+                stopWindEstimationSchemeCalibration();
+                startWindEstimationScheme();
                 calRunning = false;
             }
         }
@@ -166,7 +165,7 @@ void WindEstimation::startWindEstimationScheme()
     }
 }
 
-void WindEstimation::stoptWindEstimationScheme()
+void WindEstimation::stopWindEstimationScheme()
 {
     if (running)
     {

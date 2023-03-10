@@ -45,30 +45,11 @@ namespace Parafoil
 {
 
 WingController::WingController()
-    : FSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
+    : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
     // setting up the 2 type of algorithm
-    addAlgorithm(new AutomaticWingAlgorithm(0.1, 0.01, PARAFOIL_LEFT_SERVO,
-                                            PARAFOIL_RIGHT_SERVO));
-    WingAlgorithm* timedDescent = new WingAlgorithm(
-        PARAFOIL_LEFT_SERVO,
-        PARAFOIL_RIGHT_SERVO);  // TODO encapsulate in a method
-    WingAlgorithmData step;
-    step.servo1Angle = 0;
-    step.servo2Angle = 0;
-    step.timestamp   = 0;
-    timedDescent->addStep(step);
-    step.servo1Angle = 120;
-    step.servo2Angle = 120;
-    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
-    timedDescent->addStep(step);
-    step.servo1Angle = 0;
-    step.servo2Angle = 0;
-    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
-    timedDescent->addStep(step);
-    addAlgorithm(timedDescent);
 
     targetPosition[0] = DEFAULT_TARGET_LAT;
     targetPosition[1] = DEFAULT_TARGET_LON;
@@ -89,100 +70,126 @@ WingControllerStatus WingController::getStatus()
     return status;  // TODO checks if the lock is needed
 }
 
-void WingController::state_idle(const Boardcore::Event& event)
+State WingController::state_idle(const Boardcore::Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            return logStatus(WingControllerState::IDLE);
+            logStatus(WingControllerState::IDLE);
+            return HANDLED;
         }
-        case WING_WES:
+        case FLIGHT_WING_ALT_PASSED:
         {
-            return transition(&WingController::state_wes);
+            return transition(&WingController::state_calibration);
+        }
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
-void WingController::state_wes(
-    const Boardcore::Event& event)  // TODO Redo the FSM and create a HSM with a
-                                    // end state called by FMM:state_Landed
+
+State WingController::state_flying(const Event& event)
+{
+
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_top);
+        }
+        case EV_INIT:
+        {
+            return transition(&WingController::state_calibration);
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            return transition(&WingController::state_on_ground);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State WingController::state_calibration(const Boardcore::Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
+            logStatus(WingControllerState::CALIBRATION);
             Actuators::getInstance().startTwirl();
-            EventBroker::getInstance().postDelayed<WES_TIMEOUT>(WING_CONTROLLED,
-                                                                TOPIC_ALGOS);
+            EventBroker::getInstance().postDelayed<WES_TIMEOUT>(
+                WING_WES_CALIBRATION, TOPIC_ALGOS);
             WindEstimation::getInstance()
                 .startWindEstimationSchemeCalibration();
-            return logStatus(WingControllerState::WES);
+            return HANDLED;
         }
-        case WING_WES_CALIBRATION:  // stop calibration and start wes
-        {
-
-#ifndef PRF_TEST
-            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
-            WindEstimation::getInstance().startWindEstimationScheme();
-            return logStatus(WingControllerState::WES);
-#endif
-        }
-        case WING_CONTROLLED:  // stop twirling
+        case WING_WES_CALIBRATION:
         {
             Actuators::getInstance().stopTwirl();
-            logStatus(WingControllerState::WES);
-            if (controlled)
-            {
-                return transition(&WingController::state_automatic);
-            }
-            else
-            {
-                return transition(&WingController::state_file);
-            }
+            return transition(&WingController::state_controlled_descent);
+        }
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
-void WingController::state_automatic(const Boardcore::Event& event)
+State WingController::state_controlled_descent(const Boardcore::Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
+            logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
             AltitudeTrigger::getInstance().enable();
             startAlgorithm();
-            return logStatus(WingControllerState::AUTOMATIC);
+            return HANDLED;
         }
+        case ALGORITHM_ENDED:
         case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
         {
             stopAlgorithm();
             AltitudeTrigger::getInstance().disable();
-            return transition(&WingController::state_wes);
-        }  // start the algorithm, inside we add the task to the scheduler
+            return transition(&WingController::state_calibration);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
     }
 }
 
-void WingController::state_file(const Boardcore::Event& event)
+State WingController::state_on_ground(const Boardcore::Event& event)
 {
     switch (event)
     {
-        case EV_ENTRY:  // start file algorithm
+        case EV_ENTRY:  // start automatic algorithm
         {
-            selectAlgorithm(1);
-            startAlgorithm();
-            return logStatus(WingControllerState::FILE);
-        }
-        case ALGORITHM_ENDED:  // stop it and return to wes
-        {
+            logStatus(WingControllerState::ON_GROUND);
+            WindEstimation::getInstance().stopWindEstimationScheme();
+            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
             stopAlgorithm();
-            return transition(&WingController::state_wes);
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
         }
     }
-}
-
-void WingController::setControlled(bool controlled)
-{
-    this->controlled = controlled;
 }
 
 void WingController::addAlgorithm(WingAlgorithm* algorithm)
