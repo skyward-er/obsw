@@ -68,7 +68,7 @@ void Buttons::periodicStatusCheck()
 
     // TODO: This should be in bsp
     using GpioIgnitionBtn        = Gpio<GPIOB_BASE, 4>;
-    using GpioFillinValveBtn     = Gpio<GPIOE_BASE, 6>;
+    using GpioFillingValveBtn    = Gpio<GPIOE_BASE, 6>;
     using GpioVentingValveBtn    = Gpio<GPIOE_BASE, 4>;
     using GpioReleasePressureBtn = Gpio<GPIOG_BASE, 9>;
     using GpioQuickConnectorBtn  = Gpio<GPIOD_BASE, 7>;
@@ -81,7 +81,7 @@ void Buttons::periodicStatusCheck()
     {
         state.ignition = true;
     }
-    if (GpioFillinValveBtn::getPin().value())
+    if (GpioFillingValveBtn::getPin().value())
     {
         state.filling_valve = true;
     }
