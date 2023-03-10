@@ -34,9 +34,9 @@ enum class WingControllerState : uint8_t
 {
     UNINIT = 0,
     IDLE,
-    WES,
-    AUTOMATIC,
-    FILE,
+    CALIBRATION,
+    ALGORITHM_CONTROLLED,
+    ON_GROUND,
     END
 };
 

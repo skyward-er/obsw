@@ -35,12 +35,16 @@ enum class FlightModeManagerState : uint8_t
     INVALID = 0,
     INIT,
     INIT_ERROR,
+    INIT_DONE,
     SENSORS_CALIBRATION,
     ALGOS_CALIBRATION,
-    TEST_MODE,
+    DISARMED,
+    ARMED,
     ASCENDING,
+    DROGUE_DESCENT,
     WING_DESCENT,
     MISSION_ENDED,
+    TEST_MODE,
 };
 
 struct FlightModeManagerStatus

@@ -55,7 +55,7 @@ public:
 
     void startWindEstimationScheme();
 
-    void stoptWindEstimationScheme();
+    void stopWindEstimationScheme();
 
     bool getStatus();
 
