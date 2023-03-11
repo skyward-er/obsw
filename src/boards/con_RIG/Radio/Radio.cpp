@@ -85,7 +85,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             messageReceived +=
                 arming_state == 1
                     ? 10
-                    : 1;  // The beep increments in speed as the state is armed
+                    : 2;  // The beep increments in speed as the state is armed
         }
         case MAVLINK_MSG_ID_ACK_TM:
         {
