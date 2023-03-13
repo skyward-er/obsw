@@ -23,6 +23,7 @@
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/PinHandler/PinHandler.h>
@@ -31,6 +32,7 @@
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <common/Events.h>
@@ -61,6 +63,71 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
     ModuleManager& modules = ModuleManager::getInstance();
 
+    // Initialize the modules
+
+    if (!modules.insert<Actuators>(new Actuators()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Actuators module");
+    }
+
+    if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing AltitudeTrigger module");
+    }
+
+    if (!modules.insert<Buses>(new Buses()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Buses module");
+    }
+
+    if (!modules.insert<NASController>(new NASController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing NASController module");
+    }
+
+    if (!modules.insert<FlightModeManager>(new FlightModeManager()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing FlightModeManager module");
+    }
+
+    if (!modules.insert<PinHandler>(new PinHandler()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing PinHandler module");
+    }
+
+    if (!modules.insert<Radio>(new Radio()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Radio module");
+    }
+
+    if (!modules.insert<Sensors>(new Sensors()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing Sensors module");
+    }
+
+    // used indirectly by WingController
+    if (!modules.insert<WindEstimation>(new WindEstimation()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WindEstimation module");
+    }
+
+    if (!modules.insert<WingController>(new WingController()))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error initializing WingController module");
+    }
+
+    // start the modules
+
     if (!Logger::getInstance().start())
     {
         initResult = false;
@@ -73,6 +140,19 @@ int main()
         LOG_ERR(logger, "Error starting the EventBroker");
     }
 
+    // Start the board task scheduler
+    if (!BoardScheduler::getInstance().getScheduler().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
+    }
+
+    if (!modules.get<Actuators>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Actuators");
+    }
+
     // Initialize the servo outputs
     if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
         !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
@@ -83,11 +163,40 @@ int main()
         LOG_ERR(logger, "Error starting the Actuators");
     }
 
-    // Start the radio
+    if (!modules.get<AltitudeTrigger>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the AltitudeTrigger");
+    }
+
+    if (!modules.get<Buses>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Buses");
+    }
+
+    if (!modules.get<NASController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NAS algorithm");
+    }
+
     if (!modules.get<Radio>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
+    }
+
+    if (!modules.get<PinHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinHandler");
+    }
+
+    if (!modules.get<WindEstimation>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the WindEstimation");
     }
 
     // Start the state machines
@@ -95,12 +204,6 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightModeManager");
-    }
-
-    if (!modules.get<NASController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the NAS algorithm");
     }
 
     if (!modules.get<WingController>()->start())
@@ -116,13 +219,6 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors");
-    }
-
-    // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
     if (!PinObserver::getInstance().start())
