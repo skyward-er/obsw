@@ -81,7 +81,12 @@ State WingController::state_idle(const Boardcore::Event& event)
         }
         case FLIGHT_WING_ALT_PASSED:
         {
-            return transition(&WingController::state_calibration);
+            return transition(&WingController::state_flying);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_top);
+            return HANDLED;
         }
         default:
         {
@@ -136,6 +141,14 @@ State WingController::state_calibration(const Boardcore::Event& event)
                 .startWindEstimationSchemeCalibration();
             return HANDLED;
         }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_flying);
+        }
         case WING_WES_CALIBRATION:
         {
             Actuators::getInstance().stopTwirl();
@@ -166,6 +179,14 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
             AltitudeTrigger::getInstance().disable();
             return transition(&WingController::state_calibration);
         }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_flying);
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;
@@ -184,6 +205,14 @@ State WingController::state_on_ground(const Boardcore::Event& event)
             WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
             stopAlgorithm();
             return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_top);
         }
         default:
         {

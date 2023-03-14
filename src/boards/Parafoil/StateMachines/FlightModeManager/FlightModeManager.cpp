@@ -144,6 +144,12 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
+            return HANDLED;
+        }
         case TMTC_FORCE_INIT:
         {
             return transition(&FlightModeManager::state_init_done);
