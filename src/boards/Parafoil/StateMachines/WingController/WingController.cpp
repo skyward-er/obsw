@@ -86,7 +86,6 @@ State WingController::state_idle(const Boardcore::Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_top);
-            return HANDLED;
         }
         default:
         {
