@@ -63,6 +63,9 @@ private:
     void periodicStatusCheck();
     std::atomic<bool> remoteArm{false};
 
+    // Counter guard to avoid spurious triggers
+    uint8_t guard = 0;
+
     Boardcore::TaskScheduler* scheduler = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");

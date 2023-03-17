@@ -65,7 +65,6 @@ void Buttons::resetState()
 
 void Buttons::periodicStatusCheck()
 {
-
     // TODO: This should be in bsp
     using GpioIgnitionBtn        = Gpio<GPIOB_BASE, 4>;
     using GpioFillingValveBtn    = Gpio<GPIOE_BASE, 6>;
@@ -79,27 +78,80 @@ void Buttons::periodicStatusCheck()
 
     if (!GpioIgnitionBtn::getPin().value() && state.armed)
     {
-        state.ignition = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard          = 0;
+            state.ignition = true;
+        }
+        else
+        {
+            guard++;
+        }
     }
-    if (GpioFillingValveBtn::getPin().value())
+    else if (GpioFillingValveBtn::getPin().value())
     {
-        state.filling_valve = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard               = 0;
+            state.filling_valve = true;
+        }
+        else
+        {
+            guard++;
+        }
     }
-    if (GpioVentingValveBtn::getPin().value())
+    else if (GpioVentingValveBtn::getPin().value())
     {
-        state.venting_valve = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard               = 0;
+            state.venting_valve = true;
+        }
+        else
+        {
+            guard++;
+        }
     }
-    if (GpioReleasePressureBtn::getPin().value())
+    else if (GpioReleasePressureBtn::getPin().value())
     {
-        state.release_filling_line_pressure = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard                               = 0;
+            state.release_filling_line_pressure = true;
+        }
+        else
+        {
+            guard++;
+        }
     }
-    if (GpioQuickConnectorBtn::getPin().value())
+    else if (GpioQuickConnectorBtn::getPin().value())
     {
-        state.release_filling_line_pressure = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard                        = 0;
+            state.detach_quick_connector = true;
+        }
+        else
+        {
+            guard++;
+        }
     }
-    if (GpioStartTarsBtn::getPin().value())
+    else if (GpioStartTarsBtn::getPin().value())
     {
-        state.startup_tars = true;
+        if (guard > Config::Buttons::GUARD_THRESHOLD)
+        {
+            guard              = 0;
+            state.startup_tars = true;
+        }
+        else
+        {
+            guard++;
+        }
+    }
+    else
+    {
+        // Reset the guard
+        guard = 0;
     }
 }
 

@@ -45,6 +45,9 @@ static constexpr uint32_t BUZZER_DELAY  = 3000;
 constexpr uint8_t BUZZER_ON_TASK_ID     = 160;
 constexpr uint8_t BUZZER_OFF_TASK_ID    = 161;
 
+constexpr uint8_t GUARD_THRESHOLD =
+    10;  // 10 samples to trigger the guard and activate a single button
+
 }  // namespace Buttons
 }  // namespace Config
 
