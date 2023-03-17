@@ -102,6 +102,10 @@ enum Events : uint8_t
     MOTOR_IGNITION,
     MOTOR_OPEN_FEED_VALVE,
     MOTOR_CLOSE_FEED_VALVE,
+    MOTOR_MANUAL_ACTION,
+    TARS_WASHING_DONE,
+    TARS_FILLING_DONE,
+    TARS_REFINING_DONE,
 };
 
 inline string getEventString(uint8_t event)
@@ -164,6 +168,10 @@ inline string getEventString(uint8_t event)
         {MOTOR_DISCONNECT, "MOTOR_DISCONNECT"},
         {MOTOR_OPEN_FEED_VALVE, "MOTOR_OPEN_FEED_VALVE"},
         {MOTOR_CLOSE_FEED_VALVE, "MOTOR_CLOSE_FEED_VALVE"},
+        {MOTOR_MANUAL_ACTION, "MOTOR_MANUAL_ACTION"},
+        {TARS_WASHING_DONE, "TARS_WASHING_DONE"},
+        {TARS_FILLING_DONE, "TARS_FILLING_DONE"},
+        {TARS_REFINING_DONE, "TARS_REFINING_DONE"},
     };
 
     auto it = event_string_map.find(event);
