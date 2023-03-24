@@ -25,13 +25,15 @@
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 
+#include "WingConfig.h"  //Ugly thing to do but useful for when we need to change paramether on the fly (Terni)
+
 namespace Parafoil
 {
 
 namespace ActuatorsConfigs
 {
 
-constexpr float SERVO_TWIRL_RADIUS = 0.5f;
+constexpr float SERVO_TWIRL_RADIUS = MAX_SERVO_APERTURE;
 
 // Left servo
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;

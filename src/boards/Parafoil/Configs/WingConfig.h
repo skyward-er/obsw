@@ -28,6 +28,7 @@ namespace Parafoil
 namespace WingConfig
 {
 // Algorithm configuration
+
 constexpr int WING_UPDATE_PERIOD           = 100;  // [ms]
 constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 100;  //[ms]
 
@@ -47,6 +48,7 @@ constexpr float DEFAULT_TARGET_LON = 12.585847;
 constexpr float DEFAULT_TARGET_LON = 9;*/ //to be safe
 #endif
 
+constexpr float MAX_SERVO_APERTURE = 0.5f;
 // Wing altitude checker configs
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 5;   // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
