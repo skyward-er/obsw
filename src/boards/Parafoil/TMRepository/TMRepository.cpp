@@ -61,9 +61,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp    = TimestampTimer::getTimestamp();
             tm.logger       = Logger::getInstance().isStarted();
             tm.event_broker = EventBroker::getInstance().isRunning();
-            tm.radio        = Radio::getInstance().isStarted();
+            tm.radio = ModuleManager::getInstance().get<Radio>()->isStarted();
             tm.pin_observer = PinObserver::getInstance().isRunning();
-            tm.sensors      = Sensors::getInstance().isStarted();
+            tm.sensors =
+                ModuleManager::getInstance().get<Sensors>()->isStarted();
             tm.board_scheduler =
                 BoardScheduler::getInstance().getScheduler().isRunning();
 
@@ -99,7 +100,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_mavlink_stats_tm_t tm;
 
-            auto stats = Radio::getInstance().getMavlinkStatus();
+            auto stats =
+                ModuleManager::getInstance().get<Radio>()->getMavlinkStatus();
 
             tm.timestamp               = stats.timestamp;
             tm.n_send_queue            = stats.nSendQueue;
@@ -124,26 +126,32 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_nas_tm_t tm;
 
-            auto state = NASController::getInstance().getNasState();
-            auto ref   = NASController::getInstance().getReferenceValues();
+            auto state = ModuleManager::getInstance()
+                             .get<NASController>()
+                             ->getNasState();
+            auto ref = ModuleManager::getInstance()
+                           .get<NASController>()
+                           ->getReferenceValues();
 
-            tm.timestamp = state.timestamp;
-            tm.state     = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
-            tm.nas_n           = state.n;
-            tm.nas_e           = state.e;
-            tm.nas_d           = state.d;
-            tm.nas_vn          = state.vn;
-            tm.nas_ve          = state.ve;
-            tm.nas_vd          = state.vd;
-            tm.nas_qx          = state.qx;
-            tm.nas_qy          = state.qy;
-            tm.nas_qz          = state.qz;
-            tm.nas_qw          = state.qw;
-            tm.nas_bias_x      = state.bx;
-            tm.nas_bias_y      = state.by;
-            tm.nas_bias_z      = state.bz;
-            tm.ref_pressure    = ref.refPressure;
+            tm.timestamp    = state.timestamp;
+            tm.state        = static_cast<uint8_t>(ModuleManager::getInstance()
+                                                .get<NASController>()
+                                                ->getStatus()
+                                                .state);
+            tm.nas_n        = state.n;
+            tm.nas_e        = state.e;
+            tm.nas_d        = state.d;
+            tm.nas_vn       = state.vn;
+            tm.nas_ve       = state.ve;
+            tm.nas_vd       = state.vd;
+            tm.nas_qx       = state.qx;
+            tm.nas_qy       = state.qy;
+            tm.nas_qz       = state.qz;
+            tm.nas_qw       = state.qw;
+            tm.nas_bias_x   = state.bx;
+            tm.nas_bias_y   = state.by;
+            tm.nas_bias_z   = state.bz;
+            tm.ref_pressure = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
@@ -156,34 +164,44 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         case SystemTMList::MAV_FLIGHT_ID:
         {
             mavlink_payload_flight_tm_t tm;
-            Sensors &sensors = Sensors::getInstance();
+            Sensors *sensors = ModuleManager::getInstance().get<Sensors>();
 
-            MS5803Data ms5803Data = sensors.getMS5803LastSample();
+            MS5803Data ms5803Data = sensors->getMS5803LastSample();
             BMX160WithCorrectionData imuData =
-                sensors.getBMX160WithCorrectionLastSample();
+                sensors->getBMX160WithCorrectionLastSample();
 
-            NASState nasState  = NASController::getInstance().getNasState();
-            UBXGPSData ubxData = sensors.getUbxGpsLastSample();
+            NASState nasState = ModuleManager::getInstance()
+                                    .get<NASController>()
+                                    ->getNasState();
+            UBXGPSData ubxData = sensors->getUbxGpsLastSample();
 
-            Eigen::Vector2f wesData =
-                WindEstimation::getInstance().getWindEstimationScheme();
+            Eigen::Vector2f wesData = ModuleManager::getInstance()
+                                          .get<WindEstimation>()
+                                          ->getWindEstimationScheme();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // State machines states
-            tm.fmm_state =
-                (uint8_t)FlightModeManager::getInstance().getStatus().state;
-            tm.nas_state =
-                (uint8_t)NASController::getInstance().getStatus().state;
+            tm.fmm_state = (uint8_t)ModuleManager::getInstance()
+                               .get<FlightModeManager>()
+                               ->getStatus()
+                               .state;
+            tm.nas_state = (uint8_t)ModuleManager::getInstance()
+                               .get<NASController>()
+                               ->getStatus()
+                               .state;
 
-            tm.wes_state =
-                (uint8_t)WingController::getInstance().getStatus().state;
+            tm.wes_state = (uint8_t)ModuleManager::getInstance()
+                               .get<WingController>()
+                               ->getStatus()
+                               .state;
 
             // Pressures
-            tm.pressure_digi   = ms5803Data.pressure;
-            tm.pressure_static = sensors.getStaticPressureLastSample().pressure;
-            tm.pressure_dpl    = sensors.getDplPressureLastSample().pressure;
-            tm.airspeed_pitot  = sensors.getPitotLastSample().airspeed;
+            tm.pressure_digi = ms5803Data.pressure;
+            tm.pressure_static =
+                sensors->getStaticPressureLastSample().pressure;
+            tm.pressure_dpl   = sensors->getDplPressureLastSample().pressure;
+            tm.airspeed_pitot = sensors->getPitotLastSample().airspeed;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
@@ -207,9 +225,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Servo motors
             tm.left_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    PARAFOIL_LEFT_SERVO);
             tm.right_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    PARAFOIL_RIGHT_SERVO);
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -227,18 +247,22 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
-            tm.pin_nosecone =
-                PinHandler::getInstance().getPinsData()[NOSECONE_PIN].lastState;
+            tm.pin_nosecone = ModuleManager::getInstance()
+                                  .get<PinHandler>()
+                                  ->getPinsData()[NOSECONE_PIN]
+                                  .lastState;
 
             // Servo positions
             tm.left_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_LEFT_SERVO);
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    PARAFOIL_LEFT_SERVO);
 
             tm.right_servo_angle =
-                Actuators::getInstance().getServoAngle(PARAFOIL_RIGHT_SERVO);
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    PARAFOIL_RIGHT_SERVO);
 
             // Board status
-            tm.vbat         = sensors.getBatteryVoltageLastSample().batVoltage;
+            tm.vbat         = sensors->getBatteryVoltageLastSample().batVoltage;
             tm.temperature  = ms5803Data.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
@@ -270,10 +294,14 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
             tm.ada_state = 0;
-            tm.fmm_state = static_cast<uint8_t>(
-                FlightModeManager::getInstance().getStatus().state);
-            tm.nas_state = static_cast<uint8_t>(
-                NASController::getInstance().getStatus().state);
+            tm.fmm_state = static_cast<uint8_t>(ModuleManager::getInstance()
+                                                    .get<FlightModeManager>()
+                                                    ->getStatus()
+                                                    .state);
+            tm.nas_state = static_cast<uint8_t>(ModuleManager::getInstance()
+                                                    .get<FlightModeManager>()
+                                                    ->getStatus()
+                                                    .state);
 
             mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
@@ -309,7 +337,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_gps_tm_t tm;
 
-            UBXGPSData gpsData = Sensors::getInstance().getUbxGpsLastSample();
+            UBXGPSData gpsData = ModuleManager::getInstance()
+                                     .get<Sensors>()
+                                     ->getUbxGpsLastSample();
 
             tm.timestamp = gpsData.gpsTimestamp;
             strcpy(tm.sensor_name, "UBXGPS");
@@ -333,8 +363,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_imu_tm_t tm;
 
-            auto imuData =
-                Sensors::getInstance().getBMX160WithCorrectionLastSample();
+            auto imuData = ModuleManager::getInstance()
+                               .get<Sensors>()
+                               ->getBMX160WithCorrectionLastSample();
 
             tm.timestamp = imuData.accelerationTimestamp;
             strcpy(tm.sensor_name, "BMX160");
@@ -357,7 +388,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData = Sensors::getInstance().getMS5803LastSample();
+            auto pressureData = ModuleManager::getInstance()
+                                    .get<Sensors>()
+                                    ->getMS5803LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_name, "MS5803");
@@ -373,8 +406,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData =
-                Sensors::getInstance().getDplPressureLastSample();
+            auto pressureData = ModuleManager::getInstance()
+                                    .get<Sensors>()
+                                    ->getDplPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_name, "DPL_PRESSURE");
@@ -390,8 +424,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData =
-                Sensors::getInstance().getStaticPressureLastSample();
+            auto pressureData = ModuleManager::getInstance()
+                                    .get<Sensors>()
+                                    ->getStaticPressureLastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_name, "STATIC_PRESSURE");
@@ -407,8 +442,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            SSCDRRN015PDAData pitot =
-                Sensors::getInstance().getPitotPressureLastSample();
+            SSCDRRN015PDAData pitot = ModuleManager::getInstance()
+                                          .get<Sensors>()
+                                          ->getPitotPressureLastSample();
 
             tm.timestamp = pitot.pressureTimestamp;
             tm.pressure  = pitot.pressure;
@@ -424,7 +460,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_adc_tm_t tm;
 
             BatteryVoltageSensorData battery =
-                Sensors::getInstance().getBatteryVoltageLastSample();
+                ModuleManager::getInstance()
+                    .get<Sensors>()
+                    ->getBatteryVoltageLastSample();
 
             tm.timestamp = battery.voltageTimestamp;
             tm.channel_0 = battery.batVoltage;
@@ -465,8 +503,10 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
     {
         mavlink_servo_tm_t tm;
 
-        tm.servo_id       = servoId;
-        tm.servo_position = Actuators::getInstance().getServoAngle(servoId);
+        tm.servo_id = servoId;
+        tm.servo_position =
+            ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                servoId);
 
         mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                     RadioConfig::MAV_COMPONENT_ID, &msg, &tm);

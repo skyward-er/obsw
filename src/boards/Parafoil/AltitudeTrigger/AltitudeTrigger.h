@@ -22,18 +22,20 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
 #include <atomic>
 
 namespace Parafoil
 {
 
-class AltitudeTrigger : public Boardcore::Singleton<AltitudeTrigger>
+class AltitudeTrigger : public ParafoilModule
 {
-    friend class Boardcore::Singleton<AltitudeTrigger>;
-
 public:
+    AltitudeTrigger();
+
+    bool start() override;
+
     void enable();
 
     void disable();
@@ -41,8 +43,6 @@ public:
     bool isActive();
 
 private:
-    AltitudeTrigger();
-
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();
@@ -51,8 +51,8 @@ private:
 
     std::atomic<bool> running;
 
-    // Number of times that we have to be below the fixed altitude before
-    // posting the event
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
     std::atomic<int> confidence;
 };
 

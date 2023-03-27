@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2021 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,43 +20,19 @@
  * THE SOFTWARE.
  */
 
-#include "PinHandler.h"
+#pragma once
 
-#include <Parafoil/Configs/PinObserverConfig.h>
-#include <common/Events.h>
-#include <events/EventBroker.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-#include <functional>
-
-using namespace std;
-using namespace std::placeholders;
-using namespace miosix;
-using namespace Boardcore;
-using namespace Common;
 namespace Parafoil
 {
-
-void PinHandler::onExpulsionPinTransition(PinTransition transition)
+class ParafoilModule : public Boardcore::Module
 {
-    if (transition == DPL_SERVO_PIN_TRIGGER)  // TODO change policy name
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
-}
-
-std::map<PinsList, PinData> PinHandler::getPinsData()
-{
-    std::map<PinsList, PinData> data;
-
-    data[PinsList::NOSECONE_PIN] =
-        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
-
-    return data;
-}
-
-PinHandler::PinHandler()
-{
-    PinObserver::getInstance().registerPinCallback(
-        inputs::expulsion::getPin(),
-        bind(&PinHandler::onExpulsionPinTransition, this, _1),
-        DPL_SERVO_PIN_THRESHOLD);
-}
+public:
+    /**
+     * @brief Start should contain the code that is executed when the module is
+     * started and it must be called before the main logic, just after the init
+     */
+    [[nodiscard]] virtual bool start() { return false; }
+};
 }  // namespace Parafoil

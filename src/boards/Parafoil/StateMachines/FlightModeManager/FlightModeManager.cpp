@@ -202,7 +202,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         {
             logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
 
-            Sensors::getInstance().calibrate();
+            ModuleManager::getInstance().get<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
 
             return HANDLED;
@@ -237,7 +237,8 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
-            NASController::getInstance().calibrate();
+
+            ModuleManager::getInstance().get<NASController>()->calibrate();
             EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
 
             return HANDLED;
@@ -465,6 +466,7 @@ State FlightModeManager::state_wing_descent(const Event& event)
         }
         case EV_EXIT:
         {
+
             EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }

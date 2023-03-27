@@ -20,11 +20,12 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Boardcore;
 using namespace Parafoil::WingConfig;
@@ -72,6 +73,7 @@ void WingAlgorithm::end()
 
 void WingAlgorithm::step()
 {
+    ModuleManager& modules    = ModuleManager::getInstance();
     uint64_t currentTimestamp = TimestampTimer::getTimestamp();
 
     if (shouldReset)
@@ -96,10 +98,10 @@ void WingAlgorithm::step()
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
         // I need to execute the current step
-        Actuators::getInstance().setServoAngle(servo1,
-                                               steps[stepIndex].servo1Angle);
-        Actuators::getInstance().setServoAngle(servo2,
-                                               steps[stepIndex].servo2Angle);
+        modules.get<Actuators>()->setServoAngle(servo1,
+                                                steps[stepIndex].servo1Angle);
+        modules.get<Actuators>()->setServoAngle(servo2,
+                                                steps[stepIndex].servo2Angle);
 
         // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;

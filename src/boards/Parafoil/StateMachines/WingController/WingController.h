@@ -55,7 +55,7 @@
 namespace Parafoil
 {
 class WingController : public Boardcore::HSM<WingController>,
-                       public Boardcore::Singleton<WingController>
+                       public ParafoilModule
 
 {
     friend class Boardcore::Singleton<WingController>;
@@ -89,6 +89,8 @@ public:
      */
     void selectAlgorithm(unsigned int index);
 
+    void setAutomatic(bool automatic);
+
     WingControllerStatus getStatus();
 
     /**
@@ -99,12 +101,14 @@ public:
      */
     void addAlgorithm(WingAlgorithm* algorithm);
 
-private:
     /**
      * @brief Construct a new Wing Controller object
      */
     WingController();
 
+    bool start() override;
+
+private:
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;
@@ -130,10 +134,12 @@ private:
     std::atomic<bool> running;
     /**
      * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumered algorithm
+     * The user using the Ground Station can select the pre-enumerated algorithm
      * to execute
      */
     size_t selectedAlgorithm;
+
+    std::atomic<bool> automatic;
 
     /**
      * @brief  starts the selected algorithm

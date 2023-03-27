@@ -30,6 +30,8 @@
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace std;
 using namespace Eigen;
 using namespace Boardcore;
@@ -52,13 +54,15 @@ bool NASController::start()
 
 void NASController::update()
 {
+    ModuleManager &modules = ModuleManager::getInstance();
+
     // If the nas is not active i skip the step
     if (this->testState(&NASController::state_active))
     {
         auto imuData =
-            Sensors::getInstance().getBMX160WithCorrectionLastSample();
-        auto gpsData      = Sensors::getInstance().getUbxGpsLastSample();
-        auto pressureData = Sensors::getInstance().getMS5803LastSample();
+            modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+        auto gpsData      = modules.get<Sensors>()->getUbxGpsLastSample();
+        auto pressureData = modules.get<Sensors>()->getMS5803LastSample();
 
         // Predict step
         nas.predictGyro(imuData);
@@ -100,6 +104,7 @@ void NASController::update()
 
 void NASController::calibrate()
 {
+    ModuleManager &modules = ModuleManager::getInstance();
     Vector3f acceleration  = Vector3f::Zero();
     Vector3f magneticField = Vector3f::Zero();
     Stats pressure;
@@ -108,7 +113,7 @@ void NASController::calibrate()
     {
         // IMU
         BMX160WithCorrectionData imuData =
-            Sensors::getInstance().getBMX160WithCorrectionLastSample();
+            modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
         acceleration += Vector3f(imuData.accelerationX, imuData.accelerationY,
                                  imuData.accelerationZ);
         magneticField +=
@@ -116,7 +121,8 @@ void NASController::calibrate()
                      imuData.magneticFieldZ);
 
         // Barometer
-        MS5803Data barometerData = Sensors::getInstance().getMS5803LastSample();
+        MS5803Data barometerData =
+            modules.get<Sensors>()->getMS5803LastSample();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
@@ -140,7 +146,7 @@ void NASController::calibrate()
     reference.refAltitude = Aeroutils::relAltitude(pressure.getStats().mean);
 
     // If in this moment the GPS has fix i use that position as starting
-    UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
+    UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
     if (gps.fix != 0)
     {
         // We don't set the altitude with the GPS because of not precise

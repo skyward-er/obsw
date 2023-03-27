@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -33,11 +33,13 @@ namespace Parafoil
 {
 
 class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Singleton<NASController>
+                      public ParafoilModule
 {
-    friend Boardcore::Singleton<NASController>;
-
 public:
+    NASController();
+
+    ~NASController();
+
     bool start() override;
 
     void update();
@@ -59,9 +61,6 @@ public:
     void state_end(const Boardcore::Event& event);
 
 private:
-    NASController();
-    ~NASController();
-
     void logStatus(NASControllerState state);
 
     NASControllerStatus status;

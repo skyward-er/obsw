@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/WESConfig.h>
-#include <Singleton.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <miosix.h>
@@ -39,15 +39,20 @@ namespace Parafoil
  * @brief This class implements the wind prediction algorithm, the first part is
  * the initial setup, and then the continuos algoritms runs;
  */
-class WindEstimation : public Boardcore::Singleton<WindEstimation>
+class WindEstimation : public ParafoilModule
 {
-    friend class Boardcore::Singleton<WindEstimation>;
-
 public:
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WindEstimation();
+
     /**
      * @brief Destroy the Wing Controller object.
      */
     ~WindEstimation();
+
+    bool start() override;
 
     void startWindEstimationSchemeCalibration();
 
@@ -61,28 +66,7 @@ public:
 
     Eigen::Vector2f getWindEstimationScheme();
 
-#ifdef PRF_TEST
-    void setTestValue(vector<vector<float>> *testValue)
-    {
-        this->testValue = testValue;
-    }
-#endif
-
 private:
-#ifdef PRF_TEST
-    vector<vector<float>> *testValue;
-    size_t index = 0;
-#endif
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WindEstimation();
-
-    /**
-     * @brief Logs the prediction
-     */
-    void logStatus();
-
     /**
      * @brief Creates the windCalibration matrix with the starting prediction
      * value
@@ -93,6 +77,12 @@ private:
      * @brief Updates the wind matrix with the updated wind prediction values
      */
     void windEstimationScheme();
+
+private:
+    /**
+     * @brief Logs the prediction
+     */
+    void logStatus();
 
     /**
      * @brief Parameters needed for calibration

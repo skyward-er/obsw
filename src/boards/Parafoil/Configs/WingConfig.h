@@ -21,7 +21,7 @@
  */
 
 #pragma once
-// TODO put things to change between flight in this file
+
 namespace Parafoil
 {
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Singleton.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>
@@ -36,11 +36,13 @@ namespace Parafoil
  * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
  * The handlers post an event on the EventBroker.
  */
-class PinHandler : public Boardcore::Singleton<PinHandler>
+class PinHandler : public ParafoilModule
 {
-    friend Boardcore::Singleton<PinHandler>;
-
 public:
+    PinHandler();
+
+    bool start() override { return true; }
+
     /**
      * @brief Called when the deployment servo actuation is detected via the
      * optical sensor.
@@ -53,8 +55,6 @@ public:
     std::map<PinsList, Boardcore::PinData> getPinsData();
 
 private:
-    PinHandler();
-
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 };
 

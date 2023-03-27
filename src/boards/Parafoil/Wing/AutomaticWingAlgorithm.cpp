@@ -30,6 +30,8 @@
 #include <math.h>
 #include <utils/Constants.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace Boardcore;
 using namespace Eigen;
 using namespace Parafoil::WingConfig;
@@ -49,22 +51,24 @@ AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
-    if (Sensors::getInstance().getUbxGpsLastSample().fix != 0)
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    if (modules.get<Sensors>()->getUbxGpsLastSample().fix != 0)
     {
         // The PI calculated result
         float result;
 
         // Acquire the last nas state
-        NASState state = NASController::getInstance().getNasState();
-        // UBXGPSData gps = Sensors::getInstance().getUbxGpsLastSample();
+        NASState state = modules.get<NASController>()->getNasState();
+        // UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
 
         // Target direction in respect to the current one
         ReferenceValues reference =
-            NASController::getInstance().getReferenceValues();
+            modules.get<NASController>()->getReferenceValues();
         Vector2f startingPosition =
             Vector2f(reference.refLatitude, reference.refLongitude);
         Vector2f targetPosition = Aeroutils::geodetic2NED(
-            WingController::getInstance().getTargetPosition(),
+            modules.get<WingController>()->getTargetPosition(),
             startingPosition);
         Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
 
@@ -123,21 +127,21 @@ void AutomaticWingAlgorithm::step()
         if (result > 0)
         {
             // Activate the servo1 and reset servo2
-            Actuators::getInstance().setServoAngle(servo1, result);
-            Actuators::getInstance().setServoAngle(servo2, 0);
+            modules.get<Actuators>()->setServoAngle(servo1, result);
+            modules.get<Actuators>()->setServoAngle(servo2, 0);
         }
         else
         {
             // Activate the servo2 and reset servo1
-            Actuators::getInstance().setServoAngle(servo1, 0);
-            Actuators::getInstance().setServoAngle(servo2, result * -1);
+            modules.get<Actuators>()->setServoAngle(servo1, 0);
+            modules.get<Actuators>()->setServoAngle(servo2, result * -1);
         }
 
         // Log the servo positions
         WingAlgorithmData data;
         data.timestamp     = TimestampTimer::getTimestamp();
-        data.servo1Angle   = Actuators::getInstance().getServoPosition(servo1);
-        data.servo2Angle   = Actuators::getInstance().getServoPosition(servo2);
+        data.servo1Angle   = modules.get<Actuators>()->getServoPosition(servo1);
+        data.servo2Angle   = modules.get<Actuators>()->getServoPosition(servo2);
         data.targetX       = targetDirection[0];
         data.targetY       = targetDirection[1];
         data.targetAngle   = targetAngle;
