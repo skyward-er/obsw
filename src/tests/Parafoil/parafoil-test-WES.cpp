@@ -33,10 +33,10 @@ using namespace Boardcore;
 using namespace Parafoil;
 using namespace std;
 
-class sensorsMock : public Sensors
+class SensorsMock : public Sensors
 {
 public:
-    sensorsMock() {}
+    SensorsMock() { testValue = nullptr; }
 
     bool start() override { return true; }
 
@@ -79,7 +79,7 @@ int main()
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Initialize the modules
-    Sensors* sensors                = new sensorsMock();
+    Sensors* sensors                = new SensorsMock();
     WindEstimation* wind_estimation = new WindEstimationMock();
 
     // Insert the modules
@@ -116,7 +116,7 @@ int main()
         {-100.0000, 78.7071}, {-99.9686, 78.7290}, {-99.9372, 78.7501}};
     TRACE("values size %d\n", (*values).size());
     BoardScheduler::getInstance().getScheduler().start();
-    ((sensorsMock*)sensors)->setTestValue(values);
+    reinterpret_cast<SensorsMock*>(sensors)->setTestValue(values);
     wind_estimation_module.startWindEstimationSchemeCalibration();
     Thread::sleep(2500);
     wind_estimation_module.stopWindEstimationSchemeCalibration();
