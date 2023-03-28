@@ -48,12 +48,12 @@ class Radio : public ParafoilModule
 {
 public:
 #if defined(USE_SERIAL_TRANSCEIVER)
-    Boardcore::SerialTransceiver* transceiver;
+    Boardcore::SerialTransceiver* transceiver = nullptr;
 #else
-    Boardcore::Xbee::Xbee* transceiver;
+    Boardcore::Xbee::Xbee* transceiver = nullptr;
 #endif
 
-    MavDriver* mavDriver;
+    MavDriver* mavDriver = nullptr;
 
     Radio();
 
