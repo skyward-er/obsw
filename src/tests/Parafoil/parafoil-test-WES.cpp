@@ -36,7 +36,7 @@ using namespace std;
 class SensorsMock : public Sensors
 {
 public:
-    SensorsMock() {}
+    SensorsMock() { testValue = nullptr; }
 
     bool start() override { return true; }
 
@@ -121,7 +121,7 @@ int main()
         {-100.0000, 78.7071}, {-99.9686, 78.7290}, {-99.9372, 78.7501}};
     TRACE("values size %d\n", (*values).size());
     BoardScheduler::getInstance().getScheduler().start();
-    ((SensorsMock*)sensors)->setTestValue(values);
+    reinterpret_cast<SensorsMock*>(sensors)->setTestValue(values);
     wind_estimation_module.startWindEstimationSchemeCalibration();
     Thread::sleep(2500);
     wind_estimation_module.stopWindEstimationSchemeCalibration();
