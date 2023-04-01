@@ -55,6 +55,47 @@ namespace Parafoil
 
 bool Sensors::start()
 {
+    // Initialize all the sensors
+    lis3mdlInit();
+    ms5803Init();
+    ubxGpsInit();
+    ads1118Init();
+    staticPressureInit();
+    dplPressureInit();
+    pitotPressureInit();
+    pitotInit();
+    internalADCInit();
+    batteryVoltageInit();
+
+    // Moved down here because the bmx takes some times to start
+    bmx160Init();
+    bmx160WithCorrectionInit();
+
+#ifdef HILSimulation
+    // Definition of the fake sensors for the simulation
+    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
+    state.barometer     = new HILBarometer(N_DATA_BARO);
+    state.pitot         = new HILPitot(N_DATA_PITOT);
+    state.gps           = new HILGps(N_DATA_GPS);
+    state.gyro          = new HILGyroscope(N_DATA_GYRO);
+    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
+    state.imu           = new HILImu(N_DATA_IMU);
+    state.temperature   = new HILTemperature(N_DATA_TEMP);
+    state.kalman        = new HILKalman(N_DATA_KALM);
+
+    sensorsMap = {{state.accelerometer, accelConfig},
+                  {state.barometer, baroConfig},
+                  {state.pitot, pitotConfig},
+                  {state.magnetometer, magnConfig},
+                  {state.imu, imuConfig},
+                  {state.gps, gpsConfig},
+                  {state.gyro, gyroConfig},
+                  {state.temperature, tempConfig},
+                  {state.kalman, kalmConfig}};
+#endif
+
+    // Create the sensor manager
+    sensorManager                = new SensorManager(sensorsMap);
     miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
     enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
                             InterruptTrigger::FALLING_EDGE, 0);
@@ -268,50 +309,7 @@ std::map<string, bool> Sensors::getSensorsState()
     return sensorsState;
 }
 
-Sensors::Sensors()
-{
-    // Initialize all the sensors
-    lis3mdlInit();
-    ms5803Init();
-    ubxGpsInit();
-    ads1118Init();
-    staticPressureInit();
-    dplPressureInit();
-    pitotPressureInit();
-    pitotInit();
-    internalADCInit();
-    batteryVoltageInit();
-
-    // Moved down here because the bmx takes some times to start
-    bmx160Init();
-    bmx160WithCorrectionInit();
-
-#ifdef HILSimulation
-    // Definition of the fake sensors for the simulation
-    state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
-    state.barometer     = new HILBarometer(N_DATA_BARO);
-    state.pitot         = new HILPitot(N_DATA_PITOT);
-    state.gps           = new HILGps(N_DATA_GPS);
-    state.gyro          = new HILGyroscope(N_DATA_GYRO);
-    state.magnetometer  = new HILMagnetometer(N_DATA_MAGN);
-    state.imu           = new HILImu(N_DATA_IMU);
-    state.temperature   = new HILTemperature(N_DATA_TEMP);
-    state.kalman        = new HILKalman(N_DATA_KALM);
-
-    sensorsMap = {{state.accelerometer, accelConfig},
-                  {state.barometer, baroConfig},
-                  {state.pitot, pitotConfig},
-                  {state.magnetometer, magnConfig},
-                  {state.imu, imuConfig},
-                  {state.gps, gpsConfig},
-                  {state.gyro, gyroConfig},
-                  {state.temperature, tempConfig},
-                  {state.kalman, kalmConfig}};
-#endif
-
-    // Create the sensor manager
-    sensorManager = new SensorManager(sensorsMap);
-}
+Sensors::Sensors() {}
 
 Sensors::~Sensors()
 {
