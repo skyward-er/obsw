@@ -53,7 +53,7 @@ void __attribute__((used)) EXTI5_IRQHandlerImpl()
 namespace Parafoil
 {
 
-bool Sensors::start()
+bool Sensors::startModule()
 {
     // Initialize all the sensors
     lis3mdlInit();

@@ -55,3 +55,8 @@ add_executable(parafoil-test-wes src/tests/Parafoil/parafoil-test-WES.cpp ${PARA
 target_include_directories(parafoil-test-wes PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-test-wes PRIVATE PRF_TEST)
 sbs_target(parafoil-test-wes stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-test-wing-controller src/tests/Parafoil/parafoil-test-WingController.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-test-wing-controller PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-test-wing-controller PRIVATE PRF_TEST)
+sbs_target(parafoil-test-wing-controller stm32f429zi_skyward_death_stack_x)

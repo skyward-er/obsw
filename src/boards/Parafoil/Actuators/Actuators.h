@@ -34,7 +34,7 @@ struct Actuators : public ParafoilModule
 {
     Actuators();
 
-    bool start() override { return true; }
+    bool startModule() override;
 
     /**
      * @brief Moves the specified servo to the given position.

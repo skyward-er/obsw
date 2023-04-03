@@ -43,7 +43,7 @@ WindEstimation::WindEstimation() : running(false), calRunning(false)
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
 }
 
-bool WindEstimation::start()
+bool WindEstimation::startModule()
 {
     BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WindEstimation::windEstimationSchemeCalibration, this),

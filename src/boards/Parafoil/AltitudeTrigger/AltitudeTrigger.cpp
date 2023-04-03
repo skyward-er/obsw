@@ -44,7 +44,7 @@ AltitudeTrigger::AltitudeTrigger()
     running    = false;
 }
 
-bool AltitudeTrigger::start()
+bool AltitudeTrigger::startModule()
 {
     return BoardScheduler::getInstance().getScheduler().addTask(
         bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);

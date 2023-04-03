@@ -34,7 +34,7 @@ class AltitudeTrigger : public ParafoilModule
 public:
     AltitudeTrigger();
 
-    bool start() override;
+    bool startModule() override;
 
     void enable();
 

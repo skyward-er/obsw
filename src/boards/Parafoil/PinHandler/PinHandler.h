@@ -41,7 +41,7 @@ class PinHandler : public ParafoilModule
 public:
     PinHandler();
 
-    bool start() override { return true; }
+    bool startModule() override;
 
     /**
      * @brief Called when the deployment servo actuation is detected via the

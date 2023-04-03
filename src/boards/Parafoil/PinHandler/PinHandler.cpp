@@ -42,6 +42,8 @@ void PinHandler::onExpulsionPinTransition(PinTransition transition)
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
 }
 
+bool PinHandler::startModule() { return PinObserver::getInstance().start(); }
+
 std::map<PinsList, PinData> PinHandler::getPinsData()
 {
     std::map<PinsList, PinData> data;

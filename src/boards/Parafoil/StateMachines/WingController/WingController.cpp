@@ -54,9 +54,10 @@ WingController::WingController()
     targetPosition[1] = DEFAULT_TARGET_LON;
 }
 
-bool WingController::start()
+bool WingController::startModule()
 {
     // Register the task
+    start();
     return BoardScheduler::getInstance().getScheduler().addTask(
         std::bind(&WingController::update, this), WING_UPDATE_PERIOD);
 }
@@ -79,6 +80,7 @@ State WingController::state_idle(const Boardcore::Event& event)
         case EV_ENTRY:
         {
             logStatus(WingControllerState::IDLE);
+            TRACE("IDLE\n");
             return HANDLED;
         }
         case FLIGHT_WING_ALT_PASSED:
@@ -103,6 +105,7 @@ State WingController::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
+            TRACE("flying\n");
             return HANDLED;
         }
         case EV_EXIT:
@@ -134,6 +137,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
+            TRACE("calibration\n");
             logStatus(WingControllerState::CALIBRATION);
             ModuleManager::getInstance().get<Actuators>()->startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(
@@ -168,6 +172,7 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
+            TRACE("controlled\n");
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
             if (automatic)
@@ -205,6 +210,7 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
+            TRACE("On ground\n");
             logStatus(WingControllerState::ON_GROUND);
 
             ModuleManager::getInstance()

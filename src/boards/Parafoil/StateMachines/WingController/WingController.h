@@ -58,7 +58,6 @@ class WingController : public Boardcore::HSM<WingController>,
                        public ParafoilModule
 
 {
-    friend class Boardcore::Singleton<WingController>;
 
 public:
     Boardcore::State state_idle(const Boardcore::Event& event);
@@ -106,7 +105,7 @@ public:
      */
     WingController();
 
-    bool start() override;
+    bool startModule() override;
 
 private:
     void logStatus(WingControllerState state);

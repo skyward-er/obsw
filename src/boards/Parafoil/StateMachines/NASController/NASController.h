@@ -40,7 +40,7 @@ public:
 
     ~NASController();
 
-    bool start() override;
+    bool startModule() override;
 
     void update();
     void calibrate();

@@ -38,7 +38,7 @@ class SensorsMock : public Sensors
 public:
     SensorsMock() { testValue = nullptr; }
 
-    bool start() override { return true; }
+    bool startModule() override { return true; }
 
     UBXGPSData getUbxGpsLastSample()
     {
@@ -100,12 +100,12 @@ int main()
     }
 
     // Start the modules
-    if (!ModuleManager::getInstance().get<Sensors>()->start())
+    if (!ModuleManager::getInstance().get<Sensors>()->startModule())
     {
         TRACE("Error starting Sensors\n");
     }
 
-    if (!ModuleManager::getInstance().get<WindEstimation>()->start())
+    if (!ModuleManager::getInstance().get<WindEstimation>()->startModule())
     {
         TRACE("Error starting WindEstimation\n");
     }

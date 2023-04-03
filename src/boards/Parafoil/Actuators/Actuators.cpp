@@ -35,6 +35,30 @@ using namespace Parafoil::ActuatorsConfigs;
 namespace Parafoil
 {
 
+bool Actuators::startModule()
+{
+    return (
+        enableServo(PARAFOIL_LEFT_SERVO) && setServo(PARAFOIL_LEFT_SERVO, 0) &&
+        enableServo(PARAFOIL_RIGHT_SERVO) && setServo(PARAFOIL_RIGHT_SERVO, 0));
+}
+
+bool Actuators::enableServo(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            leftServo.enable();
+            break;
+        case PARAFOIL_RIGHT_SERVO:
+            rightServo.enable();
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
@@ -90,23 +114,6 @@ bool Actuators::wiggleServo(ServosList servoId)
             Thread::sleep(1000);
             rightServo.setPosition(0);
             Logger::getInstance().log(rightServo.getState());
-            break;
-        default:
-            return false;
-    }
-
-    return true;
-}
-
-bool Actuators::enableServo(ServosList servoId)
-{
-    switch (servoId)
-    {
-        case PARAFOIL_LEFT_SERVO:
-            leftServo.enable();
-            break;
-        case PARAFOIL_RIGHT_SERVO:
-            rightServo.enable();
             break;
         default:
             return false;

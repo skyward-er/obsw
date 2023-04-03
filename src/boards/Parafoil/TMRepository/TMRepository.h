@@ -36,7 +36,7 @@ public:
 
     ~TMRepository() = default;
 
-    bool start() override { return true; };
+    bool startModule() override { return true; };
 
     mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
                                    uint8_t seq);
