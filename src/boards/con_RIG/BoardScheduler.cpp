@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #include "BoardScheduler.h"
 
 using namespace Boardcore;
@@ -28,10 +29,10 @@ namespace con_RIG
 // TODO: UPDATE THE SCHEDULER PRIORITY PARAMETER ONCE MERGED NEW TASK SCHEDULER
 BoardScheduler::BoardScheduler()
 {
-    scheduler1 = new TaskScheduler();
-    scheduler2 = new TaskScheduler();
-    scheduler3 = new TaskScheduler();
-    scheduler4 = new TaskScheduler();
+    scheduler1 = new TaskScheduler(miosix::PRIORITY_MAX - 4);
+    scheduler2 = new TaskScheduler(miosix::PRIORITY_MAX - 3);
+    scheduler3 = new TaskScheduler(miosix::PRIORITY_MAX - 2);
+    scheduler4 = new TaskScheduler(miosix::PRIORITY_MAX - 1);
 }
 
 TaskScheduler* BoardScheduler::getScheduler(miosix::Priority priority)
@@ -62,4 +63,4 @@ bool BoardScheduler::isStarted()
     return scheduler1->isRunning() && scheduler2->isRunning() &&
            scheduler3->isRunning() && scheduler4->isRunning();
 }
-}
+}  // namespace con_RIG
