@@ -32,6 +32,10 @@ namespace Parafoil
 class AltitudeTrigger : public ParafoilModule
 {
 public:
+    AltitudeTrigger();
+
+    bool startModule() override;
+
     void enable();
 
     void disable();

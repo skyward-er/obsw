@@ -54,7 +54,7 @@ public:
 
     ~Sensors();
 
-    bool start() override;
+    bool startModule() override;
 
     bool isStarted();
 

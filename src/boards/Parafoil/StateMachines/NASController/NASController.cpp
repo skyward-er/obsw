@@ -42,7 +42,7 @@ using namespace Common::ReferenceConfig;
 namespace Parafoil
 {
 
-bool NASController::start()
+bool NASController::startModule()
 {
     // Add the update task to the scheduler
     BoardScheduler::getInstance().getScheduler().addTask(

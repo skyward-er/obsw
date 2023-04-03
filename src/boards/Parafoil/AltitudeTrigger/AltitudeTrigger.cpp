@@ -40,10 +40,14 @@ namespace Parafoil
 
 AltitudeTrigger::AltitudeTrigger()
 {
-    BoardScheduler::getInstance().getScheduler().addTask(
-        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
     confidence = 0;
     running    = false;
+}
+
+bool AltitudeTrigger::startModule()
+{
+    return BoardScheduler::getInstance().getScheduler().addTask(
+        bind(&AltitudeTrigger::update, this), WING_ALTITUDE_TRIGGER_PERIOD);
 }
 
 void AltitudeTrigger::enable()

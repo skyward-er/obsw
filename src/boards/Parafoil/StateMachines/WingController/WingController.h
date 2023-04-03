@@ -59,6 +59,7 @@ class WingController : public Boardcore::HSM<WingController>,
                        public Boardcore::Singleton<WingController>
 
 {
+
 public:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_flying(const Boardcore::Event& event);
@@ -102,6 +103,13 @@ public:
      * all already done (e.g. steps already registered)
      */
     void addAlgorithm(WingAlgorithm* algorithm);
+
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    WingController();
+
+    bool startModule() override;
 
 private:
     void logStatus(WingControllerState state);

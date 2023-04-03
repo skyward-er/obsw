@@ -89,7 +89,7 @@ Boardcore::MavlinkStatus Radio::getMavlinkStatus()
 
 void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
-bool Radio::start()
+bool Radio::startModule()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 

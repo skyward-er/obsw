@@ -72,7 +72,7 @@ public:
     /**
      * @brief Starts the MavlinkDriver.
      */
-    bool start() override;
+    bool startModule() override;
 
     /**
      * @brief Tells whether the radio was started.

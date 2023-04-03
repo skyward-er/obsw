@@ -52,7 +52,7 @@ public:
      */
     ~WindEstimation();
 
-    bool start() override;
+    bool startModule() override;
 
     void startWindEstimationSchemeCalibration();
 

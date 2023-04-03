@@ -21,14 +21,25 @@
  */
 
 #include <Parafoil/Actuators/Actuators.h>
+#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Buses.h>
+#include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
+#include <Parafoil/PinHandler/PinHandler.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/TMRepository/TMRepository.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
+#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
+#include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <miosix.h>
 
-#include <Parafoil/ModuleHelper/ModuleHelper.hpp>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
@@ -38,84 +49,115 @@ using namespace Common;
 
 int main()
 {
-    ModuleHelper& module_helper = ModuleHelper::getInstance();
+    ModuleManager& modules = ModuleManager ::getInstance();
+    PrintLogger logger     = Logging::getLogger("main");
+    Logger::getInstance().start();
+
+    bool initResult = true;
 
     // Initialize the modules
-    module_helper.setUpActuators();
-    module_helper.setUpWindEstimation();
-    module_helper.setUpWingController();
-    module_helper.setUpNASController();
-
-    module_helper.startAllModules();
-
-    ModuleManager& modules = module_helper.getModules();
-    PrintLogger logger     = Logging::getLogger("main");
-
-    if (!EventBroker::getInstance().start())
     {
-        LOG_ERR(logger, "Error starting the EventBroker");
-    }
-
-    // Initialize the servo outputs
-    if (!modules.get<Actuators>()->enableServo(PARAFOIL_LEFT_SERVO) ||
-        !modules.get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0) ||
-        !modules.get<Actuators>()->enableServo(PARAFOIL_RIGHT_SERVO) ||
-        !modules.get<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0))
-    {
-        LOG_ERR(logger, "Error starting the Actuators");
-    }
-
-    /*if (!modules.get<NASController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the NAS algorithm");
-    }*/
-
-    if (!modules.get<WingController>()->start())
-    {
-        LOG_ERR(logger, "Error starting the WingController");
-    }
-
-    // Start the board task scheduler
-    if (!BoardScheduler::getInstance().getScheduler().start())
-    {
-        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
-    }
-
-    // activate the WES
-    EventBroker::getInstance().post(WING_WES, TOPIC_ALGOS);
-    int i = 0;
-    while (true)
-    {
-        if (i % 2 == 0)
+        if (!modules.insert<Actuators>(new Actuators()))
         {
-            modules.get<WingController>()->setControlled(1);
+            initResult = false;
+            LOG_ERR(logger, "Error initializing Actuators module");
         }
-        else
-        {
-            modules.get<WingController>()->setControlled(1);
-        }
-        i++;
-        while (modules.get<WingController>()->getStatus() ==
-               WingControllerState::WES)
-        {  // wait until we change state
 
-            TRACE("1servo Right: %f, Left: %f \n\n",
-                  modules.get<Actuators>()->getServoPosition(
-                      ServosList::PARAFOIL_RIGHT_SERVO),
-                  modules.get<Actuators>()->getServoPosition(
-                      ServosList::PARAFOIL_LEFT_SERVO));
+        if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing AltitudeTrigger module");
+        }
+
+        if (!modules.insert<WindEstimation>(new WindEstimation()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing WindEstimation module");
+        }
+
+        if (!modules.insert<WingController>(new WingController()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing WingController module");
+        }
+    }
+
+    // Start the modules
+    {
+
+        if (!Logger::getInstance().start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing the Logger");
+        }
+        if (!modules.get<Actuators>()->startModule())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing Actuators module");
+        }
+
+        if (!modules.get<AltitudeTrigger>()->startModule())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing AltitudeTrigger module");
+        }
+
+        if (!modules.get<WindEstimation>()->startModule())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing WindEstimation module");
+        }
+
+        if (!modules.get<WingController>()->startModule())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing WingController module");
+        }
+    }
+    if (initResult)
+    {
+        int i = 0;
+        while (true)
+        {
+            if (i % 2 == 0)
+            {
+                modules.get<WingController>()->setAutomatic(false);
+            }
+            else
+            {
+                modules.get<WingController>()->setAutomatic(true);
+            }
+            i++;
             Thread::sleep(1000);
-        }
-        while (modules.get<WingController>()->getStatus() !=
-               WingControllerState::WES)
-        {  // wait until we return to WES
-            TRACE("3servo Right: %f, Left: %f \n\n",
-                  modules.get<Actuators>()->getServoPosition(
-                      ServosList::PARAFOIL_RIGHT_SERVO),
-                  modules.get<Actuators>()->getServoPosition(
-                      ServosList::PARAFOIL_LEFT_SERVO));
-            Thread::sleep(500);
+            // activate the WES
+            EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
+                                            TOPIC_ALGOS);
+            Thread::sleep(1000);
+            while (
+
+                modules.get<WingController>()->getStatus().state ==
+                WingControllerState::CALIBRATION)
+            {  // wait until we change state
+
+                TRACE("1servo Right: %f, %d Left: %f \n\n",
+                      modules.get<Actuators>()->getServoPosition(
+                          ServosList::PARAFOIL_RIGHT_SERVO),
+                      modules.get<WingController>()->getStatus().state,
+                      modules.get<Actuators>()->getServoPosition(
+                          ServosList::PARAFOIL_LEFT_SERVO));
+                Thread::sleep(1000);
+            }
+            while (modules.get<WingController>()->getStatus().state !=
+                   WingControllerState::CALIBRATION)
+            {  // wait until we return to WES
+                TRACE("3servo Right: %f, %d Left: %f \n\n",
+                      modules.get<Actuators>()->getServoPosition(
+                          ServosList::PARAFOIL_RIGHT_SERVO),
+                      modules.get<WingController>()->getStatus().state,
+                      modules.get<Actuators>()->getServoPosition(
+                          ServosList::PARAFOIL_LEFT_SERVO));
+                Thread::sleep(1000);
+            }
         }
     }
 }

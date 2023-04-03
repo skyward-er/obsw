@@ -37,8 +37,7 @@ public:
     FlightModeManager();
     ~FlightModeManager();
 
-    bool start() override { return true; }
-
+    bool startModule() override { return start(); }
     FlightModeManagerStatus getStatus();
 
     /// Super state for when the payload is on ground.

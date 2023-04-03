@@ -67,7 +67,7 @@ public:
     }
 #endif
 
-    bool start() override { return true; }
+    bool startModule() override { return true; }
 };
 
 }  // namespace Parafoil
