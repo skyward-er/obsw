@@ -43,7 +43,7 @@ Buttons::Buttons(TaskScheduler* sched) : scheduler(sched)
 bool Buttons::start()
 {
     return scheduler->addTask([&]() { periodicStatusCheck(); },
-                              BUTTON_SAMPLE_PERIOD, CHECK_BUTTON_STATE_TASK_ID);
+                              CHECK_BUTTON_STATE_TASK_ID);
 }
 
 Buttons::~Buttons()

@@ -187,7 +187,8 @@ bool Radio::start()
     SPIBusConfig spiConfig{};
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
     spiConfig.mode         = SPI::Mode::MODE_0;
-    spiConfig.bitOrder     = SPI::BitOrder::MSB_FIRST;
+    spiConfig.bitOrder     = SPI::Order::MSB_FIRST;
+    spiConfig.writeBit     = SPI::WriteBit::INVERTED;
 
     // Config the transceiver
     SX1278Lora::Config config{};
@@ -226,7 +227,7 @@ bool Radio::start()
     }
 
     scheduler->addTask([&]() { sendMessages(); }, PING_GSE_PERIOD,
-                       PING_GSE_TASK_ID, TaskScheduler::Policy::RECOVER);
+                       TaskScheduler::Policy::RECOVER);
 
     receiverLooper = std::thread([=]() { loopReadFromUsart(); });
     beeperLooper   = std::thread(
