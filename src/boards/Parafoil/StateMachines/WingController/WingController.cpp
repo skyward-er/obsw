@@ -137,7 +137,6 @@ State WingController::state_calibration(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
-            TRACE("calibration\n");
             logStatus(WingControllerState::CALIBRATION);
             ModuleManager::getInstance().get<Actuators>()->startTwirl();
             EventBroker::getInstance().postDelayed<WES_TIMEOUT>(
@@ -172,7 +171,6 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
-            TRACE("controlled\n");
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
             if (automatic)
@@ -237,8 +235,51 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     }
 }
 
-void WingController::addAlgorithm(WingAlgorithm* algorithm)
+void WingController::addAlgorithm(uint8_t id)
 {
+    WingAlgorithm* algorithm;
+    WingAlgorithmData step;
+    switch (id)
+    {
+        case 1:  // straight-> brake
+            algorithm =
+                new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
+            step.timestamp   = 0;
+            algorithm->addStep(step);
+            step.servo1Angle = 120;
+            step.servo2Angle = 120;
+            step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+            algorithm->addStep(step);
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
+            step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+            algorithm->addStep(step);
+            setAutomatic(false);
+            break;
+        case 2:  // rotation in a verse opposite of the one of calibration
+            algorithm =
+                new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            step.servo1Angle = 0;
+            step.servo2Angle = 120;
+            step.timestamp   = 0;
+            algorithm->addStep(step);
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
+            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
+            algorithm->addStep(step);
+            setAutomatic(false);
+            break;
+
+        default:  // automatic target
+            algorithm = new AutomaticWingAlgorithm(
+                0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            setAutomatic(true);
+            break;
+    }
+    selectAlgorithm(0);
+
     // Ensure that the servos are correct
     algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
 
