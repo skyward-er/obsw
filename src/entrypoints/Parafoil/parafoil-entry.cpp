@@ -213,14 +213,13 @@ int main()
             LOG_ERR(logger, "Error starting the WingController module");
         }
     }
-
-    modules.get<WingController>()->setAutomatic(true);  // set the
-                                                        // algorithm to sequence
-    //   Start the sensors sampling
-    modules.get<WingController>()->addAlgorithm(new AutomaticWingAlgorithm(
-        0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
-    modules.get<WingController>()->selectAlgorithm(0);
-
+#ifdef GUIDED
+    modules.get<WingController>()->addAlgorithm(0);
+#elif STOP_AND_GO
+    modules.get<WingController>()->addAlgorithm(1);
+#elif ROTATION
+    modules.get<WingController>()->addAlgorithm(2);
+#endif
     // If all is correctly set up i publish the init ok
     if (initResult)
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);

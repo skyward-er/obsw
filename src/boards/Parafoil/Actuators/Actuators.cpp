@@ -60,6 +60,8 @@ bool Actuators::enableServo(ServosList servoId)
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
+    if (percentage > WingConfig::MAX_SERVO_APERTURE)
+        percentage = WingConfig::MAX_SERVO_APERTURE;
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
@@ -79,6 +81,8 @@ bool Actuators::setServo(ServosList servoId, float percentage)
 
 bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
+    if (angle > WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION)
+        angle = WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION;
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:

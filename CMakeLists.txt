@@ -38,15 +38,20 @@ target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-entry-milano PRIVATE MILANO)
 sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
 
-add_executable(parafoil-entry-terni-sequence src/entrypoints/Parafoil/parafoil-entry-sequence.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-terni-sequence PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-terni-sequence PRIVATE TERNI)
-sbs_target(parafoil-entry-terni-sequence stm32f429zi_skyward_death_stack_x)
+add_executable(parafoil-entry-stop_and_go src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-stop_and_go PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-stop_and_go PRIVATE MOLINELLA STOP_AND_GO)
+sbs_target(parafoil-entry-stop_and_go stm32f429zi_skyward_death_stack_x)
 
-add_executable(parafoil-entry-terni-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-terni-guided PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-terni-guided PRIVATE TERNI)
-sbs_target(parafoil-entry-terni-guided stm32f429zi_skyward_death_stack_x)
+add_executable(parafoil-entry-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-guided PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA AUTOMATIC)
+sbs_target(parafoil-entry-guided stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-entry-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-rotation PRIVATE MOLINELLA ROTATION)
+sbs_target(parafoil-entry-rotation stm32f429zi_skyward_death_stack_x)
 #-----------------------------------------------------------------------------#
 #                               Parafoil Computer                             #
 #-----------------------------------------------------------------------------#

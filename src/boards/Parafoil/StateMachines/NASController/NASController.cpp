@@ -161,7 +161,7 @@ void NASController::calibrate()
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
     }
-
+    Logger::getInstance().log(nas.getState());
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
@@ -287,6 +287,7 @@ void NASController::state_active(const Event &event)
         {
             return transition(&NASController::state_end);
         }
+        case TMTC_CALIBRATE:
         case NAS_FORCE_STOP:
         case FLIGHT_DISARMED:
         {
@@ -318,7 +319,6 @@ NASController::NASController() : FSM(&NASController::state_idle), nas(config)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
 
     // Set quaternions
