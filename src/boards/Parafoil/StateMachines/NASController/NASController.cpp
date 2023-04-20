@@ -108,7 +108,6 @@ void NASController::calibrate()
     Vector3f acceleration  = Vector3f::Zero();
     Vector3f magneticField = Vector3f::Zero();
     Stats pressure;
-
     for (int i = 0; i < CALIBRATION_SAMPLES_COUNT; i++)
     {
         // IMU
@@ -127,7 +126,6 @@ void NASController::calibrate()
 
         miosix::Thread::sleep(CALIBRATION_SLEEP_TIME);
     }
-
     // Normalize the data
     acceleration /= CALIBRATION_SAMPLES_COUNT;  // avg
     magneticField /= CALIBRATION_SAMPLES_COUNT;
@@ -287,7 +285,7 @@ void NASController::state_active(const Event &event)
         {
             return transition(&NASController::state_end);
         }
-        case TMTC_CALIBRATE:
+        case NAS_CALIBRATE:
         case NAS_FORCE_STOP:
         case FLIGHT_DISARMED:
         {

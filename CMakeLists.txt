@@ -45,7 +45,7 @@ sbs_target(parafoil-entry-stop_and_go stm32f429zi_skyward_death_stack_x)
 
 add_executable(parafoil-entry-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-guided PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA AUTOMATIC)
+target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA GUIDED)
 sbs_target(parafoil-entry-guided stm32f429zi_skyward_death_stack_x)
 
 add_executable(parafoil-entry-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})

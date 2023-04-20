@@ -402,8 +402,8 @@ State FlightModeManager::state_ascending(const Event& event)
         }
         case TMTC_CALIBRATE:
         {
-            ModuleManager::getInstance().get<NASController>()->calibrate();
-            EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
+            EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+            return HANDLED;
         }
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:

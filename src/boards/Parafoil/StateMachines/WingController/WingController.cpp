@@ -82,7 +82,6 @@ State WingController::state_idle(const Boardcore::Event& event)
         case EV_ENTRY:
         {
             logStatus(WingControllerState::IDLE);
-            TRACE("IDLE\n");
             return HANDLED;
         }
         case FLIGHT_WING_ALT_PASSED:
@@ -107,7 +106,6 @@ State WingController::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
-            TRACE("flying\n");
             return HANDLED;
         }
         case EV_EXIT:
@@ -209,7 +207,6 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
-            TRACE("On ground\n");
             logStatus(WingControllerState::ON_GROUND);
             WindEstimation::getInstance().stopWindEstimationScheme();
             WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
@@ -237,6 +234,11 @@ void WingController::addAlgorithm(uint8_t id)
     WingAlgorithmData step;
     switch (id)
     {
+        case 0:
+            algorithm = new AutomaticWingAlgorithm(
+                0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            setAutomatic(true);
+            break;
         case 1:  // straight-> brake
             algorithm =
                 new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
@@ -269,8 +271,8 @@ void WingController::addAlgorithm(uint8_t id)
             break;
 
         default:  // automatic target
-            algorithm = new AutomaticWingAlgorithm(
-                0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(1, 0.1, PARAFOIL_LEFT_SERVO,
+                                                   PARAFOIL_RIGHT_SERVO);
             setAutomatic(true);
             break;
     }
