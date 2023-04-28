@@ -93,7 +93,15 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             // we assume this ack is about the last sent message
             if (id == MAVLINK_MSG_ID_CONRIG_STATE_TC)
             {
-                ModuleManager::getInstance().get<Buttons>()->resetState();
+                Lock<FastMutex> lock(internalStateMutex);
+                // Reset the internal button state
+                buttonState.ignition_btn         = false;
+                buttonState.filling_valve_btn    = false;
+                buttonState.venting_valve_btn    = false;
+                buttonState.release_pressure_btn = false;
+                buttonState.quick_connector_btn  = false;
+                buttonState.start_tars_btn       = false;
+                buttonState.arm_switch           = false;
             }
         }
     }
@@ -112,21 +120,14 @@ void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
 
 void Radio::sendMessages()
 {
-    Buttons* buttons   = ModuleManager::getInstance().get<Buttons>();
-    ButtonsState state = buttons->getState();
+    Buttons* buttons = ModuleManager::getInstance().get<Buttons>();
+    mavlink_conrig_state_tc_t state = buttons->getState();
 
     mavlink_message_t msg;
-    mavlink_conrig_state_tc_t tc = {};
-    tc.ignition_btn              = state.ignition;
-    tc.filling_valve_btn         = state.filling_valve;
-    tc.venting_valve_btn         = state.venting_valve;
-    tc.release_pressure_btn      = state.release_filling_line_pressure;
-    tc.quick_connector_btn       = state.detach_quick_connector;
-    tc.start_tars_btn            = state.startup_tars;
-    tc.arm_switch                = state.armed;
+
     mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,
-                                       &tc);
+                                       &buttonState);
     {
         Lock<FastMutex> lock(mutex);
         for (uint8_t i = 0; i < message_queue_index; i++)
@@ -173,6 +174,25 @@ void Radio::loopReadFromUsart()
             }
         }
     }
+}
+
+void Radio::setInternalState(mavlink_conrig_state_tc_t state)
+{
+    Lock<FastMutex> lock(internalStateMutex);
+    // The OR operator is introduced to make sure that the receiver
+    // understood the command
+    buttonState.ignition_btn = state.ignition_btn || buttonState.ignition_btn;
+    buttonState.filling_valve_btn =
+        state.filling_valve_btn || buttonState.filling_valve_btn;
+    buttonState.venting_valve_btn =
+        state.venting_valve_btn || buttonState.venting_valve_btn;
+    buttonState.release_pressure_btn =
+        state.release_pressure_btn || buttonState.release_pressure_btn;
+    buttonState.quick_connector_btn =
+        state.quick_connector_btn || buttonState.quick_connector_btn;
+    buttonState.start_tars_btn =
+        state.start_tars_btn || buttonState.start_tars_btn;
+    buttonState.arm_switch = state.arm_switch || buttonState.arm_switch;
 }
 
 bool Radio::start()
@@ -256,6 +276,14 @@ bool Radio::isStarted() { return mavDriver->isStarted(); }
 
 MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
-Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
+Radio::Radio(TaskScheduler* sched) : scheduler(sched)
+{
+    buttonState.ignition_btn         = false;
+    buttonState.filling_valve_btn    = false;
+    buttonState.venting_valve_btn    = false;
+    buttonState.release_pressure_btn = false;
+    buttonState.quick_connector_btn  = false;
+    buttonState.start_tars_btn       = false;
+}
 
 }  // namespace con_RIG

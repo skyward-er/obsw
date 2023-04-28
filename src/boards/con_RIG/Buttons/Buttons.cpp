@@ -24,6 +24,7 @@
 
 #include <con_RIG/BoardScheduler.h>
 #include <con_RIG/Configs/ButtonsConfig.h>
+#include <con_RIG/Radio/Radio.h>
 
 using namespace std;
 using namespace miosix;
@@ -36,8 +37,8 @@ namespace con_RIG
 Buttons::Buttons(TaskScheduler* sched) : scheduler(sched)
 {
     resetState();
-    state.armed = false;
-    remoteArm   = 0;
+    state.arm_switch = false;
+    remoteArm        = 0;
 }
 
 bool Buttons::start()
@@ -51,16 +52,16 @@ Buttons::~Buttons()
     // Delete all the buttons
 }
 
-ButtonsState Buttons::getState() { return state; }
+mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 
 void Buttons::resetState()
 {
-    state.ignition                      = false;
-    state.filling_valve                 = false;
-    state.venting_valve                 = false;
-    state.release_filling_line_pressure = false;
-    state.detach_quick_connector        = false;
-    state.startup_tars                  = false;
+    state.ignition_btn         = false;
+    state.filling_valve_btn    = false;
+    state.venting_valve_btn    = false;
+    state.release_pressure_btn = false;
+    state.quick_connector_btn  = false;
+    state.start_tars_btn       = false;
 }
 
 void Buttons::periodicStatusCheck()
@@ -74,14 +75,14 @@ void Buttons::periodicStatusCheck()
     using GpioStartTarsBtn       = Gpio<GPIOD_BASE, 5>;
     using GpioArmedSwitch        = Gpio<GPIOE_BASE, 2>;
 
-    state.armed = GpioArmedSwitch::getPin().value();
+    state.arm_switch = GpioArmedSwitch::getPin().value();
 
-    if (!GpioIgnitionBtn::getPin().value() && state.armed)
+    if (!GpioIgnitionBtn::getPin().value() && state.arm_switch)
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard          = 0;
-            state.ignition = true;
+            guard              = 0;
+            state.ignition_btn = true;
         }
         else
         {
@@ -92,8 +93,8 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard               = 0;
-            state.filling_valve = true;
+            guard                   = 0;
+            state.filling_valve_btn = true;
         }
         else
         {
@@ -104,8 +105,8 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard               = 0;
-            state.venting_valve = true;
+            guard                   = 0;
+            state.venting_valve_btn = true;
         }
         else
         {
@@ -116,8 +117,8 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                               = 0;
-            state.release_filling_line_pressure = true;
+            guard                      = 0;
+            state.release_pressure_btn = true;
         }
         else
         {
@@ -128,8 +129,8 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                        = 0;
-            state.detach_quick_connector = true;
+            guard                     = 0;
+            state.quick_connector_btn = true;
         }
         else
         {
@@ -140,8 +141,8 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard              = 0;
-            state.startup_tars = true;
+            guard                = 0;
+            state.start_tars_btn = true;
         }
         else
         {
@@ -150,9 +151,17 @@ void Buttons::periodicStatusCheck()
     }
     else
     {
-        // Reset the guard
+        // Reset all the states and guard
         guard = 0;
+        resetState();
     }
+
+    // Set the internal button state in Radio module
+    ModuleManager::getInstance().get<Radio>()->setInternalState(state);
+
+    // printf("%d %d %d %d %d %d %d\n", state.ignition, state.filling_valve,
+    //        state.venting_valve, state.release_filling_line_pressure,
+    //        state.detach_quick_connector, state.startup_tars, state.armed);
 }
 
 // 1 if rocket is armed, 0 if disarmed

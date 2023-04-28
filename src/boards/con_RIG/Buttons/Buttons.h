@@ -31,17 +31,6 @@
 namespace con_RIG
 {
 
-struct ButtonsState
-{
-    bool ignition;
-    bool filling_valve;
-    bool venting_valve;
-    bool release_filling_line_pressure;
-    bool detach_quick_connector;
-    bool startup_tars;
-    bool armed;
-};
-
 class Buttons : public Boardcore::Module
 {
 
@@ -52,14 +41,14 @@ public:
 
     bool start();
 
-    ButtonsState getState();
+    mavlink_conrig_state_tc_t getState();
 
     void resetState();
 
     void setRemoteArmState(int state);
 
 private:
-    ButtonsState state;
+    mavlink_conrig_state_tc_t state;
     void periodicStatusCheck();
     std::atomic<bool> remoteArm{false};
 

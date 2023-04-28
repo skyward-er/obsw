@@ -55,6 +55,8 @@ public:
 
     void loopReadFromUsart();
 
+    void setInternalState(mavlink_conrig_state_tc_t state);
+
     Boardcore::SX1278Lora* transceiver = nullptr;
     MavDriver* mavDriver               = nullptr;
 
@@ -66,6 +68,10 @@ private:
     mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
     uint8_t message_queue_index = 0;
     miosix::FastMutex mutex;
+    miosix::FastMutex internalStateMutex;
+
+    // Button internal state
+    mavlink_conrig_state_tc_t buttonState;
 
     std::thread receiverLooper;
     std::thread beeperLooper;
