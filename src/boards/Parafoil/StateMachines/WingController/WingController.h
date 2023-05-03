@@ -98,7 +98,7 @@ public:
      * @param algorithm The algorithm with
      * all already done (e.g. steps already registered)
      */
-    void addAlgorithm(uint8_t id);
+    void addAlgorithm(int id);
 
     /**
      * @brief Construct a new Wing Controller object

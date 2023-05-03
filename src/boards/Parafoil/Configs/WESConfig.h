@@ -31,7 +31,7 @@ namespace WESConfig
 {
 
 constexpr uint32_t WES_CALIBRATION_TIMEOUT =
-    15 * 1000;  // time needed for the first loop [ms]
+    5 * 1000;  // time needed for the first loop [ms]
 constexpr uint32_t WES_TIMEOUT =
     2 * WES_CALIBRATION_TIMEOUT;  // time needed for the second loop
 

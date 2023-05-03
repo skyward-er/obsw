@@ -465,8 +465,8 @@ State FlightModeManager::state_wing_descent(const Event& event)
                 EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
                     FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
 
-            EventBroker::getInstance().post(FLIGHT_WING_ALT_PASSED,
-                                            TOPIC_ALGOS);
+            EventBroker::getInstance().postDelayed<CONTROL_DELAY>(
+                FLIGHT_WING_ALT_PASSED, TOPIC_ALGOS);
             return HANDLED;
         }
         case EV_EXIT:
