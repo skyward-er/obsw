@@ -23,9 +23,9 @@
 #pragma once
 
 #include <events/Event.h>
-#include <events/EventBroker.h>
 
-#include <cstdint>
+#include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -111,9 +111,9 @@ enum Events : uint8_t
     TARS_REFINING_DONE,
 };
 
-inline string getEventString(uint8_t event)
+inline std::string getEventString(uint8_t event)
 {
-    static const map<uint8_t, string> event_string_map{
+    static const std::map<uint8_t, std::string> event_string_map{
         {ABK_DISABLE, "ABK_DISABLE"},
         {ABK_OPEN, "ABK_OPEN"},
         {ABK_RESET, "ABK_RESET"},
@@ -122,6 +122,8 @@ inline string getEventString(uint8_t event)
         {ADA_CALIBRATE, "ADA_CALIBRATE"},
         {ADA_PRESS_STAB_TIMEOUT, "ADA_PRESS_STAB_TIMEOUT"},
         {ADA_READY, "ADA_READY"},
+        {ADA_FORCE_START, "ADA_FORCE_START"},
+        {ADA_FORCE_STOP, "ADA_FORCE_STOP"},
         {ADA_SHADOW_MODE_TIMEOUT, "ADA_SHADOW_MODE_TIMEOUT"},
         {DPL_CUT_DROGUE, "DPL_CUT_DROGUE"},
         {DPL_CUT_TIMEOUT, "DPL_CUT_TIMEOUT"},
@@ -133,9 +135,11 @@ inline string getEventString(uint8_t event)
         {FLIGHT_ARMED, "FLIGHT_ARMED"},
         {FLIGHT_DISARMED, "FLIGHT_DISARMED"},
         {FLIGHT_DPL_ALT_DETECTED, "FLIGHT_DPL_ALT_DETECTED"},
+        {FLIGHT_ERROR_DETECTED, "FLIGHT_ERROR_DETECTED"},
         {FLIGHT_LANDING_DETECTED, "FLIGHT_LANDING_DETECTED"},
         {FLIGHT_LAUNCH_PIN_DETACHED, "FLIGHT_LAUNCH_PIN_DETACHED"},
         {FLIGHT_LIFTOFF, "FLIGHT_LIFTOFF"},
+        {FLIGHT_LANDING_TIMEOUT, "FLIGHT_LANDING_TIMEOUT"},
         {FLIGHT_NC_DETACHED, "FLIGHT_NC_DETACHED"},
         {FLIGHT_MISSION_TIMEOUT, "FLIGHT_MISSION_TIMEOUT"},
         {FLIGHT_WING_ALT_REACHED, "FLIGHT_WING_ALT_REACHED"},
@@ -145,6 +149,8 @@ inline string getEventString(uint8_t event)
         {FMM_SENSORS_CAL_DONE, "FMM_SENSORS_CAL_DONE"},
         {FSR_STATS_TIMEOUT, "FSR_STATS_TIMEOUT"},
         {NAS_CALIBRATE, "NAS_CALIBRATE"},
+        {NAS_FORCE_START, "NAS_FORCE_START"},
+        {NAS_FORCE_STOP, "NAS_FORCE_STOP"},
         {NAS_READY, "NAS_READY"},
         {TMTC_ARM, "TMTC_ARM"},
         {TMTC_DISARM, "TMTC_DISARM"},
@@ -155,6 +161,8 @@ inline string getEventString(uint8_t event)
         {TMTC_FORCE_APOGEE, "TMTC_FORCE_APOGEE"},
         {TMTC_FORCE_EXPULSION, "TMTC_FORCE_EXPULSION"},
         {TMTC_FORCE_MAIN, "TMTC_FORCE_MAIN"},
+        {TMTC_START_LOGGING, "TMTC_START_LOGGING"},
+        {TMTC_STOP_LOGGING, "TMTC_STOP_LOGGING"},
         {TMTC_RESET_BOARD, "TMTC_RESET_BOARD"},
         {TMTC_ENTER_TEST_MODE, "TMTC_ENTER_TEST_MODE"},
         {TMTC_EXIT_TEST_MODE, "TMTC_EXIT_TEST_MODE"},
@@ -169,10 +177,14 @@ inline string getEventString(uint8_t event)
         {MOTOR_OPEN_RELEASE_VALVE, "MOTOR_OPEN_RELEASE_VALVE"},
         {MOTOR_CLOSE_RELEASE_VALVE, "MOTOR_CLOSE_RELEASE_VALVE"},
         {MOTOR_DISCONNECT, "MOTOR_DISCONNECT"},
+        {MOTOR_IGNITION, "MOTOR_IGNITION"},
         {MOTOR_OPEN_FEED_VALVE, "MOTOR_OPEN_FEED_VALVE"},
         {MOTOR_CLOSE_FEED_VALVE, "MOTOR_CLOSE_FEED_VALVE"},
         {MOTOR_MANUAL_ACTION, "MOTOR_MANUAL_ACTION"},
+        {MOTOR_OPEN_OXIDANT, "MOTOR_OPEN_OXIDANT"},
         {TARS_WASHING_DONE, "TARS_WASHING_DONE"},
+        {TARS_CHECK_PRESSURE_STABILIZE, "TARS_CHECK_PRESSURE_STABILIZE"},
+        {TARS_PRESSURE_STABILIZED, "TARS_PRESSURE_STABILIZED"},
         {TARS_FILLING_DONE, "TARS_FILLING_DONE"},
         {TARS_REFINING_DONE, "TARS_REFINING_DONE"},
     };
