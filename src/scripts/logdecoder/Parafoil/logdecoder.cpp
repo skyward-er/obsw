@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Parafoil/StateMachines/NASController/NASControllerData.h>
 #include <Parafoil/StateMachines/WingController/WingControllerData.h>
@@ -50,6 +51,7 @@
 using namespace tscpp;
 using namespace Boardcore;
 using namespace Parafoil;
+using namespace WingConfig;
 using namespace Xbee;
 
 void registerTypes(Deserializer& ds)
@@ -64,6 +66,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<NASControllerStatus>();
     ds.registerType<WingAlgorithmData>();
     ds.registerType<WingTargetPositionData>();
+    ds.registerType<WingConfigStruct>();
     ds.registerType<PitotData>();
     ds.registerType<APIFrameLog>();
     ds.registerType<ATCommandFrameLog>();

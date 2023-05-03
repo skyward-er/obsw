@@ -25,6 +25,7 @@
 namespace Parafoil
 {
 
-constexpr unsigned int MISSION_TIMEOUT = 10 * 60 * 1000;
+constexpr unsigned int MISSION_TIMEOUT = 60 * 60 * 1000;
+constexpr unsigned int CONTROL_DELAY   = 5 * 1000;
 
 }  // namespace Parafoil

@@ -21,7 +21,11 @@
  */
 
 #pragma once
-// TODO put things to change between flight in this file
+
+#include <stdint.h>
+
+#include <iostream>
+#include <string>
 namespace Parafoil
 {
 
@@ -29,8 +33,8 @@ namespace WingConfig
 {
 // Algorithm configuration
 
-constexpr int WING_UPDATE_PERIOD           = 100;  // [ms]
-constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 100;  //[ms]
+constexpr int WING_UPDATE_PERIOD           = 100;   // [ms]
+constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 1000;  //[ms]
 
 #if defined(EUROC)
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
@@ -42,18 +46,60 @@ constexpr float DEFAULT_TARGET_LON = 14.0547223;
 constexpr float DEFAULT_TARGET_LAT = 42.572165;
 constexpr float DEFAULT_TARGET_LON = 12.585847;
 #elif defined(MOLINELLA)
-constexpr float DEFAULT_TARGET_LAT = 44.596933;
-constexpr float DEFAULT_TARGET_LON = 11.655655;
+constexpr float DEFAULT_TARGET_LAT = 44.588923;
+constexpr float DEFAULT_TARGET_LON = 11.653212;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.501148;
 constexpr float DEFAULT_TARGET_LON = 9.156301;
 #endif
 
+#if defined(GUIDED)
+
+constexpr int SELECTED_ALGORITHM = 0;
+#elif STOP_AND_GO
+constexpr int SELECTED_ALGORITHM   = 1;
+#elif ROTATION
+constexpr int SELECTED_ALGORITHM   = 2;
+#else
+constexpr int SELECTED_ALGORITHM   = 0;
+#endif
 constexpr float MAX_SERVO_APERTURE = 1.0f;
 // Wing altitude checker configs
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
+
+struct WingConfigStruct
+{
+
+    int updatePeriod    = WING_UPDATE_PERIOD;            // [ms]
+    int altitudeTrigger = WING_ALTITUDE_TRIGGER_PERIOD;  //[ms]
+
+    float lat = DEFAULT_TARGET_LAT;
+    float lon = DEFAULT_TARGET_LON;
+
+    int selectedAlgo = SELECTED_ALGORITHM;
+    float maxServo   = MAX_SERVO_APERTURE;
+    // Wing altitude checker configs
+    int confidence    = WING_ALTITUDE_TRIGGER_CONFIDENCE;
+    int triggerFall   = WING_ALTITUDE_TRIGGER_FALL;
+    int flightTimeout = WING_STRAIGHT_FLIGHT_TIMEOUT;
+    static std::string header()
+    {
+        return "WING_UPDATE_PERIOD,WING_ALTITUDE_TRIGGER_PERIOD, "
+               "DEFAULT_TARGET_LAT,DEFAULT_TARGET_LON, MAX_SERVO_APERTURE,"
+               "WING_ALTITUDE_TRIGGER_CONFIDENCE,"
+               "WING_ALTITUDE_TRIGGER_FALL,WING_STRAIGHT_FLIGHT_TIMEOUT,"
+               "SELECTED_ALGORITHM \n ";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << updatePeriod << "," << altitudeTrigger << "," << lat << "," << lon
+           << "," << maxServo << "," << confidence << "," << triggerFall << ","
+           << flightTimeout << "," << selectedAlgo << "\n";
+    }
+};
 
 }  // namespace WingConfig
 

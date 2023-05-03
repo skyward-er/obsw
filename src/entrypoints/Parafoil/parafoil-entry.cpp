@@ -213,13 +213,9 @@ int main()
             LOG_ERR(logger, "Error starting the WingController module");
         }
     }
-#ifdef GUIDED
-    modules.get<WingController>()->addAlgorithm(0);
-#elif STOP_AND_GO
-    modules.get<WingController>()->addAlgorithm(1);
-#elif ROTATION
-    modules.get<WingController>()->addAlgorithm(2);
-#endif
+    WingConfig::WingConfigStruct f;
+    modules.get<WingController>()->addAlgorithm(WingConfig::SELECTED_ALGORITHM);
+    Logger::getInstance().log(f);  // logs the config file
     // If all is correctly set up i publish the init ok
     if (initResult)
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);

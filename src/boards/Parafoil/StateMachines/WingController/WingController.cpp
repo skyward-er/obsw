@@ -164,16 +164,12 @@ State WingController::state_calibration(const Boardcore::Event& event)
         }
         case WING_WES_CALIBRATION:
         {
-            modules.get<Actuators>()->stopTwirl();
-            logStatus(WingControllerState::WES);
-            if (controlled)
-            {
-                return transition(&WingController::state_automatic);
-            }
-            else
-            {
-                return transition(&WingController::state_file);
-            }
+            // ModuleManager::getInstance().get<Actuators>()->stopTwirl();
+            return transition(&WingController::state_controlled_descent);
+        }
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
@@ -228,15 +224,15 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     }
 }
 
-void WingController::addAlgorithm(uint8_t id)
+void WingController::addAlgorithm(int id)
 {
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
     switch (id)
     {
         case 0:
-            algorithm = new AutomaticWingAlgorithm(
-                0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
+                                                   PARAFOIL_RIGHT_SERVO);
             setAutomatic(true);
             break;
         case 1:  // straight-> brake
@@ -264,14 +260,14 @@ void WingController::addAlgorithm(uint8_t id)
             step.timestamp   = 0;
             algorithm->addStep(step);
             step.servo1Angle = 0;
-            step.servo2Angle = 0;
+            step.servo2Angle = 120;
             step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
             algorithm->addStep(step);
             setAutomatic(false);
             break;
 
         default:  // automatic target
-            algorithm = new AutomaticWingAlgorithm(1, 0.1, PARAFOIL_LEFT_SERVO,
+            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
                                                    PARAFOIL_RIGHT_SERVO);
             setAutomatic(true);
             break;
@@ -288,7 +284,12 @@ void WingController::addAlgorithm(uint8_t id)
     algorithms.push_back(algorithm);
 }
 
-void WingController::selectAlgorithm(size_t index)
+void WingController::setAutomatic(bool automatic)
+{
+    this->automatic = automatic;
+}
+
+void WingController::selectAlgorithm(unsigned int index)
 {
     stopAlgorithm();
     if (index < algorithms.size())
