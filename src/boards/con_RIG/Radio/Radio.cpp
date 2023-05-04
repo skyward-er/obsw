@@ -121,13 +121,16 @@ void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
 void Radio::sendMessages()
 {
     Buttons* buttons = ModuleManager::getInstance().get<Buttons>();
-    mavlink_conrig_state_tc_t state = buttons->getState();
 
     mavlink_message_t msg;
 
-    mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
-                                       Config::Radio::MAV_COMPONENT_ID, &msg,
-                                       &buttonState);
+    {
+        Lock<FastMutex> lock(internalStateMutex);
+        mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &buttonState);
+    }
+
     {
         Lock<FastMutex> lock(mutex);
         for (uint8_t i = 0; i < message_queue_index; i++)
@@ -278,12 +281,15 @@ MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
 Radio::Radio(TaskScheduler* sched) : scheduler(sched)
 {
+    Lock<FastMutex> lock(internalStateMutex);
+
     buttonState.ignition_btn         = false;
     buttonState.filling_valve_btn    = false;
     buttonState.venting_valve_btn    = false;
     buttonState.release_pressure_btn = false;
     buttonState.quick_connector_btn  = false;
     buttonState.start_tars_btn       = false;
+    buttonState.arm_switch           = false;
 }
 
 }  // namespace con_RIG
