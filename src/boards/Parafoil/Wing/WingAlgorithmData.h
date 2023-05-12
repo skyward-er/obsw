@@ -43,7 +43,7 @@ struct WingAlgorithmData
 
     static std::string header()
     {
-        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle, "
+        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle,"
                "velocityAngle,targetX,targetY,error,pidOutput\n";
     }
 
