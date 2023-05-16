@@ -46,7 +46,7 @@ constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 // XBee parameters
 constexpr bool XBEE_80KBPS_DATA_RATE = true;
-constexpr int XBEE_TIMEOUT           = 5000;  // [ms]
+constexpr int XBEE_TIMEOUT           = 5000;  //  [ms]
 
 // Periodic telemetries frequency
 constexpr uint32_t FLIGHT_TM_PERIOD = 250;   // [ms]

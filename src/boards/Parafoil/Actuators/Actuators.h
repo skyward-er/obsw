@@ -43,7 +43,7 @@ struct Actuators : public ParafoilModule
      * @param percentage Angle to set [0-1].
      * @return True if the the angle was set.
      */
-    bool setServo(ServosList servoId, float percentage);
+    virtual bool setServo(ServosList servoId, float percentage);
 
     /**
      * @brief Moves the specified servo to the given position.
@@ -52,7 +52,7 @@ struct Actuators : public ParafoilModule
      * @param angle Angle to set [degree] 0-120.
      * @return True if the the angle was set.
      */
-    bool setServoAngle(ServosList servoId, float angle);
+    virtual bool setServoAngle(ServosList servoId, float angle);
 
     /**
      * @brief Wiggles the servo for few seconds.

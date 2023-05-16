@@ -21,6 +21,7 @@
  */
 
 #include <sensors/SensorData.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 struct HILAccelData : public Boardcore::AccelerometerData
 {
@@ -40,13 +41,13 @@ struct HILGyroscopeData : public Boardcore::GyroscopeData
 {
     static std::string header()
     {
-        return "timestamp,angularVelocityX,angularVelocityY,angularVelocityZ\n";
+        return "timestamp,angularSpeedX,angularSpeedY,angularSpeedZ\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << "\n";
+        os << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << "\n";
     }
 };
 
@@ -71,8 +72,8 @@ struct HILImuData : public HILAccelData,
     static std::string header()
     {
         return "accelerationTimestamp,accelerationX,accelerationY,"
-               "accelerationZ,angularVelocityTimestamp,angularVelocityX,"
-               "angularVelocityY,angularVelocityZ,magneticFieldTimestamp,"
+               "accelerationZ,angularSpeedTimestamp,angularSpeedX,"
+               "angularSpeedY,angularSpeedZ,magneticFieldTimestamp,"
                "magneticFieldX,magneticFieldY,magneticFieldZ\n";
     }
 
@@ -80,8 +81,8 @@ struct HILImuData : public HILAccelData,
     {
         os << accelerationTimestamp << "," << accelerationX << ","
            << accelerationY << "," << accelerationZ << ","
-           << angularVelocityTimestamp << "," << angularVelocityX << ","
-           << angularVelocityY << "," << angularVelocityZ << ","
+           << angularSpeedTimestamp << "," << angularSpeedX << ","
+           << angularSpeedY << "," << angularSpeedZ << ","
            << magneticFieldTimestamp << "," << magneticFieldX << ","
            << magneticFieldY << "," << magneticFieldZ << "\n";
     }
@@ -91,8 +92,8 @@ struct HILGpsData : public Boardcore::GPSData
 {
     static std::string header()
     {
-        return "timestamp,latitude,longitude,height,velocityNorth,velocityEast,"
-               "velocityDown,speed,track,positionDOP,satellites,fix\n";
+        return "timestamp,latitude,longitude,height,speedNorth,speedEast,"
+               "SpeedDown,speed,track,positionDOP,satellites,fix\n";
     }
 
     void print(std::ostream& os) const

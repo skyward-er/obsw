@@ -19,6 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifdef HILParafoil
+#include <HIL.h>
+#include <HILConfig.h>
+#include <Parafoil/Actuators/HILActuators.h>
+#include <Parafoil/Sensors/HILSensors.h>
+#endif
 
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
@@ -71,18 +77,44 @@ int main()
         }
         if (!Logger::getInstance().start())
         {
-            initResult = false;
+            initResult = false;  // This fails in HIL
             LOG_ERR(logger, "Error initializing the Logger");
         }
     }
 
     // Initialize the modules
     {
+#ifndef HILParafoil
         if (!modules.insert<Actuators>(new Actuators()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the Actuators module");
         }
+
+        if (!modules.insert<Sensors>(new Sensors()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the Sensors module");
+        }
+#else
+        if (!modules.insert<HIL>(new HIL()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the HIL module");
+        }
+
+        if (!modules.insert<Actuators>(new HILActuators()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the HILActuators module");
+        }
+
+        if (!modules.insert<Sensors>(new HILSensors()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the Sensors module");
+        }
+#endif
 
         if (!modules.insert<AltitudeTrigger>(new AltitudeTrigger()))
         {
@@ -120,12 +152,6 @@ int main()
             LOG_ERR(logger, "Error inserting the Radio module");
         }
 
-        if (!modules.insert<Sensors>(new Sensors()))
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the Sensors module");
-        }
-
         if (!modules.insert<TMRepository>(new TMRepository()))
         {
             initResult = false;
@@ -147,6 +173,14 @@ int main()
 
     // Start the modules
     {
+#ifdef HILParafoil
+        if (!modules.get<HIL>()->startModule())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the HIL module");
+        }
+#endif
+
         if (!modules.get<Actuators>()->startModule())
         {
             initResult = false;
@@ -213,6 +247,13 @@ int main()
             LOG_ERR(logger, "Error starting the WingController module");
         }
     }
+
+#ifdef HILParafoil
+    // Task to send periodically the elaborated actuator data
+    BoardScheduler::getInstance().getScheduler().addTask(
+        [&]() { modules.get<HIL>()->send(); }, SIMULATION_PERIOD);
+#endif
+
     WingConfig::WingConfigStruct f;
     modules.get<WingController>()->addAlgorithm(WingConfig::SELECTED_ALGORITHM);
     Logger::getInstance().log(f);  // logs the config file

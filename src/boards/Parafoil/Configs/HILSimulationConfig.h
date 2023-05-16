@@ -300,104 +300,12 @@ struct ADAdataHIL
 typedef struct
 {
     // Airbrakes opening (percentage)
-    float airbrakes_opening;
-    /* here 4 bytes of padding in order to align next field (uint64_t) */
-
-    // NAS
-    Boardcore::NASState nasState;
-
-    // ADA
-    ADAdataHIL adaState;
+    float left_servo_opening;
+    float right_servo_opening;
 
     void print() const
     {
-        TRACE(
-            "size:%u, %u, %u\n"
-            "abk:%f\n"
-            "tsnas:%f\n"
-            "ned:%f,%f,%f\n"
-            "vned:%f,%f,%f\n"
-            "q:%f,%f,%f,%f\n"
-            "bias:%f,%f,%f\n"
-            "tsada:%f\n"
-            "ada:%f,%f\n\n",
-            sizeof(airbrakes_opening), sizeof(Boardcore::NASState),
-            sizeof(ADAdataHIL), airbrakes_opening, nasState.timestamp,
-            nasState.n, nasState.e, nasState.d, nasState.vn, nasState.ve,
-            nasState.vd, nasState.qx, nasState.qy, nasState.qz, nasState.qw,
-            nasState.bx, nasState.by, nasState.bz, adaState.ada_timestamp,
-            adaState.aglAltitude, adaState.verticalSpeed);
+        TRACE("left_opening: %.3f, right_opening: %.3f\n", left_servo_opening,
+              right_servo_opening);
     }
 } ActuatorData;
-
-/**
- * @brief Data structure in order to store elaborated data by the algorithms
- */
-typedef struct
-{
-    // Airbrakes opening (percentage)
-    float airbrakes_opening;
-
-    // NAS
-    std::list<Boardcore::NASState> nasState;
-
-    // ADA
-    std::list<ADAdataHIL> adaState;
-
-    void reset()
-    {
-        airbrakes_opening = 0;
-        nasState.clear();
-        adaState.clear();
-    }
-
-    void setAirBrakesOpening(float airbrakes_opening)
-    {
-        this->airbrakes_opening = airbrakes_opening;
-    };
-
-    void addNASState(Boardcore::NASState nasState)
-    {
-        this->nasState.push_back(nasState);
-    };
-
-    void addADAState(Boardcore::ADAState adaState)
-    {
-        ADAdataHIL data{adaState.timestamp, adaState.aglAltitude,
-                        adaState.verticalSpeed};
-
-        this->adaState.push_back(data);
-    };
-
-    ActuatorData getAvgActuatorData()
-    {
-        // NAS
-        int n                 = nasState.size();
-        float nasTimestampAvg = 0;
-        auto nasXAvg          = this->nasState.front().getX().setZero();
-
-        for (auto it = this->nasState.begin(); it != this->nasState.end(); ++it)
-        {
-            nasTimestampAvg += (it->timestamp / n);
-            nasXAvg += (it->getX() / n);
-        }
-
-        // normalize quaternions
-        nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT, 0).normalize();
-        // TRACE("normA: %f\n", nasXAvg.block<4, 1>(Boardcore::NAS::IDX_QUAT,
-        // 0).norm());
-
-        Boardcore::NASState nasStateAvg(nasTimestampAvg, nasXAvg);
-
-        // ADA
-        auto adaStateAvg = this->adaState.front() * 0;
-        n                = adaState.size();
-
-        for (auto x : this->adaState)
-        {
-            adaStateAvg += (x / n);
-        }
-
-        return ActuatorData{airbrakes_opening, nasStateAvg, adaStateAvg};
-    }
-} ElaboratedData;

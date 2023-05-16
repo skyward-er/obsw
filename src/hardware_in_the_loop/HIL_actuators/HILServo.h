@@ -36,6 +36,4 @@ public:
         : Servo(timer, pwmChannel, minPulse, maxPulse, frequency)
     {
     }
-
-    void sendToSimulator() { HIL::getInstance().send(getPosition()); }
 };

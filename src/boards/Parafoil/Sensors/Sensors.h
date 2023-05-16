@@ -21,7 +21,7 @@
  */
 
 #pragma once
-
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <drivers/adc/InternalADC.h>
 #include <drivers/adc/InternalTemp.h>
 #include <scheduler/TaskScheduler.h>
@@ -37,11 +37,6 @@
 #include <sensors/analog/pressure/honeywell/SSCDANN030PAA.h>
 #include <sensors/analog/pressure/honeywell/SSCDRRN015PDA.h>
 #include <sensors/analog/pressure/nxp/MPXHZ6130A.h>
-#ifdef HILSimulation
-#include <HIL_algorithms/HILMockKalman.h>
-#include <HIL_sensors/HILSensors.h>
-#endif  // HILSimulation
-#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
 namespace Parafoil
 {
@@ -54,44 +49,26 @@ public:
 
     ~Sensors();
 
-    bool startModule() override;
+    virtual bool startModule();
 
-    bool isStarted();
-
-#ifdef HILSimulation
-public:
-    /**
-     * structure that contains all the sensors used in the simulation
-     */
-    struct StateComplete
-    {
-        HILAccelerometer* accelerometer;
-        HILBarometer* barometer;
-        HILPitot* pitot;
-        HILGps* gps;
-        HILGyroscope* gyro;
-        HILMagnetometer* magnetometer;
-        HILTemperature* temperature;
-        HILImu* imu;
-        HILKalman* kalman;
-    } state;
-#endif  // HILSimulation
+    virtual bool isStarted();
 
     Boardcore::BMX160* bmx160;
 
-    Boardcore::BMX160Data getBMX160LastSample();
-    Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
-    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
-    Boardcore::MS5803Data getMS5803LastSample();
-    Boardcore::UBXGPSData getUbxGpsLastSample();
+    virtual Boardcore::BMX160Data getBMX160LastSample();
+    virtual Boardcore::BMX160WithCorrectionData
+    getBMX160WithCorrectionLastSample();
+    virtual Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
+    virtual Boardcore::MS5803Data getMS5803LastSample();
+    virtual Boardcore::UBXGPSData getUbxGpsLastSample();
 
-    Boardcore::ADS1118Data getADS1118LastSample();
-    Boardcore::MPXHZ6130AData getStaticPressureLastSample();
-    Boardcore::SSCDANN030PAAData getDplPressureLastSample();
-    Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
-    Boardcore::PitotData getPitotLastSample();
-    Boardcore::InternalADCData getInternalADCLastSample();
-    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+    virtual Boardcore::ADS1118Data getADS1118LastSample();
+    virtual Boardcore::MPXHZ6130AData getStaticPressureLastSample();
+    virtual Boardcore::SSCDANN030PAAData getDplPressureLastSample();
+    virtual Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
+    virtual Boardcore::PitotData getPitotLastSample();
+    virtual Boardcore::InternalADCData getInternalADCLastSample();
+    virtual Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -99,14 +76,14 @@ public:
      * The calibration works by capturing the mean of the sensor readings and
      * then removing the offsets from the desired values.
      */
-    void calibrate();
+    virtual void calibrate();
 
     void pitotSetReferenceAltitude(float altitude);
     void pitotSetReferenceTemperature(float temperature);
 
     std::map<string, bool> getSensorsState();
 
-private:
+protected:
     void bmx160Init();
     void bmx160Callback();
 
@@ -134,7 +111,7 @@ private:
 
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
-    Boardcore::MS5803* ms5803;  // barometro digitale
+    Boardcore::MS5803* ms5803;  // digital barometer
     Boardcore::UBXGPSSerial* ubxGps;
 
     Boardcore::ADS1118* ads1118;  // adc

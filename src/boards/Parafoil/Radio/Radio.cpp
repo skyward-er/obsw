@@ -34,6 +34,7 @@
 #include <Parafoil/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <interfaces-impl/hwmapping.h>
 #include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
 

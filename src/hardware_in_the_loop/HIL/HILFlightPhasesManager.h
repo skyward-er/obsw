@@ -23,9 +23,8 @@
 #pragma once
 
 #include <HIL/HILTransceiver.h>
-#include <Main/BoardScheduler.h>
 #include <algorithms/AirBrakes/TrajectoryPoint.h>
-#include <common/events/Events.h>
+#include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/Event.h>
 #include <events/EventHandler.h>

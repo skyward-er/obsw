@@ -25,16 +25,17 @@
 #ifdef PAYLOAD_ENTRY
 #include <Payload/Buses.h>
 using namespace Payload;
-#else
-#include <Main/Buses.h>
-using namespace Main;
+#elif defined(HILParafoil)
+#include <Parafoil/Buses.h>
+using namespace Parafoil;
 #endif
 
 /**
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver()
-    : hilSerial(Buses::getInstance().uart4), actuatorData(ActuatorData{})
+    : hilSerial(Boardcore::ModuleManager::getInstance().get<Buses>()->uart4),
+      actuatorData(ActuatorData{})
 {
 }
 
@@ -102,7 +103,7 @@ void HILTransceiver::run()
     TRACE("[HILT] Transceiver started\n");
     bool lostUpdate = false;
     HILFlightPhasesManager *flightPhasesManager =
-        HIL::getInstance().flightPhasesManager;
+        Boardcore::ModuleManager::getInstance().get<HIL>()->flightPhasesManager;
 
     while (true)
     {

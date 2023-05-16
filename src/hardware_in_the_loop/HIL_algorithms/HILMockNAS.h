@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include "HIL_sensors/HILAccelerometer.h"
+#include "HIL_sensors/HILBarometer.h"
+#include "HIL_sensors/HILGps.h"
+#include "HIL_sensors/HILGyroscope.h"
+#include "HIL_sensors/HILMagnetometer.h"
+#include "HIL_sensors/HILSensor.h"
 #include "NavigationSystem/NASController.h"
-#include "hardware_in_the_loop/HIL_sensors/HILAccelerometer.h"
-#include "hardware_in_the_loop/HIL_sensors/HILBarometer.h"
-#include "hardware_in_the_loop/HIL_sensors/HILGps.h"
-#include "hardware_in_the_loop/HIL_sensors/HILGyroscope.h"
-#include "hardware_in_the_loop/HIL_sensors/HILMagnetometer.h"
-#include "hardware_in_the_loop/HIL_sensors/HILSensor.h"
 
 struct HILNasData : public TimestampData
 {

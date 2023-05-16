@@ -1,5 +1,5 @@
 /* Copyright (c) 2021 Skyward Experimental Rocketry
- * Author: Luca Conterio
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,42 @@
 
 #pragma once
 
-#include "HIL_algorithms/HILMockKalman.h"
-#include "HIL_sensors/HILAccelerometer.h"
-#include "HIL_sensors/HILBarometer.h"
-#include "HIL_sensors/HILGps.h"
-#include "HIL_sensors/HILGyroscope.h"
-#include "HIL_sensors/HILImu.h"
-#include "HIL_sensors/HILMagnetometer.h"
-#include "HIL_sensors/HILPitot.h"
-#include "HIL_sensors/HILSensor.h"
-#include "HIL_sensors/HILTemperature.h"
-#include "HIL_sensors/HILTimestampManagement.h"
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
+#include <actuators/Servo/Servo.h>
+#include <common/Mavlink.h>
+#include <interfaces/gpio.h>
+
+#include "Actuators.h"
+#include "HIL_actuators/HILServo.h"
+
+namespace Parafoil
+{
+
+struct HILActuators : public Actuators
+{
+    HILActuators();
+
+    /**
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param percentage Angle to set [0-1].
+     * @return True if the the angle was set.
+     */
+    bool setServo(ServosList servoId, float percentage) override;
+
+    /**
+     * @brief Moves the specified servo to the given position.
+     *
+     * @param servoId Servo to move.
+     * @param angle Angle to set [degree] 0-120.
+     * @return True if the the angle was set.
+     */
+    bool setServoAngle(ServosList servoId, float angle) override;
+
+private:
+    HILServo leftServo;
+    HILServo rightServo;
+};
+
+}  // namespace Parafoil

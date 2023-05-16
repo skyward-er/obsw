@@ -40,8 +40,8 @@
  */
 
 /* Hardware in the loop entrypoint */
-#if defined(HILSimulation)
-#include <HILSimulationConfig.h>
+#if defined(HILParafoil)
+#include <Parafoil/Configs/HILSimulationConfig.h>
 /*
 #elif defined(HIL_<tuoFlag>)
 #include "<test-directory>/HILSimulationConfig.h"

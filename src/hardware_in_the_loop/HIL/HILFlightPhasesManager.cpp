@@ -26,9 +26,6 @@
 
 #include "events/EventBroker.h"
 
-/* CPUMeter */
-// #include "diagnostic/CpuMeter/CpuMeter.h"
-
 using namespace Common;
 
 HILFlightPhasesManager::HILFlightPhasesManager()
@@ -212,7 +209,7 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
             changed_flags.push_back(FlightPhases::CALIBRATION);
             break;
         case NAS_READY:
-        case FMM_ALGOS_CAL_DONE:
+            // case FMM_ALGOS_CAL_DONE:
             setFlagFlightPhase(FlightPhases::CALIBRATION_OK, true);
             TRACE("[HIL] CALIBRATION OK!\n");
             changed_flags.push_back(FlightPhases::CALIBRATION_OK);

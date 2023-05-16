@@ -25,6 +25,7 @@
 #include <HIL/Vec3.h>
 
 #include <typeinfo>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "HIL.h"
 #include "HILConfig.h"
@@ -50,19 +51,9 @@ public:
     /**
      * @brief constructor of the fake sensor used for the simulation.
      *
-     * @param matlab reference of the MatlabTransceiver object that deals with
-     * the simulator
      * @param n_data_sensor number of samples in every period of simulation
      */
-    HILSensor(int n_data_sensor)
-    {
-        this->sensorData    = HIL::getInstance().simulator->getSensorData();
-        this->n_data_sensor = n_data_sensor;
-
-        /* Registers the sensor on the MatlabTransceiver to be notified when a
-         * new packet of simulated data arrives */
-        HIL::getInstance().simulator->addResetSampleCounter(this);
-    }
+    HILSensor(int n_data_sensor) { this->n_data_sensor = n_data_sensor; }
 
     /**
      * @brief sets the sample counter to 0.
@@ -82,6 +73,16 @@ public:
      */
     bool init() override
     {
+        this->sensorData = Boardcore::ModuleManager::getInstance()
+                               .get<HIL>()
+                               ->simulator->getSensorData();
+
+        /* Registers the sensor on the MatlabTransceiver to be notified when a
+         * new packet of simulated data arrives */
+        Boardcore::ModuleManager::getInstance()
+            .get<HIL>()
+            ->simulator->addResetSampleCounter(this);
+
         if (initialized)
         {
             this->lastError = Boardcore::SensorErrors::ALREADY_INIT;

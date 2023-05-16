@@ -24,33 +24,32 @@
 
 #include <HIL/HILFlightPhasesManager.h>
 #include <HIL/HILTransceiver.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
 /**
  * @brief Single interface to the hardware-in-the-loop framework.
  */
-class HIL : public Boardcore::Singleton<HIL>
+class HIL : public Parafoil::ParafoilModule
 {
-    friend class Boardcore::Singleton<HIL>;
-
 public:
-    HILTransceiver *simulator;
-    HILFlightPhasesManager *flightPhasesManager;
+    HILTransceiver *simulator                   = nullptr;
+    HILFlightPhasesManager *flightPhasesManager = nullptr;
+
+    HIL() {}
 
     /**
      * @brief Start the needed hardware-in-the-loop components.
      */
-    bool start() { return simulator->start() && flightPhasesManager->start(); }
+    bool startModule()
+    {
+        flightPhasesManager = new HILFlightPhasesManager();
+        simulator           = new HILTransceiver();
+        return simulator->start() && flightPhasesManager->start();
+    }
 
     void stop() { simulator->stop(); }
 
-    void send(float airbrakes_opening)
-    {
-        // TRACE("[HIL] Sending\n");
-
-        elaboratedData.setAirBrakesOpening(airbrakes_opening);
-        simulator->setActuatorData(elaboratedData.getAvgActuatorData());
-        elaboratedData.reset();
-    }
+    void send() { simulator->setActuatorData(actuatorsData); }
 
     /**
      * @brief method that signals to the simulator that the liftoff pin has
@@ -60,19 +59,10 @@ public:
     {
         flightPhasesManager->setFlagFlightPhase(
             FlightPhases::LIFTOFF_PIN_DETACHED, true);
-
-        // start code for the flight
-        this->send(-1);
     }
 
-    ElaboratedData *getElaboratedData() { return &elaboratedData; }
+    ActuatorData &getActuatorData() { return actuatorsData; }
 
 private:
-    HIL()
-    {
-        flightPhasesManager = new HILFlightPhasesManager();
-        simulator           = new HILTransceiver();
-    }
-
-    ElaboratedData elaboratedData;
+    ActuatorData actuatorsData{0};
 };

@@ -21,6 +21,7 @@
 
 set(OBSW_INCLUDE_DIRS
     src/boards
+    src/hardware_in_the_loop
 )
 
 set(PARAFOIL_COMPUTER
@@ -37,4 +38,11 @@ set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingAlgorithm.cpp
     src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
+)
+
+set(HIL
+    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp    
+    src/boards/Parafoil/Actuators/HILActuators.cpp
+    src/boards/Parafoil/Sensors/HILSensors.cpp
+    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
