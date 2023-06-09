@@ -21,9 +21,8 @@
  */
 
 #pragma once
-
 #include <Parafoil/Configs/RadioConfig.h>
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 

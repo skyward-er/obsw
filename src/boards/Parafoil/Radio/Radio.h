@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/RadioConfig.h>
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/Xbee/Xbee.h>
@@ -33,6 +33,8 @@
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #elif defined(USE_XBEE_TRANSCEIVER)
 #include <radio/Xbee/ATCommands.h>
+#else
+// #include <radio/SX1278/SX1278.h>
 #endif
 
 namespace Parafoil

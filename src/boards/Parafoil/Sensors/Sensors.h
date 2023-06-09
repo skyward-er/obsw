@@ -41,7 +41,7 @@
 #include <HIL_algorithms/HILMockKalman.h>
 #include <HIL_sensors/HILSensors.h>
 #endif  // HILSimulation
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
 namespace Parafoil
 {

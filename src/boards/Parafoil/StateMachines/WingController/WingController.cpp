@@ -35,8 +35,6 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 using namespace Boardcore;
 using namespace Parafoil::WingConfig;
 using namespace Parafoil::WESConfig;
@@ -49,8 +47,8 @@ namespace Parafoil
 WingController::WingController()
     : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
 {
+
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
-    // setting up the 2 type of algorithm
 
     targetPosition[0] = DEFAULT_TARGET_LAT;
     targetPosition[1] = DEFAULT_TARGET_LON;
@@ -133,8 +131,6 @@ State WingController::state_flying(const Event& event)
 
 State WingController::state_calibration(const Boardcore::Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
@@ -146,17 +142,11 @@ State WingController::state_calibration(const Boardcore::Event& event)
             ModuleManager::getInstance()
                 .get<WindEstimation>()
                 ->startWindEstimationSchemeCalibration();
-            return logStatus(WingControllerState::WES);
+            return HANDLED;
         }
         case EV_EXIT:
         {
-
-#ifndef PRF_TEST
-            modules.get<WindEstimation>()
-                ->stopWindEstimationSchemeCalibration();
-            modules.get<WindEstimation>()->startWindEstimationScheme();
-            return logStatus(WingControllerState::WES);
-#endif
+            return HANDLED;
         }
         case EV_EMPTY:
         {
@@ -175,15 +165,16 @@ State WingController::state_calibration(const Boardcore::Event& event)
 }
 State WingController::state_controlled_descent(const Boardcore::Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     switch (event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
-            modules.get<AltitudeTrigger>()->enable();
+            if (automatic)
+            {
+                ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+            }
             startAlgorithm();
             return HANDLED;
         }
@@ -191,9 +182,21 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
         {
             stopAlgorithm();
-            modules.get<AltitudeTrigger>()->disable();
-            return transition(&WingController::state_wes);
-        }  // start the algorithm, inside we add the task to the scheduler
+            ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
+            return transition(&WingController::state_calibration);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&WingController::state_flying);
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
     }
 }
 
@@ -204,8 +207,13 @@ State WingController::state_on_ground(const Boardcore::Event& event)
         case EV_ENTRY:  // start automatic algorithm
         {
             logStatus(WingControllerState::ON_GROUND);
-            WindEstimation::getInstance().stopWindEstimationScheme();
-            WindEstimation::getInstance().stopWindEstimationSchemeCalibration();
+
+            ModuleManager::getInstance()
+                .get<WindEstimation>()
+                ->stopWindEstimationScheme();
+            ModuleManager::getInstance()
+                .get<WindEstimation>()
+                ->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
             return HANDLED;
         }
@@ -344,21 +352,22 @@ void WingController::update()
 
 void WingController::flare()
 {
-    Actuators& actuators = *(ModuleManager::getInstance().get<Actuators>());
-
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    actuators.setServo(PARAFOIL_LEFT_SERVO, 1);
-    actuators.setServo(PARAFOIL_RIGHT_SERVO, 1);
+
+    ModuleManager::getInstance().get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO,
+                                                            1);
+    ModuleManager::getInstance().get<Actuators>()->setServo(
+        PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
 {
-    Actuators& actuators = *(ModuleManager::getInstance().get<Actuators>());
-
     // Set the servo position to reset
-    actuators.setServo(PARAFOIL_LEFT_SERVO, 0);
-    actuators.setServo(PARAFOIL_RIGHT_SERVO, 0);
+    ModuleManager::getInstance().get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO,
+                                                            0);
+    ModuleManager::getInstance().get<Actuators>()->setServo(
+        PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f target)

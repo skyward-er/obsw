@@ -23,7 +23,6 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/HSM.h>
 
@@ -56,7 +55,7 @@
 namespace Parafoil
 {
 class WingController : public Boardcore::HSM<WingController>,
-                       public Boardcore::Singleton<WingController>
+                       public ParafoilModule
 
 {
 
@@ -66,11 +65,6 @@ public:
     Boardcore::State state_calibration(const Boardcore::Event& event);
     Boardcore::State state_controlled_descent(const Boardcore::Event& event);
     Boardcore::State state_on_ground(const Boardcore::Event& event);
-
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -93,6 +87,8 @@ public:
      * @param index The algorithms vector index
      */
     void selectAlgorithm(unsigned int index);
+
+    void setAutomatic(bool automatic);
 
     WingControllerStatus getStatus();
 
@@ -137,10 +133,12 @@ private:
     std::atomic<bool> running;
     /**
      * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumered algorithm
+     * The user using the Ground Station can select the pre-enumerated algorithm
      * to execute
      */
     size_t selectedAlgorithm;
+
+    std::atomic<bool> automatic;
 
     /**
      * @brief  starts the selected algorithm

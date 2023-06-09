@@ -72,18 +72,6 @@ class WindEstimationMock : public WindEstimation
 {
 public:
     WindEstimationMock() : WindEstimation() {}
-
-    bool start() override
-    {
-        BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindEstimationSchemeCalibration, this), 100);
-
-        // Register the WES task
-        BoardScheduler::getInstance().getScheduler().addTask(
-            std::bind(&WindEstimationScheme, this), 10);
-
-        return true;
-    }
 };
 
 int main()
@@ -95,8 +83,15 @@ int main()
     WindEstimation* wind_estimation = new WindEstimationMock();
 
     // Insert the modules
-    modules.insert<Sensors>(sensors);
-    modules.insert<WindEstimation>(wind_estimation);
+
+    if (!modules.insert<Sensors>(sensors))
+    {
+        TRACE("Error inserting Sensor\n");
+    }
+    if (!modules.insert<WindEstimation>(wind_estimation))
+    {
+        TRACE("Error inserting wind estimation\n");
+    }
 
     // start the scheduler
     if (!BoardScheduler::getInstance().getScheduler().start())

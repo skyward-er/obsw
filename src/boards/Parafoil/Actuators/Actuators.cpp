@@ -25,6 +25,7 @@
 #include <Parafoil/Configs/ActuatorsConfigs.h>
 #include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <logger/Logger.h>
 
 using namespace miosix;
 using namespace Boardcore;

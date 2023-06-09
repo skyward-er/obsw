@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <miosix.h>

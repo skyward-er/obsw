@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>

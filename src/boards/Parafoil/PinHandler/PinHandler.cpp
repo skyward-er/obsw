@@ -38,7 +38,7 @@ namespace Parafoil
 
 void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
-    if (transition == DPL_SERVO_PIN_TRIGGER)
+    if (transition == DPL_SERVO_PIN_TRIGGER)  // TODO change policy name
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
 }
 

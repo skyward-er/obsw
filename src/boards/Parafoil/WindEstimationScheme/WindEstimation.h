@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/WESConfig.h>
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <miosix.h>
@@ -66,7 +66,7 @@ public:
 
     Eigen::Vector2f getWindEstimationScheme();
 
-protected:
+private:
     /**
      * @brief Creates the windCalibration matrix with the starting prediction
      * value

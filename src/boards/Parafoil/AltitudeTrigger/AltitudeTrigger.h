@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
 #include <atomic>
 
@@ -51,8 +51,8 @@ private:
 
     std::atomic<bool> running;
 
-    // Number of times that we have to be below the fixed altitude before
-    // posting the event
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
     std::atomic<int> confidence;
 };
 

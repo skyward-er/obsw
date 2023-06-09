@@ -231,10 +231,6 @@ int main()
             Logger::getInstance().log(ev);
         });
 
-    WingController::getInstance().addAlgorithm(new AutomaticWingAlgorithm(
-        0.1, 0.01, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO));
-    WingController::getInstance().selectAlgorithm(0);
-
     // Periodically statistics
     while (true)
     {

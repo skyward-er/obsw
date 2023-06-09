@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 
@@ -33,6 +33,8 @@ namespace Parafoil
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
                           public ParafoilModule
 {
+    friend Boardcore::Singleton<FlightModeManager>;
+
 public:
     FlightModeManager();
     ~FlightModeManager();

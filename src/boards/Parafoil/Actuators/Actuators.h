@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Parafoil/ModuleHelper/ParafoilModule.h>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
