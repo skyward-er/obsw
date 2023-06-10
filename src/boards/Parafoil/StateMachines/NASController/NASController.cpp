@@ -29,6 +29,7 @@
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
+#include <events/EventBroker.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 

@@ -28,6 +28,7 @@
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -461,12 +462,11 @@ State FlightModeManager::state_wing_descent(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
-            missionTimeoutEventId =
-                EventBroker::getInstance().postDelayed<MISSION_TIMEOUT>(
-                    FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT);
+            missionTimeoutEventId = EventBroker::getInstance().postDelayed(
+                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT, MISSION_TIMEOUT);
 
-            EventBroker::getInstance().postDelayed<CONTROL_DELAY>(
-                FLIGHT_WING_ALT_PASSED, TOPIC_ALGOS);
+            EventBroker::getInstance().postDelayed(FLIGHT_WING_ALT_PASSED,
+                                                   TOPIC_ALGOS, CONTROL_DELAY);
             return HANDLED;
         }
         case EV_EXIT:
@@ -499,8 +499,8 @@ State FlightModeManager::state_mission_ended(const Event& event)
             logStatus(FlightModeManagerState::MISSION_ENDED);
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_ALGOS);
-            EventBroker::getInstance().postDelayed<5000>(FLIGHT_STOP_LOGGING,
-                                                         TOPIC_FLIGHT);
+            EventBroker::getInstance().postDelayed(FLIGHT_STOP_LOGGING,
+                                                   TOPIC_FLIGHT, 5000);
 
             return HANDLED;
         }

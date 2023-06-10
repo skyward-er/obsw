@@ -309,7 +309,22 @@ std::map<string, bool> Sensors::getSensorsState()
     return sensorsState;
 }
 
-Sensors::Sensors() {}
+Sensors::Sensors()
+    : bmx160(nullptr), bmx160WithCorrection(nullptr), lis3mdl(nullptr),
+      ms5803(nullptr), ubxGps(nullptr), ads1118(nullptr),
+      staticPressure(nullptr), dplPressure(nullptr), pitotPressure(nullptr),
+      pitot(nullptr), internalADC(nullptr), batteryVoltage(nullptr)
+{
+    state.accelerometer = nullptr;
+    state.barometer     = nullptr;
+    state.pitot         = nullptr;
+    state.gps           = nullptr;
+    state.gyro          = nullptr;
+    state.magnetometer  = nullptr;
+    state.temperature   = nullptr;
+    state.imu           = nullptr;
+    state.kalman        = nullptr;
+}
 
 Sensors::~Sensors()
 {
@@ -575,7 +590,7 @@ void Sensors::pitotInit()
 
 void Sensors::internalADCInit()
 {
-    internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
+    internalADC = new InternalADC(ADC3);
 
     internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
 
@@ -607,13 +622,13 @@ void Sensors::batteryVoltageInit()
 
 void Sensors::internalTempInit()
 {
-    internalTemp = new InternalTemp(InternalADC::CYCLES_480, INTERNAL_ADC_VREF);
+    internalADC->enableTemperature();
 
     SensorInfo info(
         "INTERNAL_TEMP", SAMPLE_PERIOD_INTERNAL_TEMP,
-        [&]() { Logger::getInstance().log(internalTemp->getLastSample()); });
+        [&]() { Logger::getInstance().log(internalADC->getTemperature()); });
 
-    sensorsMap.emplace(make_pair(internalTemp, info));
+    sensorsMap.emplace(make_pair(internalADC, info));
 
     LOG_INFO(logger, "Internal TEMP setup done!");
 }

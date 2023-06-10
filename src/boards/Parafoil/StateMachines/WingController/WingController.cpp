@@ -137,8 +137,8 @@ State WingController::state_calibration(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::CALIBRATION);
             ModuleManager::getInstance().get<Actuators>()->startTwirl();
-            EventBroker::getInstance().postDelayed<WES_TIMEOUT>(
-                WING_WES_CALIBRATION, TOPIC_ALGOS);
+            EventBroker::getInstance().postDelayed(WING_WES_CALIBRATION,
+                                                   TOPIC_ALGOS, WES_TIMEOUT);
             ModuleManager::getInstance()
                 .get<WindEstimation>()
                 ->startWindEstimationSchemeCalibration();

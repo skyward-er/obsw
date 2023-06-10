@@ -34,6 +34,7 @@
 #include <Parafoil/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <events/EventBroker.h>
 #include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
 
@@ -78,7 +79,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavDriver->enqueueMsg(nackMsg);
 }
 
-Radio::Radio() {}
+Radio::Radio() : flightTMTaskId(0), statsTMTaskId(0) {}
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
 
@@ -120,20 +121,20 @@ bool Radio::startModule()
                               0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the periodic telemetries
-    BoardScheduler::getInstance().getScheduler().addTask(
+    flightTMTaskId = BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
         },
-        FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
-    BoardScheduler::getInstance().getScheduler().addTask(
+        FLIGHT_TM_PERIOD);
+    statsTMTaskId = BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
-        STATS_TM_PERIOD, STATS_TM_TASK_ID);
+        STATS_TM_PERIOD);
 
     return mavDriver->start();
 }
