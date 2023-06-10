@@ -315,6 +315,7 @@ Sensors::Sensors()
       staticPressure(nullptr), dplPressure(nullptr), pitotPressure(nullptr),
       pitot(nullptr), internalADC(nullptr), batteryVoltage(nullptr)
 {
+#ifdef HILSimulation
     state.accelerometer = nullptr;
     state.barometer     = nullptr;
     state.pitot         = nullptr;
@@ -324,6 +325,7 @@ Sensors::Sensors()
     state.temperature   = nullptr;
     state.imu           = nullptr;
     state.kalman        = nullptr;
+#endif
 }
 
 Sensors::~Sensors()
