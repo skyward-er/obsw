@@ -1,7 +1,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 
-#include "AutomatedAntennas/Converter.h"
+#include "Converter.h"
 
 using namespace miosix;
 using namespace Boardcore;
@@ -24,7 +24,7 @@ int main()
     }
 
     uint64_t end = TimestampTimer::getTimestamp();
-    printf("Took %lld millis for %d calls.\n", (end - start) / 1000ull, N);
+    printf("Took %llu millis for %d calls.\n", (end - start) / 1000ull, N);
 
     return 0;
 }
