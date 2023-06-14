@@ -33,7 +33,7 @@ namespace Parafoil
 class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
                           public ParafoilModule
 {
-    friend Boardcore::Singleton<FlightModeManager>;
+    // friend Boardcore::Singleton<FlightModeManager>;
 
 public:
     FlightModeManager();
