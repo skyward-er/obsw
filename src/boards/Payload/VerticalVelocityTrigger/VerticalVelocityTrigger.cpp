@@ -44,7 +44,6 @@ VerticalVelocityTrigger::VerticalVelocityTrigger()
 
 bool VerticalVelocityTrigger::startModule()
 {
-    TRACE("Starting Velocity Trigger Module\n");
     return BoardScheduler::getInstance().getScheduler().addTask(
         bind(&VerticalVelocityTrigger::update, this),
         FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
@@ -68,7 +67,6 @@ void VerticalVelocityTrigger::update()
                                       .get<NASController>()
                                       ->getNasState()
                                       .vd;
-        TRACE("Vertical Velocity Trigger: %f\n", verticalVelocity);
         if (verticalVelocity < FailSafe::FAILSAFE_VERTICAL_VELOCITY_THRESHOLD)
         {
             confidence++;

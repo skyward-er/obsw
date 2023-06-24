@@ -44,7 +44,7 @@ public:
 
     void state_end(const Boardcore::Event &event);
     bool startModule();
-    Boardcore::NASState getNasState();
+    virtual Boardcore::NASState getNasState();
 };
 
 }  // namespace Payload

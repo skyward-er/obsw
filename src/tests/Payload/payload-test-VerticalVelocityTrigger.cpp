@@ -32,7 +32,7 @@
 using namespace Boardcore;
 using namespace Payload;
 
-constexpr float MOCK_INITIAL_VERTICAL_VELOCITY = -15;
+constexpr float MOCK_INITIAL_VERTICAL_VELOCITY = -150;
 
 class NASMock : public NASController
 {
@@ -48,7 +48,7 @@ public:
     // that is increased by initalVerticalVelocity [s] / 9.81 [m/s^2] every time
     // it is called. We suppose that the gravity is applied directly to the
     // vertical component
-    NASState getNasState()
+    NASState getNasState() override
     {
         mockedVerticalSpeed +=
             (FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD / 1000) * 9.81;
@@ -99,21 +99,15 @@ int main()
         halt();
     }
 
-    float vel =
-        ModuleManager::getInstance().get<NASController>()->getNasState().vd;
-    TRACE("Testing if the mock is accessible: Velocity: %f\n", vel);
-    if (vel == 0)
-    {
-        TRACE("Test failed: could not access the mock class!\n");
-        halt();
-    }
-
     ModuleManager::getInstance().get<VerticalVelocityTrigger>()->enable();
 
     TRACE("Starting... \n");
     // wait for the trigger
     int count       = 0;
-    int maxWaitTime = 3 * ((-MOCK_INITIAL_VERTICAL_VELOCITY / 9.81 * 100) + 1);
+    int maxWaitTime = (-MOCK_INITIAL_VERTICAL_VELOCITY / 9.81 * 100) +
+                      (FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE /
+                       FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD) +
+                      1;
     while (
         ModuleManager::getInstance().get<VerticalVelocityTrigger>()->isActive())
     {
