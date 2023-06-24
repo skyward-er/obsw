@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,44 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+/****************************************************************/
+/* !!!! THIS IS A TEMPORARY CLASS DO NOT USE IN PRODUCTION !!!! */
+/****************************************************************/
+
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
+#include <algorithms/NAS/NAS.h>
+#include <common/Events.h>
+#include <events/FSM.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Payload
 {
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Module
+
+class NASController : public Boardcore::FSM<NASController>,
+                      public Boardcore::Module
 {
 public:
-    BoardScheduler();
+    NASController();
+    ~NASController();
 
-    /**
-     * @brief Get the Scheduler object relative to the requested priority
-     *
-     * @param priority The task scheduler priority
-     * @return Boardcore::TaskScheduler& Reference to the requested task
-     * scheduler.
-     * @note Min priority scheduler is returned in case of non valid priority.
-     */
-    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
-
-    [[nodiscard]] bool start();
-
-    /**
-     * @brief Returns if all the schedulers are up and running
-     */
-    bool isStarted();
-
-private:
-    Boardcore::TaskScheduler* scheduler1;
-    Boardcore::TaskScheduler* scheduler2;
-    Boardcore::TaskScheduler* scheduler3;
-    Boardcore::TaskScheduler* scheduler4;
+    void state_end(const Boardcore::Event &event);
+    bool startModule();
+    Boardcore::NASState getNasState();
 };
+
 }  // namespace Payload

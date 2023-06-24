@@ -50,3 +50,8 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
     #src/boards/Payload/StateMachines/Deployment/Deployment.cpp
 )
+
+set(PAYLOAD_COMPUTER
+    src/boards/Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.cpp
+    src/boards/Payload/NASControllerMock/NASControllerMock.cpp
+)

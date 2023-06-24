@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,44 +19,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
-
+#include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Payload
 {
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Module
+
+class VerticalVelocityTrigger : public Boardcore::Module
 {
 public:
-    BoardScheduler();
+    VerticalVelocityTrigger();
 
-    /**
-     * @brief Get the Scheduler object relative to the requested priority
-     *
-     * @param priority The task scheduler priority
-     * @return Boardcore::TaskScheduler& Reference to the requested task
-     * scheduler.
-     * @note Min priority scheduler is returned in case of non valid priority.
-     */
-    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
+    bool startModule();
 
-    [[nodiscard]] bool start();
+    void enable();
 
-    /**
-     * @brief Returns if all the schedulers are up and running
-     */
-    bool isStarted();
+    void disable();
+
+    bool isActive();
 
 private:
-    Boardcore::TaskScheduler* scheduler1;
-    Boardcore::TaskScheduler* scheduler2;
-    Boardcore::TaskScheduler* scheduler3;
-    Boardcore::TaskScheduler* scheduler4;
+    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
+    // altitude is reached
+    void update();
+
+    std::atomic<float> startingAltitude;
+
+    std::atomic<bool> running;
+
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
+    std::atomic<int> confidence;
 };
+
 }  // namespace Payload
