@@ -22,9 +22,8 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/FailSafeConfig.h>
-// #include<Payload / NASControllerMock / NASControllerMock.h>
+#include <Payload/NASControllerMock/NASControllerMock.h>
 #include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
-#include <algorithms/NAS/NAS.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 
@@ -35,14 +34,14 @@ using namespace Payload;
 
 constexpr float MOCK_INITIAL_VERTICAL_VELOCITY = -150;
 
-class NASController : public Module
+class NASMock : public NASController
 {
 public:
     // default constructor
-    NASController() : mockedVerticalSpeed(MOCK_INITIAL_VERTICAL_VELOCITY) {}
+    NASMock() : mockedVerticalSpeed(MOCK_INITIAL_VERTICAL_VELOCITY) {}
 
     // default destructor
-    ~NASController() {}
+    ~NASMock() {}
 
     // mocked version of the getNasState function
     // it returns a NASState with a mocked vertical velocity
@@ -72,10 +71,9 @@ void halt()
 
 int main()
 {
-    NASController* mock = new NASController();
 
     // Insert the modules
-    ModuleManager::getInstance().insert<NASController>(mock);
+    ModuleManager::getInstance().insert<NASController>(new NASMock());
     ModuleManager::getInstance().insert<VerticalVelocityTrigger>(
         new VerticalVelocityTrigger());
 
@@ -87,6 +85,12 @@ int main()
         halt();
     }
 
+    // start the modules
+    if (!ModuleManager::getInstance().get<NASController>()->start())
+    {
+        TRACE("Error starting the NAS Controller\n");
+        halt();
+    }
     if (!ModuleManager::getInstance()
              .get<VerticalVelocityTrigger>()
              ->startModule())
