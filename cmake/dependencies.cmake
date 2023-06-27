@@ -29,3 +29,7 @@ set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
+
+set(MAIN_COMPUTER
+    src/boards/Main/BoardScheduler.cpp
+)
