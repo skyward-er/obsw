@@ -40,6 +40,7 @@ enum Topics : uint8_t
     TOPIC_NAS,
     TOPIC_TMTC,
     TOPIC_MOTOR,
+    TOPIC_TARS
 };
 
 const std::vector<uint8_t> TOPICS_LIST{
