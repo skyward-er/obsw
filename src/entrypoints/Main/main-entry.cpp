@@ -20,4 +20,77 @@
  * THE SOFTWARE.
  */
 
-int main() { return 0; }
+#include <Main/BoardScheduler.h>
+#include <common/Events.h>
+#include <common/Topics.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
+#include <diagnostic/PrintLogger.h>
+#include <diagnostic/StackLogger.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+using namespace Boardcore;
+using namespace Main;
+using namespace Common;
+
+int main()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Overall status, if at some point it becomes false, there is a problem
+    // somewhere
+    bool initResult    = true;
+    PrintLogger logger = Logging::getLogger("main");
+
+    // Create modules
+    BoardScheduler* scheduler = new BoardScheduler();
+
+    // Insert modules
+    if (!modules.insert<BoardScheduler>(scheduler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the board scheduler");
+    }
+
+    // Start modules
+    if (!modules.get<BoardScheduler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the board scheduler");
+    }
+
+    // Log all the events
+    EventSniffer sniffer(
+        EventBroker::getInstance(), TOPICS_LIST,
+        [](uint8_t event, uint8_t topic)
+        {
+            EventData ev{TimestampTimer::getTimestamp(), event, topic};
+            Logger::getInstance().log(ev);
+        });
+
+    // Check the init result and launch an event
+    if (initResult)
+    {
+        // Post OK
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+    }
+    else
+    {
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+    }
+
+    // Periodic statistics
+    while (true)
+    {
+        Thread::sleep(1000);
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
+        StackLogger::getInstance().log();
+    }
+
+    return 0;
+}
