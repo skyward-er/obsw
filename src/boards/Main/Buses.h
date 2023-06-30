@@ -22,9 +22,31 @@
 
 #pragma once
 
+#include <drivers/i2c/I2C.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 namespace Main
 {
-class Buses
+class Buses : public Boardcore::Module
 {
+public:
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
+    Boardcore::SPIBus spi6;
+
+    I2C_TypeDef *i2c1;
+
+    Boardcore::USART usart1;
+    Boardcore::USART usart2;
+    Boardcore::USART uart4;
+
+    Buses()
+        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6), i2c1(I2C1),
+          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
+    {
+    }
 };
 }  // namespace Main
