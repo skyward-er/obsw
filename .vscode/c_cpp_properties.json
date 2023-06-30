@@ -438,6 +438,65 @@
             }
         },
         {
+            "name": "stm32f767zi_skyward_death_stack_v4",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "defines": [
+                "DEBUG",
+                "_ARCH_CORTEXM7_STM32F7",
+                "_BOARD_STM32F767ZI_SKYWARD_DEATHST_V4",
+                "_MIOSIX_BOARDNAME=stm32f767zi_skyward_death_stack_v4",
+                "HSE_VALUE=8000000",
+                "SYSCLK_FREQ_168MHz=168000000",
+                "_MIOSIX",
+                "__cplusplus=201103L",
+                "HILSimulation",
+                "ROCCARASO"
+            ],
+            "includePath": [
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM7_stm32f7/stm32f767zi_skyward_death_stack_v4",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/stm32f767zi_skyward_death_stack_v4",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
+                "${workspaceFolder}/skyward-boardcore/libs/Catch2/single_include",
+                "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+                "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
+                "${workspaceFolder}/skyward-boardcore/libs/eigen",
+                "${workspaceFolder}/skyward-boardcore/libs/tscpp",
+                "${workspaceFolder}/skyward-boardcore/libs",
+                "${workspaceFolder}/skyward-boardcore/src/shared",
+                "${workspaceFolder}/skyward-boardcore/src/tests",
+                "${workspaceFolder}/src/boards",
+                "${workspaceFolder}/src"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM7_stm32f7/stm32f767zi_skyward_death_stack_v4",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/stm32f767zi_skyward_death_stack_v4",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/stdlib_integration",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/interfaces",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/filesystem",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/kernel",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/util",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/e20",
+                    "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/*",
+                    "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+                    "${workspaceFolder}/skyward-boardcore/libs/eigen",
+                    "${workspaceFolder}/skyward-boardcore/libs/tscpp",
+                    "${workspaceFolder}/skyward-boardcore/libs/mxgui",
+                    "${workspaceFolder}/skyward-boardcore/libs/fmt",
+                    "${workspaceFolder}/skyward-boardcore/src/shared",
+                    "${workspaceFolder}/skyward-boardcore/src/tests",
+                    "${workspaceFolder}/src/boards"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        },
+        {
             "name": "stm32f429zi_skyward_pyxis_auxiliary",
             "cStandard": "c11",
             "cppStandard": "c++14",
