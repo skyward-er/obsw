@@ -160,8 +160,6 @@ void NASController::calibrate()
         nas.setX(state.getInitX());
         nas.setReferenceValues(reference);
     }
-    Logger::getInstance().log(nas.getState());
-    EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
 void NASController::setCoordinates(Vector2f position)
@@ -271,6 +269,7 @@ void NASController::state_active(const Event &event)
     {
         case EV_ENTRY:
         {
+            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
