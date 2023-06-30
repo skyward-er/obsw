@@ -40,4 +40,4 @@ sbs_target(test-hil stm32f767zi_compute_unit)
 
 add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-entry stm32f767zi_compute_unit)
+sbs_target(main-entry stm32f767zi_skyward_death_stack_v4)
