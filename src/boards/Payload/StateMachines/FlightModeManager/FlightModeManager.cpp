@@ -222,8 +222,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
-            EventBroker::getInstance().post(
-                FMM_READY, TOPIC_FMM);  // wait for nas calibration
+            EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
             return HANDLED;
         }
         case EV_EXIT:
@@ -238,7 +237,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         {
             return HANDLED;
         }
-        case FMM_READY:
+        case NAS_READY:
         {
             return transition(&FlightModeManager::state_flying);
         }
