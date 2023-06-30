@@ -43,24 +43,18 @@ struct Buses : public ParafoilModule
 public:
 #ifndef USE_MOCK_PERIPHERALS
     Buses()
-        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
-          usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
-          uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
-          spi1(SPI1), spi2(SPI2)
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
     {
-        usart1.init();
-        usart2.init();
-        usart3.init();
-        uart4.init();
+        /* usart1.init();
+         usart2.init();
+         usart3.init();
+         uart4.init();*/
     }
 #else
     Buses()
-        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
-          usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
-          uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
-          spi2({})
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1({}), spi2({})
     {
         usart2.init();
         usart3.init();
