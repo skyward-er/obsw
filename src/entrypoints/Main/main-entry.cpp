@@ -21,6 +21,8 @@
  */
 
 #include <Main/BoardScheduler.h>
+#include <Main/Buses.h>
+#include <Main/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -48,19 +50,40 @@ int main()
 
     // Create modules
     BoardScheduler* scheduler = new BoardScheduler();
+    Buses* buses              = new Buses();
+    Sensors* sensors =
+        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the board scheduler");
+        LOG_ERR(logger, "Error inserting the board scheduler module");
+    }
+
+    if (!modules.insert<Buses>(buses))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the buses module");
+    }
+
+    if (!modules.insert<Sensors>(sensors))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the sensor module");
     }
 
     // Start modules
     if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the board scheduler");
+        LOG_ERR(logger, "Error starting the board scheduler module");
+    }
+
+    if (!modules.get<Sensors>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the sensors module");
     }
 
     // Log all the events
