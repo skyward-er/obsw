@@ -70,7 +70,7 @@ public:
     Boardcore::State state_wing_descent(const Boardcore::Event& event);
 
     /// The rocket ended the flight and closes the log.
-    Boardcore::State state_mission_ended(const Boardcore::Event& event);
+    Boardcore::State state_landed(const Boardcore::Event& event);
 
     /// The rocket will accept specific telecommands otherwise considered risky.
     Boardcore::State state_test_mode(const Boardcore::Event& event);

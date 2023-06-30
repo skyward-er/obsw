@@ -22,41 +22,9 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
-#include <string>
-
-namespace Payload
+namespace Parafoil
 {
-
-enum class FlightModeManagerState : uint8_t
-{
-    INVALID = 0,
-    INIT,
-    INIT_ERROR,
-    INIT_DONE,
-    SENSORS_CALIBRATION,
-    ALGOS_CALIBRATION,
-    DISARMED,
-    ARMED,
-    ASCENDING,
-    DROGUE_DESCENT,
-    WING_DESCENT,
-    LANDED,
-    TEST_MODE,
-};
-
-struct FlightModeManagerStatus
-{
-    uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
-
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
-}  // namespace Payload
+constexpr unsigned int MISSION_TIMEOUT = 60 * 60 * 1000;  // [ms]
+constexpr unsigned int LOGGING_DELAY   = 30 * 1000;       // [ms]
+// constexpr unsigned int CONTROL_DELAY   = 5 * 1000;
+}  // namespace Parafoil
