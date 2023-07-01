@@ -28,30 +28,56 @@
 namespace Payload
 {
 
+/**
+ * This class is used by the FailSafe logic to react to
+ * the premature opening of the parafoil by the payload
+ * @requires Payload::NASController
+ */
 class VerticalVelocityTrigger : public Boardcore::Module
 {
 public:
+    /**
+     * Default constructor for VerticalVelocityTrigger
+     * Sets the trigger to disabled by default
+     */
     VerticalVelocityTrigger();
 
+    /**
+     * Starts the module by inserting it in the BoardScheduler
+     */
     bool startModule();
 
+    /**
+     * Enables the Vertical Velocity Trigger
+     */
     void enable();
 
+    /**
+     * Disables the Vertical Velocity Trigger
+     */
     void disable();
 
+    /**
+     * Checks if the trigger is enabled
+     * @return true if the trigger is enabled
+     * @return false if the trigger is not enabled
+     */
     bool isActive();
 
 private:
-    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-    // altitude is reached
+    /**
+     * This method is called every
+     * FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD
+     * and reads the state from the NAS and when the velocity is below
+     * the threshold for some confidence level it posts the event
+     * FLIGHT_FAILSAFE_TRIGGERED in topic TOPIC_FLIGHT
+     */
     void update();
-
-    std::atomic<float> startingAltitude;
 
     std::atomic<bool> running;
 
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
+    // Number of times that the algorithm detects to be slower than the velocity
+    // threshold
     std::atomic<int> confidence;
 };
 

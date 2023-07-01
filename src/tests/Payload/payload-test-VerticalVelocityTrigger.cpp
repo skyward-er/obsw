@@ -32,41 +32,80 @@
 using namespace Boardcore;
 using namespace Payload;
 
-constexpr float MOCK_INITIAL_VERTICAL_VELOCITY = -150;
+// Initial velocity for the Vertical Velocity Trigger
+constexpr float MOCK_INITIAL_VERTICAL_VELOCITY = -30;
+constexpr float MOCK_VELOCITY_DECELERATION     = 0.5;  // m/s^2
 
+/**
+ * This class mocks the NASController class since for this test we cannot start
+ * the NASController as it needs the sensor reading and we cannot test the
+ * velocity trigger unless we launch the rocket
+ */
 class NASMock : public NASController
 {
 public:
-    // default constructor
+    /**
+     * Default constructor for NASMock
+     * It initializes the mockedVerticalSpeed
+     */
     NASMock() : mockedVerticalSpeed(MOCK_INITIAL_VERTICAL_VELOCITY) {}
 
-    // default destructor
+    /**
+     * Default destructor for NASMock
+     */
     ~NASMock() {}
 
-    // mocked version of the getNasState function
-    // it returns a NASState with a mocked vertical velocity
-    // that is increased by initalVerticalVelocity [s] / 9.81 [m/s^2] every time
-    // it is called. We suppose that the gravity is applied directly to the
-    // vertical component
+    /**
+     * This method mocks the NASController::getNasState() and returns a
+     * NASState with a personalized vertical velocity that starts at
+     * NASMock::MOCK_INITIAL_VERTICAL_VELOCITY and decreases by 0.5 m/s^2
+     *
+     * @return NASState object that contains the vertical vector in NED
+     * orientation
+     */
     NASState getNasState() override
     {
         mockedVerticalSpeed +=
-            (FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD / 1000) * 9.81;
-        TRACE("[*] mockedVerticalSpeed: %f\n", mockedVerticalSpeed);
+            MOCK_VELOCITY_DECELERATION *
+            ((float)FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD /
+             1000.f);
         NASState n = NASState();
         n.vd       = mockedVerticalSpeed;
         return n;
     }
 
 private:
+    // Keeps trace of the vertical velocity in NED orientation
     float mockedVerticalSpeed;
 };
 
+/**
+ * This function halts the board
+ */
 void halt()
 {
     while (1)
     {
     }
+}
+
+/**
+ * This function calculates the maximum wait time needed by the Vertical
+ * Velocity Trigger to trigger
+ */
+float calculateMaxWaitTime()
+{
+    float confidenceTime =
+        ((float)FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE *
+         (float)FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD) /
+        1000.f;
+    float targetReachTime = (-MOCK_INITIAL_VERTICAL_VELOCITY -
+                             FailSafe::FAILSAFE_VERTICAL_VELOCITY_THRESHOLD) /
+                            MOCK_VELOCITY_DECELERATION;
+    TRACE("Target reach time: %f [s]\n", targetReachTime);
+    TRACE("Confidence time: %f [s]\n", confidenceTime);
+
+    return confidenceTime + targetReachTime + 1;
 }
 
 int main()
@@ -104,10 +143,7 @@ int main()
     TRACE("Starting... \n");
     // wait for the trigger
     int count       = 0;
-    int maxWaitTime = (-MOCK_INITIAL_VERTICAL_VELOCITY / 9.81 * 100) +
-                      (FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE /
-                       FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD) +
-                      1;
+    int maxWaitTime = calculateMaxWaitTime() * 100;
     while (
         ModuleManager::getInstance().get<VerticalVelocityTrigger>()->isActive())
     {

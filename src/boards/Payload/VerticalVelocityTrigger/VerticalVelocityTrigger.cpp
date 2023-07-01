@@ -78,8 +78,7 @@ void VerticalVelocityTrigger::update()
         if (confidence >=
             FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE)
         {
-            confidence       = 0;
-            startingAltitude = 0;
+            confidence = 0;
             EventBroker::getInstance().post(FLIGHT_FAILSAFE_TRIGGERED,
                                             TOPIC_FLIGHT);
             running = false;

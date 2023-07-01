@@ -28,8 +28,8 @@ namespace Payload
 namespace FailSafe
 {
 
-constexpr int FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD     = 1000;  // [ms]
-constexpr int FAILSAFE_VERTICAL_VELOCITY_THRESHOLD          = 0;     // [m/s]
+constexpr int FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD     = 10;  // [ms]
+constexpr float FAILSAFE_VERTICAL_VELOCITY_THRESHOLD        = 15;  // [m/s]
 constexpr int FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE = 30;
 
 }  // namespace FailSafe
