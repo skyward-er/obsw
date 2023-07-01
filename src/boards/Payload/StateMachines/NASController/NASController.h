@@ -55,6 +55,7 @@ public:
 
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
+    void state_ready(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 

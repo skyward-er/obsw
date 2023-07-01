@@ -241,7 +241,7 @@ void NASController::state_idle(const Event &event)
         {
             return logStatus(NASControllerState::IDLE);
         }
-        case FMM_ALGOS_CALIBRATE:
+        case NAS_CALIBRATE:
         {
             return transition(&NASController::state_calibrating);
         }
@@ -262,6 +262,27 @@ void NASController::state_calibrating(const Event &event)
         }
     }
 }
+void NASController::state_ready(const Event &event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
+            accelerationValid = true;
+            return logStatus(NASControllerState::READY);
+        }
+        case NAS_CALIBRATE:
+        {
+            return transition(&NASController::state_calibrating);
+        }
+        case NAS_FORCE_START:
+        case FLIGHT_ARMED:
+        {
+            return transition(&NASController::state_active);
+        }
+    }
+}
 
 void NASController::state_active(const Event &event)
 {
@@ -269,18 +290,22 @@ void NASController::state_active(const Event &event)
     {
         case EV_ENTRY:
         {
-            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             return logStatus(NASControllerState::ACTIVE);
+        }
+        case FLIGHT_NC_DETACHED:
+        {
+            // nas.setState(NASState{});  // update for better velocity
+            // estimation while descending
         }
         case FLIGHT_LANDING_DETECTED:
         case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }
-        case NAS_CALIBRATE:
         case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
         {
-            return transition(&NASController::state_calibrating);
+            return transition(&NASController::state_ready);
         }
     }
 }

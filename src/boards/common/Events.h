@@ -84,8 +84,8 @@ enum Events : uint8_t
     FSR_STATS_TIMEOUT,
     NAS_CALIBRATE,
     NAS_READY,
-    NAS_FORCE_START,
-    NAS_FORCE_STOP,
+    NAS_FORCE_START,  // not used
+    NAS_FORCE_STOP,   // not really used either
     TMTC_ARM,
     TMTC_DISARM,
     TMTC_CALIBRATE,
