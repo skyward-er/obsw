@@ -331,7 +331,7 @@ void NASController::logStatus(NASControllerState state)
 
 NASController::NASController() : FSM(&NASController::state_idle), nas(config)
 {
-    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
 
