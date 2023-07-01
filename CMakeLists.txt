@@ -48,4 +48,4 @@ add_executable(payload-test-vertical-velocity-trigger
 src/tests/Payload/payload-test-VerticalVelocityTrigger.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-test-vertical-velocity-trigger PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-test-vertical-velocity-trigger PRIVATE PRF_TEST)
-sbs_target(payload-test-vertical-velocity-trigger stm32f407vg_stm32f4discovery)
+sbs_target(payload-test-vertical-velocity-trigger stm32f429zi_skyward_death_stack_x)

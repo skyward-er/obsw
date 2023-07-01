@@ -54,4 +54,5 @@ set(PAYLOAD_COMPUTER
 set(PAYLOAD_COMPUTER
     src/boards/Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.cpp
     src/boards/Payload/NASControllerMock/NASControllerMock.cpp
+    src/boards/Payload/BoardScheduler.cpp
 )

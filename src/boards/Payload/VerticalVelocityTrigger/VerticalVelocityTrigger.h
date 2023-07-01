@@ -31,7 +31,9 @@ namespace Payload
 /**
  * This class is used by the FailSafe logic to react to
  * the premature opening of the parafoil by the payload
- * @requires Payload::NASController
+ * Required modules:
+ * - Payload::BoardScheduler
+ * - Payload::NASController
  */
 class VerticalVelocityTrigger : public Boardcore::Module
 {

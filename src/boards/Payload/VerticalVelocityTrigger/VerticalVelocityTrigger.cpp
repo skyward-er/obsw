@@ -44,9 +44,11 @@ VerticalVelocityTrigger::VerticalVelocityTrigger()
 
 bool VerticalVelocityTrigger::startModule()
 {
-    return BoardScheduler::getInstance().getScheduler().addTask(
-        bind(&VerticalVelocityTrigger::update, this),
-        FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
+    return ModuleManager::getInstance()
+        .get<BoardScheduler>()
+        ->getScheduler(miosix::MAIN_PRIORITY)
+        ->addTask(bind(&VerticalVelocityTrigger::update, this),
+                  FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
 }
 
 void VerticalVelocityTrigger::enable()

@@ -112,13 +112,14 @@ int main()
 {
 
     // Insert the modules
+    ModuleManager::getInstance().insert<BoardScheduler>(new BoardScheduler());
     ModuleManager::getInstance().insert<NASController>(new NASMock());
     ModuleManager::getInstance().insert<VerticalVelocityTrigger>(
         new VerticalVelocityTrigger());
 
     // start the scheduler
     TRACE("Starting the board scheduler\n");
-    if (!BoardScheduler::getInstance().getScheduler().start())
+    if (!ModuleManager::getInstance().get<BoardScheduler>()->start())
     {
         TRACE("Error starting the General Purpose Scheduler\n");
         halt();

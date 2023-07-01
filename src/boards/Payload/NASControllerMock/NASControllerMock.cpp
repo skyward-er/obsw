@@ -24,8 +24,6 @@
 /* !!!! THIS IS A TEMPORARY CLASS DO NOT USE IN PRODUCTION !!!! */
 /****************************************************************/
 
-#pragma once
-
 #include <Payload/NASControllerMock/NASControllerMock.h>
 
 namespace Payload
