@@ -41,8 +41,8 @@ bool Sensors::start()
 {
     // Init all the sensors
     lps22dfInit();
-    lps28dfw_1Init();
-    lps28dfw_2Init();
+    // lps28dfw_1Init();
+    // lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
 
@@ -79,15 +79,76 @@ void Sensors::lps22dfInit()
     SensorInfo info("LPS22DF", 20, bind(&Sensors::lps22dfCallback, this));
     sensorMap.emplace(make_pair(lps22df, info));
 }
-void Sensors::lps28dfw_1Init() {}
-void Sensors::lps28dfw_2Init() {}
-void Sensors::h3lis331dlInit() {}
+void Sensors::lps28dfw_1Init()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // TODO insert bus speed
+    I2C i2c(modules.get<Buses>()->i2c1, miosix::interfaces::i2c1::scl::getPin(),
+            miosix::interfaces::i2c1::sda::getPin());
+
+    // Configure the sensor
+    LPS28DFW::SensorConfig config{false, LPS28DFW::FullScaleRange::FS_1260,
+                                  LPS28DFW::AVG_4, LPS28DFW::ODR::ODR_50,
+                                  false};
+
+    // Create sensor instance with configured parameters
+    lps28dfw_1 = new LPS28DFW(i2c, config);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("LPS28DFW_1", 20, bind(&Sensors::lps28dfw_1Callback, this));
+    sensorMap.emplace(make_pair(lps28dfw_1, info));
+}
+void Sensors::lps28dfw_2Init()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // TODO insert bus speed
+    I2C i2c(modules.get<Buses>()->i2c1, miosix::interfaces::i2c1::scl::getPin(),
+            miosix::interfaces::i2c1::sda::getPin());
+
+    // Configure the sensor
+    LPS28DFW::SensorConfig config{true, LPS28DFW::FullScaleRange::FS_1260,
+                                  LPS28DFW::AVG_4, LPS28DFW::ODR::ODR_50,
+                                  false};
+
+    // Create sensor instance with configured parameters
+    lps28dfw_2 = new LPS28DFW(i2c, config);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("LPS28DFW_2", 20, bind(&Sensors::lps28dfw_1Callback, this));
+    sensorMap.emplace(make_pair(lps28dfw_2, info));
+}
+void Sensors::h3lis331dlInit()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Get the correct SPI configuration
+    SPIBusConfig config = H3LIS331DL::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Create sensor instance with configured parameters
+    h3lis331dl = new H3LIS331DL(
+        modules.get<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
+        config, H3LIS331DLDefs::OutputDataRate::ODR_100,
+        H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
+        H3LIS331DLDefs::FullScaleRange::FS_100);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("H3LIS331DL", 10, bind(&Sensors::h3lis331dlCallback, this));
+    sensorMap.emplace(make_pair(h3lis331dl, info));
+}
 void Sensors::lis2mdlInit() {}
 
 void Sensors::lps22dfCallback() {}
 void Sensors::lps28dfw_1Callback() {}
 void Sensors::lps28dfw_2Callback() {}
-void Sensors::h3lis331dlCallback() {}
+void Sensors::h3lis331dlCallback()
+{
+    H3LIS331DLData sample = h3lis331dl->getLastSample();
+    printf("%f %f %f\n", sample.accelerationX, sample.accelerationY,
+           sample.accelerationZ);
+}
 void Sensors::lis2mdlCallback() {}
 
 }  // namespace Main
