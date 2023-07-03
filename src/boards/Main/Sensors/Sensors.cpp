@@ -34,6 +34,7 @@ LPS28DFWData Sensors::getLPS28DFW_1LastSample() { return LPS28DFWData{}; }
 LPS28DFWData Sensors::getLPS28DFW_2LastSample() { return LPS28DFWData{}; }
 H3LIS331DLData Sensors::getH3LIS331DLLastSample() { return H3LIS331DLData{}; }
 LIS2MDLData Sensors::getLIS2MDLLastSample() { return LIS2MDLData{}; }
+UBXGPSData Sensors::getGPSLastSample() { return UBXGPSData{}; }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
@@ -45,6 +46,7 @@ bool Sensors::start()
     // lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
+    ubxgpsInit();
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -138,17 +140,58 @@ void Sensors::h3lis331dlInit()
     SensorInfo info("H3LIS331DL", 10, bind(&Sensors::h3lis331dlCallback, this));
     sensorMap.emplace(make_pair(h3lis331dl, info));
 }
-void Sensors::lis2mdlInit() {}
+void Sensors::lis2mdlInit()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Get the correct SPI configuration
+    SPIBusConfig config = LIS2MDL::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Configure the sensor
+    LIS2MDL::Config sensorConfig;
+    sensorConfig.deviceMode         = LIS2MDL::MD_CONTINUOUS;
+    sensorConfig.odr                = LIS2MDL::ODR_100_HZ;
+    sensorConfig.temperatureDivider = 5;
+
+    // Create sensor instance with configured parameters
+    lis2mdl = new LIS2MDL(modules.get<Buses>()->spi3,
+                          miosix::sensors::LIS2MDL::cs::getPin(), config,
+                          sensorConfig);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("LIS2MDL", 10, bind(&Sensors::lis2mdlCallback, this));
+    sensorMap.emplace(make_pair(lis2mdl, info));
+}
+
+void Sensors::ubxgpsInit()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Get the correct SPI configuration
+    SPIBusConfig config  = UBXGPSSpi::getDefaultSPIConfig();
+    config.clockDivider  = SPI::ClockDivider::DIV_256;
+    config.csSetupTimeUs = 20;
+
+    // Create sensor instance with configured parameters
+    ubxgps = new UBXGPSSpi(modules.get<Buses>()->spi4,
+                           miosix::sensors::GPS::cs::getPin(), config, 5);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("UBXGPS", 200, bind(&Sensors::ubxgpsCallback, this));
+    sensorMap.emplace(make_pair(ubxgps, info));
+}
 
 void Sensors::lps22dfCallback() {}
 void Sensors::lps28dfw_1Callback() {}
 void Sensors::lps28dfw_2Callback() {}
-void Sensors::h3lis331dlCallback()
-{
-    H3LIS331DLData sample = h3lis331dl->getLastSample();
-    printf("%f %f %f\n", sample.accelerationX, sample.accelerationY,
-           sample.accelerationZ);
-}
+void Sensors::h3lis331dlCallback() {}
 void Sensors::lis2mdlCallback() {}
+void Sensors::ubxgpsCallback()
+{
+    UBXGPSData sample = ubxgps->getLastSample();
+    printf("%d %f %f %f\n", (int)sample.fix, sample.latitude, sample.longitude,
+           sample.height);
+}
 
 }  // namespace Main

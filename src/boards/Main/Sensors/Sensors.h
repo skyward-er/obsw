@@ -26,6 +26,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/SensorManager.h>
+#include <sensors/UBXGPS/UBXGPSSpi.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -60,6 +61,7 @@ public:
     Boardcore::LPS28DFWData getLPS28DFW_2LastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    Boardcore::UBXGPSData getGPSLastSample();
 
 private:
     // Init and callbacks methods
@@ -78,12 +80,16 @@ private:
     void lis2mdlInit();
     void lis2mdlCallback();
 
+    void ubxgpsInit();
+    void ubxgpsCallback();
+
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
     Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
     Boardcore::H3LIS331DL* h3lis331dl = nullptr;
     Boardcore::LIS2MDL* lis2mdl       = nullptr;
+    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
