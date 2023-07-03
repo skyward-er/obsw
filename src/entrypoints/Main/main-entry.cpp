@@ -23,6 +23,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -53,6 +54,8 @@ int main()
     Buses* buses              = new Buses();
     Sensors* sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+    NASController* nas =
+        new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -73,6 +76,12 @@ int main()
         LOG_ERR(logger, "Error inserting the sensor module");
     }
 
+    if (!modules.insert<NASController>(nas))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the NAS module");
+    }
+
     // Start modules
     if (!modules.get<BoardScheduler>()->start())
     {
@@ -84,6 +93,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the sensors module");
+    }
+
+    if (!modules.get<NASController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NAS module");
     }
 
     // Log all the events
@@ -100,6 +115,9 @@ int main()
     {
         // Post OK
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+
+        // Set the LED status
+        miosix::led1On();
     }
     else
     {
