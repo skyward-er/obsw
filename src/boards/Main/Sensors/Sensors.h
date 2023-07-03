@@ -25,6 +25,7 @@
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
+#include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 
@@ -35,7 +36,7 @@ namespace Main
 class Sensors : public Boardcore::Module
 {
 public:
-    Sensors(Boardcore::TaskScheduler* sched);
+    explicit Sensors(Boardcore::TaskScheduler* sched);
 
     [[nodiscard]] bool start();
 
@@ -62,6 +63,7 @@ public:
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getGPSLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
 
 private:
     // Init and callbacks methods
@@ -83,6 +85,9 @@ private:
     void ubxgpsInit();
     void ubxgpsCallback();
 
+    void lsm6dsrxInit();
+    void lsm6dsrxCallback();
+
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
@@ -90,6 +95,7 @@ private:
     Boardcore::H3LIS331DL* h3lis331dl = nullptr;
     Boardcore::LIS2MDL* lis2mdl       = nullptr;
     Boardcore::UBXGPSSpi* ubxgps      = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
