@@ -35,6 +35,7 @@ LPS28DFWData Sensors::getLPS28DFW_2LastSample() { return LPS28DFWData{}; }
 H3LIS331DLData Sensors::getH3LIS331DLLastSample() { return H3LIS331DLData{}; }
 LIS2MDLData Sensors::getLIS2MDLLastSample() { return LIS2MDLData{}; }
 UBXGPSData Sensors::getGPSLastSample() { return UBXGPSData{}; }
+LSM6DSRXData Sensors::getLSM6DSRXLastSample() { return LSM6DSRXData{}; }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
@@ -47,6 +48,7 @@ bool Sensors::start()
     h3lis331dlInit();
     lis2mdlInit();
     ubxgpsInit();
+    lsm6dsrxInit();
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -132,7 +134,7 @@ void Sensors::h3lis331dlInit()
     // Create sensor instance with configured parameters
     h3lis331dl = new H3LIS331DL(
         modules.get<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
-        config, H3LIS331DLDefs::OutputDataRate::ODR_100,
+        config, H3LIS331DLDefs::OutputDataRate::ODR_400,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         H3LIS331DLDefs::FullScaleRange::FS_100);
 
@@ -182,16 +184,52 @@ void Sensors::ubxgpsInit()
     sensorMap.emplace(make_pair(ubxgps, info));
 }
 
+void Sensors::lsm6dsrxInit()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Configure the SPI
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_32;
+    config.mode         = SPI::Mode::MODE_0;
+
+    // Configure the sensor
+    LSM6DSRXConfig sensorConfig;
+    sensorConfig.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+
+    // Accelerometer
+    sensorConfig.fsAcc     = LSM6DSRXConfig::ACC_FULLSCALE::G16;
+    sensorConfig.odrAcc    = LSM6DSRXConfig::ACC_ODR::HZ_416;
+    sensorConfig.opModeAcc = LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+
+    // Gyroscope
+    sensorConfig.fsGyr     = LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
+    sensorConfig.odrGyr    = LSM6DSRXConfig::GYR_ODR::HZ_416;
+    sensorConfig.opModeGyr = LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+
+    // Fifo
+    sensorConfig.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
+    sensorConfig.fifoTimestampDecimation =
+        LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
+    sensorConfig.fifoTemperatureBdr =
+        LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+
+    // Create sensor instance with configured parameters
+    lsm6dsrx = new LSM6DSRX(modules.get<Buses>()->spi1,
+                            miosix::sensors::LSM6DSRX::cs::getPin(), config,
+                            sensorConfig);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("LSM6DSRX", 20, bind(&Sensors::lsm6dsrxCallback, this));
+    sensorMap.emplace(make_pair(lsm6dsrx, info));
+}
+
 void Sensors::lps22dfCallback() {}
 void Sensors::lps28dfw_1Callback() {}
 void Sensors::lps28dfw_2Callback() {}
 void Sensors::h3lis331dlCallback() {}
 void Sensors::lis2mdlCallback() {}
-void Sensors::ubxgpsCallback()
-{
-    UBXGPSData sample = ubxgps->getLastSample();
-    printf("%d %f %f %f\n", (int)sample.fix, sample.latitude, sample.longitude,
-           sample.height);
-}
+void Sensors::ubxgpsCallback() {}
+void Sensors::lsm6dsrxCallback() {}
 
 }  // namespace Main
