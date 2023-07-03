@@ -29,13 +29,45 @@ using namespace Boardcore;
 using namespace std;
 namespace Main
 {
-LPS22DFData Sensors::getLPS22DFLastSample() { return LPS22DFData{}; }
-LPS28DFWData Sensors::getLPS28DFW_1LastSample() { return LPS28DFWData{}; }
-LPS28DFWData Sensors::getLPS28DFW_2LastSample() { return LPS28DFWData{}; }
-H3LIS331DLData Sensors::getH3LIS331DLLastSample() { return H3LIS331DLData{}; }
-LIS2MDLData Sensors::getLIS2MDLLastSample() { return LIS2MDLData{}; }
-UBXGPSData Sensors::getGPSLastSample() { return UBXGPSData{}; }
-LSM6DSRXData Sensors::getLSM6DSRXLastSample() { return LSM6DSRXData{}; }
+// TODO Remove MAGIC NUMBERS for sampling period
+// TODO Place logging functions callbacks
+// TODO Create sensorConfig
+LPS22DFData Sensors::getLPS22DFLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return lps22df->getLastSample();
+}
+LPS28DFWData Sensors::getLPS28DFW_1LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return lps28dfw_1->getLastSample();
+}
+LPS28DFWData Sensors::getLPS28DFW_2LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return lps28dfw_2->getLastSample();
+}
+H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return h3lis331dl->getLastSample();
+}
+LIS2MDLData Sensors::getLIS2MDLLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return lis2mdl->getLastSample();
+}
+UBXGPSData Sensors::getGPSLastSample()
+{
+    // miosix::PauseKernelLock lock;
+    // return ubxgps->getLastSample();
+    return UBXGPSData{};
+}
+LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return lsm6dsrx->getLastSample();
+}
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
@@ -47,7 +79,7 @@ bool Sensors::start()
     // lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
-    ubxgpsInit();
+    // ubxgpsInit();
     lsm6dsrxInit();
 
     // Create sensor manager with populated map and configured scheduler
