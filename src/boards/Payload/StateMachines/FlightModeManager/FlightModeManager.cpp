@@ -189,7 +189,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         {
             logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
             ModuleManager::getInstance().get<Sensors>()->calibrate();
-            EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
+            EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
         case EV_EXIT:
@@ -204,7 +204,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         {
             return HANDLED;
         }
-        case FMM_SENSORS_CAL_DONE:
+        case FMM_ALGOS_CALIBRATE:
         {
             return transition(&FlightModeManager::state_algos_calibration);
         }
@@ -222,7 +222,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
-            EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
+            // EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
             return HANDLED;
         }
@@ -240,8 +240,8 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         }
         case NAS_READY:
         {
-            EventBroker::getInstance().post(FMM_ALGOS_CAL_DONE, TOPIC_FMM);
-            return transition(&FlightModeManager::state_flying);
+            EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
+            return transition(&FlightModeManager::state_disarmed);
         }
         default:
         {
@@ -301,6 +301,7 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
+            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
         }
@@ -341,14 +342,11 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_ENTRY:
         {
             EventBroker::getInstance().postDelayed(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT,
-                MISSION_TIMEOUT);  // do we need to save the id??
+                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT, MISSION_TIMEOUT);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // EventBroker::getInstance().removeDelayed(timeout_id); and remove
-            // it here???
             return HANDLED;
         }
         case EV_EMPTY:
@@ -413,6 +411,9 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
+
+            EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
+                                            TOPIC_FLIGHT);
             EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
             return HANDLED;
         }
@@ -446,6 +447,8 @@ State FlightModeManager::state_wing_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+            EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
+
             logStatus(FlightModeManagerState::WING_DESCENT);
             return HANDLED;
         }
