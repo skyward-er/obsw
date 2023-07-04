@@ -30,7 +30,6 @@ using namespace std;
 namespace Main
 {
 // TODO Remove MAGIC NUMBERS for sampling period
-// TODO Place logging functions callbacks
 // TODO Create sensorConfig
 LPS22DFData Sensors::getLPS22DFLastSample()
 {
@@ -59,9 +58,8 @@ LIS2MDLData Sensors::getLIS2MDLLastSample()
 }
 UBXGPSData Sensors::getGPSLastSample()
 {
-    // miosix::PauseKernelLock lock;
-    // return ubxgps->getLastSample();
-    return UBXGPSData{};
+    miosix::PauseKernelLock lock;
+    return ubxgps->getLastSample();
 }
 LSM6DSRXData Sensors::getLSM6DSRXLastSample()
 {
@@ -79,7 +77,7 @@ bool Sensors::start()
     // lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
-    // ubxgpsInit();
+    ubxgpsInit();
     lsm6dsrxInit();
 
     // Create sensor manager with populated map and configured scheduler
@@ -204,7 +202,7 @@ void Sensors::ubxgpsInit()
 
     // Get the correct SPI configuration
     SPIBusConfig config  = UBXGPSSpi::getDefaultSPIConfig();
-    config.clockDivider  = SPI::ClockDivider::DIV_256;
+    config.clockDivider  = SPI::ClockDivider::DIV_64;
     config.csSetupTimeUs = 20;
 
     // Create sensor instance with configured parameters
@@ -256,12 +254,40 @@ void Sensors::lsm6dsrxInit()
     sensorMap.emplace(make_pair(lsm6dsrx, info));
 }
 
-void Sensors::lps22dfCallback() {}
-void Sensors::lps28dfw_1Callback() {}
-void Sensors::lps28dfw_2Callback() {}
-void Sensors::h3lis331dlCallback() {}
-void Sensors::lis2mdlCallback() {}
-void Sensors::ubxgpsCallback() {}
-void Sensors::lsm6dsrxCallback() {}
+void Sensors::lps22dfCallback()
+{
+    LPS22DFData lastSample = lps22df->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::lps28dfw_1Callback()
+{
+    LPS28DFWData lastSample = lps28dfw_1->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::lps28dfw_2Callback()
+{
+    LPS28DFWData lastSample = lps28dfw_2->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::h3lis331dlCallback()
+{
+    H3LIS331DLData lastSample = h3lis331dl->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::lis2mdlCallback()
+{
+    LIS2MDLData lastSample = lis2mdl->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::ubxgpsCallback()
+{
+    UBXGPSData lastSample = ubxgps->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::lsm6dsrxCallback()
+{
+    LSM6DSRXData lastSample = lsm6dsrx->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 }  // namespace Main
