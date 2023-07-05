@@ -96,7 +96,7 @@ bool Radio::startModule()
 
 #if defined(USE_SERIAL_TRANSCEIVER)
     Boardcore::SerialTransceiver* transceiver;
-    transceiver = new SerialTransceiver(modules.get<Buses>()->usart2);
+    transceiver = new SerialTransceiver(modules.get<Buses>()->serialRadio);
 #else
     // Create the SPI bus configuration
     SPIBusConfig config{};

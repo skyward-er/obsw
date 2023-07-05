@@ -41,7 +41,7 @@ protected:
     {
         HILTempData tempData;
 
-        tempData.temperature          = sensorData->temperature.measure;
+        tempData.temperature = sensorData->temperature.measure[sampleCounter];
         tempData.temperatureTimestamp = updateTimestamp();
 
         return tempData;

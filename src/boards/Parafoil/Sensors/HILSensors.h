@@ -23,7 +23,6 @@
 #pragma once
 
 #include "HIL.h"
-#include "HIL_algorithms/HILMockKalman.h"
 #include "HIL_sensors/HILSensors.h"
 #include "Sensors.h"
 
@@ -73,13 +72,12 @@ private:
     {
         HILAccelerometer* accelerometer;
         HILBarometer* barometer;
-        HILPitot* pitot;
         HILGps* gps;
         HILGyroscope* gyro;
         HILMagnetometer* magnetometer;
         HILTemperature* temperature;
         HILImu* imu;
-        HILKalman* kalman;
+        // HILKalman* kalman;
     } state;
 };
 

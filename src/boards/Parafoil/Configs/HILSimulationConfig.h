@@ -28,6 +28,8 @@
 
 #include <list>
 
+#include "NASConfig.h"
+#include "WingConfig.h"
 #include "algorithms/ADA/ADAData.h"
 #include "algorithms/NAS/NAS.h"
 #include "algorithms/NAS/NASState.h"
@@ -45,23 +47,22 @@ struct SensorConfig : public Boardcore::SensorInfo
 const int SIM_BAUDRATE = 115200;
 
 /** Period of simulation in milliseconds */
-const int SIMULATION_PERIOD = 100;
+const int SIMULATION_PERIOD = Parafoil::WingConfig::WING_UPDATE_PERIOD;
 
 /** sample frequency of sensor (samples/second) */
-const int ACCEL_FREQ = 100;
-const int GYRO_FREQ  = 100;
-const int MAGN_FREQ  = 100;
-const int IMU_FREQ   = 100;
-const int BARO_FREQ  = 20;
-const int PITOT_FREQ = 20;
+const int ACCEL_FREQ = 100;  // BMX
+const int GYRO_FREQ  = 100;  // BMX
+const int MAGN_FREQ  = 100;  // BMX
+const int IMU_FREQ   = 100;  // BMX
+const int BARO_FREQ  = 100;  // MS5801
 const int TEMP_FREQ  = 10;
-const int GPS_FREQ   = 10;
+const int GPS_FREQ   = 10;  // GPS
 
 /** update frequency of the Navigation System */
-const int KALM_FREQ = 10;
+// const int KALM_FREQ = Parafoil::NASConfig::UPDATE_PERIOD;
 
-/** update frequency of airbrakes control algorithm */
-const int CONTROL_FREQ = 10;
+/** update frequency of wing control algorithm */
+const int CONTROL_FREQ = Parafoil::WingConfig::WING_UPDATE_PERIOD;
 
 /** min and max values in radiants of the actuator */
 const float MinAlphaDegree = 0.0;
@@ -73,21 +74,19 @@ const SensorConfig gyroConfig("gyro", GYRO_FREQ);
 const SensorConfig magnConfig("magn", MAGN_FREQ);
 const SensorConfig imuConfig("imu", IMU_FREQ);
 const SensorConfig baroConfig("baro", BARO_FREQ);
-const SensorConfig pitotConfig("pitot", PITOT_FREQ);
 const SensorConfig gpsConfig("gps", GPS_FREQ);
 const SensorConfig tempConfig("temp", TEMP_FREQ);
-const SensorConfig kalmConfig("kalm", KALM_FREQ);
+// const SensorConfig kalmConfig("kalm", KALM_FREQ);
 
 /** Number of samples per sensor at each simulator iteration */
 const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;  // 10
 const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;    // 10
-const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;   // 2
-const int N_DATA_PITOT = (PITOT_FREQ * SIMULATION_PERIOD) / 1000;  // 2
+const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;   // 10
 const int N_DATA_GPS   = (GPS_FREQ * SIMULATION_PERIOD) / 1000;    // 1
 const int N_DATA_TEMP  = (TEMP_FREQ * SIMULATION_PERIOD) / 1000;   // 1
-const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 1
+// const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 5
 
 /**
  * @brief Data structure used by the simulator in order to directly deserialize
@@ -98,6 +97,11 @@ const int N_DATA_KALM  = (KALM_FREQ * SIMULATION_PERIOD) / 1000;   // 1
  */
 struct SimulatorData
 {
+    struct Barometer
+    {
+        float measures[N_DATA_BARO];
+    } barometer;
+
     struct Accelerometer
     {
         Boardcore::Vec3 measures[N_DATA_ACCEL];
@@ -121,27 +125,17 @@ struct SimulatorData
         float num_satellites;
     } gps;
 
-    struct Barometer
-    {
-        float measures[N_DATA_BARO];
-    } barometer;
-
-    struct Pitot
-    {
-        float measures[N_DATA_PITOT];
-    } pitot;
-
     struct Temperature
     {
-        float measure;
+        float measure[N_DATA_TEMP];
     } temperature;
 
-    struct Kalman
-    {
-        float z;
-        float vz;
-        float vMod;
-    } kalman;
+    // struct Kalman
+    // {
+    //     float z;
+    //     float vz;
+    //     float vMod;
+    // } kalman;
 
     struct Flags
     {
@@ -203,13 +197,6 @@ struct SimulatorData
             TRACE("%+.3f\n", barometer.measures[i]);
     }
 
-    void printPitot()
-    {
-        TRACE("pitot\n");
-        for (int i = 0; i < N_DATA_PITOT; i++)
-            TRACE("%+.3f\n", pitot.measures[i]);
-    }
-
     void printTemperature()
     {
         TRACE("temp\n");
@@ -217,12 +204,12 @@ struct SimulatorData
             TRACE("%+.3f\n", temperature.measure);
     }
 
-    void printKalman()
-    {
-        TRACE("kalm\n");
-        TRACE("z:%+.3f\tvz:%+.3f\tvMod:%+.3f\n", kalman.z, kalman.vz,
-              kalman.vMod);
-    }
+    // void printKalman()
+    // {
+    //     TRACE("kalm\n");
+    //     TRACE("z:%+.3f\tvz:%+.3f\tvMod:%+.3f\n", kalman.z, kalman.vz,
+    //           kalman.vMod);
+    // }
 
     void printFlags()
     {
@@ -245,9 +232,8 @@ struct SimulatorData
         printMagnetometer();
         printGPS();
         printBarometer();
-        printPitot();
         printTemperature();
-        printKalman();
+        // printKalman();
         printFlags();
     }
 };

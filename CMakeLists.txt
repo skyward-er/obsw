@@ -33,10 +33,13 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(parafoil-entry-milano-hil src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER} ${HIL})
+# add_executable(parafoil-entry-milano-hil src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER} ${HIL_PARAFOIL})
+add_executable(parafoil-entry-milano-hil src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-milano-hil PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-milano-hil PRIVATE MILANO HILParafoil)
+target_compile_definitions(parafoil-entry-milano-hil PRIVATE MILANO USE_SERIAL_TRANSCEIVER)
+# target_compile_definitions(parafoil-entry-milano-hil PRIVATE MILANO HILParafoil USE_SERIAL_TRANSCEIVER)
 sbs_target(parafoil-entry-milano-hil stm32f429zi_skyward_death_stack_x)
+# sbs_target(parafoil-entry-milano-hil stm32f429zi_stm32f4discovery)
 
 add_executable(parafoil-entry-milano src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})

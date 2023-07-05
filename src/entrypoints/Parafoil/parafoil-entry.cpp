@@ -34,6 +34,7 @@
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
+// #include <Parafoil/Radio/SerialRadio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
@@ -73,7 +74,7 @@ int main()
         if (!EventBroker::getInstance().start())
         {
             initResult = false;
-            LOG_ERR(logger, "Error initializing WingController module");
+            LOG_ERR(logger, "Error initializing the EventBroker");
         }
         if (!Logger::getInstance().start())
         {
@@ -146,11 +147,20 @@ int main()
             LOG_ERR(logger, "Error inserting the PinHandler module");
         }
 
+// #ifndef USE_SERIAL_TRANSCEIVER
         if (!modules.insert<Radio>(new Radio()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the Radio module");
         }
+// #else
+//         if (!modules.insert<Radio>(new SerialRadio()))
+//         {
+//             initResult = false;
+//             LOG_ERR(logger, "Error inserting the Radio module");
+//         }
+//         printf("SerialRadio successfully inserted\n");
+// #endif
 
         if (!modules.insert<TMRepository>(new TMRepository()))
         {
@@ -259,9 +269,15 @@ int main()
     Logger::getInstance().log(f);  // logs the config file
     // If all is correctly set up i publish the init ok
     if (initResult)
+    {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        printf("init ok\n");
+    }
     else
+    {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        printf("init error\n");
+    }
 
     // Log all events
     EventSniffer sniffer(

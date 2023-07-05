@@ -45,12 +45,13 @@ namespace Parafoil
 {
 
 HILSensors::HILSensors()
-    : state{
-          new HILAccelerometer(N_DATA_ACCEL), new HILBarometer(N_DATA_BARO),
-          new HILPitot(N_DATA_PITOT),         new HILGps(N_DATA_GPS),
-          new HILGyroscope(N_DATA_GYRO),      new HILMagnetometer(N_DATA_MAGN),
-          new HILTemperature(N_DATA_TEMP),    new HILImu(N_DATA_IMU),
-          new HILKalman(N_DATA_KALM)}
+    : state{new HILAccelerometer(N_DATA_ACCEL),
+            new HILBarometer(N_DATA_BARO),
+            new HILGps(N_DATA_GPS),
+            new HILGyroscope(N_DATA_GYRO),
+            new HILMagnetometer(N_DATA_MAGN),
+            new HILTemperature(N_DATA_TEMP),
+            new HILImu(N_DATA_IMU)}
 {
 }
 
@@ -67,13 +68,11 @@ HILSensors::~HILSensors()
 
     delete state.accelerometer;
     delete state.barometer;
-    delete state.pitot;
     delete state.gps;
     delete state.gyro;
     delete state.magnetometer;
     delete state.imu;
     delete state.temperature;
-    delete state.kalman;
 
     sensorManager->stop();
     delete sensorManager;
@@ -83,13 +82,11 @@ bool HILSensors::startModule()
 {
     sensorsMap = {{state.accelerometer, accelConfig},
                   {state.barometer, baroConfig},
-                  {state.pitot, pitotConfig},
                   {state.magnetometer, magnConfig},
                   {state.imu, imuConfig},
                   {state.gps, gpsConfig},
                   {state.gyro, gyroConfig},
-                  {state.temperature, tempConfig},
-                  {state.kalman, kalmConfig}};
+                  {state.temperature, tempConfig}};
 
     // Create the sensor manager
     sensorManager = new SensorManager(sensorsMap);
@@ -194,7 +191,7 @@ SSCDANN030PAAData HILSensors::getDplPressureLastSample()
 SSCDRRN015PDAData HILSensors::getPitotPressureLastSample()
 {
     miosix::PauseKernelLock lock;
-    auto pitotData = state.pitot->getLastSample();
+    auto pitotData = pitot != nullptr ? pitot->getLastSample() : PitotData{};
     SSCDRRN015PDAData data;
     data.pressureTimestamp = pitotData.timestamp;
     data.pressure          = pitotData.deltaP;
@@ -204,7 +201,7 @@ SSCDRRN015PDAData HILSensors::getPitotPressureLastSample()
 PitotData HILSensors::getPitotLastSample()
 {
     miosix::PauseKernelLock lock;
-    return state.pitot->getLastSample();
+    return pitot != nullptr ? pitot->getLastSample() : PitotData{};
 }
 
 InternalADCData HILSensors::getInternalADCLastSample()

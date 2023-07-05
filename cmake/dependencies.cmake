@@ -42,7 +42,12 @@ set(PARAFOIL_COMPUTER
 
 set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp    
-    src/boards/Parafoil/Actuators/HILActuators.cpp
-    src/boards/Parafoil/Sensors/HILSensors.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
+
+set(HIL_PARAFOIL
+    ${HIL}
+    src/boards/Parafoil/Actuators/HILActuators.cpp
+    src/boards/Parafoil/Sensors/HILSensors.cpp
+)
+

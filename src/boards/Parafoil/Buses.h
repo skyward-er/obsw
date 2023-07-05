@@ -25,6 +25,7 @@
 #include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 namespace Parafoil
@@ -32,9 +33,9 @@ namespace Parafoil
 
 struct Buses : public ParafoilModule
 {
-    Boardcore::USART usart1;
-    Boardcore::USART usart2;
-    Boardcore::USART usart3;
+    Boardcore::USART hil;
+    Boardcore::USART serialRadio;
+    Boardcore::USART debug;
     Boardcore::USART uart4;
 
     Boardcore::SPIBus spi1;
@@ -43,27 +44,37 @@ struct Buses : public ParafoilModule
 public:
 #ifndef USE_MOCK_PERIPHERALS
     Buses()
-        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
-          usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
+        : hil(USART1, Boardcore::USARTInterface::Baudrate::B115200),
+          serialRadio(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+          debug(USART3, Boardcore::USARTInterface::Baudrate::B115200),
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
           spi1(SPI1), spi2(SPI2)
     {
-        usart1.init();
-        usart2.init();
-        usart3.init();
-        uart4.init();
+        // miosix::interfaces::uart1::rx::getPin().mode(miosix::Mode::ALTERNATE);
+        // miosix::interfaces::uart1::tx::getPin().mode(miosix::Mode::ALTERNATE);
+        // miosix::interfaces::uart1::rx::getPin().alternateFunction(7);
+        // miosix::interfaces::uart1::tx::getPin().alternateFunction(7);
+
+        // miosix::interfaces::uart2::rx::getPin().mode(miosix::Mode::ALTERNATE);
+        // miosix::interfaces::uart2::tx::getPin().mode(miosix::Mode::ALTERNATE);
+        // miosix::interfaces::uart2::rx::getPin().alternateFunction(7);
+        // miosix::interfaces::uart2::tx::getPin().alternateFunction(7);
+
+        // hil.init();
+        serialRadio.init();
+        // debug.init();
+        // uart4.init();
     }
 #else
     Buses()
-        : usart1(USART1, Boardcore::USARTInterface::Baudrate::B115200),
-          usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
-          usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
+        : hil(USART1, Boardcore::USARTInterface::Baudrate::B115200),
+          serialRadio(USART2, Boardcore::USARTInterface::Baudrate::B115200),
+          debug(USART3, Boardcore::USARTInterface::Baudrate::B115200),
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200), spi1({}),
           spi2({})
     {
-        usart2.init();
-        usart3.init();
+        hil.init();
+        serialRadio.init();
     }
 #endif
 

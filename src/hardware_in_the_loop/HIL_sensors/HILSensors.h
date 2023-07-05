@@ -22,14 +22,13 @@
 
 #pragma once
 
-#include "HIL_algorithms/HILMockKalman.h"
 #include "HIL_sensors/HILAccelerometer.h"
 #include "HIL_sensors/HILBarometer.h"
 #include "HIL_sensors/HILGps.h"
 #include "HIL_sensors/HILGyroscope.h"
 #include "HIL_sensors/HILImu.h"
 #include "HIL_sensors/HILMagnetometer.h"
-#include "HIL_sensors/HILPitot.h"
+// #include "HIL_sensors/HILPitot.h"
 #include "HIL_sensors/HILSensor.h"
 #include "HIL_sensors/HILTemperature.h"
 #include "HIL_sensors/HILTimestampManagement.h"
