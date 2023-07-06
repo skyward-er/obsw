@@ -23,14 +23,14 @@
 #include "Sensors.h"
 
 #include <Main/Buses.h>
+#include <Main/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
 using namespace std;
+using namespace Main::SensorsConfig;
 namespace Main
 {
-// TODO Remove MAGIC NUMBERS for sampling period
-// TODO Create sensorConfig
 LPS22DFData Sensors::getLPS22DFLastSample()
 {
     miosix::PauseKernelLock lock;
@@ -101,8 +101,8 @@ void Sensors::lps22dfInit()
 
     // Configure the device
     LPS22DF::Config sensorConfig;
-    sensorConfig.avg = LPS22DF::AVG_4;
-    sensorConfig.odr = LPS22DF::ODR_50;
+    sensorConfig.avg = LPS22DF_AVG;
+    sensorConfig.odr = LPS22DF_ODR;
 
     // Create sensor instance with configured parameters
     lps22df = new LPS22DF(modules.get<Buses>()->spi3,
@@ -110,7 +110,8 @@ void Sensors::lps22dfInit()
                           sensorConfig);
 
     // Emplace the sensor inside the map
-    SensorInfo info("LPS22DF", 20, bind(&Sensors::lps22dfCallback, this));
+    SensorInfo info("LPS22DF", LPS22DF_PERIOD,
+                    bind(&Sensors::lps22dfCallback, this));
     sensorMap.emplace(make_pair(lps22df, info));
 }
 void Sensors::lps28dfw_1Init()
@@ -122,15 +123,15 @@ void Sensors::lps28dfw_1Init()
             miosix::interfaces::i2c1::sda::getPin());
 
     // Configure the sensor
-    LPS28DFW::SensorConfig config{false, LPS28DFW::FullScaleRange::FS_1260,
-                                  LPS28DFW::AVG_4, LPS28DFW::ODR::ODR_50,
-                                  false};
+    LPS28DFW::SensorConfig config{false, LPS28DFW_FSR, LPS28DFW_AVG,
+                                  LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
     lps28dfw_1 = new LPS28DFW(i2c, config);
 
     // Emplace the sensor inside the map
-    SensorInfo info("LPS28DFW_1", 20, bind(&Sensors::lps28dfw_1Callback, this));
+    SensorInfo info("LPS28DFW_1", LPS28DFW_PERIOD,
+                    bind(&Sensors::lps28dfw_1Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_1, info));
 }
 void Sensors::lps28dfw_2Init()
@@ -142,15 +143,15 @@ void Sensors::lps28dfw_2Init()
             miosix::interfaces::i2c1::sda::getPin());
 
     // Configure the sensor
-    LPS28DFW::SensorConfig config{true, LPS28DFW::FullScaleRange::FS_1260,
-                                  LPS28DFW::AVG_4, LPS28DFW::ODR::ODR_50,
-                                  false};
+    LPS28DFW::SensorConfig config{true, LPS28DFW_FSR, LPS28DFW_AVG,
+                                  LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
     lps28dfw_2 = new LPS28DFW(i2c, config);
 
     // Emplace the sensor inside the map
-    SensorInfo info("LPS28DFW_2", 20, bind(&Sensors::lps28dfw_1Callback, this));
+    SensorInfo info("LPS28DFW_2", LPS28DFW_PERIOD,
+                    bind(&Sensors::lps28dfw_1Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_2, info));
 }
 void Sensors::h3lis331dlInit()
@@ -164,12 +165,11 @@ void Sensors::h3lis331dlInit()
     // Create sensor instance with configured parameters
     h3lis331dl = new H3LIS331DL(
         modules.get<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
-        config, H3LIS331DLDefs::OutputDataRate::ODR_400,
-        H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
-        H3LIS331DLDefs::FullScaleRange::FS_100);
+        config, H3LIS331DL_ODR, H3LIS331DL_BDU, H3LIS331DL_FSR);
 
     // Emplace the sensor inside the map
-    SensorInfo info("H3LIS331DL", 10, bind(&Sensors::h3lis331dlCallback, this));
+    SensorInfo info("H3LIS331DL", H3LIS331DL_PERIOD,
+                    bind(&Sensors::h3lis331dlCallback, this));
     sensorMap.emplace(make_pair(h3lis331dl, info));
 }
 void Sensors::lis2mdlInit()
@@ -182,9 +182,9 @@ void Sensors::lis2mdlInit()
 
     // Configure the sensor
     LIS2MDL::Config sensorConfig;
-    sensorConfig.deviceMode         = LIS2MDL::MD_CONTINUOUS;
-    sensorConfig.odr                = LIS2MDL::ODR_100_HZ;
-    sensorConfig.temperatureDivider = 5;
+    sensorConfig.deviceMode         = LIS2MDL_OPERATIVE_MODE;
+    sensorConfig.odr                = LIS2MDL_ODR;
+    sensorConfig.temperatureDivider = LIS2MDL_TEMPERATURE_DIVIDER;
 
     // Create sensor instance with configured parameters
     lis2mdl = new LIS2MDL(modules.get<Buses>()->spi3,
@@ -192,7 +192,8 @@ void Sensors::lis2mdlInit()
                           sensorConfig);
 
     // Emplace the sensor inside the map
-    SensorInfo info("LIS2MDL", 10, bind(&Sensors::lis2mdlCallback, this));
+    SensorInfo info("LIS2MDL", LIS2MDL_PERIOD,
+                    bind(&Sensors::lis2mdlCallback, this));
     sensorMap.emplace(make_pair(lis2mdl, info));
 }
 
@@ -201,16 +202,16 @@ void Sensors::ubxgpsInit()
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Get the correct SPI configuration
-    SPIBusConfig config  = UBXGPSSpi::getDefaultSPIConfig();
-    config.clockDivider  = SPI::ClockDivider::DIV_64;
-    config.csSetupTimeUs = 20;
+    SPIBusConfig config = UBXGPSSpi::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_64;
 
     // Create sensor instance with configured parameters
     ubxgps = new UBXGPSSpi(modules.get<Buses>()->spi4,
                            miosix::sensors::GPS::cs::getPin(), config, 5);
 
     // Emplace the sensor inside the map
-    SensorInfo info("UBXGPS", 200, bind(&Sensors::ubxgpsCallback, this));
+    SensorInfo info("UBXGPS", UBXGPS_PERIOD,
+                    bind(&Sensors::ubxgpsCallback, this));
     sensorMap.emplace(make_pair(ubxgps, info));
 }
 
@@ -225,24 +226,22 @@ void Sensors::lsm6dsrxInit()
 
     // Configure the sensor
     LSM6DSRXConfig sensorConfig;
-    sensorConfig.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+    sensorConfig.bdu = LSM6DSRX_BDU;
 
     // Accelerometer
-    sensorConfig.fsAcc     = LSM6DSRXConfig::ACC_FULLSCALE::G16;
-    sensorConfig.odrAcc    = LSM6DSRXConfig::ACC_ODR::HZ_416;
-    sensorConfig.opModeAcc = LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+    sensorConfig.fsAcc     = LSM6DSRX_ACC_FS;
+    sensorConfig.odrAcc    = LSM6DSRX_ACC_ODR;
+    sensorConfig.opModeAcc = LSM6DSRX_OPERATING_MODE;
 
     // Gyroscope
-    sensorConfig.fsGyr     = LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
-    sensorConfig.odrGyr    = LSM6DSRXConfig::GYR_ODR::HZ_416;
-    sensorConfig.opModeGyr = LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+    sensorConfig.fsGyr     = LSM6DSRX_GYR_FS;
+    sensorConfig.odrGyr    = LSM6DSRX_GYR_ODR;
+    sensorConfig.opModeGyr = LSM6DSRX_OPERATING_MODE;
 
     // Fifo
-    sensorConfig.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
-    sensorConfig.fifoTimestampDecimation =
-        LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
-    sensorConfig.fifoTemperatureBdr =
-        LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+    sensorConfig.fifoMode                = LSM6DSRX_FIFO_MODE;
+    sensorConfig.fifoTimestampDecimation = LSM6DSRX_FIFO_TIMESTAMP_DECIMAION;
+    sensorConfig.fifoTemperatureBdr      = LSM6DSRX_FIFO_TEMPERATURE_BDR;
 
     // Create sensor instance with configured parameters
     lsm6dsrx = new LSM6DSRX(modules.get<Buses>()->spi1,
@@ -250,7 +249,8 @@ void Sensors::lsm6dsrxInit()
                             sensorConfig);
 
     // Emplace the sensor inside the map
-    SensorInfo info("LSM6DSRX", 20, bind(&Sensors::lsm6dsrxCallback, this));
+    SensorInfo info("LSM6DSRX", LSM6DSRX_PERIOD,
+                    bind(&Sensors::lsm6dsrxCallback, this));
     sensorMap.emplace(make_pair(lsm6dsrx, info));
 }
 
