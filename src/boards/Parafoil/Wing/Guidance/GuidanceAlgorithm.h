@@ -50,7 +50,7 @@ public:
      */
     virtual float calculateTargetAngle(const Eigen::Vector3f& position,
                                        const Eigen::Vector2f& target,
-                                       Eigen::Vector2f& heading);
+                                       Eigen::Vector2f& heading) = 0;
 };
 
 }  // namespace Parafoil

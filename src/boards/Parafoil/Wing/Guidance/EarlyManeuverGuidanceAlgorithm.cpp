@@ -20,8 +20,6 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 
 #include <Eigen/Core>
