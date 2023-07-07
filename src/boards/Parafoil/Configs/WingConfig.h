@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,29 +39,76 @@ constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 1000;  //[ms]
 #if defined(EUROC)
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
+
+constexpr float M1_TARGET_LAT = 45.501200;
+constexpr float M1_TARGET_LON = 9.156290;
+
+constexpr float M2_TARGET_LAT = 45.501100;
+constexpr float M2_TARGET_LON = 9.156350;
+
+constexpr float EMC_TARGET_LAT = 45.501200;
+constexpr float EMC_TARGET_LON = 9.156290;
 #elif defined(ROCCARASO)
 constexpr float DEFAULT_TARGET_LAT = 41.8039952;
 constexpr float DEFAULT_TARGET_LON = 14.0547223;
+
+constexpr float M1_TARGET_LAT = 45.501200;
+constexpr float M1_TARGET_LON = 9.156290;
+
+constexpr float M2_TARGET_LAT = 45.501100;
+constexpr float M2_TARGET_LON = 9.156350;
+
+constexpr float EMC_TARGET_LAT   = 45.501200;
+constexpr float EMC_TARGET_LON   = 9.156290;
 #elif defined(TERNI)
 constexpr float DEFAULT_TARGET_LAT = 42.572165;
 constexpr float DEFAULT_TARGET_LON = 12.585847;
+
+constexpr float M1_TARGET_LAT = 45.501200;
+constexpr float M1_TARGET_LON = 9.156290;
+
+constexpr float M2_TARGET_LAT = 45.501100;
+constexpr float M2_TARGET_LON = 9.156350;
+
+constexpr float EMC_TARGET_LAT   = 45.501200;
+constexpr float EMC_TARGET_LON   = 9.156290;
 #elif defined(MOLINELLA)
 constexpr float DEFAULT_TARGET_LAT = 44.588923;
 constexpr float DEFAULT_TARGET_LON = 11.653212;
+
+constexpr float M1_TARGET_LAT = 45.501200;
+constexpr float M1_TARGET_LON = 9.156290;
+
+constexpr float M2_TARGET_LAT = 45.501100;
+constexpr float M2_TARGET_LON = 9.156350;
+
+constexpr float EMC_TARGET_LAT   = 45.501200;
+constexpr float EMC_TARGET_LON   = 9.156290;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.501148;
 constexpr float DEFAULT_TARGET_LON = 9.156301;
+
+constexpr float M1_TARGET_LAT = 45.501200;
+constexpr float M1_TARGET_LON = 9.156290;
+
+constexpr float M2_TARGET_LAT = 45.501100;
+constexpr float M2_TARGET_LON = 9.156350;
+
+constexpr float EMC_TARGET_LAT   = 45.501200;
+constexpr float EMC_TARGET_LON   = 9.156290;
 #endif
 
 #if defined(GUIDED)
 
 constexpr int SELECTED_ALGORITHM = 0;
 #elif STOP_AND_GO
-constexpr int SELECTED_ALGORITHM   = 1;
+constexpr int SELECTED_ALGORITHM = 1;
 #elif ROTATION
-constexpr int SELECTED_ALGORITHM   = 2;
+constexpr int SELECTED_ALGORITHM = 2;
+#elif EARLY_MANEUVER
+constexpr int SELECTED_ALGORITHM = 3;
 #else
-constexpr int SELECTED_ALGORITHM   = 0;
+constexpr int SELECTED_ALGORITHM = 0;
 #endif
 constexpr float MAX_SERVO_APERTURE = 1.0f;
 // Wing altitude checker configs

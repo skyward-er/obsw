@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,8 @@
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
+#include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithmData.h>
 #include <Parafoil/Wing/WingTargetPositionData.h>
@@ -236,11 +238,21 @@ void WingController::addAlgorithm(int id)
 {
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
+
+    ClosedLoopGuidanceAlgorithm clGuidance = ClosedLoopGuidanceAlgorithm();
+
+    Eigen::Vector2f M1(M1_TARGET_LAT, M1_TARGET_LON);
+    Eigen::Vector2f M2(M2_TARGET_LAT, M1_TARGET_LON);
+    Eigen::Vector2f EMC(EMC_TARGET_LAT, EMC_TARGET_LON);
+
+    EarlyManeuversGuidanceAlgorithm emGuidance =
+        EarlyManeuversGuidanceAlgorithm(M1, M2, EMC);
+
     switch (id)
     {
         case 0:
-            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
-                                                   PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
         case 1:  // straight-> brake
@@ -273,10 +285,14 @@ void WingController::addAlgorithm(int id)
             algorithm->addStep(step);
             setAutomatic(false);
             break;
-
+        case 3:
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
+            setAutomatic(true);
+            break;
         default:  // automatic target
-            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
-                                                   PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
     }

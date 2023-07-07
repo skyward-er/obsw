@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro, Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
+#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <algorithms/NAS/NASState.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -40,11 +41,12 @@ namespace Parafoil
 {
 AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                ServosList servo1,
-                                               ServosList servo2)
-    : WingAlgorithm(servo1, servo2)
+                                               ServosList servo2,
+                                               GuidanceAlgorithm& guidance)
+    : WingAlgorithm(servo1, servo2), guidance(guidance)
 {
-    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
-                                  -2.09439, 2.09439);
+    controller =
+        new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f, -0.1, 0.1);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
@@ -70,48 +72,40 @@ void AutomaticWingAlgorithm::step()
         Vector2f targetPosition = Aeroutils::geodetic2NED(
             modules.get<WingController>()->getTargetPosition(),
             startingPosition);
-        Vector2f targetDirection = targetPosition - Vector2f(state.n, state.e);
 
-        // Compute the angle of the target direciton
-        float targetAngle = atan2(targetDirection[1], targetDirection[0]);
+        // For some algorithms the third component is needed!
+        Vector3f currentPosition(state.n, state.e, state.d);
+
+        Vector2f heading;  // used for logging purposes
+
+        float targetAngle = guidance.calculateTargetAngle(
+            currentPosition, targetPosition, heading);
+
+        Vector2f wind =
+            modules.get<WindEstimation>()->getWindEstimationScheme();
+
+        Vector2f currentDirection(state.ve - wind[0], state.vn - wind[1]);
 
         // Compute the angle of the current velocity
         float velocityAngle;
 
         // In case of a 0 north velocity i force the angle to 90
-        if (state.vn == 0 && state.ve == 0)
+        if (currentDirection[0] == 0 && currentDirection[1] == 0)
         {
             velocityAngle = 0;
         }
-        else if (state.vn == 0)
+        else if (currentDirection[0] == 0)
         {
-            velocityAngle = (state.ve > 0 ? 1 : -1) * Constants::PI / 2;
+            velocityAngle =
+                (currentDirection[1] > 0 ? 1 : -1) * Constants::PI / 2;
         }
         else
         {
-            velocityAngle = atan2(state.ve, state.vn);
+            velocityAngle = atan2(currentDirection[0], currentDirection[1]);
         }
 
         // Compute the angle difference
-        float error = targetAngle - velocityAngle;
-
-        // Angle difference
-        if (error < -Constants::PI || Constants::PI < error)
-        {
-            error += Constants::PI;
-            bool positiveInput = error > 0;
-
-            error = error -
-                    floor(error / (2 * Constants::PI)) * (2 * Constants::PI);
-
-            // error = fmod(error, 2 * Constants::PI);
-            if (error == 0 && positiveInput)
-            {
-                error = 2 * Constants::PI;
-            }
-
-            error -= Constants::PI;
-        }
+        float error = angleDiff(targetAngle, velocityAngle);
 
         // Call the PI with the just calculated error. The result is in RADIANS,
         // if positive we activate one servo, if negative the other
@@ -142,14 +136,38 @@ void AutomaticWingAlgorithm::step()
         data.timestamp     = TimestampTimer::getTimestamp();
         data.servo1Angle   = modules.get<Actuators>()->getServoPosition(servo1);
         data.servo2Angle   = modules.get<Actuators>()->getServoPosition(servo2);
-        data.targetX       = targetDirection[0];
-        data.targetY       = targetDirection[1];
+        data.targetX       = heading[0];
+        data.targetY       = heading[1];
         data.targetAngle   = targetAngle;
         data.velocityAngle = velocityAngle;
         data.error         = error;
         data.pidOutput     = result;
         SDlogger->log(data);
     }
+}
+
+float AutomaticWingAlgorithm::angleDiff(float a, float b)
+{
+    float diff = a - b;
+
+    // Angle difference
+    if (diff < -Constants::PI || Constants::PI < diff)
+    {
+        diff += Constants::PI;
+        bool positiveInput = diff > 0;
+
+        diff = diff - floor(diff / (2 * Constants::PI)) * (2 * Constants::PI);
+
+        // diff = fmod(diff, 2 * Constants::PI);
+        if (diff == 0 && positiveInput)
+        {
+            diff = 2 * Constants::PI;
+        }
+
+        diff -= Constants::PI;
+    }
+
+    return diff;
 }
 
 }  // namespace Parafoil
