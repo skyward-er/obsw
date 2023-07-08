@@ -51,8 +51,8 @@ public:
      */
     void start();
 
-    void emergencyStop();
-    void emergencyStopRecovery();
+    void IRQemergencyStop();
+    void IRQemergencyStopRecovery();
 
     void setSpeed(StepperList axis, float speed);
 
@@ -64,12 +64,14 @@ public:
     int16_t getCurrentPosition(StepperList axis);
     float getCurrentDegPosition(StepperList axis);
 
+    bool isEmergencyStopped() { return emergencyStop; }
+
 private:
     Boardcore::StepperPWM& getServo(StepperList servo);
 
     Boardcore::StepperPWM stepperX;
     Boardcore::StepperPWM stepperY;
-    bool stepperXActive = true;  // Whether stepper on X axis can accept steps
-    bool stepperYActive = true;  // Whether stepper on Y axis can accept steps
+    bool emergencyStop =
+        false;  // Whether the system performed an emergency stop
 };
 }  // namespace Antennas
