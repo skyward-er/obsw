@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
@@ -27,6 +28,14 @@ namespace Antennas
 {
 namespace Config
 {
+constexpr float MIN_ANGLE_HORIZONTAL = -45.0;
+constexpr float MAX_ANGLE_HORIZONTAL = 1000000.0;
+constexpr float MAX_SPEED_HORIZONTAL = 1.3;
+
+constexpr float MIN_ANGLE_VERTICAL = 0;
+constexpr float MAX_ANGLE_VERTICAL = 45.0;
+constexpr float MAX_SPEED_VERTICAL = 1.3;
+
 namespace StepperConfig
 {
 // TIM1_CH4 PA11 AF1
