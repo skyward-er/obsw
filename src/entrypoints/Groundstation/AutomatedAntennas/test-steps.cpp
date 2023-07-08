@@ -22,13 +22,16 @@
 
 #include <AutomatedAntennas/Actuators.h>
 #include <AutomatedAntennas/Buses.h>
+#include <AutomatedAntennas/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <diagnostic/StackLogger.h>
+#include <drivers/interrupt/external_interrupts.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/ButtonHandler/ButtonHandler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -42,6 +45,13 @@ using namespace Antennas;
  * Test used to characterize the automated antennas.
  */
 
+GpioPin button = GpioPin(GPIOC_BASE, 13);
+
+void __attribute__((used)) EXTI13_IRQHandlerImpl()
+{
+    ModuleManager::getInstance().get<Actuators>()->IRQemergencyStop();
+}
+
 int main()
 {
     bool initResult          = true;
@@ -49,29 +59,20 @@ int main()
     ModuleManager& modules   = ModuleManager::getInstance();
     TaskScheduler* scheduler = new TaskScheduler();
 
-    // Starting singleton
-    {
-        scheduler->start();
-#ifndef NO_SD_LOGGING
-        printf("Starting Logger\n");
-        if (!Logger::getInstance().start())
-        {
-            initResult = false;
-            printf("Error initializing the Logger\n");
-        }
-        else
-        {
-            printf("Logger started successfully\n");
-        }
-#endif
-    }
+    button.mode(Mode::INPUT);
+    enableExternalInterrupt(button.getPort(), button.getNumber(),
+                            InterruptTrigger::RISING_EDGE);
 
-    // Initialize the modules
+    // INSERTING MODULES
     {
         if (!modules.insert<Buses>(new Buses()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the Buses module");
+        }
+        else
+        {
+            LOG_INFO(logger, "Successfully inserted Buses module\n");
         }
 
         if (!modules.insert<Actuators>(new Actuators()))
@@ -79,9 +80,77 @@ int main()
             initResult = false;
             LOG_ERR(logger, "Error inserting the Actuators module");
         }
+        else
+        {
+            LOG_INFO(logger, "Successfully inserted Actuators module\n");
+        }
+
+        if (!modules.insert<Sensors>(new Sensors()))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the Sensors module");
+        }
+        else
+        {
+            LOG_INFO(logger, "Successfully inserted Sensors module\n");
+        }
+
+        // Insert algorithm modules
     }
 
-    modules.get<Actuators>()->start();
+    // ADDING TASKS
+    {
+        scheduler->addTask(
+            []()
+            {
+                Logger::getInstance().log(CpuMeter::getCpuStats());
+                CpuMeter::resetCpuStats();
+                Logger::getInstance().logStats();
+                StackLogger::getInstance().log();
+            },
+            100);
+    }
+
+    // STARTING MODULES
+    {
+#ifndef NO_SD_LOGGING
+        // Starting the Logger
+        if (!Logger::getInstance().start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing the Logger\n");
+        }
+        else
+        {
+            LOG_INFO(logger, "Logger started successfully\n");
+        }
+#endif
+
+        // Starting scheduler
+        if (!scheduler->start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing the Scheduler\n");
+        }
+        else
+        {
+            LOG_INFO(logger, "Scheduler started successfully\n");
+        }
+
+        // Starting the Actuators
+        modules.get<Actuators>()->start();
+
+        // Starting the Actuators
+        if (!modules.get<Sensors>()->start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error initializing the Sensors\n");
+        }
+        else
+        {
+            LOG_INFO(logger, "Sensors started successfully\n");
+        }
+    }
 
     if (!initResult)
     {
@@ -90,30 +159,77 @@ int main()
     }
 
     // Periodically statistics
-    for (auto i = 0; i < 50; i++)
-    {
-        modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL, 90);
-        Thread::sleep(100);
-        Logger::getInstance().log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
-        Logger::getInstance().logStats();
-        StackLogger::getInstance().log();
-    }
+    float speedMax  = 1.0;
+    float speed0    = 0.1;
+    float speed     = speed0;
+    float stepSpeed = 0.1;
+    bool increasing = true;
 
-    for (auto i = 0; i < 50; i++)
+    modules.get<Actuators>()->setSpeed(Actuators::StepperList::HORIZONTAL,
+                                       speed);
+    // scheduler->addTask(
+    //     [&]()
+    //     {
+    //         if (increasing)
+    //         {
+    //             if (speed < speedMax)
+    //             {
+    //                 speed += stepSpeed;
+    //                 modules.get<Actuators>()->setSpeed(
+    //                     Actuators::StepperList::HORIZONTAL, speed);
+    //             }
+    //             else
+    //             {
+    //                 increasing = false;
+    //             }
+    //         }
+    //         else
+    //         {
+    //             if (speed > 0)
+    //             {
+    //                 speed -= stepSpeed;
+    //                 modules.get<Actuators>()->setSpeed(
+    //                     Actuators::StepperList::HORIZONTAL, speed);
+    //             }
+    //             else
+    //             {
+    //                 increasing = true;
+    //             }
+    //         }
+    //     },
+    //     100);
+
+    for (;;)
     {
+        // speed = speed0;
+        // for (int i = 0; i < 10; i++)
+        // {
         modules.get<Actuators>()->moveDeg(Actuators::StepperList::HORIZONTAL,
-                                          90);
-        Thread::sleep(100);
-        Logger::getInstance().log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
-        Logger::getInstance().logStats();
-        StackLogger::getInstance().log();
+                                          360);
+        Thread::sleep(500);
+
+        speed += stepSpeed;
+        modules.get<Actuators>()->setSpeed(Actuators::StepperList::HORIZONTAL,
+                                           speed);
+        // }
+
+        // speed = speed0;
+        // for (int i = 0; i < 10; i++)
+        // {
+        //     modules.get<Actuators>()->moveDeg(
+        //         Actuators::StepperList::HORIZONTAL, -360);
+        //     Thread::sleep(400);
+
+        //     speed += stepSpeed;
+        //     modules.get<Actuators>()->setSpeed(
+        //         Actuators::StepperList::HORIZONTAL, speed);
+        // }
     }
 
-    printf("Logging finished\n");
-    Logger::getInstance().stop();
-    printf("Logging stopped\n");
+    // Stopping threads
+    {
+        Logger::getInstance().stop();
+    }
 
     while (1)
         ;
