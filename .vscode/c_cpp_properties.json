@@ -26,7 +26,7 @@
             "name": "stm32f407vg_stm32f4discovery",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f407vg_stm32f4discovery",
@@ -49,7 +49,7 @@
             "name": "stm32f429zi_death_stack_v3",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f429zi_death_stack_v3",
@@ -71,7 +71,7 @@
             "name": "stm32f767zi_compute_unit",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_compute_unit",
@@ -93,7 +93,7 @@
             "name": "stm32f767zi_compute_unit_HIL",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_compute_unit",
@@ -117,7 +117,7 @@
             "name": "stm32f767zi_death_stack_v4",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_ARCH_CORTEXM7_STM32F7",
@@ -137,7 +137,7 @@
             "name": "stm32f767zi_death_stack_v4_HIL",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_ARCH_CORTEXM7_STM32F7",
@@ -160,7 +160,7 @@
             "name": "stm32f429zi_skyward_pyxis_auxiliary",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "${defaultDefines}",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -269,7 +269,7 @@
             "name": "stm32f767zi_gemini_motor",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_gemini_motor",
@@ -291,7 +291,7 @@
             "name": "stm32f756zg_nucleo",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f756zg_nucleo",
@@ -313,7 +313,7 @@
             "name": "stm32f767zi_nucleo",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_nucleo",
@@ -337,7 +337,7 @@
             "name": "stm32f769ni_discovery",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "{defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f769ni_discovery",
