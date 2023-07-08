@@ -26,7 +26,7 @@
             "name": "stm32f407vg_stm32f4discovery",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -87,7 +87,7 @@
             "name": "stm32f429zi_stm32f4discovery",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -149,7 +149,7 @@
             "name": "stm32f429zi_skyward_death_stack_x",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -212,7 +212,7 @@
             "name": "stm32f429zi_skyward_death_stack_x_maker_faire",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "HILSimulation",
@@ -276,7 +276,7 @@
             "name": "stm32f429zi_skyward_death_stack_v3",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -337,7 +337,7 @@
             "name": "stm32f429zi_skyward_death_stack_v3_hil_euroc",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -400,7 +400,7 @@
             "name": "stm32f429zi_skyward_death_stack_v3_hil_roccaraso",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -709,7 +709,7 @@
             "name": "stm32f429zi_skyward_pyxis_auxiliary",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -770,7 +770,7 @@
             "name": "stm32f205rc_skyward_ciuti",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM3_STM32F2",
@@ -831,7 +831,7 @@
             "name": "stm32f429zi_skyward_parafoil",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -896,7 +896,7 @@
             "name": "stm32f429zi_skyward_groundstation",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",
@@ -957,7 +957,7 @@
             "name": "stm32f429zi_skyward_groundstation_parafoil",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": "C://arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "DEBUG",
                 "_ARCH_CORTEXM4_STM32F4",

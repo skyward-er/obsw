@@ -21,35 +21,37 @@
  */
 #pragma once
 
-#include <drivers/usart/USART.h>
-
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "Buses.h"
+#include "sensors/SensorManager.h"
+#include "sensors/VN300/VN300.h"
 
 namespace Antennas
 {
-
-miosix::GpioPin usart2_tx = miosix::GpioPin(GPIOA_BASE, 2);
-miosix::GpioPin usart2_rx = miosix::GpioPin(GPIOA_BASE, 3);
-miosix::GpioPin uart4_tx  = miosix::GpioPin(GPIOA_BASE, 0);
-miosix::GpioPin uart4_rx  = miosix::GpioPin(GPIOA_BASE, 1);
-
-class Buses : public Boardcore::Module
+class Sensors : public Boardcore::Module
 {
 public:
-    Boardcore::USART usart2;
-    Boardcore::USART uart4;
+    Sensors();
 
-    Buses() : usart2(USART2, 115200), uart4(UART4, 115200)
-    {
-        usart2_tx.mode(miosix::Mode::ALTERNATE);
-        usart2_tx.alternateFunction(7);
-        usart2_rx.mode(miosix::Mode::ALTERNATE_PULL_UP);
-        usart2_rx.alternateFunction(7);
+    /**
+     * @brief Starts the SensorManager.
+     */
+    bool start();
 
-        uart4_tx.mode(miosix::Mode::ALTERNATE);
-        uart4_tx.alternateFunction(8);
-        uart4_rx.mode(miosix::Mode::ALTERNATE_PULL_UP);
-        uart4_rx.alternateFunction(8);
-    }
+    /**
+     * @brief Returns the last sample of the VN300.
+     */
+    VN300Data getVN300LastSample();
+
+private:
+    bool vn300Init();
+    void vn300Callback();
+
+    Boardcore::VN300 *vn300 = nullptr;
+
+    SensorManager *sm = nullptr;
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 }  // namespace Antennas
