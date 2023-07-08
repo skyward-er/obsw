@@ -19,37 +19,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 
-#include <drivers/usart/USART.h>
+#include "Sensors.h"
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+using namespace std;
+using namespace miosix;
+using namespace Boardcore;
+
+constexpr int SAMPLE_PERIOD_VN300 = 20;
+
 namespace Antennas
 {
+Sensors::Sensors() {}
 
-miosix::GpioPin usart2_tx = miosix::GpioPin(GPIOA_BASE, 2);
-miosix::GpioPin usart2_rx = miosix::GpioPin(GPIOA_BASE, 3);
-miosix::GpioPin uart4_tx  = miosix::GpioPin(GPIOA_BASE, 0);
-miosix::GpioPin uart4_rx  = miosix::GpioPin(GPIOA_BASE, 1);
-
-class Buses : public Boardcore::Module
+bool Sensors::start()
 {
-public:
-    Boardcore::USART usart2;
-    Boardcore::USART uart4;
-
-    Buses() : usart2(USART2, 115200), uart4(UART4, 115200)
+    if (!vn300Init())
     {
-        usart2_tx.mode(miosix::Mode::ALTERNATE);
-        usart2_tx.alternateFunction(7);
-        usart2_rx.mode(miosix::Mode::ALTERNATE_PULL_UP);
-        usart2_rx.alternateFunction(7);
-
-        uart4_tx.mode(miosix::Mode::ALTERNATE);
-        uart4_tx.alternateFunction(8);
-        uart4_rx.mode(miosix::Mode::ALTERNATE_PULL_UP);
-        uart4_rx.alternateFunction(8);
+        return false;
     }
-};
+
+    sm = new SensorManager(sensorsMap);
+    if (!sm->start())
+    {
+        LOG_ERR(logger, "Sensor Manager failed to start");
+        return false;
+    }
+}
+
+bool Sensors::vn300Init()
+{
+    vn300 = new Boardcore::VN300(
+        ModuleManager::getInstance().get<Buses>()->uart4, 115200);
+
+    if (!vn300->init())
+    {
+        LOG_ERR(logger, "VN300 not initialized");
+        return false;
+    }
+
+    if (!vn300->selfTest())
+    {
+        LOG_ERR(logger, "VN300 self-test failed");
+        return false;
+    }
+
+    SensorInfo info("VN300", SAMPLE_PERIOD_VN300,
+                    bind(&Sensors::vn300Callback, this));
+
+    sensorsMap.emplace(make_pair(vn300, info));
+    return true;
+}
+
+void Sensors::vn300Callback()
+{
+    Logger::getInstance().log(vn300->getLastSample());
+    Logger::getInstance().log(vn300->getLastError());
+}
+
+VN300Data Sensors::getVN300LastSample() { return vn300->getLastSample(); }
+
 }  // namespace Antennas
