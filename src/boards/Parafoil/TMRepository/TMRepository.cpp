@@ -22,16 +22,12 @@
 
 #include "TMRepository.h"
 
-#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/SensorsConfig.h>
-#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <Parafoil/StateMachines/WingController/WingController.h>
-#include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -173,11 +169,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             NASState nasState = ModuleManager::getInstance()
                                     .get<NASController>()
                                     ->getNasState();
-            UBXGPSData ubxData = sensors->getUbxGpsLastSample();
+            // UBXGPSData ubxData = sensors->getUbxGpsLastSample();
 
-            Eigen::Vector2f wesData = ModuleManager::getInstance()
-                                          .get<WindEstimation>()
-                                          ->getWindEstimationScheme();
+            Eigen::Vector2f wesData = {0, 0};
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -191,10 +185,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                ->getStatus()
                                .state;
 
-            tm.wes_state = (uint8_t)ModuleManager::getInstance()
-                               .get<WingController>()
-                               ->getStatus()
-                               .state;
+            tm.wes_state = 0;
 
             // Pressures
             tm.pressure_digi = ms5803Data.pressure;
@@ -218,18 +209,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.mag_z  = imuData.magneticFieldZ;
 
             // GPS
-            tm.gps_fix = ubxData.fix;
-            tm.gps_lat = ubxData.latitude;
-            tm.gps_lon = ubxData.longitude;
-            tm.gps_alt = ubxData.height;
-
+            tm.gps_fix = 0;
+            tm.gps_lat = 0;
+            tm.gps_lon = 0;
+            tm.gps_alt = 0;
             // Servo motors
-            tm.left_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    PARAFOIL_LEFT_SERVO);
-            tm.right_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    PARAFOIL_RIGHT_SERVO);
+            tm.left_servo_angle  = 0;
+            tm.right_servo_angle = 0;
 
             // NAS
             tm.nas_n      = nasState.n;
@@ -247,19 +233,12 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Sensing pins statuses
-            tm.pin_nosecone = ModuleManager::getInstance()
-                                  .get<PinHandler>()
-                                  ->getPinsData()[NOSECONE_PIN]
-                                  .lastState;
+            tm.pin_nosecone = 0;
 
             // Servo positions
-            tm.left_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    PARAFOIL_LEFT_SERVO);
+            tm.left_servo_angle = 0;
 
-            tm.right_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    PARAFOIL_RIGHT_SERVO);
+            tm.right_servo_angle = 0;
 
             // Board status
             tm.vbat         = sensors->getBatteryVoltageLastSample().batVoltage;
@@ -335,27 +314,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
     {
         case SensorsTMList::MAV_GPS_ID:
         {
-            mavlink_gps_tm_t tm;
-
-            UBXGPSData gpsData = ModuleManager::getInstance()
-                                     .get<Sensors>()
-                                     ->getUbxGpsLastSample();
-
-            tm.timestamp = gpsData.gpsTimestamp;
-            strcpy(tm.sensor_name, "UBXGPS");
-            tm.fix          = gpsData.fix;
-            tm.height       = gpsData.height;
-            tm.latitude     = gpsData.latitude;
-            tm.longitude    = gpsData.longitude;
-            tm.n_satellites = gpsData.satellites;
-            tm.speed        = gpsData.speed;
-            tm.track        = gpsData.track;
-            tm.vel_down     = gpsData.velocityDown;
-            tm.vel_east     = gpsData.velocityEast;
-            tm.vel_north    = gpsData.velocityNorth;
-
-            mavlink_msg_gps_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMPONENT_ID, &msg, &tm);
 
             break;
         }
@@ -503,10 +461,8 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
     {
         mavlink_servo_tm_t tm;
 
-        tm.servo_id = servoId;
-        tm.servo_position =
-            ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                servoId);
+        tm.servo_id       = servoId;
+        tm.servo_position = 0;
 
         mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                     RadioConfig::MAV_COMPONENT_ID, &msg, &tm);

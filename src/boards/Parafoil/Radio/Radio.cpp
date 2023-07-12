@@ -22,15 +22,11 @@
 
 #include "Radio.h"
 
-#include <Parafoil/Actuators/Actuators.h>
-#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
-#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <drivers/interrupt/external_interrupts.h>
@@ -100,7 +96,6 @@ bool Radio::startModule()
     // Create the SPI bus configuration
     SPIBusConfig config{};
     config.clockDivider = SPI::ClockDivider::DIV_16;
-
     // Create the xbee object
     transceiver = new Xbee::Xbee(
         modules.get<Buses>()->spi2, config, miosix::xbee::cs::getPin(),
@@ -240,27 +235,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             {
                 case SystemTMList::MAV_PIN_OBS_ID:
                 {
-                    auto pinDataVector =
-                        modules.get<PinHandler>()->getPinsData();
-
-                    for (auto pinData : pinDataVector)
-                    {
-                        mavlink_message_t msgToSend;
-                        mavlink_pin_tm_t tm;
-
-                        tm.timestamp = TimestampTimer::getTimestamp();
-                        tm.pin_id    = pinData.first;
-                        tm.last_change_timestamp =
-                            pinData.second.lastStateTimestamp;
-                        tm.changes_counter = pinData.second.changesCount;
-                        tm.current_state   = pinData.second.lastState;
-
-                        mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                                  RadioConfig::MAV_COMPONENT_ID,
-                                                  &msgToSend, &tm);
-
-                        mavDriver->enqueueMsg(msgToSend);
-                    }
 
                     break;
                 }
@@ -362,42 +336,14 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
-            ServosList servoId = static_cast<ServosList>(
-                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
-            float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
-
-            // Move the servo, if it fails send a nack
-            if (!(modules.get<FlightModeManager>()->getStatus().state ==
-                      FlightModeManagerState::TEST_MODE &&
-                  modules.get<Actuators>()->setServoAngle(servoId, angle)))
-                return sendNack(msg);
-
             break;
         }
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            ServosList servoId = static_cast<ServosList>(
-                mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
-
-            // Wiggle the servo, if it fails send a nack
-            if (!(modules.get<FlightModeManager>()->getStatus().state ==
-                      FlightModeManagerState::TEST_MODE &&
-                  modules.get<Actuators>()->wiggleServo(servoId)))
-                return sendNack(msg);
-
             break;
         }
         case MAVLINK_MSG_ID_RESET_SERVO_TC:
         {
-            ServosList servoId = static_cast<ServosList>(
-                mavlink_msg_reset_servo_tc_get_servo_id(&msg));
-
-            // Reset the servo, if it fails send a nack
-            if (!(modules.get<FlightModeManager>()->getStatus().state ==
-                      FlightModeManagerState::TEST_MODE &&
-                  modules.get<Actuators>()->setServo(servoId, 0)))
-                return sendNack(msg);
-
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
@@ -449,23 +395,10 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
         }
         case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
         {
-            float latitude =
-                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
-
-            float longitude =
-                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
-
-            modules.get<WingController>()->setTargetPosition(
-                Eigen::Vector2f(latitude, longitude));
-
             break;
         }
         case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
         {
-            uint8_t algorithm =
-                mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
-
-            modules.get<WingController>()->selectAlgorithm(algorithm);
 
             break;
         }

@@ -20,22 +20,22 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/Actuators/Actuators.h>
-#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
+// #include <Parafoil/Actuators/Actuators.h>
+// #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/PinHandler/PinHandler.h>
+// #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <Parafoil/StateMachines/WingController/WingController.h>
+// #include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
-#include <Parafoil/WindEstimationScheme/WindEstimation.h>
-#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
-#include <Parafoil/Wing/FileWingAlgorithm.h>
+// #include <Parafoil/WindEstimationScheme/WindEstimation.h>
+// #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
+// #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <common/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -78,7 +78,7 @@ int main()
 
     // Initialize the modules
     {
-        if (!modules.insert<Actuators>(new Actuators()))
+        /*if (!modules.insert<Actuators>(new Actuators()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the Actuators module");
@@ -88,7 +88,7 @@ int main()
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the AltitudeTrigger module");
-        }
+        }*/
 
         if (!modules.insert<Buses>(new Buses()))
         {
@@ -108,11 +108,11 @@ int main()
             LOG_ERR(logger, "Error inserting the NASController module");
         }
 
-        if (!modules.insert<PinHandler>(new PinHandler()))
+        /*if (!modules.insert<PinHandler>(new PinHandler()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the PinHandler module");
-        }
+        }*/
 
         if (!modules.insert<Radio>(new Radio()))
         {
@@ -132,7 +132,7 @@ int main()
             LOG_ERR(logger, "Error inserting the TMRepository module");
         }
 
-        if (!modules.insert<WindEstimation>(new WindEstimation()))
+        /*if (!modules.insert<WindEstimation>(new WindEstimation()))
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the WindEstimation module");
@@ -142,12 +142,12 @@ int main()
         {
             initResult = false;
             LOG_ERR(logger, "Error inserting the WingController module");
-        }
+        }*/
     }
 
     // Start the modules
     {
-        if (!modules.get<Actuators>()->startModule())
+        /*if (!modules.get<Actuators>()->startModule())
         {
             initResult = false;
             LOG_ERR(logger, "Error starting the Actuators module");
@@ -157,7 +157,7 @@ int main()
         {
             initResult = false;
             LOG_ERR(logger, "Error starting the AltitudeTrigger module");
-        }
+        }*/
 
         if (!modules.get<Buses>()->startModule())
         {
@@ -177,11 +177,11 @@ int main()
             LOG_ERR(logger, "Error starting the NASController module");
         }
 
-        if (!modules.get<PinHandler>()->startModule())
+        /*if (!modules.get<PinHandler>()->startModule())
         {
             initResult = false;
             LOG_ERR(logger, "Error starting the PinHandler module");
-        }
+        }*/
 
         if (!modules.get<Radio>()->startModule())
         {
@@ -201,7 +201,7 @@ int main()
             LOG_ERR(logger, "Error starting the TMRepository module");
         }
 
-        if (!modules.get<WindEstimation>()->startModule())
+        /*if (!modules.get<WindEstimation>()->startModule())
         {
             initResult = false;
             LOG_ERR(logger, "Error starting the WindEstimation module");
@@ -211,14 +211,17 @@ int main()
         {
             initResult = false;
             LOG_ERR(logger, "Error starting the WingController module");
-        }
+        }*/
     }
-    WingConfig::WingConfigStruct f;
-    modules.get<WingController>()->addAlgorithm(WingConfig::SELECTED_ALGORITHM);
-    Logger::getInstance().log(f);  // logs the config file
+    // WingConfig::WingConfigStruct f;
+    // modules.get<WingController>()->addAlgorithm(WingConfig::SELECTED_ALGORITHM);
+    // Logger::getInstance().log(f);  // logs the config file
     // If all is correctly set up i publish the init ok
     if (initResult)
+    {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        miosix::ledOn();
+    }
     else
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
 

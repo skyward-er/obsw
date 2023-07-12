@@ -33,35 +33,11 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(parafoil-entry-milano src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-milano PRIVATE MILANO)
-sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
+add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry PRIVATE MILANO)
+sbs_target(parafoil-entry stm32f429zi_skyward_death_stack_x)
 
-add_executable(parafoil-entry-stop_and_go src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-stop_and_go PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-stop_and_go PRIVATE MOLINELLA STOP_AND_GO)
-sbs_target(parafoil-entry-stop_and_go stm32f429zi_skyward_death_stack_x)
-
-add_executable(parafoil-entry-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-guided PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA GUIDED)
-sbs_target(parafoil-entry-guided stm32f429zi_skyward_death_stack_x)
-
-add_executable(parafoil-entry-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-rotation PRIVATE MOLINELLA ROTATION)
-sbs_target(parafoil-entry-rotation stm32f429zi_skyward_death_stack_x)
 #-----------------------------------------------------------------------------#
 #                               Parafoil Computer                             #
 #-----------------------------------------------------------------------------#
-
-add_executable(parafoil-test-wes src/tests/Parafoil/parafoil-test-WES.cpp ${PARAFOIL_COMPUTER} )
-target_include_directories(parafoil-test-wes PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-test-wes PRIVATE PRF_TEST)
-sbs_target(parafoil-test-wes stm32f429zi_skyward_death_stack_x)
-
-add_executable(parafoil-test-wing-controller src/tests/Parafoil/parafoil-test-WingController.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-test-wing-controller PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-test-wing-controller PRIVATE PRF_TEST)
-sbs_target(parafoil-test-wing-controller stm32f429zi_skyward_death_stack_x)

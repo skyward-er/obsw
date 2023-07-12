@@ -61,7 +61,7 @@ void NASController::update()
     {
         auto imuData =
             modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
-        auto gpsData      = modules.get<Sensors>()->getUbxGpsLastSample();
+        // auto gpsData      = modules.get<Sensors>()->getUbxGpsLastSample();
         auto pressureData = modules.get<Sensors>()->getMS5803LastSample();
 
         // Predict step
@@ -70,7 +70,6 @@ void NASController::update()
 
         // Correct step
         nas.correctMag(imuData);
-        nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
 
         // Correct with accelerometer if the acceleration is in specs
@@ -144,14 +143,7 @@ void NASController::calibrate()
     reference.refAltitude = Aeroutils::relAltitude(pressure.getStats().mean);
 
     // If in this moment the GPS has fix i use that position as starting
-    UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
-    if (gps.fix != 0)
-    {
-        // We don't set the altitude with the GPS because of not precise
-        // measurements
-        reference.refLatitude  = gps.latitude;
-        reference.refLongitude = gps.longitude;
-    }
+    // UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
 
     // Update the algorithm reference values
     {
