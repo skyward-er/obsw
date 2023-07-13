@@ -26,7 +26,7 @@
 #include <algorithms/ReferenceValues.h>
 #include <common/ReferenceConfig.h>
 
-namespace Main
+namespace Payload
 {
 
 namespace NASConfig
@@ -62,4 +62,4 @@ static const Boardcore::NASConfig config = {
 
 }  // namespace NASConfig
 
-}  // namespace Main
+}  // namespace Payload
