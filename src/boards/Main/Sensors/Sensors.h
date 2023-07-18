@@ -33,6 +33,22 @@
 
 namespace Main
 {
+struct LPS28DFW_1Data : Boardcore::LPS28DFWData
+{
+    LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
+        : Boardcore::LPS28DFWData(data)
+    {
+    }
+};
+
+struct LPS28DFW_2Data : Boardcore::LPS28DFWData
+{
+    LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
+        : Boardcore::LPS28DFWData(data)
+    {
+    }
+};
+
 class Sensors : public Boardcore::Module
 {
 public:
