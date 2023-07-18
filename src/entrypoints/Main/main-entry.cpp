@@ -83,6 +83,12 @@ int main()
     }
 
     // Start modules
+    if (!EventBroker::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the EventBroker module");
+    }
+
     if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;

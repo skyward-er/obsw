@@ -19,37 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <drivers/i2c/I2C.h>
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <interfaces-impl/hwmapping.h>
+#include <common/Mavlink.h>
+#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/SX1278/SX1278Fsk.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+
 namespace Main
 {
-class Buses : public Boardcore::Module
+using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU, 171, 96>;
+
+class Radio : public Boardcore::Module
 {
 public:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
+    Radio();
 
-    Boardcore::I2C i2c1;
+    [[nodiscard]] bool start();
 
-    Boardcore::USART usart1;
-    Boardcore::USART usart2;
-    Boardcore::USART uart4;
+    void sendAck(const mavlink_message_t& msg);
 
-    Buses()
-        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
-          i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
-               miosix::interfaces::i2c1::sda::getPin()),
-          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
-    {
-    }
+    void sendNack(const mavlink_message_t& msg);
+
+    void logStatus();
+
+    void isStarted();
+
+    Boardcore::SX1278Fsk* transceiver = nullptr;
+    MavDriver* mavDriver              = nullptr;
+
+private:
+    void handleMavlinkMessage(const mavlink_message_t& msg);
+
+    void handleCommand(const mavlink_message_t& msg);
 };
 }  // namespace Main
