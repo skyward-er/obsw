@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
@@ -80,6 +81,7 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::ADS131M08Data getADS131M0LastSample();
 
 private:
     // Init and callbacks methods
@@ -104,6 +106,9 @@ private:
     void lsm6dsrxInit();
     void lsm6dsrxCallback();
 
+    void ads131m08Init();
+    void ads131m08Callback();
+
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
@@ -112,6 +117,7 @@ private:
     Boardcore::LIS2MDL* lis2mdl       = nullptr;
     Boardcore::UBXGPSSpi* ubxgps      = nullptr;
     Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
+    Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
