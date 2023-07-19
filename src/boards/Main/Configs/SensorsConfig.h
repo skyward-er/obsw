@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
@@ -72,11 +73,16 @@ constexpr Boardcore::LSM6DSRXConfig::GYR_ODR LSM6DSRX_GYR_ODR =
 constexpr Boardcore::LSM6DSRXConfig::FIFO_MODE LSM6DSRX_FIFO_MODE =
     Boardcore::LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
 constexpr Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION
-    LSM6DSRX_FIFO_TIMESTAMP_DECIMAION =
+    LSM6DSRX_FIFO_TIMESTAMP_DECIMATION =
         Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
 constexpr Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR
     LSM6DSRX_FIFO_TEMPERATURE_BDR =
         Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+
+constexpr Boardcore::ADS131M08Defs::OversamplingRatio
+    ADS131M08_OVERSAMPLING_RATIO =
+        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
 
 constexpr uint32_t LPS22DF_PERIOD    = 20;                         // [ms] 50Hz
 constexpr uint32_t LPS28DFW_PERIOD   = 20;                         // [ms] 50Hz
@@ -84,6 +90,7 @@ constexpr uint32_t H3LIS331DL_PERIOD = 10;                         // [ms] 100Hz
 constexpr uint32_t LIS2MDL_PERIOD    = 10;                         // [ms] 100Hz
 constexpr uint32_t UBXGPS_PERIOD     = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
 constexpr uint32_t LSM6DSRX_PERIOD   = 20;                         // [ms] 50Hz
+constexpr uint32_t ADS131M08_PERIOD  = 10;                         // [ms] 100Hz
 
 }  // namespace SensorsConfig
 }  // namespace Main
