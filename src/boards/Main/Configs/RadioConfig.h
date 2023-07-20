@@ -19,48 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <Main/Buses.h>
-#include <Main/Radio/Radio.h>
+#pragma once
 
-using namespace Boardcore;
+#include <common/Mavlink.h>
+
 namespace Main
 {
-Radio::Radio() {}
-
-bool Radio::start()
+namespace RadioConfig
 {
-    ModuleManager& modules = ModuleManager::getInstance();
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-    // Config the transceiver
-    EbyteFsk::Config config;
-    config.pa_boost = true;
-    config.power    = 2;
-    config.ocp      = 0;
-
-    // Config the SPI
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_128;
-    spiConfig.mode         = SPI::Mode::MODE_0;
-    spiConfig.bitOrder     = SPI::Order::MSB_FIRST;
-    spiConfig.writeBit     = SPI::WriteBit::INVERTED;
-
-    transceiver = new EbyteFsk(SPISlave(modules.get<Buses>()->spi6,
-                                        miosix::radio::cs::getPin(), spiConfig),
-                               miosix::radio::tx_enable::getPin(),
-                               miosix::radio::rx_enable::getPin());
-
-    return true;
-}
-
-void Radio::sendAck(const mavlink_message_t& msg) {}
-
-void Radio::sendNack(const mavlink_message_t& msg) {}
-
-void Radio::logStatus() {}
-
-void Radio::isStarted() {}
-
-void Radio::handleMavlinkMessage(const mavlink_message_t& msg) {}
-
-void Radio::handleCommand(const mavlink_message_t& msg) {}
+}  // namespace RadioConfig
 }  // namespace Main

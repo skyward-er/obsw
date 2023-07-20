@@ -21,37 +21,65 @@
  */
 #pragma once
 
+#include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278Fsk.h>
+#include <radio/SX1278/Ebyte.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU, 171, 96>;
+using MavDriver = Boardcore::MavlinkDriver<Boardcore::EbyteFsk::MTU,
+                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
+                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
 public:
     Radio();
 
+    /**
+     * @brief Starts the MavlinkDriver
+     */
     [[nodiscard]] bool start();
 
+    /**
+     * @brief Sends via radio an acknowledge message about the parameter passed
+     * message
+     */
     void sendAck(const mavlink_message_t& msg);
 
+    /**
+     * @brief Sends via radio an non-acknowledge message about the parameter
+     * passed message
+     */
     void sendNack(const mavlink_message_t& msg);
 
+    /**
+     * @brief Saves the MavlinkDriver and transceiver status
+     */
     void logStatus();
 
+    /**
+     * @brief Returns if the radio module is correctly started
+     */
     void isStarted();
 
-    Boardcore::SX1278Fsk* transceiver = nullptr;
-    MavDriver* mavDriver              = nullptr;
+    Boardcore::EbyteFsk* transceiver = nullptr;
+    MavDriver* mavDriver             = nullptr;
 
 private:
+    /**
+     * @brief Called by the MavlinkDriver when a message is received
+     */
     void handleMavlinkMessage(const mavlink_message_t& msg);
 
+    /**
+     * @brief Called by the handleMavlinkMessage to handle a command message
+     */
     void handleCommand(const mavlink_message_t& msg);
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
 };
 }  // namespace Main
