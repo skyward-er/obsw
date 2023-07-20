@@ -34,4 +34,5 @@ set(MAIN_COMPUTER
     src/boards/Main/BoardScheduler.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp
+    src/boards/Main/Radio/Radio.cpp
 )
