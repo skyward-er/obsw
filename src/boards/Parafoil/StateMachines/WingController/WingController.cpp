@@ -27,8 +27,6 @@
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
-#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
-#include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithmData.h>
 #include <Parafoil/Wing/WingTargetPositionData.h>
@@ -239,15 +237,6 @@ void WingController::addAlgorithm(int id)
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
 
-    ClosedLoopGuidanceAlgorithm clGuidance = ClosedLoopGuidanceAlgorithm();
-
-    Eigen::Vector2f M1(M1_TARGET_LAT, M1_TARGET_LON);
-    Eigen::Vector2f M2(M2_TARGET_LAT, M1_TARGET_LON);
-    Eigen::Vector2f EMC(EMC_TARGET_LAT, EMC_TARGET_LON);
-
-    EarlyManeuversGuidanceAlgorithm emGuidance =
-        EarlyManeuversGuidanceAlgorithm(M1, M2, EMC);
-
     switch (id)
     {
         case 0:
@@ -390,9 +379,40 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 {
     this->targetPosition = target;
 
+    this->emcPosition = target * 1.2;  // EMC is calculated as target * 1.2
+
+    float targetAngle = atan2(target[1], target[0]);
+
+    float distFromCenterline = 20;  // the distance that the M1 and M2 points
+                                    // must have from the center line
+
+    // Calculate the angle between the lines <NED Origin, target> and <NED
+    // Origin, M1> This angle is the same for M2 since is symmetric to M1
+    // relatively to the center line
+    float psiMan = atan2(distFromCenterline, target.norm());
+
+    float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
+    float m2Angle                 = targetAngle + psiMan;
+    float m1Angle                 = targetAngle - psiMan;
+
+    this->m1Position =
+        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude;
+
+    this->m2Position =
+        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude;
+
     WingTargetPositionData data;
     data.latitude  = target[0];
     data.longitude = target[1];
+
+    data.emcLat = emcPosition[0];
+    data.emcLon = emcPosition[1];
+
+    data.m1Lat = m1Position[0];
+    data.m1Lon = m1Position[1];
+
+    data.m2Lat = m2Position[0];
+    data.m2Lon = m2Position[1];
 
     // Log the received position
     Logger::getInstance().log(data);
@@ -407,5 +427,11 @@ void WingController::logStatus(WingControllerState state)
 }
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
+
+Eigen::Vector2f WingController::getEMCPosition() { return emcPosition; }
+
+Eigen::Vector2f WingController::getM1Position() { return m1Position; }
+
+Eigen::Vector2f WingController::getM2Position() { return m2Position; }
 
 }  // namespace Parafoil

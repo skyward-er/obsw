@@ -34,6 +34,8 @@ namespace Parafoil
  * It calculates the yaw between the current position and the target position by
  * calculating the difference between the two vectors and the angle formed by
  * the diff vector
+ *
+ * requires: WingControllers
  */
 class EarlyManeuversGuidanceAlgorithm : public GuidanceAlgorithm
 {
@@ -42,13 +44,8 @@ public:
     /**
      * @brief Constructor for the EM Algorithm
      *
-     * @param EMC The energy management point
-     * @param M1 The first maneuver point
-     * @param M2 The second maneuver point
      */
-    EarlyManeuversGuidanceAlgorithm(const Eigen::Vector2f& EMC,
-                                    const Eigen::Vector2f& M1,
-                                    const Eigen::Vector2f& M2);
+    EarlyManeuversGuidanceAlgorithm();
 
     virtual ~EarlyManeuversGuidanceAlgorithm();
 
@@ -68,9 +65,25 @@ public:
                                Eigen::Vector2f& heading);
 
 private:
-    const Eigen::Vector2f& EMC;
-    const Eigen::Vector2f& M1;
-    const Eigen::Vector2f& M2;
+    void computeActiveTarget(float altitude);
+
+    /**
+     * @brief Enumerates all the possible targets of the EM algorithm
+     */
+    enum class Target
+    {
+        EMC = 0,
+        M1,
+        M2,
+        FINAL
+    };
+
+    Target activeTarget;
+
+    unsigned int targetAltitudeConfidence;
+    unsigned int m2AltitudeConfidence;
+    unsigned int m1AltitudeConfidence;
+    unsigned int emcAltitudeConfidence;
 };
 
 }  // namespace Parafoil

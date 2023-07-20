@@ -20,17 +20,19 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 
 #include <Eigen/Core>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Parafoil
 {
 
-EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm(
-    const Eigen::Vector2f& EMC, const Eigen::Vector2f& M1,
-    const Eigen::Vector2f& M2)
-    : EMC(EMC), M1(M1), M2(M2){};
+EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
+    : activeTarget(Target::EMC), targetAltitudeConfidence(0),
+      m2AltitudeConfidence(0), m1AltitudeConfidence(0),
+      emcAltitudeConfidence(0){};
 
 EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 
@@ -38,35 +40,133 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& position, const Eigen::Vector2f& target,
     Eigen::Vector2f& heading)
 {
+    using namespace Boardcore;
+
+    Eigen::Vector2f EMC =
+        ModuleManager::getInstance().get<WingController>()->getEMCPosition();
+
+    Eigen::Vector2f M1 =
+        ModuleManager::getInstance().get<WingController>()->getM1Position();
+
+    Eigen::Vector2f M2 =
+        ModuleManager::getInstance().get<WingController>()->getM2Position();
+
     float altitude = abs(position[2]);
 
+    computeActiveTarget(altitude);
+
+    switch (activeTarget)
+    {
+        case Target::EMC:
+            heading[0] = EMC[0] - position[0];
+            heading[1] = EMC[1] - position[1];
+            break;
+        case Target::M1:
+            heading[0] = M1[0] - position[0];
+            heading[1] = M1[1] - position[1];
+            break;
+        case Target::M2:
+            heading[0] = M2[0] - position[0];
+            heading[1] = M2[1] - position[1];
+            break;
+        case Target::FINAL:
+            heading[0] = target[0] - position[0];
+            heading[1] = target[1] - position[1];
+            break;
+    }
+
+    return atan2(heading[1], heading[0]);
+}
+
+void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
+{
     if (altitude <= 50)  // Altitude is low, head directly to target
     {
-        heading[0] = target[0] - position[0];
-        heading[1] = target[1] - position[1];
-        return atan2(heading[0], heading[1]);
+        targetAltitudeConfidence++;
     }
-
-    // Altitude is low enough to head to the second maneuver point
-    if (altitude > 50 && altitude <= 150)
+    else if (altitude <= 150)  // Altitude is almost okay, go to M2
     {
-        heading[0] = M2[0] - position[0];
-        heading[1] = M2[1] - position[1];
-        return atan2(heading[0], heading[1]);
+        m2AltitudeConfidence++;
     }
-
-    // Altitude is medium hence head to the second maneuver point
-    if (altitude > 150 && altitude <= 250)
+    else if (altitude <= 250)  // Altitude is high, go to M1
     {
-        heading[0] = M1[0] - position[0];
-        heading[1] = M1[1] - position[1];
-        return atan2(heading[0], heading[1]);
+        m1AltitudeConfidence++;
+    }
+    else
+    {
+        emcAltitudeConfidence++;  // Altitude is too high, head to the emc
     }
 
-    // Altitude is too high, head to the EMC point
-    heading[0] = EMC[0] - position[0];
-    heading[1] = EMC[1] - position[1];
-    return atan2(EMC[0] - position[0], EMC[1] - position[1]);
+    switch (activeTarget)
+    {
+        case Target::EMC:
+            if (m2AltitudeConfidence >= 15)
+            {
+                activeTarget          = Target::M2;
+                emcAltitudeConfidence = 0;
+            }
+            if (m1AltitudeConfidence >= 15)
+            {
+                activeTarget          = Target::M1;
+                emcAltitudeConfidence = 0;
+            }
+            if (targetAltitudeConfidence >= 15)
+            {
+                activeTarget          = Target::FINAL;
+                emcAltitudeConfidence = 0;
+            }
+            break;
+        case Target::M1:
+            if (emcAltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::EMC;
+                m1AltitudeConfidence = 0;
+            }
+            if (m2AltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::M2;
+                m1AltitudeConfidence = 0;
+            }
+            if (targetAltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::FINAL;
+                m1AltitudeConfidence = 0;
+            }
+            break;
+        case Target::M2:
+            if (emcAltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::EMC;
+                m2AltitudeConfidence = 0;
+            }
+            if (m1AltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::M1;
+                m2AltitudeConfidence = 0;
+            }
+            if (targetAltitudeConfidence >= 15)
+            {
+                activeTarget         = Target::FINAL;
+                m2AltitudeConfidence = 0;
+            }
+            break;
+        case Target::FINAL:
+            if (emcAltitudeConfidence >= 15)
+            {
+                activeTarget             = Target::EMC;
+                targetAltitudeConfidence = 0;
+            }
+            if (m2AltitudeConfidence >= 15)
+            {
+                activeTarget             = Target::M2;
+                targetAltitudeConfidence = 0;
+            }
+            if (m1AltitudeConfidence >= 15)
+            {
+                activeTarget             = Target::M1;
+                targetAltitudeConfidence = 0;
+            }
+    }
 }
 
 }  // namespace Parafoil

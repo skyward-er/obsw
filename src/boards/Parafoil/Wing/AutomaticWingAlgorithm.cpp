@@ -84,24 +84,24 @@ void AutomaticWingAlgorithm::step()
         Vector2f wind =
             modules.get<WindEstimation>()->getWindEstimationScheme();
 
-        Vector2f currentDirection(state.ve - wind[0], state.vn - wind[1]);
+        Vector2f relativeVelocity(state.ve - wind[0], state.vn - wind[1]);
 
         // Compute the angle of the current velocity
         float velocityAngle;
 
         // In case of a 0 north velocity i force the angle to 90
-        if (currentDirection[0] == 0 && currentDirection[1] == 0)
+        if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
         {
             velocityAngle = 0;
         }
-        else if (currentDirection[0] == 0)
+        else if (relativeVelocity[1] == 0)
         {
             velocityAngle =
-                (currentDirection[1] > 0 ? 1 : -1) * Constants::PI / 2;
+                (relativeVelocity[0] > 0 ? 1 : -1) * Constants::PI / 2;
         }
         else
         {
-            velocityAngle = atan2(currentDirection[0], currentDirection[1]);
+            velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
         }
 
         // Compute the angle difference
@@ -112,7 +112,7 @@ void AutomaticWingAlgorithm::step()
         result = controller->update(error);
 
         // Convert the result from radians back to degrees
-        result = (result / (2 * Constants::PI)) * 360;
+        result = result * (180.f / Constants::PI);
 
         // Flip the servo orientation
         result *= -1;

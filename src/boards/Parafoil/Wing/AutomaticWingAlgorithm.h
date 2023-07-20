@@ -47,7 +47,7 @@ public:
      * @param Ki Integral value for PI controller
      * @param servo1 The first servo
      * @param servo2 The second servo
-     * @param guidance The algorithm used to compute the target yaw, hence the
+     * @param guidance The algorithm used to compute the target yaw and the
      * heading
      */
     AutomaticWingAlgorithm(float Kp, float Ki, ServosList servo1,

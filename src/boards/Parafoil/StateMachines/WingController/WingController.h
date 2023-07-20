@@ -23,6 +23,8 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
+#include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/HSM.h>
 
@@ -72,7 +74,8 @@ public:
     ~WingController();
 
     /**
-     * @brief Method to set the target position
+     * @brief Method to set the target position.
+     * This method also sets the additional M1, M2 and EMC points
      */
     void setTargetPosition(Eigen::Vector2f target);
 
@@ -80,6 +83,27 @@ public:
      * @brief target position getter
      */
     Eigen::Vector2f getTargetPosition();
+
+    /**
+     * @brief EMC Position getter
+     *
+     * @note This point is needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f getEMCPosition();
+
+    /**
+     * @brief M1 Position getter
+     *
+     * @note This point is needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f getM1Position();
+
+    /**
+     * @brief M2 Position getter
+     *
+     * @note This point is needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f getM2Position();
 
     /**
      * @brief Selects the algorithm if present.
@@ -111,10 +135,32 @@ private:
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;
+
     /**
      * @brief Target position
      */
     Eigen::Vector2f targetPosition;
+
+    /**
+     * @brief EMC position
+     *
+     * @note needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f emcPosition;
+
+    /**
+     * @brief M1 position
+     *
+     * @note needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f m1Position;
+
+    /**
+     * @brief M2 position
+     *
+     * @note needed by the Early Maneuver algorithm
+     */
+    Eigen::Vector2f m2Position;
 
     /**
      * @brief List of loaded algorithms (from SD or not)
@@ -139,6 +185,38 @@ private:
     size_t selectedAlgorithm;
 
     std::atomic<bool> automatic;
+    /**
+     * @brief Instance of the Early Maneuver Guidance Algorithm used by
+     * AutomaticWingAlgorithm
+     */
+    EarlyManeuversGuidanceAlgorithm emGuidance;
+
+    /**
+     * @brief Instance of the Closed Loop Guidance Algorithm used by
+     * AutomaticWingAlgorithm
+     */
+    ClosedLoopGuidanceAlgorithm clGuidance;
+
+    /**
+     * @brief Calculates the EMC point based on the current target
+     *
+     * @param target the current target
+     */
+    void calculateEMCPoint(Eigen::Vector3f target);
+
+    /**
+     * @brief Calculates the M1 point based on the current target
+     *
+     * @param target the current target
+     */
+    void calculateM1Point(Eigen::Vector3f target);
+
+    /**
+     * @brief Calculates the M2 point based on the current target
+     *
+     * @param target the current target
+     */
+    void calculateM2Point(Eigen::Vector3f target);
 
     /**
      * @brief  starts the selected algorithm

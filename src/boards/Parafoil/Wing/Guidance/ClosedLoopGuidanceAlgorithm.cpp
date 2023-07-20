@@ -32,7 +32,7 @@ float ClosedLoopGuidanceAlgorithm::calculateTargetAngle(
 {
     heading[0] = target[0] - position[0];
     heading[1] = target[1] - position[1];
-    return atan2(heading[0], heading[1]);
+    return atan2(heading[1], heading[0]);
 }
 
 }  // namespace Parafoil
