@@ -22,6 +22,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
@@ -56,6 +57,7 @@ int main()
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -82,6 +84,12 @@ int main()
         LOG_ERR(logger, "Error inserting the NAS module");
     }
 
+    if (!modules.insert<Radio>(radio))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Radio module");
+    }
+
     // Start modules
     if (!EventBroker::getInstance().start())
     {
@@ -105,6 +113,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS module");
+    }
+
+    if (!modules.get<Radio>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Radio module");
     }
 
     // Log all the events
