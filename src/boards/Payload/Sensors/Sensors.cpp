@@ -34,37 +34,43 @@ namespace Payload
 LPS22DFData Sensors::getLPS22DFLastSample()
 {
     miosix::PauseKernelLock lock;
-    return lps22df->getLastSample();
+    return lps22df != nullptr ? lps22df->getLastSample() : LPS22DFData{};
 }
 LPS28DFWData Sensors::getLPS28DFW_1LastSample()
 {
     miosix::PauseKernelLock lock;
-    return lps28dfw_1->getLastSample();
+    return lps28dfw_1 != nullptr ? lps28dfw_1->getLastSample() : LPS28DFWData{};
 }
 LPS28DFWData Sensors::getLPS28DFW_2LastSample()
 {
     miosix::PauseKernelLock lock;
-    return lps28dfw_2->getLastSample();
+    return lps28dfw_2 != nullptr ? lps28dfw_2->getLastSample() : LPS28DFWData{};
 }
 H3LIS331DLData Sensors::getH3LIS331DLLastSample()
 {
     miosix::PauseKernelLock lock;
-    return h3lis331dl->getLastSample();
+    return h3lis331dl != nullptr ? h3lis331dl->getLastSample()
+                                 : H3LIS331DLData{};
 }
 LIS2MDLData Sensors::getLIS2MDLLastSample()
 {
     miosix::PauseKernelLock lock;
-    return lis2mdl->getLastSample();
+    return lis2mdl != nullptr ? lis2mdl->getLastSample() : LIS2MDLData{};
 }
 UBXGPSData Sensors::getGPSLastSample()
 {
     miosix::PauseKernelLock lock;
-    return ubxgps->getLastSample();
+    return ubxgps != nullptr ? ubxgps->getLastSample() : UBXGPSData{};
 }
 LSM6DSRXData Sensors::getLSM6DSRXLastSample()
 {
     miosix::PauseKernelLock lock;
-    return lsm6dsrx->getLastSample();
+    return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+}
+ADS131M08Data Sensors::getADS131M0LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
@@ -73,12 +79,13 @@ bool Sensors::start()
 {
     // Init all the sensors
     lps22dfInit();
-    // lps28dfw_1Init();
-    // lps28dfw_2Init();
+    lps28dfw_1Init();
+    lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
     ubxgpsInit();
     lsm6dsrxInit();
+    ads131m08Init();
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -118,16 +125,12 @@ void Sensors::lps28dfw_1Init()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
-    // TODO insert bus speed
-    I2C i2c(modules.get<Buses>()->i2c1, miosix::interfaces::i2c1::scl::getPin(),
-            miosix::interfaces::i2c1::sda::getPin());
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{false, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_1 = new LPS28DFW(i2c, config);
+    lps28dfw_1 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_1", LPS28DFW_PERIOD,
@@ -138,20 +141,16 @@ void Sensors::lps28dfw_2Init()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
-    // TODO insert bus speed
-    I2C i2c(modules.get<Buses>()->i2c1, miosix::interfaces::i2c1::scl::getPin(),
-            miosix::interfaces::i2c1::sda::getPin());
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{true, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_2 = new LPS28DFW(i2c, config);
+    lps28dfw_2 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_2", LPS28DFW_PERIOD,
-                    bind(&Sensors::lps28dfw_1Callback, this));
+                    bind(&Sensors::lps28dfw_2Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_2, info));
 }
 void Sensors::h3lis331dlInit()
@@ -240,7 +239,7 @@ void Sensors::lsm6dsrxInit()
 
     // Fifo
     sensorConfig.fifoMode                = LSM6DSRX_FIFO_MODE;
-    sensorConfig.fifoTimestampDecimation = LSM6DSRX_FIFO_TIMESTAMP_DECIMAION;
+    sensorConfig.fifoTimestampDecimation = LSM6DSRX_FIFO_TIMESTAMP_DECIMATION;
     sensorConfig.fifoTemperatureBdr      = LSM6DSRX_FIFO_TEMPERATURE_BDR;
 
     // Create sensor instance with configured parameters
@@ -254,39 +253,76 @@ void Sensors::lsm6dsrxInit()
     sensorMap.emplace(make_pair(lsm6dsrx, info));
 }
 
+void Sensors::ads131m08Init()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Configure the SPI
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_32;
+
+    // Configure the device
+    ADS131M08::Config sensorConfig;
+    sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
+    sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
+
+    // Create the sensor instance with configured parameters
+    ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
+                              miosix::sensors::ADS131::cs::getPin(), config,
+                              sensorConfig);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("ADS131M08", ADS131M08_PERIOD,
+                    bind(&Sensors::ads131m08Callback, this));
+    sensorMap.emplace(make_pair(ads131m08, info));
+}
+
 void Sensors::lps22dfCallback()
 {
+    miosix::PauseKernelLock lock;
     LPS22DFData lastSample = lps22df->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_1Callback()
 {
-    LPS28DFWData lastSample = lps28dfw_1->getLastSample();
+    miosix::PauseKernelLock lock;
+    LPS28DFW_1Data lastSample = lps28dfw_1->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_2Callback()
 {
-    LPS28DFWData lastSample = lps28dfw_2->getLastSample();
+    miosix::PauseKernelLock lock;
+    LPS28DFW_2Data lastSample = lps28dfw_2->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::h3lis331dlCallback()
 {
+    miosix::PauseKernelLock lock;
     H3LIS331DLData lastSample = h3lis331dl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lis2mdlCallback()
 {
+    miosix::PauseKernelLock lock;
     LIS2MDLData lastSample = lis2mdl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::ubxgpsCallback()
 {
+    miosix::PauseKernelLock lock;
     UBXGPSData lastSample = ubxgps->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lsm6dsrxCallback()
 {
+    miosix::PauseKernelLock lock;
     LSM6DSRXData lastSample = lsm6dsrx->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::ads131m08Callback()
+{
+    miosix::PauseKernelLock lock;
+    ADS131M08Data lastSample = ads131m08->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
