@@ -22,10 +22,8 @@
 
 #include "CanHandler.h"
 
-#include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/CanHandlerConfig.h>
-#include <Payload/Configs/SensorsConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/CanConfig.h>
@@ -40,7 +38,6 @@ using namespace Boardcore;
 using namespace Canbus;
 using namespace Common;
 using namespace CanConfig;
-using namespace Payload::SensorsConfig;
 using namespace Payload::CanHandlerConfig;
 
 namespace Payload
@@ -56,7 +53,7 @@ bool CanHandler::start()
     scheduler->addTask(  // sensor template
         [&]()
         {
-            protocol->enqueueData(static_cast<uint8_t>(Priority::CRITICAL),
+            protocol->enqueueData(static_cast<uint8_t>(Priority::HIGH),
                                   static_cast<uint8_t>(PrimaryType::SENSORS),
                                   static_cast<uint8_t>(Board::PAYLOAD),
                                   static_cast<uint8_t>(Board::BROADCAST),
@@ -74,8 +71,8 @@ bool CanHandler::start()
                                                .get<FlightModeManager>()
                                                ->getStatus()
                                                .state;
-            protocol->enqueueEvent(
-                static_cast<uint8_t>(Priority::HIGH),
+            protocol->enqueueSimplePacket(
+                static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::STATUS),
                 static_cast<uint8_t>(Board::PAYLOAD),
                 static_cast<uint8_t>(Board::BROADCAST),
@@ -102,11 +99,11 @@ void CanHandler::sendCanCommand(ServoID servo, bool targetState, uint32_t delay)
     uint64_t payload = delay;
     payload          = payload << 8;
     payload          = payload | targetState;
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::HIGH),
-                           static_cast<uint8_t>(PrimaryType::COMMAND),
-                           static_cast<uint8_t>(Board::PAYLOAD),
-                           static_cast<uint8_t>(Board::BROADCAST),
-                           static_cast<uint8_t>(servo), payload);
+    protocol->enqueueSimplePacket(static_cast<uint8_t>(Priority::CRITICAL),
+                                  static_cast<uint8_t>(PrimaryType::COMMAND),
+                                  static_cast<uint8_t>(Board::PAYLOAD),
+                                  static_cast<uint8_t>(Board::BROADCAST),
+                                  static_cast<uint8_t>(servo), payload);
 }
 
 CanHandler::CanHandler()
