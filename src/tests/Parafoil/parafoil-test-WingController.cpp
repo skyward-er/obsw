@@ -25,6 +25,7 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/ParafoilModule/ParafoilModule.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Sensors/Sensors.h>
@@ -117,6 +118,10 @@ int main()
     if (initResult)
     {
         int i = 0;
+
+        modules.get<WingController>()->setTargetPosition(Eigen::Vector2f(
+            WingConfig::DEFAULT_TARGET_LAT, WingConfig::DEFAULT_TARGET_LON));
+
         while (true)
         {
             if (i % 2 == 0)
