@@ -25,6 +25,7 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -58,6 +59,7 @@ int main()
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    TMRepository* tmRepo = new TMRepository();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -88,6 +90,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Radio module");
+    }
+
+    if (!modules.insert<TMRepository>(tmRepo))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the TMRepository module");
     }
 
     // Start modules

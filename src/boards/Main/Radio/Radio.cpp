@@ -21,6 +21,7 @@
  */
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
+#include <Main/TMRepository/TMRepository.h>
 #include <drivers/interrupt/external_interrupts.h>
 
 using namespace Boardcore;
@@ -129,7 +130,10 @@ void Radio::sendNack(const mavlink_message_t& msg) {}
 
 void Radio::logStatus() {}
 
-void Radio::isStarted() {}
+bool Radio::isStarted()
+{
+    return mavDriver->isStarted() && scheduler->isRunning();
+}
 
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg) {}
 
@@ -137,10 +141,8 @@ void Radio::handleCommand(const mavlink_message_t& msg) {}
 
 void Radio::sendPeriodicMessage()
 {
-    mavlink_message_t msg;
-    mavlink_rocket_flight_tm_t tm;
-    mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                        RadioConfig::MAV_COMP_ID, &msg, &tm);
-    mavDriver->enqueueMsg(msg);
+    ModuleManager& modules = ModuleManager::getInstance();
+    mavDriver->enqueueMsg(
+        modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
 }
 }  // namespace Main
