@@ -21,11 +21,47 @@
  */
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
+#include <drivers/interrupt/external_interrupts.h>
 
 using namespace Boardcore;
+
+#define SX1278_IRQ_DIO0 EXTI13_IRQHandlerImpl
+#define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
+#define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
+
+void __attribute__((used)) SX1278_IRQ_DIO0()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Main::Radio>()->transceiver)
+    {
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
+            EbyteFsk::Dio::DIO0);
+    }
+}
+
+void __attribute__((used)) SX1278_IRQ_DIO1()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Main::Radio>()->transceiver)
+    {
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
+            EbyteFsk::Dio::DIO1);
+    }
+}
+
+void __attribute__((used)) SX1278_IRQ_DIO3()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    if (modules.get<Main::Radio>()->transceiver)
+    {
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
+            EbyteFsk::Dio::DIO3);
+    }
+}
 namespace Main
 {
-Radio::Radio() {}
+
+Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
 
 bool Radio::start()
 {
@@ -33,9 +69,9 @@ bool Radio::start()
 
     // Config the transceiver
     EbyteFsk::Config config;
-    config.pa_boost = true;
-    config.power    = 2;
+    config.power    = 12;
     config.ocp      = 0;
+    config.pa_boost = false;
 
     // Config the SPI
     SPIBusConfig spiConfig;
@@ -49,7 +85,42 @@ bool Radio::start()
                                miosix::radio::tx_enable::getPin(),
                                miosix::radio::rx_enable::getPin());
 
-    return true;
+    // Enable the interrupts
+    enableExternalInterrupt(miosix::radio::dio0::getPin().getPort(),
+                            miosix::radio::dio0::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(miosix::radio::dio1::getPin().getPort(),
+                            miosix::radio::dio1::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+    enableExternalInterrupt(miosix::radio::dio3::getPin().getPort(),
+                            miosix::radio::dio3::getPin().getNumber(),
+                            InterruptTrigger::RISING_EDGE);
+
+    // Config the radio
+    EbyteFsk::Error error = transceiver->init(config);
+
+    // Add periodic telemetry send task
+    uint8_t result =
+        scheduler->addTask([=]() { this->sendPeriodicMessage(); },
+                           RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
+                           TaskScheduler::Policy::RECOVER);
+
+    // Config mavDriver
+    // TODO change 0 and 1 into constants
+    mavDriver = new MavDriver(
+        transceiver,
+        [=](MavDriver*, const mavlink_message_t& msg)
+        { this->handleMavlinkMessage(msg); },
+        0, 1);
+
+    // Check radio failure
+    if (error != EbyteFsk::Error::NONE)
+    {
+        return false;
+    }
+
+    // Start the mavlink driver thread
+    return mavDriver->start() && result != 0;
 }
 
 void Radio::sendAck(const mavlink_message_t& msg) {}
@@ -63,4 +134,13 @@ void Radio::isStarted() {}
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg) {}
 
 void Radio::handleCommand(const mavlink_message_t& msg) {}
+
+void Radio::sendPeriodicMessage()
+{
+    mavlink_message_t msg;
+    mavlink_rocket_flight_tm_t tm;
+    mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                        RadioConfig::MAV_COMP_ID, &msg, &tm);
+    mavDriver->enqueueMsg(msg);
+}
 }  // namespace Main

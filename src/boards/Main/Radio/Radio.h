@@ -25,6 +25,7 @@
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/Ebyte.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -37,7 +38,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::EbyteFsk::MTU,
 class Radio : public Boardcore::Module
 {
 public:
-    Radio();
+    Radio(Boardcore::TaskScheduler* sched);
 
     /**
      * @brief Starts the MavlinkDriver
@@ -80,6 +81,12 @@ private:
      */
     void handleCommand(const mavlink_message_t& msg);
 
+    /**
+     * @brief Sends the periodic telemetry
+     */
+    void sendPeriodicMessage();
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
+    Boardcore::TaskScheduler* scheduler = nullptr;
 };
 }  // namespace Main
