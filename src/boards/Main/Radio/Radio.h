@@ -65,7 +65,7 @@ public:
     /**
      * @brief Returns if the radio module is correctly started
      */
-    void isStarted();
+    bool isStarted();
 
     Boardcore::EbyteFsk* transceiver = nullptr;
     MavDriver* mavDriver             = nullptr;

@@ -22,20 +22,31 @@
 #pragma once
 
 #include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
-namespace RadioConfig
+class TMRepository : public Boardcore::Module
 {
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+public:
+    inline TMRepository() {}
 
-constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 200;
+    // Packs the telemetry at system level (E.g. logger telemetry..)
+    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
+                                   uint8_t seq);
 
-constexpr uint8_t MAV_SYSTEM_ID = 171;
-constexpr uint8_t MAV_COMP_ID   = 96;
+    // Packs the telemetry at sensors level (E.g. pressure sensors..)
+    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
+                                    uint8_t seq);
 
-}  // namespace RadioConfig
+    // Packs the telemetry about servo positions states
+    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
+                                  uint8_t seq);
+
+private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("TMRepository");
+};
 }  // namespace Main

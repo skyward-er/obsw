@@ -94,7 +94,10 @@ bool Sensors::start()
 
 void Sensors::stop() { manager->stop(); }
 
-bool Sensors::isStarted() { return manager->areAllSensorsInitialized(); }
+bool Sensors::isStarted()
+{
+    return manager->areAllSensorsInitialized() && scheduler->isRunning();
+}
 
 void Sensors::calibrate() {}
 
