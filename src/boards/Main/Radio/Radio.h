@@ -86,6 +86,16 @@ private:
      */
     void sendPeriodicMessage();
 
+    /**
+     * @brief Inserts the mavlink message into the queue
+     */
+    void enqueueMsg(const mavlink_message_t& msg);
+
+    // Messages queue
+    mavlink_message_t messageQueue[RadioConfig::MAVLINK_QUEUE_SIZE];
+    uint32_t messageQueueIndex = 0;
+    miosix::FastMutex queueMutex;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
     Boardcore::TaskScheduler* scheduler = nullptr;
 };

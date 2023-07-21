@@ -142,7 +142,35 @@ void Radio::handleCommand(const mavlink_message_t& msg) {}
 void Radio::sendPeriodicMessage()
 {
     ModuleManager& modules = ModuleManager::getInstance();
+
+    // Send all the queue messages
+    {
+        Lock<FastMutex> lock(queueMutex);
+
+        for (uint8_t i = 0; i < messageQueueIndex; i++)
+        {
+            mavDriver->enqueueMsg(messageQueue[i]);
+        }
+
+        // Reset the index
+        messageQueueIndex = 0;
+    }
+
     mavDriver->enqueueMsg(
         modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
+}
+
+void Radio::enqueueMsg(const mavlink_message_t& msg)
+{
+    {
+        Lock<FastMutex> lock(queueMutex);
+
+        // Insert the message inside the queue only if there is enough space
+        if (messageQueueIndex < RadioConfig::MAVLINK_QUEUE_SIZE)
+        {
+            messageQueue[messageQueueIndex] = msg;
+            messageQueueIndex++;
+        }
+    }
 }
 }  // namespace Main
