@@ -37,5 +37,7 @@ constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 200;
 constexpr uint8_t MAV_SYSTEM_ID = 171;
 constexpr uint8_t MAV_COMP_ID   = 96;
 
+constexpr uint32_t MAVLINK_QUEUE_SIZE = 3;
+
 }  // namespace RadioConfig
 }  // namespace Main
