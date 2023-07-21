@@ -124,9 +124,23 @@ bool Radio::start()
     return mavDriver->start() && result != 0;
 }
 
-void Radio::sendAck(const mavlink_message_t& msg) {}
+void Radio::sendAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(RadioConfig::MAV_SYSTEM_ID,
+                            RadioConfig::MAV_COMP_ID, &ackMsg, msg.msgid,
+                            msg.seq);
+    enqueueMsg(ackMsg);
+}
 
-void Radio::sendNack(const mavlink_message_t& msg) {}
+void Radio::sendNack(const mavlink_message_t& msg)
+{
+    mavlink_message_t nackMsg;
+    mavlink_msg_nack_tm_pack(RadioConfig::MAV_SYSTEM_ID,
+                             RadioConfig::MAV_COMP_ID, &nackMsg, msg.msgid,
+                             msg.seq);
+    enqueueMsg(nackMsg);
+}
 
 void Radio::logStatus() {}
 
@@ -135,7 +149,49 @@ bool Radio::isStarted()
     return mavDriver->isStarted() && scheduler->isRunning();
 }
 
-void Radio::handleMavlinkMessage(const mavlink_message_t& msg) {}
+void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    switch (msg.msgid)
+    {
+        case MAVLINK_MSG_ID_PING_TC:
+        {
+            // Do nothing, just add the ack to the queue
+            break;
+        }
+        case MAVLINK_MSG_ID_COMMAND_TC:
+        {
+            // Let the handle command reply to the message
+            return handleCommand(msg);
+        }
+        case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
+        {
+            SystemTMList tmId = static_cast<SystemTMList>(
+                mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
+
+            // Add to the queue the respose
+            mavlink_message_t response =
+                modules.get<TMRepository>()->packSystemTm(tmId, msg.msgid,
+                                                          msg.seq);
+
+            // Add the response to the queue
+            enqueueMsg(response);
+
+            // Check if the TM repo answered with a NACK. If so the function
+            // must return to avoid sending a default ack
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            {
+                return;
+            }
+
+            break;
+        }
+    }
+
+    // At the end send the ack message
+    sendAck(msg);
+}
 
 void Radio::handleCommand(const mavlink_message_t& msg) {}
 

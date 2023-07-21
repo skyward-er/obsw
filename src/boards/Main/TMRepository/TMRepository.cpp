@@ -58,6 +58,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // TODO
             tm.pin_observer = 0;
 
+            mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
             break;
         }
         case SystemTMList::MAV_LOGGER_ID:
@@ -78,6 +81,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.queued_samples     = stats.queuedSamples;
             tm.too_large_samples  = stats.tooLargeSamples;
             tm.writes_failed      = stats.writesFailed;
+
+            mavlink_msg_logger_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                         RadioConfig::MAV_COMP_ID, &msg, &tm);
 
             break;
         }
