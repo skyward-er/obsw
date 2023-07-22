@@ -36,4 +36,5 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/TMRepository/TMRepository.cpp
+    src/boards/Main/CanHandler/CanHandler.cpp
 )

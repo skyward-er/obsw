@@ -73,6 +73,59 @@ ADS131M08Data Sensors::getADS131M0LastSample()
     return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
+PitotData Sensors::getPitotLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return canPitot;
+}
+PressureData Sensors::getCCPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return canCCPressure;
+}
+PressureData Sensors::getBottomTankPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return canBottomTankPressure;
+}
+PressureData Sensors::getTopTankPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return canTopTankPressure;
+}
+TemperatureData Sensors::getTankTemperatureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return canTankTemperature;
+}
+
+// TODO decide for timestamps
+void Sensors::setPitot(PitotData data)
+{
+    miosix::PauseKernelLock lock;
+    canPitot = data;
+}
+void Sensors::setCCPressure(PressureData data)
+{
+    miosix::PauseKernelLock lock;
+    canCCPressure = data;
+}
+void Sensors::setBottomTankPressure(PressureData data)
+{
+    miosix::PauseKernelLock lock;
+    canBottomTankPressure = data;
+}
+void Sensors::setTopTankPressure(PressureData data)
+{
+    miosix::PauseKernelLock lock;
+    canTopTankPressure = data;
+}
+void Sensors::setTankTemperature(TemperatureData data)
+{
+    miosix::PauseKernelLock lock;
+    canTankTemperature = data;
+}
+
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
 bool Sensors::start()
