@@ -22,6 +22,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -60,6 +61,8 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     TMRepository* tmRepo = new TMRepository();
+    CanHandler* canHandler =
+        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -98,6 +101,12 @@ int main()
         LOG_ERR(logger, "Error inserting the TMRepository module");
     }
 
+    if (!modules.insert<CanHandler>(canHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the CanHandler module");
+    }
+
     // Start modules
     if (!EventBroker::getInstance().start())
     {
@@ -127,6 +136,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Radio module");
+    }
+
+    if (!modules.get<CanHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the CanHandler module");
     }
 
     // Log all the events

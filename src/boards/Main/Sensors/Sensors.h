@@ -27,8 +27,10 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/analog/Pitot/PitotData.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -83,6 +85,20 @@ public:
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::ADS131M08Data getADS131M0LastSample();
 
+    // CAN fake sensors setters
+    void setPitot(Boardcore::PitotData data);
+    void setCCPressure(Boardcore::PressureData data);
+    void setBottomTankPressure(Boardcore::PressureData data);
+    void setTopTankPressure(Boardcore::PressureData data);
+    void setTankTemperature(Boardcore::TemperatureData data);
+
+    // CAN fake sensors getters
+    Boardcore::PitotData getPitotLastSample();
+    Boardcore::PressureData getCCPressureLastSample();
+    Boardcore::PressureData getBottomTankPressureLastSample();
+    Boardcore::PressureData getTopTankPressureLastSample();
+    Boardcore::TemperatureData getTankTemperatureLastSample();
+
 private:
     // Init and callbacks methods
     void lps22dfInit();
@@ -118,6 +134,13 @@ private:
     Boardcore::UBXGPSSpi* ubxgps      = nullptr;
     Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
     Boardcore::ADS131M08* ads131m08   = nullptr;
+
+    // Can sensors
+    Boardcore::PitotData canPitot;
+    Boardcore::PressureData canCCPressure;
+    Boardcore::PressureData canBottomTankPressure;
+    Boardcore::PressureData canTopTankPressure;
+    Boardcore::TemperatureData canTankTemperature;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
