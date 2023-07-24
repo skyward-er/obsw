@@ -261,6 +261,26 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             break;
         }
+        case SystemTMList::MAV_MOTOR_ID:
+        {
+            mavlink_motor_tm_t tm;
+
+            tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.bottom_tank_pressure = modules.get<Sensors>()
+                                          ->getBottomTankPressureLastSample()
+                                          .pressure;
+            tm.combustion_chamber_pressure =
+                modules.get<Sensors>()->getCCPressureLastSample().pressure;
+            tm.tank_temperature = modules.get<Sensors>()
+                                      ->getTankTemperatureLastSample()
+                                      .temperature;
+            tm.top_tank_pressure =
+                modules.get<Sensors>()->getTopTankPressureLastSample().pressure;
+
+            mavlink_msg_motor_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                        RadioConfig::MAV_COMP_ID, &msg, &tm);
+            break;
+        }
         default:
         {
             // Send by default the nack message

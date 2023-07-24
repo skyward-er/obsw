@@ -48,7 +48,14 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
-    driver                = new CanbusDriver(CAN2, {}, bitTiming);
+
+    CanbusDriver::CanbusConfig config;
+    config.nart = 1;
+
+    // NOTE configure the peripheral CAN1 due to shared configs
+    // TODO solve this thing
+    driver = new CanbusDriver(CAN1, config, bitTiming);
+    driver = new CanbusDriver(CAN2, config, bitTiming);
 
     // Create the protocol with the defined driver
     protocol =
@@ -58,6 +65,8 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
     protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
                         static_cast<uint8_t>(Board::BROADCAST));
     protocol->addFilter(static_cast<uint8_t>(Board::RIG),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(Board::MOTOR),
                         static_cast<uint8_t>(Board::BROADCAST));
     driver->init();
 }
@@ -76,10 +85,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::STATUS),
                 static_cast<uint8_t>(Board::MAIN),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(0),  // TODO Add FMM status
-                ((0) ? 0x01
-                     : 0x00));  // TODO add if electronics is armed or not
+                static_cast<uint8_t>(Board::BROADCAST), 0,
+                0);  // TODO add if electronics is armed or not and FMM state
         },
         STATUS_TRANSMISSION_PERIOD);
     // TODO look at the priorities of the CAN protocol threads
@@ -107,7 +114,7 @@ void CanHandler::sendCanCommand(ServoID servo, bool targetState, uint32_t delay)
     payload          = payload | targetState;
     protocol->enqueueSimplePacket(static_cast<uint8_t>(Priority::CRITICAL),
                                   static_cast<uint8_t>(PrimaryType::COMMAND),
-                                  static_cast<uint8_t>(Board::PAYLOAD),
+                                  static_cast<uint8_t>(Board::MAIN),
                                   static_cast<uint8_t>(Board::BROADCAST),
                                   static_cast<uint8_t>(servo), payload);
 }

@@ -214,6 +214,8 @@ void Radio::sendPeriodicMessage()
 
     mavDriver->enqueueMsg(
         modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
+    mavDriver->enqueueMsg(
+        modules.get<TMRepository>()->packSystemTm(MAV_MOTOR_ID, 0, 0));
 }
 
 void Radio::enqueueMsg(const mavlink_message_t& msg)
