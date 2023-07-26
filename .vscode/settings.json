@@ -145,6 +145,7 @@
         "Duca",
         "Eigen",
         "EXTI",
+        "Gpio",
         "GPIOF",
         "KALM",
         "kalman",

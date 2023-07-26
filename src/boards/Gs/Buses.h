@@ -22,33 +22,27 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <drivers/spi/SPIBus.h>
 
-namespace Common
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "interfaces-impl/hwmapping.h"
+
+namespace Gs
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 434000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+class Buses : public Boardcore::Module
+{
+public:
+    Boardcore::SPIBus radio1_bus;
+    Boardcore::SPIBus radio2_bus;
+    Boardcore::SPIBus ethernet_bus;
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+    Buses()
+        : radio1_bus(MIOSIX_RADIO1_SPI), radio2_bus(MIOSIX_RADIO2_SPI),
+          ethernet_bus(MIOSIX_ETHERNET_SPI)
+    {
+    }
+};
 
-}  // namespace Common
+}  // namespace Gs

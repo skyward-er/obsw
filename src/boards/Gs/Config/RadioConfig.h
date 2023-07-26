@@ -22,33 +22,19 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <ctype.h>
 
-namespace Common
+// Uncomment the following line to enable backup RF for main
+// #define SKYWARD_GS_MAIN_USE_BACKUP_RF
+// Uncomment the following line to enable backup RF for payload
+// #define SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+
+namespace Gs
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 434000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+constexpr size_t MAV_OUT_QUEUE_SIZE = 20;
+constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 1000;
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
-
-}  // namespace Common
+} // namespace Gs
