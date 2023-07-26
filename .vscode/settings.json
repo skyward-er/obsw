@@ -118,13 +118,6 @@
         "numbers": "cpp",
         "semaphore": "cpp"
     },
-    "editor.formatOnSave": true,
-    "[c]": {
-        "editor.formatOnSave": false
-    },
-    "[cmake]": {
-        "editor.formatOnSave": false
-    },
     "cSpell.words": [
         "Aeroutils",
         "AIRBRAKES",
