@@ -22,13 +22,6 @@
 
 #pragma once
 
-#include <Payload/CanHandler/CanHandler.h>
-#include <common/CanConfig.h>
-#include <common/Events.h>
-
-#include <functional>
-#include <map>
-
 namespace Payload
 {
 

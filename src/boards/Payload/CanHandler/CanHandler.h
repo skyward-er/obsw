@@ -47,7 +47,7 @@ private:
 
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
 
-    void handleCanStatus(const CanMessage &msg){};
+    void handleCanStatus(const Boardcore::Canbus::CanMessage &msg){};
 
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;

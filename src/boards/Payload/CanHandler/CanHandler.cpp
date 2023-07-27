@@ -137,7 +137,7 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
     }
 }
 
-void CanHandler::handleCanEvent(const CanMessage &msg)
+void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage &msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
 
@@ -149,7 +149,7 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
         LOG_WARN(logger, "Received unsupported event: id={}", eventId);
 }
 
-void CanHandler::handleCanStatus(const CanMessage &msg)
+void CanHandler::handleCanStatus(const Boardcore::Canbus::CanMessage &msg)
 {
     // Board source  = static_cast<Board>(msg.getSource());
     // uint8_t state = msg.getSecondaryType();
