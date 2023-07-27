@@ -32,7 +32,7 @@ namespace ActuatorsConfigs
 {
 
 // Left servo
-static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
+static TIM_TypeDef* const SERVO_1_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
@@ -42,7 +42,7 @@ constexpr float LEFT_SERVO_MAX_PULSE =
     LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
 
 // Right servo
-static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
+static TIM_TypeDef* const SERVO_2_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
