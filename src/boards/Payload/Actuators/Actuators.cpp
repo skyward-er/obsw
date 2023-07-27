@@ -168,16 +168,14 @@ float Actuators::getServoAngle(ServosList servoId)
 
 void Actuators::cuttersOn()
 {
-    actuators::nosecone::th_cut_input::high();
-    actuators::nosecone::thermal_cutter_1::enable::high();
-    actuators::nosecone::thermal_cutter_2::enable::high();
+    gpios::cut_trigger::high();
+    // TODO: missing backup cutter
 }
 
 void Actuators::cuttersOff()
 {
-    actuators::nosecone::th_cut_input::low();
-    actuators::nosecone::thermal_cutter_1::enable::low();
-    actuators::nosecone::thermal_cutter_2::enable::low();
+    gpios::cut_trigger::low();
+    // TODO: missing backup cutter
 }
 
 void Actuators::camOn() { gpios::camera_enable::high(); }
