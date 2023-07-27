@@ -52,4 +52,5 @@ set(MAIN_COMPUTER
 set(MOTOR_SOURCES
     src/boards/Motor/Sensors/Sensors.cpp
     src/boards/Motor/BoardScheduler.cpp
+    src/boards/Motor/CanHandler/CanHandler.cpp
 )
