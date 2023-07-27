@@ -122,9 +122,9 @@ bool Sensors::start()
 {
     adcInit();
     batteryInit();
-    lsm6dsrxInit();
+    // lsm6dsrxInit();
     h3lis331dlInit();
-    lis2mdlInit();
+    // lis2mdlInit();
     lps22dfInit();
     max31856Init();
     ads131m08Init();
