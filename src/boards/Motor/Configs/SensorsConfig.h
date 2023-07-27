@@ -35,28 +35,28 @@ constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE_CH =
 // The battery is connected to the stm32's adc with a voltage divider
 constexpr float ADC_BATTERY_VOLTAGE_COEFF = (10 + 20) / 10;
 
-Boardcore::LSM6DSRXConfig LSM6_SENSOR_CONFIG{
-    .bdu       = Boardcore::LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE,
-    .odrAcc    = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_1660,
-    .opModeAcc = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL,
-    .fsAcc     = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16,
-    .odrGyr    = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_1660,
-    .opModeGyr = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL,
-    .fsGyr     = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_1000,
-    .fifoMode  = Boardcore::LSM6DSRXConfig::FIFO_MODE::CONTINUOUS,
-    .fifoTimestampDecimation =
-        Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1,
-    .fifoTemperatureBdr =
-        Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED,
-    .int1InterruptSelection = Boardcore::LSM6DSRXConfig::INTERRUPT::NOTHING,
-    .int2InterruptSelection =
-        Boardcore::LSM6DSRXConfig::INTERRUPT::FIFO_THRESHOLD,
-    .fifoWatermark = 170,
-};
-Boardcore::SPIBusConfig LSM6_SPI_CONFIG{
-    Boardcore::SPI::ClockDivider::DIV_16,
-    Boardcore::SPI::Mode::MODE_0,
-};
+// Boardcore::LSM6DSRXConfig LSM6_SENSOR_CONFIG{
+//     .bdu       = Boardcore::LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE,
+//     .odrAcc    = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_1660,
+//     .opModeAcc = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL,
+//     .fsAcc     = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16,
+//     .odrGyr    = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_1660,
+//     .opModeGyr = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL,
+//     .fsGyr     = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_1000,
+//     .fifoMode  = Boardcore::LSM6DSRXConfig::FIFO_MODE::CONTINUOUS,
+//     .fifoTimestampDecimation =
+//         Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1,
+//     .fifoTemperatureBdr =
+//         Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED,
+//     .int1InterruptSelection = Boardcore::LSM6DSRXConfig::INTERRUPT::NOTHING,
+//     .int2InterruptSelection =
+//         Boardcore::LSM6DSRXConfig::INTERRUPT::FIFO_THRESHOLD,
+//     .fifoWatermark = 170,
+// };
+// Boardcore::SPIBusConfig LSM6_SPI_CONFIG{
+//     Boardcore::SPI::ClockDivider::DIV_16,
+//     Boardcore::SPI::Mode::MODE_0,
+// };
 
 Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS_ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_1000;
@@ -144,24 +144,36 @@ Boardcore::ADS131M08Defs::Channel ADS131_SERVO_CURRENT_CH =
 // filter with 491Hz of bandwidth and unitary gain.
 // We use only a gain coefficient because the offset is removed by the ADC
 // offset calibration feature.
-constexpr float CHAMBER_PRESSURE_MAX = 40;
-constexpr float CHAMBER_PRESSURE_MIN = 0;
+constexpr float CHAMBER_PRESSURE_MAX      = 40;
+constexpr float CHAMBER_PRESSURE_MIN      = 0;
+constexpr float CHAMBER_PRESSURE_SHUNT    = 30;     // [ohm]
+constexpr float CHAMBER_PRESSURE_CURR_MIN = 0.004;  // [A]
+constexpr float CHAMBER_PRESSURE_CURR_MAX = 0.020;  // [A]
 constexpr float CHAMBER_PRESSURE_COEFF =
-    CHAMBER_PRESSURE_MAX / (20 - 4) / 30;  // [bar/V]
+    CHAMBER_PRESSURE_MAX /
+    (CHAMBER_PRESSURE_CURR_MAX - CHAMBER_PRESSURE_CURR_MIN);  // [bar/A]
 
 // The tank pressure sensors are 0-100bar sensors with a 4-20mA output
 // On the motor motherboard there a 30ohm shunt. The shunt then goes through a
 // filter with 491Hz of bandwidth and unitary gain.
 // We use only a gain coefficient because the offset is removed by the ADC
 // offset calibration feature.
-constexpr float TANK_PRESSURE_1_MAX = 100;
-constexpr float TANK_PRESSURE_1_MIN = 0;
+constexpr float TANK_PRESSURE_1_MAX      = 100;
+constexpr float TANK_PRESSURE_1_MIN      = 0;
+constexpr float TANK_PRESSURE_1_SHUNT    = 30;     // [ohm]
+constexpr float TANK_PRESSURE_1_CURR_MIN = 0.004;  // [A]
+constexpr float TANK_PRESSURE_1_CURR_MAX = 0.020;  // [A]
 constexpr float TANK_PRESSURE_1_COEFF =
-    TANK_PRESSURE_1_MAX / (20 - 4) / 30;  // [bar/V]
-constexpr float TANK_PRESSURE_2_MAX = 100;
-constexpr float TANK_PRESSURE_2_MIN = 0;
+    TANK_PRESSURE_1_MAX /
+    (TANK_PRESSURE_1_CURR_MAX - TANK_PRESSURE_1_CURR_MIN);  // [bar/A]
+constexpr float TANK_PRESSURE_2_MAX      = 100;
+constexpr float TANK_PRESSURE_2_MIN      = 0;
+constexpr float TANK_PRESSURE_2_SHUNT    = 30;     // [ohm]
+constexpr float TANK_PRESSURE_2_CURR_MIN = 0.004;  // [A]
+constexpr float TANK_PRESSURE_2_CURR_MAX = 0.020;  // [A]
 constexpr float TANK_PRESSURE_2_COEFF =
-    TANK_PRESSURE_2_MAX / (20 - 4) / 30;  // [bar/V]
+    TANK_PRESSURE_2_MAX /
+    (TANK_PRESSURE_2_CURR_MAX - TANK_PRESSURE_2_CURR_MIN);  // [bar/A]
 
 // The current sensor used to measure the servo motors current consumption:
 // - A range of 0A to 20A

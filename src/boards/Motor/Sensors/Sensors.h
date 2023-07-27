@@ -30,7 +30,7 @@
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LSM6DSRX/LSM6DSRX.h>
+// #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
@@ -47,7 +47,7 @@ class Sensors : public Boardcore::Module
 public:
     Boardcore::InternalADCData getADCData();
     Boardcore::BatteryVoltageSensorData getBatteryData();
-    Boardcore::LSM6DSRXData getLSM6DSRXData();
+    // Boardcore::LSM6DSRXData getLSM6DSRXData();
     Boardcore::H3LIS331DLData getH3LIS331DLData();
     Boardcore::LIS2MDLData getLIS2MDLData();
     Boardcore::LPS22DFData getLPS22DFData();
@@ -56,7 +56,7 @@ public:
     Boardcore::ChamberPressureSensorData getChamberPressureSensorData();
     Boardcore::TankPressureSensor1Data getTankPressureSensor1Data();
     Boardcore::TankPressureSensor2Data getTankPressureSensor2Data();
-    Boardcore::CurrentSensorData getServoCurrentData();
+    Boardcore::CurrentData getServoCurrentData();
 
     Sensors(Boardcore::TaskScheduler* sched);
 
@@ -73,8 +73,8 @@ private:
     void batteryInit();
     void batteryCallback();
 
-    void lsm6dsrxInit();
-    void lsm6dsrxCallback();
+    // void lsm6dsrxInit();
+    // void lsm6dsrxCallback();
 
     void h3lis331dlInit();
     void h3lis331dlCallback();
@@ -103,9 +103,9 @@ private:
     void servosCurrentInit();
     void servosCurrentCallback();
 
-    Boardcore::InternalADC* adc                       = nullptr;
-    Boardcore::BatteryVoltageSensor* battery          = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx                     = nullptr;
+    Boardcore::InternalADC* adc              = nullptr;
+    Boardcore::BatteryVoltageSensor* battery = nullptr;
+    // Boardcore::LSM6DSRX* lsm6dsrx                     = nullptr;
     Boardcore::H3LIS331DL* h3lis331dl                 = nullptr;
     Boardcore::LIS2MDL* lis2mdl                       = nullptr;
     Boardcore::LPS22DF* lps22df                       = nullptr;

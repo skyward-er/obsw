@@ -49,11 +49,11 @@ BatteryVoltageSensorData Sensors::getBatteryData()
                               : BatteryVoltageSensorData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRXData()
-{
-    miosix::PauseKernelLock lock;
-    return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
-}
+// LSM6DSRXData Sensors::getLSM6DSRXData()
+// {
+//     miosix::PauseKernelLock lock;
+//     return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+// }
 
 H3LIS331DLData Sensors::getH3LIS331DLData()
 {
@@ -107,11 +107,11 @@ TankPressureSensor2Data Sensors::getTankPressureSensor2Data()
                                     : TankPressureSensor2Data{};
 }
 
-CurrentSensorData Sensors::getServoCurrentData()
+CurrentData Sensors::getServoCurrentData()
 {
     miosix::PauseKernelLock lock;
     return servosCurrent != nullptr ? servosCurrent->getLastSample()
-                                    : CurrentSensorData{};
+                                    : CurrentData{};
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
@@ -174,18 +174,18 @@ void Sensors::batteryInit()
     sensorsMap.emplace(make_pair(battery, info));
 }
 
-void Sensors::lsm6dsrxInit()
-{
-    SPIBus& spi1 = ModuleManager::getInstance().get<Buses>()->spi1;
+// void Sensors::lsm6dsrxInit()
+// {
+//     SPIBus& spi1 = ModuleManager::getInstance().get<Buses>()->spi1;
 
-    lsm6dsrx = new LSM6DSRX(spi1, peripherals::lsm6dsrx::cs::getPin(),
-                            LSM6_SPI_CONFIG, LSM6_SENSOR_CONFIG);
+//     lsm6dsrx = new LSM6DSRX(spi1, peripherals::lsm6dsrx::cs::getPin(),
+//                             LSM6_SPI_CONFIG, LSM6_SENSOR_CONFIG);
 
-    SensorInfo info("LSM6DSRX", SAMPLE_PERIOD_LSM6,
-                    bind(&Sensors::lsm6dsrxCallback, this));
+//     SensorInfo info("LSM6DSRX", SAMPLE_PERIOD_LSM6,
+//                     bind(&Sensors::lsm6dsrxCallback, this));
 
-    sensorsMap.emplace(make_pair(lsm6dsrx, info));
-}
+//     sensorsMap.emplace(make_pair(lsm6dsrx, info));
+// }
 
 void Sensors::h3lis331dlInit()
 {
@@ -265,9 +265,16 @@ void Sensors::chamberPressureInit()
             return data.getVoltage(ADS131_CHAMBER_PRESSURE_CH);
         });
 
+    function<float(float)> voltageToPressure(
+        [](float voltage)
+        {
+            float current =
+                voltage / CHAMBER_PRESSURE_SHUNT - CHAMBER_PRESSURE_CURR_MIN;
+            return current * CHAMBER_PRESSURE_COEFF;
+        });
+
     chamberPressure =
-        new ChamberPressureSensor(getADCVoltage, CHAMBER_PRESSURE_MAX,
-                                  CHAMBER_PRESSURE_MIN, CHAMBER_PRESSURE_COEFF);
+        new ChamberPressureSensor(getADCVoltage, voltageToPressure);
 
     SensorInfo info("CHAMBER_PRESSURE", SAMPLE_PERIOD_ADS131,
                     bind(&Sensors::chamberPressureCallback, this));
@@ -289,9 +296,15 @@ void Sensors::tankPressure1Init()
             return data.getVoltage(ADS131_TANK_PRESSURE_1_CH);
         });
 
-    tankPressure1 =
-        new TankPressureSensor1(getADCVoltage, TANK_PRESSURE_1_MAX,
-                                TANK_PRESSURE_1_MIN, TANK_PRESSURE_1_COEFF);
+    function<float(float)> voltageToPressure(
+        [](float voltage)
+        {
+            float current =
+                voltage / TANK_PRESSURE_1_SHUNT - TANK_PRESSURE_1_CURR_MIN;
+            return current * TANK_PRESSURE_1_COEFF;
+        });
+
+    tankPressure1 = new TankPressureSensor1(getADCVoltage, voltageToPressure);
 
     SensorInfo info("TANK_PRESSURE_1", SAMPLE_PERIOD_ADS131,
                     bind(&Sensors::tankPressure1Callback, this));
@@ -313,9 +326,15 @@ void Sensors::tankPressure2Init()
             return data.getVoltage(ADS131_TANK_PRESSURE_2_CH);
         });
 
-    tankPressure2 =
-        new TankPressureSensor2(getADCVoltage, TANK_PRESSURE_2_MAX,
-                                TANK_PRESSURE_2_MIN, TANK_PRESSURE_2_COEFF);
+    function<float(float)> voltageToPressure(
+        [](float voltage)
+        {
+            float current =
+                voltage / TANK_PRESSURE_2_SHUNT - TANK_PRESSURE_2_CURR_MIN;
+            return current * TANK_PRESSURE_2_COEFF;
+        });
+
+    tankPressure2 = new TankPressureSensor2(getADCVoltage, voltageToPressure);
 
     SensorInfo info("TANK_PRESSURE_2", SAMPLE_PERIOD_ADS131,
                     bind(&Sensors::tankPressure2Callback, this));
@@ -355,10 +374,10 @@ void Sensors::batteryCallback()
     Logger::getInstance().log(battery->getLastSample());
 }
 
-void Sensors::lsm6dsrxCallback()
-{
-    Logger::getInstance().log(lsm6dsrx->getLastSample());
-}
+// void Sensors::lsm6dsrxCallback()
+// {
+//     Logger::getInstance().log(lsm6dsrx->getLastSample());
+// }
 
 void Sensors::h3lis331dlCallback()
 {

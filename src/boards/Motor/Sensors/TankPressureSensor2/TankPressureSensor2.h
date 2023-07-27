@@ -29,23 +29,38 @@
 namespace Boardcore
 {
 
-class TankPressureSensor2 final
-    : public AnalogPressureSensor<TankPressureSensor2Data>
+class TankPressureSensor2 : public Sensor<TankPressureSensor2Data>
 {
 public:
     TankPressureSensor2(std::function<ADCData()> getVoltage,
-                        const float maxPressure = 0,
-                        const float minPressure = 0, const float coeff = 0)
-        : AnalogPressureSensor(getVoltage, (maxPressure - minPressure) * coeff,
-                               maxPressure, minPressure),
-          coeff(coeff)
+                        std::function<float(float)> voltageToPressure)
+        : getVoltage(getVoltage), voltageToPressure(voltageToPressure)
     {
+        lastSample.pressure = 0;
     }
 
-private:
-    float voltageToPressure(float voltage) override { return voltage * coeff; }
+    bool init() override { return true; };
 
-    const float coeff;
+    bool selfTest() override { return true; };
+
+    ///< Converts the voltage value to pressure
+    TankPressureSensor2Data sampleImpl() override
+    {
+        ADCData adc_data = getVoltage();
+
+        TankPressureSensor2Data new_data;
+        new_data.pressure          = voltageToPressure(adc_data.voltage);
+        new_data.pressureTimestamp = adc_data.voltageTimestamp;
+
+        return new_data;
+    };
+
+private:
+    ///< Function that returns the adc voltage
+    std::function<ADCData()> getVoltage;
+
+    ///< Function that converts adc voltage to current
+    std::function<float(float)> voltageToPressure;
 };
 
 }  // namespace Boardcore
