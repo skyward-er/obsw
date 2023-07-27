@@ -20,5 +20,12 @@
 # THE SOFTWARE.
 
 set(OBSW_INCLUDE_DIRS
+    src
     src/boards
+    src/hardware_in_the_loop
+)
+
+set(HIL 
+    src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
+    src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
