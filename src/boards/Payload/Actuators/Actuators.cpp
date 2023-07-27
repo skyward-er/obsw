@@ -26,6 +26,7 @@
 #include <Payload/Configs/ActuatorsConfigs.h>
 #include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -179,9 +180,9 @@ void Actuators::cuttersOff()
     actuators::nosecone::thermal_cutter_2::enable::low();
 }
 
-void Actuators::camOn() { interfaces::camMosfet::high(); }
+void Actuators::camOn() { gpios::camera_enable::high(); }
 
-void Actuators::camOff() { interfaces::camMosfet::low(); }
+void Actuators::camOff() { gpios::camera_enable::low(); }
 
 void Actuators::ledArmed()
 {
