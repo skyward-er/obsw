@@ -30,6 +30,7 @@
 using namespace std;
 using namespace miosix;
 using namespace Boardcore;
+using namespace Motor::SensorsConfig;
 
 // LSM6DSRX watermark interrupt
 void __attribute__((used)) EXTI7_IRQHandlerImpl()

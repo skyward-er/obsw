@@ -42,7 +42,7 @@ public:
      * @param sched The scheduler to respect the atomic timings in case of TARS0
      * engaged
      */
-    Actuators(Boardcore::TaskScheduler* sched);
+    explicit Actuators(Boardcore::TaskScheduler* sched);
 
     /**
      * @brief Enables all the servos PWMs and adds to the scheduler a periodic

@@ -27,6 +27,9 @@
 namespace Motor
 {
 
+namespace SensorsConfig
+{
+
 constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE_CH =
     Boardcore::InternalADC::Channel::CH15;
 // The battery is connected to the stm32's adc with a voltage divider
@@ -178,5 +181,7 @@ constexpr uint32_t SAMPLE_PERIOD_LIS2   = 10;
 constexpr uint32_t SAMPLE_PERIOD_LPS22  = 10;
 constexpr uint32_t SAMPLE_PERIOD_ADS131 = 1;
 constexpr uint32_t SAMPLE_PERIOD_MAX    = 10;
+
+}  // namespace SensorsConfig
 
 }  // namespace Motor
