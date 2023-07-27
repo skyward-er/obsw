@@ -98,14 +98,6 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         {
             timings[servo] = getTick() + time;
             setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-
-                // Publish the opening event
-                EventBroker::getInstance().post(openingEvents[servo],
-                                                Common::Topics::TOPIC_MOTOR);
-            }
         }
     }
 }
@@ -121,10 +113,6 @@ void Actuators::closeServoAtomic(ServosList servo, uint32_t time)
         {
             timings[servo] = 0;
             setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-            }
         }
     }
 }
@@ -180,13 +168,10 @@ void Actuators::checkTimings()
             {
                 if (currentTick > setFlag[i] + SERVO_CONFIDENCE_TIME)
                 {
+                    // 2% less than the actual aperture
                     setServoPosition(
                         static_cast<ServosList>(i),
-                        openings[i] -
-                            openings[i] *
-
-                                SERVO_CONFIDENCE);  // 2% less than the
-                                                    // actual aperture
+                        openings[i] - openings[i] * SERVO_CONFIDENCE);
                 }
                 else
                 {
@@ -200,20 +185,12 @@ void Actuators::checkTimings()
                 {
                     timings[i] = 0;
                     setFlag[i] = currentTick;
-
-                    {
-                        RestartKernelLock l(lock);
-
-                        // Publish the closing event
-                        EventBroker::getInstance().post(
-                            closingEvents[i], Common::Topics::TOPIC_MOTOR);
-                    }
                 }
                 if (currentTick > setFlag[i] + SERVO_CONFIDENCE_TIME)
                 {
-                    setServoPosition(
-                        static_cast<ServosList>(i),
-                        openings[i] * SERVO_CONFIDENCE);  // 2% open
+                    // 2% open
+                    setServoPosition(static_cast<ServosList>(i),
+                                     openings[i] * SERVO_CONFIDENCE);
                 }
                 else
                 {
