@@ -51,3 +51,10 @@ add_executable(main-entry-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPU
 target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-euroc PRIVATE EUROC)
 sbs_target(main-entry-euroc stm32f767zi_skyward_death_stack_v4)
+#-----------------------------------------------------------------------------#
+#                               Test entrypoints                              #
+#-----------------------------------------------------------------------------#
+
+add_executable(motor-test-sensors src/tests/Motor/test-sensors.cpp ${MOTOR_SOURCES})
+target_include_directories(motor-test-sensors PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(motor-test-sensors stm32f767zi_gemini_motor)
