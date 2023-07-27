@@ -57,7 +57,7 @@ int main()
                    adcData.temperature, adcData.vBat, batteryData.batVoltage);
         }
 
-        // WARNING: Fails self test and the values are all wrong
+        // WARNING: Fails self test
         if (sensors->lsm6 != nullptr)
         {
             auto lsm6Data = sensors->lsm6->getLastSample();
@@ -83,7 +83,6 @@ int main()
                    h3lisData.accelerationZ);
         }
 
-        // WARNING: Can't communicate, WHO AM I is wrong
         if (sensors->lis2 != nullptr)
         {
             auto lis2Data = sensors->lis2->getLastSample();
@@ -93,7 +92,6 @@ int main()
                    lis2Data.magneticFieldZ);
         }
 
-        // WARNING: Can't communicate, WHO AM I is wrong
         if (sensors->lps22 != nullptr)
         {
             auto lps22Data = sensors->lps22->getLastSample();
@@ -102,7 +100,6 @@ int main()
                    lps22Data.temperature);
         }
 
-        // OK
         if (sensors->max != nullptr)
         {
             auto maxData = sensors->max->getLastSample();
@@ -111,11 +108,31 @@ int main()
                    maxData.coldJunctionTemperature);
         }
 
-        // OK
-        if (sensors->ads131 != nullptr && sensors->servosCurrent != nullptr)
+        if (sensors->chamberPressure != nullptr)
+        {
+            auto chamberData = sensors->chamberPressure->getLastSample();
+            printf("[%.2fs]\tCHAMBER:\t%fbar\n",
+                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
+        }
+
+        if (sensors->tankPressure1 != nullptr)
+        {
+            auto chamberData = sensors->tankPressure1->getLastSample();
+            printf("[%.2fs]\tTANK1:\t\t%fbar\n",
+                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
+        }
+
+        if (sensors->tankPressure2 != nullptr)
+        {
+            auto chamberData = sensors->tankPressure2->getLastSample();
+            printf("[%.2fs]\tTANK2:\t\t%fbar\n",
+                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
+        }
+
+        if (sensors->servosCurrent != nullptr)
         {
             auto servosCurrentData = sensors->servosCurrent->getLastSample();
-            printf("[%.2fs]\tSERVO:\t%fA\n",
+            printf("[%.2fs]\tSERVO:\t\t%fA\n",
                    servosCurrentData.voltageTimestamp / 1e6,
                    servosCurrentData.current);
         }

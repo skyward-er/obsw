@@ -58,9 +58,9 @@ bool Sensors::start()
     lps22Init();
     maxInit();
     ads131Init();
-    // chamberPressureInit();
-    // tankPressure1Init();
-    // tankPressure2Init();
+    chamberPressureInit();
+    tankPressure1Init();
+    tankPressure2Init();
     servosCurrentInit();
 
     sensorManager = new SensorManager(sensorsMap);
@@ -72,6 +72,9 @@ void Sensors::calibrate()
 {
     if (ads131 != nullptr)
     {
+        ads131->calibrateOffset(ADS131_CHAMBER_PRESSURE_CH);
+        ads131->calibrateOffset(ADS131_TANK_PRESSURE_1_CH);
+        ads131->calibrateOffset(ADS131_TANK_PRESSURE_2_CH);
         ads131->calibrateOffset(ADS131_SERVO_CURRENT_CH);
     }
 }
@@ -211,21 +214,92 @@ void Sensors::ads131Init()
 
 void Sensors::chamberPressureInit()
 {
-    // TODO
+    if (ads131 == nullptr)
+    {
+        return;
+    }
+
+    function<ADCData()> getADCVoltage(
+        [&](void)
+        {
+            auto data = ads131->getLastSample();
+            return data.getVoltage(ADS131_CHAMBER_PRESSURE_CH);
+        });
+
+    chamberPressure =
+        new ChamberPressureSensor(getADCVoltage, CHAMBER_PRESSURE_MAX,
+                                  CHAMBER_PRESSURE_MIN, CHAMBER_PRESSURE_COEFF);
+
+    SensorInfo info("CHAMBER_PRESSURE", SAMPLE_PERIOD_ADS131,
+                    [&]()
+                    {
+                        // TODO: Log data
+                    });
+
+    sensorsMap.emplace(make_pair(chamberPressure, info));
 }
 
 void Sensors::tankPressure1Init()
 {
-    // TODO
+    if (ads131 == nullptr)
+    {
+        return;
+    }
+
+    function<ADCData()> getADCVoltage(
+        [&](void)
+        {
+            auto data = ads131->getLastSample();
+            return data.getVoltage(ADS131_TANK_PRESSURE_1_CH);
+        });
+
+    tankPressure1 =
+        new TankPressureSensor1(getADCVoltage, TANK_PRESSURE_1_MAX,
+                                TANK_PRESSURE_1_MIN, TANK_PRESSURE_1_COEFF);
+
+    SensorInfo info("TANK_PRESSURE_1", SAMPLE_PERIOD_ADS131,
+                    [&]()
+                    {
+                        // TODO: Log data
+                    });
+
+    sensorsMap.emplace(make_pair(tankPressure1, info));
 }
 
 void Sensors::tankPressure2Init()
 {
-    // TODO
+    if (ads131 == nullptr)
+    {
+        return;
+    }
+
+    function<ADCData()> getADCVoltage(
+        [&](void)
+        {
+            auto data = ads131->getLastSample();
+            return data.getVoltage(ADS131_TANK_PRESSURE_2_CH);
+        });
+
+    tankPressure2 =
+        new TankPressureSensor2(getADCVoltage, TANK_PRESSURE_2_MAX,
+                                TANK_PRESSURE_2_MIN, TANK_PRESSURE_2_COEFF);
+
+    SensorInfo info("TANK_PRESSURE_2", SAMPLE_PERIOD_ADS131,
+                    [&]()
+                    {
+                        // TODO: Log data
+                    });
+
+    sensorsMap.emplace(make_pair(tankPressure2, info));
 }
 
 void Sensors::servosCurrentInit()
 {
+    if (ads131 == nullptr)
+    {
+        return;
+    }
+
     function<ADCData()> getADCVoltage(
         [&](void)
         {

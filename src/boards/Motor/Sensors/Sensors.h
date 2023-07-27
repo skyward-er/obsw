@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
+#include <Motor/Sensors/TankPressureSensor1/TankPressureSensor1.h>
+#include <Motor/Sensors/TankPressureSensor2/TankPressureSensor2.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -42,21 +45,18 @@ namespace Motor
 class Sensors : public Boardcore::Module
 {
 public:
-    Boardcore::InternalADC* adc              = nullptr;
-    Boardcore::BatteryVoltageSensor* battery = nullptr;
-    Boardcore::LSM6DSRX* lsm6                = nullptr;
-    Boardcore::H3LIS331DL* h3lis             = nullptr;
-    Boardcore::LIS2MDL* lis2                 = nullptr;
-    Boardcore::LPS22DF* lps22                = nullptr;
-    Boardcore::ADS131M08* ads131             = nullptr;
-    Boardcore::MAX31856* max                 = nullptr;
-    Boardcore::AnalogPressureSensor<Boardcore::PressureData>* chamberPressure =
-        nullptr;
-    Boardcore::AnalogPressureSensor<Boardcore::PressureData>* tankPressure1 =
-        nullptr;
-    Boardcore::AnalogPressureSensor<Boardcore::PressureData>* tankPressure2 =
-        nullptr;
-    Boardcore::CurrentSensor* servosCurrent = nullptr;
+    Boardcore::InternalADC* adc                       = nullptr;
+    Boardcore::BatteryVoltageSensor* battery          = nullptr;
+    Boardcore::LSM6DSRX* lsm6                         = nullptr;
+    Boardcore::H3LIS331DL* h3lis                      = nullptr;
+    Boardcore::LIS2MDL* lis2                          = nullptr;
+    Boardcore::LPS22DF* lps22                         = nullptr;
+    Boardcore::ADS131M08* ads131                      = nullptr;
+    Boardcore::MAX31856* max                          = nullptr;
+    Boardcore::ChamberPressureSensor* chamberPressure = nullptr;
+    Boardcore::TankPressureSensor1* tankPressure1     = nullptr;
+    Boardcore::TankPressureSensor2* tankPressure2     = nullptr;
+    Boardcore::CurrentSensor* servosCurrent           = nullptr;
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::SensorManager* sensorManager = nullptr;
