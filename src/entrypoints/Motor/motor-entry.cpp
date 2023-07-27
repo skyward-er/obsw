@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Motor/Actuators/Actuators.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
@@ -33,6 +34,9 @@ using namespace Motor;
 
 int main()
 {
+    // First of all, start the data logger
+    Logger::getInstance().start();
+
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Overall status, if at some point it becomes false, there is a problem
@@ -43,9 +47,11 @@ int main()
     // Create modules
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
-    Sensors* sensors =
+    auto actuators =
+        new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    auto sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
-    CanHandler* canHandler =
+    auto canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
@@ -59,6 +65,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the buses module");
+    }
+
+    if (!modules.insert<Actuators>(actuators))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the sensor module");
     }
 
     if (!modules.insert<Sensors>(sensors))
@@ -80,6 +92,12 @@ int main()
         LOG_ERR(logger, "Error starting the board scheduler module");
     }
 
+    if (!modules.get<Actuators>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the sensors module");
+    }
+
     if (!modules.get<Sensors>()->start())
     {
         initResult = false;
@@ -91,6 +109,9 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the CanHandler module");
     }
+
+    // Calibration
+    modules.get<Sensors>()->calibrate();
 
     // Check the init result and launch an event
     if (initResult)
@@ -106,13 +127,12 @@ int main()
     {
         printf("Average CPU usage: %.1f%%\n", CpuMeter::getCpuStats().mean);
 
-        // auto adcData     = sensors->getADCData();
-        // auto batteryData = sensors->getBatteryData();
-        // printf("[%.2fs]\tADC:\t%f %f %f\n", adcData.timestamp / 1e6,
-        //        adcData.temperature, adcData.vBat, batteryData.batVoltage);
+        auto adcData     = sensors->getADCData();
+        auto batteryData = sensors->getBatteryData();
+        printf("[%.2fs]\tADC:\t%f %f %f\n", adcData.timestamp / 1e6,
+               adcData.temperature, adcData.vBat, batteryData.batVoltage);
 
         // // WARNING: Fails self test
-
         // auto lsm6Data = sensors->getLSM6DSRXData();
         // printf("[%.2fs]\tLSM6:\t%fm/s^2 %fm/s^2 %fm/s^2\n",
         //        lsm6Data.accelerationTimestamp / 1e6,
@@ -145,24 +165,28 @@ int main()
         // 1e6,
         //        maxData.temperature, maxData.coldJunctionTemperature);
 
+        auto adsData = sensors->getADS131M08Data();
+        printf("[%.2fs]\tADS131:\t%f %f %f %f\n", adsData.timestamp / 1e6,
+               adsData.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage,
+               adsData.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage,
+               adsData.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage,
+               adsData.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage);
+
         auto chamberData = sensors->getChamberPressureSensorData();
         printf("[%.2fs]\tCHAMBER:\t%fbar\n",
                chamberData.pressureTimestamp / 1e6, chamberData.pressure);
 
-        // auto tank1Data = sensors->getTankPressureSensor1Data();
-        // printf("[%.2fs]\tTANK1:\t\t%fbar\n", tank1Data.pressureTimestamp /
-        // 1e6,
-        //        tank1Data.pressure);
+        auto tank1Data = sensors->getTankPressureSensor1Data();
+        printf("[%.2fs]\tTANK1:\t\t%fbar\n", tank1Data.pressureTimestamp / 1e6,
+               tank1Data.pressure);
 
-        // auto tank2Data = sensors->getTankPressureSensor2Data();
-        // printf("[%.2fs]\tTANK2:\t\t%fbar\n", tank2Data.pressureTimestamp /
-        // 1e6,
-        //        tank2Data.pressure);
+        auto tank2Data = sensors->getTankPressureSensor2Data();
+        printf("[%.2fs]\tTANK2:\t\t%fbar\n", tank2Data.pressureTimestamp / 1e6,
+               tank2Data.pressure);
 
-        // auto servoCurrent = sensors->getServoCurrentData();
-        // printf("[%.2fs]\tSERVO:\t\t%fA\n", servoCurrent.voltageTimestamp /
-        // 1e6,
-        //        servoCurrent.current);
+        auto servoCurrent = sensors->getServoCurrentData();
+        printf("[%.2fs]\tSERVO:\t\t%fA\n", servoCurrent.currentTimestamp / 1e6,
+               servoCurrent.current);
 
         Thread::sleep(1000);
     }
