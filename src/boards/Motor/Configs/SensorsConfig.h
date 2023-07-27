@@ -124,7 +124,7 @@ Boardcore::ADS131M08::Config ADS131_SENSOR_CONFIG{
             },
         },
     .oversamplingRatio = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096,
-    .globalChopModeEnabled = false,
+    .globalChopModeEnabled = true,
 };
 Boardcore::SPIBusConfig ADS131_SPI_CONFIG{
     Boardcore::SPI::ClockDivider::DIV_8,
@@ -183,7 +183,7 @@ constexpr float TANK_PRESSURE_2_COEFF =
 // We use only a gain coefficient because the offset is removed by the ADC
 // offset calibration feature.
 constexpr float SERVO_CURRENT_COEFF =
-    20 / (2.65 - 0.65) / (12 / (38.3 + 12));  // [A/V]
+    10 / (2.65 - 0.65) / (12 / (38.3 + 12));  // [A/V]
 
 // Sampling periods
 constexpr uint32_t SAMPLE_PERIOD_ADC    = 1000;
