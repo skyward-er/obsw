@@ -38,6 +38,11 @@ using namespace Payload::ActuatorsConfigs;
 namespace Payload
 {
 
+void Actuators::start()
+{
+    scheduler = modules.get<BoardScheduler>()->getScheduler(4);
+}
+
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
     switch (servoId)
@@ -184,8 +189,6 @@ void Actuators::camOff() { gpios::camera_enable::low(); }
 
 void Actuators::ledArmed()
 {
-    // TODO: check if correct priority
-    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
     // disable ledErrorTask if active
     if (blinkState == BlinkState::LED_ERROR)
         scheduler->disableTask(ledErrorTaskId);
@@ -201,7 +204,6 @@ void Actuators::ledArmed()
 
 void Actuators::ledDisarmed()
 {
-    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
     // TODO: check if removal of ledError should be here
@@ -213,7 +215,6 @@ void Actuators::ledDisarmed()
 
 void Actuators::ledError()
 {
-    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
     // disable ledArmedTask if active
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
@@ -229,7 +230,6 @@ void Actuators::ledError()
 
 void Actuators::ledOff()
 {
-    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
     if (blinkState == BlinkState::LED_ERROR)

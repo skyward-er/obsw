@@ -34,6 +34,8 @@ namespace Payload
 
 struct Actuators : public Boardcore::Module
 {
+    [[nodiscard]] void start();
+
     /**
      * @brief Moves the specified servo to the given position.
      *
@@ -86,6 +88,7 @@ private:
     void toggleLed();
 
     ModuleManager& modules = ModuleManager::getInstance();
+    TaskScheduler* scheduler;  // initialized in the start() method
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 
