@@ -74,47 +74,6 @@ bool Actuators::start()
     return result != 0;
 }
 
-bool Actuators::wiggleServo(ServosList servo)
-{
-    PauseKernelLock lock;
-    // Get the choosen servo and nullptr in case not present
-    Servo* requestedServo = getServo(servo);
-    if (requestedServo != nullptr)
-    {
-        // Close all the servo
-        closeAllServo();
-
-        // Store the previous aperture time
-        uint64_t time = openingTimes[servo];
-
-        // Set a new one
-        openingTimes[servo] = 1000;  // 1s
-
-        // Toggle the servo
-        toggleServo(servo);
-
-        // Set the previous opening time
-        openingTimes[servo] = time;
-
-        return true;
-    }
-
-    return false;
-}
-
-Servo* Actuators::getServo(ServosList servo)
-{
-    switch (servo)
-    {
-        case MAIN_VALVE:
-            return servoMain;
-        case VENTING_VALVE:
-            return servoVenting;
-        default:
-            return nullptr;
-    }
-}
-
 float Actuators::getServoPosition(ServosList servo)
 {
     // Get the choosen servo and nullptr in case not present
@@ -126,6 +85,48 @@ float Actuators::getServoPosition(ServosList servo)
     }
 
     return requestedServo->getPosition();
+}
+
+void Actuators::openServoAtomic(ServosList servo, uint32_t time)
+{
+    PauseKernelLock lock;
+
+    if (getServo(servo) != nullptr)
+    {
+        // Open the valve if it's closed
+        if (timings[servo] == 0)
+        {
+            timings[servo] = getTick() + time;
+            setFlag[servo] = getTick();
+
+            {
+                RestartKernelLock l(lock);
+
+                // Publish the opening event
+                EventBroker::getInstance().post(openingEvents[servo],
+                                                Common::Topics::TOPIC_MOTOR);
+            }
+        }
+    }
+}
+
+void Actuators::closeServoAtomic(ServosList servo, uint32_t time)
+{
+    PauseKernelLock lock;
+
+    if (getServo(servo) != nullptr)
+    {
+        // Close the valve if it's open
+        if (timings[servo] > 0)
+        {
+            timings[servo] = 0;
+            setFlag[servo] = getTick();
+
+            {
+                RestartKernelLock l(lock);
+            }
+        }
+    }
 }
 
 void Actuators::setServoPosition(ServosList servo, float position)
@@ -146,6 +147,19 @@ void Actuators::setServoPosition(ServosList servo, float position)
         data.servoId   = servo;
         data.position  = position;
         Logger::getInstance().log(data);
+    }
+}
+
+Servo* Actuators::getServo(ServosList servo)
+{
+    switch (servo)
+    {
+        case MAIN_VALVE:
+            return servoMain;
+        case VENTING_VALVE:
+            return servoVenting;
+        default:
+            return nullptr;
     }
 }
 
@@ -208,137 +222,6 @@ void Actuators::checkTimings()
             }
         }
     }
-}
-
-void Actuators::toggleServo(ServosList servo)
-{
-    PauseKernelLock lock;
-
-    if (getServo(servo) != nullptr)
-    {
-        // If the valve is already open
-        if (timings[servo] > 0)
-        {
-            timings[servo] = 0;
-            setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-
-                // Publish the closing event
-                EventBroker::getInstance().post(closingEvents[servo],
-                                                Common::Topics::TOPIC_MOTOR);
-            }
-        }
-        else
-        {
-            timings[servo] = getTick() + openingTimes[servo];
-            setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-
-                // Publish the opening event
-                EventBroker::getInstance().post(openingEvents[servo],
-                                                Common::Topics::TOPIC_MOTOR);
-            }
-        }
-    }
-}
-
-void Actuators::openServoAtomic(ServosList servo, uint32_t time)
-{
-    PauseKernelLock lock;
-
-    if (getServo(servo) != nullptr)
-    {
-        // If the valve is already open
-        if (timings[servo] > 0)
-        {
-            timings[servo] = 0;
-            setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-
-                // Publish the closing event
-                EventBroker::getInstance().post(closingEvents[servo],
-                                                Common::Topics::TOPIC_MOTOR);
-            }
-        }
-        else
-        {
-            timings[servo] = getTick() + time;
-            setFlag[servo] = getTick();
-
-            {
-                RestartKernelLock l(lock);
-
-                // Publish the opening event
-                EventBroker::getInstance().post(openingEvents[servo],
-                                                Common::Topics::TOPIC_MOTOR);
-            }
-        }
-    }
-}
-
-void Actuators::closeAllServo()
-{
-    PauseKernelLock lock;
-
-    for (uint8_t i = 0; i < ServosList::ServosList_ENUM_END; i++)
-    {
-        // Once the disconnect servo is open it shall never close
-        if (timings[i] != 0 && i != ServosList::DISCONNECT_SERVO)
-        {
-            // Make the timings expire
-            timings[i] = 0;
-            setFlag[i] = getTick();
-        }
-    }
-}
-
-void Actuators::setMaximumAperture(ServosList servo, float aperture)
-{
-    PauseKernelLock lock;
-
-    // Check if the servo exists
-    if (getServo(servo) != nullptr)
-    {
-        // Check aperture
-        if (aperture < 0)
-        {
-            aperture = 0;
-        }
-        else if (aperture > 1)
-        {
-            aperture = 1;
-        }
-
-        openings[servo] = aperture;
-    }
-}
-
-void Actuators::setTiming(ServosList servo, uint32_t time)
-{
-    PauseKernelLock lock;
-
-    // Check if the servo exists
-    if (getServo(servo) != nullptr)
-    {
-        openingTimes[servo] = time;
-    }
-}
-
-uint32_t Actuators::getTiming(ServosList servo)
-{
-    PauseKernelLock lock;
-
-    if (getServo(servo) != nullptr)
-    {
-        return openingTimes[servo];
-    }
-    return 0;
 }
 
 }  // namespace Motor

@@ -51,29 +51,12 @@ public:
     [[nodiscard]] bool start();
 
     /**
-     * @brief Wiggles the requested servo for 1 second
-     *
-     * @param servo The Mavlink requested servo
-     * @returns False if the servo does not appear in the list
-     */
-    bool wiggleServo(ServosList servo);
-
-    /**
      * @brief Get the specified Servo's Position
      *
      * @param servo The Mavlink requested servo
      * @return float The servo position in normalized notation [0-1]
      */
     float getServoPosition(ServosList servo);
-
-    /**
-     * @brief Toggles the servo valve passed via parameter. It sets the timings
-     * such that the valve opens for a certain amount of time, otherwise, if the
-     * valve is already open it closes it.
-     *
-     * @param servo The servo valve to toggle
-     */
-    void toggleServo(ServosList servo);
 
     /**
      * @brief Opens the servo valve passed via parameter for a certain amount of
@@ -85,34 +68,13 @@ public:
     void openServoAtomic(ServosList servo, uint32_t time);
 
     /**
-     * @brief Closes all the servo valves
-     */
-    void closeAllServo();
-
-    /**
-     * @brief Sets a servo maximum aperture in normalized form. [0,1]
+     * @brief Closes the servo valve passed via parameter for a certain amount
+     * of time. If the valve is already open it closes it.
      *
-     * @param servo The servo to which set the aperture
-     * @param aperture The aperture in [0,1]
+     * @param servo The servo valve to open
+     * @param time The time in [ms]
      */
-    void setMaximumAperture(ServosList servo, float aperture);
-
-    /**
-     * @brief Set the timing of a certain valve.
-     * @note THE TIMING IS IN [ms]
-     *
-     * @param servo The servo to which set the timing
-     * @param time The timing in [ms]
-     */
-    void setTiming(ServosList servo, uint32_t time);
-
-    /**
-     * @brief Get the Timing of the passed servo
-     *
-     * @param servo The servo whose timing is needed
-     * @return uint32_t The timing in [ms]
-     */
-    uint32_t getTiming(ServosList servo);
+    void closeServoAtomic(ServosList servo, uint32_t time);
 
 private:
     /**
