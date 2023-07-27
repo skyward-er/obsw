@@ -40,8 +40,6 @@ public:
 
     void sendEvent(EventId event);
 
-    void sendCanCommand(ServoID servo, bool targetState, uint32_t delay);
-
 private:
     CanHandler();
 
@@ -49,11 +47,7 @@ private:
 
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
 
-    void handleCanSensor(const Boardcore::Canbus::CanMessage &msg);
-
     void handleCanStatus(const CanMessage &msg){};
-
-    void handleCanCommand(const CanMessage &msg){};
 
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;

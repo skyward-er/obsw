@@ -94,24 +94,12 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
-void CanHandler::sendCanCommand(ServoID servo, bool targetState, uint32_t delay)
-{
-    uint64_t payload = delay;
-    payload          = payload << 8;
-    payload          = payload | targetState;
-    protocol->enqueueSimplePacket(static_cast<uint8_t>(Priority::CRITICAL),
-                                  static_cast<uint8_t>(PrimaryType::COMMAND),
-                                  static_cast<uint8_t>(Board::PAYLOAD),
-                                  static_cast<uint8_t>(Board::BROADCAST),
-                                  static_cast<uint8_t>(servo), payload);
-}
-
 CanHandler::CanHandler()
 {
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
-    driver                = new CanbusDriver(CAN1, {}, bitTiming);
+    driver                = new CanbusDriver(CAN2, {}, bitTiming);
 
     protocol =
         new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
@@ -135,19 +123,9 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
             handleCanEvent(msg);
             break;
         }
-        case PrimaryType::SENSORS:
-        {
-            handleCanSensor(msg);
-            break;
-        }
         case PrimaryType::STATUS:
         {
             handleCanStatus(msg);
-            break;
-        }
-        case PrimaryType::COMMAND:
-        {
-            handleCanCommand(msg);
             break;
         }
         default:
@@ -171,63 +149,11 @@ void CanHandler::handleCanEvent(const CanMessage &msg)
         LOG_WARN(logger, "Received unsupported event: id={}", eventId);
 }
 
-void CanHandler::handleCanSensor(const CanMessage &msg)
-{
-    SensorId sensorId = static_cast<SensorId>(msg.getSecondaryType());
-
-    switch (sensorId)
-    {
-        case SensorId::PITOT:
-        {
-            Sensors::getInstance().setPitotData(pitotDataFromCanMessage(msg));
-            break;
-        }
-        case SensorId::CC_PRESSURE:
-        {  // name
-            Sensors::getInstance().setCCPressureData(
-                pressureDataFromCanMessage(msg));
-            break;
-        }
-        case SensorId::BOTTOM_TANK_PRESSURE:
-        {  // name
-            Sensors::getInstance().setBottomTankPressureData(
-                pressureDataFromCanMessage(msg));
-            break;
-        }
-        case SensorId::TOP_TANK_PRESSURE:
-        {  // name
-            Sensors::getInstance().setTopTankPressureData(
-                pressureDataFromCanMessage(msg));
-            break;
-        }
-        case SensorId::TANK_TEMPERATURE:
-        {  // name
-            Sensors::getInstance().setTankTemperatureData(
-                temperatureDataFromCanMessage(msg));
-            break;
-        }
-
-        default:
-        {
-            LOG_WARN(logger, "Received unsupported sensor data: id={}",
-                     sensorId);
-        }
-    }
-}
-
 void CanHandler::handleCanStatus(const CanMessage &msg)
 {
-    Board source  = static_cast<Board>(msg.getSource());
-    uint8_t state = msg.getSecondaryType();
-    bool isArmed  = msg.payload[0];
-}
-
-void CanHandler::handleCanCommand(const CanMessage &msg)
-{
-    uint64_t payload    = msg.payload[0];
-    ServoID servo       = static_cast<ServoID>(msg.getSecondaryType());
-    uint8_t targetState = static_cast<uint8_t>(payload);
-    uint32_t delay      = static_cast<uint8_t>(payload >> 8);
+    // Board source  = static_cast<Board>(msg.getSource());
+    // uint8_t state = msg.getSecondaryType();
+    // bool isArmed  = msg.payload[0];
 }
 
 }  // namespace Payload
