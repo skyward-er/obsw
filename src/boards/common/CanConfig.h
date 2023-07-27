@@ -34,7 +34,7 @@ namespace Common
 namespace CanConfig
 {
 
-constexpr uint32_t BAUD_RATE = 500 * 1000;
+constexpr uint32_t BAUD_RATE = 250 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
 
 enum class Priority : uint8_t
@@ -61,12 +61,6 @@ enum class Board : uint8_t
     MAIN,
     PAYLOAD,
     MOTOR
-};
-
-enum class ServoID : uint8_t
-{
-    VENTING = 0,
-    FEED_LINE
 };
 
 enum class SensorId : uint8_t
