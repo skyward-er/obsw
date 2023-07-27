@@ -45,22 +45,18 @@ namespace Motor
 class Sensors : public Boardcore::Module
 {
 public:
-    Boardcore::InternalADC* adc                       = nullptr;
-    Boardcore::BatteryVoltageSensor* battery          = nullptr;
-    Boardcore::LSM6DSRX* lsm6                         = nullptr;
-    Boardcore::H3LIS331DL* h3lis                      = nullptr;
-    Boardcore::LIS2MDL* lis2                          = nullptr;
-    Boardcore::LPS22DF* lps22                         = nullptr;
-    Boardcore::ADS131M08* ads131                      = nullptr;
-    Boardcore::MAX31856* max                          = nullptr;
-    Boardcore::ChamberPressureSensor* chamberPressure = nullptr;
-    Boardcore::TankPressureSensor1* tankPressure1     = nullptr;
-    Boardcore::TankPressureSensor2* tankPressure2     = nullptr;
-    Boardcore::CurrentSensor* servosCurrent           = nullptr;
-
-    Boardcore::SensorManager::SensorMap_t sensorsMap;
-    Boardcore::SensorManager* sensorManager = nullptr;
-    Boardcore::TaskScheduler* scheduler     = nullptr;
+    Boardcore::InternalADCData getADCData();
+    Boardcore::BatteryVoltageSensorData getBatteryData();
+    Boardcore::LSM6DSRXData getLSM6DSRXData();
+    Boardcore::H3LIS331DLData getH3LIS331DLData();
+    Boardcore::LIS2MDLData getLIS2MDLData();
+    Boardcore::LPS22DFData getLPS22DFData();
+    Boardcore::ADS131M08Data getADS131M08Data();
+    Boardcore::MAX31856Data getMAX31856Data();
+    Boardcore::ChamberPressureSensorData getChamberPressureSensorData();
+    Boardcore::TankPressureSensor1Data getTankPressureSensor1Data();
+    Boardcore::TankPressureSensor2Data getTankPressureSensor2Data();
+    Boardcore::CurrentSensorData getServoCurrentData();
 
     Sensors(Boardcore::TaskScheduler* sched);
 
@@ -72,28 +68,57 @@ public:
 
 private:
     void adcInit();
+    void adcCallback();
 
     void batteryInit();
+    void batteryCallback();
 
-    void lsm6Init();
+    void lsm6dsrxInit();
+    void lsm6dsrxCallback();
 
-    void h3lisInit();
+    void h3lis331dlInit();
+    void h3lis331dlCallback();
 
-    void lis2Init();
+    void lis2mdlInit();
+    void lis2mdlCallback();
 
-    void lps22Init();
+    void lps22dfInit();
+    void lps22dfCallback();
 
-    void maxInit();
+    void max31856Init();
+    void max31856Callback();
 
-    void ads131Init();
+    void ads131m08Init();
+    void ads131m08Callback();
 
     void chamberPressureInit();
+    void chamberPressureCallback();
 
     void tankPressure1Init();
+    void tankPressure1Callback();
 
     void tankPressure2Init();
+    void tankPressure2Callback();
 
     void servosCurrentInit();
+    void servosCurrentCallback();
+
+    Boardcore::InternalADC* adc                       = nullptr;
+    Boardcore::BatteryVoltageSensor* battery          = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx                     = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl                 = nullptr;
+    Boardcore::LIS2MDL* lis2mdl                       = nullptr;
+    Boardcore::LPS22DF* lps22df                       = nullptr;
+    Boardcore::MAX31856* max31856                     = nullptr;
+    Boardcore::ADS131M08* ads131m08                   = nullptr;
+    Boardcore::ChamberPressureSensor* chamberPressure = nullptr;
+    Boardcore::TankPressureSensor1* tankPressure1     = nullptr;
+    Boardcore::TankPressureSensor2* tankPressure2     = nullptr;
+    Boardcore::CurrentSensor* servosCurrent           = nullptr;
+
+    Boardcore::SensorManager::SensorMap_t sensorsMap;
+    Boardcore::SensorManager* sensorManager = nullptr;
+    Boardcore::TaskScheduler* scheduler     = nullptr;
 };
 
 }  // namespace Motor

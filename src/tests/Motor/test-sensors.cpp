@@ -54,93 +54,57 @@ int main()
     {
         printf("Average CPU usage: %.1f%%\n", CpuMeter::getCpuStats().mean);
 
-        if (sensors->adc != nullptr && sensors->battery != nullptr)
-        {
-            auto adcData     = sensors->adc->getLastSample();
-            auto batteryData = sensors->battery->getLastSample();
-            printf("[%.2fs]\tADC:\t%f %f %f\n", adcData.timestamp / 1e6,
-                   adcData.temperature, adcData.vBat, batteryData.batVoltage);
-        }
+        auto adcData     = sensors->getADCData();
+        auto batteryData = sensors->getBatteryData();
+        printf("[%.2fs]\tADC:\t%f %f %f\n", adcData.timestamp / 1e6,
+               adcData.temperature, adcData.vBat, batteryData.batVoltage);
 
         // WARNING: Fails self test
-        if (sensors->lsm6 != nullptr)
-        {
-            auto lsm6Data = sensors->lsm6->getLastSample();
-            printf("[%.2fs]\tLSM6:\t%fm/s^2 %fm/s^2 %fm/s^2\n",
-                   lsm6Data.accelerationTimestamp / 1e6,
-                   lsm6Data.accelerationX * 0.001,
-                   lsm6Data.accelerationY * 0.001,
-                   lsm6Data.accelerationZ * 0.001);
-            printf("[%.2fs]\tLSM6:\t%frad/s %frad/s %frad/s\n",
-                   lsm6Data.angularSpeedTimestamp / 1e6,
-                   lsm6Data.angularSpeedX * 0.001,
-                   lsm6Data.angularSpeedY * 0.001,
-                   lsm6Data.angularSpeedZ * 0.001);
-        }
+
+        auto lsm6Data = sensors->getLSM6DSRXData();
+        printf("[%.2fs]\tLSM6:\t%fm/s^2 %fm/s^2 %fm/s^2\n",
+               lsm6Data.accelerationTimestamp / 1e6,
+               lsm6Data.accelerationX * 0.001, lsm6Data.accelerationY * 0.001,
+               lsm6Data.accelerationZ * 0.001);
+        printf("[%.2fs]\tLSM6:\t%frad/s %frad/s %frad/s\n",
+               lsm6Data.angularSpeedTimestamp / 1e6,
+               lsm6Data.angularSpeedX * 0.001, lsm6Data.angularSpeedY * 0.001,
+               lsm6Data.angularSpeedZ * 0.001);
 
         // WARNING: The values are wrong
-        if (sensors->h3lis != nullptr)
-        {
-            auto h3lisData = sensors->h3lis->getLastSample();
-            printf("[%.2fs]\tH3LIS:\t%fm/s %fm/s %fm/s\n",
-                   h3lisData.accelerationTimestamp / 1e6,
-                   h3lisData.accelerationX, h3lisData.accelerationY,
-                   h3lisData.accelerationZ);
-        }
+        auto h3lisData = sensors->getH3LIS331DLData();
+        printf("[%.2fs]\tH3LIS:\t%fm/s %fm/s %fm/s\n",
+               h3lisData.accelerationTimestamp / 1e6, h3lisData.accelerationX,
+               h3lisData.accelerationY, h3lisData.accelerationZ);
 
-        if (sensors->lis2 != nullptr)
-        {
-            auto lis2Data = sensors->lis2->getLastSample();
-            printf("[%.2fs]\tLIS2:\t%f %f %f\n",
-                   lis2Data.magneticFieldTimestamp / 1e6,
-                   lis2Data.magneticFieldX, lis2Data.magneticFieldY,
-                   lis2Data.magneticFieldZ);
-        }
+        auto lis2Data = sensors->getLIS2MDLData();
+        printf("[%.2fs]\tLIS2:\t%f %f %f\n",
+               lis2Data.magneticFieldTimestamp / 1e6, lis2Data.magneticFieldX,
+               lis2Data.magneticFieldY, lis2Data.magneticFieldZ);
 
-        if (sensors->lps22 != nullptr)
-        {
-            auto lps22Data = sensors->lps22->getLastSample();
-            printf("[%.2fs]\tLPS22:\t%f %f\n",
-                   lps22Data.pressureTimestamp / 1e6, lps22Data.pressure,
-                   lps22Data.temperature);
-        }
+        auto lps22Data = sensors->getLPS22DFData();
+        printf("[%.2fs]\tLPS22:\t%f %f\n", lps22Data.pressureTimestamp / 1e6,
+               lps22Data.pressure, lps22Data.temperature);
 
-        if (sensors->max != nullptr)
-        {
-            auto maxData = sensors->max->getLastSample();
-            printf("[%.2fs]\tMAX:\t%f° %f°\n",
-                   maxData.temperatureTimestamp / 1e6, maxData.temperature,
-                   maxData.coldJunctionTemperature);
-        }
+        auto maxData = sensors->getMAX31856Data();
+        printf("[%.2fs]\tMAX:\t%f° %f°\n", maxData.temperatureTimestamp / 1e6,
+               maxData.temperature, maxData.coldJunctionTemperature);
 
-        if (sensors->chamberPressure != nullptr)
-        {
-            auto chamberData = sensors->chamberPressure->getLastSample();
-            printf("[%.2fs]\tCHAMBER:\t%fbar\n",
-                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
-        }
+        auto chamberData = sensors->getChamberPressureSensorData();
+        printf("[%.2fs]\tCHAMBER:\t%fbar\n",
+               chamberData.pressureTimestamp / 1e6, chamberData.pressure);
 
-        if (sensors->tankPressure1 != nullptr)
-        {
-            auto chamberData = sensors->tankPressure1->getLastSample();
-            printf("[%.2fs]\tTANK1:\t\t%fbar\n",
-                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
-        }
+        auto tank1Data = sensors->getTankPressureSensor1Data();
+        printf("[%.2fs]\tTANK1:\t\t%fbar\n", tank1Data.pressureTimestamp / 1e6,
+               tank1Data.pressure);
 
-        if (sensors->tankPressure2 != nullptr)
-        {
-            auto chamberData = sensors->tankPressure2->getLastSample();
-            printf("[%.2fs]\tTANK2:\t\t%fbar\n",
-                   chamberData.pressureTimestamp / 1e6, chamberData.pressure);
-        }
+        auto tank2Data = sensors->getTankPressureSensor2Data();
+        printf("[%.2fs]\tTANK2:\t\t%fbar\n", tank2Data.pressureTimestamp / 1e6,
+               tank2Data.pressure);
 
-        if (sensors->servosCurrent != nullptr)
-        {
-            auto servosCurrentData = sensors->servosCurrent->getLastSample();
-            printf("[%.2fs]\tSERVO:\t\t%fA\n",
-                   servosCurrentData.voltageTimestamp / 1e6,
-                   servosCurrentData.current);
-        }
+        auto servoCurrent = sensors->getServoCurrentData();
+        printf("[%.2fs]\tSERVO:\t\t%fA\n", servoCurrent.voltageTimestamp / 1e6,
+               servoCurrent.current);
 
         Thread::sleep(1000);
     }
