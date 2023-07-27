@@ -85,11 +85,22 @@ private:
 
     void toggleLed();
 
+    ModuleManager& modules = ModuleManager::getInstance();
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 
-    bool ledState     = false;
-    uint8_t ledTaskId = 0;
+    enum BlinkState
+    {
+        LED_OFF,
+        LED_ARMED,
+        LED_DISARMED,
+        LED_ERROR
+    };
+
+    bool ledState          = false;
+    BlinkState blinkState  = LED_OFF;
+    uint8_t ledArmedTaskId = 0;
+    uint8_t ledErrorTaskId = 0;
 };
 
 }  // namespace Payload

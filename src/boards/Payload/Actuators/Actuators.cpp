@@ -27,6 +27,8 @@
 #include <common/LedConfig.h>
 #include <interfaces-impl/bsp_impl.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
+
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
@@ -183,31 +185,60 @@ void Actuators::camOff() { interfaces::camMosfet::low(); }
 
 void Actuators::ledArmed()
 {
-    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
-    scheduler.removeTask(ledTaskId);
-    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
+    // TODO: check if correct priority
+    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
+    // disable ledErrorTask if active
+    if (blinkState == BlinkState::LED_ERROR)
+        scheduler->disableTask(ledErrorTaskId);
+    // enable ledArmedTask
+    if (ledArmedTaskId != 0)
+        scheduler->enableTask(ledArmedTaskId);
+    else
+        ledArmedTaskId =
+            scheduler->addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
+
+    blinkState = BlinkState::LED_ARMED;
 }
 
 void Actuators::ledDisarmed()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
+    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
+    if (blinkState == BlinkState::LED_ARMED)
+        scheduler->disableTask(ledArmedTaskId);
+    // TODO: check if removal of ledError should be here
+
     miosix::ledOn();
-    ledState = true;
+    ledState   = true;
+    blinkState = BlinkState::LED_DISARMED;
 }
 
 void Actuators::ledError()
 {
-    TaskScheduler &scheduler = BoardScheduler::getInstance().getScheduler();
-    scheduler.removeTask(ledTaskId);
-    ledTaskId = scheduler.addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
+    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
+    // disable ledArmedTask if active
+    if (blinkState == BlinkState::LED_ARMED)
+        scheduler->disableTask(ledArmedTaskId);
+    // enable ledErrorTask
+    if (ledErrorTaskId != 0)
+        scheduler->enableTask(ledErrorTaskId);
+    else
+        ledErrorTaskId =
+            scheduler->addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
+
+    blinkState = BlinkState::LED_ERROR;
 }
 
 void Actuators::ledOff()
 {
-    BoardScheduler::getInstance().getScheduler().removeTask(ledTaskId);
-    ledTaskId = 0;
-    ledState  = false;
+    TaskScheduler *scheduler = modules.get<BoardScheduler>()->getScheduler(0);
+    if (blinkState == BlinkState::LED_ARMED)
+        scheduler->disableTask(ledArmedTaskId);
+    if (blinkState == BlinkState::LED_ERROR)
+        scheduler->disableTask(ledErrorTaskId);
+
+    ledState = false;
     miosix::ledOff();
+    blinkState = BlinkState::LED_OFF;
 }
 
 Actuators::Actuators()
