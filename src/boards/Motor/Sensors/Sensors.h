@@ -60,8 +60,9 @@ public:
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::SensorManager* sensorManager = nullptr;
+    Boardcore::TaskScheduler* scheduler     = nullptr;
 
-    Sensors();
+    Sensors(Boardcore::TaskScheduler* sched);
 
     ~Sensors();
 

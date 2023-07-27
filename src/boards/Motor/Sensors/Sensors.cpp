@@ -45,7 +45,7 @@ void __attribute__((used)) EXTI7_IRQHandlerImpl()
 namespace Motor
 {
 
-Sensors::Sensors() {}
+Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
 Sensors::~Sensors() {}
 
@@ -64,7 +64,7 @@ bool Sensors::start()
     tankPressure2Init();
     servosCurrentInit();
 
-    sensorManager = new SensorManager(sensorsMap);
+    sensorManager = new SensorManager(sensorsMap, scheduler);
 
     return sensorManager->start();
 }

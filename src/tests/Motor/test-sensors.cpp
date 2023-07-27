@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -34,9 +35,13 @@ int main()
     printf("APB2: %ld\n",
            ClockUtils::getAPBPeripheralsClock(ClockUtils::APB::APB2));
 
-    auto sensors = new Sensors();
+    auto scheduler = new BoardScheduler();
+
+    auto sensors =
+        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
 
     ModuleManager& moduleManager = ModuleManager::getInstance();
+    moduleManager.insert<BoardScheduler>(scheduler);
     moduleManager.insert<Sensors>(sensors);
     moduleManager.insert<Buses>(new Buses());
 
