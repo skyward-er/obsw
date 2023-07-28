@@ -34,9 +34,6 @@ using namespace Motor;
 
 int main()
 {
-    // First of all, start the data logger
-    Logger::getInstance().start();
-
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Overall status, if at some point it becomes false, there is a problem
@@ -86,6 +83,12 @@ int main()
     }
 
     // Start modules
+    if (!Logger::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the logger module");
+    }
+
     if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;
@@ -112,6 +115,9 @@ int main()
 
     // Calibration
     modules.get<Sensors>()->calibrate();
+
+    // Set the init status inside the CAN handler
+    modules.get<CanHandler>()->setInitStatus(initResult);
 
     // Check the init result and launch an event
     if (initResult)

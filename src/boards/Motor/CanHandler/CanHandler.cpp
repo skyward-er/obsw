@@ -122,8 +122,19 @@ bool CanHandler::start()
         },
         TEMPERATURE_TRANSMISSION_PERIOD);
 
+    auto result3 = scheduler->addTask(
+        [&]()
+        {
+            protocol->enqueueSimplePacket(
+                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(PrimaryType::STATUS),
+                static_cast<uint8_t>(Board::MOTOR),
+                static_cast<uint8_t>(Board::BROADCAST), initStatus, initStatus);
+        },
+        STATUS_TRANSMISSION_PERIOD);
+
     // TODO: look at the priorities of the CAN protocol threads
-    return protocol->start() && result1 != 0 && result2 != 0;
+    return protocol->start() && result1 != 0 && result2 != 0 && result3 != 0;
 }
 
 bool CanHandler::isStarted()
@@ -139,6 +150,8 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(event));
 }
+
+void CanHandler::setInitStatus(bool initResult) { initStatus = initResult; }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
 {

@@ -54,6 +54,11 @@ public:
      */
     void sendEvent(Common::CanConfig::EventId event);
 
+    /**
+     * @brief Set the initialization flag to true
+     */
+    void setInitStatus(bool initResult);
+
 private:
     /**
      * @brief Handles a generic CAN message and dispatch the message to the
@@ -64,6 +69,9 @@ private:
     // CAN message handlers
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
     void handleCanCommand(const Boardcore::Canbus::CanMessage &msg);
+
+    // Init status
+    std::atomic<bool> initStatus{false};
 
     // CAN interfaces
     Boardcore::Canbus::CanbusDriver *driver;
