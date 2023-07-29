@@ -45,8 +45,9 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                GuidanceAlgorithm& guidance)
     : WingAlgorithm(servo1, servo2), guidance(guidance)
 {
-    controller =
-        new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f, -0.1, 0.1);
+    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
+                                  PI_CONTROLLER_SATURATION_MIN_LIMIT,
+                                  PI_CONTROLLER_SATURATION_MAX_LIMIT);
 }
 
 AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }

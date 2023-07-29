@@ -71,6 +71,9 @@ constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
 
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 0.1;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -0.1;
+
 struct WingConfigStruct
 {
 
