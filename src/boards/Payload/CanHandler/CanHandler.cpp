@@ -45,10 +45,6 @@ namespace Payload
 
 bool CanHandler::start()
 {
-    // Scheduler with main priority -1 (Sensors & FMM)
-    scheduler =
-        ModuleManager::getInstance().get<BoardScheduler>()->getScheduler(
-            miosix::MAIN_PRIORITY - 1);
     // Add a task to periodically send the pitot data
     scheduler->addTask(  // sensor template
         [&]()
@@ -94,7 +90,7 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
-CanHandler::CanHandler()
+CanHandler::CanHandler(Boardcore::TaskScheduler *sched) : scheduler(sched)
 {
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;

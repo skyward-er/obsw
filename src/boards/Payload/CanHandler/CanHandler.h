@@ -41,7 +41,7 @@ public:
     void sendEvent(EventId event);
 
 private:
-    CanHandler();
+    explicit CanHandler(Boardcore::TaskScheduler *sched);
 
     void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
 
@@ -52,9 +52,9 @@ private:
     Boardcore::Canbus::CanbusDriver *driver;
     Boardcore::Canbus::CanProtocol *protocol;
 
-    Boardcore::TaskScheduler *scheduler;
-
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
+
+    Boardcore::TaskScheduler *scheduler = nullptr;
 };
 
 }  // namespace Payload
