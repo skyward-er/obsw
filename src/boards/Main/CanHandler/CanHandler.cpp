@@ -85,8 +85,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::STATUS),
                 static_cast<uint8_t>(Board::MAIN),
-                static_cast<uint8_t>(Board::BROADCAST), 0,
-                0);  // TODO add if electronics is armed or not and FMM state
+                static_cast<uint8_t>(Board::BROADCAST), static_cast<uint8_t>(3),
+                0x123456789ABCDEF);  // TODO add if electronics is armed or not
+                                     // and FMM state
         },
         STATUS_TRANSMISSION_PERIOD);
     // TODO look at the priorities of the CAN protocol threads
@@ -107,7 +108,8 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
-void CanHandler::sendCanCommand(ServoID servo, bool targetState, uint32_t delay)
+void CanHandler::sendCanCommand(ServosList servo, bool targetState,
+                                uint32_t delay)
 {
     uint64_t payload = delay;
     payload          = payload << 8;
@@ -227,7 +229,7 @@ void CanHandler::handleCanStatus(const CanMessage &msg)
 void CanHandler::handleCanCommand(const CanMessage &msg)
 {
     uint64_t payload    = msg.payload[0];
-    ServoID servo       = static_cast<ServoID>(msg.getSecondaryType());
+    ServosList servo    = static_cast<ServosList>(msg.getSecondaryType());
     uint8_t targetState = static_cast<uint8_t>(payload);
     uint32_t delay      = static_cast<uint8_t>(payload >> 8);
 }
