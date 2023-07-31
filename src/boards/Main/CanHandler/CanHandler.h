@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <common/CanConfig.h>
+#include <common/Mavlink.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -59,8 +60,7 @@ public:
      * target servo, the target state and eventually the delta [ms] in which the
      * servo remains open
      */
-    void sendCanCommand(Common::CanConfig::ServoID servo, bool targetState,
-                        uint32_t delay);
+    void sendCanCommand(ServosList servo, bool targetState, uint32_t delay);
 
 private:
     /**
