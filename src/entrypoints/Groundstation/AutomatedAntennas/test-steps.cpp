@@ -33,6 +33,7 @@
 #include <scheduler/TaskScheduler.h>
 #include <utils/ButtonHandler/ButtonHandler.h>
 
+#include <iostream>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "actuators/stepper/StepperPWM.h"
@@ -140,7 +141,7 @@ int main()
         // Starting the Actuators
         modules.get<Actuators>()->start();
 
-        // Starting the Actuators
+        // Starting the Sensors
         if (!modules.get<Sensors>()->start())
         {
             initResult = false;
@@ -167,6 +168,8 @@ int main()
 
     modules.get<Actuators>()->setSpeed(Actuators::StepperList::HORIZONTAL,
                                        speed);
+
+    modules.get<Actuators>()->setSpeed(Actuators::StepperList::VERTICAL, speed);
     // scheduler->addTask(
     //     [&]()
     //     {
@@ -198,37 +201,38 @@ int main()
     //         }
     //     },
     //     100);
-
-    for (;;)
+    VN300Data data;
+    while (!ModuleManager::getInstance().get<Actuators>()->isEmergencyStopped())
     {
-        // speed = speed0;
-        // for (int i = 0; i < 10; i++)
-        // {
-        modules.get<Actuators>()->moveDeg(Actuators::StepperList::HORIZONTAL,
-                                          360);
-        Thread::sleep(500);
+        {
+            data = modules.get<Sensors>()->getVN300LastSample();
+            printf("acc[%.3f,%.3f,%.3f] ypr[%.3f,%.3f,%.3f]\n",
+                   data.accelerationX, data.accelerationY, data.accelerationZ,
+                   data.yaw, data.pitch, data.roll);
+            modules.get<Actuators>()->moveDeg(
+                Actuators::StepperList::HORIZONTAL, 10);
+            modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
+                                              10);
+            Thread::sleep(1000);
+        }
 
-        speed += stepSpeed;
-        modules.get<Actuators>()->setSpeed(Actuators::StepperList::HORIZONTAL,
-                                           speed);
-        // }
-
-        // speed = speed0;
-        // for (int i = 0; i < 10; i++)
-        // {
-        //     modules.get<Actuators>()->moveDeg(
-        //         Actuators::StepperList::HORIZONTAL, -360);
-        //     Thread::sleep(400);
-
-        //     speed += stepSpeed;
-        //     modules.get<Actuators>()->setSpeed(
-        //         Actuators::StepperList::HORIZONTAL, speed);
-        // }
+        {
+            data = modules.get<Sensors>()->getVN300LastSample();
+            printf("acc[%.3f,%.3f,%.3f] ypr[%.3f,%.3f,%.3f]\n",
+                   data.accelerationX, data.accelerationY, data.accelerationZ,
+                   data.yaw, data.pitch, data.roll);
+            modules.get<Actuators>()->moveDeg(
+                Actuators::StepperList::HORIZONTAL, -10);
+            modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
+                                              -10);
+            Thread::sleep(1000);
+        }
     }
 
     // Stopping threads
     {
         Logger::getInstance().stop();
+        printf("Logger stopped! Board can be reset/shutdown9\n");
     }
 
     while (1)
