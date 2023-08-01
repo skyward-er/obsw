@@ -47,24 +47,14 @@ bool Sensors::start()
         LOG_ERR(logger, "Sensor Manager failed to start");
         return false;
     }
+
+    return true;
 }
 
 bool Sensors::vn300Init()
 {
     vn300 = new Boardcore::VN300(
-        ModuleManager::getInstance().get<Buses>()->uart4, 115200);
-
-    if (!vn300->init())
-    {
-        LOG_ERR(logger, "VN300 not initialized");
-        return false;
-    }
-
-    if (!vn300->selfTest())
-    {
-        LOG_ERR(logger, "VN300 self-test failed");
-        return false;
-    }
+        ModuleManager::getInstance().get<Buses>()->usart2, 115200);
 
     SensorInfo info("VN300", SAMPLE_PERIOD_VN300,
                     bind(&Sensors::vn300Callback, this));
