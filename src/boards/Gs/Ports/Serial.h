@@ -22,33 +22,41 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <Gs/Config/SerialConfig.h>
+#include <common/Mavlink.h>
+#include <drivers/usart/USART.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
+#include <ActiveObject.h>
 
-namespace Common
+namespace Gs
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 434000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = true};
+class Serial : public Boardcore::Module, private Boardcore::ActiveObject {
+public:
+    Serial() : usart(USART1, SERIAL_BAUD_RATE) {}
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+    [[nodiscard]] bool start();
 
-}  // namespace Common
+    /**
+     * @brief Send a mavlink message through this port.
+     */
+    void sendMsg(const mavlink_message_t& msg);
+
+protected:
+    /**
+     * @brief Internal run method
+    */
+    void run() override;
+
+private:
+    /**
+     * @brief Called internally when a message is received.
+     */
+    void handleMsg(const mavlink_message_t& msg);
+
+    miosix::FastMutex mutex;
+
+    Boardcore::USART usart;
+};
+
+}

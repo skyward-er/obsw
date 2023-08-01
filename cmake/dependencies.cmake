@@ -29,3 +29,10 @@ set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
+
+
+set(GS_COMPUTER
+    src/boards/Gs/Ports/Serial.cpp
+    src/boards/Gs/Radio/Radio.cpp
+    src/boards/Gs/Radio/RadioStatus.cpp
+)

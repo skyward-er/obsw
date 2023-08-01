@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include <ctype.h>
+#include <cstdint>
+#include <cstddef>
 
 // Uncomment the following line to enable backup RF for main
 // #define SKYWARD_GS_MAIN_USE_BACKUP_RF

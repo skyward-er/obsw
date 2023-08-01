@@ -20,35 +20,50 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Gs/Buses.h>
+#include <Gs/Ports/Serial.h>
+#include <Gs/Radio/Radio.h>
+#include <Gs/Radio/RadioStatus.h>
 
-#include <radio/SX1278/SX1278Fsk.h>
+using namespace Gs;
+using namespace Boardcore;
 
-namespace Common
-{
+int main() {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 434000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = true};
+    Buses *buses = new Buses();
+    Serial *serial = new Serial();
+    RadioMain *radio_main = new RadioMain();
+    RadioPayload *radio_payload = new RadioPayload();
+    RadioStatus *radio_status = new RadioStatus();
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+    ModuleManager &modules = ModuleManager::getInstance();
 
-}  // namespace Common
+    bool ok = true;
+
+    ok &= modules.insert(buses);
+    ok &= modules.insert(serial);
+    ok &= modules.insert(radio_main);
+    ok &= modules.insert(radio_payload);
+    ok &= modules.insert(radio_status);
+
+    // Ok now start them
+
+    ok &= serial->start();
+    ok &= radio_main->start();
+    ok &= radio_payload->start();
+
+    /*if(!ok) {
+        printf("[GS] Init failed!\n");
+    } else {
+        printf("[GS] Init succesfull!\n");
+        printf("[GS] radio main: %d\n", radio_status->isMainRadioPresent());
+        printf("[GS] radio payload: %d\n", radio_status->isPayloadRadioPresent());
+    }*/
+
+    
+    while(1) {
+        miosix::Thread::sleep(1000);
+    }
+
+    return 0;
+}
