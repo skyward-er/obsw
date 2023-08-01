@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -93,6 +94,7 @@ State FlightModeManager::state_on_ground(const Event& event)
 
 State FlightModeManager::state_init(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -129,6 +131,7 @@ State FlightModeManager::state_init(const Event& event)
 
 State FlightModeManager::state_init_error(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -150,6 +153,8 @@ State FlightModeManager::state_init_error(const Event& event)
         }
         case TMTC_FORCE_INIT:
         {
+            modules.get<CanHandler>()->sendEvent(
+                CanConfig::EventId::FORCE_INIT);
             return transition(&FlightModeManager::state_init_done);
         }
         default:
@@ -263,6 +268,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
 
 State FlightModeManager::state_disarmed(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -271,7 +277,7 @@ State FlightModeManager::state_disarmed(const Event& event)
 
             // Stop eventual logging
             Logger::getInstance().stop();
-            ModuleManager::getInstance().get<Actuators>()->camOff();
+            modules.get<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
             return HANDLED;
@@ -290,14 +296,18 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_CALIBRATE:
         {
+            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             return transition(&FlightModeManager::state_calibrate_sensors);
         }
         case TMTC_ENTER_TEST_MODE:
         {
+            modules.get<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_TEST_MODE);
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_ARM:
         {
+            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             return transition(&FlightModeManager::state_armed);
         }
         default:
@@ -309,6 +319,7 @@ State FlightModeManager::state_disarmed(const Event& event)
 
 State FlightModeManager::state_test_mode(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -336,16 +347,18 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_START_RECORDING:
         {
-            ModuleManager::getInstance().get<Actuators>()->camOn();
+            modules.get<Actuators>()->camOn();
             return HANDLED;
         }
         case TMTC_STOP_RECORDING:
         {
-            ModuleManager::getInstance().get<Actuators>()->camOff();
+            modules.get<Actuators>()->camOff();
             return HANDLED;
         }
         case TMTC_EXIT_TEST_MODE:
         {
+            modules.get<CanHandler>()->sendEvent(
+                CanConfig::EventId::EXIT_TEST_MODE);
             return transition(&FlightModeManager::state_disarmed);
         }
         default:
@@ -357,6 +370,7 @@ State FlightModeManager::state_test_mode(const Event& event)
 
 State FlightModeManager::state_armed(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -364,7 +378,7 @@ State FlightModeManager::state_armed(const Event& event)
             logStatus(FlightModeManagerState::ARMED);
 
             Logger::getInstance().start();
-            ModuleManager::getInstance().get<Actuators>()->camOn();
+            modules.get<Actuators>()->camOn();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
             return HANDLED;
@@ -383,10 +397,12 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case TMTC_DISARM:
         {
+            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return transition(&FlightModeManager::state_disarmed);
         }
         case TMTC_FORCE_LAUNCH:
         {
+            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             return transition(&FlightModeManager::state_flying);
         }
         default:
@@ -483,6 +499,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
 State FlightModeManager::state_unpowered_ascent(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -508,6 +525,8 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         case TMTC_FORCE_APOGEE:
         case ADA_APOGEE_DETECTED:
         {
+            modules.get<CanHandler>()->sendEvent(
+                CanConfig::EventId::APOGEE_DETECTED);
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:

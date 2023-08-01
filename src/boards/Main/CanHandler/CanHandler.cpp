@@ -50,11 +50,9 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
     bitTiming.samplePoint = SAMPLE_POINT;
 
     CanbusDriver::CanbusConfig config;
-    config.nart = 1;
 
     // NOTE configure the peripheral CAN1 due to shared configs
     // TODO solve this thing
-    driver = new CanbusDriver(CAN1, config, bitTiming);
     driver = new CanbusDriver(CAN2, config, bitTiming);
 
     // Create the protocol with the defined driver

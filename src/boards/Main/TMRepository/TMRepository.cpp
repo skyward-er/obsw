@@ -226,6 +226,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Board status (TODO)
 
+            // Pitot CAN sensor
+            tm.airspeed_pitot =
+                modules.get<Sensors>()->getPitotLastSample().airspeed;
+
             mavlink_msg_rocket_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                 RadioConfig::MAV_COMP_ID, &msg,
                                                 &tm);
