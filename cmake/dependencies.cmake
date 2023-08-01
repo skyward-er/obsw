@@ -138,4 +138,5 @@ set(GROUNDSTATION_BASE
 
 set(ANTENNAS
     src/boards/AutomatedAntennas/Actuators.cpp
+    src/boards/AutomatedAntennas/Sensors.cpp
 )

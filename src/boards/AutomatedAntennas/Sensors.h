@@ -42,7 +42,7 @@ public:
     /**
      * @brief Returns the last sample of the VN300.
      */
-    VN300Data getVN300LastSample();
+    Boardcore::VN300Data getVN300LastSample();
 
 private:
     bool vn300Init();
@@ -50,7 +50,7 @@ private:
 
     Boardcore::VN300 *vn300 = nullptr;
 
-    SensorManager *sm = nullptr;
+    Boardcore::SensorManager *sm = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
