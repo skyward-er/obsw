@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -270,6 +271,7 @@ State FlightModeManager::state_disarmed(const Event& event)
 
             // Stop eventual logging
             Logger::getInstance().stop();
+            ModuleManager::getInstance().get<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
             return HANDLED;
@@ -332,6 +334,16 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_START_RECORDING:
+        {
+            ModuleManager::getInstance().get<Actuators>()->camOn();
+            return HANDLED;
+        }
+        case TMTC_STOP_RECORDING:
+        {
+            ModuleManager::getInstance().get<Actuators>()->camOff();
+            return HANDLED;
+        }
         case TMTC_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::state_disarmed);
@@ -352,6 +364,7 @@ State FlightModeManager::state_armed(const Event& event)
             logStatus(FlightModeManagerState::ARMED);
 
             Logger::getInstance().start();
+            ModuleManager::getInstance().get<Actuators>()->camOn();
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
             return HANDLED;

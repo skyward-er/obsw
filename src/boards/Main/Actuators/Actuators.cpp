@@ -39,7 +39,7 @@ Actuators::Actuators()
                          EXP_MAX_PULSE);
 
     // Default disable
-    gpios::camera_enable::high();
+    camOff();
     gpios::status_led::low();
 }
 
@@ -84,13 +84,13 @@ float Actuators::getServoPosition(ServosList servo)
 void Actuators::camOn()
 {
     PauseKernelLock lock;
-    gpios::camera_enable::low();
+    gpios::camera_enable::high();
 }
 
 void Actuators::camOff()
 {
     PauseKernelLock lock;
-    gpios::camera_enable::high();
+    gpios::camera_enable::low();
 }
 
 void Actuators::toggleLed()
