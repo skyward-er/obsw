@@ -20,15 +20,19 @@
  * THE SOFTWARE.
  */
 #pragma once
-
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/analog/Pitot/Pitot.h>
+#include <sensors/analog/Pitot/PitotData.h>
+#include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
+#include <sensors/analog/pressure/honeywell/SSCMRNN030PA.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -81,7 +85,10 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
-    Boardcore::ADS131M08Data getADS131M0LastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
+
+    // CAN fake sensors getters
+    Boardcore::PitotData getPitotLastSample();
 
 private:
     // Init and callbacks methods
@@ -109,15 +116,27 @@ private:
     void ads131m08Init();
     void ads131m08Callback();
 
+    void staticPressureInit();
+    void staticPressureCallback();
+
+    void pitotPressureInit();
+    void pitotPressureCallback();
+
+    void pitotInit();
+    void pitotCallback();
+
     // Sensors instances
-    Boardcore::LPS22DF* lps22df       = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
-    Boardcore::LIS2MDL* lis2mdl       = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
-    Boardcore::ADS131M08* ads131m08   = nullptr;
+    Boardcore::LPS22DF* lps22df             = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_1         = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_2         = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl       = nullptr;
+    Boardcore::LIS2MDL* lis2mdl             = nullptr;
+    Boardcore::UBXGPSSpi* ubxgps            = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx           = nullptr;
+    Boardcore::ADS131M08* ads131m08         = nullptr;
+    Boardcore::HSCMRNN015PA* staticPressure = nullptr;
+    Boardcore::SSCMRNN030PA* pitotPressure  = nullptr;
+    Boardcore::Pitot* pitot                 = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;

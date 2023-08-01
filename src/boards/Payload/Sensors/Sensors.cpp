@@ -24,6 +24,7 @@
 
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
+#include <common/ReferenceConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -67,10 +68,16 @@ LSM6DSRXData Sensors::getLSM6DSRXLastSample()
     miosix::PauseKernelLock lock;
     return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
-ADS131M08Data Sensors::getADS131M0LastSample()
+ADS131M08Data Sensors::getADS131M08LastSample()
 {
     miosix::PauseKernelLock lock;
     return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
+}
+
+PitotData Sensors::getPitotLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return pitot != nullptr ? pitot->getLastSample() : PitotData{};
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
@@ -86,6 +93,9 @@ bool Sensors::start()
     ubxgpsInit();
     lsm6dsrxInit();
     ads131m08Init();
+    staticPressureInit();
+    pitotPressureInit();
+    pitotInit();
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -94,7 +104,10 @@ bool Sensors::start()
 
 void Sensors::stop() { manager->stop(); }
 
-bool Sensors::isStarted() { return manager->areAllSensorsInitialized(); }
+bool Sensors::isStarted()
+{
+    return manager->areAllSensorsInitialized() && scheduler->isRunning();
+}
 
 void Sensors::calibrate() {}
 
@@ -270,11 +283,65 @@ void Sensors::ads131m08Init()
     ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
                               miosix::sensors::ADS131::cs::getPin(), config,
                               sensorConfig);
-
     // Emplace the sensor inside the map
     SensorInfo info("ADS131M08", ADS131M08_PERIOD,
                     bind(&Sensors::ads131m08Callback, this));
     sensorMap.emplace(make_pair(ads131m08, info));
+}
+
+void Sensors::staticPressureInit()
+{
+    // create lambda function to read the voltage
+    auto readVoltage = (
+        [&]() -> ADCData
+        {
+             auto temp = ads131m08->getLastSample();
+            return temp.getVoltage(
+               STATIC_PRESSURE_CHANNEL);
+        });
+
+    staticPressure = new HSCMRNN015PA(readVoltage);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("StaticPressure", ADS131M08_PERIOD,
+                    bind(&Sensors::staticPressureCallback, this));
+    sensorMap.emplace(make_pair(staticPressure, info));
+}
+
+void Sensors::pitotPressureInit()
+{
+    // create lambda function to read the voltage
+    auto readVoltage = (
+        [&]() -> ADCData
+        {
+             auto temp = ads131m08->getLastSample();
+            return temp.getVoltage(
+                TOTAL_PRESSURE_CHANNEL);
+        });
+
+    pitotPressure = new SSCMRNN030PA(readVoltage);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("TotalPressure", ADS131M08_PERIOD,
+                    bind(&Sensors::pitotPressureCallback, this));
+    sensorMap.emplace(make_pair(pitotPressure, info));
+}
+
+void Sensors::pitotInit()
+{
+    // create lambda function to read the pressure
+    function<PressureData()> getPitotPressure(
+        [&]() { return pitotPressure->getLastSample(); });
+    function<float()> getStaticPressure(
+        [&]() { return staticPressure->getLastSample().pressure; });
+
+    pitot = new Pitot(getPitotPressure, getStaticPressure);
+    pitot->setReferenceValues(Common::ReferenceConfig::defaultReferenceValues);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("Pitot", ADS131M08_PERIOD,
+                    bind(&Sensors::pitotCallback, this));
+    sensorMap.emplace(make_pair(pitotPressure, info));
 }
 
 void Sensors::lps22dfCallback()
@@ -326,4 +393,24 @@ void Sensors::ads131m08Callback()
     Logger::getInstance().log(lastSample);
 }
 
+void Sensors::staticPressureCallback()
+{
+    miosix::PauseKernelLock lock;
+    HSCMRNN015PAData lastSample = staticPressure->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+
+void Sensors::pitotPressureCallback()
+{
+    miosix::PauseKernelLock lock;
+    SSCMRNN030PAData lastSample = pitotPressure->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+
+void Sensors::pitotCallback()
+{
+    miosix::PauseKernelLock lock;
+    PitotData lastSample = pitot->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
 }  // namespace Payload
