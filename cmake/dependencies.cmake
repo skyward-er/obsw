@@ -95,3 +95,9 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Sensors/RotatedIMU/RotatedIMU.cpp
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
 )
+
+set(GS_COMPUTER
+    src/boards/Gs/Ports/Serial.cpp
+    src/boards/Gs/Radio/Radio.cpp
+    src/boards/Gs/Radio/RadioStatus.cpp
+)

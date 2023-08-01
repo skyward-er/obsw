@@ -22,33 +22,25 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Common
+namespace Gs
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 434000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = true};
+class RadioStatus : public Boardcore::Module
+{
+public:
+    RadioStatus() {}
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+    bool isMainRadioPresent();
+    bool isPayloadRadioPresent();
 
-}  // namespace Common
+    void setMainRadioPresent(bool present);
+    void setPayloadRadioPresent(bool present);
+
+private:
+    bool main_radio_present = false;
+    bool payload_radio_present = false;
+};
+
+}
