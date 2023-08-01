@@ -38,4 +38,5 @@ set(MAIN_COMPUTER
     src/boards/Main/TMRepository/TMRepository.cpp
     src/boards/Main/CanHandler/CanHandler.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Main/Actuators/Actuators.cpp
 )

@@ -19,8 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Main/Actuators/Actuators.h>
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -188,6 +190,23 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             {
                 return;
             }
+
+            break;
+        }
+        case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
+
+            // Send nack if the FMM is not in test mode
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
+            {
+                return sendNack(msg);
+            }
+
+            // If the state is test mode, the wiggle is done
+            modules.get<Actuators>()->wiggleServo(servoId);
 
             break;
         }

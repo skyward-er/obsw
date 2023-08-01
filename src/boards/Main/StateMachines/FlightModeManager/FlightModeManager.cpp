@@ -612,8 +612,11 @@ State FlightModeManager::state_landed(const Event& event)
 
 void FlightModeManager::logStatus(FlightModeManagerState state)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
+    {
+        PauseKernelLock lock;
+        status.timestamp = TimestampTimer::getTimestamp();
+        status.state     = state;
+    }
 
     Logger::getInstance().log(status);
 }

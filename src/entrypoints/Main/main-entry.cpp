@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
@@ -65,24 +66,31 @@ int main()
     CanHandler* canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
+    Actuators* actuators   = new Actuators();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the board scheduler module");
+        LOG_ERR(logger, "Error inserting the Board Scheduler module");
     }
 
     if (!modules.insert<Buses>(buses))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the buses module");
+        LOG_ERR(logger, "Error inserting the Buses module");
     }
 
     if (!modules.insert<Sensors>(sensors))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the sensor module");
+        LOG_ERR(logger, "Error inserting the Sensor module");
+    }
+
+    if (!modules.insert<Actuators>(actuators))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Actuators module");
     }
 
     if (!modules.insert<NASController>(nas))
@@ -125,13 +133,19 @@ int main()
     if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the board scheduler module");
+        LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
     if (!modules.get<Sensors>()->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the sensors module");
+        LOG_ERR(logger, "Error starting the Sensors module");
+    }
+
+    if (!modules.get<Actuators>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Actuators module");
     }
 
     if (!modules.get<NASController>()->start())
