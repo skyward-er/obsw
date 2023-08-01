@@ -22,7 +22,9 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -56,8 +58,10 @@ int main()
     // NASController* nas =
     //     new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
-    // 2)); TMRepository* tmRepo = new TMRepository(); CanHandler* canHandler =
-    //     new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    // 2)); TMRepository* tmRepo = new TMRepository();
+    FlightModeManager* fmm = new FlightModeManager();
+    CanHandler* canHandler =
+        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -78,6 +82,12 @@ int main()
         LOG_ERR(logger, "Error inserting the sensor module");
     }
 
+    if (!modules.insert<FlightModeManager>(fmm))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the buses module");
+    }
+
     // if (!modules.insert<NASController>(nas))
     // {
     //     initResult = false;
@@ -96,11 +106,11 @@ int main()
     //     LOG_ERR(logger, "Error inserting the TMRepository module");
     // }
 
-    // if (!modules.insert<CanHandler>(canHandler))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the CanHandler module");
-    // }
+    if (!modules.insert<CanHandler>(canHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the CanHandler module");
+    }
 
     // Start modules
     if (!EventBroker::getInstance().start())
@@ -121,6 +131,12 @@ int main()
         LOG_ERR(logger, "Error starting the sensors module");
     }
 
+    if (!modules.get<FlightModeManager>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the flight mode manager module");
+    }
+
     // if (!modules.get<NASController>()->start())
     // {
     //     initResult = false;
@@ -133,11 +149,13 @@ int main()
     //     LOG_ERR(logger, "Error starting the Radio module");
     // }
 
-    // if (!modules.get<CanHandler>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the CanHandler module");
-    // }
+    if (!modules.get<CanHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the CanHandler module");
+    }
+
+    scheduler->start();
 
     // Log all the events
     EventSniffer sniffer(
