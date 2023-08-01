@@ -135,7 +135,9 @@ void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage &msg)
     auto it = eventToEvent.find(eventId);
 
     if (it != eventToEvent.end())
+    {
         EventBroker::getInstance().post(it->second, TOPIC_CAN);
+    }
     else
         LOG_WARN(logger, "Received unsupported event: id={}", eventId);
 }

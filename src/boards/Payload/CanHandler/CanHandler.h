@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Payload/BoardScheduler.h>
+#include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -38,11 +39,11 @@ public:
 
     bool isStarted();
 
-    void sendEvent(EventId event);
+    void sendEvent(Common::CanConfig::EventId event);
 
-private:
     explicit CanHandler(Boardcore::TaskScheduler *sched);
 
+private:
     void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
 
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
