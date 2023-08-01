@@ -32,7 +32,7 @@ set(HIL
 
 set(PAYLOAD_COMPUTER
     #src/boards/Payload/Actuators/Actuators.cpp
-    #src/boards/Payload/CanHandler/CanHandler.cpp
+    src/boards/Payload/CanHandler/CanHandler.cpp
     #src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/boards/Payload/Sensors/Sensors.cpp
     src/boards/Payload/BoardScheduler.cpp
