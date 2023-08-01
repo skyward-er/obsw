@@ -56,7 +56,7 @@ bool CanHandler::start()
                                   static_cast<uint8_t>(SensorId::PITOT),
                                   ModuleManager::getInstance()
                                       .get<Sensors>()
-                                      .getPitotLastSample());
+                                      ->getPitotLastSample());
         },
         PITOT_TRANSMISSION_PERIOD);
 
