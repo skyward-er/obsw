@@ -25,6 +25,7 @@
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
@@ -63,6 +64,7 @@ int main()
     TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    FlightModeManager* fmm = new FlightModeManager();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -93,6 +95,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Radio module");
+    }
+
+    if (modules.insert<FlightModeManager>(fmm))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the FMM module");
     }
 
     if (!modules.insert<TMRepository>(tmRepo))
@@ -130,6 +138,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS module");
+    }
+
+    if (!modules.get<FlightModeManager>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FMM module");
     }
 
     if (!modules.get<Radio>()->start())
