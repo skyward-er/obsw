@@ -94,7 +94,7 @@ private:
 
     FlightModeManagerStatus status;
 
-    Boardcore::PrintLogger logger = Logging::getLogger("FlightModeManager");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("FlightModeManager");
 };
 
 }  // namespace Main

@@ -20,12 +20,9 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include "FlightModeManager.h"
-
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
