@@ -24,60 +24,41 @@
 
 #include <Gs/Buses.h>
 #include <radio/SX1278/SX1278Frontends.h>
+#include <Gs/Ports/Serial.h>
+#include <Gs/Radio/RadioStatus.h>
 
 using namespace miosix;
 using namespace Gs;
 using namespace Boardcore;
 
-SX1278Fsk* radio1_ptr = nullptr;
-SX1278Fsk* radio2_ptr = nullptr;
-
 void __attribute__((used)) MIOSIX_RADIO1_DIO0_IRQ()
 {
-    if (radio1_ptr != nullptr)
-    {
-        radio1_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO1_DIO1_IRQ()
 {
-    if (radio1_ptr != nullptr)
-    {
-        radio1_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO1_DIO3_IRQ()
 {
-    if (radio1_ptr != nullptr)
-    {
-        radio1_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO0_IRQ()
 {
-    if (radio2_ptr != nullptr)
-    {
-        radio2_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO1_IRQ()
 {
-    if (radio2_ptr != nullptr)
-    {
-        radio2_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 {
-    if (radio2_ptr != nullptr)
-    {
-        radio2_ptr->handleDioIRQ();
-    }
+    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
 }
 
 void RadioBase::sendMsg(const mavlink_message_t& msg)
@@ -86,14 +67,23 @@ void RadioBase::sendMsg(const mavlink_message_t& msg)
     pending_msgs.put(msg);
 }
 
+void RadioBase::handleDioIRQ()
+{
+    if (sx1278)
+    {
+        sx1278->handleDioIRQ();
+    }
+}
+
 bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
                       const SX1278Fsk::Config& config)
 {
     this->sx1278 = std::move(sx1278);
 
     // Configure the radio
-    if (this->sx1278->configure(config) != SX1278Fsk::Error::NONE)
+    if (this->sx1278->configure(config) != SX1278Fsk::Error::NONE) {
         return false;
+    }
 
     auto mav_handler = [this](MavDriver* channel, const mavlink_message_t& msg)
     { handleMsg(msg); };
@@ -103,7 +93,9 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
                                              Gs::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mav_driver->start())
+    {
         return false;
+    }
 
     return true;
 }
@@ -126,10 +118,19 @@ bool RadioMain::start()
             radio1::dio1::getPin(), radio1::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));
 
-    // This is valid, as the module will never be deleted
-    radio1_ptr = sx1278.get();
+    // First check if the device is even connected
+    RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
+    // Set if the device is present
+    status->setMainRadioPresent(sx1278->checkVersion());
 
-    return RadioBase::start(std::move(sx1278), Common::MAIN_RADIO_CONFIG);
+    if(status->isMainRadioPresent()) {
+        // Initialize if only if present
+        if(!RadioBase::start(std::move(sx1278), Common::MAIN_RADIO_CONFIG)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool RadioPayload::start()
@@ -150,33 +151,46 @@ bool RadioPayload::start()
             radio2::dio1::getPin(), radio2::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));
 
-    // This is valid, as the module will never be deleted
-    radio2_ptr = sx1278.get();
+    // First check if the device is even connected
+    RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
+    // Set if the device is present
+    status->setPayloadRadioPresent(sx1278->checkVersion());
 
-    return RadioBase::start(std::move(sx1278), Common::PAYLOAD_RADIO_CONFIG);
+    if(status->isPayloadRadioPresent()) {
+        // Initialize if only if present
+        if(!RadioBase::start(std::move(sx1278), Common::PAYLOAD_RADIO_CONFIG)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
-    // TODO
+    printf("Bruh\n");
 
-    /*
-    if(msg.msgid == ) {
+    // TODO:
+    Serial *serial = ModuleManager::getInstance().get<Serial>();
+    serial->sendMsg(msg);
+
+    if (isEndOfTransmissionPacket(msg))
+    {
         flush();
     }
-    */
 }
 
 void RadioBase::flush()
 {
-    // Why is this here?
-    //
-    // Basically even SyncPacketQueue is not 100% thread safe (due to a bug). So
-    // we will use the good old "put a massive fucking mutex over everything"
-    // trick to fix this until we find a better solution.
     Lock<FastMutex> l(mutex);
     while (!pending_msgs.isEmpty())
     {
         mav_driver->enqueueMsg(pending_msgs.pop());
     }
+}
+
+bool RadioBase::isEndOfTransmissionPacket(const mavlink_message_t& msg)
+{
+    return msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
+           msg.msgid == MAVLINK_MSG_ID_PAYLOAD_FLIGHT_TM;
 }

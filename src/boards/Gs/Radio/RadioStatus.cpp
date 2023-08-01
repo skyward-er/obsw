@@ -20,22 +20,20 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "RadioStatus.h"
 
-#include <cstdint>
-#include <cstddef>
+using namespace Boardcore;
+using namespace Gs;
 
-// Uncomment the following line to enable backup RF for main
-// #define SKYWARD_GS_MAIN_USE_BACKUP_RF
-// Uncomment the following line to enable backup RF for payload
-// #define SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+bool Gs::RadioStatus::isMainRadioPresent() { return main_radio_present; }
+bool Gs::RadioStatus::isPayloadRadioPresent() { return payload_radio_present; }
 
-namespace Gs
+void Gs::RadioStatus::setMainRadioPresent(bool present)
 {
+    main_radio_present = present;
+}
 
-constexpr size_t MAV_OUT_QUEUE_SIZE = 20;
-constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
-constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 1000;
-
-} // namespace Gs
+void Gs::RadioStatus::setPayloadRadioPresent(bool present)
+{
+    payload_radio_present = present;
+}

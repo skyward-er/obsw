@@ -22,20 +22,41 @@
 
 #pragma once
 
-#include <cstdint>
-#include <cstddef>
-
-// Uncomment the following line to enable backup RF for main
-// #define SKYWARD_GS_MAIN_USE_BACKUP_RF
-// Uncomment the following line to enable backup RF for payload
-// #define SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+#include <Gs/Config/SerialConfig.h>
+#include <common/Mavlink.h>
+#include <drivers/usart/USART.h>
+#include <utils/ModuleManager/ModuleManager.hpp>
+#include <ActiveObject.h>
 
 namespace Gs
 {
 
-constexpr size_t MAV_OUT_QUEUE_SIZE = 20;
-constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
-constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 1000;
+class Serial : public Boardcore::Module, private Boardcore::ActiveObject {
+public:
+    Serial() : usart(USART1, SERIAL_BAUD_RATE) {}
 
-} // namespace Gs
+    [[nodiscard]] bool start();
+
+    /**
+     * @brief Send a mavlink message through this port.
+     */
+    void sendMsg(const mavlink_message_t& msg);
+
+protected:
+    /**
+     * @brief Internal run method
+    */
+    void run() override;
+
+private:
+    /**
+     * @brief Called internally when a message is received.
+     */
+    void handleMsg(const mavlink_message_t& msg);
+
+    miosix::FastMutex mutex;
+
+    Boardcore::USART usart;
+};
+
+}
