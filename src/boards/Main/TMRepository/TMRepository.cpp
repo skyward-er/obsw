@@ -23,6 +23,7 @@
 #include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -175,7 +176,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
             tm.abk_state = 0;
-            tm.fmm_state = 0;
+            tm.fmm_state = static_cast<uint8_t>(
+                modules.get<FlightModeManager>()->getStatus().state);
 
             // Pressures (TODO)
             tm.pressure_ada    = 0;

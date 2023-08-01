@@ -97,7 +97,7 @@ int main()
         LOG_ERR(logger, "Error inserting the Radio module");
     }
 
-    if (modules.insert<FlightModeManager>(fmm))
+    if (!modules.insert<FlightModeManager>(fmm))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the FMM module");
@@ -179,6 +179,7 @@ int main()
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        LOG_ERR(logger, "Failed to initialize");
     }
 
     // Periodic statistics

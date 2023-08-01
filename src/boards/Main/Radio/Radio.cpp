@@ -22,9 +22,13 @@
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
 #include <Main/TMRepository/TMRepository.h>
+#include <common/Events.h>
+#include <common/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
+#include <events/EventBroker.h>
 
 using namespace Boardcore;
+using namespace Common;
 
 #define SX1278_IRQ_DIO0 EXTI13_IRQHandlerImpl
 #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
@@ -193,7 +197,43 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
     sendAck(msg);
 }
 
-void Radio::handleCommand(const mavlink_message_t& msg) {}
+void Radio::handleCommand(const mavlink_message_t& msg)
+{
+    MavCommandList commandId = static_cast<MavCommandList>(
+        mavlink_msg_command_tc_get_command_id(&msg));
+
+    static const std::map<MavCommandList, Events> commandToEvent{
+        {MAV_CMD_ARM, TMTC_ARM},
+        {MAV_CMD_DISARM, TMTC_DISARM},
+        {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
+        {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
+        {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
+        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
+        {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
+        {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
+        {MAV_CMD_FORCE_MAIN, TMTC_FORCE_DEPLOYMENT},
+        {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
+        {MAV_CMD_STOP_LOGGING, TMTC_STOP_LOGGING},
+        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
+        {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
+        {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
+        {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
+        {MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING},
+    };
+    auto it = commandToEvent.find(commandId);
+
+    if (it != commandToEvent.end())
+    {
+        EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+    }
+    else
+    {
+        return sendNack(msg);
+    }
+
+    // Acknowledge the message
+    sendAck(msg);
+}
 
 void Radio::sendPeriodicMessage()
 {

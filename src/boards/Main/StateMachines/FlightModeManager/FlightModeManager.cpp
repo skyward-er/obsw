@@ -113,11 +113,11 @@ State FlightModeManager::state_init(const Event& event)
         }
         case FMM_INIT_ERROR:
         {
-            transition(&FlightModeManager::state_init_error);
+            return transition(&FlightModeManager::state_init_error);
         }
         case FMM_INIT_OK:
         {
-            transition(&FlightModeManager::state_init_done);
+            return transition(&FlightModeManager::state_init_done);
         }
         default:
         {
@@ -199,7 +199,6 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
         {
             logStatus(FlightModeManagerState::CALIBRATE_SENSORS);
 
-            // calibrateSensors()
             ModuleManager::getInstance().get<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
             return HANDLED;
@@ -234,7 +233,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::CALIBRATE_ALGORITHMS);
-            ModuleManager::getInstance().get<NASController>()->calibrate();
+            EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
 
             return HANDLED;
         }
@@ -312,7 +311,7 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::INIT_DONE);
+            logStatus(FlightModeManagerState::TEST_MODE);
 
             Logger::getInstance().start();
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
@@ -531,6 +530,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_FORCE_DEPLOYMENT:
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         {
             return transition(&FlightModeManager::state_terminal_descent);

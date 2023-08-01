@@ -42,7 +42,7 @@ NASController::NASController(Boardcore::TaskScheduler* sched)
 {
     // Subscribe the class to the topics
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 
     // Setup the NAS
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
@@ -273,10 +273,11 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+            logStatus(NASControllerState::CALIBRATING);
+
             // Calibrate the NAS
             calibrate();
-
-            return logStatus(NASControllerState::CALIBRATING);
+            break;
         }
         case NAS_READY:
         {
