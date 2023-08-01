@@ -122,7 +122,31 @@ bool Sensors::isStarted()
     return manager->areAllSensorsInitialized() && scheduler->isRunning();
 }
 
-void Sensors::calibrate() {}
+void Sensors::calibrate()
+{  // TODO implement this
+   // calibrating = true;
+
+    // ms5803Stats.reset();
+    // staticPressureStats.reset();
+    // dplPressureStats.reset();
+    // pitotPressureStats.reset();
+
+    // bmx160WithCorrection->startCalibration();
+
+    // Thread::sleep(CALIBRATION_DURATION);
+
+    // bmx160WithCorrection->stopCalibration();
+
+    // // Calibrate the analog pressure sensor to the digital one
+    // float ms5803Mean         = ms5803Stats.getStats().mean;
+    // float staticPressureMean = staticPressureStats.getStats().mean;
+    // float dplPressureMean    = dplPressureStats.getStats().mean;
+    // staticPressure->setOffset(staticPressureMean - ms5803Mean);
+    // dplPressure->setOffset(dplPressureMean - ms5803Mean);
+    // pitotPressure->setOffset(pitotPressureStats.getStats().mean);
+
+    // calibrating = false;
+}
 
 void Sensors::lps22dfInit()
 {
@@ -356,6 +380,28 @@ void Sensors::pitotInit()
     SensorInfo info("Pitot", ADS131M08_PERIOD,
                     bind(&Sensors::pitotCallback, this));
     sensorMap.emplace(make_pair(pitot, info));
+}
+
+void Sensors::pitotSetReferenceAltitude(float altitude)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refAltitude     = altitude;
+    pitot->setReferenceValues(reference);
+}
+
+void Sensors::pitotSetReferenceTemperature(float temperature)
+{
+    // Need to pause the kernel because the only invocation comes from the radio
+    // which is a separate thread
+    miosix::PauseKernelLock l;
+
+    ReferenceValues reference = pitot->getReferenceValues();
+    reference.refTemperature  = temperature + 273.15f;
+    pitot->setReferenceValues(reference);
 }
 
 void Sensors::lps22dfCallback()

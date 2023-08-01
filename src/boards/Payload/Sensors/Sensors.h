@@ -93,6 +93,9 @@ public:
     Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
 
+    void pitotSetReferenceAltitude(float altitude);
+    void pitotSetReferenceTemperature(float temperature);
+
 private:
     // Init and callbacks methods
     void lps22dfInit();
