@@ -24,9 +24,6 @@
 
 namespace Main
 {
-
-constexpr unsigned int OPEN_OXIDANT_TIMEOUT    = ;
 constexpr unsigned int MISSION_TIMEOUT         = 15 * 60 * 1000;
-constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = ;
-
+constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 7000;  // [ms]
 }  // namespace Main

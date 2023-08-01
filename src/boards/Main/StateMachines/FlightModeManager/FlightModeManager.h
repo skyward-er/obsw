@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Angelo Prete
+ * Authors: Angelo Prete, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,41 +29,72 @@
 
 #include "FlightModeManagerData.h"
 
-using namespace Boardcore;
-
 namespace Main
 {
 
-class FlightModeManager : public Module, public HSM<FlightModeManager>
+class FlightModeManager : public Boardcore::Module,
+                          public Boardcore::HSM<FlightModeManager>
 {
 public:
     FlightModeManager();
 
     FlightModeManagerStatus getStatus();
 
-    State state_on_ground(const Event& event);
-    State state_init(const Event& event);
-    State state_init_error(const Event& event);
-    State state_init_done(const Event& event);
-    State state_calibrate_sensors(const Event& event);
-    State state_calibrate_algorithms(const Event& event);
-    State state_disarmed(const Event& event);
-    State state_test_mode(const Event& event);
-    State state_armed(const Event& event);
-    State state_ignition(const Event& event);
-    State state_flying(const Event& event);
-    State state_powered_ascent(const Event& event);
-    State state_unpowered_ascent(const Event& event);
-    State state_drogue_descent(const Event& event);
-    State state_terminal_descent(const Event& event);
-    State state_landed(const Event& event);
+    // Super state for when the rocket is on ground
+    Boardcore::State state_on_ground(const Boardcore::Event& event);
+
+    // Initialization state
+    Boardcore::State state_init(const Boardcore::Event& event);
+
+    // State in which the init has failed
+    Boardcore::State state_init_error(const Boardcore::Event& event);
+
+    // State in which the init is done and a calibration event is thrown
+    Boardcore::State state_init_done(const Boardcore::Event& event);
+
+    // Calibration of all the sensors (offsets)
+    Boardcore::State state_calibrate_sensors(const Boardcore::Event& event);
+
+    // Calibration of all the algorithms (triad for NAS etc..)
+    Boardcore::State state_calibrate_algorithms(const Boardcore::Event& event);
+
+    // State in which the electronics is ready to be armed
+    Boardcore::State state_disarmed(const Boardcore::Event& event);
+
+    // State in which some actions (like main deployment, expulsion event etc..)
+    // are accepted
+    Boardcore::State state_test_mode(const Boardcore::Event& event);
+
+    // State in which the algorithms start to run (NAS) and the electronics is
+    // ready to fly
+    Boardcore::State state_armed(const Boardcore::Event& event);
+
+    // Super state in which the liftoff has been detected
+    Boardcore::State state_flying(const Boardcore::Event& event);
+
+    // State in which the the rocket is ascending with the motor on. The
+    // automatic shutdown algorithm runs during this phase
+    Boardcore::State state_powered_ascent(const Boardcore::Event& event);
+
+    // State in which the motor has been shut down. The airbrakes algorithm is
+    // running during this phase
+    Boardcore::State state_unpowered_ascent(const Boardcore::Event& event);
+
+    // State in which the apogee has been detected (triggered by the ADA system)
+    Boardcore::State state_drogue_descent(const Boardcore::Event& event);
+
+    // State in which the parachute has been opened by an altitude trigger
+    Boardcore::State state_terminal_descent(const Boardcore::Event& event);
+
+    // State in which n minutes of time have passed after the liftoff event
+    Boardcore::State state_landed(const Boardcore::Event& event);
 
 private:
     void logStatus(FlightModeManagerState state);
 
     FlightModeManagerStatus status;
 
-    PrintLogger logger = Logging::getLogger("FlightModeManager");
+    Boardcore::PrintLogger logger = Logging::getLogger("FlightModeManager");
 };
 
 }  // namespace Main
