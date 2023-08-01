@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
+/* Copyright (c) 2023 Skyward Experimental Rocketry
  * Authors: Federico Mandelli, Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -76,6 +76,7 @@ bool CanHandler::start()
                 ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
         },
         STATUS_TRANSMISSION_PERIOD);
+    driver->init();
     return protocol->start();
 }
 
@@ -105,7 +106,6 @@ CanHandler::CanHandler(Boardcore::TaskScheduler *sched) : scheduler(sched)
                         static_cast<uint8_t>(Board::BROADCAST));
     protocol->addFilter(static_cast<uint8_t>(Board::RIG),
                         static_cast<uint8_t>(Board::BROADCAST));
-    driver->init();
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)
@@ -117,11 +117,6 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
         case PrimaryType::EVENTS:
         {
             handleCanEvent(msg);
-            break;
-        }
-        case PrimaryType::STATUS:
-        {
-            handleCanStatus(msg);
             break;
         }
         default:
@@ -143,13 +138,6 @@ void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage &msg)
         EventBroker::getInstance().post(it->second, TOPIC_CAN);
     else
         LOG_WARN(logger, "Received unsupported event: id={}", eventId);
-}
-
-void CanHandler::handleCanStatus(const Boardcore::Canbus::CanMessage &msg)
-{
-    // Board source  = static_cast<Board>(msg.getSource());
-    // uint8_t state = msg.getSecondaryType();
-    // bool isArmed  = msg.payload[0];
 }
 
 }  // namespace Payload
