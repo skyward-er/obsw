@@ -84,6 +84,11 @@ constexpr Boardcore::ADS131M08Defs::OversamplingRatio
         Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
 
+constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
+constexpr Boardcore::ADS131M08Defs::Channel PITOT_PRESSURE_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
+
 constexpr uint32_t LPS22DF_PERIOD    = 20;                         // [ms] 50Hz
 constexpr uint32_t LPS28DFW_PERIOD   = 20;                         // [ms] 50Hz
 constexpr uint32_t H3LIS331DL_PERIOD = 10;                         // [ms] 100Hz

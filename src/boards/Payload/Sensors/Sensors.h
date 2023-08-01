@@ -88,6 +88,8 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
 
     // CAN fake sensors getters
+    Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
+    Boardcore::SSCMRNN030PAData getPitotPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
 
 private:

@@ -74,6 +74,19 @@ ADS131M08Data Sensors::getADS131M08LastSample()
     return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
+HSCMRNN015PAData Sensors::getStaticPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return staticPressure != nullptr ? staticPressure->getLastSample()
+                                     : HSCMRNN015PAData{};
+}
+
+SSCMRNN030PAData Sensors::getPitotPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return pitotPressure != nullptr ? pitotPressure->getLastSample()
+                                    : SSCMRNN030PAData{};
+}
 PitotData Sensors::getPitotLastSample()
 {
     miosix::PauseKernelLock lock;
@@ -316,7 +329,7 @@ void Sensors::pitotPressureInit()
         {
              auto temp = ads131m08->getLastSample();
             return temp.getVoltage(
-                TOTAL_PRESSURE_CHANNEL);
+                PITOT_PRESSURE_CHANNEL);
         });
 
     pitotPressure = new SSCMRNN030PA(readVoltage);
