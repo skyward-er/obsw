@@ -63,12 +63,40 @@ struct Actuators : public Boardcore::Module
      */
     bool wiggleServo(ServosList servoId);
 
+    /**
+     * @brief Enables the specified servo.
+     *
+     * @param servoId Servo to enable.
+     * @return True if the servo was enabled.
+     * @return False if the servoId is invalid.
+     */
     bool enableServo(ServosList servoId);
 
+    /**
+     * @brief Disables the specified servo.
+     *
+     * @param servoId Servo to disable.
+     * @return True if the servo was disabled.
+     * @return False if the servoId is invalid.
+     */
     bool disableServo(ServosList servoId);
 
+    /**
+     * @brief Returns the current position of the specified servo.
+     *
+     * @param servoId Servo to read.
+     * @return float current Servo position in range [0-1], 0 if the servoId is
+     * invalid.
+     */
     float getServoPosition(ServosList servoId);
 
+    /**
+     * @brief Returns the current angle of the specified servo.
+     *
+     * @param servoId Servo to read.
+     * @return float current Servo angle in range [0-180], 0 if the servoId is
+     * invalid.
+     */
     float getServoAngle(ServosList servoId);
 
     void cuttersOn();
