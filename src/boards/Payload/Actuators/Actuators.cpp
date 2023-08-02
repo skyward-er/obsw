@@ -171,17 +171,9 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
-void Actuators::cuttersOn()
-{
-    gpios::cut_trigger::high();
-    // TODO: missing backup cutter
-}
+void Actuators::cuttersOn() { gpios::cut_trigger::high(); }
 
-void Actuators::cuttersOff()
-{
-    gpios::cut_trigger::low();
-    // TODO: missing backup cutter
-}
+void Actuators::cuttersOff() { gpios::cut_trigger::low(); }
 
 void Actuators::camOn() { gpios::camera_enable::high(); }
 
