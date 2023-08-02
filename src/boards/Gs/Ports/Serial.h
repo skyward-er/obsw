@@ -22,18 +22,20 @@
 
 #pragma once
 
+#include <ActiveObject.h>
 #include <Gs/Config/SerialConfig.h>
 #include <common/Mavlink.h>
 #include <drivers/usart/USART.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
-#include <ActiveObject.h>
 
 namespace Gs
 {
 
-class Serial : public Boardcore::Module, private Boardcore::ActiveObject {
+class Serial : public Boardcore::Module, private Boardcore::ActiveObject
+{
 public:
-    Serial() : usart(USART1, SERIAL_BAUD_RATE) {}
+    Serial() {}
 
     [[nodiscard]] bool start();
 
@@ -45,7 +47,7 @@ public:
 protected:
     /**
      * @brief Internal run method
-    */
+     */
     void run() override;
 
 private:
@@ -55,8 +57,6 @@ private:
     void handleMsg(const mavlink_message_t& msg);
 
     miosix::FastMutex mutex;
-
-    Boardcore::USART usart;
 };
 
-}
+}  // namespace Gs
