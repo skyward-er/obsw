@@ -127,6 +127,9 @@ private:
         LED_ERROR
     };
 
+    // mutexes
+    miosix::FastMutex ledMutex;
+
     bool ledState          = false;
     BlinkState blinkState  = LED_OFF;
     uint8_t ledArmedTaskId = 0;

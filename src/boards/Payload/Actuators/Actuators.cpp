@@ -178,6 +178,7 @@ void Actuators::camOff() { gpios::camera_enable::low(); }
 
 void Actuators::ledArmed()
 {
+    miosix::Lock<miosix::FastMutex> l(ledMutex);
     // disable ledErrorTask if active
     if (blinkState == BlinkState::LED_ERROR)
         scheduler->disableTask(ledErrorTaskId);
@@ -193,6 +194,7 @@ void Actuators::ledArmed()
 
 void Actuators::ledDisarmed()
 {
+    miosix::Lock<miosix::FastMutex> l(ledMutex);
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
     if (blinkState == BlinkState::LED_ERROR)
@@ -205,6 +207,7 @@ void Actuators::ledDisarmed()
 
 void Actuators::ledError()
 {
+    miosix::Lock<miosix::FastMutex> l(ledMutex);
     // disable ledArmedTask if active
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
@@ -220,6 +223,7 @@ void Actuators::ledError()
 
 void Actuators::ledOff()
 {
+    miosix::Lock<miosix::FastMutex> l(ledMutex);
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
     if (blinkState == BlinkState::LED_ERROR)
@@ -241,6 +245,7 @@ Actuators::Actuators(Boardcore::TaskScheduler* sched)
 
 void Actuators::toggleLed()
 {
+    miosix::Lock<miosix::FastMutex> l(ledMutex);
     if (ledState)
         miosix::ledOff();
     else
