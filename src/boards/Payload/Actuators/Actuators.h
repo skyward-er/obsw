@@ -87,7 +87,6 @@ private:
 
     void toggleLed();
 
-    ModuleManager& modules = ModuleManager::getInstance();
     TaskScheduler* scheduler;  // initialized in the start() method
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;

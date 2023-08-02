@@ -40,7 +40,8 @@ namespace Payload
 
 bool Actuators::start()
 {
-    scheduler = modules.get<BoardScheduler>()->getScheduler(4);
+    ModuleManager& modules = ModuleManager::getInstance();
+    scheduler              = modules.get<BoardScheduler>()->getScheduler(4);
     return scheduler == nullptr ? false : true;
 }
 
