@@ -74,23 +74,19 @@ void NASController::update()
         nas.correctGPS(gpsData);
         nas.correctBaro(pressureData.pressure);
 
-        // Correct with accelerometer if the acceleration is in specs
-        Vector3f acceleration = static_cast<AccelerometerData>(imuData);
-        if (accelerationValid &&
-            (acceleration.norm() > (9.8 + ACCELERATION_THRESHOLD) ||
-             acceleration.norm() < (9.8 - ACCELERATION_THRESHOLD)))
-            accelerationValid = false;
         if (accelerationValid)
             nas.correctAcc(imuData);
 
-        if (!accelerationValid &&
-            (acceleration.norm() < (9.8 + ACCELERATION_THRESHOLD) ||
-             acceleration.norm() > (9.8 - ACCELERATION_THRESHOLD)))
+        // Correct with accelerometer if the acceleration is in specs
+        Vector3f acceleration = static_cast<AccelerometerData>(imuData);
+        if (acceleration.norm() < (9.8 + (ACCELERATION_THRESHOLD) / 2) &&
+            acceleration.norm() > (9.8 - (ACCELERATION_THRESHOLD) / 2))
         {
             accSampleAfterSpike++;
         }
         else
         {
+            accelerationValid   = false;
             accSampleAfterSpike = 0;
         }
         if (accSampleAfterSpike > 50)

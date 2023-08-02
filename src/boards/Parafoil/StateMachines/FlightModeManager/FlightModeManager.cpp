@@ -274,7 +274,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::DISARMED);
-            EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FMM);
+            EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
             return transition(
                 &FlightModeManager::state_flying);  // the parafoil is always
