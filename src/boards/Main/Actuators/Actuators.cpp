@@ -30,13 +30,17 @@ using namespace Main::ActuatorsConfig;
 
 namespace Main
 {
-Actuators::Actuators()
+Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
 {
     // Create the servo instances
     servoAbk = new Servo(SERVO_ABK_TIMER, SERVO_ABK_CHANNEL, ABK_MIN_PULSE,
                          ABK_MAX_PULSE);
     servoExp = new Servo(SERVO_EXP_TIMER, SERVO_EXP_CHANNEL, EXP_MIN_PULSE,
                          EXP_MAX_PULSE);
+
+    // Set the buzzer
+    buzzer = new PWM(BUZZER_TIMER, BUZZER_FREQUENCY);
+    buzzer->setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
 
     // Default disable
     camOff();
@@ -47,13 +51,13 @@ bool Actuators::start()
 {
     servoAbk->enable();
     servoExp->enable();
-    return true;
+    return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD);
 }
 
 void Actuators::setServoPosition(ServosList servo, float position)
 {
-    // Pause the kernel for faster thread sync than mutex
-    PauseKernelLock lock;
+    // Lock the mutex for thread sync
+    miosix::Lock<FastMutex> l(mutex);
     Servo* requestedServo = getServo(servo);
 
     if (requestedServo != nullptr)
@@ -64,7 +68,7 @@ void Actuators::setServoPosition(ServosList servo, float position)
 
 void Actuators::wiggleServo(ServosList servo)
 {
-    // Do not pause the kernel due to set position kernel pause
+    // Do not lock the mutex due to set position lock
     setServoPosition(servo, 1);
     Thread::sleep(1000);
     setServoPosition(servo, 0);
@@ -72,6 +76,7 @@ void Actuators::wiggleServo(ServosList servo)
 
 float Actuators::getServoPosition(ServosList servo)
 {
+    miosix::Lock<FastMutex> l(mutex);
     Servo* requestedServo = getServo(servo);
 
     if (requestedServo != nullptr)
@@ -83,19 +88,19 @@ float Actuators::getServoPosition(ServosList servo)
 
 void Actuators::camOn()
 {
-    PauseKernelLock lock;
+    miosix::Lock<FastMutex> l(mutex);
     gpios::camera_enable::high();
 }
 
 void Actuators::camOff()
 {
-    PauseKernelLock lock;
+    miosix::Lock<FastMutex> l(mutex);
     gpios::camera_enable::low();
 }
 
 void Actuators::toggleLed()
 {
-    PauseKernelLock lock;
+    miosix::Lock<FastMutex> l(mutex);
 
     if (ledState)
     {
@@ -123,6 +128,51 @@ Servo* Actuators::getServo(ServosList servo)
         default:
         {
             return nullptr;
+        }
+    }
+}
+
+void Actuators::setBuzzerArm()
+{
+    miosix::Lock<FastMutex> l(mutex);
+    // Set the counter with respect to the update function period
+    buzzerCounterOverflow = BUZZER_ARM_PERIOD / BUZZER_UPDATE_PERIOD;
+}
+
+void Actuators::setBuzzerLand()
+{
+    miosix::Lock<FastMutex> l(mutex);
+    // Set the counter with respect to the update function period
+    buzzerCounterOverflow = BUZZER_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
+}
+
+void Actuators::setBuzzerOff()
+{
+    miosix::Lock<FastMutex> l(mutex);
+    buzzerCounterOverflow = 0;
+}
+
+void Actuators::updateBuzzer()
+{
+    miosix::Lock<FastMutex> l(mutex);
+
+    if (buzzerCounterOverflow == 0)
+    {
+        // The buzzer is deactivated thus the channel is disabled
+        buzzer->disableChannel(BUZZER_CHANNEL);
+    }
+    else
+    {
+        if (buzzerCounter >= buzzerCounterOverflow)
+        {
+            // Enable the channel for this period
+            buzzer->enableChannel(BUZZER_CHANNEL);
+            buzzerCounter = 0;
+        }
+        else
+        {
+            buzzer->disableChannel(BUZZER_CHANNEL);
+            buzzerCounter++;
         }
     }
 }

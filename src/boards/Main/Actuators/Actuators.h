@@ -25,6 +25,8 @@
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/timer/PWM.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -34,8 +36,7 @@ namespace Main
 class Actuators : public Boardcore::Module
 {
 public:
-    // TODO manage in case the scheduler for the buzzer and status led
-    Actuators();
+    Actuators(Boardcore::TaskScheduler* sched);
 
     /**
      * @brief Enables all the servos
@@ -73,18 +74,45 @@ public:
      */
     void toggleLed();
 
+    // Setters for buzzer state
+    void setBuzzerArm();
+    void setBuzzerLand();
+    void setBuzzerOff();
+
 private:
     /**
      * @brief Returns the selected servo pointer
      */
     Boardcore::Servo* getServo(ServosList servo);
 
+    /**
+     * @brief Automatic called method to update the buzzer status
+     */
+    void updateBuzzer();
+
     // Connected servos
     Boardcore::Servo* servoAbk = nullptr;
     Boardcore::Servo* servoExp = nullptr;
 
+    // Buzzer
+    Boardcore::PWM* buzzer;
+
     // Status LED state
     bool ledState = false;
+
+    // Counter that enables and disables the buzzer
+    uint32_t buzzerCounter = 0;
+
+    // Upper limit of the buzzer counter
+    uint32_t buzzerCounterOverflow = 0;
+
+    // Scheduler for buzzer
+    Boardcore::TaskScheduler* scheduler = nullptr;
+
+    // Access to all the actuators mutex, instead of PauseKernel lock to avoid
+    // low priority stuff locking the whole kernel and let the component respect
+    // the priority
+    miosix::FastMutex mutex;
 
     // Debug logger
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");

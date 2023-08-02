@@ -66,7 +66,8 @@ int main()
     CanHandler* canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
-    Actuators* actuators   = new Actuators();
+    Actuators* actuators =
+        new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))

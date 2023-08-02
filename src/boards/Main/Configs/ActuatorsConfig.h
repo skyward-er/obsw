@@ -30,12 +30,15 @@ namespace ActuatorsConfig
 {
 static TIM_TypeDef* const SERVO_ABK_TIMER = TIM3;
 static TIM_TypeDef* const SERVO_EXP_TIMER = TIM1;
+static TIM_TypeDef* const BUZZER_TIMER    = TIM1;
 
 // TODO change correspondent naming in hwmapping (channel different)
 constexpr Boardcore::TimerUtils::Channel SERVO_ABK_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 constexpr Boardcore::TimerUtils::Channel SERVO_EXP_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_3;
+constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 constexpr uint16_t ABK_MIN_PULSE = 900;
 constexpr uint16_t ABK_MAX_PULSE = 2000;
@@ -43,5 +46,15 @@ constexpr uint16_t ABK_MAX_PULSE = 2000;
 // Inverted to invert the servo logic
 constexpr uint16_t EXP_MIN_PULSE = 2000;
 constexpr uint16_t EXP_MAX_PULSE = 900;
+
+// Buzzer configs
+constexpr uint32_t BUZZER_FREQUENCY = 1000;
+constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+
+constexpr uint32_t BUZZER_UPDATE_PERIOD = 100;  // [ms]
+
+constexpr uint32_t BUZZER_ARM_PERIOD  = 500;   // [ms]
+constexpr uint32_t BUZZER_LAND_PERIOD = 1000;  // [ms]
+
 }  // namespace ActuatorsConfig
 }  // namespace Main
