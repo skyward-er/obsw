@@ -38,12 +38,7 @@ using namespace Payload::ActuatorsConfigs;
 namespace Payload
 {
 
-bool Actuators::start()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    scheduler              = modules.get<BoardScheduler>()->getScheduler(4);
-    return scheduler == nullptr ? false : true;
-}
+bool Actuators::start() { return scheduler == nullptr ? false : true; }
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
@@ -235,11 +230,12 @@ void Actuators::ledOff()
     blinkState = BlinkState::LED_OFF;
 }
 
-Actuators::Actuators()
+Actuators::Actuators(Boardcore::TaskScheduler* sched)
     : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
                 LEFT_SERVO_MAX_PULSE),
       rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
-                 RIGHT_SERVO_MAX_PULSE)
+                 RIGHT_SERVO_MAX_PULSE),
+      scheduler(sched)
 {
 }
 

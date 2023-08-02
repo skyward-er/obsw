@@ -111,11 +111,11 @@ struct Actuators : public Boardcore::Module
     void ledOff();
 
 private:
-    Actuators();
+    Actuators(Boardcore::TaskScheduler* sched);
 
     void toggleLed();
 
-    TaskScheduler* scheduler;  // initialized in the start() method
+    TaskScheduler* scheduler;
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
 
