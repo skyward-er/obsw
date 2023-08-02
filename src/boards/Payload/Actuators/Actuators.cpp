@@ -130,10 +130,10 @@ bool Actuators::disableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-            leftServo.enable();
+            leftServo.disable();
             break;
         case PARAFOIL_RIGHT_SERVO:
-            rightServo.enable();
+            rightServo.disable();
             break;
         default:
             return false;
