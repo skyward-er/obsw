@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Singleton.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
