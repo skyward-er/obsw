@@ -35,14 +35,12 @@ using namespace std;
 using namespace Common;
 namespace Payload
 {
-// TODO change initial state to state init
 NASController::NASController(Boardcore::TaskScheduler* sched)
-    : FSM(&NASController::state_calibrating), nas(NASConfig::config),
-      scheduler(sched)
+    : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
 {
     // Subscribe the class to the topics
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
-    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 
     // Setup the NAS
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
@@ -96,11 +94,32 @@ void NASController::update()
         nas.correctMag(magData);
         nas.correctGPS(gpsData);
         nas.correctBaro(baroData.pressure);
+        // Correct with accelerometer if the acceleration is in specs
+        Vector3f acceleration  = static_cast<AccelerometerData>(imuData);
+        float accelerationNorm = acceleration.norm();
+        if (accelerationValid)
+        {
+            nas.correctAcc(imuData);
+        }
+        if ((accelerationNorm <
+                 (9.8 + (NASConfig::ACCELERATION_THRESHOLD) / 2) &&
+             accelerationNorm >
+                 (9.8 - (NASConfig::ACCELERATION_THRESHOLD) / 2)))
+        {
+            accSampleAfterSpike++;
+        }
+        else
+        {
+            accelerationValid   = false;
+            accSampleAfterSpike = 0;
+        }
+        if (accSampleAfterSpike > NASConfig::ACCELERATION_THRESHOLD_SAMPLE)
+        {
+            accSampleAfterSpike = 0;
+            accelerationValid   = true;
+        }
 
-        // TODO Check ACCELEROMETER BOUNDS BEFORE CORRECTING
-        nas.correctAcc(imuData);
-
-        // TODO LOG the state and add to FLIGHT STATS RECORDER
+        Logger::getInstance().log(nas.getState());
     }
 }
 
@@ -273,9 +292,9 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
+
             // Calibrate the NAS
             calibrate();
-
             return logStatus(NASControllerState::CALIBRATING);
         }
         case NAS_READY:

@@ -43,7 +43,6 @@ public:
     bool start() override;
 
     // NAS FSM called methods
-    void update();
     void calibrate();
 
     // NAS setters
@@ -66,6 +65,7 @@ public:
     void state_end(const Boardcore::Event& event);
 
 private:
+    void update();
     /**
      * @brief Logs the NAS status updating the FSM state
      * @param state The current FSM state
@@ -81,6 +81,9 @@ private:
 
     // User set (or triac set) initial orientation
     Eigen::Vector3f initialOrientation;
+    bool accelerationValid = true;
+
+    u_int8_t accSampleAfterSpike = 0;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };

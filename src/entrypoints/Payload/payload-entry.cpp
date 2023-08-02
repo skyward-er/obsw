@@ -25,6 +25,7 @@
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -55,8 +56,8 @@ int main()
     Buses* buses              = new Buses();
     Sensors* sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
-    // NASController* nas =
-    //     new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    NASController* nas =
+        new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
     // 2)); TMRepository* tmRepo = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
@@ -88,11 +89,11 @@ int main()
         LOG_ERR(logger, "Error inserting the buses module");
     }
 
-    // if (!modules.insert<NASController>(nas))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the NAS module");
-    // }
+    if (!modules.insert<NASController>(nas))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the NAS module");
+    }
 
     // if (!modules.insert<Radio>(radio))
     // {
@@ -137,11 +138,11 @@ int main()
         LOG_ERR(logger, "Error starting the flight mode manager module");
     }
 
-    // if (!modules.get<NASController>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the NAS module");
-    // }
+    if (!modules.get<NASController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NAS module");
+    }
 
     // if (!modules.get<Radio>()->start())
     // {
@@ -155,7 +156,11 @@ int main()
         LOG_ERR(logger, "Error starting the CanHandler module");
     }
 
-    scheduler->start();
+    if (!scheduler->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Scheduler");
+    }
 
     // Log all the events
     EventSniffer sniffer(
@@ -181,13 +186,27 @@ int main()
     }
 
     // Periodic statistics
+    // while (true)
+    // {
+    //     Thread::sleep(1000);
+    //     Logger::getInstance().log(CpuMeter::getCpuStats());
+    //     CpuMeter::resetCpuStats();
+    //     StackLogger::getInstance().log();
+    // }
+
+    modules.get<NASController>()->getStatus().print(cout);
+    EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+    Thread::sleep(1000);
+    while (modules.get<NASController>()->getStatus().state !=
+           NASControllerState::READY)
+        ;
+    modules.get<NASController>()->getStatus().print(cout);
+    EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+    modules.get<NASController>()->getStatus().print(cout);
+
     while (true)
     {
         Thread::sleep(1000);
-        Logger::getInstance().log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
-        StackLogger::getInstance().log();
     }
-
     return 0;
 }
