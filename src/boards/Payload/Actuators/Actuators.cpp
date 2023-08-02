@@ -200,7 +200,8 @@ void Actuators::ledDisarmed()
 {
     if (blinkState == BlinkState::LED_ARMED)
         scheduler->disableTask(ledArmedTaskId);
-    // TODO: check if removal of ledError should be here
+    if (blinkState == BlinkState::LED_ERROR)
+        scheduler->disableTask(ledErrorTaskId);
 
     miosix::ledOn();
     ledState   = true;
