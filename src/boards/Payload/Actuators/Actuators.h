@@ -34,7 +34,7 @@ namespace Payload
 
 struct Actuators : public Boardcore::Module
 {
-    [[nodiscard]] void start();
+    [[nodiscard]] bool start();
 
     /**
      * @brief Moves the specified servo to the given position.
