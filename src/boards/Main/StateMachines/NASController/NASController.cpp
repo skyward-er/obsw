@@ -340,9 +340,12 @@ void NASController::state_end(const Event& event)
 
 void NASController::logStatus(NASControllerState state)
 {
-    // Update the current FSM state
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
+    {
+        miosix::PauseKernelLock lock;
+        // Update the current FSM state
+        status.timestamp = TimestampTimer::getTimestamp();
+        status.state     = state;
+    }
 
     // Log the status
     Logger::getInstance().log(status);
