@@ -39,8 +39,8 @@ public:
     void setPayloadRadioPresent(bool present);
 
 private:
-    bool main_radio_present = false;
+    bool main_radio_present    = false;
     bool payload_radio_present = false;
 };
 
-}
+}  // namespace Gs
