@@ -32,7 +32,7 @@
 using namespace Boardcore;
 using namespace Common;
 
-#define SX1278_IRQ_DIO0 EXTI13_IRQHandlerImpl
+#define SX1278_IRQ_DIO0 EXTI3_IRQHandlerImpl
 #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
 #define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
 

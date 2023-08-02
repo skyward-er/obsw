@@ -40,7 +40,7 @@ Actuators::Actuators()
 
     // Default disable
     camOff();
-    gpios::status_led::low();
+    // gpios::status_led::low();
 }
 
 bool Actuators::start()
