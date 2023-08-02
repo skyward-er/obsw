@@ -22,8 +22,8 @@
 
 #include "Serial.h"
 
-#include <Gs/Radio/RadioStatus.h>
 #include <Gs/Radio/Radio.h>
+#include <Gs/Radio/RadioStatus.h>
 
 using namespace miosix;
 using namespace Gs;
@@ -36,27 +36,30 @@ bool Serial::start()
     return true;
 }
 
-void Serial::sendMsg(const mavlink_message_t& msg)
+void Serial::sendMsg(const mavlink_message_t &msg)
 {
     Lock<FastMutex> l(mutex);
     uint8_t msg_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
                     MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
     int msg_len = mavlink_msg_to_send_buffer(msg_buf, &msg);
 
-    usart.write(msg_buf, msg_len);
+    auto serial = miosix::DefaultConsole::instance().get();
+    serial->writeBlock(msg_buf, msg_len, 0);
 }
 
-void Serial::handleMsg(const mavlink_message_t& msg)
+void Serial::handleMsg(const mavlink_message_t &msg)
 {
     // TODO:
     RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
 
-    if(status->isMainRadioPresent()) {
+    if (status->isMainRadioPresent())
+    {
         RadioMain *radio = ModuleManager::getInstance().get<RadioMain>();
         radio->sendMsg(msg);
     }
 
-    if(status->isPayloadRadioPresent()) {
+    if (status->isPayloadRadioPresent())
+    {
         RadioPayload *radio = ModuleManager::getInstance().get<RadioPayload>();
         radio->sendMsg(msg);
     }
@@ -65,15 +68,16 @@ void Serial::handleMsg(const mavlink_message_t& msg)
 void Serial::run()
 {
     mavlink_message_t msg;
+    mavlink_status_t status;
     uint8_t msg_buf[256];
 
     while (!shouldStop())
     {
-        int rcv_len = usart.readBlocking(msg_buf, sizeof(msg_buf));
+        auto serial = miosix::DefaultConsole::instance().get();
+        int rcv_len = serial->readBlock(msg_buf, sizeof(msg_buf), 0);
 
         for (int i = 0; i < rcv_len; i++)
         {
-            mavlink_status_t status;
             uint8_t parse_result =
                 mavlink_parse_char(MAVLINK_COMM_0, msg_buf[i], &msg, &status);
 
