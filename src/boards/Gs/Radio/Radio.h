@@ -81,7 +81,7 @@ private:
 
     /**
      * @brief Check if a message signals an end of trasmissiont
-    */
+     */
     bool isEndOfTransmissionPacket(const mavlink_message_t& msg);
 
     miosix::FastMutex mutex;
