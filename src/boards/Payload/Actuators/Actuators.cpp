@@ -45,13 +45,19 @@ bool Actuators::setServo(ServosList servoId, float percentage)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo.setPosition(percentage);
             Logger::getInstance().log(leftServo.getState());
             break;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo.setPosition(percentage);
             Logger::getInstance().log(rightServo.getState());
             break;
+        }
         default:
             return false;
     }
@@ -64,13 +70,19 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
             Logger::getInstance().log(leftServo.getState());
             break;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
             Logger::getInstance().log(rightServo.getState());
             break;
+        }
         default:
             return false;
     }
@@ -80,22 +92,29 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 
 bool Actuators::wiggleServo(ServosList servoId)
 {
+
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo.setPosition(1);
             Logger::getInstance().log(leftServo.getState());
             Thread::sleep(1000);
             leftServo.setPosition(0);
             Logger::getInstance().log(leftServo.getState());
             break;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo.setPosition(1);
             Logger::getInstance().log(rightServo.getState());
             Thread::sleep(1000);
             rightServo.setPosition(0);
             Logger::getInstance().log(rightServo.getState());
             break;
+        }
         default:
             return false;
     }
@@ -108,11 +127,17 @@ bool Actuators::enableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo.enable();
             break;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo.enable();
             break;
+        }
         default:
             return false;
     }
@@ -125,11 +150,17 @@ bool Actuators::disableServo(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo.disable();
             break;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo.disable();
             break;
+        }
         default:
             return false;
     }
@@ -143,9 +174,15 @@ float Actuators::getServoPosition(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             return leftServo.getPosition();
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             return rightServo.getPosition();
+        }
         default:
             return 0;
     }
@@ -158,9 +195,15 @@ float Actuators::getServoAngle(ServosList servoId)
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             return leftServo.getPosition() * LEFT_SERVO_ROTATION;
+        }
         case PARAFOIL_RIGHT_SERVO:
+        {
+            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             return rightServo.getPosition() * RIGHT_SERVO_ROTATION;
+        }
         default:
             return 0;
     }

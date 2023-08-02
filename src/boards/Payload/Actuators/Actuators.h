@@ -128,6 +128,8 @@ private:
     };
 
     // mutexes
+    miosix::FastMutex leftServoMutex;
+    miosix::FastMutex rightServoMutex;
     miosix::FastMutex ledMutex;
 
     bool ledState          = false;
