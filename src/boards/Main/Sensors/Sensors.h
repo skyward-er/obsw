@@ -83,7 +83,7 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
-    Boardcore::ADS131M08Data getADS131M0LastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
 
     // CAN fake sensors setters
     void setPitot(Boardcore::PitotData data);

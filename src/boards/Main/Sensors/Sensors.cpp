@@ -67,7 +67,7 @@ LSM6DSRXData Sensors::getLSM6DSRXLastSample()
     miosix::PauseKernelLock lock;
     return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
-ADS131M08Data Sensors::getADS131M0LastSample()
+ADS131M08Data Sensors::getADS131M08LastSample()
 {
     miosix::PauseKernelLock lock;
     return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
