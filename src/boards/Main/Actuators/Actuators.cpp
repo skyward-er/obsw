@@ -51,6 +51,11 @@ bool Actuators::start()
 {
     servoAbk->enable();
     servoExp->enable();
+
+    // Reset the servo position
+    servoAbk->setPosition(0);
+    servoExp->setPosition(0);
+
     return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD);
 }
 

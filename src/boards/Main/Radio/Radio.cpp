@@ -193,6 +193,55 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
             break;
         }
+        case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
+        {
+            SensorsTMList sensorId = static_cast<SensorsTMList>(
+                mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg));
+            mavlink_message_t response =
+                modules.get<TMRepository>()->packSensorsTm(sensorId, msg.msgid,
+                                                           msg.seq);
+            enqueueMsg(response);
+
+            // If the response is a nack the method returns
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            {
+                return;
+            }
+            break;
+        }
+        case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
+        {
+            ServosList servo = static_cast<ServosList>(
+                mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
+            mavlink_message_t response =
+                modules.get<TMRepository>()->packServoTm(servo, msg.msgid,
+                                                         msg.seq);
+            enqueueMsg(response);
+
+            // If the response is a nack the method returns
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            {
+                return;
+            }
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+            float position = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+
+            // Send nack if the FMM is not in test mode
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
+            {
+                return sendNack(msg);
+            }
+
+            // If the state is test mode, the servo is set to the correct angle
+            modules.get<Actuators>()->setServoPosition(servoId, position);
+            break;
+        }
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
             ServosList servoId = static_cast<ServosList>(
@@ -209,6 +258,28 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             modules.get<Actuators>()->wiggleServo(servoId);
 
             break;
+        }
+        case MAVLINK_MSG_ID_RESET_SERVO_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_reset_servo_tc_get_servo_id(&msg));
+
+            // Send nack if the FMM is not in test mode
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
+            {
+                return sendNack(msg);
+            }
+
+            // Set the servo position to 0
+            modules.get<Actuators>()->setServoPosition(servoId, 0);
+
+            break;
+        }
+        default:
+        {
+            LOG_DEBUG(logger, "Received message is not of a known type");
+            return sendNack(msg);
         }
     }
 

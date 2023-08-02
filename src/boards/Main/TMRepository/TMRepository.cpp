@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Radio.h>
@@ -316,7 +317,27 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
                                             uint8_t seq)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
+
+    if (servoId == AIR_BRAKES_SERVO || servoId == EXPULSION_SERVO)
+    {
+        mavlink_servo_tm_t tm;
+        tm.servo_id       = servoId;
+        tm.servo_position = modules.get<Actuators>()->getServoPosition(servoId);
+
+        mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                    RadioConfig::MAV_COMP_ID, &msg, &tm);
+    }
+    else
+    {
+        mavlink_nack_tm_t nack;
+        nack.recv_msgid = msgId;
+        nack.seq_ack    = seq;
+
+        mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                   RadioConfig::MAV_COMP_ID, &msg, &nack);
+    }
 
     return msg;
 }
