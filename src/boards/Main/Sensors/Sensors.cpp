@@ -99,6 +99,22 @@ TemperatureData Sensors::getTankTemperatureLastSample()
     return canTankTemperature;
 }
 
+// Processed Getters
+BatteryVoltageSensorData Sensors::getBatteryVoltage()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    BatteryVoltageSensorData data;
+
+    // Populate the data
+    data.voltageTimestamp = sample.timestamp;
+    data.channelId        = 1;
+    data.voltage          = sample.voltage[1];
+    data.batVoltage = sample.voltage[1] * BATTERY_VOLTAGE_CONVERSION_FACTOR;
+    return data;
+}
+
 // TODO decide for timestamps
 void Sensors::setPitot(PitotData data)
 {

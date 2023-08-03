@@ -30,6 +30,7 @@
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -84,6 +85,10 @@ public:
     Boardcore::UBXGPSData getGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
+
+    // Processed getters
+    Boardcore::BatteryVoltageSensorData getBatteryVoltage();
+    Boardcore::CurrentData getCurrent();
 
     // CAN fake sensors setters
     void setPitot(Boardcore::PitotData data);

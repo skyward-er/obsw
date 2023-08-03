@@ -92,5 +92,10 @@ constexpr uint32_t UBXGPS_PERIOD     = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
 constexpr uint32_t LSM6DSRX_PERIOD   = 20;                         // [ms] 50Hz
 constexpr uint32_t ADS131M08_PERIOD  = 10;                         // [ms] 100Hz
 
+// ADC Voltage divider
+constexpr float BATTERY_VOLTAGE_CONVERSION_FACTOR =
+    (20.f / 2.4f) +
+    1;  // 20 kOhm resistor and 2.4 kOhm resistor for voltage divider
+
 }  // namespace SensorsConfig
 }  // namespace Main
