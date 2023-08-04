@@ -111,6 +111,12 @@ int main()
     }
 #endif
 
+    ok &= radio_status->start();
+    if (!ok)
+    {
+        printf("[error] Failed to start radio status!\n");
+    }
+
     if (radio_status->isMainRadioPresent())
     {
         miosix::led2On();
