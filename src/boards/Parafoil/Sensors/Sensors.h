@@ -23,11 +23,12 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
-#include <drivers/adc/InternalTemp.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS1118/ADS1118.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/H3LIS331DL/H3LIS331DL.h>
+#include <sensors/HX711/HX711.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorManager.h>
@@ -92,6 +93,7 @@ public:
     Boardcore::PitotData getPitotLastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+    Boardcore::HX711Data getLoadCellLastSample();
 
     /**
      * @brief Blocking function that calibrates the sensors.
@@ -130,14 +132,17 @@ private:
     void internalADCInit();
     void batteryVoltageInit();
 
-    void internalTempInit();
+    void h3lis33Init();
+    void hx711Init();
 
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
     Boardcore::MS5803* ms5803;  // barometro digitale
                                 // Boardcore::UBXGPSSerial* ubxGps;
+    Boardcore::H3LIS331DL* h3lis33;
 
     Boardcore::ADS1118* ads1118;  // adc
+    Boardcore::HX711* hx711;
     Boardcore::MPXHZ6130A* staticPressure;
     Boardcore::SSCDANN030PAA* dplPressure;
     Boardcore::SSCDRRN015PDA* pitotPressure;
@@ -145,7 +150,6 @@ private:
     Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
     Boardcore::BatteryVoltageSensor* batteryVoltage;
-    Boardcore::InternalTemp* internalTemp = nullptr;
 
     Boardcore::SensorManager* sensorManager = nullptr;
 

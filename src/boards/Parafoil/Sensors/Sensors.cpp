@@ -70,6 +70,9 @@ bool Sensors::startModule()
     bmx160Init();
     bmx160WithCorrectionInit();
 
+    h3lis33Init();
+    hx711Init();
+
 #ifdef HILSimulation
     // Definition of the fake sensors for the simulation
     state.accelerometer = new HILAccelerometer(N_DATA_ACCEL);
@@ -336,6 +339,50 @@ Sensors::~Sensors()
     sensorManager->stop();
     delete sensorManager;
 }
+void Sensors::h3lis33Init()
+{
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    LIS3MDL::Config config;
+    config.odr                = MAG_LIS_ODR_ENUM;
+    config.scale              = MAG_LIS_FULLSCALE;
+    config.temperatureDivider = 1;
+    miosix::GpioPin cs(GPIOB_BASE, 7);
+    h3lis33 =
+        new H3LIS331DL(ModuleManager::getInstance().get<Buses>()->spi1, cs,
+                       H3LIS331DLDefs::OutputDataRate::ODR_50,
+                       H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
+                       H3LIS331DLDefs::FullScaleRange::FS_100);
+
+    // Create the sensor info
+    SensorInfo info("H3LIS331DL", 100,
+                    [&]()
+                    { Logger::getInstance().log(h3lis33->getLastSample()); });
+    sensorsMap.emplace(make_pair(h3lis33, info));
+
+    LOG_INFO(logger, "H3LIS331DL setup done!");
+}
+
+void Sensors::hx711Init()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    hx711                  = new HX711(modules.get<Buses>()->spi2,
+                                       miosix::interfaces::spi2::sck::getPin());
+
+    hx711->setOffset(LOAD_CELL1_OFFSET);
+    hx711->setScale(LOAD_CELL1_SCALE);
+
+    // Config and enter the sensors info to feed to the sensors manager
+    SensorInfo info("HX711_1", LOAD_CELL_SAMPLE_PERIOD,
+                    [&]()
+                    {
+                        Logger::getInstance().log(hx711->getLastSample());
+                        printf("%f\n", hx711->getLastSample().load);
+                    });
+    sensorsMap.emplace(make_pair(hx711, info));
+    LOG_INFO(logger, "Initialized loadCell1");
+}
 
 void Sensors::bmx160Init()
 {
@@ -574,7 +621,7 @@ void Sensors::pitotInit()
 
 void Sensors::internalADCInit()
 {
-    internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
+    internalADC = new InternalADC(ADC3);
 
     internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
 
@@ -602,19 +649,6 @@ void Sensors::batteryVoltageInit()
     sensorsMap.emplace(std::make_pair(batteryVoltage, info));
 
     LOG_INFO(logger, "Battery voltage sensor setup done!");
-}
-
-void Sensors::internalTempInit()
-{
-    internalTemp = new InternalTemp(InternalADC::CYCLES_480, INTERNAL_ADC_VREF);
-
-    SensorInfo info(
-        "INTERNAL_TEMP", SAMPLE_PERIOD_INTERNAL_TEMP,
-        [&]() { Logger::getInstance().log(internalTemp->getLastSample()); });
-
-    sensorsMap.emplace(make_pair(internalTemp, info));
-
-    LOG_INFO(logger, "Internal TEMP setup done!");
 }
 
 }  // namespace Parafoil

@@ -26,8 +26,4 @@ set(OBSW_INCLUDE_DIRS
 set(PARAFOIL_COMPUTER
    
     src/boards/Parafoil/Sensors/Sensors.cpp
-    src/boards/Parafoil/Radio/Radio.cpp
-    src/boards/Parafoil/TMRepository/TMRepository.cpp
-    src/boards/Parafoil/StateMachines/NASController/NASController.cpp
-    src/boards/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
 )

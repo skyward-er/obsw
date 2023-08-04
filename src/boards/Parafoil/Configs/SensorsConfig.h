@@ -106,8 +106,7 @@ constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
 // GPS
-static constexpr Boardcore::USARTInterface::Baudrate GPS_BAUD_RATE =
-    Boardcore::USARTInterface::Baudrate::B460800;
+static constexpr int GPS_BAUD_RATE            = 460800;
 static constexpr unsigned int GPS_SAMPLE_RATE = 10;
 
 // Sampling periods and dividers
@@ -132,6 +131,11 @@ constexpr unsigned int STATIC_PRESS_CALIB_SAMPLES_NUM = 50;
 constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
 constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
 constexpr unsigned int CALIBRATION_DURATION           = 2000;
+
+// Load cell calibration
+constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = (1 / 80.f) * 1000;
+constexpr float LOAD_CELL1_OFFSET              = -93539.8f;
+constexpr float LOAD_CELL1_SCALE               = -2.251307e-5f;
 
 }  // namespace SensorsConfig
 

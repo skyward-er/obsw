@@ -96,17 +96,17 @@ int main()
             LOG_ERR(logger, "Error inserting the Buses module");
         }
 
-        if (!modules.insert<FlightModeManager>(new FlightModeManager()))
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the FlightModeManager module");
-        }
+        // if (!modules.insert<FlightModeManager>(new FlightModeManager()))
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error inserting the FlightModeManager module");
+        // }
 
-        if (!modules.insert<NASController>(new NASController()))
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the NASController module");
-        }
+        // if (!modules.insert<NASController>(new NASController()))
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error inserting the NASController module");
+        // }
 
         /*if (!modules.insert<PinHandler>(new PinHandler()))
         {
@@ -114,11 +114,11 @@ int main()
             LOG_ERR(logger, "Error inserting the PinHandler module");
         }*/
 
-        if (!modules.insert<Radio>(new Radio()))
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the Radio module");
-        }
+        // if (!modules.insert<Radio>(new Radio()))
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error inserting the Radio module");
+        // }
 
         if (!modules.insert<Sensors>(new Sensors()))
         {
@@ -126,11 +126,11 @@ int main()
             LOG_ERR(logger, "Error inserting the Sensors module");
         }
 
-        if (!modules.insert<TMRepository>(new TMRepository()))
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the TMRepository module");
-        }
+        // if (!modules.insert<TMRepository>(new TMRepository()))
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error inserting the TMRepository module");
+        // }
 
         /*if (!modules.insert<WindEstimation>(new WindEstimation()))
         {
@@ -165,17 +165,17 @@ int main()
             LOG_ERR(logger, "Error starting the Buses module");
         }
 
-        if (!modules.get<FlightModeManager>()->startModule())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the FlightModeManager module");
-        }
+        // if (!modules.get<FlightModeManager>()->startModule())
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error starting the FlightModeManager module");
+        // }
 
-        if (!modules.get<NASController>()->startModule())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the NASController module");
-        }
+        // if (!modules.get<NASController>()->startModule())
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error starting the NASController module");
+        // }
 
         /*if (!modules.get<PinHandler>()->startModule())
         {
@@ -183,11 +183,11 @@ int main()
             LOG_ERR(logger, "Error starting the PinHandler module");
         }*/
 
-        if (!modules.get<Radio>()->startModule())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the Radio module");
-        }
+        // if (!modules.get<Radio>()->startModule())
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error starting the Radio module");
+        // }
 
         if (!modules.get<Sensors>()->startModule())
         {
@@ -195,11 +195,11 @@ int main()
             LOG_ERR(logger, "Error starting the Sensors module");
         }
 
-        if (!modules.get<TMRepository>()->startModule())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the TMRepository module");
-        }
+        // if (!modules.get<TMRepository>()->startModule())
+        // {
+        //     initResult = false;
+        //     LOG_ERR(logger, "Error starting the TMRepository module");
+        // }
 
         /*if (!modules.get<WindEstimation>()->startModule())
         {
@@ -240,8 +240,6 @@ int main()
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
-        Logger::getInstance().logStats();
-        modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 }
