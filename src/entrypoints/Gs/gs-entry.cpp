@@ -28,6 +28,12 @@
 using namespace Gs;
 using namespace Boardcore;
 
+void spinLoop() {
+    while(1) {
+        miosix::Thread::sleep(1000);
+    }
+}
+
 int main()
 {
 
@@ -47,6 +53,11 @@ int main()
     // ok &= modules.insert(radio_payload);
     ok &= modules.insert(radio_status);
 
+    // If insertion failed, stop right here
+    if(!ok) {
+        spinLoop();
+    }
+
     // Ok now start them
 
     ok &= serial->start();
@@ -62,10 +73,6 @@ int main()
     radio_status->isPayloadRadioPresent());
     }*/
 
-    while (1)
-    {
-        miosix::Thread::sleep(1000);
-    }
-
+    spinLoop();
     return 0;
 }
