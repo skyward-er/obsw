@@ -62,10 +62,17 @@ void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
     ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
 }
 
-void RadioBase::sendMsg(const mavlink_message_t& msg)
+bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
     Lock<FastMutex> l(mutex);
-    pending_msgs.put(msg);
+    if (pending_msgs_count > MAV_PENDING_OUT_QUEUE_SIZE) {
+        return false;
+    } else {
+        pending_msgs[pending_msgs_count] = msg;
+        pending_msgs_count += 1;
+
+        return true;
+    }
 }
 
 void RadioBase::handleDioIRQ()
@@ -207,10 +214,11 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 void RadioBase::flush()
 {
     Lock<FastMutex> l(mutex);
-    while (!pending_msgs.isEmpty())
-    {
-        mav_driver->enqueueMsg(pending_msgs.pop());
+    for(int i = 0; i < pending_msgs_count; i++) {
+        mav_driver->enqueueMsg(pending_msgs[i]);
     }
+
+    pending_msgs_count = 0;
 }
 
 bool RadioBase::isEndOfTransmissionPacket(const mavlink_message_t& msg)
