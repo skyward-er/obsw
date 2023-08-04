@@ -31,6 +31,6 @@ namespace Gs
 constexpr int SERIAL_BAUD_RATE = 115200;
 
 constexpr uint8_t GS_COMPONENT_ID = 1;
-constexpr uint8_t GS_SYSTEM_ID = 1;
+constexpr uint8_t GS_SYSTEM_ID    = 1;
 
-}
+}  // namespace Gs

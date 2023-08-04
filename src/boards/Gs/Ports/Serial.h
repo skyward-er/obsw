@@ -34,7 +34,7 @@ namespace Gs
 
 /**
  * @brief Class responsible for UART communication.
-*/
+ */
 class Serial : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
