@@ -37,7 +37,7 @@ static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
     .power      = 13,
     .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
     .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = true};
+    .enable_crc = false};
 
 static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
     .freq_rf    = 868000000,
