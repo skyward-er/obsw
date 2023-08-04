@@ -29,7 +29,7 @@ namespace Gs
 
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
-*/
+ */
 class RadioStatus : public Boardcore::Module
 {
 public:
@@ -37,12 +37,12 @@ public:
 
     /**
      * @brief Check wether the main radio was found during boot.
-    */
+     */
     bool isMainRadioPresent();
 
     /**
      * @brief Check wether the payload radio was found during boot.
-    */
+     */
     bool isPayloadRadioPresent();
 
     void setMainRadioPresent(bool present);
