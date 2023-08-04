@@ -65,9 +65,12 @@ void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
     Lock<FastMutex> l(mutex);
-    if (pending_msgs_count >= MAV_PENDING_OUT_QUEUE_SIZE) {
+    if (pending_msgs_count >= MAV_PENDING_OUT_QUEUE_SIZE)
+    {
         return false;
-    } else {
+    }
+    else
+    {
         pending_msgs[pending_msgs_count] = msg;
         pending_msgs_count += 1;
 
@@ -214,7 +217,8 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 void RadioBase::flush()
 {
     Lock<FastMutex> l(mutex);
-    for(int i = 0; i < pending_msgs_count; i++) {
+    for (int i = 0; i < pending_msgs_count; i++)
+    {
         mav_driver->enqueueMsg(pending_msgs[i]);
     }
 
