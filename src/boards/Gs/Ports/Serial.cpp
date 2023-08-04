@@ -32,7 +32,10 @@ using namespace Boardcore;
 
 bool Serial::start()
 {
-    ActiveObject::start();
+    if (!ActiveObject::start())
+    {
+        return false;
+    }
 
     return true;
 }
