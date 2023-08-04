@@ -33,6 +33,8 @@ namespace Payload
 
 struct Actuators : public Boardcore::Module
 {
+    explicit Actuators(Boardcore::TaskScheduler* sched);
+
     [[nodiscard]] bool start();
 
     /**
@@ -110,8 +112,6 @@ struct Actuators : public Boardcore::Module
     void ledOff();
 
 private:
-    Actuators(Boardcore::TaskScheduler* sched);
-
     void toggleLed();
 
     TaskScheduler* scheduler;
