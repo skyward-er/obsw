@@ -20,12 +20,15 @@
  * THE SOFTWARE.
  */
 
+// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
+#include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
+#include <Payload/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -58,9 +61,10 @@ int main()
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
-    // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
-    // 2)); TMRepository* tmRepo = new TMRepository(); CanHandler* canHandler =
-    //     new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    TMRepository* tmRepo = new TMRepository();
+    // CanHandler* canHandler = new
+    // CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
 
     // Insert modules
@@ -93,17 +97,17 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the FMM module");
     }
-    // if (!modules.insert<Radio>(radio))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the Radio module");
-    // }
+    if (!modules.insert<Radio>(radio))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Radio module");
+    }
 
-    // if (!modules.insert<TMRepository>(tmRepo))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the TMRepository module");
-    // }
+    if (!modules.insert<TMRepository>(tmRepo))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the TMRepository module");
+    }
 
     // if (!modules.insert<CanHandler>(canHandler))
     // {
@@ -136,11 +140,11 @@ int main()
         LOG_ERR(logger, "Error starting the FMM module");
     }
 
-    // if (!modules.get<Radio>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the Radio module");
-    // }
+    if (!modules.get<Radio>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Radio module");
+    }
 
     // if (!modules.get<CanHandler>()->start())
     // {
