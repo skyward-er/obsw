@@ -22,27 +22,39 @@
 
 #pragma once
 
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <common/Mavlink.h>
 
-namespace Gs {
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+namespace Gs
+{
 
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
-*/
-class Hub : public Boardcore::Module {
+ */
+class Hub : public Boardcore::Module
+{
 public:
     Hub() {}
 
     /**
-     * @brief Dispatch to the correct interface and outgoing packet (gs -> rocket).
-    */
+     * @brief Dispatch to the correct interface and outgoing packet (gs ->
+     * rocket).
+     */
     void dispatchOutgoingMsg(const mavlink_message_t& msg);
 
     /**
-     * @brief Dispatch to the correct interface and incoming packet (rocket -> gs).
-    */
+     * @brief Dispatch to the correct interface and incoming packet (rocket ->
+     * gs).
+     */
     void dispatchIncomingMsg(const mavlink_message_t& msg);
+
+private:
+    /**
+     * @brief Used internally to signal to the gs computer that something went
+     * wrong, and the packet could not be delivered.
+     */
+    void sendNack(const mavlink_message_t& msg);
 };
 
-}
+}  // namespace Gs

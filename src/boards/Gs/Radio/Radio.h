@@ -27,7 +27,6 @@
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
-#include <utils/collections/CircularBuffer.h>
 #include <ActiveObject.h>
 
 #include <memory>
@@ -51,8 +50,10 @@ public:
 
     /**
      * @brief Send a mavlink message through this radio.
+     * 
+     * @returns false when the queue is full.
      */
-    void sendMsg(const mavlink_message_t& msg);
+    bool sendMsg(const mavlink_message_t& msg);
 
     /**
      * @brief Handle generic DIO irq.
@@ -89,8 +90,8 @@ private:
 
     miosix::FastMutex mutex;
 
-    Boardcore::CircularBuffer<mavlink_message_t, Gs::MAV_PENDING_OUT_QUEUE_SIZE>
-        pending_msgs;
+    mavlink_message_t pending_msgs[Gs::MAV_PENDING_OUT_QUEUE_SIZE];
+    int pending_msgs_count = 0;
 
     long long last_eot_packet_ts = 0;
 
