@@ -40,10 +40,24 @@ using MavDriver =
                              MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
+ * @brief Statistics of the radio.
+ */
+struct RadioStats
+{
+    uint16_t send_errors;              //< Number of failed sends.
+    uint16_t packet_rx_success_count;  //< Number of received packets.
+    uint16_t packet_rx_drop_count;     //< Number of packet drops.
+    uint32_t bits_rx_count;            //< Number of bits received.
+    uint32_t bits_tx_count;            //< Number of bits sent.
+    float rx_rssi;                     //< RSSI in dBm of last received packet.
+    float rx_fei;  //< Frequency error index in Hz of last received packet.
+};
+
+/**
  * @brief Base radio class, used to implement functionality independent of
  * main/payload radios.
  */
-class RadioBase : private Boardcore::ActiveObject
+class RadioBase : private Boardcore::ActiveObject, public Boardcore::Transceiver
 {
 public:
     RadioBase() {}
@@ -60,6 +74,11 @@ public:
      */
     void handleDioIRQ();
 
+    /**
+     * @brief Retrieve current statistics metrics.
+     */
+    RadioStats getStats();
+
 protected:
     /**
      * @brief Initialize this radio module.
@@ -70,9 +89,13 @@ protected:
     bool start(std::unique_ptr<Boardcore::SX1278Fsk> sx1278,
                const Boardcore::SX1278Fsk::Config& config);
 
+private:
     void run() override;
 
-private:
+    ssize_t receive(uint8_t* pkt, size_t max_len) override;
+
+    bool send(uint8_t* pkt, size_t len) override;
+
     /**
      * @brief Called internally when a message is received.
      */
@@ -88,12 +111,16 @@ private:
      */
     bool isEndOfTransmissionPacket(const mavlink_message_t& msg);
 
-    miosix::FastMutex mutex;
+    bool started = false;
 
+    miosix::FastMutex pending_msgs_mutex;
     mavlink_message_t pending_msgs[Gs::MAV_PENDING_OUT_QUEUE_SIZE];
-    int pending_msgs_count = 0;
+    size_t pending_msgs_count = 0;
 
     long long last_eot_packet_ts = 0;
+
+    uint32_t bits_rx_count = 0;
+    uint32_t bits_tx_count = 0;
 
     // Objects are always destructed in reverse order, so keep them in this
     // order

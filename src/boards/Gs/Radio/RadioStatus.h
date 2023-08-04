@@ -22,18 +22,60 @@
 
 #pragma once
 
+#include <ActiveObject.h>
+#include <Gs/Config/RadioConfig.h>
+#include <Gs/Radio/Radio.h>
+#include <utils/collections/CircularBuffer.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Gs
 {
 
 /**
+ * @brief Utility to calculate the bitrate
+ */
+template <unsigned int WINDOW_SIZE, unsigned int PERIOD>
+class BitrateCalculator
+{
+public:
+    BitrateCalculator() {}
+
+    /**
+     * @brief Update the calculator, should be called every PERIOD ms
+     */
+    uint16_t update(uint32_t sample)
+    {
+        if (window.isFull())
+        {
+            uint32_t last = window.pop();
+            window.put(sample);
+
+            uint16_t delta = sample - last;
+
+            // window size is in ms, we want the result in s
+            return delta * 1000 / RADIO_BITRATE_WINDOW_SIZE;
+        }
+        else
+        {
+            window.put(sample);
+            return 0;
+        }
+    }
+
+private:
+    Boardcore::CircularBuffer<uint32_t, WINDOW_SIZE / PERIOD> window;
+};
+
+/**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class RadioStatus : public Boardcore::Module
+class RadioStatus : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
     RadioStatus() {}
+
+    bool start();
 
     /**
      * @brief Check wether the main radio was found during boot.
@@ -49,6 +91,20 @@ public:
     void setPayloadRadioPresent(bool present);
 
 private:
+    void run() override;
+
+    RadioStats last_main_stats    = {0};
+    RadioStats last_payload_stats = {0};
+
+    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+        main_tx_bitrate;
+    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+        main_rx_bitrate;
+    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+        payload_tx_bitrate;
+    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+        payload_rx_bitrate;
+
     bool main_radio_present    = false;
     bool payload_radio_present = false;
 };
