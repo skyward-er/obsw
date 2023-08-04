@@ -32,6 +32,9 @@
 namespace Gs
 {
 
+/**
+ * @brief Class responsible for UART communication.
+*/
 class Serial : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
@@ -51,11 +54,6 @@ protected:
     void run() override;
 
 private:
-    /**
-     * @brief Called internally when a message is received.
-     */
-    void handleMsg(const mavlink_message_t& msg);
-
     miosix::FastMutex mutex;
 };
 
