@@ -65,7 +65,7 @@ void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
     Lock<FastMutex> l(mutex);
-    if (pending_msgs_count > MAV_PENDING_OUT_QUEUE_SIZE) {
+    if (pending_msgs_count >= MAV_PENDING_OUT_QUEUE_SIZE) {
         return false;
     } else {
         pending_msgs[pending_msgs_count] = msg;
@@ -124,7 +124,7 @@ void RadioBase::run()
         // If enough time has passed, automatically flush.
         if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
         {
-            flush();
+            // flush();
         }
     }
 }

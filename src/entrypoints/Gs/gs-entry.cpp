@@ -24,24 +24,47 @@
 #include <Gs/Ports/Serial.h>
 #include <Gs/Radio/Radio.h>
 #include <Gs/Radio/RadioStatus.h>
+#include <miosix.h>
 
 using namespace Gs;
 using namespace Boardcore;
 
-void spinLoop() {
-    while(1) {
+// FIXME: Temporary hack waiting for IRQ fix.
+// #define DISABLE_MAIN_RADIO
+#define DISABLE_PAYLOAD_RADIO
+
+void spinLoop()
+{
+    while (1)
+    {
         miosix::Thread::sleep(1000);
+    }
+}
+
+void errorLoop()
+{
+    while (1)
+    {
+        miosix::led1On();
+        miosix::Thread::sleep(100);
+        miosix::led1Off();
+        miosix::Thread::sleep(100);
     }
 }
 
 int main()
 {
+    miosix::ledOff();
 
-    Buses *buses                = new Buses();
-    Serial *serial              = new Serial();
-    RadioMain *radio_main       = new RadioMain();
-    // RadioPayload *radio_payload = new RadioPayload();
-    RadioStatus *radio_status   = new RadioStatus();
+    Buses *buses          = new Buses();
+    Serial *serial        = new Serial();
+#ifndef DISABLE_MAIN_RADIO 
+    RadioMain *radio_main = new RadioMain();
+#endif
+#ifndef DISABLE_PAYLOAD_RADIO
+    RadioPayload *radio_payload = new RadioPayload();
+#endif
+    RadioStatus *radio_status = new RadioStatus();
 
     ModuleManager &modules = ModuleManager::getInstance();
 
@@ -49,30 +72,58 @@ int main()
 
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
+#ifndef DISABLE_MAIN_RADIO
     ok &= modules.insert(radio_main);
-    // ok &= modules.insert(radio_payload);
+#endif
+#ifndef DISABLE_PAYLOAD_RADIO
+    ok &= modules.insert(radio_payload);
+#endif
     ok &= modules.insert(radio_status);
 
     // If insertion failed, stop right here
-    if(!ok) {
-        spinLoop();
+    if (!ok)
+    {
+        printf("[error] Failed to insert all modules!\n");
+        errorLoop();
     }
 
     // Ok now start them
 
     ok &= serial->start();
+    if (!ok) {
+        printf("[error] Failed to start serial!\n");
+    }
+
+#ifndef DISABLE_MAIN_RADIO
     ok &= radio_main->start();
-    // ok &= radio_payload->start();
+    if (!ok) {
+        printf("[error] Failed to start main radio!\n");
+    }
+#endif
 
-    /*if(!ok) {
-        printf("[GS] Init failed!\n");
-    } else {
-        printf("[GS] Init succesfull!\n");
-        printf("[GS] radio main: %d\n", radio_status->isMainRadioPresent());
-        printf("[GS] radio payload: %d\n",
-    radio_status->isPayloadRadioPresent());
-    }*/
+#ifndef DISABLE_PAYLOAD_RADIO
+    ok &= radio_payload->start();
+    if (!ok) {
+        printf("[error] Failed to start payload radio!\n");
+    }
+#endif
 
+    if (radio_status->isMainRadioPresent())
+    {
+        miosix::led2On();
+    }
+
+    if (radio_status->isPayloadRadioPresent())
+    {
+        miosix::led3On();
+    }
+
+    if (!ok)
+    {
+        errorLoop();
+    }
+
+    miosix::led1On();
     spinLoop();
     return 0;
 }

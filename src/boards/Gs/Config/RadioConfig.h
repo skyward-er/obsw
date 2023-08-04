@@ -33,8 +33,8 @@
 namespace Gs
 {
 
-constexpr size_t MAV_OUT_QUEUE_SIZE         = 20;
-constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
+constexpr size_t MAV_OUT_QUEUE_SIZE         = 10;
+constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 10;
 constexpr uint16_t MAV_SLEEP_AFTER_SEND     = 0;
 constexpr size_t MAV_OUT_BUFFER_MAX_AGE     = 10;
 
