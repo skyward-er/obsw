@@ -341,14 +341,10 @@ Sensors::~Sensors()
 }
 void Sensors::h3lis33Init()
 {
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    LIS3MDL::Config config;
-    config.odr                = MAG_LIS_ODR_ENUM;
-    config.scale              = MAG_LIS_FULLSCALE;
-    config.temperatureDivider = 1;
     miosix::GpioPin cs(GPIOB_BASE, 7);
+    cs.mode(miosix::Mode::OUTPUT);
+    cs.high();
     h3lis33 =
         new H3LIS331DL(ModuleManager::getInstance().get<Buses>()->spi1, cs,
                        H3LIS331DLDefs::OutputDataRate::ODR_50,

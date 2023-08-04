@@ -20,10 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/StateMachines/FlightModeManager/FlightModeManagerData.h>
-#include <Parafoil/StateMachines/NASController/NASControllerData.h>
-#include <Parafoil/StateMachines/WingController/WingControllerData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <radio/Xbee/APIFramesLog.h>
@@ -47,8 +43,6 @@
 
 using namespace tscpp;
 using namespace Boardcore;
-using namespace Parafoil;
-using namespace WingConfig;
 using namespace Xbee;
 
 void registerTypes(Deserializer& ds)
@@ -57,6 +51,15 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
+    // Custom types
+    ds.registerType<PitotData>();
+    ds.registerType<APIFrameLog>();
+    ds.registerType<ATCommandFrameLog>();
+    ds.registerType<TXRequestFrameLog>();
+    ds.registerType<ATCommandResponseFrameLog>();
+    ds.registerType<ModemStatusFrameLog>();
+    ds.registerType<TXStatusFrameLog>();
+    ds.registerType<RXPacketFrameLog>();
 }
 
 void showUsage(const string& cmdName)

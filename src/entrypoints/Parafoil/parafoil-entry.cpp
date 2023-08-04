@@ -219,6 +219,7 @@ int main()
     // modules.get<WingController>()->addAlgorithm(WingConfig::SELECTED_ALGORITHM);
     // Logger::getInstance().log(f);  // logs the config file
     // If all is correctly set up i publish the init ok
+    miosix::Thread::sleep(2000);
     if (initResult)
     {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
