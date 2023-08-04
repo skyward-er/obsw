@@ -35,4 +35,5 @@ set(GS_COMPUTER
     src/boards/Gs/Ports/Serial.cpp
     src/boards/Gs/Radio/Radio.cpp
     src/boards/Gs/Radio/RadioStatus.cpp
+    src/boards/Gs/Hub.cpp
 )

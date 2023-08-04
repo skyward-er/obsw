@@ -26,6 +26,7 @@
 #include <Gs/Ports/Serial.h>
 #include <Gs/Radio/RadioStatus.h>
 #include <radio/SX1278/SX1278Frontends.h>
+#include <Gs/Hub.h>
 
 using namespace miosix;
 using namespace Gs;
@@ -173,10 +174,8 @@ bool RadioPayload::start()
 
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
-    // TODO:
-
-    Serial* serial = ModuleManager::getInstance().get<Serial>();
-    serial->sendMsg(msg);
+    // Dispatch the message through the hub.
+    ModuleManager::getInstance().get<Hub>()->dispatchIncomingMsg(msg);
 
     if (isEndOfTransmissionPacket(msg))
     {
