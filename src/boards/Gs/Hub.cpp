@@ -22,6 +22,7 @@
 
 #include "Hub.h"
 
+#include <Gs/Config/GeneralConfig.h>
 #include <Gs/Ports/Serial.h>
 #include <Gs/Radio/Radio.h>
 #include <Gs/Radio/RadioStatus.h>
