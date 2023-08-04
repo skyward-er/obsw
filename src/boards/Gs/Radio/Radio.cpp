@@ -23,10 +23,10 @@
 #include "Radio.h"
 
 #include <Gs/Buses.h>
+#include <Gs/Hub.h>
 #include <Gs/Ports/Serial.h>
 #include <Gs/Radio/RadioStatus.h>
 #include <radio/SX1278/SX1278Frontends.h>
-#include <Gs/Hub.h>
 
 using namespace miosix;
 using namespace Gs;
@@ -99,7 +99,27 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
         return false;
     }
 
+    if (!ActiveObject::start())
+    {
+        return false;
+    }
+
     return true;
+}
+
+void RadioBase::run()
+{
+
+    while (!shouldStop())
+    {
+        miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
+
+        // If enough time has passed, automatically flush.
+        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        {
+            flush();
+        }
+    }
 }
 
 bool RadioMain::start()
@@ -179,6 +199,7 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 
     if (isEndOfTransmissionPacket(msg))
     {
+        last_eot_packet_ts = miosix::getTick();
         flush();
     }
 }
