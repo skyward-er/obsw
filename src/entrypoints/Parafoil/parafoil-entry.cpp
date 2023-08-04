@@ -195,6 +195,8 @@ int main()
             LOG_ERR(logger, "Error starting the Sensors module");
         }
 
+        modules.get<Sensors>()->calibrate();
+
         // if (!modules.get<TMRepository>()->startModule())
         // {
         //     initResult = false;

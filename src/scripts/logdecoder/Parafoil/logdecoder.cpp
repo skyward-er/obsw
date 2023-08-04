@@ -24,9 +24,6 @@
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Parafoil/StateMachines/NASController/NASControllerData.h>
 #include <Parafoil/StateMachines/WingController/WingControllerData.h>
-#include <Parafoil/WindEstimationScheme/WindEstimationData.h>
-#include <Parafoil/Wing/WingAlgorithmData.h>
-#include <Parafoil/Wing/WingTargetPositionData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <radio/Xbee/APIFramesLog.h>
@@ -60,21 +57,6 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
-    ds.registerType<WingControllerStatus>();
-    ds.registerType<WindLogging>();
-    ds.registerType<FlightModeManagerStatus>();
-    ds.registerType<NASControllerStatus>();
-    ds.registerType<WingAlgorithmData>();
-    ds.registerType<WingTargetPositionData>();
-    ds.registerType<WingConfigStruct>();
-    ds.registerType<PitotData>();
-    ds.registerType<APIFrameLog>();
-    ds.registerType<ATCommandFrameLog>();
-    ds.registerType<TXRequestFrameLog>();
-    ds.registerType<ATCommandResponseFrameLog>();
-    ds.registerType<ModemStatusFrameLog>();
-    ds.registerType<TXStatusFrameLog>();
-    ds.registerType<RXPacketFrameLog>();
 }
 
 void showUsage(const string& cmdName)

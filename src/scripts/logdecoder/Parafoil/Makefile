@@ -11,6 +11,7 @@ all:
 	 				-I$(BOARDCORE)libs/eigen \
 	 				-I$(BOARDCORE)libs/tscpp \
 	 				-I$(BOARDCORE)src/shared \
+					-I$(BOARDCORE)src/libs/fmt/include \
 					-I$(OBSW)
 clean:
 	rm logdecoder
