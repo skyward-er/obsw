@@ -23,34 +23,26 @@
 #pragma once
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+#include <common/Mavlink.h>
 
-namespace Gs
-{
+namespace Gs {
 
 /**
- * @brief Class responsible for keeping track of radio status and metrics.
+ * @brief Central hub connecting all outgoing and ingoing modules.
 */
-class RadioStatus : public Boardcore::Module
-{
+class Hub : public Boardcore::Module {
 public:
-    RadioStatus() {}
+    Hub() {}
 
     /**
-     * @brief Check wether the main radio was found during boot.
+     * @brief Dispatch to the correct interface and outgoing packet (gs -> rocket).
     */
-    bool isMainRadioPresent();
+    void dispatchOutgoingMsg(const mavlink_message_t& msg);
 
     /**
-     * @brief Check wether the payload radio was found during boot.
+     * @brief Dispatch to the correct interface and incoming packet (rocket -> gs).
     */
-    bool isPayloadRadioPresent();
-
-    void setMainRadioPresent(bool present);
-    void setPayloadRadioPresent(bool present);
-
-private:
-    bool main_radio_present    = false;
-    bool payload_radio_present = false;
+    void dispatchIncomingMsg(const mavlink_message_t& msg);
 };
 
-}  // namespace Gs
+}
