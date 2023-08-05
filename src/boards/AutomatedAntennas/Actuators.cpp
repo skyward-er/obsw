@@ -104,6 +104,12 @@ void Actuators::setSpeed(StepperList axis, float speed)
     }
 }
 
+void Actuators::zeroPosition()
+{
+    stepperX.zeroPosition();
+    stepperY.zeroPosition();
+}
+
 int16_t Actuators::getCurrentPosition(StepperList axis)
 {
     switch (axis)
@@ -126,10 +132,12 @@ float Actuators::getCurrentDegPosition(StepperList axis)
     switch (axis)
     {
         case StepperList::HORIZONTAL:
-            return stepperX.getCurrentDegPosition();
+            return stepperX.getCurrentDegPosition() /
+                   Config::HORIZONTAL_MULTIPLIER;
             break;
         case StepperList::VERTICAL:
-            return stepperY.getCurrentDegPosition();
+            return stepperY.getCurrentDegPosition() /
+                   Config::VERTICAL_MULTIPLIER;
             break;
         default:
             assert(false && "Non existent stepper");
@@ -146,41 +154,35 @@ void Actuators::moveDeg(StepperList axis, float degrees)
         return;
     }
 
+    float positionDeg = getCurrentDegPosition(axis);
     switch (axis)
     {
-        float newDegrees;
         case StepperList::HORIZONTAL:
             // LIMIT POSITION IN ACCEPTABLE RANGE
-            newDegrees = stepperX.getCurrentDegPosition() + degrees;
-            if (newDegrees > Config::MAX_ANGLE_HORIZONTAL)
+            if (positionDeg + degrees > Config::MAX_ANGLE_HORIZONTAL)
             {
-                degrees = Config::MAX_ANGLE_HORIZONTAL -
-                          stepperX.getCurrentDegPosition();
+                degrees = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
             }
-            else if (newDegrees < Config::MIN_ANGLE_HORIZONTAL)
+            else if (positionDeg + degrees < Config::MIN_ANGLE_HORIZONTAL)
             {
-                degrees = Config::MIN_ANGLE_HORIZONTAL -
-                          stepperX.getCurrentDegPosition();
+                degrees = Config::MIN_ANGLE_HORIZONTAL - positionDeg;
             }
 
-            stepperX.moveDeg(degrees / Config::HORIZONTAL_MULTIPLIER);
+            stepperX.moveDeg(degrees * Config::HORIZONTAL_MULTIPLIER);
             Logger::getInstance().log(stepperX.getState(degrees));
             break;
         case StepperList::VERTICAL:
             // LIMIT POSITION IN ACCEPTABLE RANGE
-            newDegrees = stepperY.getCurrentDegPosition() + degrees;
-            if (newDegrees > Config::MAX_ANGLE_VERTICAL)
+            if (positionDeg + degrees > Config::MAX_ANGLE_VERTICAL)
             {
-                degrees = Config::MAX_ANGLE_VERTICAL -
-                          stepperY.getCurrentDegPosition();
+                degrees = Config::MAX_ANGLE_VERTICAL - positionDeg;
             }
-            else if (newDegrees < Config::MIN_ANGLE_VERTICAL)
+            else if (positionDeg + degrees < Config::MIN_ANGLE_VERTICAL)
             {
-                degrees = Config::MIN_ANGLE_VERTICAL -
-                          stepperY.getCurrentDegPosition();
+                degrees = Config::MIN_ANGLE_VERTICAL - positionDeg;
             }
 
-            stepperY.moveDeg(degrees / Config::VERTICAL_MULTIPLIER);
+            stepperY.moveDeg(degrees * Config::VERTICAL_MULTIPLIER);
             Logger::getInstance().log(stepperY.getState(degrees));
             break;
         default:
@@ -191,21 +193,7 @@ void Actuators::moveDeg(StepperList axis, float degrees)
 
 void Actuators::setPositionDeg(StepperList axis, float positionDeg)
 {
-    float currentDegPosition;
-    switch (axis)
-    {
-        case StepperList::HORIZONTAL:
-            currentDegPosition = stepperX.getCurrentDegPosition();
-            break;
-        case StepperList::VERTICAL:
-            currentDegPosition = stepperY.getCurrentDegPosition();
-            break;
-        default:
-            assert(false && "Non existent stepper");
-            return;
-    }
-
-    moveDeg(axis, positionDeg - currentDegPosition);
+    moveDeg(axis, positionDeg - getCurrentDegPosition(axis));
 }
 
 void Actuators::IRQemergencyStop()
