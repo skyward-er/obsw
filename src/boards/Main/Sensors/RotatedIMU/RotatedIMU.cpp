@@ -65,10 +65,10 @@ Matrix3f RotatedIMU::rotateAroundX(float angle)
     angle = angle * EIGEN_PI / 180.f;
 
     // clang-format off
-    rotation << 1,          0,           0,
-                0,          cosf(angle), -sinf(angle),
-                0,          sinf(angle), cosf(angle);
-    // Clang-format on
+    rotation = Matrix3f{{1,     0,           0},
+                        {0,     cosf(angle), -sinf(angle)},
+                        {0,     sinf(angle), cosf(angle)}};
+    // clang-format on
 
     return rotation;
 }
@@ -79,10 +79,10 @@ Matrix3f RotatedIMU::rotateAroundY(float angle)
     angle = angle * EIGEN_PI / 180.f;
 
     // clang-format off
-    rotation << cosf(angle),    0,          sinf(angle),
-                0,              1,          0,
-                -sinf(angle),   0,          cosf(angle);
-    // Clang-format on
+    rotation = Matrix3f{{cosf(angle),   0,  sinf(angle)},
+                        {0,             1,  0},
+                        {-sinf(angle),  0,  cosf(angle)}};
+    // clang-format on
 
     return rotation;
 }
@@ -93,10 +93,10 @@ Matrix3f RotatedIMU::rotateAroundZ(float angle)
     angle = angle * EIGEN_PI / 180.f;
 
     // clang-format off
-    rotation << cosf(angle),    -sinf(angle),   0,
-                sinf(angle),    cosf(angle),    0,
-                0,              0,              1;
-    // Clang-format on
+    rotation = Matrix3f{{cosf(angle),   -sinf(angle),   0},
+                        {sinf(angle),   cosf(angle),    0},
+                        {0,             0,              1}};
+    // clang-format on
 
     return rotation;
 }
