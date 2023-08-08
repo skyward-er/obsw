@@ -81,9 +81,8 @@ void NASController::update()
     if (this->testState(&NASController::state_active))
     {
         // Get the IMU data
-        LSM6DSRXData imuData = modules.get<Sensors>()->getLSM6DSRXLastSample();
-        LIS2MDLData magData  = modules.get<Sensors>()->getLIS2MDLLastSample();
-        UBXGPSData gpsData   = modules.get<Sensors>()->getGPSLastSample();
+        RotatedIMUData imuData = modules.get<Sensors>()->getIMULastSample();
+        UBXGPSData gpsData     = modules.get<Sensors>()->getGPSLastSample();
 
         // TODO change barometer
         LPS22DFData baroData = modules.get<Sensors>()->getLPS22DFLastSample();
@@ -93,7 +92,7 @@ void NASController::update()
         nas.predictAcc(imuData);
 
         // NAS correction
-        nas.correctMag(magData);
+        nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(baroData.pressure);
 
@@ -101,6 +100,9 @@ void NASController::update()
         nas.correctAcc(imuData);
 
         // TODO LOG the state and add to FLIGHT STATS RECORDER
+
+        printf("/w%fwa%fab%fbc%fc/\n", getNasState().qw, getNasState().qx,
+               getNasState().qy, getNasState().qz);
     }
 }
 

@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <Main/Sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -88,7 +89,8 @@ public:
 
     // Processed getters
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
-    Boardcore::CurrentData getCurrent();
+    Boardcore::CurrentData getCurrent();  // (TODO)
+    RotatedIMUData getIMULastSample();
 
     // CAN fake sensors setters
     void setPitot(Boardcore::PitotData data);
@@ -130,6 +132,9 @@ private:
     void ads131m08Init();
     void ads131m08Callback();
 
+    void imuInit();
+    void imuCallback();
+
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
@@ -146,6 +151,9 @@ private:
     Boardcore::PressureData canBottomTankPressure;
     Boardcore::PressureData canTopTankPressure;
     Boardcore::TemperatureData canTankTemperature;
+
+    // Fake processed IMU sensor
+    RotatedIMU* imu = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;

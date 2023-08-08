@@ -115,6 +115,12 @@ BatteryVoltageSensorData Sensors::getBatteryVoltage()
     return data;
 }
 
+RotatedIMUData Sensors::getIMULastSample()
+{
+    miosix::PauseKernelLock lock;
+    return imu != nullptr ? imu->getLastSample() : RotatedIMUData{};
+}
+
 // TODO decide for timestamps
 void Sensors::setPitot(PitotData data)
 {
@@ -155,6 +161,7 @@ bool Sensors::start()
     ubxgpsInit();
     lsm6dsrxInit();
     ads131m08Init();
+    imuInit();
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -349,6 +356,23 @@ void Sensors::ads131m08Init()
     sensorMap.emplace(make_pair(ads131m08, info));
 }
 
+void Sensors::imuInit()
+{
+    // Register the IMU as the fake sensor, passing as parameters the methods to
+    // retrieve real data. The sensor is not synchronized, but the getters are
+    imu = new RotatedIMU(bind(&Sensors::getLSM6DSRXLastSample, this),
+                         bind(&Sensors::getLIS2MDLLastSample, this),
+                         bind(&Sensors::getLSM6DSRXLastSample, this));
+
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    imu->addMagTransformation(m);
+
+    // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
+    SensorInfo info{"RotatedIMU", 20, bind(&Sensors::imuCallback, this)};
+    sensorMap.emplace(make_pair(imu, info));
+}
+
 void Sensors::lps22dfCallback()
 {
     miosix::PauseKernelLock lock;
@@ -395,6 +419,13 @@ void Sensors::ads131m08Callback()
 {
     miosix::PauseKernelLock lock;
     ADS131M08Data lastSample = ads131m08->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+
+void Sensors::imuCallback()
+{
+    miosix::PauseKernelLock lock;
+    RotatedIMUData lastSample = imu->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
