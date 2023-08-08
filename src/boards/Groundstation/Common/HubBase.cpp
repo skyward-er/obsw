@@ -20,11 +20,17 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "HubBase.h"
 
-namespace Gs
+#include <Groundstation/Common/Config/GeneralConfig.h>
+
+using namespace Groundstation;
+
+void HubBase::sendNack(const mavlink_message_t& msg)
 {
+    mavlink_message_t nack_msg;
+    mavlink_msg_nack_tm_pack(GS_SYSTEM_ID, GS_COMPONENT_ID, &nack_msg,
+                             msg.msgid, msg.seq);
 
-constexpr int SERIAL_BAUD_RATE = 115200;
-
-}  // namespace Gs
+    dispatchIncomingMsg(nack_msg);
+}

@@ -22,30 +22,38 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <ActiveObject.h>
+#include <common/Mavlink.h>
+#include <drivers/usart/USART.h>
 
-// Uncomment the following line to enable backup RF for main
-// #define SKYWARD_GS_MAIN_USE_BACKUP_RF
-// Uncomment the following line to enable backup RF for payload
-// #define SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Gs
+namespace Groundstation
 {
 
-constexpr size_t MAV_OUT_QUEUE_SIZE         = 10;
-constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 10;
-constexpr uint16_t MAV_SLEEP_AFTER_SEND     = 0;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE     = 10;
+/**
+ * @brief Class responsible for UART communication.
+ */
+class Serial : public Boardcore::Module, private Boardcore::ActiveObject
+{
+public:
+    Serial() {}
 
-/// @brief Every how many ms force the flush of the send queue.
-constexpr unsigned int AUTOMATIC_FLUSH_PERIOD = 250;
-/// @brief After how many ms stop waiting for the other side to send commands.
-constexpr long long AUTOMATIC_FLUSH_DELAY = 2000;
+    [[nodiscard]] bool start();
 
-/// @brief Period of the radio status telemetry.
-constexpr unsigned int RADIO_STATUS_PERIOD = 250;
-/// @brief Size in ms of the radio moving bitrate window size.
-constexpr size_t RADIO_BITRATE_WINDOW_SIZE = 1000;
+    /**
+     * @brief Send a mavlink message through this port.
+     */
+    void sendMsg(const mavlink_message_t& msg);
 
-}  // namespace Gs
+protected:
+    /**
+     * @brief Internal run method
+     */
+    void run() override;
+
+private:
+    miosix::FastMutex mutex;
+};
+
+}  // namespace Groundstation

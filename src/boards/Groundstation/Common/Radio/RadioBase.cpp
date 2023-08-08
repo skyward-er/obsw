@@ -20,47 +20,15 @@
  * THE SOFTWARE.
  */
 
-#include "Radio.h"
+#include "RadioBase.h"
 
-#include <Gs/Buses.h>
-#include <Gs/Hub.h>
-#include <Gs/Ports/Serial.h>
-#include <Gs/Radio/RadioStatus.h>
-#include <radio/SX1278/SX1278Frontends.h>
+#include <Groundstation/Common/HubBase.h>
+
+#include <memory>
 
 using namespace miosix;
-using namespace Gs;
+using namespace Groundstation;
 using namespace Boardcore;
-
-void __attribute__((used)) MIOSIX_RADIO1_DIO0_IRQ()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO1_DIO1_IRQ()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO1_DIO3_IRQ()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO2_DIO0_IRQ()
-{
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO2_DIO1_IRQ()
-{
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
-{
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
-}
 
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
@@ -107,23 +75,16 @@ RadioStats RadioBase::getStats()
     }
 }
 
-bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
-                      const SX1278Fsk::Config& config)
+bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278)
 {
     this->sx1278 = std::move(sx1278);
-
-    // Configure the radio
-    if (this->sx1278->configure(config) != SX1278Fsk::Error::NONE)
-    {
-        return false;
-    }
 
     auto mav_handler = [this](MavDriver* channel, const mavlink_message_t& msg)
     { handleMsg(msg); };
 
     mav_driver =
-        std::make_unique<MavDriver>(this, mav_handler, Gs::MAV_SLEEP_AFTER_SEND,
-                                    Gs::MAV_OUT_BUFFER_MAX_AGE);
+        std::make_unique<MavDriver>(this, mav_handler, Groundstation::MAV_SLEEP_AFTER_SEND,
+                                    Groundstation::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mav_driver->start())
     {
@@ -136,76 +97,6 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
     }
 
     started = true;
-    return true;
-}
-
-bool RadioMain::start()
-{
-#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(radio1::txen::getPin(),
-                                        radio1::rxen::getPin());
-#else
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
-#endif
-
-    std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
-        std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Gs::Buses>()->radio1_bus,
-            radio1::cs::getPin(), radio1::dio0::getPin(),
-            radio1::dio1::getPin(), radio1::dio3::getPin(),
-            SPI::ClockDivider::DIV_64, std::move(frontend));
-
-    // First check if the device is even connected
-    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
-    // Set if the device is present
-    status->setMainRadioPresent(sx1278->checkVersion());
-
-    if (status->isMainRadioPresent())
-    {
-        // Initialize if only if present
-        if (!RadioBase::start(std::move(sx1278), Common::MAIN_RADIO_CONFIG))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool RadioPayload::start()
-{
-#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(radio2::txen::getPin(),
-                                        radio2::rxen::getPin());
-#else
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
-#endif
-
-    std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
-        std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Gs::Buses>()->radio2_bus,
-            radio2::cs::getPin(), radio2::dio0::getPin(),
-            radio2::dio1::getPin(), radio2::dio3::getPin(),
-            SPI::ClockDivider::DIV_64, std::move(frontend));
-
-    // First check if the device is even connected
-    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
-    // Set if the device is present
-    status->setPayloadRadioPresent(sx1278->checkVersion());
-
-    if (status->isPayloadRadioPresent())
-    {
-        // Initialize if only if present
-        if (!RadioBase::start(std::move(sx1278), Common::PAYLOAD_RADIO_CONFIG))
-        {
-            return false;
-        }
-    }
-
     return true;
 }
 
@@ -249,7 +140,7 @@ bool RadioBase::send(uint8_t* pkt, size_t len)
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<Hub>()->dispatchIncomingMsg(msg);
+    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
 
     if (isEndOfTransmissionPacket(msg))
     {

@@ -24,10 +24,10 @@
 
 #include <cstdint>
 
-namespace Gs
+namespace Groundstation
 {
 
 constexpr uint8_t GS_COMPONENT_ID = 1;
 constexpr uint8_t GS_SYSTEM_ID    = 1;
 
-}  // namespace Gs
+}  // namespace Groundstation
