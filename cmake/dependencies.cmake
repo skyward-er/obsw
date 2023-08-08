@@ -39,4 +39,5 @@ set(MAIN_COMPUTER
     src/boards/Main/CanHandler/CanHandler.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Main/Actuators/Actuators.cpp
+    src/boards/Main/Sensors/RotatedIMU/RotatedIMU.cpp
 )
