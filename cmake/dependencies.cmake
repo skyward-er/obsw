@@ -49,6 +49,19 @@ set(MAIN_COMPUTER
     src/boards/Main/FlightStatsRecorder/FlightStatsRecorder.cpp
 )
 
+set(GROUNDSTATION_COMMON
+    src/boards/Groundstation/Base/Radio/Radio.cpp
+    src/boards/Groundstation/Base/Radio/RadioStatus.cpp
+    src/boards/Groundstation/Base/Hub.cpp
+)
+
+set(GS_COMPUTER
+    src/boards/Gs/Ports/Serial.cpp
+    src/boards/Gs/Radio/Radio.cpp
+    src/boards/Gs/Radio/RadioStatus.cpp
+    src/boards/Gs/Hub.cpp
+)
+
 set(MOTOR_SOURCES
     src/boards/Motor/Actuators/Actuators.cpp
     src/boards/Motor/Sensors/Sensors.cpp
@@ -108,16 +121,15 @@ set(GROUNDSTATION_NOKIA
     src/boards/Groundstation/Nokia/Hub.cpp
 )
 
-set(GROUNDSTATION_COMMON
-    src/boards/Groundstation/Common/Ports/Serial.cpp
-    src/boards/Groundstation/Common/Ports/EthernetBase.cpp
-    src/boards/Groundstation/Common/Radio/RadioBase.cpp
-    src/boards/Groundstation/Common/HubBase.cpp
-)
-
 set(GS_COMPUTER
     src/boards/Gs/Ports/Serial.cpp
     src/boards/Gs/Radio/Radio.cpp
     src/boards/Gs/Radio/RadioStatus.cpp
     src/boards/Gs/Hub.cpp
+)
+
+set(GROUNDSTATION_BASE
+    src/boards/Groundstation/Common/Ports/Serial.cpp
+    src/boards/Groundstation/Common/Radio/RadioBase.cpp
+    src/boards/Groundstation/Common/HubBase.cpp
 )

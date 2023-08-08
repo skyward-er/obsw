@@ -22,14 +22,13 @@
 
 #include "Radio.h"
 
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
+#include <Groundstation/Base/Radio/RadioStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -76,7 +75,7 @@ bool RadioMain::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Buses>()->radio1_bus,
+            ModuleManager::getInstance().get<Groundstation::Buses>()->radio1_bus,
             radio1::cs::getPin(), radio1::dio0::getPin(),
             radio1::dio1::getPin(), radio1::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));
@@ -84,7 +83,7 @@ bool RadioMain::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<BoardStatus>()->setMainRadioPresent(
+    ModuleManager::getInstance().get<RadioStatus>()->setMainRadioPresent(
         present);
 
     if (present)
@@ -108,7 +107,7 @@ bool RadioMain::start()
 
 bool RadioPayload::start()
 {
-#ifdef SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
         std::make_unique<EbyteFrontend>(radio2::txen::getPin(),
                                         radio2::rxen::getPin());
@@ -119,7 +118,7 @@ bool RadioPayload::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Buses>()->radio2_bus,
+            ModuleManager::getInstance().get<Groundstation::Buses>()->radio2_bus,
             radio2::cs::getPin(), radio2::dio0::getPin(),
             radio2::dio1::getPin(), radio2::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));
@@ -127,7 +126,7 @@ bool RadioPayload::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<BoardStatus>()->setPayloadRadioPresent(
+    ModuleManager::getInstance().get<RadioStatus>()->setPayloadRadioPresent(
         present);
 
     if (present)
