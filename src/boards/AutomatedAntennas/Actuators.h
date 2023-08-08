@@ -23,6 +23,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "ActuatorsData.h"
 #include "actuators/stepper/StepperPWM.h"
 
 // TIM1_CH4 PA11 AF1
