@@ -22,39 +22,20 @@
 
 #pragma once
 
-#include <ActiveObject.h>
-#include <Gs/Config/SerialConfig.h>
-#include <common/Mavlink.h>
-#include <drivers/usart/USART.h>
+#include <Groundstation/Common/Radio/RadioBase.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
+namespace Groundstation {
 
-namespace Gs
-{
-
-/**
- * @brief Class responsible for UART communication.
- */
-class Serial : public Boardcore::Module, private Boardcore::ActiveObject
+class RadioMain : public RadioBase, public Boardcore::Module
 {
 public:
-    Serial() {}
-
     [[nodiscard]] bool start();
-
-    /**
-     * @brief Send a mavlink message through this port.
-     */
-    void sendMsg(const mavlink_message_t& msg);
-
-protected:
-    /**
-     * @brief Internal run method
-     */
-    void run() override;
-
-private:
-    miosix::FastMutex mutex;
 };
 
-}  // namespace Gs
+class RadioPayload : public RadioBase, public Boardcore::Module
+{
+public:
+    [[nodiscard]] bool start();
+};
+
+}

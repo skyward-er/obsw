@@ -38,6 +38,9 @@ target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil PRIVATE HILTest)
 sbs_target(test-hil stm32f767zi_compute_unit)
 
-add_executable(gs-entry src/entrypoints/Gs/gs-entry.cpp ${GS_COMPUTER})
-target_include_directories(gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(gs-entry stm32f767zi_gemini_gs)
+add_executable(base-groundstation-entry 
+    src/entrypoints/Groundstation/base-groundstation-entry.cpp 
+    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_BASE}
+)
+target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)

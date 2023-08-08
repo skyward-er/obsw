@@ -22,12 +22,12 @@
 
 #include "Hub.h"
 
-#include <Gs/Config/GeneralConfig.h>
-#include <Gs/Ports/Serial.h>
-#include <Gs/Radio/Radio.h>
-#include <Gs/Radio/RadioStatus.h>
+#include <Groundstation/Common/Config/GeneralConfig.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Base/Radio/Radio.h>
+#include <Groundstation/Base/Radio/RadioStatus.h>
 
-using namespace Gs;
+using namespace Groundstation;
 using namespace Boardcore;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
@@ -63,13 +63,4 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     serial->sendMsg(msg);
 
     // TODO: Add UDP dispatch
-}
-
-void Hub::sendNack(const mavlink_message_t& msg)
-{
-    mavlink_message_t nack_msg;
-    mavlink_msg_nack_tm_pack(GS_SYSTEM_ID, GS_COMPONENT_ID, &nack_msg,
-                             msg.msgid, msg.seq);
-
-    dispatchIncomingMsg(nack_msg);
 }

@@ -22,27 +22,33 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
+#include <common/Mavlink.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+#include <Groundstation/Common/HubBase.h>
 
-#include "interfaces-impl/hwmapping.h"
-
-namespace Gs
+namespace Groundstation
 {
 
-class Buses : public Boardcore::Module
+/**
+ * @brief Central hub connecting all outgoing and ingoing modules.
+ */
+class Hub : public HubBase
 {
 public:
-    Boardcore::SPIBus radio1_bus;
-    Boardcore::SPIBus radio2_bus;
-    Boardcore::SPIBus ethernet_bus;
+    Hub() {}
 
-    Buses()
-        : radio1_bus(MIOSIX_RADIO1_SPI), radio2_bus(MIOSIX_RADIO2_SPI),
-          ethernet_bus(MIOSIX_ETHERNET_SPI)
-    {
-    }
+    /**
+     * @brief Dispatch to the correct interface and outgoing packet (gs ->
+     * rocket).
+     */
+    void dispatchOutgoingMsg(const mavlink_message_t& msg) override;
+
+    /**
+     * @brief Dispatch to the correct interface and incoming packet (rocket ->
+     * gs).
+     */
+    void dispatchIncomingMsg(const mavlink_message_t& msg) override;
 };
 
-}  // namespace Gs
+}  // namespace Groundstation

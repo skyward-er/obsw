@@ -23,7 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Gs/Config/RadioConfig.h>
+#include <Groundstation/Common/Config/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
@@ -32,11 +32,11 @@
 #include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Gs
+namespace Groundstation
 {
 
 using MavDriver =
-    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU, Gs::MAV_OUT_QUEUE_SIZE,
+    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU, Groundstation::MAV_OUT_QUEUE_SIZE,
                              MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
@@ -82,12 +82,8 @@ public:
 protected:
     /**
      * @brief Initialize this radio module.
-     *
-     * Used in RadioMain/RadioPayload to initialize the correct device with the
-     * correct config.
      */
-    bool start(std::unique_ptr<Boardcore::SX1278Fsk> sx1278,
-               const Boardcore::SX1278Fsk::Config& config);
+    bool start(std::unique_ptr<Boardcore::SX1278Fsk> sx1278);
 
 private:
     void run() override;
@@ -107,14 +103,14 @@ private:
     void flush();
 
     /**
-     * @brief Check if a message signals an end of trasmissiont
+     * @brief Check if a message signals an end of transmission
      */
     bool isEndOfTransmissionPacket(const mavlink_message_t& msg);
 
     bool started = false;
 
     miosix::FastMutex pending_msgs_mutex;
-    mavlink_message_t pending_msgs[Gs::MAV_PENDING_OUT_QUEUE_SIZE];
+    mavlink_message_t pending_msgs[Groundstation::MAV_PENDING_OUT_QUEUE_SIZE];
     size_t pending_msgs_count = 0;
 
     long long last_eot_packet_ts = 0;
@@ -128,16 +124,4 @@ private:
     std::unique_ptr<MavDriver> mav_driver;
 };
 
-class RadioMain : public RadioBase, public Boardcore::Module
-{
-public:
-    [[nodiscard]] bool start();
-};
-
-class RadioPayload : public RadioBase, public Boardcore::Module
-{
-public:
-    [[nodiscard]] bool start();
-};
-
-}  // namespace Gs
+}  // namespace Groundstation

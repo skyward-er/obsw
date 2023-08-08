@@ -22,12 +22,10 @@
 
 #include "Serial.h"
 
-#include <Gs/Hub.h>
-#include <Gs/Radio/Radio.h>
-#include <Gs/Radio/RadioStatus.h>
+#include <Groundstation/Common/HubBase.h>
 
 using namespace miosix;
-using namespace Gs;
+using namespace Groundstation;
 using namespace Boardcore;
 
 bool Serial::start()
@@ -70,8 +68,9 @@ void Serial::run()
             if (parse_result == 1)
             {
                 // Dispatch the message through the hub.
-                ModuleManager::getInstance().get<Hub>()->dispatchOutgoingMsg(
-                    msg);
+                ModuleManager::getInstance()
+                    .get<HubBase>()
+                    ->dispatchOutgoingMsg(msg);
             }
         }
     }
