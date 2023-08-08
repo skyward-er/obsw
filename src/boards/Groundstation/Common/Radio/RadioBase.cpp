@@ -79,12 +79,12 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278)
 {
     this->sx1278 = std::move(sx1278);
 
-    auto mav_handler = [this](RadioMavDriver* channel,
-                              const mavlink_message_t& msg) { handleMsg(msg); };
+    auto mav_handler = [this](MavDriver* channel, const mavlink_message_t& msg)
+    { handleMsg(msg); };
 
-    mav_driver = std::make_unique<RadioMavDriver>(
-        this, mav_handler, Groundstation::MAV_SLEEP_AFTER_SEND,
-        Groundstation::MAV_OUT_BUFFER_MAX_AGE);
+    mav_driver =
+        std::make_unique<MavDriver>(this, mav_handler, Groundstation::MAV_SLEEP_AFTER_SEND,
+                                    Groundstation::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mav_driver->start())
     {
@@ -108,7 +108,7 @@ void RadioBase::run()
         miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
 
         // If enough time has passed, automatically flush.
-        if (Kernel::getOldTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
         {
             flush();
         }
@@ -144,7 +144,7 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 
     if (isEndOfTransmissionPacket(msg))
     {
-        last_eot_packet_ts = Kernel::getOldTick();
+        last_eot_packet_ts = miosix::getTick();
         flush();
     }
 }

@@ -20,24 +20,22 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
+#include <Groundstation/Base/Radio/RadioStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <miosix.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 
-void idleLoop()
+void spinLoop()
 {
     while (1)
     {
-        Thread::wait();
+        Thread::sleep(1000);
     }
 }
 
@@ -59,10 +57,9 @@ int main()
     Hub *hub                    = new Hub();
     Buses *buses                = new Buses();
     Serial *serial              = new Serial();
-    Ethernet *ethernet          = new Ethernet();
     RadioMain *radio_main       = new RadioMain();
     RadioPayload *radio_payload = new RadioPayload();
-    BoardStatus *board_status   = new BoardStatus();
+    RadioStatus *radio_status   = new RadioStatus();
 
     ModuleManager &modules = ModuleManager::getInstance();
 
@@ -71,10 +68,9 @@ int main()
     ok &= modules.insert<HubBase>(hub);
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
-    ok &= modules.insert(ethernet);
     ok &= modules.insert(radio_main);
     ok &= modules.insert(radio_payload);
-    ok &= modules.insert(board_status);
+    ok &= modules.insert(radio_status);
 
     // If insertion failed, stop right here
     if (!ok)
@@ -91,12 +87,6 @@ int main()
         printf("[error] Failed to start serial!\n");
     }
 
-    ok &= ethernet->start();
-    if (!ok)
-    {
-        printf("[error] Failed to start ethernet!\n");
-    }
-
     ok &= radio_main->start();
     if (!ok)
     {
@@ -109,27 +99,20 @@ int main()
         printf("[error] Failed to start payload radio!\n");
     }
 
-    ok &= board_status->start();
+    ok &= radio_status->start();
     if (!ok)
     {
-        printf("[error] Failed to start board status!\n");
+        printf("[error] Failed to start radio status!\n");
     }
 
-    if (board_status->isMainRadioPresent())
+    if (radio_status->isMainRadioPresent())
     {
-        printf("Main radio detected!\n");
         led2On();
     }
 
-    if (board_status->isPayloadRadioPresent())
+    if (radio_status->isPayloadRadioPresent())
     {
-        printf("Payload radio detected!\n");
         led3On();
-    }
-
-    if (board_status->isEthernetPresent())
-    {
-        printf("Ethernet detected!\n");
     }
 
     if (!ok)
@@ -138,6 +121,6 @@ int main()
     }
 
     led1On();
-    idleLoop();
+    spinLoop();
     return 0;
 }
