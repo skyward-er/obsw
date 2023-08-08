@@ -24,14 +24,14 @@
 #include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/Ebyte.h>
+#include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::EbyteFsk::MTU,
+using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
@@ -67,8 +67,8 @@ public:
      */
     bool isStarted();
 
-    Boardcore::EbyteFsk* transceiver = nullptr;
-    MavDriver* mavDriver             = nullptr;
+    Boardcore::SX1278Fsk* transceiver = nullptr;
+    MavDriver* mavDriver              = nullptr;
 
 private:
     /**

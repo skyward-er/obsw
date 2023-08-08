@@ -28,6 +28,7 @@
 #include <common/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
+#include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Boardcore;
 using namespace Common;
@@ -41,8 +42,7 @@ void __attribute__((used)) SX1278_IRQ_DIO0()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<Main::Radio>()->transceiver)
     {
-        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
-            EbyteFsk::Dio::DIO0);
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ();
     }
 }
 
@@ -51,8 +51,7 @@ void __attribute__((used)) SX1278_IRQ_DIO1()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<Main::Radio>()->transceiver)
     {
-        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
-            EbyteFsk::Dio::DIO1);
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ();
     }
 }
 
@@ -61,8 +60,7 @@ void __attribute__((used)) SX1278_IRQ_DIO3()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<Main::Radio>()->transceiver)
     {
-        modules.get<Main::Radio>()->transceiver->handleDioIRQ(
-            EbyteFsk::Dio::DIO3);
+        modules.get<Main::Radio>()->transceiver->handleDioIRQ();
     }
 }
 namespace Main
@@ -75,36 +73,22 @@ bool Radio::start()
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Config the transceiver
-    EbyteFsk::Config config;
-    config.power    = 12;
-    config.ocp      = 0;
-    config.pa_boost = false;
+    SX1278Fsk::Config config;
+    config.power      = 12;
+    config.ocp        = 0;
+    config.enable_crc = false;
 
-    // Config the SPI
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_128;
-    spiConfig.mode         = SPI::Mode::MODE_0;
-    spiConfig.bitOrder     = SPI::Order::MSB_FIRST;
-    spiConfig.writeBit     = SPI::WriteBit::INVERTED;
+    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
+        std::make_unique<Skyward433Frontend>();
 
-    transceiver = new EbyteFsk(SPISlave(modules.get<Buses>()->spi6,
-                                        miosix::radio::cs::getPin(), spiConfig),
-                               miosix::radio::tx_enable::getPin(),
-                               miosix::radio::rx_enable::getPin());
-
-    // Enable the interrupts
-    enableExternalInterrupt(miosix::radio::dio0::getPin().getPort(),
-                            miosix::radio::dio0::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(miosix::radio::dio1::getPin().getPort(),
-                            miosix::radio::dio1::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(miosix::radio::dio3::getPin().getPort(),
-                            miosix::radio::dio3::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
+    transceiver = new SX1278Fsk(
+        modules.get<Buses>()->spi6, miosix::radio::cs::getPin(),
+        miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
+        miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
+        std::move(frontend));
 
     // Config the radio
-    EbyteFsk::Error error = transceiver->init(config);
+    SX1278Fsk::Error error = transceiver->init(config);
 
     // Add periodic telemetry send task
     uint8_t result =
@@ -121,7 +105,7 @@ bool Radio::start()
         0, 1);
 
     // Check radio failure
-    if (error != EbyteFsk::Error::NONE)
+    if (error != SX1278Fsk::Error::NONE)
     {
         return false;
     }
@@ -301,7 +285,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
         {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
-        {MAV_CMD_FORCE_MAIN, TMTC_FORCE_DEPLOYMENT},
+        {MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT},
         {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
         {MAV_CMD_STOP_LOGGING, TMTC_STOP_LOGGING},
         {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
@@ -343,9 +327,9 @@ void Radio::sendPeriodicMessage()
     }
 
     mavDriver->enqueueMsg(
-        modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
-    mavDriver->enqueueMsg(
         modules.get<TMRepository>()->packSystemTm(MAV_MOTOR_ID, 0, 0));
+    mavDriver->enqueueMsg(
+        modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
 }
 
 void Radio::enqueueMsg(const mavlink_message_t& msg)

@@ -125,6 +125,12 @@ int main()
     }
 
     // Start modules
+    if (!Logger::getInstance().testSDCard())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Logger module");
+    }
+
     if (!EventBroker::getInstance().start())
     {
         initResult = false;
