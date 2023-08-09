@@ -115,6 +115,26 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
     return data;
 }
 
+MPXH6400AData Sensors::getDeploymentPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return mpxh6400a != nullptr ? mpxh6400a->getLastSample() : MPXH6400AData{};
+}
+
+HSCMRNN015PAData Sensors::getStaticPressure1LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return hscmrnn015pa_1 != nullptr ? hscmrnn015pa_1->getLastSample()
+                                     : HSCMRNN015PAData{};
+}
+
+HSCMRNN015PAData Sensors::getStaticPressure2LastSample()
+{
+    miosix::PauseKernelLock lock;
+    return hscmrnn015pa_2 != nullptr ? hscmrnn015pa_2->getLastSample()
+                                     : HSCMRNN015PAData{};
+}
+
 RotatedIMUData Sensors::getIMULastSample()
 {
     miosix::PauseKernelLock lock;
@@ -183,6 +203,8 @@ bool Sensors::start()
     lsm6dsrxInit();
     ads131m08Init();
     deploymentPressureInit();
+    staticPressure1Init();
+    staticPressure2Init();
     imuInit();
 
     // Add the magnetometer calibration to the scheduler
@@ -434,6 +456,44 @@ void Sensors::deploymentPressureInit()
     sensorMap.emplace(make_pair(mpxh6400a, info));
 }
 
+void Sensors::staticPressure1Init()
+{
+    // Create the lambda function to get the voltage
+    function<ADCData()> getVoltage = [&]()
+    {
+        // No need to synchronize, the sampling thread is the same
+        ADS131M08Data sample = ads131m08->getLastSample();
+        return sample.getVoltage(ADC_CH_STATIC_1);
+    };
+
+    // Create the sensor instance with created function
+    hscmrnn015pa_1 = new HSCMRNN015PA(getVoltage, ADC_VOLTAGE_RANGE);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("HSCMRNN015PA_1", ADS131M08_PERIOD,
+                    bind(&Sensors::staticPressure1Callback, this));
+    sensorMap.emplace(make_pair(hscmrnn015pa_1, info));
+}
+
+void Sensors::staticPressure2Init()
+{
+    // Create the lambda function to get the voltage
+    function<ADCData()> getVoltage = [&]()
+    {
+        // No need to synchronize, the sampling thread is the same
+        ADS131M08Data sample = ads131m08->getLastSample();
+        return sample.getVoltage(ADC_CH_STATIC_2);
+    };
+
+    // Create the sensor instance with created function
+    hscmrnn015pa_2 = new HSCMRNN015PA(getVoltage, ADC_VOLTAGE_RANGE);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("HSCMRNN015PA_2", ADS131M08_PERIOD,
+                    bind(&Sensors::staticPressure2Callback, this));
+    sensorMap.emplace(make_pair(hscmrnn015pa_2, info));
+}
+
 void Sensors::imuInit()
 {
     // Register the IMU as the fake sensor, passing as parameters the methods to
@@ -506,6 +566,18 @@ void Sensors::deploymentPressureCallback()
 {
     miosix::PauseKernelLock lock;
     MPXH6400AData lastSample = mpxh6400a->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::staticPressure1Callback()
+{
+    miosix::PauseKernelLock lock;
+    HSCMRNN015PA_1Data lastSample = hscmrnn015pa_1->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::staticPressure2Callback()
+{
+    miosix::PauseKernelLock lock;
+    HSCMRNN015PA_2Data lastSample = hscmrnn015pa_2->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::imuCallback()

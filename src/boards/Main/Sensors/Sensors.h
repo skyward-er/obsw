@@ -33,6 +33,7 @@
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
+#include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
@@ -52,6 +53,22 @@ struct LPS28DFW_2Data : Boardcore::LPS28DFWData
 {
     LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
         : Boardcore::LPS28DFWData(data)
+    {
+    }
+};
+
+struct HSCMRNN015PA_1Data : Boardcore::HSCMRNN015PAData
+{
+    HSCMRNN015PA_1Data(const Boardcore::HSCMRNN015PAData& data)
+        : Boardcore::HSCMRNN015PAData(data)
+    {
+    }
+};
+
+struct HSCMRNN015PA_2Data : Boardcore::HSCMRNN015PAData
+{
+    HSCMRNN015PA_2Data(const Boardcore::HSCMRNN015PAData& data)
+        : Boardcore::HSCMRNN015PAData(data)
     {
     }
 };
@@ -99,6 +116,8 @@ public:
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
     Boardcore::CurrentData getCurrentLastSample();  // (TODO)
     Boardcore::MPXH6400AData getDeploymentPressureLastSample();
+    Boardcore::HSCMRNN015PAData getStaticPressure1LastSample();
+    Boardcore::HSCMRNN015PAData getStaticPressure2LastSample();
     RotatedIMUData getIMULastSample();
     Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
@@ -145,6 +164,12 @@ private:
     void deploymentPressureInit();
     void deploymentPressureCallback();
 
+    void staticPressure1Init();
+    void staticPressure1Callback();
+
+    void staticPressure2Init();
+    void staticPressure2Callback();
+
     void imuInit();
     void imuCallback();
 
@@ -166,8 +191,10 @@ private:
     Boardcore::TemperatureData canTankTemperature;
 
     // Fake processed sensors
-    RotatedIMU* imu                 = nullptr;
-    Boardcore::MPXH6400A* mpxh6400a = nullptr;
+    RotatedIMU* imu                         = nullptr;
+    Boardcore::MPXH6400A* mpxh6400a         = nullptr;
+    Boardcore::HSCMRNN015PA* hscmrnn015pa_1 = nullptr;
+    Boardcore::HSCMRNN015PA* hscmrnn015pa_2 = nullptr;
 
     // Magnetometer live calibration
     Boardcore::SoftAndHardIronCalibration magCalibrator;

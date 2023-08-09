@@ -98,6 +98,10 @@ constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms] 10Hz
 constexpr float ADC_VOLTAGE_RANGE = 1.2f;  // [V] Voltage reading range
 constexpr Boardcore::ADS131M08Defs::Channel ADC_CH_DPL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
+constexpr Boardcore::ADS131M08Defs::Channel ADC_CH_STATIC_1 =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
+constexpr Boardcore::ADS131M08Defs::Channel ADC_CH_STATIC_2 =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
 
 // ADC Voltage divider
 constexpr float BATTERY_VOLTAGE_CONVERSION_FACTOR =
