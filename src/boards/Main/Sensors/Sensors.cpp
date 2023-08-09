@@ -100,7 +100,7 @@ TemperatureData Sensors::getTankTemperatureLastSample()
 }
 
 // Processed Getters
-BatteryVoltageSensorData Sensors::getBatteryVoltage()
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 {
     // Do not need to pause the kernel, the last sample getter is already
     // protected
@@ -182,6 +182,7 @@ bool Sensors::start()
     ubxgpsInit();
     lsm6dsrxInit();
     ads131m08Init();
+    deploymentPressureInit();
     imuInit();
 
     // Add the magnetometer calibration to the scheduler
@@ -414,22 +415,42 @@ void Sensors::ads131m08Init()
     sensorMap.emplace(make_pair(ads131m08, info));
 }
 
+void Sensors::deploymentPressureInit()
+{
+    // Create the lambda function to get the voltage
+    function<ADCData()> getVoltage = [&]()
+    {
+        // No need to synchronize, the sampling thread is the same
+        ADS131M08Data sample = ads131m08->getLastSample();
+        return sample.getVoltage(ADC_CH_DPL);
+    };
+
+    // Create the sensor instance with created function
+    mpxh6400a = new MPXH6400A(getVoltage, ADC_VOLTAGE_RANGE);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("MPXH6400A", ADS131M08_PERIOD,
+                    bind(&Sensors::deploymentPressureCallback, this));
+    sensorMap.emplace(make_pair(mpxh6400a, info));
+}
+
 void Sensors::imuInit()
 {
     // Register the IMU as the fake sensor, passing as parameters the methods to
-    // retrieve real data. The sensor is not synchronized, but the getters are
+    // retrieve real data. The sensor is not synchronized, but the sampling
+    // thread is always the same.
     imu = new RotatedIMU(
-        bind(&Sensors::getLSM6DSRXLastSample, this),
+        bind(&LSM6DSRX::getLastSample, lsm6dsrx),
         bind(&Sensors::getCalibratedMagnetometerLastSample, this),
-        bind(&Sensors::getLSM6DSRXLastSample, this));
+        bind(&LSM6DSRX::getLastSample, lsm6dsrx));
 
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
 
     // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
-    SensorInfo info{"RotatedIMU", IMU_PERIOD,
-                    bind(&Sensors::imuCallback, this)};
+    SensorInfo info("RotatedIMU", IMU_PERIOD,
+                    bind(&Sensors::imuCallback, this));
     sensorMap.emplace(make_pair(imu, info));
 }
 
@@ -481,7 +502,12 @@ void Sensors::ads131m08Callback()
     ADS131M08Data lastSample = ads131m08->getLastSample();
     Logger::getInstance().log(lastSample);
 }
-
+void Sensors::deploymentPressureCallback()
+{
+    miosix::PauseKernelLock lock;
+    MPXH6400AData lastSample = mpxh6400a->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
 void Sensors::imuCallback()
 {
     miosix::PauseKernelLock lock;

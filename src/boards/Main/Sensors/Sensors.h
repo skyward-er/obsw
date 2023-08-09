@@ -33,6 +33,7 @@
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
+#include <sensors/analog/pressure/nxp/MPXH6400A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -95,8 +96,9 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
 
     // Processed getters
-    Boardcore::BatteryVoltageSensorData getBatteryVoltage();
-    Boardcore::CurrentData getCurrent();  // (TODO)
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+    Boardcore::CurrentData getCurrentLastSample();  // (TODO)
+    Boardcore::MPXH6400AData getDeploymentPressureLastSample();
     RotatedIMUData getIMULastSample();
     Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
@@ -140,6 +142,9 @@ private:
     void ads131m08Init();
     void ads131m08Callback();
 
+    void deploymentPressureInit();
+    void deploymentPressureCallback();
+
     void imuInit();
     void imuCallback();
 
@@ -160,8 +165,9 @@ private:
     Boardcore::PressureData canTopTankPressure;
     Boardcore::TemperatureData canTankTemperature;
 
-    // Fake processed IMU sensor
-    RotatedIMU* imu = nullptr;
+    // Fake processed sensors
+    RotatedIMU* imu                 = nullptr;
+    Boardcore::MPXH6400A* mpxh6400a = nullptr;
 
     // Magnetometer live calibration
     Boardcore::SoftAndHardIronCalibration magCalibrator;

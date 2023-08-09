@@ -226,7 +226,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // Pins (TODO)
 
             // Board status (TODO)
-            tm.vbat = modules.get<Sensors>()->getBatteryVoltage().batVoltage;
+            tm.vbat = modules.get<Sensors>()
+                          ->getBatteryVoltageLastSample()
+                          .batVoltage;
             tm.temperature  = lps28dfw1.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
