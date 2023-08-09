@@ -220,7 +220,15 @@ void Sensors::writeMagCalibration()
     // Compute the calibration result in protected area
     {
         miosix::Lock<FastMutex> l(calibrationMutex);
-        magCalibration = magCalibrator.computeResult();
+        SixParametersCorrector cal = magCalibrator.computeResult();
+
+        // Check result validity
+        if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
+            !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
+            !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+        {
+            magCalibration = cal;
+        }
     }
 
     // Save the calibration to the calibration file
