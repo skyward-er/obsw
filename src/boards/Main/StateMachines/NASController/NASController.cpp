@@ -101,8 +101,8 @@ void NASController::update()
 
         // TODO LOG the state and add to FLIGHT STATS RECORDER
 
-        printf("/w%fwa%fab%fbc%fc/\n", getNasState().qw, getNasState().qx,
-               getNasState().qy, getNasState().qz);
+        // printf("/w%fwa%fab%fbc%fc/\n", getNasState().qw, getNasState().qx,
+        //        getNasState().qy, getNasState().qz);
     }
 }
 

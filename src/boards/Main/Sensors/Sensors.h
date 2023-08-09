@@ -33,6 +33,7 @@
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
+#include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -77,6 +78,12 @@ public:
      */
     void calibrate();
 
+    /**
+     * @brief Takes the result of the live magnetometer calibration and applies
+     * it to the current calibration + writes it in the csv file
+     */
+    void writeMagCalibration();
+
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFW_1LastSample();
@@ -91,6 +98,7 @@ public:
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
     Boardcore::CurrentData getCurrent();  // (TODO)
     RotatedIMUData getIMULastSample();
+    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
     // CAN fake sensors setters
     void setPitot(Boardcore::PitotData data);
@@ -154,6 +162,11 @@ private:
 
     // Fake processed IMU sensor
     RotatedIMU* imu = nullptr;
+
+    // Magnetometer live calibration
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    miosix::FastMutex calibrationMutex;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;

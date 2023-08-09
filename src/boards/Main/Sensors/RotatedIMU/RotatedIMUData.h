@@ -28,14 +28,15 @@ struct RotatedIMUData : public Boardcore::AccelerometerData,
                         public Boardcore::GyroscopeData
 {
     RotatedIMUData()
-        : AccelerometerData{0, 0.0, 0.0, 0.0}, GyroscopeData{0, 0.0, 0.0, 0.0},
-          MagnetometerData{0, 0.0, 0.0, 0.0}
+        : AccelerometerData{0, 0.0, 0.0, 0.0},
+          MagnetometerData{0, 0.0, 0.0, 0.0}, GyroscopeData{0, 0.0, 0.0, 0.0}
+
     {
     }
 
     RotatedIMUData(AccelerometerData acc, GyroscopeData gyr,
                    MagnetometerData mag)
-        : AccelerometerData(acc), GyroscopeData(gyr), MagnetometerData(mag)
+        : AccelerometerData(acc), MagnetometerData(mag), GyroscopeData(gyr)
     {
     }
 

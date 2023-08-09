@@ -121,6 +121,24 @@ RotatedIMUData Sensors::getIMULastSample()
     return imu != nullptr ? imu->getLastSample() : RotatedIMUData{};
 }
 
+MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    MagnetometerData lastSample = getLIS2MDLLastSample();
+    MagnetometerData result;
+
+    // Correct the result and copy the timestamp
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        result =
+            static_cast<MagnetometerData>(magCalibration.correct(lastSample));
+    }
+
+    result.magneticFieldTimestamp = lastSample.magneticFieldTimestamp;
+    return result;
+}
+
 // TODO decide for timestamps
 void Sensors::setPitot(PitotData data)
 {
@@ -152,6 +170,9 @@ Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
 bool Sensors::start()
 {
+    // Read the magnetometer calibration from predefined file
+    magCalibration.fromFile("magCalibration.csv");
+
     // Init all the sensors
     lps22dfInit();
     lps28dfw_1Init();
@@ -163,9 +184,26 @@ bool Sensors::start()
     ads131m08Init();
     imuInit();
 
+    // Add the magnetometer calibration to the scheduler
+    size_t result = scheduler->addTask(
+        [&]()
+        {
+            // Gather the last sample data
+            MagnetometerData lastSample = getLIS2MDLLastSample();
+
+            // Feed the data to the calibrator inside a protected area.
+            // Contention is not high and the use of a mutex is suitable to
+            // avoid pausing the kernel for this calibration operation
+            {
+                miosix::Lock<FastMutex> l(calibrationMutex);
+                magCalibrator.feed(lastSample);
+            }
+        },
+        MAG_CALIBRATION_PERIOD);
+
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
-    return manager->start();
+    return manager->start() && result != 0;
 }
 
 void Sensors::stop() { manager->stop(); }
@@ -176,6 +214,18 @@ bool Sensors::isStarted()
 }
 
 void Sensors::calibrate() {}
+
+void Sensors::writeMagCalibration()
+{
+    // Compute the calibration result in protected area
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        magCalibration = magCalibrator.computeResult();
+    }
+
+    // Save the calibration to the calibration file
+    magCalibration.toFile("magCalibration.csv");
+}
 
 void Sensors::lps22dfInit()
 {
@@ -360,16 +410,18 @@ void Sensors::imuInit()
 {
     // Register the IMU as the fake sensor, passing as parameters the methods to
     // retrieve real data. The sensor is not synchronized, but the getters are
-    imu = new RotatedIMU(bind(&Sensors::getLSM6DSRXLastSample, this),
-                         bind(&Sensors::getLIS2MDLLastSample, this),
-                         bind(&Sensors::getLSM6DSRXLastSample, this));
+    imu = new RotatedIMU(
+        bind(&Sensors::getLSM6DSRXLastSample, this),
+        bind(&Sensors::getCalibratedMagnetometerLastSample, this),
+        bind(&Sensors::getLSM6DSRXLastSample, this));
 
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
 
     // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
-    SensorInfo info{"RotatedIMU", 20, bind(&Sensors::imuCallback, this)};
+    SensorInfo info{"RotatedIMU", IMU_PERIOD,
+                    bind(&Sensors::imuCallback, this)};
     sensorMap.emplace(make_pair(imu, info));
 }
 

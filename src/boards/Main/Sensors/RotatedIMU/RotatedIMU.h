@@ -107,14 +107,14 @@ public:
 private:
     RotatedIMUData sampleImpl() override;
 
-    // Transformation matrices
-    Eigen::Matrix3f accT;
-    Eigen::Matrix3f magT;
-    Eigen::Matrix3f gyroT;
-
     // Functions to sample the under neath sensors
     std::function<Boardcore::AccelerometerData()> accSample;
     std::function<Boardcore::MagnetometerData()> magSample;
     std::function<Boardcore::GyroscopeData()> gyroSample;
+
+    // Transformation matrices
+    Eigen::Matrix3f accT;
+    Eigen::Matrix3f magT;
+    Eigen::Matrix3f gyroT;
 };
 }  // namespace Main
