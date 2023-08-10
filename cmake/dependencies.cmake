@@ -25,7 +25,7 @@ set(OBSW_INCLUDE_DIRS
     src/hardware_in_the_loop
 )
 
-set(HIL 
+set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
@@ -50,6 +50,6 @@ set(GROUNDSTATION_COMMON
 )
 
 set(ANTENNAS
-    src/boards/AutomatedAntennas/Actuators.cpp
-    src/boards/AutomatedAntennas/Sensors.cpp
+    src/boards/Groundstation/Automated/Actuators/Actuators.cpp
+    src/boards/Groundstation/Automated/Sensors/Sensors.cpp
 )
