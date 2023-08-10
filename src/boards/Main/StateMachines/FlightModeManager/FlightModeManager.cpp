@@ -94,7 +94,6 @@ State FlightModeManager::state_on_ground(const Event& event)
 
 State FlightModeManager::state_init(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
