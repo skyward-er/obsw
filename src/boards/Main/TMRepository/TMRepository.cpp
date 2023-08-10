@@ -165,6 +165,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<Sensors>()->getLPS28DFW_1LastSample();
             LIS2MDLData lis2mdl =
                 modules.get<Sensors>()->getLIS2MDLLastSample();
+            PressureData staticPressure =
+                modules.get<Sensors>()->getStaticPressure1LastSample();
+            PressureData deploymentPressure =
+                modules.get<Sensors>()->getDeploymentPressureLastSample();
             UBXGPSData gps = modules.get<Sensors>()->getGPSLastSample();
 
             // NAS state
@@ -181,8 +185,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // Pressures (TODO)
             tm.pressure_ada    = 0;
             tm.pressure_digi   = lps22df.pressure;
-            tm.pressure_dpl    = 0;
-            tm.pressure_static = 0;
+            tm.pressure_dpl    = deploymentPressure.pressure;
+            tm.pressure_static = staticPressure.pressure;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
