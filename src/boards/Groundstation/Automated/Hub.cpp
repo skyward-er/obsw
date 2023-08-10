@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Riccardo Musso, Emilio Corigliano
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,38 +20,37 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/timer/TimestampTimer.h>
-#include <miosix.h>
+#include "Hub.h"
 
-#include <Groundstation/Base/Buses.h>
-#include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/Radio/RadioStatus.h>
+#include <Groundstation/Automated/Radio/Radio.h>
+#include <Groundstation/Automated/Radio/RadioStatus.h>
+#include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include "Converter.h"
 
-using namespace miosix;
+using namespace Antennas;
 using namespace Boardcore;
+using namespace Groundstation;
 
-inline float randf() { return (std::rand() % 200 - 100) / 100.f; }
-
-int main()
+void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    constexpr int N = 10000;
+    // TODO: Dispatch to correct radio using mavlink ids
 
-    printf("Starting test\n");
-    uint64_t start = TimestampTimer::getTimestamp();
+    bool send_ok = false;
 
-    for (int i = 0; i < N; i++)
+    RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
+    send_ok |= radio->sendMsg(msg);
+
+    // If both of the sends went wrong, just send a nack
+    if (!send_ok)
     {
-        NEDCoords coords     = {randf(), randf(), randf()};
-        AntennaAngles angles = rocketPositionToAntennaAngles(coords);
-        printf("NED: %.2f ; %.2f ; %.2f -> Angles %.2f ; %.2f\n", coords.n,
-               coords.e, coords.d, angles.theta1, angles.theta2);
+        sendNack(msg);
     }
+}
 
-    uint64_t end = TimestampTimer::getTimestamp();
-    printf("Took %llu millis for %d calls.\n", (end - start) / 1000ull, N);
+void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
+{
+    Serial* serial = ModuleManager::getInstance().get<Serial>();
+    serial->sendMsg(msg);
 
-    return 0;
+    // TODO: Add UDP dispatch
 }
