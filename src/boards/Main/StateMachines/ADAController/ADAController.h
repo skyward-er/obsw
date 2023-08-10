@@ -22,22 +22,21 @@
 
 #pragma once
 
-#include <algorithms/NAS/NAS.h>
+#include <Main/StateMachines/ADAController/ADAControllerData.h>
+#include <algorithms/ADA/ADA.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "NASControllerData.h"
-
 namespace Main
 {
-class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Module
+class ADAController : public Boardcore::Module,
+                      public Boardcore::FSM<ADAController>
 {
 public:
-    NASController(Boardcore::TaskScheduler* sched);
+    ADAController(Boardcore::TaskScheduler* sched);
 
     /**
      * @brief Starts the FSM thread and adds an update function into the
@@ -45,46 +44,49 @@ public:
      */
     bool start() override;
 
-    // NAS FSM called methods
+    /**
+     * @brief Update function called periodically by the scheduler. It checks
+     * the current FSM state and checks for apogees.
+     */
     void update();
+
     void calibrate();
 
-    // NAS setters
-    void setCoordinates(Eigen::Vector2f position);
-    void setOrientation(float yaw, float pitch, float roll);
+    // ADA setters
     void setReferenceAltitude(float altitude);
     void setReferenceTemperature(float temperature);
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
-    // NAS Getters
-    NASControllerStatus getStatus();
-    Boardcore::NASState getNasState();
+    // ADA getters
+    ADAControllerStatus getStatus();
+    Boardcore::ADAState getADAState();
     Boardcore::ReferenceValues getReferenceValues();
 
     // FSM states
     void state_idle(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
+    void state_shadow_mode(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
 private:
     /**
-     * @brief Logs the NAS status updating the FSM state
+     * @brief Logs the ADA status updating the FSM state
      * @param state The current FSM state
      */
-    void logStatus(NASControllerState state);
+    void logStatus(ADAControllerState state);
+
+    // TODO comment
+    Boardcore::ADA::KalmanFilter::KalmanConfig getADAKalmanConfig();
 
     // Controller state machine status
-    NASControllerStatus status;
-    Boardcore::NAS nas;
+    ADAControllerStatus status;
+    Boardcore::ADA ada;
 
-    // Scheduler to be used for update function
-    Boardcore::TaskScheduler* scheduler;
+    // Counter that keeps trace of the number of apogees
+    uint16_t detectedApogeeEvents = 0;
 
-    // User set (or triac set) initial orientation
-    Eigen::Vector3f initialOrientation;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ADA");
 };
 }  // namespace Main
