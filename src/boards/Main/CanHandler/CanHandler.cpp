@@ -26,6 +26,7 @@
 #include <Main/Buses.h>
 #include <Main/Configs/CanHandlerConfig.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/CanConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -51,8 +52,7 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
 
     CanbusDriver::CanbusConfig config;
 
-    // NOTE configure the peripheral CAN1 due to shared configs
-    // TODO solve this thing
+    // Configure the correct peripheral
     driver = new CanbusDriver(CAN2, config, bitTiming);
 
     // Create the protocol with the defined driver
@@ -75,19 +75,20 @@ bool CanHandler::start()
     uint8_t result = scheduler->addTask(  // status
         [&]()
         {
-            // FlightModeManagerState state = ModuleManager::getInstance()
-            //                                    .get<FlightModeManager>()
-            //                                    ->getStatus()
-            //                                    .state;
+            FlightModeManagerState state = ModuleManager::getInstance()
+                                               .get<FlightModeManager>()
+                                               ->getStatus()
+                                               .state;
             protocol->enqueueSimplePacket(
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::STATUS),
                 static_cast<uint8_t>(Board::MAIN),
-                static_cast<uint8_t>(Board::BROADCAST), static_cast<uint8_t>(3),
-                0x123456789ABCDEF);  // TODO add if electronics is armed or not
-                                     // and FMM state
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(state),
+                ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
         },
         STATUS_TRANSMISSION_PERIOD);
+
     // TODO look at the priorities of the CAN protocol threads
     return protocol->start() && result != 0;
 }
@@ -134,16 +135,6 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
         case PrimaryType::SENSORS:
         {
             handleCanSensor(msg);
-            break;
-        }
-        case PrimaryType::STATUS:
-        {
-            handleCanStatus(msg);
-            break;
-        }
-        case PrimaryType::COMMAND:
-        {
-            handleCanCommand(msg);
             break;
         }
         default:
@@ -215,21 +206,6 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
                      sensorId);
         }
     }
-}
-
-void CanHandler::handleCanStatus(const CanMessage &msg)
-{
-    Board source  = static_cast<Board>(msg.getSource());
-    uint8_t state = msg.getSecondaryType();
-    bool isArmed  = msg.payload[0];
-}
-
-void CanHandler::handleCanCommand(const CanMessage &msg)
-{
-    uint64_t payload    = msg.payload[0];
-    ServosList servo    = static_cast<ServosList>(msg.getSecondaryType());
-    uint8_t targetState = static_cast<uint8_t>(payload);
-    uint32_t delay      = static_cast<uint8_t>(payload >> 8);
 }
 
 }  // namespace Main
