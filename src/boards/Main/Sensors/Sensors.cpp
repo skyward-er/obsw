@@ -523,13 +523,15 @@ void Sensors::lps22dfCallback()
 void Sensors::lps28dfw_1Callback()
 {
     miosix::PauseKernelLock lock;
-    LPS28DFW_1Data lastSample = lps28dfw_1->getLastSample();
+    LPS28DFW_1Data lastSample =
+        static_cast<LPS28DFW_1Data>(lps28dfw_1->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_2Callback()
 {
     miosix::PauseKernelLock lock;
-    LPS28DFW_2Data lastSample = lps28dfw_2->getLastSample();
+    LPS28DFW_2Data lastSample =
+        static_cast<LPS28DFW_2Data>(lps28dfw_2->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::h3lis331dlCallback()
@@ -571,13 +573,15 @@ void Sensors::deploymentPressureCallback()
 void Sensors::staticPressure1Callback()
 {
     miosix::PauseKernelLock lock;
-    HSCMRNN015PA_1Data lastSample = hscmrnn015pa_1->getLastSample();
+    HSCMRNN015PA_1Data lastSample =
+        static_cast<HSCMRNN015PA_1Data>(hscmrnn015pa_1->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::staticPressure2Callback()
 {
     miosix::PauseKernelLock lock;
-    HSCMRNN015PA_2Data lastSample = hscmrnn015pa_2->getLastSample();
+    HSCMRNN015PA_2Data lastSample =
+        static_cast<HSCMRNN015PA_2Data>(hscmrnn015pa_2->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::imuCallback()

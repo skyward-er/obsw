@@ -22,12 +22,13 @@
 #pragma once
 
 #include <sensors/LPS28DFW/LPS28DFWData.h>
+#include <sensors/analog/pressure/honeywell/HSCMRNN015PAData.h>
 
 namespace Main
 {
 struct LPS28DFW_1Data : Boardcore::LPS28DFWData
 {
-    LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
+    explicit LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
         : Boardcore::LPS28DFWData(data)
     {
     }
@@ -46,7 +47,7 @@ struct LPS28DFW_1Data : Boardcore::LPS28DFWData
 
 struct LPS28DFW_2Data : Boardcore::LPS28DFWData
 {
-    LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
+    explicit LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
         : Boardcore::LPS28DFWData(data)
     {
     }
@@ -62,4 +63,37 @@ struct LPS28DFW_2Data : Boardcore::LPS28DFWData
            << temperatureTimestamp << "," << temperature << "\n";
     }
 };
-}
+
+struct HSCMRNN015PA_1Data : Boardcore::HSCMRNN015PAData
+{
+    explicit HSCMRNN015PA_1Data(const Boardcore::HSCMRNN015PAData& data)
+        : Boardcore::HSCMRNN015PAData(data)
+    {
+    }
+
+    static std::string header() { return "pressureTimestamp,pressure\n "; }
+
+    void print(std::ostream& os) const
+    {
+        os << pressureTimestamp << "," << pressure << ","
+           << "\n";
+    }
+};
+
+struct HSCMRNN015PA_2Data : Boardcore::HSCMRNN015PAData
+{
+    explicit HSCMRNN015PA_2Data(const Boardcore::HSCMRNN015PAData& data)
+        : Boardcore::HSCMRNN015PAData(data)
+    {
+    }
+
+    static std::string header() { return "pressureTimestamp,pressure\n "; }
+
+    void print(std::ostream& os) const
+    {
+        os << pressureTimestamp << "," << pressure << ","
+           << "\n";
+    }
+};
+
+}  // namespace Main

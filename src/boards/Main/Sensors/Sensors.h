@@ -22,6 +22,7 @@
 #pragma once
 
 #include <Main/Sensors/RotatedIMU/RotatedIMU.h>
+#include <Main/Sensors/SensorsData.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -41,38 +42,6 @@
 
 namespace Main
 {
-struct LPS28DFW_1Data : Boardcore::LPS28DFWData
-{
-    LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
-        : Boardcore::LPS28DFWData(data)
-    {
-    }
-};
-
-struct LPS28DFW_2Data : Boardcore::LPS28DFWData
-{
-    LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
-        : Boardcore::LPS28DFWData(data)
-    {
-    }
-};
-
-struct HSCMRNN015PA_1Data : Boardcore::HSCMRNN015PAData
-{
-    HSCMRNN015PA_1Data(const Boardcore::HSCMRNN015PAData& data)
-        : Boardcore::HSCMRNN015PAData(data)
-    {
-    }
-};
-
-struct HSCMRNN015PA_2Data : Boardcore::HSCMRNN015PAData
-{
-    HSCMRNN015PA_2Data(const Boardcore::HSCMRNN015PAData& data)
-        : Boardcore::HSCMRNN015PAData(data)
-    {
-    }
-};
-
 class Sensors : public Boardcore::Module
 {
 public:

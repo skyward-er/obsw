@@ -36,7 +36,7 @@ class CanHandler : public Boardcore::Module
 {
 
 public:
-    CanHandler(Boardcore::TaskScheduler *sched);
+    explicit CanHandler(Boardcore::TaskScheduler *sched);
 
     /**
      * @brief Adds the periodic task to the scheduler and starts the protocol

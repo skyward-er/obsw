@@ -163,8 +163,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<Sensors>()->getLPS22DFLastSample();
             LPS28DFWData lps28dfw1 =
                 modules.get<Sensors>()->getLPS28DFW_1LastSample();
-            LPS28DFWData lps28dfw2 =
-                modules.get<Sensors>()->getLPS28DFW_2LastSample();
             LIS2MDLData lis2mdl =
                 modules.get<Sensors>()->getLIS2MDLLastSample();
             UBXGPSData gps = modules.get<Sensors>()->getGPSLastSample();
