@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -33,7 +34,13 @@ class Buses : public Boardcore::Module
 public:
     Boardcore::USART usart2;
     Boardcore::USART uart4;
+    Boardcore::SPIBus radio_bus;
+    Boardcore::SPIBus ethernet_bus;
 
-    Buses() : usart2(USART2, 115200), uart4(UART4, 115200) {}
+    Buses()
+        : usart2(USART2, 115200), uart4(UART4, 115200), radio_bus(SPI1),
+          ethernet_bus(SPI4)
+    {
+    }
 };
 }  // namespace Antennas
