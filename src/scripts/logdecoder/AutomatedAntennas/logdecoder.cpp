@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <AutomatedAntennas/ActuatorsData.h>
+#include <Groundstation/Automated/Actuators/ActuatorsData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>

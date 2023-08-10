@@ -56,7 +56,7 @@ add_executable(automated-antennas-entry src/entrypoints/Groundstation/AutomatedA
 target_include_directories(automated-antennas-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(automated-antennas-entry stm32f407vg_stm32f4discovery)
 
-add_executable(test-steps src/entrypoints/Groundstation/AutomatedAntennas/test-steps.cpp ${ANTENNAS})
+add_executable(test-steps src/entrypoints/Groundstation/Automated/test-steps.cpp ${ANTENNAS})
 target_include_directories(test-steps PRIVATE ${OBSW_INCLUDE_DIRS})
 # target_compile_definitions(test-steps PRIVATE NO_SD_LOGGING)
 sbs_target(test-steps stm32f767zi_automated_antennas)

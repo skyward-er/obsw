@@ -20,9 +20,9 @@
  * THE SOFTWARE.
  */
 
-#include <AutomatedAntennas/Actuators.h>
-#include <AutomatedAntennas/Buses.h>
-#include <AutomatedAntennas/Sensors.h>
+#include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/Buses.h>
+#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <diagnostic/StackLogger.h>

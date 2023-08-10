@@ -23,7 +23,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "Buses.h"
+#include "Groundstation/Automated/Buses.h"
 #include "sensors/SensorManager.h"
 #include "sensors/VN300/VN300.h"
 
