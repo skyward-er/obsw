@@ -85,7 +85,8 @@ void NASController::update()
         UBXGPSData gpsData     = modules.get<Sensors>()->getGPSLastSample();
 
         // TODO change barometer
-        LPS22DFData baroData = modules.get<Sensors>()->getLPS22DFLastSample();
+        PressureData staticPressure =
+            modules.get<Sensors>()->getStaticPressure1LastSample();
 
         // NAS prediction
         nas.predictGyro(imuData);
@@ -94,7 +95,7 @@ void NASController::update()
         // NAS correction
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
-        nas.correctBaro(baroData.pressure);
+        nas.correctBaro(staticPressure.pressure);
 
         // TODO Check ACCELEROMETER BOUNDS BEFORE CORRECTING
         nas.correctAcc(imuData);
