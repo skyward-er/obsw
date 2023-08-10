@@ -26,6 +26,7 @@
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
@@ -61,6 +62,8 @@ int main()
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    ADAController* ada =
+        new ADAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
@@ -100,6 +103,12 @@ int main()
         LOG_ERR(logger, "Error inserting the NAS module");
     }
 
+    if (!modules.insert<ADAController>(ada))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the ADA module");
+    }
+
     if (!modules.insert<Radio>(radio))
     {
         initResult = false;
@@ -125,11 +134,11 @@ int main()
     }
 
     // Start modules
-    if (!Logger::getInstance().testSDCard())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Logger module");
-    }
+    // if (!Logger::getInstance().testSDCard())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the Logger module");
+    // }
 
     if (!EventBroker::getInstance().start())
     {
@@ -159,6 +168,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS module");
+    }
+
+    if (!modules.get<ADAController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the ADA module");
     }
 
     if (!modules.get<FlightModeManager>()->start())
