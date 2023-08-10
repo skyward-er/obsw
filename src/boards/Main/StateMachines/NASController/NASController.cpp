@@ -35,10 +35,8 @@ using namespace std;
 using namespace Common;
 namespace Main
 {
-// TODO change initial state to state init
 NASController::NASController(TaskScheduler* sched)
-    : FSM(&NASController::state_calibrating), nas(NASConfig::config),
-      scheduler(sched)
+    : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
 {
     // Subscribe the class to the topics
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
