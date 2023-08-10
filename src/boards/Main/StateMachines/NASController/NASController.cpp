@@ -36,7 +36,7 @@ using namespace Common;
 namespace Main
 {
 // TODO change initial state to state init
-NASController::NASController(Boardcore::TaskScheduler* sched)
+NASController::NASController(TaskScheduler* sched)
     : FSM(&NASController::state_calibrating), nas(NASConfig::config),
       scheduler(sched)
 {
@@ -66,11 +66,11 @@ NASController::NASController(Boardcore::TaskScheduler* sched)
 bool NASController::start()
 {
     // Add the task to the scheduler
-    scheduler->addTask(bind(&NASController::update, this),
-                       NASConfig::UPDATE_PERIOD,
-                       TaskScheduler::Policy::RECOVER);
+    size_t result = scheduler->addTask(bind(&NASController::update, this),
+                                       NASConfig::UPDATE_PERIOD,
+                                       TaskScheduler::Policy::RECOVER);
 
-    return ActiveObject::start();
+    return ActiveObject::start() && result != 0;
 }
 
 void NASController::update()
