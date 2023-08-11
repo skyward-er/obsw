@@ -24,6 +24,7 @@
 #include <Main/Configs/RadioConfig.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
@@ -150,6 +151,37 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             break;
         }
+        case SystemTMList::MAV_ADA_ID:
+        {
+            mavlink_ada_tm_t tm;
+
+            // Get the current ADA state
+            ADAState state = modules.get<ADAController>()->getADAState();
+            ReferenceValues ref =
+                modules.get<ADAController>()->getReferenceValues();
+
+            tm.timestamp = state.timestamp;
+            tm.state     = static_cast<uint8_t>(
+                modules.get<ADAController>()->getStatus().state);
+            tm.kalman_x0       = state.x0;
+            tm.kalman_x1       = state.x1;
+            tm.kalman_x2       = state.x2;
+            tm.vertical_speed  = state.verticalSpeed;
+            tm.msl_altitude    = state.mslAltitude;
+            tm.msl_pressure    = ref.mslPressure;
+            tm.msl_temperature = ref.mslTemperature - 273.15f;
+            tm.ref_altitude    = ref.refAltitude;
+            tm.ref_temperature = ref.refTemperature - 273.15f;
+            tm.ref_pressure    = ref.refPressure;
+
+            // (TODO) decide wether to keep it or not
+            tm.dpl_altitude = 0;
+
+            mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
         case SystemTMList::MAV_FLIGHT_ID:
         {
             mavlink_rocket_flight_tm_t tm;
@@ -174,16 +206,20 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // NAS state
             NASState nasState = modules.get<NASController>()->getNasState();
 
+            // ADA state
+            ADAState adaState = modules.get<ADAController>()->getADAState();
+
             // State machines (TODO)
-            tm.ada_state = 0;
+            tm.ada_state = static_cast<uint8_t>(
+                modules.get<ADAController>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
             tm.abk_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
 
-            // Pressures (TODO)
-            tm.pressure_ada    = 0;
+            // Pressures
+            tm.pressure_ada    = adaState.x0;
             tm.pressure_digi   = lps22df.pressure;
             tm.pressure_dpl    = deploymentPressure.pressure;
             tm.pressure_static = staticPressure.pressure;
@@ -225,6 +261,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
 
+            // ADA
+            tm.ada_vert_speed = adaState.verticalSpeed;
+
             // Pins (TODO)
 
             // Board status (TODO)
@@ -264,9 +303,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // TODO
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
-            tm.ada_state = 0;
+            tm.ada_state = static_cast<uint8_t>(
+                modules.get<ADAController>()->getStatus().state);
             tm.dpl_state = 0;
-            tm.fmm_state = 0;
+            tm.fmm_state = static_cast<uint8_t>(
+                modules.get<FlightModeManager>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
 
