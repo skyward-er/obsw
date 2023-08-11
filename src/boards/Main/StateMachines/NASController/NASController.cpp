@@ -126,9 +126,9 @@ void NASController::calibrate()
             Vector3f(magData.magneticFieldX, magData.magneticFieldY,
                      magData.magneticFieldZ);
 
-        // Barometer TODO Change barometer
-        LPS22DFData barometerData =
-            modules.get<Sensors>()->getLPS22DFLastSample();
+        // Static pressure barometer
+        PressureData barometerData =
+            modules.get<Sensors>()->getStaticPressure1LastSample();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(NASConfig::CALIBRATION_SLEEP_TIME);
