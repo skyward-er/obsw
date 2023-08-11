@@ -45,13 +45,15 @@ enum class ADAControllerState : uint8_t
 struct ADAControllerStatus
 {
     uint64_t timestamp       = 0;
+    uint16_t detectedApogees = 0;
     ADAControllerState state = ADAControllerState::UNINIT;
 
-    static std::string header() { return "timestamp,state\n"; }
+    static std::string header() { return "timestamp,detectedApogees,state\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "\n";
+        os << timestamp << "," << (int)detectedApogees << "," << (int)state
+           << "\n";
     }
 };
 

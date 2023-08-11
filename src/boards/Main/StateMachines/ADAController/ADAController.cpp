@@ -65,13 +65,11 @@ void ADAController::update()
     ModuleManager& modules = ModuleManager::getInstance();
     PressureData barometerData =
         modules.get<Sensors>()->getStaticPressure1LastSample();
-    ADAControllerStatus status;
 
-    {
-        // Retrieve the current FSM status
-        miosix::PauseKernelLock lock;
-        status = getStatus();
-    }
+    // Get a snapshot of the situation. There is no need to synchronize because
+    // the getter are already thread safe with a PauseKernel
+    ADAControllerStatus status = getStatus();
+    ADAState state             = getADAState();
 
     // The algorithm changes its actions depending on the FSM state
     switch (status.state)
@@ -79,6 +77,58 @@ void ADAController::update()
         case ADAControllerState::ARMED:
         {
             ada.update(barometerData.pressure);
+        }
+        case ADAControllerState::SHADOW_MODE:
+        {
+            // During shadow-mode no event will be thrown
+            ada.update(barometerData.pressure);
+
+            // Check for apogees
+            if (state.verticalSpeed < ADAConfig::APOGEE_VERTICAL_SPEED_TARGET)
+            {
+                detectedApogees++;
+            }
+            else
+            {
+                // Apogees must be consecutive in order to be valid
+                detectedApogees = 0;
+            }
+
+            // Log the detected apogees during this phase
+            logStatus(status.state);
+
+            break;
+        }
+        case ADAControllerState::ACTIVE:
+        {
+            // During shadow-mode no event will be thrown
+            ada.update(barometerData.pressure);
+
+            // Check for apogees
+            if (state.verticalSpeed < ADAConfig::APOGEE_VERTICAL_SPEED_TARGET)
+            {
+                detectedApogees++;
+            }
+            else
+            {
+                // Apogees must be consecutive in order to be valid
+                detectedApogees = 0;
+            }
+
+            // Check if the number of apogees has reached the limit
+            if (detectedApogees > ADAConfig::APOGEE_N_SAMPLES)
+            {
+                EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
+            }
+
+            // Log the detected apogees during this phase
+            logStatus(status.state);
+
+            break;
+        }
+        default:
+        {
+            break;
         }
     }
 }
@@ -105,7 +155,7 @@ void ADAController::calibrate()
     reference.refAltitude     = Aeroutils::relAltitude(reference.refPressure, 
                                                        reference.mslPressure, 
                                                        reference.mslTemperature);
-    // Clang-format on
+    // clang-format on
 
     // Update the algorithm reference values
     {
@@ -230,7 +280,7 @@ void ADAController::state_ready(const Event& event)
 
 void ADAController::state_armed(const Event& event)
 {
-    switch(event)
+    switch (event)
     {
         case EV_ENTRY:
         {
@@ -294,6 +344,9 @@ void ADAController::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
+            // Zero the number of so far detected apogees. It is thread safe due
+            // to std::atomic variable
+            detectedApogees = 0;
             return logStatus(ADAControllerState::ACTIVE);
         }
         case ADA_FORCE_STOP:
@@ -324,8 +377,9 @@ void ADAController::logStatus(ADAControllerState state)
     {
         miosix::PauseKernelLock lock;
         // Update the current FSM state
-        status.timestamp = TimestampTimer::getTimestamp();
-        status.state     = state;
+        status.timestamp       = TimestampTimer::getTimestamp();
+        status.state           = state;
+        status.detectedApogees = detectedApogees;
     }
 
     // Log the status

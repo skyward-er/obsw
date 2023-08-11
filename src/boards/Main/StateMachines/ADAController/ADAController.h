@@ -88,8 +88,8 @@ private:
     // Scheduler to be used for update function
     Boardcore::TaskScheduler* scheduler = nullptr;
 
-    // Counter that keeps trace of the number of apogees
-    uint16_t detectedApogeeEvents = 0;
+    // Thread safe counter for apogees
+    std::atomic<uint16_t> detectedApogees{0};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ADA");
 };
