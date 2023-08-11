@@ -79,8 +79,12 @@ void ADAController::calibrate()
     // Set the pressure and temperature reference
     ReferenceValues reference = ada.getReferenceValues();
     reference.refPressure     = pressure.getStats().mean;
-    reference.refAltitude     = Aeroutils::relAltitude(
-        reference.refPressure, reference.mslPressure, reference.mslTemperature);
+
+    // clang-format off
+    reference.refAltitude     = Aeroutils::relAltitude(reference.refPressure, 
+                                                       reference.mslPressure, 
+                                                       reference.mslTemperature);
+    // Clang-format on
 
     // Update the algorithm reference values
     {
