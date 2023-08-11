@@ -28,8 +28,10 @@ namespace Main
 {
 namespace ADAConfig
 {
-constexpr uint32_t UPDATE_PERIOD = 20;                       // 50 hz
-constexpr float SAMPLING_PERIOD  = UPDATE_PERIOD / 1000.0f;  // in seconds
+constexpr uint32_t UPDATE_PERIOD = 20;                       // [ms] 50Hz
+constexpr float SAMPLING_PERIOD  = UPDATE_PERIOD / 1000.0f;  // [seconds]
+
+constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
 
 }  // namespace ADAConfig
 }  // namespace Main

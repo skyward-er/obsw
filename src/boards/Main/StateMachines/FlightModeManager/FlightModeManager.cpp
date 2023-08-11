@@ -233,12 +233,23 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
 
 State FlightModeManager::state_calibrate_algorithms(const Event& event)
 {
+    static bool nasReady = false;
+    static bool adaReady = false;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::CALIBRATE_ALGORITHMS);
+
+            // Reset the readiness variables (not doing this could lead to
+            // mis-calibration in future attempts)
+            nasReady = false;
+            adaReady = false;
+
+            // Post the calibration events
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+            EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
 
             return HANDLED;
         }
@@ -256,7 +267,29 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         }
         case NAS_READY:
         {
-            return transition(&FlightModeManager::state_disarmed);
+            nasReady = true;
+
+            if (adaReady)
+            {
+                return transition(&FlightModeManager::state_disarmed);
+            }
+            else
+            {
+                return HANDLED;
+            }
+        }
+        case ADA_READY:
+        {
+            adaReady = true;
+
+            if (nasReady)
+            {
+                return transition(&FlightModeManager::state_disarmed);
+            }
+            else
+            {
+                return HANDLED;
+            }
         }
         default:
         {

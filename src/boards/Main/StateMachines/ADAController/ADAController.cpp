@@ -60,7 +60,12 @@ bool ADAController::start()
 
 void ADAController::update() {}
 
-void ADAController::calibrate() {}
+void ADAController::calibrate()
+{
+
+    // At the end launch a ADA_READY event
+    EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
+}
 
 void ADAController::setReferenceAltitude(float altitude)
 {
@@ -114,17 +119,131 @@ ReferenceValues ADAController::getReferenceValues()
     return ada.getReferenceValues();
 }
 
-void ADAController::state_idle(const Event& event) {}
+void ADAController::state_idle(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::IDLE);
+        }
+        case ADA_CALIBRATE:
+        {
+            return transition(&ADAController::state_calibrating);
+        }
+    }
+}
 
-void ADAController::state_calibrating(const Event& event) {}
+void ADAController::state_calibrating(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(ADAControllerState::CALIBRATING);
 
-void ADAController::state_ready(const Event& event) {}
+            // Calibrate the ADA
+            calibrate();
+            break;
+        }
+        case ADA_READY:
+        {
+            return transition(&ADAController::state_ready);
+        }
+    }
+}
 
-void ADAController::state_shadow_mode(const Event& event) {}
+void ADAController::state_ready(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::READY);
+        }
+        case ADA_CALIBRATE:
+        {
+            return transition(&ADAController::state_calibrating);
+        }
+        case ADA_FORCE_START:
+        case FLIGHT_LIFTOFF:
+        {
+            return transition(&ADAController::state_shadow_mode);
+        }
+    }
+}
 
-void ADAController::state_active(const Event& event) {}
+void ADAController::state_shadow_mode(const Event& event)
+{
+    static uint16_t shadowModeTimeoutEventId = 0;
 
-void ADAController::state_end(const Event& event) {}
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(ADAControllerState::SHADOW_MODE);
+
+            // Add a delayed event to exit the shadow mode
+            EventBroker::getInstance().postDelayed(
+                ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
+                ADAConfig::SHADOW_MODE_TIMEOUT);
+            break;
+        }
+        case EV_EXIT:
+        {
+            // Remove the shadow mode event. This works even though the event is
+            // expired (aka after shadow_mode_timeout) because the event broker
+            // assigns a progressive number for every delayed event. If and only
+            // if the number of registered delayed event is less than 2^16, then
+            // this technique is valid.
+            return EventBroker::getInstance().removeDelayed(
+                shadowModeTimeoutEventId);
+        }
+        case ADA_SHADOW_MODE_TIMEOUT:
+        {
+            return transition(&ADAController::state_active);
+        }
+        case ADA_FORCE_STOP:
+        {
+            return transition(&ADAController::state_ready);
+        }
+        case FLIGHT_MISSION_TIMEOUT:
+        {
+            return transition(&ADAController::state_end);
+        }
+    }
+}
+
+void ADAController::state_active(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::ACTIVE);
+        }
+        case ADA_FORCE_STOP:
+        {
+            return transition(&ADAController::state_ready);
+        }
+        case ADA_APOGEE_DETECTED:
+        case FLIGHT_MISSION_TIMEOUT:
+        {
+            return transition(&ADAController::state_end);
+        }
+    }
+}
+
+void ADAController::state_end(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::END);
+        }
+    }
+}
 
 void ADAController::logStatus(ADAControllerState state)
 {
