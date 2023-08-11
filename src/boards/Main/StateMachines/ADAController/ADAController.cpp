@@ -21,12 +21,14 @@
  */
 
 #include <Main/Configs/ADAConfig.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 #include <functional>
 
@@ -62,8 +64,32 @@ void ADAController::update() {}
 
 void ADAController::calibrate()
 {
+    Stats pressure;
+    ModuleManager& modules = ModuleManager::getInstance();
 
-    // At the end launch a ADA_READY event
+    for (int i = 0; i < ADAConfig::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        PressureData data =
+            modules.get<Sensors>()->getStaticPressure1LastSample();
+        pressure.add(data.pressure);
+
+        miosix::Thread::sleep(ADAConfig::CALIBRATION_SLEEP_TIME);
+    }
+
+    // Set the pressure and temperature reference
+    ReferenceValues reference = ada.getReferenceValues();
+    reference.refPressure     = pressure.getStats().mean;
+    reference.refAltitude     = Aeroutils::relAltitude(
+        reference.refPressure, reference.mslPressure, reference.mslTemperature);
+
+    // Update the algorithm reference values
+    {
+        miosix::PauseKernelLock l;
+        ada.setReferenceValues(reference);
+        ada.setKalmanConfig(getADAKalmanConfig());
+        ada.update(reference.refPressure);
+    }
+
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+ * Authors: Alberto Nidasio, Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,20 @@ namespace ADAConfig
 constexpr uint32_t UPDATE_PERIOD = 20;                       // [ms] 50Hz
 constexpr float SAMPLING_PERIOD  = UPDATE_PERIOD / 1000.0f;  // [seconds]
 
+// Calibration constants
+constexpr int CALIBRATION_SAMPLES_COUNT = 20;
+constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
+
+// ADA shadow mode time, during which the ADA algorithm cannot trigger apogees
 constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
+
+// When the vertical speed is smaller than this value, apogee is detected.
+// If equal to 0 ->     Exact apogee
+// If greater than 0 -> Apogee detected ahead of time (while still going up)
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
+
+// Number of consecutive samples after which apogee is triggered.
+constexpr unsigned int APOGEE_N_SAMPLES = 5;
 
 }  // namespace ADAConfig
 }  // namespace Main
