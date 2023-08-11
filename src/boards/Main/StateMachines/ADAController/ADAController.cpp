@@ -210,7 +210,7 @@ void ADAController::state_shadow_mode(const Event& event)
             logStatus(ADAControllerState::SHADOW_MODE);
 
             // Add a delayed event to exit the shadow mode
-            EventBroker::getInstance().postDelayed(
+            shadowModeTimeoutEventId = EventBroker::getInstance().postDelayed(
                 ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
                 ADAConfig::SHADOW_MODE_TIMEOUT);
             break;
