@@ -251,11 +251,11 @@ void Sensors::writeMagCalibration()
             !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
         {
             magCalibration = cal;
+
+            // Save the calibration to the calibration file
+            magCalibration.toFile("magCalibration.csv");
         }
     }
-
-    // Save the calibration to the calibration file
-    magCalibration.toFile("magCalibration.csv");
 }
 
 void Sensors::lps22dfInit()

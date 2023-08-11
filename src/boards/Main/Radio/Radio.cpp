@@ -22,6 +22,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
@@ -275,7 +276,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 {
     MavCommandList commandId = static_cast<MavCommandList>(
         mavlink_msg_command_tc_get_command_id(&msg));
+    ModuleManager& modules = ModuleManager::getInstance();
 
+    // Create the map between the commands and the corresponding events
     static const std::map<MavCommandList, Events> commandToEvent{
         {MAV_CMD_ARM, TMTC_ARM},
         {MAV_CMD_DISARM, TMTC_DISARM},
@@ -286,25 +289,52 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
         {MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT},
-        {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
-        {MAV_CMD_STOP_LOGGING, TMTC_STOP_LOGGING},
         {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
         {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
         {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
         {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
         {MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING},
     };
-    auto it = commandToEvent.find(commandId);
 
-    if (it != commandToEvent.end())
+    switch (commandId)
     {
-        EventBroker::getInstance().post(it->second, TOPIC_TMTC);
-    }
-    else
-    {
-        return sendNack(msg);
-    }
+        case MAV_CMD_SAVE_CALIBRATION:
+        {
+            // Save the sensor calibration and adopt it
+            modules.get<Sensors>()->writeMagCalibration();
+            break;
+        }
+        case MAV_CMD_START_LOGGING:
+        {
+            bool result = Logger::getInstance().start();
 
+            // In case the logger is not started send to GS the result
+            if (!result)
+            {
+                return sendNack(msg);
+            }
+        }
+        case MAV_CMD_STOP_LOGGING:
+        {
+            Logger::getInstance().stop();
+            break;
+        }
+        default:
+        {
+            // If the command is not a particular one, look for it inside the
+            // map
+            auto it = commandToEvent.find(commandId);
+
+            if (it != commandToEvent.end())
+            {
+                EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+            }
+            else
+            {
+                return sendNack(msg);
+            }
+        }
+    }
     // Acknowledge the message
     sendAck(msg);
 }
