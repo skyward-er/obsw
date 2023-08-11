@@ -313,6 +313,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             {
                 return sendNack(msg);
             }
+            break;
         }
         case MAV_CMD_STOP_LOGGING:
         {
