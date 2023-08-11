@@ -670,6 +670,11 @@ State FlightModeManager::state_landed(const Event& event)
         {
             return HANDLED;
         }
+        case TMTC_RESET_BOARD:
+        {
+            reboot();
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;

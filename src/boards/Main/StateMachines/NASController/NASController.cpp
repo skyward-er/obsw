@@ -316,7 +316,6 @@ void NASController::state_active(const Event& event)
             return logStatus(NASControllerState::ACTIVE);
         }
         case FLIGHT_LANDING_DETECTED:
-        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }

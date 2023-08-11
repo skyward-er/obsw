@@ -60,7 +60,28 @@ bool ADAController::start()
     return ActiveObject::start() && result != 0;
 }
 
-void ADAController::update() {}
+void ADAController::update()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    PressureData barometerData =
+        modules.get<Sensors>()->getStaticPressure1LastSample();
+    ADAControllerStatus status;
+
+    {
+        // Retrieve the current FSM status
+        miosix::PauseKernelLock lock;
+        status = getStatus();
+    }
+
+    // The algorithm changes its actions depending on the FSM state
+    switch (status.state)
+    {
+        case ADAControllerState::ARMED:
+        {
+            ada.update(barometerData.pressure);
+        }
+    }
+}
 
 void ADAController::calibrate()
 {
@@ -196,6 +217,29 @@ void ADAController::state_ready(const Event& event)
             return transition(&ADAController::state_calibrating);
         }
         case ADA_FORCE_START:
+        {
+            // Skip directly to the active/shadow mode mode
+            return transition(&ADAController::state_shadow_mode);
+        }
+        case FLIGHT_ARMED:
+        {
+            return transition(&ADAController::state_armed);
+        }
+    }
+}
+
+void ADAController::state_armed(const Event& event)
+{
+    switch(event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::ARMED);
+        }
+        case FLIGHT_DISARMED:
+        {
+            return transition(&ADAController::state_ready);
+        }
         case FLIGHT_LIFTOFF:
         {
             return transition(&ADAController::state_shadow_mode);
@@ -237,7 +281,7 @@ void ADAController::state_shadow_mode(const Event& event)
         {
             return transition(&ADAController::state_ready);
         }
-        case FLIGHT_MISSION_TIMEOUT:
+        case FLIGHT_LANDING_DETECTED:
         {
             return transition(&ADAController::state_end);
         }
@@ -257,7 +301,7 @@ void ADAController::state_active(const Event& event)
             return transition(&ADAController::state_ready);
         }
         case ADA_APOGEE_DETECTED:
-        case FLIGHT_MISSION_TIMEOUT:
+        case FLIGHT_LANDING_DETECTED:
         {
             return transition(&ADAController::state_end);
         }
