@@ -43,6 +43,7 @@ public:
     Boardcore::USART usart1;
     Boardcore::USART usart2;
     Boardcore::USART uart4;
+
     Buses()
         : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
           i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),

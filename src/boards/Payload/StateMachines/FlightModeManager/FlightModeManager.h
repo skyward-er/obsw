@@ -41,42 +41,80 @@ public:
     bool startModule() { return start(); }
     FlightModeManagerStatus getStatus();
 
-    /// Super state for when the payload is on ground.
+    /**
+     * @brief Super state for when the payload is on ground.
+     */
+    // Super state for when the payload is on ground.
     Boardcore::State state_on_ground(const Boardcore::Event& event);
 
-    /// Initialization state.
+    /**
+     * @brief Super state for when the payload is on ground.
+     */
     Boardcore::State state_init(const Boardcore::Event& event);
 
+    /**
+     * @brief State in which the init has failed
+     */
     Boardcore::State state_init_error(const Boardcore::Event& event);
 
+    /**
+     * @brief State in which the init is done and a calibration event is
+     * thrown
+     */
     Boardcore::State state_init_done(const Boardcore::Event& event);
 
-    /// Calibration of all sensors.
+    /**
+     * @brief Calibration of all sensors.
+     */
     Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
 
-    /// Calibration of all algorithms.
+    /**
+     * @brief Calibration of all algorithms.
+     */
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
+    /**
+     * @brief State in which the electronics is ready to be armed
+     */
     Boardcore::State state_disarmed(const Boardcore::Event& event);
 
+    /**
+     * @brief The rocket will accept specific telecommands otherwise considered
+     * risky.
+     */
+    Boardcore::State state_test_mode(const Boardcore::Event& event);
+
+    /**
+     * @brief Super state in which the algorithms start to run (NAS) and the
+     * electronics is ready to fly
+     */
     Boardcore::State state_armed(const Boardcore::Event& event);
 
-    /// Super state for when the payload is in the air.
+    /**
+     * @brief Super state for when the payload is in the air.
+     */
     Boardcore::State state_flying(const Boardcore::Event& event);
 
-    /// Ascending phase of the trajectory.
+    /**
+     * @brief Ascending phase of the trajectory.
+     */
     Boardcore::State state_ascending(const Boardcore::Event& event);
 
+    /**
+     * @brief State in which the apogee/expulsion has occurred
+     */
     Boardcore::State state_drogue_descent(const Boardcore::Event& event);
 
-    /// State in which the wind prediction algorithm is triggered
+    /**
+     * @brief State in which the parafoil wing is opened and starts guiding
+     * itself
+     */
     Boardcore::State state_wing_descent(const Boardcore::Event& event);
 
-    /// The rocket ended the flight and closes the log.
+    /**
+     * @brief The rocket ended the flight and closes the log.
+     */
     Boardcore::State state_landed(const Boardcore::Event& event);
-
-    /// The rocket will accept specific telecommands otherwise considered risky.
-    Boardcore::State state_test_mode(const Boardcore::Event& event);
 
 private:
     void logStatus(FlightModeManagerState state);

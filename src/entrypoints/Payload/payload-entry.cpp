@@ -59,34 +59,27 @@ int main()
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
-    // 2)); TMRepository* tmRepo = new TMRepository();
+    // 2)); TMRepository* tmRepo = new TMRepository(); CanHandler* canHandler =
+    //     new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
-    CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the board scheduler module");
+        LOG_ERR(logger, "Error inserting the Board Scheduler module");
     }
 
     if (!modules.insert<Buses>(buses))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the buses module");
+        LOG_ERR(logger, "Error inserting the Buses module");
     }
 
     if (!modules.insert<Sensors>(sensors))
     {
         initResult = false;
-        LOG_ERR(logger, "Error inserting the sensor module");
-    }
-
-    if (!modules.insert<FlightModeManager>(fmm))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the buses module");
+        LOG_ERR(logger, "Error inserting the Sensor module");
     }
 
     if (!modules.insert<NASController>(nas))
@@ -95,6 +88,11 @@ int main()
         LOG_ERR(logger, "Error inserting the NAS module");
     }
 
+    if (!modules.insert<FlightModeManager>(fmm))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the FMM module");
+    }
     // if (!modules.insert<Radio>(radio))
     // {
     //     initResult = false;
@@ -107,11 +105,11 @@ int main()
     //     LOG_ERR(logger, "Error inserting the TMRepository module");
     // }
 
-    if (!modules.insert<CanHandler>(canHandler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the CanHandler module");
-    }
+    // if (!modules.insert<CanHandler>(canHandler))
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error inserting the CanHandler module");
+    // }
 
     // Start modules
     if (!EventBroker::getInstance().start())
@@ -120,22 +118,10 @@ int main()
         LOG_ERR(logger, "Error starting the EventBroker module");
     }
 
-    if (!modules.get<BoardScheduler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the board scheduler module");
-    }
-
     if (!modules.get<Sensors>()->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the sensors module");
-    }
-
-    if (!modules.get<FlightModeManager>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the flight mode manager module");
+        LOG_ERR(logger, "Error starting the Sensors module");
     }
 
     if (!modules.get<NASController>()->start())
@@ -144,22 +130,28 @@ int main()
         LOG_ERR(logger, "Error starting the NAS module");
     }
 
+    if (!modules.get<FlightModeManager>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FMM module");
+    }
+
     // if (!modules.get<Radio>()->start())
     // {
     //     initResult = false;
     //     LOG_ERR(logger, "Error starting the Radio module");
     // }
 
-    if (!modules.get<CanHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the CanHandler module");
-    }
+    // if (!modules.get<CanHandler>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the CanHandler module");
+    // }
 
-    if (!scheduler->start())
+    if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the Scheduler");
+        LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
     // Log all the events
@@ -183,30 +175,16 @@ int main()
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        LOG_ERR(logger, "Failed to initialize");
     }
-
     // Periodic statistics
-    // while (true)
-    // {
-    //     Thread::sleep(1000);
-    //     Logger::getInstance().log(CpuMeter::getCpuStats());
-    //     CpuMeter::resetCpuStats();
-    //     StackLogger::getInstance().log();
-    // }
-
-    modules.get<NASController>()->getStatus().print(cout);
-    EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
-    Thread::sleep(1000);
-    while (modules.get<NASController>()->getStatus().state !=
-           NASControllerState::READY)
-        ;
-    modules.get<NASController>()->getStatus().print(cout);
-    EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
-    modules.get<NASController>()->getStatus().print(cout);
-
     while (true)
     {
         Thread::sleep(1000);
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
+        StackLogger::getInstance().log();
     }
+
     return 0;
 }
