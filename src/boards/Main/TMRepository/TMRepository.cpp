@@ -22,6 +22,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/RadioConfig.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -265,6 +266,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.ada_vert_speed = adaState.verticalSpeed;
 
             // Pins (TODO)
+            tm.pin_launch = modules.get<PinHandler>()
+                                ->getPinData(PinHandler::PinList::LAUNCH_PIN)
+                                .lastState;
+            tm.pin_nosecone =
+                modules.get<PinHandler>()
+                    ->getPinData(PinHandler::PinList::NOSECONE_PIN)
+                    .lastState;
 
             // Board status (TODO)
             tm.vbat = modules.get<Sensors>()
@@ -329,6 +337,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.tank_temperature = modules.get<Sensors>()
                                       ->getTankTemperatureLastSample()
                                       .temperature;
+            // TODO Main valve
             tm.top_tank_pressure =
                 modules.get<Sensors>()->getTopTankPressureLastSample().pressure;
 

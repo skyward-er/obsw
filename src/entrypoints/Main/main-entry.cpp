@@ -24,6 +24,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -71,6 +72,7 @@ int main()
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
+    PinHandler* pinHandler = new PinHandler();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -133,6 +135,12 @@ int main()
         LOG_ERR(logger, "Error inserting the CanHandler module");
     }
 
+    if (!modules.insert<PinHandler>(pinHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the PinHandler module");
+    }
+
     // Start modules
     // if (!Logger::getInstance().testSDCard())
     // {
@@ -192,6 +200,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the CanHandler module");
+    }
+
+    if (!modules.get<PinHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinHandler module");
     }
 
     // Log all the events
