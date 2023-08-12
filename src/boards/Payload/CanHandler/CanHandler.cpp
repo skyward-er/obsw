@@ -22,11 +22,9 @@
 
 #include "CanHandler.h"
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/CanHandlerConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <common/CanConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 
@@ -43,41 +41,63 @@ using namespace Payload::CanHandlerConfig;
 namespace Payload
 {
 
+CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
+{
+    CanbusDriver::AutoBitTiming bitTiming;
+    bitTiming.baudRate    = BAUD_RATE;
+    bitTiming.samplePoint = SAMPLE_POINT;
+    CanbusDriver::CanbusConfig config;
+    driver = new CanbusDriver(CAN2, config, bitTiming);
+
+    protocol =
+        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
+
+    // Accept messages only from the main and RIG board
+    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(Board::RIG),
+                        static_cast<uint8_t>(Board::BROADCAST));
+    driver->init();
+}
+
 bool CanHandler::start()
 {
+    bool result;
     // Add a task to periodically send the pitot data
-    scheduler->addTask(  // sensor template
-        [&]()
-        {
-            protocol->enqueueData(static_cast<uint8_t>(Priority::HIGH),
-                                  static_cast<uint8_t>(PrimaryType::SENSORS),
-                                  static_cast<uint8_t>(Board::PAYLOAD),
-                                  static_cast<uint8_t>(Board::BROADCAST),
-                                  static_cast<uint8_t>(SensorId::PITOT),
-                                  ModuleManager::getInstance()
-                                      .get<Sensors>()
-                                      ->getPitotLastSample());
-        },
-        PITOT_TRANSMISSION_PERIOD);
+    result = scheduler->addTask(  // sensor template
+                 [&]()
+                 {
+                     protocol->enqueueData(
+                         static_cast<uint8_t>(Priority::HIGH),
+                         static_cast<uint8_t>(PrimaryType::SENSORS),
+                         static_cast<uint8_t>(Board::PAYLOAD),
+                         static_cast<uint8_t>(Board::BROADCAST),
+                         static_cast<uint8_t>(SensorId::PITOT),
+                         ModuleManager::getInstance()
+                             .get<Sensors>()
+                             ->getPitotLastSample());
+                 },
+                 PITOT_TRANSMISSION_PERIOD) != 0;
 
-    scheduler->addTask(  // status
-        [&]()
-        {
-            FlightModeManagerState state = ModuleManager::getInstance()
-                                               .get<FlightModeManager>()
-                                               ->getStatus()
-                                               .state;
-            protocol->enqueueSimplePacket(
-                static_cast<uint8_t>(Priority::MEDIUM),
-                static_cast<uint8_t>(PrimaryType::STATUS),
-                static_cast<uint8_t>(Board::PAYLOAD),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(state),
-                ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
-        },
-        STATUS_TRANSMISSION_PERIOD);
-    driver->init();
-    return protocol->start();
+    result =
+        result &&
+        scheduler->addTask(  // status
+            [&]()
+            {
+                FlightModeManagerState state = ModuleManager::getInstance()
+                                                   .get<FlightModeManager>()
+                                                   ->getStatus()
+                                                   .state;
+                protocol->enqueueSimplePacket(
+                    static_cast<uint8_t>(Priority::MEDIUM),
+                    static_cast<uint8_t>(PrimaryType::STATUS),
+                    static_cast<uint8_t>(Board::PAYLOAD),
+                    static_cast<uint8_t>(Board::BROADCAST),
+                    static_cast<uint8_t>(state),
+                    ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
+            },
+            STATUS_TRANSMISSION_PERIOD) != 0;
+    return protocol->start() && result;
 }
 
 bool CanHandler::isStarted() { return protocol->isStarted(); }
@@ -89,23 +109,6 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(Board::PAYLOAD),
                            static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(event));
-}
-
-CanHandler::CanHandler(Boardcore::TaskScheduler *sched) : scheduler(sched)
-{
-    CanbusDriver::AutoBitTiming bitTiming;
-    bitTiming.baudRate    = BAUD_RATE;
-    bitTiming.samplePoint = SAMPLE_POINT;
-    driver                = new CanbusDriver(CAN2, {}, bitTiming);
-
-    protocol =
-        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
-
-    // Accept messages only from the main and RIG board
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::RIG),
-                        static_cast<uint8_t>(Board::BROADCAST));
 }
 
 void CanHandler::handleCanMessage(const CanMessage &msg)

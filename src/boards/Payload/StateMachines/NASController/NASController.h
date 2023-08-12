@@ -39,7 +39,10 @@ class NASController : public Boardcore::FSM<NASController>,
 public:
     NASController(Boardcore::TaskScheduler* sched);
 
-    // Starts the FSM thread and adds the update function into the scheduler
+    /**
+     * @brief Starts the FSM thread and adds the update function into the
+     * scheduler
+     */
     bool start() override;
 
     // NAS FSM called methods
@@ -65,7 +68,11 @@ public:
     void state_end(const Boardcore::Event& event);
 
 private:
+    /**
+     * @brief Update the NAS estimation
+     */
     void update();
+
     /**
      * @brief Logs the NAS status updating the FSM state
      * @param state The current FSM state
@@ -81,8 +88,10 @@ private:
 
     // User set (or triac set) initial orientation
     Eigen::Vector3f initialOrientation;
-    bool accelerationValid = true;
 
+    // Parameters used to decide wether to correct with accelerometer after a
+    // spike is detected
+    bool accelerationValid       = true;
     u_int8_t accSampleAfterSpike = 0;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");

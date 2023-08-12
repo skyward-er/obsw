@@ -35,7 +35,7 @@ using namespace std;
 using namespace Common;
 namespace Payload
 {
-NASController::NASController(Boardcore::TaskScheduler* sched)
+NASController::NASController(TaskScheduler* sched)
     : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
 {
     // Subscribe the class to the topics
@@ -64,11 +64,11 @@ NASController::NASController(Boardcore::TaskScheduler* sched)
 bool NASController::start()
 {
     // Add the task to the scheduler
-    scheduler->addTask(bind(&NASController::update, this),
-                       NASConfig::UPDATE_PERIOD,
-                       TaskScheduler::Policy::RECOVER);
+    size_t result = scheduler->addTask(bind(&NASController::update, this),
+                                       NASConfig::UPDATE_PERIOD,
+                                       TaskScheduler::Policy::RECOVER);
 
-    return ActiveObject::start();
+    return ActiveObject::start() && result != 0;
 }
 
 void NASController::update()
@@ -106,7 +106,10 @@ void NASController::update()
              accelerationNorm >
                  (9.8 - (NASConfig::ACCELERATION_THRESHOLD) / 2)))
         {
-            accSampleAfterSpike++;
+            if (!accelerationValid)
+            {
+                accSampleAfterSpike++;
+            }
         }
         else
         {

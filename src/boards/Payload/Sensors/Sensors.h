@@ -29,6 +29,7 @@
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/Pitot.h>
 #include <sensors/analog/Pitot/PitotData.h>
 #include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
@@ -89,7 +90,7 @@ public:
 
     // CAN fake sensors getters
     Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
-    Boardcore::SSCMRNN030PAData getPitotPressureLastSample();
+    Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
 
 private:
@@ -121,24 +122,24 @@ private:
     void staticPressureInit();
     void staticPressureCallback();
 
-    void pitotPressureInit();
-    void pitotPressureCallback();
+    void dynamicPressureInit();
+    void dynamicPressureCallback();
 
     void pitotInit();
     void pitotCallback();
 
     // Sensors instances
-    Boardcore::LPS22DF* lps22df             = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1         = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2         = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl       = nullptr;
-    Boardcore::LIS2MDL* lis2mdl             = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps            = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx           = nullptr;
-    Boardcore::ADS131M08* ads131m08         = nullptr;
-    Boardcore::HSCMRNN015PA* staticPressure = nullptr;
-    Boardcore::SSCMRNN030PA* pitotPressure  = nullptr;
-    Boardcore::Pitot* pitot                 = nullptr;
+    Boardcore::LPS22DF* lps22df              = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_1          = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_2          = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl        = nullptr;
+    Boardcore::LIS2MDL* lis2mdl              = nullptr;
+    Boardcore::UBXGPSSpi* ubxgps             = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx            = nullptr;
+    Boardcore::ADS131M08* ads131m08          = nullptr;
+    Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
+    Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
+    Boardcore::Pitot* pitot                  = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;

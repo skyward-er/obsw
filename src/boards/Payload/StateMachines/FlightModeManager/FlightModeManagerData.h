@@ -39,12 +39,12 @@ enum class FlightModeManagerState : uint8_t
     SENSORS_CALIBRATION,
     ALGOS_CALIBRATION,
     DISARMED,
+    TEST_MODE,
     ARMED,
     ASCENDING,
     DROGUE_DESCENT,
     WING_DESCENT,
     LANDED,
-    TEST_MODE,
 };
 
 struct FlightModeManagerStatus
@@ -59,4 +59,5 @@ struct FlightModeManagerStatus
         os << timestamp << "," << (int)state << "\n";
     }
 };
+
 }  // namespace Payload
