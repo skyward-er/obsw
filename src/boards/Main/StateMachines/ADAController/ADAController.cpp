@@ -405,6 +405,7 @@ ADA::KalmanFilter::KalmanConfig ADAController::getADAKalmanConfig()
     Q_INIT << 30.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 2.5f;
     ADA::KalmanFilter::MatrixPP R_INIT{4000.0f};
 
+    // TODO ADD THE G MATRIX
     return {F_INIT,
             H_INIT,
             Q_INIT,
