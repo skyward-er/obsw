@@ -23,6 +23,7 @@
 #include <Payload/Buses.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -185,14 +186,74 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
             break;
         }
+        case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
+        {
+            SensorsTMList tmId = static_cast<SensorsTMList>(
+                mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg));
+
+            // Add to the queue the respose
+            mavlink_message_t response =
+                modules.get<TMRepository>()->packSensorsTm(tmId, msg.msgid,
+                                                           msg.seq);
+
+            // Add the response to the queue
+            enqueueMsg(response);
+
+            // Check if the TM repo answered with a NACK. If so the function
+            // must return to avoid sending a default ack
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            {
+                return;
+            }
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
+
+            // Add to the queue the respose
+            mavlink_message_t response =
+                modules.get<TMRepository>()->packServoTm(servoId, msg.msgid,
+                                                         msg.seq);
+
+            // Add the response to the queue
+            mavDriver->enqueueMsg(response);
+
+            // Check if the TM repo answered with a NACK. If so the function
+            // must return to avoid sending a default ack
+            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            {
+                return;
+            }
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+            // float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+
+            // TODO implements when actuators
+
+            // Move the servo, if it fails send a nack
+            // if (!(modules.get<FlightModeManager>()->getStatus().state ==
+            //           FlightModeManagerState::TEST_MODE &&
+            //       modules.get<Actuators>()->setServoAngle(servoId, angle)))
+            //     return sendNack(msg);
+
+            // break;
+        }
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Send nack if the FMM is not in test mode
-            if (!modules.get<FlightModeManager>()->testState(
-                    &FlightModeManager::state_test_mode))
+            if (modules.get<FlightModeManager>()->getStatus().state !=
+                FlightModeManagerState::TEST_MODE)
             {
                 return sendNack(msg);
             }
@@ -200,6 +261,78 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             // If the state is test mode, the wiggle is done
             // TODO add when actuators is merged
             // modules.get<Actuators>()->wiggleServo(servoId);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_RESET_SERVO_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_reset_servo_tc_get_servo_id(&msg));
+
+            // TODO when actuators
+            //  if ((modules.get<FlightModeManager>()->getStatus().state !=
+            //            FlightModeManagerState::TEST_MODE) &&
+            //        Actuators::getInstance().setServo(servoId, 0))
+            //      return sendNack(msg);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
+        {
+            float altitude =
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+
+            modules.get<NASController>()->setReferenceAltitude(altitude);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
+        {
+            float temperature =
+                mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+
+            temperature += 273.15;
+
+            modules.get<NASController>()->setReferenceAltitude(temperature);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
+        {
+            // float altitude =
+            //     mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+
+            // TODO fix with altitude trigger
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
+        {
+            float yaw   = mavlink_msg_set_orientation_tc_get_yaw(&msg);
+            float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
+            float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
+
+            modules.get<NASController>()->setOrientation(yaw, pitch, roll);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
+        {
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
+
+            modules.get<NASController>()->setCoordinates(
+                Eigen::Vector2f(latitude, longitude));
+            break;
+        }
+        case MAVLINK_MSG_ID_RAW_EVENT_TC:
+        {
+            uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
+            uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
+
+            // Send the event only if the flight mode manager is in test mode
+            if (modules.get<FlightModeManager>()->getStatus().state ==
+                FlightModeManagerState::TEST_MODE)
+                EventBroker::getInstance().post(topicId, eventId);
+            else
+                return sendNack(msg);
 
             break;
         }
