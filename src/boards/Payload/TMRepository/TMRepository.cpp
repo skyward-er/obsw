@@ -156,12 +156,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Last samples
-            LPS22DFData lps22df =
-                modules.get<Sensors>()->getLPS22DFLastSample();
             LPS28DFWData lps28dfw1 =
                 modules.get<Sensors>()->getLPS28DFW_1LastSample();
-            LPS28DFWData lps28dfw2 =
-                modules.get<Sensors>()->getLPS28DFW_2LastSample();
+            // LPS28DFWData lps28dfw2 =
+            //     modules.get<Sensors>()->getLPS28DFW_2LastSample();
             LIS2MDLData lis2mdl =
                 modules.get<Sensors>()->getLIS2MDLLastSample();
             UBXGPSData gps = modules.get<Sensors>()->getGPSLastSample();
@@ -180,7 +178,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.wes_e     = 0;
             tm.wes_n     = 0;
 
-            tm.pressure_digi = lps22df.pressure;
+            tm.pressure_digi = lps28dfw1.pressure;
             tm.pressure_static =
                 modules.get<Sensors>()->getStaticPressureLastSample().pressure;
             // Pitot
@@ -245,6 +243,31 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         case SystemTMList::MAV_STATS_ID:
         {
             mavlink_rocket_stats_tm_t tm;
+            // tm.liftoff_ts;         /*< [us] System clock at liftoff*/
+            // tm.liftoff_max_acc_ts; /*< [us] System clock at the maximum
+            // liftoff
+            //                           acceleration*/
+            // tm.dpl_ts;             /*< [us] System clock at drouge
+            // deployment*/ tm.max_z_speed_ts; /*< [us] System clock at ADA max
+            // vertical speed*/ tm.apogee_ts;      /*< [us] System clock at
+            // apogee*/ tm.liftoff_max_acc;    /*< [m/s2] Maximum liftoff
+            // acceleration*/ tm.dpl_max_acc;        /*< [m/s2] Max acceleration
+            // during drouge
+            //                           deployment*/
+            // tm.max_z_speed;        /*< [m/s] Max measured vertical speed -
+            // ADA*/ tm.max_airspeed_pitot; /*< [m/s] Max speed read by the
+            // pitot tube*/ tm.max_speed_altitude; /*< [m] Altitude at max
+            // speed*/ tm.apogee_lat;         /*< [deg] Apogee latitude*/
+            // tm.apogee_lon;         /*< [deg] Apogee longitude*/
+            // tm.apogee_alt;         /*< [m] Apogee altitude*/
+            // tm.min_pressure;     /*< [Pa] Apogee pressure - Digital
+            // barometer*/ tm.ada_min_pressure; /*< [Pa] Apogee pressure - ADA
+            // filtered*/ tm.dpl_vane_max_pressure; /*< [Pa] Max pressure in the
+            // deployment
+            //                              bay during drogue deployment*/
+            // tm.cpu_load;              /*<  CPU load in percentage*/
+            // tm.free_heap;             /*<  Amount of available heap in
+            // memory*/
 
             // TODO when implemented stats
             tm.cpu_load  = CpuMeter::getCpuStats().mean;
@@ -269,9 +292,41 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             ;
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
+            tm.wes_state = 0;
 
             mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case SystemTMList::MAV_TASK_STATS_ID:
+        {
+            break;
+        }
+        case SystemTMList::MAV_PIN_OBS_ID:
+        {
+            mavlink_pin_tm_t tm;
+
+            // TODO update when PINobserver
+            tm.timestamp = TimestampTimer::getTimestamp();
+            // tm.last_change_timestamp; /*<  Last change timestamp of pin*/
+            // tm.pin_id;                /*<  A member of the PinsList enum*/
+            // tm.changes_counter;       /*<  Number of changes of pin*/
+            // tm.current_state;         /*<  Current state of pin*/
+
+            mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case SystemTMList::MAV_SENSORS_STATE_ID:
+        {
+            // TODO with matteo when ready
+            break;
+        }
+        case SystemTMList::MAV_CAN_ID:
+        {
+            // TODO Add to mavlinkLIB
 
             break;
         }
@@ -346,7 +401,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             mavlink_pressure_tm_t tm;
 
             SSCMRNN030PAData pitot =
-                modules.get<Sensors>()->getPitotPressureLastSample();
+                modules.get<Sensors>()->getDynamicPressureLastSample();
 
             tm.timestamp = pitot.pressureTimestamp;
             tm.pressure  = pitot.pressure;
@@ -362,9 +417,15 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             LIS2MDLData mag = modules.get<Sensors>()->getLIS2MDLLastSample();
 
-            tm.gyro_x    = mag.magneticFieldX;
-            tm.gyro_y    = mag.magneticFieldY;
-            tm.gyro_z    = mag.magneticFieldZ;
+            tm.acc_x     = 0;
+            tm.acc_y     = 0;
+            tm.acc_z     = 0;
+            tm.gyro_x    = 0;
+            tm.gyro_y    = 0;
+            tm.gyro_z    = 0;
+            tm.mag_x     = mag.magneticFieldX;
+            tm.mag_y     = mag.magneticFieldY;
+            tm.mag_z     = mag.magneticFieldZ;
             tm.timestamp = mag.magneticFieldTimestamp;
             strcpy(tm.sensor_name, "LIS2MD");
 
@@ -384,6 +445,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             tm.gyro_x = imu.angularSpeedX;
             tm.gyro_y = imu.angularSpeedY;
             tm.gyro_z = imu.angularSpeedZ;
+            tm.mag_x  = 0;
+            tm.mag_y  = 0;
+            tm.mag_z  = 0;
 
             tm.timestamp = imu.accelerationTimestamp;
             strcpy(tm.sensor_name, "LSM6DSRX");
@@ -399,9 +463,15 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             H3LIS331DLData imu =
                 modules.get<Sensors>()->getH3LIS331DLLastSample();
 
-            tm.acc_x = imu.accelerationX;
-            tm.acc_y = imu.accelerationY;
-            tm.acc_z = imu.accelerationZ;
+            tm.acc_x  = imu.accelerationX;
+            tm.acc_y  = imu.accelerationY;
+            tm.acc_z  = imu.accelerationZ;
+            tm.gyro_x = 0;
+            tm.gyro_y = 0;
+            tm.gyro_z = 0;
+            tm.mag_x  = 0;
+            tm.mag_y  = 0;
+            tm.mag_z  = 0;
 
             tm.timestamp = imu.accelerationTimestamp;
             strcpy(tm.sensor_name, "H3LIS331DL");
@@ -425,7 +495,14 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                            RadioConfig::MAV_COMP_ID, &msg, &tm);
             break;
         }
-        // TODO add battery voltage
+        case SensorsTMList::MAV_CURRENT_SENSE_ID:
+        {
+            // TODO add current
+        }
+        case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
+        {
+            // TODO add battery voltage
+        }
         default:
         {
             mavlink_nack_tm_t nack;
