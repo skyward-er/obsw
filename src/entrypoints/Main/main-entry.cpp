@@ -37,6 +37,7 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
+#include <common/Mavlink.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -47,6 +48,11 @@
 #include <events/utils/EventSniffer.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+#ifdef HILMain
+#include <HIL.h>
+#include <Main/Sensors/HILSensors.h>
+#endif
 
 using namespace Boardcore;
 using namespace Main;
@@ -64,8 +70,15 @@ int main()
     // Create modules
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
+
+#ifndef HILMain
     Sensors* sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+#else
+    HILSensors* sensors =
+        new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+#endif
+
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
@@ -100,6 +113,14 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the Buses module");
     }
+
+#ifdef HILMain
+    if (!modules.insert<HIL>(new HIL(buses->usart2)))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+#endif
 
     if (!modules.insert<Sensors>(sensors))
     {
@@ -282,6 +303,14 @@ int main()
         LOG_ERR(logger, "Error starting the Flight Stats Recorder module");
     }
 
+#ifdef HILMain
+    if (!modules.get<HIL>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+#endif
+
     // Log all the events
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
@@ -290,6 +319,37 @@ int main()
             EventData ev{TimestampTimer::getTimestamp(), event, topic};
             Logger::getInstance().log(ev);
         });
+
+#ifdef HILMain
+    modules.get<BoardScheduler>()
+        ->getScheduler(miosix::PRIORITY_MAX - 3)
+        ->addTask(
+            [&]()
+            {
+                Boardcore::ModuleManager& modules =
+                    Boardcore::ModuleManager::getInstance();
+
+                HILConfig::ADAdataHIL adaDataHil{
+                    Boardcore::TimestampTimer::getTimestamp(),
+                    modules.get<ADAController>()->getADAState().mslAltitude,
+                    modules.get<ADAController>()->getADAState().verticalSpeed};
+
+                HILConfig::ActuatorData actuatorData{
+                    modules.get<Main::NASController>()
+                        ->getNasState(),  // NAS state summary
+                    adaDataHil,           // ADA state summary
+                    modules.get<Main::Actuators>()->getServoPosition(
+                        ServosList::AIR_BRAKES_SERVO),  // ABK opening
+                    30,                                 // Mass estimate
+                    true,                               // Flag liftoff
+                    false                               // flag burning
+                };
+
+                // Actually sending the feedback to the simulator
+                modules.get<HIL>()->send(actuatorData);
+            },
+            HILConfig::SIMULATION_PERIOD);
+#endif
 
     // Check the init result and launch an event
     if (initResult)

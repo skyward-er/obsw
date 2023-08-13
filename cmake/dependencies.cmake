@@ -95,3 +95,8 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Sensors/RotatedIMU/RotatedIMU.cpp
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
 )
+
+set(MAIN_HIL
+    ${HIL}
+    src/boards/Main/Sensors/HILSensors.cpp
+)
