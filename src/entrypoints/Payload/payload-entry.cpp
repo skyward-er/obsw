@@ -21,6 +21,7 @@
  */
 
 // #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
@@ -54,18 +55,30 @@ int main()
     bool initResult    = true;
     PrintLogger logger = Logging::getLogger("Payload");
 
-    // Create modules
+    // Scheduler
     BoardScheduler* scheduler = new BoardScheduler();
-    Buses* buses              = new Buses();
-    Sensors* sensors =
-        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+
+    // Nas priority (Max priority)
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+
+    // Sensors priority (MAX - 1)
+    Sensors* sensors =
+        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+
+    // Other critical components (Max - 2)
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    TMRepository* tmRepo = new TMRepository();
     // CanHandler* canHandler = new
     // CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+
+    // Non critical components (Max - 3)
+    Actuators* actuators =
+        new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
+
+    // Components without a scheduler
+    TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
+    Buses* buses           = new Buses();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -109,6 +122,12 @@ int main()
         LOG_ERR(logger, "Error inserting the TMRepository module");
     }
 
+    if (!modules.insert<Actuators>(actuators))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Actuators module");
+    }
+
     // if (!modules.insert<CanHandler>(canHandler))
     // {
     //     initResult = false;
@@ -144,6 +163,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Radio module");
+    }
+
+    if (!modules.get<Actuators>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Actuators module");
     }
 
     // if (!modules.get<CanHandler>()->start())

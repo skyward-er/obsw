@@ -25,13 +25,13 @@ set(OBSW_INCLUDE_DIRS
     src/hardware_in_the_loop
 )
 
-set(HIL 
+set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
 
 set(PAYLOAD_COMPUTER
-    #src/boards/Payload/Actuators/Actuators.cpp
+    src/boards/Payload/Actuators/Actuators.cpp
     src/boards/Payload/CanHandler/CanHandler.cpp
     #src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/boards/Payload/Sensors/Sensors.cpp
