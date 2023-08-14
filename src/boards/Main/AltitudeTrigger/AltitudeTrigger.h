@@ -60,7 +60,7 @@ private:
     /**
      * @brief Counts how many times the altitude has been reached consequently.
      */
-    int confidence;
+    uint32_t confidence;
 
     /**
      * @brief Scheduler to which add the periodic update task

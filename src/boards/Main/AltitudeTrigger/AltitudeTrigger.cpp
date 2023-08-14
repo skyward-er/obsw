@@ -33,7 +33,10 @@ using namespace Common;
 
 namespace Main
 {
-AltitudeTrigger::AltitudeTrigger(TaskScheduler* sched) : scheduler(sched) {}
+AltitudeTrigger::AltitudeTrigger(TaskScheduler* sched) : scheduler(sched)
+{
+    altitude = AltitudeTriggerConfig::ALTITUDE_REFERENCE;
+}
 
 bool AltitudeTrigger::start()
 {
