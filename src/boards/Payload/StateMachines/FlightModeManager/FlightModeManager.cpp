@@ -22,6 +22,7 @@
 
 #include "FlightModeManager.h"
 
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
@@ -139,6 +140,7 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
+            ModuleManager::getInstance().get<Actuators>()->rocketSDError();
             logStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
@@ -174,6 +176,8 @@ State FlightModeManager::state_init_done(const Event& event)
     {
         case EV_ENTRY:
         {
+            // We turn off the led if we are coming from init_error
+            ModuleManager::getInstance().get<Actuators>()->rocketSDOff();
             logStatus(FlightModeManagerState::INIT_DONE);
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
@@ -279,9 +283,8 @@ State FlightModeManager::state_disarmed(const Event& event)
             logStatus(FlightModeManagerState::DISARMED);
             // Stop eventual logging
             Logger::getInstance().stop();
-            // TODO update with actuators
-            // modules.get<Actuators>()->camOff();
-            // modules.get<Actuators>()->setBuzzerOff();
+            ModuleManager::getInstance().get<Actuators>()->rocketSDDisarmed();
+            ModuleManager::getInstance().get<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
@@ -344,12 +347,12 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_START_RECORDING:
         {
-            // ModuleManager::getInstance().get<Actuators>()->camOn();
+            ModuleManager::getInstance().get<Actuators>()->camOn();
             return HANDLED;
         }
         case TMTC_STOP_RECORDING:
         {
-            // ModuleManager::getInstance().get<Actuators>()->camOff();
+            ModuleManager::getInstance().get<Actuators>()->camOff();
             return HANDLED;
         }
         case TMTC_RESET_BOARD:
@@ -377,6 +380,10 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
+            // Starts signaling devices and camera
+            ModuleManager::getInstance().get<Actuators>()->rocketSDArmed();
+            ModuleManager::getInstance().get<Actuators>()->camOn();
+            // Post event
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
@@ -554,6 +561,11 @@ State FlightModeManager::state_landed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::LANDED);
+
+            // Turns off signaling devices
+            ModuleManager::getInstance().get<Actuators>()->rocketSDLanded();
+            ModuleManager::getInstance().get<Actuators>()->camOff();
+            // Sends events
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().postDelayed(FMM_STOP_LOGGING, TOPIC_FMM,

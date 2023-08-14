@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/RadioConfig.h>
 #include <Payload/Radio/Radio.h>
@@ -29,6 +30,8 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -221,9 +224,14 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_x = nasState.bx;
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
-            // TODO Servos
-            tm.left_servo_angle  = 0;
-            tm.right_servo_angle = 0;
+            // Servos
+            tm.left_servo_angle =
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    ServosList::PARAFOIL_LEFT_SERVO);
+            tm.right_servo_angle =
+                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                    ServosList::PARAFOIL_RIGHT_SERVO);
+            ;
 
             // TODO Pins
             tm.pin_nosecone = 0;
@@ -523,29 +531,30 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
                                             uint8_t seq)
 {
-    // TODO when actuators is ready
     mavlink_message_t msg;
 
-    // if (servoId == PARAFOIL_LEFT_SERVO || servoId == PARAFOIL_RIGHT_SERVO)
-    // {
-    //     mavlink_servo_tm_t tm;
+    if (servoId == PARAFOIL_LEFT_SERVO || servoId == PARAFOIL_RIGHT_SERVO)
+    {
+        mavlink_servo_tm_t tm;
 
-    //     tm.servo_id       = servoId;
-    //     tm.servo_position = Actuators::getInstance().getServoAngle(servoId);
+        tm.servo_id = servoId;
+        tm.servo_position =
+            ModuleManager::getInstance().get<Actuators>()->getServoAngle(
+                servoId);
 
-    //     mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-    //                                 RadioConfig::MAV_COMP_ID, &msg, &tm);
-    // }
-    // else
-    // {
-    //     mavlink_nack_tm_t nack;
+        mavlink_msg_servo_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                    RadioConfig::MAV_COMP_ID, &msg, &tm);
+    }
+    else
+    {
+        mavlink_nack_tm_t nack;
 
-    //     nack.recv_msgid = msgId;
-    //     nack.seq_ack    = seq;
+        nack.recv_msgid = msgId;
+        nack.seq_ack    = seq;
 
-    //     mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-    //                                RadioConfig::MAV_COMP_ID, &msg, &nack);
-    // }
+        mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                   RadioConfig::MAV_COMP_ID, &msg, &nack);
+    }
 
     return msg;
 }

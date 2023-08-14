@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// #include <Payload/Actuators/Actuators.h>
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/Buses.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -141,7 +141,10 @@ void Radio::sendNack(const mavlink_message_t& msg)
     enqueueMsg(nackMsg);
 }
 
-void Radio::logStatus() {}
+void Radio::logStatus()
+{
+    // TODO implement this
+}
 
 bool Radio::isStarted()
 {
@@ -234,15 +237,13 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
         {
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
-            // float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
-
-            // TODO implements when actuators
+            float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            // if (!(modules.get<FlightModeManager>()->getStatus().state ==
-            //           FlightModeManagerState::TEST_MODE &&
-            //       modules.get<Actuators>()->setServoAngle(servoId, angle)))
-            //     return sendNack(msg);
+            if (!(modules.get<FlightModeManager>()->getStatus().state ==
+                      FlightModeManagerState::TEST_MODE &&
+                  modules.get<Actuators>()->setServoAngle(servoId, angle)))
+                return sendNack(msg);
 
             // break;
         }
@@ -259,8 +260,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             }
 
             // If the state is test mode, the wiggle is done
-            // TODO add when actuators is merged
-            // modules.get<Actuators>()->wiggleServo(servoId);
+            modules.get<Actuators>()->wiggleServo(servoId);
 
             break;
         }
@@ -269,11 +269,10 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
-            // TODO when actuators
-            //  if ((modules.get<FlightModeManager>()->getStatus().state !=
-            //            FlightModeManagerState::TEST_MODE) &&
-            //        Actuators::getInstance().setServo(servoId, 0))
-            //      return sendNack(msg);
+            if ((modules.get<FlightModeManager>()->getStatus().state !=
+                 FlightModeManagerState::TEST_MODE) &&
+                modules.get<Actuators>()->setServo(servoId, 0))
+                return sendNack(msg);
 
             break;
         }
