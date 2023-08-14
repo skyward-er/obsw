@@ -51,6 +51,19 @@ constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE =
     RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
 
+// Buzzer configs
+static TIM_TypeDef* const BUZZER_TIMER = TIM1;
+constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
+    Boardcore::TimerUtils::Channel::CHANNEL_1;
+constexpr uint32_t BUZZER_FREQUENCY = 1000;
+constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+
+constexpr uint32_t BUZZER_UPDATE_PERIOD = 100;  // [ms]
+
+constexpr uint32_t ROCKET_SS_ERROR_PERIOD = 50;
+constexpr uint32_t ROCKET_SS_ARMED_PERIOD = 500;
+constexpr uint32_t ROCKET_SS_LAND_PERIOD  = 1000;  // [ms]
+
 }  // namespace ActuatorsConfigs
 
 }  // namespace Payload

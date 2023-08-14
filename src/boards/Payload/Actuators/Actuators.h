@@ -25,6 +25,7 @@
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <interfaces/gpio.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -106,35 +107,45 @@ struct Actuators : public Boardcore::Module
     void camOn();
     void camOff();
 
-    void ledArmed();
-    void ledDisarmed();
-    void ledError();
-    void ledOff();
+    void rocketSDArmed();
+    void rocketSDDisarmed();
+    void rocketSDError();
+    void rocketSDLanded();
+    void rocketSDOff();
 
 private:
     void toggleLed();
+    /**
+     * @brief Automatic called method to update the buzzer status
+     */
+    void updateBuzzer();
 
-    TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler;
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
+    Boardcore::PWM buzzer;
 
-    enum BlinkState
+    enum RocketSignalingState
     {
-        LED_OFF,
-        LED_ARMED,
-        LED_DISARMED,
-        LED_ERROR
+        OFF,
+        ARMED,
+        DISARMED,
+        ERROR
     };
 
     // mutexes
     miosix::FastMutex leftServoMutex;
     miosix::FastMutex rightServoMutex;
-    miosix::FastMutex ledMutex;
+    miosix::FastMutex rocketSignalingStateMutex;
 
-    bool ledState          = false;
-    BlinkState blinkState  = LED_OFF;
-    uint8_t ledArmedTaskId = 0;
-    uint8_t ledErrorTaskId = 0;
+    bool ledState                   = false;
+    RocketSignalingState blinkState = OFF;
+    uint8_t ledArmedTaskId          = 0;
+    uint8_t ledErrorTaskId          = 0;
+    // Counter that enables and disables the buzzer
+    uint32_t buzzerCounter = 0;
+    // Upper limit of the buzzer counter
+    uint32_t buzzerCounterOverflow = 0;
 };
 
 }  // namespace Payload

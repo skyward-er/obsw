@@ -24,21 +24,48 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
-#include <common/LedConfig.h>
-#include <interfaces-impl/bsp_impl.h>
 #include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Common;
 using namespace Payload::ActuatorsConfigs;
 
 namespace Payload
 {
 
-bool Actuators::start() { return scheduler == nullptr ? false : true; }
+Actuators::Actuators(Boardcore::TaskScheduler* sched)
+    : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
+                LEFT_SERVO_MAX_PULSE),
+      rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
+                 RIGHT_SERVO_MAX_PULSE),
+      scheduler(sched), buzzer(BUZZER_TIMER, BUZZER_FREQUENCY)
+{
+    buzzer.setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
+    camOff();
+}
+
+bool Actuators::start()
+{
+    // Servos
+    enableServo(PARAFOIL_LEFT_SERVO);
+    setServo(PARAFOIL_LEFT_SERVO, 0);
+    enableServo(PARAFOIL_RIGHT_SERVO);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
+
+    // Signaling Devices configurations
+    ledArmedTaskId =
+        scheduler->addTask([&]() { toggleLed(); }, ROCKET_SS_ARMED_PERIOD);
+    scheduler->disableTask(ledArmedTaskId);
+    ledErrorTaskId =
+        scheduler->addTask([&]() { toggleLed(); }, ROCKET_SS_ERROR_PERIOD);
+    scheduler->disableTask(ledErrorTaskId);
+
+    return ledArmedTaskId != 0 && ledErrorTaskId != 0 &&
+           scheduler->addTask([&]() { updateBuzzer(); },
+                              BUZZER_UPDATE_PERIOD) != 0;
+}
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
@@ -219,82 +246,132 @@ void Actuators::camOn() { gpios::camera_enable::high(); }
 
 void Actuators::camOff() { gpios::camera_enable::low(); }
 
-void Actuators::ledArmed()
+void Actuators::rocketSDArmed()
 {
-    miosix::Lock<miosix::FastMutex> l(ledMutex);
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
     // disable ledErrorTask if active
-    if (blinkState == BlinkState::LED_ERROR)
+    if (blinkState == RocketSignalingState::ERROR)
+    {
         scheduler->disableTask(ledErrorTaskId);
+    }
     // enable ledArmedTask
-    if (ledArmedTaskId != 0)
+    if (blinkState != RocketSignalingState::ARMED)
+    {
         scheduler->enableTask(ledArmedTaskId);
-    else
-        ledArmedTaskId =
-            scheduler->addTask([&]() { toggleLed(); }, LED_ARMED_PERIOD);
+    }
+    // Set the counter with respect to the update function period
+    buzzerCounterOverflow = ROCKET_SS_ARMED_PERIOD / BUZZER_UPDATE_PERIOD;
 
-    blinkState = BlinkState::LED_ARMED;
+    blinkState = RocketSignalingState::ARMED;
 }
 
-void Actuators::ledDisarmed()
+void Actuators::rocketSDDisarmed()
 {
-    miosix::Lock<miosix::FastMutex> l(ledMutex);
-    if (blinkState == BlinkState::LED_ARMED)
-        scheduler->disableTask(ledArmedTaskId);
-    if (blinkState == BlinkState::LED_ERROR)
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+
+    // disable ledErrorTask if active
+    if (blinkState == RocketSignalingState::ERROR)
+    {
         scheduler->disableTask(ledErrorTaskId);
+    }
+    // enable ledArmedTask
+    if (blinkState != RocketSignalingState::ARMED)
+    {
+        scheduler->disableTask(ledArmedTaskId);
+    }
+    gpios::status_led::high();
+    ledState = true;
 
-    miosix::ledOn();
-    ledState   = true;
-    blinkState = BlinkState::LED_DISARMED;
+    buzzerCounterOverflow = 0;
+    blinkState            = RocketSignalingState::DISARMED;
 }
 
-void Actuators::ledError()
+void Actuators::rocketSDError()
 {
-    miosix::Lock<miosix::FastMutex> l(ledMutex);
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
     // disable ledArmedTask if active
-    if (blinkState == BlinkState::LED_ARMED)
+    if (blinkState == RocketSignalingState::ARMED)
+    {
         scheduler->disableTask(ledArmedTaskId);
+    }
     // enable ledErrorTask
-    if (ledErrorTaskId != 0)
+    if (blinkState != RocketSignalingState::ERROR)
+    {
         scheduler->enableTask(ledErrorTaskId);
-    else
-        ledErrorTaskId =
-            scheduler->addTask([&]() { toggleLed(); }, LED_ERROR_PERIOD);
-
-    blinkState = BlinkState::LED_ERROR;
+    }
+    blinkState = RocketSignalingState::ERROR;
 }
 
-void Actuators::ledOff()
+void Actuators::rocketSDLanded()
 {
-    miosix::Lock<miosix::FastMutex> l(ledMutex);
-    if (blinkState == BlinkState::LED_ARMED)
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+    // disable ledArmedTask if active
+    if (blinkState == RocketSignalingState::ARMED)
+    {
         scheduler->disableTask(ledArmedTaskId);
-    if (blinkState == BlinkState::LED_ERROR)
+    }
+    // disable ledErrorTask
+    if (blinkState != RocketSignalingState::ERROR)
+    {
         scheduler->disableTask(ledErrorTaskId);
+    }
 
-    ledState = false;
-    miosix::ledOff();
-    blinkState = BlinkState::LED_OFF;
+    gpios::status_led::high();
+    // Set the counter with respect to the update function period
+    buzzerCounterOverflow = ROCKET_SS_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
+
+    blinkState = RocketSignalingState::ERROR;
 }
 
-Actuators::Actuators(Boardcore::TaskScheduler* sched)
-    : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
-                LEFT_SERVO_MAX_PULSE),
-      rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
-                 RIGHT_SERVO_MAX_PULSE),
-      scheduler(sched)
+void Actuators::rocketSDOff()
 {
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+    if (blinkState == RocketSignalingState::ARMED)
+    {
+        scheduler->disableTask(ledArmedTaskId);
+    }
+    if (blinkState == RocketSignalingState::ERROR)
+    {
+        scheduler->disableTask(ledErrorTaskId);
+    }
+    buzzerCounterOverflow = 0;
+    gpios::status_led::low();
+    blinkState = RocketSignalingState::OFF;
 }
 
 void Actuators::toggleLed()
 {
-    miosix::Lock<miosix::FastMutex> l(ledMutex);
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
     if (ledState)
-        miosix::ledOff();
+        gpios::status_led::low();
     else
-        miosix::ledOn();
+        gpios::status_led::high();
 
     ledState = !ledState;
+}
+
+void Actuators::updateBuzzer()
+{
+    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+    if (buzzerCounterOverflow == 0)
+    {
+        // The buzzer is deactivated thus the channel is disabled
+        buzzer.disableChannel(BUZZER_CHANNEL);
+    }
+    else
+    {
+        if (buzzerCounter >= buzzerCounterOverflow)
+        {
+            // Enable the channel for this period
+            buzzer.enableChannel(BUZZER_CHANNEL);
+            buzzerCounter = 0;
+        }
+        else
+        {
+            buzzer.disableChannel(BUZZER_CHANNEL);
+            buzzerCounter++;
+        }
+    }
 }
 
 }  // namespace Payload
