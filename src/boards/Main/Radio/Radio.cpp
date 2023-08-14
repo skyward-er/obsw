@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 #include <Main/Actuators/Actuators.h>
+#include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
@@ -259,6 +260,14 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             // Set the servo position to 0
             modules.get<Actuators>()->setServoPosition(servoId, 0);
 
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
+        {
+            float altitude =
+                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+
+            modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
             break;
         }
         default:
