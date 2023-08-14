@@ -85,7 +85,7 @@ bool Radio::start()
     transceiver = new SX1278Fsk(
         modules.get<Buses>()->spi6, miosix::radio::cs::getPin(),
         miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
-        miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
+        miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_64,
         std::move(frontend));
 
     // Config the radio
