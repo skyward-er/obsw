@@ -434,6 +434,7 @@ State FlightModeManager::state_armed(const Event& event)
             modules.get<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return transition(&FlightModeManager::state_disarmed);
         }
+        case FLIGHT_LAUNCH_PIN_DETACHED:
         case TMTC_FORCE_LAUNCH:
         {
             modules.get<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
