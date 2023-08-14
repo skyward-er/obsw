@@ -103,7 +103,7 @@ bool Sensors::start()
     lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
-    // ubxgpsInit();
+    ubxgpsInit();
     lsm6dsrxInit();
     ads131m08Init();
     staticPressureInit();
