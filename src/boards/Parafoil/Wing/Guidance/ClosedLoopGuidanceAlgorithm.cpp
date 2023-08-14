@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Radu Raul
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,43 +20,19 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include <ostream>
-#include <string>
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
+#include <math.h>
 
 namespace Parafoil
 {
 
-struct WingTargetPositionData
+float ClosedLoopGuidanceAlgorithm::calculateTargetAngle(
+    const Eigen::Vector3f& position, const Eigen::Vector2f& target,
+    Eigen::Vector2f& heading)
 {
-    float receivedLat;
-    float receivedLon;
-    float latitude;
-    float longitude;
-    float emcLat;
-    float emcLon;
-    float m1Lat;
-    float m1Lon;
-    float m2Lat;
-    float m2Lon;
-
-    float n;
-    float e;
-
-    static std::string header()
-    {
-        return "receivedLat, receivedLon, "
-               "latitude,longitude,n,e,EMCLat,EMCLon,M1Lat,M1Lon,M2Lat,M2Lon\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << receivedLat << "," << receivedLon << "," << latitude << ","
-           << longitude << "," << n << "," << e << "," << emcLat << ","
-           << emcLon << "," << m1Lat << "," << m1Lon << "," << m2Lat << ","
-           << m2Lon << "\n";
-    }
-};
+    heading[0] = target[0] - position[0];
+    heading[1] = target[1] - position[1];
+    return atan2(heading[1], heading[0]);
+}
 
 }  // namespace Parafoil

@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -171,10 +171,10 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
-            if (automatic)
-            {
-                ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
-            }
+            // if (automatic)
+            // {
+            //     ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+            // }
             startAlgorithm();
             return HANDLED;
         }
@@ -184,7 +184,7 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
             stopAlgorithm();
             ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
             return transition(&WingController::state_calibration);
-        }
+        }  // start the algorithm, inside we add the task to the scheduler
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
@@ -236,11 +236,12 @@ void WingController::addAlgorithm(int id)
 {
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
+
     switch (id)
     {
         case 0:
-            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
-                                                   PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
         case 1:  // straight-> brake
@@ -273,10 +274,14 @@ void WingController::addAlgorithm(int id)
             algorithm->addStep(step);
             setAutomatic(false);
             break;
-
+        case 3:
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
+            setAutomatic(true);
+            break;
         default:  // automatic target
-            algorithm = new AutomaticWingAlgorithm(3, 1, PARAFOIL_LEFT_SERVO,
-                                                   PARAFOIL_RIGHT_SERVO);
+            algorithm = new AutomaticWingAlgorithm(
+                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
     }
@@ -374,9 +379,40 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 {
     this->targetPosition = target;
 
+    this->emcPosition = target * 1.2;  // EMC is calculated as target * 1.2
+
+    float targetAngle = atan2(target[1], target[0]);
+
+    float distFromCenterline = 20;  // the distance that the M1 and M2 points
+                                    // must have from the center line
+
+    // Calculate the angle between the lines <NED Origin, target> and <NED
+    // Origin, M1> This angle is the same for M2 since is symmetric to M1
+    // relatively to the center line
+    float psiMan = atan2(distFromCenterline, target.norm());
+
+    float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
+    float m2Angle                 = targetAngle + psiMan;
+    float m1Angle                 = targetAngle - psiMan;
+
+    this->m1Position =
+        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude;
+
+    this->m2Position =
+        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude;
+
     WingTargetPositionData data;
     data.latitude  = target[0];
     data.longitude = target[1];
+
+    data.emcLat = emcPosition[0];
+    data.emcLon = emcPosition[1];
+
+    data.m1Lat = m1Position[0];
+    data.m1Lon = m1Position[1];
+
+    data.m2Lat = m2Position[0];
+    data.m2Lon = m2Position[1];
 
     // Log the received position
     Logger::getInstance().log(data);
@@ -391,5 +427,11 @@ void WingController::logStatus(WingControllerState state)
 }
 
 Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
+
+Eigen::Vector2f WingController::getEMCPosition() { return emcPosition; }
+
+Eigen::Vector2f WingController::getM1Position() { return m1Position; }
+
+Eigen::Vector2f WingController::getM2Position() { return m2Position; }
 
 }  // namespace Parafoil

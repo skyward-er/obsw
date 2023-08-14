@@ -60,6 +60,8 @@ constexpr int SELECTED_ALGORITHM = 0;
 constexpr int SELECTED_ALGORITHM   = 1;
 #elif ROTATION
 constexpr int SELECTED_ALGORITHM   = 2;
+#elif EARLY_MANEUVER
+constexpr int SELECTED_ALGORITHM   = 3;
 #else
 constexpr int SELECTED_ALGORITHM   = 0;
 #endif
@@ -68,6 +70,9 @@ constexpr float MAX_SERVO_APERTURE = 1.0f;
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
+
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 0.1;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -0.1;
 
 struct WingConfigStruct
 {

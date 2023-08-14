@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Radu Raul
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,35 @@
 
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <Eigen/Core>
 
 namespace Parafoil
 {
 
-struct WingTargetPositionData
+/**
+ * This class acts as an interface for a generic guidance algorithm that is used
+ * by the Automatic Wing Algorithm.
+ */
+class GuidanceAlgorithm
 {
-    float receivedLat;
-    float receivedLon;
-    float latitude;
-    float longitude;
-    float emcLat;
-    float emcLon;
-    float m1Lat;
-    float m1Lon;
-    float m2Lat;
-    float m2Lon;
-
-    float n;
-    float e;
-
-    static std::string header()
-    {
-        return "receivedLat, receivedLon, "
-               "latitude,longitude,n,e,EMCLat,EMCLon,M1Lat,M1Lon,M2Lat,M2Lon\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << receivedLat << "," << receivedLon << "," << latitude << ","
-           << longitude << "," << n << "," << e << "," << emcLat << ","
-           << emcLon << "," << m1Lat << "," << m1Lon << "," << m2Lat << ","
-           << m2Lon << "\n";
-    }
+public:
+    /**
+     * @brief This method must calculate the yaw angle of the parafoil knowing
+     * the current position and the target position without changing the vectors
+     * passed as arguments.
+     *
+     * @note the args are const references to reduce access time by avoiding
+     * copying objects that will be read-only.
+     *
+     * @param[in] position the current NED position of the parafoil in [m]
+     * @param[in] target NED position of the target in [m]
+     * @param[out] heading The current heading, it is used for logging purposes
+     *
+     * @returns the yaw angle of the parafoil in [rad]
+     */
+    virtual float calculateTargetAngle(const Eigen::Vector3f& position,
+                                       const Eigen::Vector2f& target,
+                                       Eigen::Vector2f& heading) = 0;
 };
 
 }  // namespace Parafoil

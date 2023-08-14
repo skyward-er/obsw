@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Radu Raul
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,34 @@
 
 #pragma once
 
-#include <ostream>
-#include <string>
+#include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
+
+#include <Eigen/Core>
 
 namespace Parafoil
 {
 
-struct WingTargetPositionData
+/**
+ * This class is the implementation of the Simple Closed Loop guidance.
+ * It calculates the yaw between the current position and the target position by
+ * calculating the difference between the two vectors and the angle formed by
+ * the diff vector
+ */
+class ClosedLoopGuidanceAlgorithm : public GuidanceAlgorithm
 {
-    float receivedLat;
-    float receivedLon;
-    float latitude;
-    float longitude;
-    float emcLat;
-    float emcLon;
-    float m1Lat;
-    float m1Lon;
-    float m2Lat;
-    float m2Lon;
-
-    float n;
-    float e;
-
-    static std::string header()
-    {
-        return "receivedLat, receivedLon, "
-               "latitude,longitude,n,e,EMCLat,EMCLon,M1Lat,M1Lon,M2Lat,M2Lon\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << receivedLat << "," << receivedLon << "," << latitude << ","
-           << longitude << "," << n << "," << e << "," << emcLat << ","
-           << emcLon << "," << m1Lat << "," << m1Lon << "," << m2Lat << ","
-           << m2Lon << "\n";
-    }
+    /**
+     * @brief This method calculates the yaw angle of the parafoil knowing
+     * the current position and the target position.
+     *
+     * @param[in] position the current NED position of the parafoil in [m]
+     * @param[in] target NED position of the target in [m]
+     * @param[out] heading Saves the heading vector for logging purposes
+     *
+     * @returns the yaw angle of the parafoil in [rad]
+     */
+    float calculateTargetAngle(const Eigen::Vector3f& position,
+                               const Eigen::Vector2f& target,
+                               Eigen::Vector2f& heading);
 };
 
 }  // namespace Parafoil

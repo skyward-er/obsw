@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <algorithms/PIController.h>
 
@@ -39,9 +40,11 @@ public:
      * @param Ki Integral value for PI controller
      * @param servo1 The first servo
      * @param servo2 The second servo
+     * @param guidance The algorithm used to compute the target yaw and the
+     * heading
      */
     AutomaticWingAlgorithm(float Kp, float Ki, ServosList servo1,
-                           ServosList servo2);
+                           ServosList servo2, GuidanceAlgorithm& guidance);
 
     /**
      * @brief Destroy the Automatic Wing Algorithm object and the PI
@@ -49,6 +52,9 @@ public:
     ~AutomaticWingAlgorithm();
 
 protected:
+    // Guidance algorithm that sets the yaw.
+    GuidanceAlgorithm& guidance;
+
     // PI controller tuned on the Kp and Ki passed through constructor
     Boardcore::PIController* controller;
 
@@ -58,5 +64,15 @@ protected:
      * GUIDANCE IS TRANSLATED
      */
     void step() override;
+
+    /**
+     * @brief Computes the difference between two angles
+     *
+     * @param a The first angle
+     * @param b The second angle
+     *
+     * @returns angle(a) - angle(b)
+     */
+    float angleDiff(float a, float b);
 };
 }  // namespace Parafoil
