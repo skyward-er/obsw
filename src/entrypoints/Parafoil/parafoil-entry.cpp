@@ -223,7 +223,6 @@ int main()
     if (initResult)
     {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-        miosix::ledOn();
     }
     else
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
@@ -238,11 +237,34 @@ int main()
         });
 
     // Periodically statistics
+    bool flash = true;
     while (true)
     {
-        Thread::sleep(1000);
+        if (initResult)
+        {
+            miosix::ledOn();
+            if (ModuleManager::getInstance()
+                    .get<Sensors>()
+                    ->getUbxGpsLastSample()
+                    .fix == 0)
+            {
+                if (flash)
+                {
+
+                    miosix::ledOff();
+                    flash = false;
+                }
+                else
+                {
+                    miosix::ledOn();
+                    flash = true;
+                }
+            }
+        }
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
+
+        Thread::sleep(1000);
     }
 }

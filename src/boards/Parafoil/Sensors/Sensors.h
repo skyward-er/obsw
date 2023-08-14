@@ -84,7 +84,7 @@ public:
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
     Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
     Boardcore::MS5803Data getMS5803LastSample();
-    // Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
 
     Boardcore::ADS1118Data getADS1118LastSample();
     Boardcore::MPXHZ6130AData getStaticPressureLastSample();
@@ -118,7 +118,7 @@ private:
 
     void ms5803Init();
 
-    // void ubxGpsInit();
+    void ubxGpsInit();
 
     void ads1118Init();
 
@@ -138,7 +138,7 @@ private:
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
     Boardcore::MS5803* ms5803;  // barometro digitale
-                                // Boardcore::UBXGPSSerial* ubxGps;
+    Boardcore::UBXGPSSerial* ubxGps;
     Boardcore::H3LIS331DL* h3lis33;
 
     Boardcore::ADS1118* ads1118;  // adc

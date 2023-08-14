@@ -68,9 +68,9 @@ constexpr Boardcore::BMX160Config::AccelerometerRange IMU_BMX_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 400;
 constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_1600;
+    Boardcore::BMX160Config::OutputDataRate::HZ_400;
 constexpr unsigned int IMU_BMX_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
@@ -134,8 +134,11 @@ constexpr unsigned int CALIBRATION_DURATION           = 2000;
 
 // Load cell calibration
 constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = (1 / 80.f) * 1000;
-constexpr float LOAD_CELL1_OFFSET              = -93539.8f;
-constexpr float LOAD_CELL1_SCALE               = -2.251307e-5f;
+// constexpr float LOAD_CELL1_OFFSET              = -20500.0f;
+// constexpr float LOAD_CELL1_SCALE               = 1 / 2169.0;
+
+constexpr float LOAD_CELL1_OFFSET = -71459.4862804878;
+constexpr float LOAD_CELL1_SCALE  = 0.0005147433452090161;
 
 }  // namespace SensorsConfig
 

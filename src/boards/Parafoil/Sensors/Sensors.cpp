@@ -57,7 +57,7 @@ bool Sensors::startModule()
     // Initialize all the sensors
     lis3mdlInit();
     ms5803Init();
-    // ubxGpsInit();
+    ubxGpsInit();
     ads1118Init();
     staticPressureInit();
     dplPressureInit();
@@ -167,31 +167,31 @@ MS5803Data Sensors::getMS5803LastSample()
 #endif
 }
 
-// UBXGPSData Sensors::getUbxGpsLastSample()
-// {
-//     miosix::PauseKernelLock lock;
-// #ifndef HILSimulation
-//     return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
-// #else
-//     auto data = state.gps->getLastSample();
-//     UBXGPSData ubxData;
+UBXGPSData Sensors::getUbxGpsLastSample()
+{
+    miosix::PauseKernelLock lock;
+#ifndef HILSimulation
+    return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
+#else
+    auto data = state.gps->getLastSample();
+    UBXGPSData ubxData;
 
-//     ubxData.gpsTimestamp  = data.gpsTimestamp;
-//     ubxData.latitude      = data.latitude;
-//     ubxData.longitude     = data.longitude;
-//     ubxData.height        = data.height;
-//     ubxData.velocityNorth = data.velocityNorth;
-//     ubxData.velocityEast  = data.velocityEast;
-//     ubxData.velocityDown  = data.velocityDown;
-//     ubxData.speed         = data.speed;
-//     ubxData.track         = data.track;
-//     ubxData.positionDOP   = data.positionDOP;
-//     ubxData.satellites    = data.satellites;
-//     ubxData.fix           = data.fix;
+    ubxData.gpsTimestamp  = data.gpsTimestamp;
+    ubxData.latitude      = data.latitude;
+    ubxData.longitude     = data.longitude;
+    ubxData.height        = data.height;
+    ubxData.velocityNorth = data.velocityNorth;
+    ubxData.velocityEast  = data.velocityEast;
+    ubxData.velocityDown  = data.velocityDown;
+    ubxData.speed         = data.speed;
+    ubxData.track         = data.track;
+    ubxData.positionDOP   = data.positionDOP;
+    ubxData.satellites    = data.satellites;
+    ubxData.fix           = data.fix;
 
-//     return ubxData;
-// #endif
-// }
+    return ubxData;
+#endif
+}
 
 ADS1118Data Sensors::getADS1118LastSample()
 {
@@ -318,7 +318,7 @@ Sensors::~Sensors()
     delete bmx160;
     delete lis3mdl;
     delete ms5803;
-    // delete ubxGps;
+    delete ubxGps;
     delete ads1118;
     delete staticPressure;
     delete dplPressure;
@@ -347,12 +347,12 @@ void Sensors::h3lis33Init()
     cs.high();
     h3lis33 =
         new H3LIS331DL(ModuleManager::getInstance().get<Buses>()->spi1, cs,
-                       H3LIS331DLDefs::OutputDataRate::ODR_50,
+                       H3LIS331DLDefs::OutputDataRate::ODR_400,
                        H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
                        H3LIS331DLDefs::FullScaleRange::FS_100);
 
     // Create the sensor info
-    SensorInfo info("H3LIS331DL", 100,
+    SensorInfo info("H3LIS331DL", 2,
                     [&]()
                     { Logger::getInstance().log(h3lis33->getLastSample()); });
     sensorsMap.emplace(make_pair(h3lis33, info));
@@ -374,7 +374,7 @@ void Sensors::hx711Init()
                     [&]()
                     {
                         Logger::getInstance().log(hx711->getLastSample());
-                        printf("%f\n", hx711->getLastSample().load);
+                        // printf("%f\n", hx711->getLastSample().load);
                     });
     sensorsMap.emplace(make_pair(hx711, info));
     LOG_INFO(logger, "Initialized loadCell1");
@@ -488,18 +488,17 @@ void Sensors::ms5803Init()
     LOG_INFO(logger, "MS5803 setup done!");
 }
 
-// void Sensors::ubxGpsInit()
-// {
-//     ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, USART2,
-//                               USARTInterface::Baudrate::B9600);
+void Sensors::ubxGpsInit()
+{
+    ubxGps = new UBXGPSSerial(GPS_BAUD_RATE, GPS_SAMPLE_RATE, USART2, 9600);
 
-//     SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
-//                     [&]()
-//                     { Logger::getInstance().log(ubxGps->getLastSample()); });
-//     sensorsMap.emplace(make_pair(ubxGps, info));
+    SensorInfo info("UBXGPS", SAMPLE_PERIOD_GPS,
+                    [&]()
+                    { Logger::getInstance().log(ubxGps->getLastSample()); });
+    sensorsMap.emplace(make_pair(ubxGps, info));
 
-//     LOG_INFO(logger, "UbloxGPS setup done!");
-// }
+    LOG_INFO(logger, "UbloxGPS setup done!");
+}
 
 void Sensors::ads1118Init()
 {
