@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
@@ -73,6 +74,8 @@ int main()
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
     PinHandler* pinHandler = new PinHandler();
+    AltitudeTrigger* altitudeTrigger =
+        new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -141,6 +144,12 @@ int main()
         LOG_ERR(logger, "Error inserting the PinHandler module");
     }
 
+    if (!modules.insert<AltitudeTrigger>(altitudeTrigger))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Altitude Trigger module");
+    }
+
     // Start modules
     // if (!Logger::getInstance().testSDCard())
     // {
@@ -206,6 +215,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the PinHandler module");
+    }
+
+    if (!modules.get<AltitudeTrigger>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Altitude Trigger module");
     }
 
     // Log all the events
