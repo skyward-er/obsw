@@ -394,6 +394,7 @@ ADA::KalmanFilter::KalmanConfig ADAController::getADAKalmanConfig()
     ADA::KalmanFilter::MatrixNN Q_INIT;
     ADA::KalmanFilter::MatrixPP R_INIT{4000.0f};
     ADA::KalmanFilter::MatrixNM G_INIT = ADA::KalmanFilter::MatrixNM::Zero();
+
     // clang-format off
     F_INIT <<
         1.0, ADAConfig::SAMPLING_PERIOD,    0.5f * ADAConfig::SAMPLING_PERIOD * ADAConfig::SAMPLING_PERIOD,
