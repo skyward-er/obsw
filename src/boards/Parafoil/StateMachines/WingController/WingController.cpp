@@ -154,7 +154,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
         }
         case WING_WES_CALIBRATION:
         {
-            // ModuleManager::getInstance().get<Actuators>()->stopTwirl();
+            ModuleManager::getInstance().get<Actuators>()->stopTwirl();
             return transition(&WingController::state_controlled_descent);
         }
         default:

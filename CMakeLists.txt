@@ -48,10 +48,10 @@ target_include_directories(parafoil-entry-guided PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA GUIDED)
 sbs_target(parafoil-entry-guided stm32f429zi_skyward_death_stack_x)
 
-add_executable(parafoil-entry-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-rotation PRIVATE MOLINELLA ROTATION)
-sbs_target(parafoil-entry-rotation stm32f429zi_skyward_death_stack_x)
+add_executable(parafoil-entry-early-maneuver src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-early-maneuver PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-early-maneuver PRIVATE MOLINELLA EARLY_MANEUVER)
+sbs_target(parafoil-entry-early-maneuver stm32f429zi_skyward_death_stack_x)
 #-----------------------------------------------------------------------------#
 #                               Parafoil Computer                             #
 #-----------------------------------------------------------------------------#
