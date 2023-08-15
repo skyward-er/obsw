@@ -186,11 +186,11 @@ void MEAController::logStatus(MEAControllerState state) {}
 MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig()
 {
     MEA::KalmanFilter::MatrixNN F_INIT;
-    MEA::KalmanFilter::MatrixPN H_INIT{1.0, 0.0, 0.0};
+    MEA::KalmanFilter::MatrixPN H_INIT;
     MEA::KalmanFilter::MatrixNN P_INIT;
     MEA::KalmanFilter::MatrixNN Q_INIT;
-    MEA::KalmanFilter::MatrixPP R_INIT{4000.0f};
-    MEA::KalmanFilter::MatrixNM G_INIT = MEA::KalmanFilter::MatrixNM::Zero();
+    MEA::KalmanFilter::MatrixPP R_INIT;
+    MEA::KalmanFilter::MatrixNM G_INIT;
 
     // clang-format off
     F_INIT = MEA::KalmanFilter::MatrixNN({
