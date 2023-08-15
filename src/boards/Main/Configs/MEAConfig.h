@@ -29,5 +29,11 @@ namespace Main
 namespace MEAConfig
 {
 constexpr uint32_t UPDATE_PERIOD = 20;  // [ms] -> 50Hz
-}
+
+constexpr float SENSOR_NOISE_VARIANCE       = 0.36f;
+constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.01f;
+
+constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
+}  // namespace MEAConfig
 }  // namespace Main

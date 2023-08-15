@@ -67,20 +67,153 @@ MEAState MEAController::getMEAState()
     return mea.getState();
 }
 
-void MEAController::state_idle(const Event& event) {}
+void MEAController::state_idle(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(MEAControllerState::IDLE);
 
-void MEAController::state_ready(const Event& event) {}
+            return transition(&MEAController::state_ready);
+        }
+    }
+}
 
-void MEAController::state_armed(const Event& event) {}
+void MEAController::state_ready(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(MEAControllerState::READY);
+        }
+        case FLIGHT_ARMED:
+        {
+            return transition(&MEAController::state_armed);
+        }
+    }
+}
 
-void MEAController::state_shadow_mode(const Event& event) {}
+void MEAController::state_armed(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(MEAControllerState::ARMED);
+        }
+        case FLIGHT_DISARMED:
+        {
+            return transition(&MEAController::state_ready);
+        }
+        case FLIGHT_LIFTOFF:
+        {
+            return transition(&MEAController::state_shadow_mode);
+        }
+    }
+}
 
-void MEAController::state_active(const Event& event) {}
+void MEAController::state_shadow_mode(const Event& event)
+{
+    static uint16_t shadowModeTimeoutEventId = 0;
 
-void MEAController::state_end(const Event& event) {}
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(MEAControllerState::SHADOW_MODE);
+
+            // Add a delayed event to exit the shadow mode
+            shadowModeTimeoutEventId = EventBroker::getInstance().postDelayed(
+                MOTOR_SHADOW_MODE_TIMEOUT, TOPIC_MOTOR,
+                MEAConfig::SHADOW_MODE_TIMEOUT);
+            break;
+        }
+        case EV_EXIT:
+        {
+            // Remove the shadow mode event. This works even though the event is
+            // expired (aka after shadow_mode_timeout) because the event broker
+            // assigns a progressive number for every delayed event. If and only
+            // if the number of registered delayed event is less than 2^16, then
+            // this technique is valid.
+            return EventBroker::getInstance().removeDelayed(
+                shadowModeTimeoutEventId);
+        }
+        case MOTOR_SHADOW_MODE_TIMEOUT:
+        {
+            return transition(&MEAController::state_active);
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            return transition(&MEAController::state_end);
+        }
+    }
+}
+
+void MEAController::state_active(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            // Zero the number of so far detected shutdowns. It is thread safe
+            // due to std::atomic variable
+            detectedShutdowns = 0;
+            return logStatus(MEAControllerState::ACTIVE);
+        }
+        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_LANDING_DETECTED:
+        {
+            return transition(&MEAController::state_end);
+        }
+    }
+}
+
+void MEAController::state_end(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(MEAControllerState::END);
+        }
+    }
+}
 
 void MEAController::logStatus(MEAControllerState state) {}
 
-MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig() {}
+MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig()
+{
+    MEA::KalmanFilter::MatrixNN F_INIT;
+    MEA::KalmanFilter::MatrixPN H_INIT{1.0, 0.0, 0.0};
+    MEA::KalmanFilter::MatrixNN P_INIT;
+    MEA::KalmanFilter::MatrixNN Q_INIT;
+    MEA::KalmanFilter::MatrixPP R_INIT{4000.0f};
+    MEA::KalmanFilter::MatrixNM G_INIT = MEA::KalmanFilter::MatrixNM::Zero();
+
+    // clang-format off
+    F_INIT = MEA::KalmanFilter::MatrixNN({
+            {1.435871191228868, -0.469001276508780,  0.f}, 
+            {1.f,                0.f,                0.f},
+            {-0.002045309260755, 0.001867496708935,  1.f}});
+    
+    H_INIT = {1.780138883879285,-1.625379384370081,0.f};
+
+    P_INIT    = MEA::KalmanFilter::MatrixNN::Zero();
+    Q_INIT    = MEAConfig::MODEL_NOISE_VARIANCE * MEA::KalmanFilter::CVectorN({1, 1, 1}).asDiagonal();
+    R_INIT[0] = MEAConfig::SENSOR_NOISE_VARIANCE;
+    G_INIT    = MEA::KalmanFilter::MatrixNM{{4}, {0}, {0}};
+    // clang-format on
+
+    return {F_INIT,
+            H_INIT,
+            Q_INIT,
+            R_INIT,
+            P_INIT,
+            G_INIT,
+            MEA::KalmanFilter::CVectorN{
+                0, 0, MEAConfig::DEFAULT_INITIAL_ROCKET_MASS}};
+}
 
 }  // namespace Main
