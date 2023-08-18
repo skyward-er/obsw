@@ -100,38 +100,38 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
         changed_flags.push_back(FlightPhases::SIMULATION_STARTED);
     }
 
-    if (flagsFlightPhases[FlightPhases::SIM_FLYING])
-    {
-        if (isSetTrue(FlightPhases::SIM_FLYING))
-        {
-            TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
-            sEventBroker.post(FLIGHT_LAUNCH_PIN_DETACHED, TOPIC_FLIGHT);
-            changed_flags.push_back(FlightPhases::SIM_FLYING);
-        }
-        if (isSetFalse(FlightPhases::SIM_BURNING))
-        {
-            registerOutcomes(FlightPhases::SIM_BURNING);
-            TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_BURNING);
-        }
-        if (isSetTrue(FlightPhases::SIM_AEROBRAKES))
-        {
-            registerOutcomes(FlightPhases::SIM_AEROBRAKES);
-            changed_flags.push_back(FlightPhases::SIM_AEROBRAKES);
-        }
-        if (isSetTrue(FlightPhases::SIM_PARA1))
-        {
-            registerOutcomes(FlightPhases::SIM_PARA1);
-            TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_PARA1);
-        }
-        if (isSetTrue(FlightPhases::SIM_PARA2))
-        {
-            registerOutcomes(FlightPhases::SIM_PARA2);
-            TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_PARA2);
-        }
-    }
+    // if (flagsFlightPhases[FlightPhases::SIM_FLYING])
+    // {
+    //     if (isSetTrue(FlightPhases::SIM_FLYING))
+    //     {
+    //         TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
+    //         // sEventBroker.post(FLIGHT_LAUNCH_PIN_DETACHED, TOPIC_FLIGHT);
+    //         changed_flags.push_back(FlightPhases::SIM_FLYING);
+    //     }
+    //     if (isSetFalse(FlightPhases::SIM_BURNING))
+    //     {
+    //         registerOutcomes(FlightPhases::SIM_BURNING);
+    //         TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::SIM_BURNING);
+    //     }
+    //     if (isSetTrue(FlightPhases::SIM_AEROBRAKES))
+    //     {
+    //         registerOutcomes(FlightPhases::SIM_AEROBRAKES);
+    //         changed_flags.push_back(FlightPhases::SIM_AEROBRAKES);
+    //     }
+    //     if (isSetTrue(FlightPhases::SIM_PARA1))
+    //     {
+    //         registerOutcomes(FlightPhases::SIM_PARA1);
+    //         TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::SIM_PARA1);
+    //     }
+    //     if (isSetTrue(FlightPhases::SIM_PARA2))
+    //     {
+    //         registerOutcomes(FlightPhases::SIM_PARA2);
+    //         TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::SIM_PARA2);
+    //     }
+    // }
 
     /* calling the callbacks subscribed to the changed flags */
     for (unsigned int i = 0; i < changed_flags.size(); i++)
@@ -205,88 +205,88 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
 {
     std::vector<FlightPhases> changed_flags;
 
-    switch (e)
-    {
-        case FMM_INIT_OK:
-            setFlagFlightPhase(FlightPhases::CALIBRATION, true);
-            TRACE("[HIL] ------- CALIBRATION ! ------- \n");
-            changed_flags.push_back(FlightPhases::CALIBRATION);
-            break;
-        case NAS_READY:
-        case FMM_ALGOS_CAL_DONE:
-            setFlagFlightPhase(FlightPhases::CALIBRATION_OK, true);
-            TRACE("[HIL] CALIBRATION OK!\n");
-            changed_flags.push_back(FlightPhases::CALIBRATION_OK);
-            break;
-        case FLIGHT_ARMED:
-            setFlagFlightPhase(FlightPhases::ARMED, true);
-            printf("[HIL] ------- READY TO LAUNCH ! ------- \n");
-            changed_flags.push_back(FlightPhases::ARMED);
-            break;
-        case FLIGHT_LAUNCH_PIN_DETACHED:
-            setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
-            TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
-            sEventBroker.post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
-            changed_flags.push_back(FlightPhases::LIFTOFF_PIN_DETACHED);
-            break;
-        case FLIGHT_LIFTOFF:
-        case TMTC_FORCE_LAUNCH:
-            t_liftoff = Boardcore::TimestampTimer::getTimestamp();
-            TRACE("[HIL] ------- LIFTOFF -------: %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(FlightPhases::LIFTOFF);
-            break;
-        case ABK_SHADOW_MODE_TIMEOUT:
-            setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
-            registerOutcomes(FlightPhases::AEROBRAKES);
-            TRACE("[HIL] ABK shadow mode timeout\n");
-            // TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
-            changed_flags.push_back(FlightPhases::AEROBRAKES);
-            break;
-        case ADA_SHADOW_MODE_TIMEOUT:
-            TRACE("[HIL] ADA shadow mode timeout\n");
-            break;
-        case ABK_DISABLE:
-            TRACE("[HIL] ABK disabled\n");
-            break;
-        case FLIGHT_APOGEE_DETECTED:
-        case TMTC_FORCE_EXPULSION:
-            setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
-            registerOutcomes(FlightPhases::APOGEE);
-            TRACE("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(FlightPhases::APOGEE);
-            break;
-        case ADA_PRESS_STAB_TIMEOUT:
-            setFlagFlightPhase(FlightPhases::PARA1, true);
-            registerOutcomes(FlightPhases::PARA1);
-            TRACE("[HIL] ------- PARA1 ! -------%f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(FlightPhases::PARA1);
-            break;
-        case FLIGHT_DPL_ALT_DETECTED:
-        case TMTC_FORCE_DEPLOYMENT:
-            setFlagFlightPhase(FlightPhases::PARA1, false);
-            setFlagFlightPhase(FlightPhases::PARA2, true);
-            registerOutcomes(FlightPhases::PARA2);
-            TRACE("[HIL] ------- PARA2 ! ------- %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(FlightPhases::PARA2);
-            break;
-        case FLIGHT_LANDING_DETECTED:
-        case TMTC_FORCE_LANDING:
-            t_stop = Boardcore::TimestampTimer::getTimestamp();
-            setFlagFlightPhase(FlightPhases::PARA2, false);
-            setFlagFlightPhase(FlightPhases::SIMULATION_STOPPED, true);
-            changed_flags.push_back(FlightPhases::SIMULATION_STOPPED);
-            registerOutcomes(FlightPhases::SIMULATION_STOPPED);
-            TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
-                  (double)t_stop / 1000000.0f);
-            printOutcomes();
-            break;
-        default:
-            TRACE("%s invalid event\n", getEventString(e).c_str());
-    }
+    // switch (e)
+    // {
+    //     case FMM_INIT_OK:
+    //         setFlagFlightPhase(FlightPhases::CALIBRATION, true);
+    //         TRACE("[HIL] ------- CALIBRATION ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::CALIBRATION);
+    //         break;
+    //     case NAS_READY:
+    //         // case FMM_ALGOS_CAL_DONE:
+    //         setFlagFlightPhase(FlightPhases::CALIBRATION_OK, true);
+    //         TRACE("[HIL] CALIBRATION OK!\n");
+    //         changed_flags.push_back(FlightPhases::CALIBRATION_OK);
+    //         break;
+    //     case FLIGHT_ARMED:
+    //         setFlagFlightPhase(FlightPhases::ARMED, true);
+    //         printf("[HIL] ------- READY TO LAUNCH ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::ARMED);
+    //         break;
+    //     case FLIGHT_LAUNCH_PIN_DETACHED:
+    //         setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
+    //         TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
+    //         // sEventBroker.post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
+    //         changed_flags.push_back(FlightPhases::LIFTOFF_PIN_DETACHED);
+    //         break;
+    //     case FLIGHT_LIFTOFF:
+    //     case TMTC_FORCE_LAUNCH:
+    //         t_liftoff = Boardcore::TimestampTimer::getTimestamp();
+    //         TRACE("[HIL] ------- LIFTOFF -------: %f, %f \n",
+    //               getCurrentPosition().z, getCurrentPosition().vz);
+    //         changed_flags.push_back(FlightPhases::LIFTOFF);
+    //         break;
+    //     case ABK_SHADOW_MODE_TIMEOUT:
+    //         setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
+    //         registerOutcomes(FlightPhases::AEROBRAKES);
+    //         TRACE("[HIL] ABK shadow mode timeout\n");
+    //         // TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
+    //         changed_flags.push_back(FlightPhases::AEROBRAKES);
+    //         break;
+    //     case ADA_SHADOW_MODE_TIMEOUT:
+    //         TRACE("[HIL] ADA shadow mode timeout\n");
+    //         break;
+    //     case ABK_DISABLE:
+    //         TRACE("[HIL] ABK disabled\n");
+    //         break;
+    //     case FLIGHT_APOGEE_DETECTED:
+    //     case TMTC_FORCE_EXPULSION:
+    //         setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
+    //         registerOutcomes(FlightPhases::APOGEE);
+    //         TRACE("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
+    //               getCurrentPosition().z, getCurrentPosition().vz);
+    //         changed_flags.push_back(FlightPhases::APOGEE);
+    //         break;
+    //     case ADA_PRESS_STAB_TIMEOUT:
+    //         setFlagFlightPhase(FlightPhases::PARA1, true);
+    //         registerOutcomes(FlightPhases::PARA1);
+    //         TRACE("[HIL] ------- PARA1 ! -------%f, %f \n",
+    //               getCurrentPosition().z, getCurrentPosition().vz);
+    //         changed_flags.push_back(FlightPhases::PARA1);
+    //         break;
+    //     case FLIGHT_DPL_ALT_DETECTED:
+    //         // case TMTC_FORCE_DEPLOYMENT:
+    //         setFlagFlightPhase(FlightPhases::PARA1, false);
+    //         setFlagFlightPhase(FlightPhases::PARA2, true);
+    //         registerOutcomes(FlightPhases::PARA2);
+    //         TRACE("[HIL] ------- PARA2 ! ------- %f, %f \n",
+    //               getCurrentPosition().z, getCurrentPosition().vz);
+    //         changed_flags.push_back(FlightPhases::PARA2);
+    //         break;
+    //     case FLIGHT_LANDING_DETECTED:
+    //     case TMTC_FORCE_LANDING:
+    //         t_stop = Boardcore::TimestampTimer::getTimestamp();
+    //         setFlagFlightPhase(FlightPhases::PARA2, false);
+    //         setFlagFlightPhase(FlightPhases::SIMULATION_STOPPED, true);
+    //         changed_flags.push_back(FlightPhases::SIMULATION_STOPPED);
+    //         registerOutcomes(FlightPhases::SIMULATION_STOPPED);
+    //         TRACE("[HIL] ------- SIMULATION STOPPED ! -------: %f \n\n\n",
+    //               (double)t_stop / 1000000.0f);
+    //         printOutcomes();
+    //         break;
+    //     default:
+    //         TRACE("%s invalid event\n", getEventString(e).c_str());
+    // }
 
     /* calling the callbacks subscribed to the changed flags */
     for (unsigned int i = 0; i < changed_flags.size(); i++)

@@ -41,6 +41,7 @@ HILTransceiver::HILTransceiver(Boardcore::USART &hilSerial)
  */
 void HILTransceiver::setActuatorData(ActuatorData actuatorData)
 {
+    // miosix::Lock<miosix::FastMutex> l(mutex);
     this->actuatorData = actuatorData;
     updated            = true;
     condVar.signal();
@@ -92,8 +93,26 @@ void HILTransceiver::run()
                 TRACE("Failed Serial read\n");
             }
 
-            miosix::PauseKernelLock kLock;
-            sensorData = tempData;
+            {
+                // Clearing usart buffer
+                size_t cleared = 0;
+                size_t nRead   = 0;
+                char buf[1000];
+                while (hilSerial.read(buf, 1000, nRead))
+                {
+                    cleared += nRead;
+                }
+
+                if (cleared > 0)
+                {
+                    TRACE("Cleared %d bytes\n", nRead);
+                }
+            }
+
+            {
+                miosix::PauseKernelLock kLock;
+                sensorData = tempData;
+            }
 
             if (updated)
             {

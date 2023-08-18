@@ -37,3 +37,8 @@ add_executable(test-hil src/entrypoints/HIL/test-hil.cpp ${HIL})
 target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil PRIVATE HILTest)
 sbs_target(test-hil stm32f767zi_compute_unit)
+
+add_executable(test-hil-wes src/tests/Parafoil/test-WES-HIL/parafoil-test-WES.cpp ${HIL} ${PARAFOIL_COMPUTER})
+target_include_directories(test-hil-wes PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(test-hil-wes PRIVATE HILWES)
+sbs_target(test-hil-wes stm32f767zi_compute_unit)
