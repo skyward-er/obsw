@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,30 +22,46 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <miosix.h>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+struct Buses : public ParafoilModule
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
+    Boardcore::USART usart1;
+    Boardcore::USART usart2;
+    Boardcore::USART usart3;
+    Boardcore::USART uart4;
+
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+
+public:
+#ifndef USE_MOCK_PERIPHERALS
+    Buses()
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
+    {
+        /* usart1.init();
+         usart2.init();
+         usart3.init();
+         uart4.init();*/
+    }
+#else
+    Buses()
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1({}), spi2({})
+    {
+        usart2.init();
+        usart3.init();
+    }
+#endif
+
+    bool startModule() override { return true; }
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil

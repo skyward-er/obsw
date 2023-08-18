@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,19 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
+#include <math.h>
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+float ClosedLoopGuidanceAlgorithm::calculateTargetAngle(
+    const Eigen::Vector3f& position, const Eigen::Vector2f& target,
+    Eigen::Vector2f& heading)
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
-};
+    heading[0] = target[0] - position[0];
+    heading[1] = target[1] - position[1];
+    return atan2(heading[1], heading[0]);
+}
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil

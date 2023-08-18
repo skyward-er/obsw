@@ -29,3 +29,14 @@ set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
+
+set(PARAFOIL_COMPUTER
+    src/boards/Parafoil/Actuators/Actuators.cpp
+    src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/WingAlgorithm.cpp
+    src/boards/Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
+    src/boards/Parafoil/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
+)

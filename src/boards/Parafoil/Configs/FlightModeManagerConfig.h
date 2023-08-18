@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,30 +22,10 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
-{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
-};
+constexpr unsigned int MISSION_TIMEOUT = 60 * 60 * 1000;
+constexpr unsigned int CONTROL_DELAY   = 5 * 1000;
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil

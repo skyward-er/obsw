@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Authors: Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,17 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Common
+namespace Parafoil
 {
-
-enum Topics : uint8_t
+class ParafoilModule : public Boardcore::Module
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
+public:
+    /**
+     * @brief Start should contain the code that is executed when the module is
+     * started and it must be called before the main logic, just after the init
+     */
+    [[nodiscard]] virtual bool startModule() { return false; }
 };
-
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil

@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,38 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <Parafoil/ParafoilModule/ParafoilModule.h>
 
-namespace Common
+#include <atomic>
+
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+class AltitudeTrigger : public ParafoilModule
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
+public:
+    AltitudeTrigger();
+
+    bool startModule() override;
+
+    void enable();
+
+    void disable();
+
+    bool isActive();
+
+private:
+    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
+    // altitude is reached
+    void update();
+
+    std::atomic<float> startingAltitude;
+
+    std::atomic<bool> running;
+
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
+    std::atomic<int> confidence;
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil

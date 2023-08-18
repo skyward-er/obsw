@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio, Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,41 @@
 
 #pragma once
 
-#include <cstdint>
+#include <ostream>
 #include <string>
-#include <vector>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+struct WingTargetPositionData
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_DPL,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_ALGOS,
-    TOPIC_TARS,
+    float receivedLat;
+    float receivedLon;
+    float latitude;
+    float longitude;
+    float emcLat;
+    float emcLon;
+    float m1Lat;
+    float m1Lon;
+    float m2Lat;
+    float m2Lon;
+
+    float n;
+    float e;
+
+    static std::string header()
+    {
+        return "receivedLat, receivedLon, "
+               "latitude,longitude,n,e,EMCLat,EMCLon,M1Lat,M1Lon,M2Lat,M2Lon\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << receivedLat << "," << receivedLon << "," << latitude << ","
+           << longitude << "," << n << "," << e << "," << emcLat << ","
+           << emcLon << "," << m1Lat << "," << m1Lon << "," << m2Lat << ","
+           << m2Lon << "\n";
+    }
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK, TOPIC_ADA,  TOPIC_DPL,   TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR,
-    TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR, TOPIC_TARS,   TOPIC_ALGOS};
-
-}  // namespace Common
+}  // namespace Parafoil
