@@ -22,10 +22,13 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <algorithms/NAS/NASState.h>
+#include <sensors/SensorData.h>
 
 using namespace Antennas;
 using namespace Boardcore;
@@ -51,6 +54,39 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
     Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
+
+    // Extracting NAS rocket state
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM)
+    {
+        NASState nasState{
+            mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
+            Eigen::Matrix<float, 13, 1>(
+                mavlink_msg_rocket_flight_tm_get_nas_n(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_e(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_d(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_vn(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_ve(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_vd(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_qx(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_qy(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_qz(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_qw(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_bias_x(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
+                mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
+
+        GPSData gpsState;
+        gpsState.gpsTimestamp =
+            mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
+        gpsState.latitude  = mavlink_msg_rocket_flight_tm_get_gps_lat(&msg);
+        gpsState.longitude = mavlink_msg_rocket_flight_tm_get_gps_lon(&msg);
+        gpsState.height    = mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
+        gpsState.fix       = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
+
+        ModuleManager::getInstance()
+            .get<Antennas::Follower>()
+            ->setLastRocketState(nasState, gpsState);
+    }
 
     // TODO: Add UDP dispatch
 }
