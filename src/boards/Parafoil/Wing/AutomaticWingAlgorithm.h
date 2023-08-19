@@ -23,7 +23,9 @@
 
 #include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <algorithms/NAS/NASState.h>
 #include <algorithms/PIController.h>
+#include <algorithms/ReferenceValues.h>
 
 #include <Eigen/Core>
 
@@ -59,6 +61,13 @@ protected:
     Boardcore::PIController* controller;
 
     /**
+     * @brief Actual algorithm implementation
+     */
+    float algorithmStep(Boardcore::NASState state,
+                        Boardcore::ReferenceValues reference,
+                        Eigen::Vector2f target, Eigen::Vector2f wind);
+
+    /**
      * @brief This method implements the automatic algorithm that will steer the
      * parafoil according to its position and velocity. IN THIS METHOD THE
      * GUIDANCE IS TRANSLATED
@@ -74,5 +83,13 @@ protected:
      * @returns angle(a) - angle(b)
      */
     float angleDiff(float a, float b);
+
+    // Logging structure
+    WingAlgorithmData data;
+
+    /**
+     * @brief Mutex
+     */
+    miosix::FastMutex mutex;
 };
 }  // namespace Parafoil

@@ -20,15 +20,16 @@
  * THE SOFTWARE.
  */
 
+#include "AutomaticWingAlgorithm.h"
+
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
-#include <Parafoil/Wing/AutomaticWingAlgorithm.h>
-#include <algorithms/NAS/NASState.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <math.h>
+#include <utils/AeroUtils/AeroUtils.h>
 #include <utils/Constants.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -59,64 +60,11 @@ void AutomaticWingAlgorithm::step()
     if (modules.get<Sensors>()->getUbxGpsLastSample().fix != 0)
     {
         // The PI calculated result
-        float result;
-
-        // Acquire the last nas state
-        NASState state = modules.get<NASController>()->getNasState();
-        // UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
-
-        // Target direction in respect to the current one
-        ReferenceValues reference =
-            modules.get<NASController>()->getReferenceValues();
-        Vector2f startingPosition =
-            Vector2f(reference.refLatitude, reference.refLongitude);
-        Vector2f targetPosition = Aeroutils::geodetic2NED(
+        float result = algorithmStep(
+            modules.get<NASController>()->getNasState(),
+            modules.get<NASController>()->getReferenceValues(),
             modules.get<WingController>()->getTargetPosition(),
-            startingPosition);
-
-        // For some algorithms the third component is needed!
-        Vector3f currentPosition(state.n, state.e, state.d);
-
-        Vector2f heading;  // used for logging purposes
-
-        float targetAngle = guidance.calculateTargetAngle(
-            currentPosition, targetPosition, heading);
-
-        Vector2f wind =
-            modules.get<WindEstimation>()->getWindEstimationScheme();
-
-        Vector2f relativeVelocity(state.ve - wind[0], state.vn - wind[1]);
-
-        // Compute the angle of the current velocity
-        float velocityAngle;
-
-        // In case of a 0 north velocity i force the angle to 90
-        if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
-        {
-            velocityAngle = 0;
-        }
-        else if (relativeVelocity[1] == 0)
-        {
-            velocityAngle =
-                (relativeVelocity[0] > 0 ? 1 : -1) * Constants::PI / 2;
-        }
-        else
-        {
-            velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
-        }
-
-        // Compute the angle difference
-        float error = angleDiff(targetAngle, velocityAngle);
-
-        // Call the PI with the just calculated error. The result is in RADIANS,
-        // if positive we activate one servo, if negative the other
-        result = controller->update(error);
-
-        // Convert the result from radians back to degrees
-        result = result * (180.f / Constants::PI);
-
-        // Flip the servo orientation
-        result *= -1;
+            modules.get<WindEstimation>()->getWindEstimationScheme());
 
         // Actuate the result
         if (result > 0)
@@ -133,18 +81,79 @@ void AutomaticWingAlgorithm::step()
         }
 
         // Log the servo positions
-        WingAlgorithmData data;
-        data.timestamp     = TimestampTimer::getTimestamp();
-        data.servo1Angle   = modules.get<Actuators>()->getServoPosition(servo1);
-        data.servo2Angle   = modules.get<Actuators>()->getServoPosition(servo2);
+        {
+            miosix::Lock<FastMutex> l(mutex);
+
+            data.timestamp = TimestampTimer::getTimestamp();
+            data.servo1Angle =
+                modules.get<Actuators>()->getServoPosition(servo1);
+            data.servo2Angle =
+                modules.get<Actuators>()->getServoPosition(servo2);
+            SDlogger->log(data);
+        }
+    }
+}
+
+float AutomaticWingAlgorithm::algorithmStep(NASState state,
+                                            ReferenceValues reference,
+                                            Vector2f target, Vector2f wind)
+{
+    float result;
+    Vector2f startingPosition =
+        Vector2f(reference.refLatitude, reference.refLongitude);
+    Vector2f targetPosition = Aeroutils::geodetic2NED(target, startingPosition);
+    // For some algorithms the third component is needed!
+    Vector3f currentPosition(state.n, state.e, state.d);
+
+    Vector2f heading;  // used for logging purposes
+
+    float targetAngle =
+        guidance.calculateTargetAngle(currentPosition, targetPosition, heading);
+
+    Vector2f relativeVelocity(state.ve - wind[0], state.vn - wind[1]);
+
+    // Compute the angle of the current velocity
+    float velocityAngle;
+
+    // In case of a 0 north velocity i force the angle to 90
+    if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
+    {
+        velocityAngle = 0;
+    }
+    else if (relativeVelocity[1] == 0)
+    {
+        velocityAngle = (relativeVelocity[0] > 0 ? 1 : -1) * Constants::PI / 2;
+    }
+    else
+    {
+        velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
+    }
+
+    // Compute the angle difference
+    float error = angleDiff(targetAngle, velocityAngle);
+
+    // Call the PI with the just calculated error. The result is in RADIANS,
+    // if positive we activate one servo, if negative the other
+    result = controller->update(error);
+
+    // Convert the result from radians back to degrees
+    result = result * (180.f / Constants::PI);
+
+    // Flip the servo orientation
+    result *= -1;
+
+    // Logs the outputs
+    {
+        miosix::Lock<FastMutex> l(mutex);
         data.targetX       = heading[0];
         data.targetY       = heading[1];
         data.targetAngle   = targetAngle;
         data.velocityAngle = velocityAngle;
         data.error         = error;
         data.pidOutput     = result;
-        SDlogger->log(data);
     }
+
+    return result;
 }
 
 float AutomaticWingAlgorithm::angleDiff(float a, float b)
