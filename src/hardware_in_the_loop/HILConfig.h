@@ -44,6 +44,8 @@
 #include "entrypoints/HIL/HILSimulationConfig.h"
 #elif defined(HILWES)
 #include "tests/Parafoil/test-WES-HIL/HILSimulationConfig.h"
+#elif defined(HILWing)
+#include "tests/Parafoil/test-Wing-HIL/HILSimulationConfig.h"
 /*
 #elif defined(HIL_<tuoFlag>)
 #include "<test-directory>/HILSimulationConfig.h"

@@ -56,12 +56,6 @@ public:
     {
         this->sensorData    = sensorData;
         this->n_data_sensor = n_data_sensor;
-
-        /* Registers the sensor on the MatlabTransceiver to be notified when a
-         * new packet of simulated data arrives */
-        Boardcore::ModuleManager::getInstance()
-            .get<HIL>()
-            ->simulator->addResetSampleCounter(this);
     }
 
     /**
@@ -91,6 +85,12 @@ public:
         {
             initialized = true;
         }
+
+        /* Registers the sensor on the MatlabTransceiver to be notified when a
+         * new packet of simulated data arrives */
+        Boardcore::ModuleManager::getInstance()
+            .get<HIL>()
+            ->simulator->addResetSampleCounter(this);
 
         return initialized;
     }

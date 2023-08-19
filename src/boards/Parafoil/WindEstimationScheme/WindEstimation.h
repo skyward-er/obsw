@@ -52,19 +52,19 @@ public:
      */
     ~WindEstimation();
 
-    bool startModule() override;
+    virtual bool startModule() override;
 
-    void startWindEstimationSchemeCalibration();
+    virtual void startWindEstimationSchemeCalibration();
 
-    void stopWindEstimationSchemeCalibration();
+    virtual void stopWindEstimationSchemeCalibration();
 
-    void startWindEstimationScheme();
+    virtual void startWindEstimationScheme();
 
-    void stopWindEstimationScheme();
+    virtual void stopWindEstimationScheme();
 
-    bool getStatus();
+    virtual bool getStatus();
 
-    Eigen::Vector2f getWindEstimationScheme();
+    virtual Eigen::Vector2f getWindEstimationScheme();
 
 private:
     /**
