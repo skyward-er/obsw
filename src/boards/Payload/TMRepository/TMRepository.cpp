@@ -239,8 +239,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // TODO Board status
             tm.logger_error = 0;
             tm.temperature  = 0;
-            tm.vbat         = 0;
-            tm.vsupply_5v   = 0;
+            // TODO Current and Voltage
+            tm.battery_voltage     = 0;
+            tm.cam_battery_voltage = 0;
+            tm.current_consumption = 0;
+            tm.vsupply_5v          = 0;
 
             mavlink_msg_payload_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                  RadioConfig::MAV_COMP_ID, &msg,

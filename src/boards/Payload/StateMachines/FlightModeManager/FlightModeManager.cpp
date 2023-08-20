@@ -23,6 +23,7 @@
 #include "FlightModeManager.h"
 
 #include <Payload/Actuators/Actuators.h>
+#include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
@@ -159,8 +160,11 @@ State FlightModeManager::state_init_error(const Event& event)
         case CAN_FORCE_INIT:
         case TMTC_FORCE_INIT:
         {
-            // ModuleManager::getInstance().get<CanHandler>()->sendEvent(
-            //     CanConfig::EventId::FORCE_INIT);
+            if (event != CAN_FORCE_INIT)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::FORCE_INIT);
+            }
             return transition(&FlightModeManager::state_init_done);
         }
         default:
@@ -303,17 +307,31 @@ State FlightModeManager::state_disarmed(const Event& event)
         case CAN_ARM:
         case TMTC_ARM:
         {
-            // TODO SPAM CAN events when received by radio
+            if (event != CAN_ARM)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::ARM);
+            }
             return transition(&FlightModeManager::state_armed);
         }
         case CAN_ENTER_TEST_MODE:
         case TMTC_ENTER_TEST_MODE:
         {
+            if (event != CAN_ENTER_TEST_MODE)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::ENTER_TEST_MODE);
+            }
             return transition(&FlightModeManager::state_test_mode);
         }
         case CAN_CALIBRATE:
         case TMTC_CALIBRATE:
         {
+            if (event != CAN_CALIBRATE)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::CALIBRATE);
+            }
             return transition(&FlightModeManager::state_sensors_calibration);
         }
         default:
@@ -364,6 +382,11 @@ State FlightModeManager::state_test_mode(const Event& event)
         case CAN_EXIT_TEST_MODE:
         case TMTC_EXIT_TEST_MODE:
         {
+            if (event != CAN_EXIT_TEST_MODE)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::EXIT_TEST_MODE);
+            }
             return transition(&FlightModeManager::state_disarmed);
         }
         default:
@@ -404,11 +427,21 @@ State FlightModeManager::state_armed(const Event& event)
         case TMTC_DISARM:
         {
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            if (event != CAN_DISARM)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::DISARM);
+            }
             return transition(&FlightModeManager::state_disarmed);
         }
         case CAN_LIFTOFF:
         case TMTC_FORCE_LAUNCH:
         {
+            if (event != CAN_LIFTOFF)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::LIFTOFF);
+            }
             return transition(&FlightModeManager::state_flying);
         }
         default:
@@ -478,6 +511,11 @@ State FlightModeManager::state_ascending(const Event& event)
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:
         {
+            if (event != CAN_APOGEE_DETECTED)
+            {
+                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::APOGEE_DETECTED);
+            }
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
