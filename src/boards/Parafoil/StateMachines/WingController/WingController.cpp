@@ -436,7 +436,7 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
 
     data.m2Lat = m2Position[0];
     data.m2Lon = m2Position[1];
-
+    emGuidance.setPoints(emcPosition, m1Position, m2Position);
     // Log the received position
     Logger::getInstance().log(data);
 }
