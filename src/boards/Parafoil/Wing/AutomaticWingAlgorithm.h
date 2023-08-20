@@ -64,8 +64,8 @@ protected:
      * @brief Actual algorithm implementation
      */
     float algorithmStep(Boardcore::NASState state,
-                        Boardcore::ReferenceValues reference,
-                        Eigen::Vector2f target, Eigen::Vector2f wind);
+                        Eigen::Vector2f startPosition, Eigen::Vector2f target,
+                        Eigen::Vector2f wind);
 
     /**
      * @brief This method implements the automatic algorithm that will steer the

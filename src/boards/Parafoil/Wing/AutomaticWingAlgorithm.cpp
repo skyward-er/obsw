@@ -61,8 +61,7 @@ void AutomaticWingAlgorithm::step()
     {
         // The PI calculated result
         float result = algorithmStep(
-            modules.get<NASController>()->getNasState(),
-            modules.get<NASController>()->getReferenceValues(),
+            modules.get<NASController>()->getNasState(), startingPosition,
             modules.get<WingController>()->getTargetPosition(),
             modules.get<WindEstimation>()->getWindEstimationScheme());
 
@@ -95,13 +94,11 @@ void AutomaticWingAlgorithm::step()
 }
 
 float AutomaticWingAlgorithm::algorithmStep(NASState state,
-                                            ReferenceValues reference,
+                                            Vector2f startPosition,
                                             Vector2f target, Vector2f wind)
 {
     float result;
-    Vector2f startingPosition =
-        Vector2f(reference.refLatitude, reference.refLongitude);
-    Vector2f targetPosition = Aeroutils::geodetic2NED(target, startingPosition);
+    Vector2f targetPosition = Aeroutils::geodetic2NED(target, startPosition);
     // For some algorithms the third component is needed!
     Vector3f currentPosition(state.n, state.e, state.d);
 

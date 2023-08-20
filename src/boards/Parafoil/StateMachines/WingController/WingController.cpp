@@ -25,6 +25,8 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
@@ -171,6 +173,27 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
+            Eigen::Vector2f startingPostion;
+            UBXGPSData gps = ModuleManager::getInstance()
+                                 .get<Sensors>()
+                                 ->getUbxGpsLastSample();
+            if (gps.fix != 0)
+            {
+                startingPostion(0) = gps.latitude;
+                startingPostion(1) = gps.longitude;
+            }
+            else
+            {
+                startingPostion(0) = ModuleManager::getInstance()
+                                         .get<NASController>()
+                                         ->getReferenceValues()
+                                         .refAltitude;
+                startingPostion(1) = ModuleManager::getInstance()
+                                         .get<NASController>()
+                                         ->getReferenceValues()
+                                         .refLongitude;
+            }
+            algorithms[selectedAlgorithm]->setStartingPosition(startingPostion);
             // if (automatic)
             // {
             //     ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
