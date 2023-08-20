@@ -43,10 +43,10 @@ public:
     {
     }
 
-    float fakeStep(NASState state, ReferenceValues reference,
+    float fakeStep(NASState state, Vector2f startPosition,
                    Vector2f targetPosition, Vector2f wind)
     {
-        return this->algorithmStep(state, reference, targetPosition, wind);
+        return this->algorithmStep(state, startPosition, targetPosition, wind);
     }
 };
 int main()
@@ -75,7 +75,7 @@ int main()
 
         Eigen::Vector2f target(TARGET[0], TARGET[1]);
 
-        float result = algo.fakeStep(state, ref, target, wind);
+        float result = algo.fakeStep(state, START, target, wind);
 
         if (result < OUT_EM[i] - threshold || result > OUT_EM[i] + threshold)
         {
