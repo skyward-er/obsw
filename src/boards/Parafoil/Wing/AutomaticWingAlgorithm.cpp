@@ -107,7 +107,7 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state,
     float targetAngle =
         guidance.calculateTargetAngle(currentPosition, targetPosition, heading);
 
-    Vector2f relativeVelocity(state.ve - wind[0], state.vn - wind[1]);
+    Vector2f relativeVelocity(state.ve - wind[1], state.vn - wind[0]);
 
     // Compute the angle of the current velocity
     float velocityAngle;

@@ -41,15 +41,6 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
 {
     using namespace Boardcore;
 
-    // Eigen::Vector2f EMC =
-    //     ModuleManager::getInstance().get<WingController>()->getEMCPosition();
-
-    // Eigen::Vector2f M1 =
-    //     ModuleManager::getInstance().get<WingController>()->getM1Position();
-
-    // Eigen::Vector2f M2 =
-    //     ModuleManager::getInstance().get<WingController>()->getM2Position();
-
     float altitude = abs(position[2]);
 
     computeActiveTarget(altitude);

@@ -51,9 +51,8 @@ WingController::WingController()
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
-
-    targetPosition[0] = DEFAULT_TARGET_LAT;
-    targetPosition[1] = DEFAULT_TARGET_LON;
+    Eigen::Vector2f target(DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON);
+    setTargetPosition(target);
 }
 
 bool WingController::startModule()
@@ -177,37 +176,19 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
             UBXGPSData gps = ModuleManager::getInstance()
                                  .get<Sensors>()
                                  ->getUbxGpsLastSample();
-            if (gps.fix != 0)
-            {
-                startingPostion(0) = gps.latitude;
-                startingPostion(1) = gps.longitude;
-            }
-            else
-            {
-                startingPostion(0) = ModuleManager::getInstance()
-                                         .get<NASController>()
-                                         ->getReferenceValues()
-                                         .refAltitude;
-                startingPostion(1) = ModuleManager::getInstance()
-                                         .get<NASController>()
-                                         ->getReferenceValues()
-                                         .refLongitude;
-            }
+
+            startingPostion(0) = ModuleManager::getInstance()
+                                     .get<NASController>()
+                                     ->getReferenceValues()
+                                     .refLatitude;
+            startingPostion(1) = ModuleManager::getInstance()
+                                     .get<NASController>()
+                                     ->getReferenceValues()
+                                     .refLongitude;
             algorithms[selectedAlgorithm]->setStartingPosition(startingPostion);
-            // if (automatic)
-            // {
-            //     ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
-            // }
             startAlgorithm();
             return HANDLED;
         }
-        case ALGORITHM_ENDED:
-        case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
-        {
-            stopAlgorithm();
-            ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
-            return transition(&WingController::state_calibration);
-        }  // start the algorithm, inside we add the task to the scheduler
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
