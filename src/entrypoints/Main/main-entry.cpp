@@ -31,6 +31,7 @@
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
@@ -77,6 +78,8 @@ int main()
     PinHandler* pinHandler = new PinHandler();
     AltitudeTrigger* altitudeTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    MEAController* mea =
+        new MEAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ABKController* abk =
         new ABKController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
@@ -115,6 +118,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the ADA module");
+    }
+
+    if (!modules.insert<MEAController>(mea))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the MEA module");
     }
 
     if (!modules.insert<ABKController>(abk))
@@ -200,6 +209,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the ADA module");
+    }
+
+    if (!modules.get<MEAController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the MEA module");
     }
 
     if (!modules.get<ABKController>()->start())

@@ -24,6 +24,7 @@
 #include <Main/Configs/ABKConfig.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ABKController/TrajectorySet.h>
+#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -69,7 +70,26 @@ bool ABKController::start()
     return result != 0 && ActiveObject::start();
 }
 
-void ABKController::update() {}
+void ABKController::update()
+{
+    // No need for pause kernel due to its presence inside the getter
+    ABKControllerStatus status = getStatus();
+
+    if (!abk.isRunning() && status.state == ABKControllerState::ACTIVE)
+    {
+        // Begin the algorithm with the last estimated mass
+        abk.begin(ModuleManager::getInstance()
+                      .get<MEAController>()
+                      ->getStatus()
+                      .estimatedMass);
+    }
+
+    // Update the algorithm if in Active mode
+    if (status.state == ABKControllerState::ACTIVE)
+    {
+        abk.update();
+    }
+}
 
 ABKControllerStatus ABKController::getStatus()
 {
@@ -138,6 +158,7 @@ void ABKController::state_active(const Event& event)
         {
             return logStatus(ABKControllerState::ACTIVE);
         }
+        case FLIGHT_LANDING_DETECTED:
         case FLIGHT_APOGEE_DETECTED:
         {
             return transition(&ABKController::state_end);

@@ -25,6 +25,7 @@
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -215,7 +216,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<ADAController>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
-            tm.abk_state = 0;
+            tm.abk_state = static_cast<uint8_t>(
+                modules.get<ABKController>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
 
@@ -310,7 +312,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // TODO
             tm.timestamp = TimestampTimer::getTimestamp();
-            tm.abk_state = 0;
+            tm.abk_state = static_cast<uint8_t>(
+                modules.get<ABKController>()->getStatus().state);
             tm.ada_state = static_cast<uint8_t>(
                 modules.get<ADAController>()->getStatus().state);
             tm.dpl_state = 0;

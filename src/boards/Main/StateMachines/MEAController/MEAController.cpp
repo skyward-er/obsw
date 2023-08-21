@@ -24,6 +24,7 @@
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
 #include <functional>
@@ -184,7 +185,16 @@ void MEAController::state_end(const Event& event)
     }
 }
 
-void MEAController::logStatus(MEAControllerState state) {}
+void MEAController::logStatus(MEAControllerState state)
+{
+    {
+        miosix::PauseKernelLock lock;
+        status.timestamp = TimestampTimer::getTimestamp();
+        status.state     = state;
+    }
+
+    Logger::getInstance().log(status);
+}
 
 MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig()
 {
