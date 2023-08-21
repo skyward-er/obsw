@@ -516,77 +516,71 @@ void Sensors::imuInit()
 
 void Sensors::lps22dfCallback()
 {
-    miosix::PauseKernelLock lock;
     LPS22DFData lastSample = lps22df->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_1Callback()
 {
-    miosix::PauseKernelLock lock;
     LPS28DFW_1Data lastSample =
         static_cast<LPS28DFW_1Data>(lps28dfw_1->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_2Callback()
 {
-    miosix::PauseKernelLock lock;
     LPS28DFW_2Data lastSample =
         static_cast<LPS28DFW_2Data>(lps28dfw_2->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::h3lis331dlCallback()
 {
-    miosix::PauseKernelLock lock;
     H3LIS331DLData lastSample = h3lis331dl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lis2mdlCallback()
 {
-    miosix::PauseKernelLock lock;
     LIS2MDLData lastSample = lis2mdl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::ubxgpsCallback()
 {
-    miosix::PauseKernelLock lock;
     UBXGPSData lastSample = ubxgps->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lsm6dsrxCallback()
 {
-    miosix::PauseKernelLock lock;
-    LSM6DSRXData lastSample = lsm6dsrx->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto& fifo        = lsm6dsrx->getLastFifo();
+    uint16_t fifoSize = lsm6dsrx->getLastFifoSize();
+
+    // For every instance inside the fifo log the sample
+    for (uint16_t i = 0; i < fifoSize; i++)
+    {
+        Logger::getInstance().log(fifo.at(i));
+    }
 }
 void Sensors::ads131m08Callback()
 {
-    miosix::PauseKernelLock lock;
     ADS131M08Data lastSample = ads131m08->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::deploymentPressureCallback()
 {
-    miosix::PauseKernelLock lock;
     MPXH6400AData lastSample = mpxh6400a->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::staticPressure1Callback()
 {
-    miosix::PauseKernelLock lock;
     HSCMRNN015PA_1Data lastSample =
         static_cast<HSCMRNN015PA_1Data>(hscmrnn015pa_1->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::staticPressure2Callback()
 {
-    miosix::PauseKernelLock lock;
     HSCMRNN015PA_2Data lastSample =
         static_cast<HSCMRNN015PA_2Data>(hscmrnn015pa_2->getLastSample());
     Logger::getInstance().log(lastSample);
 }
 void Sensors::imuCallback()
 {
-    miosix::PauseKernelLock lock;
     RotatedIMUData lastSample = imu->getLastSample();
     Logger::getInstance().log(lastSample);
 }
