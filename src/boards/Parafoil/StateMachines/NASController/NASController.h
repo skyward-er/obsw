@@ -40,10 +40,10 @@ public:
 
     ~NASController();
 
-    bool startModule() override;
+    virtual bool startModule() override;
 
-    void update();
-    void calibrate();
+    virtual void update();
+    virtual void calibrate();
 
     void setCoordinates(Eigen::Vector2f position);
     void setOrientation(float yaw, float pitch, float roll);
@@ -52,7 +52,7 @@ public:
     void setReferenceValues(const Boardcore::ReferenceValues reference);
 
     NASControllerStatus getStatus();
-    Boardcore::NASState getNasState();
+    virtual Boardcore::NASState getNasState();
     Boardcore::ReferenceValues getReferenceValues();
 
     void state_idle(const Boardcore::Event& event);

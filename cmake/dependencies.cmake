@@ -33,6 +33,8 @@ set(HIL
 set(PARAFOIL_COMPUTER
     src/boards/Parafoil/Actuators/Actuators.cpp
     src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/StateMachines/NASController/NASController.cpp
+    src/boards/Parafoil/StateMachines/WingController/WingController.cpp
     src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
     src/boards/Parafoil/Wing/WingAlgorithm.cpp

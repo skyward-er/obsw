@@ -119,6 +119,16 @@ struct SimulatorData
         float state;
     } wing;
 
+    struct NAS
+    {
+        float n;
+        float e;
+        float d;
+        float vn;
+        float ve;
+        float vd;
+    } nas;
+
     struct Flags
     {
         float flag_flight;
