@@ -36,4 +36,5 @@ __pycache__
 **/generated
 **/scxmls
 
-scripts/logdecoder/logdecoder
+src/scripts/logdecoder
+
