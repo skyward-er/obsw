@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Radu Raul
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,14 @@
 
 #include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <algorithms/NAS/NASState.h>
 #include <algorithms/PIController.h>
+#include <algorithms/ReferenceValues.h>
 
 #include <Eigen/Core>
 
 namespace Parafoil
 {
-
-/**
- * This class depends on
- * - NASController
- * - WindEstimation
- * - WingController
- */
 class AutomaticWingAlgorithm : public WingAlgorithm
 {
 
@@ -66,6 +61,13 @@ protected:
     Boardcore::PIController* controller;
 
     /**
+     * @brief Actual algorithm implementation
+     */
+    float algorithmStep(Boardcore::NASState state,
+                        Eigen::Vector2f startPosition, Eigen::Vector2f target,
+                        Eigen::Vector2f wind);
+
+    /**
      * @brief This method implements the automatic algorithm that will steer the
      * parafoil according to its position and velocity. IN THIS METHOD THE
      * GUIDANCE IS TRANSLATED
@@ -81,5 +83,13 @@ protected:
      * @returns angle(a) - angle(b)
      */
     float angleDiff(float a, float b);
+
+    // Logging structure
+    WingAlgorithmData data;
+
+    /**
+     * @brief Mutex
+     */
+    miosix::FastMutex mutex;
 };
 }  // namespace Parafoil

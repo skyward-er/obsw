@@ -64,6 +64,13 @@ public:
                                const Eigen::Vector2f& target,
                                Eigen::Vector2f& heading);
 
+    void setPoints(Eigen::Vector2f EMC, Eigen::Vector2f M1, Eigen::Vector2f M2)
+    {
+        this->EMC = EMC;
+        this->M1  = M1;
+        this->M2  = M2;
+    }
+
 private:
     void computeActiveTarget(float altitude);
 
@@ -79,6 +86,12 @@ private:
     };
 
     Target activeTarget;
+
+    Eigen::Vector2f EMC;
+
+    Eigen::Vector2f M1;
+
+    Eigen::Vector2f M2;
 
     unsigned int targetAltitudeConfidence;
     unsigned int m2AltitudeConfidence;

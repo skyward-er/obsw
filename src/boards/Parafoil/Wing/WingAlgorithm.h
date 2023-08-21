@@ -78,6 +78,8 @@ public:
      */
     void step() override;
 
+    void setStartingPosition(Eigen::Vector2f position);
+
 protected:
     // The actuators
     ServosList servo1, servo2;
@@ -103,5 +105,7 @@ protected:
 
     // Variable to remember what step that has to be done
     unsigned int stepIndex;
+
+    Eigen::Vector2f startingPosition;
 };
 }  // namespace Parafoil

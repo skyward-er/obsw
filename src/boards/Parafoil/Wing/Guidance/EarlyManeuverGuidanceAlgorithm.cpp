@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 
 #include <Eigen/Core>
@@ -42,16 +41,8 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
 {
     using namespace Boardcore;
 
-    Eigen::Vector2f EMC =
-        ModuleManager::getInstance().get<WingController>()->getEMCPosition();
-
-    Eigen::Vector2f M1 =
-        ModuleManager::getInstance().get<WingController>()->getM1Position();
-
-    Eigen::Vector2f M2 =
-        ModuleManager::getInstance().get<WingController>()->getM2Position();
-
     float altitude = abs(position[2]);
+    printf("altitude: %+.3f\n", altitude);
 
     computeActiveTarget(altitude);
 
@@ -70,6 +61,7 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
             heading[1] = M2[1] - position[1];
             break;
         case Target::FINAL:
+            printf("TARGET FINAL\n");
             heading[0] = target[0] - position[0];
             heading[1] = target[1] - position[1];
             break;
@@ -102,16 +94,19 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::EMC:
             if (m2AltitudeConfidence >= 15)
             {
+                printf("EMC: M2\n");
                 activeTarget          = Target::M2;
                 emcAltitudeConfidence = 0;
             }
             if (m1AltitudeConfidence >= 15)
             {
+                printf("EMC: M1\n");
                 activeTarget          = Target::M1;
                 emcAltitudeConfidence = 0;
             }
             if (targetAltitudeConfidence >= 15)
             {
+                printf("EMC: FINAL\n");
                 activeTarget          = Target::FINAL;
                 emcAltitudeConfidence = 0;
             }
@@ -119,16 +114,19 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::M1:
             if (emcAltitudeConfidence >= 15)
             {
+                printf("M1: EMC\n");
                 activeTarget         = Target::EMC;
                 m1AltitudeConfidence = 0;
             }
             if (m2AltitudeConfidence >= 15)
             {
+                printf("M1: M2\n");
                 activeTarget         = Target::M2;
                 m1AltitudeConfidence = 0;
             }
             if (targetAltitudeConfidence >= 15)
             {
+                printf("M1: FINAL\n");
                 activeTarget         = Target::FINAL;
                 m1AltitudeConfidence = 0;
             }
@@ -136,36 +134,25 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::M2:
             if (emcAltitudeConfidence >= 15)
             {
+                printf("M2: EMC\n");
                 activeTarget         = Target::EMC;
                 m2AltitudeConfidence = 0;
             }
             if (m1AltitudeConfidence >= 15)
             {
+                printf("M2: M1\n");
                 activeTarget         = Target::M1;
                 m2AltitudeConfidence = 0;
             }
             if (targetAltitudeConfidence >= 15)
             {
+                printf("M2: FINAL\n");
                 activeTarget         = Target::FINAL;
                 m2AltitudeConfidence = 0;
             }
             break;
         case Target::FINAL:
-            if (emcAltitudeConfidence >= 15)
-            {
-                activeTarget             = Target::EMC;
-                targetAltitudeConfidence = 0;
-            }
-            if (m2AltitudeConfidence >= 15)
-            {
-                activeTarget             = Target::M2;
-                targetAltitudeConfidence = 0;
-            }
-            if (m1AltitudeConfidence >= 15)
-            {
-                activeTarget             = Target::M1;
-                targetAltitudeConfidence = 0;
-            }
+            break;
     }
 }
 
