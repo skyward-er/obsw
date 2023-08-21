@@ -28,6 +28,7 @@
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -76,6 +77,8 @@ int main()
     PinHandler* pinHandler = new PinHandler();
     AltitudeTrigger* altitudeTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    ABKController* abk =
+        new ABKController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -112,6 +115,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the ADA module");
+    }
+
+    if (!modules.insert<ABKController>(abk))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the ABK controller module");
     }
 
     if (!modules.insert<Radio>(radio))
@@ -191,6 +200,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the ADA module");
+    }
+
+    if (!modules.get<ABKController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the ABK controller module");
     }
 
     if (!modules.get<FlightModeManager>()->start())

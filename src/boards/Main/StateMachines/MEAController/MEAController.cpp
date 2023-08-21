@@ -51,7 +51,10 @@ bool MEAController::start()
     return ActiveObject::start() && result != 0;
 }
 
-void MEAController::update() {}
+void MEAController::update()
+{
+    // TODO log the MEA state
+}
 
 MEAControllerStatus MEAController::getStatus()
 {

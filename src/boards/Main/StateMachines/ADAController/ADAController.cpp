@@ -131,6 +131,7 @@ void ADAController::update()
             break;
         }
     }
+    // TODO log the ADA data
 }
 
 void ADAController::calibrate()

@@ -43,4 +43,5 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
     src/boards/Main/AltitudeTrigger/AltitudeTrigger.cpp
+    src/boards/Main/StateMachines/ABKController/ABKController.cpp
 )
