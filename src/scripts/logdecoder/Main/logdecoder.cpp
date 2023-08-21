@@ -21,7 +21,11 @@
  */
 
 // #include <Main/Sensors/SensorsData.h>
+#include <Main/Sensors/RotatedIMU/RotatedIMUData.h>
+#include <Main/Sensors/SensorsData.h>
+#include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
+#include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
@@ -54,6 +58,13 @@ void registerTypes(Deserializer& ds)
     // Custom types
     ds.registerType<FlightModeManagerStatus>();
     ds.registerType<NASControllerStatus>();
+    ds.registerType<MEAControllerStatus>();
+    ds.registerType<ADAControllerStatus>();
+    ds.registerType<LPS28DFW_1Data>();
+    ds.registerType<LPS28DFW_2Data>();
+    ds.registerType<HSCMRNN015PA_1Data>();
+    ds.registerType<HSCMRNN015PA_2Data>();
+    ds.registerType<RotatedIMUData>();
 }
 
 void showUsage(const string& cmdName)

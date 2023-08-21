@@ -33,6 +33,8 @@ struct LPS28DFW_1Data : Boardcore::LPS28DFWData
     {
     }
 
+    LPS28DFW_1Data() {}
+
     static std::string header()
     {
         return "pressureTimestamp,pressure,temperatureTimestamp,temperature\n ";
@@ -51,6 +53,8 @@ struct LPS28DFW_2Data : Boardcore::LPS28DFWData
         : Boardcore::LPS28DFWData(data)
     {
     }
+
+    LPS28DFW_2Data() {}
 
     static std::string header()
     {
@@ -71,6 +75,8 @@ struct HSCMRNN015PA_1Data : Boardcore::HSCMRNN015PAData
     {
     }
 
+    HSCMRNN015PA_1Data() {}
+
     static std::string header() { return "pressureTimestamp,pressure\n "; }
 
     void print(std::ostream& os) const
@@ -86,6 +92,8 @@ struct HSCMRNN015PA_2Data : Boardcore::HSCMRNN015PAData
         : Boardcore::HSCMRNN015PAData(data)
     {
     }
+
+    HSCMRNN015PA_2Data() {}
 
     static std::string header() { return "pressureTimestamp,pressure\n "; }
 
