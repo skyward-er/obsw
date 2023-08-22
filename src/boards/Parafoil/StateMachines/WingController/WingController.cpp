@@ -275,12 +275,12 @@ void WingController::addAlgorithm(int id)
             break;
         case 3:
             algorithm = new AutomaticWingAlgorithm(
-                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
+                KP, KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
             setAutomatic(true);
             break;
         default:  // automatic target
             algorithm = new AutomaticWingAlgorithm(
-                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
+                KP, KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
     }
@@ -380,14 +380,14 @@ void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 }
 
 void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
-                                            Eigen::Vector2f startingPosNED)
+                                            Eigen::Vector2f currentPosNED)
 {
 
-    targetNED = targetNED - startingPosNED;
+    Eigen::Vector2f targetOffsetNED = targetNED - currentPosNED;
 
-    targetNED = targetNED / targetNED.norm();
+    Eigen::Vector2f norm_point = targetOffsetNED / targetOffsetNED.norm();
 
-    float targetAngle = atan2(targetNED[1], targetNED[0]);
+    float psi0 = atan2(norm_point[1], norm_point[0]);
 
     float distFromCenterline = 20;  // the distance that the M1 and M2 points
                                     // must have from the center line
@@ -395,22 +395,26 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
     // Calculate the angle between the lines <NED Origin, target> and <NED
     // Origin, M1> This angle is the same for M2 since is symmetric to M1
     // relatively to the center line
-    float psiMan = atan2(distFromCenterline, targetNED.norm());
+    float psiMan = atan2(distFromCenterline, targetOffsetNED.norm());
 
     float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
-    float m2Angle                 = targetAngle + psiMan;
-    float m1Angle                 = targetAngle - psiMan;
+    float m2Angle                 = psi0 + psiMan;
+    float m1Angle                 = psi0 - psiMan;
 
     Eigen::Vector2f emcPosition =
-        targetNED * 1.2 + startingPosNED;  // EMC is calculated as target * 1.2
+        targetOffsetNED * 1.2 +
+        currentPosNED;  // EMC is calculated as target * 1.2
 
     Eigen::Vector2f m1Position =
         Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude +
-        startingPosNED;
+        currentPosNED;
 
     Eigen::Vector2f m2Position =
         Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude +
-        startingPosNED;
+        currentPosNED;
+
+    emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+    clGuidance.setPoints(targetNED);
 
     WingTargetPositionData data;
     data.targetN = targetNED[0];
@@ -425,8 +429,6 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
     data.m2N = m2Position[0];
     data.m2E = m2Position[1];
 
-    emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
-    clGuidance.setPoints(targetNED);
     // Log the received position
     Logger::getInstance().log(data);
 }

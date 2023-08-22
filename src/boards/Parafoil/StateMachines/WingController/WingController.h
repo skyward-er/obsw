@@ -115,7 +115,7 @@ private:
      * @brief set points needed by the Guidance
      */
     void setEarlyManeuverPoints(Eigen::Vector2f targetNED,
-                                Eigen::Vector2f startingPosNED);
+                                Eigen::Vector2f currentPosNED);
 
     void logStatus(WingControllerState state);
 
