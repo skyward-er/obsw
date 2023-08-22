@@ -47,3 +47,8 @@ add_executable(test-hil-wing src/tests/Parafoil/test-Wing-HIL/parafoil-test-Wing
 target_include_directories(test-hil-wing PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil-wing PRIVATE HILWing)
 sbs_target(test-hil-wing stm32f767zi_compute_unit)
+
+add_executable(test-hil-wes-wing src/tests/Parafoil/test-Wing-HIL/parafoil-test-WES-Wing.cpp ${HIL} ${PARAFOIL_COMPUTER})
+target_include_directories(test-hil-wes-wing PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(test-hil-wes-wing PRIVATE HILWing)
+sbs_target(test-hil-wes-wing stm32f767zi_compute_unit)

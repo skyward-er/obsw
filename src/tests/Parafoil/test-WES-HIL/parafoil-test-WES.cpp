@@ -194,12 +194,6 @@ int main()
         Boardcore::TaskScheduler::Policy::RECOVER);
 
     wind_estimation->startWindEstimationSchemeCalibration();
-    // Thread::sleep(2500);
-    // wind_estimation->stopWindEstimationSchemeCalibration();
-    // TRACE("Calibration result: n= %f, e= %f \n\n\n\n",
-    //       wind_estimation->getWindEstimationScheme()(0),
-    //       wind_estimation->getWindEstimationScheme()(1));
-    // wind_estimation->startWindEstimationScheme();
 
     while (wind_estimation->getStatus())
     {
