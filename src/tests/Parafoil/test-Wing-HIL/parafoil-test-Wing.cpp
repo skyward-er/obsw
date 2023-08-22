@@ -48,7 +48,7 @@ using namespace Parafoil;
 using namespace std;
 using namespace Eigen;
 
-class MockWingAlgo : protected AutomaticWingAlgorithm
+class MockWingAlgo : public AutomaticWingAlgorithm
 {
 public:
     MockWingAlgo(float kp, float ki, ServosList servo1, ServosList servo2,
@@ -263,7 +263,7 @@ int main()
     // Initialize the modules
     float kp        = 0.1;
     float ki        = 0.001;
-    float TARGET[2] = {200, 300};
+    float TARGET[2] = {45.0018, 9.0027};  // 200, 300
     Eigen::Vector2f START(0, 0);
 
     TaskScheduler& scheduler = BoardScheduler::getInstance().getScheduler();
@@ -281,6 +281,7 @@ int main()
     //                    {35.8579, 64.1421});  // 50,50
     guidance.setPoints({240, 360}, {216.6410, 288.9060},
                        {183.3590, 311.0940});  // 200, 300
+    algo.setStartingPosition({45, 9});
 
     // Insert the modules
     if (!modules.insert<HIL>(hil))
@@ -356,9 +357,6 @@ int main()
             auto wind     = wind_estimation->getWindEstimationScheme();
             auto nasState = nasController->getNasState();
 
-            ReferenceValues ref{};
-            ref.refLatitude  = TARGET[0];
-            ref.refLongitude = TARGET[1];
             Eigen::Vector2f target(TARGET[0], TARGET[1]);
 
             float result = algo.fakeStep(nasState, START, target,
