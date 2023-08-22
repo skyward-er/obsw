@@ -71,8 +71,8 @@ constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
 
-constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
-constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 0.1;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -0.1;
 
 constexpr int GUIDANCE_CONFIDENCE                = 15;
 constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]

@@ -56,6 +56,27 @@
 
 namespace Parafoil
 {
+
+class MockEarlyManeuversGuidanceAlgorithm
+    : public EarlyManeuversGuidanceAlgorithm
+{
+public:
+    MockEarlyManeuversGuidanceAlgorithm() : EarlyManeuversGuidanceAlgorithm() {}
+
+    float calculateTargetAngle(const Eigen::Vector3f& position,
+                               Eigen::Vector2f& heading) override
+    {
+        psiRef = EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(position,
+                                                                       heading);
+        return psiRef;
+    }
+
+    float getPsiRef() { return psiRef; }
+
+private:
+    float psiRef;
+};
+
 class WingController : public Boardcore::HSM<WingController>,
                        public ParafoilModule
 
@@ -105,7 +126,7 @@ public:
 
     bool startModule() override;
 
-private:
+protected:
     /**
      * @brief target position getter
      */
@@ -153,7 +174,7 @@ private:
      * @brief Instance of the Early Maneuver Guidance Algorithm used by
      * AutomaticWingAlgorithm
      */
-    EarlyManeuversGuidanceAlgorithm emGuidance;
+    MockEarlyManeuversGuidanceAlgorithm emGuidance;
 
     /**
      * @brief Instance of the Closed Loop Guidance Algorithm used by

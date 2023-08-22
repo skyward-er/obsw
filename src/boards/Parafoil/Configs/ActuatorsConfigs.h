@@ -33,7 +33,7 @@ namespace Parafoil
 namespace ActuatorsConfigs
 {
 
-constexpr float SERVO_TWIRL_RADIUS = WingConfig::MAX_SERVO_APERTURE;
+constexpr float SERVO_TWIRL_RADIUS = 0.05;
 
 // Left servo
 static TIM_TypeDef* const SERVO_1_TIMER = TIM4;

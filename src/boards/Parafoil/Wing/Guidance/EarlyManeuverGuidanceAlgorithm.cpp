@@ -145,6 +145,12 @@ void EarlyManeuversGuidanceAlgorithm::setPoints(Eigen::Vector2f targetNED,
     this->EMC       = EMC;
     this->M1        = M1;
     this->M2        = M2;
+    printf(
+        "targetNED: [ % .3f, % .3f ]\n"
+        " EMC: [ % .3f, % .3f ]\n"
+        " M1: [ % .3f, % .3f ]\n"
+        " M2: [ % .3f, % .3f ]\n",
+        targetNED[0], targetNED[1], EMC[0], EMC[1], M1[0], M1[1], M2[0], M2[1]);
 }
 
 }  // namespace Parafoil

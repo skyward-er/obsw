@@ -146,8 +146,12 @@ void NASController::calibrate()
 
     // If in this moment the GPS has fix i use that position as starting
     UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
+    printf("CALIBRATION NAS WORKING!?!?\n");
+    gps.print(std::cout);
     if (gps.fix != 0)
     {
+        printf("CALIBRATED NAS WITH: %.3f, %.3f\n", gps.latitude,
+               gps.longitude);
         // We don't set the altitude with the GPS because of not precise
         // measurements
         reference.refLatitude  = gps.latitude;
