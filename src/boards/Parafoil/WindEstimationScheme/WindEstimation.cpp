@@ -203,7 +203,7 @@ void WindEstimation::windEstimationScheme()
             {
                 miosix::Lock<FastMutex> l(mutex);
                 wind           = wind + temp;
-                windLogger.vx  = wind[0];
+                windLogger.vx  = wind[0];  // TODO change name
                 windLogger.vy  = wind[1];
                 windLogger.cal = 0;
             }

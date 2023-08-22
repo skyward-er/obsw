@@ -48,9 +48,14 @@ public:
      *
      * @returns the yaw angle of the parafoil in [rad]
      */
-    virtual float calculateTargetAngle(const Eigen::Vector3f& position,
-                                       const Eigen::Vector2f& target,
-                                       Eigen::Vector2f& heading) = 0;
+    virtual float calculateTargetAngle(
+        const Eigen::Vector3f& currentPositionNED,
+        Eigen::Vector2f& heading) = 0;
+
+    Eigen::Vector2f getTargetNED() { return targetNED; }
+
+protected:
+    Eigen::Vector2f targetNED{0, 0};  // NED
 };
 
 }  // namespace Parafoil

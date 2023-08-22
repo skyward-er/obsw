@@ -25,6 +25,8 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
@@ -49,9 +51,7 @@ WingController::WingController()
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
-
-    targetPosition[0] = DEFAULT_TARGET_LAT;
-    targetPosition[1] = DEFAULT_TARGET_LON;
+    this->targetPositionGEO = {DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON};
 }
 
 bool WingController::startModule()
@@ -154,7 +154,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
         }
         case WING_WES_CALIBRATION:
         {
-            // ModuleManager::getInstance().get<Actuators>()->stopTwirl();
+            ModuleManager::getInstance().get<Actuators>()->stopTwirl();
             return transition(&WingController::state_controlled_descent);
         }
         default:
@@ -171,19 +171,18 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
-            if (automatic)
-            {
-                ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
-            }
+            setEarlyManeuverPoints(
+                convertTargetPositionToNED(targetPositionGEO),
+                {ModuleManager::getInstance()
+                     .get<NASController>()
+                     ->getNasState()
+                     .n,
+                 ModuleManager::getInstance()
+                     .get<NASController>()
+                     ->getNasState()
+                     .e});
             startAlgorithm();
             return HANDLED;
-        }
-        case ALGORITHM_ENDED:
-        case FLIGHT_WING_ALT_PASSED:  // stop it and return to wes
-        {
-            stopAlgorithm();
-            ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
-            return transition(&WingController::state_calibration);
         }
         case EV_EMPTY:
         {
@@ -276,12 +275,12 @@ void WingController::addAlgorithm(int id)
             break;
         case 3:
             algorithm = new AutomaticWingAlgorithm(
-                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
+                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
             setAutomatic(true);
             break;
         default:  // automatic target
             algorithm = new AutomaticWingAlgorithm(
-                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
+                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
     }
@@ -375,13 +374,20 @@ void WingController::reset()
         PARAFOIL_RIGHT_SERVO, 0);
 }
 
-void WingController::setTargetPosition(Eigen::Vector2f target)
+void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 {
-    this->targetPosition = target;
+    this->targetPositionGEO = targetGEO;
+}
 
-    this->emcPosition = target * 1.2;  // EMC is calculated as target * 1.2
+void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
+                                            Eigen::Vector2f currentPosNED)
+{
 
-    float targetAngle = atan2(target[1], target[0]);
+    Eigen::Vector2f targetOffsetNED = targetNED - currentPosNED;
+
+    Eigen::Vector2f norm_point = targetOffsetNED / targetOffsetNED.norm();
+
+    float psi0 = atan2(norm_point[1], norm_point[0]);
 
     float distFromCenterline = 20;  // the distance that the M1 and M2 points
                                     // must have from the center line
@@ -389,30 +395,39 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
     // Calculate the angle between the lines <NED Origin, target> and <NED
     // Origin, M1> This angle is the same for M2 since is symmetric to M1
     // relatively to the center line
-    float psiMan = atan2(distFromCenterline, target.norm());
+    float psiMan = atan2(distFromCenterline, targetOffsetNED.norm());
 
     float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
-    float m2Angle                 = targetAngle + psiMan;
-    float m1Angle                 = targetAngle - psiMan;
+    float m2Angle                 = psi0 + psiMan;
+    float m1Angle                 = psi0 - psiMan;
 
-    this->m1Position =
-        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude;
+    Eigen::Vector2f emcPosition =
+        targetOffsetNED * 1.2 +
+        currentPosNED;  // EMC is calculated as target * 1.2
 
-    this->m2Position =
-        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude;
+    Eigen::Vector2f m1Position =
+        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude +
+        currentPosNED;
+
+    Eigen::Vector2f m2Position =
+        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude +
+        currentPosNED;
+
+    emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+    clGuidance.setPoints(targetNED);
 
     WingTargetPositionData data;
-    data.latitude  = target[0];
-    data.longitude = target[1];
+    data.targetN = targetNED[0];
+    data.targetE = targetNED[1];
 
-    data.emcLat = emcPosition[0];
-    data.emcLon = emcPosition[1];
+    data.emcN = emcPosition[0];
+    data.emcE = emcPosition[1];
 
-    data.m1Lat = m1Position[0];
-    data.m1Lon = m1Position[1];
+    data.m1N = m1Position[0];
+    data.m1E = m1Position[1];
 
-    data.m2Lat = m2Position[0];
-    data.m2Lon = m2Position[1];
+    data.m2N = m2Position[0];
+    data.m2E = m2Position[1];
 
     // Log the received position
     Logger::getInstance().log(data);
@@ -426,12 +441,19 @@ void WingController::logStatus(WingControllerState state)
     Logger::getInstance().log(status);
 }
 
-Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
-
-Eigen::Vector2f WingController::getEMCPosition() { return emcPosition; }
-
-Eigen::Vector2f WingController::getM1Position() { return m1Position; }
-
-Eigen::Vector2f WingController::getM2Position() { return m2Position; }
+Eigen::Vector2f WingController::convertTargetPositionToNED(
+    Eigen::Vector2f targetGEO)
+{
+    // We transform target to NED inside the getter to account for a possible
+    // change in reference value of the nas
+    return Aeroutils::geodetic2NED(targetGEO, {ModuleManager::getInstance()
+                                                   .get<NASController>()
+                                                   ->getReferenceValues()
+                                                   .refLatitude,
+                                               ModuleManager::getInstance()
+                                                   .get<NASController>()
+                                                   ->getReferenceValues()
+                                                   .refLongitude});
+}
 
 }  // namespace Parafoil

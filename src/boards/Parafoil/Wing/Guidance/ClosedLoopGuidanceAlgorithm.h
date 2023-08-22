@@ -47,9 +47,11 @@ class ClosedLoopGuidanceAlgorithm : public GuidanceAlgorithm
      *
      * @returns the yaw angle of the parafoil in [rad]
      */
-    float calculateTargetAngle(const Eigen::Vector3f& position,
-                               const Eigen::Vector2f& target,
-                               Eigen::Vector2f& heading);
+    float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
+                               Eigen::Vector2f& heading) override;
+
+public:
+    void setPoints(Eigen::Vector2f targetNED);
 };
 
 }  // namespace Parafoil

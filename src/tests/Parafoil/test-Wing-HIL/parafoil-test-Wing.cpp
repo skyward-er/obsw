@@ -24,6 +24,7 @@
 #include <HIL_sensors/HILGps.h>
 #include <HIL_sensors/HILSensor.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
@@ -33,6 +34,7 @@
 #include <algorithms/PIController.h>
 #include <algorithms/ReferenceValues.h>
 #include <miosix.h>
+#include <utils/AeroUtils/AeroUtils.h>
 #include <utils/Debug.h>
 
 #include <iostream>
@@ -57,10 +59,9 @@ public:
     {
     }
 
-    float fakeStep(NASState state, Vector2f startPosition,
-                   Vector2f targetPosition, Vector2f wind)
+    float fakeStep(NASState state, Vector2f windNED)
     {
-        return this->algorithmStep(state, startPosition, targetPosition, wind);
+        return this->algorithmStep(state, windNED);
     }
 };
 
@@ -153,11 +154,10 @@ public:
     MockEarlyManeuversGuidanceAlgorithm() : EarlyManeuversGuidanceAlgorithm() {}
 
     float calculateTargetAngle(const Eigen::Vector3f& position,
-                               const Eigen::Vector2f& target,
                                Eigen::Vector2f& heading) override
     {
-        psiRef = EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
-            position, target, heading);
+        psiRef = EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(position,
+                                                                       heading);
         return psiRef;
     }
 
@@ -248,6 +248,50 @@ private:
     MockNASController* nas  = nullptr;
 };
 
+void setEarlyManeuverPoints(MockEarlyManeuversGuidanceAlgorithm& guidance,
+                            Eigen::Vector2f targetNED,
+                            Eigen::Vector2f currentPosNED)
+{
+
+    Eigen::Vector2f targetOffsetNED = targetNED - currentPosNED;
+
+    Eigen::Vector2f norm_point = targetOffsetNED / targetOffsetNED.norm();
+
+    float psi0 = atan2(norm_point[1], norm_point[0]);
+
+    float distFromCenterline = 20;  // the distance that the M1 and M2 points
+                                    // must have from the center line
+
+    // Calculate the angle between the lines <NED Origin, target> and <NED
+    // Origin, M1> This angle is the same for M2 since is symmetric to M1
+    // relatively to the center line
+    float psiMan = atan2(distFromCenterline, targetOffsetNED.norm());
+
+    float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
+    float m2Angle                 = psi0 + psiMan;
+    float m1Angle                 = psi0 - psiMan;
+
+    Eigen::Vector2f emcPosition =
+        targetOffsetNED * 1.2 +
+        currentPosNED;  // EMC is calculated as target * 1.2
+
+    Eigen::Vector2f m1Position =
+        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude +
+        currentPosNED;
+
+    Eigen::Vector2f m2Position =
+        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude +
+        currentPosNED;
+
+    guidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+    printf("CurrentPosNED: %.3f,%.3f\n", currentPosNED[0], currentPosNED[1]);
+    printf(
+        "emc: [%+.3f, %.3f], m1: [%+.3f, %.3f], m2: [%+.3f, %.3f], target: "
+        "[%+.3f, %.3f]\n",
+        emcPosition[0], emcPosition[1], m1Position[0], m1Position[1],
+        m2Position[0], m2Position[1], targetNED[0], targetNED[1]);
+}
+
 int main()
 {
     GpioPin u2tx(GPIOA_BASE, 2);
@@ -261,10 +305,8 @@ int main()
     USART usart2(USART2, 115200, 1000);
 
     // Initialize the modules
-    float kp        = 0.1;
-    float ki        = 0.001;
-    float TARGET[2] = {45.0018, 9.0027};  // 200, 300
-    Eigen::Vector2f START(0, 0);
+    Eigen::Vector2f TARGET{45.0018, 9.0038};  // 200, 300
+    Eigen::Vector2f START{45, 9};
 
     TaskScheduler& scheduler = BoardScheduler::getInstance().getScheduler();
     Sensors* sensors         = new HILSensors(&scheduler);
@@ -274,14 +316,12 @@ int main()
     NASController* nasController =
         new MockNASController(&hil->simulator->getSensorData()->nas);
     MockEarlyManeuversGuidanceAlgorithm guidance;
-    MockWingAlgo algo(kp, ki, ServosList::PARAFOIL_LEFT_SERVO,
+    MockWingAlgo algo(0.1, 0.001, ServosList::PARAFOIL_LEFT_SERVO,
                       ServosList::PARAFOIL_RIGHT_SERVO, guidance);
 
-    // guidance.setPoints({60, 60}, {64.1421, 35.8579},
-    //                    {35.8579, 64.1421});  // 50,50
-    guidance.setPoints({240, 360}, {216.6410, 288.9060},
-                       {183.3590, 311.0940});  // 200, 300
-    algo.setStartingPosition({45, 9});
+    printf("KP: %.3f, KI: %.3f\n", WingConfig::KP, WingConfig::KI);
+
+    Eigen::Vector2f targetNED = Aeroutils::geodetic2NED(TARGET, START);
 
     // Insert the modules
     if (!modules.insert<HIL>(hil))
@@ -349,6 +389,10 @@ int main()
     }
 
     printf("SIMU STARTED\n");
+    // setEarlyManeuverPoints(
+    //     guidance, targetNED,
+    //     {nasController->getNasState().n, nasController->getNasState().e});
+    setEarlyManeuverPoints(guidance, targetNED, {0, 0});
 
     // Adding task to send periodically to the simulator the wind estimated
     BoardScheduler::getInstance().getScheduler().addTask(
@@ -357,11 +401,10 @@ int main()
             auto wind     = wind_estimation->getWindEstimationScheme();
             auto nasState = nasController->getNasState();
 
-            Eigen::Vector2f target(TARGET[0], TARGET[1]);
+            float result = algo.fakeStep(nasState, wind);  // deltaA in degrees
 
-            float result = algo.fakeStep(nasState, START, target,
-                                         wind);  // deltaA in degrees
-            result       = -result * Constants::PI / 180.0f;
+            // Convert back from degrees in rad (what the simulator expects)
+            result = -result * Constants::PI / 180.0f;
 
             float psiRef = guidance.getPsiRef();
             // printf("deltaA: %+.3f, psiRef: %+.3f\n", result, psiRef);
@@ -370,18 +413,17 @@ int main()
             {
                 actuatorData = {(wind_estimation->getStatus() ? 2.0f : 1.0f),
                                 wind[0], wind[1], psiRef, result};
-                // Actually sending the feedback to the simulator
-                modules.get<HIL>()->send(actuatorData);
             }
             else
             {
                 actuatorData = {(wind_estimation->getStatus() ? 2.0f : 1.0f),
                                 wind[0], wind[1], psiRef, 0.05};
-                // Actually sending the feedback to the simulator
-                modules.get<HIL>()->send(actuatorData);
             }
 
-            UBXGPSData gpsData = sensors->getUbxGpsLastSample();
+            // Actually sending the feedback to the simulator
+            modules.get<HIL>()->send(actuatorData);
+
+            // UBXGPSData gpsData = sensors->getUbxGpsLastSample();
             // TRACE("gpsP: [%f, %f, %f]\n", gpsData.latitude,
             // gpsData.longitude,
             //       gpsData.height);

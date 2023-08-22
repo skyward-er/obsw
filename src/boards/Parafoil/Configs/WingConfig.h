@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,8 +71,16 @@ constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
 
-constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 0.1;
-constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -0.1;
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;
+
+constexpr int GUIDANCE_CONFIDENCE                = 15;
+constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
+constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
+constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
+
+constexpr float KP = 0.1;    //[m]
+constexpr float KI = 0.001;  //[m]
 
 struct WingConfigStruct
 {

@@ -20,10 +20,13 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 
 #include <Eigen/Core>
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+using namespace Parafoil::WingConfig;
 
 namespace Parafoil
 {
@@ -36,34 +39,31 @@ EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
 EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 
 float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
-    const Eigen::Vector3f& position, const Eigen::Vector2f& target,
-    Eigen::Vector2f& heading)
+    const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
     using namespace Boardcore;
 
-    float altitude = abs(position[2]);
-    printf("altitude: %+.3f\n", altitude);
+    float altitude = abs(currentPositionNED[2]);
 
     computeActiveTarget(altitude);
 
     switch (activeTarget)
     {
         case Target::EMC:
-            heading[0] = EMC[0] - position[0];
-            heading[1] = EMC[1] - position[1];
+            heading[0] = EMC[0] - currentPositionNED[0];
+            heading[1] = EMC[1] - currentPositionNED[1];
             break;
         case Target::M1:
-            heading[0] = M1[0] - position[0];
-            heading[1] = M1[1] - position[1];
+            heading[0] = M1[0] - currentPositionNED[0];
+            heading[1] = M1[1] - currentPositionNED[1];
             break;
         case Target::M2:
-            heading[0] = M2[0] - position[0];
-            heading[1] = M2[1] - position[1];
+            heading[0] = M2[0] - currentPositionNED[0];
+            heading[1] = M2[1] - currentPositionNED[1];
             break;
         case Target::FINAL:
-            printf("TARGET FINAL\n");
-            heading[0] = target[0] - position[0];
-            heading[1] = target[1] - position[1];
+            heading[0] = targetNED[0] - currentPositionNED[0];
+            heading[1] = targetNED[1] - currentPositionNED[1];
             break;
     }
 
@@ -72,15 +72,19 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
 
 void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
 {
-    if (altitude <= 50)  // Altitude is low, head directly to target
+    if (altitude <=
+        GUIDANCE_TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
+                                             // to target
     {
         targetAltitudeConfidence++;
     }
-    else if (altitude <= 150)  // Altitude is almost okay, go to M2
+    else if (altitude <= GUIDANCE_M2_ALTITUDE_THRESHOLD)  // Altitude is almost
+                                                          // okay, go to M2
     {
         m2AltitudeConfidence++;
     }
-    else if (altitude <= 250)  // Altitude is high, go to M1
+    else if (altitude <=
+             GUIDANCE_M1_ALTITUDE_THRESHOLD)  // Altitude is high, go to M1
     {
         m1AltitudeConfidence++;
     }
@@ -92,61 +96,37 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
     switch (activeTarget)
     {
         case Target::EMC:
-            if (m2AltitudeConfidence >= 15)
+            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
             {
-                printf("EMC: M2\n");
+                activeTarget          = Target::FINAL;
+                emcAltitudeConfidence = 0;
+            }
+            else if (m2AltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            {
                 activeTarget          = Target::M2;
                 emcAltitudeConfidence = 0;
             }
-            if (m1AltitudeConfidence >= 15)
+            else if (m1AltitudeConfidence >= GUIDANCE_CONFIDENCE)
             {
-                printf("EMC: M1\n");
                 activeTarget          = Target::M1;
-                emcAltitudeConfidence = 0;
-            }
-            if (targetAltitudeConfidence >= 15)
-            {
-                printf("EMC: FINAL\n");
-                activeTarget          = Target::FINAL;
                 emcAltitudeConfidence = 0;
             }
             break;
         case Target::M1:
-            if (emcAltitudeConfidence >= 15)
+            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
             {
-                printf("M1: EMC\n");
-                activeTarget         = Target::EMC;
-                m1AltitudeConfidence = 0;
-            }
-            if (m2AltitudeConfidence >= 15)
-            {
-                printf("M1: M2\n");
-                activeTarget         = Target::M2;
-                m1AltitudeConfidence = 0;
-            }
-            if (targetAltitudeConfidence >= 15)
-            {
-                printf("M1: FINAL\n");
                 activeTarget         = Target::FINAL;
+                m1AltitudeConfidence = 0;
+            }
+            else if (m2AltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            {
+                activeTarget         = Target::M2;
                 m1AltitudeConfidence = 0;
             }
             break;
         case Target::M2:
-            if (emcAltitudeConfidence >= 15)
+            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
             {
-                printf("M2: EMC\n");
-                activeTarget         = Target::EMC;
-                m2AltitudeConfidence = 0;
-            }
-            if (m1AltitudeConfidence >= 15)
-            {
-                printf("M2: M1\n");
-                activeTarget         = Target::M1;
-                m2AltitudeConfidence = 0;
-            }
-            if (targetAltitudeConfidence >= 15)
-            {
-                printf("M2: FINAL\n");
                 activeTarget         = Target::FINAL;
                 m2AltitudeConfidence = 0;
             }
@@ -154,6 +134,17 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::FINAL:
             break;
     }
+}
+
+void EarlyManeuversGuidanceAlgorithm::setPoints(Eigen::Vector2f targetNED,
+                                                Eigen::Vector2f EMC,
+                                                Eigen::Vector2f M1,
+                                                Eigen::Vector2f M2)
+{
+    this->targetNED = targetNED;
+    this->EMC       = EMC;
+    this->M1        = M1;
+    this->M2        = M2;
 }
 
 }  // namespace Parafoil

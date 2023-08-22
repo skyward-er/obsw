@@ -79,7 +79,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavDriver->enqueueMsg(nackMsg);
 }
 
-Radio::Radio() : flightTMTaskId(0), statsTMTaskId(0) {}
+Radio::Radio() {}
 
 bool Radio::isStarted() { return mavDriver->isStarted(); }
 
@@ -121,20 +121,20 @@ bool Radio::startModule()
                               0, MAV_OUT_BUFFER_MAX_AGE);
 
     // Add to the scheduler the periodic telemetries
-    flightTMTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+    BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
         },
-        FLIGHT_TM_PERIOD);
-    statsTMTaskId = BoardScheduler::getInstance().getScheduler().addTask(
+        FLIGHT_TM_PERIOD, FLIGHT_TM_TASK_ID);
+    BoardScheduler::getInstance().getScheduler().addTask(
         [&]()
         {
             mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
-        STATS_TM_PERIOD);
+        STATS_TM_PERIOD, STATS_TM_TASK_ID);
 
     return mavDriver->start();
 }

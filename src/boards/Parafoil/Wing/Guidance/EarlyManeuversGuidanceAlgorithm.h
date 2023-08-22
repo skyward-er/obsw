@@ -53,25 +53,32 @@ public:
      * @brief This method calculates the yaw angle of the parafoil knowing
      * the current position and the target position.
      *
-     * @param[in] position the current NED position of the parafoil in m
-     * @param[in] target NED position of the target in m
+     * @param[in] currentPositionNED the current NED position of the parafoil in
+     * m
+     * @param[in] targetPositionNED NED position of the target in m
      * @param[out] heading Saves the heading vector for logging purposes
      *
      * @returns the yaw angle of the parafoil in rad
      *
      */
-    float calculateTargetAngle(const Eigen::Vector3f& position,
-                               const Eigen::Vector2f& target,
-                               Eigen::Vector2f& heading);
+    float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
+                               Eigen::Vector2f& heading) override;
 
-    void setPoints(Eigen::Vector2f EMC, Eigen::Vector2f M1, Eigen::Vector2f M2)
-    {
-        this->EMC = EMC;
-        this->M1  = M1;
-        this->M2  = M2;
-    }
+    /**
+     * @brief Set Early Maneuvers points
+     *
+     * @param[in] EMC NED
+     * @param[in] M1 NED
+     * @param[in] M2 NED
+     *
+     */
+    void setPoints(Eigen::Vector2f targetNED, Eigen::Vector2f EMC,
+                   Eigen::Vector2f M1, Eigen::Vector2f M2);
 
 private:
+    /** @brief Updates the class target
+     *
+     */
     void computeActiveTarget(float altitude);
 
     /**
@@ -85,13 +92,16 @@ private:
         FINAL
     };
 
+    // Point we are currently poinying to
     Target activeTarget;
 
-    Eigen::Vector2f EMC;
+    // Eigen::Vector2f targetNED;  // NED
 
-    Eigen::Vector2f M1;
+    Eigen::Vector2f EMC;  // NED
 
-    Eigen::Vector2f M2;
+    Eigen::Vector2f M1;  // NED
+
+    Eigen::Vector2f M2;  // NED
 
     unsigned int targetAltitudeConfidence;
     unsigned int m2AltitudeConfidence;

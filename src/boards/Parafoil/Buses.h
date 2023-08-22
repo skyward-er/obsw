@@ -46,10 +46,6 @@ public:
         : usart1(USART1, 115200), usart2(USART2, 115200),
           usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
     {
-        /* usart1.init();
-         usart2.init();
-         usart3.init();
-         uart4.init();*/
     }
 #else
     Buses()

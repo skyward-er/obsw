@@ -61,8 +61,7 @@ void AutomaticWingAlgorithm::step()
     {
         // The PI calculated result
         float result = algorithmStep(
-            modules.get<NASController>()->getNasState(), startingPosition,
-            modules.get<WingController>()->getTargetPosition(),
+            modules.get<NASController>()->getNasState(),
             modules.get<WindEstimation>()->getWindEstimationScheme());
 
         // Actuate the result
@@ -91,23 +90,25 @@ void AutomaticWingAlgorithm::step()
             SDlogger->log(data);
         }
     }
+    else
+    {
+        // If we loose fix we set both servo at 0
+        modules.get<Actuators>()->setServoAngle(servo1, 0);
+        modules.get<Actuators>()->setServoAngle(servo2, 0);
+    }
 }
 
-float AutomaticWingAlgorithm::algorithmStep(NASState state,
-                                            Vector2f startPosition,
-                                            Vector2f target, Vector2f wind)
+float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
 {
     float result;
-    Vector2f targetPosition = Aeroutils::geodetic2NED(target, startPosition);
     // For some algorithms the third component is needed!
     Vector3f currentPosition(state.n, state.e, state.d);
 
     Vector2f heading;  // used for logging purposes
 
-    float targetAngle =
-        guidance.calculateTargetAngle(currentPosition, targetPosition, heading);
+    float targetAngle = guidance.calculateTargetAngle(currentPosition, heading);
 
-    Vector2f relativeVelocity(state.vn - wind[0], state.ve - wind[1]);
+    Vector2f relativeVelocity(state.vn - windNED[0], state.ve - windNED[1]);
 
     // Compute the angle of the current velocity
     float velocityAngle;

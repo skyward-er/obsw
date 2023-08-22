@@ -80,32 +80,6 @@ public:
     void setTargetPosition(Eigen::Vector2f target);
 
     /**
-     * @brief target position getter
-     */
-    Eigen::Vector2f getTargetPosition();
-
-    /**
-     * @brief EMC Position getter
-     *
-     * @note This point is needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f getEMCPosition();
-
-    /**
-     * @brief M1 Position getter
-     *
-     * @note This point is needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f getM1Position();
-
-    /**
-     * @brief M2 Position getter
-     *
-     * @note This point is needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f getM2Position();
-
-    /**
      * @brief Selects the algorithm if present.
      *
      * @param index The algorithms vector index
@@ -132,6 +106,17 @@ public:
     bool startModule() override;
 
 private:
+    /**
+     * @brief target position getter
+     */
+    Eigen::Vector2f convertTargetPositionToNED(Eigen::Vector2f targetGEO);
+
+    /**
+     * @brief set points needed by the Guidance
+     */
+    void setEarlyManeuverPoints(Eigen::Vector2f targetNED,
+                                Eigen::Vector2f currentPosNED);
+
     void logStatus(WingControllerState state);
 
     WingControllerStatus status;
@@ -139,28 +124,7 @@ private:
     /**
      * @brief Target position
      */
-    Eigen::Vector2f targetPosition;
-
-    /**
-     * @brief EMC position
-     *
-     * @note needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f emcPosition;
-
-    /**
-     * @brief M1 position
-     *
-     * @note needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f m1Position;
-
-    /**
-     * @brief M2 position
-     *
-     * @note needed by the Early Maneuver algorithm
-     */
-    Eigen::Vector2f m2Position;
+    Eigen::Vector2f targetPositionGEO;
 
     /**
      * @brief List of loaded algorithms (from SD or not)
@@ -196,27 +160,6 @@ private:
      * AutomaticWingAlgorithm
      */
     ClosedLoopGuidanceAlgorithm clGuidance;
-
-    /**
-     * @brief Calculates the EMC point based on the current target
-     *
-     * @param target the current target
-     */
-    void calculateEMCPoint(Eigen::Vector3f target);
-
-    /**
-     * @brief Calculates the M1 point based on the current target
-     *
-     * @param target the current target
-     */
-    void calculateM1Point(Eigen::Vector3f target);
-
-    /**
-     * @brief Calculates the M2 point based on the current target
-     *
-     * @param target the current target
-     */
-    void calculateM2Point(Eigen::Vector3f target);
 
     /**
      * @brief  starts the selected algorithm
