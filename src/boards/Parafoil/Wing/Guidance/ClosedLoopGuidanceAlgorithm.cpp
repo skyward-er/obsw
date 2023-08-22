@@ -27,12 +27,16 @@ namespace Parafoil
 {
 
 float ClosedLoopGuidanceAlgorithm::calculateTargetAngle(
-    const Eigen::Vector3f& position, const Eigen::Vector2f& target,
-    Eigen::Vector2f& heading)
+    const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
-    heading[0] = target[0] - position[0];
-    heading[1] = target[1] - position[1];
+    heading[0] = targetNED[0] - currentPositionNED[0];
+    heading[1] = targetNED[1] - currentPositionNED[1];
     return atan2(heading[1], heading[0]);
+}
+
+void ClosedLoopGuidanceAlgorithm::setPoints(Eigen::Vector2f targetNED)
+{
+    this->targetNED = targetNED;
 }
 
 }  // namespace Parafoil

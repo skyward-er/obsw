@@ -309,7 +309,21 @@ std::map<string, bool> Sensors::getSensorsState()
     return sensorsState;
 }
 
-Sensors::Sensors() {}
+Sensors::Sensors()
+{
+    bmx160               = nullptr;
+    bmx160WithCorrection = nullptr;
+    lis3mdl              = nullptr;
+    ms5803               = nullptr;
+    ubxGps               = nullptr;
+    ads1118              = nullptr;
+    staticPressure       = nullptr;
+    dplPressure          = nullptr;
+    pitotPressure        = nullptr;
+    pitot                = nullptr;
+    internalADC          = nullptr;
+    batteryVoltage       = nullptr;
+}
 
 Sensors::~Sensors()
 {

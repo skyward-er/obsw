@@ -46,7 +46,7 @@ public:
     float fakeStep(NASState state, Vector2f startPosition,
                    Vector2f targetPosition, Vector2f wind)
     {
-        return this->algorithmStep(state, startPosition, targetPosition, wind);
+        return this->algorithmStep(state, wind);
     }
 };
 int main()

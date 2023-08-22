@@ -51,8 +51,7 @@ WingController::WingController()
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_ALGOS);
-    Eigen::Vector2f target(DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON);
-    setTargetPosition(target);
+    this->targetPositionGEO = {DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON};
 }
 
 bool WingController::startModule()
@@ -172,20 +171,16 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
-            Eigen::Vector2f startingPostion;
-            UBXGPSData gps = ModuleManager::getInstance()
-                                 .get<Sensors>()
-                                 ->getUbxGpsLastSample();
-
-            startingPostion(0) = ModuleManager::getInstance()
-                                     .get<NASController>()
-                                     ->getReferenceValues()
-                                     .refLatitude;
-            startingPostion(1) = ModuleManager::getInstance()
-                                     .get<NASController>()
-                                     ->getReferenceValues()
-                                     .refLongitude;
-            algorithms[selectedAlgorithm]->setStartingPosition(startingPostion);
+            setEarlyManeuverPoints(
+                convertTargetPositionToNED(targetPositionGEO),
+                {ModuleManager::getInstance()
+                     .get<NASController>()
+                     ->getNasState()
+                     .n,
+                 ModuleManager::getInstance()
+                     .get<NASController>()
+                     ->getNasState()
+                     .e});
             startAlgorithm();
             return HANDLED;
         }
@@ -379,13 +374,20 @@ void WingController::reset()
         PARAFOIL_RIGHT_SERVO, 0);
 }
 
-void WingController::setTargetPosition(Eigen::Vector2f target)
+void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 {
-    this->targetPosition = target;
+    this->targetPositionGEO = targetGEO;
+}
 
-    this->emcPosition = target * 1.2;  // EMC is calculated as target * 1.2
+void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
+                                            Eigen::Vector2f startingPosNED)
+{
 
-    float targetAngle = atan2(target[1], target[0]);
+    targetNED = targetNED - startingPosNED;
+
+    targetNED = targetNED / targetNED.norm();
+
+    float targetAngle = atan2(targetNED[1], targetNED[0]);
 
     float distFromCenterline = 20;  // the distance that the M1 and M2 points
                                     // must have from the center line
@@ -393,31 +395,38 @@ void WingController::setTargetPosition(Eigen::Vector2f target)
     // Calculate the angle between the lines <NED Origin, target> and <NED
     // Origin, M1> This angle is the same for M2 since is symmetric to M1
     // relatively to the center line
-    float psiMan = atan2(distFromCenterline, target.norm());
+    float psiMan = atan2(distFromCenterline, targetNED.norm());
 
     float maneuverPointsMagnitude = distFromCenterline / sin(psiMan);
     float m2Angle                 = targetAngle + psiMan;
     float m1Angle                 = targetAngle - psiMan;
 
-    this->m1Position =
-        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude;
+    Eigen::Vector2f emcPosition =
+        targetNED * 1.2 + startingPosNED;  // EMC is calculated as target * 1.2
 
-    this->m2Position =
-        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude;
+    Eigen::Vector2f m1Position =
+        Eigen::Vector2f(cos(m1Angle), sin(m1Angle)) * maneuverPointsMagnitude +
+        startingPosNED;
+
+    Eigen::Vector2f m2Position =
+        Eigen::Vector2f(cos(m2Angle), sin(m2Angle)) * maneuverPointsMagnitude +
+        startingPosNED;
 
     WingTargetPositionData data;
-    data.latitude  = target[0];
-    data.longitude = target[1];
+    data.targetN = targetNED[0];
+    data.targetE = targetNED[1];
 
-    data.emcLat = emcPosition[0];
-    data.emcLon = emcPosition[1];
+    data.emcN = emcPosition[0];
+    data.emcE = emcPosition[1];
 
-    data.m1Lat = m1Position[0];
-    data.m1Lon = m1Position[1];
+    data.m1N = m1Position[0];
+    data.m1E = m1Position[1];
 
-    data.m2Lat = m2Position[0];
-    data.m2Lon = m2Position[1];
-    emGuidance.setPoints(emcPosition, m1Position, m2Position);
+    data.m2N = m2Position[0];
+    data.m2E = m2Position[1];
+
+    emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+    clGuidance.setPoints(targetNED);
     // Log the received position
     Logger::getInstance().log(data);
 }
@@ -430,12 +439,19 @@ void WingController::logStatus(WingControllerState state)
     Logger::getInstance().log(status);
 }
 
-Eigen::Vector2f WingController::getTargetPosition() { return targetPosition; }
-
-Eigen::Vector2f WingController::getEMCPosition() { return emcPosition; }
-
-Eigen::Vector2f WingController::getM1Position() { return m1Position; }
-
-Eigen::Vector2f WingController::getM2Position() { return m2Position; }
+Eigen::Vector2f WingController::convertTargetPositionToNED(
+    Eigen::Vector2f targetGEO)
+{
+    // We transform target to NED inside the getter to account for a possible
+    // change in reference value of the nas
+    return Aeroutils::geodetic2NED(targetGEO, {ModuleManager::getInstance()
+                                                   .get<NASController>()
+                                                   ->getReferenceValues()
+                                                   .refLatitude,
+                                               ModuleManager::getInstance()
+                                                   .get<NASController>()
+                                                   ->getReferenceValues()
+                                                   .refLongitude});
+}
 
 }  // namespace Parafoil

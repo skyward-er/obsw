@@ -32,30 +32,26 @@ struct WingTargetPositionData
 {
     float receivedLat;
     float receivedLon;
-    float latitude;
-    float longitude;
-    float emcLat;
-    float emcLon;
-    float m1Lat;
-    float m1Lon;
-    float m2Lat;
-    float m2Lon;
-
-    float n;
-    float e;
+    float targetN;
+    float targetE;
+    float emcN;
+    float emcE;
+    float m1N;
+    float m1E;
+    float m2N;
+    float m2E;
 
     static std::string header()
     {
         return "receivedLat, receivedLon, "
-               "latitude,longitude,n,e,EMCLat,EMCLon,M1Lat,M1Lon,M2Lat,M2Lon\n";
+               "targetN,targetE,EMCN,EMCE,M1N,M1E,M2N,M2E\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << receivedLat << "," << receivedLon << "," << latitude << ","
-           << longitude << "," << n << "," << e << "," << emcLat << ","
-           << emcLon << "," << m1Lat << "," << m1Lon << "," << m2Lat << ","
-           << m2Lon << "\n";
+        os << receivedLat << "," << receivedLon << "," << targetN << ","
+           << targetE << "," << emcN << "," << emcE << "," << m1N << "," << m1E
+           << "," << m2N << "," << m2E << "\n";
     }
 };
 

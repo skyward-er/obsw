@@ -61,11 +61,13 @@ protected:
     Boardcore::PIController* controller;
 
     /**
-     * @brief Actual algorithm implementation
+     * @brief Actual algorithm implementation, all parameters should be in NED
+     *
+     *  @param state NAS current state
+     * @param targetNED Target North & East
+     * @param windNED Wind velocity North & East
      */
-    float algorithmStep(Boardcore::NASState state,
-                        Eigen::Vector2f startPosition, Eigen::Vector2f target,
-                        Eigen::Vector2f wind);
+    float algorithmStep(Boardcore::NASState state, Eigen::Vector2f windNED);
 
     /**
      * @brief This method implements the automatic algorithm that will steer the

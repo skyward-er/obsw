@@ -58,25 +58,6 @@ public:
 
     bool isStarted();
 
-#ifdef HILSimulation
-public:
-    /**
-     * structure that contains all the sensors used in the simulation
-     */
-    struct StateComplete
-    {
-        HILAccelerometer* accelerometer;
-        HILBarometer* barometer;
-        HILPitot* pitot;
-        HILGps* gps;
-        HILGyroscope* gyro;
-        HILMagnetometer* magnetometer;
-        HILTemperature* temperature;
-        HILImu* imu;
-        HILKalman* kalman;
-    } state;
-#endif  // HILSimulation
-
     Boardcore::BMX160* bmx160;
 
     Boardcore::BMX160Data getBMX160LastSample();

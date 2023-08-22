@@ -119,9 +119,4 @@ void WingAlgorithm::step()
     }
 }
 
-void WingAlgorithm::setStartingPosition(Eigen::Vector2f position)
-{
-    startingPosition = position;
-}
-
 }  // namespace Parafoil
