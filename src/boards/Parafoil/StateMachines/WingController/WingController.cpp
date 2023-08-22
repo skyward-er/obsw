@@ -275,12 +275,12 @@ void WingController::addAlgorithm(int id)
             break;
         case 3:
             algorithm = new AutomaticWingAlgorithm(
-                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
+                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, emGuidance);
             setAutomatic(true);
             break;
         default:  // automatic target
             algorithm = new AutomaticWingAlgorithm(
-                0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
+                KI, KP, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
     }

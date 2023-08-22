@@ -79,6 +79,9 @@ constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
 constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
+constexpr float KP = 0.1;    //[m]
+constexpr float KI = 0.001;  //[m]
+
 struct WingConfigStruct
 {
 
