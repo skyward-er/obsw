@@ -243,16 +243,16 @@ void WingController::addAlgorithm(int id)
                 0.1f, 1, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, clGuidance);
             setAutomatic(true);
             break;
-        case 1:  // straight-> brake
+        case 1:  // right-> straight
             algorithm =
                 new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
             step.servo1Angle = 0;
-            step.servo2Angle = 0;
+            step.servo2Angle = 120;
             step.timestamp   = 0;
             algorithm->addStep(step);
-            step.servo1Angle = 120;
-            step.servo2Angle = 120;
-            step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
+            step.timestamp += 100 * WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
             algorithm->addStep(step);
             step.servo1Angle = 0;
             step.servo2Angle = 0;

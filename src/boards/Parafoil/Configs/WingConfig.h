@@ -48,6 +48,9 @@ constexpr float DEFAULT_TARGET_LON = 12.585847;
 #elif defined(MOLINELLA)
 constexpr float DEFAULT_TARGET_LAT = 44.588923;
 constexpr float DEFAULT_TARGET_LON = 11.653212;
+#elif defined(JESOLO)
+constexpr float DEFAULT_TARGET_LAT = 45.569595;
+constexpr float DEFAULT_TARGET_LON = 12.578202;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.501148;
 constexpr float DEFAULT_TARGET_LON = 9.156301;
@@ -69,7 +72,7 @@ constexpr float MAX_SERVO_APERTURE = 1.0f;
 // Wing altitude checker configs
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]
-constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000000;  // [us]
+constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT     = 15 * 1000;  // [ms]
 
 constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
 constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;

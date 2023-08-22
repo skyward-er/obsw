@@ -40,17 +40,22 @@ sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
 
 add_executable(parafoil-entry-stop_and_go src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-stop_and_go PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-stop_and_go PRIVATE MOLINELLA STOP_AND_GO)
+target_compile_definitions(parafoil-entry-stop_and_go PRIVATE JESOLO STOP_AND_GO)
 sbs_target(parafoil-entry-stop_and_go stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-entry-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry-rotation PRIVATE JESOLO ROTATION)
+sbs_target(parafoil-entry-rotation stm32f429zi_skyward_death_stack_x)
 
 add_executable(parafoil-entry-guided src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-guided PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-guided PRIVATE MOLINELLA GUIDED)
+target_compile_definitions(parafoil-entry-guided PRIVATE JESOLO GUIDED)
 sbs_target(parafoil-entry-guided stm32f429zi_skyward_death_stack_x)
 
 add_executable(parafoil-entry-early-maneuver src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-entry-early-maneuver PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-early-maneuver PRIVATE MOLINELLA EARLY_MANEUVER)
+target_compile_definitions(parafoil-entry-early-maneuver PRIVATE JESOLO EARLY_MANEUVER)
 sbs_target(parafoil-entry-early-maneuver stm32f429zi_skyward_death_stack_x)
 #-----------------------------------------------------------------------------#
 #                               Parafoil Computer                             #
