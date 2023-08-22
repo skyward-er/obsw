@@ -22,6 +22,7 @@
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/Configs/ActuatorsConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -69,6 +70,9 @@ void Actuators::setServoPosition(ServosList servo, float position)
     {
         requestedServo->setPosition(position, true);
     }
+
+    // Log the position
+    Logger::getInstance().log(requestedServo->getState());
 }
 
 void Actuators::wiggleServo(ServosList servo)
