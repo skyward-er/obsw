@@ -390,25 +390,33 @@ void ADAController::logStatus(ADAControllerState state)
 ADA::KalmanFilter::KalmanConfig ADAController::getADAKalmanConfig()
 {
     ADA::KalmanFilter::MatrixNN F_INIT;
-    ADA::KalmanFilter::MatrixPN H_INIT{1.0, 0.0, 0.0};
+    ADA::KalmanFilter::MatrixPN H_INIT;
     ADA::KalmanFilter::MatrixNN P_INIT;
     ADA::KalmanFilter::MatrixNN Q_INIT;
-    ADA::KalmanFilter::MatrixPP R_INIT{4000.0f};
-    ADA::KalmanFilter::MatrixNM G_INIT = ADA::KalmanFilter::MatrixNM::Zero();
+    ADA::KalmanFilter::MatrixPP R_INIT;
+    ADA::KalmanFilter::MatrixNM G_INIT;
 
     // clang-format off
-    F_INIT <<
-        1.0, ADAConfig::SAMPLING_PERIOD,    0.5f * ADAConfig::SAMPLING_PERIOD * ADAConfig::SAMPLING_PERIOD,
-        0.0, 1.0,                           ADAConfig::SAMPLING_PERIOD,
+    F_INIT  = ADA::KalmanFilter::MatrixNN({
+        {1.0, ADAConfig::SAMPLING_PERIOD,    0.5f * ADAConfig::SAMPLING_PERIOD * ADAConfig::SAMPLING_PERIOD},
+        {0.0, 1.0,                           ADAConfig::SAMPLING_PERIOD},
         // cppcheck-suppress constStatement
-        0.0, 0.0,                           1.0;
+        {0.0, 0.0,                           1.0}});
     // clang-format on
 
-    // cppcheck-suppress constStatement
-    P_INIT << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
+    H_INIT = {1.0, 0.0, 0.0};
 
     // cppcheck-suppress constStatement
-    Q_INIT << 30.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 2.5f;
+    P_INIT = ADA::KalmanFilter::MatrixNN(
+        {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+
+    // cppcheck-suppress constStatement
+    Q_INIT << ADA::KalmanFilter::MatrixNN(
+        {{30.0, 0.0, 0.0}, {0.0, 10.0, 0.0}, {0.0, 0.0, 2.5f}});
+
+    R_INIT[0] = 4000.0f;
+
+    G_INIT = ADA::KalmanFilter::MatrixNM::Zero();
 
     return {F_INIT,
             H_INIT,
