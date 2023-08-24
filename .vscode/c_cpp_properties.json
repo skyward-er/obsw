@@ -312,7 +312,7 @@
                 "HSE_VALUE=8000000",
                 "SYSCLK_FREQ_168MHz=168000000",
                 "_MIOSIX",
-                "__cplusplus=201103L",
+                "__cplusplus=201403L",
                 "HILSimulation",
                 "ROCCARASO",
                 "HILMain"
@@ -373,7 +373,7 @@
                 "HSE_VALUE=8000000",
                 "SYSCLK_FREQ_168MHz=168000000",
                 "_MIOSIX",
-                "__cplusplus=201103L"
+                "__cplusplus=201403L"
             ],
             "includePath": [
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_pyxis_auxiliary",

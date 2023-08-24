@@ -26,7 +26,7 @@
 #include <con_RIG/Configs/RadioConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/Ebyte.h>
+#include <radio/SX1278/SX1278Lora.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <cstdint>

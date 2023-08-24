@@ -29,6 +29,7 @@
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
+#include <radio/SX1278/SX1278Frontends.h>
 #include <radio/Xbee/ATCommands.h>
 
 #include <thread>
@@ -44,8 +45,7 @@ void __attribute__((used)) EXTI1_IRQHandlerImpl()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
     {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
-            SX1278::Dio::DIO0);
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
     }
 }
 
@@ -54,8 +54,7 @@ void __attribute__((used)) EXTI12_IRQHandlerImpl()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
     {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
-            SX1278::Dio::DIO1);
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
     }
 }
 
@@ -64,8 +63,7 @@ void __attribute__((used)) EXTI13_IRQHandlerImpl()
     ModuleManager& modules = ModuleManager::getInstance();
     if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
     {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ(
-            SX1278::Dio::DIO3);
+        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
     }
 }
 
@@ -204,37 +202,26 @@ bool Radio::start()
     using dio0 = Gpio<GPIOB_BASE, 1>;
     using dio1 = Gpio<GPIOD_BASE, 12>;
     using dio3 = Gpio<GPIOD_BASE, 13>;
+    using txEn = Gpio<GPIOG_BASE, 2>;
+    using rxEn = Gpio<GPIOG_BASE, 3>;
+    using cs   = Gpio<GPIOF_BASE, 6>;
 
     ModuleManager& modules = ModuleManager::getInstance();
 
-    SPIBusConfig spiConfig{};
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
-    spiConfig.mode         = SPI::Mode::MODE_0;
-    spiConfig.bitOrder     = SPI::Order::MSB_FIRST;
-    spiConfig.writeBit     = SPI::WriteBit::INVERTED;
-
     // Config the transceiver
     SX1278Lora::Config config{};
-    config.pa_boost         = true;
     config.power            = 2;
     config.ocp              = 0;  // Over current protection
     config.coding_rate      = SX1278Lora::Config::Cr::CR_1;
     config.spreading_factor = SX1278Lora::Config::Sf::SF_7;
 
-    transceiver = new EbyteLora(
-        SPISlave(modules.get<Buses>()->spi1, Gpio<GPIOF_BASE, 6>::getPin(),
-                 spiConfig),
-        Gpio<GPIOG_BASE, 2>::getPin(), Gpio<GPIOG_BASE, 3>::getPin());
+    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
+        std::make_unique<EbyteFrontend>(rxEn::getPin(), txEn::getPin());
 
-    enableExternalInterrupt(dio0::getPin().getPort(),
-                            dio0::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(dio1::getPin().getPort(),
-                            dio1::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
-    enableExternalInterrupt(dio3::getPin().getPort(),
-                            dio3::getPin().getNumber(),
-                            InterruptTrigger::RISING_EDGE);
+    transceiver =
+        new SX1278Lora(modules.get<Buses>()->spi1, cs::getPin(), dio0::getPin(),
+                       dio1::getPin(), dio3::getPin(),
+                       SPI::ClockDivider::DIV_64, std::move(frontend));
 
     SX1278Lora::Error error = transceiver->init(config);
 
