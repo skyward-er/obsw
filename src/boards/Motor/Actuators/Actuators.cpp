@@ -40,9 +40,9 @@ namespace Motor
 Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
 {
     servoMain =
-        new Servo(SERVO_MAIN_TIMER, SERVO_MAIN_PWM_CH, MAX_PULSE, MIN_PULSE);
+        new Servo(SERVO_MAIN_TIMER, SERVO_MAIN_PWM_CH, MIN_PULSE, MAX_PULSE);
     servoVenting = new Servo(SERVO_VENTING_TIMER, SERVO_VENTING_PWM_CH,
-                             MAX_PULSE, MIN_PULSE);
+                             MIN_PULSE, MAX_PULSE);
 
     // Set the default openings
     openings[ServosList::MAIN_VALVE]    = DEFAULT_MAIN_MAXIMUM_APERTURE;

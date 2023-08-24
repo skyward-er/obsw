@@ -49,8 +49,8 @@ constexpr float SERVO_CONFIDENCE              = 1 / 50.0;  // 2%
 constexpr uint32_t DEFAULT_MAIN_OPENING_TIME    = 6000;   // 6s
 constexpr uint32_t DEFAULT_VENTING_OPENING_TIME = 15000;  // 15s
 
-constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE    = 0.87f;
-constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE = 0.25f;
+constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE    = 0.97f;
+constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE = 0.35f;
 
 }  // namespace ActuatorsConfig
 
