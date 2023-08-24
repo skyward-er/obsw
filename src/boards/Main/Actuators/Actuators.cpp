@@ -57,7 +57,8 @@ bool Actuators::start()
     servoAbk->setPosition(0);
     servoExp->setPosition(0);
 
-    return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD);
+    return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD,
+                              TaskScheduler::Policy::RECOVER);
 }
 
 void Actuators::setServoPosition(ServosList servo, float position)
