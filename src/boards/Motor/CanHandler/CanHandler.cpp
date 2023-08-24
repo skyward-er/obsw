@@ -48,7 +48,7 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
     CanbusDriver::CanbusConfig config;
-    driver = new CanbusDriver(CAN1, config, bitTiming);
+
     driver = new CanbusDriver(CAN2, config, bitTiming);
 
     // Create the protocol with the defined driver
@@ -71,7 +71,7 @@ bool CanHandler::start()
         {
             auto sensors = ModuleManager::getInstance().get<Sensors>();
 
-            protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),
+            protocol->enqueueData(static_cast<uint8_t>(Priority::HIGH),
                                   static_cast<uint8_t>(PrimaryType::SENSORS),
                                   static_cast<uint8_t>(Board::MOTOR),
                                   static_cast<uint8_t>(Board::BROADCAST),
@@ -80,7 +80,7 @@ bool CanHandler::start()
                                       sensors->getChamberPressureSensorData()));
 
             protocol->enqueueData(
-                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(Priority::HIGH),
                 static_cast<uint8_t>(PrimaryType::SENSORS),
                 static_cast<uint8_t>(Board::MOTOR),
                 static_cast<uint8_t>(Board::BROADCAST),
@@ -89,7 +89,7 @@ bool CanHandler::start()
                     sensors->getTankPressureSensor1Data()));
 
             protocol->enqueueData(
-                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(Priority::HIGH),
                 static_cast<uint8_t>(PrimaryType::SENSORS),
                 static_cast<uint8_t>(Board::MOTOR),
                 static_cast<uint8_t>(Board::BROADCAST),
@@ -213,12 +213,12 @@ void CanHandler::handleCanCommand(const CanMessage &msg)
     {
         if (targetState)
         {
-            printf("Opening %d for %ld\n", msg.getSecondaryType(), delay);
+            // printf("Opening %d for %ld\n", msg.getSecondaryType(), delay);
             actuators->openServoAtomic(servo, delay);
         }
         else
         {
-            printf("Closing %d for %ld\n", msg.getSecondaryType(), delay);
+            // printf("Closing %d for %ld\n", msg.getSecondaryType(), delay);
             actuators->closeServoAtomic(servo, delay);
         }
     }
