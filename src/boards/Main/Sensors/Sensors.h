@@ -83,7 +83,7 @@ public:
 
     // Processed getters
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-    Boardcore::CurrentData getCurrentLastSample();  // (TODO)
+    Boardcore::CurrentData getCurrentLastSample();
     Boardcore::MPXH6400AData getDeploymentPressureLastSample();
     Boardcore::HSCMRNN015PAData getStaticPressure1LastSample();
     Boardcore::HSCMRNN015PAData getStaticPressure2LastSample();

@@ -107,6 +107,9 @@ constexpr Boardcore::ADS131M08Defs::Channel ADC_CH_STATIC_2 =
 constexpr float BATTERY_VOLTAGE_CONVERSION_FACTOR =
     (20.f / 2.4f) +
     1;  // 20 kOhm resistor and 2.4 kOhm resistor for voltage divider
+constexpr float CURRENT_CONVERSION_FACTOR =
+    (20.f / 4.f) / (12.f / (12.f + 33.f));
+constexpr float CURRENT_OFFSET = 0.133333333f;  // V in ADC
 
 }  // namespace SensorsConfig
 }  // namespace Main

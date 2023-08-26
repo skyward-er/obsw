@@ -115,6 +115,20 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
     return data;
 }
 
+CurrentData Sensors::getCurrentLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    CurrentData data;
+
+    // Populate the data
+    data.currentTimestamp = sample.timestamp;
+    data.current =
+        (sample.voltage[5] - CURRENT_OFFSET) * CURRENT_CONVERSION_FACTOR;
+    return data;
+}
+
 MPXH6400AData Sensors::getDeploymentPressureLastSample()
 {
     miosix::PauseKernelLock lock;
