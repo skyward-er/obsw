@@ -417,6 +417,10 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
     clGuidance.setPoints(targetNED);
 
     WingTargetPositionData data;
+
+    data.receivedLat = targetPositionGEO[0];
+    data.receivedLon = targetPositionGEO[1];
+
     data.targetN = targetNED[0];
     data.targetE = targetNED[1];
 
