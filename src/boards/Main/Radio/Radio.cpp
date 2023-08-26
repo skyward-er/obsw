@@ -76,8 +76,15 @@ bool Radio::start()
 
     // Config the transceiver
     SX1278Fsk::Config config;
-    config.power      = 12;
-    config.ocp        = 0;
+    config.freq_rf    = 439000000;
+    config.freq_dev   = 50000;
+    config.bitrate    = 48000;
+    config.rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000;
+    config.afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000;
+    config.ocp        = 120;
+    config.power      = 13;
+    config.shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0;
+    config.dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING;
     config.enable_crc = false;
 
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
