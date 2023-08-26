@@ -216,7 +216,7 @@ bool Radio::start()
     config.spreading_factor = SX1278Lora::Config::Sf::SF_7;
 
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(rxEn::getPin(), txEn::getPin());
+        std::make_unique<EbyteFrontend>(txEn::getPin(), rxEn::getPin());
 
     transceiver =
         new SX1278Lora(modules.get<Buses>()->spi1, cs::getPin(), dio0::getPin(),
