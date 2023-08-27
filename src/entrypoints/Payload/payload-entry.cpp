@@ -26,6 +26,7 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
+#include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -85,6 +86,7 @@ int main()
     TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
     Buses* buses           = new Buses();
+    PinHandler* pinHandler = new PinHandler();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -146,6 +148,12 @@ int main()
         LOG_ERR(logger, "Error inserting the WingController module");
     }
 
+    if (!modules.insert<PinHandler>(pinHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the PinHandler module");
+    }
+
     // if (!modules.insert<CanHandler>(canHandler))
     // {
     //     initResult = false;
@@ -199,6 +207,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the WingController module");
+    }
+
+    if (!modules.get<PinHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinHandler module");
     }
 
     // if (!modules.get<CanHandler>()->start())
