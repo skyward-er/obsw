@@ -41,7 +41,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/TMRepository/TMRepository.cpp
     src/boards/Payload/StateMachines/NASController/NASController.cpp
     src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
-    #src/boards/Payload/Wing/AltitudeTrigger.cpp
+    src/boards/Payload/Wing/AltitudeTrigger.cpp
     #src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
     #src/boards/Payload/Wing/FileWingAlgorithm.cpp
     #src/boards/Payload/Wing/WingAlgorithm.cpp
