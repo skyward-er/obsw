@@ -133,6 +133,10 @@ void ABKController::state_idle(const Event& event)
                 ABK_SHADOW_MODE_TIMEOUT, TOPIC_ABK, ABKConfig::DELAY_TIMEOUT);
             break;
         }
+        case ABK_SHADOW_MODE_TIMEOUT:
+        {
+            return transition(&ABKController::state_active);
+        }
         case FLIGHT_LANDING_DETECTED:
         {
             return transition(&ABKController::state_end);
