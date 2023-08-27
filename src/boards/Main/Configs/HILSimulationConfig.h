@@ -23,19 +23,32 @@
 #pragma once
 
 #include <Main/Buses.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
+#include <math.h>
+#include <sensors/SensorInfo.h>
 #include <utils/Debug.h>
 #include <utils/Stats/Stats.h>
 
 #include <list>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "Main/StateMachines/NASController/NASController.h"
-#include "algorithms/ADA/ADAData.h"
-#include "algorithms/NAS/NAS.h"
-#include "algorithms/NAS/NASState.h"
-#include "sensors/SensorInfo.h"
+// ADA
+#include <Main/StateMachines/ADAController/ADAControllerData.h>
+#include <algorithms/ADA/ADAData.h>
+
+// NAS
+#include <Main/StateMachines/NASController/NASControllerData.h>
+#include <algorithms/NAS/NASState.h>
+
+// ABK
+#include <Main/StateMachines/ABKController/ABKControllerData.h>
+#include <algorithms/AirBrakes/AirBrakesInterp.h>
+
+// MEA
+#include <Main/StateMachines/MEAController/MEAControllerData.h>
+#include <algorithms/MEA/MEAData.h>
 
 namespace HILConfig
 {
@@ -52,7 +65,7 @@ struct SensorConfig : public Boardcore::SensorInfo
 const int SIM_BAUDRATE = 115200;
 
 /** Period of simulation in milliseconds */
-const int SIMULATION_PERIOD = 100;
+const int SIMULATION_PERIOD = 20;
 
 /** sample frequency of sensor (samples/second) */
 const int ACCEL_FREQ = 100;
@@ -64,32 +77,23 @@ const int PITOT_FREQ = 20;
 const int TEMP_FREQ  = 10;
 const int GPS_FREQ   = 10;
 
-// /** update frequency of airbrakes control algorithm */
-// const int CONTROL_FREQ = 10;
-
-// /** min and max values in radiants of the actuator */
-// const float MinAlphaDegree = 0.0;
-// const float MaxAlphaDegree = 0.84;
-
-/** sensors configuration */
-const SensorConfig accelConfig("accel", ACCEL_FREQ);
-const SensorConfig gyroConfig("gyro", GYRO_FREQ);
-const SensorConfig magnConfig("magn", MAGN_FREQ);
-const SensorConfig imuConfig("imu", IMU_FREQ);
-const SensorConfig baroConfig("baro", BARO_FREQ);
-const SensorConfig pitotConfig("pitot", PITOT_FREQ);
-const SensorConfig gpsConfig("gps", GPS_FREQ);
-const SensorConfig tempConfig("temp", TEMP_FREQ);
-
 /** Number of samples per sensor at each simulator iteration */
-const int N_DATA_ACCEL = (ACCEL_FREQ * SIMULATION_PERIOD) / 1000;  // 10
-const int N_DATA_GYRO  = (GYRO_FREQ * SIMULATION_PERIOD) / 1000;   // 10
-const int N_DATA_MAGN  = (MAGN_FREQ * SIMULATION_PERIOD) / 1000;   // 10
-const int N_DATA_IMU   = (IMU_FREQ * SIMULATION_PERIOD) / 1000;    // 10
-const int N_DATA_BARO  = (BARO_FREQ * SIMULATION_PERIOD) / 1000;   // 2
-const int N_DATA_PITOT = (PITOT_FREQ * SIMULATION_PERIOD) / 1000;  // 2
-const int N_DATA_GPS   = (GPS_FREQ * SIMULATION_PERIOD) / 1000;    // 1
-const int N_DATA_TEMP  = (TEMP_FREQ * SIMULATION_PERIOD) / 1000;   // 1
+const int N_DATA_ACCEL = static_cast<int>(
+    std::ceil(static_cast<float>(ACCEL_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_GYRO = static_cast<int>(
+    std::ceil(static_cast<float>(GYRO_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_MAGN = static_cast<int>(
+    std::ceil(static_cast<float>(MAGN_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_IMU = static_cast<int>(
+    std::ceil(static_cast<float>(IMU_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_BARO = static_cast<int>(
+    std::ceil(static_cast<float>(BARO_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_PITOT = static_cast<int>(
+    std::ceil(static_cast<float>(PITOT_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_GPS = static_cast<int>(
+    std::ceil(static_cast<float>(GPS_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_TEMP = static_cast<int>(
+    std::ceil(static_cast<float>(TEMP_FREQ * SIMULATION_PERIOD) / 1000.0));
 
 /**
  * @brief Data structure used by the simulator in order to directly deserialize
@@ -126,7 +130,7 @@ struct SimulatorData
     struct Barometer
     {
         float measures[N_DATA_BARO];
-    } barometer1, barometer2, barometer3;
+    } barometer1, barometer2, barometer3, pressureChamber;
 
     struct Pitot
     {
@@ -209,11 +213,18 @@ struct SimulatorData
             TRACE("%+.3f\n", barometer3.measures[i]);
     }
 
+    void printBarometerChamber()
+    {
+        TRACE("press3\n");
+        for (int i = 0; i < N_DATA_BARO; i++)
+            TRACE("%+.3f\n", pressureChamber.measures[i]);
+    }
+
     void printPitot()
     {
         TRACE("pitot\n");
         for (int i = 0; i < N_DATA_PITOT; i++)
-            TRACE("%+.3f, \n", pitot.staticPressure[i], pitot.deltaP[i]);
+            TRACE("%+.3f, %+.3f\n", pitot.staticPressure[i], pitot.deltaP[i]);
     }
 
     void printTemperature()
@@ -246,6 +257,7 @@ struct SimulatorData
         printBarometer1();
         printBarometer2();
         printBarometer3();
+        printBarometerChamber();
         printPitot();
         printTemperature();
         printFlags();
@@ -255,75 +267,281 @@ struct SimulatorData
 /**
  * @brief ADA data sent to the simulator
  */
-struct ADAdataHIL
+struct ADAStateHIL
 {
-    uint64_t ada_timestamp;
-    float aglAltitude;    // Altitude at mean sea level [m].
-    float verticalSpeed;  // Vertical speed [m/s].
+    float mslAltitude    = 0;  // Altitude at mean sea level [m].
+    float aglAltitude    = 0;  // Altitude above ground level [m].
+    float verticalSpeed  = 0;  // Vertical speed [m/s].
+    float apogeeDetected = 0;  // Flag if apogee is detected [bool]
+    float updating       = 0;  //
 
-    ADAdataHIL& operator+=(const ADAdataHIL& x)
+    ADAStateHIL()
+        : mslAltitude(0), aglAltitude(0), verticalSpeed(0), apogeeDetected(0),
+          updating(0)
     {
-        this->ada_timestamp += x.ada_timestamp;
-        this->aglAltitude += x.aglAltitude;
-        this->verticalSpeed += x.verticalSpeed;
-
-        return *this;  // return the result by reference
     }
 
-    ADAdataHIL operator/(int x)
+    ADAStateHIL(Boardcore::ADAState adaState,
+                Main::ADAControllerStatus adaStatus)
+        : mslAltitude(adaState.mslAltitude), aglAltitude(adaState.aglAltitude),
+          verticalSpeed(adaState.verticalSpeed),
+          apogeeDetected(adaStatus.state == Main::ADAControllerState::END),
+          updating(adaStatus.state == Main::ADAControllerState::ARMED ||
+                   adaStatus.state == Main::ADAControllerState::SHADOW_MODE ||
+                   adaStatus.state == Main::ADAControllerState::ACTIVE)
     {
-        return ADAdataHIL{this->ada_timestamp / x, this->aglAltitude / x,
-                          this->verticalSpeed / x};
     }
 
-    ADAdataHIL operator*(int x)
+    void print()
     {
-        return ADAdataHIL{this->ada_timestamp * x, this->aglAltitude * x,
-                          this->verticalSpeed * x};
-    }
-
-    static std::string header()
-    {
-        return "timestamp,aglAltitude,verticalSpeed\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << ada_timestamp << "," << aglAltitude << "," << verticalSpeed
-           << "\n";
+        printf(
+            "mslAltitude: %+.3f\n"
+            "aglAltitude: %+.3f\n"
+            "verticalSpeed: %+.3f\n"
+            "apogeeDetected: %+.3f\n"
+            "updating: %+.3f\n",
+            mslAltitude, aglAltitude, verticalSpeed, apogeeDetected, updating);
     }
 };
 
 /**
- * @brief Data structure expected by the simulator
+ * @brief NAS data sent to the simulator
+ */
+struct NASStateHIL
+{
+    float n = 0;
+    float e = 0;
+    float d = 0;
+
+    // Velocity [m/s]
+    float vn = 0;
+    float ve = 0;
+    float vd = 0;
+
+    // Attitude as quaternion
+    float qx = 0;
+    float qy = 0;
+    float qz = 0;
+    float qw = 1;
+
+    float updating = 0;  // Flag if apogee is detected [bool]
+
+    NASStateHIL()
+        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(0),
+          updating(0)
+    {
+    }
+
+    NASStateHIL(Boardcore::NASState adaState,
+                Main::NASControllerStatus adaStatus)
+        : n(adaState.n), e(adaState.e), d(adaState.d), vn(adaState.vn),
+          ve(adaState.ve), vd(adaState.vd), qx(adaState.qx), qy(adaState.qy),
+          qz(adaState.qz), qw(adaState.qw),
+          updating(adaStatus.state == Main::NASControllerState::ACTIVE)
+    {
+    }
+
+    void print()
+    {
+        printf(
+            "n: %+.3f\n"
+            "e: %+.3f\n"
+            "d: %+.3f\n"
+            "vn: %+.3f\n"
+            "ve: %+.3f\n"
+            "vd: %+.3f\n"
+            "qx: %+.3f\n"
+            "qy: %+.3f\n"
+            "qz: %+.3f\n"
+            "qw: %+.3f\n"
+            "updating: %+.3f\n",
+            n, e, d, vn, ve, vd, qx, qy, qz, qw, updating);
+    }
+};
+
+/**
+ * @brief ABK data sent to the simulator
+ */
+struct AirBrakesStateHIL
+{
+    float updating = 0;  // Flag if apogee is detected [bool]
+
+    AirBrakesStateHIL() : updating(0) {}
+
+    AirBrakesStateHIL(Main::ABKControllerStatus abkStatus)
+        : updating(abkStatus.state == Main::ABKControllerState::ACTIVE)
+    {
+    }
+
+    void print() { printf("updating: %+.3f\n", updating); }
+};
+
+/**
+ * @brief MEA data sent to the simulator
+ */
+struct MEAStateHIL
+{
+    float correctedPressure = 0;
+
+    float estimatedMass   = 0;
+    float estimatedApogee = 0;
+
+    float updating = 0;  // Flag if apogee is detected [bool]
+
+    MEAStateHIL()
+        : correctedPressure(0), estimatedMass(0), estimatedApogee(0),
+          updating(0)
+    {
+    }
+
+    MEAStateHIL(Boardcore::MEAState state, Main::MEAControllerStatus status)
+        : correctedPressure(state.correctedPressure),
+          estimatedMass(status.estimatedMass),
+          estimatedApogee(status.estimatedApogee), updating(/* TODO update! */)
+    {
+    }
+
+    void print()
+    {
+        printf(
+            "correctedPressure: %+.3f\n"
+            "estimatedMass: %+.3f\n"
+            "estimatedApogee: %+.3f\n"
+            "updating: %+.3f\n",
+            correctedPressure, estimatedMass, estimatedApogee, updating);
+    }
+};
+
+struct ActuatorsStateHIL
+{
+    float airbrakesPercentage    = 0;
+    float expulsionPercentage    = 0;
+    float mainValvePercentage    = 0;
+    float ventingValvePercentage = 0;
+
+    ActuatorsStateHIL()
+        : airbrakesPercentage(0.0f), expulsionPercentage(0.0f),
+          mainValvePercentage(0.0f), ventingValvePercentage(0.0f)
+    {
+    }
+
+    ActuatorsStateHIL(float airbrakesPercentage, float expulsionPercentage,
+                      float mainValvePercentage, float ventingValvePercentage)
+        : airbrakesPercentage(airbrakesPercentage),
+          expulsionPercentage(expulsionPercentage),
+          mainValvePercentage(mainValvePercentage),
+          ventingValvePercentage(ventingValvePercentage)
+    {
+    }
+
+    void print()
+    {
+        printf(
+            "airbrakes: %f perc\n"
+            "expulsion: %f perc\n"
+            "mainValve: %f perc\n"
+            "venting: %f perc\n",
+            airbrakesPercentage * 100, expulsionPercentage * 100,
+            mainValvePercentage * 100, ventingValvePercentage * 100);
+    }
+};
+
+struct FlagsHIL
+{
+    float flag_flight;
+    float flag_ascent;
+    float flag_burning;
+    float flag_airbrakes;
+    float flag_para1;
+    float flag_para2;
+
+    FlagsHIL(float flag_flight, float flag_ascent, float flag_burning,
+             float flag_airbrakes, float flag_para1, float flag_para2)
+        : flag_flight(flag_flight), flag_ascent(flag_ascent),
+          flag_burning(flag_burning), flag_airbrakes(flag_airbrakes),
+          flag_para1(flag_para1), flag_para2(flag_para2)
+    {
+    }
+
+    FlagsHIL()
+        : flag_flight(0.0f), flag_ascent(0.0f), flag_burning(0.0f),
+          flag_airbrakes(0.0f), flag_para1(0.0f), flag_para2(0.0f)
+    {
+    }
+
+    void print()
+    {
+        printf(
+            "flag_flight: %f\n"
+            "flag_ascent: %f\n"
+            "flag_burning: %f\n"
+            "flag_airbrakes: %f\n"
+            "flag_para1: %f\n"
+            "flag_para2: %f\n",
+            flag_flight, flag_ascent, flag_burning, flag_airbrakes, flag_para1,
+            flag_para2);
+    }
+};
+
+/**
+ * @brief Data strudcture expected by the simulator
  */
 struct ActuatorData
 {
-    Boardcore::NASState nasState;  ///< NAS
-    ADAdataHIL adaState;           ///< ADA
-    float airbrakes_opening;       ///< Airbrakes opening (percentage)
-    float estimated_mass;          ///< Estimated mass of the rocket
-    float liftoff;                 ///< Flag for liftoff
-    float burning_shutdown;        ///< Flag for engine shutdown
+    ADAStateHIL adaState;
+    NASStateHIL nasState;
+    AirBrakesStateHIL airBrakesState;
+    MEAStateHIL meaState;
+    ActuatorsStateHIL actuatorsState;
+    FlagsHIL flags;
 
-    void print() const
+    ActuatorData()
+        : adaState(), nasState(), airBrakesState(), meaState(),
+          actuatorsState(), flags()
     {
-        TRACE(
-            "size:%u, %u, %u\n"
-            "abk:%f\n"
-            "tsnas:%f\n"
-            "ned:%f,%f,%f\n"
-            "vned:%f,%f,%f\n"
-            "q:%f,%f,%f,%f\n"
-            "bias:%f,%f,%f\n"
-            "tsada:%f\n"
-            "ada:%f,%f\n\n",
-            sizeof(airbrakes_opening), sizeof(Boardcore::NASState),
-            sizeof(ADAdataHIL), airbrakes_opening, nasState.timestamp,
-            nasState.n, nasState.e, nasState.d, nasState.vn, nasState.ve,
-            nasState.vd, nasState.qx, nasState.qy, nasState.qz, nasState.qw,
-            nasState.bx, nasState.by, nasState.bz, adaState.ada_timestamp,
-            adaState.aglAltitude, adaState.verticalSpeed);
+    }
+
+    ActuatorData(ADAStateHIL adaState, NASStateHIL nasState,
+                 AirBrakesStateHIL airBrakesState, MEAStateHIL meaState,
+                 ActuatorsStateHIL actuatorsState, Main::FlightModeManager* fmm)
+        : adaState(adaState), nasState(nasState),
+          airBrakesState(airBrakesState), meaState(meaState),
+          actuatorsState(actuatorsState)
+    {
+        flags.flag_flight =
+            (fmm->testState(&Main::FlightModeManager::state_flying) ? 1 : 0);
+        flags.flag_ascent =
+            (fmm->testState(&Main::FlightModeManager::state_powered_ascent) ||
+                     fmm->testState(
+                         &Main::FlightModeManager::state_unpowered_ascent)
+                 ? 1
+                 : 0);
+        flags.flag_burning =
+            (fmm->testState(&Main::FlightModeManager::state_powered_ascent)
+                 ? 1
+                 : 0);
+        flags.flag_airbrakes =
+            (fmm->testState(&Main::FlightModeManager::state_unpowered_ascent)
+                 ? 1
+                 : 0);
+        flags.flag_para1 =
+            (fmm->testState(&Main::FlightModeManager::state_drogue_descent)
+                 ? 1
+                 : 0);
+        flags.flag_para2 =
+            (fmm->testState(&Main::FlightModeManager::state_terminal_descent)
+                 ? 1
+                 : 0);
+    }
+
+    void print()
+    {
+        adaState.print();
+        nasState.print();
+        airBrakesState.print();
+        meaState.print();
+        actuatorsState.print();
+        flags.print();
     }
 };
 

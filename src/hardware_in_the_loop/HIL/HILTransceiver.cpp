@@ -29,7 +29,7 @@ using namespace HILConfig;
  * @brief Construct a serial connection attached to a control algorithm
  */
 HILTransceiver::HILTransceiver(Boardcore::USART &hilSerial)
-    : hilSerial(hilSerial), actuatorData(ActuatorData{})
+    : hilSerial(hilSerial), actuatorData{}
 {
 }
 

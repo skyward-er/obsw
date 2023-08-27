@@ -91,7 +91,7 @@ public:
     virtual Boardcore::HSCMRNN015PAData getStaticPressure1LastSample();
     virtual Boardcore::HSCMRNN015PAData getStaticPressure2LastSample();
     virtual RotatedIMUData getIMULastSample();
-    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
+    virtual Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
     // CAN fake sensors setters
     void setPitot(Boardcore::PitotData data);
@@ -116,6 +116,8 @@ public:
     getSensorInfo();
 
 protected:
+    RotatedIMU* imu = nullptr;
+
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorMap;
@@ -182,7 +184,6 @@ private:
     Boardcore::CurrentData canMotorCurrent{};
 
     // Fake processed sensors
-    RotatedIMU* imu                         = nullptr;
     Boardcore::MPXH6400A* mpxh6400a         = nullptr;
     Boardcore::HSCMRNN015PA* hscmrnn015pa_1 = nullptr;
     Boardcore::HSCMRNN015PA* hscmrnn015pa_2 = nullptr;

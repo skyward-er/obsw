@@ -58,6 +58,40 @@ using namespace Boardcore;
 using namespace Main;
 using namespace Common;
 
+class MockCanHandler : public CanHandler
+{
+
+public:
+    explicit MockCanHandler(Boardcore::TaskScheduler* sched) {}
+
+    /**
+     * @brief Adds the periodic task to the scheduler and starts the protocol
+     * threads
+     */
+    bool start() override { return true; }
+
+    /**
+     * @brief Returns true if the protocol threads are started and the scheduler
+     * is running
+     */
+    bool isStarted() override { return true; }
+
+    /**
+     * @brief Sends a CAN event on the bus
+     */
+    void sendEvent(Common::CanConfig::EventId event) override {}
+
+    /**
+     * @brief Sends a can command (servo actuation command) specifying the
+     * target servo, the target state and eventually the delta [ms] in which the
+     * servo remains open
+     */
+    void sendCanCommand(ServosList servo, bool targetState,
+                        uint32_t delay) override
+    {
+    }
+};
+
 int main()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -83,10 +117,11 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
         new ADAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
-    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    TMRepository* tmRepo = new TMRepository();
+    // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
+    // 2));
+    // TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+        new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
@@ -115,10 +150,15 @@ int main()
     }
 
 #ifdef HILMain
-    if (!modules.insert<HIL>(new HIL(buses->usart2)))
+    HIL* hil = new HIL(buses->usart2);
+    if (!modules.insert<HIL>(hil))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the HIL module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the HIL module");
     }
 #endif
 
@@ -127,11 +167,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the Sensor module");
     }
+    else
+    {
+        LOG_INFO(logger, "Inserted the Sensor module");
+    }
 
     if (!modules.insert<Actuators>(actuators))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Actuators module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the Actuators module");
     }
 
     if (!modules.insert<Deployment>(dpl))
@@ -145,11 +193,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the NAS module");
     }
+    else
+    {
+        LOG_INFO(logger, "Inserted the NAS module");
+    }
 
     if (!modules.insert<ADAController>(ada))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the ADA module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the ADA module");
     }
 
     if (!modules.insert<MEAController>(mea))
@@ -157,47 +213,79 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the MEA module");
     }
+    else
+    {
+        LOG_INFO(logger, "Inserted the MEA module");
+    }
 
     if (!modules.insert<ABKController>(abk))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the ABK controller module");
     }
-
-    if (!modules.insert<Radio>(radio))
+    else
     {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Radio module");
+        LOG_INFO(logger, "Inserted the ABK controller module");
     }
+
+    // if (!modules.insert<Radio>(radio))
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error inserting the Radio module");
+    // }
+    // else
+    // {
+    //     LOG_INFO(logger, "Inserted the Radio module");
+    // }
 
     if (!modules.insert<FlightModeManager>(fmm))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the FMM module");
     }
-
-    if (!modules.insert<TMRepository>(tmRepo))
+    else
     {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the TMRepository module");
+        LOG_INFO(logger, "Inserted the FMM module");
     }
+
+    // if (!modules.insert<TMRepository>(tmRepo))
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error inserting the TMRepository module");
+    // }
+    // else
+    // {
+    //     LOG_INFO(logger, "Inserted the TMRepository module");
+    // }
 
     if (!modules.insert<CanHandler>(canHandler))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the CanHandler module");
     }
-
-    if (!modules.insert<PinHandler>(pinHandler))
+    else
     {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the PinHandler module");
+        LOG_INFO(logger, "Inserted the CanHandler module");
     }
+
+    // if (!modules.insert<PinHandler>(pinHandler))
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error inserting the PinHandler module");
+    // }
+    // else
+    // {
+    //     LOG_INFO(logger, "Inserted the PinHandler module");
+    // }
 
     if (!modules.insert<AltitudeTrigger>(altitudeTrigger))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Altitude Trigger module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the Altitude Trigger module");
     }
 
     if (!modules.insert<FlightStatsRecorder>(recorder))
@@ -212,11 +300,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the Logger module");
     }
+    else
+    {
+        LOG_INFO(logger, "Tested the Logger module");
+    }
 
     if (!EventBroker::getInstance().start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the EventBroker module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the EventBroker module");
     }
 
     if (!modules.get<BoardScheduler>()->start())
@@ -224,11 +320,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
+    else
+    {
+        LOG_INFO(logger, "Started the Board Scheduler module");
+    }
 
     if (!modules.get<Actuators>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the Actuators module");
     }
 
     if (!modules.get<Deployment>()->start())
@@ -248,11 +352,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the NAS module");
     }
+    else
+    {
+        LOG_INFO(logger, "Started the NAS module");
+    }
 
     if (!modules.get<ADAController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the ADA module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the ADA module");
     }
 
     if (!modules.get<MEAController>()->start())
@@ -260,11 +372,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the MEA module");
     }
+    else
+    {
+        LOG_INFO(logger, "Started the MEA module");
+    }
 
     if (!modules.get<ABKController>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the ABK controller module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the ABK controller module");
     }
 
     if (!modules.get<FlightModeManager>()->start())
@@ -272,29 +392,49 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the FMM module");
     }
-
-    if (!modules.get<Radio>()->start())
+    else
     {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Radio module");
+        LOG_INFO(logger, "Started the FMM module");
     }
+
+    // if (!modules.get<Radio>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the Radio module");
+    // }
+    // else
+    // {
+    //     LOG_INFO(logger, "Started the Radio module");
+    // }
 
     if (!modules.get<CanHandler>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the CanHandler module");
     }
-
-    if (!modules.get<PinHandler>()->start())
+    else
     {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the PinHandler module");
+        LOG_INFO(logger, "Started the CanHandler module");
     }
+
+    // if (!modules.get<PinHandler>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the PinHandler module");
+    // }
+    // else
+    // {
+    //     LOG_INFO(logger, "Started the PinHandler module");
+    // }
 
     if (!modules.get<AltitudeTrigger>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Altitude Trigger module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the Altitude Trigger module");
     }
 
     if (!modules.get<FlightStatsRecorder>()->start())
@@ -309,6 +449,94 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the HIL module");
     }
+    else
+    {
+        LOG_INFO(logger, "Started the HIL module");
+    }
+
+    hil->flightPhasesManager->setCurrentPositionSource(
+        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
+                                            Topics::TOPIC_TMTC);
+            Thread::sleep(3000);
+            EventBroker::getInstance().post(Events::TMTC_ARM,
+                                            Topics::TOPIC_TMTC);
+            printf("ARM COMMAND SENT\n");
+        });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIM_FLYING,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                            Topics::TOPIC_FLIGHT);
+        });
+
+    // hil->flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::LIFTOFF_PIN_DETACHED,
+    //     [&]()
+    //     {
+    //         EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+    //                                         Topics::TOPIC_FLIGHT);
+    //     });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::LIFTOFF, [&]()
+        { EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT); });
+
+    modules.get<BoardScheduler>()
+        ->getScheduler(miosix::PRIORITY_MAX - 1)
+        ->addTask(
+            [&]()
+            {
+                Boardcore::ModuleManager& modules =
+                    Boardcore::ModuleManager::getInstance();
+
+                HILConfig::ADAStateHIL adaStateHIL(
+                    modules.get<ADAController>()->getADAState(),
+                    modules.get<ADAController>()->getStatus());
+
+                HILConfig::NASStateHIL nasStateHIL(
+                    modules.get<NASController>()->getNasState(),
+                    modules.get<NASController>()->getStatus());
+
+                HILConfig::AirBrakesStateHIL abkStateHIL(
+                    modules.get<ABKController>()->getStatus());
+
+                HILConfig::MEAStateHIL meaStateHIL(
+                    modules.get<MEAController>()->getMEAState(),
+                    modules.get<MEAController>()->getStatus());
+
+                HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                    actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
+                    actuators->getServoPosition(ServosList::EXPULSION_SERVO),
+                    actuators->getServoPosition(ServosList::MAIN_VALVE),
+                    actuators->getServoPosition(ServosList::VENTING_VALVE)};
+
+                // float burning = ((modules.getInstance()
+                //                       .get<FlightModeManager>()
+                //                       ->getStatus()
+                //                       .state ==
+                //                   Main::FlightModeManagerState::POWERED_ASCENT)
+                //                      ? 1.0f
+                //                      : 0.0f);
+
+                float burning =
+                    actuators->getServoPosition(ServosList::MAIN_VALVE);
+
+                HILConfig::ActuatorData actuatorData{
+                    adaStateHIL, nasStateHIL,       abkStateHIL,
+                    meaStateHIL, actuatorsStateHIL, fmm};
+
+                // Actually sending the feedback to the simulator
+                modules.get<HIL>()->send(actuatorData);
+            },
+            HILConfig::SIMULATION_PERIOD);
 #endif
 
     // Log all the events
@@ -320,37 +548,6 @@ int main()
             Logger::getInstance().log(ev);
         });
 
-#ifdef HILMain
-    modules.get<BoardScheduler>()
-        ->getScheduler(miosix::PRIORITY_MAX - 3)
-        ->addTask(
-            [&]()
-            {
-                Boardcore::ModuleManager& modules =
-                    Boardcore::ModuleManager::getInstance();
-
-                HILConfig::ADAdataHIL adaDataHil{
-                    Boardcore::TimestampTimer::getTimestamp(),
-                    modules.get<ADAController>()->getADAState().mslAltitude,
-                    modules.get<ADAController>()->getADAState().verticalSpeed};
-
-                HILConfig::ActuatorData actuatorData{
-                    modules.get<Main::NASController>()
-                        ->getNasState(),  // NAS state summary
-                    adaDataHil,           // ADA state summary
-                    modules.get<Main::Actuators>()->getServoPosition(
-                        ServosList::AIR_BRAKES_SERVO),  // ABK opening
-                    30,                                 // Mass estimate
-                    true,                               // Flag liftoff
-                    false                               // flag burning
-                };
-
-                // Actually sending the feedback to the simulator
-                modules.get<HIL>()->send(actuatorData);
-            },
-            HILConfig::SIMULATION_PERIOD);
-#endif
-
     // Check the init result and launch an event
     if (initResult)
     {
@@ -358,6 +555,7 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 
         // Set the LED status
+        LOG_INFO(logger, "All modules initialized!");
         miosix::led1On();
     }
     else

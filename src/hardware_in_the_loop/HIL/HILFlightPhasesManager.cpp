@@ -26,9 +26,6 @@
 
 #include "events/EventBroker.h"
 
-/* CPUMeter */
-// #include "diagnostic/CpuMeter/CpuMeter.h"
-
 using namespace Common;
 using namespace HILConfig;
 
@@ -115,29 +112,6 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
             registerOutcomes(FlightPhases::SIM_FLYING);
             TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
             changed_flags.push_back(FlightPhases::SIM_FLYING);
-        }
-        if (isSetFalse(FlightPhases::SIM_BURNING))
-        {
-            registerOutcomes(FlightPhases::SIM_BURNING);
-            TRACE("[HIL] ------- STOPPED BURNING ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_BURNING);
-        }
-        if (isSetTrue(FlightPhases::SIM_AEROBRAKES))
-        {
-            registerOutcomes(FlightPhases::SIM_AEROBRAKES);
-            changed_flags.push_back(FlightPhases::SIM_AEROBRAKES);
-        }
-        if (isSetTrue(FlightPhases::SIM_PARA1))
-        {
-            registerOutcomes(FlightPhases::SIM_PARA1);
-            TRACE("[HIL] ------- PARACHUTE 1 ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_PARA1);
-        }
-        if (isSetTrue(FlightPhases::SIM_PARA2))
-        {
-            registerOutcomes(FlightPhases::SIM_PARA2);
-            TRACE("[HIL] ------- PARACHUTE 2 ! ------- \n");
-            changed_flags.push_back(FlightPhases::SIM_PARA2);
         }
     }
 

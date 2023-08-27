@@ -37,30 +37,32 @@ class CanHandler : public Boardcore::Module
 
 public:
     explicit CanHandler(Boardcore::TaskScheduler *sched);
+    explicit CanHandler(){};
 
     /**
      * @brief Adds the periodic task to the scheduler and starts the protocol
      * threads
      */
-    bool start();
+    virtual bool start();
 
     /**
      * @brief Returns true if the protocol threads are started and the scheduler
      * is running
      */
-    bool isStarted();
+    virtual bool isStarted();
 
     /**
      * @brief Sends a CAN event on the bus
      */
-    void sendEvent(Common::CanConfig::EventId event);
+    virtual void sendEvent(Common::CanConfig::EventId event);
 
     /**
      * @brief Sends a can command (servo actuation command) specifying the
      * target servo, the target state and eventually the delta [ms] in which the
      * servo remains open
      */
-    void sendCanCommand(ServosList servo, bool targetState, uint32_t delay);
+    virtual void sendCanCommand(ServosList servo, bool targetState,
+                                uint32_t delay);
 
 private:
     /**

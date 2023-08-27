@@ -126,15 +126,8 @@ private:
     HILGps* ubxgps                   = nullptr;
     HILAccelerometer* lsm6dsrx_accel = nullptr;
     HILGyroscope* lsm6dsrx_gyro      = nullptr;
+    HILPitot* pitot                  = nullptr;
     // Boardcore::ADS131M08* ads131m08  = nullptr;
-
-    // Sensor manager
-    Boardcore::SensorManager* manager = nullptr;
-    Boardcore::SensorManager::SensorMap_t sensorMap;
-    Boardcore::TaskScheduler* scheduler = nullptr;
-
-    // SD logger
-    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };

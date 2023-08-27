@@ -147,14 +147,26 @@ Boardcore::MPXH6400AData HILSensors::getDeploymentPressureLastSample()
 }
 Boardcore::HSCMRNN015PAData HILSensors::getStaticPressure1LastSample()
 {
-    // TODO:
-    return Boardcore::HSCMRNN015PAData{};
+    miosix::PauseKernelLock lock;
+    Boardcore::HSCMRNN015PAData data;
+
+    data.pressureTimestamp = lps22df->getLastSample().pressureTimestamp;
+    data.pressure          = lps22df->getLastSample().pressure;
+
+    return data;
 }
+
 Boardcore::HSCMRNN015PAData HILSensors::getStaticPressure2LastSample()
 {
-    // TODO:
-    return Boardcore::HSCMRNN015PAData{};
+    miosix::PauseKernelLock lock;
+    Boardcore::HSCMRNN015PAData data;
+
+    data.pressureTimestamp = lps22df->getLastSample().pressureTimestamp;
+    data.pressure          = lps22df->getLastSample().pressure;
+
+    return data;
 }
+
 RotatedIMUData HILSensors::getIMULastSample()
 {
     // TODO:
@@ -188,10 +200,7 @@ bool HILSensors::start()
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
-    printf("new SensorManager\n");
-    bool started = manager->start();
-    printf("SensorManager started\n");
-    return started;
+    return manager->start();
 }
 
 void HILSensors::stop() { manager->stop(); }
@@ -200,7 +209,19 @@ bool HILSensors::isStarted() { return manager->areAllSensorsInitialized(); }
 
 void HILSensors::calibrate() {}
 
-void HILSensors::temperatureInit() {}
+void HILSensors::temperatureInit()
+{
+    temperature =
+        new HILTemperature(N_DATA_TEMP, &Boardcore::ModuleManager::getInstance()
+                                             .get<HIL>()
+                                             ->simulator->getSensorData()
+                                             ->temperature);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("TEMP_HIL", 1000 / TEMP_FREQ);
+
+    sensorMap.emplace(make_pair(temperature, info));
+}
 
 void HILSensors::lps22dfInit()
 {
@@ -315,13 +336,13 @@ void HILSensors::lsm6dsrxInit()
 void HILSensors::ads131m08Init()
 {
     // Configure the SPI
-    SPIBusConfig config;
-    config.clockDivider = SPI::ClockDivider::DIV_32;
+    // SPIBusConfig config;
+    // config.clockDivider = SPI::ClockDivider::DIV_32;
 
     // Configure the device
-    ADS131M08::Config sensorConfig;
-    sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
-    sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
+    // ADS131M08::Config sensorConfig;
+    // sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
+    // sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
 
     // Create the sensor instance with configured parameters
     // ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
@@ -340,7 +361,25 @@ void HILSensors::staticPressure1Init() { return; }
 
 void HILSensors::staticPressure2Init() { return; }
 
-void HILSensors::imuInit() { return; }
+void HILSensors::imuInit()
+{
+    // Register the IMU as the fake sensor, passing as parameters the methods to
+    // retrieve real data. The sensor is not synchronized, but the sampling
+    // thread is always the same.
+    imu = new RotatedIMU(
+        bind(&HILAccelerometer::getLastSample, lsm6dsrx_accel),
+        bind(&Sensors::getCalibratedMagnetometerLastSample, this),
+        bind(&HILGyroscope::getLastSample, lsm6dsrx_gyro));
+
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    imu->addMagTransformation(m);
+
+    // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
+    SensorInfo info("RotatedIMU", IMU_PERIOD,
+                    bind(&HILSensors::imuCallback, this));
+    sensorMap.emplace(make_pair(imu, info));
+}
 
 void HILSensors::lps22dfCallback()
 {
@@ -390,16 +429,16 @@ void HILSensors::deploymentPressureCallback()
 void HILSensors::staticPressure1Callback()
 {
     miosix::PauseKernelLock lock;
-    // Logger::getInstance().log(getStaticPressure1LastSample());
+    Logger::getInstance().log(getStaticPressure1LastSample());
 }
 void HILSensors::staticPressure2Callback()
 {
     miosix::PauseKernelLock lock;
-    // Logger::getInstance().log(getStaticPressure2LastSample());
+    Logger::getInstance().log(getStaticPressure2LastSample());
 }
 void HILSensors::imuCallback()
 {
     miosix::PauseKernelLock lock;
-    // Logger::getInstance().log(getIMULastSample());
+    Logger::getInstance().log(getIMULastSample());
 }
 }  // namespace Main

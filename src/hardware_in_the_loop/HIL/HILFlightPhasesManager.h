@@ -85,7 +85,8 @@ struct Outcomes
  * After his instantiation we need to set the source of the current position in
  * order to be able to save the outcomes for each event.
  */
-class HILFlightPhasesManager : public Boardcore::EventHandler
+class HILFlightPhasesManager : public Boardcore::EventHandler,
+                               public Boardcore::Module
 {
     using FlightPhasesFlags = HILConfig::SimulatorData::Flags;
 
