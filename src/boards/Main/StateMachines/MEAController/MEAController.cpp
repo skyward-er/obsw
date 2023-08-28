@@ -101,6 +101,8 @@ void MEAController::update()
             // TODO compute apogee, log and throw event
         }
     }
+
+    // TODO log the state
 }
 
 MEAControllerStatus MEAController::getStatus()
