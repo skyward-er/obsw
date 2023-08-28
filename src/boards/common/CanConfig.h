@@ -50,7 +50,8 @@ enum class PrimaryType : uint8_t
     EVENTS = 0,
     SENSORS,
     STATUS,
-    COMMAND
+    COMMAND,
+    ACTUATORS
 };
 
 // Used for source and destination
