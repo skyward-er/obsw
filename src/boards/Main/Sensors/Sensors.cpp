@@ -173,31 +173,35 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
     return result;
 }
 
-// TODO decide for timestamps
 void Sensors::setPitot(PitotData data)
 {
     miosix::PauseKernelLock lock;
-    canPitot = data;
+    canPitot.timestamp = TimestampTimer::getTimestamp();
+    canPitot           = data;
 }
 void Sensors::setCCPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canCCPressure = data;
+    canCCPressure.pressureTimestamp = TimestampTimer::getTimestamp();
+    canCCPressure                   = data;
 }
 void Sensors::setBottomTankPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canBottomTankPressure = data;
+    canBottomTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
+    canBottomTankPressure                   = data;
 }
 void Sensors::setTopTankPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canTopTankPressure = data;
+    canTopTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
+    canTopTankPressure                   = data;
 }
 void Sensors::setTankTemperature(TemperatureData data)
 {
     miosix::PauseKernelLock lock;
-    canTankTemperature = data;
+    canTankTemperature.temperatureTimestamp = TimestampTimer::getTimestamp();
+    canTankTemperature                      = data;
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}

@@ -41,20 +41,22 @@ enum class MEAControllerState : uint8_t
 
 struct MEAControllerStatus
 {
-    uint64_t timestamp       = 0;
-    float estimatedMass      = 0;
-    float estimatedApogee    = 0;
-    MEAControllerState state = MEAControllerState::UNINIT;
+    uint64_t timestamp         = 0;
+    float estimatedMass        = 0;
+    float estimatedApogee      = 0;
+    uint16_t detectedShutdowns = 0;
+    MEAControllerState state   = MEAControllerState::UNINIT;
 
     static std::string header()
     {
-        return "timestamp,estimatedMass,estimatedApogee,state\n";
+        return "timestamp,estimatedMass,estimatedApogee,detectedShutdowns,"
+               "state\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << estimatedMass << "," << estimatedApogee << ","
-           << (int)state << "\n";
+           << (int)detectedShutdowns << "," << (int)state << "\n";
     }
 };
 }  // namespace Main

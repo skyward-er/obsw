@@ -81,6 +81,9 @@ private:
     // Thread safe counter for engine shutdown
     std::atomic<uint16_t> detectedShutdowns{0};
 
+    // Last update timestamp of mea
+    uint64_t lastUpdateTimestamp = 0;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("MEA");
 };
 }  // namespace Main

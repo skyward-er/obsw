@@ -21,6 +21,7 @@
  */
 
 #include <Main/Configs/MEAConfig.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -54,7 +55,52 @@ bool MEAController::start()
 
 void MEAController::update()
 {
-    // TODO log the MEA state
+    ModuleManager& modules  = ModuleManager::getInstance();
+    PressureData ccPressure = modules.get<Sensors>()->getCCPressureLastSample();
+
+    // No need for pause kernel due to its presence inside the getter
+    MEAControllerStatus status = getStatus();
+    MEAState state             = mea.getState();
+
+    // If the state is active (or armed) and the pressure is greater than the
+    // threshold update the kalman
+    switch (status.state)
+    {
+        case MEAControllerState::ARMED:
+        {
+            if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
+                ccPressure.pressureTimestamp > lastUpdateTimestamp)
+            {
+                // TODO update the filter
+                // mea.update(ccPressure.pressure);
+                lastUpdateTimestamp = TimestampTimer::getTimestamp();
+            }
+        }
+        case MEAControllerState::SHADOW_MODE:
+        {
+            if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
+                ccPressure.pressureTimestamp > lastUpdateTimestamp)
+            {
+                // TODO update the filter
+                // mea.update(ccPressure.pressure);
+                lastUpdateTimestamp = TimestampTimer::getTimestamp();
+            }
+
+            // TODO compute apogee and log
+        }
+        case MEAControllerState::ACTIVE:
+        {
+            if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
+                ccPressure.pressureTimestamp > lastUpdateTimestamp)
+            {
+                // TODO update the filter
+                // mea.update(ccPressure.pressure);
+                lastUpdateTimestamp = TimestampTimer::getTimestamp();
+            }
+
+            // TODO compute apogee, log and throw event
+        }
+    }
 }
 
 MEAControllerStatus MEAController::getStatus()
@@ -189,8 +235,9 @@ void MEAController::logStatus(MEAControllerState state)
 {
     {
         miosix::PauseKernelLock lock;
-        status.timestamp = TimestampTimer::getTimestamp();
-        status.state     = state;
+        status.timestamp         = TimestampTimer::getTimestamp();
+        status.state             = state;
+        status.detectedShutdowns = detectedShutdowns;
     }
 
     Logger::getInstance().log(status);

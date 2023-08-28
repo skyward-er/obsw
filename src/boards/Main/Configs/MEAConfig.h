@@ -35,5 +35,8 @@ constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.01f;
 
 constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
+
+// Pressure threshold after which the kalman is updated
+constexpr float CC_PRESSURE_THRESHOLD = 1.f;
 }  // namespace MEAConfig
 }  // namespace Main
