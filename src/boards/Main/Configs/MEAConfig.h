@@ -38,5 +38,15 @@ constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
 
 // Pressure threshold after which the kalman is updated
 constexpr float CC_PRESSURE_THRESHOLD = 1.f;
+
+// Aerodynamics coefficients
+constexpr float n000 = 0.596535425207973;
+constexpr float n100 = -1.81429600946981;
+constexpr float n200 = 8.47683559348987;
+constexpr float n300 = -23.1759370919254;
+constexpr float n400 = 35.8276525337534;
+constexpr float n500 = -29.2336913633527;
+constexpr float n600 = 9.84223649075812;
+
 }  // namespace MEAConfig
 }  // namespace Main

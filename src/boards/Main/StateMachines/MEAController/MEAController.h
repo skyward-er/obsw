@@ -23,9 +23,11 @@
 
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <algorithms/MEA/MEA.h>
+#include <algorithms/NAS/NASState.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/Constants.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -67,6 +69,26 @@ private:
      * @param state The current FSM state
      */
     void logStatus(MEAControllerState state);
+
+    /**
+     * @brief Computes the mach speed using the NASState
+     */
+    float computeMach(NASState state);
+
+    /**
+     * @brief Computes the rocket CD based on current speed and the coefficients
+     */
+    float computeCD(float mach);
+
+    /**
+     * @brief Estimates the altitude based on the estimated mass and current CD
+     *
+     * @param state NASState for estimated velocity and height
+     * @param mass Estimated mass
+     * @param CD estimated CD from velocity and height
+     * @param D diameter of the rocket
+     */
+    float computeAltitude(NASState state, float mass, float CD, float D);
 
     // TODO comment
     Boardcore::MEA::KalmanFilter::KalmanConfig getMEAKalmanConfig();

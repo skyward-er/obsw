@@ -23,6 +23,7 @@
 #include <Main/Configs/MEAConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -61,6 +62,11 @@ void MEAController::update()
     // No need for pause kernel due to its presence inside the getter
     MEAControllerStatus status = getStatus();
     MEAState state             = mea.getState();
+    NASState nasState          = modules.get<NASController>()->getNasState();
+
+    // Get mach number and estimated CD
+    float mach = computeMach(nasState);
+    float CD   = computeCD(mach);
 
     // If the state is active (or armed) and the pressure is greater than the
     // threshold update the kalman
@@ -97,6 +103,9 @@ void MEAController::update()
                 // mea.update(ccPressure.pressure);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
+
+            // Compute the estimated altitude
+            computeAltitude(nasState, mea.getState().x2, CD, 0.15f);
 
             // TODO compute apogee, log and throw event
         }
@@ -243,6 +252,33 @@ void MEAController::logStatus(MEAControllerState state)
     }
 
     Logger::getInstance().log(status);
+}
+
+float MEAController::computeMach(NASState state)
+{
+    float T = Constants::MSL_TEMPERATURE + Constants::a * (-state.d);
+    float c = sqrt(1.4f * Constants::R * T);
+    return -state.vd / c;
+}
+
+float MEAController::computeCD(float mach)
+{
+    return MEAConfig::n000 + MEAConfig::n100 * mach +
+           MEAConfig::n200 * powf(mach, 2) + MEAConfig::n300 * powf(mach, 3) +
+           MEAConfig::n400 * powf(mach, 4) + MEAConfig::n500 * powf(mach, 5) +
+           MEAConfig::n600 * powf(mach, 6);
+}
+
+float MEAController::computeAltitude(NASState state, float mass, float CD,
+                                     float D)
+{
+    // Compute rocket surface
+    float S = Constants::PI * (D / 2) * (D / 2);
+
+    return -state.d + 1 / (2 * (0.5 * Constants::RHO_0 * CD * S / mass)) *
+                          log(1 + ((-state.vd) * (-state.vd) *
+                                   (0.5 * Constants::RHO_0 * CD * S) / mass) /
+                                      Constants::g);
 }
 
 MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig()
