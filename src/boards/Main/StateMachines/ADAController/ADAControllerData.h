@@ -39,6 +39,7 @@ enum class ADAControllerState : uint8_t
     ARMED,
     SHADOW_MODE,
     ACTIVE,
+    ACTIVE_DISARMED,
     END
 };
 

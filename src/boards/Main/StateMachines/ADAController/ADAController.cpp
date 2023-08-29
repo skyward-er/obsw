@@ -354,6 +354,29 @@ void ADAController::state_active(const Event& event)
         {
             return transition(&ADAController::state_ready);
         }
+        case FLIGHT_APOGEE_DETECTED:
+        {
+            return transition(&ADAController::state_active_disarmed);
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            return transition(&ADAController::state_end);
+        }
+    }
+}
+
+void ADAController::state_active_disarmed(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(ADAControllerState::ACTIVE_DISARMED);
+        }
+        case ADA_FORCE_STOP:
+        {
+            return transition(&ADAController::state_ready);
+        }
         case FLIGHT_LANDING_DETECTED:
         {
             return transition(&ADAController::state_end);
