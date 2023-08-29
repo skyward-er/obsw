@@ -22,33 +22,35 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <ActiveObject.h>
+#include <common/Mavlink.h>
+#include <drivers/WIZ5500/WIZ5500.h>
 
-namespace Common
+#include <memory>
+
+namespace Groundstation
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 439000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+Boardcore::WizIp genNewRandomIp();
+Boardcore::WizMac genNewRandomMac();
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+class EthernetBase : private Boardcore::ActiveObject
+{
+public:
+    EthernetBase() {}
 
-}  // namespace Common
+    void handleINTn();
+
+    void sendMsg(const mavlink_message_t& msg);
+
+protected:
+    bool start(std::unique_ptr<Boardcore::Wiz5500> wiz5500);
+
+private:
+    void run() override;
+
+    bool started = false;
+    std::unique_ptr<Boardcore::Wiz5500> wiz5500;
+};
+
+}  // namespace Groundstation

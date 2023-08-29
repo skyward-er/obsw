@@ -35,18 +35,21 @@ bool Serial::start()
         return false;
     }
 
+    started = true;
     return true;
 }
 
 void Serial::sendMsg(const mavlink_message_t &msg)
 {
-    Lock<FastMutex> l(mutex);
-    uint8_t msg_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
-                    MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
-    int msg_len = mavlink_msg_to_send_buffer(msg_buf, &msg);
-
-    auto serial = miosix::DefaultConsole::instance().get();
-    serial->writeBlock(msg_buf, msg_len, 0);
+    if(started) {
+        Lock<FastMutex> l(mutex);
+        uint8_t msg_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
+                        MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
+        int msg_len = mavlink_msg_to_send_buffer(msg_buf, &msg);
+    
+        auto serial = miosix::DefaultConsole::instance().get();
+        serial->writeBlock(msg_buf, msg_len, 0);
+    }
 }
 
 void Serial::run()

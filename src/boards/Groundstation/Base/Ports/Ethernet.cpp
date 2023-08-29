@@ -20,49 +20,26 @@
  * THE SOFTWARE.
  */
 
-#include "Hub.h"
+#include "Ethernet.h"
 
-#include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/Common/Ports/Serial.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
-#include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/Radio/RadioStatus.h>
+#include <Groundstation/Base/Buses.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace Groundstation;
 using namespace Boardcore;
+using namespace miosix;
 
-void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
+void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
-    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
-
-    // TODO: Dispatch to correct radio using mavlink ids
-
-    bool send_ok = false;
-
-    if (status->isMainRadioPresent())
-    {
-        RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
-        send_ok |= radio->sendMsg(msg);
-    }
-
-    if (status->isPayloadRadioPresent())
-    {
-        RadioPayload* radio = ModuleManager::getInstance().get<RadioPayload>();
-        send_ok |= radio->sendMsg(msg);
-    }
-
-    // If both of the sends went wrong, just send a nack
-    if (!send_ok)
-    {
-        sendNack(msg);
-    }
+    ModuleManager::getInstance().get<Ethernet>()->handleINTn();
 }
 
-void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
+bool Ethernet::start()
 {
-    Serial* serial = ModuleManager::getInstance().get<Serial>();
-    serial->sendMsg(msg);
+    std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
+        ModuleManager::getInstance().get<Groundstation::Buses>()->ethernet_bus,
+        ethernet::cs::getPin(), ethernet::intr::getPin(),
+        SPI::ClockDivider::DIV_64);
 
-    Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
-    ethernet->sendMsg(msg);
+    return EthernetBase::start(std::move(wiz5500));
 }
