@@ -117,9 +117,8 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
         new ADAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
-    // Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX -
-    // 2));
-    // TMRepository* tmRepo = new TMRepository();
+    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
         new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
@@ -228,15 +227,15 @@ int main()
         LOG_INFO(logger, "Inserted the ABK controller module");
     }
 
-    // if (!modules.insert<Radio>(radio))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the Radio module");
-    // }
-    // else
-    // {
-    //     LOG_INFO(logger, "Inserted the Radio module");
-    // }
+    if (!modules.insert<Radio>(radio))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Radio module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the Radio module");
+    }
 
     if (!modules.insert<FlightModeManager>(fmm))
     {
@@ -248,15 +247,15 @@ int main()
         LOG_INFO(logger, "Inserted the FMM module");
     }
 
-    // if (!modules.insert<TMRepository>(tmRepo))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the TMRepository module");
-    // }
-    // else
-    // {
-    //     LOG_INFO(logger, "Inserted the TMRepository module");
-    // }
+    if (!modules.insert<TMRepository>(tmRepo))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the TMRepository module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the TMRepository module");
+    }
 
     if (!modules.insert<CanHandler>(canHandler))
     {
@@ -268,15 +267,15 @@ int main()
         LOG_INFO(logger, "Inserted the CanHandler module");
     }
 
-    // if (!modules.insert<PinHandler>(pinHandler))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the PinHandler module");
-    // }
-    // else
-    // {
-    //     LOG_INFO(logger, "Inserted the PinHandler module");
-    // }
+    if (!modules.insert<PinHandler>(pinHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the PinHandler module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the PinHandler module");
+    }
 
     if (!modules.insert<AltitudeTrigger>(altitudeTrigger))
     {
@@ -397,15 +396,15 @@ int main()
         LOG_INFO(logger, "Started the FMM module");
     }
 
-    // if (!modules.get<Radio>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the Radio module");
-    // }
-    // else
-    // {
-    //     LOG_INFO(logger, "Started the Radio module");
-    // }
+    if (!modules.get<Radio>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Radio module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the Radio module");
+    }
 
     if (!modules.get<CanHandler>()->start())
     {
@@ -417,15 +416,15 @@ int main()
         LOG_INFO(logger, "Started the CanHandler module");
     }
 
-    // if (!modules.get<PinHandler>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the PinHandler module");
-    // }
-    // else
-    // {
-    //     LOG_INFO(logger, "Started the PinHandler module");
-    // }
+    if (!modules.get<PinHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinHandler module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the PinHandler module");
+    }
 
     if (!modules.get<AltitudeTrigger>()->start())
     {
@@ -463,7 +462,7 @@ int main()
         {
             EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
                                             Topics::TOPIC_TMTC);
-            Thread::sleep(3000);
+            Thread::sleep(5000);
             EventBroker::getInstance().post(Events::TMTC_ARM,
                                             Topics::TOPIC_TMTC);
             printf("ARM COMMAND SENT\n");
@@ -476,18 +475,6 @@ int main()
             EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
                                             Topics::TOPIC_FLIGHT);
         });
-
-    // hil->flightPhasesManager->registerToFlightPhase(
-    //     FlightPhases::LIFTOFF_PIN_DETACHED,
-    //     [&]()
-    //     {
-    //         EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
-    //                                         Topics::TOPIC_FLIGHT);
-    //     });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::LIFTOFF, [&]()
-        { EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT); });
 
     modules.get<BoardScheduler>()
         ->getScheduler(miosix::PRIORITY_MAX - 1)
@@ -517,17 +504,6 @@ int main()
                     actuators->getServoPosition(ServosList::EXPULSION_SERVO),
                     actuators->getServoPosition(ServosList::MAIN_VALVE),
                     actuators->getServoPosition(ServosList::VENTING_VALVE)};
-
-                // float burning = ((modules.getInstance()
-                //                       .get<FlightModeManager>()
-                //                       ->getStatus()
-                //                       .state ==
-                //                   Main::FlightModeManagerState::POWERED_ASCENT)
-                //                      ? 1.0f
-                //                      : 0.0f);
-
-                float burning =
-                    actuators->getServoPosition(ServosList::MAIN_VALVE);
 
                 HILConfig::ActuatorData actuatorData{
                     adaStateHIL, nasStateHIL,       abkStateHIL,

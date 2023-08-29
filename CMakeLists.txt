@@ -42,6 +42,11 @@ add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(main-entry stm32f767zi_skyward_death_stack_v4)
 
+add_executable(main-entry-hil src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER} ${MAIN_HIL})
+target_include_directories(main-entry-hil PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry-hil PRIVATE HILMain EUROC)
+sbs_target(main-entry-hil stm32f767zi_skyward_death_stack_v4)
+
 add_executable(main-entry-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-roccaraso PRIVATE ROCCARASO)
