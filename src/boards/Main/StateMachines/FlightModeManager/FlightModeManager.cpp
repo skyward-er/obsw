@@ -50,6 +50,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_ALT);
+    EventBroker::getInstance().subscribe(this, TOPIC_MEA);
 }
 
 FlightModeManagerStatus FlightModeManager::getStatus()
@@ -521,6 +522,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         {
             return HANDLED;
         }
+        case MEA_SHUTDOWN_DETECTED:
         case MOTOR_CLOSE_FEED_VALVE:
         {
             return transition(&FlightModeManager::state_unpowered_ascent);
