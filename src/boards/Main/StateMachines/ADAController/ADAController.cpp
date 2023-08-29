@@ -354,7 +354,6 @@ void ADAController::state_active(const Event& event)
         {
             return transition(&ADAController::state_ready);
         }
-        case FLIGHT_APOGEE_DETECTED:
         case FLIGHT_LANDING_DETECTED:
         {
             return transition(&ADAController::state_end);
