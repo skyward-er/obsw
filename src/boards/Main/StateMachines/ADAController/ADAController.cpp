@@ -131,7 +131,7 @@ void ADAController::update()
             break;
         }
     }
-    // TODO log the ADA data
+    Logger::getInstance().log(getADAState());
 }
 
 void ADAController::calibrate()
