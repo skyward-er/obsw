@@ -22,33 +22,19 @@
 
 #pragma once
 
-#include <radio/SX1278/SX1278Fsk.h>
+#include <cstdint>
 
-namespace Common
+#include <drivers/WIZ5500/WIZ5500.h>
+
+namespace Groundstation
 {
 
-static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 439000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+constexpr uint16_t RECV_PORT = 42070;
+constexpr uint16_t SEND_PORT = 42069;
 
-static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
-    .freq_dev   = 50000,
-    .bitrate    = 48000,
-    .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-    .ocp        = 120,
-    .power      = 13,
-    .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-    .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-    .enable_crc = false};
+constexpr Boardcore::WizMac MAC_BASE = {0x69, 0x69, 0x69, 0x69, 0, 0};
+constexpr Boardcore::WizIp IP_BASE = {192, 168, 1, 0};
+constexpr Boardcore::WizIp GATEWAY = {192, 168, 1, 1};
+constexpr Boardcore::WizIp SUBNET = {0, 0, 0, 0};
 
-}  // namespace Common
+}

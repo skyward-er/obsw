@@ -46,13 +46,13 @@ public:
      */
     void sendMsg(const mavlink_message_t& msg);
 
-protected:
+private:
     /**
      * @brief Internal run method
      */
     void run() override;
 
-private:
+    bool started = false;
     miosix::FastMutex mutex;
 };
 

@@ -22,6 +22,7 @@
 
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
+#include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Base/Radio/RadioStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
@@ -57,6 +58,7 @@ int main()
     Hub *hub                    = new Hub();
     Buses *buses                = new Buses();
     Serial *serial              = new Serial();
+    Ethernet *ethernet          = new Ethernet();
     RadioMain *radio_main       = new RadioMain();
     RadioPayload *radio_payload = new RadioPayload();
     RadioStatus *radio_status   = new RadioStatus();
@@ -68,6 +70,7 @@ int main()
     ok &= modules.insert<HubBase>(hub);
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
+    ok &= modules.insert(ethernet);
     ok &= modules.insert(radio_main);
     ok &= modules.insert(radio_payload);
     ok &= modules.insert(radio_status);
@@ -85,6 +88,12 @@ int main()
     if (!ok)
     {
         printf("[error] Failed to start serial!\n");
+    }
+
+    ok &= ethernet->start();
+    if (!ok)
+    {
+        printf("[error] Failed to start ethernet!\n");
     }
 
     ok &= radio_main->start();
