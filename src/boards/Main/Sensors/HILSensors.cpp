@@ -167,36 +167,66 @@ Boardcore::HSCMRNN015PAData HILSensors::getStaticPressure2LastSample()
     return data;
 }
 
-RotatedIMUData HILSensors::getIMULastSample()
+Boardcore::PitotData HILSensors::getPitotLastSample()
 {
-    // TODO:
-    return RotatedIMUData{};
+    miosix::PauseKernelLock lock;
+    Boardcore::PitotData data;
+
+    auto sample    = pitot->getLastSample();
+    data.timestamp = sample.timestamp;
+    data.airspeed  = sample.airspeed;
+    data.deltaP    = sample.deltaP;
+
+    return data;
+}
+
+Boardcore::PressureData HILSensors::getCCPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    Boardcore::PressureData data;
+
+    auto sample            = pressureChamber->getLastSample();
+    data.pressureTimestamp = sample.pressureTimestamp;
+    data.pressure          = sample.pressure;
+
+    return data;
 }
 
 HILSensors::HILSensors(TaskScheduler* sched) : Main::Sensors(sched) {}
 
 bool HILSensors::start()
 {
-    printf("HILSensors starting\n");
     // Init all the sensors
     temperatureInit();
-    printf("temperatureInit\n");
+    LOG_INFO(logger, "temperatureInit\n");
     lps22dfInit();
-    printf("lps22dfInit\n");
+    LOG_INFO(logger, "lps22dfInit\n");
     lps28dfw_1Init();
-    printf("lps28dfw_1Init\n");
+    LOG_INFO(logger, "lps28dfw_1Init\n");
     lps28dfw_2Init();
-    printf("lps28dfw_2Init\n");
+    LOG_INFO(logger, "lps28dfw_2Init\n");
+    pressureChamberInit();
+    LOG_INFO(logger, "pressureChamberInit\n");
     h3lis331dlInit();
-    printf("h3lis331dlInit\n");
+    LOG_INFO(logger, "h3lis331dlInit\n");
     lis2mdlInit();
-    printf("lis2mdlInit\n");
+    LOG_INFO(logger, "lis2mdlInit\n");
     ubxgpsInit();
-    printf("ubxgpsInit\n");
+    LOG_INFO(logger, "ubxgpsInit\n");
     lsm6dsrxInit();
-    printf("lsm6dsrxInit\n");
+    LOG_INFO(logger, "lsm6dsrxInit\n");
     ads131m08Init();
-    printf("ads131m08Init\n");
+    LOG_INFO(logger, "ads131m08Init\n");
+    deploymentPressureInit();
+    LOG_INFO(logger, "deploymentPressureInit\n");
+    staticPressure1Init();
+    LOG_INFO(logger, "staticPressure1Init\n");
+    staticPressure2Init();
+    LOG_INFO(logger, "staticPressure2Init\n");
+    imuInit();
+    LOG_INFO(logger, "imuInit\n");
+    pitotInit();
+    LOG_INFO(logger, "pitotInit\n");
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
@@ -266,6 +296,34 @@ void HILSensors::lps28dfw_2Init()
     SensorInfo info("LPS28DFW_2_HIL", LPS28DFW_PERIOD,
                     bind(&HILSensors::lps28dfw_2Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_2, info));
+}
+
+void HILSensors::pressureChamberInit()
+{
+    // Create sensor instance with configured parameters
+    pressureChamber = new HILBarometer(N_DATA_BARO_CHAMBER,
+                                       &Boardcore::ModuleManager::getInstance()
+                                            .get<HIL>()
+                                            ->simulator->getSensorData()
+                                            ->pressureChamber);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("BARO_CC_HIL", BARO_CHAMBER_FREQ,
+                    bind(&HILSensors::pressureChamberCallback, this));
+    sensorMap.emplace(make_pair(pressureChamber, info));
+}
+
+void HILSensors::pitotInit()
+{
+    // Create sensor instance with configured parameters
+    pitot = new HILPitot(N_DATA_PITOT, &Boardcore::ModuleManager::getInstance()
+                                            .get<HIL>()
+                                            ->simulator->getSensorData()
+                                            ->pitot);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("PITOT_HIL", N_DATA_PITOT);
+    sensorMap.emplace(make_pair(pitot, info));
 }
 
 void HILSensors::h3lis331dlInit()
@@ -395,6 +453,11 @@ void HILSensors::lps28dfw_2Callback()
 {
     miosix::PauseKernelLock lock;
     // Logger::getInstance().log(getLPS28DFW_2LastSample());
+}
+void HILSensors::pressureChamberCallback()
+{
+    miosix::PauseKernelLock lock;
+    // Logger::getInstance().log(getCCPressureLastSample());
 }
 void HILSensors::h3lis331dlCallback()
 {

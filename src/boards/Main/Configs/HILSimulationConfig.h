@@ -65,17 +65,18 @@ struct SensorConfig : public Boardcore::SensorInfo
 const int SIM_BAUDRATE = 115200;
 
 /** Period of simulation in milliseconds */
-const int SIMULATION_PERIOD = 20;
+const int SIMULATION_PERIOD = 100;
 
 /** sample frequency of sensor (samples/second) */
-const int ACCEL_FREQ = 100;
-const int GYRO_FREQ  = 100;
-const int MAGN_FREQ  = 100;
-const int IMU_FREQ   = 100;
-const int BARO_FREQ  = 20;
-const int PITOT_FREQ = 20;
-const int TEMP_FREQ  = 10;
-const int GPS_FREQ   = 10;
+const int ACCEL_FREQ        = 100;
+const int GYRO_FREQ         = 100;
+const int MAGN_FREQ         = 100;
+const int IMU_FREQ          = 100;
+const int BARO_FREQ         = 20;
+const int BARO_CHAMBER_FREQ = 50;
+const int PITOT_FREQ        = 20;
+const int TEMP_FREQ         = 10;
+const int GPS_FREQ          = 10;
 
 /** Number of samples per sensor at each simulator iteration */
 const int N_DATA_ACCEL = static_cast<int>(
@@ -88,7 +89,9 @@ const int N_DATA_IMU = static_cast<int>(
     std::ceil(static_cast<float>(IMU_FREQ * SIMULATION_PERIOD) / 1000.0));
 const int N_DATA_BARO = static_cast<int>(
     std::ceil(static_cast<float>(BARO_FREQ * SIMULATION_PERIOD) / 1000.0));
-const int N_DATA_PITOT = static_cast<int>(
+const int N_DATA_BARO_CHAMBER = static_cast<int>(std::ceil(
+    static_cast<float>(BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0));
+const int N_DATA_PITOT        = static_cast<int>(
     std::ceil(static_cast<float>(PITOT_FREQ * SIMULATION_PERIOD) / 1000.0));
 const int N_DATA_GPS = static_cast<int>(
     std::ceil(static_cast<float>(GPS_FREQ * SIMULATION_PERIOD) / 1000.0));
@@ -130,7 +133,12 @@ struct SimulatorData
     struct Barometer
     {
         float measures[N_DATA_BARO];
-    } barometer1, barometer2, barometer3, pressureChamber;
+    } barometer1, barometer2, barometer3;
+
+    struct BarometerChamber
+    {
+        float measures[N_DATA_BARO_CHAMBER];
+    } pressureChamber;
 
     struct Pitot
     {
@@ -215,8 +223,8 @@ struct SimulatorData
 
     void printBarometerChamber()
     {
-        TRACE("press3\n");
-        for (int i = 0; i < N_DATA_BARO; i++)
+        TRACE("pressChamber\n");
+        for (int i = 0; i < N_DATA_BARO_CHAMBER; i++)
             TRACE("%+.3f\n", pressureChamber.measures[i]);
     }
 
@@ -509,7 +517,16 @@ struct ActuatorData
           actuatorsState(actuatorsState)
     {
         flags.flag_flight =
-            (fmm->testState(&Main::FlightModeManager::state_flying) ? 1 : 0);
+            (fmm->testState(&Main::FlightModeManager::state_powered_ascent) ||
+                     fmm->testState(
+                         &Main::FlightModeManager::state_unpowered_ascent) ||
+                     fmm->testState(
+                         &Main::FlightModeManager::state_drogue_descent) ||
+                     fmm->testState(
+                         &Main::FlightModeManager::state_terminal_descent)
+                 ? 1
+                 : 0);
+
         flags.flag_ascent =
             (fmm->testState(&Main::FlightModeManager::state_powered_ascent) ||
                      fmm->testState(

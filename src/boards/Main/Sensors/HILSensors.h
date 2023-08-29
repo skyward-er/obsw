@@ -74,7 +74,12 @@ public:
     Boardcore::MPXH6400AData getDeploymentPressureLastSample() override;
     Boardcore::HSCMRNN015PAData getStaticPressure1LastSample() override;
     Boardcore::HSCMRNN015PAData getStaticPressure2LastSample() override;
-    RotatedIMUData getIMULastSample() override;
+
+    Boardcore::PitotData getPitotLastSample() override;
+    Boardcore::PressureData getCCPressureLastSample() override;
+    // Boardcore::PressureData getBottomTankPressureLastSample() override;
+    // Boardcore::PressureData getTopTankPressureLastSample() override;
+    // Boardcore::TemperatureData getTankTemperatureLastSample() override;
 
 private:
     // Init and callbacks methods
@@ -88,6 +93,9 @@ private:
 
     void lps28dfw_2Init() override;
     void lps28dfw_2Callback() override;
+
+    void pressureChamberInit();
+    void pressureChamberCallback();
 
     void h3lis331dlInit() override;
     void h3lis331dlCallback() override;
@@ -116,11 +124,14 @@ private:
     void imuInit() override;
     void imuCallback() override;
 
+    void pitotInit();
+
     // HILSensors instances
     HILTemperature* temperature      = nullptr;
     HILBarometer* lps22df            = nullptr;
     HILBarometer* lps28dfw_1         = nullptr;
     HILBarometer* lps28dfw_2         = nullptr;
+    HILBarometer* pressureChamber    = nullptr;
     HILAccelerometer* h3lis331dl     = nullptr;
     HILMagnetometer* lis2mdl         = nullptr;
     HILGps* ubxgps                   = nullptr;
