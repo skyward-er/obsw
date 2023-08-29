@@ -75,6 +75,7 @@ void ADAController::update()
     switch (status.state)
     {
         case ADAControllerState::ARMED:
+        case ADAControllerState::ACTIVE_DISARMED:
         {
             ada.update(barometerData.pressure);
         }
