@@ -78,6 +78,7 @@ void ADAController::update()
         case ADAControllerState::ACTIVE_DISARMED:
         {
             ada.update(barometerData.pressure);
+            break;
         }
         case ADAControllerState::SHADOW_MODE:
         {
