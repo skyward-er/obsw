@@ -73,7 +73,7 @@ private:
     /**
      * @brief Computes the mach speed using the NASState
      */
-    float computeMach(NASState state);
+    float computeMach(Boardcore::NASState state);
 
     /**
      * @brief Computes the rocket CD based on current speed and the coefficients
@@ -87,8 +87,15 @@ private:
      * @param mass Estimated mass
      * @param CD estimated CD from velocity and height
      * @param D diameter of the rocket
+     * @param rho air density at altitude h
      */
-    float computeAltitude(NASState state, float mass, float CD, float D);
+    float computeAltitude(Boardcore::NASState state, float mass, float CD,
+                          float D, float rho);
+
+    /**
+     * @brief Computes the RHO air density for standard isa air model
+     */
+    float computeRho(Boardcore::NASState state);
 
     // TODO comment
     Boardcore::MEA::KalmanFilter::KalmanConfig getMEAKalmanConfig();

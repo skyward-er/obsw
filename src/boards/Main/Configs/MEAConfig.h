@@ -34,7 +34,9 @@ constexpr float SENSOR_NOISE_VARIANCE       = 0.36f;
 constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.01f;
 
-constexpr uint32_t SHADOW_MODE_TIMEOUT = 7000;  // [ms]
+constexpr uint32_t SHADOW_MODE_TIMEOUT      = 7000;  // [ms]
+constexpr float SHUTDOWN_THRESHOLD_ALTITUDE = 3200;  // [m]
+constexpr unsigned int SHUTDOWN_N_SAMPLES   = 5;
 
 // Pressure threshold after which the kalman is updated
 constexpr float CC_PRESSURE_THRESHOLD = 1.f;
