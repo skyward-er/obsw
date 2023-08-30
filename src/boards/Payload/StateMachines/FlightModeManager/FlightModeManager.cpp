@@ -23,6 +23,7 @@
 #include "FlightModeManager.h"
 
 #include <Payload/Actuators/Actuators.h>
+#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
@@ -533,6 +534,8 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
 
+            ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
@@ -553,6 +556,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case FLIGHT_DPL_ALT_DETECTED:
         case TMTC_FORCE_DEPLOYMENT:
         {
+            ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
             return transition(&FlightModeManager::state_wing_descent);
         }
         default:

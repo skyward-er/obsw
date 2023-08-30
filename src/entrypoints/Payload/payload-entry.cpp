@@ -22,6 +22,7 @@
 
 // #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
 #include <Payload/Actuators/Actuators.h>
+#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
@@ -68,6 +69,8 @@ int main()
 
     // Other critical components (Max - 2)
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    AltitudeTrigger* altTrigger =
+        new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     // CanHandler* canHandler = new
     // CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
@@ -128,6 +131,12 @@ int main()
         LOG_ERR(logger, "Error inserting the Actuators module");
     }
 
+    if (!modules.insert<AltitudeTrigger>(altTrigger))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Altitude Trigger module");
+    }
+
     // if (!modules.insert<CanHandler>(canHandler))
     // {
     //     initResult = false;
@@ -169,6 +178,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators module");
+    }
+
+    if (!modules.get<AltitudeTrigger>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the AltitudeTrigger module");
     }
 
     // if (!modules.get<CanHandler>()->start())
