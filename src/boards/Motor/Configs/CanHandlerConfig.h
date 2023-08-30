@@ -31,6 +31,7 @@ namespace CanHandlerConfig
 {
 
 constexpr unsigned int PRESSURES_TRANSMISSION_PERIOD   = 20;    // [ms]
+constexpr unsigned int ACTUATORS_TRANSMISSION_PERIOD   = 20;    // [ms]
 constexpr unsigned int TEMPERATURE_TRANSMISSION_PERIOD = 100;   // [ms]
 constexpr unsigned int STATUS_TRANSMISSION_PERIOD      = 1000;  // [ms]
 

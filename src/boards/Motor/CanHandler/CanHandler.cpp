@@ -97,7 +97,7 @@ bool CanHandler::start()
                 static_cast<PressureData>(
                     sensors->getTankPressureSensor2Data()));
         },
-        PRESSURES_TRANSMISSION_PERIOD);
+        PRESSURES_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
 
     auto result2 = scheduler->addTask(
         [&]()
@@ -120,7 +120,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(SensorId::MOTOR_ACTUATORS_CURRENT),
                 static_cast<CurrentData>(sensors->getServoCurrentData()));
         },
-        TEMPERATURE_TRANSMISSION_PERIOD);
+        TEMPERATURE_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
 
     auto result3 = scheduler->addTask(
         [&]()
@@ -133,8 +133,36 @@ bool CanHandler::start()
         },
         STATUS_TRANSMISSION_PERIOD);
 
+    auto result4 = scheduler->addTask(
+        [&]()
+        {
+            ModuleManager &modules = ModuleManager::getInstance();
+
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::HIGH),
+                static_cast<uint8_t>(PrimaryType::ACTUATORS),
+                static_cast<uint8_t>(Board::MOTOR),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(ServosList::MAIN_VALVE),
+                ServoData{TimestampTimer::getTimestamp(), 0, 0,
+                          modules.get<Actuators>()->getServoPosition(
+                              ServosList::MAIN_VALVE)});
+
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::HIGH),
+                static_cast<uint8_t>(PrimaryType::ACTUATORS),
+                static_cast<uint8_t>(Board::MOTOR),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(ServosList::VENTING_VALVE),
+                ServoData{TimestampTimer::getTimestamp(), 0, 0,
+                          modules.get<Actuators>()->getServoPosition(
+                              ServosList::VENTING_VALVE)});
+        },
+        ACTUATORS_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
+
     // TODO: look at the priorities of the CAN protocol threads
-    return protocol->start() && result1 != 0 && result2 != 0 && result3 != 0;
+    return protocol->start() && result1 != 0 && result2 != 0 && result3 != 0 &&
+           result4 != 0;
 }
 
 bool CanHandler::isStarted()
