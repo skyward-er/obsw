@@ -22,10 +22,10 @@
 
 #pragma once
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
-#include <miosix.h>
 
 #include <Eigen/Core>
 #include <atomic>
@@ -45,7 +45,7 @@ public:
     /**
      * @brief Construct a new Wing Controller object
      */
-    explicit WindEstimation(TaskScheduler* sched);
+    explicit WindEstimation(Boardcore::TaskScheduler* sched);
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -125,6 +125,6 @@ private:
     std::atomic<bool> running;
     std::atomic<bool> calRunning;
 
-    TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler = nullptr;
 };
 }  // namespace Payload

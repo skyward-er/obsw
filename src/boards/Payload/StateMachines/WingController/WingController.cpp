@@ -48,8 +48,8 @@ namespace Payload
 {
 
 WingController::WingController(TaskScheduler* sched)
-    : scheduler(sched), HSM(&WingController::state_idle), running(false),
-      selectedAlgorithm(0)
+    : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0),
+      scheduler(sched)
 {
 
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -157,7 +157,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
         {
             return tranSuper(&WingController::state_flying);
         }
-        case WES_CALIBRATION_TIMEOUT:
+        case DPL_ALGO:
         {
             reset();
             return transition(&WingController::state_controlled_descent);

@@ -55,7 +55,8 @@
 
 namespace Payload
 {
-class WingController : public Boardcore::Module, Boardcore::HSM<WingController>
+class WingController : public Boardcore::HSM<WingController>,
+                       public Boardcore::Module
 
 {
 
@@ -88,7 +89,7 @@ public:
     /**
      * @brief Construct a new Wing Controller object
      */
-    explicit WingController(TaskScheduler* sched);
+    explicit WingController(Boardcore::TaskScheduler* sched);
 
     bool start();
 
@@ -172,6 +173,6 @@ private:
 
     void update();
 
-    Boardcore::TaskScheduler* scheduler;
+    Boardcore::TaskScheduler* scheduler = nullptr;
 };
 }  // namespace Payload

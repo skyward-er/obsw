@@ -39,7 +39,7 @@ namespace Payload
 {
 
 WindEstimation::WindEstimation(TaskScheduler* sched)
-    : scheduler(sched), running(false), calRunning(false)
+    : running(false), calRunning(false), scheduler(sched)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
 }

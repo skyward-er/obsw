@@ -138,108 +138,112 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Altitude Trigger module");
-        if (!modules.insert<WingController>(wingController))
+    }
+
+    if (!modules.insert<WingController>(wingController))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the WingController module");
+    }
+
+    // if (!modules.insert<CanHandler>(canHandler))
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error inserting the CanHandler module");
+    // }
+
+    // Start modules
+    if (!EventBroker::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the EventBroker module");
+    }
+
+    if (!modules.get<Sensors>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Sensors module");
+    }
+
+    if (!modules.get<NASController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the NAS module");
+    }
+
+    if (!modules.get<FlightModeManager>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the FMM module");
+    }
+
+    if (!modules.get<Radio>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Radio module");
+    }
+
+    if (!modules.get<Actuators>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Actuators module");
+    }
+
+    if (!modules.get<AltitudeTrigger>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the AltitudeTrigger module");
+    }
+
+    if (!modules.get<WingController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the WingController module");
+    }
+
+    // if (!modules.get<CanHandler>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the CanHandler module");
+    // }
+
+    if (!modules.get<BoardScheduler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Board Scheduler module");
+    }
+
+    // Log all the events
+    EventSniffer sniffer(
+        EventBroker::getInstance(), TOPICS_LIST,
+        [](uint8_t event, uint8_t topic)
         {
-            initResult = false;
-            LOG_ERR(logger, "Error inserting the WingController module");
-        }
+            EventData ev{TimestampTimer::getTimestamp(), event, topic};
+            Logger::getInstance().log(ev);
+        });
 
-        // if (!modules.insert<CanHandler>(canHandler))
-        // {
-        //     initResult = false;
-        //     LOG_ERR(logger, "Error inserting the CanHandler module");
-        // }
+    // Check the init result and launch an event
+    if (initResult)
+    {
+        // Post OK
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 
-        // Start modules
-        if (!EventBroker::getInstance().start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the EventBroker module");
-        }
+        // Set the LED status
+        miosix::led1On();
+    }
+    else
+    {
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        LOG_ERR(logger, "Failed to initialize");
+    }
+    // Periodic statistics
+    while (true)
+    {
+        Thread::sleep(1000);
+        Logger::getInstance().log(CpuMeter::getCpuStats());
+        CpuMeter::resetCpuStats();
+        StackLogger::getInstance().log();
+    }
 
-        if (!modules.get<Sensors>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the Sensors module");
-        }
-
-        if (!modules.get<NASController>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the NAS module");
-        }
-
-        if (!modules.get<FlightModeManager>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the FMM module");
-        }
-
-        if (!modules.get<Radio>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the Radio module");
-        }
-
-        if (!modules.get<Actuators>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the Actuators module");
-        }
-
-        if (!modules.get<AltitudeTrigger>()->start())
-        {
-            initResult = false;
-            LOG_ERR(logger, "Error starting the AltitudeTrigger module");
-            if (!modules.get<WingController>()->start())
-            {
-                initResult = false;
-                LOG_ERR(logger, "Error starting the WingController module");
-            }
-
-            // if (!modules.get<CanHandler>()->start())
-            // {
-            //     initResult = false;
-            //     LOG_ERR(logger, "Error starting the CanHandler module");
-            // }
-
-            if (!modules.get<BoardScheduler>()->start())
-            {
-                initResult = false;
-                LOG_ERR(logger, "Error starting the Board Scheduler module");
-            }
-
-            // Log all the events
-            EventSniffer sniffer(
-                EventBroker::getInstance(), TOPICS_LIST,
-                [](uint8_t event, uint8_t topic)
-                {
-                    EventData ev{TimestampTimer::getTimestamp(), event, topic};
-                    Logger::getInstance().log(ev);
-                });
-
-            // Check the init result and launch an event
-            if (initResult)
-            {
-                // Post OK
-                EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-
-                // Set the LED status
-                miosix::led1On();
-            }
-            else
-            {
-                EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-                LOG_ERR(logger, "Failed to initialize");
-            }
-            // Periodic statistics
-            while (true)
-            {
-                Thread::sleep(1000);
-                Logger::getInstance().log(CpuMeter::getCpuStats());
-                CpuMeter::resetCpuStats();
-                StackLogger::getInstance().log();
-            }
-
-            return 0;
-        }
+    return 0;
+}
