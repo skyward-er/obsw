@@ -58,40 +58,6 @@ using namespace Boardcore;
 using namespace Main;
 using namespace Common;
 
-class MockCanHandler : public CanHandler
-{
-
-public:
-    explicit MockCanHandler(Boardcore::TaskScheduler* sched) {}
-
-    /**
-     * @brief Adds the periodic task to the scheduler and starts the protocol
-     * threads
-     */
-    bool start() override { return true; }
-
-    /**
-     * @brief Returns true if the protocol threads are started and the scheduler
-     * is running
-     */
-    bool isStarted() override { return true; }
-
-    /**
-     * @brief Sends a CAN event on the bus
-     */
-    void sendEvent(Common::CanConfig::EventId event) override {}
-
-    /**
-     * @brief Sends a can command (servo actuation command) specifying the
-     * target servo, the target state and eventually the delta [ms] in which the
-     * servo remains open
-     */
-    void sendCanCommand(ServosList servo, bool targetState,
-                        uint32_t delay) override
-    {
-    }
-};
-
 int main()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -120,7 +86,7 @@ int main()
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
-        new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
@@ -474,6 +440,14 @@ int main()
         {
             EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
                                             Topics::TOPIC_FLIGHT);
+
+            hil->flightPhasesManager->registerToFlightPhase(
+                FlightPhases::SIM_FLYING,
+                [&]()
+                {
+                    EventBroker::getInstance().post(
+                        Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
+                });
         });
 
     modules.get<BoardScheduler>()
