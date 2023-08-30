@@ -26,7 +26,9 @@
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
+#include <Payload/StateMachines/WingController/WingController.h>
 #include <Payload/TMRepository/TMRepository.h>
+#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -169,6 +171,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             LSM6DSRXData lsm6dsrx =
                 modules.get<Sensors>()->getLSM6DSRXLastSample();
 
+            Eigen::Vector2f wind =
+                modules.get<WindEstimation>()->getWindEstimationScheme();
+
             // NAS state
             NASState nasState = modules.get<NASController>()->getNasState();
 
@@ -176,10 +181,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<NASController>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
-            // TODO add wing state and estimation
-            tm.wes_state = 0;
-            tm.wes_e     = 0;
-            tm.wes_n     = 0;
+            tm.wes_state = static_cast<uint8_t>(
+                modules.get<WingController>()->getStatus().state);
+
+            tm.wes_n = wind[0];
+            tm.wes_e = wind[1];
 
             tm.pressure_digi = lps28dfw1.pressure;
             tm.pressure_static =
@@ -293,14 +299,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_fsm_tm_t tm;
 
-            // TODO update when finished with FSM
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
             tm.ada_state = 0;
-            tm.dpl_state = 0;
+            tm.dpl_state = static_cast<uint8_t>(
+                modules.get<WingController>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
-            ;
             tm.nas_state = static_cast<uint8_t>(
                 modules.get<NASController>()->getStatus().state);
             tm.wes_state = 0;

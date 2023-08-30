@@ -27,10 +27,36 @@ namespace Payload
 
 namespace WingConfig
 {
+// Algorithm configuration
+
+#if defined(EUROC)
+constexpr float DEFAULT_TARGET_LAT = 39.389733;
+constexpr float DEFAULT_TARGET_LON = -8.288992;
+#elif defined(ROCCARASO)
+constexpr float DEFAULT_TARGET_LAT = 41.8039952;
+constexpr float DEFAULT_TARGET_LON = 14.0547223;
+#else  // Milan
+constexpr float DEFAULT_TARGET_LAT = 45.501148;
+constexpr float DEFAULT_TARGET_LON = 9.156301;
+#endif
+
+constexpr int WING_UPDATE_PERIOD           = 100;   // [ms]
+constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 1000;  //[ms]
+
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;
+
+constexpr int GUIDANCE_CONFIDENCE                = 15;
+constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
+constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
+constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
+
+constexpr float KP = 0.1;    //[m]
+constexpr float KI = 0.001;  //[m]
+
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 450;  // [meters]
 constexpr int ALTITUDE_TRIGGER_PERIOD                = 100;  //[ms]
-
 }  // namespace WingConfig
 
 }  // namespace Payload
