@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
@@ -33,6 +33,8 @@
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
 #include <Payload/TMRepository/TMRepository.h>
+#include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
+#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -75,10 +77,17 @@ int main()
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     WingController* wingController =
         new WingController(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    // CanHandler* canHandler = new
-    // CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    VerticalVelocityTrigger* verticalVelocityTrigger =
+        new VerticalVelocityTrigger(
+            scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    WindEstimation* windEstimation =
+        new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    CanHandler* canHandler =
+        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Non critical components (Max - 3)
+    // Actuators is considered non-critical since the scheduler is only used for
+    // the led and buzzer tasks
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
 
@@ -148,19 +157,38 @@ int main()
         LOG_ERR(logger, "Error inserting the WingController module");
     }
 
+    if (!modules.insert<WindEstimation>(windEstimation))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the WindEstimation module");
+    }
+
     if (!modules.insert<PinHandler>(pinHandler))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the PinHandler module");
     }
 
-    // if (!modules.insert<CanHandler>(canHandler))
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error inserting the CanHandler module");
-    // }
+    if (!modules.insert<VerticalVelocityTrigger>(verticalVelocityTrigger))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the VerticalVelocityTrigger module");
+    }
+
+    if (!modules.insert<CanHandler>(canHandler))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the CanHandler module");
+    }
 
     // Start modules
+
+    if (!Logger::getInstance().testSDCard())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Logger module");
+    }
+
     if (!EventBroker::getInstance().start())
     {
         initResult = false;
@@ -209,17 +237,29 @@ int main()
         LOG_ERR(logger, "Error starting the WingController module");
     }
 
+    if (!modules.get<WindEstimation>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the WindEstimation module");
+    }
+
     if (!modules.get<PinHandler>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the PinHandler module");
     }
 
-    // if (!modules.get<CanHandler>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the CanHandler module");
-    // }
+    if (!modules.get<VerticalVelocityTrigger>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the VerticalVelocityTrigger module");
+    }
+
+    if (!modules.get<CanHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the CanHandler module");
+    }
 
     if (!modules.get<BoardScheduler>()->start())
     {
@@ -250,6 +290,7 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         LOG_ERR(logger, "Failed to initialize");
     }
+
     // Periodic statistics
     while (true)
     {

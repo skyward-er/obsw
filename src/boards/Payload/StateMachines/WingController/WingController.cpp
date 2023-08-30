@@ -61,7 +61,7 @@ bool WingController::start()
 {
     return scheduler->addTask(std::bind(&WingController::update, this),
                               WING_UPDATE_PERIOD) &&
-           addAlgorithms();
+           addAlgorithms() && HSM::start();
 }
 
 WingController::~WingController()
@@ -261,7 +261,8 @@ bool WingController::addAlgorithms()
     algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
 
     // Init the algorithm
-    result = result && algorithm->init();
+    // TODO Remove this comment after testing
+    // result = result && algorithm->init();
 
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);

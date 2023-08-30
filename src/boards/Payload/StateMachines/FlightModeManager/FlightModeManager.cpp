@@ -27,6 +27,7 @@
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -535,6 +536,10 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
 
             ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+
+            ModuleManager::getInstance()
+                .get<VerticalVelocityTrigger>()
+                ->enable();
 
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
