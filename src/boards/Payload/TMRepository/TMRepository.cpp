@@ -22,6 +22,7 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/RadioConfig.h>
+#include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -61,8 +62,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.event_broker    = EventBroker::getInstance().isRunning();
             tm.radio           = modules.get<Radio>()->isStarted();
             tm.sensors         = modules.get<Sensors>()->isStarted();
-            // TODO pin observer
-            tm.pin_observer = 0;
+            tm.pin_observer    = modules.get<PinHandler>()->isStarted();
 
             mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
@@ -231,16 +231,14 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
             // Servos
-            tm.left_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    ServosList::PARAFOIL_LEFT_SERVO);
-            tm.right_servo_angle =
-                ModuleManager::getInstance().get<Actuators>()->getServoAngle(
-                    ServosList::PARAFOIL_RIGHT_SERVO);
-            ;
+            tm.left_servo_angle = modules.get<Actuators>()->getServoAngle(
+                ServosList::PARAFOIL_LEFT_SERVO);
+            tm.right_servo_angle = modules.get<Actuators>()->getServoAngle(
+                ServosList::PARAFOIL_RIGHT_SERVO);
 
-            // TODO Pins
-            tm.pin_nosecone = 0;
+            tm.pin_nosecone = modules.get<PinHandler>()
+                                  ->getPinsData()[PinsList::NOSECONE_PIN]
+                                  .lastState;
 
             // TODO Board status
             tm.logger_error = 0;
@@ -323,12 +321,20 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_pin_tm_t tm;
 
-            // TODO update when PINobserver
             tm.timestamp = TimestampTimer::getTimestamp();
-            // tm.last_change_timestamp; /*<  Last change timestamp of pin*/
-            // tm.pin_id;                /*<  A member of the PinsList enum*/
-            // tm.changes_counter;       /*<  Number of changes of pin*/
-            // tm.current_state;         /*<  Current state of pin*/
+            tm.last_change_timestamp =
+                modules.get<PinHandler>()
+                    ->getPinsData()[PinsList::NOSECONE_PIN]
+                    .lastStateTimestamp; /*<  Last change timestamp of pin*/
+            tm.pin_id =
+                PinsList::NOSECONE_PIN; /*<  A member of the PinsList enum*/
+            tm.changes_counter =
+                modules.get<PinHandler>()
+                    ->getPinsData()[PinsList::NOSECONE_PIN]
+                    .changesCount; /*<  Number of changes of pin*/
+            tm.current_state = modules.get<PinHandler>()
+                                   ->getPinsData()[PinsList::NOSECONE_PIN]
+                                   .lastState; /*<  Current state of pin*/
 
             mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
