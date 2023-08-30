@@ -30,6 +30,7 @@
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
+#include <Payload/StateMachines/WingController/WingController.h>
 #include <Payload/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -71,6 +72,8 @@ int main()
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     AltitudeTrigger* altTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    WingController* wingController =
+        new WingController(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     // CanHandler* canHandler = new
     // CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
@@ -137,6 +140,12 @@ int main()
         LOG_ERR(logger, "Error inserting the Altitude Trigger module");
     }
 
+    if (!modules.insert<WingController>(wingController))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the WingController module");
+    }
+
     // if (!modules.insert<CanHandler>(canHandler))
     // {
     //     initResult = false;
@@ -184,6 +193,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the AltitudeTrigger module");
+    }
+
+    if (!modules.get<WingController>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the WingController module");
     }
 
     // if (!modules.get<CanHandler>()->start())
