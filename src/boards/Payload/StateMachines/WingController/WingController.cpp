@@ -61,7 +61,7 @@ bool WingController::start()
 {
     return scheduler->addTask(std::bind(&WingController::update, this),
                               WING_UPDATE_PERIOD) &&
-           addAlgorithms();
+           addAlgorithms() && HSM::start();
 }
 
 WingController::~WingController()

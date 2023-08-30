@@ -91,7 +91,7 @@ public:
      */
     explicit WingController(Boardcore::TaskScheduler* sched);
 
-    bool start();
+    bool start() override;
 
 private:
     /**

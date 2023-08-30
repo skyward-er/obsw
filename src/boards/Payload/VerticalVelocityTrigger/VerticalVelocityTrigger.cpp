@@ -21,7 +21,7 @@
  */
 
 #include <Payload/BoardScheduler.h>
-#include <Payload/Configs/FailSafeConfig.h>
+#include <Payload/Configs/VerticalVelocityConfig.h>
 #include <Payload/NASControllerMock/NASControllerMock.h>
 #include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <common/Events.h>
