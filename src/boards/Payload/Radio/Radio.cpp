@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 #include <Payload/Actuators/Actuators.h>
+#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/Buses.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -296,10 +297,10 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
         {
-            // float altitude =
-            //     mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+            float altitude =
+                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            // TODO fix with altitude trigger
+            modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
