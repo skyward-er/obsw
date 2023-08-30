@@ -72,6 +72,7 @@ private:
     // CAN message handlers
     void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
     void handleCanSensor(const Boardcore::Canbus::CanMessage &msg);
+    void handleCanActuator(const Boardcore::Canbus::CanMessage &msg);
 
     // CAN interfaces
     Boardcore::Canbus::CanbusDriver *driver;

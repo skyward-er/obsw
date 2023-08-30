@@ -22,6 +22,7 @@
 
 #include "CanHandler.h"
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/Configs/CanHandlerConfig.h>
@@ -137,6 +138,11 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
             handleCanSensor(msg);
             break;
         }
+        case PrimaryType::ACTUATORS:
+        {
+            handleCanActuator(msg);
+            break;
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported message type: type={}",
@@ -206,6 +212,16 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
                      sensorId);
         }
     }
+}
+
+void CanHandler::handleCanActuator(const CanMessage &msg)
+{
+    ServosList servo       = static_cast<ServosList>(msg.getSecondaryType());
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    // Set the servo position
+    modules.get<Actuators>()->setCANServoPosition(
+        servo, servoDataFromCanMessage(msg).position);
 }
 
 }  // namespace Main

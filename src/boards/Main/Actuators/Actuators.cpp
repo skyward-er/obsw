@@ -46,6 +46,12 @@ Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
     // Default disable
     camOff();
     // gpios::status_led::low();
+
+    // Init by default the CAN servo positions
+    for (int i = 0; i < ServosList::ServosList_ENUM_END; i++)
+    {
+        CANPositions[i] = -1;
+    }
 }
 
 bool Actuators::start()
@@ -76,6 +82,14 @@ void Actuators::setServoPosition(ServosList servo, float position)
     Logger::getInstance().log(requestedServo->getState());
 }
 
+void Actuators::setCANServoPosition(ServosList servo, float position)
+{
+    // Lock the mutex for thread sync
+    miosix::Lock<FastMutex> l(mutex);
+
+    CANPositions[servo] = position;
+}
+
 void Actuators::wiggleServo(ServosList servo)
 {
     // Do not lock the mutex due to set position lock
@@ -93,7 +107,8 @@ float Actuators::getServoPosition(ServosList servo)
     {
         return requestedServo->getPosition();
     }
-    return -1;
+
+    return CANPositions[servo];
 }
 
 void Actuators::camOn()

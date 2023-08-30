@@ -49,6 +49,11 @@ public:
     void setServoPosition(ServosList servo, float position);
 
     /**
+     * @brief Sets the servo passed servo position inside the CAN structure
+     */
+    void setCANServoPosition(ServosList servo, float position);
+
+    /**
      * @brief Wiggles the passed servo for 1 second
      * @note The method is blocking during the second of opening
      */
@@ -105,6 +110,9 @@ private:
 
     // Upper limit of the buzzer counter
     uint32_t buzzerCounterOverflow = 0;
+
+    // Can set servo positions
+    float CANPositions[ServosList::ServosList_ENUM_END];
 
     // Scheduler for buzzer
     Boardcore::TaskScheduler* scheduler = nullptr;
