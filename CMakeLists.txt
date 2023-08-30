@@ -41,11 +41,3 @@ sbs_target(test-hil stm32f767zi_compute_unit)
 add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f767zi_skyward_death_stack_v4)
-#-----------------------------------------------------------------------------#
-#                              Payload computer                               #
-#-----------------------------------------------------------------------------#
-add_executable(payload-test-vertical-velocity-trigger 
-src/tests/Payload/payload-test-VerticalVelocityTrigger.cpp ${PAYLOAD_COMPUTER})
-target_include_directories(payload-test-vertical-velocity-trigger PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(payload-test-vertical-velocity-trigger PRIVATE PRF_TEST)
-sbs_target(payload-test-vertical-velocity-trigger stm32f429zi_skyward_death_stack_x)

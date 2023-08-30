@@ -36,19 +36,16 @@ using namespace Common;
 namespace Payload
 {
 
-VerticalVelocityTrigger::VerticalVelocityTrigger()
+VerticalVelocityTrigger::VerticalVelocityTrigger(TaskScheduler* sched)
+    : running(false), confidence(0), scheduler(sched)
 {
-    confidence = 0;
-    running    = false;
 }
 
-bool VerticalVelocityTrigger::startModule()
+bool VerticalVelocityTrigger::start()
 {
-    return ModuleManager::getInstance()
-        .get<BoardScheduler>()
-        ->getScheduler(miosix::MAIN_PRIORITY)
-        ->addTask(bind(&VerticalVelocityTrigger::update, this),
-                  FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
+    return scheduler->addTask(
+        bind(&VerticalVelocityTrigger::update, this),
+        FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
 }
 
 void VerticalVelocityTrigger::enable()
@@ -81,7 +78,7 @@ void VerticalVelocityTrigger::update()
             FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_CONFIDENCE)
         {
             confidence = 0;
-            EventBroker::getInstance().post(FLIGHT_FAILSAFE_TRIGGERED,
+            EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                             TOPIC_FLIGHT);
             running = false;
         }

@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <Payload/BoardScheduler.h>
+
 #include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -42,12 +44,12 @@ public:
      * Default constructor for VerticalVelocityTrigger
      * Sets the trigger to disabled by default
      */
-    VerticalVelocityTrigger();
+    VerticalVelocityTrigger(Boardcore::TaskScheduler* sched);
 
     /**
      * Starts the module by inserting it in the BoardScheduler
      */
-    bool startModule();
+    bool start();
 
     /**
      * Enables the Vertical Velocity Trigger
@@ -81,6 +83,8 @@ private:
     // Number of times that the algorithm detects to be slower than the velocity
     // threshold
     std::atomic<int> confidence;
+
+    Boardcore::TaskScheduler* scheduler;
 };
 
 }  // namespace Payload
