@@ -32,7 +32,6 @@
 
 namespace Main
 {
-// TODO verify if a mutex is better (low contention)
 class Actuators : public Boardcore::Module
 {
 public:

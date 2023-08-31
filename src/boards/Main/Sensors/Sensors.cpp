@@ -526,7 +526,7 @@ void Sensors::imuInit()
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
 
-    // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
+    // Emplace the sensor inside the map
     SensorInfo info("RotatedIMU", IMU_PERIOD,
                     bind(&Sensors::imuCallback, this));
     sensorMap.emplace(make_pair(imu, info));

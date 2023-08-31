@@ -106,12 +106,12 @@ bool Radio::start()
                            TaskScheduler::Policy::RECOVER);
 
     // Config mavDriver
-    // TODO change 0 and 1 into constants
     mavDriver = new MavDriver(
         transceiver,
         [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
-        0, 1);
+        RadioConfig::RADIO_SLEEP_AFTER_SEND,
+        RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);
 
     // Check radio failure
     if (error != SX1278Fsk::Error::NONE)

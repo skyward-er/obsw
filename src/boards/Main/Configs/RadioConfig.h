@@ -34,6 +34,9 @@ constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
 constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 200;
 
+constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 0;
+constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 10;
+
 constexpr uint8_t MAV_SYSTEM_ID = 171;
 constexpr uint8_t MAV_COMP_ID   = 96;
 

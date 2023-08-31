@@ -28,6 +28,7 @@
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -212,6 +213,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             ADAState adaState = modules.get<ADAController>()->getADAState();
 
             // State machines (TODO)
+            tm.mea_state = static_cast<uint8_t>(
+                modules.get<MEAController>()->getStatus().state);
             tm.ada_state = static_cast<uint8_t>(
                 modules.get<ADAController>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
@@ -267,7 +270,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // ADA
             tm.ada_vert_speed = adaState.verticalSpeed;
 
-            // Pins (TODO)
+            // Pins
             tm.pin_launch = modules.get<PinHandler>()
                                 ->getPinData(PinHandler::PinList::LAUNCH_PIN)
                                 .lastState;
