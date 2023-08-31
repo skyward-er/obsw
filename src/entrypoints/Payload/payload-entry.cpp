@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
@@ -294,39 +294,6 @@ int main()
     // Periodic statistics
     while (true)
     {
-        TRACE("getLPS22DFLastSample ");
-        modules.get<Sensors>()->getLPS22DFLastSample().print(cout);
-        TRACE("getLPS28DFW_1LastSample ");
-        modules.get<Sensors>()->getLPS28DFW_1LastSample().print(cout);
-        TRACE("getLPS28DFW_2LastSample ");
-        modules.get<Sensors>()->getLPS28DFW_2LastSample().print(cout);
-        TRACE("getH3LIS331DLLastSample ");
-        modules.get<Sensors>()->getH3LIS331DLLastSample().print(cout);
-        TRACE("getLIS2MDLLastSample ");
-        modules.get<Sensors>()->getLIS2MDLLastSample().print(cout);
-        TRACE("getGPSLastSample ");
-        modules.get<Sensors>()->getGPSLastSample().print(cout);
-        TRACE("getLSM6DSRXLastSample ");
-        modules.get<Sensors>()->getLSM6DSRXLastSample().print(cout);
-        TRACE("getADS131M08LastSample ");
-        modules.get<Sensors>()->getADS131M08LastSample().print(cout);
-        TRACE("getStaticPressureLastSample ");
-        modules.get<Sensors>()->getStaticPressureLastSample().print(cout);
-        TRACE("getPitotPressureLastSample ");
-        modules.get<Sensors>()->getDynamicPressureLastSample().print(cout);
-        TRACE("getPitotLastSample ");
-        modules.get<Sensors>()->getPitotLastSample().print(cout);
-        TRACE("getBatteryVoltageLastSample ");
-        modules.get<Sensors>()->getBatteryVoltageLastSample().print(cout);
-        TRACE("getCurrentLastSample ");
-        modules.get<Sensors>()->getCurrentLastSample().print(cout);
-        TRACE("getIMULastSample ");
-        modules.get<Sensors>()->getIMULastSample().print(cout);
-        TRACE("getCalibratedMagnetometerLastSample ");
-        modules.get<Sensors>()->getCalibratedMagnetometerLastSample().print(
-            cout);
-        Thread::sleep(5000);
-        TRACE("\n");
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
