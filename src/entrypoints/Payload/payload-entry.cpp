@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>

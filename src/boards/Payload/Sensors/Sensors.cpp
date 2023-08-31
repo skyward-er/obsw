@@ -510,13 +510,11 @@ void Sensors::imuInit()
 
 void Sensors::lps22dfCallback()
 {
-    miosix::PauseKernelLock lock;
     LPS22DFData lastSample = lps22df->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lps28dfw_1Callback()
 {
-    miosix::PauseKernelLock lock;
     LPS28DFW_1Data lastSample =
         static_cast<LPS28DFW_1Data>(lps28dfw_1->getLastSample());
     // TODO test if this works
@@ -524,7 +522,6 @@ void Sensors::lps28dfw_1Callback()
 }
 void Sensors::lps28dfw_2Callback()
 {
-    miosix::PauseKernelLock lock;
     LPS28DFW_2Data lastSample =
         static_cast<LPS28DFW_2Data>(lps28dfw_2->getLastSample());
     // TODO test if this works
@@ -532,25 +529,21 @@ void Sensors::lps28dfw_2Callback()
 }
 void Sensors::h3lis331dlCallback()
 {
-    miosix::PauseKernelLock lock;
     H3LIS331DLData lastSample = h3lis331dl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lis2mdlCallback()
 {
-    miosix::PauseKernelLock lock;
     LIS2MDLData lastSample = lis2mdl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::ubxgpsCallback()
 {
-    miosix::PauseKernelLock lock;
     UBXGPSData lastSample = ubxgps->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::lsm6dsrxCallback()
 {
-    miosix::PauseKernelLock lock;
     LSM6DSRXData lastSample = lsm6dsrx->getLastSample();
 
     // auto& fifo        = lsm6dsrx->getLastFifo();
@@ -566,28 +559,24 @@ void Sensors::lsm6dsrxCallback()
 }
 void Sensors::ads131m08Callback()
 {
-    miosix::PauseKernelLock lock;
     ADS131M08Data lastSample = ads131m08->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
 void Sensors::staticPressureCallback()
 {
-    miosix::PauseKernelLock lock;
     HSCMRNN015PAData lastSample = staticPressure->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
 void Sensors::dynamicPressureCallback()
 {
-    miosix::PauseKernelLock lock;
     SSCMRNN030PAData lastSample = dynamicPressure->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
 void Sensors::pitotCallback()
 {
-    miosix::PauseKernelLock lock;
     PitotData lastSample = pitot->getLastSample();
     Logger::getInstance().log(lastSample);
 }
