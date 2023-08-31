@@ -20,6 +20,9 @@
  * THE SOFTWARE.
  */
 #pragma once
+
+#include <Payload/Sensors/RotatedIMU/RotatedIMU.h>
+// #include <Payload/Sensors/SensorsData.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -34,6 +37,7 @@
 #include <sensors/analog/Pitot/PitotData.h>
 #include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
 #include <sensors/analog/pressure/honeywell/SSCMRNN030PA.h>
+#include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -78,6 +82,12 @@ public:
      */
     void calibrate();
 
+    /**
+     * @brief Takes the result of the live magnetometer calibration and applies
+     * it to the current calibration + writes it in the csv file
+     */
+    void writeMagCalibration();
+
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFW_1LastSample();
@@ -88,7 +98,12 @@ public:
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
 
-    // CAN fake sensors getters
+    // Processed getters
+    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+    Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
+    Boardcore::CurrentData getCurrentLastSample();
+    RotatedIMUData getIMULastSample();
+    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
     Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
     Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
@@ -131,18 +146,29 @@ private:
     void pitotInit();
     void pitotCallback();
 
+    void imuInit();
+    void imuCallback();
+
     // Sensors instances
-    Boardcore::LPS22DF* lps22df              = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1          = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2          = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl        = nullptr;
-    Boardcore::LIS2MDL* lis2mdl              = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps             = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx            = nullptr;
-    Boardcore::ADS131M08* ads131m08          = nullptr;
+    Boardcore::LPS22DF* lps22df       = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
+    Boardcore::LIS2MDL* lis2mdl       = nullptr;
+    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
+    Boardcore::ADS131M08* ads131m08   = nullptr;
+
+    // Fake processed sensors
+    RotatedIMU* imu                          = nullptr;
     Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
     Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
     Boardcore::Pitot* pitot                  = nullptr;
+
+    // Magnetometer live calibration
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    miosix::FastMutex calibrationMutex;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;

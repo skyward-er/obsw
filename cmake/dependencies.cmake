@@ -48,6 +48,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
     src/boards/Payload/Wing/FileWingAlgorithm.cpp
     src/boards/Payload/Wing/WingAlgorithm.cpp
+    src/boards/Payload/Sensors/RotatedIMU/RotatedIMU.cpp
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
     #src/boards/Payload/StateMachines/Deployment/Deployment.cpp
 )

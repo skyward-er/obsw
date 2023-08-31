@@ -84,18 +84,29 @@ constexpr Boardcore::ADS131M08Defs::OversamplingRatio
         Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
 
+constexpr uint32_t LPS22DF_PERIOD         = 20;  // [ms] 50Hz
+constexpr uint32_t LPS28DFW_PERIOD        = 20;  // [ms] 50Hz
+constexpr uint32_t H3LIS331DL_PERIOD      = 10;  // [ms] 100Hz
+constexpr uint32_t LIS2MDL_PERIOD         = 10;  // [ms] 100Hz
+constexpr uint32_t UBXGPS_PERIOD          = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
+constexpr uint32_t LSM6DSRX_PERIOD        = 20;  // [ms] 50Hz
+constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
+constexpr uint32_t IMU_PERIOD             = 20;  // [ms] Fake processed IMU 50Hz
+constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms] 10Hz
+
+// ADC sensors configs
+constexpr float ADC_VOLTAGE_RANGE = 1.2f;  // [V] Voltage reading range
 constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
 constexpr Boardcore::ADS131M08Defs::Channel DYNAMIC_PRESSURE_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
-
-constexpr uint32_t LPS22DF_PERIOD    = 20;                         // [ms] 50Hz
-constexpr uint32_t LPS28DFW_PERIOD   = 20;                         // [ms] 50Hz
-constexpr uint32_t H3LIS331DL_PERIOD = 10;                         // [ms] 100Hz
-constexpr uint32_t LIS2MDL_PERIOD    = 10;                         // [ms] 100Hz
-constexpr uint32_t UBXGPS_PERIOD     = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
-constexpr uint32_t LSM6DSRX_PERIOD   = 20;                         // [ms] 50Hz
-constexpr uint32_t ADS131M08_PERIOD  = 10;                         // [ms] 100Hz
+// ADC Voltage divider
+constexpr float BATTERY_VOLTAGE_CONVERSION_FACTOR =
+    (20.f / 2.4f) +
+    1;  // 20 kOhm resistor and 2.4 kOhm resistor for voltage divider
+constexpr float CURRENT_CONVERSION_FACTOR =
+    (20.f / 4.f) / (12.f / (12.f + 33.f));
+constexpr float CURRENT_OFFSET = 0.133333333f;  // V in ADC
 
 }  // namespace SensorsConfig
 }  // namespace Payload

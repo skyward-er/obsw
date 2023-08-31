@@ -240,14 +240,19 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                   ->getPinsData()[PinsList::NOSECONE_PIN]
                                   .lastState;
 
-            // TODO Board status
-            tm.logger_error = 0;
-            tm.temperature  = 0;
-            // TODO Current and Voltage
-            tm.battery_voltage     = 0;
-            tm.cam_battery_voltage = 0;
-            tm.current_consumption = 0;
-            tm.vsupply_5v          = 0;
+            tm.battery_voltage = modules.get<Sensors>()
+                                     ->getBatteryVoltageLastSample()
+                                     .batVoltage;
+            tm.current_consumption =
+                modules.get<Sensors>()->getCurrentLastSample().current;
+            tm.temperature  = lps28dfw1.temperature;
+            tm.logger_error = Logger::getInstance().getStats().lastWriteError;
+
+            tm.cam_battery_voltage = modules.get<Sensors>()
+                                         ->getCamBatteryVoltageLastSample()
+                                         .batVoltage;
+            // TODO if power supply voltage is measurable
+            tm.vsupply_5v = 0;
 
             mavlink_msg_payload_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                                  RadioConfig::MAV_COMP_ID, &msg,
@@ -519,11 +524,30 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         }
         case SensorsTMList::MAV_CURRENT_SENSE_ID:
         {
-            // TODO add current
+            mavlink_current_tm_t tm;
+            CurrentData current =
+                modules.get<Sensors>()->getCurrentLastSample();
+            tm.current = current.current;
+            // tm.sensor_name = "Current";
+            // TODO check what name to use
+            tm.timestamp = current.currentTimestamp;
+
+            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
+            break;
         }
         case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
         {
-            // TODO add battery voltage
+            mavlink_voltage_tm_t tm;
+            BatteryVoltageSensorData voltage =
+                modules.get<Sensors>()->getBatteryVoltageLastSample();
+            tm.voltage = voltage.batVoltage;
+            // tm.sensor_name;
+            // TODO check what name to use
+            tm.timestamp = voltage.voltageTimestamp;
+            mavlink_msg_voltage_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
+            break;
         }
         default:
         {

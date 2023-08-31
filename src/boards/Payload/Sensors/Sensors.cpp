@@ -93,10 +93,81 @@ PitotData Sensors::getPitotLastSample()
     return pitot != nullptr ? pitot->getLastSample() : PitotData{};
 }
 
+// Processed Getters
+BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    BatteryVoltageSensorData data;
+
+    // Populate the data
+    data.voltageTimestamp = sample.timestamp;
+    data.channelId        = 1;
+    data.voltage          = sample.voltage[1];
+    data.batVoltage = sample.voltage[1] * BATTERY_VOLTAGE_CONVERSION_FACTOR;
+    return data;
+}
+
+BatteryVoltageSensorData Sensors::getCamBatteryVoltageLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    BatteryVoltageSensorData data;
+
+    // Populate the data
+    data.voltageTimestamp = sample.timestamp;
+    data.channelId        = 7;
+    data.voltage          = sample.voltage[7];
+    data.batVoltage = sample.voltage[7] * BATTERY_VOLTAGE_CONVERSION_FACTOR;
+    return data;
+}
+
+CurrentData Sensors::getCurrentLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    CurrentData data;
+
+    // Populate the data
+    data.currentTimestamp = sample.timestamp;
+    data.current =
+        (sample.voltage[5] - CURRENT_OFFSET) * CURRENT_CONVERSION_FACTOR;
+    return data;
+}
+
+RotatedIMUData Sensors::getIMULastSample()
+{
+    miosix::PauseKernelLock lock;
+    return imu != nullptr ? imu->getLastSample() : RotatedIMUData{};
+}
+
+MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    MagnetometerData lastSample = getLIS2MDLLastSample();
+    MagnetometerData result;
+
+    // Correct the result and copy the timestamp
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        result =
+            static_cast<MagnetometerData>(magCalibration.correct(lastSample));
+    }
+
+    result.magneticFieldTimestamp = lastSample.magneticFieldTimestamp;
+    return result;
+}
+
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 
 bool Sensors::start()
 {
+    // Read the magnetometer calibration from predefined file
+    magCalibration.fromFile("magCalibration.csv");
     // Init all the sensors
     lps22dfInit();
     lps28dfw_1Init();
@@ -109,10 +180,28 @@ bool Sensors::start()
     staticPressureInit();
     dynamicPressureInit();
     pitotInit();
+    imuInit();
+
+    // Add the magnetometer calibration to the scheduler
+    size_t result = scheduler->addTask(
+        [&]()
+        {
+            // Gather the last sample data
+            MagnetometerData lastSample = getLIS2MDLLastSample();
+
+            // Feed the data to the calibrator inside a protected area.
+            // Contention is not high and the use of a mutex is suitable to
+            // avoid pausing the kernel for this calibration operation
+            {
+                miosix::Lock<FastMutex> l(calibrationMutex);
+                magCalibrator.feed(lastSample);
+            }
+        },
+        MAG_CALIBRATION_PERIOD);
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
-    return manager->start();
+    return manager->start() && result != 0;
 }
 
 void Sensors::stop() { manager->stop(); }
@@ -122,32 +211,27 @@ bool Sensors::isStarted()
     return manager->areAllSensorsInitialized() && scheduler->isRunning();
 }
 
-void Sensors::calibrate()
-{  // TODO implement this
-   // calibrating = true;
+void Sensors::calibrate() {}
 
-    // ms5803Stats.reset();
-    // staticPressureStats.reset();
-    // dplPressureStats.reset();
-    // pitotPressureStats.reset();
+void Sensors::writeMagCalibration()
+{
+    // Compute the calibration result in protected area
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        SixParametersCorrector cal = magCalibrator.computeResult();
 
-    // bmx160WithCorrection->startCalibration();
+        // Check result validity
+        if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
+            !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
+            !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+        {
+            magCalibration = cal;
 
-    // Thread::sleep(CALIBRATION_DURATION);
-
-    // bmx160WithCorrection->stopCalibration();
-
-    // // Calibrate the analog pressure sensor to the digital one
-    // float ms5803Mean         = ms5803Stats.getStats().mean;
-    // float staticPressureMean = staticPressureStats.getStats().mean;
-    // float dplPressureMean    = dplPressureStats.getStats().mean;
-    // staticPressure->setOffset(staticPressureMean - ms5803Mean);
-    // dplPressure->setOffset(dplPressureMean - ms5803Mean);
-    // pitotPressure->setOffset(pitotPressureStats.getStats().mean);
-
-    // calibrating = false;
+            // Save the calibration to the calibration file
+            magCalibration.toFile("magCalibration.csv");
+        }
+    }
 }
-
 void Sensors::lps22dfInit()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -404,6 +488,26 @@ void Sensors::pitotSetReferenceTemperature(float temperature)
     pitot->setReferenceValues(reference);
 }
 
+void Sensors::imuInit()
+{
+    // Register the IMU as the fake sensor, passing as parameters the
+    // methods to retrieve real data. The sensor is not synchronized, but
+    // the sampling thread is always the same.
+    imu = new RotatedIMU(
+        bind(&LSM6DSRX::getLastSample, lsm6dsrx),
+        bind(&Sensors::getCalibratedMagnetometerLastSample, this),
+        bind(&LSM6DSRX::getLastSample, lsm6dsrx));
+
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    imu->addMagTransformation(m);
+
+    // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
+    SensorInfo info("RotatedIMU", IMU_PERIOD,
+                    bind(&Sensors::imuCallback, this));
+    sensorMap.emplace(make_pair(imu, info));
+}
+
 void Sensors::lps22dfCallback()
 {
     miosix::PauseKernelLock lock;
@@ -448,6 +552,16 @@ void Sensors::lsm6dsrxCallback()
 {
     miosix::PauseKernelLock lock;
     LSM6DSRXData lastSample = lsm6dsrx->getLastSample();
+
+    // auto& fifo        = lsm6dsrx->getLastFifo();
+    // uint16_t fifoSize = lsm6dsrx->getLastFifoSize();
+
+    // // For every instance inside the fifo log the sample
+    // for (uint16_t i = 0; i < fifoSize; i++)
+    // {
+    //     Logger::getInstance().log(fifo.at(i));
+    // }
+    // TODO check if needed
     Logger::getInstance().log(lastSample);
 }
 void Sensors::ads131m08Callback()
@@ -477,4 +591,10 @@ void Sensors::pitotCallback()
     PitotData lastSample = pitot->getLastSample();
     Logger::getInstance().log(lastSample);
 }
+void Sensors::imuCallback()
+{
+    RotatedIMUData lastSample = imu->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+
 }  // namespace Payload
