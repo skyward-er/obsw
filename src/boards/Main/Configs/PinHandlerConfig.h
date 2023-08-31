@@ -30,10 +30,10 @@ namespace PinHandlerConfig
 {
 constexpr unsigned int LAUNCH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
-    Boardcore::PinTransition::FALLING_EDGE;
+    Boardcore::PinTransition::RISING_EDGE;
 
 constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::FALLING_EDGE;
+    Boardcore::PinTransition::RISING_EDGE;
 }  // namespace PinHandlerConfig
 }  // namespace Main
