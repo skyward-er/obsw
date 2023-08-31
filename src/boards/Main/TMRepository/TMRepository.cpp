@@ -283,6 +283,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
                                      .batVoltage;
+            tm.cam_battery_voltage = modules.get<Sensors>()
+                                         ->getCamBatteryVoltageLastSample()
+                                         .batVoltage;
             tm.current_consumption =
                 modules.get<Sensors>()->getCurrentLastSample().current;
             tm.temperature  = lps28dfw1.temperature;

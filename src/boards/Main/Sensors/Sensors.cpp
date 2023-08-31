@@ -115,6 +115,21 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
     return data;
 }
 
+BatteryVoltageSensorData Sensors::getCamBatteryVoltageLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    ADS131M08Data sample = getADS131M08LastSample();
+    BatteryVoltageSensorData data;
+
+    // Populate the data
+    data.voltageTimestamp = sample.timestamp;
+    data.channelId        = 1;
+    data.voltage          = sample.voltage[7];
+    data.batVoltage = sample.voltage[7] * BATTERY_VOLTAGE_CONVERSION_FACTOR;
+    return data;
+}
+
 CurrentData Sensors::getCurrentLastSample()
 {
     // Do not need to pause the kernel, the last sample getter is already
