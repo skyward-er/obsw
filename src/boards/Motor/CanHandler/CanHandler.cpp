@@ -119,6 +119,15 @@ bool CanHandler::start()
                 static_cast<uint8_t>(Board::BROADCAST),
                 static_cast<uint8_t>(SensorId::MOTOR_ACTUATORS_CURRENT),
                 static_cast<CurrentData>(sensors->getServoCurrentData()));
+
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(PrimaryType::SENSORS),
+                static_cast<uint8_t>(Board::MOTOR),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(SensorId::MOTOR_BOARD_VOLTAGE),
+                static_cast<BatteryVoltageSensorData>(
+                    sensors->getBatteryData()));
         },
         TEMPERATURE_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
 
