@@ -73,7 +73,8 @@ enum class SensorId : uint8_t
     TANK_TEMPERATURE,
     MOTOR_ACTUATORS_CURRENT,
     MAIN_BOARD_CURRENT,
-    PAYLOAD_BOARD_CURRENT
+    PAYLOAD_BOARD_CURRENT,
+    MOTOR_BOARD_VOLTAGE
 };
 
 enum class EventId : uint8_t
