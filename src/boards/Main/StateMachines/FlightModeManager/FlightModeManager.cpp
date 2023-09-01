@@ -152,10 +152,14 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             return HANDLED;
         }
+        case CAN_FORCE_INIT:
         case TMTC_FORCE_INIT:
         {
-            modules.get<CanHandler>()->sendEvent(
-                CanConfig::EventId::FORCE_INIT);
+            if (event != CAN_FORCE_INIT)
+            {
+                modules.get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::FORCE_INIT);
+            }
             return transition(&FlightModeManager::state_init_done);
         }
         default:
@@ -329,20 +333,33 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             return HANDLED;
         }
+        case CAN_CALIBRATE:
         case TMTC_CALIBRATE:
         {
-            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
+            if (event != CAN_CALIBRATE)
+            {
+                modules.get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::CALIBRATE);
+            }
             return transition(&FlightModeManager::state_calibrate_sensors);
         }
+        case CAN_ENTER_TEST_MODE:
         case TMTC_ENTER_TEST_MODE:
         {
-            modules.get<CanHandler>()->sendEvent(
-                CanConfig::EventId::ENTER_TEST_MODE);
+            if (event != CAN_ENTER_TEST_MODE)
+            {
+                modules.get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::ENTER_TEST_MODE);
+            }
             return transition(&FlightModeManager::state_test_mode);
         }
+        case CAN_ARM:
         case TMTC_ARM:
         {
-            modules.get<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
+            if (event != CAN_ARM)
+            {
+                modules.get<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
+            }
             return transition(&FlightModeManager::state_armed);
         }
         default:
@@ -390,10 +407,14 @@ State FlightModeManager::state_test_mode(const Event& event)
             modules.get<Actuators>()->camOff();
             return HANDLED;
         }
+        case CAN_EXIT_TEST_MODE:
         case TMTC_EXIT_TEST_MODE:
         {
-            modules.get<CanHandler>()->sendEvent(
-                CanConfig::EventId::EXIT_TEST_MODE);
+            if (event != CAN_EXIT_TEST_MODE)
+            {
+                modules.get<CanHandler>()->sendEvent(
+                    CanConfig::EventId::EXIT_TEST_MODE);
+            }
             return transition(&FlightModeManager::state_disarmed);
         }
         default:
