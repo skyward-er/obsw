@@ -58,7 +58,7 @@ public:
     Boardcore::TankPressureSensor2Data getTankPressureSensor2Data();
     Boardcore::CurrentData getServoCurrentData();
 
-    Sensors(Boardcore::TaskScheduler* sched);
+    explicit Sensors(Boardcore::TaskScheduler* sched);
 
     ~Sensors();
 
