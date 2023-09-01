@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/ActuatorsConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <interfaces-impl/hwmapping.h>
@@ -92,10 +93,21 @@ void Actuators::setCANServoPosition(ServosList servo, float position)
 
 void Actuators::wiggleServo(ServosList servo)
 {
-    // Do not lock the mutex due to set position lock
-    setServoPosition(servo, 1);
-    Thread::sleep(1000);
-    setServoPosition(servo, 0);
+    Servo* requestedServo = getServo(servo);
+
+    if (requestedServo != nullptr)
+    {
+        // Do not lock the mutex due to set position lock
+        setServoPosition(servo, 1);
+        Thread::sleep(1000);
+        setServoPosition(servo, 0);
+    }
+    else
+    {
+        // Run a CAN message
+        ModuleManager::getInstance().get<CanHandler>()->sendCanCommand(servo, 1,
+                                                                       1000);
+    }
 }
 
 float Actuators::getServoPosition(ServosList servo)
