@@ -269,7 +269,46 @@ bool Sensors::isStarted()
     return manager->areAllSensorsInitialized() && scheduler->isRunning();
 }
 
-void Sensors::calibrate() {}
+void Sensors::calibrate()
+{
+    // Create the stats to calibrate the barometers
+    Stats lps28dfw1Stats;
+    Stats lps28dfw2Stats;
+    Stats staticPressure1Stats;
+    Stats staticPressure2Stats;
+    Stats deploymentPressureStats;
+
+    // Add N samples to the stats
+    for (unsigned int i = 0; i < SensorsConfig::CALIBRATION_SAMPLES; i++)
+    {
+        lps28dfw1Stats.add(getLPS28DFW_1LastSample().pressure);
+        lps28dfw2Stats.add(getLPS28DFW_2LastSample().pressure);
+        staticPressure1Stats.add(getStaticPressure1LastSample().pressure);
+        staticPressure2Stats.add(getStaticPressure2LastSample().pressure);
+        deploymentPressureStats.add(getDeploymentPressureLastSample().pressure);
+
+        // Delay for the expected period
+        miosix::Thread::sleep(SensorsConfig::CALIBRATION_PERIOD);
+    }
+
+    // Compute the difference between the mean value from LPS28DFW
+    float reference =
+        (lps28dfw1Stats.getStats().mean + lps28dfw2Stats.getStats().mean) / 2.f;
+
+    hscmrnn015pa_1->setOffset(staticPressure1Stats.getStats().mean - reference);
+    hscmrnn015pa_2->setOffset(staticPressure2Stats.getStats().mean - reference);
+    mpxh6400a->setOffset(deploymentPressureStats.getStats().mean - reference);
+
+    // Log the offsets
+    SensorsCalibrationParameter cal{};
+    cal.timestamp         = TimestampTimer::getTimestamp();
+    cal.offsetStatic1     = staticPressure1Stats.getStats().mean - reference;
+    cal.offsetStatic2     = staticPressure2Stats.getStats().mean - reference;
+    cal.offsetDeployment  = deploymentPressureStats.getStats().mean - reference;
+    cal.referencePressure = reference;
+
+    Logger::getInstance().log(cal);
+}
 
 void Sensors::writeMagCalibration()
 {

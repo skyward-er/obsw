@@ -111,5 +111,9 @@ constexpr float CURRENT_CONVERSION_FACTOR =
     (20.f / 4.f) / (12.f / (12.f + 33.f));
 constexpr float CURRENT_OFFSET = 0.133333333f;  // V in ADC
 
+// Calibration samples
+constexpr unsigned int CALIBRATION_SAMPLES = 20;
+constexpr unsigned int CALIBRATION_PERIOD  = 100;
+
 }  // namespace SensorsConfig
 }  // namespace Main

@@ -26,6 +26,39 @@
 
 namespace Main
 {
+struct SensorsCalibrationParameter
+{
+    uint64_t timestamp;
+    float referencePressure;
+    float offsetStatic1;
+    float offsetStatic2;
+    float offsetDeployment;
+
+    SensorsCalibrationParameter(uint64_t timestamp, float referencePressure,
+                                float offsetStatic1, float offsetStatic2,
+                                float offsetDeployment)
+        : timestamp(timestamp), referencePressure(referencePressure),
+          offsetStatic1(offsetStatic1), offsetStatic2(offsetStatic2),
+          offsetDeployment(offsetDeployment)
+    {
+    }
+
+    SensorsCalibrationParameter() : SensorsCalibrationParameter(0, 0, 0, 0, 0)
+    {
+    }
+
+    static std::string header()
+    {
+        return "timestamp,referencePressure,offsetStatic1,offsetStatic2,"
+               "offsetDeployment";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << referencePressure << "," << offsetStatic1
+           << "," << offsetStatic2 << "," << offsetDeployment << "\n";
+    }
+};
 struct LPS28DFW_1Data : Boardcore::LPS28DFWData
 {
     explicit LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
