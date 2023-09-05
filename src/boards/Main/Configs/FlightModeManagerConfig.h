@@ -24,6 +24,11 @@
 
 namespace Main
 {
+namespace FMMConfig
+{
 constexpr unsigned int MISSION_TIMEOUT         = 15 * 60 * 1000;
-constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 7000;  // [ms]
+constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 7000;   // [ms]
+constexpr unsigned int APOGEE_EVENT_TIMEOUT    = 40000;  // [ms]
+}  // namespace FMMConfig
+
 }  // namespace Main

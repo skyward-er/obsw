@@ -35,6 +35,7 @@
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
+using namespace Main::FMMConfig;
 
 namespace Main
 {
@@ -477,7 +478,7 @@ State FlightModeManager::state_armed(const Event& event)
 
 State FlightModeManager::state_flying(const Event& event)
 {
-    static uint16_t missionTimeoutEventId = -1;
+    static uint16_t missionTimeoutEventId = 0;
 
     switch (event)
     {
@@ -519,7 +520,8 @@ State FlightModeManager::state_flying(const Event& event)
 
 State FlightModeManager::state_powered_ascent(const Event& event)
 {
-    static uint16_t engineShutdownTimeoutEventId = -1;
+    static uint16_t engineShutdownTimeoutEventId = 0;
+    ModuleManager& modules                       = ModuleManager::getInstance();
 
     switch (event)
     {
@@ -536,6 +538,10 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         }
         case EV_EXIT:
         {
+            // Shutdown via can
+            modules.get<CanHandler>()->sendCanCommand(ServosList::MAIN_VALVE, 0,
+                                                      ENGINE_SHUTDOWN_TIMEOUT);
+
             EventBroker::getInstance().removeDelayed(
                 engineShutdownTimeoutEventId);
 
@@ -563,7 +569,9 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
 State FlightModeManager::state_unpowered_ascent(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
+    static uint16_t apogeeTimeoutEventId = 0;
+    ModuleManager& modules               = ModuleManager::getInstance();
+
     switch (event)
     {
         case EV_ENTRY:
@@ -571,11 +579,17 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
             logStatus(FlightModeManagerState::UNPOWERED_ASCENT);
             EventBroker::getInstance().post(FLIGHT_MOTOR_SHUTDOWN,
                                             TOPIC_FLIGHT);
+            apogeeTimeoutEventId = EventBroker::getInstance().postDelayed(
+                TMTC_FORCE_APOGEE, TOPIC_TMTC, APOGEE_EVENT_TIMEOUT);
 
             return HANDLED;
         }
         case EV_EXIT:
         {
+            modules.get<Actuators>()->setServoPosition(
+                ServosList::EXPULSION_SERVO, 1);
+
+            EventBroker::getInstance().removeDelayed(apogeeTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -602,6 +616,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
 
 State FlightModeManager::state_drogue_descent(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -681,7 +696,6 @@ State FlightModeManager::state_landed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::LANDED);
-
             modules.get<Actuators>()->setBuzzerLand();
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
