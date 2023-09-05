@@ -51,7 +51,7 @@ Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
     // Init by default the CAN servo positions
     for (int i = 0; i < ServosList::ServosList_ENUM_END; i++)
     {
-        CANPositions[i] = -1;
+        CANPositions[i] = 0;
     }
 }
 
