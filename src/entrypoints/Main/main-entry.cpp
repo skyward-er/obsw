@@ -187,16 +187,16 @@ int main()
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
-    if (!modules.get<Sensors>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Sensors module");
-    }
-
     if (!modules.get<Actuators>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators module");
+    }
+
+    if (!modules.get<Sensors>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Sensors module");
     }
 
     if (!modules.get<NASController>()->start())
