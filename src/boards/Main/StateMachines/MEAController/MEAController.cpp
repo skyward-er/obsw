@@ -43,7 +43,7 @@ MEAController::MEAController(TaskScheduler* sched)
       scheduler(sched)
 {
     // Subscribe the class of the topics
-    EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
+    EventBroker::getInstance().subscribe(this, TOPIC_MEA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 }
 
@@ -227,7 +227,7 @@ void MEAController::state_shadow_mode(const Event& event)
 
             // Add a delayed event to exit the shadow mode
             shadowModeTimeoutEventId = EventBroker::getInstance().postDelayed(
-                MOTOR_SHADOW_MODE_TIMEOUT, TOPIC_MOTOR,
+                MOTOR_SHADOW_MODE_TIMEOUT, TOPIC_MEA,
                 MEAConfig::SHADOW_MODE_TIMEOUT);
             break;
         }
