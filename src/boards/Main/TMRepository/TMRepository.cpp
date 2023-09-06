@@ -194,8 +194,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // Last samples
             LSM6DSRXData lsm6dsrx =
                 modules.get<Sensors>()->getLSM6DSRXLastSample();
-            LPS22DFData lps22df =
-                modules.get<Sensors>()->getLPS22DFLastSample();
             LPS28DFWData lps28dfw1 =
                 modules.get<Sensors>()->getLPS28DFW_1LastSample();
             LIS2MDLData lis2mdl =
@@ -226,7 +224,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             // Pressures
             tm.pressure_ada    = adaState.x0;
-            tm.pressure_digi   = lps22df.pressure;
+            tm.pressure_digi   = lps28dfw1.pressure;
             tm.pressure_dpl    = deploymentPressure.pressure;
             tm.pressure_static = staticPressure.pressure;
 
