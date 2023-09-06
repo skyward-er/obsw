@@ -35,6 +35,7 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -294,6 +295,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<Sensors>()->getCurrentLastSample().current;
             tm.temperature  = lps28dfw1.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
+            tm.cutter_presence =
+                static_cast<uint8_t>(miosix::gpios::cut_sense::value());
 
             // Pitot CAN sensor
             tm.airspeed_pitot =
