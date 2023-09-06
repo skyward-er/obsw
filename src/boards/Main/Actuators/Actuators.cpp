@@ -46,6 +46,7 @@ Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
 
     // Default disable
     camOff();
+    cutterOff();
     // gpios::status_led::low();
 
     // Init by default the CAN servo positions
@@ -133,6 +134,18 @@ void Actuators::camOff()
 {
     miosix::Lock<FastMutex> l(mutex);
     gpios::camera_enable::low();
+}
+
+void Actuators::cutterOn()
+{
+    miosix::Lock<FastMutex> l(mutex);
+    gpios::cut_trigger::high();
+}
+
+void Actuators::cutterOff()
+{
+    miosix::Lock<FastMutex> l(mutex);
+    gpios::cut_trigger::low();
 }
 
 void Actuators::toggleLed()

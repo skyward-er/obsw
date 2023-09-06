@@ -63,15 +63,13 @@ public:
      */
     float getServoPosition(ServosList servo);
 
-    /**
-     * @brief Turns on the cameras
-     */
+    // Camera commands
     void camOn();
-
-    /**
-     * @brief Turns off the cameras
-     */
     void camOff();
+
+    // Cutter commands
+    void cutterOn();
+    void cutterOff();
 
     /**
      * @brief Toggles the LED state

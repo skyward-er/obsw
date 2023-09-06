@@ -53,8 +53,7 @@ void Deployment::state_idle(const Event& event)
     {
         case EV_ENTRY:
         {
-            // TODO stop cutting with Actuators module
-
+            modules.get<Actuators>()->cutterOff();
             return logStatus(DeploymentState::IDLE);
         }
         case FLIGHT_DPL_ALT_DETECTED:
@@ -75,8 +74,7 @@ void Deployment::state_cutting(const Event& event)
         case EV_ENTRY:
         {
             logStatus(DeploymentState::CUTTING);
-
-            // TODO start cutting with Actuators module
+            modules.get<Actuators>()->cutterOn();
 
             ncCuttingTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_CUT_TIMEOUT, TOPIC_DPL, DeploymentConfig::CUT_DURATION);
