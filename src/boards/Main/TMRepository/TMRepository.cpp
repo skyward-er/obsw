@@ -270,6 +270,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // ADA
             tm.ada_vert_speed = adaState.verticalSpeed;
 
+            // ABK
+            tm.abk_angle = modules.get<Actuators>()->getServoPosition(
+                ServosList::AIR_BRAKES_SERVO);
+
             // Pins
             tm.pin_launch = modules.get<PinHandler>()
                                 ->getPinData(PinHandler::PinList::LAUNCH_PIN)
