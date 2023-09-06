@@ -46,6 +46,11 @@ public:
     bool start();
 
     /**
+     * @brief Checks if the module has started correctly
+     */
+    bool isStarted();
+
+    /**
      * @brief Called when the launch pin detaches
      */
     void onLaunchPinTransition(Boardcore::PinTransition transition);

@@ -51,6 +51,8 @@ PinHandler::PinHandler()
 
 bool PinHandler::start() { return PinObserver::getInstance().start(); }
 
+bool PinHandler::isStarted() { return PinObserver::getInstance().isRunning(); }
+
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {
     if (transition == PinHandlerConfig::LAUNCH_PIN_TRIGGER)
