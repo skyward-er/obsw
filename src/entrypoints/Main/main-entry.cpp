@@ -30,6 +30,7 @@
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -75,6 +76,7 @@ int main()
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
+    Deployment* dpl        = new Deployment();
     PinHandler* pinHandler = new PinHandler();
     AltitudeTrigger* altitudeTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
@@ -106,6 +108,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Actuators module");
+    }
+
+    if (!modules.insert<Deployment>(dpl))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the DPL module");
     }
 
     if (!modules.insert<NASController>(nas))
@@ -191,6 +199,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Actuators module");
+    }
+
+    if (!modules.get<Deployment>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Deployment module");
     }
 
     if (!modules.get<Sensors>()->start())

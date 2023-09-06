@@ -27,6 +27,7 @@
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/Deployment/Deployment.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -209,7 +210,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // ADA state
             ADAState adaState = modules.get<ADAController>()->getADAState();
 
-            // State machines (TODO)
+            // State machines
             tm.mea_state = static_cast<uint8_t>(
                 modules.get<MEAController>()->getStatus().state);
             tm.ada_state = static_cast<uint8_t>(
@@ -220,6 +221,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<ABKController>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
+            tm.dpl_state = static_cast<uint8_t>(
+                modules.get<Deployment>()->getStatus().state);
 
             // Pressures
             tm.pressure_ada    = adaState.x0;

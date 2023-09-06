@@ -45,4 +45,5 @@ set(MAIN_COMPUTER
     src/boards/Main/AltitudeTrigger/AltitudeTrigger.cpp
     src/boards/Main/StateMachines/ABKController/ABKController.cpp
     src/boards/Main/StateMachines/MEAController/MEAController.cpp
+    src/boards/Main/StateMachines/Deployment/Deployment.cpp
 )
