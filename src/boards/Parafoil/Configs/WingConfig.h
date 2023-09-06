@@ -33,7 +33,7 @@ namespace WingConfig
 {
 // Algorithm configuration
 
-constexpr int WING_UPDATE_PERIOD           = 100;   // [ms]
+constexpr int WING_UPDATE_PERIOD           = 1000;  // [ms]
 constexpr int WING_ALTITUDE_TRIGGER_PERIOD = 1000;  //[ms]
 
 #if defined(EUROC)
@@ -49,8 +49,8 @@ constexpr float DEFAULT_TARGET_LON = 12.585847;
 constexpr float DEFAULT_TARGET_LAT = 44.588923;
 constexpr float DEFAULT_TARGET_LON = 11.653212;
 #elif defined(JESOLO)
-constexpr float DEFAULT_TARGET_LAT = 45.569595;
-constexpr float DEFAULT_TARGET_LON = 12.578202;
+constexpr float DEFAULT_TARGET_LAT = 45.565835;
+constexpr float DEFAULT_TARGET_LON = 12.577307;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.501148;
 constexpr float DEFAULT_TARGET_LON = 9.156301;
@@ -60,13 +60,13 @@ constexpr float DEFAULT_TARGET_LON = 9.156301;
 
 constexpr int SELECTED_ALGORITHM = 0;
 #elif STOP_AND_GO
-constexpr int SELECTED_ALGORITHM   = 1;
+constexpr int SELECTED_ALGORITHM = 1;
 #elif ROTATION
-constexpr int SELECTED_ALGORITHM   = 2;
+constexpr int SELECTED_ALGORITHM = 2;
 #elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM   = 3;
+constexpr int SELECTED_ALGORITHM = 3;
 #else
-constexpr int SELECTED_ALGORITHM   = 0;
+constexpr int SELECTED_ALGORITHM = 0;
 #endif
 constexpr float MAX_SERVO_APERTURE = 1.0f;
 // Wing altitude checker configs
@@ -82,8 +82,8 @@ constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
 constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
-constexpr float KP = 0.1;    //[m]
-constexpr float KI = 0.001;  //[m]
+constexpr float KP = 0.4;   //[m]
+constexpr float KI = 0.08;  //[m]
 
 struct WingConfigStruct
 {
