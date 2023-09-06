@@ -450,6 +450,13 @@ int main()
                     EventBroker::getInstance().post(
                         Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
                 });
+
+            // Return only when we are sure that the FMM FSM received the event
+            // and changed state
+            while (fmm->testState(&FlightModeManager::state_armed))
+            {
+                Thread::yield();
+            }
         });
 
     hil->flightPhasesManager->registerToFlightPhase(
