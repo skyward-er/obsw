@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+
 #include <Main/Actuators/Actuators.h>
 #include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/BoardScheduler.h>
@@ -450,6 +452,53 @@ int main()
                 });
         });
 
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::LIFTOFF,
+        [&]()
+        {
+            // Open Main valve when liftoff happens
+            actuators->setCANServoPosition(ServosList::MAIN_VALVE, 1);
+        });
+#endif
+
+    // Log all the events
+    EventSniffer sniffer(
+        EventBroker::getInstance(), TOPICS_LIST,
+        [](uint8_t event, uint8_t topic)
+        {
+            EventData ev{TimestampTimer::getTimestamp(), event, topic};
+            Logger::getInstance().log(ev);
+        });
+
+    // Check the init result and launch an event
+    if (initResult)
+    {
+        // Post OK
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+
+        // Set the LED status
+        LOG_INFO(logger, "All modules initialized!");
+        miosix::led1On();
+    }
+    else
+    {
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        LOG_ERR(logger, "Failed to initialize");
+    }
+
+#ifdef HILMain
+    bool simulation_started = false;
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true; });
+
+    while (!simulation_started)
+    {
+        HILConfig::ActuatorData actuatorData;
+        buses->usart2.write(&actuatorData, sizeof(HILConfig::ActuatorData));
+        Thread::sleep(HILConfig::SIMULATION_PERIOD);
+    }
+
     modules.get<BoardScheduler>()
         ->getScheduler(miosix::PRIORITY_MAX - 1)
         ->addTask(
@@ -479,40 +528,15 @@ int main()
                     actuators->getServoPosition(ServosList::MAIN_VALVE),
                     actuators->getServoPosition(ServosList::VENTING_VALVE)};
 
-                HILConfig::ActuatorData actuatorData{
-                    adaStateHIL, nasStateHIL,       abkStateHIL,
-                    meaStateHIL, actuatorsStateHIL, fmm};
+                HILConfig::ActuatorData actuatorData(adaStateHIL, nasStateHIL,
+                                                     abkStateHIL, meaStateHIL,
+                                                     actuatorsStateHIL, fmm);
 
                 // Actually sending the feedback to the simulator
                 modules.get<HIL>()->send(actuatorData);
             },
             HILConfig::SIMULATION_PERIOD);
 #endif
-
-    // Log all the events
-    EventSniffer sniffer(
-        EventBroker::getInstance(), TOPICS_LIST,
-        [](uint8_t event, uint8_t topic)
-        {
-            EventData ev{TimestampTimer::getTimestamp(), event, topic};
-            Logger::getInstance().log(ev);
-        });
-
-    // Check the init result and launch an event
-    if (initResult)
-    {
-        // Post OK
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-
-        // Set the LED status
-        LOG_INFO(logger, "All modules initialized!");
-        miosix::led1On();
-    }
-    else
-    {
-        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        LOG_ERR(logger, "Failed to initialize");
-    }
 
     // Periodic statistics
     while (true)
