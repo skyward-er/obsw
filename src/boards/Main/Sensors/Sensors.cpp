@@ -134,7 +134,7 @@ BatteryVoltageSensorData Sensors::getCamBatteryVoltageLastSample()
 
     // Populate the data
     data.voltageTimestamp = sample.timestamp;
-    data.channelId        = 1;
+    data.channelId        = 7;
     data.voltage          = sample.voltage[7];
     data.batVoltage = sample.voltage[7] * BATTERY_VOLTAGE_CONVERSION_FACTOR;
     return data;
