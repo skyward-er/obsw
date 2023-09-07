@@ -206,6 +206,14 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
                 temperatureDataFromCanMessage(msg));
             break;
         }
+        case SensorId::MOTOR_BOARD_VOLTAGE:
+        {
+            break;
+        }
+        case SensorId::MOTOR_ACTUATORS_CURRENT:
+        {
+            break;
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported sensor data: id={}",

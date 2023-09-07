@@ -98,6 +98,16 @@ TemperatureData Sensors::getTankTemperatureLastSample()
     miosix::PauseKernelLock lock;
     return canTankTemperature;
 }
+BatteryVoltageSensorData Sensors::getMotorBatteryVoltage()
+{
+    miosix::PauseKernelLock lock;
+    return canMotorBatteryVoltage;
+}
+CurrentData Sensors::getMotorCurrent()
+{
+    miosix::PauseKernelLock lock;
+    return canMotorCurrent;
+}
 
 // Processed Getters
 BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
@@ -217,6 +227,18 @@ void Sensors::setTankTemperature(TemperatureData data)
     miosix::PauseKernelLock lock;
     canTankTemperature.temperatureTimestamp = TimestampTimer::getTimestamp();
     canTankTemperature                      = data;
+}
+void Sensors::setMotorBatteryVoltage(BatteryVoltageSensorData data)
+{
+    miosix::PauseKernelLock lock;
+    canMotorBatteryVoltage.voltageTimestamp = TimestampTimer::getTimestamp();
+    canMotorBatteryVoltage.batVoltage       = data.batVoltage;
+}
+void Sensors::setMotorCurrent(CurrentData data)
+{
+    miosix::PauseKernelLock lock;
+    canMotorCurrent.currentTimestamp = TimestampTimer::getTimestamp();
+    canMotorCurrent.current          = data.current;
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}

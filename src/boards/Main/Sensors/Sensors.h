@@ -97,6 +97,8 @@ public:
     void setBottomTankPressure(Boardcore::PressureData data);
     void setTopTankPressure(Boardcore::PressureData data);
     void setTankTemperature(Boardcore::TemperatureData data);
+    void setMotorBatteryVoltage(Boardcore::BatteryVoltageSensorData data);
+    void setMotorCurrent(Boardcore::CurrentData data);
 
     // CAN fake sensors getters
     Boardcore::PitotData getPitotLastSample();
@@ -104,6 +106,8 @@ public:
     Boardcore::PressureData getBottomTankPressureLastSample();
     Boardcore::PressureData getTopTankPressureLastSample();
     Boardcore::TemperatureData getTankTemperatureLastSample();
+    Boardcore::BatteryVoltageSensorData getMotorBatteryVoltage();
+    Boardcore::CurrentData getMotorCurrent();
 
 private:
     // Init and callbacks methods
@@ -159,6 +163,8 @@ private:
     Boardcore::PressureData canBottomTankPressure;
     Boardcore::PressureData canTopTankPressure;
     Boardcore::TemperatureData canTankTemperature;
+    Boardcore::BatteryVoltageSensorData canMotorBatteryVoltage;
+    Boardcore::CurrentData canMotorCurrent;
 
     // Fake processed sensors
     RotatedIMU* imu                         = nullptr;

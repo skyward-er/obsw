@@ -360,6 +360,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // TODO add the venting valve to telemetry
             tm.top_tank_pressure =
                 modules.get<Sensors>()->getTopTankPressureLastSample().pressure;
+            tm.battery_voltage =
+                modules.get<Sensors>()->getMotorBatteryVoltage().batVoltage;
+            tm.current_consumption =
+                modules.get<Sensors>()->getMotorCurrent().current;
 
             mavlink_msg_motor_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                         RadioConfig::MAV_COMP_ID, &msg, &tm);
