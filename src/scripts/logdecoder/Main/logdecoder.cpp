@@ -21,6 +21,7 @@
  */
 
 // #include <Main/Sensors/SensorsData.h>
+#include <Main/CanHandler/CanHandlerData.h>
 #include <Main/Sensors/RotatedIMU/RotatedIMUData.h>
 #include <Main/Sensors/SensorsData.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
@@ -65,6 +66,11 @@ void registerTypes(Deserializer& ds)
     ds.registerType<HSCMRNN015PA_1Data>();
     ds.registerType<HSCMRNN015PA_2Data>();
     ds.registerType<RotatedIMUData>();
+    ds.registerType<CanPressureSensor>();
+    ds.registerType<CanTemperatureSensor>();
+    ds.registerType<CanCurrentSensor>();
+    ds.registerType<CanVoltageSensor>();
+    ds.registerType<SensorsCalibrationParameter>();
 }
 
 void showUsage(const string& cmdName)
