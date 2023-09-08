@@ -87,6 +87,7 @@ enum class EventId : uint8_t
     DISARM,
     LIFTOFF,
     APOGEE_DETECTED,
+    IGNITION,
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
@@ -98,6 +99,7 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::ENTER_TEST_MODE, Common::CAN_ENTER_TEST_MODE},
     {Common::CanConfig::EventId::EXIT_TEST_MODE, Common::CAN_EXIT_TEST_MODE},
     {Common::CanConfig::EventId::APOGEE_DETECTED, Common::CAN_APOGEE_DETECTED},
+    {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
 };
 
 }  // namespace CanConfig
