@@ -25,6 +25,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/CanHandler/CanHandlerData.h>
 #include <Main/Configs/CanHandlerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -179,39 +180,97 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
     {
         case SensorId::PITOT:
         {
-            modules.get<Sensors>()->setPitot(pitotDataFromCanMessage(msg));
+            PitotData data = pitotDataFromCanMessage(msg);
+            modules.get<Sensors>()->setPitot(data);
+
+            // Log the data
+            data.timestamp = TimestampTimer::getTimestamp();
+            Logger::getInstance().log(data);
+
             break;
         }
         case SensorId::CC_PRESSURE:
         {
-            modules.get<Sensors>()->setCCPressure(
-                pressureDataFromCanMessage(msg));
+            PressureData data = pressureDataFromCanMessage(msg);
+            modules.get<Sensors>()->setCCPressure(data);
+
+            // Log the data
+            CanPressureSensor log;
+            log.timestamp = TimestampTimer::getTimestamp();
+            log.pressure  = data.pressure;
+            log.sensorId  = static_cast<uint8_t>(SensorId::CC_PRESSURE);
+            Logger::getInstance().log(log);
+
             break;
         }
         case SensorId::BOTTOM_TANK_PRESSURE:
         {
-            modules.get<Sensors>()->setBottomTankPressure(
-                pressureDataFromCanMessage(msg));
+            PressureData data = pressureDataFromCanMessage(msg);
+            modules.get<Sensors>()->setBottomTankPressure(data);
+
+            // Log the data
+            CanPressureSensor log;
+            log.timestamp = TimestampTimer::getTimestamp();
+            log.pressure  = data.pressure;
+            log.sensorId = static_cast<uint8_t>(SensorId::BOTTOM_TANK_PRESSURE);
+            Logger::getInstance().log(log);
+
             break;
         }
         case SensorId::TOP_TANK_PRESSURE:
         {
-            modules.get<Sensors>()->setTopTankPressure(
-                pressureDataFromCanMessage(msg));
+            PressureData data = pressureDataFromCanMessage(msg);
+            modules.get<Sensors>()->setTopTankPressure(data);
+
+            // Log the data
+            CanPressureSensor log;
+            log.timestamp = TimestampTimer::getTimestamp();
+            log.pressure  = data.pressure;
+            log.sensorId  = static_cast<uint8_t>(SensorId::TOP_TANK_PRESSURE);
+            Logger::getInstance().log(log);
+
             break;
         }
         case SensorId::TANK_TEMPERATURE:
         {
-            modules.get<Sensors>()->setTankTemperature(
-                temperatureDataFromCanMessage(msg));
+            TemperatureData data = temperatureDataFromCanMessage(msg);
+            modules.get<Sensors>()->setTankTemperature(data);
+
+            // Log the data
+            CanTemperatureSensor log;
+            log.timestamp   = TimestampTimer::getTimestamp();
+            log.temperature = data.temperature;
+            log.sensorId    = static_cast<uint8_t>(SensorId::TANK_TEMPERATURE);
+
             break;
         }
         case SensorId::MOTOR_BOARD_VOLTAGE:
         {
+            BatteryVoltageSensorData data = voltageDataFromCanMessage(msg);
+            modules.get<Sensors>()->setMotorBatteryVoltage(data);
+
+            // Log the data
+            CanVoltageSensor log;
+            log.timestamp = TimestampTimer::getTimestamp();
+            log.sensorId  = static_cast<uint8_t>(SensorId::MOTOR_BOARD_VOLTAGE);
+            log.voltage   = data.batVoltage;
+            Logger::getInstance().log(log);
+
             break;
         }
         case SensorId::MOTOR_ACTUATORS_CURRENT:
         {
+            CurrentData data = currentDataFromCanMessage(msg);
+            modules.get<Sensors>()->setMotorCurrent(data);
+
+            // Log the data
+            CanCurrentSensor log;
+            log.timestamp = TimestampTimer::getTimestamp();
+            log.sensorId =
+                static_cast<uint8_t>(SensorId::MOTOR_ACTUATORS_CURRENT);
+            log.current = data.current;
+            Logger::getInstance().log(log);
+
             break;
         }
         default:
