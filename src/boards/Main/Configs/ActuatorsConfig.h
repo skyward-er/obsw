@@ -29,14 +29,14 @@ namespace Main
 namespace ActuatorsConfig
 {
 static TIM_TypeDef* const SERVO_ABK_TIMER = TIM3;
-static TIM_TypeDef* const SERVO_EXP_TIMER = TIM1;
+static TIM_TypeDef* const SERVO_EXP_TIMER = TIM12;
 static TIM_TypeDef* const BUZZER_TIMER    = TIM1;
 
 // TODO change correspondent naming in hwmapping (channel different)
 constexpr Boardcore::TimerUtils::Channel SERVO_ABK_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 constexpr Boardcore::TimerUtils::Channel SERVO_EXP_CHANNEL =
-    Boardcore::TimerUtils::Channel::CHANNEL_3;
+    Boardcore::TimerUtils::Channel::CHANNEL_2;
 constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
