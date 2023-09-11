@@ -20,38 +20,183 @@
  * THE SOFTWARE.
  */
 
-#include <drivers/timer/TimestampTimer.h>
-#include <miosix.h>
-
-#include <Groundstation/Base/Buses.h>
-#include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/Radio/RadioStatus.h>
+#include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/Buses.h>
+#include <Groundstation/Automated/Follower/Follower.h>
+#include <Groundstation/Automated/Hub.h>
+#include <Groundstation/Automated/Radio/Radio.h>
+#include <Groundstation/Automated/Radio/RadioStatus.h>
+#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include "Converter.h"
+#include <diagnostic/CpuMeter/CpuMeter.h>
+#include <diagnostic/PrintLogger.h>
+#include <diagnostic/StackLogger.h>
+#include <drivers/interrupt/external_interrupts.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
+#include <miosix.h>
+#include <scheduler/TaskScheduler.h>
+#include <utils/ButtonHandler/ButtonHandler.h>
 
-using namespace miosix;
+#include <iostream>
+#include <thread>
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "actuators/stepper/StepperPWM.h"
+
+using namespace Groundstation;
+using namespace Antennas;
 using namespace Boardcore;
+using namespace miosix;
 
-inline float randf() { return (std::rand() % 200 - 100) / 100.f; }
+GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
+
+void __attribute__((used)) EXTI10_IRQHandlerImpl()
+{
+    ModuleManager::getInstance().get<Actuators>()->IRQemergencyStop();
+}
 
 int main()
 {
-    constexpr int N = 10000;
+    ModuleManager &modules = ModuleManager::getInstance();
+    PrintLogger logger     = Logging::getLogger("automated_antennas");
+    bool ok                = true;
 
-    printf("Starting test\n");
-    uint64_t start = TimestampTimer::getTimestamp();
+    button.mode(Mode::INPUT);
+    enableExternalInterrupt(button.getPort(), button.getNumber(),
+                            InterruptTrigger::RISING_EDGE);
 
-    for (int i = 0; i < N; i++)
+    TaskScheduler *scheduler  = new TaskScheduler();
+    Hub *hub                  = new Hub();
+    Buses *buses              = new Buses();
+    Serial *serial            = new Serial();
+    RadioMain *radio_main     = new RadioMain();
+    RadioStatus *radio_status = new RadioStatus();
+    Actuators *actuators      = new Actuators();
+    Sensors *sensors          = new Sensors();
+    Follower *follower        = new Follower();
+
+    // Inserting Modules
     {
-        NEDCoords coords     = {randf(), randf(), randf()};
-        AntennaAngles angles = rocketPositionToAntennaAngles(coords);
-        printf("NED: %.2f ; %.2f ; %.2f -> Angles %.2f ; %.2f\n", coords.n,
-               coords.e, coords.d, angles.theta1, angles.theta2);
+        ok &= modules.insert(follower);
+        ok &= modules.insert<HubBase>(hub);
+        ok &= modules.insert(buses);
+        ok &= modules.insert(serial);
+        ok &= modules.insert(radio_main);
+        ok &= modules.insert(radio_status);
+        ok &= modules.insert(actuators);
+        ok &= modules.insert(sensors);
     }
 
-    uint64_t end = TimestampTimer::getTimestamp();
-    printf("Took %llu millis for %d calls.\n", (end - start) / 1000ull, N);
+    // Starting Modules
+    {
+#ifndef NO_SD_LOGGING
+        // Starting the Logger
+        if (!Logger::getInstance().start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Error initializing the Logger\n");
+        }
+        else
+        {
+            LOG_INFO(logger, "Logger started successfully\n");
+        }
+#endif
+
+        // Starting scheduler
+        if (!scheduler->start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Error initializing the Scheduler\n");
+        }
+
+        if (!serial->start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Failed to start serial!\n");
+        }
+
+        if (!radio_main->start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Failed to start main radio!\n");
+        }
+
+        if (!radio_status->start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Failed to start radio status!\n");
+        }
+
+        if (!sensors->start())
+        {
+            ok = false;
+            LOG_ERR(logger, "Failed to start sensors!\n");
+        }
+
+        actuators->start();
+
+        if (!follower->init())
+        {
+            ok = false;
+            LOG_ERR(logger, "Failed to start follower!\n");
+        }
+    }
+
+    follower->begin();
+    scheduler->addTask(std::bind(&Follower::update, follower), 100);
+
+    std::thread gpsFix(
+        [&]()
+        {
+            GPSData antennaPosition;
+            while (1)
+            {
+                VN300Data vn300Data = ModuleManager::getInstance()
+                                          .get<Antennas::Sensors>()
+                                          ->getVN300LastSample();
+
+                if (vn300Data.fix_gps != 0)
+                {
+                    antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
+                    antennaPosition.latitude      = vn300Data.latitude;
+                    antennaPosition.longitude     = vn300Data.longitude;
+                    antennaPosition.height        = vn300Data.altitude;
+                    antennaPosition.velocityNorth = vn300Data.nedVelX;
+                    antennaPosition.velocityEast  = vn300Data.nedVelY;
+                    antennaPosition.velocityDown  = vn300Data.nedVelZ;
+                    antennaPosition.satellites    = vn300Data.fix_gps;
+                    antennaPosition.fix           = (vn300Data.fix_gps > 0);
+                    LOG_INFO(logger,
+                             "GPS fix "
+                             "acquired !coord[%f, %f] ",
+                             antennaPosition.latitude,
+                             antennaPosition.longitude);
+                    follower->setAntennaPosition(antennaPosition);
+
+                    led3On();
+                    return;
+                }
+
+                Thread::sleep(1000);
+            }
+        });
+
+    if (radio_status->isMainRadioPresent())
+    {
+        led1On();
+    }
+    else
+    {
+        led2On();
+    }
+
+    gpsFix.join();
+
+    while (true)
+    {
+        Thread::wait();
+    }
 
     return 0;
 }
