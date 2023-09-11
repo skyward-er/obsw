@@ -48,9 +48,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
     ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
 
-    // Prevent context switch
-    PauseKernelLock lock;
-
     switch (tmId)
     {
         case SystemTMList::MAV_SYS_ID:
@@ -394,7 +391,304 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                               uint8_t msgId, uint8_t seq)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
+
+    switch (sensorId)
+    {
+        case MAV_GPS_ID:
+        {
+            mavlink_gps_tm_t tm;
+
+            UBXGPSData data = modules.get<Sensors>()->getGPSLastSample();
+
+            tm.fix          = data.fix;
+            tm.height       = data.height;
+            tm.latitude     = data.latitude;
+            tm.longitude    = data.longitude;
+            tm.n_satellites = data.satellites;
+            strcpy(tm.sensor_name, "UBXGPS");
+            tm.speed     = data.speed;
+            tm.timestamp = data.gpsTimestamp;
+            tm.track     = data.track;
+            tm.vel_down  = data.velocityDown;
+            tm.vel_east  = data.velocityEast;
+            tm.vel_north = data.velocityNorth;
+
+            mavlink_msg_gps_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_ADS_ID:
+        {
+            // TODO when telemetry supports 8 channels
+            mavlink_adc_tm_t tm;
+
+            ADS131M08Data data =
+                modules.get<Sensors>()->getADS131M08LastSample();
+
+            tm.channel_0 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
+            tm.channel_1 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
+            tm.channel_2 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
+            tm.channel_3 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
+            tm.timestamp = data.timestamp;
+
+            strcpy(tm.sensor_name, "ADS131M08");
+
+            mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_CURRENT_SENSE_ID:
+        {
+            mavlink_current_tm_t tm;
+
+            CurrentData data = modules.get<Sensors>()->getCurrentLastSample();
+
+            tm.current   = data.current;
+            tm.timestamp = data.currentTimestamp;
+            strcpy(tm.sensor_name, "CURRENT");
+
+            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_DPL_PRESS_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            PressureData data =
+                modules.get<Sensors>()->getDeploymentPressureLastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "DPL_PRESSURE");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_STATIC_PRESS_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            PressureData data =
+                modules.get<Sensors>()->getStaticPressure1LastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "STATIC_PRESSURE");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_BATTERY_VOLTAGE_ID:
+        {
+            mavlink_voltage_tm_t tm;
+
+            BatteryVoltageSensorData data =
+                modules.get<Sensors>()->getBatteryVoltageLastSample();
+
+            tm.voltage   = data.batVoltage;
+            tm.timestamp = data.voltageTimestamp;
+            strcpy(tm.sensor_name, "BATTERY_VOLTAGE");
+
+            mavlink_msg_voltage_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_TANK_TOP_PRESS_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            PressureData data =
+                modules.get<Sensors>()->getTopTankPressureLastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "TOP_TANK");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_TANK_BOTTOM_PRESS_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            PressureData data =
+                modules.get<Sensors>()->getBottomTankPressureLastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "BOTTOM_TANK");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_COMBUSTION_PRESS_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            PressureData data =
+                modules.get<Sensors>()->getCCPressureLastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "COMBUSTION_CHAMBER");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_TANK_TEMP_ID:
+        {
+            mavlink_temp_tm_t tm;
+
+            TemperatureData data =
+                modules.get<Sensors>()->getTankTemperatureLastSample();
+
+            tm.temperature = data.temperature;
+            tm.timestamp   = data.temperatureTimestamp;
+            strcpy(tm.sensor_name, "TANK_TEMPERATURE");
+
+            mavlink_msg_temp_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_LIS2MDL_ID:
+        {
+            mavlink_imu_tm_t tm;
+
+            LIS2MDLData data = modules.get<Sensors>()->getLIS2MDLLastSample();
+
+            tm.acc_x  = 0;
+            tm.acc_y  = 0;
+            tm.acc_z  = 0;
+            tm.gyro_x = 0;
+            tm.gyro_y = 0;
+            tm.gyro_z = 0;
+
+            tm.mag_x     = data.magneticFieldX;
+            tm.mag_y     = data.magneticFieldY;
+            tm.mag_z     = data.magneticFieldZ;
+            tm.timestamp = data.magneticFieldTimestamp;
+            strcpy(tm.sensor_name, "LIS2MDL");
+
+            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_LPS28DFW_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            LPS28DFWData data =
+                modules.get<Sensors>()->getLPS28DFW_1LastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "LPS28DFW");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_LSM6DSRX_ID:
+        {
+            mavlink_imu_tm_t tm;
+
+            LSM6DSRXData data = modules.get<Sensors>()->getLSM6DSRXLastSample();
+
+            tm.mag_x     = 0;
+            tm.mag_y     = 0;
+            tm.mag_z     = 0;
+            tm.acc_x     = data.accelerationX;
+            tm.acc_y     = data.accelerationY;
+            tm.acc_z     = data.accelerationZ;
+            tm.gyro_x    = data.angularSpeedX;
+            tm.gyro_y    = data.angularSpeedY;
+            tm.gyro_z    = data.angularSpeedZ;
+            tm.timestamp = data.accelerationTimestamp;
+            strcpy(tm.sensor_name, "LSM6DSRX");
+
+            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_H3LIS331DL_ID:
+        {
+            mavlink_imu_tm_t tm;
+
+            H3LIS331DLData data =
+                modules.get<Sensors>()->getH3LIS331DLLastSample();
+
+            tm.mag_x     = 0;
+            tm.mag_y     = 0;
+            tm.mag_z     = 0;
+            tm.gyro_x    = 0;
+            tm.gyro_y    = 0;
+            tm.gyro_z    = 0;
+            tm.acc_x     = data.accelerationX;
+            tm.acc_y     = data.accelerationY;
+            tm.acc_z     = data.accelerationZ;
+            tm.timestamp = data.accelerationTimestamp;
+            strcpy(tm.sensor_name, "H3LIS331DL");
+
+            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case MAV_LPS22DF_ID:
+        {
+            mavlink_pressure_tm_t tm;
+
+            LPS22DFData data = modules.get<Sensors>()->getLPS22DFLastSample();
+
+            tm.pressure  = data.pressure;
+            tm.timestamp = data.pressureTimestamp;
+            strcpy(tm.sensor_name, "LPS22DF");
+
+            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        default:
+        {
+            // Send by default the nack message
+            mavlink_nack_tm_t nack;
+
+            nack.recv_msgid = msgId;
+            nack.seq_ack    = seq;
+
+            LOG_ERR(logger, "Unknown sensor id: {}", sensorId);
+            mavlink_msg_nack_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                       RadioConfig::MAV_COMP_ID, &msg, &nack);
+
+            break;
+        }
+    }
 
     return msg;
 }
