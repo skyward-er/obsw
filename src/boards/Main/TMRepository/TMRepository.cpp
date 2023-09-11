@@ -283,6 +283,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<PinHandler>()
                     ->getPinData(PinHandler::PinList::NOSECONE_PIN)
                     .lastState;
+            tm.pin_expulsion = static_cast<uint8_t>(
+                miosix::gpios::exp_sense::getPin().value());
 
             // Board status (TODO)
             tm.battery_voltage = modules.get<Sensors>()

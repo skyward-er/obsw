@@ -44,8 +44,8 @@ constexpr uint16_t ABK_MIN_PULSE = 1950;
 constexpr uint16_t ABK_MAX_PULSE = 1380;
 
 // Inverted to invert the servo logic
-constexpr uint16_t EXP_MIN_PULSE = 2000;
-constexpr uint16_t EXP_MAX_PULSE = 900;
+constexpr uint16_t EXP_MIN_PULSE = 900;
+constexpr uint16_t EXP_MAX_PULSE = 2000;
 
 // Buzzer configs
 constexpr uint32_t BUZZER_FREQUENCY = 1000;
