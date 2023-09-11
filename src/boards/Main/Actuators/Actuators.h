@@ -71,11 +71,6 @@ public:
     void cutterOn();
     void cutterOff();
 
-    /**
-     * @brief Toggles the LED state
-     */
-    void toggleLed();
-
     // Setters for buzzer state
     void setBuzzerArm();
     void setBuzzerLand();
@@ -106,7 +101,7 @@ private:
     uint32_t buzzerCounter = 0;
 
     // Upper limit of the buzzer counter
-    uint32_t buzzerCounterOverflow = 0;
+    std::atomic<uint32_t> buzzerCounterOverflow{0};
 
     // Can set servo positions
     float CANPositions[ServosList::ServosList_ENUM_END];

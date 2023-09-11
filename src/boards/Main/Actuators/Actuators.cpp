@@ -148,21 +148,6 @@ void Actuators::cutterOff()
     gpios::cut_trigger::low();
 }
 
-void Actuators::toggleLed()
-{
-    miosix::Lock<FastMutex> l(mutex);
-
-    if (ledState)
-    {
-        gpios::status_led::low();
-    }
-    else
-    {
-        gpios::status_led::high();
-    }
-    ledState = !ledState;
-}
-
 Servo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
@@ -184,28 +169,20 @@ Servo* Actuators::getServo(ServosList servo)
 
 void Actuators::setBuzzerArm()
 {
-    miosix::Lock<FastMutex> l(mutex);
     // Set the counter with respect to the update function period
     buzzerCounterOverflow = BUZZER_ARM_PERIOD / BUZZER_UPDATE_PERIOD;
 }
 
 void Actuators::setBuzzerLand()
 {
-    miosix::Lock<FastMutex> l(mutex);
     // Set the counter with respect to the update function period
     buzzerCounterOverflow = BUZZER_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
 }
 
-void Actuators::setBuzzerOff()
-{
-    miosix::Lock<FastMutex> l(mutex);
-    buzzerCounterOverflow = 0;
-}
+void Actuators::setBuzzerOff() { buzzerCounterOverflow = 0; }
 
 void Actuators::updateBuzzer()
 {
-    miosix::Lock<FastMutex> l(mutex);
-
     if (buzzerCounterOverflow == 0)
     {
         // The buzzer is deactivated thus the channel is disabled
