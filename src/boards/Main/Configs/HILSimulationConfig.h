@@ -61,9 +61,6 @@ struct SensorConfig : public Boardcore::SensorInfo
     }
 };
 
-/** baudrate of connection */
-const int SIM_BAUDRATE = 115200;
-
 /** Period of simulation in milliseconds */
 const int SIMULATION_PERIOD = 100;
 
