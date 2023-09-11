@@ -39,8 +39,6 @@ using namespace Main::FMMConfig;
 
 namespace Main
 {
-// (TODO) Add correctly CAN Events (without duping)
-
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::state_on_ground)
 {

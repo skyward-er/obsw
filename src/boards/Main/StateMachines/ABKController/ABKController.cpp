@@ -178,8 +178,6 @@ void ABKController::state_end(const Event& event)
         case EV_ENTRY:
         {
             logStatus(ABKControllerState::END);
-
-            // End the ABK (TODO Maybe a mutex?)
             abk.end();
 
             // Close the servo

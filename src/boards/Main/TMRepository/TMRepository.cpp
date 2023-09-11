@@ -177,9 +177,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.ref_altitude    = ref.refAltitude;
             tm.ref_temperature = ref.refTemperature - 273.15f;
             tm.ref_pressure    = ref.refPressure;
-
-            // (TODO) decide wether to keep it or not
-            tm.dpl_altitude = 0;
+            tm.dpl_altitude    = 0;
 
             mavlink_msg_ada_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
@@ -286,7 +284,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.pin_expulsion = static_cast<uint8_t>(
                 miosix::gpios::exp_sense::getPin().value());
 
-            // Board status (TODO)
+            // Board status
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
                                      .batVoltage;
@@ -327,13 +325,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_fsm_tm_t tm;
 
-            // TODO
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = static_cast<uint8_t>(
                 modules.get<ABKController>()->getStatus().state);
             tm.ada_state = static_cast<uint8_t>(
                 modules.get<ADAController>()->getStatus().state);
-            tm.dpl_state = 0;
+            tm.dpl_state = static_cast<uint8_t>(
+                modules.get<Deployment>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(

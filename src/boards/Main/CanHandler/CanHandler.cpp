@@ -91,7 +91,6 @@ bool CanHandler::start()
         },
         STATUS_TRANSMISSION_PERIOD);
 
-    // TODO look at the priorities of the CAN protocol threads
     return protocol->start() && result != 0;
 }
 

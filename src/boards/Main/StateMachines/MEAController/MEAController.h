@@ -97,7 +97,7 @@ private:
      */
     float computeRho(Boardcore::NASState state);
 
-    // TODO comment
+    // Returns the MEA kalman matrices to configure the filter
     Boardcore::MEA::KalmanFilter::KalmanConfig getMEAKalmanConfig();
 
     // Controller state machine status

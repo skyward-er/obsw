@@ -85,6 +85,10 @@ private:
     // User set (or triac set) initial orientation
     Eigen::Vector3f initialOrientation;
 
+    // Acceleration correction parameters
+    bool accelerationValid           = true;
+    unsigned int accSampleAfterSpike = 0;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };
 }  // namespace Main

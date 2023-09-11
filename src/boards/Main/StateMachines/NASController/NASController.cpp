@@ -82,9 +82,13 @@ void NASController::update()
         RotatedIMUData imuData = modules.get<Sensors>()->getIMULastSample();
         UBXGPSData gpsData     = modules.get<Sensors>()->getGPSLastSample();
 
-        // TODO change barometer
+        // Get barometer data
         PressureData staticPressure =
             modules.get<Sensors>()->getStaticPressure1LastSample();
+
+        // Compute the norm for acceleration validity
+        Vector3f accVector     = static_cast<AccelerometerData>(imuData);
+        float accelerationNorm = accVector.norm();
 
         // NAS prediction
         nas.predictGyro(imuData);
@@ -95,10 +99,37 @@ void NASController::update()
         nas.correctGPS(gpsData);
         nas.correctBaro(staticPressure.pressure);
 
-        // TODO Check ACCELEROMETER BOUNDS BEFORE CORRECTING
-        nas.correctAcc(imuData);
+        // Correct with accelerometer if the acceleration is in specs
+        if (accelerationValid)
+        {
+            nas.correctAcc(imuData);
+        }
 
-        // TODO LOG the state and add to FLIGHT STATS RECORDER
+        // Check boundaries
+        if ((accelerationNorm <
+                 (Constants::g + (NASConfig::ACCELERATION_THRESHOLD) / 2) &&
+             accelerationNorm >
+                 (Constants::g - (NASConfig::ACCELERATION_THRESHOLD) / 2)))
+        {
+            if (!accelerationValid)
+            {
+                accSampleAfterSpike++;
+            }
+        }
+        else
+        {
+            accelerationValid   = false;
+            accSampleAfterSpike = 0;
+        }
+
+        // Enable the accelerometer after a fixed amount of good samples
+        if (accSampleAfterSpike > NASConfig::ACCELERATION_THRESHOLD_SAMPLE)
+        {
+            accSampleAfterSpike = 0;
+            accelerationValid   = true;
+        }
+
+        Logger::getInstance().log(nas.getState());
 
         // printf("/w%fwa%fab%fbc%fc/\n", getNasState().qw, getNasState().qx,
         //        getNasState().qy, getNasState().qz);

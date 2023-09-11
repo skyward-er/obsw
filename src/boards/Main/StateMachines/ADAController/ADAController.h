@@ -79,7 +79,7 @@ private:
      */
     void logStatus(ADAControllerState state);
 
-    // TODO comment
+    // Returns the ADA kalman matrices that configure the filter
     Boardcore::ADA::KalmanFilter::KalmanConfig getADAKalmanConfig();
 
     // Controller state machine status
