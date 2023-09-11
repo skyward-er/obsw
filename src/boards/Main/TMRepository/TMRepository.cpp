@@ -403,7 +403,8 @@ mavlink_message_t TMRepository::packServoTm(ServosList servoId, uint8_t msgId,
     ModuleManager& modules = ModuleManager::getInstance();
     mavlink_message_t msg;
 
-    if (servoId == AIR_BRAKES_SERVO || servoId == EXPULSION_SERVO)
+    if (servoId == AIR_BRAKES_SERVO || servoId == EXPULSION_SERVO ||
+        servoId == MAIN_VALVE || servoId == VENTING_VALVE)
     {
         mavlink_servo_tm_t tm;
         tm.servo_id       = servoId;
