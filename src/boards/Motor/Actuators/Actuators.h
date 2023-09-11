@@ -68,13 +68,11 @@ public:
     void openServoAtomic(ServosList servo, uint32_t time);
 
     /**
-     * @brief Closes the servo valve passed via parameter for a certain amount
-     * of time. If the valve is already open it closes it.
+     * @brief Closes the servo valve passed via parameter.
      *
      * @param servo The servo valve to open
-     * @param time The time in [ms]
      */
-    void closeServoAtomic(ServosList servo, uint32_t time);
+    void closeServo(ServosList servo);
 
 private:
     /**

@@ -102,7 +102,7 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
     }
 }
 
-void Actuators::closeServoAtomic(ServosList servo, uint32_t time)
+void Actuators::closeServo(ServosList servo)
 {
     PauseKernelLock lock;
 

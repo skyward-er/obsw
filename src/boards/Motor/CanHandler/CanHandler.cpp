@@ -256,7 +256,7 @@ void CanHandler::handleCanCommand(const CanMessage &msg)
         else
         {
             // printf("Closing %d for %ld\n", msg.getSecondaryType(), delay);
-            actuators->closeServoAtomic(servo, delay);
+            actuators->closeServo(servo);
         }
     }
 }
