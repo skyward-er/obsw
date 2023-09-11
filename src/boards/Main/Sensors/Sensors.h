@@ -158,13 +158,13 @@ private:
     Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Can sensors
-    Boardcore::PitotData canPitot;
-    Boardcore::PressureData canCCPressure;
-    Boardcore::PressureData canBottomTankPressure;
-    Boardcore::PressureData canTopTankPressure;
-    Boardcore::TemperatureData canTankTemperature;
-    Boardcore::BatteryVoltageSensorData canMotorBatteryVoltage;
-    Boardcore::CurrentData canMotorCurrent;
+    Boardcore::PitotData canPitot{};
+    Boardcore::PressureData canCCPressure{};
+    Boardcore::PressureData canBottomTankPressure{};
+    Boardcore::PressureData canTopTankPressure{};
+    Boardcore::TemperatureData canTankTemperature{};
+    Boardcore::BatteryVoltageSensorData canMotorBatteryVoltage{};
+    Boardcore::CurrentData canMotorCurrent{};
 
     // Fake processed sensors
     RotatedIMU* imu                         = nullptr;
