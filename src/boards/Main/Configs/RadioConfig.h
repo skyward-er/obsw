@@ -32,7 +32,7 @@ constexpr uint32_t RADIO_PKT_LENGTH     = 255;
 constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
 constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 200;
+constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;
 
 constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 0;
 constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 10;
