@@ -428,12 +428,13 @@ int main()
         FlightPhases::SIMULATION_STARTED,
         [&]()
         {
+            Thread::sleep(2000);
             EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
                                             Topics::TOPIC_TMTC);
-            Thread::sleep(5000);
+            Thread::sleep(4000);
             EventBroker::getInstance().post(Events::TMTC_ARM,
                                             Topics::TOPIC_TMTC);
-            printf("ARM COMMAND SENT\n");
+            TRACE("ARM COMMAND SENT\n");
         });
 
     hil->flightPhasesManager->registerToFlightPhase(
@@ -450,13 +451,6 @@ int main()
                     EventBroker::getInstance().post(
                         Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
                 });
-
-            // Return only when we are sure that the FMM FSM received the event
-            // and changed state
-            while (fmm->testState(&FlightModeManager::state_armed))
-            {
-                Thread::yield();
-            }
         });
 
     hil->flightPhasesManager->registerToFlightPhase(
@@ -542,7 +536,7 @@ int main()
                 // Actually sending the feedback to the simulator
                 modules.get<HIL>()->send(actuatorData);
             },
-            HILConfig::SIMULATION_PERIOD);
+            HILConfig::SIMULATION_PERIOD, TaskScheduler::Policy::RECOVER);
 #endif
 
     // Periodic statistics
@@ -552,6 +546,12 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
+        printf("NAS d=%.3f vd=%.3f\n", nas->getNasState().d,
+               nas->getNasState().vd);
+
+        printf("ADA agl=%.3f msl=%.3f vd=%.3f\n\n",
+               ada->getADAState().aglAltitude, ada->getADAState().mslAltitude,
+               ada->getADAState().verticalSpeed);
     }
 
     return 0;
