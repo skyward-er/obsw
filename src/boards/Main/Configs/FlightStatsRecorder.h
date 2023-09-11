@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
+/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
  * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,28 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <common/Mavlink.h>
+#include <stdint.h>
 
 namespace Main
 {
-namespace RadioConfig
+namespace FlightStatsRecorderConfig
 {
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
-
-constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;
-
-constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 0;
-constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 100;
-
-constexpr uint8_t MAV_SYSTEM_ID = 171;
-constexpr uint8_t MAV_COMP_ID   = 96;
-
-constexpr uint32_t MAVLINK_QUEUE_SIZE = 3;
-
-}  // namespace RadioConfig
+constexpr uint32_t FSR_UPDATE_PERIOD = 100;  // [ms]
+}
 }  // namespace Main

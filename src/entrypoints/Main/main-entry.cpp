@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
@@ -84,6 +85,8 @@ int main()
         new MEAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ABKController* abk =
         new ABKController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    FlightStatsRecorder* recorder =
+        new FlightStatsRecorder(scheduler->getScheduler(miosix::MAIN_PRIORITY));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -176,6 +179,12 @@ int main()
         LOG_ERR(logger, "Error inserting the Altitude Trigger module");
     }
 
+    if (!modules.insert<FlightStatsRecorder>(recorder))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the Flight Stats Recorder module");
+    }
+
     // Start modules
     if (!Logger::getInstance().testSDCard())
     {
@@ -265,6 +274,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Altitude Trigger module");
+    }
+
+    if (!modules.get<FlightStatsRecorder>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Flight Stats Recorder module");
     }
 
     // Log all the events

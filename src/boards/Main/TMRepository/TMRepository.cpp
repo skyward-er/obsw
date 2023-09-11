@@ -22,6 +22,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/RadioConfig.h>
+#include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
@@ -311,9 +312,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_STATS_ID:
         {
-            mavlink_rocket_stats_tm_t tm;
+            mavlink_rocket_stats_tm_t tm =
+                modules.get<FlightStatsRecorder>()->getStats();
 
-            // TODO
             tm.cpu_load  = CpuMeter::getCpuStats().mean;
             tm.free_heap = CpuMeter::getCpuStats().freeHeap;
 

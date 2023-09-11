@@ -101,9 +101,17 @@ bool Radio::start()
 
     // Add periodic telemetry send task
     uint8_t result =
-        scheduler->addTask([=]() { this->sendPeriodicMessage(); },
+        scheduler->addTask([&]() { this->sendPeriodicMessage(); },
                            RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
                            TaskScheduler::Policy::RECOVER);
+    result &= scheduler->addTask(
+        [&]()
+        {
+            this->enqueueMsg(
+                modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
+        },
+        RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD * 2,
+        TaskScheduler::Policy::RECOVER);
 
     // Config mavDriver
     mavDriver = new MavDriver(
