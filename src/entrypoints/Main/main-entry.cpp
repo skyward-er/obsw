@@ -60,6 +60,60 @@ using namespace Boardcore;
 using namespace Main;
 using namespace Common;
 
+class MockRadio : public Radio
+{
+public:
+    MockRadio(TaskScheduler* scheduler) : Radio(scheduler) {}
+
+    bool start() override { return true; }
+
+    void sendAck(const mavlink_message_t& msg) override { return; };
+
+    void sendNack(const mavlink_message_t& msg) override { return; };
+
+    void logStatus() override { return; };
+
+    bool isStarted() override { return true; };
+};
+
+class MockCanHandler : public CanHandler
+{
+public:
+    MockCanHandler(TaskScheduler* scheduler) : CanHandler(scheduler) {}
+
+    bool start() override { return true; }
+
+    bool isStarted() override { return true; }
+
+    void sendEvent(Common::CanConfig::EventId event) override { return; }
+
+    void sendCanCommand(ServosList servo, bool targetState,
+                        uint32_t delay) override
+    {
+        return;
+    }
+};
+
+class MockPinHandler : public PinHandler
+{
+public:
+    MockPinHandler() : PinHandler() {}
+
+    bool start() override { return true; }
+
+    bool isStarted() override { return true; }
+
+    void onLaunchPinTransition(Boardcore::PinTransition transition) override {}
+    void onNoseconeTransition(Boardcore::PinTransition transition) override {}
+    void onCutterSenseTransition(Boardcore::PinTransition transition) override
+    {
+    }
+    void onExpulsionSenseTransition(
+        Boardcore::PinTransition transition) override
+    {
+    }
+};
+
 int main()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -85,10 +139,11 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
         new ADAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
-    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    Radio* radio =
+        new MockRadio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+        new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
@@ -552,6 +607,9 @@ int main()
         printf("ADA agl=%.3f msl=%.3f vd=%.3f\n\n",
                ada->getADAState().aglAltitude, ada->getADAState().mslAltitude,
                ada->getADAState().verticalSpeed);
+
+        printf("Main valve: %f\n",
+               actuators->getServoPosition(ServosList::MAIN_VALVE));
     }
 
     return 0;

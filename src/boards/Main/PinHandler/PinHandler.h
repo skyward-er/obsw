@@ -47,32 +47,33 @@ public:
     /**
      * @brief Starts the PinObserver module thread
      */
-    bool start();
+    virtual bool start();
 
     /**
      * @brief Checks if the module has started correctly
      */
-    bool isStarted();
+    virtual bool isStarted();
 
     /**
      * @brief Called when the launch pin detaches
      */
-    void onLaunchPinTransition(Boardcore::PinTransition transition);
+    virtual void onLaunchPinTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Called when the nosecone pin detaches
      */
-    void onNoseconeTransition(Boardcore::PinTransition transition);
+    virtual void onNoseconeTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Called when the cutter igniter ignites
      */
-    void onCutterSenseTransition(Boardcore::PinTransition transition);
+    virtual void onCutterSenseTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Called when the expulsion sensor changes state
      */
-    void onExpulsionSenseTransition(Boardcore::PinTransition transition);
+    virtual void onExpulsionSenseTransition(
+        Boardcore::PinTransition transition);
 
     /**
      * @brief Returns the status of the requested pin

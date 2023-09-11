@@ -43,29 +43,29 @@ public:
     /**
      * @brief Starts the MavlinkDriver
      */
-    [[nodiscard]] bool start();
+    [[nodiscard]] virtual bool start();
 
     /**
      * @brief Sends via radio an acknowledge message about the parameter passed
      * message
      */
-    void sendAck(const mavlink_message_t& msg);
+    virtual void sendAck(const mavlink_message_t& msg);
 
     /**
      * @brief Sends via radio an non-acknowledge message about the parameter
      * passed message
      */
-    void sendNack(const mavlink_message_t& msg);
+    virtual void sendNack(const mavlink_message_t& msg);
 
     /**
      * @brief Saves the MavlinkDriver and transceiver status
      */
-    void logStatus();
+    virtual void logStatus();
 
     /**
      * @brief Returns if the radio module is correctly started
      */
-    bool isStarted();
+    virtual bool isStarted();
 
     Boardcore::SX1278Fsk* transceiver = nullptr;
     MavDriver* mavDriver              = nullptr;
