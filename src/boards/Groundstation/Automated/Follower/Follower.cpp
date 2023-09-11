@@ -23,7 +23,9 @@
 #include "Follower.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <common/ReferenceConfig.h>
 #include <utils/AeroUtils/AeroUtils.h>
 
 #include <Eigen/Dense>
@@ -34,75 +36,37 @@ using namespace Boardcore;
 namespace Antennas
 {
 
-Follower::Follower() {}
-
-bool Follower::init()
+Follower::Follower()
+    : antennaCoordinates(
+          Common::ReferenceConfig::defaultReferenceValues.refLatitude,
+          Common::ReferenceConfig::defaultReferenceValues.refLongitude,
+          Common::ReferenceConfig::defaultReferenceValues.refAltitude)
 {
-    for (int i = 0; i < maxInitRetries; i++)
-    {
-        VN300Data vn300Data = ModuleManager::getInstance()
-                                  .get<Antennas::Sensors>()
-                                  ->getVN300LastSample();
-
-        if (vn300Data.fix_gps > 0)
-        {
-            antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
-            antennaPosition.latitude      = vn300Data.latitude;
-            antennaPosition.latitude      = vn300Data.latitude;
-            antennaPosition.height        = vn300Data.altitude;
-            antennaPosition.velocityNorth = vn300Data.nedVelX;
-            antennaPosition.velocityEast  = vn300Data.nedVelY;
-            antennaPosition.velocityDown  = vn300Data.nedVelZ;
-            antennaPosition.satellites    = vn300Data.fix_gps;
-            antennaPosition.fix           = (vn300Data.fix_gps > 0);
-            LOG_INFO(logger, "Initialization Succeeded");
-            return true;
-        }
-        else
-        {
-            // Waiting for GPS fix for another second
-            LOG_WARN(
-                logger,
-                "Initialization Failed for the {} time, retrying in one second",
-                i);
-            miosix::Thread::sleep(1000);
-        }
-    }
-
-    return false;
 }
 
-/**
- * @param get rocket NAS state.
- */
-NASState Follower::getLastRocketNasState() { return lastRocketNasState; }
-
-GPSData Follower::getLastRocketGpsState() { return lastRocketGpsState; }
-
-/**
- * @param set rocket NAS state.
- */
-void Follower::setLastRocketState(const NASState& nas, const GPSData& gps)
-{
-    lastRocketNasState = nas;
-    lastRocketGpsState = gps;
-}
+bool Follower::init() { return true; }
 
 void Follower::step()
 {
+    GPSData lastRocketGpsState =
+        static_cast<Hub*>(
+            ModuleManager::getInstance().get<Groundstation::HubBase>())
+            ->getLastRocketGpsState();
+
+    // Antennas Coordinates
+    Eigen::Vector2f antennaCoord{antennaCoordinates[0], antennaCoordinates[1]};
+
     // Calculating the NED coordinates in Automated Antennas reference system
-    Eigen::Vector2f antennasCoord{antennaPosition.latitude,
-                                  antennaPosition.longitude};
     Eigen::Vector2f rocketCoord{lastRocketGpsState.latitude,
                                 lastRocketGpsState.longitude};
     Eigen::Vector2f neRocket =
-        Aeroutils::geodetic2NED(rocketCoord, antennasCoord);
+        Aeroutils::geodetic2NED(rocketCoord, antennaCoord);
 
     // Getting the position of the rocket wrt the antennas in NED frame
     NEDCoords rocketPosition;
     rocketPosition.n = neRocket[0];
     rocketPosition.e = neRocket[1];
-    rocketPosition.d = (-antennaPosition.height);
+    rocketPosition.d = (-antennaCoordinates[2]);
 
     // Calculating absolute angles from the NED frame
     AntennaAngles absoluteAngles =
