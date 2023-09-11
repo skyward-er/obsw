@@ -23,7 +23,9 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
+#include <algorithms/NAS/NASState.h>
 #include <common/Mavlink.h>
+#include <sensors/SensorData.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -49,6 +51,16 @@ public:
      * gs).
      */
     void dispatchIncomingMsg(const mavlink_message_t& msg) override;
+
+    /**
+     * @param get rocket NAS state.
+     */
+    Boardcore::NASState getLastRocketNasState();
+    Boardcore::GPSData getLastRocketGpsState();
+
+private:
+    Boardcore::NASState lastRocketNasState;
+    Boardcore::GPSData lastRocketGpsState;
 };
 
 }  // namespace Antennas
