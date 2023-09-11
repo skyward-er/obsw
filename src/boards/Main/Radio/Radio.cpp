@@ -104,7 +104,7 @@ bool Radio::start()
         scheduler->addTask([&]() { this->sendPeriodicMessage(); },
                            RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
                            TaskScheduler::Policy::RECOVER);
-    result &= scheduler->addTask(
+    result *= scheduler->addTask(
         [&]()
         {
             this->enqueueMsg(

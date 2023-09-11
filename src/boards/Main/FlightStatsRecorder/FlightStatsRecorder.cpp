@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Configs/FlightStatsRecorder.h>
+#include <Main/Configs/FlightStatsRecorderConfig.h>
 #include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
