@@ -24,6 +24,7 @@
 #include <Main/PinHandler/PinHandler.h>
 #include <common/Events.h>
 #include <common/Topics.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -47,6 +48,16 @@ PinHandler::PinHandler()
         miosix::gpios::nosecone_detach::getPin(),
         bind(&PinHandler::onNoseconeTransition, this, _1),
         PinHandlerConfig::NC_DETACH_PIN_THRESHOLD);
+
+    PinObserver::getInstance().registerPinCallback(
+        miosix::gpios::cut_sense::getPin(),
+        bind(&PinHandler::onCutterSenseTransition, this, _1),
+        PinHandlerConfig::CUTTER_SENSE_PIN_THRESHOLD);
+
+    PinObserver::getInstance().registerPinCallback(
+        miosix::gpios::exp_sense::getPin(),
+        bind(&PinHandler::onExpulsionSenseTransition, this, _1),
+        PinHandlerConfig::EXPULSION_PIN_THRESHOLD);
 }
 
 bool PinHandler::start() { return PinObserver::getInstance().start(); }
@@ -59,6 +70,12 @@ void PinHandler::onLaunchPinTransition(PinTransition transition)
     {
         EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
                                         TOPIC_FLIGHT);
+
+        // Log the event
+        PinData data = getPinData(PinList::LAUNCH_PIN);
+        PinChangeData log{TimestampTimer::getTimestamp(), PinList::LAUNCH_PIN,
+                          data.changesCount};
+        Logger::getInstance().log(log);
     }
 }
 
@@ -67,7 +84,31 @@ void PinHandler::onNoseconeTransition(PinTransition transition)
     if (transition == PinHandlerConfig::NC_DETACH_PIN_TRIGGER)
     {
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+
+        // Log the event
+        PinData data = getPinData(PinList::NOSECONE_PIN);
+        PinChangeData log{TimestampTimer::getTimestamp(), PinList::NOSECONE_PIN,
+                          data.changesCount};
+        Logger::getInstance().log(log);
     }
+}
+
+void PinHandler::onCutterSenseTransition(PinTransition transition)
+{
+    // Log the event
+    PinData data = getPinData(PinList::CUTTER_PRESENCE);
+    PinChangeData log{TimestampTimer::getTimestamp(), PinList::CUTTER_PRESENCE,
+                      data.changesCount};
+    Logger::getInstance().log(log);
+}
+
+void PinHandler::onExpulsionSenseTransition(PinTransition transition)
+{
+    // Log the event
+    PinData data = getPinData(PinList::PIN_EXPULSION);
+    PinChangeData log{TimestampTimer::getTimestamp(), PinList::PIN_EXPULSION,
+                      data.changesCount};
+    Logger::getInstance().log(log);
 }
 
 PinData PinHandler::getPinData(PinList pin)
@@ -83,6 +124,16 @@ PinData PinHandler::getPinData(PinList pin)
         {
             return PinObserver::getInstance().getPinData(
                 miosix::gpios::nosecone_detach::getPin());
+        }
+        case PinList::CUTTER_PRESENCE:
+        {
+            return PinObserver::getInstance().getPinData(
+                miosix::gpios::cut_sense::getPin());
+        }
+        case PinList::PIN_EXPULSION:
+        {
+            return PinObserver::getInstance().getPinData(
+                miosix::gpios::exp_sense::getPin());
         }
         default:
         {

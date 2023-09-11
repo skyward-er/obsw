@@ -281,8 +281,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<PinHandler>()
                     ->getPinData(PinHandler::PinList::NOSECONE_PIN)
                     .lastState;
-            tm.pin_expulsion = static_cast<uint8_t>(
-                miosix::gpios::exp_sense::getPin().value());
+            tm.pin_expulsion =
+                modules.get<PinHandler>()
+                    ->getPinData(PinHandler::PinList::PIN_EXPULSION)
+                    .lastState;
 
             // Board status
             tm.battery_voltage = modules.get<Sensors>()
@@ -296,7 +298,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.temperature  = lps28dfw1.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
             tm.cutter_presence =
-                static_cast<uint8_t>(miosix::gpios::cut_sense::value());
+                modules.get<PinHandler>()
+                    ->getPinData(PinHandler::PinList::CUTTER_PRESENCE)
+                    .lastState;
 
             // Pitot CAN sensor
             tm.airspeed_pitot =

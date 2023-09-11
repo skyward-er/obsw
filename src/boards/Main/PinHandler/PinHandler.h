@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/PinHandler/PinData.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>
 
@@ -36,6 +37,8 @@ public:
     {
         LAUNCH_PIN = 0,
         NOSECONE_PIN,
+        CUTTER_PRESENCE,
+        PIN_EXPULSION,
     };
 
     PinHandler();
@@ -59,6 +62,16 @@ public:
      * @brief Called when the nosecone pin detaches
      */
     void onNoseconeTransition(Boardcore::PinTransition transition);
+
+    /**
+     * @brief Called when the cutter igniter ignites
+     */
+    void onCutterSenseTransition(Boardcore::PinTransition transition);
+
+    /**
+     * @brief Called when the expulsion sensor changes state
+     */
+    void onExpulsionSenseTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Returns the status of the requested pin

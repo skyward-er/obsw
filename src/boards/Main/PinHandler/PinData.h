@@ -1,5 +1,5 @@
 /* Copyright (c) 2019-2023 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,30 @@
 
 #pragma once
 
-#include <utils/PinObserver/PinObserver.h>
+#include <stdint.h>
+
+#include <iostream>
 
 namespace Main
 {
-namespace PinHandlerConfig
+
+struct PinChangeData
 {
-constexpr unsigned int LAUNCH_PIN_THRESHOLD = 20;
-constexpr Boardcore::PinTransition LAUNCH_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+    uint64_t timestamp    = 0;
+    uint8_t pinID         = 0;
+    uint32_t changesCount = 0;
 
-constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 20;
-constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+    PinChangeData(uint64_t timestamp, uint8_t pinID, uint32_t changesCount)
+        : timestamp(timestamp), pinID(pinID), changesCount(changesCount)
+    {
+    }
 
-constexpr unsigned int CUTTER_SENSE_PIN_THRESHOLD = 20;
-constexpr unsigned int EXPULSION_PIN_THRESHOLD    = 20;
-}  // namespace PinHandlerConfig
+    static std::string header() { return "timestamp,pinID,changesCount"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << pinID << "," << changesCount;
+    }
+};
+
 }  // namespace Main
