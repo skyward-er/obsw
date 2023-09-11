@@ -54,17 +54,10 @@ public:
 
     bool init() override;
 
-    /**
-     * @param get rocket NAS state.
-     */
-    Boardcore::NASState getLastRocketNasState();
-    Boardcore::GPSData getLastRocketGpsState();
-
-    /**
-     * @param set rocket NAS state.
-     */
-    void setLastRocketState(const Boardcore::NASState& nas,
-                            const Boardcore::GPSData& gps);
+    void setAntennaPosition(const Boardcore::GPSData& gpsData)
+    {
+        antennaCoordinates = {gpsData.latitude, gpsData.longitude, gpsData.height};
+    };
 
 private:
     void step() override;
@@ -72,10 +65,8 @@ private:
     AntennaAngles rocketPositionToAntennaAngles(const NEDCoords& ned);
 
     const uint8_t maxInitRetries =
-        10;  ///< max number of retries for GPS data acquisition
-    Boardcore::NASState lastRocketNasState;
-    Boardcore::GPSData lastRocketGpsState;
-    Boardcore::GPSData antennaPosition;
+        120;  ///< max number of retries for GPS data acquisition
+    Eigen::Vector3f antennaCoordinates;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Follower");
 };
