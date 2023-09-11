@@ -317,9 +317,12 @@ void Sensors::calibrate()
     float reference =
         (lps28dfw1Stats.getStats().mean + lps28dfw2Stats.getStats().mean) / 2.f;
 
-    hscmrnn015pa_1->setOffset(staticPressure1Stats.getStats().mean - reference);
-    hscmrnn015pa_2->setOffset(staticPressure2Stats.getStats().mean - reference);
-    mpxh6400a->setOffset(deploymentPressureStats.getStats().mean - reference);
+    hscmrnn015pa_1->updateOffset(staticPressure1Stats.getStats().mean -
+                                 reference);
+    hscmrnn015pa_2->updateOffset(staticPressure2Stats.getStats().mean -
+                                 reference);
+    mpxh6400a->updateOffset(deploymentPressureStats.getStats().mean -
+                            reference);
 
     // Log the offsets
     SensorsCalibrationParameter cal{};

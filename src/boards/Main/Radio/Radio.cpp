@@ -76,7 +76,7 @@ bool Radio::start()
 
     // Config the transceiver
     SX1278Fsk::Config config;
-    config.freq_rf    = 439000000;
+    config.freq_rf    = 419000000;
     config.freq_dev   = 50000;
     config.bitrate    = 48000;
     config.rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000;
