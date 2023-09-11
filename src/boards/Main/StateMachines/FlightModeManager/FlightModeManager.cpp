@@ -574,10 +574,6 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            // Close the valve
-            modules.get<CanHandler>()->sendCanCommand(ServosList::MAIN_VALVE, 0,
-                                                      1000);
-
             logStatus(FlightModeManagerState::UNPOWERED_ASCENT);
             EventBroker::getInstance().post(FLIGHT_MOTOR_SHUTDOWN,
                                             TOPIC_FLIGHT);
