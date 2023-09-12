@@ -90,6 +90,8 @@ public:
     void sendCanCommand(ServosList servo, bool targetState,
                         uint32_t delay) override
     {
+        ModuleManager::getInstance().get<Actuators>()->setCANServoPosition(
+            servo, targetState);
         return;
     }
 };
