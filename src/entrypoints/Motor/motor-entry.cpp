@@ -194,6 +194,11 @@ int main()
         printf("[%.2fs]\tSERVO:\t\t%fA\n", servoCurrent.currentTimestamp / 1e6,
                servoCurrent.current);
 
+        auto batteryVoltage = sensors->getBatteryData();
+        printf("[%.2fs]\tBATTERY:\t%fV\n",
+               batteryVoltage.voltageTimestamp / 1e6,
+               batteryVoltage.batVoltage);
+
         Thread::sleep(1000);
     }
 }
