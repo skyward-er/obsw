@@ -37,6 +37,11 @@ set(GROUNDSTATION_BASE
     src/boards/Groundstation/Base/Hub.cpp
 )
 
+set(GROUNDSTATION_NOKIA
+    src/boards/Groundstation/Nokia/Radio/Radio.cpp
+    src/boards/Groundstation/Nokia/Hub.cpp
+)
+
 set(GROUNDSTATION_COMMON
     src/boards/Groundstation/Common/Ports/Serial.cpp
     src/boards/Groundstation/Common/Ports/EthernetBase.cpp

@@ -44,3 +44,10 @@ add_executable(base-groundstation-entry
 )
 target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)
+
+add_executable(nokia-groundstation-entry 
+    src/entrypoints/Groundstation/nokia-groundstation-entry.cpp 
+    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
+)
+target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(nokia-groundstation-entry stm32f429zi_skyward_groundstation_v2)
