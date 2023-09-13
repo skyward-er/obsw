@@ -22,18 +22,18 @@
 
 #pragma once
 
+#include <Groundstation/Common/HubBase.h>
 #include <common/Mavlink.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
-#include <Groundstation/Common/HubBase.h>
 
-namespace Groundstation
+namespace GroundstationBase
 {
 
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public HubBase
+class Hub : public Groundstation::HubBase
 {
 public:
     Hub() {}
@@ -51,4 +51,4 @@ public:
     void dispatchIncomingMsg(const mavlink_message_t& msg) override;
 };
 
-}  // namespace Groundstation
+}  // namespace GroundstationBase

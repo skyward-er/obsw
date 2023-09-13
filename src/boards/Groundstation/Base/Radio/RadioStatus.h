@@ -29,7 +29,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Groundstation
+namespace GroundstationBase
 {
 
 /**
@@ -54,7 +54,7 @@ public:
             uint16_t delta = sample - last;
 
             // window size is in ms, we want the result in s
-            return delta * 1000 / RADIO_BITRATE_WINDOW_SIZE;
+            return delta * 1000 / WINDOW_SIZE;
         }
         else
         {
@@ -93,20 +93,24 @@ public:
 private:
     void run() override;
 
-    RadioStats last_main_stats    = {0};
-    RadioStats last_payload_stats = {0};
+    Groundstation::RadioStats last_main_stats    = {0};
+    Groundstation::RadioStats last_payload_stats = {0};
 
-    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
         main_tx_bitrate;
-    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
         main_rx_bitrate;
-    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
         payload_tx_bitrate;
-    BitrateCalculator<RADIO_BITRATE_WINDOW_SIZE, RADIO_STATUS_PERIOD>
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
         payload_rx_bitrate;
 
     bool main_radio_present    = false;
     bool payload_radio_present = false;
 };
 
-}  // namespace Groundstation
+}  // namespace GroundstationBase

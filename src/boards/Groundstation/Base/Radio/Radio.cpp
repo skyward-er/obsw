@@ -29,6 +29,7 @@
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Groundstation;
+using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -75,7 +76,7 @@ bool RadioMain::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Groundstation::Buses>()->radio1_bus,
+            ModuleManager::getInstance().get<Buses>()->radio1_bus,
             radio1::cs::getPin(), radio1::dio0::getPin(),
             radio1::dio1::getPin(), radio1::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));
@@ -118,7 +119,7 @@ bool RadioPayload::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Groundstation::Buses>()->radio2_bus,
+            ModuleManager::getInstance().get<Buses>()->radio2_bus,
             radio2::cs::getPin(), radio2::dio0::getPin(),
             radio2::dio1::getPin(), radio2::dio3::getPin(),
             SPI::ClockDivider::DIV_64, std::move(frontend));

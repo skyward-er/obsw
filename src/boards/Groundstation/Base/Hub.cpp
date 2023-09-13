@@ -22,13 +22,14 @@
 
 #include "Hub.h"
 
-#include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Base/Radio/RadioStatus.h>
+#include <Groundstation/Common/Config/GeneralConfig.h>
+#include <Groundstation/Common/Ports/Serial.h>
 
 using namespace Groundstation;
+using namespace GroundstationBase;
 using namespace Boardcore;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
