@@ -26,13 +26,13 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Groundstation
+namespace GroundstationBase
 {
 
-class Ethernet : public EthernetBase, public Boardcore::Module
+class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
 };
 
-}  // namespace Groundstation
+}  // namespace GroundstationBase
