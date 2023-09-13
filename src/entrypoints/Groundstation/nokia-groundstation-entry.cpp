@@ -78,8 +78,7 @@ int main()
         printf("[error] Failed to start radio!\n");
     }
 
-    if (ok)
-    {
+    if(ok) {
         printf("Init complete!\n");
     }
 

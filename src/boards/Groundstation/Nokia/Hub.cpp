@@ -34,8 +34,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     Radio* radio = ModuleManager::getInstance().get<Radio>();
 
-    if (!radio->sendMsg(msg))
-    {
+    if(!radio->sendMsg(msg)) {
         sendNack(msg);
     }
 }
