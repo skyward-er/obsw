@@ -29,6 +29,7 @@
 #include <miosix.h>
 
 using namespace Groundstation;
+using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 

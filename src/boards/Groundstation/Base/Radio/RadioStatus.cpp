@@ -30,6 +30,7 @@
 
 using namespace Boardcore;
 using namespace Groundstation;
+using namespace GroundstationBase;
 
 bool RadioStatus::isMainRadioPresent() { return main_radio_present; }
 bool RadioStatus::isPayloadRadioPresent() { return payload_radio_present; }
