@@ -199,6 +199,10 @@ int main()
                batteryVoltage.voltageTimestamp / 1e6,
                batteryVoltage.batVoltage);
 
+        auto loggerData = Logger::getInstance().getStats();
+        printf("[%.2fs]\tLOGGER:\t%d\n", loggerData.timestamp / 1e6,
+               loggerData.writesFailed);
+
         Thread::sleep(1000);
     }
 }
