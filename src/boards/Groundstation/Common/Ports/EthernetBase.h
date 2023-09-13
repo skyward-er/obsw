@@ -25,6 +25,7 @@
 #include <ActiveObject.h>
 #include <common/Mavlink.h>
 #include <drivers/WIZ5500/WIZ5500.h>
+#include <radio/MavlinkDriver/MavlinkDriver.h>
 
 #include <memory>
 
@@ -34,7 +35,10 @@ namespace Groundstation
 Boardcore::WizIp genNewRandomIp();
 Boardcore::WizMac genNewRandomMac();
 
-class EthernetBase : private Boardcore::ActiveObject
+using EthernetMavDriver =
+    Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
+
+class EthernetBase : public Boardcore::Transceiver
 {
 public:
     EthernetBase() {}
@@ -47,10 +51,18 @@ protected:
     bool start(std::unique_ptr<Boardcore::Wiz5500> wiz5500);
 
 private:
-    void run() override;
+    /**
+     * @brief Called internally when a message is received.
+     */
+    void handleMsg(const mavlink_message_t& msg);
+
+    ssize_t receive(uint8_t* pkt, size_t max_len) override;
+
+    bool send(uint8_t* pkt, size_t len) override;
 
     bool started = false;
     std::unique_ptr<Boardcore::Wiz5500> wiz5500;
+    std::unique_ptr<EthernetMavDriver> mav_driver;
 };
 
 }  // namespace Groundstation
