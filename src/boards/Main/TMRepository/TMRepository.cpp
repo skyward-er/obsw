@@ -359,7 +359,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                       .temperature;
             tm.main_valve_state = modules.get<Actuators>()->getServoPosition(
                 ServosList::MAIN_VALVE);
-            // TODO add the venting valve to telemetry
+            tm.venting_valve_state = modules.get<Actuators>()->getServoPosition(
+                ServosList::VENTING_VALVE);
             tm.top_tank_pressure =
                 modules.get<Sensors>()->getTopTankPressureLastSample().pressure;
             tm.battery_voltage =
