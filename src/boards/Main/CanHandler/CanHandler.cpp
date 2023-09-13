@@ -59,7 +59,8 @@ CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
 
     // Create the protocol with the defined driver
     protocol =
-        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1));
+        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1),
+                        miosix::PRIORITY_MAX - 1);
 
     // Accept messages only from the main and RIG board
     protocol->addFilter(static_cast<uint8_t>(Board::PAYLOAD),
