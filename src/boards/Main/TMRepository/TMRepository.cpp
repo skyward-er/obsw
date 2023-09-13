@@ -424,7 +424,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         }
         case MAV_ADS_ID:
         {
-            // TODO when telemetry supports 8 channels
             mavlink_adc_tm_t tm;
 
             ADS131M08Data data =
