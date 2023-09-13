@@ -438,6 +438,14 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                 data.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
             tm.channel_3 =
                 data.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
+            tm.channel_4 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
+            tm.channel_5 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
+            tm.channel_6 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
+            tm.channel_7 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
             tm.timestamp = data.timestamp;
 
             strcpy(tm.sensor_name, "ADS131M08");
