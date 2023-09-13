@@ -32,11 +32,11 @@ using namespace Groundstation;
 using namespace Boardcore;
 using namespace miosix;
 
-void spinLoop()
+void idleLoop()
 {
     while (1)
     {
-        Thread::sleep(1000);
+        Thread::wait();
     }
 }
 
@@ -130,6 +130,6 @@ int main()
     }
 
     led1On();
-    spinLoop();
+    idleLoop();
     return 0;
 }
