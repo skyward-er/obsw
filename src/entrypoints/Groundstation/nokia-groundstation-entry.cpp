@@ -20,15 +20,14 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/Base/Buses.h>
-#include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
-#include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/Radio/RadioStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Nokia/Buses.h>
+#include <Groundstation/Nokia/Hub.h>
+#include <Groundstation/Nokia/Radio/Radio.h>
 #include <miosix.h>
 
 using namespace Groundstation;
+using namespace GroundstationNokia;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -40,28 +39,14 @@ void idleLoop()
     }
 }
 
-void errorLoop()
-{
-    while (1)
-    {
-        led1On();
-        Thread::sleep(100);
-        led1Off();
-        Thread::sleep(100);
-    }
-}
-
 int main()
 {
     ledOff();
 
-    Hub *hub                    = new Hub();
-    Buses *buses                = new Buses();
-    Serial *serial              = new Serial();
-    Ethernet *ethernet          = new Ethernet();
-    RadioMain *radio_main       = new RadioMain();
-    RadioPayload *radio_payload = new RadioPayload();
-    RadioStatus *radio_status   = new RadioStatus();
+    Hub *hub       = new Hub();
+    Buses *buses   = new Buses();
+    Radio *radio   = new Radio();
+    Serial *serial = new Serial();
 
     ModuleManager &modules = ModuleManager::getInstance();
 
@@ -70,16 +55,13 @@ int main()
     ok &= modules.insert<HubBase>(hub);
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
-    ok &= modules.insert(ethernet);
-    ok &= modules.insert(radio_main);
-    ok &= modules.insert(radio_payload);
-    ok &= modules.insert(radio_status);
+    ok &= modules.insert(radio);
 
     // If insertion failed, stop right here
     if (!ok)
     {
         printf("[error] Failed to insert all modules!\n");
-        errorLoop();
+        idleLoop();
     }
 
     // Ok now start them
@@ -90,46 +72,16 @@ int main()
         printf("[error] Failed to start serial!\n");
     }
 
-    ok &= ethernet->start();
+    ok &= radio->start();
     if (!ok)
     {
-        printf("[error] Failed to start ethernet!\n");
+        printf("[error] Failed to start radio!\n");
     }
 
-    ok &= radio_main->start();
-    if (!ok)
-    {
-        printf("[error] Failed to start main radio!\n");
+    if(ok) {
+        printf("Init complete!\n");
     }
 
-    ok &= radio_payload->start();
-    if (!ok)
-    {
-        printf("[error] Failed to start payload radio!\n");
-    }
-
-    ok &= radio_status->start();
-    if (!ok)
-    {
-        printf("[error] Failed to start radio status!\n");
-    }
-
-    if (radio_status->isMainRadioPresent())
-    {
-        led2On();
-    }
-
-    if (radio_status->isPayloadRadioPresent())
-    {
-        led3On();
-    }
-
-    if (!ok)
-    {
-        errorLoop();
-    }
-
-    led1On();
     idleLoop();
     return 0;
 }
