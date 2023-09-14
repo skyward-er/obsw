@@ -357,10 +357,14 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.tank_temperature = modules.get<Sensors>()
                                       ->getTankTemperatureLastSample()
                                       .temperature;
-            tm.main_valve_state = modules.get<Actuators>()->getServoPosition(
-                ServosList::MAIN_VALVE);
+            tm.main_valve_state    = modules.get<Actuators>()->getServoPosition(
+                                      ServosList::MAIN_VALVE) > 0.3
+                                         ? 1
+                                         : 0;
             tm.venting_valve_state = modules.get<Actuators>()->getServoPosition(
-                ServosList::VENTING_VALVE);
+                                         ServosList::VENTING_VALVE) > 0.3
+                                         ? 1
+                                         : 0;
             tm.top_tank_pressure =
                 modules.get<Sensors>()->getTopTankPressureLastSample().pressure;
             tm.battery_voltage =
