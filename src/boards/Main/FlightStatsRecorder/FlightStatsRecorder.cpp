@@ -206,6 +206,11 @@ void FlightStatsRecorder::updateADA(FlightModeManagerState flightState,
     {
         Lock<FastMutex> l(mutex);
 
+        if (stats.ada_min_pressure == 0)
+        {
+            stats.ada_min_pressure = state.x0;
+        }
+
         stats.ada_min_pressure = std::min(stats.ada_min_pressure, state.x0);
         bool changed           = stats.ada_min_pressure == state.x0;
 
