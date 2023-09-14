@@ -108,7 +108,7 @@ bool RadioMain::start()
 
 bool RadioPayload::start()
 {
-#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
+#ifdef SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
         std::make_unique<EbyteFrontend>(radio2::txen::getPin(),
                                         radio2::rxen::getPin());
