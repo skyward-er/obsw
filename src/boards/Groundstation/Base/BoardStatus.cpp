@@ -20,8 +20,9 @@
  * THE SOFTWARE.
  */
 
-#include "RadioStatus.h"
+#include "BoardStatus.h"
 
+#include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/HubBase.h>
@@ -32,10 +33,11 @@ using namespace Boardcore;
 using namespace Groundstation;
 using namespace GroundstationBase;
 
-bool RadioStatus::isMainRadioPresent() { return main_radio_present; }
-bool RadioStatus::isPayloadRadioPresent() { return payload_radio_present; }
+bool BoardStatus::isMainRadioPresent() { return main_radio_present; }
+bool BoardStatus::isPayloadRadioPresent() { return payload_radio_present; }
+bool BoardStatus::isEthernetPresent() { return ethernet_present; }
 
-bool RadioStatus::start()
+bool BoardStatus::start()
 {
     if (!ActiveObject::start())
     {
@@ -45,17 +47,22 @@ bool RadioStatus::start()
     return true;
 }
 
-void RadioStatus::setMainRadioPresent(bool present)
+void BoardStatus::setMainRadioPresent(bool present)
 {
     main_radio_present = present;
 }
 
-void RadioStatus::setPayloadRadioPresent(bool present)
+void BoardStatus::setPayloadRadioPresent(bool present)
 {
     payload_radio_present = present;
 }
 
-void RadioStatus::run()
+void BoardStatus::setEthernetPresent(bool present)
+{
+    ethernet_present = present;
+}
+
+void BoardStatus::run()
 {
     while (!shouldStop())
     {
@@ -63,6 +70,7 @@ void RadioStatus::run()
 
         mavlink_receiver_tm_t tm = {0};
         tm.timestamp             = TimestampTimer::getTimestamp();
+        tm.battery_voltage       = -420.0;
 
         if (main_radio_present)
         {
@@ -98,6 +106,17 @@ void RadioStatus::run()
             tm.payload_rx_fei  = stats.rx_fei;
 
             last_payload_stats = stats;
+        }
+
+        if (ethernet_present)
+        {
+            auto stats =
+                ModuleManager::getInstance().get<Ethernet>()->getState();
+
+            tm.ethernet_present = 1;
+            tm.ethernet_status  = (stats.link_up ? 1 : 0) |
+                                 (stats.full_duplex ? 2 : 0) |
+                                 (stats.based_100mbps ? 4 : 0);
         }
 
         mavlink_message_t msg;

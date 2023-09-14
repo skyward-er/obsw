@@ -22,6 +22,7 @@
 
 #include "Ethernet.h"
 
+#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -42,5 +43,17 @@ bool Ethernet::start()
         ethernet::cs::getPin(), ethernet::intr::getPin(),
         SPI::ClockDivider::DIV_64);
 
-    return EthernetBase::start(std::move(wiz5500));
+    // First check if the device is even connected
+    bool present = wiz5500->checkVersion();
+
+    ModuleManager::getInstance().get<BoardStatus>()->setEthernetPresent(
+        present);
+
+    if(present) {
+        if(!EthernetBase::start(std::move(wiz5500))) {
+            return false;
+        }
+    }
+
+    return true;
 }

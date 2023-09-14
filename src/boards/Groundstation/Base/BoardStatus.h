@@ -70,10 +70,10 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class RadioStatus : public Boardcore::Module, private Boardcore::ActiveObject
+class BoardStatus : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
-    RadioStatus() {}
+    BoardStatus() {}
 
     bool start();
 
@@ -87,8 +87,14 @@ public:
      */
     bool isPayloadRadioPresent();
 
+    /**
+     * @brief Check wether the ethernet was found during boot.
+     */
+    bool isEthernetPresent();
+
     void setMainRadioPresent(bool present);
     void setPayloadRadioPresent(bool present);
+    void setEthernetPresent(bool present);
 
 private:
     void run() override;
@@ -111,6 +117,7 @@ private:
 
     bool main_radio_present    = false;
     bool payload_radio_present = false;
+    bool ethernet_present      = false;
 };
 
 }  // namespace GroundstationBase
