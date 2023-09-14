@@ -40,11 +40,13 @@ struct PinChangeData
     {
     }
 
+    PinChangeData() : PinChangeData{0, 0, 0} {}
+
     static std::string header() { return "timestamp,pinID,changesCount"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << pinID << "," << changesCount;
+        os << timestamp << "," << pinID << "," << changesCount << "\n";
     }
 };
 

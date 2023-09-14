@@ -54,7 +54,7 @@ struct CanTemperatureSensor
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)sensorId << "," << temperature;
+        os << timestamp << "," << (int)sensorId << "," << temperature << "\n";
     }
 };
 
