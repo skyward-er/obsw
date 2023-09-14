@@ -29,6 +29,8 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
+#include <hardware_in_the_loop/HIL_actuators/HILServo.h>
+#include <hardware_in_the_loop/HIL_sensors/IncludeHILSensors.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -73,6 +75,14 @@ void registerTypes(Deserializer& ds)
     ds.registerType<CanVoltageSensor>();
     ds.registerType<SensorsCalibrationParameter>();
     ds.registerType<PinChangeData>();
+    ds.registerType<HILAccelerometerData>();
+    ds.registerType<HILBarometerData>();
+    ds.registerType<HILGpsData>();
+    ds.registerType<HILGyroscopeData>();
+    ds.registerType<HILImuData>();
+    ds.registerType<HILMagnetometerData>();
+    ds.registerType<HILPitotData>();
+    ds.registerType<HILTempData>();
 }
 
 void showUsage(const string& cmdName)
