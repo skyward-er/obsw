@@ -50,7 +50,7 @@ constexpr uint32_t DEFAULT_MAIN_OPENING_TIME    = 6000;   // 6s
 constexpr uint32_t DEFAULT_VENTING_OPENING_TIME = 15000;  // 15s
 
 constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE    = 0.97f;
-constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE = 0.45f;
+constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE = 0.42f;
 
 }  // namespace ActuatorsConfig
 
