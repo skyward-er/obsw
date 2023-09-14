@@ -36,6 +36,7 @@ enum class MEAControllerState : uint8_t
     ARMED,
     SHADOW_MODE,
     ACTIVE,
+    ACTIVE_DISARMED,
     END
 };
 

@@ -61,6 +61,7 @@ public:
     void state_armed(const Boardcore::Event& event);
     void state_shadow_mode(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
+    void state_active_disarmed(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
 private:

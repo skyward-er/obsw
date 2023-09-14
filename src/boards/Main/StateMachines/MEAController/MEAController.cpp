@@ -71,7 +71,9 @@ void MEAController::update()
 
     // Get MAIN valve state from CAN bus
     float valvePosition =
-        modules.get<Actuators>()->getServoPosition(ServosList::MAIN_VALVE);
+        modules.get<Actuators>()->getServoPosition(ServosList::MAIN_VALVE) > 0.3
+            ? 1
+            : 0;
 
     // If the state is active (or armed) and the pressure is greater than the
     // threshold update the kalman
@@ -140,6 +142,18 @@ void MEAController::update()
             {
                 EventBroker::getInstance().post(MEA_SHUTDOWN_DETECTED,
                                                 TOPIC_MEA);
+            }
+
+            logStatus(status.state);
+            break;
+        }
+        case MEAControllerState::ACTIVE_DISARMED:
+        {
+            if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
+                ccPressure.pressureTimestamp > lastUpdateTimestamp)
+            {
+                mea.update(valvePosition, ccPressure.pressure);
+                lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
 
             logStatus(status.state);
@@ -262,6 +276,26 @@ void MEAController::state_active(const Event& event)
             // due to std::atomic variable
             detectedShutdowns = 0;
             return logStatus(MEAControllerState::ACTIVE);
+        }
+        case FLIGHT_MOTOR_SHUTDOWN:
+        {
+            return transition(&MEAController::state_active_disarmed);
+        }
+        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_LANDING_DETECTED:
+        {
+            return transition(&MEAController::state_end);
+        }
+    }
+}
+
+void MEAController::state_active_disarmed(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            return logStatus(MEAControllerState::ACTIVE_DISARMED);
         }
         case FLIGHT_APOGEE_DETECTED:
         case FLIGHT_LANDING_DETECTED:

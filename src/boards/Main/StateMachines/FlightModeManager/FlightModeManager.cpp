@@ -614,7 +614,6 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
 
 State FlightModeManager::state_drogue_descent(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
