@@ -24,7 +24,7 @@
 
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Radio/RadioStatus.h>
+#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
@@ -84,7 +84,7 @@ bool RadioMain::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<RadioStatus>()->setMainRadioPresent(
+    ModuleManager::getInstance().get<BoardStatus>()->setMainRadioPresent(
         present);
 
     if (present)
@@ -127,7 +127,7 @@ bool RadioPayload::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<RadioStatus>()->setPayloadRadioPresent(
+    ModuleManager::getInstance().get<BoardStatus>()->setPayloadRadioPresent(
         present);
 
     if (present)
