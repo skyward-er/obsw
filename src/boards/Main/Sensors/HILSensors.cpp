@@ -429,10 +429,6 @@ void HILSensors::imuInit()
         bind(&Sensors::getCalibratedMagnetometerLastSample, this),
         bind(&HILGyroscope::getLastSample, lsm6dsrx_gyro));
 
-    // Invert the Y axis on the magnetometer
-    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    imu->addMagTransformation(m);
-
     // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
     SensorInfo info("RotatedIMU", IMU_PERIOD,
                     bind(&HILSensors::imuCallback, this));
