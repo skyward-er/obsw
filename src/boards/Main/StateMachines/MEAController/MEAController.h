@@ -110,6 +110,8 @@ private:
 
     // Thread safe counter for engine shutdown
     std::atomic<uint16_t> detectedShutdowns{0};
+    std::atomic<float> estimatedAltitude{0};
+    std::atomic<float> estimatedMass{0};
 
     // Last update timestamp of mea
     uint64_t lastUpdateTimestamp = 0;

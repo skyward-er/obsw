@@ -99,10 +99,11 @@ void MEAController::update()
             }
 
             // Compute the estimated altitude
-            float altitude =
+            estimatedAltitude =
                 computeAltitude(nasState, mea.getState().x2, CD, 0.15f, rho);
+            estimatedMass = mea.getState().x2;
 
-            if (altitude >= MEAConfig::SHUTDOWN_THRESHOLD_ALTITUDE)
+            if (estimatedAltitude >= MEAConfig::SHUTDOWN_THRESHOLD_ALTITUDE)
             {
                 detectedShutdowns++;
             }
@@ -125,10 +126,11 @@ void MEAController::update()
             }
 
             // Compute the estimated altitude
-            float altitude =
+            estimatedAltitude =
                 computeAltitude(nasState, mea.getState().x2, CD, 0.15f, rho);
+            estimatedMass = mea.getState().x2;
 
-            if (altitude >= MEAConfig::SHUTDOWN_THRESHOLD_ALTITUDE)
+            if (estimatedAltitude >= MEAConfig::SHUTDOWN_THRESHOLD_ALTITUDE)
             {
                 detectedShutdowns++;
             }
@@ -155,6 +157,8 @@ void MEAController::update()
                 mea.update(valvePosition, ccPressure.pressure);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
+
+            estimatedMass = mea.getState().x2;
 
             logStatus(status.state);
             break;
@@ -323,6 +327,8 @@ void MEAController::logStatus(MEAControllerState state)
         status.timestamp         = TimestampTimer::getTimestamp();
         status.state             = state;
         status.detectedShutdowns = detectedShutdowns;
+        status.estimatedApogee   = estimatedAltitude;
+        status.estimatedMass     = estimatedMass;
     }
 
     Logger::getInstance().log(status);
