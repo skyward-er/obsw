@@ -47,6 +47,8 @@ public:
 
     void sendMsg(const mavlink_message_t& msg);
 
+    Boardcore::Wiz5500::PhyState getState();
+
 protected:
     bool start(std::unique_ptr<Boardcore::Wiz5500> wiz5500);
 
