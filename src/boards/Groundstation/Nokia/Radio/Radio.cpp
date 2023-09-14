@@ -58,7 +58,7 @@ bool Radio::start()
 #error "Backup RF not supported on nokia"
 #else
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
+        std::make_unique<RA01Frontend>();
 #endif
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
