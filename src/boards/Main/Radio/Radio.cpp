@@ -105,11 +105,11 @@ bool Radio::start()
     SX1278Fsk::Error error = transceiver->init(config);
 
     // Add periodic telemetry send task
-    uint8_t result =
+    uint8_t result1 =
         scheduler->addTask([&]() { this->sendPeriodicMessage(); },
                            RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
                            TaskScheduler::Policy::RECOVER);
-    result *= scheduler->addTask(
+    uint8_t result2 = scheduler->addTask(
         [&]()
         {
             this->enqueueMsg(
@@ -133,7 +133,7 @@ bool Radio::start()
     }
 
     // Start the mavlink driver thread
-    return mavDriver->start() && result != 0;
+    return mavDriver->start() && result1 != 0 && result2 != 0;
 }
 
 void Radio::sendAck(const mavlink_message_t& msg)
