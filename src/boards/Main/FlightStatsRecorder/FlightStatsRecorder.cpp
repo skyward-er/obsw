@@ -209,7 +209,7 @@ void FlightStatsRecorder::updateADA(FlightModeManagerState flightState,
         stats.ada_min_pressure = std::min(stats.ada_min_pressure, state.x0);
         bool changed           = stats.ada_min_pressure == state.x0;
 
-        stats.apogee_alt = changed ? state.aglAltitude : stats.apogee_alt;
+        stats.apogee_alt = std::max(stats.apogee_alt, state.aglAltitude);
         stats.apogee_ts  = changed ? state.timestamp : stats.apogee_ts;
     }
 }
