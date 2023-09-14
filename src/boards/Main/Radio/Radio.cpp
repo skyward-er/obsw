@@ -24,7 +24,9 @@
 #include <Main/Buses.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <Main/TMRepository/TMRepository.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -32,8 +34,11 @@
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
+#include <Eigen/Core>
+
 using namespace Boardcore;
 using namespace Common;
+using namespace Eigen;
 
 #define SX1278_IRQ_DIO0 EXTI3_IRQHandlerImpl
 #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
@@ -283,6 +288,46 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
             modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
+        {
+            float altitude =
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+
+            modules.get<ADAController>()->setReferenceAltitude(altitude);
+            modules.get<NASController>()->setReferenceAltitude(altitude);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
+        {
+            float temperature =
+                mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+
+            modules.get<ADAController>()->setReferenceTemperature(temperature);
+            modules.get<NASController>()->setReferenceTemperature(temperature);
+
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
+        {
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
+
+            Vector2f coordinates{latitude, longitude};
+
+            modules.get<NASController>()->setCoordinates(coordinates);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
+        {
+            float yaw   = mavlink_msg_set_orientation_tc_get_yaw(&msg);
+            float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
+            float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
+
+            modules.get<NASController>()->setOrientation(yaw, pitch, roll);
             break;
         }
         default:
