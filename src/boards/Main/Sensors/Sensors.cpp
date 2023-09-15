@@ -355,6 +355,17 @@ void Sensors::writeMagCalibration()
     }
 }
 
+std::array<SensorInfo, SensorsConfig::NUMBER_OF_SENSORS>
+Sensors::getSensorInfo()
+{
+    std::array<SensorInfo, SensorsConfig::NUMBER_OF_SENSORS> sensorState;
+    for (size_t i = 0; i < sensorsInit.size(); i++)
+    {
+        sensorState[i] = sensorsInit[i]();
+    }
+    return sensorState;
+}
+
 void Sensors::lps22dfInit()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -377,6 +388,10 @@ void Sensors::lps22dfInit()
     SensorInfo info("LPS22DF", LPS22DF_PERIOD,
                     bind(&Sensors::lps22dfCallback, this));
     sensorMap.emplace(make_pair(lps22df, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(lps22df); };
 }
 void Sensors::lps28dfw_1Init()
 {
@@ -393,6 +408,10 @@ void Sensors::lps28dfw_1Init()
     SensorInfo info("LPS28DFW_1", LPS28DFW_PERIOD,
                     bind(&Sensors::lps28dfw_1Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_1, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(lps28dfw_1); };
 }
 void Sensors::lps28dfw_2Init()
 {
@@ -409,6 +428,10 @@ void Sensors::lps28dfw_2Init()
     SensorInfo info("LPS28DFW_2", LPS28DFW_PERIOD,
                     bind(&Sensors::lps28dfw_2Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_2, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(lps28dfw_2); };
 }
 void Sensors::h3lis331dlInit()
 {
@@ -427,6 +450,10 @@ void Sensors::h3lis331dlInit()
     SensorInfo info("H3LIS331DL", H3LIS331DL_PERIOD,
                     bind(&Sensors::h3lis331dlCallback, this));
     sensorMap.emplace(make_pair(h3lis331dl, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(h3lis331dl); };
 }
 void Sensors::lis2mdlInit()
 {
@@ -451,6 +478,10 @@ void Sensors::lis2mdlInit()
     SensorInfo info("LIS2MDL", LIS2MDL_PERIOD,
                     bind(&Sensors::lis2mdlCallback, this));
     sensorMap.emplace(make_pair(lis2mdl, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(lis2mdl); };
 }
 
 void Sensors::ubxgpsInit()
@@ -469,6 +500,10 @@ void Sensors::ubxgpsInit()
     SensorInfo info("UBXGPS", UBXGPS_PERIOD,
                     bind(&Sensors::ubxgpsCallback, this));
     sensorMap.emplace(make_pair(ubxgps, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(ubxgps); };
 }
 
 void Sensors::lsm6dsrxInit()
@@ -508,6 +543,10 @@ void Sensors::lsm6dsrxInit()
     SensorInfo info("LSM6DSRX", LSM6DSRX_PERIOD,
                     bind(&Sensors::lsm6dsrxCallback, this));
     sensorMap.emplace(make_pair(lsm6dsrx, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(lsm6dsrx); };
 }
 
 void Sensors::ads131m08Init()
@@ -532,6 +571,10 @@ void Sensors::ads131m08Init()
     SensorInfo info("ADS131M08", ADS131M08_PERIOD,
                     bind(&Sensors::ads131m08Callback, this));
     sensorMap.emplace(make_pair(ads131m08, info));
+
+    // Add the sensor info getter to the array
+    sensorsInit[sensorsId++] = [&]() -> SensorInfo
+    { return manager->getSensorInfo(ads131m08); };
 }
 
 void Sensors::deploymentPressureInit()

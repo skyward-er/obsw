@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <Main/Configs/SensorsConfig.h>
 #include <Main/Sensors/RotatedIMU/RotatedIMU.h>
 #include <Main/Sensors/SensorsData.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -37,6 +38,7 @@
 #include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
 #include <sensors/analog/pressure/nxp/MPXH6400A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
+#include <stdint.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -108,6 +110,10 @@ public:
     Boardcore::TemperatureData getTankTemperatureLastSample();
     Boardcore::BatteryVoltageSensorData getMotorBatteryVoltage();
     Boardcore::CurrentData getMotorCurrent();
+
+    // Returns the sensors statuses
+    std::array<Boardcore::SensorInfo, SensorsConfig::NUMBER_OF_SENSORS>
+    getSensorInfo();
 
 private:
     // Init and callbacks methods
@@ -181,6 +187,12 @@ private:
     Boardcore::SensorManager* manager = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorMap;
     Boardcore::TaskScheduler* scheduler = nullptr;
+
+    // Collection of lambdas to get the sensor init statuses
+    std::array<std::function<Boardcore::SensorInfo()>,
+               SensorsConfig::NUMBER_OF_SENSORS>
+        sensorsInit;
+    uint8_t sensorsId = 0;
 
     // SD logger
     Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();

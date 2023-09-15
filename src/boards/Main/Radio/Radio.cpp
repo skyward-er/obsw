@@ -205,6 +205,24 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     enqueueMsg(msg);
                 }
             }
+            else if (tmId == MAV_SENSORS_STATE_ID)
+            {
+                auto sensorsState = modules.get<Sensors>()->getSensorInfo();
+
+                for (uint8_t i = 0; i < sensorsState.size(); i++)
+                {
+                    mavlink_message_t msg;
+                    mavlink_sensor_state_tm_t tm;
+
+                    strcpy(tm.sensor_name, sensorsState.at(i).id.c_str());
+                    tm.state = sensorsState.at(i).isInitialized;
+
+                    mavlink_msg_sensor_state_tm_encode(
+                        RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMP_ID,
+                        &msg, &tm);
+                    enqueueMsg(msg);
+                }
+            }
             else
             {
                 // Add to the queue the respose

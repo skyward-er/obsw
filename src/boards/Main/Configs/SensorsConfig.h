@@ -115,5 +115,7 @@ constexpr float CURRENT_OFFSET = 0.133333333f;  // V in ADC
 constexpr unsigned int CALIBRATION_SAMPLES = 20;
 constexpr unsigned int CALIBRATION_PERIOD  = 100;
 
+constexpr unsigned int NUMBER_OF_SENSORS = 8;
+
 }  // namespace SensorsConfig
 }  // namespace Main
