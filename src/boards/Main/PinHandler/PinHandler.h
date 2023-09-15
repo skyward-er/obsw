@@ -39,6 +39,7 @@ public:
         NOSECONE_PIN,
         CUTTER_PRESENCE,
         PIN_EXPULSION,
+        PIN_END
     };
 
     PinHandler();

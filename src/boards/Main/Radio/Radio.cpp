@@ -22,6 +22,7 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/Buses.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -182,19 +183,43 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             SystemTMList tmId = static_cast<SystemTMList>(
                 mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
 
-            // Add to the queue the respose
-            mavlink_message_t response =
-                modules.get<TMRepository>()->packSystemTm(tmId, msg.msgid,
-                                                          msg.seq);
-
-            // Add the response to the queue
-            enqueueMsg(response);
-
-            // Check if the TM repo answered with a NACK. If so the function
-            // must return to avoid sending a default ack
-            if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+            if (tmId == MAV_PIN_OBS_ID)
             {
-                return;
+                for (uint8_t i = 0; i < PinHandler::PIN_END; i++)
+                {
+                    mavlink_message_t msg;
+                    mavlink_pin_tm_t tm;
+
+                    PinData data = modules.get<PinHandler>()->getPinData(
+                        static_cast<PinHandler::PinList>(i));
+
+                    tm.changes_counter       = data.changesCount;
+                    tm.current_state         = tm.current_state;
+                    tm.last_change_timestamp = tm.last_change_timestamp;
+                    tm.pin_id                = tm.pin_id;
+                    tm.timestamp             = TimestampTimer::getTimestamp();
+
+                    mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                              RadioConfig::MAV_COMP_ID, &msg,
+                                              &tm);
+                    enqueueMsg(msg);
+                }
+            }
+            else
+            {
+                // Add to the queue the respose
+                mavlink_message_t response =
+                    modules.get<TMRepository>()->packSystemTm(tmId, msg.msgid,
+                                                              msg.seq);
+                // Add the response to the queue
+                enqueueMsg(response);
+
+                // Check if the TM repo answered with a NACK. If so the function
+                // must return to avoid sending a default ack
+                if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
+                {
+                    return;
+                }
             }
 
             break;
