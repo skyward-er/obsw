@@ -614,6 +614,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
 
 State FlightModeManager::state_drogue_descent(const Event& event)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -623,6 +624,10 @@ State FlightModeManager::state_drogue_descent(const Event& event)
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
+
+            // Open the venting valve
+            modules.get<CanHandler>()->sendCanCommand(ServosList::VENTING_VALVE,
+                                                      1, MISSION_TIMEOUT);
 
             return HANDLED;
         }
