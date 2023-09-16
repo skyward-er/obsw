@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_ERROR
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/AltitudeTrigger/AltitudeTrigger.h>
@@ -141,16 +141,23 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
         new ADAController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+#ifndef HILMain
+    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    CanHandler* canHandler =
+        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    PinHandler* pinHandler = new PinHandler();
+#else
     Radio* radio =
         new MockRadio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    TMRepository* tmRepo = new TMRepository();
     CanHandler* canHandler =
         new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    PinHandler* pinHandler = new MockPinHandler();
+#endif
+    TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
-    Deployment* dpl        = new Deployment();
-    PinHandler* pinHandler = new PinHandler();
+    Deployment* dpl = new Deployment();
     AltitudeTrigger* altitudeTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
     MEAController* mea =
@@ -498,6 +505,7 @@ int main()
         FlightPhases::SIM_FLYING,
         [&]()
         {
+            canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
             EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
                                             Topics::TOPIC_FLIGHT);
 
@@ -603,15 +611,6 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
-        printf("NAS d=%.3f vd=%.3f\n", nas->getNasState().d,
-               nas->getNasState().vd);
-
-        printf("ADA agl=%.3f msl=%.3f vd=%.3f\n\n",
-               ada->getADAState().aglAltitude, ada->getADAState().mslAltitude,
-               ada->getADAState().verticalSpeed);
-
-        printf("Main valve: %f\n",
-               actuators->getServoPosition(ServosList::MAIN_VALVE));
     }
 
     return 0;
