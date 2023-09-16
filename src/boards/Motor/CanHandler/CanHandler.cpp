@@ -170,7 +170,6 @@ bool CanHandler::start()
         },
         ACTUATORS_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
 
-    // TODO: look at the priorities of the CAN protocol threads
     return protocol->start() && result1 != 0 && result2 != 0 && result3 != 0 &&
            result4 != 0;
 }
