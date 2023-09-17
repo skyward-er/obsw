@@ -103,6 +103,9 @@ public:
     std::array<Boardcore::SensorInfo, 8> getSensorInfo();
 
 protected:
+    Boardcore::ADS131M08* ads131m08 = nullptr;
+    RotatedIMU* imu                 = nullptr;
+
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorMap;
@@ -112,6 +115,20 @@ protected:
     Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+
+    virtual void ads131m08Init();
+    virtual void ads131m08Callback();
+
+    virtual void pitotInit();
+    virtual void pitotCallback();
+
+    virtual void imuInit();
+    virtual void imuCallback();
+
+    // Magnetometer live calibration
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    miosix::FastMutex calibrationMutex;
 
 private:
     // Init and callbacks methods
@@ -136,20 +153,11 @@ private:
     virtual void lsm6dsrxInit();
     virtual void lsm6dsrxCallback();
 
-    virtual void ads131m08Init();
-    virtual void ads131m08Callback();
-
     virtual void staticPressureInit();
     virtual void staticPressureCallback();
 
     virtual void dynamicPressureInit();
     virtual void dynamicPressureCallback();
-
-    virtual void pitotInit();
-    virtual void pitotCallback();
-
-    virtual void imuInit();
-    virtual void imuCallback();
 
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
@@ -159,19 +167,11 @@ private:
     Boardcore::LIS2MDL* lis2mdl       = nullptr;
     Boardcore::UBXGPSSpi* ubxgps      = nullptr;
     Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
-    Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Fake processed sensors
-    RotatedIMU* imu                          = nullptr;
     Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
     Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
     Boardcore::Pitot* pitot                  = nullptr;
-
-    // Magnetometer live calibration
-    Boardcore::SoftAndHardIronCalibration magCalibrator;
-    Boardcore::SixParametersCorrector magCalibration;
-    miosix::FastMutex calibrationMutex;
-
     uint8_t sensorsCounter;
 
     std::array<std::function<Boardcore::SensorInfo()>,

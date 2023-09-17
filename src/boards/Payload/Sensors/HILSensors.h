@@ -46,22 +46,6 @@ public:
 
     [[nodiscard]] bool start() override;
 
-    /**
-     * @brief Stops the sensor manager
-     * @warning Stops the passed scheduler
-     */
-    void stop() override;
-
-    /**
-     * @brief Returns if all the sensors are started successfully
-     */
-    bool isStarted() override;
-
-    /**
-     * @brief Calibrates the sensors with an offset
-     */
-    void calibrate() override;
-
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample() override;
     Boardcore::LPS28DFWData getLPS28DFW_1LastSample() override;
@@ -113,12 +97,14 @@ private:
     void pitotInit() override;
     void pitotCallback() override;
 
+    void imuInit() override;
+    void imuCallback() override;
+
     // HILSensors instances
     HILTemperature* temperature      = nullptr;
     HILBarometer* lps22df            = nullptr;
     HILBarometer* lps28dfw_1         = nullptr;
     HILBarometer* lps28dfw_2         = nullptr;
-    HILBarometer* staticPressure     = nullptr;
     HILAccelerometer* h3lis331dl     = nullptr;
     HILMagnetometer* lis2mdl         = nullptr;
     HILGps* ubxgps                   = nullptr;
