@@ -20,7 +20,8 @@
  * THE SOFTWARE.
  */
 
-// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
@@ -48,9 +49,58 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#ifdef HILMain
+#include <HIL.h>
+#include <Main/Sensors/HILSensors.h>
+#include <Payload/Sensors/HILSensors.h>
+#include <algorithms/AirBrakes/TrajectoryPoint.h>
+#endif
+
 using namespace Boardcore;
 using namespace Payload;
 using namespace Common;
+
+class MockRadio : public Radio
+{
+public:
+    MockRadio(TaskScheduler* scheduler) : Radio(scheduler) {}
+
+    bool start() override { return true; }
+
+    void sendAck(const mavlink_message_t& msg) override { return; };
+
+    void sendNack(const mavlink_message_t& msg) override { return; };
+
+    void logStatus() override { return; };
+
+    bool isStarted() override { return true; };
+};
+
+class MockCanHandler : public CanHandler
+{
+public:
+    MockCanHandler(TaskScheduler* scheduler) : CanHandler(scheduler) {}
+
+    bool start() override { return true; }
+
+    bool isStarted() override { return true; }
+
+    void sendEvent(Common::CanConfig::EventId event) override { return; }
+};
+
+class MockPinHandler : public PinHandler
+{
+public:
+    MockPinHandler() : PinHandler() {}
+
+    bool start() override { return true; }
+
+    bool isStarted() override { return true; }
+
+    void onExpulsionPinTransition(Boardcore::PinTransition transition) override
+    {
+    }
+};
 
 int main()
 {
@@ -69,7 +119,7 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
     // Sensors priority (MAX - 1)
-#ifndef HILMain
+#ifndef HILPayload
     Sensors* sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
 #else
@@ -78,7 +128,8 @@ int main()
 #endif
 
     // Other critical components (Max - 2)
-    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    Radio* radio =
+        new MockRadio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     AltitudeTrigger* altTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     WingController* wingController =
@@ -89,7 +140,7 @@ int main()
     WindEstimation* windEstimation =
         new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+        new MockCanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Non critical components (Max - 3)
     // Actuators is considered non-critical since the scheduler is only used for
@@ -103,7 +154,7 @@ int main()
     TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
     Buses* buses           = new Buses();
-    PinHandler* pinHandler = new PinHandler();
+    PinHandler* pinHandler = new MockPinHandler();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -118,7 +169,7 @@ int main()
         LOG_ERR(logger, "Error inserting the Buses module");
     }
 
-#ifdef HILMain
+#ifdef HILPayload
     HIL* hil = new HIL(buses->usart2);
     if (!modules.insert<HIL>(hil))
     {
@@ -299,7 +350,7 @@ int main()
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
-#ifdef HILMain
+#ifdef HILPayload
     if (!modules.get<HIL>()->start())
     {
         initResult = false;
@@ -317,9 +368,10 @@ int main()
         FlightPhases::SIMULATION_STARTED,
         [&]()
         {
+            Thread::sleep(2000);
             EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
                                             Topics::TOPIC_TMTC);
-            Thread::sleep(5000);
+            Thread::sleep(4000);
             EventBroker::getInstance().post(Events::TMTC_ARM,
                                             Topics::TOPIC_TMTC);
             printf("ARM COMMAND SENT\n");
@@ -329,7 +381,7 @@ int main()
         FlightPhases::SIM_FLYING,
         [&]()
         {
-            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+            EventBroker::getInstance().post(Events::TMTC_FORCE_LAUNCH,
                                             Topics::TOPIC_FLIGHT);
 
             hil->flightPhasesManager->registerToFlightPhase(
@@ -339,45 +391,18 @@ int main()
                     EventBroker::getInstance().post(
                         Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
                 });
+
+            miosix::userLed4::high();
         });
 
-    modules.get<BoardScheduler>()
-        ->getScheduler(miosix::PRIORITY_MAX - 1)
-        ->addTask(
-            [&]()
-            {
-                Boardcore::ModuleManager& modules =
-                    Boardcore::ModuleManager::getInstance();
-
-                HILConfig::ADAStateHIL adaStateHIL(
-                    modules.get<ADAController>()->getADAState(),
-                    modules.get<ADAController>()->getStatus());
-
-                HILConfig::NASStateHIL nasStateHIL(
-                    modules.get<NASController>()->getNasState(),
-                    modules.get<NASController>()->getStatus());
-
-                HILConfig::AirBrakesStateHIL abkStateHIL(
-                    modules.get<ABKController>()->getStatus());
-
-                HILConfig::MEAStateHIL meaStateHIL(
-                    modules.get<MEAController>()->getMEAState(),
-                    modules.get<MEAController>()->getStatus());
-
-                HILConfig::ActuatorsStateHIL actuatorsStateHIL{
-                    actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
-                    actuators->getServoPosition(ServosList::EXPULSION_SERVO),
-                    actuators->getServoPosition(ServosList::MAIN_VALVE),
-                    actuators->getServoPosition(ServosList::VENTING_VALVE)};
-
-                HILConfig::ActuatorData actuatorData{
-                    adaStateHIL, nasStateHIL,       abkStateHIL,
-                    meaStateHIL, actuatorsStateHIL, fmm};
-
-                // Actually sending the feedback to the simulator
-                modules.get<HIL>()->send(actuatorData);
-            },
-            HILConfig::SIMULATION_PERIOD);
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIM_PARA1,
+        [&]()
+        {
+            // FLIGHT_NC_DETACHED
+            EventBroker::getInstance().post(Events::CAN_APOGEE_DETECTED,
+                                            Topics::TOPIC_CAN);
+        });
 #endif
 
     // Log all the events
@@ -403,6 +428,65 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         LOG_ERR(logger, "Failed to initialize");
     }
+
+#ifdef HILPayload
+    // bool simulation_started = false;
+
+    // hil->flightPhasesManager->registerToFlightPhase(
+    //     FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true;
+    //     });
+
+    // while (!simulation_started)
+    // {
+    //     HILConfig::ActuatorData actuatorData;
+    //     buses->usart2.write(&actuatorData, sizeof(HILConfig::ActuatorData));
+    //     Thread::sleep(HILConfig::SIMULATION_PERIOD);
+    // }
+
+    modules.get<BoardScheduler>()
+        ->getScheduler(miosix::PRIORITY_MAX - 1)
+        ->addTask(
+            [&]()
+            {
+                Boardcore::ModuleManager& modules =
+                    Boardcore::ModuleManager::getInstance();
+
+                HILConfig::NASStateHIL nasStateHIL(
+                    modules.get<NASController>()->getNasState(),
+                    modules.get<NASController>()->getStatus());
+
+                HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                    actuators->getServoPosition(EXPULSION_SERVO),
+                    actuators->getServoPosition(AIR_BRAKES_SERVO),
+                    actuators->getServoPosition(PARAFOIL_LEFT_SERVO),
+                    actuators->getServoPosition(PARAFOIL_RIGHT_SERVO),
+                    actuators->getServoPosition(MAIN_VALVE),
+                    actuators->getServoPosition(VENTING_VALVE),
+                    actuators->getServoPosition(RELEASE_VALVE),
+                    actuators->getServoPosition(FILLING_VALVE),
+                    actuators->getServoPosition(DISCONNECT_SERVO),
+                };
+
+                HILConfig::WESDataHIL wesData(
+                    windEstimation->getWindEstimationScheme());
+
+                HILConfig::GuidanceDataHIL guidanceData(
+                    wingController->getPsiRef(), wingController->getDeltaA());
+
+                HILConfig::ActuatorData actuatorData{
+                    nasStateHIL,
+                    actuatorsStateHIL,
+                    wesData,
+                    guidanceData,
+                    hil->simulator->getSensorData()->flags,
+                    fmm};
+
+                // Actually sending the feedback to the
+                // simulator
+                modules.get<HIL>()->send(actuatorData);
+            },
+            HILConfig::SIMULATION_PERIOD, TaskScheduler::Policy::RECOVER);
+#endif
 
     // Periodic statistics
     while (true)
