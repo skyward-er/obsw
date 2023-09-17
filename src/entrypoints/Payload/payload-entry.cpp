@@ -49,9 +49,8 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#ifdef HILMain
+#ifdef HILPayload
 #include <HIL.h>
-#include <Main/Sensors/HILSensors.h>
 #include <Payload/Sensors/HILSensors.h>
 #include <algorithms/AirBrakes/TrajectoryPoint.h>
 #endif
