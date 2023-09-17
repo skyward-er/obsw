@@ -62,6 +62,11 @@ target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
 sbs_target(payload-entry-euroc stm32f767zi_skyward_death_stack_v4)
 
+add_executable(payload-entry-euroc-hil src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-euroc-hil PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-euroc-hil PRIVATE EUROC HILPayload)
+sbs_target(payload-entry-euroc-hil stm32f767zi_skyward_death_stack_v4)
+
 add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_gemini_motor)

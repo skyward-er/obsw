@@ -69,8 +69,13 @@ int main()
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
     // Sensors priority (MAX - 1)
+#ifndef HILMain
     Sensors* sensors =
         new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+#else
+    HILSensors* sensors =
+        new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+#endif
 
     // Other critical components (Max - 2)
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
@@ -112,6 +117,19 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error inserting the Buses module");
     }
+
+#ifdef HILMain
+    HIL* hil = new HIL(buses->usart2);
+    if (!modules.insert<HIL>(hil))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Inserted the HIL module");
+    }
+#endif
 
     if (!modules.insert<Sensors>(sensors))
     {
@@ -280,6 +298,87 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
+
+#ifdef HILMain
+    if (!modules.get<HIL>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the HIL module");
+    }
+
+    hil->flightPhasesManager->setCurrentPositionSource(
+        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
+                                            Topics::TOPIC_TMTC);
+            Thread::sleep(5000);
+            EventBroker::getInstance().post(Events::TMTC_ARM,
+                                            Topics::TOPIC_TMTC);
+            printf("ARM COMMAND SENT\n");
+        });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIM_FLYING,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                            Topics::TOPIC_FLIGHT);
+
+            hil->flightPhasesManager->registerToFlightPhase(
+                FlightPhases::SIM_FLYING,
+                [&]()
+                {
+                    EventBroker::getInstance().post(
+                        Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
+                });
+        });
+
+    modules.get<BoardScheduler>()
+        ->getScheduler(miosix::PRIORITY_MAX - 1)
+        ->addTask(
+            [&]()
+            {
+                Boardcore::ModuleManager& modules =
+                    Boardcore::ModuleManager::getInstance();
+
+                HILConfig::ADAStateHIL adaStateHIL(
+                    modules.get<ADAController>()->getADAState(),
+                    modules.get<ADAController>()->getStatus());
+
+                HILConfig::NASStateHIL nasStateHIL(
+                    modules.get<NASController>()->getNasState(),
+                    modules.get<NASController>()->getStatus());
+
+                HILConfig::AirBrakesStateHIL abkStateHIL(
+                    modules.get<ABKController>()->getStatus());
+
+                HILConfig::MEAStateHIL meaStateHIL(
+                    modules.get<MEAController>()->getMEAState(),
+                    modules.get<MEAController>()->getStatus());
+
+                HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                    actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
+                    actuators->getServoPosition(ServosList::EXPULSION_SERVO),
+                    actuators->getServoPosition(ServosList::MAIN_VALVE),
+                    actuators->getServoPosition(ServosList::VENTING_VALVE)};
+
+                HILConfig::ActuatorData actuatorData{
+                    adaStateHIL, nasStateHIL,       abkStateHIL,
+                    meaStateHIL, actuatorsStateHIL, fmm};
+
+                // Actually sending the feedback to the simulator
+                modules.get<HIL>()->send(actuatorData);
+            },
+            HILConfig::SIMULATION_PERIOD);
+#endif
 
     // Log all the events
     EventSniffer sniffer(

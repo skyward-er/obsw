@@ -51,23 +51,23 @@ class Sensors : public Boardcore::Module
 public:
     explicit Sensors(Boardcore::TaskScheduler* sched);
 
-    [[nodiscard]] bool start();
+    [[nodiscard]] virtual bool start();
 
     /**
      * @brief Stops the sensor manager
      * @warning Stops the passed scheduler
      */
-    void stop();
+    virtual void stop();
 
     /**
      * @brief Returns if all the sensors are started successfully
      */
-    bool isStarted();
+    virtual bool isStarted();
 
     /**
      * @brief Calibrates the sensors with an offset
      */
-    void calibrate();
+    virtual void calibrate();
 
     /**
      * @brief Takes the result of the live magnetometer calibration and applies
@@ -78,67 +78,78 @@ public:
     bool writeMagCalibration();
 
     // Sensor getters
-    Boardcore::LPS22DFData getLPS22DFLastSample();
-    Boardcore::LPS28DFWData getLPS28DFW_1LastSample();
-    Boardcore::LPS28DFWData getLPS28DFW_2LastSample();
-    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLLastSample();
-    Boardcore::UBXGPSData getGPSLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
-    Boardcore::ADS131M08Data getADS131M08LastSample();
+    virtual Boardcore::LPS22DFData getLPS22DFLastSample();
+    virtual Boardcore::LPS28DFWData getLPS28DFW_1LastSample();
+    virtual Boardcore::LPS28DFWData getLPS28DFW_2LastSample();
+    virtual Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
+    virtual Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    virtual Boardcore::UBXGPSData getGPSLastSample();
+    virtual Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    virtual Boardcore::ADS131M08Data getADS131M08LastSample();
 
     // Processed getters
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
     Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
     Boardcore::CurrentData getCurrentLastSample();
-    RotatedIMUData getIMULastSample();
-    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
-    Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
-    Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
-    Boardcore::PitotData getPitotLastSample();
+    virtual RotatedIMUData getIMULastSample();
+    virtual Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
+    virtual Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
+    virtual Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
+    virtual Boardcore::PitotData getPitotLastSample();
 
     void pitotSetReferenceAltitude(float altitude);
     void pitotSetReferenceTemperature(float temperature);
 
     std::array<Boardcore::SensorInfo, 8> getSensorInfo();
 
+protected:
+    // Sensor manager
+    Boardcore::SensorManager* manager = nullptr;
+    Boardcore::SensorManager::SensorMap_t sensorMap;
+    Boardcore::TaskScheduler* scheduler = nullptr;
+
+    // SD logger
+    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+
 private:
     // Init and callbacks methods
-    void lps22dfInit();
-    void lps22dfCallback();
+    virtual void lps22dfInit();
+    virtual void lps22dfCallback();
 
-    void lps28dfw_1Init();
-    void lps28dfw_1Callback();
+    virtual void lps28dfw_1Init();
+    virtual void lps28dfw_1Callback();
 
-    void lps28dfw_2Init();
-    void lps28dfw_2Callback();
+    virtual void lps28dfw_2Init();
+    virtual void lps28dfw_2Callback();
 
-    void h3lis331dlInit();
-    void h3lis331dlCallback();
+    virtual void h3lis331dlInit();
+    virtual void h3lis331dlCallback();
 
-    void lis2mdlInit();
-    void lis2mdlCallback();
+    virtual void lis2mdlInit();
+    virtual void lis2mdlCallback();
 
-    void ubxgpsInit();
-    void ubxgpsCallback();
+    virtual void ubxgpsInit();
+    virtual void ubxgpsCallback();
 
-    void lsm6dsrxInit();
-    void lsm6dsrxCallback();
+    virtual void lsm6dsrxInit();
+    virtual void lsm6dsrxCallback();
 
-    void ads131m08Init();
-    void ads131m08Callback();
+    virtual void ads131m08Init();
+    virtual void ads131m08Callback();
 
-    void staticPressureInit();
-    void staticPressureCallback();
+    virtual void staticPressureInit();
+    virtual void staticPressureCallback();
 
-    void dynamicPressureInit();
-    void dynamicPressureCallback();
+    virtual void dynamicPressureInit();
+    virtual void dynamicPressureCallback();
 
-    void pitotInit();
-    void pitotCallback();
+    virtual void pitotInit();
+    virtual void pitotCallback();
 
-    void imuInit();
-    void imuCallback();
+    virtual void imuInit();
+    virtual void imuCallback();
 
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
@@ -161,17 +172,7 @@ private:
     Boardcore::SixParametersCorrector magCalibration;
     miosix::FastMutex calibrationMutex;
 
-    // Sensor manager
-    Boardcore::SensorManager* manager = nullptr;
-    Boardcore::SensorManager::SensorMap_t sensorMap;
-    Boardcore::TaskScheduler* scheduler = nullptr;
-
     uint8_t sensorsCounter;
-
-    // SD logger
-    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 
     std::array<std::function<Boardcore::SensorInfo()>,
                SensorsConfig::NUMBER_OF_SENSORS>
