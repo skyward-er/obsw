@@ -360,7 +360,11 @@ Sensors::getSensorInfo()
     std::array<SensorInfo, SensorsConfig::NUMBER_OF_SENSORS> sensorState;
     for (size_t i = 0; i < sensorsInit.size(); i++)
     {
-        sensorState[i] = sensorsInit[i]();
+        // Check wether the lambda is existent
+        if (sensorsInit[i])
+        {
+            sensorState[i] = sensorsInit[i]();
+        }
     }
     return sensorState;
 }
