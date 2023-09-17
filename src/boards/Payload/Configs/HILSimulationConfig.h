@@ -320,24 +320,41 @@ struct NASStateHIL
 
 struct ActuatorsStateHIL
 {
-    float airbrakesPercentage    = 0;
-    float expulsionPercentage    = 0;
-    float PayloadValvePercentage = 0;
-    float ventingValvePercentage = 0;
+    float airbrakesPercentage       = 0;
+    float expulsionPercentage       = 0;
+    float parafoilLeftPercentage    = 0;
+    float parafoilRightPercentage   = 0;
+    float mainValvePercentage       = 0;
+    float ventingValvePercentage    = 0;
+    float releaseValvePercentage    = 0;
+    float fillingValvePercentage    = 0;
+    float disconnectValvePercentage = 0;
 
     ActuatorsStateHIL()
         : airbrakesPercentage(0.0f), expulsionPercentage(0.0f),
-          PayloadValvePercentage(0.0f), ventingValvePercentage(0.0f)
+          parafoilLeftPercentage(0.0f), parafoilRightPercentage(0.0f),
+          mainValvePercentage(0.0f), ventingValvePercentage(0.0f),
+          releaseValvePercentage(0.0f), fillingValvePercentage(0.0f),
+          disconnectValvePercentage(0.0f)
     {
     }
 
     ActuatorsStateHIL(float airbrakesPercentage, float expulsionPercentage,
-                      float PayloadValvePercentage,
-                      float ventingValvePercentage)
+                      float parafoilLeftPercentage,
+                      float parafoilRightPercentage, float mainValvePercentage,
+                      float ventingValvePercentage,
+                      float releaseValvePercentage,
+                      float fillingValvePercentage,
+                      float disconnectValvePercentage)
         : airbrakesPercentage(airbrakesPercentage),
           expulsionPercentage(expulsionPercentage),
-          PayloadValvePercentage(PayloadValvePercentage),
-          ventingValvePercentage(ventingValvePercentage)
+          parafoilLeftPercentage(parafoilLeftPercentage),
+          parafoilRightPercentage(parafoilRightPercentage),
+          mainValvePercentage(mainValvePercentage),
+          ventingValvePercentage(ventingValvePercentage),
+          releaseValvePercentage(releaseValvePercentage),
+          fillingValvePercentage(fillingValvePercentage),
+          disconnectValvePercentage(disconnectValvePercentage)
     {
     }
 
@@ -346,10 +363,18 @@ struct ActuatorsStateHIL
         printf(
             "airbrakes: %f perc\n"
             "expulsion: %f perc\n"
-            "PayloadValve: %f perc\n"
-            "venting: %f perc\n",
+            "parafoilLeft: %f perc\n"
+            "parafoilRight: %f perc\n"
+            "mainValve: %f perc\n"
+            "ventingValve: %f perc\n"
+            "releaseValve: %f perc\n"
+            "fillingValve: %f perc\n"
+            "disconnectValve: %f perc\n",
             airbrakesPercentage * 100, expulsionPercentage * 100,
-            PayloadValvePercentage * 100, ventingValvePercentage * 100);
+            parafoilLeftPercentage * 100, parafoilRightPercentage * 100,
+            mainValvePercentage * 100, ventingValvePercentage * 100,
+            releaseValvePercentage * 100, fillingValvePercentage * 100,
+            disconnectValvePercentage * 100);
     }
 };
 
@@ -390,6 +415,38 @@ struct FlagsHIL
     }
 };
 
+struct WESDataHIL
+{
+    float windX;
+    float windY;
+
+    WESDataHIL(Eigen::Vector2f wind) : windX(wind[0]), windY(wind[1]) {}
+
+    WESDataHIL() : windX(0.0f), windY(0.0f) {}
+
+    void print() { printf("wind: [%f,%f]\n", windX, windY); }
+};
+
+struct GuidanceDataHIL
+{
+    float psiRef;
+    float deltaA;
+
+    GuidanceDataHIL(float psiRef, float deltaA) : psiRef(psiRef), deltaA(deltaA)
+    {
+    }
+
+    GuidanceDataHIL() : psiRef(0.0f), deltaA(0.0f) {}
+
+    void print()
+    {
+        printf(
+            "psiRef: %f\n"
+            "deltaA: %f\n",
+            psiRef, deltaA);
+    }
+};
+
 /**
  * @brief Data strudcture expected by the simulator
  */
@@ -397,13 +454,20 @@ struct ActuatorData
 {
     NASStateHIL nasState;
     ActuatorsStateHIL actuatorsState;
+    WESDataHIL wesData;
+    GuidanceDataHIL guidanceData;
     FlagsHIL flags;
 
-    ActuatorData() : nasState(), actuatorsState(), flags() {}
+    ActuatorData()
+        : nasState(), actuatorsState(), wesData(), guidanceData(), flags()
+    {
+    }
 
     ActuatorData(NASStateHIL nasState, ActuatorsStateHIL actuatorsState,
+                 WESDataHIL wesData, GuidanceDataHIL guidanceData,
                  SimulatorData::Flags flagsIn, Payload::FlightModeManager* fmm)
-        : nasState(nasState), actuatorsState(actuatorsState)
+        : nasState(nasState), actuatorsState(actuatorsState), wesData(wesData),
+          guidanceData(guidanceData)
     {
         flags.flag_flight =
             (fmm->testState(&Payload::FlightModeManager::state_ascending) ||
@@ -432,6 +496,8 @@ struct ActuatorData
     {
         nasState.print();
         actuatorsState.print();
+        wesData.print();
+        guidanceData.print();
         flags.print();
     }
 };
