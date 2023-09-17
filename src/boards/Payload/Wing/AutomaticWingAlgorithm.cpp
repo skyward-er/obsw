@@ -89,12 +89,14 @@ void AutomaticWingAlgorithm::step()
                 modules.get<Actuators>()->getServoPosition(servo2);
             SDlogger->log(data);
         }
+        deltaA = data.servo1Angle - data.servo2Angle;
     }
     else
     {
         // If we loose fix we set both servo at 0
         modules.get<Actuators>()->setServoAngle(servo1, 0);
         modules.get<Actuators>()->setServoAngle(servo2, 0);
+        deltaA = 0;
     }
 }
 

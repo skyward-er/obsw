@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Payload/Wing/WingAlgorithm.h>
 #include <events/HSM.h>
@@ -94,6 +95,14 @@ public:
     explicit WingController(Boardcore::TaskScheduler* sched);
 
     bool start() override;
+
+    float getPsiRef() { return emGuidance.getPsiRef(); }
+    float getDeltaA()
+    {
+        return static_cast<AutomaticWingAlgorithm*>(
+                   algorithms[selectedAlgorithm])
+            ->getDeltaA();
+    }
 
 private:
     /**

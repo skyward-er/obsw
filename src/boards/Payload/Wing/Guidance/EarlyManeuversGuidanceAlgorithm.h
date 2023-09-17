@@ -75,6 +75,8 @@ public:
     void setPoints(Eigen::Vector2f targetNED, Eigen::Vector2f EMC,
                    Eigen::Vector2f M1, Eigen::Vector2f M2);
 
+    float getPsiRef() { return psiRef; }
+
 private:
     /** @brief Updates the class target
      *
@@ -107,6 +109,7 @@ private:
     unsigned int m2AltitudeConfidence;
     unsigned int m1AltitudeConfidence;
     unsigned int emcAltitudeConfidence;
+    float psiRef;
 };
 
 }  // namespace Payload

@@ -67,7 +67,8 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
             break;
     }
 
-    return atan2(heading[1], heading[0]);
+    psiRef = atan2(heading[1], heading[0]);
+    return psiRef;
 }
 
 void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)

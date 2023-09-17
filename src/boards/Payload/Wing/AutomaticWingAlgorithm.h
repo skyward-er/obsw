@@ -53,6 +53,8 @@ public:
      */
     ~AutomaticWingAlgorithm();
 
+    float getDeltaA() { return deltaA; }
+
 protected:
     // Guidance algorithm that sets the yaw.
     GuidanceAlgorithm& guidance;
@@ -88,6 +90,7 @@ protected:
 
     // Logging structure
     WingAlgorithmData data;
+    float deltaA;
 
     /**
      * @brief Mutex
