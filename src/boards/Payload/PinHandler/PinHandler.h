@@ -42,15 +42,15 @@ class PinHandler : public Boardcore::Module
 public:
     PinHandler();
 
-    bool start();
+    virtual bool start();
 
-    bool isStarted();
+    virtual bool isStarted();
 
     /**
      * @brief Called when the deployment servo actuation is detected via the
      * optical sensor.
      */
-    void onExpulsionPinTransition(Boardcore::PinTransition transition);
+    virtual void onExpulsionPinTransition(Boardcore::PinTransition transition);
 
     /**
      * @brief Returns a vector with all the pins data.

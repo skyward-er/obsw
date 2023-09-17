@@ -55,18 +55,18 @@ public:
      * @return true if the protocol started correctly and the tasks were
      * successfully inserted
      */
-    bool start();
+    virtual bool start();
 
     /**
      * @return true if the protocol is started
      */
-    bool isStarted();
+    virtual bool isStarted();
 
     /**
      * @brief Compile the the ID of the message and send the event trough
      * CanProtocol
      */
-    void sendEvent(Common::CanConfig::EventId event);
+    virtual void sendEvent(Common::CanConfig::EventId event);
 
 private:
     /**
