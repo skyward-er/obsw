@@ -251,7 +251,7 @@ bool Sensors::start()
     // Init all the sensors
     lps22dfInit();
     lps28dfw_1Init();
-    lps28dfw_2Init();
+    // lps28dfw_2Init();
     h3lis331dlInit();
     lis2mdlInit();
     ubxgpsInit();
@@ -295,7 +295,7 @@ void Sensors::calibrate()
 {
     // Create the stats to calibrate the barometers
     Stats lps28dfw1Stats;
-    Stats lps28dfw2Stats;
+    // Stats lps28dfw2Stats;
     Stats staticPressure1Stats;
     Stats staticPressure2Stats;
     Stats deploymentPressureStats;
@@ -304,7 +304,7 @@ void Sensors::calibrate()
     for (unsigned int i = 0; i < SensorsConfig::CALIBRATION_SAMPLES; i++)
     {
         lps28dfw1Stats.add(getLPS28DFW_1LastSample().pressure);
-        lps28dfw2Stats.add(getLPS28DFW_2LastSample().pressure);
+        // lps28dfw2Stats.add(getLPS28DFW_2LastSample().pressure);
         staticPressure1Stats.add(getStaticPressure1LastSample().pressure);
         staticPressure2Stats.add(getStaticPressure2LastSample().pressure);
         deploymentPressureStats.add(getDeploymentPressureLastSample().pressure);
@@ -314,8 +314,7 @@ void Sensors::calibrate()
     }
 
     // Compute the difference between the mean value from LPS28DFW
-    float reference =
-        (lps28dfw1Stats.getStats().mean + lps28dfw2Stats.getStats().mean) / 2.f;
+    float reference = lps28dfw1Stats.getStats().mean;
 
     hscmrnn015pa_1->updateOffset(staticPressure1Stats.getStats().mean -
                                  reference);
