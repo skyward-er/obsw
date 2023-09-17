@@ -44,17 +44,17 @@ static const Boardcore::AirBrakesConfig ABK_CONFIG{
 constexpr uint32_t UPDATE_PERIOD = 100;  // [ms] -> 10Hz
 
 // ABK algorithm configs
-constexpr float MINIMUM_ALTITUDE      = 1000;
-constexpr float MAXIMUM_ALTITUDE      = 3000;
-constexpr float STARTING_FILTER_VALUE = 0.9f;
-constexpr float ABK_CRITICAL_ALTITUDE = 2990;
+constexpr float MINIMUM_ALTITUDE      = 400;
+constexpr float MAXIMUM_ALTITUDE      = 1000;
+constexpr float STARTING_FILTER_VALUE = 0.75f;
+constexpr float ABK_CRITICAL_ALTITUDE = 970;
 constexpr float DZ                    = 10;
-constexpr float INITIAL_MASS          = 28;
-constexpr float DM                    = 0.2f;
-constexpr uint16_t N_FORWARD          = 1;
+constexpr float INITIAL_MASS          = 26;
+constexpr float DM                    = 0.1f;
+constexpr uint16_t N_FORWARD          = 0;
 
 // Shadow mode after motor shutdown to let MEA algorithm correctly estimate the
 // mass
-constexpr uint32_t DELAY_TIMEOUT = 300;  // [ms] -> 0.3s
+constexpr uint32_t DELAY_TIMEOUT = 500;  // [ms] -> 0.5s
 }  // namespace ABKConfig
 }  // namespace Main
