@@ -104,7 +104,7 @@ bool Radio::start()
 
     // Add periodic telemetry send task
     uint8_t result =
-        scheduler->addTask([=]() { this->sendPeriodicMessage(); },
+        scheduler->addTask([&]() { this->sendPeriodicMessage(); },
                            RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
                            TaskScheduler::Policy::RECOVER);
     result *= scheduler->addTask(
@@ -276,8 +276,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                    FlightModeManagerState::TEST_MODE ||
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode) ||
                 !modules.get<Actuators>()->setServoAngle(servoId, angle))
             {
                 return sendNack(msg);
@@ -291,8 +291,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Send nack if the FMM is not in test mode
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                    FlightModeManagerState::TEST_MODE ||
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode) ||
                 !modules.get<Actuators>()->wiggleServo(servoId))
             {
                 return sendNack(msg);
@@ -305,8 +305,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                    FlightModeManagerState::TEST_MODE ||
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode) ||
                 !modules.get<Actuators>()->setServo(servoId, 0))
             {
                 return sendNack(msg);
@@ -318,12 +318,13 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
         {
             float altitude =
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
             modules.get<NASController>()->setReferenceAltitude(altitude);
+            modules.get<Sensors>()->pitotSetReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -333,12 +334,13 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
             temperature += 273.15;
 
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
             modules.get<NASController>()->setReferenceAltitude(temperature);
+            modules.get<Sensors>()->pitotSetReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -346,8 +348,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float altitude =
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
@@ -359,8 +361,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float yaw   = mavlink_msg_set_orientation_tc_get_yaw(&msg);
             float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
             float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
@@ -372,8 +374,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
             float longitude =
                 mavlink_msg_set_coordinates_tc_get_longitude(&msg);
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
@@ -386,8 +388,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
             float longitude =
                 mavlink_msg_set_coordinates_tc_get_longitude(&msg);
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
@@ -399,8 +401,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
         {
             u_int8_t algoID =
                 mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                    FlightModeManagerState::TEST_MODE ||
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode) ||
                 !modules.get<WingController>()->selectAlgorithm(algoID))
             {
                 return sendNack(msg);
@@ -414,8 +416,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
             // Send the event only if the flight mode manager is in test mode
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
+            if (!modules.get<FlightModeManager>()->testState(
+                    &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
             }
@@ -457,7 +459,12 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_SAVE_CALIBRATION:
         {
             // Save the sensor calibration and adopt it
-            ModuleManager::getInstance().get<Sensors>()->writeMagCalibration();
+            if (!ModuleManager::getInstance()
+                     .get<Sensors>()
+                     ->writeMagCalibration())
+            {
+                return sendNack(msg);
+            }
             break;
         }
         default:
