@@ -33,8 +33,6 @@
 #include <iostream>
 #include <map>
 
-#define sEventBroker Boardcore::EventBroker::getInstance()
-
 typedef std::function<void()> TCallback;
 class HILTransceiver;
 

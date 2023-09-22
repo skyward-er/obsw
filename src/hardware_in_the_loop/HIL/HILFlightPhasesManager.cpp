@@ -54,12 +54,20 @@ HILFlightPhasesManager::HILFlightPhasesManager()
 {
     prev_flagsFlightPhases = flagsFlightPhases;
 
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_FMM);
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_ABK);
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_ADA);
-    Boardcore::EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    auto& eventBroker = Boardcore::EventBroker::getInstance();
+    eventBroker.subscribe(this, TOPIC_ABK);
+    eventBroker.subscribe(this, TOPIC_ADA);
+    eventBroker.subscribe(this, TOPIC_MEA);
+    eventBroker.subscribe(this, TOPIC_DPL);
+    eventBroker.subscribe(this, TOPIC_CAN);
+    eventBroker.subscribe(this, TOPIC_FLIGHT);
+    eventBroker.subscribe(this, TOPIC_FMM);
+    eventBroker.subscribe(this, TOPIC_FSR);
+    eventBroker.subscribe(this, TOPIC_NAS);
+    eventBroker.subscribe(this, TOPIC_TMTC);
+    eventBroker.subscribe(this, TOPIC_MOTOR);
+    eventBroker.subscribe(this, TOPIC_TARS);
+    eventBroker.subscribe(this, TOPIC_ALT);
 }
 
 void HILFlightPhasesManager::setCurrentPositionSource(
@@ -104,8 +112,8 @@ void HILFlightPhasesManager::processFlags(FlightPhasesFlags hil_flags)
     {
         if (isSetTrue(FlightPhases::SIM_FLYING))
         {
+            registerOutcomes(FlightPhases::SIM_FLYING);
             TRACE("[HIL] ------- SIMULATOR LIFTOFF ! ------- \n");
-            sEventBroker.post(FLIGHT_LAUNCH_PIN_DETACHED, TOPIC_FLIGHT);
             changed_flags.push_back(FlightPhases::SIM_FLYING);
         }
         if (isSetFalse(FlightPhases::SIM_BURNING))
@@ -207,13 +215,14 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
 
     switch (e)
     {
+        case FMM_INIT_ERROR:
+            printf("[HIL] ------- INIT FAILED ! ------- \n");
         case FMM_INIT_OK:
             setFlagFlightPhase(FlightPhases::CALIBRATION, true);
             TRACE("[HIL] ------- CALIBRATION ! ------- \n");
             changed_flags.push_back(FlightPhases::CALIBRATION);
             break;
-        case NAS_READY:
-        case FMM_ALGOS_CAL_DONE:
+        case FLIGHT_DISARMED:
             setFlagFlightPhase(FlightPhases::CALIBRATION_OK, true);
             TRACE("[HIL] CALIBRATION OK!\n");
             changed_flags.push_back(FlightPhases::CALIBRATION_OK);
@@ -226,51 +235,52 @@ void HILFlightPhasesManager::handleEvent(const Boardcore::Event& e)
         case FLIGHT_LAUNCH_PIN_DETACHED:
             setFlagFlightPhase(FlightPhases::LIFTOFF_PIN_DETACHED, true);
             TRACE("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
-            sEventBroker.post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             changed_flags.push_back(FlightPhases::LIFTOFF_PIN_DETACHED);
             break;
         case FLIGHT_LIFTOFF:
         case TMTC_FORCE_LAUNCH:
             t_liftoff = Boardcore::TimestampTimer::getTimestamp();
-            TRACE("[HIL] ------- LIFTOFF -------: %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- LIFTOFF -------: %f, %f \n",
+                   getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(FlightPhases::LIFTOFF);
             break;
         case ABK_SHADOW_MODE_TIMEOUT:
             setFlagFlightPhase(FlightPhases::AEROBRAKES, true);
             registerOutcomes(FlightPhases::AEROBRAKES);
             TRACE("[HIL] ABK shadow mode timeout\n");
-            // TRACE("[HIL] ------- AEROBRAKES ENABLED ! ------- \n");
             changed_flags.push_back(FlightPhases::AEROBRAKES);
             break;
         case ADA_SHADOW_MODE_TIMEOUT:
             TRACE("[HIL] ADA shadow mode timeout\n");
             break;
         case ABK_DISABLE:
+            setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
             TRACE("[HIL] ABK disabled\n");
             break;
         case FLIGHT_APOGEE_DETECTED:
-        case TMTC_FORCE_EXPULSION:
+        case CAN_APOGEE_DETECTED:
             setFlagFlightPhase(FlightPhases::AEROBRAKES, false);
             registerOutcomes(FlightPhases::APOGEE);
-            TRACE("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
+                   getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(FlightPhases::APOGEE);
             break;
-        case ADA_PRESS_STAB_TIMEOUT:
+        case FLIGHT_DROGUE_DESCENT:
+        case TMTC_FORCE_EXPULSION:
             setFlagFlightPhase(FlightPhases::PARA1, true);
             registerOutcomes(FlightPhases::PARA1);
-            TRACE("[HIL] ------- PARA1 ! -------%f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- PARA1 ! -------%f, %f \n",
+                   getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(FlightPhases::PARA1);
             break;
+        case FLIGHT_WING_DESCENT:
         case FLIGHT_DPL_ALT_DETECTED:
         case TMTC_FORCE_DEPLOYMENT:
             setFlagFlightPhase(FlightPhases::PARA1, false);
             setFlagFlightPhase(FlightPhases::PARA2, true);
             registerOutcomes(FlightPhases::PARA2);
-            TRACE("[HIL] ------- PARA2 ! ------- %f, %f \n",
-                  getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- PARA2 ! ------- %f, %f \n",
+                   getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(FlightPhases::PARA2);
             break;
         case FLIGHT_LANDING_DETECTED:
