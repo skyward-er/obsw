@@ -35,10 +35,11 @@
 class HIL : public Boardcore::Module
 {
 public:
-    HIL(Boardcore::USART &hilSerial)
+    HIL(Boardcore::USART &hilSerial,
+        HILFlightPhasesManager *flightPhasesManager)
+        : flightPhasesManager(flightPhasesManager)
     {
-        flightPhasesManager = new HILFlightPhasesManager();
-        simulator           = new HILTransceiver(hilSerial);
+        simulator = new HILTransceiver(hilSerial);
     }
 
     HILTransceiver *simulator;

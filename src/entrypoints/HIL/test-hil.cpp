@@ -48,7 +48,7 @@ int main()
 
     // Create modules
     USART usart2(USART2, 115200);
-    HIL* hil = new HIL(usart2);
+    HIL* hil = new HIL(usart2, new HILFlightPhasesManager());
     Boardcore::TaskScheduler scheduler;
 
     // Insert modules
