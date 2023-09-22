@@ -73,14 +73,6 @@ int main()
         LOG_ERR(logger, "Error starting the board scheduler module");
     }
 
-#ifdef HILTest
-    if (!ModuleManager::getInstance().get<HIL>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the HIL module");
-    }
-#endif
-
     // Log all the events
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
