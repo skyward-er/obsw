@@ -349,13 +349,14 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             Logger::getInstance().start();
             logStatus(FlightModeManagerState::TEST_MODE);
-
+            EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
         }
         case EV_EXIT:
         {
             ModuleManager::getInstance().get<Actuators>()->camOff();
             Logger::getInstance().stop();
+            EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -385,7 +386,6 @@ State FlightModeManager::state_test_mode(const Event& event)
         case CAN_EXIT_TEST_MODE:
         case TMTC_EXIT_TEST_MODE:
         {
-            Logger::getInstance().stop();
             if (event != CAN_EXIT_TEST_MODE)
             {
                 ModuleManager::getInstance().get<CanHandler>()->sendEvent(
@@ -406,8 +406,8 @@ State FlightModeManager::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::ARMED);
             Logger::getInstance().start();
+            logStatus(FlightModeManagerState::ARMED);
 
             // Starts signaling devices and camera
             ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
