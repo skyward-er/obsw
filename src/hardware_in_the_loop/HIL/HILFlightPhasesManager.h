@@ -33,8 +33,6 @@
 #include <iostream>
 #include <map>
 
-#define sEventBroker Boardcore::EventBroker::getInstance()
-
 typedef std::function<void()> TCallback;
 class HILTransceiver;
 
@@ -103,21 +101,20 @@ public:
 
     void setFlagFlightPhase(FlightPhases flag, bool isEnable);
 
-    void processFlags(FlightPhasesFlags hil_flags);
+    virtual void processFlags(FlightPhasesFlags hil_flags);
 
 protected:
-    void handleEvent(const Boardcore::Event& e) override;
+    virtual void handleEvent(const Boardcore::Event& e) override;
 
-private:
-    void registerOutcomes(FlightPhases phase);
+    virtual void registerOutcomes(FlightPhases phase);
 
-    void printOutcomes();
+    virtual void printOutcomes();
 
     /**
      * @brief Updates the flags of the object with the flags sent from matlab
      * and checks for the apogee
      */
-    void updateSimulatorFlags(FlightPhasesFlags hil_flags);
+    virtual void updateSimulatorFlags(FlightPhasesFlags hil_flags);
 
     bool isSetTrue(FlightPhases phase);
 

@@ -48,7 +48,7 @@ int main()
 
     // Create modules
     USART usart2(USART2, 115200);
-    HIL* hil = new HIL(usart2);
+    HIL* hil = new HIL(usart2, new HILFlightPhasesManager());
     Boardcore::TaskScheduler scheduler;
 
     // Insert modules
@@ -72,14 +72,6 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error starting the board scheduler module");
     }
-
-#ifdef HILTest
-    if (!ModuleManager::getInstance().get<HIL>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the HIL module");
-    }
-#endif
 
     // Log all the events
     EventSniffer sniffer(

@@ -40,10 +40,14 @@ class HILPitot : public HILSensor<HILPitotData>
 public:
     HILPitot(int n_data_sensor, void *sensorData)
         : HILSensor(n_data_sensor, sensorData),
-          pitot([&]() { return this->getDeltaP(); },
+          pitot([&]() { return this->getDeltaP().pressure; },
                 [&]() { return this->getStaticPressure(); })
     {
     }
+
+    Boardcore::PressureData getDeltaP() { return deltaP; }
+
+    float getStaticPressure() { return staticPressure; }
 
 protected:
     HILPitotData updateData() override
@@ -70,10 +74,6 @@ protected:
         Boardcore::Logger::getInstance().log(tempData);
         return tempData;
     }
-
-    Boardcore::PressureData getDeltaP() { return deltaP; }
-
-    float getStaticPressure() { return staticPressure; }
 
     Boardcore::PressureData deltaP;
     float staticPressure;

@@ -81,16 +81,20 @@ void HILTransceiver::run()
 {
     TRACE("[HILT] Transceiver started\n");
     bool lostUpdate = false;
+    hilSerial.clearQueue();
 
     while (true)
     {
         // Pausing the kernel in order to copy the data in the shared structure
         {
             SimulatorData tempData;
+            miosix::led3On();
             if (!hilSerial.readBlocking(&tempData, sizeof(SimulatorData)))
             {
                 TRACE("Failed Serial read\n");
             }
+            hilSerial.clearQueue();
+            miosix::led3Off();
 
             miosix::PauseKernelLock kLock;
             sensorData = tempData;
@@ -133,7 +137,9 @@ void HILTransceiver::run()
         }
 
         waitActuatorData();
+        miosix::led2On();
         hilSerial.write(&actuatorData, sizeof(ActuatorData));
+        miosix::led2Off();
     }
 }
 
