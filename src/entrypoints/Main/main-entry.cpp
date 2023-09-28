@@ -181,7 +181,7 @@ int main()
     }
 
 #ifdef HILMain
-    HIL* hil = new HIL(buses->usart2);
+    HIL* hil = new HIL(buses->usart2, new HILFlightPhasesManager());
     if (!modules.insert<HIL>(hil))
     {
         initResult = false;
@@ -517,6 +517,9 @@ int main()
                         Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
                 });
         });
+
+    hil->flightPhasesManager->registerToFlightPhase(FlightPhases::ARMED,
+                                                    [&]() { miosix::ledOn(); });
 
     hil->flightPhasesManager->registerToFlightPhase(
         FlightPhases::LIFTOFF,
