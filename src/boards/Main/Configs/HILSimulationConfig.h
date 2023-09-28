@@ -332,7 +332,7 @@ struct NASStateHIL
     float updating = 0;  // Flag if apogee is detected [bool]
 
     NASStateHIL()
-        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(0),
+        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(1),
           updating(0)
     {
     }
