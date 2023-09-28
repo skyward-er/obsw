@@ -308,7 +308,7 @@ void HILSensors::pressureChamberInit()
                                             ->pressureChamber);
 
     // Emplace the sensor inside the map
-    SensorInfo info("BARO_CC_HIL", BARO_CHAMBER_FREQ,
+    SensorInfo info("BARO_CC_HIL", 1000 / BARO_CHAMBER_FREQ,
                     bind(&HILSensors::pressureChamberCallback, this));
     sensorMap.emplace(make_pair(pressureChamber, info));
 }
