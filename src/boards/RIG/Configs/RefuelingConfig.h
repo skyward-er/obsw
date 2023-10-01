@@ -19,23 +19,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+#pragma once
 
-#include <iostream>
-#include <string>
+#include <stdint.h>
 
-using namespace std;
-
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+namespace Config
+{
+namespace Refueling
+{
+
+}  // namespace Refueling
+}  // namespace Config
+}  // namespace RIG

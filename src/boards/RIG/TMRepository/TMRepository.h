@@ -19,23 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#pragma once
 
-using namespace std;
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
 
-int main()
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+class TMRepository : public Boardcore::Module
+{
+public:
+    inline TMRepository() {}
+
+    // Packs the telemetry at system level (E.g. logger telemetry..)
+    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
+                                   uint8_t seq);
+
+    // Packs the telemetry at sensors level (E.g. pressure sensors..)
+    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
+                                    uint8_t seq);
+
+    // Packs the telemetry about servo positions states
+    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
+                                  uint8_t seq);
+
+private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("TMRepository");
+};
+}  // namespace RIG

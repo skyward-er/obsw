@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,23 +19,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+
+#pragma once
+
+#include <stdint.h>
 
 #include <iostream>
 #include <string>
 
-using namespace std;
-
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
+
+enum class GroundModeManagerState : uint8_t
+{
+    UNINIT = 0,
+    IDLE,
+    READY,
+    ARMED,
+    IGNITING
+};
+
+struct GroundModeManagerStatus
+{
+    long long timestamp          = 0;
+    GroundModeManagerState state = GroundModeManagerState::UNINIT;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
     {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
+        os << timestamp << "," << (int)state << "\n";
     }
-    return 0;
-}
+};
+
+}  // namespace RIG

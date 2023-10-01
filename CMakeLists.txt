@@ -56,6 +56,11 @@ add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_gemini_motor)
 
+add_executable(rig-entry src/entrypoints/RIG/rig-entry.cpp ${RIG_COMPUTER})
+target_include_directories(rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(rig-entry stm32f429zi_skyward_rig)
+
 #-----------------------------------------------------------------------------#
 #                               Test entrypoints                              #
 #-----------------------------------------------------------------------------#
+

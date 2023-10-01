@@ -19,23 +19,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#include "BoardScheduler.h"
 
-using namespace std;
+using namespace Boardcore;
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
+BoardScheduler::BoardScheduler()
+{
+    scheduler1 = new TaskScheduler(miosix::PRIORITY_MAX - 4);
+    scheduler2 = new TaskScheduler(miosix::PRIORITY_MAX - 3);
+    scheduler3 = new TaskScheduler(miosix::PRIORITY_MAX - 2);
+    scheduler4 = new TaskScheduler(miosix::PRIORITY_MAX - 1);
 }
+
+TaskScheduler* BoardScheduler::getScheduler(miosix::Priority priority)
+{
+    switch (priority.get())
+    {
+        case miosix::PRIORITY_MAX:
+            return scheduler4;
+        case miosix::PRIORITY_MAX - 1:
+            return scheduler3;
+        case miosix::PRIORITY_MAX - 2:
+            return scheduler2;
+        case miosix::MAIN_PRIORITY:
+            return scheduler1;
+        default:
+            return scheduler1;
+    }
+}
+
+bool BoardScheduler::start()
+{
+    return scheduler1->start() && scheduler2->start() && scheduler3->start() &&
+           scheduler4->start();
+}
+
+bool BoardScheduler::isStarted()
+{
+    return scheduler1->isRunning() && scheduler2->isRunning() &&
+           scheduler3->isRunning() && scheduler4->isRunning();
+}
+}  // namespace RIG

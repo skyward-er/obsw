@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,23 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+#pragma once
 
-#include <iostream>
-#include <string>
+#include <stdint.h>
 
-using namespace std;
-
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+namespace Config
+{
+namespace Ignition
+{
+constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 5451;  // ms
+
+constexpr uint32_t DEAD_TIME_AFTER_BURN  = 900;  // ms
+constexpr uint32_t NUMBER_NITROGEN_BUMPS = 15;
+constexpr uint32_t NITROGEN_OPENING_TIME = 2700;  // ms
+
+}  // namespace Ignition
+}  // namespace Config
+}  // namespace RIG

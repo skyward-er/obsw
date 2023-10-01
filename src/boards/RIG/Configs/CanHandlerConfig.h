@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,23 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#pragma once
+
 #include <common/Events.h>
 
-#include <iostream>
-#include <string>
-
-using namespace std;
-
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+
+namespace CanHandlerConfig
+{
+
+constexpr unsigned int PITOT_TRANSMISSION_PERIOD  = 20;    // ms
+constexpr unsigned int STATUS_TRANSMISSION_PERIOD = 2000;  // ms
+
+}  // namespace CanHandlerConfig
+
+}  // namespace RIG

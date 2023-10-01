@@ -19,23 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#pragma once
 
-using namespace std;
+#include <stdint.h>
 
-int main()
+#include <ostream>
+
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
+struct ActuatorsData
+{
+    uint64_t timestamp;
+    uint8_t servoId;
+    float position;
+
+    ActuatorsData()
     {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
+        timestamp = 0;
+        servoId   = 0;
+        position  = 0;
     }
-    return 0;
-}
+
+    ActuatorsData(uint64_t time, uint8_t servo, float pos)
+        : timestamp(time), servoId(servo), position(pos)
+    {
+    }
+
+    static std::string header() { return "timestamp,servoId,position\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)servoId << "," << position << "\n";
+    }
+};
+
+}  // namespace RIG

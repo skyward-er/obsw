@@ -19,23 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+#pragma once
 
-#include <iostream>
-#include <string>
+#include <drivers/spi/SPIBus.h>
 
-using namespace std;
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
+class Buses : public Boardcore::Module
+{
+public:
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
+    Boardcore::SPIBus spi5;
+    Boardcore::SPIBus spi6;
+
+    Buses()
+        : spi1(SPI1), spi2(SPI2), spi3(SPI3), spi4(SPI4), spi5(SPI5), spi6(SPI6)
     {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
     }
-    return 0;
-}
+};
+}  // namespace RIG

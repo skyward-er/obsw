@@ -19,23 +19,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#pragma once
 
-using namespace std;
+#include <sensors/ADS131M04/ADS131M04Data.h>
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
+struct ADCsData : Boardcore::ADS131M04Data
+{
+    uint8_t ADCnumber;
+
+    ADCsData() : ADS131M04Data{0, 0, 0, 0, 0} { ADCnumber = 0; }
+
+    ADCsData(uint64_t time, uint8_t num, float ch1, float ch2, float ch3,
+             float ch4)
+        : ADS131M04Data{time, ch1, ch2, ch3, ch4}
     {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
+        ADCnumber = num;
     }
-    return 0;
-}
+
+    static std::string header()
+    {
+        return "timestamp,ADCnumber,voltage_channel_1,voltage_channel_2,"
+               "voltage_channel_"
+               "3,voltage_channel_4\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)ADCnumber << "," << voltage[0] << ","
+           << voltage[1] << "," << voltage[2] << "," << voltage[3] << "\n";
+    }
+};
+}  // namespace RIG

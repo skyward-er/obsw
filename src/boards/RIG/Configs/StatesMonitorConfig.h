@@ -19,23 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#pragma once
 
-using namespace std;
+#include <stdint.h>
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+namespace Config
+{
+namespace StatesMonitor
+{
+constexpr int BOARDS_NUMBER         = 5;
+constexpr long long int MAX_TIMEOUT = 5000;  // [ms]
+constexpr uint32_t UPDATE_PERIOD    = 1000;
+}  // namespace StatesMonitor
+}  // namespace Config
+}  // namespace RIG

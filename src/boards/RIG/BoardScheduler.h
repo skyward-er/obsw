@@ -19,23 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+#pragma once
 
-#include <iostream>
-#include <string>
+#include <scheduler/TaskScheduler.h>
 
-using namespace std;
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+/**
+ * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
+ * There is a task scheduler for every miosix priority
+ */
+class BoardScheduler : public Boardcore::Module
+{
+public:
+    BoardScheduler();
+
+    /**
+     * @brief Get the Scheduler object relative to the requested priority
+     *
+     * @param priority The task scheduler priority
+     * @return Boardcore::TaskScheduler& Reference to the requested task
+     * scheduler.
+     * @note Min priority scheduler is returned in case of non valid priority.
+     */
+    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
+
+    [[nodiscard]] bool start();
+
+    /**
+     * @brief Returns if all the schedulers are up and running
+     */
+    bool isStarted();
+
+private:
+    Boardcore::TaskScheduler* scheduler1;
+    Boardcore::TaskScheduler* scheduler2;
+    Boardcore::TaskScheduler* scheduler3;
+    Boardcore::TaskScheduler* scheduler4;
+};
+}  // namespace RIG

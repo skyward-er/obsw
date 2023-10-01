@@ -19,23 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
+#pragma once
 
-#include <iostream>
-#include <string>
+#include <common/Mavlink.h>
+#include <stdint.h>
 
-using namespace std;
-
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
-    {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
-    }
-    return 0;
-}
+namespace Config
+{
+namespace Radio
+{
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+
+// Mavlink driver parameters
+constexpr uint16_t MAV_SLEEP_AFTER_SEND   = 0;
+constexpr uint16_t MAV_OUT_BUFFER_MAX_AGE = 10;
+
+// Mavlink ids
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
+
+// Circular buffer size (number of maximum messages that the RIG can answer
+// after a ping message from conRIG)
+constexpr uint8_t RADIO_CIRCULAR_BUFFER_SIZE = 6;
+
+// Threshold to consider a new command correct and not a false trigger.
+// Expressed in [ms]
+constexpr long long int RADIO_LAST_COMMAND_THRESHOLD = 1000;
+
+}  // namespace Radio
+}  // namespace Config
+}  // namespace RIG

@@ -19,23 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <common/Events.h>
 
-#include <iostream>
-#include <string>
+#pragma once
 
-using namespace std;
+#include <sensors/SensorData.h>
+#include <stdint.h>
 
-int main()
+namespace RIG
 {
-    // Scan all the indices and print their correspondent name
-    for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
+struct LoadCellsData : Boardcore::LoadCellData
+{
+    uint8_t cellNumber;
+
+    LoadCellsData() : LoadCellData{0, 0} { cellNumber = 0; }
+
+    LoadCellsData(uint64_t time, uint8_t cell, float l)
+        : Boardcore::LoadCellData{time, l}
     {
-        if (Common::getEventString(i).compare("EV_UNKNOWN") == 0)
-        {
-            break;
-        }
-        cout << Common::getEventString(i) << "," << i << endl;
+        cellNumber = cell;
     }
-    return 0;
-}
+
+    static std::string header() { return "loadTimestamp,cellNumber,load\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << loadTimestamp << "," << (int)cellNumber << "," << load << ","
+           << "\n";
+    }
+};
+}  // namespace RIG
