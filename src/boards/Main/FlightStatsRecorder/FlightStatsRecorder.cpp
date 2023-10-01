@@ -160,7 +160,7 @@ void FlightStatsRecorder::updateDPLPressure(FlightModeManagerState flightState,
                                             PressureData data)
 {
     if (flightState == FlightModeManagerState::UNPOWERED_ASCENT ||
-        flightState == FlightModeManagerState::UNPOWERED_ASCENT)
+        flightState == FlightModeManagerState::DROGUE_DESCENT)
     {
         Lock<FastMutex> l(mutex);
 
