@@ -50,12 +50,23 @@ void RotatedIMU::resetTransformations()
 
 RotatedIMUData RotatedIMU::sampleImpl()
 {
-    Vector3f accResult  = accT * static_cast<Vector3f>(accSample());
-    Vector3f magResult  = magT * static_cast<Vector3f>(magSample());
-    Vector3f gyroResult = gyroT * static_cast<Vector3f>(gyroSample());
+    AccelerometerData acc = accSample();
+    MagnetometerData mag  = magSample();
+    GyroscopeData gyro    = gyroSample();
 
-    return {AccelerometerData{accResult}, GyroscopeData{gyroResult},
-            MagnetometerData{magResult}};
+    Vector3f accResult  = accT * static_cast<Vector3f>(acc);
+    Vector3f magResult  = magT * static_cast<Vector3f>(mag);
+    Vector3f gyroResult = gyroT * static_cast<Vector3f>(gyro);
+
+    AccelerometerData accData{accResult};
+    GyroscopeData gyroData{gyroResult};
+    MagnetometerData magData{magResult};
+
+    accData.accelerationTimestamp  = acc.accelerationTimestamp;
+    magData.magneticFieldTimestamp = mag.magneticFieldTimestamp;
+    gyroData.angularSpeedTimestamp = gyro.angularSpeedTimestamp;
+
+    return {accData, gyroData, magData};
 }
 
 // Static functions
