@@ -201,44 +201,44 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
 void Sensors::setPitot(PitotData data)
 {
     miosix::PauseKernelLock lock;
-    canPitot.timestamp = TimestampTimer::getTimestamp();
     canPitot           = data;
+    canPitot.timestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setCCPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canCCPressure.pressureTimestamp = TimestampTimer::getTimestamp();
     canCCPressure                   = data;
+    canCCPressure.pressureTimestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setBottomTankPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canBottomTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
     canBottomTankPressure                   = data;
+    canBottomTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setTopTankPressure(PressureData data)
 {
     miosix::PauseKernelLock lock;
-    canTopTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
     canTopTankPressure                   = data;
+    canTopTankPressure.pressureTimestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setTankTemperature(TemperatureData data)
 {
     miosix::PauseKernelLock lock;
-    canTankTemperature.temperatureTimestamp = TimestampTimer::getTimestamp();
     canTankTemperature                      = data;
+    canTankTemperature.temperatureTimestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setMotorBatteryVoltage(BatteryVoltageSensorData data)
 {
     miosix::PauseKernelLock lock;
-    canMotorBatteryVoltage.voltageTimestamp = TimestampTimer::getTimestamp();
     canMotorBatteryVoltage.batVoltage       = data.batVoltage;
+    canMotorBatteryVoltage.voltageTimestamp = TimestampTimer::getTimestamp();
 }
 void Sensors::setMotorCurrent(CurrentData data)
 {
     miosix::PauseKernelLock lock;
-    canMotorCurrent.currentTimestamp = TimestampTimer::getTimestamp();
     canMotorCurrent.current          = data.current;
+    canMotorCurrent.currentTimestamp = TimestampTimer::getTimestamp();
 }
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
