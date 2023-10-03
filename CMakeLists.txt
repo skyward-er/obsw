@@ -120,3 +120,10 @@ add_executable(test-steps src/entrypoints/Groundstation/Automated/test-steps.cpp
 target_include_directories(test-steps PRIVATE ${OBSW_INCLUDE_DIRS})
 # target_compile_definitions(test-steps PRIVATE NO_SD_LOGGING)
 sbs_target(test-steps stm32f767zi_automated_antennas)
+
+add_executable(test-actuators src/entrypoints/Groundstation/Automated/test-actuators.cpp
+    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
+)
+target_include_directories(test-actuators PRIVATE ${OBSW_INCLUDE_DIRS})
+# target_compile_definitions(test-actuators PRIVATE NO_SD_LOGGING)
+sbs_target(test-actuators stm32f767zi_automated_antennas)
