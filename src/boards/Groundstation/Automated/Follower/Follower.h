@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+ * Author: Emilio Corigliano, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,10 +54,22 @@ public:
 
     bool init() override;
 
-    void setAntennaPosition(const Boardcore::GPSData& gpsData)
+    void setAntennaCoordinates(const Boardcore::GPSData& gpsData)
     {
-        antennaCoordinates = {gpsData.latitude, gpsData.longitude, gpsData.height};
+        antennaCoordinates = {gpsData.latitude, gpsData.longitude,
+                              gpsData.height};
     };
+
+    void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
+    {
+        initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
+                                    gpsData.height};
+    }
+
+    Eigen::Vector2f getInitialAntennaRocketDistance()
+    {
+        return initialAntennaRocketDistance;
+    }
 
 private:
     void step() override;
@@ -66,7 +78,17 @@ private:
 
     const uint8_t maxInitRetries =
         120;  ///< max number of retries for GPS data acquisition
-    Eigen::Vector3f antennaCoordinates;
+
+    Eigen::Vector3f antennaCoordinates;  ///< GPS coordinates of the antenna
+                                         ///< [lat, lon, alt] [deg, deg, m]
+    Eigen::Vector2f initialOrientation;  ///< Initial orientation of the antenna
+                                         ///< [yaw, pitch] [deg, deg]
+    Eigen::Vector3f
+        initialRocketCoordinates;  ///< GPS coordinates of the rocket while in
+                                   ///< ramp [lat, lon, alt] [deg, deg, m]
+    Eigen::Vector2f
+        initialAntennaRocketDistance;  ///< Distance between the antenna and the
+                                       ///< rocket while in ramp [m]
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Follower");
 };
