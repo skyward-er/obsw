@@ -476,8 +476,8 @@
                 "V_DDA_VOLTAGE=3.3f"
             ],
             "includePath": [
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack_v3",
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack_v3",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM7_stm32f7/stm32f767zi_compute_unit",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/stm32f767zi_compute_unit",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
