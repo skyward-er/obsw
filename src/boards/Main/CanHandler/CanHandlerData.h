@@ -89,4 +89,18 @@ struct CanVoltageSensor
            << voltage << "\n";
     }
 };
+
+struct CanActuator
+{
+    uint64_t timestamp = 0;
+    uint8_t servoId    = 0;
+    float position     = 0;
+
+    static std::string header() { return "timestamp,servoId,position\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)servoId << "," << position << "\n";
+    }
+};
 }  // namespace Main
