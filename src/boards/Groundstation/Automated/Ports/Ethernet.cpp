@@ -26,7 +26,6 @@
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Antennas;
 using namespace Boardcore;
 using namespace miosix;

@@ -23,6 +23,7 @@
 #include "Hub.h"
 
 #include <Groundstation/Automated/Follower/Follower.h>
+#include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
@@ -95,7 +96,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         lastRocketGpsState = gpsState;
     }
 
-    // TODO: Add UDP dispatch
+    Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
+    ethernet->sendMsg(msg);
 }
 
 /**
