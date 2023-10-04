@@ -334,7 +334,7 @@ void Sensors::calibrate()
     Logger::getInstance().log(cal);
 }
 
-void Sensors::writeMagCalibration()
+bool Sensors::writeMagCalibration()
 {
     // Compute the calibration result in protected area
     {
@@ -349,8 +349,9 @@ void Sensors::writeMagCalibration()
             magCalibration = cal;
 
             // Save the calibration to the calibration file
-            magCalibration.toFile("magCalibration.csv");
+            return magCalibration.toFile("magCalibration.csv");
         }
+        return false;
     }
 }
 

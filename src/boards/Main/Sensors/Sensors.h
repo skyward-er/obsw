@@ -71,7 +71,7 @@ public:
      * @brief Takes the result of the live magnetometer calibration and applies
      * it to the current calibration + writes it in the csv file
      */
-    void writeMagCalibration();
+    bool writeMagCalibration();
 
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample();
