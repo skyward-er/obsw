@@ -63,7 +63,7 @@ using namespace Common;
 class MockRadio : public Radio
 {
 public:
-    MockRadio(TaskScheduler* scheduler) : Radio(scheduler) {}
+    explicit MockRadio(TaskScheduler* scheduler) : Radio(scheduler) {}
 
     bool start() override { return true; }
 
@@ -79,7 +79,7 @@ public:
 class MockCanHandler : public CanHandler
 {
 public:
-    MockCanHandler(TaskScheduler* scheduler) : CanHandler(scheduler) {}
+    explicit MockCanHandler(TaskScheduler* scheduler) : CanHandler(scheduler) {}
 
     bool start() override { return true; }
 
@@ -325,6 +325,66 @@ int main()
         LOG_ERR(logger, "Error inserting the Flight Stats Recorder module");
     }
 
+#ifdef HILMain
+    if (!modules.get<HIL>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the HIL module");
+    }
+
+    hil->flightPhasesManager->setCurrentPositionSource(
+        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIM_FLYING,
+        [&]()
+        {
+            canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
+            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                            Topics::TOPIC_FLIGHT);
+        });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::ARMED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                            Topics::TOPIC_FLIGHT);
+            miosix::ledOn();
+        });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
+                                            Topics::TOPIC_TMTC);
+
+            hil->flightPhasesManager->registerToFlightPhase(
+                FlightPhases::CALIBRATION_OK,
+                [&]()
+                {
+                    TRACE("ARM COMMAND SENT\n");
+                    EventBroker::getInstance().post(Events::TMTC_ARM,
+                                                    Topics::TOPIC_TMTC);
+                });
+        });
+
+    bool simulation_started = false;
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true; });
+
+    while (!simulation_started)
+    {
+        Thread::sleep(HILConfig::SIMULATION_PERIOD);
+    }
+#endif
+
     // Start modules
     if (!Logger::getInstance().start())
     {
@@ -475,59 +535,6 @@ int main()
     }
 
 #ifdef HILMain
-    if (!modules.get<HIL>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the HIL module");
-    }
-    else
-    {
-        LOG_INFO(logger, "Started the HIL module");
-    }
-
-    hil->flightPhasesManager->setCurrentPositionSource(
-        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        [&]()
-        {
-            Thread::sleep(2000);
-            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
-                                            Topics::TOPIC_TMTC);
-            Thread::sleep(4000);
-            EventBroker::getInstance().post(Events::TMTC_ARM,
-                                            Topics::TOPIC_TMTC);
-            TRACE("ARM COMMAND SENT\n");
-        });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIM_FLYING,
-        [&]()
-        {
-            canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
-            EventBroker::getInstance().post(Events::FLIGHT_LAUNCH_PIN_DETACHED,
-                                            Topics::TOPIC_FLIGHT);
-
-            hil->flightPhasesManager->registerToFlightPhase(
-                FlightPhases::SIM_FLYING,
-                [&]()
-                {
-                    EventBroker::getInstance().post(
-                        Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
-                });
-        });
-
-    hil->flightPhasesManager->registerToFlightPhase(FlightPhases::ARMED,
-                                                    [&]() { miosix::ledOn(); });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::LIFTOFF,
-        [&]()
-        {
-            // Open Main valve when liftoff happens
-            actuators->setCANServoPosition(ServosList::MAIN_VALVE, 1);
-        });
 #endif
 
     // Log all the events
@@ -556,18 +563,6 @@ int main()
     }
 
 #ifdef HILMain
-    bool simulation_started = false;
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true; });
-
-    while (!simulation_started)
-    {
-        HILConfig::ActuatorData actuatorData;
-        buses->usart2.write(&actuatorData, sizeof(HILConfig::ActuatorData));
-        Thread::sleep(HILConfig::SIMULATION_PERIOD);
-    }
-
     modules.get<BoardScheduler>()
         ->getScheduler(miosix::PRIORITY_MAX - 1)
         ->addTask(
@@ -575,6 +570,14 @@ int main()
             {
                 Boardcore::ModuleManager& modules =
                     Boardcore::ModuleManager::getInstance();
+
+                // if (!simulation_started)
+                // {
+                //     HILConfig::ActuatorData actuatorData;
+                //     buses->usart2.write(&actuatorData,
+                //                         sizeof(HILConfig::ActuatorData));
+                //     return;
+                // }
 
                 HILConfig::ADAStateHIL adaStateHIL(
                     modules.get<ADAController>()->getADAState(),
@@ -605,6 +608,12 @@ int main()
                 modules.get<HIL>()->send(actuatorData);
             },
             HILConfig::SIMULATION_PERIOD, TaskScheduler::Policy::RECOVER);
+
+    // Thread::sleep(2000);
+    // EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
+    // Topics::TOPIC_TMTC); Thread::sleep(4000);
+    // EventBroker::getInstance().post(Events::TMTC_ARM, Topics::TOPIC_TMTC);
+    // TRACE("ARM COMMAND SENT\n");
 #endif
 
     // Periodic statistics
