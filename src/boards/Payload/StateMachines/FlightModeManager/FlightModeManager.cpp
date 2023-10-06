@@ -286,7 +286,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
             // Stop eventual logging
-            Logger::getInstance().stop();
+            // Logger::getInstance().stop();
             ModuleManager::getInstance().get<Actuators>()->buzzerOff();
             ModuleManager::getInstance().get<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -355,8 +355,8 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_EXIT:
         {
             ModuleManager::getInstance().get<Actuators>()->camOff();
-            Logger::getInstance().stop();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            // Logger::getInstance().stop();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -408,6 +408,8 @@ State FlightModeManager::state_armed(const Event& event)
         {
             Logger::getInstance().start();
             logStatus(FlightModeManagerState::ARMED);
+            Logger::getInstance().stop();
+            Logger::getInstance().start();
 
             // Starts signaling devices and camera
             ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
@@ -418,7 +420,7 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
-            Logger::getInstance().stop();
+            ModuleManager::getInstance().get<Actuators>()->buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -562,9 +564,9 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case TMTC_FORCE_DEPLOYMENT:
         {
             ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
-            ModuleManager::getInstance()
-                .get<VerticalVelocityTrigger>()
-                ->disable();
+            // ModuleManager::getInstance()
+            //     .get<VerticalVelocityTrigger>()
+            //     ->disable();
             return transition(&FlightModeManager::state_wing_descent);
         }
         default:
@@ -613,7 +615,7 @@ State FlightModeManager::state_landed(const Event& event)
             logStatus(FlightModeManagerState::LANDED);
 
             // Turns off signaling devices
-            ModuleManager::getInstance().get<Actuators>()->buzzerLanded();
+            ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
             ModuleManager::getInstance().get<Actuators>()->camOff();
             ModuleManager::getInstance().get<Actuators>()->disableServo(
                 PARAFOIL_LEFT_SERVO);
