@@ -170,7 +170,7 @@ Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-    magCalibration.fromFile("magCalibration.csv");
+    magCalibration.fromFile("/sd/magCalibration.csv");
     // Init all the sensors
     lps22dfInit();
     lps28dfw_1Init();
@@ -268,7 +268,7 @@ bool Sensors::writeMagCalibration()
             magCalibration = cal;
 
             // Save the calibration to the calibration file
-            return magCalibration.toFile("magCalibration.csv");
+            return magCalibration.toFile("/sd/magCalibration.csv");
         }
     }
     return false;
@@ -583,7 +583,10 @@ std::array<SensorInfo, 8> Sensors::getSensorInfo()
     std::array<SensorInfo, 8> sensorState;
     for (size_t i = 0; i < sensorsInit.size(); i++)
     {
-        sensorState[i] = sensorsInit[i]();
+        if (sensorsInit[i])
+        {
+            sensorState[i] = sensorsInit[i]();
+        }
     }
     return sensorState;
 }
