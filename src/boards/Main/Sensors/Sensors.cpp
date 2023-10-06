@@ -246,7 +246,7 @@ Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-    magCalibration.fromFile("magCalibration.csv");
+    magCalibration.fromFile("/sd/magCalibration.csv");
 
     // Init all the sensors
     lps22dfInit();
@@ -349,7 +349,7 @@ bool Sensors::writeMagCalibration()
             magCalibration = cal;
 
             // Save the calibration to the calibration file
-            return magCalibration.toFile("magCalibration.csv");
+            return magCalibration.toFile("/sd/magCalibration.csv");
         }
         return false;
     }
