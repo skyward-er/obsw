@@ -52,6 +52,16 @@ target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-euroc PRIVATE EUROC)
 sbs_target(main-entry-euroc stm32f767zi_skyward_death_stack_v4)
 
+add_executable(payload-entry-roccaraso src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-roccaraso PRIVATE ROCCARASO)
+sbs_target(payload-entry-roccaraso stm32f767zi_skyward_death_stack_v4)
+
+add_executable(payload-entry-euroc src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
+sbs_target(payload-entry-euroc stm32f767zi_skyward_death_stack_v4)
+
 add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_gemini_motor)
@@ -63,7 +73,3 @@ sbs_target(rig-entry stm32f429zi_skyward_rig)
 add_executable(con_rig-entry src/entrypoints/con_RIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_stm32f4discovery)
-
-#-----------------------------------------------------------------------------#
-#                               Test entrypoints                              #
-#-----------------------------------------------------------------------------#

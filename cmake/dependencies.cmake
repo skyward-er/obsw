@@ -25,7 +25,7 @@ set(OBSW_INCLUDE_DIRS
     src/hardware_in_the_loop
 )
 
-set(HIL 
+set(HIL
     src/hardware_in_the_loop/HIL/HILFlightPhasesManager.cpp
     src/hardware_in_the_loop/HIL/HILTransceiver.cpp
 )
@@ -72,4 +72,26 @@ set(CON_RIG_COMPUTER
     src/boards/con_RIG/Buttons/Buttons.cpp
     src/boards/con_RIG/Radio/Radio.cpp
     src/boards/con_RIG/BoardScheduler.cpp
+)
+
+set(PAYLOAD_COMPUTER
+    src/boards/Payload/Actuators/Actuators.cpp
+    src/boards/Payload/CanHandler/CanHandler.cpp
+    src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
+    src/boards/Payload/Sensors/Sensors.cpp
+    src/boards/Payload/BoardScheduler.cpp
+    src/boards/Payload/PinHandler/PinHandler.cpp
+    src/boards/Payload/Radio/Radio.cpp
+    src/boards/Payload/TMRepository/TMRepository.cpp
+    src/boards/Payload/StateMachines/NASController/NASController.cpp
+    src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Payload/StateMachines/WingController/WingController.cpp
+    src/boards/Payload/AltitudeTrigger/AltitudeTrigger.cpp
+    src/boards/Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.cpp
+    src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
+    src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/boards/Payload/Wing/FileWingAlgorithm.cpp
+    src/boards/Payload/Wing/WingAlgorithm.cpp
+    src/boards/Payload/Sensors/RotatedIMU/RotatedIMU.cpp
+    src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
 )
