@@ -28,6 +28,7 @@ using namespace std;
 
 int main()
 {
+    cout << "EVName,EVNumber" << endl;
     // Scan all the indices and print their correspondent name
     for (int i = Boardcore::EV_FIRST_CUSTOM; i < 256; i++)
     {
