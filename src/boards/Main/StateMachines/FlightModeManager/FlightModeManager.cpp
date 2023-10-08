@@ -312,8 +312,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
 
-            // Stop eventual logging
-            Logger::getInstance().stop();
+            // Force the actuators off
             modules.get<Actuators>()->camOff();
             modules.get<Actuators>()->setBuzzerOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -376,15 +375,12 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::TEST_MODE);
-
-            Logger::getInstance().start();
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
 
             return HANDLED;
         }
         case EV_EXIT:
         {
-            Logger::getInstance().stop();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             return HANDLED;
         }
@@ -432,6 +428,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             logStatus(FlightModeManagerState::ARMED);
 
+            Logger::getInstance().stop();
             Logger::getInstance().start();
             modules.get<Actuators>()->camOn();
             modules.get<Actuators>()->setBuzzerArm();
@@ -704,7 +701,7 @@ State FlightModeManager::state_landed(const Event& event)
             modules.get<Actuators>()->setBuzzerLand();
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
-
+            Logger::getInstance().stop();
             return HANDLED;
         }
         case EV_EXIT:
