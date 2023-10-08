@@ -651,6 +651,9 @@ void Sensors::imuInit()
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
+    imu->addAccTransformation(imu->rotateAroundX(45));
+    imu->addGyroTransformation(imu->rotateAroundX(45));
+    imu->addMagTransformation(imu->rotateAroundX(45));
 
     // Emplace the sensor inside the map
     SensorInfo info("RotatedIMU", IMU_PERIOD,
