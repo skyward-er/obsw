@@ -144,7 +144,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y      = state.by;
             tm.nas_bias_z      = state.bz;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15f;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
 
@@ -280,6 +280,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<PinHandler>()
                     ->getPinData(PinHandler::PinList::PIN_EXPULSION)
                     .lastState;
+            tm.pin_quick_connector = 0;
 
             // Board status
             tm.battery_voltage = modules.get<Sensors>()
