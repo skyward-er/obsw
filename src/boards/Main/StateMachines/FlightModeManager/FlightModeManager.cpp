@@ -477,12 +477,15 @@ State FlightModeManager::state_armed(const Event& event)
 State FlightModeManager::state_flying(const Event& event)
 {
     static uint16_t missionTimeoutEventId = 0;
+    ModuleManager& modules                = ModuleManager::getInstance();
 
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::FLYING);
+
+            modules.get<Actuators>()->setBuzzerOff();
 
             EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             missionTimeoutEventId = EventBroker::getInstance().postDelayed(
