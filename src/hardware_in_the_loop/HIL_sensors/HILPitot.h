@@ -39,44 +39,25 @@ class HILPitot : public HILSensor<HILPitotData>
 {
 public:
     HILPitot(int n_data_sensor, void *sensorData)
-        : HILSensor(n_data_sensor, sensorData),
-          pitot([&]() { return this->getDeltaP().pressure; },
-                [&]() { return this->getStaticPressure(); })
+        : HILSensor(n_data_sensor, sensorData)
     {
     }
-
-    Boardcore::PressureData getDeltaP() { return deltaP; }
-
-    float getStaticPressure() { return staticPressure; }
 
 protected:
     HILPitotData updateData() override
     {
-
         miosix::PauseKernelLock pkLock;
 
-        deltaP = Boardcore::PressureData{
-            Boardcore::TimestampTimer::getTimestamp(),
-            reinterpret_cast<HILConfig::SimulatorData::Pitot *>(sensorData)
-                ->deltaP[sampleCounter]};
-
-        staticPressure =
-            reinterpret_cast<HILConfig::SimulatorData::Pitot *>(sensorData)
-                ->staticPressure[sampleCounter];
-
-        pitot.sample();
+        auto *pitotData =
+            reinterpret_cast<HILConfig::SimulatorData::Pitot *>(sensorData);
 
         HILPitotData tempData;
+        tempData.deltaP    = pitotData->deltaP[sampleCounter];
+        tempData.airspeed  = pitotData->airspeed[sampleCounter];
         tempData.timestamp = updateTimestamp();
-        tempData.deltaP    = pitot.getLastSample().deltaP;
-        tempData.airspeed  = pitot.getLastSample().airspeed;
 
         Boardcore::Logger::getInstance().log(tempData);
+
         return tempData;
     }
-
-    Boardcore::PressureData deltaP;
-    float staticPressure;
-
-    Boardcore::Pitot pitot;
 };
