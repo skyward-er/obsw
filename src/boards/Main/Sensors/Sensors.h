@@ -164,7 +164,7 @@ private:
     Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Can sensors
-    Boardcore::PitotData canPitot{0, 0, 100};
+    Boardcore::PitotData canPitot{0, 0, 0};
     Boardcore::PressureData canCCPressure{0, 0};
     Boardcore::PressureData canBottomTankPressure{0, 0};
     Boardcore::PressureData canTopTankPressure{0, 0};
