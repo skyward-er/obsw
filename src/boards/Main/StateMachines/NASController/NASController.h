@@ -89,6 +89,9 @@ private:
     bool accelerationValid           = true;
     unsigned int accSampleAfterSpike = 0;
 
+    // Pitot timestamp check
+    uint64_t lastPitotTimestamp = 0;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };
 }  // namespace Main
