@@ -44,7 +44,7 @@ constexpr int ACCELERATION_THRESHOLD_SAMPLE = 20;
 
 // Pitot
 constexpr float NAS_PITOT_MIN_AIRSPEED = 50;    // [m/s]
-constexpr float NAS_PITOT_MAX_ALTITUDE = 2000;  // [m]
+constexpr float NAS_PITOT_MAX_ALTITUDE = 1000;  // [m]
 
 static const Boardcore::NASConfig config = {
     UPDATE_PERIOD / 1000.0,          // T
