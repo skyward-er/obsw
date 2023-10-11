@@ -406,11 +406,11 @@ State FlightModeManager::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            Logger::getInstance().start();
             logStatus(FlightModeManagerState::ARMED);
             Logger::getInstance().stop();
             Logger::getInstance().start();
-
+            // we log again to ensure the both log have the status logged
+            logStatus(FlightModeManagerState::ARMED);
             // Starts signaling devices and camera
             ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
             ModuleManager::getInstance().get<Actuators>()->camOn();

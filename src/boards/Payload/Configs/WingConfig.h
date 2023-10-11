@@ -35,9 +35,12 @@ constexpr float DEFAULT_TARGET_LON = -8.288992;
 #elif defined(ROCCARASO)
 constexpr float DEFAULT_TARGET_LAT = 41.809216;
 constexpr float DEFAULT_TARGET_LON = 14.055310;
+#elif defined(EUROC)
+constexpr float DEFAULT_TARGET_LAT = 39.383;
+constexpr float DEFAULT_TARGET_LON = -8.27963;
 #else  // Milan
-constexpr float DEFAULT_TARGET_LAT = 41.809216;
-constexpr float DEFAULT_TARGET_LON = 14.055310;
+constexpr float DEFAULT_TARGET_LAT = 39.383;
+constexpr float DEFAULT_TARGET_LON = -8.27963;
 #endif
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
@@ -53,7 +56,7 @@ constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 // TODO check this parameter preflight
 constexpr float KP                                   = 0.4;   //[m]
 constexpr float KI                                   = 0.08;  //[m]
-constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;   // [meters]
+constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 400;   // [meters]
 
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
 constexpr int ALTITUDE_TRIGGER_PERIOD     = 100;  //[ms]

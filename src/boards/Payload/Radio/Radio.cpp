@@ -80,7 +80,7 @@ bool Radio::start()
     ModuleManager& modules = ModuleManager::getInstance();
     // Config the transceiver
     SX1278Fsk::Config config = {
-        .freq_rf    = 868000000,
+        .freq_rf    = 869000000,
         .freq_dev   = 50000,
         .bitrate    = 48000,
         .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
