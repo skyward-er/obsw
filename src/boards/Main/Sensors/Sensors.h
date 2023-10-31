@@ -30,6 +30,8 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/SFD/PressureSFD.h>
+#include <sensors/SFD/PressureSFDData.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
@@ -91,6 +93,7 @@ public:
     virtual Boardcore::HSCMRNN015PAData getStaticPressure1LastSample();
     virtual Boardcore::HSCMRNN015PAData getStaticPressure2LastSample();
     virtual RotatedIMUData getIMULastSample();
+    virtual Boardcore::PressureSFDData getSFDPressureLastSample();
     virtual Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
     // CAN fake sensors setters
@@ -164,6 +167,9 @@ private:
     virtual void imuInit();
     virtual void imuCallback();
 
+    void sfdPressureInit();
+    void sfdPressureCallback();
+
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
@@ -184,6 +190,7 @@ private:
     Boardcore::CurrentData canMotorCurrent{};
 
     // Fake processed sensors
+    Boardcore::PressureSFD* sfdPressure     = nullptr;
     Boardcore::MPXH6400A* mpxh6400a         = nullptr;
     Boardcore::HSCMRNN015PA* hscmrnn015pa_1 = nullptr;
     Boardcore::HSCMRNN015PA* hscmrnn015pa_2 = nullptr;
