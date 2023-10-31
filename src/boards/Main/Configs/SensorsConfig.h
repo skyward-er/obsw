@@ -93,6 +93,7 @@ constexpr uint32_t LSM6DSRX_PERIOD        = 20;  // [ms] 50Hz
 constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
 constexpr uint32_t IMU_PERIOD             = 20;  // [ms] Fake processed IMU 50Hz
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 20;  // [ms] 50Hz
+constexpr uint32_t PRESSURE_SFD_PERIOD    = 20;  // [ms] Pressure SFD 50Hz
 
 // ADC sensors configs
 constexpr float ADC_VOLTAGE_RANGE = 1.2f;  // [V] Voltage reading range
