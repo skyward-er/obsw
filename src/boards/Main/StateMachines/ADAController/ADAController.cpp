@@ -64,7 +64,7 @@ void ADAController::update()
 {
     ModuleManager& modules = ModuleManager::getInstance();
     PressureData barometerData =
-        modules.get<Sensors>()->getStaticPressure1LastSample();
+        modules.get<Sensors>()->getSFDPressureLastSample();
 
     // Get a snapshot of the situation. There is no need to synchronize because
     // the getter are already thread safe with a PauseKernel
@@ -143,8 +143,7 @@ void ADAController::calibrate()
 
     for (int i = 0; i < ADAConfig::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        PressureData data =
-            modules.get<Sensors>()->getStaticPressure1LastSample();
+        PressureData data = modules.get<Sensors>()->getSFDPressureLastSample();
         pressure.add(data.pressure);
 
         miosix::Thread::sleep(ADAConfig::CALIBRATION_SLEEP_TIME);
