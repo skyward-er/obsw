@@ -23,7 +23,9 @@
 #include "Sensors.h"
 
 #include <Main/Buses.h>
+#include <Main/Configs/PressureSFDConfig.h>
 #include <Main/Configs/SensorsConfig.h>
+#include <algorithms/Filters/LowPass.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -198,6 +200,13 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
     return result;
 }
 
+Boardcore::PressureSFDData Sensors::getSFDPressureLastSample()
+{
+    miosix::PauseKernelLock lock;
+    return sfdPressure != nullptr ? sfdPressure->getLastSample()
+                                  : PressureSFDData{};
+}
+
 void Sensors::setPitot(PitotData data)
 {
     miosix::PauseKernelLock lock;
@@ -261,6 +270,7 @@ bool Sensors::start()
     staticPressure1Init();
     staticPressure2Init();
     imuInit();
+    sfdPressureInit();
 
     // Add the magnetometer calibration to the scheduler
     size_t result = scheduler->addTask(
@@ -657,6 +667,34 @@ void Sensors::imuInit()
     sensorMap.emplace(make_pair(imu, info));
 }
 
+void Sensors::sfdPressureInit()
+{
+    SFDAscent::SFDAscentConfig sfdAscentConfig{
+        PressureSFDConfig::Ascent::SVM_CONF};
+    SFDDescent::SFDDescentConfig sfdDescentConfig{
+        PressureSFDConfig::Descent::SVM_CONF};
+
+    LowPass::LowPassConfig lowPassFilterConfig{
+        PressureSFDConfig::LowPass::CUTOFF_FREQ,
+        PressureSFDConfig::LowPass::GAIN, PressureSFDConfig::LowPass::LAMBDA};
+
+    PressureSFD::SFDConfig sfdConfig{sfdAscentConfig, sfdDescentConfig,
+                                     lowPassFilterConfig};
+
+    sfdPressure = new PressureSFD(sfdConfig);
+
+    // add the pressure callbacks
+    sfdPressure->setPressureSample(
+        bind(&Sensors::getStaticPressure1LastSample, this), 0);
+    sfdPressure->setPressureSample(
+        bind(&Sensors::getStaticPressure2LastSample, this), 1);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("PressureSFD", PRESSURE_SFD_PERIOD,
+                    bind(&Sensors::sfdPressureCallback, this));
+    sensorMap.emplace(make_pair(imu, info));
+}
+
 void Sensors::lps22dfCallback()
 {
     LPS22DFData lastSample = lps22df->getLastSample();
@@ -725,6 +763,11 @@ void Sensors::staticPressure2Callback()
 void Sensors::imuCallback()
 {
     RotatedIMUData lastSample = imu->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::sfdPressureCallback()
+{
+    PressureSFDData lastSample = sfdPressure->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 
