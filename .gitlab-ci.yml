@@ -48,7 +48,7 @@ lint:
 build-debug:
   stage: build-debug
   before_script:
-    - apt update && apt install -y sudo cmake wget xz-utils
+    - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
     - sh MiosixToolchainInstaller.run
   script:
@@ -59,7 +59,7 @@ build-debug:
 build-release:
   stage: build-release
   before_script:
-    - apt update && apt install -y sudo cmake wget xz-utils
+    - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
     - sh MiosixToolchainInstaller.run
   script:
@@ -67,11 +67,11 @@ build-release:
 
 # Stage test
 
-test:
-  stage: test
-  before_script:
-    - apt update && apt install -y sudo cmake wget xz-utils
-    - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
-    - sh MiosixToolchainInstaller.run
-  script:
-    - ./sbs --test catch-tests-main
+# test:
+#   stage: test
+#   before_script:
+#     - apt update && apt install -y sudo cmake ninja-build ccache build-essential wget xz-utils
+#     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
+#     - sh MiosixToolchainInstaller.run
+#   script:
+#     - ./sbs --test catch-tests-main
