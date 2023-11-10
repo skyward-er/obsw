@@ -51,6 +51,10 @@ build-debug:
     - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
     - sh MiosixToolchainInstaller.run
+  cache:
+    - key: "ninja_cache-debug"
+      paths:
+        - build
   script:
     - ./sbs --debug
 
@@ -62,6 +66,10 @@ build-release:
     - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
     - sh MiosixToolchainInstaller.run
+  cache:
+    - key: "ninja_cache-release"
+      paths:
+        - build
   script:
     - ./sbs
 
