@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-image: ubuntu:latest
+image: registry.skywarder.eu/avn/swd/obsw/miosix:latest
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -46,10 +46,6 @@ lint:
 
 build-debug:
   stage: build
-  before_script:
-    - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
-    - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
-    - sh MiosixToolchainInstaller.run
   cache:
     - key: "ninja_cache-debug"
       paths:
@@ -61,10 +57,6 @@ build-debug:
 
 build-release:
   stage: build
-  before_script:
-    - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
-    - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
-    - sh MiosixToolchainInstaller.run
   cache:
     - key: "ninja_cache-release"
       paths:
@@ -76,9 +68,5 @@ build-release:
 
 # test:
 #   stage: test
-#   before_script:
-#     - apt update && apt install -y sudo cmake ninja-build ccache build-essential wget xz-utils
-#     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
-#     - sh MiosixToolchainInstaller.run
 #   script:
 #     - ./sbs --test catch-tests-main
