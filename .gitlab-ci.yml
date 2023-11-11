@@ -26,8 +26,7 @@ variables:
 
 stages:
   - lint
-  - build-debug
-  - build-release
+  - build
   - test
 
 # Stage lint
@@ -46,7 +45,7 @@ lint:
 # Stage build-debug
 
 build-debug:
-  stage: build-debug
+  stage: build
   before_script:
     - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
@@ -61,7 +60,7 @@ build-debug:
 # Stage build-release
 
 build-release:
-  stage: build-release
+  stage: build
   before_script:
     - apt update && apt install -y sudo cmake ninja-build ccache wget xz-utils
     - wget https://miosix.org/toolchain/MiosixToolchainInstaller.run
