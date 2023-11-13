@@ -29,6 +29,7 @@
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>
+#include <logger/Logger.h>
 #include <sensors/SensorData.h>
 
 #include <iostream>
@@ -56,8 +57,10 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
     Serial* serial = ModuleManager::getInstance().get<Serial>();
-#ifdef NDEBUG
+#if !defined(NO_MAVLINK_ON_SERIAL)
     serial->sendMsg(msg);
+#else
+    (void)serial;
 #endif
 
     // Extracting NAS rocket state
@@ -80,10 +83,6 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
                 mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
 
-#ifndef NDEBUG
-        nasState.print(std::cout);
-#endif
-
         GPSData gpsState;
         gpsState.gpsTimestamp =
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
@@ -94,6 +93,9 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
         lastRocketNasState = nasState;
         lastRocketGpsState = gpsState;
+
+        Logger::getInstance().log(nasState);
+        Logger::getInstance().log(gpsState);
     }
 
     Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
