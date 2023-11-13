@@ -24,6 +24,7 @@
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
+#include <sensors/VN300/VN300Data.h>
 
 #include <fstream>
 #include <iostream>
@@ -52,6 +53,7 @@ void registerTypes(Deserializer& ds)
     // Custom types
     ds.registerType<StepperXData>();
     ds.registerType<StepperYData>();
+    ds.registerType<VN300Data>();
 }
 
 void showUsage(const string& cmdName)
