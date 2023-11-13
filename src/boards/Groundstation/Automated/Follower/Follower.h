@@ -41,10 +41,14 @@ struct NEDCoords
     float d = 0;
 };
 
+/**
+ * @brief A structure for storing angles repesenting antenna positions
+ */
 struct AntennaAngles
 {
-    float theta1 = 0;
-    float theta2 = 0;
+    float yaw;    //!< Angle from the X axis on the horizontal XY plane,
+                  //!< anti-clockwise positive [deg]
+    float pitch;  //!< Angle between the XY plane and the target position [deg]
 };
 
 class Follower : public Boardcore::Algorithm, public Boardcore::Module
@@ -74,6 +78,10 @@ public:
 private:
     void step() override;
 
+    /**
+     * @brief Calculates the target angles from the given NED coordinates that
+     * the antenna should point to.
+     */
     AntennaAngles rocketPositionToAntennaAngles(const NEDCoords& ned);
 
     const uint8_t maxInitRetries =
@@ -81,14 +89,12 @@ private:
 
     Eigen::Vector3f antennaCoordinates;  ///< GPS coordinates of the antenna
                                          ///< [lat, lon, alt] [deg, deg, m]
-    Eigen::Vector2f initialOrientation;  ///< Initial orientation of the antenna
-                                         ///< [yaw, pitch] [deg, deg]
-    Eigen::Vector3f
-        initialRocketCoordinates;  ///< GPS coordinates of the rocket while in
-                                   ///< ramp [lat, lon, alt] [deg, deg, m]
+    Eigen::Vector3f initialRocketCoordinates;  ///< GPS coordinates of the
+                                               ///< rocket while in ramp [lat,
+                                               ///< lon, alt] [deg, deg, m]
     Eigen::Vector2f
-        initialAntennaRocketDistance;  ///< Distance between the antenna and the
-                                       ///< rocket while in ramp [m]
+        initialAntennaRocketDistance;  ///< Distance between the antenna and
+                                       ///< the rocket while in ramp [m]
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Follower");
 };
