@@ -161,7 +161,7 @@ int main()
 
     // Periodically statistics
     float speedMax  = 1.0;
-    float speed0    = 0.1;
+    float speed0    = 0.5;
     float speed     = speed0;
     float stepSpeed = 0.1;
     bool increasing = true;
@@ -210,10 +210,10 @@ int main()
                    data.accelerationX, data.accelerationY, data.accelerationZ,
                    data.yaw, data.pitch, data.roll);
             modules.get<Actuators>()->moveDeg(
-                Actuators::StepperList::HORIZONTAL, 10);
+                Actuators::StepperList::HORIZONTAL, 90);
             modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
-                                              10);
-            Thread::sleep(1000);
+                                              90);
+            Thread::sleep(1500);
         }
 
         {
@@ -222,10 +222,10 @@ int main()
                    data.accelerationX, data.accelerationY, data.accelerationZ,
                    data.yaw, data.pitch, data.roll);
             modules.get<Actuators>()->moveDeg(
-                Actuators::StepperList::HORIZONTAL, -10);
+                Actuators::StepperList::HORIZONTAL, -90);
             modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
-                                              -10);
-            Thread::sleep(1000);
+                                              -90);
+            Thread::sleep(1500);
         }
     }
 
