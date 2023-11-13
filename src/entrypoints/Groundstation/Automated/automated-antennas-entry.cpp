@@ -227,20 +227,21 @@ int main()
 
     LOG_INFO(logger, "Starting Skylink");
 
+    // Wait for antenna GPS fix
+    GPSData antennaGpsState = acquireAntennaGpsState(sensors);
+
+    LOG_INFO(logger, "Antenna GPS position acquired !coord [{}, {}] [deg]",
+             antennaGpsState.latitude, antennaGpsState.longitude);
+    follower->setAntennaCoordinates(antennaGpsState);
+    // Antenna GPS fix LED
+    led2On();
+
     // Wait for rocket presence and GPS fix
     GPSData rocketGpsState = acquireRocketGpsState(hub);
     LOG_INFO(logger, "Rocket GPS position acquired [{}, {}] [deg]",
              rocketGpsState.latitude, rocketGpsState.longitude);
     follower->setInitialRocketCoordinates(rocketGpsState);
     // Rocket presence and GPS fix LED
-    led2On();
-
-    // Wait for antenna GPS fix
-    GPSData antennaGpsState = acquireAntennaGpsState(sensors);
-    LOG_INFO(logger, "Antenna GPS position acquired !coord [{}, {}] [deg]",
-             antennaGpsState.latitude, antennaGpsState.longitude);
-    follower->setAntennaCoordinates(antennaGpsState);
-    // Antenna GPS fix LED
     led3On();
 
     // Init the follower after GPS position was acquired
