@@ -28,7 +28,7 @@ namespace Common
 {
 
 static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 419000000,
+    .freq_rf    = 421000000,
     .freq_dev   = 50000,
     .bitrate    = 48000,
     .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
@@ -40,7 +40,7 @@ static const Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
     .enable_crc = false};
 
 static const Boardcore::SX1278Fsk::Config PAYLOAD_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
+    .freq_rf    = 869000000,
     .freq_dev   = 50000,
     .bitrate    = 48000,
     .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
