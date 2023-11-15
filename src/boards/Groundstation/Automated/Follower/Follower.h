@@ -42,13 +42,14 @@ struct NEDCoords
 };
 
 /**
- * @brief A structure for storing angles repesenting antenna positions
+ * @brief A structure for storing angles relative to the NED frame.
  */
 struct AntennaAngles
 {
-    float yaw;    //!< Angle from the X axis on the horizontal XY plane,
-                  //!< anti-clockwise positive [deg]
-    float pitch;  //!< Angle between the XY plane and the target position [deg]
+    float yaw;    //!< Angle between the X axis (N axis) and the target position
+                  //!< on the XY plane (NE plane), positive anti-clockwise [deg]
+    float pitch;  //!< Angle between the XY plane (NE plane) and the target
+                  //!< position [deg]
 };
 
 class Follower : public Boardcore::Algorithm, public Boardcore::Module
