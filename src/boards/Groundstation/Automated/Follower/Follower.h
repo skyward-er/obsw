@@ -60,14 +60,16 @@ public:
 
     void setAntennaCoordinates(const Boardcore::GPSData& gpsData)
     {
-        antennaCoordinates = {gpsData.latitude, gpsData.longitude,
-                              gpsData.height};
+        antennaCoordinates    = {gpsData.latitude, gpsData.longitude,
+                                 gpsData.height};
+        antennaCoordinatesSet = true;
     };
 
     void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
     {
         initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
                                     gpsData.height};
+        rocketCoordinatesSet     = true;
     }
 
     Eigen::Vector2f getInitialAntennaRocketDistance()
@@ -83,6 +85,9 @@ private:
      * the antenna should point to.
      */
     AntennaAngles rocketPositionToAntennaAngles(const NEDCoords& ned);
+
+    bool antennaCoordinatesSet = false;
+    bool rocketCoordinatesSet  = false;
 
     const uint8_t maxInitRetries =
         120;  ///< max number of retries for GPS data acquisition
