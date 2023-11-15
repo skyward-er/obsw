@@ -81,8 +81,8 @@ void Follower::step()
         ModuleManager::getInstance().get<Sensors>()->getVN300LastSample();
 
     // Calculate the amount to move from the current position
-    AntennaAngles stepperAngles{vn300.yaw - targetAngles.yaw,
-                                vn300.pitch - targetAngles.pitch};
+    AntennaAngles stepperAngles{targetAngles.yaw - vn300.yaw,
+                                targetAngles.pitch - vn300.pitch};
 
     // Calculate angular velocity for moving the antennas toward position
     float horizontalSpeed = std::abs((stepperAngles.yaw * 1000) /
