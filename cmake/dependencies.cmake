@@ -95,3 +95,22 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Sensors/RotatedIMU/RotatedIMU.cpp
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
 )
+
+set(GROUNDSTATION_BASE
+    src/boards/Groundstation/Base/Radio/Radio.cpp
+    src/boards/Groundstation/Base/Ports/Ethernet.cpp
+    src/boards/Groundstation/Base/BoardStatus.cpp
+    src/boards/Groundstation/Base/Hub.cpp
+)
+
+set(GROUNDSTATION_NOKIA
+    src/boards/Groundstation/Nokia/Radio/Radio.cpp
+    src/boards/Groundstation/Nokia/Hub.cpp
+)
+
+set(GROUNDSTATION_COMMON
+    src/boards/Groundstation/Common/Ports/Serial.cpp
+    src/boards/Groundstation/Common/Ports/EthernetBase.cpp
+    src/boards/Groundstation/Common/Radio/RadioBase.cpp
+    src/boards/Groundstation/Common/HubBase.cpp
+)

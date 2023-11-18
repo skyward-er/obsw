@@ -118,13 +118,6 @@
         "numbers": "cpp",
         "semaphore": "cpp"
     },
-    "editor.formatOnSave": true,
-    "[c]": {
-        "editor.formatOnSave": false
-    },
-    "[cmake]": {
-        "editor.formatOnSave": false
-    },
     "cSpell.words": [
         "Aeroutils",
         "AIRBRAKES",
@@ -152,6 +145,7 @@
         "Duca",
         "Eigen",
         "EXTI",
+        "Gpio",
         "GPIOF",
         "KALM",
         "kalman",
@@ -161,6 +155,7 @@
         "MPXH",
         "Nidasio",
         "pitot",
+        "RSSI",
         "SATS",
         "setb",
         "Setpoint",
