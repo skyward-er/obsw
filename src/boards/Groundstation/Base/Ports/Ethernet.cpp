@@ -49,8 +49,10 @@ bool Ethernet::start()
     ModuleManager::getInstance().get<BoardStatus>()->setEthernetPresent(
         present);
 
-    if(present) {
-        if(!EthernetBase::start(std::move(wiz5500))) {
+    if (present)
+    {
+        if (!EthernetBase::start(std::move(wiz5500)))
+        {
             return false;
         }
     }
