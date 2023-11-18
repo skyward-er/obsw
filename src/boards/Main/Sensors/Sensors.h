@@ -71,7 +71,7 @@ public:
      * @brief Takes the result of the live magnetometer calibration and applies
      * it to the current calibration + writes it in the csv file
      */
-    void writeMagCalibration();
+    bool writeMagCalibration();
 
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample();
@@ -164,11 +164,11 @@ private:
     Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Can sensors
-    Boardcore::PitotData canPitot{};
-    Boardcore::PressureData canCCPressure{};
-    Boardcore::PressureData canBottomTankPressure{};
-    Boardcore::PressureData canTopTankPressure{};
-    Boardcore::TemperatureData canTankTemperature{};
+    Boardcore::PitotData canPitot{0, 0, 0};
+    Boardcore::PressureData canCCPressure{0, 0};
+    Boardcore::PressureData canBottomTankPressure{0, 0};
+    Boardcore::PressureData canTopTankPressure{0, 0};
+    Boardcore::TemperatureData canTankTemperature{0, 0};
     Boardcore::BatteryVoltageSensorData canMotorBatteryVoltage{};
     Boardcore::CurrentData canMotorCurrent{};
 

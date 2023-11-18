@@ -32,23 +32,23 @@ constexpr uint32_t UPDATE_PERIOD = 20;  // [ms] -> 50Hz
 
 constexpr float SENSOR_NOISE_VARIANCE       = 0.36f;
 constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 28.9286227299384f;
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5920f;
 
-constexpr uint32_t SHADOW_MODE_TIMEOUT      = 900000;  // [ms]
-constexpr float SHUTDOWN_THRESHOLD_ALTITUDE = 1000;    // [m]
+constexpr uint32_t SHADOW_MODE_TIMEOUT      = 4500;  // [ms]
+constexpr float SHUTDOWN_THRESHOLD_ALTITUDE = 3200;  // [m]
 constexpr unsigned int SHUTDOWN_N_SAMPLES   = 5;
 
 // Pressure threshold after which the kalman is updated
 constexpr float CC_PRESSURE_THRESHOLD = 1.f;
 
 // Aerodynamics coefficients
-constexpr float n000 = 0.554395329698886;
-constexpr float n100 = -1.71019994711676;
-constexpr float n200 = 8.05103009321528;
-constexpr float n300 = -22.2129400612042;
-constexpr float n400 = 34.6990670331566;
-constexpr float n500 = -28.6219169089691;
-constexpr float n600 = 9.73349655723146;
+constexpr float n000 = 0.596535425207973;
+constexpr float n100 = -1.81429600946981;
+constexpr float n200 = 8.47683559348987;
+constexpr float n300 = -23.1759370919254;
+constexpr float n400 = 35.8276525337534;
+constexpr float n500 = -29.2336913633527;
+constexpr float n600 = 9.84223649075812;
 
 }  // namespace MEAConfig
 }  // namespace Main

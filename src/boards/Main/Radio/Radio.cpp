@@ -413,7 +413,13 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_SAVE_CALIBRATION:
         {
             // Save the sensor calibration and adopt it
-            modules.get<Sensors>()->writeMagCalibration();
+            bool result = modules.get<Sensors>()->writeMagCalibration();
+
+            if (!result)
+            {
+                return sendNack(msg);
+            }
+
             break;
         }
         case MAV_CMD_START_LOGGING:

@@ -50,7 +50,7 @@ struct SensorsCalibrationParameter
     static std::string header()
     {
         return "timestamp,referencePressure,offsetStatic1,offsetStatic2,"
-               "offsetDeployment";
+               "offsetDeployment\n";
     }
 
     void print(std::ostream& os) const

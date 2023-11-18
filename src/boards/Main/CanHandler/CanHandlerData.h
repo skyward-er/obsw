@@ -36,7 +36,7 @@ struct CanPressureSensor
     uint8_t sensorId   = 0;
     float pressure     = 0;
 
-    static std::string header() { return "timestamp,sensorId,pressure"; }
+    static std::string header() { return "timestamp,sensorId,pressure\n"; }
 
     void print(std::ostream& os) const
     {
@@ -50,7 +50,7 @@ struct CanTemperatureSensor
     uint8_t sensorId   = 0;
     float temperature  = 0;
 
-    static std::string header() { return "timestamp,sensorId,temperature"; }
+    static std::string header() { return "timestamp,sensorId,temperature\n"; }
 
     void print(std::ostream& os) const
     {
@@ -65,7 +65,10 @@ struct CanCurrentSensor
     uint8_t boardId    = 0;
     float current      = 0;
 
-    static std::string header() { return "timestamp,sensorId,boardId,current"; }
+    static std::string header()
+    {
+        return "timestamp,sensorId,boardId,current\n";
+    }
 
     void print(std::ostream& os) const
     {
@@ -81,12 +84,29 @@ struct CanVoltageSensor
     uint8_t boardId    = 0;
     float voltage      = 0;
 
-    static std::string header() { return "timestamp,sensorId,boardId,voltage"; }
+    static std::string header()
+    {
+        return "timestamp,sensorId,boardId,voltage\n";
+    }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << (int)sensorId << "," << (int)boardId << ","
            << voltage << "\n";
+    }
+};
+
+struct CanActuator
+{
+    uint64_t timestamp = 0;
+    uint8_t servoId    = 0;
+    float position     = 0;
+
+    static std::string header() { return "timestamp,servoId,position\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)servoId << "," << position << "\n";
     }
 };
 }  // namespace Main

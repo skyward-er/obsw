@@ -74,6 +74,7 @@ bool NASController::start()
 void NASController::update()
 {
     ModuleManager& modules = ModuleManager::getInstance();
+    NASState state         = getNasState();
 
     // Update the NAS state only if the FSM is active
     if (this->testState(&NASController::state_active))
@@ -85,6 +86,9 @@ void NASController::update()
         // Get barometer data
         PressureData staticPressure =
             modules.get<Sensors>()->getStaticPressure1LastSample();
+
+        // Get pitot data
+        PitotData pitot = modules.get<Sensors>()->getPitotLastSample();
 
         // Compute the norm for acceleration validity
         Vector3f accVector     = static_cast<AccelerometerData>(imuData);
@@ -98,6 +102,18 @@ void NASController::update()
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(staticPressure.pressure);
+
+        // Correct with pitot
+        if (!isnan(pitot.airspeed) &&
+            pitot.airspeed > NASConfig::NAS_PITOT_MIN_AIRSPEED &&
+            (-state.d) < NASConfig::NAS_PITOT_MAX_ALTITUDE &&
+            pitot.timestamp > lastPitotTimestamp)
+        {
+            nas.correctPitot(pitot.airspeed);
+
+            // Update the timestamp
+            lastPitotTimestamp = TimestampTimer::getTimestamp();
+        }
 
         // Correct with accelerometer if the acceleration is in specs
         if (accelerationValid)

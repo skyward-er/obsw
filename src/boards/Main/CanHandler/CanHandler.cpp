@@ -289,6 +289,13 @@ void CanHandler::handleCanActuator(const CanMessage &msg)
     // Set the servo position
     modules.get<Actuators>()->setCANServoPosition(
         servo, servoDataFromCanMessage(msg).position);
+
+    // Log the message
+    CanActuator log;
+    log.timestamp = TimestampTimer::getTimestamp();
+    log.servoId   = static_cast<uint8_t>(servo);
+    log.position  = servoDataFromCanMessage(msg).position;
+    Logger::getInstance().log(log);
 }
 
 }  // namespace Main

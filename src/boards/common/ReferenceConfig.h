@@ -35,7 +35,7 @@ namespace ReferenceConfig
 static const Boardcore::ReferenceValues defaultReferenceValues = {
     160.0,      // [m] Altitude
     99418.0,    // [Pa] Pressure
-    287.11,     // [K] Temperature
+    288.15,     // [K] Temperature
     39.389733,  // [deg] Start latitude
     -8.288992,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,

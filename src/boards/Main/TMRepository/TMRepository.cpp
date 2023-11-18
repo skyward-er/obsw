@@ -144,7 +144,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_y      = state.by;
             tm.nas_bias_z      = state.bz;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.ref_temperature = ref.refTemperature - 273.15f;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
 
@@ -189,12 +189,9 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Last samples
-            LSM6DSRXData lsm6dsrx =
-                modules.get<Sensors>()->getLSM6DSRXLastSample();
+            RotatedIMUData imu = modules.get<Sensors>()->getIMULastSample();
             LPS28DFWData lps28dfw1 =
                 modules.get<Sensors>()->getLPS28DFW_1LastSample();
-            LIS2MDLData lis2mdl =
-                modules.get<Sensors>()->getLIS2MDLLastSample();
             PressureData staticPressure =
                 modules.get<Sensors>()->getStaticPressure1LastSample();
             PressureData deploymentPressure =
@@ -231,17 +228,17 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.altitude_agl = -nasState.d;
 
             // IMU
-            tm.acc_x  = lsm6dsrx.accelerationX;
-            tm.acc_y  = lsm6dsrx.accelerationY;
-            tm.acc_z  = lsm6dsrx.accelerationZ;
-            tm.gyro_x = lsm6dsrx.angularSpeedX;
-            tm.gyro_y = lsm6dsrx.angularSpeedY;
-            tm.gyro_z = lsm6dsrx.angularSpeedZ;
+            tm.acc_x  = imu.accelerationX;
+            tm.acc_y  = imu.accelerationY;
+            tm.acc_z  = imu.accelerationZ;
+            tm.gyro_x = imu.angularSpeedX;
+            tm.gyro_y = imu.angularSpeedY;
+            tm.gyro_z = imu.angularSpeedZ;
 
             // Magnetometer
-            tm.mag_x = lis2mdl.magneticFieldX;
-            tm.mag_y = lis2mdl.magneticFieldY;
-            tm.mag_z = lis2mdl.magneticFieldZ;
+            tm.mag_x = imu.magneticFieldX;
+            tm.mag_y = imu.magneticFieldY;
+            tm.mag_z = imu.magneticFieldZ;
 
             // GPS
             tm.gps_fix = gps.fix;
@@ -283,6 +280,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<PinHandler>()
                     ->getPinData(PinHandler::PinList::PIN_EXPULSION)
                     .lastState;
+            tm.pin_quick_connector = 0;
 
             // Board status
             tm.battery_voltage = modules.get<Sensors>()

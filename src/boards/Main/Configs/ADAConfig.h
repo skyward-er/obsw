@@ -36,7 +36,7 @@ constexpr int CALIBRATION_SAMPLES_COUNT = 20;
 constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
 
 // ADA shadow mode time, during which the ADA algorithm cannot trigger apogees
-constexpr uint32_t SHADOW_MODE_TIMEOUT = 10000;  // [ms]
+constexpr uint32_t SHADOW_MODE_TIMEOUT = 18000;  // [ms]
 
 // When the vertical speed is smaller than this value, apogee is detected.
 // If equal to 0 ->     Exact apogee
