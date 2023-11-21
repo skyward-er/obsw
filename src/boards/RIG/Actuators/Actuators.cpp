@@ -46,7 +46,7 @@ Actuators::Actuators(TaskScheduler* sched) : scheduler(sched)
                   Config::Servos::MAX_PULSE, Config::Servos::MIN_PULSE);
     servo4 =
         new Servo(Config::Servos::SERVO4_TIMER, Config::Servos::SERVO4_PWM_CH,
-                  Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+                  Config::Servos::MAX_PULSE, Config::Servos::MIN_PULSE);
     servo5 =
         new Servo(Config::Servos::SERVO5_TIMER, Config::Servos::SERVO5_PWM_CH,
                   Config::Servos::MAX_PULSE, Config::Servos::MIN_PULSE);
