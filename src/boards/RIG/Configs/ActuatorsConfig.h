@@ -62,7 +62,7 @@ constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 10000;  // 10s
 constexpr float DEFAULT_FILLING_MAXIMUM_APERTURE    = 0.97f;
 constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE    = 0.80f;
 constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE       = 0.87f;
-constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 0.97f;
+constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 0.80f;
 constexpr float DEFAULT_DISCONNECT_MAXIMUM_APERTURE = 0.110f;
 }  // namespace Servos
 }  // namespace Config

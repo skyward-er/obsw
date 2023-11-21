@@ -47,10 +47,10 @@ constexpr float VESSEL_MAX_PRESSURE      = 400;  // bar
 constexpr float SENSOR_MIN_CURRENT = 4;   // mA
 constexpr float SENSOR_MAX_CURRENT = 20;  // mA
 
-constexpr float LOAD_CELL2_OFFSET = -38150;
+constexpr float LOAD_CELL2_OFFSET = -71250;
 constexpr float LOAD_CELL1_OFFSET = -93539.8f;
 
-constexpr float LOAD_CELL2_SCALE = -5.6188e-5f;
+constexpr float LOAD_CELL2_SCALE = 6.884422e-6f;
 constexpr float LOAD_CELL1_SCALE = -2.251307e-5f;
 
 constexpr float VOLTAGE_CONVERSION_FACTOR         = 13.58f;
