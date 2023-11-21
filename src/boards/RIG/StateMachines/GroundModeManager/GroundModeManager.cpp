@@ -141,7 +141,8 @@ void GroundModeManager::state_igniting(const Event& event)
             oxidantTimeoutEventId = EventBroker::getInstance().postDelayed(
                 MOTOR_OPEN_OXIDANT, TOPIC_MOTOR, ignitionTime);
 
-            return logStatus(GroundModeManagerState::IGNITING);
+            logStatus(GroundModeManagerState::IGNITING);
+            break;
         }
         case MOTOR_OPEN_OXIDANT:
         {
@@ -152,6 +153,18 @@ void GroundModeManager::state_igniting(const Event& event)
             break;
         }
         case MOTOR_CLOSE_FEED_VALVE:
+        {
+            // Shut down the igniter
+            miosix::relays::ignition::high();
+
+            // Close all the valves
+            modules.get<Actuators>()->closeAllServo();
+
+            EventBroker::getInstance().removeDelayed(oxidantTimeoutEventId);
+
+            transition(&GroundModeManager::state_ready);
+            break;
+        }
         case TMTC_DISARM:
         {
             // Shut down the igniter
@@ -173,7 +186,8 @@ void GroundModeManager::state_igniting(const Event& event)
                 miosix::relays::nitrogen::high();
             }
 
-            return transition(&GroundModeManager::state_ready);
+            transition(&GroundModeManager::state_ready);
+            break;
         }
     }
 }
