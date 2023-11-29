@@ -169,7 +169,7 @@ int main()
     }
 
 #ifdef HILPayload
-    HIL* hil = new HIL(buses->usart2);
+    HIL* hil = new HIL(buses->usart2, new HILFlightPhasesManager());
     if (!modules.insert<HIL>(hil))
     {
         initResult = false;
