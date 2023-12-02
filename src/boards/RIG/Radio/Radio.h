@@ -33,9 +33,10 @@
 
 namespace RIG
 {
-using MavDriver = Boardcore::MavlinkDriverPignaSlave<Boardcore::SX1278Lora::MTU,
-                                           Config::Radio::RADIO_OUT_QUEUE_SIZE,
-                                           Config::Radio::RADIO_MAV_MSG_LENGTH>;
+using MavDriver =
+    Boardcore::MavlinkDriverPignaSlave<Boardcore::SX1278Lora::MTU,
+                                       Config::Radio::RADIO_OUT_QUEUE_SIZE,
+                                       Config::Radio::RADIO_MAV_MSG_LENGTH>;
 class Radio : public Boardcore::Module
 {
 public:
@@ -92,7 +93,7 @@ private:
     std::thread radioBackupDIO;
 
     // Specifies the last tick [ms] in which a command is executed
-    long long int lastManualCommand = 0;  
+    long long int lastManualCommand = 0;
 
     Boardcore::Logger& SDlogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");

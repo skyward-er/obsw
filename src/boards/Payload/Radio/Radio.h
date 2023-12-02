@@ -23,7 +23,7 @@
 
 #include <Payload/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/MavlinkDriver/MavlinkDriverPigna.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>
 
@@ -31,9 +31,10 @@
 
 namespace Payload
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
+using MavDriver =
+    Boardcore::MavlinkDriverPignaMaster<Boardcore::SX1278Fsk::MTU,
+                                        RadioConfig::RADIO_OUT_QUEUE_SIZE,
+                                        RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
@@ -80,21 +81,6 @@ private:
      * @brief Called by the handleMavlinkMessage to handle a command message
      */
     void handleCommand(const mavlink_message_t& msg);
-
-    /**
-     * @brief Sends the periodic telemetry
-     */
-    void sendPeriodicMessage();
-
-    /**
-     * @brief Inserts the mavlink message into the queue
-     */
-    void enqueueMsg(const mavlink_message_t& msg);
-
-    // Messages queue
-    mavlink_message_t messageQueue[RadioConfig::MAVLINK_QUEUE_SIZE];
-    uint32_t messageQueueIndex = 0;
-    miosix::FastMutex queueMutex;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
     Boardcore::TaskScheduler* scheduler = nullptr;

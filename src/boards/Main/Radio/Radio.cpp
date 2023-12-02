@@ -106,14 +106,20 @@ bool Radio::start()
     SX1278Fsk::Error error = transceiver->init(config);
 
     // Add periodic telemetry send task
-    uint8_t result1 =
-        scheduler->addTask([&]() { this->sendPeriodicMessage(); },
-                           RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
-                           TaskScheduler::Policy::RECOVER);
+    uint8_t result1 = scheduler->addTask(
+        [&]()
+        {
+            mavDriver->enqueueMsg(
+                modules.get<TMRepository>()->packSystemTm(MAV_MOTOR_ID, 0, 0));
+            mavDriver->enqueueMsg(
+                modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
+        },
+        RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
+        TaskScheduler::Policy::RECOVER);
     uint8_t result2 = scheduler->addTask(
         [&]()
         {
-            this->enqueueMsg(
+            mavDriver->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
         RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD * 2,
@@ -121,11 +127,10 @@ bool Radio::start()
 
     // Config mavDriver
     mavDriver = new MavDriver(
-        transceiver,
+        transceiver, RadioConfig::MAV_PING_MSG_ID,
         [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
-        RadioConfig::RADIO_SLEEP_AFTER_SEND,
-        RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);
+        RadioConfig::MAV_SLEEP_AFTER_SEND);
 
     // Check radio failure
     if (error != SX1278Fsk::Error::NONE)
@@ -143,7 +148,7 @@ void Radio::sendAck(const mavlink_message_t& msg)
     mavlink_msg_ack_tm_pack(RadioConfig::MAV_SYSTEM_ID,
                             RadioConfig::MAV_COMP_ID, &ackMsg, msg.msgid,
                             msg.seq);
-    enqueueMsg(ackMsg);
+    mavDriver->enqueueMsg(ackMsg);
 }
 
 void Radio::sendNack(const mavlink_message_t& msg)
@@ -152,7 +157,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavlink_msg_nack_tm_pack(RadioConfig::MAV_SYSTEM_ID,
                              RadioConfig::MAV_COMP_ID, &nackMsg, msg.msgid,
                              msg.seq);
-    enqueueMsg(nackMsg);
+    mavDriver->enqueueMsg(nackMsg);
 }
 
 void Radio::logStatus() {}
@@ -202,7 +207,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                               RadioConfig::MAV_COMP_ID, &msg,
                                               &tm);
-                    enqueueMsg(msg);
+                    mavDriver->enqueueMsg(msg);
                 }
             }
             else if (tmId == MAV_SENSORS_STATE_ID)
@@ -220,7 +225,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     mavlink_msg_sensor_state_tm_encode(
                         RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMP_ID,
                         &msg, &tm);
-                    enqueueMsg(msg);
+                    mavDriver->enqueueMsg(msg);
                 }
             }
             else
@@ -230,7 +235,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     modules.get<TMRepository>()->packSystemTm(tmId, msg.msgid,
                                                               msg.seq);
                 // Add the response to the queue
-                enqueueMsg(response);
+                mavDriver->enqueueMsg(response);
 
                 // Check if the TM repo answered with a NACK. If so the function
                 // must return to avoid sending a default ack
@@ -249,7 +254,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             mavlink_message_t response =
                 modules.get<TMRepository>()->packSensorsTm(sensorId, msg.msgid,
                                                            msg.seq);
-            enqueueMsg(response);
+            mavDriver->enqueueMsg(response);
 
             // If the response is a nack the method returns
             if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
@@ -265,7 +270,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             mavlink_message_t response =
                 modules.get<TMRepository>()->packServoTm(servo, msg.msgid,
                                                          msg.seq);
-            enqueueMsg(response);
+            mavDriver->enqueueMsg(response);
 
             // If the response is a nack the method returns
             if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
@@ -458,40 +463,4 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     sendAck(msg);
 }
 
-void Radio::sendPeriodicMessage()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-
-    // Send all the queue messages
-    {
-        Lock<FastMutex> lock(queueMutex);
-
-        for (uint8_t i = 0; i < messageQueueIndex; i++)
-        {
-            mavDriver->enqueueMsg(messageQueue[i]);
-        }
-
-        // Reset the index
-        messageQueueIndex = 0;
-    }
-
-    mavDriver->enqueueMsg(
-        modules.get<TMRepository>()->packSystemTm(MAV_MOTOR_ID, 0, 0));
-    mavDriver->enqueueMsg(
-        modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
-}
-
-void Radio::enqueueMsg(const mavlink_message_t& msg)
-{
-    {
-        Lock<FastMutex> lock(queueMutex);
-
-        // Insert the message inside the queue only if there is enough space
-        if (messageQueueIndex < RadioConfig::MAVLINK_QUEUE_SIZE)
-        {
-            messageQueue[messageQueueIndex] = msg;
-            messageQueueIndex++;
-        }
-    }
-}
 }  // namespace Main
