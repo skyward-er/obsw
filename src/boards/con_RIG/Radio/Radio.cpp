@@ -116,28 +116,18 @@ void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
     serial->writeBlock(temp_buf, len, 0);
 }
 
-void Radio::sendMessages()
+void Radio::sendInternalState()
 {
-    mavlink_message_t msg;
+    mavlink_message_t stateMsg;
 
     {
         Lock<FastMutex> lock(internalStateMutex);
         mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &buttonState);
+                                           &stateMsg, &buttonState);
     }
 
-    {
-        Lock<FastMutex> lock(mutex);
-        for (uint8_t i = 0; i < message_queue_index; i++)
-        {
-            mavDriver->enqueueMsg(message_queue[i]);
-        }
-        message_queue_index = 0;
-
-        // The last is the button state message
-        mavDriver->enqueueMsg(msg);
-    }
+    mavDriver->enqueueMsg(stateMsg);
 }
 
 void Radio::loopReadFromUsart()
@@ -154,7 +144,7 @@ void Radio::loopReadFromUsart()
 
         if (len && mavlink_parse_char(chan, byte, &msg, &status))
         {
-            if (message_queue_index == MAVLINK_QUEUE_SIZE - 1)
+            if (!mavDriver->enqueueMsg(msg))
             {
                 mavlink_message_t nack_msg;
                 mavlink_nack_tm_t nack_tm;
@@ -164,12 +154,6 @@ void Radio::loopReadFromUsart()
                                            Config::Radio::MAV_COMPONENT_ID,
                                            &nack_msg, &nack_tm);
                 mavlinkWriteToUsart(nack_msg);
-            }
-            else
-            {
-                Lock<FastMutex> lock(mutex);
-                message_queue[message_queue_index] = msg;
-                message_queue_index += 1;
             }
         }
     }
@@ -224,9 +208,9 @@ bool Radio::start()
     SX1278Lora::Error error = transceiver->init(config);
 
     // Config mavDriver
-    mavDriver = new MavDriver(transceiver,
+    mavDriver = new MavDriver(transceiver, Config::Radio::MAV_PING_MSG_ID,
                               bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                              0, MAV_OUT_BUFFER_MAX_AGE);
+                              Config::Radio::MAV_SLEEP_AFTER_SEND);
 
     // In case of failure the mav driver must be created at least
     if (error != SX1278Lora::Error::NONE)
@@ -234,7 +218,7 @@ bool Radio::start()
         return false;
     }
 
-    scheduler->addTask([&]() { sendMessages(); }, PING_GSE_PERIOD,
+    scheduler->addTask([&]() { sendInternalState(); }, PING_GSE_PERIOD,
                        TaskScheduler::Policy::RECOVER);
 
     receiverLooper = std::thread([=]() { loopReadFromUsart(); });

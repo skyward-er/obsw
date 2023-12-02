@@ -25,7 +25,7 @@
 #include <common/Mavlink.h>
 #include <con_RIG/Configs/RadioConfig.h>
 #include <diagnostic/PrintLogger.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/MavlinkDriver/MavlinkDriverPigna.h>
 #include <radio/SX1278/SX1278Lora.h>
 #include <scheduler/TaskScheduler.h>
 
@@ -36,9 +36,10 @@
 namespace con_RIG
 {
 
-using MavDriver = Boardcore::MavlinkDriver<Config::Radio::RADIO_PKT_LENGTH,
-                                           Config::Radio::RADIO_OUT_QUEUE_SIZE,
-                                           Config::Radio::RADIO_MAV_MSG_LENGTH>;
+using MavDriver =
+    Boardcore::MavlinkDriverPignaMaster<Config::Radio::RADIO_PKT_LENGTH,
+                                        Config::Radio::RADIO_OUT_QUEUE_SIZE,
+                                        Config::Radio::RADIO_MAV_MSG_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
@@ -51,7 +52,7 @@ public:
 
     Boardcore::MavlinkStatus getMavlinkStatus();
 
-    void sendMessages();
+    void sendInternalState();
 
     void loopReadFromUsart();
 
@@ -65,9 +66,6 @@ private:
 
     void mavlinkWriteToUsart(const mavlink_message_t& msg);
 
-    mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
-    uint8_t message_queue_index = 0;
-    miosix::FastMutex mutex;
     miosix::FastMutex internalStateMutex;
 
     // Button internal state

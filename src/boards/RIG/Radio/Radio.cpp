@@ -30,7 +30,6 @@
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
-#include <radio/SerialTransceiver/SerialTransceiver.h>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -106,11 +105,10 @@ bool Radio::start()
 
     // Config mavDriver
     mavDriver = new MavDriver(
-        transceiver,
+        transceiver, Config::Radio::MAV_PING_MSG_ID,
         [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
-        Config::Radio::MAV_SLEEP_AFTER_SEND,
-        Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
+        Config::Radio::MAV_SLEEP_AFTER_SEND);
 
     // This thread allows the radio to exit a possible deadlock situation where
     // the driver waits for a missed interrupt. By default the priority is MAX -
@@ -144,7 +142,7 @@ void Radio::sendAck(const mavlink_message_t& msg)
     mavlink_msg_ack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                             Config::Radio::MAV_COMPONENT_ID, &ackMsg, msg.msgid,
                             msg.seq);
-    buffer.put(ackMsg);
+    mavDriver->enqueueMsg(ackMsg);
 }
 
 void Radio::sendNack(const mavlink_message_t& msg)
@@ -153,7 +151,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
                              msg.msgid, msg.seq);
-    buffer.put(nackMsg);
+    mavDriver->enqueueMsg(nackMsg);
 }
 
 void Radio::logStatus()
@@ -192,8 +190,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                         modules.get<TMRepository>()->packSystemTm(
                             tmId, msg.msgid, msg.seq);
 
-                    // Add the response to the buffer
-                    buffer.put(response);
+                    mavDriver->enqueueMsg(response);
 
                     if (response.msgid == MAVLINK_MSG_ID_NACK_TM)
                     {
@@ -207,27 +204,9 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
         }
         case MAVLINK_MSG_ID_CONRIG_STATE_TC:
         {
-            // In this case all the messages in the queue must be sent
-            // after adding the ack to the queue. DO NOT USE get AND isFull with
-            // the generic message class type
             sendAck(msg);
-            size_t count = buffer.count();
 
-            for (size_t i = 0; i < count; i++)
-            {
-                // Handle the possible exception
-                try
-                {
-                    mavDriver->enqueueMsg(buffer.pop());
-                }
-                catch (const std::exception& e)
-                {
-                    LOG_ERR(logger, "Circular buffer generated an exception");
-                }
-            }
-
-            // After sending all the packets in buffer send the RIG state
-            // messages
+            // Send the RIG state messages
             mavDriver->enqueueMsg(modules.get<TMRepository>()->packSystemTm(
                 SystemTMList::MAV_GSE_ID, msg.msgid, msg.seq));
             mavDriver->enqueueMsg(modules.get<TMRepository>()->packSystemTm(

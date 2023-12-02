@@ -24,7 +24,7 @@
 
 #include <RIG/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/MavlinkDriver/MavlinkDriverPigna.h>
 #include <radio/SX1278/SX1278Lora.h>
 #include <utils/collections/CircularBuffer.h>
 
@@ -33,7 +33,7 @@
 
 namespace RIG
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
+using MavDriver = Boardcore::MavlinkDriverPignaSlave<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::RADIO_OUT_QUEUE_SIZE,
                                            Config::Radio::RADIO_MAV_MSG_LENGTH>;
 class Radio : public Boardcore::Module
@@ -89,13 +89,11 @@ private:
     void handleCommand(const mavlink_message_t& msg);
 
     mavlink_conrig_state_tc_t previousState;
-    Boardcore::CircularBuffer<mavlink_message_t,
-                              Config::Radio::RADIO_CIRCULAR_BUFFER_SIZE>
-        buffer;
     std::thread radioBackupDIO;
 
-    long long int lastManualCommand =
-        0;  // Specifies the last tick [ms] in which a command is executed
+    // Specifies the last tick [ms] in which a command is executed
+    long long int lastManualCommand = 0;  
+
     Boardcore::Logger& SDlogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
 };

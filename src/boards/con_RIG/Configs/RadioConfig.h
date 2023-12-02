@@ -38,7 +38,8 @@ constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 10;
 constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
 // Mavlink driver parameters
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 200;
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 10;
+constexpr uint8_t MAV_PING_MSG_ID       = MAVLINK_MSG_ID_CONRIG_STATE_TC;
 
 // Mavlink ids
 constexpr uint8_t MAV_SYSTEM_ID    = 171;
