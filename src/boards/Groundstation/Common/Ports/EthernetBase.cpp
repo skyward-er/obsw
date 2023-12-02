@@ -58,9 +58,9 @@ void EthernetBase::handleINTn()
 
 void EthernetBase::sendMsg(const mavlink_message_t& msg)
 {
-    if (mav_driver && mav_driver->isStarted())
+    if (mavDriver && mavDriver->isStarted())
     {
-        mav_driver->enqueueMsg(msg);
+        mavDriver->enqueueMsg(msg);
     }
 }
 
@@ -95,9 +95,9 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
     auto mav_handler = [this](EthernetMavDriver* channel,
                               const mavlink_message_t& msg) { handleMsg(msg); };
 
-    mav_driver = std::make_unique<EthernetMavDriver>(this, mav_handler, 0, 10);
+    mavDriver = std::make_unique<EthernetMavDriver>(this, mav_handler, 0, 0);
 
-    if (!mav_driver->start())
+    if (!mavDriver->start())
     {
         return false;
     }

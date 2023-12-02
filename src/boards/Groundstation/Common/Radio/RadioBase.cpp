@@ -32,18 +32,7 @@ using namespace Boardcore;
 
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
-    Lock<FastMutex> l(pending_msgs_mutex);
-    if (pending_msgs_count >= MAV_PENDING_OUT_QUEUE_SIZE)
-    {
-        return false;
-    }
-    else
-    {
-        pending_msgs[pending_msgs_count] = msg;
-        pending_msgs_count += 1;
-
-        return true;
-    }
+    return mavDriver->enqueueMsg(msg);
 }
 
 void RadioBase::handleDioIRQ()
@@ -58,7 +47,7 @@ RadioStats RadioBase::getStats()
 {
     if (started)
     {
-        auto mav_stats = mav_driver->getStatus();
+        auto mav_stats = mavDriver->getStatus();
 
         return {.send_errors = mav_stats.nSendErrors,
                 .packet_rx_success_count =
@@ -79,14 +68,19 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278)
 {
     this->sx1278 = std::move(sx1278);
 
-    auto mav_handler = [this](RadioMavDriver* channel,
-                              const mavlink_message_t& msg) { handleMsg(msg); };
+    auto mav_handler =
+        [&](RadioMavDriver* channel, const mavlink_message_t& msg)
+    {
+        // Dispatch the message through the hub.
+        ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
+    };
 
-    mav_driver = std::make_unique<RadioMavDriver>(
-        this, mav_handler, Groundstation::MAV_SLEEP_AFTER_SEND,
-        Groundstation::MAV_OUT_BUFFER_MAX_AGE);
+    mavDriver = std::make_unique<RadioMavDriver>(
+        this, pingMsgId, mav_handler,
+        Groundstation::MAV_SLEEP_AFTER_SEND,
+        Groundstation::AUTOMATIC_FLUSH_DELAY);
 
-    if (!mav_driver->start())
+    if (!mavDriver->start())
     {
         return false;
     }
@@ -105,13 +99,7 @@ void RadioBase::run()
 
     while (!shouldStop())
     {
-        miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
-
-        // If enough time has passed, automatically flush.
-        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
-        {
-            flush();
-        }
+        miosix::Thread::sleep(10);
     }
 }
 
@@ -135,33 +123,4 @@ bool RadioBase::send(uint8_t* pkt, size_t len)
     }
 
     return ret;
-}
-
-void RadioBase::handleMsg(const mavlink_message_t& msg)
-{
-    // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
-
-    if (isEndOfTransmissionPacket(msg))
-    {
-        last_eot_packet_ts = miosix::getTick();
-        flush();
-    }
-}
-
-void RadioBase::flush()
-{
-    Lock<FastMutex> l(pending_msgs_mutex);
-    for (size_t i = 0; i < pending_msgs_count; i++)
-    {
-        mav_driver->enqueueMsg(pending_msgs[i]);
-    }
-
-    pending_msgs_count = 0;
-}
-
-bool RadioBase::isEndOfTransmissionPacket(const mavlink_message_t& msg)
-{
-    return msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
-           msg.msgid == MAVLINK_MSG_ID_PAYLOAD_FLIGHT_TM;
 }

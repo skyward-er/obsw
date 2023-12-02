@@ -30,12 +30,16 @@ namespace GroundstationBase
 class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
 {
 public:
+    RadioMain(): Groundstation::RadioBase(Groundstation::MAV_PING_MSG_ID_ROCKET) {};
+
     [[nodiscard]] bool start();
 };
 
 class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
 {
 public:
+    RadioPayload(): Groundstation::RadioBase(Groundstation::MAV_PING_MSG_ID_PAYLOAD) {};
+
     [[nodiscard]] bool start();
 };
 

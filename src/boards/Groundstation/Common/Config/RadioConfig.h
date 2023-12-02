@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <common/Mavlink.h>
+
 #include <cstddef>
 #include <cstdint>
 
@@ -33,15 +35,12 @@
 namespace Groundstation
 {
 
-constexpr size_t MAV_OUT_QUEUE_SIZE         = 10;
+// Mavlink driver parameters
+constexpr uint16_t MAV_SLEEP_AFTER_SEND     = 10;
 constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 10;
-constexpr uint16_t MAV_SLEEP_AFTER_SEND     = 5;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE     = 10;
-
-/// @brief Every how many ms force the flush of the send queue.
-constexpr unsigned int AUTOMATIC_FLUSH_PERIOD = 250;
-/// @brief After how many ms stop waiting for the other side to send commands.
-constexpr long long AUTOMATIC_FLUSH_DELAY = 2000;
+constexpr uint8_t MAV_PING_MSG_ID_ROCKET    = MAVLINK_MSG_ID_ROCKET_FLIGHT_TM;
+constexpr uint8_t MAV_PING_MSG_ID_PAYLOAD   = MAVLINK_MSG_ID_PAYLOAD_FLIGHT_TM;
+constexpr long long AUTOMATIC_FLUSH_DELAY   = 2000;
 
 /// @brief Period of the radio status telemetry.
 constexpr unsigned int RADIO_STATUS_PERIOD = 250;

@@ -26,7 +26,7 @@
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <common/Radio.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/MavlinkDriver/MavlinkDriverPigna.h>
 #include <radio/SX1278/SX1278Fsk.h>
 
 #include <memory>
@@ -35,10 +35,9 @@
 namespace Groundstation
 {
 
-using RadioMavDriver =
-    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                             Groundstation::MAV_OUT_QUEUE_SIZE,
-                             MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
+using RadioMavDriver = Boardcore::MavlinkDriverPignaSlave<
+    Boardcore::SX1278Fsk::MTU, Groundstation::MAV_PENDING_OUT_QUEUE_SIZE,
+    MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
  * @brief Statistics of the radio.
@@ -61,7 +60,7 @@ struct RadioStats
 class RadioBase : private Boardcore::ActiveObject, public Boardcore::Transceiver
 {
 public:
-    RadioBase() {}
+    RadioBase(uint8_t pingMsgId): pingMsgId(pingMsgId) {}
 
     /**
      * @brief Send a mavlink message through this radio.
@@ -93,36 +92,18 @@ private:
 
     bool send(uint8_t* pkt, size_t len) override;
 
-    /**
-     * @brief Called internally when a message is received.
-     */
-    void handleMsg(const mavlink_message_t& msg);
-
-    /**
-     * @brief Flush all pending messages.
-     */
-    void flush();
-
-    /**
-     * @brief Check if a message signals an end of transmission
-     */
-    bool isEndOfTransmissionPacket(const mavlink_message_t& msg);
-
     bool started = false;
-
-    miosix::FastMutex pending_msgs_mutex;
-    mavlink_message_t pending_msgs[Groundstation::MAV_PENDING_OUT_QUEUE_SIZE];
-    size_t pending_msgs_count = 0;
-
-    long long last_eot_packet_ts = 0;
 
     uint32_t bits_rx_count = 0;
     uint32_t bits_tx_count = 0;
 
+    // Message ID of the periodic message
+    uint8_t pingMsgId;
+
     // Objects are always destructed in reverse order, so keep them in this
     // order
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278;
-    std::unique_ptr<RadioMavDriver> mav_driver;
+    std::unique_ptr<RadioMavDriver> mavDriver;
 };
 
 }  // namespace Groundstation
