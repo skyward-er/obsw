@@ -367,9 +367,7 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (!(modules.get<FlightModeManager>()->getStatus().state ==
-                      FlightModeManagerState::TEST_MODE &&
-                  modules.get<Actuators>()->setServoAngle(servoId, angle)))
+            if (!modules.get<Actuators>()->setServoAngle(servoId, angle))
                 return sendNack(msg);
 
             break;

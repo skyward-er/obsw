@@ -53,7 +53,11 @@ using namespace Common;
 
 int main()
 {
-    bool initResult        = true;
+    Thread::sleep(500);  // wait 500 ms to separate the mcu startup and the ubx
+                         // serial communication
+
+    bool initResult = true;
+
     PrintLogger logger     = Logging::getLogger("main");
     ModuleManager& modules = ModuleManager::getInstance();
 

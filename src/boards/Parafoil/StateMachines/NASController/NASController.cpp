@@ -74,25 +74,28 @@ void NASController::update()
         nas.correctBaro(pressureData.pressure);
 
         // Correct with accelerometer if the acceleration is in specs
-        Vector3f acceleration = static_cast<AccelerometerData>(imuData);
-        if (accelerationValid &&
-            (acceleration.norm() > (9.8 + ACCELERATION_THRESHOLD) ||
-             acceleration.norm() < (9.8 - ACCELERATION_THRESHOLD)))
-            accelerationValid = false;
+        Vector3f acceleration  = static_cast<AccelerometerData>(imuData);
+        float accelerationNorm = acceleration.norm();
         if (accelerationValid)
-            nas.correctAcc(imuData);
-
-        if (!accelerationValid &&
-            (acceleration.norm() < (9.8 + ACCELERATION_THRESHOLD) ||
-             acceleration.norm() > (9.8 - ACCELERATION_THRESHOLD)))
         {
-            accSampleAfterSpike++;
+            nas.correctAcc(imuData);
+        }
+        if ((accelerationNorm <
+                 (9.8 + (NASConfig::ACCELERATION_THRESHOLD) / 2) &&
+             accelerationNorm >
+                 (9.8 - (NASConfig::ACCELERATION_THRESHOLD) / 2)))
+        {
+            if (!accelerationValid)
+            {
+                accSampleAfterSpike++;
+            }
         }
         else
         {
+            accelerationValid   = false;
             accSampleAfterSpike = 0;
         }
-        if (accSampleAfterSpike > 50)
+        if (accSampleAfterSpike > NASConfig::ACCELERATION_THRESHOLD_SAMPLE)
         {
             accSampleAfterSpike = 0;
             accelerationValid   = true;
