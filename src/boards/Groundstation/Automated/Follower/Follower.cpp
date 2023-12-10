@@ -75,7 +75,7 @@ void Follower::step()
                                 lastRocketNasState.d};
 
     // Calculate the antenna target angles from the NED rocket coordinates
-    AntennaAngles targetAngles = rocketPositionToAntennaAngles(rocketPosition);
+    targetAngles = rocketPositionToAntennaAngles(rocketPosition);
 
     VN300Data vn300 =
         ModuleManager::getInstance().get<Sensors>()->getVN300LastSample();
