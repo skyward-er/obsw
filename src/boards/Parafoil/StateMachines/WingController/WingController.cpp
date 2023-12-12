@@ -171,6 +171,10 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
     {
         case EV_ENTRY:  // start automatic algorithm
         {
+            // start wes
+            ModuleManager::getInstance()
+                .get<WindEstimation>()
+                ->startWindEstimationSchemeCalibration();
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
             selectAlgorithm(0);
             setEarlyManeuverPoints(
@@ -272,29 +276,39 @@ void WingController::addAlgorithm(int id)
 
             algorithm =
                 new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+            step.timestamp   = 0;
             step.servo1Angle = rotation / 2;
             step.servo2Angle = 0;
-            step.timestamp   = 0;
             algorithm->addStep(step);
+
+            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
             step.servo1Angle = 0;
             step.servo2Angle = rotation / 2;
-            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
             algorithm->addStep(step);
-            step.servo1Angle = rotation;
-            step.servo2Angle = 0;
+
             step.timestamp += WES_TIMEOUT * 1000;
-            algorithm->addStep(step);
-            step.servo1Angle = 0;
-            step.servo2Angle = rotation;
-            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
-            algorithm->addStep(step);
-            step.servo1Angle = rotation;
-            step.servo2Angle = rotation;
-            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
-            algorithm->addStep(step);
             step.servo1Angle = 0;
             step.servo2Angle = 0;
+            algorithm->addStep(step);
+
             step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
+            step.servo1Angle = rotation;
+            step.servo2Angle = rotation;
+            algorithm->addStep(step);
+
+            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
+            step.servo1Angle = 0;
+            step.servo2Angle = rotation;
+            algorithm->addStep(step);
+
+            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
+            algorithm->addStep(step);
+
+            step.timestamp += WES_TIMEOUT * 1000;  // conversion from ms to us
+            step.servo1Angle = 0;
+            step.servo2Angle = 0;
             algorithm->addStep(step);
             setAutomatic(false);
             break;
