@@ -69,10 +69,6 @@ public:
     Boardcore::UBXGPSData getUbxGpsLastSample();
 
     Boardcore::ADS1118Data getADS1118LastSample();
-    Boardcore::MPXHZ6130AData getStaticPressureLastSample();
-    Boardcore::SSCDANN030PAAData getDplPressureLastSample();
-    Boardcore::SSCDRRN015PDAData getPitotPressureLastSample();
-    Boardcore::PitotData getPitotLastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
@@ -83,9 +79,6 @@ public:
      * then removing the offsets from the desired values.
      */
     void calibrate();
-
-    void pitotSetReferenceAltitude(float altitude);
-    void pitotSetReferenceTemperature(float temperature);
 
     std::map<string, bool> getSensorsState();
 
@@ -103,13 +96,6 @@ private:
 
     void ads1118Init();
 
-    void staticPressureInit();
-
-    void dplPressureInit();
-
-    void pitotPressureInit();
-    void pitotInit();
-
     void internalADCInit();
     void batteryVoltageInit();
 
@@ -123,13 +109,7 @@ private:
     Boardcore::UBXGPSSerial* ubxGps;
 
     Boardcore::ADS1118* ads1118;  // adc
-    Boardcore::MPXHZ6130A* staticPressure;
-    Boardcore::SSCDANN030PAA* dplPressure;
-    Boardcore::SSCDRRN015PDA* pitotPressure;
 
-    Boardcore::HX711* hx711;
-
-    Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
     Boardcore::BatteryVoltageSensor* batteryVoltage;
     Boardcore::InternalTemp* internalTemp = nullptr;
@@ -139,10 +119,6 @@ private:
     Boardcore::SensorManager::SensorMap_t sensorsMap;
 
     bool calibrating = false;
-    Boardcore::Stats ms5803Stats;
-    Boardcore::Stats staticPressureStats;
-    Boardcore::Stats dplPressureStats;
-    Boardcore::Stats pitotPressureStats;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

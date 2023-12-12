@@ -50,6 +50,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Parafoil;
 using namespace Common;
+using namespace Parafoil::SensorsConfig;
 
 int main()
 {
@@ -235,10 +236,33 @@ int main()
             Logger::getInstance().log(ev);
         });
 
+    GpioPin sckPin  = GpioPin(GPIOG_BASE, 13);
+    GpioPin misoPin = GpioPin(GPIOG_BASE, 12);
+
+    // Setup gpio pins
+    sckPin.mode(Mode::ALTERNATE);
+    sckPin.alternateFunction(5);
+    misoPin.mode(Mode::ALTERNATE);
+    misoPin.alternateFunction(5);
+
+    SPIBus spiBus(SPI6);
+    HX711 loadCell{spiBus, sckPin};
+
+    loadCell.setOffset(LOAD_CELL1_OFFSET);
+    loadCell.setScale(LOAD_CELL1_SCALE);
+
     // Periodically statistics
     while (true)
     {
-        Thread::sleep(1000);
+        for (int i = 0; i < 80; i++)
+        {
+            loadCell.sample();
+
+            printf("[%.1f] %f\n", loadCell.getLastSample().loadTimestamp / 1e6,
+                   loadCell.getLastSample().load);
+            Logger::getInstance().log(loadCell.getLastSample());
+            Thread::sleep(1.0 / 80.0);
+        }
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();

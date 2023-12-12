@@ -60,13 +60,13 @@ constexpr float DEFAULT_TARGET_LON = 9.156301;
 
 constexpr int SELECTED_ALGORITHM = 0;
 #elif STOP_AND_GO
-constexpr int SELECTED_ALGORITHM = 1;
+constexpr int SELECTED_ALGORITHM   = 1;
 #elif ROTATION
-constexpr int SELECTED_ALGORITHM = 2;
+constexpr int SELECTED_ALGORITHM   = 2;
 #elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM = 3;
+constexpr int SELECTED_ALGORITHM   = 3;
 #else
-constexpr int SELECTED_ALGORITHM = 0;
+constexpr int SELECTED_ALGORITHM   = 0;
 #endif
 constexpr float MAX_SERVO_APERTURE = 0.5;
 // Wing altitude checker configs

@@ -60,13 +60,9 @@ bool Sensors::startModule()
     ms5803Init();
     // ubxGpsInit();
     ads1118Init();
-    staticPressureInit();
-    dplPressureInit();
-    pitotPressureInit();
-    pitotInit();
     internalADCInit();
     batteryVoltageInit();
-    hx711Init();
+
     // Moved down here because the bmx takes some times to start
     bmx160Init();
     bmx160WithCorrectionInit();
@@ -197,45 +193,6 @@ ADS1118Data Sensors::getADS1118LastSample()
     return ads1118 != nullptr ? ads1118->getLastSample() : ADS1118Data{};
 }
 
-MPXHZ6130AData Sensors::getStaticPressureLastSample()
-{
-    miosix::PauseKernelLock lock;
-    return staticPressure != nullptr ? staticPressure->getLastSample()
-                                     : MPXHZ6130AData{};
-}
-
-SSCDANN030PAAData Sensors::getDplPressureLastSample()
-{
-    miosix::PauseKernelLock lock;
-    return dplPressure != nullptr ? dplPressure->getLastSample()
-                                  : SSCDANN030PAAData{};
-}
-
-SSCDRRN015PDAData Sensors::getPitotPressureLastSample()
-{
-    miosix::PauseKernelLock lock;
-#ifndef HILSimulation
-    return pitotPressure != nullptr ? pitotPressure->getLastSample()
-                                    : SSCDRRN015PDAData{};
-#else
-    auto pitotData = state.pitot->getLastSample();
-    SSCDRRN015PDAData data;
-    data.pressureTimestamp = pitotData.timestamp;
-    data.pressure          = pitotData.deltaP;
-    return data;
-#endif
-}
-
-PitotData Sensors::getPitotLastSample()
-{
-    miosix::PauseKernelLock lock;
-#ifndef HILSimulation
-    return pitot != nullptr ? pitot->getLastSample() : PitotData{};
-#else
-    return state.pitot->getLastSample();
-#endif
-}
-
 InternalADCData Sensors::getInternalADCLastSample()
 {
     miosix::PauseKernelLock lock;
@@ -254,48 +211,13 @@ void Sensors::calibrate()
 {
     calibrating = true;
 
-    ms5803Stats.reset();
-    staticPressureStats.reset();
-    dplPressureStats.reset();
-    pitotPressureStats.reset();
-
     bmx160WithCorrection->startCalibration();
 
     Thread::sleep(CALIBRATION_DURATION);
 
     bmx160WithCorrection->stopCalibration();
 
-    // Calibrate the analog pressure sensor to the digital one
-    float ms5803Mean         = ms5803Stats.getStats().mean;
-    float staticPressureMean = staticPressureStats.getStats().mean;
-    float dplPressureMean    = dplPressureStats.getStats().mean;
-    staticPressure->setOffset(staticPressureMean - ms5803Mean);
-    dplPressure->setOffset(dplPressureMean - ms5803Mean);
-    pitotPressure->setOffset(pitotPressureStats.getStats().mean);
-
     calibrating = false;
-}
-
-void Sensors::pitotSetReferenceAltitude(float altitude)
-{
-    // Need to pause the kernel because the only invocation comes from the radio
-    // which is a separate thread
-    miosix::PauseKernelLock l;
-
-    ReferenceValues reference = pitot->getReferenceValues();
-    reference.refAltitude     = altitude;
-    pitot->setReferenceValues(reference);
-}
-
-void Sensors::pitotSetReferenceTemperature(float temperature)
-{
-    // Need to pause the kernel because the only invocation comes from the radio
-    // which is a separate thread
-    miosix::PauseKernelLock l;
-
-    ReferenceValues reference = pitot->getReferenceValues();
-    reference.refTemperature  = temperature + 273.15f;
-    pitot->setReferenceValues(reference);
 }
 
 std::map<string, bool> Sensors::getSensorsState()
@@ -317,13 +239,8 @@ Sensors::Sensors()
     ms5803               = nullptr;
     ubxGps               = nullptr;
     ads1118              = nullptr;
-    staticPressure       = nullptr;
-    dplPressure          = nullptr;
-    pitotPressure        = nullptr;
-    pitot                = nullptr;
     internalADC          = nullptr;
     batteryVoltage       = nullptr;
-    hx711                = nullptr;
 }
 
 Sensors::~Sensors()
@@ -333,10 +250,6 @@ Sensors::~Sensors()
     delete ms5803;
     delete ubxGps;
     delete ads1118;
-    delete staticPressure;
-    delete dplPressure;
-    delete pitotPressure;
-    delete hx711;
 
 #ifdef HILSimulation
     delete state.accelerometer;
@@ -448,14 +361,9 @@ void Sensors::ms5803Init()
                         miosix::sensors::ms5803::cs::getPin(), spiConfig,
                         PRESS_DIGITAL_TEMP_DIVIDER);
 
-    SensorInfo info(
-        "MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
-        [&]()
-        {
-            Logger::getInstance().log(ms5803->getLastSample());
-            if (calibrating && ms5803->getLastSample().pressure != 0)
-                ms5803Stats.add(ms5803->getLastSample().pressure);
-        });
+    SensorInfo info("MS5803", SAMPLE_PERIOD_PRESS_DIGITAL,
+                    [&]()
+                    { Logger::getInstance().log(ms5803->getLastSample()); });
 
     sensorsMap.emplace(make_pair(ms5803, info));
 
@@ -501,94 +409,6 @@ void Sensors::ads1118Init()
     LOG_INFO(logger, "ADS1118 adc setup done!");
 }
 
-void Sensors::staticPressureInit()
-{
-    function<ADCData()> readVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_STATIC_PORT));
-
-    staticPressure = new MPXHZ6130A(readVoltage, REFERENCE_VOLTAGE);
-
-    SensorInfo info(
-        "StaticPortsBarometer", SAMPLE_PERIOD_ADS1118 * 4,
-        [&]()
-        {
-            Logger::getInstance().log(staticPressure->getLastSample());
-
-            if (calibrating)
-                staticPressureStats.add(
-                    staticPressure->getLastSample().pressure);
-        });
-
-    sensorsMap.emplace(make_pair(staticPressure, info));
-
-    LOG_INFO(logger, "Static pressure sensor setup done!");
-}
-
-void Sensors::dplPressureInit()
-{
-    function<ADCData()> readVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_DPL_PORT));
-
-    dplPressure = new SSCDANN030PAA(readVoltage, REFERENCE_VOLTAGE);
-
-    SensorInfo info(
-        "DPL_PRESSURE", SAMPLE_PERIOD_ADS1118 * 4,
-        [&]()
-        {
-            Logger::getInstance().log(dplPressure->getLastSample());
-
-            if (calibrating)
-                dplPressureStats.add(dplPressure->getLastSample().pressure);
-        });
-
-    sensorsMap.emplace(make_pair(dplPressure, info));
-
-    LOG_INFO(logger, "Deployment pressure sensor setup done!");
-}
-
-void Sensors::pitotPressureInit()
-{
-    // Create a function to read the analog voltage
-    function<ADCData()> readVoltage(
-        bind(&ADS1118::getVoltage, ads1118, ADC_CH_PITOT_PORT));
-
-    // Setup the pitot sensor
-    pitotPressure = new SSCDRRN015PDA(readVoltage, REFERENCE_VOLTAGE);
-
-    // Create the sensor info
-    SensorInfo info(
-        "PITOT_PRESS", SAMPLE_PERIOD_ADS1118 * 4,
-        [&]()
-        {
-            Logger::getInstance().log(pitotPressure->getLastSample());
-            if (calibrating)
-                pitotPressureStats.add(pitotPressure->getLastSample().pressure);
-        });
-
-    sensorsMap.emplace(make_pair(pitotPressure, info));
-
-    LOG_INFO(logger, "Pitot differential pressure sensor setup done!");
-}
-
-void Sensors::pitotInit()
-{
-    function<PressureData()> getPitotPressure(
-        bind(&SSCDRRN015PDA::getLastSample, pitotPressure));
-    function<float()> getStaticPressure(
-        [&]() { return ms5803->getLastSample().pressure; });
-
-    pitot = new Pitot(getPitotPressure, getStaticPressure);
-    pitot->setReferenceValues(defaultReferenceValues);
-
-    SensorInfo info("PITOT", SAMPLE_PERIOD_ADS1118 * 4,
-                    [&]()
-                    { Logger::getInstance().log(pitot->getLastSample()); });
-
-    sensorsMap.emplace(make_pair(pitot, info));
-
-    LOG_INFO(logger, "Pitot sensor setup done!");
-}
-
 void Sensors::internalADCInit()
 {
     internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
@@ -632,26 +452,6 @@ void Sensors::internalTempInit()
     sensorsMap.emplace(make_pair(internalTemp, info));
 
     LOG_INFO(logger, "Internal TEMP setup done!");
-}
-
-void Sensors::hx711Init()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    hx711                  = new HX711(modules.get<Buses>()->spi6,
-                                       miosix::interfaces::spi6::sck::getPin());
-
-    hx711->setOffset(LOAD_CELL1_OFFSET);
-    hx711->setScale(LOAD_CELL1_SCALE);
-
-    // Config and enter the sensors info to feed to the sensors manager
-    SensorInfo info("HX711_1", LOAD_CELL_SAMPLE_PERIOD,
-                    [&]()
-                    {
-                        // printf("%f\n", hx711->getLastSample());
-                        Logger::getInstance().log(hx711->getLastSample());
-                    });
-    sensorsMap.emplace(make_pair(hx711, info));
-    LOG_INFO(logger, "Initialized loadCell1");
 }
 
 }  // namespace Parafoil

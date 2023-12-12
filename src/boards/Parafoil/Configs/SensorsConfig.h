@@ -68,9 +68,9 @@ constexpr Boardcore::BMX160Config::AccelerometerRange IMU_BMX_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange IMU_BMX_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 1600;
+constexpr unsigned int IMU_BMX_ACC_GYRO_ODR = 400;
 constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_1600;
+    Boardcore::BMX160Config::OutputDataRate::HZ_400;
 constexpr unsigned int IMU_BMX_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate IMU_BMX_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
