@@ -58,7 +58,7 @@ bool Sensors::startModule()
     // Initialize all the sensors
     lis3mdlInit();
     ms5803Init();
-    ubxGpsInit();
+    // ubxGpsInit();
     ads1118Init();
     staticPressureInit();
     dplPressureInit();
@@ -66,7 +66,7 @@ bool Sensors::startModule()
     pitotInit();
     internalADCInit();
     batteryVoltageInit();
-
+    hx711Init();
     // Moved down here because the bmx takes some times to start
     bmx160Init();
     bmx160WithCorrectionInit();
@@ -323,6 +323,7 @@ Sensors::Sensors()
     pitot                = nullptr;
     internalADC          = nullptr;
     batteryVoltage       = nullptr;
+    hx711                = nullptr;
 }
 
 Sensors::~Sensors()
@@ -335,6 +336,7 @@ Sensors::~Sensors()
     delete staticPressure;
     delete dplPressure;
     delete pitotPressure;
+    delete hx711;
 
 #ifdef HILSimulation
     delete state.accelerometer;
@@ -630,6 +632,26 @@ void Sensors::internalTempInit()
     sensorsMap.emplace(make_pair(internalTemp, info));
 
     LOG_INFO(logger, "Internal TEMP setup done!");
+}
+
+void Sensors::hx711Init()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    hx711                  = new HX711(modules.get<Buses>()->spi6,
+                                       miosix::interfaces::spi6::sck::getPin());
+
+    hx711->setOffset(LOAD_CELL1_OFFSET);
+    hx711->setScale(LOAD_CELL1_SCALE);
+
+    // Config and enter the sensors info to feed to the sensors manager
+    SensorInfo info("HX711_1", LOAD_CELL_SAMPLE_PERIOD,
+                    [&]()
+                    {
+                        // printf("%f\n", hx711->getLastSample());
+                        Logger::getInstance().log(hx711->getLastSample());
+                    });
+    sensorsMap.emplace(make_pair(hx711, info));
+    LOG_INFO(logger, "Initialized loadCell1");
 }
 
 }  // namespace Parafoil

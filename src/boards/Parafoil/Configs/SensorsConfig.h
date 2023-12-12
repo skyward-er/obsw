@@ -133,6 +133,9 @@ constexpr unsigned int PITOT_PRESS_CALIB_SAMPLES_NUM  = 500;
 constexpr float STATIC_PRESS_MOVING_AVG_COEFF         = 0.95;
 constexpr unsigned int CALIBRATION_DURATION           = 2000;
 
+constexpr float LOAD_CELL1_OFFSET       = -353697.5;
+constexpr float LOAD_CELL1_SCALE        = 3.0 / 1300000.0;
+constexpr float LOAD_CELL_SAMPLE_PERIOD = 1.0 / 80.0;
 }  // namespace SensorsConfig
 
 }  // namespace Parafoil

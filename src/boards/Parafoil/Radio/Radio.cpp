@@ -404,7 +404,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
             modules.get<NASController>()->setReferenceAltitude(altitude);
-            modules.get<Sensors>()->pitotSetReferenceAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
@@ -413,7 +412,6 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
             modules.get<NASController>()->setReferenceTemperature(temperature);
-            modules.get<Sensors>()->pitotSetReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:

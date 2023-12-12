@@ -197,11 +197,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                .state;
 
             // Pressures
-            tm.pressure_digi = ms5803Data.pressure;
-            tm.pressure_static =
-                sensors->getStaticPressureLastSample().pressure;
-            tm.pressure_dpl   = sensors->getDplPressureLastSample().pressure;
-            tm.airspeed_pitot = sensors->getPitotLastSample().airspeed;
+            tm.pressure_digi   = ms5803Data.pressure;
+            tm.pressure_static = 0;
+            tm.pressure_dpl    = 0;
+            tm.airspeed_pitot  = 0;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
@@ -406,13 +405,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData = ModuleManager::getInstance()
-                                    .get<Sensors>()
-                                    ->getDplPressureLastSample();
-
-            tm.timestamp = pressureData.pressureTimestamp;
+            tm.timestamp = 0;
             strcpy(tm.sensor_name, "DPL_PRESSURE");
-            tm.pressure = pressureData.pressure;
+            tm.pressure = 0;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
@@ -424,13 +419,9 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData = ModuleManager::getInstance()
-                                    .get<Sensors>()
-                                    ->getStaticPressureLastSample();
-
-            tm.timestamp = pressureData.pressureTimestamp;
+            tm.timestamp = 0;
             strcpy(tm.sensor_name, "STATIC_PRESSURE");
-            tm.pressure = pressureData.pressure;
+            tm.pressure = 0;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMPONENT_ID, &msg,
@@ -442,12 +433,8 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            SSCDRRN015PDAData pitot = ModuleManager::getInstance()
-                                          .get<Sensors>()
-                                          ->getPitotPressureLastSample();
-
-            tm.timestamp = pitot.pressureTimestamp;
-            tm.pressure  = pitot.pressure;
+            tm.timestamp = 0;
+            tm.pressure  = 0;
             strcpy(tm.sensor_name, "PITOT");
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,

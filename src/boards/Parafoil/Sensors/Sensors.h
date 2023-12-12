@@ -43,6 +43,8 @@
 #endif  // HILSimulation
 #include <Parafoil/ParafoilModule/ParafoilModule.h>
 
+#include "sensors/HX711/HX711.h"
+
 namespace Parafoil
 {
 
@@ -113,6 +115,8 @@ private:
 
     void internalTempInit();
 
+    void hx711Init();
+
     Boardcore::BMX160WithCorrection* bmx160WithCorrection;
     Boardcore::LIS3MDL* lis3mdl;
     Boardcore::MS5803* ms5803;  // barometro digitale
@@ -122,6 +126,8 @@ private:
     Boardcore::MPXHZ6130A* staticPressure;
     Boardcore::SSCDANN030PAA* dplPressure;
     Boardcore::SSCDRRN015PDA* pitotPressure;
+
+    Boardcore::HX711* hx711;
 
     Boardcore::Pitot* pitot;
     Boardcore::InternalADC* internalADC;
