@@ -71,6 +71,12 @@ struct Actuators : public ParafoilModule
 
     float getServoAngle(ServosList servoId);
 
+    Boardcore::ServoData getServoState(ServosList servoId);
+
+    void setOffset(float offset);
+
+    float getOffset();
+
     void startTwirl();
 
     void stopTwirl();
@@ -78,6 +84,8 @@ struct Actuators : public ParafoilModule
 private:
     Boardcore::Servo leftServo;
     Boardcore::Servo rightServo;
+
+    float offset;
 };
 
 }  // namespace Parafoil

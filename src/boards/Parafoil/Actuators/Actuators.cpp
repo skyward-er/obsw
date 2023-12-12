@@ -61,69 +61,46 @@ bool Actuators::enableServo(ServosList servoId)
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
+    percentage = percentage + offset;
     if (percentage > WingConfig::MAX_SERVO_APERTURE)
+    {
         percentage = WingConfig::MAX_SERVO_APERTURE;
+    }
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
             leftServo.setPosition(percentage);
-            Logger::getInstance().log(leftServo.getState());
             break;
         case PARAFOIL_RIGHT_SERVO:
             rightServo.setPosition(percentage);
-            Logger::getInstance().log(rightServo.getState());
             break;
         default:
             return false;
     }
 
+    Logger::getInstance().log(getServoState(servoId));
     return true;
 }
 
 bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     if (angle > WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION)
-        angle = WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION;
-    switch (servoId)
     {
-        case PARAFOIL_LEFT_SERVO:
-            leftServo.setPosition(angle / LEFT_SERVO_ROTATION);
-            Logger::getInstance().log(leftServo.getState());
-            break;
-        case PARAFOIL_RIGHT_SERVO:
-            rightServo.setPosition(angle / RIGHT_SERVO_ROTATION);
-            Logger::getInstance().log(rightServo.getState());
-            break;
-        default:
-            return false;
+        angle = WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION;
     }
 
-    return true;
+    return setServo(servoId, angle / LEFT_SERVO_ROTATION);
 }
 
 bool Actuators::wiggleServo(ServosList servoId)
 {
-    switch (servoId)
-    {
-        case PARAFOIL_LEFT_SERVO:
-            leftServo.setPosition(1);
-            Logger::getInstance().log(leftServo.getState());
-            Thread::sleep(1000);
-            leftServo.setPosition(0);
-            Logger::getInstance().log(leftServo.getState());
-            break;
-        case PARAFOIL_RIGHT_SERVO:
-            rightServo.setPosition(1);
-            Logger::getInstance().log(rightServo.getState());
-            Thread::sleep(1000);
-            rightServo.setPosition(0);
-            Logger::getInstance().log(rightServo.getState());
-            break;
-        default:
-            return false;
-    }
-
-    return true;
+    bool result;
+    result = setServo(servoId, 1.0);
+    Logger::getInstance().log(getServoState(servoId));
+    Thread::sleep(1000);
+    result = result && setServo(servoId, 0.0);
+    Logger::getInstance().log(getServoState(servoId));
+    return result;
 }
 
 bool Actuators::disableServo(ServosList servoId)
@@ -174,6 +151,24 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
+ServoData Actuators::getServoState(ServosList servoId)
+{
+
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            return leftServo.getState();
+        case PARAFOIL_RIGHT_SERVO:
+            return rightServo.getState();
+        default:
+            return ServoData{};
+    }
+}
+
+void Actuators::setOffset(float off) { offset = off; }
+
+float Actuators::getOffset() { return offset; }
+
 void Actuators::startTwirl()
 {
 
@@ -191,7 +186,8 @@ Actuators::Actuators()
     : leftServo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
                 LEFT_SERVO_MAX_PULSE),
       rightServo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
-                 RIGHT_SERVO_MAX_PULSE)
+                 RIGHT_SERVO_MAX_PULSE),
+      offset(0.0)
 {
 }
 }  // namespace Parafoil

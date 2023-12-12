@@ -85,6 +85,8 @@ constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 constexpr float KP = 0.4;   //[m]
 constexpr float KI = 0.08;  //[m]
 
+constexpr float SERVO_OFFSET = 0.1;
+
 struct WingConfigStruct
 {
 
