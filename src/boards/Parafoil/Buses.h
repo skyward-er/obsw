@@ -39,6 +39,7 @@ struct Buses : public ParafoilModule
 
     Boardcore::SPIBus spi1;
     Boardcore::SPIBus spi2;
+    Boardcore::SPIBus spi6;
 
 public:
 #ifndef USE_MOCK_PERIPHERALS
@@ -47,7 +48,7 @@ public:
           usart2(USART2, Boardcore::USARTInterface::Baudrate::B115200),
           usart3(USART3, Boardcore::USARTInterface::Baudrate::B115200),
           uart4(UART4, Boardcore::USARTInterface::Baudrate::B115200),
-          spi1(SPI1), spi2(SPI2)
+          spi1(SPI1), spi2(SPI2), spi6(SPI6)
     {
         usart1.init();
         usart2.init();
