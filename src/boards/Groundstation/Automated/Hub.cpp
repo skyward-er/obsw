@@ -22,10 +22,10 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>

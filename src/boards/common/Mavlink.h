@@ -25,5 +25,5 @@
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#include <mavlink_lib/gemini/mavlink.h>
+#include <mavlink_lib/lyra/mavlink.h>
 #pragma GCC diagnostic pop
