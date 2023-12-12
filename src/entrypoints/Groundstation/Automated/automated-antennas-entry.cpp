@@ -26,8 +26,8 @@
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -172,7 +172,7 @@ int main()
     Buses *buses              = new Buses();
     Serial *serial            = new Serial();
     RadioMain *radio_main     = new RadioMain();
-    RadioStatus *radio_status = new RadioStatus();
+    BoardStatus *board_status = new BoardStatus();
     Actuators *actuators      = new Actuators();
     Sensors *sensors          = new Sensors();
     Follower *follower        = new Follower();
@@ -185,7 +185,7 @@ int main()
         ok &= modules.insert(buses);
         ok &= modules.insert(serial);
         ok &= modules.insert(radio_main);
-        ok &= modules.insert(radio_status);
+        ok &= modules.insert(board_status);
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
         ok &= modules.insert(ethernet);
@@ -211,7 +211,7 @@ int main()
         START_MODULE("Serial", [&] { return serial->start(); });
         START_MODULE("Main Radio", [&] { return radio_main->start(); });
         START_MODULE("Ethernet", [&] { return ethernet->start(); });
-        START_MODULE("Radio Status", [&] { return radio_status->start(); });
+        START_MODULE("Board Status", [&] { return board_status->start(); });
         START_MODULE("Sensors", [&] { return sensors->start(); });
         actuators->start();
     }
@@ -220,7 +220,7 @@ int main()
     led1On();
     LOG_INFO(logger, "Modules setup successful");
 
-    if (radio_status->isMainRadioPresent())
+    if (board_status->isMainRadioPresent())
     {
         LOG_DEBUG(logger, "Main radio is present\n");
     }
