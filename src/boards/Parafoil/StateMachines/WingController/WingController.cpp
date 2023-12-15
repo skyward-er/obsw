@@ -187,6 +187,8 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
                      .get<NASController>()
                      ->getNasState()
                      .e});
+
+            ModuleManager::getInstance().get<Actuators>()->setOffset(OFFSET);
             startAlgorithm();
             return HANDLED;
         }

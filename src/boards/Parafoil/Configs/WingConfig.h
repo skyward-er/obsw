@@ -68,7 +68,8 @@ constexpr int SELECTED_ALGORITHM   = 3;
 #else
 constexpr int SELECTED_ALGORITHM   = 0;
 #endif
-constexpr float MAX_SERVO_APERTURE = 0.5;
+constexpr float OFFSET             = 0.25;
+constexpr float MAX_SERVO_APERTURE = 0.5 + OFFSET;
 // Wing altitude checker configs
 constexpr int WING_ALTITUDE_TRIGGER_CONFIDENCE = 10;  // [number of sample]
 constexpr int WING_ALTITUDE_TRIGGER_FALL       = 50;  // [meters]

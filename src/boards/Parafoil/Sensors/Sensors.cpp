@@ -58,7 +58,7 @@ bool Sensors::startModule()
     // Initialize all the sensors
     lis3mdlInit();
     ms5803Init();
-    // ubxGpsInit();
+    ubxGpsInit();
     ads1118Init();
     internalADCInit();
     batteryVoltageInit();

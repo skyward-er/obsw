@@ -258,10 +258,8 @@ int main()
         {
             loadCell.sample();
 
-            printf("[%.1f] %f\n", loadCell.getLastSample().loadTimestamp / 1e6,
-                   loadCell.getLastSample().load);
             Logger::getInstance().log(loadCell.getLastSample());
-            Thread::sleep(1.0 / 80.0);
+            Thread::sleep(1000.0 / 80.0);
         }
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();

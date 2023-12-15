@@ -52,8 +52,8 @@ constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
 constexpr float RIGHT_SERVO_ROTATION  = SERVO_ROTATION;  // [deg]
-constexpr float RIGHT_SERVO_MIN_PULSE = 2500;            // [us]
-constexpr float RIGHT_SERVO_MAX_PULSE = 500;             // [us]
+constexpr float RIGHT_SERVO_MIN_PULSE = 500;             // [us]
+constexpr float RIGHT_SERVO_MAX_PULSE = 2500;            // [us]
 
 }  // namespace ActuatorsConfigs
 
