@@ -25,6 +25,7 @@
 #include <HILConfig.h>
 #include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
+#include <common/ReferenceConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -147,8 +148,8 @@ Boardcore::HSCMRNN015PAData HILSensors::getStaticPressureLastSample()
     Boardcore::HSCMRNN015PAData data;
     miosix::PauseKernelLock lock;
 
-    data.pressureTimestamp = pitot->getLastSample().timestamp;
-    data.pressure          = pitot->getStaticPressure();
+    data.pressureTimestamp = staticPressure->getLastSample().pressureTimestamp;
+    data.pressure          = staticPressure->getLastSample().pressure;
 
     return data;
 }
@@ -158,8 +159,8 @@ Boardcore::SSCMRNN030PAData HILSensors::getDynamicPressureLastSample()
     Boardcore::SSCMRNN030PAData data;
     miosix::PauseKernelLock lock;
 
-    data.pressureTimestamp = pitot->getLastSample().timestamp;
-    data.pressure = pitot->getLastSample().deltaP - pitot->getStaticPressure();
+    data.pressureTimestamp = dynamicPressure->getLastSample().pressureTimestamp;
+    data.pressure          = dynamicPressure->getLastSample().pressure;
 
     return data;
 }
@@ -292,14 +293,18 @@ void HILSensors::lps28dfw_2Init()
 
 void HILSensors::pitotInit()
 {
-    // Create sensor instance with configured parameters
-    pitot = new HILPitot(N_DATA_PITOT, &Boardcore::ModuleManager::getInstance()
-                                            .get<HIL>()
-                                            ->simulator->getSensorData()
-                                            ->pitot);
+    // create lambda function to read the pressure
+    function<float()> getDynamicPressure(
+        [&]() { return dynamicPressure->getLastSample().pressure; });
+    function<float()> getStaticPressure(
+        [&]() { return staticPressure->getLastSample().pressure; });
+
+    pitot = new Pitot(getDynamicPressure, getStaticPressure);
+    pitot->setReferenceValues(Common::ReferenceConfig::defaultReferenceValues);
 
     // Emplace the sensor inside the map
-    SensorInfo info("PITOT_HIL", N_DATA_PITOT);
+    SensorInfo info("Pitot", 1000 / PITOT_FREQ,
+                    bind(&HILSensors::pitotCallback, this));
     sensorMap.emplace(make_pair(pitot, info));
 }
 
@@ -392,23 +397,51 @@ void HILSensors::ads131m08Init()
     // sensorMap.emplace(make_pair(ads131m08, info));
 }
 
-void HILSensors::staticPressureInit() { return; }
+void HILSensors::staticPressureInit()
+{
 
-void HILSensors::dynamicPressureInit() { return; }
+    // Create sensor instance with configured parameters
+    staticPressure =
+        new HILBarometer(N_DATA_PITOT, &Boardcore::ModuleManager::getInstance()
+                                            .get<HIL>()
+                                            ->simulator->getSensorData()
+                                            ->staticPitot);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("StaticPitot", 1000 / PITOT_FREQ,
+                    bind(&HILSensors::staticPressureCallback, this));
+    sensorMap.emplace(make_pair(staticPressure, info));
+}
+
+void HILSensors::dynamicPressureInit()
+{
+    // Create sensor instance with configured parameters
+    dynamicPressure =
+        new HILBarometer(N_DATA_PITOT, &Boardcore::ModuleManager::getInstance()
+                                            .get<HIL>()
+                                            ->simulator->getSensorData()
+                                            ->dynamicPitot);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("DynamicPitot", 1000 / PITOT_FREQ,
+                    bind(&HILSensors::dynamicPressureCallback, this));
+    sensorMap.emplace(make_pair(dynamicPressure, info));
+}
 
 void HILSensors::imuInit()
 {
     // Register the IMU as the fake sensor, passing as parameters the
     // methods to retrieve real data. The sensor is not synchronized, but
     // the sampling thread is always the same.
+
     imu = new RotatedIMU(
         bind(&HILSensors::getLSM6DSRXLastSample, this),
         bind(&HILSensors::getCalibratedMagnetometerLastSample, this),
         bind(&HILSensors::getLSM6DSRXLastSample, this));
 
     // Invert the Y axis on the magnetometer
-    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    imu->addMagTransformation(m);
+    // Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    // imu->addMagTransformation(m);
 
     // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
     SensorInfo info("RotatedIMU", IMU_PERIOD,

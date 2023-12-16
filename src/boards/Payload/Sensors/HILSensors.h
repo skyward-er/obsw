@@ -26,11 +26,11 @@
 #include <HIL_sensors/HILGps.h>
 #include <HIL_sensors/HILGyroscope.h>
 #include <HIL_sensors/HILMagnetometer.h>
-#include <HIL_sensors/HILPitot.h>
 #include <HIL_sensors/HILSensor.h>
 #include <HIL_sensors/HILTemperature.h>
 #include <HIL_sensors/HILTimestampManagement.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/Pitot/Pitot.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -110,7 +110,9 @@ private:
     HILGps* ubxgps                   = nullptr;
     HILAccelerometer* lsm6dsrx_accel = nullptr;
     HILGyroscope* lsm6dsrx_gyro      = nullptr;
-    HILPitot* pitot                  = nullptr;
+    Boardcore::Pitot* pitot          = nullptr;
+    HILBarometer* staticPressure     = nullptr;
+    HILBarometer* dynamicPressure    = nullptr;
     // Boardcore::ADS131M08* ads131m08  = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");

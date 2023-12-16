@@ -131,10 +131,20 @@ struct SimulatorData
         float measures[N_DATA_BARO_CHAMBER];
     } pressureChamber;
 
+    struct DynamicPitot
+    {
+        float measures[N_DATA_PITOT];
+    } dynamicPitot;
+
+    struct StaticPitot
+    {
+        float measures[N_DATA_PITOT];
+    } staticPitot;
+
     struct Pitot
     {
         float deltaP[N_DATA_PITOT];
-        float staticPressure[N_DATA_PITOT];
+        float airspeed[N_DATA_PITOT];
     } pitot;
 
     struct Temperature
@@ -223,7 +233,7 @@ struct SimulatorData
     {
         TRACE("pitot\n");
         for (int i = 0; i < N_DATA_PITOT; i++)
-            TRACE("%+.3f, %+.3f\n", pitot.staticPressure[i], pitot.deltaP[i]);
+            TRACE("%+.3f, %+.3f\n", pitot.airspeed[i], pitot.deltaP[i]);
     }
 
     void printTemperature()
