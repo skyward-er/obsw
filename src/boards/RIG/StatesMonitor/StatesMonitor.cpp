@@ -23,6 +23,7 @@
 #include <RIG/StatesMonitor/StatesMonitor.h>
 
 using namespace Boardcore;
+using namespace Boardcore::Constants;
 using namespace miosix;
 
 namespace RIG
@@ -52,8 +53,8 @@ void StatesMonitor::update()
     for (int i = 0; i < Config::StatesMonitor::BOARDS_NUMBER; i++)
     {
         // Check if the time since the last config expires
-        if (getTick() >
-            updateTimestamps[i] + Config::StatesMonitor::MAX_TIMEOUT)
+        if (getTime() >
+            updateTimestamps[i] + Config::StatesMonitor::MAX_TIMEOUT * NS_IN_MS)
         {
             boardStatuses[i] = 0;
         }
@@ -70,7 +71,7 @@ void StatesMonitor::setBoardStatus(Common::CanConfig::Board board,
     if (index < Config::StatesMonitor::BOARDS_NUMBER)
     {
         boardStatuses[index]    = status;
-        updateTimestamps[index] = getTick();
+        updateTimestamps[index] = getTime();
     }
 }
 

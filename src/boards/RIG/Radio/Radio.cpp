@@ -34,6 +34,7 @@
 
 using namespace Boardcore;
 using namespace miosix;
+using Boardcore::Constants::NS_IN_MS;
 
 void __attribute__((used)) EXTI5_IRQHandlerImpl()
 {
@@ -239,8 +240,9 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             // Extract the buttons data and if there is a slope post the event
             if (previousState.arm_switch == 0 && state.arm_switch == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
@@ -249,84 +251,90 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     modules.get<CanHandler>()->sendEvent(
                         Common::CanConfig::EventId::ARM);
 
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.filling_valve_btn == 0 &&
                 state.filling_valve_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
                     modules.get<Actuators>()->toggleServo(
                         ServosList::FILLING_VALVE);
 
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.ignition_btn == 0 && state.ignition_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
                     EventBroker::getInstance().post(Common::MOTOR_IGNITION,
                                                     Common::TOPIC_MOTOR);
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.quick_connector_btn == 0 &&
                 state.quick_connector_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
                     modules.get<Actuators>()->toggleServo(
                         ServosList::DISCONNECT_SERVO);
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.release_pressure_btn == 0 &&
                 state.release_pressure_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
                     modules.get<Actuators>()->toggleServo(
                         ServosList::RELEASE_VALVE);
 
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.start_tars_btn == 0 && state.start_tars_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_START_TARS,
                                                     Common::TOPIC_TARS);
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
             if (previousState.venting_valve_btn == 0 &&
                 state.venting_valve_btn == 1)
             {
-                if (getTick() > lastManualCommand +
-                                    Config::Radio::RADIO_LAST_COMMAND_THRESHOLD)
+                if (getTime() >
+                    lastManualCommand +
+                        Config::Radio::RADIO_LAST_COMMAND_THRESHOLD * NS_IN_MS)
                 {
                     EventBroker::getInstance().post(Common::MOTOR_MANUAL_ACTION,
                                                     Common::TOPIC_TARS);
                     modules.get<Actuators>()->toggleServo(
                         ServosList::VENTING_VALVE);
 
-                    lastManualCommand = getTick();
+                    lastManualCommand = getTime();
                 }
             }
 
@@ -339,7 +347,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 modules.get<CanHandler>()->sendEvent(
                     Common::CanConfig::EventId::DISARM);
 
-                lastManualCommand = getTick();
+                lastManualCommand = getTime();
             }
 
             previousState = state;

@@ -96,8 +96,9 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         // Open the valve if it's closed
         if (timings[servo] == 0)
         {
-            timings[servo] = getTick() + time;
-            setFlag[servo] = getTick();
+            long long timeMs = (getTime() / Constants::NS_IN_MS);
+            timings[servo]   = timeMs + time;
+            setFlag[servo]   = timeMs;
         }
     }
 }
@@ -112,7 +113,7 @@ void Actuators::closeServo(ServosList servo)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = getTime() / Constants::NS_IN_MS;
         }
     }
 }
@@ -153,7 +154,7 @@ Servo* Actuators::getServo(ServosList servo)
 
 void Actuators::checkTimings()
 {
-    uint64_t currentTick = getTick();
+    uint64_t currentTme = getTime() / Constants::NS_IN_MS;
 
     // Enter in protected zone where the timings should be checked and changed
     // and the servo should be positioned atomically over all the threads. A
@@ -164,9 +165,9 @@ void Actuators::checkTimings()
 
         for (uint8_t i = 0; i < ServosList::ServosList_ENUM_END; i++)
         {
-            if (timings[i] > currentTick)
+            if (timings[i] > currentTme)
             {
-                if (currentTick > setFlag[i] + SERVO_CONFIDENCE_TIME)
+                if (currentTme > setFlag[i] + SERVO_CONFIDENCE_TIME)
                 {
                     // 2% less than the actual aperture
                     setServoPosition(
@@ -184,9 +185,9 @@ void Actuators::checkTimings()
                 if (timings[i] != 0)
                 {
                     timings[i] = 0;
-                    setFlag[i] = currentTick;
+                    setFlag[i] = currentTme;
                 }
-                if (currentTick > setFlag[i] + SERVO_CONFIDENCE_TIME)
+                if (currentTme > setFlag[i] + SERVO_CONFIDENCE_TIME)
                 {
                     // 2% open
                     setServoPosition(static_cast<ServosList>(i),

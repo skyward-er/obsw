@@ -29,6 +29,7 @@
 using namespace miosix;
 using namespace Groundstation;
 using namespace Boardcore;
+using Boardcore::Constants::NS_IN_MS;
 
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
@@ -108,7 +109,8 @@ void RadioBase::run()
         miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
 
         // If enough time has passed, automatically flush.
-        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        if (miosix::getTime() >
+            last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY * NS_IN_MS)
         {
             flush();
         }
@@ -144,7 +146,7 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 
     if (isEndOfTransmissionPacket(msg))
     {
-        last_eot_packet_ts = miosix::getTick();
+        last_eot_packet_ts = miosix::getTime();
         flush();
     }
 }

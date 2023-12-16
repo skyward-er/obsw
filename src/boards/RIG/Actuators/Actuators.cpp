@@ -193,7 +193,7 @@ void Actuators::setServoPosition(ServosList servo, float position)
 
 void Actuators::checkTimings()
 {
-    uint64_t currentTick = getTick();
+    uint64_t currentTime = getTime() / Constants::NS_IN_MS; // [ms]
 
     // Enter in protected zone where the timings should be checked and changed
     // and the servo should be positioned atomically over all the threads. A
@@ -204,9 +204,9 @@ void Actuators::checkTimings()
 
         for (uint8_t i = 0; i < ServosList::ServosList_ENUM_END; i++)
         {
-            if (timings[i] > currentTick)
+            if (timings[i] > currentTime)
             {
-                if (currentTick >
+                if (currentTime >
                     setFlag[i] + Config::Servos::SERVO_CONFIDENCE_TIME)
                 {
                     setServoPosition(
@@ -228,7 +228,7 @@ void Actuators::checkTimings()
                 if (timings[i] != 0)
                 {
                     timings[i] = 0;
-                    setFlag[i] = currentTick;
+                    setFlag[i] = currentTime;
 
                     {
                         RestartKernelLock l(lock);
@@ -238,7 +238,7 @@ void Actuators::checkTimings()
                             closingEvents[i], Common::Topics::TOPIC_MOTOR);
                     }
                 }
-                if (currentTick >
+                if (currentTime >
                     setFlag[i] + Config::Servos::SERVO_CONFIDENCE_TIME)
                 {
                     setServoPosition(
@@ -265,7 +265,7 @@ void Actuators::toggleServo(ServosList servo)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = getTime() / Constants::NS_IN_MS;
 
             {
                 RestartKernelLock l(lock);
@@ -282,8 +282,9 @@ void Actuators::toggleServo(ServosList servo)
         }
         else
         {
-            timings[servo] = getTick() + openingTimes[servo];
-            setFlag[servo] = getTick();
+            long long timeMs = getTime() / Constants::NS_IN_MS;
+            timings[servo] = timeMs + openingTimes[servo];
+            setFlag[servo] = timeMs;
 
             {
                 RestartKernelLock l(lock);
@@ -311,7 +312,7 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = getTime() / Constants::NS_IN_MS;;
 
             {
                 RestartKernelLock l(lock);
@@ -328,8 +329,9 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         }
         else
         {
-            timings[servo] = getTick() + time;
-            setFlag[servo] = getTick();
+            long long timeMs = getTime() / Constants::NS_IN_MS;
+            timings[servo] = timeMs + time;
+            setFlag[servo] = timeMs;
 
             {
                 RestartKernelLock l(lock);
@@ -358,7 +360,7 @@ void Actuators::closeAllServo()
         {
             // Make the timings expire
             timings[i] = 0;
-            setFlag[i] = getTick();
+            setFlag[i] = getTime() / Constants::NS_IN_MS;;
 
             // Publish the command also into the CAN bus
             ModuleManager::getInstance().get<CanHandler>()->sendCanServoCommand(
