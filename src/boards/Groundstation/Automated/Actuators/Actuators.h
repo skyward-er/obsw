@@ -21,8 +21,11 @@
  */
 #pragma once
 
+#include <common/Mavlink.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "ActuatorsConfig.h"
 #include "ActuatorsData.h"
 #include "actuators/stepper/StepperPWM.h"
 
@@ -39,12 +42,6 @@ namespace Antennas
 class Actuators : public Boardcore::Module
 {
 public:
-    enum StepperList
-    {
-        HORIZONTAL,  // Stepper moving horizontally (x axis)
-        VERTICAL     // Stepper moving vertically (y axis)
-    };
-
     Actuators();
 
     /**
@@ -78,9 +75,9 @@ public:
     {
         switch (axis)
         {
-            case StepperList::HORIZONTAL:
+            case StepperList::STEPPER_X:
                 return deltaX;
-            case StepperList::VERTICAL:
+            case StepperList::STEPPER_Y:
                 return deltaY;
             default:
                 assert(false && "Non existent stepper");
@@ -97,9 +94,9 @@ public:
     {
         switch (axis)
         {
-            case StepperList::HORIZONTAL:
+            case StepperList::STEPPER_X:
                 return speedX;
-            case StepperList::VERTICAL:
+            case StepperList::STEPPER_Y:
                 return speedY;
             default:
                 assert(false && "Non existent stepper");
@@ -115,8 +112,8 @@ private:
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]
-    float speedX = 0.0f;  // Speed of the stepper [rps]
-    float speedY = 0.0f;  // Speed of the stepper [rps]
+    float speedX = Config::MAX_SPEED_HORIZONTAL;  // Speed of the stepper [rps]
+    float speedY = Config::MAX_SPEED_VERTICAL;    // Speed of the stepper [rps]
 
     bool emergencyStop =
         false;  // Whether the system performed an emergency stop

@@ -110,15 +110,15 @@ void Follower::step()
 #endif
 
     ModuleManager::getInstance().get<Actuators>()->setSpeed(
-        Actuators::StepperList::HORIZONTAL, horizontalSpeed);
+        StepperList::STEPPER_X, horizontalSpeed);
     ModuleManager::getInstance().get<Actuators>()->setSpeed(
-        Actuators::StepperList::VERTICAL, verticalSpeed);
+        StepperList::STEPPER_Y, verticalSpeed);
 
     // Actuating steppers
     ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        Actuators::StepperList::HORIZONTAL, stepperAngles.yaw);
+        StepperList::STEPPER_X, stepperAngles.yaw);
     ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        Actuators::StepperList::VERTICAL, stepperAngles.pitch);
+        StepperList::STEPPER_Y, stepperAngles.pitch);
 }
 
 AntennaAngles Follower::rocketPositionToAntennaAngles(
