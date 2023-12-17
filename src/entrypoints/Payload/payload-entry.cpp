@@ -258,6 +258,57 @@ int main()
         LOG_ERR(logger, "Error inserting the FlightStatsRecorder module");
     }
 
+#ifdef HILPayload
+    if (!modules.get<HIL>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error inserting the HIL module");
+    }
+    else
+    {
+        LOG_INFO(logger, "Started the HIL module");
+    }
+
+    hil->flightPhasesManager->setCurrentPositionSource(
+        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::ARMED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::TMTC_FORCE_LAUNCH,
+                                            Topics::TOPIC_TMTC);
+            miosix::ledOn();
+        });
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED,
+        [&]()
+        {
+            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
+                                            Topics::TOPIC_TMTC);
+
+            hil->flightPhasesManager->registerToFlightPhase(
+                FlightPhases::CALIBRATION_OK,
+                [&]()
+                {
+                    TRACE("ARM COMMAND SENT\n");
+                    EventBroker::getInstance().post(Events::TMTC_ARM,
+                                                    Topics::TOPIC_TMTC);
+                });
+        });
+
+    bool simulation_started = false;
+
+    hil->flightPhasesManager->registerToFlightPhase(
+        FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true; });
+
+    while (!simulation_started)
+    {
+        Thread::sleep(HILConfig::SIMULATION_PERIOD);
+    }
+#endif
+
     // Start modules
     if (!Logger::getInstance().start())
     {
@@ -349,61 +400,6 @@ int main()
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
-#ifdef HILPayload
-    if (!modules.get<HIL>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the HIL module");
-    }
-    else
-    {
-        LOG_INFO(logger, "Started the HIL module");
-    }
-
-    hil->flightPhasesManager->setCurrentPositionSource(
-        [&]() { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIMULATION_STARTED,
-        [&]()
-        {
-            Thread::sleep(2000);
-            EventBroker::getInstance().post(Events::TMTC_CALIBRATE,
-                                            Topics::TOPIC_TMTC);
-            Thread::sleep(4000);
-            EventBroker::getInstance().post(Events::TMTC_ARM,
-                                            Topics::TOPIC_TMTC);
-            printf("ARM COMMAND SENT\n");
-        });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIM_FLYING,
-        [&]()
-        {
-            EventBroker::getInstance().post(Events::TMTC_FORCE_LAUNCH,
-                                            Topics::TOPIC_FLIGHT);
-
-            hil->flightPhasesManager->registerToFlightPhase(
-                FlightPhases::SIM_FLYING,
-                [&]()
-                {
-                    EventBroker::getInstance().post(
-                        Events::FLIGHT_MISSION_TIMEOUT, Topics::TOPIC_FLIGHT);
-                });
-
-            miosix::userLed4::high();
-        });
-
-    hil->flightPhasesManager->registerToFlightPhase(
-        FlightPhases::SIM_PARA1,
-        [&]()
-        {
-            // FLIGHT_NC_DETACHED
-            EventBroker::getInstance().post(Events::CAN_APOGEE_DETECTED,
-                                            Topics::TOPIC_CAN);
-        });
-#endif
-
     // Log all the events
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
@@ -429,19 +425,6 @@ int main()
     }
 
 #ifdef HILPayload
-    // bool simulation_started = false;
-
-    // hil->flightPhasesManager->registerToFlightPhase(
-    //     FlightPhases::SIMULATION_STARTED, [&]() { simulation_started = true;
-    //     });
-
-    // while (!simulation_started)
-    // {
-    //     HILConfig::ActuatorData actuatorData;
-    //     buses->usart2.write(&actuatorData, sizeof(HILConfig::ActuatorData));
-    //     Thread::sleep(HILConfig::SIMULATION_PERIOD);
-    // }
-
     modules.get<BoardScheduler>()
         ->getScheduler(miosix::PRIORITY_MAX - 1)
         ->addTask(
