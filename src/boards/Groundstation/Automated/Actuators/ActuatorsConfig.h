@@ -28,15 +28,19 @@ namespace Antennas
 {
 namespace Config
 {
-constexpr float HORIZONTAL_MULTIPLIER = 2.2;
-constexpr float MIN_ANGLE_HORIZONTAL  = -180.0;
-constexpr float MAX_ANGLE_HORIZONTAL  = 180.0;
-constexpr float MAX_SPEED_HORIZONTAL  = 0.75;
+constexpr int HORIZONTAL_MICROSTEPPING = 4;
+constexpr float HORIZONTAL_STEP_ANGLE  = 1.8;
+constexpr float HORIZONTAL_MULTIPLIER  = 2.2;
+constexpr float MIN_ANGLE_HORIZONTAL   = -180.0;
+constexpr float MAX_ANGLE_HORIZONTAL   = 180.0;
+constexpr float MAX_SPEED_HORIZONTAL   = 0.75;
 
-constexpr float VERTICAL_MULTIPLIER = 2.2;
-constexpr float MIN_ANGLE_VERTICAL  = 0;
-constexpr float MAX_ANGLE_VERTICAL  = 90.0;
-constexpr float MAX_SPEED_VERTICAL  = 0.75;
+constexpr int VERTICAL_MICROSTEPPING = 4;
+constexpr float VERTICAL_STEP_ANGLE  = 1.8;
+constexpr float VERTICAL_MULTIPLIER  = 2.2;
+constexpr float MIN_ANGLE_VERTICAL   = 0;
+constexpr float MAX_ANGLE_VERTICAL   = 90.0;
+constexpr float MAX_SPEED_VERTICAL   = 0.75;
 
 namespace StepperConfig
 {
