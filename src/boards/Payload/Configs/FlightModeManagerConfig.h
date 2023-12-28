@@ -24,7 +24,7 @@
 
 namespace Payload
 {
-constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;  // [ms]
-constexpr unsigned int APOGEE_TIMEOUT  = 40 * 1000;       // [ms]
-constexpr unsigned int LOGGING_DELAY   = 30 * 1000;       // [ms]
+constexpr unsigned int MISSION_TIMEOUT = 60 * 60 * 1000;  // [ms]
+constexpr unsigned int CONTROL_DELAY   = 5 * 1000;        // [ms]
+constexpr unsigned int LOGGING_DELAY   = 5 * 1000;       // [ms]
 }  // namespace Payload
