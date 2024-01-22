@@ -22,6 +22,7 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
@@ -29,6 +30,7 @@
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>
+#include <common/Mavlink.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
 
@@ -42,9 +44,83 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     // TODO: Dispatch to correct radio using mavlink ids
 
-    bool send_ok = false;
+    bool send_ok           = false;
+    ModuleManager& modules = ModuleManager::getInstance();
 
-    RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
+    RadioMain* radio = modules.get<RadioMain>();
+
+    switch (msg.msgid)
+    {
+        case MAVLINK_MSG_ID_SET_STEPPER_ANGLE_TC:
+        {
+            StepperList stepperId = static_cast<StepperList>(
+                mavlink_msg_set_stepper_angle_tc_get_stepper_id(&msg));
+            float angle = mavlink_msg_set_stepper_angle_tc_get_angle(&msg);
+
+            // The stepper is moved of 'angle' degrees
+            modules.get<Actuators>()->moveDeg(stepperId, angle);
+            sendAck(msg);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_STEPPER_STEPS_TC:
+        {
+            // TODO set in which state we can use this command
+
+            StepperList stepperId = static_cast<StepperList>(
+                mavlink_msg_set_stepper_steps_tc_get_stepper_id(&msg));
+            int16_t steps = mavlink_msg_set_stepper_steps_tc_get_steps(&msg);
+
+            // The stepper is moved of 'steps' steps
+            modules.get<Actuators>()->move(stepperId, steps);
+            sendAck(msg);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ROCKET_COORDINATES_ARP_TC:
+        {
+            // TODO set in which state we can use this command
+
+            float latitude =
+                mavlink_msg_set_rocket_coordinates_arp_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_rocket_coordinates_arp_tc_get_longitude(&msg);
+            float height =
+                mavlink_msg_set_rocket_coordinates_arp_tc_get_height(&msg);
+
+            GPSData gpsData;
+            gpsData.latitude   = latitude;
+            gpsData.longitude  = longitude;
+            gpsData.height     = height;
+            gpsData.fix        = 3;
+            gpsData.satellites = 42;
+
+            modules.get<Follower>()->setInitialRocketCoordinates(gpsData);
+            sendAck(msg);
+            break;
+        }
+        case MAVLINK_MSG_ID_SET_ANTENNA_COORDINATES_ARP_TC:
+        {
+            // TODO set in which state we can use this command
+
+            float latitude =
+                mavlink_msg_set_antenna_coordinates_arp_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_antenna_coordinates_arp_tc_get_longitude(&msg);
+            float height =
+                mavlink_msg_set_antenna_coordinates_arp_tc_get_height(&msg);
+
+            GPSData gpsData;
+            gpsData.latitude   = latitude;
+            gpsData.longitude  = longitude;
+            gpsData.height     = height;
+            gpsData.fix        = 3;
+            gpsData.satellites = 42;
+
+            modules.get<Follower>()->setAntennaCoordinates(gpsData);
+            sendAck(msg);
+            break;
+        }
+    }
+
     send_ok |= radio->sendMsg(msg);
 
     // If both of the sends went wrong, just send a nack
@@ -102,9 +178,14 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     ethernet->sendMsg(msg);
 }
 
-/**
- * @param get rocket NAS state.
- */
+void Hub::sendAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(SysIDs::MAV_SYSID_ARP, GS_COMPONENT_ID, &ackMsg,
+                            msg.msgid, msg.seq);
+    dispatchIncomingMsg(ackMsg);
+}
+
 NASState Hub::getLastRocketNasState() { return lastRocketNasState; }
 
 GPSData Hub::getLastRocketGpsState() { return lastRocketGpsState; }

@@ -80,23 +80,21 @@ void BoardStatus::run()
         tm.target_yaw   = targetAngles.yaw;   /*< [deg] Target Yaw*/
         tm.target_pitch = targetAngles.pitch; /*< [deg] Target Pitch*/
         tm.stepperX_pos = actuators->getCurrentDegPosition(
-            Actuators::StepperList::HORIZONTAL); /*< [deg] StepperX target pos*/
+            StepperList::STEPPER_X); /*< [deg] StepperX target pos*/
         tm.stepperX_delta = actuators->getDeltaAngleDeg(
-            Actuators::StepperList::HORIZONTAL); /*< [deg] StepperX target delta
-                                                    deg*/
+            StepperList::STEPPER_X); /*< [deg] StepperX target delta deg*/
         tm.stepperX_speed = actuators->getSpeed(
-            Actuators::StepperList::HORIZONTAL); /*< [rps] StepperX Speed*/
+            StepperList::STEPPER_X); /*< [rps] StepperX Speed*/
         tm.stepperY_pos = actuators->getCurrentDegPosition(
-            Actuators::StepperList::VERTICAL); /*< [deg] StepperY target pos*/
+            StepperList::STEPPER_Y); /*< [deg] StepperY target pos*/
         tm.stepperY_delta = actuators->getDeltaAngleDeg(
-            Actuators::StepperList::VERTICAL); /*< [deg] StepperY target delta
-                                                  deg*/
+            StepperList::STEPPER_Y); /*< [deg] StepperY target delta deg*/
         tm.stepperY_speed = actuators->getSpeed(
-            Actuators::StepperList::VERTICAL); /*< [rps] StepperY Speed*/
-        tm.gps_latitude  = vn300.latitude;     /*< [deg] Latitude*/
-        tm.gps_longitude = vn300.longitude;    /*< [deg] Longitude*/
-        tm.gps_height    = vn300.altitude;     /*< [m] Altitude*/
-        tm.gps_fix       = vn300.fix_ins;      /*<  Wether the GPS has a FIX*/
+            StepperList::STEPPER_Y);        /*< [rps] StepperY Speed*/
+        tm.gps_latitude  = vn300.latitude;  /*< [deg] Latitude*/
+        tm.gps_longitude = vn300.longitude; /*< [deg] Longitude*/
+        tm.gps_height    = vn300.altitude;  /*< [m] Altitude*/
+        tm.gps_fix       = vn300.fix_ins;   /*<  Wether the GPS has a FIX*/
 
         tm.battery_voltage = -420.0;
 
@@ -112,7 +110,7 @@ void BoardStatus::run()
             tm.main_packet_rx_drop_count    = stats.packet_rx_drop_count;
             tm.main_rx_bitrate = main_rx_bitrate.update(stats.bits_rx_count);
             tm.main_rx_rssi    = stats.rx_rssi;
-            
+
             last_main_stats = stats;
         }
 
@@ -128,7 +126,7 @@ void BoardStatus::run()
         }
 
         mavlink_message_t msg;
-        mavlink_msg_arp_tm_encode(Groundstation::GS_SYSTEM_ID,
+        mavlink_msg_arp_tm_encode(SysIDs::MAV_SYSID_ARP,
                                   Groundstation::GS_COMPONENT_ID, &msg, &tm);
 
         ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
