@@ -258,7 +258,6 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         }
         case NAS_READY:
         {
-            EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
             return transition(&FlightModeManager::state_flying);
         }
         default:
@@ -289,6 +288,7 @@ State FlightModeManager::state_flying(const Event& event)
             return transition(&FlightModeManager::state_ascending);
         }
         case TMTC_FORCE_LANDING:
+        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&FlightModeManager::state_landed);
         }
@@ -306,7 +306,6 @@ State FlightModeManager::state_ascending(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ASCENDING);
-            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -378,12 +377,12 @@ State FlightModeManager::state_landed(const Event& event)
             logStatus(FlightModeManagerState::LANDED);
 
             // Turns off signaling devices
-            ModuleManager::getInstance().get<Actuators>()->buzzerLanded();
-            ModuleManager::getInstance().get<Actuators>()->camOff();
-            ModuleManager::getInstance().get<Actuators>()->disableServo(
-                PARAFOIL_LEFT_SERVO);
-            ModuleManager::getInstance().get<Actuators>()->disableServo(
-                PARAFOIL_RIGHT_SERVO);
+            // ModuleManager::getInstance().get<Actuators>()->buzzerLanded();
+            // ModuleManager::getInstance().get<Actuators>()->camOff();
+            // ModuleManager::getInstance().get<Actuators>()->disableServo(
+            //     PARAFOIL_LEFT_SERVO);
+            // ModuleManager::getInstance().get<Actuators>()->disableServo(
+            //     PARAFOIL_RIGHT_SERVO);
             // Sends events
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);

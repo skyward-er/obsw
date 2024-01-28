@@ -140,15 +140,15 @@ State WingController::state_calibration(const Boardcore::Event& event)
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
-            modules.get<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
-                                               1);
-            modules.get<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
-                                               0);
-            EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE, TOPIC_DPL,
-                                                   WES_CALIBRATION_TIMEOUT);
+            // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
+            //                                    1);
+            // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
+            //                                    0);
+            // EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE, TOPIC_DPL,
+            //                                        WES_CALIBRATION_TIMEOUT);
             modules.get<WindEstimation>()
                 ->startWindEstimationSchemeCalibration();
-            return HANDLED;
+            return transition(&WingController::state_controlled_descent);
         }
         case EV_EXIT:
         {
@@ -158,13 +158,13 @@ State WingController::state_calibration(const Boardcore::Event& event)
         {
             return tranSuper(&WingController::state_flying);
         }
-        case DPL_WES_CAL_DONE:
-        {
-            reset();
-            // Turn off the cutters
-            ModuleManager::getInstance().get<Actuators>()->cuttersOff();
-            return transition(&WingController::state_controlled_descent);
-        }
+        // case DPL_WES_CAL_DONE:
+        // {
+        //     reset();
+        //     // Turn off the cutters
+        //     ModuleManager::getInstance().get<Actuators>()->cuttersOff();
+        //     return transition(&WingController::state_controlled_descent);
+        // }
         default:
         {
             return UNHANDLED;
@@ -189,6 +189,7 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
                      .get<NASController>()
                      ->getNasState()
                      .e});
+            // ModuleManager::getInstance().get<Actuators>()->setOffset(OFFSET);
             startAlgorithm();
             return HANDLED;
         }

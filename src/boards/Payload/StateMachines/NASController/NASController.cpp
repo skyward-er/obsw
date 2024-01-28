@@ -294,7 +294,6 @@ void NASController::state_calibrating(const Event& event)
     {
         case EV_ENTRY:
         {
-
             // Calibrate the NAS
             calibrate();
             return logStatus(NASControllerState::CALIBRATING);
@@ -312,15 +311,7 @@ void NASController::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            return logStatus(NASControllerState::READY);
-        }
-        case NAS_CALIBRATE:
-        {
-            return transition(&NASController::state_calibrating);
-        }
-        case NAS_FORCE_START:
-        case FLIGHT_ARMED:
-        {
+            logStatus(NASControllerState::READY);
             return transition(&NASController::state_active);
         }
     }
@@ -338,11 +329,6 @@ void NASController::state_active(const Event& event)
         case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
-        }
-        case NAS_FORCE_STOP:
-        case FLIGHT_DISARMED:
-        {
-            return transition(&NASController::state_ready);
         }
     }
 }
