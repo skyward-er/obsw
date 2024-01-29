@@ -40,6 +40,9 @@ constexpr float DEFAULT_TARGET_LAT = 41.809216;
 constexpr float DEFAULT_TARGET_LON = 14.055310;
 #endif
 
+constexpr float OFFSET             = 0.25;
+constexpr float MAX_SERVO_APERTURE = 0.5 + OFFSET;
+
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
 constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;

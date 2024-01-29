@@ -24,6 +24,7 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
+#include <Payload/Configs/WingConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -62,6 +63,12 @@ bool Actuators::start()
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
+    percentage += offset;
+    if (percentage > WingConfig::MAX_SERVO_APERTURE)
+    {
+        percentage = WingConfig::MAX_SERVO_APERTURE;
+    }
+
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
@@ -93,6 +100,10 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     {
         case PARAFOIL_LEFT_SERVO:
         {
+            if (angle > WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION)
+            {
+                angle = WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION;
+            }
             miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
             leftServo->setPosition(angle / LEFT_SERVO_ROTATION);
             Logger::getInstance().log(leftServo->getState());
@@ -100,6 +111,10 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
         }
         case PARAFOIL_RIGHT_SERVO:
         {
+            if (angle > WingConfig::MAX_SERVO_APERTURE * RIGHT_SERVO_ROTATION)
+            {
+                angle = WingConfig::MAX_SERVO_APERTURE * RIGHT_SERVO_ROTATION;
+            }
             miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
             rightServo->setPosition(angle / RIGHT_SERVO_ROTATION);
             Logger::getInstance().log(rightServo->getState());
@@ -213,6 +228,10 @@ float Actuators::getServoAngle(ServosList servoId)
 
     return 0;
 }
+
+void Actuators::setServosOffset(float offset) { this->offset = offset; }
+
+float Actuators::getServosOffset() { return offset; }
 
 void Actuators::cuttersOn() { gpios::cut_trigger::high(); }
 

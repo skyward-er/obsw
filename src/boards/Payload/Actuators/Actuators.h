@@ -101,6 +101,20 @@ struct Actuators : public Boardcore::Module
      */
     float getServoAngle(ServosList servoId);
 
+    /**
+     * @brief Sets the offset for all servos.
+     *
+     * @param offset New offset [0-1].
+     */
+    void setServosOffset(float offset);
+
+    /**
+     * @brief Returns the current offset of the servos.
+     *
+     * @return Current offset [0-1].
+     */
+    float getServosOffset();
+
     void cuttersOn();
     void cuttersOff();
 
@@ -133,6 +147,8 @@ private:
     uint32_t buzzerCounter = 0;
     // Upper limit of the buzzer counter
     uint32_t buzzerCounterOverflow = 0;
+
+    float offset = 0;
 };
 
 }  // namespace Payload
