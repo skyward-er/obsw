@@ -25,8 +25,6 @@
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
-#include <Payload/CanHandler/CanHandler.h>
-#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
@@ -34,7 +32,6 @@
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
 #include <Payload/TMRepository/TMRepository.h>
-#include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -59,7 +56,7 @@ int main()
     // Overall status, if at some point it becomes false, there is a problem
     // somewhere
     bool initResult    = true;
-    PrintLogger logger = Logging::getLogger("Payload");
+    PrintLogger logger = Logging::getLogger("Parafoil");
 
     // Scheduler
     BoardScheduler* scheduler = new BoardScheduler();
@@ -78,21 +75,14 @@ int main()
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     WingController* wingController =
         new WingController(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    VerticalVelocityTrigger* verticalVelocityTrigger =
-        new VerticalVelocityTrigger(
-            scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     WindEstimation* windEstimation =
         new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Non critical components (Max - 3)
     // Actuators is considered non-critical since the scheduler is only used for
     // the led and buzzer tasks
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
-    FlightStatsRecorder* statesRecorder = new FlightStatsRecorder(
-        scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
 
     // Components without a scheduler
     TMRepository* tmRepo   = new TMRepository();
@@ -172,24 +162,6 @@ int main()
         LOG_ERR(logger, "Error inserting the PinHandler module");
     }
 
-    if (!modules.insert<VerticalVelocityTrigger>(verticalVelocityTrigger))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the VerticalVelocityTrigger module");
-    }
-
-    if (!modules.insert<CanHandler>(canHandler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the CanHandler module");
-    }
-
-    if (!modules.insert<FlightStatsRecorder>(statesRecorder))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the FlightStatsRecorder module");
-    }
-
     // Start modules
     if (!Logger::getInstance().testSDCard())
     {
@@ -257,24 +229,6 @@ int main()
         LOG_ERR(logger, "Error starting the PinHandler module");
     }
 
-    if (!modules.get<VerticalVelocityTrigger>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the VerticalVelocityTrigger module");
-    }
-
-    if (!modules.get<CanHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the CanHandler module");
-    }
-
-    if (!modules.get<FlightStatsRecorder>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the FlightStatsRecorder module");
-    }
-
     if (!modules.get<BoardScheduler>()->start())
     {
         initResult = false;
@@ -297,7 +251,7 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 
         // Set the LED status
-        miosix::led1On();
+        // miosix::led1On();
     }
     else
     {
