@@ -54,6 +54,7 @@ WingController::WingController(TaskScheduler* sched)
 
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
+    EventBroker::getInstance().subscribe(this, TOPIC_WING);
     this->targetPositionGEO = {DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON};
 }
 
@@ -196,6 +197,10 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
+        }
+        case WING_ALGORITHM_ENDED:
+        {
+            return transition(&WingController::state_on_ground);
         }
         case EV_EXIT:
         {

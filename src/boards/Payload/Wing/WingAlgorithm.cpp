@@ -24,6 +24,7 @@
 #include <Payload/Wing/WingAlgorithm.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -91,7 +92,7 @@ void WingAlgorithm::step()
         // Set the index to 0 in case of another future execution
         stepIndex = 0;
         // Terminate here
-        // EventBroker::getInstance().post(ALGORITHM_ENDED, TOPIC_ALGOS);
+        EventBroker::getInstance().post(WING_ALGORITHM_ENDED, TOPIC_WING);
         return;
     }
 
