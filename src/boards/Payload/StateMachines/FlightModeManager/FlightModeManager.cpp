@@ -172,7 +172,6 @@ State FlightModeManager::state_init_done(const Event& event)
     {
         case EV_ENTRY:
         {
-            // We turn off the led if we are coming from init_error
             logStatus(FlightModeManagerState::INIT_DONE);
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;

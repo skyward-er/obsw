@@ -233,55 +233,47 @@ void Actuators::setServosOffset(float offset) { this->offset = offset; }
 
 float Actuators::getServosOffset() { return offset; }
 
-void Actuators::cuttersOn() { gpios::cut_trigger::high(); }
+// void Actuators::buzzerArmed()
+// {
+//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+//     // Set the counter with respect to the update function period
+//     buzzerCounterOverflow = ROCKET_SS_ARMED_PERIOD / BUZZER_UPDATE_PERIOD;
+// }
 
-void Actuators::cuttersOff() { gpios::cut_trigger::low(); }
+// void Actuators::buzzerLanded()
+// {
+//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+//     buzzerCounterOverflow = ROCKET_SS_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
+// }
 
-void Actuators::camOn() { gpios::camera_enable::high(); }
+// void Actuators::buzzerOff()
+// {
+//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+//     buzzerCounterOverflow = 0;
+// }
 
-void Actuators::camOff() { gpios::camera_enable::low(); }
-
-void Actuators::buzzerArmed()
-{
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    // Set the counter with respect to the update function period
-    buzzerCounterOverflow = ROCKET_SS_ARMED_PERIOD / BUZZER_UPDATE_PERIOD;
-}
-
-void Actuators::buzzerLanded()
-{
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    buzzerCounterOverflow = ROCKET_SS_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
-}
-
-void Actuators::buzzerOff()
-{
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    buzzerCounterOverflow = 0;
-}
-
-void Actuators::updateBuzzer()
-{
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    if (buzzerCounterOverflow == 0)
-    {
-        // The buzzer is deactivated thus the channel is disabled
-        buzzer->disableChannel(BUZZER_CHANNEL);
-    }
-    else
-    {
-        if (buzzerCounter >= buzzerCounterOverflow)
-        {
-            // Enable the channel for this period
-            buzzer->enableChannel(BUZZER_CHANNEL);
-            buzzerCounter = 0;
-        }
-        else
-        {
-            buzzer->disableChannel(BUZZER_CHANNEL);
-            buzzerCounter++;
-        }
-    }
-}
+// void Actuators::updateBuzzer()
+// {
+//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
+//     if (buzzerCounterOverflow == 0)
+//     {
+//         // The buzzer is deactivated thus the channel is disabled
+//         buzzer->disableChannel(BUZZER_CHANNEL);
+//     }
+//     else
+//     {
+//         if (buzzerCounter >= buzzerCounterOverflow)
+//         {
+//             // Enable the channel for this period
+//             buzzer->enableChannel(BUZZER_CHANNEL);
+//             buzzerCounter = 0;
+//         }
+//         else
+//         {
+//             buzzer->disableChannel(BUZZER_CHANNEL);
+//             buzzerCounter++;
+//         }
+//     }
+// }
 
 }  // namespace Payload

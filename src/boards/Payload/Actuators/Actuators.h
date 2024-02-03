@@ -115,28 +115,22 @@ struct Actuators : public Boardcore::Module
      */
     float getServosOffset();
 
-    void cuttersOn();
-    void cuttersOff();
-
-    void camOn();
-    void camOff();
-
-    void buzzerArmed();
-    void buzzerError();
-    void buzzerLanded();
-    void buzzerOff();
+    // void buzzerArmed();
+    // void buzzerError();
+    // void buzzerLanded();
+    // void buzzerOff();
 
 private:
-    void toggleLed();
-    /**
-     * @brief Automatic called method to update the buzzer status
-     */
-    void updateBuzzer();
+    // void toggleLed();
+    // /**
+    //  * @brief Automatic called method to update the buzzer status
+    //  */
+    // void updateBuzzer();
 
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    // Boardcore::TaskScheduler* scheduler = nullptr;
     Boardcore::Servo* leftServo         = nullptr;
     Boardcore::Servo* rightServo        = nullptr;
-    Boardcore::PWM* buzzer              = nullptr;
+    // Boardcore::PWM* buzzer              = nullptr;
 
     // mutexes
     miosix::FastMutex leftServoMutex;

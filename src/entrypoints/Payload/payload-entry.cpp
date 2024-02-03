@@ -25,6 +25,7 @@
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
+#include <Payload/Configs/WingConfig.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
@@ -51,6 +52,9 @@ using namespace Common;
 
 int main()
 {
+    Thread::sleep(500);  // wait 500 ms to separate the mcu startup and the ubx
+                         // serial communication
+
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Overall status, if at some point it becomes false, there is a problem
@@ -258,6 +262,12 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         LOG_ERR(logger, "Failed to initialize");
     }
+    
+    modules.get<WingController>()->selectAlgorithm(WingConfig::SELECTED_ALGORITHM);
+
+    // Log configs
+    WingConfig::WingConfigStruct f;
+    Logger::getInstance().log(f);
 
     // Periodic statistics
     while (true)
@@ -265,6 +275,8 @@ int main()
         Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
+        Logger::getInstance().logStats();
+        modules.get<Radio>()->logStatus();
         StackLogger::getInstance().log();
     }
 

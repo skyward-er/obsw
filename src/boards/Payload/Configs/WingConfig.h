@@ -29,15 +29,12 @@ namespace WingConfig
 {
 // Algorithm configuration
 
-#if defined(EUROC)
-constexpr float DEFAULT_TARGET_LAT = 39.389733;
-constexpr float DEFAULT_TARGET_LON = -8.288992;
-#elif defined(ROCCARASO)
-constexpr float DEFAULT_TARGET_LAT = 41.809216;
-constexpr float DEFAULT_TARGET_LON = 14.055310;
+#if defined(JESOLO)
+constexpr float DEFAULT_TARGET_LAT = 45.565835;
+constexpr float DEFAULT_TARGET_LON = 12.577307;
 #else  // Milan
-constexpr float DEFAULT_TARGET_LAT = 41.809216;
-constexpr float DEFAULT_TARGET_LON = 14.055310;
+constexpr float DEFAULT_TARGET_LAT = 45.501148;
+constexpr float DEFAULT_TARGET_LON = 9.156301;
 #endif
 
 constexpr float OFFSET             = 0.25;
@@ -54,12 +51,46 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP                                   = 0.4;   //[m]
-constexpr float KI                                   = 0.08;  //[m]
-constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;   // [meters]
+constexpr float KP = 0.4;   //[m]
+constexpr float KI = 0.08;  //[m]
 
+constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;  // [meters]
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
 constexpr int ALTITUDE_TRIGGER_PERIOD     = 100;  //[ms]
+
+// TODO add algorithm selection
+constexpr int SELECTED_ALGORITHM = 0;
+
+struct WingConfigStruct
+{
+    float lat                       = DEFAULT_TARGET_LAT;
+    float lon                       = DEFAULT_TARGET_LON;
+    float maxServoAperture          = MAX_SERVO_APERTURE;
+    int wingUpdatePeriod            = WING_UPDATE_PERIOD;
+    int altitudeTriggerUpdatePeriod = ALTITUDE_TRIGGER_PERIOD;
+    int altitudeTriggerConfidence   = ALTITUDE_TRIGGER_CONFIDENCE;
+    int altitudeTriggerDeploymentAltitude =
+        ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE;
+    int selectedAlgorithm = SELECTED_ALGORITHM;
+
+    static std::string header()
+    {
+        return "DEFAULT_TARGET_LAT,DEFAULT_TARGET_LON,MAX_SERVO_APERTURE,WING_"
+               "UPDATE_PERIOD,ALTITUDE_TRIGGER_PERIOD,ALTITUDE_TRIGGER_"
+               "CONFIDENCE,ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE,SELECTED_"
+               "ALGORITHM\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << lat << "," << lon << "," << maxServoAperture << ","
+           << wingUpdatePeriod << "," << altitudeTriggerUpdatePeriod << ","
+           << altitudeTriggerConfidence << ","
+           << altitudeTriggerDeploymentAltitude << "," << selectedAlgorithm
+           << "\n";
+    }
+};
+
 }  // namespace WingConfig
 
 }  // namespace Payload

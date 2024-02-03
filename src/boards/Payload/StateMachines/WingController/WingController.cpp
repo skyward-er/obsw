@@ -87,7 +87,6 @@ State WingController::state_idle(const Boardcore::Event& event)
         }
         case FLIGHT_WING_DESCENT:
         {
-            ModuleManager::getInstance().get<Actuators>()->cuttersOn();
             return transition(&WingController::state_flying);
         }
         case EV_EMPTY:
@@ -141,6 +140,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
+            // TODO
             // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
             //                                    1);
             // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
@@ -381,10 +381,9 @@ void WingController::reset()
         PARAFOIL_RIGHT_SERVO, 0);
 }
 
-void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
-{
-    if (ModuleManager::getInstance().get<NASController>()->getStatus().state !=
-        NASControllerState::READY)
+void WingController::setTargetPosition(Eigen::Vector2f targetGEO){
+    if (ModuleManager::getInstance().get<NASController>()->getStatus().state ==
+        NASControllerState::ACTIVE)
     {
         this->targetPositionGEO = targetGEO;
         setEarlyManeuverPoints(
