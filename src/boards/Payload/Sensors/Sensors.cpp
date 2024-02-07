@@ -45,27 +45,10 @@ BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
                ? bmx160WithCorrection->getLastSample()
                : BMX160WithCorrectionData{};
 }
-LIS3MDLData Sensors::getMagnetometerLIS3MDLLastSample()
+LIS3MDLData Sensors::getLIS3MDLLastSample()
 {
     miosix::Lock<FastMutex> l(lis3mdlMutex);
     return lis3mdl != nullptr ? lis3mdl->getLastSample() : LIS3MDLData{};
-}
-MagnetometerData Sensors::getCalibratedLIS3MDLLastSample()
-{
-    // Do not need to pause the kernel, the last sample getter is already
-    // protected
-    MagnetometerData lastSample = getMagnetometerLIS3MDLLastSample();
-    MagnetometerData result;
-
-    // Correct the result and copy the timestamp
-    {
-        miosix::Lock<FastMutex> l(calibrationMutex);
-        result =
-            static_cast<MagnetometerData>(magCalibration.correct(lastSample));
-    }
-
-    result.magneticFieldTimestamp = lastSample.magneticFieldTimestamp;
-    return result;
 }
 MS5803Data Sensors::getMS5803LastSample()
 {
@@ -135,7 +118,7 @@ bool Sensors::start()
         [&]()
         {
             // Gather the last sample data
-            MagnetometerData lastSample = getMagnetometerLIS3MDLLastSample();
+            MagnetometerData lastSample = getBMX160LastSample();
 
             // Feed the data to the calibrator inside a protected area.
             // Contention is not high and the use of a mutex is suitable to
@@ -161,7 +144,11 @@ bool Sensors::isStarted()
 
 void Sensors::calibrate()
 {
-    // TODO
+    bmx160WithCorrection->startCalibration();
+
+    miosix::Thread::sleep(BMX160_CALIBRATION_DURATION);
+
+    bmx160WithCorrection->stopCalibration();
 }
 
 bool Sensors::writeMagCalibration()

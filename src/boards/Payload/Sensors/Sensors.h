@@ -74,8 +74,7 @@ public:
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
-    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
-    Boardcore::MagnetometerData getCalibratedLIS3MDLLastSample();
+    Boardcore::LIS3MDLData getLIS3MDLLastSample();
     Boardcore::MS5803Data getMS5803LastSample();
     Boardcore::UBXGPSData getUbxGpsLastSample();
     Boardcore::ADS1118Data getADS1118LastSample();

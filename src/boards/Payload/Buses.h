@@ -39,7 +39,7 @@ public:
 
     Boardcore::SPIBus spi1;
     Boardcore::SPIBus spi2;
-    Boardcore::SPIBus spi6;
+    Boardcore::SPIBus spi6; // TODO Da rimuovere
 
     Buses()
         : usart1(USART1, 115200), usart2(USART2, 115200),
