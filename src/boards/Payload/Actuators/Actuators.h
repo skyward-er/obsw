@@ -34,7 +34,7 @@ namespace Payload
 
 struct Actuators : public Boardcore::Module
 {
-    explicit Actuators(Boardcore::TaskScheduler* sched);
+    explicit Actuators();
 
     [[nodiscard]] bool start();
 
@@ -115,32 +115,14 @@ struct Actuators : public Boardcore::Module
      */
     float getServosOffset();
 
-    // void buzzerArmed();
-    // void buzzerError();
-    // void buzzerLanded();
-    // void buzzerOff();
-
 private:
-    // void toggleLed();
-    // /**
-    //  * @brief Automatic called method to update the buzzer status
-    //  */
-    // void updateBuzzer();
-
-    // Boardcore::TaskScheduler* scheduler = nullptr;
-    Boardcore::Servo* leftServo         = nullptr;
-    Boardcore::Servo* rightServo        = nullptr;
-    // Boardcore::PWM* buzzer              = nullptr;
+    Boardcore::Servo* leftServo  = nullptr;
+    Boardcore::Servo* rightServo = nullptr;
 
     // mutexes
     miosix::FastMutex leftServoMutex;
     miosix::FastMutex rightServoMutex;
     miosix::FastMutex rocketSignalingStateMutex;
-
-    // Counter that enables and disables the buzzer
-    uint32_t buzzerCounter = 0;
-    // Upper limit of the buzzer counter
-    uint32_t buzzerCounterOverflow = 0;
 
     float offset = 0;
 };

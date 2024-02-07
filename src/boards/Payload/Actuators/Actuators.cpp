@@ -36,15 +36,12 @@ using namespace Payload::ActuatorsConfigs;
 namespace Payload
 {
 
-Actuators::Actuators(Boardcore::TaskScheduler* sched) : scheduler(sched)
+Actuators::Actuators()
 {
     leftServo  = new Servo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
                            LEFT_SERVO_MAX_PULSE);
     rightServo = new Servo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
                            RIGHT_SERVO_MAX_PULSE);
-    buzzer     = new PWM(BUZZER_TIMER, BUZZER_FREQUENCY);
-    buzzer->setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
-    camOff();
 }
 
 bool Actuators::start()
@@ -54,11 +51,6 @@ bool Actuators::start()
     setServo(PARAFOIL_LEFT_SERVO, 0);
     enableServo(PARAFOIL_RIGHT_SERVO);
     setServo(PARAFOIL_RIGHT_SERVO, 0);
-
-    // Signaling Devices configurations
-
-    return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD,
-                              TaskScheduler::Policy::RECOVER) != 0;
 }
 
 bool Actuators::setServo(ServosList servoId, float percentage)
@@ -100,33 +92,17 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
     {
         case PARAFOIL_LEFT_SERVO:
         {
-            if (angle > WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION)
-            {
-                angle = WingConfig::MAX_SERVO_APERTURE * LEFT_SERVO_ROTATION;
-            }
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            leftServo->setPosition(angle / LEFT_SERVO_ROTATION);
-            Logger::getInstance().log(leftServo->getState());
-            break;
+            return Actuators::setServo(servoId, angle / LEFT_SERVO_ROTATION);
         }
         case PARAFOIL_RIGHT_SERVO:
         {
-            if (angle > WingConfig::MAX_SERVO_APERTURE * RIGHT_SERVO_ROTATION)
-            {
-                angle = WingConfig::MAX_SERVO_APERTURE * RIGHT_SERVO_ROTATION;
-            }
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            rightServo->setPosition(angle / RIGHT_SERVO_ROTATION);
-            Logger::getInstance().log(rightServo->getState());
-            break;
+            return Actuators::setServo(servoId, angle / RIGHT_SERVO_ROTATION);
         }
         default:
         {
             return false;
         }
     }
-
-    return true;
 }
 
 bool Actuators::wiggleServo(ServosList servoId)
@@ -232,48 +208,5 @@ float Actuators::getServoAngle(ServosList servoId)
 void Actuators::setServosOffset(float offset) { this->offset = offset; }
 
 float Actuators::getServosOffset() { return offset; }
-
-// void Actuators::buzzerArmed()
-// {
-//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-//     // Set the counter with respect to the update function period
-//     buzzerCounterOverflow = ROCKET_SS_ARMED_PERIOD / BUZZER_UPDATE_PERIOD;
-// }
-
-// void Actuators::buzzerLanded()
-// {
-//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-//     buzzerCounterOverflow = ROCKET_SS_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
-// }
-
-// void Actuators::buzzerOff()
-// {
-//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-//     buzzerCounterOverflow = 0;
-// }
-
-// void Actuators::updateBuzzer()
-// {
-//     miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-//     if (buzzerCounterOverflow == 0)
-//     {
-//         // The buzzer is deactivated thus the channel is disabled
-//         buzzer->disableChannel(BUZZER_CHANNEL);
-//     }
-//     else
-//     {
-//         if (buzzerCounter >= buzzerCounterOverflow)
-//         {
-//             // Enable the channel for this period
-//             buzzer->enableChannel(BUZZER_CHANNEL);
-//             buzzerCounter = 0;
-//         }
-//         else
-//         {
-//             buzzer->disableChannel(BUZZER_CHANNEL);
-//             buzzerCounter++;
-//         }
-//     }
-// }
 
 }  // namespace Payload
