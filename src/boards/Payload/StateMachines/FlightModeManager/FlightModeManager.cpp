@@ -375,13 +375,6 @@ State FlightModeManager::state_landed(const Event& event)
         {
             logStatus(FlightModeManagerState::LANDED);
 
-            // Turns off signaling devices
-            // ModuleManager::getInstance().get<Actuators>()->buzzerLanded();
-            // ModuleManager::getInstance().get<Actuators>()->camOff();
-            // ModuleManager::getInstance().get<Actuators>()->disableServo(
-            //     PARAFOIL_LEFT_SERVO);
-            // ModuleManager::getInstance().get<Actuators>()->disableServo(
-            //     PARAFOIL_RIGHT_SERVO);
             // Sends events
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);

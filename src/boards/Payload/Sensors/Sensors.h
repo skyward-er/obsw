@@ -22,21 +22,16 @@
 #pragma once
 
 #include <Payload/Configs/SensorsConfig.h>
-#include <Payload/Sensors/RotatedIMU/RotatedIMU.h>
-#include <sensors/ADS131M08/ADS131M08.h>
-#include <sensors/H3LIS331DL/H3LIS331DL.h>
-#include <sensors/LIS2MDL/LIS2MDL.h>
-#include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LPS28DFW/LPS28DFW.h>
-#include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <drivers/adc/InternalADC.h>
+#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/BMX160/BMX160.h>
+#include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/MS5803/MS5803.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
-#include <sensors/UBXGPS/UBXGPSSpi.h>
-#include <sensors/analog/BatteryVoltageSensorData.h>
-#include <sensors/analog/Pitot/Pitot.h>
-#include <sensors/analog/Pitot/PitotData.h>
-#include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
-#include <sensors/analog/pressure/honeywell/SSCMRNN030PA.h>
+#include <sensors/UBXGPS/UBXGPSSerial.h>
+#include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -77,84 +72,65 @@ public:
      */
     bool writeMagCalibration();
 
-    // Sensor getters
-    Boardcore::LPS22DFData getLPS22DFLastSample();
-    Boardcore::LPS28DFWData getLPS28DFW_1LastSample();
-    Boardcore::LPS28DFWData getLPS28DFW_2LastSample();
-    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLLastSample();
-    Boardcore::UBXGPSData getGPSLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
-    Boardcore::ADS131M08Data getADS131M08LastSample();
-
-    // Processed getters
+    Boardcore::BMX160Data getBMX160LastSample();
+    Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
+    Boardcore::LIS3MDLData getMagnetometerLIS3MDLLastSample();
+    Boardcore::MagnetometerData getCalibratedLIS3MDLLastSample();
+    Boardcore::MS5803Data getMS5803LastSample();
+    Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::ADS1118Data getADS1118LastSample();
+    Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-    Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
-    Boardcore::CurrentData getCurrentLastSample();
-    RotatedIMUData getIMULastSample();
-    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
-    Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
-    Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
-    Boardcore::PitotData getPitotLastSample();
-
-    void pitotSetReferenceAltitude(float altitude);
-    void pitotSetReferenceTemperature(float temperature);
 
     std::array<Boardcore::SensorInfo, 8> getSensorInfo();
 
 private:
     // Init and callbacks methods
-    void lps22dfInit();
-    void lps22dfCallback();
+    void bmx160Init();
+    void bmx160Callback();
 
-    void lps28dfw_1Init();
-    void lps28dfw_1Callback();
+    void bmx160WithCorrectionInit();
+    void bmx160WithCorrectionCallback();
 
-    void lps28dfw_2Init();
-    void lps28dfw_2Callback();
+    void lis3mdlInit();
+    void lis3mdlCallback();
 
-    void h3lis331dlInit();
-    void h3lis331dlCallback();
+    void ms5803Init();
+    void ms5803Callback();
 
-    void lis2mdlInit();
-    void lis2mdlCallback();
+    void ubxGpsInit();
+    void ubxGpsCallback();
 
-    void ubxgpsInit();
-    void ubxgpsCallback();
+    void ads1118Init();
+    void ads1118Callback();
 
-    void lsm6dsrxInit();
-    void lsm6dsrxCallback();
+    void internalADCInit();
+    void internalADCCallback();
 
-    void ads131m08Init();
-    void ads131m08Callback();
-
-    void staticPressureInit();
-    void staticPressureCallback();
-
-    void dynamicPressureInit();
-    void dynamicPressureCallback();
-
-    void pitotInit();
-    void pitotCallback();
-
-    void imuInit();
-    void imuCallback();
+    void batteryVoltageInit();
+    void batteryVoltageCallback();
 
     // Sensors instances
-    Boardcore::LPS22DF* lps22df       = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
-    Boardcore::LIS2MDL* lis2mdl       = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
-    Boardcore::ADS131M08* ads131m08   = nullptr;
+    Boardcore::LIS3MDL* lis3mdl         = nullptr;
+    Boardcore::MS5803* ms5803           = nullptr;
+    Boardcore::BMX160* bmx160           = nullptr;
+    Boardcore::UBXGPSSerial* ubxGps     = nullptr;
+    Boardcore::ADS1118* ads1118         = nullptr;
+    Boardcore::InternalADC* internalADC = nullptr;
 
     // Fake processed sensors
-    RotatedIMU* imu                          = nullptr;
-    Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
-    Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
-    Boardcore::Pitot* pitot                  = nullptr;
+    Boardcore::BMX160WithCorrection* bmx160WithCorrection = nullptr;
+    Boardcore::BatteryVoltageSensor* batteryVoltage       = nullptr;
+
+    // Mutexes for sampling
+    miosix::FastMutex lis3mdlMutex;
+    miosix::FastMutex ms5803Mutex;
+    miosix::FastMutex bmx160Mutex;
+    miosix::FastMutex bmx160WithCorrectionMutex;
+    miosix::FastMutex ubxGpsMutex;
+    miosix::FastMutex ads1118Mutex;
+    miosix::FastMutex internalADCMutex;
+    miosix::FastMutex batteryVoltageMutex;
 
     // Magnetometer live calibration
     Boardcore::SoftAndHardIronCalibration magCalibrator;
@@ -167,9 +143,6 @@ private:
     Boardcore::TaskScheduler* scheduler = nullptr;
 
     uint8_t sensorsCounter;
-
-    // SD logger
-    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 

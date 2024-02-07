@@ -228,6 +228,11 @@ State WingController::state_on_ground(const Boardcore::Event& event)
                 .get<WindEstimation>()
                 ->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
+
+            // disable servos
+            ModuleManager::getInstance().get<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
+            ModuleManager::getInstance().get<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
+
             return HANDLED;
         }
         case EV_EXIT:

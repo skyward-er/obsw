@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include <drivers/i2c/I2C.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
-#include <interfaces-impl/hwmapping.h>
+// #include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 namespace Payload
@@ -33,22 +32,19 @@ namespace Payload
 class Buses : public Boardcore::Module
 {
 public:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
-
-    Boardcore::I2C i2c1;
-
     Boardcore::USART usart1;
     Boardcore::USART usart2;
+    Boardcore::USART usart3;
     Boardcore::USART uart4;
 
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+    Boardcore::SPIBus spi6;
+
     Buses()
-        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
-          i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
-               miosix::interfaces::i2c1::sda::getPin()),
-          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2),
+          spi6(SPI6)
     {
     }
 };
