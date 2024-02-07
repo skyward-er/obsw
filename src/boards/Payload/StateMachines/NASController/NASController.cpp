@@ -79,11 +79,11 @@ void NASController::update()
     if (this->testState(&NASController::state_active))
     {
         // Get the IMU data
-        RotatedIMUData imuData = modules.get<Sensors>()->getIMULastSample();
-        UBXGPSData gpsData     = modules.get<Sensors>()->getGPSLastSample();
+        BMX160WithCorrectionData imuData = modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+        UBXGPSData gpsData     = modules.get<Sensors>()->getUbxGpsLastSample();
 
-        HSCMRNN015PAData baroData =
-            modules.get<Sensors>()->getStaticPressureLastSample();
+        MS5803Data baroData =
+            modules.get<Sensors>()->getMS5803LastSample();
 
         // NAS prediction
         nas.predictGyro(imuData);
@@ -136,19 +136,17 @@ void NASController::calibrate()
     for (int i = 0; i < NASConfig::CALIBRATION_SAMPLES_COUNT; i++)
     {
         // IMU
-        LSM6DSRXData imuData = modules.get<Sensors>()->getLSM6DSRXLastSample();
+        BMX160WithCorrectionData imuData = modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
         acceleration += Vector3f(imuData.accelerationX, imuData.accelerationY,
                                  imuData.accelerationZ);
 
-        // Magnetometer
-        LIS2MDLData magData = modules.get<Sensors>()->getLIS2MDLLastSample();
         magneticField +=
-            Vector3f(magData.magneticFieldX, magData.magneticFieldY,
-                     magData.magneticFieldZ);
+            Vector3f(imuData.magneticFieldX, imuData.magneticFieldY,
+                     imuData.magneticFieldZ);
 
         // Static pressure barometer
-        HSCMRNN015PAData barometerData =
-            modules.get<Sensors>()->getStaticPressureLastSample();
+        MS5803Data barometerData =
+            modules.get<Sensors>()->getMS5803LastSample();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(NASConfig::CALIBRATION_SLEEP_TIME);
@@ -172,7 +170,7 @@ void NASController::calibrate()
     reference.refAltitude = Aeroutils::relAltitude(pressure.getStats().mean);
 
     // If in this moment the GPS has fix i use that position as starting
-    UBXGPSData gps = modules.get<Sensors>()->getGPSLastSample();
+    UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
     if (gps.fix != 0)
     {
         // We don't set the altitude with the GPS because of not precise
