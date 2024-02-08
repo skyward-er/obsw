@@ -79,11 +79,11 @@ void NASController::update()
     if (this->testState(&NASController::state_active))
     {
         // Get the IMU data
-        BMX160WithCorrectionData imuData = modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
-        UBXGPSData gpsData     = modules.get<Sensors>()->getUbxGpsLastSample();
+        BMX160WithCorrectionData imuData =
+            modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+        UBXGPSData gpsData = modules.get<Sensors>()->getUbxGpsLastSample();
 
-        MS5803Data baroData =
-            modules.get<Sensors>()->getMS5803LastSample();
+        MS5803Data baroData = modules.get<Sensors>()->getMS5803LastSample();
 
         // NAS prediction
         nas.predictGyro(imuData);
@@ -136,7 +136,8 @@ void NASController::calibrate()
     for (int i = 0; i < NASConfig::CALIBRATION_SAMPLES_COUNT; i++)
     {
         // IMU
-        BMX160WithCorrectionData imuData = modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+        BMX160WithCorrectionData imuData =
+            modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
         acceleration += Vector3f(imuData.accelerationX, imuData.accelerationY,
                                  imuData.accelerationZ);
 
@@ -303,6 +304,7 @@ void NASController::state_calibrating(const Event& event)
     }
 }
 
+// State skipped on entry because we don't have state_armed and state_disarmed in the FMM
 void NASController::state_ready(const Event& event)
 {
     switch (event)
@@ -323,8 +325,11 @@ void NASController::state_active(const Event& event)
         {
             return logStatus(NASControllerState::ACTIVE);
         }
+        case NAS_CALIBRATE:
+        {
+            return transition(&NASController::state_calibrating);
+        }
         case FLIGHT_LANDING_DETECTED:
-        case FLIGHT_MISSION_TIMEOUT:
         {
             return transition(&NASController::state_end);
         }
