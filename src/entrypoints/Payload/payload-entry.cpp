@@ -82,11 +82,8 @@ int main()
     WindEstimation* windEstimation =
         new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
-    // Non critical components (Max - 3)
-    // Actuators is considered non-critical since the scheduler is only used for
-    // the led and buzzer tasks
     Actuators* actuators =
-        new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
+        new Actuators();
 
     // Components without a scheduler
     TMRepository* tmRepo   = new TMRepository();
@@ -253,9 +250,6 @@ int main()
     {
         // Post OK
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-
-        // Set the LED status
-        // miosix::led1On();
     }
     else
     {
