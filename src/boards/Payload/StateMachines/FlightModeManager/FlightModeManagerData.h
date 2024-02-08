@@ -38,7 +38,8 @@ enum class FlightModeManagerState : uint8_t
     INIT_DONE,
     SENSORS_CALIBRATION,
     ALGOS_CALIBRATION,
-    ASCENDING,
+    TEST_MODE,
+    READY,
     WING_DESCENT,
     LANDED,
 };

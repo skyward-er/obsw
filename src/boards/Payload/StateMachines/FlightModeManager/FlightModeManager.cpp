@@ -22,8 +22,6 @@
 
 #include "FlightModeManager.h"
 
-#include <Payload/Actuators/Actuators.h>
-#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
@@ -257,7 +255,7 @@ State FlightModeManager::state_algos_calibration(const Event& event)
         }
         case NAS_READY:
         {
-            return transition(&FlightModeManager::state_flying);
+            return transition(&FlightModeManager::state_ready);
         }
         default:
         {
@@ -266,12 +264,55 @@ State FlightModeManager::state_algos_calibration(const Event& event)
     }
 }
 
-State FlightModeManager::state_flying(const Event& event)
+// TODO update test mode
+State FlightModeManager::state_test_mode(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
+            // Logger::getInstance().start();
+            logStatus(FlightModeManagerState::TEST_MODE);
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            // Logger::getInstance().stop();
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FlightModeManager::state_on_ground);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case TMTC_RESET_BOARD:
+        {
+            Logger::getInstance().stop();
+            reboot();
+            return HANDLED;
+        }
+        case TMTC_EXIT_TEST_MODE:
+        {
+            // Logger::getInstance().stop();
+            return transition(&FlightModeManager::state_ready);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FlightModeManager::state_ready(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(FlightModeManagerState::READY);
             return HANDLED;
         }
         case EV_EXIT:
@@ -284,40 +325,15 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case EV_INIT:
         {
-            return transition(&FlightModeManager::state_ascending);
-        }
-        case TMTC_FORCE_LANDING:
-        case FLIGHT_MISSION_TIMEOUT:
-        {
-            return transition(&FlightModeManager::state_landed);
-        }
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State FlightModeManager::state_ascending(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            logStatus(FlightModeManagerState::ASCENDING);
             return HANDLED;
         }
-        case EV_EXIT:
+        case TMTC_ENTER_TEST_MODE:
         {
-            return HANDLED;
+            return transition(&FlightModeManager::state_test_mode);
         }
-        case EV_EMPTY:
+        case TMTC_CALIBRATE:
         {
-            return tranSuper(&FlightModeManager::state_flying);
-        }
-        case EV_INIT:
-        {
-            return HANDLED;
+            return transition(&FlightModeManager::state_sensors_calibration);
         }
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:
@@ -333,32 +349,29 @@ State FlightModeManager::state_ascending(const Event& event)
 
 State FlightModeManager::state_wing_descent(const Event& event)
 {
-    static uint16_t missionTimeoutEventId;
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
-
             EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
-            
-            missionTimeoutEventId = EventBroker::getInstance().postDelayed(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT, MISSION_TIMEOUT);
-
             return HANDLED;
         }
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(missionTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return tranSuper(&FlightModeManager::state_top);
         }
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_FORCE_LANDING:
+        {
+            return transition(&FlightModeManager::state_landed);
         }
         default:
         {

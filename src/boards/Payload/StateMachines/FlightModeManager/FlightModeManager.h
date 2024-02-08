@@ -42,13 +42,12 @@ public:
     FlightModeManagerStatus getStatus();
 
     /**
-     * @brief Super state for when the payload is on ground.
+     * @brief Super state for when the parafoil is on ground.
      */
-    // Super state for when the payload is on ground.
     Boardcore::State state_on_ground(const Boardcore::Event& event);
 
     /**
-     * @brief Super state for when the payload is on ground.
+     * @brief Super state for when the parafoil is on ground.
      */
     Boardcore::State state_init(const Boardcore::Event& event);
 
@@ -74,14 +73,15 @@ public:
     Boardcore::State state_algos_calibration(const Boardcore::Event& event);
 
     /**
-     * @brief Super state for when the payload is in the air.
+     * @brief The parafoil will accept specific telecommands otherwise considered
+     * risky.
      */
-    Boardcore::State state_flying(const Boardcore::Event& event);
+    Boardcore::State state_test_mode(const Boardcore::Event& event);
 
     /**
-     * @brief Ascending phase of the trajectory.
+     * @brief State in which the parafoil is waiting to be dropped.
      */
-    Boardcore::State state_ascending(const Boardcore::Event& event);
+    Boardcore::State state_ready(const Boardcore::Event& event);
 
     /**
      * @brief State in which the parafoil wing is opened and starts guiding
@@ -90,7 +90,7 @@ public:
     Boardcore::State state_wing_descent(const Boardcore::Event& event);
 
     /**
-     * @brief The rocket ended the flight and closes the log.
+     * @brief The parafoil ended the flight and closes the log.
      */
     Boardcore::State state_landed(const Boardcore::Event& event);
 
