@@ -153,18 +153,18 @@ void GroundModeManager::state_igniting(const Event& event)
             break;
         }
         case MOTOR_CLOSE_FEED_VALVE:
-        {
-            // Shut down the igniter
-            miosix::relays::ignition::high();
-
-            // Close all the valves
-            modules.get<Actuators>()->closeAllServo();
-
-            EventBroker::getInstance().removeDelayed(oxidantTimeoutEventId);
-
-            transition(&GroundModeManager::state_ready);
-            break;
-        }
+        // {
+        //     // Shut down the igniter
+        //     miosix::relays::ignition::high();
+        // 
+        //     // Close all the valves
+        //     modules.get<Actuators>()->closeAllServo();
+        // 
+        //     EventBroker::getInstance().removeDelayed(oxidantTimeoutEventId);
+        // 
+        //     transition(&GroundModeManager::state_ready);
+        //     break;
+        // }
         case TMTC_DISARM:
         {
             // Shut down the igniter
