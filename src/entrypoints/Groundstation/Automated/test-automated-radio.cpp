@@ -20,10 +20,10 @@
  * THE SOFTWARE.
  */
 
+#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <miosix.h>
 
@@ -59,7 +59,7 @@ int main()
     Buses *buses              = new Buses();
     Serial *serial            = new Serial();
     RadioMain *radio_main     = new RadioMain();
-    RadioStatus *radio_status = new RadioStatus();
+    BoardStatus *board_status = new BoardStatus();
 
     ModuleManager &modules = ModuleManager::getInstance();
 
@@ -69,7 +69,7 @@ int main()
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
     ok &= modules.insert(radio_main);
-    ok &= modules.insert(radio_status);
+    ok &= modules.insert(board_status);
 
     // If insertion failed, stop right here
     if (!ok)
@@ -92,13 +92,13 @@ int main()
         printf("[error] Failed to start main radio!\n");
     }
 
-    ok &= radio_status->start();
+    ok &= board_status->start();
     if (!ok)
     {
         printf("[error] Failed to start radio status!\n");
     }
 
-    if (radio_status->isMainRadioPresent())
+    if (board_status->isMainRadioPresent())
     {
         led2On();
     }
