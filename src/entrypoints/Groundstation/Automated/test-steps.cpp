@@ -160,16 +160,16 @@ int main()
     }
 
     // Periodically statistics
-    float speedMax  = 1.0;
-    float speed0    = 0.5;
-    float speed     = speed0;
-    float stepSpeed = 0.1;
-    bool increasing = true;
+    float speed0 = 0.5;
+    float speed  = speed0;
 
-    modules.get<Actuators>()->setSpeed(Actuators::StepperList::HORIZONTAL,
-                                       speed);
+    modules.get<Actuators>()->setSpeed(StepperList::STEPPER_X, speed);
 
-    modules.get<Actuators>()->setSpeed(Actuators::StepperList::VERTICAL, speed);
+    modules.get<Actuators>()->setSpeed(StepperList::STEPPER_Y, speed);
+
+    // bool increasing = true;
+    // float speedMax  = 1.0;
+    // float stepSpeed = 0.1;
     // scheduler->addTask(
     //     [&]()
     //     {
@@ -179,7 +179,7 @@ int main()
     //             {
     //                 speed += stepSpeed;
     //                 modules.get<Actuators>()->setSpeed(
-    //                     Actuators::StepperList::HORIZONTAL, speed);
+    //                     StepperList::STEPPER_X, speed);
     //             }
     //             else
     //             {
@@ -192,7 +192,7 @@ int main()
     //             {
     //                 speed -= stepSpeed;
     //                 modules.get<Actuators>()->setSpeed(
-    //                     Actuators::StepperList::HORIZONTAL, speed);
+    //                     StepperList::STEPPER_X, speed);
     //             }
     //             else
     //             {
@@ -209,10 +209,8 @@ int main()
             printf("acc[%.3f,%.3f,%.3f] ypr[%.3f,%.3f,%.3f]\n",
                    data.accelerationX, data.accelerationY, data.accelerationZ,
                    data.yaw, data.pitch, data.roll);
-            modules.get<Actuators>()->moveDeg(
-                Actuators::StepperList::HORIZONTAL, 90);
-            modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
-                                              90);
+            modules.get<Actuators>()->moveDeg(StepperList::STEPPER_X, 90);
+            modules.get<Actuators>()->moveDeg(StepperList::STEPPER_Y, 90);
             Thread::sleep(1500);
         }
 
@@ -221,10 +219,8 @@ int main()
             printf("acc[%.3f,%.3f,%.3f] ypr[%.3f,%.3f,%.3f]\n",
                    data.accelerationX, data.accelerationY, data.accelerationZ,
                    data.yaw, data.pitch, data.roll);
-            modules.get<Actuators>()->moveDeg(
-                Actuators::StepperList::HORIZONTAL, -90);
-            modules.get<Actuators>()->moveDeg(Actuators::StepperList::VERTICAL,
-                                              -90);
+            modules.get<Actuators>()->moveDeg(StepperList::STEPPER_X, -90);
+            modules.get<Actuators>()->moveDeg(StepperList::STEPPER_Y, -90);
             Thread::sleep(1500);
         }
     }
