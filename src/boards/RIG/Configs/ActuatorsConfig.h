@@ -46,8 +46,8 @@ constexpr Boardcore::TimerUtils::Channel SERVO4_PWM_CH =
 constexpr Boardcore::TimerUtils::Channel SERVO5_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-constexpr uint16_t MIN_PULSE = 900;
-constexpr uint16_t MAX_PULSE = 2000;
+constexpr uint16_t MIN_PULSE = 500;
+constexpr uint16_t MAX_PULSE = 2500;
 
 constexpr uint16_t SERVO_TIMINGS_CHECK_PERIOD = 100;
 constexpr uint16_t SERVO_CONFIDENCE_TIME      = 500;       // 0.5s
@@ -59,10 +59,10 @@ constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
 constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
 constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 10000;  // 10s
 
-constexpr float DEFAULT_FILLING_MAXIMUM_APERTURE    = 0.97f;
+constexpr float DEFAULT_FILLING_MAXIMUM_APERTURE    = 1.00f;
 constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE    = 0.80f;
 constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE       = 0.87f;
-constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 0.80f;
+constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 1.0f;
 constexpr float DEFAULT_DISCONNECT_MAXIMUM_APERTURE = 0.110f;
 }  // namespace Servos
 }  // namespace Config
