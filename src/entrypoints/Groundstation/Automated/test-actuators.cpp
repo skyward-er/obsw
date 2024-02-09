@@ -24,7 +24,6 @@
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <diagnostic/PrintLogger.h>
@@ -95,23 +94,23 @@ void test1(Actuators *actuators)
     // theta1 : HORIZONTAL
     // theta2 : VERTICAL
     LOG_DEBUG(logger, "Setting speed to speed\n");
-    actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
-    actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_X, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_Y, STEPPER_SPEED);
 
     LOG_DEBUG(logger, "Moving 90deg horizontally\n");
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_X, 90);
     ledWaitLoop(TEST_WAIT);
 
     LOG_DEBUG(logger, "Moving back to the initial horizontal position\n");
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_X, -90);
     ledWaitLoop(TEST_WAIT);
 
     LOG_DEBUG(logger, "Moving -90deg horizontally\n");
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_X, -90);
     ledWaitLoop(TEST_WAIT);
 
     LOG_DEBUG(logger, "Moving back to the initial horizontal position\n");
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_X, 90);
     ledWaitLoop(TEST_WAIT);
 
     LOG_INFO(logger, "Test 1 completed\n");
@@ -122,25 +121,25 @@ void test2(Actuators *actuators)
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 2");
 
-    actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
-    actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 22.5);
+    actuators->setSpeed(StepperList::STEPPER_X, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_Y, STEPPER_SPEED);
+    actuators->moveDeg(StepperList::STEPPER_Y, 22.5);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_X, 90);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_X, -90);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_X, -90);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_X, 90);
     ledWaitLoop(TEST_WAIT);
 
     // Return to (0,0)
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -22.5);
+    actuators->moveDeg(StepperList::STEPPER_Y, -22.5);
     ledWaitLoop(TEST_WAIT);
 
     LOG_INFO(logger, "Test 2 completed\n");
@@ -148,17 +147,17 @@ void test2(Actuators *actuators)
 
 void test3(Actuators *actuators)
 {
-    actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
-    actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_X, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_Y, STEPPER_SPEED);
 
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 180);
+    actuators->moveDeg(StepperList::STEPPER_X, 180);
     ledWaitLoop(TEST_WAIT + 4000);
-    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -180);
+    actuators->moveDeg(StepperList::STEPPER_X, -180);
     ledWaitLoop(TEST_WAIT + 4000);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_Y, 90);
     ledWaitLoop(TEST_WAIT);
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_Y, -90);
     ledWaitLoop(TEST_WAIT);
 }
 
@@ -167,31 +166,31 @@ void test6(Actuators *actuators)
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 6");
 
-    actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
-    actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_X, STEPPER_SPEED);
+    actuators->setSpeed(StepperList::STEPPER_Y, STEPPER_SPEED);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 22.5);
+    actuators->moveDeg(StepperList::STEPPER_Y, 22.5);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -22.5);
+    actuators->moveDeg(StepperList::STEPPER_Y, -22.5);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 45);
+    actuators->moveDeg(StepperList::STEPPER_Y, 45);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -45);
+    actuators->moveDeg(StepperList::STEPPER_Y, -45);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 65.5);
+    actuators->moveDeg(StepperList::STEPPER_Y, 65.5);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -65.5);
+    actuators->moveDeg(StepperList::STEPPER_Y, -65.5);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, 90);
+    actuators->moveDeg(StepperList::STEPPER_Y, 90);
     ledWaitLoop(TEST_WAIT);
 
-    actuators->moveDeg(Actuators::StepperList::VERTICAL, -90);
+    actuators->moveDeg(StepperList::STEPPER_Y, -90);
     ledWaitLoop(TEST_WAIT);
 
     LOG_INFO(logger, "Test 6 completed\n");
