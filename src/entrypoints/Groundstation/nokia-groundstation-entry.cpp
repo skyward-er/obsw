@@ -24,6 +24,7 @@
 #include <Groundstation/Nokia/Buses.h>
 #include <Groundstation/Nokia/Hub.h>
 #include <Groundstation/Nokia/Radio/Radio.h>
+#include <common/Mavlink.h>
 #include <miosix.h>
 
 using namespace Groundstation;
@@ -81,6 +82,15 @@ int main()
     if (ok)
     {
         printf("Init complete!\n");
+    }
+
+    while (1)
+    {
+        mavlink_message_t ackMsg;
+        mavlink_msg_ack_tm_pack(0x01, 0x23, &ackMsg, 0x45, 0x67);
+        modules.get<HubBase>()->dispatchOutgoingMsg(ackMsg);
+        Thread::sleep(1000);
+        printf("Sending message...\n");
     }
 
     idleLoop();
