@@ -53,6 +53,12 @@ public:
      */
     void sendMsg(const mavlink_message_t& msg);
 
+    /**
+     * @brief fills the provided mavlink_message_t with the bytes received from
+     * the port.
+     */
+    mavlink_message_t receiveMsg();
+
 private:
     /**
      * @brief Called internally when a message is received.

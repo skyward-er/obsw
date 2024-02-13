@@ -29,6 +29,8 @@ using namespace miosix;
 using namespace Groundstation;
 using namespace Boardcore;
 
+constexpr uint8_t SYN = 0x16;
+
 bool Serial::start()
 {
     auto mav_handler = [this](SerialMavDriver* channel,
@@ -52,6 +54,20 @@ void Serial::sendMsg(const mavlink_message_t& msg)
     }
 }
 
+mavlink_message_t Serial::receiveMsg()
+{
+    // MUST be 272 bytes
+    constexpr uint16_t PACKET_SIZE = sizeof(mavlink_message_t);
+    uint8_t serial_buffer[PACKET_SIZE];
+    auto serial = DefaultConsole::instance().get();
+    serial->writeBlock(&SYN, 1, 0);
+    serial->readBlock(serial_buffer, PACKET_SIZE, 0);
+
+    mavlink_message_t msg;
+    memcpy(&msg, serial_buffer, PACKET_SIZE);
+    return msg;
+}
+
 void Serial::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
@@ -60,12 +76,12 @@ void Serial::handleMsg(const mavlink_message_t& msg)
 
 ssize_t Serial::receive(uint8_t* pkt, size_t max_len)
 {
-    auto serial = miosix::DefaultConsole::instance().get();
+    auto serial = DefaultConsole::instance().get();
     return serial->readBlock(pkt, max_len, 0);
 }
 
 bool Serial::send(uint8_t* pkt, size_t len)
 {
-    auto serial = miosix::DefaultConsole::instance().get();
+    auto serial = DefaultConsole::instance().get();
     return serial->writeBlock(pkt, len, 0) != static_cast<ssize_t>(len);
 }
