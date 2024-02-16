@@ -22,6 +22,7 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/Buses.h>
+#include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -33,42 +34,53 @@
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
+#include <radio/Xbee/APIFramesLog.h>
+#include <radio/Xbee/ATCommands.h>
 
 #include <memory>
 
 using namespace Boardcore;
 using namespace Common;
 
-#define SX1278_IRQ_DIO0 EXTI3_IRQHandlerImpl
-#define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
-#define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
+// #define SX1278_IRQ_DIO0 EXTI3_IRQHandlerImpl
+// #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
+// #define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
 
-void __attribute__((used)) SX1278_IRQ_DIO0()
+// void __attribute__((used)) SX1278_IRQ_DIO0()
+// {
+//     ModuleManager& modules = ModuleManager::getInstance();
+//     if (modules.get<Payload::Radio>()->transceiver)
+//     {
+//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+//     }
+// }
+
+// void __attribute__((used)) SX1278_IRQ_DIO1()
+// {
+//     ModuleManager& modules = ModuleManager::getInstance();
+//     if (modules.get<Payload::Radio>()->transceiver)
+//     {
+//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+//     }
+// }
+
+// void __attribute__((used)) SX1278_IRQ_DIO3()
+// {
+//     ModuleManager& modules = ModuleManager::getInstance();
+//     if (modules.get<Payload::Radio>()->transceiver)
+//     {
+//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+//     }
+// }
+
+void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
-    {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-    }
+
+    if (modules.get<Payload::Radio>()->transceiver != nullptr)
+        modules.get<Payload::Radio>()->transceiver->handleATTNInterrupt();
 }
 
-void __attribute__((used)) SX1278_IRQ_DIO1()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
-    {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-    }
-}
-
-void __attribute__((used)) SX1278_IRQ_DIO3()
-{
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
-    {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-    }
-}
 namespace Payload
 {
 
@@ -77,30 +89,24 @@ Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
 bool Radio::start()
 {
     ModuleManager& modules = ModuleManager::getInstance();
-    // Config the transceiver
-    SX1278Fsk::Config config = {
-        .freq_rf    = 868000000,
-        .freq_dev   = 50000,
-        .bitrate    = 48000,
-        .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-        .afc_bw     = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
-        .ocp        = 120,
-        .power      = 13,
-        .shaping    = Boardcore::SX1278Fsk::Config::Shaping::GAUSSIAN_BT_1_0,
-        .dc_free    = Boardcore::SX1278Fsk::Config::DcFree::WHITENING,
-        .enable_crc = false};
 
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
+    // Create the SPI bus configuration
+    SPIBusConfig config{};
+    config.clockDivider = SPI::ClockDivider::DIV_16;
 
-    transceiver = new SX1278Fsk(
-        modules.get<Buses>()->spi6, miosix::radio::cs::getPin(),
-        miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
-        miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
-        std::move(frontend));
+    // Create the xbee object
+    transceiver = new Xbee::Xbee(
+        modules.get<Buses>()->spi2, config, miosix::xbee::cs::getPin(),
+        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
+    transceiver->setOnFrameReceivedListener(
+        std::bind(&Radio::onXbeeFrameReceived, this, std::placeholders::_1));
 
-    // Config the radio
-    SX1278Fsk::Error error = transceiver->init(config);
+    Xbee::setDataRate(*transceiver, RadioConfig::XBEE_80KBPS_DATA_RATE,
+                      RadioConfig::XBEE_TIMEOUT);
+
+    enableExternalInterrupt(miosix::xbee::attn::getPin().getPort(),
+                            miosix::xbee::attn::getPin().getNumber(),
+                            InterruptTrigger::FALLING_EDGE);
 
     // Add periodic telemetry send task
     uint8_t result =
@@ -113,7 +119,7 @@ bool Radio::start()
             this->enqueueMsg(
                 modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
-        RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD * 2,
+        RadioConfig::RADIO_STATS_TELEMETRY_PERIOD,
         TaskScheduler::Policy::RECOVER);
 
     // Config mavDriver
@@ -123,12 +129,6 @@ bool Radio::start()
         { this->handleMavlinkMessage(msg); },
         RadioConfig::RADIO_SLEEP_AFTER_SEND,
         RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);
-
-    // Check radio failure
-    if (error != SX1278Fsk::Error::NONE)
-    {
-        return false;
-    }
 
     // Start the mavlink driver thread
     return mavDriver->start() && result != 0;
@@ -157,6 +157,82 @@ void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 bool Radio::isStarted()
 {
     return mavDriver->isStarted() && scheduler->isRunning();
+}
+
+void Radio::onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame)
+{
+    using namespace Xbee;
+    bool logged = false;
+    switch (frame.frameType)
+    {
+        case FTYPE_AT_COMMAND:
+        {
+            ATCommandFrameLog dest;
+            logged = ATCommandFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_AT_COMMAND_RESPONSE:
+        {
+            ATCommandResponseFrameLog dest;
+            logged = ATCommandResponseFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_MODEM_STATUS:
+        {
+            ModemStatusFrameLog dest;
+            logged = ModemStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_REQUEST:
+        {
+            TXRequestFrameLog dest;
+            logged = TXRequestFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_TX_STATUS:
+        {
+            TXStatusFrameLog dest;
+            logged = TXStatusFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+        case FTYPE_RX_PACKET_FRAME:
+        {
+            RXPacketFrameLog dest;
+            logged = RXPacketFrameLog::toFrameType(frame, &dest);
+            if (logged)
+            {
+                Logger::getInstance().log(dest);
+            }
+            break;
+        }
+    }
+
+    if (!logged)
+    {
+        APIFrameLog api;
+        APIFrameLog::fromAPIFrame(frame, &api);
+        Logger::getInstance().log(api);
+    }
 }
 
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
@@ -202,6 +278,28 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     mavlink_msg_sensor_state_tm_encode(
                         RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMP_ID,
                         &msg, &tm);
+                    enqueueMsg(msg);
+                }
+            }
+            else if (tmId == SystemTMList::MAV_PIN_OBS_ID)
+            {
+                auto pinDataVector = modules.get<PinHandler>()->getPinsData();
+
+                for (auto pinData : pinDataVector)
+                {
+                    mavlink_message_t msg;
+                    mavlink_pin_tm_t tm;
+
+                    tm.timestamp = TimestampTimer::getTimestamp();
+                    tm.pin_id    = pinData.first;
+                    tm.last_change_timestamp =
+                        pinData.second.lastStateTimestamp;
+                    tm.changes_counter = pinData.second.changesCount;
+                    tm.current_state   = pinData.second.lastState;
+
+                    mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                              RadioConfig::MAV_COMP_ID, &msg,
+                                              &tm);
                     enqueueMsg(msg);
                 }
             }
@@ -338,7 +436,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             {
                 return sendNack(msg);
             }
-            modules.get<NASController>()->setReferenceAltitude(temperature);
+            modules.get<NASController>()->setReferenceTemperature(temperature);
             break;
         }
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -413,7 +511,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
-            // Send the event only if the flight mode manager is in test mode
+            // Send the event only if the flight mode manager is in test
+            // mode
             if (modules.get<FlightModeManager>()->getStatus().state !=
                 FlightModeManagerState::TEST_MODE)
             {
@@ -462,8 +561,8 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         }
         default:
         {
-            // If the command is not a particular one, look for it inside the
-            // map
+            // If the command is not a particular one, look for it inside
+            // the map
             auto it = commandToEvent.find(commandId);
 
             if (it != commandToEvent.end())

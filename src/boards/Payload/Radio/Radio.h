@@ -24,14 +24,14 @@
 #include <Payload/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278Fsk.h>
+#include <radio/Xbee/Xbee.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Payload
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
+using MavDriver = Boardcore::MavlinkDriver<RadioConfig::RADIO_PKT_LENGTH,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
@@ -67,10 +67,12 @@ public:
      */
     bool isStarted();
 
-    Boardcore::SX1278Fsk* transceiver = nullptr;
+    Boardcore::Xbee::Xbee* transceiver = nullptr;
     MavDriver* mavDriver              = nullptr;
 
 private:
+    void onXbeeFrameReceived(Boardcore::Xbee::APIFrame& frame);
+
     /**
      * @brief Called by the MavlinkDriver when a message is received
      */

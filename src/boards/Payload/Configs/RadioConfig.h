@@ -32,15 +32,20 @@ constexpr uint32_t RADIO_PKT_LENGTH     = 255;
 constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
 constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 200;
+constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;   // [ms]
+constexpr uint32_t RADIO_STATS_TELEMETRY_PERIOD  = 2000;  // [ms]
 
-constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 50;
-constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 10;
+constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 0;
+constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 200;
 
 constexpr uint8_t MAV_SYSTEM_ID = 171;
 constexpr uint8_t MAV_COMP_ID   = 96;
 
 constexpr uint32_t MAVLINK_QUEUE_SIZE = 10;
+
+// XBee parameters
+constexpr bool XBEE_80KBPS_DATA_RATE = true;
+constexpr int XBEE_TIMEOUT           = 5000;  //  [ms]
 
 }  // namespace RadioConfig
 }  // namespace Payload
