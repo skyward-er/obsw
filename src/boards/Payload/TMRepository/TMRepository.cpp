@@ -22,7 +22,6 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/RadioConfig.h>
-#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/Sensors.h>
@@ -160,10 +159,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Last samples
-            LPS28DFWData lps28dfw1 =
-                modules.get<Sensors>()->getLPS28DFW_1LastSample();
-            RotatedIMUData imu = modules.get<Sensors>()->getIMULastSample();
-            UBXGPSData gps     = modules.get<Sensors>()->getGPSLastSample();
+            MS5803Data ms5803 = modules.get<Sensors>()->getMS5803LastSample();
+            BMX160Data imu =
+                modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+            UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
             Eigen::Vector2f wind =
                 modules.get<WindEstimation>()->getWindEstimationScheme();
 
@@ -180,12 +179,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.wes_n = wind[0];
             tm.wes_e = wind[1];
 
-            tm.pressure_digi = lps28dfw1.pressure;
-            tm.pressure_static =
-                modules.get<Sensors>()->getStaticPressureLastSample().pressure;
-            // Pitot
-            tm.airspeed_pitot =
-                modules.get<Sensors>()->getPitotLastSample().airspeed;
+            tm.pressure_digi = ms5803.pressure;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
@@ -223,6 +217,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_x = nasState.bx;
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
+
             // Servos
             tm.left_servo_angle = modules.get<Actuators>()->getServoAngle(
                 ServosList::PARAFOIL_LEFT_SERVO);
@@ -233,19 +228,16 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                   ->getPinsData()[PinsList::NOSECONE_PIN]
                                   .lastState;
 
-            tm.cutter_presence =
-                static_cast<uint8_t>(miosix::gpios::cut_sense::value());
-
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
                                      .batVoltage;
-            tm.current_consumption =
-                modules.get<Sensors>()->getCurrentLastSample().current;
-            tm.temperature  = lps28dfw1.temperature;
+            // tm.current_consumption =
+            //     modules.get<Sensors>()->getCurrentLastSample().current;
+            tm.temperature  = ms5803.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             tm.cam_battery_voltage = modules.get<Sensors>()
-                                         ->getCamBatteryVoltageLastSample()
+                                         ->getBatteryVoltageLastSample()
                                          .batVoltage;
 
             mavlink_msg_payload_flight_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -256,8 +248,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_STATS_ID:
         {
-            mavlink_payload_stats_tm_t tm =
-                modules.get<FlightStatsRecorder>()->getStats();
+            mavlink_payload_stats_tm_t tm;
+
             tm.cpu_load  = CpuMeter::getCpuStats().mean;
             tm.free_heap = CpuMeter::getCpuStats().freeHeap;
 
@@ -288,6 +280,28 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_PIN_OBS_ID:
         {
+            // TODO check number of pins, old impl was in Radio.cpp
+            // (parafoil-flight-test):
+
+            // auto pinDataVector = modules.get<PinHandler>()->getPinsData();
+
+            // for (auto pinData : pinDataVector)
+            // {
+            //     mavlink_message_t msg;
+            //     mavlink_pin_tm_t tm;
+
+            //     tm.timestamp             = TimestampTimer::getTimestamp();
+            //     tm.pin_id                = pinData.first;
+            //     tm.last_change_timestamp = pinData.second.lastStateTimestamp;
+            //     tm.changes_counter       = pinData.second.changesCount;
+            //     tm.current_state         = pinData.second.lastState;
+
+            //     mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+            //                               RadioConfig::MAV_COMP_ID, &msg,
+            //                               &tm);
+            //     enqueueMsg(msg);
+            // }
+
             mavlink_pin_tm_t tm;
 
             tm.timestamp = TimestampTimer::getTimestamp();
@@ -339,7 +353,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_gps_tm_t tm;
 
-            UBXGPSData gpsData = modules.get<Sensors>()->getGPSLastSample();
+            UBXGPSData gpsData = modules.get<Sensors>()->getUbxGpsLastSample();
 
             tm.timestamp = gpsData.gpsTimestamp;
             strcpy(tm.sensor_name, "UBXGPS");
@@ -359,16 +373,88 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
+        // case SensorsTMList::MAV_STATIC_PRESS_ID:
+        // {
+        //     mavlink_pressure_tm_t tm;
 
-        case SensorsTMList::MAV_STATIC_PRESS_ID:
+        //     HSCMRNN015PAData pressureData =
+        //         modules.get<Sensors>()->getStaticPressureLastSample();
+
+        //     tm.timestamp = pressureData.pressureTimestamp;
+        //     strcpy(tm.sensor_name, "STATIC_PRESSURE");
+        //     tm.pressure = pressureData.pressure;
+
+        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+        //                                    RadioConfig::MAV_COMP_ID, &msg,
+        //                                    &tm);
+
+        //     break;
+        // }
+        // case SensorsTMList::MAV_DPL_PRESS_ID:
+        // {
+        //     mavlink_pressure_tm_t tm;
+
+        //     SSCMRNN030PAData pressureData =
+        //         modules.get<Sensors>()->getDynamicPressureLastSample();
+
+        //     tm.timestamp = pressureData.pressureTimestamp;
+        //     strcpy(tm.sensor_name, "DYNAMIC_PRESSURE");
+        //     tm.pressure = pressureData.pressure;
+
+        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+        //                                    RadioConfig::MAV_COMP_ID, &msg,
+        //                                    &tm);
+
+        //     break;
+        // }
+        // case SensorsTMList::MAV_PITOT_PRESS_ID:
+        // {
+        //     mavlink_pressure_tm_t tm;
+
+        //     SSCMRNN030PAData pitot =
+        //         modules.get<Sensors>()->getDynamicPressureLastSample();
+
+        //     tm.timestamp = pitot.pressureTimestamp;
+        //     tm.pressure  = pitot.pressure;
+        //     strcpy(tm.sensor_name, "PITOT_PRESSURE");
+
+        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+        //                                    RadioConfig::MAV_COMP_ID, &msg,
+        //                                    &tm);
+        //     break;
+        // }
+        case SensorsTMList::MAV_BMX160_ID:
+        {
+            mavlink_imu_tm_t tm;
+
+            BMX160WithCorrectionData imuData =
+                modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
+
+            strcpy(tm.sensor_name, "BMX160");
+            tm.acc_x     = imuData.accelerationX;
+            tm.acc_y     = imuData.accelerationY;
+            tm.acc_z     = imuData.accelerationZ;
+            tm.gyro_x    = imuData.angularSpeedX;
+            tm.gyro_y    = imuData.angularSpeedY;
+            tm.gyro_z    = imuData.angularSpeedZ;
+            tm.mag_x     = imuData.magneticFieldX;
+            tm.mag_y     = imuData.magneticFieldY;
+            tm.mag_z     = imuData.magneticFieldZ;
+            tm.timestamp = imuData.accelerationTimestamp;
+
+            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
+
+            break;
+        }
+        case SensorsTMList::MAV_MS5803_ID:
         {
             mavlink_pressure_tm_t tm;
 
-            HSCMRNN015PAData pressureData =
-                modules.get<Sensors>()->getStaticPressureLastSample();
+            auto pressureData = modules.get<Sensors>()->getMS5803LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_name, "STATIC_PRESSURE");
+            strcpy(tm.sensor_name, "MS5803");
             tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
@@ -376,148 +462,19 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        case SensorsTMList::MAV_DPL_PRESS_ID:
-        {
-            mavlink_pressure_tm_t tm;
+        // case SensorsTMList::MAV_CURRENT_SENSE_ID:
+        // {
+        //     mavlink_current_tm_t tm;
+        //     CurrentData current =
+        //         modules.get<Sensors>()->getCurrentLastSample();
+        //     tm.current = current.current;
+        //     strcpy(tm.sensor_name, "CURRENT");
+        //     tm.timestamp = current.currentTimestamp;
 
-            SSCMRNN030PAData pressureData =
-                modules.get<Sensors>()->getDynamicPressureLastSample();
-
-            tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_name, "DYNAMIC_PRESSURE");
-            tm.pressure = pressureData.pressure;
-
-            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
-
-            break;
-        }
-        case SensorsTMList::MAV_PITOT_PRESS_ID:
-        {
-            mavlink_pressure_tm_t tm;
-
-            SSCMRNN030PAData pitot =
-                modules.get<Sensors>()->getDynamicPressureLastSample();
-
-            tm.timestamp = pitot.pressureTimestamp;
-            tm.pressure  = pitot.pressure;
-            strcpy(tm.sensor_name, "PITOT_PRESSURE");
-
-            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_LIS2MDL_ID:
-        {
-            mavlink_imu_tm_t tm;
-
-            LIS2MDLData mag = modules.get<Sensors>()->getLIS2MDLLastSample();
-
-            tm.acc_x     = 0;
-            tm.acc_y     = 0;
-            tm.acc_z     = 0;
-            tm.gyro_x    = 0;
-            tm.gyro_y    = 0;
-            tm.gyro_z    = 0;
-            tm.mag_x     = mag.magneticFieldX;
-            tm.mag_y     = mag.magneticFieldY;
-            tm.mag_z     = mag.magneticFieldZ;
-            tm.timestamp = mag.magneticFieldTimestamp;
-            strcpy(tm.sensor_name, "LIS2MD");
-
-            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_LSM6DSRX_ID:
-        {
-            mavlink_imu_tm_t tm;
-
-            LSM6DSRXData imu = modules.get<Sensors>()->getLSM6DSRXLastSample();
-
-            tm.acc_x  = imu.accelerationX;
-            tm.acc_y  = imu.accelerationY;
-            tm.acc_z  = imu.accelerationZ;
-            tm.gyro_x = imu.angularSpeedX;
-            tm.gyro_y = imu.angularSpeedY;
-            tm.gyro_z = imu.angularSpeedZ;
-            tm.mag_x  = 0;
-            tm.mag_y  = 0;
-            tm.mag_z  = 0;
-
-            tm.timestamp = imu.accelerationTimestamp;
-            strcpy(tm.sensor_name, "LSM6DSRX");
-
-            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_H3LIS331DL_ID:
-        {
-            mavlink_imu_tm_t tm;
-
-            H3LIS331DLData imu =
-                modules.get<Sensors>()->getH3LIS331DLLastSample();
-
-            tm.acc_x  = imu.accelerationX;
-            tm.acc_y  = imu.accelerationY;
-            tm.acc_z  = imu.accelerationZ;
-            tm.gyro_x = 0;
-            tm.gyro_y = 0;
-            tm.gyro_z = 0;
-            tm.mag_x  = 0;
-            tm.mag_y  = 0;
-            tm.mag_z  = 0;
-
-            tm.timestamp = imu.accelerationTimestamp;
-            strcpy(tm.sensor_name, "H3LIS331DL");
-
-            mavlink_msg_imu_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_LPS22DF_ID:
-        {
-            mavlink_pressure_tm_t tm;
-
-            LPS22DFData pressure =
-                modules.get<Sensors>()->getLPS22DFLastSample();
-
-            tm.timestamp = pressure.pressureTimestamp;
-            tm.pressure  = pressure.pressure;
-            strcpy(tm.sensor_name, "LPS22DF");
-
-            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_LPS28DFW_ID:
-        {
-            mavlink_pressure_tm_t tm;
-            LPS28DFWData pressure1 =
-                modules.get<Sensors>()->getLPS28DFW_1LastSample();
-
-            tm.timestamp = pressure1.pressureTimestamp;
-            tm.pressure  = pressure1.pressure;
-            strcpy(tm.sensor_name, "LPS28DFW");
-
-            mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_CURRENT_SENSE_ID:
-        {
-            mavlink_current_tm_t tm;
-            CurrentData current =
-                modules.get<Sensors>()->getCurrentLastSample();
-            tm.current = current.current;
-            strcpy(tm.sensor_name, "CURRENT");
-            tm.timestamp = current.currentTimestamp;
-
-            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
+        //     mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+        //                                   RadioConfig::MAV_COMP_ID, &msg, &tm);
+        //     break;
+        // }
         case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
         {
             mavlink_voltage_tm_t tm;
@@ -530,41 +487,41 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
                                           RadioConfig::MAV_COMP_ID, &msg, &tm);
             break;
         }
-        case SensorsTMList::MAV_ADS_ID:
-        {
-            mavlink_adc_tm_t tm;
-            ADS131M08Data voltage =
-                modules.get<Sensors>()->getADS131M08LastSample();
-            tm.channel_0 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
+        // case SensorsTMList::MAV_ADS_ID:
+        // {
+        //     mavlink_adc_tm_t tm;
+        //     ADS131M08Data voltage =
+        //         modules.get<Sensors>()->getADS131M08LastSample();
+        //     tm.channel_0 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
 
-            tm.channel_1 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
+        //     tm.channel_1 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
 
-            tm.channel_2 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
+        //     tm.channel_2 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
 
-            tm.channel_3 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
+        //     tm.channel_3 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
 
-            tm.channel_4 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
+        //     tm.channel_4 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
 
-            tm.channel_5 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
+        //     tm.channel_5 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
 
-            tm.channel_6 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
+        //     tm.channel_6 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
 
-            tm.channel_7 =
-                voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
+        //     tm.channel_7 =
+        //         voltage.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
 
-            strcpy(tm.sensor_name, "ADS131M08");
-            tm.timestamp = voltage.timestamp;
-            mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
+        //     strcpy(tm.sensor_name, "ADS131M08");
+        //     tm.timestamp = voltage.timestamp;
+        //     mavlink_msg_adc_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+        //                               RadioConfig::MAV_COMP_ID, &msg, &tm);
+        //     break;
+        // }
         default:
         {
             mavlink_nack_tm_t nack;
