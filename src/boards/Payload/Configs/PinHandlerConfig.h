@@ -29,6 +29,6 @@ namespace Payload
 
 constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+    Boardcore::PinTransition::FALLING_EDGE;
 
 }  // namespace Payload

@@ -36,8 +36,6 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "SensorData.h"
-
 namespace Payload
 {
 

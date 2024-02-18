@@ -21,12 +21,6 @@
  */
 #pragma once
 
-#include <sensors/ADS131M08/ADS131M08.h>
-#include <sensors/H3LIS331DL/H3LIS331DL.h>
-#include <sensors/LIS2MDL/LIS2MDL.h>
-#include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LPS28DFW/LPS28DFW.h>
-#include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 
 namespace Payload

@@ -42,37 +42,6 @@
 using namespace Boardcore;
 using namespace Common;
 
-// #define SX1278_IRQ_DIO0 EXTI3_IRQHandlerImpl
-// #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
-// #define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
-
-// void __attribute__((used)) SX1278_IRQ_DIO0()
-// {
-//     ModuleManager& modules = ModuleManager::getInstance();
-//     if (modules.get<Payload::Radio>()->transceiver)
-//     {
-//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-//     }
-// }
-
-// void __attribute__((used)) SX1278_IRQ_DIO1()
-// {
-//     ModuleManager& modules = ModuleManager::getInstance();
-//     if (modules.get<Payload::Radio>()->transceiver)
-//     {
-//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-//     }
-// }
-
-// void __attribute__((used)) SX1278_IRQ_DIO3()
-// {
-//     ModuleManager& modules = ModuleManager::getInstance();
-//     if (modules.get<Payload::Radio>()->transceiver)
-//     {
-//         modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
-//     }
-// }
-
 void __attribute__((used)) EXTI10_IRQHandlerImpl()
 {
     ModuleManager& modules = ModuleManager::getInstance();
@@ -278,28 +247,6 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                     mavlink_msg_sensor_state_tm_encode(
                         RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMP_ID,
                         &msg, &tm);
-                    enqueueMsg(msg);
-                }
-            }
-            else if (tmId == SystemTMList::MAV_PIN_OBS_ID)
-            {
-                auto pinDataVector = modules.get<PinHandler>()->getPinsData();
-
-                for (auto pinData : pinDataVector)
-                {
-                    mavlink_message_t msg;
-                    mavlink_pin_tm_t tm;
-
-                    tm.timestamp = TimestampTimer::getTimestamp();
-                    tm.pin_id    = pinData.first;
-                    tm.last_change_timestamp =
-                        pinData.second.lastStateTimestamp;
-                    tm.changes_counter = pinData.second.changesCount;
-                    tm.current_state   = pinData.second.lastState;
-
-                    mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                              RadioConfig::MAV_COMP_ID, &msg,
-                                              &tm);
                     enqueueMsg(msg);
                 }
             }
@@ -522,6 +469,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             EventBroker::getInstance().post(topicId, eventId);
             break;
         }
+        // TODO nack
     }
 
     // At the end send the ack message

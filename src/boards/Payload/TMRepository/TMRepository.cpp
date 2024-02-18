@@ -236,7 +236,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.temperature  = ms5803.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
-            tm.cam_battery_voltage = modules.get<Sensors>()
+            tm.battery_voltage = modules.get<Sensors>()
                                          ->getBatteryVoltageLastSample()
                                          .batVoltage;
 
@@ -280,28 +280,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_PIN_OBS_ID:
         {
-            // TODO check number of pins, old impl was in Radio.cpp
-            // (parafoil-flight-test):
-
-            // auto pinDataVector = modules.get<PinHandler>()->getPinsData();
-
-            // for (auto pinData : pinDataVector)
-            // {
-            //     mavlink_message_t msg;
-            //     mavlink_pin_tm_t tm;
-
-            //     tm.timestamp             = TimestampTimer::getTimestamp();
-            //     tm.pin_id                = pinData.first;
-            //     tm.last_change_timestamp = pinData.second.lastStateTimestamp;
-            //     tm.changes_counter       = pinData.second.changesCount;
-            //     tm.current_state         = pinData.second.lastState;
-
-            //     mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-            //                               RadioConfig::MAV_COMP_ID, &msg,
-            //                               &tm);
-            //     enqueueMsg(msg);
-            // }
-
+            // TODO check 
             mavlink_pin_tm_t tm;
 
             tm.timestamp = TimestampTimer::getTimestamp();
@@ -373,56 +352,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        // case SensorsTMList::MAV_STATIC_PRESS_ID:
-        // {
-        //     mavlink_pressure_tm_t tm;
-
-        //     HSCMRNN015PAData pressureData =
-        //         modules.get<Sensors>()->getStaticPressureLastSample();
-
-        //     tm.timestamp = pressureData.pressureTimestamp;
-        //     strcpy(tm.sensor_name, "STATIC_PRESSURE");
-        //     tm.pressure = pressureData.pressure;
-
-        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-        //                                    RadioConfig::MAV_COMP_ID, &msg,
-        //                                    &tm);
-
-        //     break;
-        // }
-        // case SensorsTMList::MAV_DPL_PRESS_ID:
-        // {
-        //     mavlink_pressure_tm_t tm;
-
-        //     SSCMRNN030PAData pressureData =
-        //         modules.get<Sensors>()->getDynamicPressureLastSample();
-
-        //     tm.timestamp = pressureData.pressureTimestamp;
-        //     strcpy(tm.sensor_name, "DYNAMIC_PRESSURE");
-        //     tm.pressure = pressureData.pressure;
-
-        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-        //                                    RadioConfig::MAV_COMP_ID, &msg,
-        //                                    &tm);
-
-        //     break;
-        // }
-        // case SensorsTMList::MAV_PITOT_PRESS_ID:
-        // {
-        //     mavlink_pressure_tm_t tm;
-
-        //     SSCMRNN030PAData pitot =
-        //         modules.get<Sensors>()->getDynamicPressureLastSample();
-
-        //     tm.timestamp = pitot.pressureTimestamp;
-        //     tm.pressure  = pitot.pressure;
-        //     strcpy(tm.sensor_name, "PITOT_PRESSURE");
-
-        //     mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-        //                                    RadioConfig::MAV_COMP_ID, &msg,
-        //                                    &tm);
-        //     break;
-        // }
         case SensorsTMList::MAV_BMX160_ID:
         {
             mavlink_imu_tm_t tm;
@@ -462,19 +391,6 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
 
             break;
         }
-        // case SensorsTMList::MAV_CURRENT_SENSE_ID:
-        // {
-        //     mavlink_current_tm_t tm;
-        //     CurrentData current =
-        //         modules.get<Sensors>()->getCurrentLastSample();
-        //     tm.current = current.current;
-        //     strcpy(tm.sensor_name, "CURRENT");
-        //     tm.timestamp = current.currentTimestamp;
-
-        //     mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-        //                                   RadioConfig::MAV_COMP_ID, &msg, &tm);
-        //     break;
-        // }
         case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:
         {
             mavlink_voltage_tm_t tm;

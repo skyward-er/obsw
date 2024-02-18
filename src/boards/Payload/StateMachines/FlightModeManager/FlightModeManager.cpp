@@ -86,6 +86,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
+            Logger::getInstance().stop();
             reboot();
             return HANDLED;
         }
@@ -271,13 +272,11 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            // Logger::getInstance().start();
             logStatus(FlightModeManagerState::TEST_MODE);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // Logger::getInstance().stop();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -296,7 +295,6 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_EXIT_TEST_MODE:
         {
-            // Logger::getInstance().stop();
             return transition(&FlightModeManager::state_ready);
         }
         default:
