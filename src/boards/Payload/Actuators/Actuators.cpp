@@ -51,6 +51,8 @@ bool Actuators::start()
     setServo(PARAFOIL_LEFT_SERVO, 0);
     enableServo(PARAFOIL_RIGHT_SERVO);
     setServo(PARAFOIL_RIGHT_SERVO, 0);
+
+    return true;
 }
 
 bool Actuators::setServo(ServosList servoId, float percentage)

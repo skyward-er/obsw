@@ -33,7 +33,6 @@
 #include <common/Topics.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
-#include <radio/SX1278/SX1278Frontends.h>
 #include <radio/Xbee/APIFramesLog.h>
 #include <radio/Xbee/ATCommands.h>
 
@@ -82,14 +81,17 @@ bool Radio::start()
         scheduler->addTask([=]() { this->sendPeriodicMessage(); },
                            RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
                            TaskScheduler::Policy::RECOVER);
-    result *= scheduler->addTask(
-        [&]()
-        {
-            this->enqueueMsg(
-                modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
-        },
-        RadioConfig::RADIO_STATS_TELEMETRY_PERIOD,
-        TaskScheduler::Policy::RECOVER);
+
+    // Periodic stats
+
+    // result *= scheduler->addTask(
+    //     [&]()
+    //     {
+    //         this->enqueueMsg(
+    //             modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
+    //     },
+    //     RadioConfig::RADIO_STATS_TELEMETRY_PERIOD,
+    //     TaskScheduler::Policy::RECOVER);
 
     // Config mavDriver
     mavDriver = new MavDriver(
@@ -469,7 +471,10 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             EventBroker::getInstance().post(topicId, eventId);
             break;
         }
-        // TODO nack
+        default:
+        {
+            return sendNack(msg);
+        }
     }
 
     // At the end send the ack message

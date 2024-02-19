@@ -280,7 +280,6 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         }
         case SystemTMList::MAV_PIN_OBS_ID:
         {
-            // TODO check 
             mavlink_pin_tm_t tm;
 
             tm.timestamp = TimestampTimer::getTimestamp();

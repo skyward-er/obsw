@@ -57,7 +57,7 @@ void AutomaticWingAlgorithm::step()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
-    if (modules.get<Sensors>()->getGPSLastSample().fix != 0)
+    if (modules.get<Sensors>()->getUbxGpsLastSample().fix != 0)
     {
         // The PI calculated result
         float result = algorithmStep(

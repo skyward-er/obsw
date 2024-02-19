@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ostream>
+
 namespace Payload
 {
 

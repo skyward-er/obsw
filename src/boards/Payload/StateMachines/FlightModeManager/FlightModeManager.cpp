@@ -265,7 +265,6 @@ State FlightModeManager::state_algos_calibration(const Event& event)
     }
 }
 
-// TODO update test mode
 State FlightModeManager::state_test_mode(const Event& event)
 {
     switch (event)

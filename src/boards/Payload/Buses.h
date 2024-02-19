@@ -24,7 +24,6 @@
 
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
-// #include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 namespace Payload
@@ -39,12 +38,10 @@ public:
 
     Boardcore::SPIBus spi1;
     Boardcore::SPIBus spi2;
-    Boardcore::SPIBus spi6; // TODO Da rimuovere
 
     Buses()
         : usart1(USART1, 115200), usart2(USART2, 115200),
-          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2),
-          spi6(SPI6)
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
     {
     }
 };
