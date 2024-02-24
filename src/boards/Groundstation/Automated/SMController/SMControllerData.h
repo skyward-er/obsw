@@ -45,7 +45,9 @@ enum class SMControllerState : uint8_t
     FIX_ROCKET,
     FIX_ROCKET_NF,
     ACTIVE,
-    ACTIVE_NF
+    ACTIVE_NF,
+    FEEDBACK,
+    NO_FEEDBACK
 };
 
 struct SMControllerStatus
