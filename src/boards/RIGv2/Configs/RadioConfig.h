@@ -22,33 +22,30 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <common/Mavlink.h>
 
 namespace RIGv2
 {
 
-class Buses : public Boardcore::Module
+namespace Config
 {
-private:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
 
-public:
-    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6) {}
+namespace Radio
+{
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi4; }
-    Boardcore::SPIBus &getLPS22DF() { return spi4; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi4; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi4; }
-    Boardcore::SPIBus &getADS131M08_1() { return spi1; }
-    Boardcore::SPIBus &getADS131M08_2() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_1() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_2() { return spi1; }
-    Boardcore::SPIBus &getRadio() { return spi6; }
-};
+static constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+static constexpr unsigned int MAV_MAX_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+
+static constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
+
+static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
+
+static constexpr uint8_t MAV_SYSTEM_ID    = 171;
+static constexpr uint8_t MAV_COMPONENT_ID = 96;
+
+}  // namespace Radio
+
+}  // namespace Config
 
 }  // namespace RIGv2
