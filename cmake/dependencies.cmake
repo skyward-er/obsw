@@ -69,6 +69,7 @@ set(RIG_COMPUTER
 )
 
 set(RIG_V2_COMPUTER
+    src/boards/RIGv2/Radio/Radio.cpp
     src/boards/RIGv2/Sensors/Sensors.cpp
 )
 

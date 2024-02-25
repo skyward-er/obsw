@@ -20,8 +20,9 @@
  * THE SOFTWARE.
  */
 
-#include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/Buses.h>
+#include <RIGv2/Radio/Radio.h>
+#include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
 
@@ -29,52 +30,75 @@ using namespace Boardcore;
 using namespace RIGv2;
 using namespace miosix;
 
-int main() {
+int main()
+{
 
     ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger = Logging::getLogger("main");
+    PrintLogger logger     = Logging::getLogger("main");
 
     // TODO: Move this to a dedicated board scheduler
     TaskScheduler *scheduler = new TaskScheduler(3);
 
-    Buses *buses = new Buses();
+    Buses *buses     = new Buses();
     Sensors *sensors = new Sensors(*scheduler);
+    Radio *radio     = new Radio();
 
     Logger &sdLogger = Logger::getInstance();
 
     bool initResult = true;
 
     // Insert modules
-    if(!modules.insert<Buses>(buses)) {
+    if (!modules.insert<Buses>(buses))
+    {
         initResult = false;
         LOG_ERR(logger, "Error failed to insert Buses");
     }
 
-    if(!modules.insert<Sensors>(sensors)) {
+    if (!modules.insert<Sensors>(sensors))
+    {
         initResult = false;
-        LOG_ERR(logger, "Error failed to insert Sensors");    
+        LOG_ERR(logger, "Error failed to insert Sensors");
+    }
+
+    if (!modules.insert<Radio>(radio))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to insert Radio");
     }
 
     // Start modules
-    if(!sensors->start()) {
+    if (!sensors->start())
+    {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start sensors module");
+        LOG_ERR(logger, "Error failed to start Sensors module");
     }
 
-    if(!scheduler->start()) {
+    if (!radio->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Radio module");
+    }
+
+    if (!scheduler->start())
+    {
         initResult = false;
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
-    LOG_INFO(logger, "All good!");
+    if (!initResult)
+    {
+        LOG_INFO(logger, "All good!");
+    }
 
     // TEMPORARY CODE
     // Start logger module
     sdLogger.start();
 
     // Periodic statistics
-    while(true) {
+    while (true)
+    {
         Thread::sleep(1000);
+        sdLogger.log(modules.get<Radio>()->getMavStatus());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         // TODO: What the fuck is this?
