@@ -46,20 +46,22 @@ public:
 
     void stop();
 
+    bool isStarted();
+
     Boardcore::MavlinkStatus getMavStatus();
 
 private:
     void sendAck(const mavlink_message_t& msg);
     void sendNack(const mavlink_message_t& msg);
 
-    void queuePacket(const mavlink_message_t &msg);
+    void enqueuePacket(const mavlink_message_t &msg);
     void flushPackets();
 
     void handleMessage(const mavlink_message_t& msg);
     void handleCommand(const mavlink_message_t& msg);
     void handleConrigState(const mavlink_message_t& msg);
-
-    void sendFakeGseTm();
+    
+    bool packSystemTm(uint8_t tmId, mavlink_message_t& msg);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
@@ -68,6 +70,7 @@ private:
                               Config::Radio::CIRCULAR_BUFFER_SIZE>
         queuedPackets;
 
+    std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::SX1278Lora> radio;
     std::unique_ptr<MavDriver> mavDriver;
 };
