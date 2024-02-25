@@ -36,13 +36,11 @@ bool Sensors::start()
     SensorManager::SensorMap_t map;
     adc1Init(map);
 
-    manager.reset(new SensorManager(map, &scheduler));
+    manager = std::make_unique<SensorManager>(map, &scheduler);
     return manager->start();
 }
 
-void Sensors::stop() {
-    manager->stop();
-}
+void Sensors::stop() { manager->stop(); }
 
 ADS131M08Data Sensors::getADC1LastSample()
 {
@@ -62,9 +60,9 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
     config.oversamplingRatio     = ADS131M08Defs::OversamplingRatio::OSR_8192;
     config.globalChopModeEnabled = true;
 
-    adc1.reset(new ADS131M08(modules.get<Buses>()->getADS131M08_1(),
-                             sensors::ADS131_1::cs::getPin(), spiConfig,
-                             config));
+    adc1 = std::make_unique<ADS131M08>(modules.get<Buses>()->getADS131M08_1(),
+                                       sensors::ADS131_1::cs::getPin(),
+                                       spiConfig, config);
 
     SensorInfo info("ADS131M08_1", Config::Sensors::ADC_SAMPLE_PERIOD,
                     [this]() { adc1Callback(); });
@@ -81,6 +79,7 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
+    // For Flavio, fuck Flavio
     LOG_INFO(logger, "{}\t{}", sample.voltage[6], sample.voltage[7]);
 
     sdLogger.log(data);
