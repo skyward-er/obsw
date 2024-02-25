@@ -68,6 +68,10 @@ set(RIG_COMPUTER
     src/boards/RIG/StatesMonitor/StatesMonitor.cpp
 )
 
+set(RIG_V2_COMPUTER
+    src/boards/RIGv2/Sensors/Sensors.cpp
+)
+
 set(CON_RIG_COMPUTER
     src/boards/con_RIG/Buttons/Buttons.cpp
     src/boards/con_RIG/Radio/Radio.cpp
