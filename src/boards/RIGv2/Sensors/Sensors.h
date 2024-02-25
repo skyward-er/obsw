@@ -26,6 +26,7 @@
 #include <sensors/SensorManager.h>
 
 #include <memory>
+#include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
@@ -40,6 +41,8 @@ public:
 
     void stop();
 
+    bool isStarted();
+
     Boardcore::ADS131M08Data getADC1LastSample();
 
 private:
@@ -50,6 +53,7 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
     Boardcore::TaskScheduler &scheduler;
 
+    std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::ADS131M08> adc1;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };

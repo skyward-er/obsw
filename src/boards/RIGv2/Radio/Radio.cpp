@@ -23,8 +23,12 @@
 #include "Radio.h"
 
 #include <RIGv2/Buses.h>
+#include <RIGv2/Sensors/Sensors.h>
 #include <common/Radio.h>
+#include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
+// TODO(davide.mor): Remove TimestampTimer
+#include <drivers/timer/TimestampTimer.h>
 
 #include <atomic>
 
@@ -33,20 +37,28 @@ using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
 
-Boardcore::SX1278Lora* gRadio{nullptr};
+SX1278Lora* gRadio{nullptr};
 
 void handleDioIRQ()
 {
-    Boardcore::SX1278Lora* instance = gRadio;
+    SX1278Lora* instance = gRadio;
     if (instance)
     {
         instance->handleDioIRQ();
     }
 }
 
+void setIRQRadio(SX1278Lora* radio)
+{
+    FastInterruptDisableLock dl;
+    gRadio = radio;
+}
+
 void __attribute__((used)) MIOSIX_RADIO_DIO0_IRQ() { handleDioIRQ(); }
 void __attribute__((used)) MIOSIX_RADIO_DIO1_IRQ() { handleDioIRQ(); }
 void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
+
+bool Radio::isStarted() { return started; }
 
 bool Radio::start()
 {
@@ -64,10 +76,7 @@ bool Radio::start()
         SPI::ClockDivider::DIV_64, std::move(frontend));
 
     // Store the global radio instance
-    {
-        miosix::FastDisableInterrupt di;
-        gRadio = radio.get();
-    }
+    setIRQRadio(radio.get());
 
     // Initialize radio
     auto result = radio->init(RIG_RADIO_CONFIG);
@@ -91,20 +100,20 @@ bool Radio::start()
         return false;
     }
 
+    started = true;
     return true;
 }
 
 void Radio::stop()
 {
     // Remove global radio instance
-    {
-        miosix::FastDisableInterrupt di;
-        gRadio = nullptr;
-    }
+    setIRQRadio(nullptr);
+
     mavDriver->stop();
+    started = false;
 }
 
-void Radio::queuePacket(const mavlink_message_t& msg)
+void Radio::enqueuePacket(const mavlink_message_t& msg)
 {
     queuedPackets.put(msg);
 }
@@ -132,7 +141,7 @@ void Radio::sendAck(const mavlink_message_t& msg)
     mavlink_msg_ack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                             Config::Radio::MAV_COMPONENT_ID, &ackMsg, msg.msgid,
                             msg.seq);
-    queuePacket(ackMsg);
+    enqueuePacket(ackMsg);
 }
 
 void Radio::sendNack(const mavlink_message_t& msg)
@@ -141,7 +150,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
                              msg.msgid, msg.seq);
-    queuePacket(nackMsg);
+    enqueuePacket(nackMsg);
 }
 
 Boardcore::MavlinkStatus Radio::getMavStatus()
@@ -154,46 +163,75 @@ void Radio::handleMessage(const mavlink_message_t& msg)
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
+        {
             sendAck(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_COMMAND_TC:
+        {
             handleCommand(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_CONRIG_STATE_TC:
+        {
             handleConrigState(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
-            // TODO: Implement SystemTM
-            sendNack(msg);
+        {
+            uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
+
+            mavlink_message_t tm;
+            if (packSystemTm(tmId, tm))
+            {
+                sendAck(msg);
+                enqueuePacket(tm);
+            }
+            else
+            {
+                sendNack(msg);
+            }
+
             break;
+        }
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
+        {
             // TODO: Implement servo wiggle
             sendNack(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_SET_ATOMIC_VALVE_TIMING_TC:
+        {
             // TODO: Implement set atomic valve timing
             sendNack(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_SET_VALVE_MAXIMUM_APERTURE_TC:
+        {
             // TODO: Implement set valve maximum aperture
             sendNack(msg);
             break;
+        }
 
         case MAVLINK_MSG_ID_SET_IGNITION_TIME_TC:
+        {
             // TODO: Implement set ignition time
             sendNack(msg);
             break;
+        }
 
         default:
+        {
             // Unrecognized packet
             sendNack(msg);
             break;
+        }
     }
 }
 
@@ -203,6 +241,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     switch (cmd)
     {
         case MAV_CMD_START_LOGGING:
+        {
             if (!Logger::getInstance().start())
             {
                 sendNack(msg);
@@ -212,45 +251,154 @@ void Radio::handleCommand(const mavlink_message_t& msg)
                 sendAck(msg);
             }
             break;
+        }
 
         case MAV_CMD_STOP_LOGGING:
+        {
             Logger::getInstance().stop();
             sendAck(msg);
             break;
+        }
 
         case MAV_CMD_CALIBRATE:
+        {
             // TODO: Implement calibrate
             sendNack(msg);
             break;
+        }
 
         default:
+        {
             // Unrecognized command
             sendNack(msg);
             break;
+        }
+    }
+}
+
+bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    switch (tmId)
+    {
+        case MAV_SYS_ID:
+        {
+            mavlink_sys_tm_t tm;
+
+            tm.timestamp    = TimestampTimer::getTimestamp();
+            tm.logger       = Logger::getInstance().isStarted();
+            tm.event_broker = EventBroker::getInstance().isRunning();
+            // What? Why is this here? Of course the radio is started!
+            tm.radio           = isStarted();
+            tm.sensors         = modules.get<Sensors>()->isStarted();
+            tm.board_scheduler = 0;  // TODO(davide.mor): No BoardScheduler yet
+
+            mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            return true;
+        }
+
+        case MAV_LOGGER_ID:
+        {
+            mavlink_logger_tm_t tm;
+
+            LoggerStats stats = Logger::getInstance().getStats();
+
+            tm.timestamp          = TimestampTimer::getTimestamp();
+            tm.log_number         = stats.logNumber;
+            tm.too_large_samples  = stats.tooLargeSamples;
+            tm.dropped_samples    = stats.droppedSamples;
+            tm.queued_samples     = stats.queuedSamples;
+            tm.buffers_filled     = stats.buffersFilled;
+            tm.buffers_written    = stats.buffersWritten;
+            tm.writes_failed      = stats.writesFailed;
+            tm.last_write_error   = stats.lastWriteError;
+            tm.average_write_time = stats.averageWriteTime;
+            tm.max_write_time     = stats.maxWriteTime;
+
+            mavlink_msg_logger_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                         Config::Radio::MAV_COMPONENT_ID, &msg,
+                                         &tm);
+            return true;
+        }
+
+        case MAV_MAVLINK_STATS:
+        {
+            mavlink_mavlink_stats_tm_t tm;
+
+            MavlinkStatus stats = modules.get<Radio>()->mavDriver->getStatus();
+
+            tm.timestamp               = stats.timestamp;
+            tm.n_send_queue            = stats.nSendQueue;
+            tm.max_send_queue          = stats.maxSendQueue;
+            tm.n_send_errors           = stats.nSendErrors;
+            tm.msg_received            = stats.mavStats.msg_received;
+            tm.buffer_overrun          = stats.mavStats.buffer_overrun;
+            tm.parse_error             = stats.mavStats.parse_error;
+            tm.parse_state             = stats.mavStats.parse_state;
+            tm.packet_idx              = stats.mavStats.packet_idx;
+            tm.current_rx_seq          = stats.mavStats.current_rx_seq;
+            tm.current_tx_seq          = stats.mavStats.current_tx_seq;
+            tm.packet_rx_success_count = stats.mavStats.packet_rx_success_count;
+            tm.packet_rx_drop_count    = stats.mavStats.packet_rx_drop_count;
+
+            mavlink_msg_mavlink_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                                Config::Radio::MAV_COMPONENT_ID,
+                                                &msg, &tm);
+            return true;
+        }
+
+        case MAV_GSE_ID:
+        {
+            mavlink_gse_tm_t tm = {0};
+
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.loadcell_rocket = 69;
+            tm.loadcell_vessel = 420;
+            // TODO(davide.mor): Add the rest of these
+
+            mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            return true;
+        }
+
+        case MAV_MOTOR_ID:
+        {
+            mavlink_motor_tm_t tm;
+
+            tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.top_tank_pressure    = 69;
+            tm.bottom_tank_pressure = 420;
+
+            mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                        Config::Radio::MAV_COMPONENT_ID, &msg,
+                                        &tm);
+            return true;
+        }
+
+        default:
+        {
+            return false;
+        }
     }
 }
 
 void Radio::handleConrigState(const mavlink_message_t& msg)
 {
+    // Acknowledge the state
     sendAck(msg);
 
-    // TODO: Send actual data
-    sendFakeGseTm();
-
+    // Flush all pending packets
     flushPackets();
 
+    // Send GSE and motor telemetry
+    mavlink_message_t tm;
+    packSystemTm(MAV_GSE_ID, tm);
+    enqueuePacket(tm);
+    packSystemTm(MAV_MOTOR_ID, tm);
+    enqueuePacket(tm);
+
     // TODO: Handle buttons
-}
-
-void Radio::sendFakeGseTm()
-{
-    mavlink_gse_tm_t tm = {0};
-    mavlink_message_t msg;
-
-    tm.timestamp = 69;
-
-    mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                              Config::Radio::MAV_COMPONENT_ID, &msg, &tm);
-
-    queuePacket(msg);
 }

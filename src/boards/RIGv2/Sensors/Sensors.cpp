@@ -31,16 +31,29 @@ using namespace Boardcore;
 using namespace miosix;
 using namespace RIGv2;
 
+bool Sensors::isStarted() { return started; }
+
 bool Sensors::start()
 {
     SensorManager::SensorMap_t map;
     adc1Init(map);
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
-    return manager->start();
+    if (!manager->start())
+    {
+        LOG_ERR(logger, "Failed to start SensorManager");
+        return false;
+    }
+
+    started = true;
+    return true;
 }
 
-void Sensors::stop() { manager->stop(); }
+void Sensors::stop()
+{
+    manager->stop();
+    started = false;
+}
 
 ADS131M08Data Sensors::getADC1LastSample()
 {
