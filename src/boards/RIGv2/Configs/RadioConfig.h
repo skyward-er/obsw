@@ -44,6 +44,8 @@ static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
 static constexpr uint8_t MAV_SYSTEM_ID    = 171;
 static constexpr uint8_t MAV_COMPONENT_ID = 96;
 
+static constexpr long long LAST_COMMAND_THRESHOLD = 1000;
+
 }  // namespace Radio
 
 }  // namespace Config
