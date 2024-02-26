@@ -81,6 +81,7 @@ public:
 
     std::array<Boardcore::SensorInfo, 8> getSensorInfo();
 
+    Boardcore::BMX160* bmx160           = nullptr;
 private:
     // Init and callbacks methods
     void bmx160Init();
@@ -110,7 +111,6 @@ private:
     // Sensors instances
     Boardcore::LIS3MDL* lis3mdl         = nullptr;
     Boardcore::MS5803* ms5803           = nullptr;
-    Boardcore::BMX160* bmx160           = nullptr;
     Boardcore::UBXGPSSerial* ubxGps     = nullptr;
     Boardcore::ADS1118* ads1118         = nullptr;
     Boardcore::InternalADC* internalADC = nullptr;

@@ -30,6 +30,15 @@
 using namespace Boardcore;
 using namespace std;
 using namespace Payload::SensorsConfig;
+
+// BMX160 Watermark interrupt
+void __attribute__((used)) EXTI5_IRQHandlerImpl()
+{
+    Payload::Sensors* sensors_module = ModuleManager::getInstance().get<Payload::Sensors>();
+    if (sensors_module->bmx160 != nullptr)
+        sensors_module->bmx160->IRQupdateTimestamp(TimestampTimer::getTimestamp());
+}
+
 namespace Payload
 {
 // Getters
@@ -329,6 +338,8 @@ void Sensors::internalADCInit()
     // internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
 
     internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
+    internalADC->enableTemperature();
+    internalADC->enableVbat();
 
     SensorInfo info("INTERNAL_ADC", INTERNAL_ADC_SAMPLE_PERIOD,
                     bind(&Sensors::internalADCCallback, this));

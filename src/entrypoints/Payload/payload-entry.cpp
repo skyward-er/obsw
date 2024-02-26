@@ -81,8 +81,7 @@ int main()
     WindEstimation* windEstimation =
         new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
-    Actuators* actuators =
-        new Actuators();
+    Actuators* actuators = new Actuators();
 
     // Components without a scheduler
     TMRepository* tmRepo   = new TMRepository();
@@ -255,8 +254,9 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         LOG_ERR(logger, "Failed to initialize");
     }
-    
-    modules.get<WingController>()->selectAlgorithm(WingConfig::SELECTED_ALGORITHM);
+
+    modules.get<WingController>()->selectAlgorithm(
+        WingConfig::SELECTED_ALGORITHM);
 
     // Log configs
     WingConfig::WingConfigStruct f;
@@ -270,7 +270,6 @@ int main()
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
         modules.get<Radio>()->logStatus();
-        StackLogger::getInstance().log();
     }
 
     return 0;
