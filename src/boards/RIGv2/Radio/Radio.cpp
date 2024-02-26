@@ -402,7 +402,10 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
         {
             mavlink_motor_tm_t tm;
 
+            auto tc1 = modules.get<Sensors>()->getTc1LastSample();
+
             tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.tank_temperature     = tc1.temperature;
             tm.top_tank_pressure    = 69;
             tm.bottom_tank_pressure = 420;
 

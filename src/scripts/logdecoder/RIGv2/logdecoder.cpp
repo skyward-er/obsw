@@ -52,6 +52,7 @@ void registerTypes(Deserializer& ds)
 
     // Custom types
     ds.registerType<ADCsData>();
+    ds.registerType<TCsData>();
     ds.registerType<ActuatorsData>();
 }
 

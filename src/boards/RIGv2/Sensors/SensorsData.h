@@ -23,6 +23,7 @@
 #pragma once
 
 #include <sensors/ADS131M08/ADS131M08Data.h>
+#include <sensors/MAX31856/MAX31856Data.h>
 
 namespace RIGv2
 {
@@ -41,7 +42,7 @@ struct ADCsData : Boardcore::ADS131M08Data
 
     static std::string header()
     {
-        return "timestamp,adc_number,voltage_channel_1,voltage_channel_2,"
+        return "timestamp,adcNumber,voltage_channel_1,voltage_channel_2,"
                "voltage_channel_3,voltage_channel_4,voltage_channel_5,voltage_"
                "channel_6,voltage_channel_7,voltage_channel_8\n";
     }
@@ -54,4 +55,30 @@ struct ADCsData : Boardcore::ADS131M08Data
            << voltage[7] << "\n";
     }
 };
-}  // namespace RIG
+
+struct TCsData : Boardcore::MAX31856Data
+{
+    uint8_t tcNumber;
+
+    TCsData() : MAX31856Data{0, 0}, tcNumber{0} {}
+
+    TCsData(uint64_t time, uint8_t num, float temperature,
+            float coldJunctionTemperature)
+        : MAX31856Data{time, temperature, coldJunctionTemperature},
+          tcNumber{num}
+    {
+    }
+
+    static std::string header()
+    {
+        return "temperatureTimestamp,tcNumber,temperature,"
+               "coldJunctionTemperature\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << temperatureTimestamp << "," << (int)tcNumber << "," << temperature
+           << "," << coldJunctionTemperature << "\n";
+    }
+};
+}  // namespace RIGv2
