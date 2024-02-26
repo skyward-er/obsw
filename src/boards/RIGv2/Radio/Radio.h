@@ -71,6 +71,10 @@ private:
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::SX1278Lora> radio;
     std::unique_ptr<MavDriver> mavDriver;
+
+    // Last time a ConRIG state triggered an actuation [ns]
+    long long lastManualActuation = 0;
+    mavlink_conrig_state_tc_t oldConrigState;
 };
 
 }  // namespace RIGv2
