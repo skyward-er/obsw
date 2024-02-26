@@ -119,40 +119,17 @@ bool Actuators::start()
     infos[8].servo->enable();
     infos[9].servo->enable();
 
+    updatePositionTaskId =
+        scheduler.addTask([this]() { updatePositionsTask(); },
+                          Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
+
     if (updatePositionTaskId == 0)
     {
-        updatePositionTaskId =
-            scheduler.addTask([this]() { updatePositionsTask(); },
-                              Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
-
-        if (updatePositionTaskId == 0)
-        {
-            LOG_ERR(logger, "Failed to add updatePositionsTask");
-            return false;
-        }
-    }
-    else
-    {
-        scheduler.enableTask(updatePositionTaskId);
+        LOG_ERR(logger, "Failed to add updatePositionsTask");
+        return false;
     }
 
     return true;
-}
-
-void Actuators::stop()
-{
-    infos[0].servo->disable();
-    infos[1].servo->disable();
-    infos[2].servo->disable();
-    infos[3].servo->disable();
-    // infos[4].servo->disable();
-    infos[5].servo->disable();
-    infos[6].servo->disable();
-    // infos[7].servo->disable();
-    infos[8].servo->disable();
-    infos[9].servo->disable();
-
-    scheduler.disableTask(updatePositionTaskId);
 }
 
 bool Actuators::wiggleServo(ServosList servo)
