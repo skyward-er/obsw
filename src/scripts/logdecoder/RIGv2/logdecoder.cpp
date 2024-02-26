@@ -21,6 +21,7 @@
  */
 
 #include <RIGv2/Sensors/SensorsData.h>
+#include <RIGv2/Actuators/ActuatorsData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -51,6 +52,7 @@ void registerTypes(Deserializer& ds)
 
     // Custom types
     ds.registerType<ADCsData>();
+    ds.registerType<ActuatorsData>();
 }
 
 void showUsage(const string& cmdName)
