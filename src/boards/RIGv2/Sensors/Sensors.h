@@ -23,6 +23,7 @@
 #pragma once
 
 #include <sensors/ADS131M08/ADS131M08.h>
+#include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
 
 #include <memory>
@@ -44,10 +45,14 @@ public:
     bool isStarted();
 
     Boardcore::ADS131M08Data getADC1LastSample();
+    Boardcore::MAX31856Data getTc1LastSample();
 
 private:
     void adc1Init(Boardcore::SensorManager::SensorMap_t &map);
     void adc1Callback();
+    
+    void tc1Init(Boardcore::SensorManager::SensorMap_t &map);
+    void tc1Callback();
 
     Boardcore::Logger &sdLogger = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
@@ -55,6 +60,7 @@ private:
 
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::ADS131M08> adc1;
+    std::unique_ptr<Boardcore::MAX31856> tc1;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };
 
