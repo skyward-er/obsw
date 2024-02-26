@@ -25,6 +25,8 @@
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Sensors/Sensors.h>
+#include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <common/Events.h>
 #include <common/Radio.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
@@ -196,7 +198,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            if (modules.get<Actuators>()->wiggleServo(servo))
+            if (modules.get<GroundModeManager>()->isDisarmed() &&
+                modules.get<Actuators>()->wiggleServo(servo))
             {
                 sendAck(msg);
             }
@@ -288,7 +291,14 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_CALIBRATE:
         {
-            modules.get<Sensors>()->calibrate();
+            EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_MOTOR);
+            sendAck(msg);
+            break;
+        }
+
+        case MAV_CMD_FORCE_INIT:
+        {
+            EventBroker::getInstance().post(TMTC_FORCE_INIT, TOPIC_MOTOR);
             sendAck(msg);
             break;
         }
@@ -312,11 +322,11 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_sys_tm_t tm;
 
             tm.timestamp    = TimestampTimer::getTimestamp();
-            tm.logger       = Logger::getInstance().isStarted();
-            tm.event_broker = EventBroker::getInstance().isRunning();
+            tm.logger       = Logger::getInstance().isStarted() ? 1 : 0;
+            tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
             // What? Why is this here? Of course the radio is started!
-            tm.radio           = isStarted();
-            tm.sensors         = modules.get<Sensors>()->isStarted();
+            tm.radio           = isStarted() ? 1 : 0;
+            tm.sensors         = modules.get<Sensors>()->isStarted() ? 1 : 0;
             tm.board_scheduler = 0;  // TODO(davide.mor): No BoardScheduler yet
 
             mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -395,6 +405,8 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
                 actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
+            tm.arming_state = modules.get<GroundModeManager>()->isArmed();
+            tm.ignition_state = modules.get<GroundModeManager>()->isIgniting();
             // TODO(davide.mor): Add the rest of these
 
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -458,7 +470,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (oldConrigState.arm_switch == 0 && state.arm_switch == 1)
         {
             // The ARM switch was pressed
-            // TODO(davide.mor): Arm the system
+            // TODO(davide.mor): Notify everybody of a manual actuation
+
+            EventBroker::getInstance().post(TMTC_ARM, TOPIC_MOTOR);
 
             lastManualActuation = currentTime;
         }
@@ -519,7 +533,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     // Special case for disarming, that can be done bypassing the timeout
     if (oldConrigState.arm_switch == 1 && state.arm_switch == 0)
     {
-        // TODO(davide.mor): Disarm the system
+        // TODO(davide.mor): Notify everybody of a manual actuation
+
+        EventBroker::getInstance().post(TMTC_DISARM, TOPIC_MOTOR);
 
         lastManualActuation = currentTime;
     }
