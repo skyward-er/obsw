@@ -34,6 +34,7 @@ namespace Sensors
 {
 
 static constexpr uint32_t ADC_SAMPLE_PERIOD = 10;
+static constexpr uint32_t TC_SAMPLE_PERIOD = 100;
 
 }
 
