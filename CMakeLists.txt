@@ -33,7 +33,7 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(parafoil-entry-milano src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
-target_include_directories(parafoil-entry-milano PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-entry-milano PRIVATE MILANO)
-sbs_target(parafoil-entry-milano stm32f429zi_skyward_death_stack_x)
+add_executable(parafoil-entry src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-entry PRIVATE MILANO)
+sbs_target(parafoil-entry stm32f429zi_skyward_death_stack_x)

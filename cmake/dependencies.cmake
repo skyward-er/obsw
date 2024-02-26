@@ -20,24 +20,23 @@
 # THE SOFTWARE.
 
 set(OBSW_INCLUDE_DIRS
-    # src
     src/boards
 )
 
-set(PAYLOAD_COMPUTER
-    src/boards/Payload/Actuators/Actuators.cpp
-    src/boards/Payload/Sensors/Sensors.cpp
-    src/boards/Payload/BoardScheduler.cpp
-    src/boards/Payload/PinHandler/PinHandler.cpp
-    src/boards/Payload/Radio/Radio.cpp
-    src/boards/Payload/TMRepository/TMRepository.cpp
-    src/boards/Payload/StateMachines/NASController/NASController.cpp
-    src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Payload/StateMachines/WingController/WingController.cpp
-    src/boards/Payload/AltitudeTrigger/AltitudeTrigger.cpp
-    src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
-    src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
-    src/boards/Payload/Wing/FileWingAlgorithm.cpp
-    src/boards/Payload/Wing/WingAlgorithm.cpp
-    src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
+set(PARAFOIL_COMPUTER
+    src/boards/Parafoil/Actuators/Actuators.cpp
+    src/boards/Parafoil/Sensors/Sensors.cpp
+    src/boards/Parafoil/BoardScheduler.cpp
+    src/boards/Parafoil/PinHandler/PinHandler.cpp
+    src/boards/Parafoil/Radio/Radio.cpp
+    src/boards/Parafoil/TMRepository/TMRepository.cpp
+    src/boards/Parafoil/StateMachines/NASController/NASController.cpp
+    src/boards/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/boards/Parafoil/StateMachines/WingController/WingController.cpp
+    src/boards/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
+    src/boards/Parafoil/Wing/AutomaticWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/boards/Parafoil/Wing/FileWingAlgorithm.cpp
+    src/boards/Parafoil/Wing/WingAlgorithm.cpp
+    src/boards/Parafoil/WindEstimationScheme/WindEstimation.cpp
 )

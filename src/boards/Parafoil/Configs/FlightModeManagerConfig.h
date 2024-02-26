@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2022 Skyward Experimental Rocketry
+ * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,7 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
-namespace Common
+namespace Parafoil
 {
-
-enum Topics : uint8_t
-{
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-};
-
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
-
-}  // namespace Common
+constexpr unsigned int LOGGING_DELAY = 5 * 1000;  // [ms]
+}  // namespace Parafoil

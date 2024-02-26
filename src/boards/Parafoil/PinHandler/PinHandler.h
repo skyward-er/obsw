@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
+ * Authors: Luca Erbetta, Luca Conterio, Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,45 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
+#include <utils/PinObserver/PinObserver.h>
 
-namespace Common
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+/**
+ * @brief This class contains the handlers for the detach pins on the rocket.
+ *
+ * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
+ * The handlers post an event on the EventBroker.
+ */
+class PinHandler : public Boardcore::Module
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
+public:
+    PinHandler();
+
+    bool start();
+
+    bool isStarted();
+
+    /**
+     * @brief Called when the deployment servo actuation is detected via the
+     * optical sensor.
+     */
+    void onExpulsionPinTransition(Boardcore::PinTransition transition);
+
+    /**
+     * @brief Returns a vector with all the pins data.
+     */
+    std::map<PinsList, Boardcore::PinData> getPinsData();
+
+private:
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+
+    std::atomic<bool> running;
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
-
-}  // namespace Common
+}  // namespace Parafoil

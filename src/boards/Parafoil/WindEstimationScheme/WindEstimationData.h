@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
+/* Copyright (c) 2022 Skyward Experimental Rocketry
  * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,35 +22,25 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
+
+#include <iostream>
 #include <string>
-#include <vector>
 
-namespace Common
+namespace Parafoil
 {
 
-enum Topics : uint8_t
+struct WindLogging
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
+    long long timestamp = 0;
+    float vn = 0, ve = 0;
+
+    static std::string header() { return "timestamp,vn,ve\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << vn << "," << ve << "\n ";
+    }
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
-
-}  // namespace Common
+}  // namespace Parafoil

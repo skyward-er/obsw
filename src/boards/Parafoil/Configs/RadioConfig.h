@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,38 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <common/Mavlink.h>
 
-namespace Common
+namespace Parafoil
 {
-
-enum Topics : uint8_t
+namespace RadioConfig
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-};
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
+constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;   // [ms]
+constexpr uint32_t RADIO_STATS_TELEMETRY_PERIOD    = 2000;  // [ms]
 
-}  // namespace Common
+constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 0;
+constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 200;
+
+constexpr uint8_t MAV_SYSTEM_ID = 171;
+constexpr uint8_t MAV_COMP_ID   = 96;
+
+constexpr uint32_t MAVLINK_QUEUE_SIZE = 10;
+
+// XBee parameters
+constexpr bool XBEE_80KBPS_DATA_RATE = true;
+constexpr int XBEE_TIMEOUT           = 5000;  //  [ms]
+
+}  // namespace RadioConfig
+}  // namespace Parafoil

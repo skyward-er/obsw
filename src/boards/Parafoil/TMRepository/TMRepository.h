@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,38 +19,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <common/Mavlink.h>
+#include <diagnostic/PrintLogger.h>
 
-namespace Common
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+namespace Parafoil
 {
-
-enum Topics : uint8_t
+class TMRepository : public Boardcore::Module
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-};
+public:
+    inline TMRepository() {}
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
+    // Packs the telemetry at system level (E.g. logger telemetry..)
+    mavlink_message_t packSystemTm(SystemTMList tmId, uint8_t msgId,
+                                   uint8_t seq);
 
-}  // namespace Common
+    // Packs the telemetry at sensors level (E.g. pressure sensors..)
+    mavlink_message_t packSensorsTm(SensorsTMList sensorId, uint8_t msgId,
+                                    uint8_t seq);
+
+    // Packs the telemetry about servo positions states
+    mavlink_message_t packServoTm(ServosList servoId, uint8_t msgId,
+                                  uint8_t seq);
+
+private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("TMRepository");
+};
+}  // namespace Parafoil

@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,27 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
 
-namespace Common
+#include <utils/ModuleManager/ModuleManager.hpp>
+namespace Parafoil
 {
-
-enum Topics : uint8_t
+class Buses : public Boardcore::Module
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-};
+public:
+    Boardcore::USART usart1;
+    Boardcore::USART usart2;
+    Boardcore::USART usart3;
+    Boardcore::USART uart4;
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_MEA, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,  TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING,
-};
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
 
-}  // namespace Common
+    Buses()
+        : usart1(USART1, 115200), usart2(USART2, 115200),
+          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
+    {
+    }
+};
+}  // namespace Parafoil
