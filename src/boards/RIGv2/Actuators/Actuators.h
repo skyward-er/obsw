@@ -84,6 +84,7 @@ private:
 
     Boardcore::TaskScheduler &scheduler;
 
+    size_t updatePositionTaskId = 0;
     miosix::FastMutex infosMutex;
     ServoInfo infos[10] = {};
 };
