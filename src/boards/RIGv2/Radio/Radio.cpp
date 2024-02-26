@@ -22,6 +22,7 @@
 
 #include "Radio.h"
 
+#include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Radio.h>
@@ -160,6 +161,7 @@ Boardcore::MavlinkStatus Radio::getMavStatus()
 
 void Radio::handleMessage(const mavlink_message_t& msg)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -200,28 +202,60 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            // TODO: Implement servo wiggle
-            sendNack(msg);
+            ServosList servo = static_cast<ServosList>(
+                mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
+
+            if (modules.get<Actuators>()->wiggleServo(servo))
+            {
+                sendAck(msg);
+            }
+            else
+            {
+                sendNack(msg);
+            }
             break;
         }
 
         case MAVLINK_MSG_ID_SET_ATOMIC_VALVE_TIMING_TC:
         {
-            // TODO: Implement set atomic valve timing
-            sendNack(msg);
+            uint32_t time =
+                mavlink_msg_set_atomic_valve_timing_tc_get_maximum_timing(&msg);
+            ServosList servo = static_cast<ServosList>(
+                mavlink_msg_set_atomic_valve_timing_tc_get_servo_id(&msg));
+
+            if (modules.get<Actuators>()->setOpeningTime(servo, time))
+            {
+                sendAck(msg);
+            }
+            else
+            {
+                sendNack(msg);
+            }
             break;
         }
 
         case MAVLINK_MSG_ID_SET_VALVE_MAXIMUM_APERTURE_TC:
         {
-            // TODO: Implement set valve maximum aperture
-            sendNack(msg);
+            float aperture =
+                mavlink_msg_set_valve_maximum_aperture_tc_get_maximum_aperture(
+                    &msg);
+            ServosList servo = static_cast<ServosList>(
+                mavlink_msg_set_valve_maximum_aperture_tc_get_servo_id(&msg));
+
+            if (modules.get<Actuators>()->setMaxAperture(servo, aperture))
+            {
+                sendAck(msg);
+            }
+            else
+            {
+                sendNack(msg);
+            }
             break;
         }
 
         case MAVLINK_MSG_ID_SET_IGNITION_TIME_TC:
         {
-            // TODO: Implement set ignition time
+            // TODO(davide.mor): Implement set ignition time
             sendNack(msg);
             break;
         }
