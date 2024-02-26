@@ -68,6 +68,7 @@ public:
     bool openServoAtomic(ServosList servo, uint64_t time);
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint64_t time);
+    bool isServoOpen(ServosList servo);
 
 private:
     ServoInfo *getServo(ServosList servo);

@@ -262,7 +262,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
-    uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
+    ModuleManager& modules = ModuleManager::getInstance();
+    uint8_t cmd            = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
     {
         case MAV_CMD_START_LOGGING:
@@ -287,8 +288,8 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_CALIBRATE:
         {
-            // TODO: Implement calibrate
-            sendNack(msg);
+            modules.get<Sensors>()->calibrate();
+            sendAck(msg);
             break;
         }
 
@@ -378,9 +379,22 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
         {
             mavlink_gse_tm_t tm = {0};
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.loadcell_rocket = 69;
-            tm.loadcell_vessel = 420;
+            Sensors* sensors     = modules.get<Sensors>();
+            Actuators* actuators = modules.get<Actuators>();
+
+            tm.timestamp        = TimestampTimer::getTimestamp();
+            tm.loadcell_rocket  = sensors->getTankWeight().load;
+            tm.loadcell_vessel  = sensors->getVesselWeight().load;
+            tm.filling_pressure = sensors->getFillingPress().pressure;
+            tm.vessel_pressure  = sensors->getVesselPress().pressure;
+            tm.filling_valve_state =
+                actuators->isServoOpen(ServosList::FILLING_VALVE) ? 1 : 0;
+            tm.venting_valve_state =
+                actuators->isServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
+            tm.release_valve_state =
+                actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
+            tm.main_valve_state =
+                actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -391,14 +405,16 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
 
         case MAV_MOTOR_ID:
         {
-            mavlink_motor_tm_t tm;
+            mavlink_motor_tm_t tm = {0};
 
-            auto tc1 = modules.get<Sensors>()->getTc1LastSample();
+            Sensors* sensors = modules.get<Sensors>();
 
             tm.timestamp            = TimestampTimer::getTimestamp();
-            tm.tank_temperature     = tc1.temperature;
-            tm.top_tank_pressure    = 69;
-            tm.bottom_tank_pressure = 420;
+            tm.tank_temperature     = sensors->getTc1LastSample().temperature;
+            tm.top_tank_pressure    = sensors->getTankTopPress().pressure;
+            tm.bottom_tank_pressure = sensors->getTankBottomPress().pressure;
+            tm.floating_level       = 69.0f;  // Lol
+            // TODO(davide.mor): Add the rest of these
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -439,21 +455,25 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             (Config::Radio::LAST_COMMAND_THRESHOLD * Constants::NS_IN_MS))
     {
         // Ok we can accept new commands
-        if(oldConrigState.arm_switch == 0 && state.arm_switch == 1) {
+        if (oldConrigState.arm_switch == 0 && state.arm_switch == 1)
+        {
             // The ARM switch was pressed
             // TODO(davide.mor): Arm the system
 
             lastManualActuation = currentTime;
         }
 
-        if(oldConrigState.ignition_btn == 0 && state.ignition_btn == 1) {
+        if (oldConrigState.ignition_btn == 0 && state.ignition_btn == 1)
+        {
             // The ignition switch was pressed
             // TODO(davide.mor): Perform ignition
 
             lastManualActuation = currentTime;
         }
 
-        if(oldConrigState.filling_valve_btn == 0 && state.filling_valve_btn == 1) {
+        if (oldConrigState.filling_valve_btn == 0 &&
+            state.filling_valve_btn == 1)
+        {
             // The filling switch was pressed
             // TODO(davide.mor): Notify everybody of a manual actuation
 
@@ -462,7 +482,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if(oldConrigState.quick_connector_btn == 0 && state.quick_connector_btn == 1) {
+        if (oldConrigState.quick_connector_btn == 0 &&
+            state.quick_connector_btn == 1)
+        {
             // The quick conector switch was pressed
             // TODO(davide.mor): Notify everybody of a manual actuation
 
@@ -471,7 +493,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if(oldConrigState.release_pressure_btn == 0 && state.release_pressure_btn == 1) {
+        if (oldConrigState.release_pressure_btn == 0 &&
+            state.release_pressure_btn == 1)
+        {
             // The release switch was pressed
             // TODO(davide.mor): Notify everybody of a manual actuation
 
@@ -480,7 +504,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if(oldConrigState.venting_valve_btn == 0 && state.venting_valve_btn == 1) {
+        if (oldConrigState.venting_valve_btn == 0 &&
+            state.venting_valve_btn == 1)
+        {
             // The venting switch was pressed
             // TODO(davide.mor): Notify everybody of a manual actuation
 
@@ -491,7 +517,8 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     }
 
     // Special case for disarming, that can be done bypassing the timeout
-    if(oldConrigState.arm_switch == 1 && state.arm_switch == 0) {
+    if (oldConrigState.arm_switch == 1 && state.arm_switch == 0)
+    {
         // TODO(davide.mor): Disarm the system
 
         lastManualActuation = currentTime;
