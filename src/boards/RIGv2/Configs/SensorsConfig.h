@@ -36,6 +36,22 @@ namespace Sensors
 static constexpr uint32_t ADC_SAMPLE_PERIOD = 10;
 static constexpr uint32_t TC_SAMPLE_PERIOD = 100;
 
+static constexpr float ADC1_CH1_SHUNT_RESISTANCE = 30;
+static constexpr float ADC1_CH2_SHUNT_RESISTANCE = 30;
+static constexpr float ADC1_CH3_SHUNT_RESISTANCE = 30;
+static constexpr float ADC1_CH4_SHUNT_RESISTANCE = 30;
+
+static constexpr float PT_MIN_CURRENT = 4;
+static constexpr float PT_MAX_CURRENT = 20;
+
+static constexpr float FILLING_MAX_PRESSURE     = 100;  // bar
+static constexpr float TANK_TOP_MAX_PRESSURE    = 100;  // bar
+static constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
+static constexpr float VESSEL_MAX_PRESSURE      = 400;  // bar
+
+static constexpr unsigned int LC_CALIBRATE_SAMPLE_COUNT = 10;
+static constexpr unsigned int LC_CALIBRATE_SAMPLE_PERIOD = 40;
+
 }
 
 }  // namespace Config
