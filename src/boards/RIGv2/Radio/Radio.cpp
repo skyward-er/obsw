@@ -105,15 +105,6 @@ bool Radio::start()
     return true;
 }
 
-void Radio::stop()
-{
-    // Remove global radio instance
-    setIRQRadio(nullptr);
-
-    mavDriver->stop();
-    started = false;
-}
-
 void Radio::enqueuePacket(const mavlink_message_t& msg)
 {
     queuedPackets.put(msg);
