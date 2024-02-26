@@ -24,10 +24,14 @@
 #include <RIGv2/Buses.h>
 #include <RIGv2/Radio/Radio.h>
 #include <RIGv2/Sensors/Sensors.h>
+#include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <common/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
+#include <events/EventBroker.h>
 
 using namespace Boardcore;
+using namespace Common;
 using namespace RIGv2;
 using namespace miosix;
 
@@ -41,12 +45,14 @@ int main()
     TaskScheduler *scheduler1 = new TaskScheduler(3);
     TaskScheduler *scheduler2 = new TaskScheduler(4);
 
-    Buses *buses         = new Buses();
-    Sensors *sensors     = new Sensors(*scheduler1);
-    Actuators *actuators = new Actuators(*scheduler2);
-    Radio *radio         = new Radio();
+    Buses *buses           = new Buses();
+    Sensors *sensors       = new Sensors(*scheduler1);
+    Actuators *actuators   = new Actuators(*scheduler2);
+    GroundModeManager *gmm = new GroundModeManager();
+    Radio *radio           = new Radio();
 
-    Logger &sdLogger = Logger::getInstance();
+    Logger &sdLogger    = Logger::getInstance();
+    EventBroker &broker = EventBroker::getInstance();
 
     bool initResult = true;
 
@@ -75,7 +81,25 @@ int main()
         LOG_ERR(logger, "Error failed to insert Radio");
     }
 
+    if (!modules.insert<GroundModeManager>(gmm))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to insert GroundModeManager");
+    }
+
     // Start modules
+    if (sdLogger.testSDCard())
+    {
+        initResult = false;
+        LOG_ERR(logger, "SD card test failed");
+    }
+
+    if (broker.start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Failed to start EventBroker");
+    }
+
     if (!sensors->start())
     {
         initResult = false;
@@ -94,16 +118,27 @@ int main()
         LOG_ERR(logger, "Error failed to start Radio module");
     }
 
+    if (!gmm->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start GroundModeManager module");
+    }
+
     if (!scheduler1->start() || !scheduler2->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
-    if (!initResult)
+    if (initResult)
     {
-        // TODO(davide.mor): What to do in case of not good?
+        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
         LOG_INFO(logger, "All good!");
+    }
+    else
+    {
+        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
+        LOG_ERR(logger, "Init failure!");
     }
 
     // Periodic statistics
