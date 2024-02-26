@@ -29,6 +29,10 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
 #include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
+// TODO(davide.mor): Remove TimestampTimer
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
 using namespace Common;
@@ -53,6 +57,15 @@ int main()
 
     Logger &sdLogger    = Logger::getInstance();
     EventBroker &broker = EventBroker::getInstance();
+
+    // Setup event sniffer
+    EventSniffer sniffer(
+        broker,
+        [&](uint8_t event, uint8_t topic)
+        {
+            EventData data{TimestampTimer::getTimestamp(), event, topic};
+            sdLogger.log(data);
+        });
 
     bool initResult = true;
 
