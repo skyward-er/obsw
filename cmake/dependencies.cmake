@@ -66,6 +66,7 @@ set(RIG_V2_COMPUTER
     src/boards/RIGv2/Radio/Radio.cpp
     src/boards/RIGv2/Sensors/Sensors.cpp
     src/boards/RIGv2/Actuators/Actuators.cpp
+    src/boards/RIGv2/StateMachines/GroundModeManager/GroundModeManager.cpp
 )
 
 set(CON_RIG_COMPUTER
