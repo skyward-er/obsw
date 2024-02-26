@@ -213,6 +213,18 @@ bool Actuators::setOpeningTime(ServosList servo, uint64_t time)
     return true;
 }
 
+bool Actuators::isServoOpen(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if (info == nullptr)
+    {
+        return false;
+    }
+
+    return info->servo->getPosition() > Config::Servos::SERVO_OPEN_THRESHOLD;
+}
+
 void Actuators::openServoInner(ServoInfo *info, uint64_t time)
 {
     long long currentTime = getTime();
