@@ -26,8 +26,8 @@
 #include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
 
-#include <memory>
 #include <atomic>
+#include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
@@ -36,25 +36,41 @@ namespace RIGv2
 class Sensors : public Boardcore::Module
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler} {}
+    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
+    {
+    }
 
     [[nodiscard]] bool start();
 
     bool isStarted();
 
+    // Getters for raw data coming from sensors
     Boardcore::ADS131M08Data getADC1LastSample();
     Boardcore::MAX31856Data getTc1LastSample();
+
+    // Getters for processed data
+    Boardcore::PressureData getVesselPress();
+    Boardcore::PressureData getFillingPress();
+    Boardcore::PressureData getTankTopPress();
+    Boardcore::PressureData getTankBottomPress();
+    Boardcore::LoadCellData getVesselWeight();
+    Boardcore::LoadCellData getTankWeight();
+
+    void calibrate();
 
 private:
     void adc1Init(Boardcore::SensorManager::SensorMap_t &map);
     void adc1Callback();
-    
+
     void tc1Init(Boardcore::SensorManager::SensorMap_t &map);
     void tc1Callback();
 
-    Boardcore::Logger &sdLogger = Boardcore::Logger::getInstance();
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
     Boardcore::TaskScheduler &scheduler;
+
+    std::atomic<float> vesselLcOffset{0.0f};
+    std::atomic<float> tankLcOffset{0.0f};
 
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::ADS131M08> adc1;
