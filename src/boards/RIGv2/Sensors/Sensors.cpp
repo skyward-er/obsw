@@ -50,12 +50,6 @@ bool Sensors::start()
     return true;
 }
 
-void Sensors::stop()
-{
-    manager->stop();
-    started = false;
-}
-
 ADS131M08Data Sensors::getADC1LastSample()
 {
     PauseKernelLock l;

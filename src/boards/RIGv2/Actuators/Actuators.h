@@ -62,8 +62,6 @@ public:
 
     [[nodiscard]] bool start();
 
-    void stop();
-
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
     bool closeServo(ServosList servo);

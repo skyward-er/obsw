@@ -44,8 +44,6 @@ public:
 
     [[nodiscard]] bool start();
 
-    void stop();
-
     bool isStarted();
 
     Boardcore::MavlinkStatus getMavStatus();

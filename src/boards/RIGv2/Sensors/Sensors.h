@@ -40,8 +40,6 @@ public:
 
     [[nodiscard]] bool start();
 
-    void stop();
-
     bool isStarted();
 
     Boardcore::ADS131M08Data getADC1LastSample();
