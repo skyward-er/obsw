@@ -37,6 +37,7 @@ bool Sensors::start()
 {
     SensorManager::SensorMap_t map;
     adc1Init(map);
+    tc1Init(map);
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
     if (!manager->start())
@@ -59,6 +60,12 @@ ADS131M08Data Sensors::getADC1LastSample()
 {
     PauseKernelLock l;
     return adc1->getLastSample();
+}
+
+Boardcore::MAX31856Data Sensors::getTc1LastSample()
+{
+    PauseKernelLock l;
+    return tc1->getLastSample();
 }
 
 void Sensors::adc1Init(SensorManager::SensorMap_t &map)
@@ -92,8 +99,32 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
-    // For Flavio, fuck Flavio
-    LOG_INFO(logger, "{}\t{}", sample.voltage[6], sample.voltage[7]);
+    sdLogger.log(data);
+}
+
+void Sensors::tc1Init(SensorManager::SensorMap_t &map)
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    tc1 =
+        std::make_unique<MAX31856>(modules.get<Buses>()->getMAX31856_1(),
+                                   sensors::MAX31856_1::cs::getPin(), spiConfig,
+                                   MAX31856::ThermocoupleType::K_TYPE);
+
+    SensorInfo info("MAX31856_1", Config::Sensors::TC_SAMPLE_PERIOD,
+                    [this]() { tc1Callback(); });
+    map.emplace(std::make_pair(tc1.get(), info));
+}
+
+void Sensors::tc1Callback()
+{
+    MAX31856Data sample = tc1->getLastSample();
+
+    TCsData data{sample.temperatureTimestamp, 1, sample.temperature,
+                 sample.coldJunctionTemperature};
 
     sdLogger.log(data);
 }
