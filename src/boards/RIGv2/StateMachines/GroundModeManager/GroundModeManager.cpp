@@ -25,6 +25,7 @@
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 // TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
 
@@ -32,6 +33,14 @@ using namespace Boardcore;
 using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
+
+void armLightOn() {
+    relays::armLight::low();
+}
+
+void armLightOff() {
+    relays::armLight::high();
+}
 
 GroundModeManager::GroundModeManager() : FSM(&GroundModeManager::state_idle)
 {
@@ -100,6 +109,7 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
+            armLightOff();
             logStatus(GroundModeManagerState::STATE_DISARMED);
             break;
         }
@@ -126,6 +136,7 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
+            armLightOn();
             logStatus(GroundModeManagerState::STATE_ARMED);
             break;
         }
