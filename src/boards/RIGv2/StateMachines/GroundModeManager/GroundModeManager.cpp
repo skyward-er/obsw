@@ -22,6 +22,7 @@
 
 #include "GroundModeManager.h"
 
+#include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -34,13 +35,13 @@ using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
 
-void armLightOn() {
-    relays::armLight::low();
-}
+void armLightOn() { relays::armLight::low(); }
 
-void armLightOff() {
-    relays::armLight::high();
-}
+void armLightOff() { relays::armLight::high(); }
+
+void igniterOn() { relays::ignition::low(); }
+
+void igniterOff() { relays::ignition::high(); }
 
 GroundModeManager::GroundModeManager() : FSM(&GroundModeManager::state_idle)
 {
@@ -59,6 +60,8 @@ bool GroundModeManager::isIgniting()
 {
     return testState(&GroundModeManager::state_igniting);
 }
+
+void GroundModeManager::setIgnitionTime(uint32_t time) { ignitionTime = time; }
 
 void GroundModeManager::state_idle(const Boardcore::Event &event)
 {
@@ -132,11 +135,13 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
 
 void GroundModeManager::state_armed(const Boardcore::Event &event)
 {
+    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
             armLightOn();
+            modules.get<Actuators>()->closeAllServos();
             logStatus(GroundModeManagerState::STATE_ARMED);
             break;
         }
@@ -146,12 +151,57 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
             transition(&GroundModeManager::state_disarmed);
             break;
         }
+
+        case MOTOR_IGNITION:
+        {
+            transition(&GroundModeManager::state_igniting);
+            break;
+        }
     }
 }
 
 void GroundModeManager::state_igniting(const Boardcore::Event &event)
 {
-    // TODO(davide.mor): Not yet implemented
+    ModuleManager &modules = ModuleManager::getInstance();
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            // Start ignition
+            igniterOn();
+
+            // Send event to open the oxidant
+            openOxidantDelayEventId = EventBroker::getInstance().postDelayed(
+                MOTOR_OPEN_OXIDANT, TOPIC_MOTOR, ignitionTime);
+
+            logStatus(GroundModeManagerState::STATE_IGNITING);
+            break;
+        }
+
+        case MOTOR_OPEN_OXIDANT:
+        {
+            // Stop ignition
+            igniterOff();
+            modules.get<Actuators>()->openServo(ServosList::MAIN_VALVE);
+            break;
+        }
+
+        case TMTC_DISARM:  // Abort signal
+        case MOTOR_CLOSE_FEED_VALVE:
+        {
+            // Stop ignition
+            igniterOff();
+
+            // Close all of the valves
+            modules.get<Actuators>()->closeAllServos();
+
+            // Disable MOTOR_OPEN_OXIDANT event
+            EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
+
+            transition(&GroundModeManager::state_disarmed);
+            break;
+        }
+    }
 }
 
 void GroundModeManager::logStatus(GroundModeManagerState newState)
