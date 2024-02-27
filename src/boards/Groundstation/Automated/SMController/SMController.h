@@ -39,6 +39,7 @@ public:
     SMController();
 
     // FSM States
+    Boardcore::State state_config(const Boardcore::Event& event);
     Boardcore::State state_feedback(const Boardcore::Event& event);
     Boardcore::State state_no_feedback(const Boardcore::Event& event);
     Boardcore::State state_init(const Boardcore::Event& event);

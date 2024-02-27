@@ -46,7 +46,20 @@ enum class SMControllerState : uint8_t
     FIX_ROCKET_NF,
     ACTIVE,
     ACTIVE_NF,
+    /**
+     * @brief macro state for configuration (init, init_error,
+     * init_done, insert_info)
+     */
+    CONFIG,
+    /**
+     * @brief macro state for feedback (armed, test, calibrate,
+     * fix_antennas, fix_rocket, active)
+     */
     FEEDBACK,
+    /**
+     * @brief macro state for no feedback (armed_nf, test_nf,
+     * fix_rocket_nf, active_nf)
+     */
     NO_FEEDBACK
 };
 

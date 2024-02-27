@@ -40,6 +40,40 @@ SMController::SMController() : HSM(&SMController::state_init)
 }
 
 // Super state
+Boardcore::State SMController::state_config(const Boardcore::Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(SMControllerState::CONFIG);
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&SMController::state_top);
+        }
+        case EV_INIT:
+        {
+            return transition(&SMController::state_init);
+        }
+        case TMTC_RESET_BOARD:
+        {
+            reboot();
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+// Super state
 Boardcore::State SMController::state_feedback(const Boardcore::Event& event)
 {
     switch (event)
@@ -112,7 +146,7 @@ Boardcore::State SMController::state_init(const Boardcore::Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMController::state_config);
         }
         case EV_INIT:
         {
@@ -140,15 +174,10 @@ Boardcore::State SMController::state_init_error(const Boardcore::Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMController::state_config);
         }
         case EV_INIT:
         {
-            return HANDLED;
-        }
-        case TMTC_RESET_BOARD:
-        {
-            reboot();
             return HANDLED;
         }
         default:
@@ -173,7 +202,7 @@ Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMController::state_config);
         }
         case EV_INIT:
         {
@@ -201,7 +230,7 @@ Boardcore::State SMController::insert_info(const Boardcore::Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMController::state_config);
         }
         case EV_INIT:
         {
