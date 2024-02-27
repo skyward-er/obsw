@@ -198,10 +198,13 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            if (modules.get<GroundModeManager>()->isDisarmed() &&
-                modules.get<Actuators>()->wiggleServo(servo))
+            if (modules.get<GroundModeManager>()->isDisarmed())
             {
-                sendAck(msg);
+                if(modules.get<Actuators>()->wiggleServo(servo)) {
+                    sendAck(msg);
+                } else {
+                    sendNack(msg);
+                }
             }
             else
             {
@@ -405,7 +408,7 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
                 actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
-            tm.arming_state = modules.get<GroundModeManager>()->isArmed();
+            tm.arming_state   = modules.get<GroundModeManager>()->isArmed();
             tm.ignition_state = modules.get<GroundModeManager>()->isIgniting();
             // TODO(davide.mor): Add the rest of these
 
