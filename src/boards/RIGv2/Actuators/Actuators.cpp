@@ -33,6 +33,59 @@ using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
 
+void Actuators::ServoInfo::openServo(uint64_t time)
+{
+    long long currentTime = getTime();
+
+    openedTs = currentTime;
+    closeTs  = currentTime + (time * Constants::NS_IN_MS);
+
+    // TODO(davide.mor): Dispatch the open event
+}
+
+void Actuators::ServoInfo::closeServo()
+{
+    closeTs = 0;
+
+    // TODO(davide.mor): Dispatch the close event
+}
+
+void Actuators::ServoInfo::unsafeSetServoPosition(float position)
+{
+    // Check that the servo is actually there, just to be safe
+    if (!servo)
+    {
+        return;
+    }
+
+    if (flipped)
+    {
+        servo->setPosition(1.0f - position);
+    }
+    else
+    {
+        servo->setPosition(position);
+    }
+}
+
+float Actuators::ServoInfo::getServoPosition()
+{
+    // Check that the servo is actually there, just to be safe
+    if (!servo)
+    {
+        return 0.0f;
+    }
+
+    if (flipped)
+    {
+        return 1.0f - servo->getPosition();
+    }
+    else
+    {
+        return servo->getPosition();
+    }
+}
+
 Actuators::Actuators(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
 {
     // Initialize servos
@@ -76,6 +129,7 @@ Actuators::Actuators(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
     info->flipped      = Config::Servos::FILLING_FLIPPED;
     info->openingEvent = Common::Events::MOTOR_OPEN_FILLING_VALVE;
     info->closingEvent = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
+    info->unsafeSetServoPosition(0.0f);
 
     info               = getServo(ServosList::RELEASE_VALVE);
     info->maxAperture  = Config::Servos::DEFAULT_RELEASE_MAXIMUM_APERTURE;
@@ -83,12 +137,14 @@ Actuators::Actuators(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
     info->flipped      = Config::Servos::RELEASE_FLIPPED;
     info->openingEvent = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
     info->closingEvent = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
+    info->unsafeSetServoPosition(0.0f);
 
     info               = getServo(ServosList::DISCONNECT_SERVO);
     info->maxAperture  = Config::Servos::DEFAULT_DISCONNECT_MAXIMUM_APERTURE;
     info->openingTime  = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
     info->flipped      = Config::Servos::DISCONNECT_FLIPPED;
     info->openingEvent = Common::Events::MOTOR_DISCONNECT;
+    info->unsafeSetServoPosition(0.0f);
 
     info               = getServo(ServosList::MAIN_VALVE);
     info->maxAperture  = Config::Servos::DEFAULT_MAIN_MAXIMUM_APERTURE;
@@ -96,14 +152,16 @@ Actuators::Actuators(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
     info->flipped      = Config::Servos::MAIN_FLIPPED;
     info->openingEvent = Common::Events::MOTOR_OPEN_FEED_VALVE;
     info->closingEvent = Common::Events::MOTOR_CLOSE_FEED_VALVE;
+    info->unsafeSetServoPosition(0.0f);
 
     // This servo is not yet enabled
-    // info               = getServo(ServosList::VENTING_VALVE);
-    // info->maxAperture  = Config::Servos::DEFAULT_VENTING_MAXIMUM_APERTURE;
-    // info->openingTime  = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
-    // info->flipped      = true;
-    // info->openingEvent = Common::Events::MOTOR_OPEN_VENTING_VALVE;
-    // info->closingEvent = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
+    info               = getServo(ServosList::VENTING_VALVE);
+    info->maxAperture  = Config::Servos::DEFAULT_VENTING_MAXIMUM_APERTURE;
+    info->openingTime  = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
+    info->flipped      = Config::Servos::VENTING_FLIPPED;
+    info->openingEvent = Common::Events::MOTOR_OPEN_VENTING_VALVE;
+    info->closingEvent = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
+    info->unsafeSetServoPosition(0.0f);
 }
 
 bool Actuators::start()
@@ -150,12 +208,12 @@ bool Actuators::toggleServo(ServosList servo)
     if (info->closeTs == 0)
     {
         // The servo is closed, open it
-        openServoInner(info, info->openingTime);
+        info->openServo(info->openingTime);
     }
     else
     {
         // The servo is open, close it
-        closeServoInner(info);
+        info->closeServo();
     }
 
     return true;
@@ -170,7 +228,7 @@ bool Actuators::closeServo(ServosList servo)
         return false;
     }
 
-    closeServoInner(info);
+    info->closeServo();
     return true;
 }
 
@@ -183,7 +241,7 @@ bool Actuators::openServoAtomic(ServosList servo, uint64_t time)
         return false;
     }
 
-    openServoInner(info, time);
+    info->openServo(time);
     return true;
 }
 
@@ -222,24 +280,7 @@ bool Actuators::isServoOpen(ServosList servo)
         return false;
     }
 
-    return info->servo->getPosition() > Config::Servos::SERVO_OPEN_THRESHOLD;
-}
-
-void Actuators::openServoInner(ServoInfo *info, uint64_t time)
-{
-    long long currentTime = getTime();
-
-    info->openedTs = currentTime;
-    info->closeTs  = currentTime + (time * Constants::NS_IN_MS);
-
-    // TODO(davide.mor): Dispatch the open event
-}
-
-void Actuators::closeServoInner(ServoInfo *info)
-{
-    info->closeTs = 0;
-
-    // TODO(davide.mor): Dispatch the close event
+    return info->getServoPosition() > Config::Servos::SERVO_OPEN_THRESHOLD;
 }
 
 Actuators::ServoInfo *Actuators::getServo(ServosList servo)
@@ -254,9 +295,8 @@ Actuators::ServoInfo *Actuators::getServo(ServosList servo)
             return &infos[1];
         case MAIN_VALVE:
             return &infos[0];
-            // TODO(davide.mor): Decide this servo
-            // case VENTING_VALVE:
-            //     return &infos[8];
+        case VENTING_VALVE:
+            return &infos[6];
 
         default:
             // Oh FUCK
@@ -267,15 +307,7 @@ Actuators::ServoInfo *Actuators::getServo(ServosList servo)
 
 void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
 {
-    // Invert the position if the servo is flipped
-    if (infos[idx].flipped)
-    {
-        infos[idx].servo->setPosition(1.0 - position);
-    }
-    else
-    {
-        infos[idx].servo->setPosition(position);
-    }
+    infos[idx].unsafeSetServoPosition(position);
 
     // Log the update
     ActuatorsData data;
