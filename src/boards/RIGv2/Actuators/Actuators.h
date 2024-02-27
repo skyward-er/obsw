@@ -55,6 +55,11 @@ private:
         long long closeTs = 0;
         // Timestamp of when the servo was opened
         long long openedTs = 0;
+
+        void openServo(uint64_t time);
+        void closeServo();
+        void unsafeSetServoPosition(float position);
+        float getServoPosition();
     };
 
 public:
@@ -73,8 +78,6 @@ public:
 private:
     ServoInfo *getServo(ServosList servo);
 
-    void openServoInner(ServoInfo *info, uint64_t time);
-    void closeServoInner(ServoInfo *info);
     void unsafeSetServoPosition(uint8_t idx, float position);
     void updatePositionsTask();
 

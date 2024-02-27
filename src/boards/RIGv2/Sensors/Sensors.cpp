@@ -44,6 +44,16 @@ float pressureFromVoltage(float voltage, float shuntResistance,
     return value * maxPressure;
 }
 
+float loadFromVoltage(float voltage, float excitationVoltage, float ratedOutput,
+                      float ratedCapacity)
+{
+    // Convert to a value between [0, 1] based on 0 and maximum output voltage
+    float value = (voltage * 1000.0f) / (ratedOutput * excitationVoltage);
+
+    // Finally remap to the range [0, ratedCapacity]
+    return value * ratedCapacity;
+}
+
 bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
@@ -80,7 +90,8 @@ Boardcore::PressureData Sensors::getVesselPress()
     auto sample = getADC1LastSample();
 
     float pressure = pressureFromVoltage(
-        sample.voltage[0], Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE,
+        sample.voltage[Config::Sensors::ADC1_VESSEL_PT_CHANNEL],
+        Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE,
         Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT,
         Config::Sensors::VESSEL_MAX_PRESSURE);
     return {sample.timestamp, pressure};
@@ -91,7 +102,8 @@ Boardcore::PressureData Sensors::getFillingPress()
     auto sample = getADC1LastSample();
 
     float pressure = pressureFromVoltage(
-        sample.voltage[1], Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE,
+        sample.voltage[Config::Sensors::ADC1_FILLING_PT_CHANNEL],
+        Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE,
         Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT,
         Config::Sensors::FILLING_MAX_PRESSURE);
     return {sample.timestamp, pressure};
@@ -102,7 +114,8 @@ Boardcore::PressureData Sensors::getTankTopPress()
     auto sample = getADC1LastSample();
 
     float pressure = pressureFromVoltage(
-        sample.voltage[2], Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE,
+        sample.voltage[Config::Sensors::ADC1_TOP_PT_CHANNEL],
+        Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE,
         Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT,
         Config::Sensors::FILLING_MAX_PRESSURE);
     return {sample.timestamp, pressure};
@@ -113,7 +126,8 @@ Boardcore::PressureData Sensors::getTankBottomPress()
     auto sample = getADC1LastSample();
 
     float pressure = pressureFromVoltage(
-        sample.voltage[3], Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE,
+        sample.voltage[Config::Sensors::ADC1_BOTTOM_PT_CHANNEL],
+        Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE,
         Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT,
         Config::Sensors::FILLING_MAX_PRESSURE);
     return {sample.timestamp, pressure};
@@ -121,37 +135,45 @@ Boardcore::PressureData Sensors::getTankBottomPress()
 
 Boardcore::LoadCellData Sensors::getVesselWeight()
 {
-    auto sample             = getADC1LastSample();
-    float calibratedVoltage = sample.voltage[6] - vesselLcOffset;
+    auto sample = getADC1LastSample();
+    float calibratedVoltage =
+        sample.voltage[Config::Sensors::ADC1_VESSEL_LC_CHANNEL] -
+        vesselLcOffset;
 
-    return {sample.timestamp, calibratedVoltage};
+    float load = loadFromVoltage(calibratedVoltage, 8.0f, 2.0f, 500.0f);
+
+    return {sample.timestamp, load};
 }
 
 Boardcore::LoadCellData Sensors::getTankWeight()
 {
-    auto sample             = getADC1LastSample();
-    float calibratedVoltage = sample.voltage[7] - tankLcOffset;
+    auto sample = getADC1LastSample();
+    float calibratedVoltage =
+        sample.voltage[Config::Sensors::ADC1_TANK_LC_CHANNEL] - tankLcOffset;
 
-    return {sample.timestamp, calibratedVoltage};
+    float load = loadFromVoltage(calibratedVoltage, 8.0f, 2.0f, 500.0f);
+
+    return {sample.timestamp, load};
 }
 
 void Sensors::calibrate()
 {
-    Stats channel6, channel7;
+    Stats vesselStats, tankStats;
 
     for (unsigned int i = 0; i < Config::Sensors::LC_CALIBRATE_SAMPLE_COUNT;
          i++)
     {
         auto sample = getADC1LastSample();
 
-        channel6.add(sample.voltage[6]);
-        channel7.add(sample.voltage[7]);
+        vesselStats.add(
+            sample.voltage[Config::Sensors::ADC1_VESSEL_LC_CHANNEL]);
+        tankStats.add(sample.voltage[Config::Sensors::ADC1_TANK_LC_CHANNEL]);
 
         Thread::sleep(Config::Sensors::LC_CALIBRATE_SAMPLE_PERIOD);
     }
 
-    vesselLcOffset = channel6.getStats().mean;
-    tankLcOffset   = channel7.getStats().mean;
+    vesselLcOffset = vesselStats.getStats().mean;
+    tankLcOffset   = tankStats.getStats().mean;
 }
 
 void Sensors::adc1Init(SensorManager::SensorMap_t &map)
@@ -162,7 +184,11 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
     spiConfig.mode         = SPI::Mode::MODE_0;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    ADS131M08::Config config     = {};
+    ADS131M08::Config config = {};
+    config.channelsConfig[Config::Sensors::ADC1_VESSEL_LC_CHANNEL].pga =
+        ADS131M08Defs::PGA::PGA_32;
+    config.channelsConfig[Config::Sensors::ADC1_TANK_LC_CHANNEL].pga =
+        ADS131M08Defs::PGA::PGA_32;
     config.oversamplingRatio     = ADS131M08Defs::OversamplingRatio::OSR_8192;
     config.globalChopModeEnabled = true;
 

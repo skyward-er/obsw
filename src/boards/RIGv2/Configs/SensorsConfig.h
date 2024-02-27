@@ -41,6 +41,14 @@ static constexpr float ADC1_CH2_SHUNT_RESISTANCE = 30;
 static constexpr float ADC1_CH3_SHUNT_RESISTANCE = 30;
 static constexpr float ADC1_CH4_SHUNT_RESISTANCE = 30;
 
+// ADC channels definitions for various sensors
+static constexpr int ADC1_VESSEL_PT_CHANNEL = 0;
+static constexpr int ADC1_FILLING_PT_CHANNEL = 1;
+static constexpr int ADC1_BOTTOM_PT_CHANNEL = 2;
+static constexpr int ADC1_TOP_PT_CHANNEL = 3;
+static constexpr int ADC1_VESSEL_LC_CHANNEL = 6;
+static constexpr int ADC1_TANK_LC_CHANNEL = 7;
+
 static constexpr float PT_MIN_CURRENT = 4;
 static constexpr float PT_MAX_CURRENT = 20;
 
