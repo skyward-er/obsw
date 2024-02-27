@@ -69,8 +69,10 @@ public:
 
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
+    bool openServo(ServosList servo);
+    bool openServoWithTime(ServosList servo, uint64_t time);
     bool closeServo(ServosList servo);
-    bool openServoAtomic(ServosList servo, uint64_t time);
+    void closeAllServos();
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint64_t time);
     bool isServoOpen(ServosList servo);

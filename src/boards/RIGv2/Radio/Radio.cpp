@@ -200,9 +200,12 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (modules.get<GroundModeManager>()->isDisarmed())
             {
-                if(modules.get<Actuators>()->wiggleServo(servo)) {
+                if (modules.get<Actuators>()->wiggleServo(servo))
+                {
                     sendAck(msg);
-                } else {
+                }
+                else
+                {
                     sendNack(msg);
                 }
             }
@@ -252,8 +255,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_IGNITION_TIME_TC:
         {
-            // TODO(davide.mor): Implement set ignition time
-            sendNack(msg);
+            uint32_t timing = mavlink_msg_set_ignition_time_tc_get_timing(&msg);
+            modules.get<GroundModeManager>()->setIgnitionTime(timing);
+
+            sendAck(msg);
             break;
         }
 
@@ -412,6 +417,9 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             tm.ignition_state = modules.get<GroundModeManager>()->isIgniting();
             // TODO(davide.mor): Add the rest of these
 
+            tm.battery_voltage     = sensors->getADC1LastSample().voltage[0];
+            tm.current_consumption = sensors->getADC1LastSample().voltage[1];
+
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
@@ -430,6 +438,9 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             tm.bottom_tank_pressure = sensors->getTankBottomPress().pressure;
             tm.floating_level       = 69.0f;  // Lol
             // TODO(davide.mor): Add the rest of these
+
+            tm.battery_voltage     = sensors->getADC1LastSample().voltage[2];
+            tm.current_consumption = sensors->getADC1LastSample().voltage[3];
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -483,7 +494,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (oldConrigState.ignition_btn == 0 && state.ignition_btn == 1)
         {
             // The ignition switch was pressed
-            // TODO(davide.mor): Perform ignition
+            // TODO(davide.mor): Notify everybody of a manual actuation
+
+            EventBroker::getInstance().post(MOTOR_IGNITION, TOPIC_MOTOR);
 
             lastManualActuation = currentTime;
         }
