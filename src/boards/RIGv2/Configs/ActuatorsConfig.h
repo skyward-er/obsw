@@ -48,10 +48,10 @@ static constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
 static constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 10000;  // 10s
 
 static constexpr float DEFAULT_FILLING_MAXIMUM_APERTURE    = 1.00f;
-static constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE    = 0.80f;
-static constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE       = 0.87f;
-static constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 1.0f;
-static constexpr float DEFAULT_DISCONNECT_MAXIMUM_APERTURE = 0.110f;
+static constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE    = 1.00f;
+static constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE       = 1.00f;
+static constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 1.00f;
+static constexpr float DEFAULT_DISCONNECT_MAXIMUM_APERTURE = 1.00f;
 
 static constexpr bool FILLING_FLIPPED    = true;
 static constexpr bool VENTING_FLIPPED    = true;
