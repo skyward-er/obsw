@@ -24,16 +24,19 @@
 #include <drivers/adc/InternalADC.h>
 #include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
-#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/ADS131M08/ADS131M08Defs.h>
 #include <sensors/BMX160/BMX160Config.h>
+#include <sensors/H3LIS331DL/H3LIS331DL.h>
+// TODO change with H3LIS331DLdef when merge request is merged
 #include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/calibration/AxisOrientation.h>
 
 namespace Parafoil
 {
 namespace SensorsConfig
 {
-constexpr unsigned int NUMBER_OF_SENSORS  = 8;
+constexpr unsigned int NUMBER_OF_SENSORS  = 9;
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms]
 
 // BMX160
@@ -59,6 +62,32 @@ constexpr unsigned int BMX160_ACC_DATA_SIZE    = 6;
 constexpr unsigned int BMX160_GYRO_DATA_SIZE   = 6;
 constexpr unsigned int BMX160_MAG_DATA_SIZE    = 8;
 
+// H3LIS331DL
+constexpr Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS331DL_ODR =
+    Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
+constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS331DL_BDU =
+    Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
+constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS331DL_FSR =
+    Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+constexpr uint32_t H3LIS331DL_PERIOD = 10;  // [ms] 100Hz
+
+// LPS22DF
+constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
+constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_100;
+constexpr uint32_t LPS22DF_PERIOD             = 20;  // [ms] 50Hz
+
+// UBXGPS
+constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+constexpr uint32_t UBXGPS_PERIOD     = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
+
+// ADS
+constexpr Boardcore::ADS131M08Defs::OversamplingRatio
+    ADS131M08_OVERSAMPLING_RATIO =
+        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
+constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
+//
+
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
     BMX160_ACC_GYRO_ODR * (BMX160_FIFO_HEADER_SIZE + BMX160_ACC_DATA_SIZE +
@@ -78,35 +107,6 @@ constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR = Boardcore::LIS3MDL::ODR_80_HZ;
 constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
-// ADS1118 and connected sensors
-constexpr Boardcore::ADS1118::ADS1118Mux ADS1118_CH_STATIC_PORT =
-    Boardcore::ADS1118::MUX_AIN0_GND;
-constexpr Boardcore::ADS1118::ADS1118DataRate ADS1118_DR_STATIC_PORT =
-    Boardcore::ADS1118::DR_860;
-constexpr Boardcore::ADS1118::ADS1118Pga ADS1118_PGA_STATIC_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-
-constexpr Boardcore::ADS1118::ADS1118Mux ADS1118_CH_PITOT_PORT =
-    Boardcore::ADS1118::MUX_AIN1_GND;
-constexpr Boardcore::ADS1118::ADS1118DataRate ADS1118_DR_PITOT_PORT =
-    Boardcore::ADS1118::DR_860;
-constexpr Boardcore::ADS1118::ADS1118Pga ADS1118_PGA_PITOT_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-
-constexpr Boardcore::ADS1118::ADS1118Mux ADS1118_CH_DPL_PORT =
-    Boardcore::ADS1118::MUX_AIN2_GND;
-constexpr Boardcore::ADS1118::ADS1118DataRate ADS1118_DR_DPL_PORT =
-    Boardcore::ADS1118::DR_860;
-constexpr Boardcore::ADS1118::ADS1118Pga ADS1118_PGA_DPL_PORT =
-    Boardcore::ADS1118::FSR_6_144;
-
-// MS5803 barometer
-constexpr unsigned int MS5803_TEMP_DIVIDER = 5;
-
-// GPS
-static constexpr int UBXGPS_BAUD_RATE            = 460800;
-static constexpr unsigned int UBXGPS_SAMPLE_RATE = 10;
-
 // Internal ADC & Battery Voltage
 constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
     Boardcore::InternalADC::Channel::CH5;
@@ -119,11 +119,7 @@ constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
 // imprecision, avoid clearing the fifo before the interrupt
 constexpr unsigned int BMX160_SAMPLE_PERIOD =
     BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024;  // [ms]
-constexpr unsigned int LIS3MDL_SAMPLE_PERIOD = 15;                    // [ms]
-constexpr unsigned int MS5803_SAMPLE_PERIOD  = 15;                    // [ms]
-constexpr unsigned int UBXGPS_SAMPLE_PERIOD =
-    1000 / UBXGPS_SAMPLE_RATE;                              // [ms]
-constexpr unsigned int ADS1118_SAMPLE_PERIOD       = 6;     // [ms]
+constexpr unsigned int LIS3MDL_SAMPLE_PERIOD       = 15;
 constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000;  // [ms]
 constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000;  // [ms]
 

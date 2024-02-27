@@ -61,20 +61,26 @@ LIS3MDLData Sensors::getLIS3MDLLastSample()
     miosix::Lock<FastMutex> l(lis3mdlMutex);
     return lis3mdl != nullptr ? lis3mdl->getLastSample() : LIS3MDLData{};
 }
-MS5803Data Sensors::getMS5803LastSample()
+H3LIS331DLData Sensors::getH3LISLastSample()
 {
-    miosix::Lock<FastMutex> l(ms5803Mutex);
-    return ms5803 != nullptr ? ms5803->getLastSample() : MS5803Data{};
+    miosix::Lock<FastMutex> l(h3lisMutex);
+    return h3lis331dl != nullptr ? h3lis331dl->getLastSample()
+                                 : H3LIS331DLData{};
+}
+LPS22DFData Sensors::getLPS22LastSample()
+{
+    miosix::Lock<FastMutex> l(lps22Mutex);
+    return lps22df != nullptr ? lps22df->getLastSample() : LPS22DFData{};
 }
 UBXGPSData Sensors::getUbxGpsLastSample()
 {
     miosix::Lock<FastMutex> l(ubxGpsMutex);
     return ubxGps != nullptr ? ubxGps->getLastSample() : UBXGPSData{};
 }
-ADS1118Data Sensors::getADS1118LastSample()
+ADS131M08Data Sensors::getADS131LastSample()
 {
-    miosix::Lock<FastMutex> l(ads1118Mutex);
-    return ads1118 != nullptr ? ads1118->getLastSample() : ADS1118Data{};
+    miosix::Lock<FastMutex> l(ads131Mutex);
+    return ads131 != nullptr ? ads131->getLastSample() : ADS131M08Data{};
 }
 InternalADCData Sensors::getInternalADCLastSample()
 {
@@ -118,9 +124,10 @@ bool Sensors::start()
     bmx160Init();
     bmx160WithCorrectionInit();
     lis3mdlInit();
-    ms5803Init();
+    h3lisInit();
+    lps22Init();
     ubxGpsInit();
-    ads1118Init();
+    ads131Init();
     internalADCInit();
     batteryVoltageInit();
 
@@ -266,73 +273,109 @@ void Sensors::lis3mdlInit()
 
     LOG_INFO(logger, "LIS3MDL setup done!");
 }
-void Sensors::ms5803Init()
+void Sensors::h3lisInit()
+{
+
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    // Get the correct SPI configuration
+    SPIBusConfig config = H3LIS331DL::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Create sensor instance with configured parameters
+    h3lis331dl = new H3LIS331DL(
+        modules.get<Buses>()->spi1, miosix::sensors::h3lis331dl::cs::getPin(),
+        config, H3LIS331DL_ODR, H3LIS331DL_BDU, H3LIS331DL_FSR);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("H3LIS331DL", H3LIS331DL_PERIOD,
+                    bind(&Sensors::h3lisCallback, this));
+    sensorMap.emplace(make_pair(h3lis331dl, info));
+
+    // used for the sensor state
+    auto h3lis331Status =
+        ([&]() -> SensorInfo { return manager->getSensorInfo(h3lis331dl); });
+    sensorsInit[sensorsCounter++] = h3lis331Status;
+}
+void Sensors::lps22Init()
+
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
-    SPIBusConfig spiConfig{};
-    spiConfig.mode         = SPI::Mode::MODE_3;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    // Get the correct SPI configuration
+    SPIBusConfig config = LPS22DF::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_16;
 
-    ms5803 = new MS5803(modules.get<Buses>()->spi1,
-                        miosix::sensors::ms5803::cs::getPin(), spiConfig,
-                        MS5803_TEMP_DIVIDER);
+    // Configure the device
+    LPS22DF::Config sensorConfig;
+    sensorConfig.avg = LPS22DF_AVG;
+    sensorConfig.odr = LPS22DF_ODR;
 
-    SensorInfo info("MS5803", MS5803_SAMPLE_PERIOD,
-                    bind(&Sensors::ms5803Callback, this));
-    sensorMap.emplace(make_pair(ms5803, info));
+    // Create sensor instance with configured parameters
+    lps22df = new LPS22DF(modules.get<Buses>()->spi1,
+                          miosix::sensors::lps22df::cs::getPin(), config,
+                          sensorConfig);
 
-    auto ms5803Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(ms5803); });
-    sensorsInit[sensorsCounter++] = ms5803Status;
+    // Emplace the sensor inside the map
+    SensorInfo info("LPS22DF", LPS22DF_PERIOD,
+                    bind(&Sensors::lps22Callback, this));
+    sensorMap.emplace(make_pair(lps22df, info));
 
-    LOG_INFO(logger, "MS5803 setup done!");
+    // used for the sensor state
+    auto lps22Status =
+        ([&]() -> SensorInfo { return manager->getSensorInfo(lps22df); });
+    sensorsInit[sensorsCounter++] = lps22Status;
 }
+
 void Sensors::ubxGpsInit()
 {
-    ubxGps =
-        new UBXGPSSerial(UBXGPS_BAUD_RATE, UBXGPS_SAMPLE_RATE, USART2, 9600);
+    ModuleManager& modules = ModuleManager::getInstance();
 
-    SensorInfo info("UBXGPS", UBXGPS_SAMPLE_PERIOD,
+    // Get the correct SPI configuration
+    SPIBusConfig config = UBXGPSSpi::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_64;
+
+    // Create sensor instance with configured parameters
+    ubxGps = new UBXGPSSpi(modules.get<Buses>()->spi1,
+                           miosix::sensors::ubxgps::cs::getPin(), config, 5);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("UBXGPS", UBXGPS_PERIOD,
                     bind(&Sensors::ubxGpsCallback, this));
     sensorMap.emplace(make_pair(ubxGps, info));
 
-    auto ubxGpsStatus =
+    // used for the sensor state
+    auto ubxStatus =
         ([&]() -> SensorInfo { return manager->getSensorInfo(ubxGps); });
-    sensorsInit[sensorsCounter++] = ubxGpsStatus;
-
-    LOG_INFO(logger, "UbloxGPS setup done!");
+    sensorsInit[sensorsCounter++] = ubxStatus;
 }
-void Sensors::ads1118Init()
+void Sensors::ads131Init()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
-    SPIBusConfig spiConfig = ADS1118::getDefaultSPIConfig();
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
+    // Configure the SPI
+    SPIBusConfig config;
+    config.clockDivider = SPI::ClockDivider::DIV_32;
 
-    ADS1118::ADS1118Config config = ADS1118::ADS1118_DEFAULT_CONFIG;
-    config.bits.mode              = ADS1118::ADS1118Mode::CONTINUOUS_CONV_MODE;
+    // Configure the device
+    ADS131M08::Config sensorConfig;
+    sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
+    sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
 
-    ads1118 =
-        new ADS1118(modules.get<Buses>()->spi1,
-                    miosix::sensors::ads1118::cs::getPin(), config, spiConfig);
+    // Create the sensor instance with configured parameters
+    ads131 = new ADS131M08(modules.get<Buses>()->spi1,
+                           miosix::sensors::ads131m08::cs::getPin(), config,
+                           sensorConfig);
 
-    ads1118->enableInput(ADS1118_CH_STATIC_PORT, ADS1118_DR_STATIC_PORT,
-                         ADS1118_PGA_STATIC_PORT);
-    ads1118->enableInput(ADS1118_CH_PITOT_PORT, ADS1118_DR_PITOT_PORT,
-                         ADS1118_PGA_PITOT_PORT);
-    ads1118->enableInput(ADS1118_CH_DPL_PORT, ADS1118_DR_DPL_PORT,
-                         ADS1118_PGA_DPL_PORT);
+    // Emplace the sensor inside the map
+    SensorInfo info("ADS131M08", ADS131M08_PERIOD,
+                    bind(&Sensors::ads131Callback, this));
+    sensorMap.emplace(make_pair(ads131, info));
 
-    SensorInfo info("ADS1118", ADS1118_SAMPLE_PERIOD,
-                    bind(&Sensors::ads1118Callback, this));
-    sensorMap.emplace(make_pair(ads1118, info));
-
-    auto ads1118Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(ads1118); });
-    sensorsInit[sensorsCounter++] = ads1118Status;
-
-    LOG_INFO(logger, "ADS1118 adc setup done!");
+    // used for the sensor state
+    auto ads131m08Status =
+        ([&]() -> SensorInfo { return manager->getSensorInfo(ads131); });
+    sensorsInit[sensorsCounter++] = ads131m08Status;
 }
 void Sensors::internalADCInit()
 {
@@ -409,9 +452,14 @@ void Sensors::lis3mdlCallback()
     LIS3MDLData lastSample = lis3mdl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
-void Sensors::ms5803Callback()
+void Sensors::h3lisCallback()
 {
-    MS5803Data lastSample = ms5803->getLastSample();
+    H3LIS331DLData lastSample = h3lis331dl->getLastSample();
+    Logger::getInstance().log(lastSample);
+}
+void Sensors::lps22Callback()
+{
+    LPS22DFData lastSample = lps22df->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::ubxGpsCallback()
@@ -419,9 +467,9 @@ void Sensors::ubxGpsCallback()
     UBXGPSData lastSample = ubxGps->getLastSample();
     Logger::getInstance().log(lastSample);
 }
-void Sensors::ads1118Callback()
+void Sensors::ads131Callback()
 {
-    ADS1118Data lastSample = ads1118->getLastSample();
+    ADS131M08Data lastSample = ads131->getLastSample();
     Logger::getInstance().log(lastSample);
 }
 void Sensors::internalADCCallback()

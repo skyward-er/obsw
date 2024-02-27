@@ -23,14 +23,15 @@
 
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <drivers/adc/InternalADC.h>
-#include <sensors/ADS1118/ADS1118.h>
+#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/BMX160/BMX160.h>
 #include <sensors/BMX160/BMX160WithCorrection.h>
+#include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
-#include <sensors/MS5803/MS5803.h>
+#include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
-#include <sensors/UBXGPS/UBXGPSSerial.h>
+#include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
@@ -72,10 +73,11 @@ public:
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
+    Boardcore::H3LIS331DLData getH3LISLastSample();
     Boardcore::LIS3MDLData getLIS3MDLLastSample();
-    Boardcore::MS5803Data getMS5803LastSample();
+    Boardcore::LPS22DFData getLPS22LastSample();
     Boardcore::UBXGPSData getUbxGpsLastSample();
-    Boardcore::ADS1118Data getADS1118LastSample();
+    Boardcore::ADS131M08Data getADS131LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
@@ -91,17 +93,20 @@ private:
     void bmx160WithCorrectionInit();
     void bmx160WithCorrectionCallback();
 
+    void h3lisInit();
+    void h3lisCallback();
+
     void lis3mdlInit();
     void lis3mdlCallback();
 
-    void ms5803Init();
-    void ms5803Callback();
+    void lps22Init();
+    void lps22Callback();
 
     void ubxGpsInit();
     void ubxGpsCallback();
 
-    void ads1118Init();
-    void ads1118Callback();
+    void ads131Init();
+    void ads131Callback();
 
     void internalADCInit();
     void internalADCCallback();
@@ -111,9 +116,10 @@ private:
 
     // Sensors instances
     Boardcore::LIS3MDL* lis3mdl         = nullptr;
-    Boardcore::MS5803* ms5803           = nullptr;
-    Boardcore::UBXGPSSerial* ubxGps     = nullptr;
-    Boardcore::ADS1118* ads1118         = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl   = nullptr;
+    Boardcore::LPS22DF* lps22df         = nullptr;
+    Boardcore::UBXGPSSpi* ubxGps        = nullptr;
+    Boardcore::ADS131M08* ads131        = nullptr;
     Boardcore::InternalADC* internalADC = nullptr;
 
     // Fake processed sensors
@@ -122,11 +128,12 @@ private:
 
     // Mutexes for sampling
     miosix::FastMutex lis3mdlMutex;
-    miosix::FastMutex ms5803Mutex;
+    miosix::FastMutex lps22Mutex;
+    miosix::FastMutex h3lisMutex;
     miosix::FastMutex bmx160Mutex;
     miosix::FastMutex bmx160WithCorrectionMutex;
     miosix::FastMutex ubxGpsMutex;
-    miosix::FastMutex ads1118Mutex;
+    miosix::FastMutex ads131Mutex;
     miosix::FastMutex internalADCMutex;
     miosix::FastMutex batteryVoltageMutex;
 

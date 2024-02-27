@@ -159,7 +159,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Last samples
-            MS5803Data ms5803 = modules.get<Sensors>()->getMS5803LastSample();
+            auto lps22df = modules.get<Sensors>()->getLPS22LastSample();
             BMX160Data imu =
                 modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
             UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
@@ -179,7 +179,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.wes_n = wind[0];
             tm.wes_e = wind[1];
 
-            tm.pressure_digi = ms5803.pressure;
+            tm.pressure_digi = lps22df.pressure;
 
             // Altitude agl
             tm.altitude_agl = -nasState.d;
@@ -233,7 +233,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                      .batVoltage;
             // tm.current_consumption =
             //     modules.get<Sensors>()->getCurrentLastSample().current;
-            tm.temperature  = ms5803.temperature;
+            tm.temperature  = lps22df.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             tm.battery_voltage = modules.get<Sensors>()
@@ -379,7 +379,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_pressure_tm_t tm;
 
-            auto pressureData = modules.get<Sensors>()->getMS5803LastSample();
+            auto pressureData = modules.get<Sensors>()->getLPS22LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
             strcpy(tm.sensor_name, "MS5803");

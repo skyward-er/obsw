@@ -83,8 +83,8 @@ void NASController::update()
             modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
         UBXGPSData gpsData = modules.get<Sensors>()->getUbxGpsLastSample();
 
-        MS5803Data baroData = modules.get<Sensors>()->getMS5803LastSample();
-
+        LPS22DFData barometerData =
+            modules.get<Sensors>()->getLPS22LastSample();
         // NAS prediction
         nas.predictGyro(imuData);
         nas.predictAcc(imuData);
@@ -92,7 +92,7 @@ void NASController::update()
         // NAS correction
         nas.correctMag(imuData);
         nas.correctGPS(gpsData);
-        nas.correctBaro(baroData.pressure);
+        nas.correctBaro(barometerData.pressure);
         // Correct with accelerometer if the acceleration is in specs
         Vector3f acceleration  = static_cast<AccelerometerData>(imuData);
         float accelerationNorm = acceleration.norm();
@@ -146,8 +146,8 @@ void NASController::calibrate()
                      imuData.magneticFieldZ);
 
         // Static pressure barometer
-        MS5803Data barometerData =
-            modules.get<Sensors>()->getMS5803LastSample();
+        LPS22DFData barometerData =
+            modules.get<Sensors>()->getLPS22LastSample();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(NASConfig::CALIBRATION_SLEEP_TIME);
