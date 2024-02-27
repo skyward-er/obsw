@@ -24,7 +24,6 @@
 
 #include <RIGv2/Buses.h>
 #include <RIGv2/Configs/SensorsConfig.h>
-#include <RIGv2/Sensors/SensorsData.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -59,6 +58,7 @@ bool Sensors::isStarted() { return started; }
 bool Sensors::start()
 {
     SensorManager::SensorMap_t map;
+    internalAdcInit(map);
     adc1Init(map);
     tc1Init(map);
 
@@ -73,19 +73,25 @@ bool Sensors::start()
     return true;
 }
 
+InternalADCData Sensors::getInternalADCLastSample()
+{
+    PauseKernelLock l;
+    return internalAdc->getLastSample();
+}
+
 ADS131M08Data Sensors::getADC1LastSample()
 {
     PauseKernelLock l;
     return adc1->getLastSample();
 }
 
-Boardcore::MAX31856Data Sensors::getTc1LastSample()
+MAX31856Data Sensors::getTc1LastSample()
 {
     PauseKernelLock l;
     return tc1->getLastSample();
 }
 
-Boardcore::PressureData Sensors::getVesselPress()
+PressureData Sensors::getVesselPress()
 {
     auto sample = getADC1LastSample();
 
@@ -97,7 +103,7 @@ Boardcore::PressureData Sensors::getVesselPress()
     return {sample.timestamp, pressure};
 }
 
-Boardcore::PressureData Sensors::getFillingPress()
+PressureData Sensors::getFillingPress()
 {
     auto sample = getADC1LastSample();
 
@@ -109,7 +115,7 @@ Boardcore::PressureData Sensors::getFillingPress()
     return {sample.timestamp, pressure};
 }
 
-Boardcore::PressureData Sensors::getTankTopPress()
+PressureData Sensors::getTankTopPress()
 {
     auto sample = getADC1LastSample();
 
@@ -121,7 +127,7 @@ Boardcore::PressureData Sensors::getTankTopPress()
     return {sample.timestamp, pressure};
 }
 
-Boardcore::PressureData Sensors::getTankBottomPress()
+PressureData Sensors::getTankBottomPress()
 {
     auto sample = getADC1LastSample();
 
@@ -133,7 +139,7 @@ Boardcore::PressureData Sensors::getTankBottomPress()
     return {sample.timestamp, pressure};
 }
 
-Boardcore::LoadCellData Sensors::getVesselWeight()
+LoadCellData Sensors::getVesselWeight()
 {
     auto sample = getADC1LastSample();
     float calibratedVoltage =
@@ -145,7 +151,7 @@ Boardcore::LoadCellData Sensors::getVesselWeight()
     return {sample.timestamp, load};
 }
 
-Boardcore::LoadCellData Sensors::getTankWeight()
+LoadCellData Sensors::getTankWeight()
 {
     auto sample = getADC1LastSample();
     float calibratedVoltage =
@@ -154,6 +160,24 @@ Boardcore::LoadCellData Sensors::getTankWeight()
     float load = loadFromVoltage(calibratedVoltage, 8.0f, 2.0f, 500.0f);
 
     return {sample.timestamp, load};
+}
+
+CurrentData Sensors::getUmbilicalCurrent() {
+    auto sample = getInternalADCLastSample();
+
+    return {sample.timestamp, sample.voltage[11]};
+}
+
+CurrentData Sensors::getServoCurrent() {
+    auto sample = getInternalADCLastSample();
+
+    return {sample.timestamp, sample.voltage[9]};
+}
+
+VoltageData Sensors::getBatteryVoltage() {
+    auto sample = getInternalADCLastSample();
+
+    return {sample.timestamp, sample.voltage[14]};
 }
 
 void Sensors::calibrate()
@@ -174,6 +198,27 @@ void Sensors::calibrate()
 
     vesselLcOffset = vesselStats.getStats().mean;
     tankLcOffset   = tankStats.getStats().mean;
+}
+
+void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
+{
+    internalAdc = std::make_unique<InternalADC>(ADC1);
+
+    internalAdc->enableChannel(InternalADC::CH9);
+    internalAdc->enableChannel(InternalADC::CH11);
+    internalAdc->enableChannel(InternalADC::CH14);
+    internalAdc->enableTemperature();
+    internalAdc->enableVbat();
+
+    SensorInfo info("InternalAdc", Config::Sensors::ADC_SAMPLE_PERIOD,
+                    [this]() { internalAdcCallback(); });
+    map.emplace(internalAdc.get(), info);
+}
+
+void Sensors::internalAdcCallback()
+{
+    InternalADCData sample = internalAdc->getLastSample();
+    sdLogger.log(sample);
 }
 
 void Sensors::adc1Init(SensorManager::SensorMap_t &map)

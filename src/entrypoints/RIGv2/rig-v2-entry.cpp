@@ -41,7 +41,6 @@ using namespace miosix;
 
 int main()
 {
-
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
 
@@ -76,16 +75,16 @@ int main()
         LOG_ERR(logger, "Error failed to insert Buses");
     }
 
-    if (!modules.insert<Sensors>(sensors))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert Sensors");
-    }
-
     if (!modules.insert<Actuators>(actuators))
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to insert Actuators");
+    }
+
+    if (!modules.insert<Sensors>(sensors))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to insert Sensors");
     }
 
     if (!modules.insert<Radio>(radio))

@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <RIGv2/Sensors/SensorsData.h>
+#include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
@@ -45,6 +47,7 @@ public:
     bool isStarted();
 
     // Getters for raw data coming from sensors
+    Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data getADC1LastSample();
     Boardcore::MAX31856Data getTc1LastSample();
 
@@ -55,10 +58,16 @@ public:
     Boardcore::PressureData getTankBottomPress();
     Boardcore::LoadCellData getVesselWeight();
     Boardcore::LoadCellData getTankWeight();
+    Boardcore::CurrentData getUmbilicalCurrent();
+    Boardcore::CurrentData getServoCurrent();
+    VoltageData getBatteryVoltage();
 
     void calibrate();
 
 private:
+    void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
+    void internalAdcCallback();
+
     void adc1Init(Boardcore::SensorManager::SensorMap_t &map);
     void adc1Callback();
 
@@ -75,6 +84,7 @@ private:
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::ADS131M08> adc1;
     std::unique_ptr<Boardcore::MAX31856> tc1;
+    std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };
 
