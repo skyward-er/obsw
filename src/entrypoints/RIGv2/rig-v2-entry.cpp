@@ -46,8 +46,8 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
 
     // TODO: Move this to a dedicated board scheduler
-    TaskScheduler *scheduler1 = new TaskScheduler(3);
-    TaskScheduler *scheduler2 = new TaskScheduler(4);
+    TaskScheduler *scheduler1 = new TaskScheduler(2);
+    TaskScheduler *scheduler2 = new TaskScheduler(3);
 
     Buses *buses           = new Buses();
     Sensors *sensors       = new Sensors(*scheduler1);
@@ -101,13 +101,13 @@ int main()
     }
 
     // Start modules
-    if (sdLogger.testSDCard())
+    if (!sdLogger.testSDCard())
     {
         initResult = false;
         LOG_ERR(logger, "SD card test failed");
     }
 
-    if (broker.start())
+    if (!broker.start())
     {
         initResult = false;
         LOG_ERR(logger, "Failed to start EventBroker");
