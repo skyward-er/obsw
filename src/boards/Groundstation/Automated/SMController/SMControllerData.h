@@ -48,7 +48,7 @@ enum class SMControllerState : uint8_t
     ACTIVE_NF,
     /**
      * @brief macro state for configuration (init, init_error,
-     * init_done, insert_info)
+     * init_done, state_insert_info)
      */
     CONFIG,
     /**

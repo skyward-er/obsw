@@ -95,6 +95,10 @@ Boardcore::State SMController::state_feedback(const Boardcore::Event& event)
         {
             return transition(&SMController::state_armed);
         }
+        case TMTC_ARP_DISARM:
+        {
+            return transition(&SMController::state_init_done);
+        }
         default:
         {
             return UNHANDLED;
@@ -124,6 +128,10 @@ Boardcore::State SMController::state_no_feedback(const Boardcore::Event& event)
         {
             return transition(&SMController::state_armed_nf);
         }
+        case TMTC_ARP_DISARM:
+        {
+            return transition(&SMController::state_insert_info);
+        }
         default:
         {
             return UNHANDLED;
@@ -151,6 +159,14 @@ Boardcore::State SMController::state_init(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case ARP_INIT_OK:
+        {
+            return transition(&SMController::state_init_done);
+        }
+        case ARP_INIT_ERROR:
+        {
+            return transition(&SMController::state_init_error);
         }
         default:
         {
@@ -180,6 +196,14 @@ Boardcore::State SMController::state_init_error(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case TMTC_ARP_FORCE_NO_FEEDBACK:
+        {
+            return transition(&SMController::state_insert_info);
+        }
+        case TMTC_FORCE_INIT:
+        {
+            return transition(&SMController::state_init_done);
+        }
         default:
         {
             return UNHANDLED;
@@ -208,6 +232,14 @@ Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case TMTC_ARP_FORCE_NO_FEEDBACK:
+        {
+            return transition(&SMController::state_insert_info);
+        }
+        case TMTC_ARP_ARM:
+        {
+            return tranSuper(&SMController::state_feedback);
+        }
         default:
         {
             return UNHANDLED;
@@ -215,7 +247,7 @@ Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::insert_info(const Boardcore::Event& event)
+Boardcore::State SMController::state_insert_info(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -235,6 +267,10 @@ Boardcore::State SMController::insert_info(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_ARP_ARM:
+        {
+            return tranSuper(&SMController::state_no_feedback);
         }
         default:
         {
@@ -264,6 +300,14 @@ Boardcore::State SMController::state_armed(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case TMTC_ARP_ENTER_TEST_MODE:
+        {
+            return transition(&SMController::state_test);
+        }
+        case TMTC_ARP_CALIBRATE:
+        {
+            return transition(&SMController::state_calibrate);
+        }
         default:
         {
             return UNHANDLED;
@@ -291,6 +335,10 @@ Boardcore::State SMController::state_test(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_ARP_EXIT_TEST_MODE:
+        {
+            return transition(&SMController::state_armed);
         }
         default:
         {
@@ -320,6 +368,14 @@ Boardcore::State SMController::state_calibrate(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case ARP_CAL_DONE:
+        {
+            return transition(&SMController::state_fix_antennas);
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed);
+        }
         default:
         {
             return UNHANDLED;
@@ -347,6 +403,14 @@ Boardcore::State SMController::state_fix_antennas(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case ARP_FIX_ANTENNAS:
+        {
+            return transition(&SMController::state_fix_rocket);
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed);
         }
         default:
         {
@@ -376,6 +440,14 @@ Boardcore::State SMController::state_fix_rocket(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case ARP_FIX_ROCKET:
+        {
+            return transition(&SMController::state_active);
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed);
+        }
         default:
         {
             return UNHANDLED;
@@ -403,6 +475,10 @@ Boardcore::State SMController::state_active(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed);
         }
         default:
         {
@@ -432,6 +508,14 @@ Boardcore::State SMController::state_armed_nf(const Boardcore::Event& event)
         {
             return HANDLED;
         }
+        case TMTC_ARP_ENTER_TEST_MODE:
+        {
+            return transition(&SMController::state_test_nf);
+        }
+        case TMTC_ARP_CALIBRATE:
+        {
+            return transition(&SMController::state_fix_rocket_nf);
+        }
         default:
         {
             return UNHANDLED;
@@ -459,6 +543,10 @@ Boardcore::State SMController::state_test_nf(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_ARP_EXIT_TEST_MODE:
+        {
+            return transition(&SMController::state_armed_nf);
         }
         default:
         {
@@ -489,6 +577,14 @@ Boardcore::State SMController::state_fix_rocket_nf(
         {
             return HANDLED;
         }
+        case ARP_FIX_ROCKET:
+        {
+            return transition(&SMController::state_active_nf);
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed_nf);
+        }
         default:
         {
             return UNHANDLED;
@@ -516,6 +612,10 @@ Boardcore::State SMController::state_active_nf(const Boardcore::Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+        case TMTC_ARP_RESET_ALGORITHM:
+        {
+            return transition(&SMController::state_armed_nf);
         }
         default:
         {
