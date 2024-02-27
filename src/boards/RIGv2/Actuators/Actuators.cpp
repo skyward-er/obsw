@@ -25,6 +25,7 @@
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/Configs/ActuatorsConfig.h>
 #include <common/Events.h>
+#include <events/EventBroker.h>
 // TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
 
@@ -40,14 +41,20 @@ void Actuators::ServoInfo::openServo(uint64_t time)
     openedTs = currentTime;
     closeTs  = currentTime + (time * Constants::NS_IN_MS);
 
-    // TODO(davide.mor): Dispatch the open event
+    if (openingEvent != 0)
+    {
+        EventBroker::getInstance().post(openingEvent, TOPIC_MOTOR);
+    }
 }
 
 void Actuators::ServoInfo::closeServo()
 {
     closeTs = 0;
 
-    // TODO(davide.mor): Dispatch the close event
+    if (closingEvent != 0)
+    {
+        EventBroker::getInstance().post(closingEvent, TOPIC_MOTOR);
+    }
 }
 
 void Actuators::ServoInfo::unsafeSetServoPosition(float position)
@@ -193,7 +200,7 @@ bool Actuators::start()
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Wiggle means open the servo for 1s
-    return openServoAtomic(servo, 1000);
+    return openServoWithTime(servo, 1000);
 }
 
 bool Actuators::toggleServo(ServosList servo)
@@ -219,6 +226,32 @@ bool Actuators::toggleServo(ServosList servo)
     return true;
 }
 
+bool Actuators::openServo(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if (info == nullptr)
+    {
+        return false;
+    }
+
+    info->openServo(info->openingTime);
+    return true;
+}
+
+bool Actuators::openServoWithTime(ServosList servo, uint64_t time)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if (info == nullptr)
+    {
+        return false;
+    }
+
+    info->openServo(time);
+    return true;
+}
+
 bool Actuators::closeServo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
@@ -232,17 +265,13 @@ bool Actuators::closeServo(ServosList servo)
     return true;
 }
 
-bool Actuators::openServoAtomic(ServosList servo, uint64_t time)
+void Actuators::closeAllServos()
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
-    if (info == nullptr)
+    for (uint8_t idx = 0; idx < 10; idx++)
     {
-        return false;
+        infos[idx].closeServo();
     }
-
-    info->openServo(time);
-    return true;
 }
 
 bool Actuators::setMaxAperture(ServosList servo, float aperture)
@@ -351,8 +380,11 @@ void Actuators::updatePositionsTask()
             {
                 // The valve JUST closed, notify everybody
                 infos[idx].closeTs = 0;
-
-                // TODO(davide.mor): Dispatch the close event
+                if (infos[idx].closingEvent)
+                {
+                    EventBroker::getInstance().post(infos[idx].closingEvent,
+                                                    TOPIC_MOTOR);
+                }
             }
 
             if (currentTime <

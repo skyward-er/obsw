@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,15 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <cstdint>
 
 namespace RIGv2
 {
-
-class Buses : public Boardcore::Module
+namespace Config
 {
-private:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi2;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
-
-public:
-    Buses() : spi1(SPI1), spi2(SPI2), spi3(SPI3), spi4(SPI4), spi6(SPI6) {}
-
-    Boardcore::SPIBus &getH3LIS331DL() { return spi4; }
-    Boardcore::SPIBus &getLPS22DF() { return spi4; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi4; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi4; }
-    Boardcore::SPIBus &getADS131M08_1() { return spi1; }
-    Boardcore::SPIBus &getADS131M08_2() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_1() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_2() { return spi1; }
-    Boardcore::SPIBus &getRadio() { return spi6; }
-};
-
+namespace Ignition
+{
+static constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 5451;  // [ms]
+}
+}  // namespace Config
 }  // namespace RIGv2

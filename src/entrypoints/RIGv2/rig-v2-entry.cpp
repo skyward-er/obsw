@@ -113,12 +113,6 @@ int main()
         LOG_ERR(logger, "Failed to start EventBroker");
     }
 
-    if (!sensors->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
-    }
-
     if (!actuators->start())
     {
         initResult = false;
@@ -129,6 +123,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start Radio module");
+    }
+
+    if (!sensors->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Sensors module");
     }
 
     if (!gmm->start())

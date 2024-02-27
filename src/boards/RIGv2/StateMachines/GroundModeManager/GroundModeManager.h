@@ -22,12 +22,13 @@
 
 #pragma once
 
+#include <RIGv2/Configs/IgnitionConfig.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <logger/Logger.h>
-#include <atomic>
 
+#include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
@@ -43,6 +44,8 @@ public:
     bool isDisarmed();
     bool isIgniting();
 
+    void setIgnitionTime(uint32_t time);
+
 private:
     void state_idle(const Boardcore::Event &event);
     void state_init_err(const Boardcore::Event &event);
@@ -54,6 +57,10 @@ private:
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+
+    uint16_t openOxidantDelayEventId = -1;
+    std::atomic<uint32_t> ignitionTime{
+        Config::Ignition::DEFAULT_IGNITION_WAITING_TIME};
 };
 
 }  // namespace RIGv2
