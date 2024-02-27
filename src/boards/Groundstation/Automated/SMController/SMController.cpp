@@ -34,9 +34,9 @@ using namespace miosix;
 namespace Antennas
 {
 
-SMController::SMController() : HSM(&SMController::state_init)
+SMController::SMController() : HSM(&SMController::state_config)
 {
-    // TODO: Add initialization code
+    EventBroker::getInstance().subscribe(this, TOPIC_ARP);
 }
 
 // Super state
@@ -61,7 +61,7 @@ Boardcore::State SMController::state_config(const Boardcore::Event& event)
         {
             return transition(&SMController::state_init);
         }
-        case TMTC_RESET_BOARD:
+        case TMTC_ARP_RESET_BOARD:
         {
             reboot();
             return HANDLED;
