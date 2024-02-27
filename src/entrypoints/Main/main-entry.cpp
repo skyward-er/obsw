@@ -20,14 +20,18 @@
  * THE SOFTWARE.
  */
 
+// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+
 #include <Main/Actuators/Actuators.h>
 #include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/Configs/HILSimulationConfig.h>
 #include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
+#include <Main/Sensors/HILSensors.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -51,6 +55,9 @@
 using namespace Boardcore;
 using namespace Main;
 using namespace Common;
+using namespace HILConfig;
+
+constexpr bool hilSimulationActive = true;
 
 int main()
 {
@@ -65,7 +72,9 @@ int main()
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
     Sensors* sensors =
-        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+        (hilSimulationActive
+             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1))
+             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1)));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
@@ -87,6 +96,93 @@ int main()
         new ABKController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     FlightStatsRecorder* recorder =
         new FlightStatsRecorder(scheduler->getScheduler(miosix::MAIN_PRIORITY));
+
+    // HIL
+    if (hilSimulationActive)
+    {
+        HILConfig::MainHILTransceiver* hilTransceiver =
+            new HILConfig::MainHILTransceiver(buses->usart2);
+        HILConfig::MainHILPhasesManager* hilPhasesManager =
+            new HILConfig::MainHILPhasesManager(
+                [&]() {
+                    return Boardcore::TimedTrajectoryPoint(nas->getNasState());
+                });
+
+        auto updateActuatorData = [&]()
+        {
+            Boardcore::ModuleManager& modules =
+                Boardcore::ModuleManager::getInstance();
+
+            HILConfig::ADAStateHIL adaStateHIL(
+                modules.get<ADAController>()->getADAState(),
+                modules.get<ADAController>()->getStatus());
+
+            HILConfig::NASStateHIL nasStateHIL(
+                modules.get<NASController>()->getNasState(),
+                modules.get<NASController>()->getStatus());
+
+            HILConfig::AirBrakesStateHIL abkStateHIL(
+                modules.get<ABKController>()->getStatus());
+
+            HILConfig::MEAStateHIL meaStateHIL(
+                modules.get<MEAController>()->getMEAState(),
+                modules.get<MEAController>()->getStatus());
+
+            HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
+                actuators->getServoPosition(ServosList::EXPULSION_SERVO),
+                actuators->getServoPosition(ServosList::MAIN_VALVE),
+                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+
+            // Returning the feedback for the simulator
+            return HILConfig::ActuatorData(adaStateHIL, nasStateHIL,
+                                           abkStateHIL, meaStateHIL,
+                                           actuatorsStateHIL, fmm);
+        };
+
+        HILConfig::MainHIL* hil = new HILConfig::MainHIL(
+            hilTransceiver, hilPhasesManager, updateActuatorData,
+            HILConfig::SIMULATION_PERIOD);
+
+        if (!modules.insert<HILConfig::MainHIL>(hil))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the HIL module");
+        }
+        else
+        {
+            LOG_INFO(logger, "Inserted the HIL module");
+        }
+
+        hilPhasesManager->registerToFlightPhase(
+            MainFlightPhases::SIM_FLYING,
+            [&]()
+            {
+                printf("Flying\n");
+                canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
+                EventBroker::getInstance().post(
+                    Events::FLIGHT_LAUNCH_PIN_DETACHED, Topics::TOPIC_FLIGHT);
+            });
+
+        hilPhasesManager->registerToFlightPhase(
+            MainFlightPhases::ARMED,
+            [&]()
+            {
+                printf("ARMED\n");
+                EventBroker::getInstance().post(
+                    Events::FLIGHT_LAUNCH_PIN_DETACHED, Topics::TOPIC_FLIGHT);
+                miosix::ledOn();
+            });
+
+        hilPhasesManager->registerToFlightPhase(
+            MainFlightPhases::CALIBRATION_OK,
+            [&]()
+            {
+                TRACE("ARM COMMAND SENT\n");
+                EventBroker::getInstance().post(Events::TMTC_ARM,
+                                                Topics::TOPIC_TMTC);
+            });
+    }
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -202,6 +298,18 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the Board Scheduler module");
+    }
+
+    if (hilSimulationActive)
+    {
+        if (!modules.get<MainHIL>()->start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error starting the HIL module");
+        }
+
+        // Waiting for start of simulation
+        ModuleManager::getInstance().get<MainHIL>()->waitStartSimulation();
     }
 
     if (!modules.get<Actuators>()->start())
