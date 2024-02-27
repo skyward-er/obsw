@@ -81,4 +81,24 @@ struct TCsData : Boardcore::MAX31856Data
            << "," << coldJunctionTemperature << "\n";
     }
 };
+
+struct VoltageData
+{
+    uint64_t voltageTimestamp;
+    float voltage;
+
+    VoltageData() : voltageTimestamp{0}, voltage{0} {}
+
+    VoltageData(uint64_t time, float voltage)
+        : voltageTimestamp{time}, voltage{voltage}
+    {
+    }
+
+    static std::string header() { return "voltageTimestamp,voltage\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << voltageTimestamp << "," << voltage << "\n";
+    }
+};
 }  // namespace RIGv2

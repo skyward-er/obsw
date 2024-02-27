@@ -417,8 +417,11 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             tm.ignition_state = modules.get<GroundModeManager>()->isIgniting();
             // TODO(davide.mor): Add the rest of these
 
-            tm.battery_voltage     = sensors->getADC1LastSample().voltage[0];
-            tm.current_consumption = sensors->getADC1LastSample().voltage[1];
+            // Temporary hack to tell if the board initialized or not
+            tm.main_board_status = modules.get<GroundModeManager>()->isDisarmed();
+
+            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
+            tm.current_consumption = sensors->getServoCurrent().current;
 
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -439,8 +442,8 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             tm.floating_level       = 69.0f;  // Lol
             // TODO(davide.mor): Add the rest of these
 
-            tm.battery_voltage     = sensors->getADC1LastSample().voltage[2];
-            tm.current_consumption = sensors->getADC1LastSample().voltage[3];
+            tm.battery_voltage     = 0.0f;
+            tm.current_consumption = sensors->getUmbilicalCurrent().current;
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
