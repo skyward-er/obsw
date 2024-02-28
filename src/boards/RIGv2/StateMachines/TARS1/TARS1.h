@@ -22,45 +22,51 @@
 
 #pragma once
 
-#include <RIGv2/Configs/IgnitionConfig.h>
-#include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
-#include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
-#include <logger/Logger.h>
+#include <miosix.h>
+#include <scheduler/TaskScheduler.h>
+#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 
-#include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
 {
 
-class GroundModeManager : public Boardcore::Module,
-                          public Boardcore::FSM<GroundModeManager>
+class TARS1 : public Boardcore::Module, public Boardcore::FSM<TARS1>
 {
 public:
-    GroundModeManager();
+    TARS1(Boardcore::TaskScheduler &scheduler);
 
-    bool isArmed();
-    bool isDisarmed();
-    bool isIgniting();
+    [[nodiscard]] bool start();
 
-    void setIgnitionTime(uint32_t time);
+    bool isRefueling();
 
 private:
-    void state_idle(const Boardcore::Event &event);
-    void state_init_err(const Boardcore::Event &event);
-    void state_disarmed(const Boardcore::Event &event);
-    void state_armed(const Boardcore::Event &event);
-    void state_igniting(const Boardcore::Event &event);
+    void sample();
 
-    void logStatus(GroundModeManagerState newState);
+    void state_ready(const Boardcore::Event &event);
+    void state_refueling(const Boardcore::Event &event);
+
+    void logAction(TarsActionType action);
+    void logSample(float pressure, float mass);
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tars1");
 
-    uint16_t openOxidantDelayEventId = -1;
-    std::atomic<uint32_t> ignitionTime{
-        Config::Ignition::DEFAULT_IGNITION_WAITING_TIME};
+    Boardcore::TaskScheduler &scheduler;
+
+    float previousMass = 0;
+    float currentMass  = 0;
+
+    float previousPressure = 0;
+    float currentPressure  = 0;
+
+    miosix::FastMutex sampleMutex;
+    float massSample     = 0;
+    float pressureSample = 0;
+
+    int massStableCounter       = 0;
+    uint16_t nextDelayedEventId = 0;
 };
 
 }  // namespace RIGv2

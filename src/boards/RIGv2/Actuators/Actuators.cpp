@@ -93,7 +93,7 @@ float Actuators::ServoInfo::getServoPosition()
     }
 }
 
-Actuators::Actuators(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
+Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
 {
     // Initialize servos
     infos[0].servo = std::make_unique<Servo>(
@@ -310,6 +310,28 @@ bool Actuators::isServoOpen(ServosList servo)
     }
 
     return info->getServoPosition() > Config::Servos::SERVO_OPEN_THRESHOLD;
+}
+
+uint64_t Actuators::getServoOpeningTime(ServosList servo) {
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if(info == nullptr)
+    {
+        return 0;
+    }
+
+    return info->openingTime;
+}
+
+float Actuators::getServoMaxAperture(ServosList servo) {
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if(info == nullptr)
+    {
+        return 0;
+    }
+
+    return info->maxAperture;
 }
 
 Actuators::ServoInfo *Actuators::getServo(ServosList servo)

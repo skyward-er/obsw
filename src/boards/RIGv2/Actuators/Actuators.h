@@ -77,6 +77,9 @@ public:
     bool setOpeningTime(ServosList servo, uint64_t time);
     bool isServoOpen(ServosList servo);
 
+    uint64_t getServoOpeningTime(ServosList servo);
+    float getServoMaxAperture(ServosList servo);
+
 private:
     ServoInfo *getServo(ServosList servo);
 
