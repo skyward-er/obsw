@@ -29,35 +29,56 @@
 namespace RIGv2
 {
 
-enum GroundModeManagerState : uint8_t
+enum TarsActionType : uint8_t
 {
-    GMM_STATE_IDLE = 0,
-    GMM_STATE_INIT_ERR,
-    GMM_STATE_DISARMED,
-    GMM_STATE_ARMED,
-    GMM_STATE_IGNITING,
+    TARS_ACTION_READY = 0,
+    TARS_ACTION_WASHING,
+    TARS_ACTION_OPEN_FILLING,
+    TARS_ACTION_OPEN_VENTING,
+    TARS_ACTION_CHECK_PRESSURE,
+    TARS_ACTION_CHECK_MASS,
+    TARS_ACTION_AUTOMATIC_STOP,
+    TARS_ACTION_MANUAL_STOP,
 };
 
-struct GroundModeManagerData
+struct TarsActionData
 {
     uint64_t timestamp;
-    GroundModeManagerState state;
+    TarsActionType action;
 
-    GroundModeManagerData()
-        : timestamp{0}, state{GMM_STATE_IDLE}
+    TarsActionData() : timestamp{0}, action{TARS_ACTION_READY} {}
+
+    TarsActionData(uint64_t timestamp, TarsActionType action)
+        : timestamp{timestamp}, action{action}
     {
     }
 
-    GroundModeManagerData(uint64_t timestamp, GroundModeManagerState state)
-        : timestamp{timestamp}, state{state}
+    static std::string header() { return "timestamp,action\n"; }
+
+    void print(std::ostream &os) const
+    {
+        os << timestamp << "," << (int)action << "\n";
+    }
+};
+
+struct TarsSampleData
+{
+    uint64_t timestamp;
+    float pressure;
+    float mass;
+
+    TarsSampleData() : timestamp{0}, pressure{0}, mass{0} {}
+
+    TarsSampleData(uint64_t timestamp, float pressure, float mass)
+        : timestamp{timestamp}, pressure{pressure}, mass{mass}
     {
     }
 
-    static std::string header() { return "timestamp,state\n"; }
+    static std::string header() { return "timestamp,pressure,mass\n"; }
 
-    void print(std::ostream& os) const
+    void print(std::ostream &os) const
     {
-        os << timestamp << "," << (int)state << "\n";
+        os << timestamp << "," << pressure << "," << mass << "\n";
     }
 };
 

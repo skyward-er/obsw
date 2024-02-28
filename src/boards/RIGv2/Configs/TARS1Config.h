@@ -22,45 +22,25 @@
 
 #pragma once
 
-#include <RIGv2/Configs/IgnitionConfig.h>
-#include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-#include <logger/Logger.h>
-
-#include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <cstdint>
 
 namespace RIGv2
 {
-
-class GroundModeManager : public Boardcore::Module,
-                          public Boardcore::FSM<GroundModeManager>
+namespace Config
 {
-public:
-    GroundModeManager();
+namespace TARS1
+{
+static constexpr uint32_t SAMPLE_PERIOD = 10;
 
-    bool isArmed();
-    bool isDisarmed();
-    bool isIgniting();
+static constexpr uint32_t WASHING_OPENING_TIME         = 5000;
+static constexpr uint32_t WASHING_TIME_DELAY           = 1000;
+static constexpr uint32_t FILLING_OPENING_TIME         = 900000;
+static constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
 
-    void setIgnitionTime(uint32_t time);
+static constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
 
-private:
-    void state_idle(const Boardcore::Event &event);
-    void state_init_err(const Boardcore::Event &event);
-    void state_disarmed(const Boardcore::Event &event);
-    void state_armed(const Boardcore::Event &event);
-    void state_igniting(const Boardcore::Event &event);
-
-    void logStatus(GroundModeManagerState newState);
-
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
-
-    uint16_t openOxidantDelayEventId = -1;
-    std::atomic<uint32_t> ignitionTime{
-        Config::Ignition::DEFAULT_IGNITION_WAITING_TIME};
-};
-
+static constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
+static constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
+}  // namespace TARS1
+}  // namespace Config
 }  // namespace RIGv2
