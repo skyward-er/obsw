@@ -181,7 +181,26 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
 
             mavlink_message_t tm;
-            if (packSystemTm(tmId, tm))
+            if (tmId == MAV_SENSORS_STATE_ID)
+            {
+                sendAck(msg);
+
+                auto sensors = modules.get<Sensors>()->getSensorInfos();
+                for (auto sensor : sensors)
+                {
+                    mavlink_sensor_state_tm_t tm2;
+
+                    strcpy(tm2.sensor_name, sensor.id.c_str());
+                    tm2.state = (sensor.isInitialized ? 1 : 0) |
+                                (sensor.isEnabled ? 2 : 0);
+
+                    mavlink_msg_sensor_state_tm_encode(
+                        Config::Radio::MAV_SYSTEM_ID,
+                        Config::Radio::MAV_COMPONENT_ID, &tm, &tm2);
+                    enqueuePacket(tm);
+                }
+            }
+            else if (packSystemTm(tmId, tm))
             {
                 sendAck(msg);
                 enqueuePacket(tm);
@@ -274,7 +293,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     uint8_t cmd            = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
     {
