@@ -23,6 +23,7 @@
 #include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
+#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -56,6 +57,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<TCsData>();
     ds.registerType<ActuatorsData>();
     ds.registerType<GroundModeManagerData>();
+    ds.registerType<TarsActionData>();
+    ds.registerType<TarsSampleData>();
 }
 
 void showUsage(const string& cmdName)
