@@ -162,19 +162,22 @@ LoadCellData Sensors::getTankWeight()
     return {sample.timestamp, load};
 }
 
-CurrentData Sensors::getUmbilicalCurrent() {
+CurrentData Sensors::getUmbilicalCurrent()
+{
     auto sample = getInternalADCLastSample();
 
     return {sample.timestamp, sample.voltage[11]};
 }
 
-CurrentData Sensors::getServoCurrent() {
+CurrentData Sensors::getServoCurrent()
+{
     auto sample = getInternalADCLastSample();
 
     return {sample.timestamp, sample.voltage[9]};
 }
 
-VoltageData Sensors::getBatteryVoltage() {
+VoltageData Sensors::getBatteryVoltage()
+{
     auto sample = getInternalADCLastSample();
 
     return {sample.timestamp, sample.voltage[14]};
@@ -198,6 +201,15 @@ void Sensors::calibrate()
 
     vesselLcOffset = vesselStats.getStats().mean;
     tankLcOffset   = tankStats.getStats().mean;
+}
+
+std::vector<SensorInfo> Sensors::getSensorInfos()
+{
+    return {
+        manager->getSensorInfo(internalAdc.get()),
+        manager->getSensorInfo(adc1.get()),
+        manager->getSensorInfo(tc1.get()),
+    };
 }
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)

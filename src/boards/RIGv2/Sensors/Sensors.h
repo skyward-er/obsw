@@ -29,7 +29,9 @@
 #include <sensors/SensorManager.h>
 
 #include <atomic>
+#include <functional>
 #include <memory>
+#include <vector>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
@@ -63,6 +65,8 @@ public:
     VoltageData getBatteryVoltage();
 
     void calibrate();
+
+    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 private:
     void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
