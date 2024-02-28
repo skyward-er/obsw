@@ -26,6 +26,7 @@
 #include <RIGv2/Buses.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <events/EventBroker.h>
@@ -413,12 +414,16 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
                 actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
-            tm.arming_state   = modules.get<GroundModeManager>()->isArmed();
-            tm.ignition_state = modules.get<GroundModeManager>()->isIgniting();
+            tm.arming_state =
+                modules.get<GroundModeManager>()->isArmed() ? 1 : 0;
+            tm.ignition_state =
+                modules.get<GroundModeManager>()->isIgniting() ? 1 : 0;
+            tm.tars_state = modules.get<TARS1>()->isRefueling() ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
             // Temporary hack to tell if the board initialized or not
-            tm.main_board_status = modules.get<GroundModeManager>()->isDisarmed();
+            tm.main_board_status =
+                modules.get<GroundModeManager>()->isDisarmed();
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;
@@ -487,8 +492,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (oldConrigState.arm_switch == 0 && state.arm_switch == 1)
         {
             // The ARM switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             EventBroker::getInstance().post(TMTC_ARM, TOPIC_MOTOR);
 
             lastManualActuation = currentTime;
@@ -497,8 +501,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (oldConrigState.ignition_btn == 0 && state.ignition_btn == 1)
         {
             // The ignition switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             EventBroker::getInstance().post(MOTOR_IGNITION, TOPIC_MOTOR);
 
             lastManualActuation = currentTime;
@@ -508,8 +511,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             state.filling_valve_btn == 1)
         {
             // The filling switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             modules.get<Actuators>()->toggleServo(ServosList::FILLING_VALVE);
 
             lastManualActuation = currentTime;
@@ -519,8 +521,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             state.quick_connector_btn == 1)
         {
             // The quick conector switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             modules.get<Actuators>()->toggleServo(ServosList::DISCONNECT_SERVO);
 
             lastManualActuation = currentTime;
@@ -530,8 +531,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             state.release_pressure_btn == 1)
         {
             // The release switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             modules.get<Actuators>()->toggleServo(ServosList::RELEASE_VALVE);
 
             lastManualActuation = currentTime;
@@ -541,9 +541,16 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             state.venting_valve_btn == 1)
         {
             // The venting switch was pressed
-            // TODO(davide.mor): Notify everybody of a manual actuation
-
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             modules.get<Actuators>()->toggleServo(ServosList::VENTING_VALVE);
+
+            lastManualActuation = currentTime;
+        }
+
+        if (oldConrigState.start_tars_btn == 0 && state.start_tars_btn == 1)
+        {
+            // The TARS switch was pressed
+            EventBroker::getInstance().post(MOTOR_START_TARS, TOPIC_TARS);
 
             lastManualActuation = currentTime;
         }
@@ -552,8 +559,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     // Special case for disarming, that can be done bypassing the timeout
     if (oldConrigState.arm_switch == 1 && state.arm_switch == 0)
     {
-        // TODO(davide.mor): Notify everybody of a manual actuation
-
+        EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
         EventBroker::getInstance().post(TMTC_DISARM, TOPIC_MOTOR);
 
         lastManualActuation = currentTime;

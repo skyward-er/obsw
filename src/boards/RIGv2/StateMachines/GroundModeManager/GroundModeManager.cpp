@@ -69,7 +69,7 @@ void GroundModeManager::state_idle(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
-            logStatus(GroundModeManagerState::STATE_IDLE);
+            logStatus(GMM_STATE_IDLE);
             break;
         }
 
@@ -93,7 +93,7 @@ void GroundModeManager::state_init_err(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
-            logStatus(GroundModeManagerState::STATE_INIT_ERR);
+            logStatus(GMM_STATE_INIT_ERR);
             break;
         }
 
@@ -113,7 +113,7 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
         case EV_ENTRY:
         {
             armLightOff();
-            logStatus(GroundModeManagerState::STATE_DISARMED);
+            logStatus(GMM_STATE_DISARMED);
             break;
         }
 
@@ -142,7 +142,7 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
         {
             armLightOn();
             modules.get<Actuators>()->closeAllServos();
-            logStatus(GroundModeManagerState::STATE_ARMED);
+            logStatus(GMM_STATE_ARMED);
             break;
         }
 
@@ -174,7 +174,7 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
             openOxidantDelayEventId = EventBroker::getInstance().postDelayed(
                 MOTOR_OPEN_OXIDANT, TOPIC_MOTOR, ignitionTime);
 
-            logStatus(GroundModeManagerState::STATE_IGNITING);
+            logStatus(GMM_STATE_IGNITING);
             break;
         }
 

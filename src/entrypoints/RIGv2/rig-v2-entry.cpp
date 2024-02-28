@@ -25,6 +25,7 @@
 #include <RIGv2/Radio/Radio.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <common/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
@@ -52,6 +53,7 @@ int main()
     Sensors *sensors       = new Sensors(*scheduler1);
     Actuators *actuators   = new Actuators(*scheduler2);
     GroundModeManager *gmm = new GroundModeManager();
+    TARS1 *tars1           = new TARS1(*scheduler2);
     Radio *radio           = new Radio();
 
     Logger &sdLogger    = Logger::getInstance();
@@ -99,6 +101,12 @@ int main()
         LOG_ERR(logger, "Error failed to insert GroundModeManager");
     }
 
+    if (!modules.insert<TARS1>(tars1))
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to insert TARS1");
+    }
+
     // Start modules
     if (!sdLogger.testSDCard())
     {
@@ -134,6 +142,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start GroundModeManager module");
+    }
+
+    if (!tars1->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start TARS1 module");
     }
 
     if (!scheduler1->start() || !scheduler2->start())
