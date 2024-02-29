@@ -25,6 +25,8 @@
 #include <RIGv2/Buses.h>
 #include <RIGv2/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
+// TODO(davide.mor): Remove TimestampTimer
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -41,16 +43,6 @@ float pressureFromVoltage(float voltage, float shuntResistance,
 
     // Finally remap to the range [0, maxPressure]
     return value * maxPressure;
-}
-
-float loadFromVoltage(float voltage, float excitationVoltage, float ratedOutput,
-                      float ratedCapacity)
-{
-    // Convert to a value between [0, 1] based on 0 and maximum output voltage
-    float value = (voltage * 1000.0f) / (ratedOutput * excitationVoltage);
-
-    // Finally remap to the range [0, ratedCapacity]
-    return value * ratedCapacity;
 }
 
 bool Sensors::isStarted() { return started; }
@@ -146,9 +138,7 @@ LoadCellData Sensors::getVesselWeight()
         sample.voltage[Config::Sensors::ADC1_VESSEL_LC_CHANNEL] -
         vesselLcOffset;
 
-    float load = loadFromVoltage(calibratedVoltage, 8.0f, 2.0f, 500.0f);
-
-    return {sample.timestamp, load};
+    return {sample.timestamp, calibratedVoltage};
 }
 
 LoadCellData Sensors::getTankWeight()
@@ -157,30 +147,30 @@ LoadCellData Sensors::getTankWeight()
     float calibratedVoltage =
         sample.voltage[Config::Sensors::ADC1_TANK_LC_CHANNEL] - tankLcOffset;
 
-    float load = loadFromVoltage(calibratedVoltage, 8.0f, 2.0f, 500.0f);
-
-    return {sample.timestamp, load};
+    return {sample.timestamp, calibratedVoltage};
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
 {
-    auto sample = getInternalADCLastSample();
-
-    return {sample.timestamp, sample.voltage[11]};
+    return {TimestampTimer::getTimestamp(), 0.0};
 }
 
 CurrentData Sensors::getServoCurrent()
 {
-    auto sample = getInternalADCLastSample();
+    auto sample = getADC1LastSample();
 
-    return {sample.timestamp, sample.voltage[9]};
+    float current = (sample.voltage[Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] - Config::Sensors::SERVO_CURRENT_ZERO) *
+                    Config::Sensors::SERVO_CURRENT_SCALE;
+    // Current reading are flipped
+    return {sample.timestamp, -current / 5.0f * 50.0f};
 }
 
 VoltageData Sensors::getBatteryVoltage()
 {
     auto sample = getInternalADCLastSample();
 
-    return {sample.timestamp, sample.voltage[14]};
+    float voltage = sample.voltage[14] * Config::Sensors::BATTERY_VOLTAGE_SCALE;
+    return {sample.timestamp, voltage};
 }
 
 void Sensors::calibrate()
