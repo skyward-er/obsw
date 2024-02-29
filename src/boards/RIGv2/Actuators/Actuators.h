@@ -43,6 +43,8 @@ private:
         uint64_t openingTime = 100000;  // Default 100s [ms]
         // What angle is the maximum
         float maxAperture = 1.0;
+        // Hard limit of the aperture
+        float limit = 1.0;
         // Should this servo be reversed?
         bool flipped = false;
 

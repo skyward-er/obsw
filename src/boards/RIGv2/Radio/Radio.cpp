@@ -293,7 +293,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
-    uint8_t cmd            = mavlink_msg_command_tc_get_command_id(&msg);
+    uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
     {
         case MAV_CMD_START_LOGGING:
@@ -326,6 +326,13 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_FORCE_INIT:
         {
             EventBroker::getInstance().post(TMTC_FORCE_INIT, TOPIC_MOTOR);
+            sendAck(msg);
+            break;
+        }
+
+        case MAV_CMD_FORCE_REBOOT:
+        {
+            EventBroker::getInstance().post(TMTC_RESET_BOARD, TOPIC_MOTOR);
             sendAck(msg);
             break;
         }
