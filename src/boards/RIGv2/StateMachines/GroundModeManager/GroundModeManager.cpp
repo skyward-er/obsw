@@ -73,6 +73,12 @@ void GroundModeManager::state_idle(const Boardcore::Event &event)
             break;
         }
 
+        case TMTC_RESET_BOARD:
+        {
+            reboot();
+            break;
+        }
+
         case FMM_INIT_ERROR:
         {
             transition(&GroundModeManager::state_init_err);
@@ -97,6 +103,12 @@ void GroundModeManager::state_init_err(const Boardcore::Event &event)
             break;
         }
 
+        case TMTC_RESET_BOARD:
+        {
+            reboot();
+            break;
+        }
+
         case TMTC_FORCE_INIT:
         {
             transition(&GroundModeManager::state_disarmed);
@@ -114,6 +126,12 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
         {
             armLightOff();
             logStatus(GMM_STATE_DISARMED);
+            break;
+        }
+
+        case TMTC_RESET_BOARD:
+        {
+            reboot();
             break;
         }
 

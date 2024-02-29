@@ -47,17 +47,22 @@ static constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
 static constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
 static constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 10000;  // 10s
 
-static constexpr float DEFAULT_FILLING_MAXIMUM_APERTURE    = 1.00f;
-static constexpr float DEFAULT_VENTING_MAXIMUM_APERTURE    = 1.00f;
-static constexpr float DEFAULT_MAIN_MAXIMUM_APERTURE       = 1.00f;
-static constexpr float DEFAULT_RELEASE_MAXIMUM_APERTURE    = 1.00f;
-static constexpr float DEFAULT_DISCONNECT_MAXIMUM_APERTURE = 1.00f;
+static constexpr float DEFAULT_FILLING_MAX_APERTURE    = 1.00f;
+static constexpr float DEFAULT_VENTING_MAX_APERTURE    = 1.00f;
+static constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
+static constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
+static constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
+
+static constexpr float FILLING_LIMIT = 0.65f;
+static constexpr float RELEASE_LIMIT = 0.45f;
+static constexpr float VENTING_LIMIT = 0.5f;
+static constexpr float MAIN_LIMIT    = 1.0f;
 
 static constexpr bool FILLING_FLIPPED    = true;
-static constexpr bool VENTING_FLIPPED    = true;
-static constexpr bool MAIN_FLIPPED       = true;
-static constexpr bool RELEASE_FLIPPED    = false;
-static constexpr bool DISCONNECT_FLIPPED = true;
+static constexpr bool VENTING_FLIPPED    = false;
+static constexpr bool MAIN_FLIPPED       = false;
+static constexpr bool RELEASE_FLIPPED    = true;
+static constexpr bool DISCONNECT_FLIPPED = false;
 
 }  // namespace Servos
 }  // namespace Config

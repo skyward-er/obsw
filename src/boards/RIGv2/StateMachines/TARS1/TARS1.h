@@ -26,6 +26,8 @@
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
+#include <RIGv2/StateMachines/TARS1/MedianFilter.h>
+#include <RIGv2/Configs/TARS1Config.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -60,6 +62,10 @@ private:
 
     float previousPressure = 0;
     float currentPressure  = 0;
+
+    int medianSamples = 0;
+    MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER> massFilter;
+    MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER> pressureFilter;
 
     miosix::FastMutex sampleMutex;
     float massSample     = 0;

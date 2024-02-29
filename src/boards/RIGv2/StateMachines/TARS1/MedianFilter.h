@@ -22,26 +22,36 @@
 
 #pragma once
 
-#include <cstdint>
+#include <algorithm>
+#include <memory>
+#include <array>
 
 namespace RIGv2
 {
-namespace Config
+
+template<typename T, size_t Max>
+class MedianFilter
 {
-namespace TARS1
-{
-static constexpr uint32_t SAMPLE_PERIOD = 10;
-static constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
+public:
+    MedianFilter() {}
 
-static constexpr uint32_t WASHING_OPENING_TIME         = 5000;
-static constexpr uint32_t WASHING_TIME_DELAY           = 1000;
-static constexpr uint32_t FILLING_OPENING_TIME         = 900000;
-static constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
+    void reset() {
+        idx = 0;
+    }
+    
+    void add(T value) {
+        values[idx] = value;
+        idx = (idx + 1) % Max;
+    }
+    
+    T calcMedian() {
+        std::sort(values.begin(), values.end());
+        return values[idx / 2];
+    }
 
-static constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
+private:
+    size_t idx = 0;
+    std::array<T, Max> values = {0};
+};
 
-static constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
-static constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
-}  // namespace TARS1
-}  // namespace Config
-}  // namespace RIGv2
+}
