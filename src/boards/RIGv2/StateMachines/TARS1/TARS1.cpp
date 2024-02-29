@@ -23,7 +23,6 @@
 #include "TARS1.h"
 
 #include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/Configs/TARS1Config.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -62,10 +61,7 @@ bool TARS1::start()
     return true;
 }
 
-bool TARS1::isRefueling()
-{
-    return testState(&TARS1::state_refueling);
-}
+bool TARS1::isRefueling() { return testState(&TARS1::state_refueling); }
 
 void TARS1::state_ready(const Event& event)
 {
@@ -260,17 +256,23 @@ void TARS1::sample()
     ModuleManager& modules = ModuleManager::getInstance();
     Sensors* sensors       = modules.get<Sensors>();
 
-    float pressure = sensors->getTankBottomPress().pressure;
-    float mass     = sensors->getTankWeight().load;
+    pressureFilter.add(sensors->getTankBottomPress().pressure);
+    massFilter.add(sensors->getTankWeight().load);
+    medianSamples++;
 
-    // TODO(davide.mor): Perform filtering on input data
-
-    logSample(pressure, mass);
-
+    if (medianSamples == Config::TARS1::MEDIAN_SAMPLE_NUMBER)
     {
-        Lock<FastMutex> lock(sampleMutex);
-        pressureSample = pressure;
-        massSample     = mass;
+        float pressure = pressureFilter.calcMedian();
+        float mass     = massFilter.calcMedian();
+        medianSamples  = 0;
+
+        logSample(pressure, mass);
+
+        {
+            Lock<FastMutex> lock(sampleMutex);
+            pressureSample = pressure;
+            massSample     = mass;
+        }
     }
 }
 
