@@ -55,8 +55,8 @@ private:
 
         // Timestamp of when the servo should close, 0 if closed
         long long closeTs = 0;
-        // Timestamp of when the servo was opened
-        long long openedTs = 0;
+        // Timestamp of last servo action (open/close)
+        long long lastActionTs = 0;
 
         void openServo(uint64_t time);
         void closeServo();
