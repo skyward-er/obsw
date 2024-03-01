@@ -138,7 +138,8 @@ LoadCellData Sensors::getVesselWeight()
         sample.voltage[Config::Sensors::ADC1_VESSEL_LC_CHANNEL] -
         vesselLcOffset;
 
-    return {sample.timestamp, calibratedVoltage};
+    return {sample.timestamp,
+            -calibratedVoltage * Config::Sensors::LC_VESSEL_SCALE};
 }
 
 LoadCellData Sensors::getTankWeight()
@@ -147,7 +148,9 @@ LoadCellData Sensors::getTankWeight()
     float calibratedVoltage =
         sample.voltage[Config::Sensors::ADC1_TANK_LC_CHANNEL] - tankLcOffset;
 
-    return {sample.timestamp, calibratedVoltage};
+    // This ADC channel is flipped for some reason
+    return {sample.timestamp,
+            -calibratedVoltage * Config::Sensors::LC_TANK_SCALE};
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
@@ -159,8 +162,10 @@ CurrentData Sensors::getServoCurrent()
 {
     auto sample = getADC1LastSample();
 
-    float current = (sample.voltage[Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] - Config::Sensors::SERVO_CURRENT_ZERO) *
-                    Config::Sensors::SERVO_CURRENT_SCALE;
+    float current =
+        (sample.voltage[Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] -
+         Config::Sensors::SERVO_CURRENT_ZERO) *
+        Config::Sensors::SERVO_CURRENT_SCALE;
     // Current reading are flipped
     return {sample.timestamp, -current / 5.0f * 50.0f};
 }
