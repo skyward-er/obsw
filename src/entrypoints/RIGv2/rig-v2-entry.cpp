@@ -168,10 +168,11 @@ int main()
     }
 
     // Periodic statistics
+    int i = 0;
     while (true)
     {
         Thread::sleep(1000);
-        sdLogger.log(modules.get<Radio>()->getMavStatus());
+        // sdLogger.log(modules.get<Radio>()->getMavStatus());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         // TODO: What the fuck is this?

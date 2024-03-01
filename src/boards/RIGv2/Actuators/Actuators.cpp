@@ -38,8 +38,8 @@ void Actuators::ServoInfo::openServo(uint64_t time)
 {
     long long currentTime = getTime();
 
-    openedTs = currentTime;
-    closeTs  = currentTime + (time * Constants::NS_IN_MS);
+    closeTs      = currentTime + (time * Constants::NS_IN_MS);
+    lastActionTs = currentTime;
 
     if (openingEvent != 0)
     {
@@ -49,7 +49,8 @@ void Actuators::ServoInfo::openServo(uint64_t time)
 
 void Actuators::ServoInfo::closeServo()
 {
-    closeTs = 0;
+    closeTs      = 0;
+    lastActionTs = getTime();
 
     if (closingEvent != 0)
     {
@@ -204,7 +205,7 @@ bool Actuators::start()
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Wiggle means open the servo for 1s
-    return openServoWithTime(servo, 1000);
+    return openServoWithTime(servo, 10000);
 }
 
 bool Actuators::toggleServo(ServosList servo)
@@ -386,9 +387,9 @@ void Actuators::updatePositionsTask()
         if (currentTime < infos[idx].closeTs)
         {
             // The valve should be open
-            if (currentTime <
-                infos[idx].openedTs + (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                       Constants::NS_IN_MS))
+            if (currentTime < infos[idx].lastActionTs +
+                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
+                                   Constants::NS_IN_MS))
             {
                 // We should open the valve all the way
                 unsafeSetServoPosition(idx, infos[idx].maxAperture);
@@ -406,18 +407,13 @@ void Actuators::updatePositionsTask()
             // Ok the valve should be closed
             if (infos[idx].closeTs != 0)
             {
-                // The valve JUST closed, notify everybody
-                infos[idx].closeTs = 0;
-                if (infos[idx].closingEvent)
-                {
-                    EventBroker::getInstance().post(infos[idx].closingEvent,
-                                                    TOPIC_MOTOR);
-                }
+                // Perform the servo closing
+                infos[idx].closeServo();
             }
 
-            if (currentTime <
-                infos[idx].closeTs + (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                      Constants::NS_IN_MS))
+            if (currentTime < infos[idx].lastActionTs +
+                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
+                                   Constants::NS_IN_MS))
             {
                 // We should close the valve all the way
                 unsafeSetServoPosition(idx, 0.0);
@@ -425,7 +421,9 @@ void Actuators::updatePositionsTask()
             else
             {
                 // Time to wiggle the valve a little
-                unsafeSetServoPosition(idx, Config::Servos::SERVO_CONFIDENCE);
+                unsafeSetServoPosition(
+                    idx,
+                    infos[idx].maxAperture * Config::Servos::SERVO_CONFIDENCE);
             }
         }
     }
