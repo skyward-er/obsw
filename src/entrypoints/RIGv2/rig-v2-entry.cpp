@@ -172,7 +172,7 @@ int main()
     while (true)
     {
         Thread::sleep(1000);
-        // sdLogger.log(modules.get<Radio>()->getMavStatus());
+        sdLogger.log(modules.get<Radio>()->getMavStatus());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         // TODO: What the fuck is this?
