@@ -205,7 +205,7 @@ bool Actuators::start()
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Wiggle means open the servo for 1s
-    return openServoWithTime(servo, 10000);
+    return openServoWithTime(servo, 1000);
 }
 
 bool Actuators::toggleServo(ServosList servo)
