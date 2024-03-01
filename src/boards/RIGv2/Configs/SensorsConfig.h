@@ -72,6 +72,18 @@ static constexpr unsigned int LC_CALIBRATE_SAMPLE_PERIOD = 40;
 static constexpr float SERVO_CURRENT_SCALE   = 4.5466;
 static constexpr float SERVO_CURRENT_ZERO    = 2.520 / SERVO_CURRENT_SCALE;
 static constexpr float BATTERY_VOLTAGE_SCALE = 4.7917;
+
+// LC Tank sensor calibration data
+// - 1.866kg V: 0.000941
+// - 5.050kg V: 0.002550
+// - 6.916kg V: 0.003559
+static constexpr float LC_TANK_SCALE = 1968.8771f;
+// LC Vessel sensor calibration data
+// - 1.866kg V: 0.00027
+// - 5.050kg V: 0.00073
+// - 6.916kg V: 0.00100
+static constexpr float LC_VESSEL_SCALE = 6914.9731f;
+
 }  // namespace Sensors
 
 }  // namespace Config
