@@ -110,6 +110,91 @@ int main()
                state_insert_info);
     TEST_ALL_OTHER(state_init_done, TMTC_ARP_ARM, TMTC_ARP_FORCE_NO_FEEDBACK);
 
+    // TEST STATE: INIT_ERROR
+    TEST_STATE(state_init_error, TMTC_ARP_FORCE_INIT, TOPIC_TMTC,
+               state_init_done);
+    TEST_STATE(state_init_error, TMTC_ARP_FORCE_NO_FEEDBACK, TOPIC_TMTC,
+               state_insert_info);
+    TEST_ALL_OTHER(state_init_error, TMTC_ARP_FORCE_INIT,
+                   TMTC_ARP_FORCE_NO_FEEDBACK);
+
+    // TEST STATE: INSERT_INFO
+    TEST_STATE(state_insert_info, TMTC_ARP_ARM, TOPIC_TMTC, state_armed_nf);
+    TEST_ALL_OTHER(state_insert_info, TMTC_ARP_ARM);
+
+    // TEST STATE: ARMED
+    TEST_STATE(state_armed, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
+    TEST_STATE(state_armed, TMTC_ARP_CALIBRATE, TOPIC_TMTC, state_calibrate);
+    TEST_STATE(state_armed, TMTC_ARP_ENTER_TEST_MODE, TOPIC_TMTC, state_test);
+    TEST_ALL_OTHER(state_armed, TMTC_ARP_DISARM, TMTC_ARP_CALIBRATE,
+                   TMTC_ARP_ENTER_TEST_MODE);
+
+    // TEST STATE: TEST
+    TEST_STATE(state_test, TMTC_ARP_EXIT_TEST_MODE, TOPIC_TMTC, state_armed);
+    TEST_STATE(state_test, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
+    TEST_ALL_OTHER(state_test, TMTC_ARP_EXIT_TEST_MODE, TMTC_ARP_DISARM);
+
+    // TEST STATE: CALIBRATE
+    TEST_STATE(state_calibrate, ARP_CAL_DONE, TOPIC_ARP, state_fix_antennas);
+    TEST_STATE(state_calibrate, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
+    TEST_STATE(state_calibrate, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
+               state_armed);
+    TEST_ALL_OTHER(state_calibrate, ARP_CAL_DONE, TMTC_ARP_DISARM,
+                   TMTC_ARP_RESET_ALGORITHM);
+
+    // TEST STATE: FIX_ANTENNAS
+    TEST_STATE(state_fix_antennas, ARP_FIX_ANTENNAS, TOPIC_ARP,
+               state_fix_rocket);
+    TEST_STATE(state_fix_antennas, TMTC_ARP_DISARM, TOPIC_TMTC,
+               state_init_done);
+    TEST_STATE(state_fix_antennas, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
+               state_armed);
+    TEST_ALL_OTHER(state_fix_antennas, ARP_FIX_ANTENNAS, TMTC_ARP_DISARM,
+                   TMTC_ARP_RESET_ALGORITHM);
+
+    // TEST STATE: FIX_ROCKET
+    TEST_STATE(state_fix_rocket, ARP_FIX_ROCKET, TOPIC_ARP, state_active);
+    TEST_STATE(state_fix_rocket, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
+    TEST_STATE(state_fix_rocket, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
+               state_armed);
+    TEST_ALL_OTHER(state_fix_rocket, ARP_FIX_ROCKET, TMTC_ARP_DISARM,
+                   TMTC_ARP_RESET_ALGORITHM);
+
+    // TEST STATE: ACTIVE
+    TEST_STATE(state_active, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
+    TEST_STATE(state_active, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC, state_armed);
+    TEST_ALL_OTHER(state_active, TMTC_ARP_DISARM, TMTC_ARP_RESET_ALGORITHM);
+
+    // TEST STATE: ARMED_NO_FEEDBACK
+    TEST_STATE(state_armed_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_STATE(state_armed_nf, TMTC_ARP_CALIBRATE, TOPIC_TMTC,
+               state_fix_rocket_nf);
+    TEST_STATE(state_armed_nf, TMTC_ARP_ENTER_TEST_MODE, TOPIC_TMTC,
+               state_test_nf);
+    TEST_ALL_OTHER(state_armed_nf, TMTC_ARP_DISARM, TMTC_ARP_CALIBRATE,
+                   TMTC_ARP_ENTER_TEST_MODE);
+
+    // TEST STATE: TEST_NO_FEEDBACK
+    TEST_STATE(state_test_nf, TMTC_ARP_EXIT_TEST_MODE, TOPIC_TMTC,
+               state_armed_nf);
+    TEST_STATE(state_test_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_ALL_OTHER(state_test_nf, TMTC_ARP_EXIT_TEST_MODE, TMTC_ARP_DISARM);
+
+    // TEST STATE: FIX_ROCKET_NO_FEEDBACK
+    TEST_STATE(state_fix_rocket_nf, ARP_FIX_ROCKET, TOPIC_ARP, state_active_nf);
+    TEST_STATE(state_fix_rocket_nf, TMTC_ARP_DISARM, TOPIC_TMTC,
+               state_insert_info);
+    TEST_STATE(state_fix_rocket_nf, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
+               state_armed_nf);
+    TEST_ALL_OTHER(state_fix_rocket_nf, ARP_FIX_ROCKET, TMTC_ARP_DISARM,
+                   TMTC_ARP_RESET_ALGORITHM);
+
+    // TEST STATE: ACTIVE_NO_FEEDBACK
+    TEST_STATE(state_active_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_STATE(state_active_nf, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
+               state_armed_nf);
+    TEST_ALL_OTHER(state_active_nf, TMTC_ARP_DISARM, TMTC_ARP_RESET_ALGORITHM);
+
     TRACE("Testing SMController ... ");
     ok ? printf("OK\n") : printf("FAIL\n");
     return 0;
