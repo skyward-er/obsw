@@ -201,7 +201,7 @@ Boardcore::State SMController::state_init_error(const Boardcore::Event& event)
         {
             return transition(&SMController::state_insert_info);
         }
-        case TMTC_FORCE_INIT:
+        case TMTC_ARP_FORCE_INIT:
         {
             return transition(&SMController::state_init_done);
         }
@@ -239,7 +239,7 @@ Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
         }
         case TMTC_ARP_ARM:
         {
-            return tranSuper(&SMController::state_feedback);
+            return transition(&SMController::state_feedback);
         }
         default:
         {
@@ -271,7 +271,7 @@ Boardcore::State SMController::state_insert_info(const Boardcore::Event& event)
         }
         case TMTC_ARP_ARM:
         {
-            return tranSuper(&SMController::state_no_feedback);
+            return transition(&SMController::state_no_feedback);
         }
         default:
         {
