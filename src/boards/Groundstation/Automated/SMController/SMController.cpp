@@ -37,6 +37,7 @@ namespace Antennas
 SMController::SMController() : HSM(&SMController::state_config)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 }
 
 // Super state
