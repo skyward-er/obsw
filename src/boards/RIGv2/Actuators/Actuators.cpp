@@ -98,36 +98,46 @@ Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
     // Initialize servos
     infos[0].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_1_TIM, TimerUtils::Channel::MIOSIX_SERVOS_1_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     infos[1].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_2_TIM, TimerUtils::Channel::MIOSIX_SERVOS_2_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     infos[2].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     infos[3].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     // This servo is currently unusable, due to it sharing the same timer as
     // miosix, TIM5 infos[4].servo = std::make_unique<Servo>(
     //     MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
-    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+    //     Config::Servos::FREQUENCY);
     infos[5].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_6_TIM, TimerUtils::Channel::MIOSIX_SERVOS_6_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     infos[6].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_7_TIM, TimerUtils::Channel::MIOSIX_SERVOS_7_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     // This servo is currently unusable, due to it sharing the same timer as
     // servo 1 infos[7].servo = std::make_unique<Servo>(
     //     MIOSIX_SERVOS_8_TIM, TimerUtils::Channel::MIOSIX_SERVOS_8_CHANNEL,
-    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+    //     Config::Servos::FREQUENCY);
     infos[8].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_9_TIM, TimerUtils::Channel::MIOSIX_SERVOS_9_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
     infos[9].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_10_TIM, TimerUtils::Channel::MIOSIX_SERVOS_10_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE);
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
 
     ServoInfo *info;
     info               = getServo(ServosList::FILLING_VALVE);
@@ -314,7 +324,7 @@ bool Actuators::isServoOpen(ServosList servo)
         return false;
     }
 
-    return info->getServoPosition() > Config::Servos::SERVO_OPEN_THRESHOLD;
+    return info->closeTs == 0;
 }
 
 uint64_t Actuators::getServoOpeningTime(ServosList servo)
