@@ -471,8 +471,8 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
 
             tm.timestamp            = TimestampTimer::getTimestamp();
             tm.tank_temperature     = sensors->getTc1LastSample().temperature;
-            tm.top_tank_pressure    = sensors->getTankTopPress().pressure;
-            tm.bottom_tank_pressure = sensors->getTankBottomPress().pressure;
+            tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
+            tm.bottom_tank_pressure = sensors->getBottomTankPress().pressure;
             tm.floating_level       = 69.0f;  // Lol
             // TODO(davide.mor): Add the rest of these
 
