@@ -33,13 +33,12 @@ namespace Servos
 {
 
 static constexpr unsigned int MIN_PULSE = 500;
-static constexpr unsigned int MAX_PULSE = 2500;
+static constexpr unsigned int MAX_PULSE = 2460;
+static constexpr unsigned int FREQUENCY = 333;
 
 static constexpr uint32_t SERVO_TIMINGS_CHECK_PERIOD = 100;
 static constexpr long long SERVO_CONFIDENCE_TIME     = 500;   // 0.5s
 static constexpr float SERVO_CONFIDENCE              = 0.02;  // 2%
-// More than 10% is considered open
-static constexpr float SERVO_OPEN_THRESHOLD = 0.10;  // 10%
 
 static constexpr uint32_t DEFAULT_FILLING_OPENING_TIME    = 15000;  // 15s
 static constexpr uint32_t DEFAULT_VENTING_OPENING_TIME    = 15000;  // 15s
