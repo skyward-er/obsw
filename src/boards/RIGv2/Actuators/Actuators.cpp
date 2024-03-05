@@ -324,7 +324,7 @@ bool Actuators::isServoOpen(ServosList servo)
         return false;
     }
 
-    return info->closeTs == 0;
+    return info->closeTs != 0;
 }
 
 uint64_t Actuators::getServoOpeningTime(ServosList servo)

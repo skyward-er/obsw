@@ -23,6 +23,8 @@
 #pragma once
 
 #include <RIGv2/Sensors/SensorsData.h>
+#include <RIGv2/Sensors/TrafagPressureSensor.h>
+#include <RIGv2/Sensors/AnalogLoadCellSensor.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
@@ -31,8 +33,8 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <vector>
 #include <utils/ModuleManager/ModuleManager.hpp>
+#include <vector>
 
 namespace RIGv2
 {
@@ -56,8 +58,8 @@ public:
     // Getters for processed data
     Boardcore::PressureData getVesselPress();
     Boardcore::PressureData getFillingPress();
-    Boardcore::PressureData getTankTopPress();
-    Boardcore::PressureData getTankBottomPress();
+    Boardcore::PressureData getTopTankPress();
+    Boardcore::PressureData getBottomTankPress();
     Boardcore::LoadCellData getVesselWeight();
     Boardcore::LoadCellData getTankWeight();
     Boardcore::CurrentData getUmbilicalCurrent();
@@ -69,6 +71,24 @@ public:
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 private:
+    void vesselPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void vesselPressureCallback();
+
+    void fillingPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void fillingPressureCallback();
+
+    void topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void topTankPressureCallback();
+
+    void bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void bottomTankPressureCallback();
+
+    void vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map);
+    void vesselWeightCallback();
+
+    void tankWeightInit(Boardcore::SensorManager::SensorMap_t &map);
+    void tankWeightCallback();
+
     void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
     void internalAdcCallback();
 
@@ -86,6 +106,16 @@ private:
     std::atomic<float> tankLcOffset{0.0f};
 
     std::atomic<bool> started{false};
+
+    // Analog sensors
+    std::unique_ptr<TrafagPressureSensor> vesselPressure;
+    std::unique_ptr<TrafagPressureSensor> fillingPressure;
+    std::unique_ptr<TrafagPressureSensor> topTankPressure;
+    std::unique_ptr<TrafagPressureSensor> bottomTankPressure;
+    std::unique_ptr<AnalogLoadCellSensor> vesselWeight;
+    std::unique_ptr<AnalogLoadCellSensor> tankWeight;
+
+    // Digital sensors
     std::unique_ptr<Boardcore::ADS131M08> adc1;
     std::unique_ptr<Boardcore::MAX31856> tc1;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;

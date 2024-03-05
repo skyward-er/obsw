@@ -29,9 +29,7 @@ namespace RIGv2
 {
 struct ADCsData : Boardcore::ADS131M08Data
 {
-    uint8_t adcNumber;
-
-    ADCsData() : ADS131M08Data{0, 0, 0, 0, 0, 0, 0, 0, 0}, adcNumber{0} {}
+    uint8_t adcNumber = 0;
 
     ADCsData(uint64_t time, uint8_t num, float ch1, float ch2, float ch3,
              float ch4, float ch5, float ch6, float ch7, float ch8)
@@ -58,9 +56,7 @@ struct ADCsData : Boardcore::ADS131M08Data
 
 struct TCsData : Boardcore::MAX31856Data
 {
-    uint8_t tcNumber;
-
-    TCsData() : MAX31856Data{0, 0}, tcNumber{0} {}
+    uint8_t tcNumber = 0;
 
     TCsData(uint64_t time, uint8_t num, float temperature,
             float coldJunctionTemperature)
@@ -71,7 +67,7 @@ struct TCsData : Boardcore::MAX31856Data
 
     static std::string header()
     {
-        return "temperatureTimestamp,tcNumber,temperature,"
+        return "timestamp,tcNumber,temperature,"
                "coldJunctionTemperature\n";
     }
 
@@ -79,6 +75,41 @@ struct TCsData : Boardcore::MAX31856Data
     {
         os << temperatureTimestamp << "," << (int)tcNumber << "," << temperature
            << "," << coldJunctionTemperature << "\n";
+    }
+};
+
+struct LCsData : Boardcore::LoadCellData
+{
+    uint8_t lcNumber = 0;
+
+    LCsData(uint64_t time, uint8_t num, float load)
+        : LoadCellData{time, load}, lcNumber{num}
+    {
+    }
+
+    static std::string header() { return "timestamp,lcNumber,load\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << loadTimestamp << "," << (int)lcNumber << "," << load << "\n";
+    }
+};
+
+struct PTsData : Boardcore::PressureData
+{
+    uint8_t ptNumber = 0;
+
+    PTsData(uint64_t time, uint8_t num, float pressure)
+        : PressureData{time, pressure}, ptNumber{num}
+    {
+    }
+
+    static std::string header() { return "timestamp,ptNumber,pressure\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << pressureTimestamp << "," << (int)ptNumber << "," << pressure
+           << "\n";
     }
 };
 
@@ -94,7 +125,7 @@ struct VoltageData
     {
     }
 
-    static std::string header() { return "voltageTimestamp,voltage\n"; }
+    static std::string header() { return "timestamp,voltage\n"; }
 
     void print(std::ostream& os) const
     {

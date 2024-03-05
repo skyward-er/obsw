@@ -42,13 +42,20 @@ static constexpr float ADC1_CH3_SHUNT_RESISTANCE = 30.5;
 static constexpr float ADC1_CH4_SHUNT_RESISTANCE = 30.8;
 
 // ADC channels definitions for various sensors
-static constexpr int ADC1_VESSEL_PT_CHANNEL     = 0;
-static constexpr int ADC1_FILLING_PT_CHANNEL    = 1;
-static constexpr int ADC1_BOTTOM_PT_CHANNEL     = 2;
-static constexpr int ADC1_TOP_PT_CHANNEL        = 3;
-static constexpr int ADC1_SERVO_CURRENT_CHANNEL = 4;
-static constexpr int ADC1_VESSEL_LC_CHANNEL     = 5;
-static constexpr int ADC1_TANK_LC_CHANNEL       = 6;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_VESSEL_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_FILLING_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_BOTTOM_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_TOP_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_SERVO_CURRENT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_VESSEL_LC_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
+static constexpr Boardcore::ADS131M08Defs::Channel ADC1_TANK_LC_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
 
 static constexpr float PT_MIN_CURRENT = 4;
 static constexpr float PT_MAX_CURRENT = 20;
