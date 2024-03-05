@@ -168,7 +168,6 @@ int main()
     }
 
     // Periodic statistics
-    int i = 0;
     while (true)
     {
         Thread::sleep(1000);
