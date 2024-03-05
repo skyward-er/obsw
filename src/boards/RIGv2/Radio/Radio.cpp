@@ -150,7 +150,11 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 Boardcore::MavlinkStatus Radio::getMavStatus()
 {
-    return mavDriver->getStatus();
+    if(mavDriver) {
+        return mavDriver->getStatus();
+    } else {
+        return {};
+    }
 }
 
 void Radio::handleMessage(const mavlink_message_t& msg)
