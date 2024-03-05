@@ -256,7 +256,7 @@ void TARS1::sample()
     ModuleManager& modules = ModuleManager::getInstance();
     Sensors* sensors       = modules.get<Sensors>();
 
-    pressureFilter.add(sensors->getTankBottomPress().pressure);
+    pressureFilter.add(sensors->getBottomTankPress().pressure);
     massFilter.add(sensors->getTankWeight().load);
     medianSamples++;
 
