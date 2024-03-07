@@ -95,6 +95,12 @@ public:
 
     bool start() override;
 
+    /**
+     * @brief Instance of the Early Maneuver Guidance Algorithm used by
+     * AutomaticWingAlgorithm
+     */
+    EarlyManeuversGuidanceAlgorithm emGuidance;
+
 private:
     /**
      * @brief Method to add the algorithm in the list
@@ -147,12 +153,6 @@ private:
      * to execute
      */
     std::atomic<size_t> selectedAlgorithm;
-
-    /**
-     * @brief Instance of the Early Maneuver Guidance Algorithm used by
-     * AutomaticWingAlgorithm
-     */
-    EarlyManeuversGuidanceAlgorithm emGuidance;
 
     /**
      * @brief  starts the selected algorithm

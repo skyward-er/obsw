@@ -48,7 +48,7 @@ public:
         : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
           i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
                miosix::interfaces::i2c1::sda::getPin()),
-          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
+          usart1(USART1, 115200), usart2(USART2, 115200, 1024), uart4(UART4, 115200)
     {
     }
 };
