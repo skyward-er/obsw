@@ -37,9 +37,9 @@ static constexpr uint32_t ADC_SAMPLE_PERIOD = 10;
 static constexpr uint32_t TC_SAMPLE_PERIOD  = 100;
 
 static constexpr float ADC1_CH1_SHUNT_RESISTANCE = 29.4048;
-static constexpr float ADC1_CH2_SHUNT_RESISTANCE = 30.4;
-static constexpr float ADC1_CH3_SHUNT_RESISTANCE = 30.5;
-static constexpr float ADC1_CH4_SHUNT_RESISTANCE = 30.8;
+static constexpr float ADC1_CH2_SHUNT_RESISTANCE = 29.5830;
+static constexpr float ADC1_CH3_SHUNT_RESISTANCE = 29.4973;
+static constexpr float ADC1_CH4_SHUNT_RESISTANCE = 29.8849;
 
 // ADC channels definitions for various sensors
 static constexpr Boardcore::ADS131M08Defs::Channel ADC1_VESSEL_PT_CHANNEL =

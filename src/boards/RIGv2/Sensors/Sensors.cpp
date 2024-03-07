@@ -309,11 +309,6 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
-    /*LOG_INFO(logger, "{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}",
-             (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE) *
-       1000.0f, (sample.voltage[1] / 30.4f) * 1000.0f, (sample.voltage[2]
-       / 30.5f) * 1000.0f, (sample.voltage[3] / 30.8f) * 1000.0f);*/
-
     sdLogger.log(data);
 }
 
