@@ -67,11 +67,6 @@ using namespace miosix;
 
 GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
 
-void __attribute__((used)) EXTI10_IRQHandlerImpl()
-{
-    ModuleManager::getInstance().get<Actuators>()->IRQemergencyStop();
-}
-
 /**
  * @brief Infinite error loop, used to blink an LED when an error occurs.
  */
@@ -153,8 +148,18 @@ int main()
     bool ok                = true;
 
     button.mode(Mode::INPUT);
-    enableExternalInterrupt(button.getPort(), button.getNumber(),
-                            InterruptTrigger::RISING_EDGE);
+    // ButtonHandler
+    ButtonHandler::getInstance().registerButtonCallback(
+        button,
+        [&](ButtonEvent bEvent)
+        {
+            if (bEvent == ButtonEvent::PRESSED)
+            {
+                ModuleManager::getInstance()
+                    .get<Actuators>()
+                    ->IRQemergencyStop();
+            }
+        });
 
     TaskScheduler *scheduler  = new TaskScheduler();
     Hub *hub                  = new Hub();
