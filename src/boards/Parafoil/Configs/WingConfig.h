@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,16 @@ namespace WingConfig
 {
 // Algorithm configuration
 
+#if defined(CLOSED_LOOP)
+constexpr int SELECTED_ALGORITHM = 0;
+#elif EARLY_MANEUVER
+constexpr int SELECTED_ALGORITHM = 1;
+#elif SEQUENCE
+constexpr int SELECTED_ALGORITHM = 2;
+#else
+constexpr int SELECTED_ALGORITHM = 0;
+#endif
+
 #if defined(JESOLO)
 constexpr float DEFAULT_TARGET_LAT = 45.565835;
 constexpr float DEFAULT_TARGET_LON = 12.577307;
@@ -39,8 +49,7 @@ constexpr float DEFAULT_TARGET_LAT = 45.501148;
 constexpr float DEFAULT_TARGET_LON = 9.156301;
 #endif
 
-constexpr float OFFSET             = 0.25;
-constexpr float MAX_SERVO_APERTURE = 0.5 + OFFSET;
+constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
@@ -53,15 +62,14 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP = 0.4;   //[m]
-constexpr float KI = 0.08;  //[m]
+constexpr float KP = 0.0075;  //[m]
+constexpr float KI = 0.0007;  //[m]
 
 constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;  // [meters]
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
 constexpr int ALTITUDE_TRIGGER_PERIOD     = 100;  //[ms]
 
-// TODO add algorithm selection
-constexpr int SELECTED_ALGORITHM = 0;
+constexpr float MAX_SERVO_APERTURE = 0.5;  //[%]
 
 struct WingConfigStruct
 {

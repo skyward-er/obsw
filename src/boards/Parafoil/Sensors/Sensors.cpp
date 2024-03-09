@@ -418,9 +418,9 @@ void Sensors::batteryVoltageInit()
     LOG_INFO(logger, "Battery voltage sensor setup done!");
 }
 
-std::array<SensorInfo, 8> Sensors::getSensorInfo()
+std::array<SensorInfo, NUMBER_OF_SENSORS> Sensors::getSensorInfo()
 {
-    std::array<SensorInfo, 8> sensorState;
+    std::array<SensorInfo, NUMBER_OF_SENSORS> sensorState;
     for (size_t i = 0; i < sensorsInit.size(); i++)
     {
         sensorState[i] = sensorsInit[i]();

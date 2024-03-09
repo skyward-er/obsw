@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Federico Lolli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio, Federico Lolli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ static TIM_TypeDef* const SERVO_1_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-constexpr float LEFT_SERVO_ROTATION  = 120;  // [deg]
+constexpr float LEFT_SERVO_ROTATION  = 180;  // [deg]
 constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [us]
 constexpr float LEFT_SERVO_MAX_PULSE =
     LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
@@ -46,10 +46,13 @@ static TIM_TypeDef* const SERVO_2_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-constexpr float RIGHT_SERVO_ROTATION  = 120;   // [deg]
+constexpr float RIGHT_SERVO_ROTATION  = 180;   // [deg]
 constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE =
     RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
+
+// Parafoil twirl
+constexpr float SERVO_TWIRL_RADIUS = 0.75;  // [%]
 
 // Buzzer configs
 static TIM_TypeDef* const BUZZER_TIMER = TIM1;

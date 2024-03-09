@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Federico Lolli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio, Federico Lolli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,18 +102,14 @@ struct Actuators : public Boardcore::Module
     float getServoAngle(ServosList servoId);
 
     /**
-     * @brief Sets the offset for all servos.
-     *
-     * @param offset New offset [0-1].
+     * @brief Starts twirl (one servo is set to 0 and the other one is not).
      */
-    void setServosOffset(float offset);
+    void startTwirl();
 
     /**
-     * @brief Returns the current offset of the servos.
-     *
-     * @return Current offset [0-1].
+     * @brief Stops twirling (both servos are set to 0).
      */
-    float getServosOffset();
+    void stopTwirl();
 
 private:
     Boardcore::Servo* leftServo  = nullptr;
@@ -123,8 +119,6 @@ private:
     miosix::FastMutex leftServoMutex;
     miosix::FastMutex rightServoMutex;
     miosix::FastMutex rocketSignalingStateMutex;
-
-    float offset = 0;
 };
 
 }  // namespace Parafoil

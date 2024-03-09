@@ -81,7 +81,8 @@ public:
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
 
-    std::array<Boardcore::SensorInfo, 8> getSensorInfo();
+    std::array<Boardcore::SensorInfo, SensorsConfig::NUMBER_OF_SENSORS>
+    getSensorInfo();
 
     Boardcore::BMX160* bmx160 = nullptr;
 

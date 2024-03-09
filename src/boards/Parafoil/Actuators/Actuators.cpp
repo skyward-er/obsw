@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Federico Lolli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio, Federico Lolli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,6 @@ bool Actuators::start()
 
 bool Actuators::setServo(ServosList servoId, float percentage)
 {
-    percentage += offset;
     if (percentage > WingConfig::MAX_SERVO_APERTURE)
     {
         percentage = WingConfig::MAX_SERVO_APERTURE;
@@ -207,8 +206,16 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
-void Actuators::setServosOffset(float offset) { this->offset = offset; }
+void Actuators::startTwirl()
+{
+    setServo(PARAFOIL_LEFT_SERVO, SERVO_TWIRL_RADIUS);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
+}
 
-float Actuators::getServosOffset() { return offset; }
+void Actuators::stopTwirl()
+{
+    setServo(PARAFOIL_LEFT_SERVO, 0);
+    setServo(PARAFOIL_RIGHT_SERVO, 0);
+}
 
 }  // namespace Parafoil

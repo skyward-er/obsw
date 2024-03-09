@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <events/HSM.h>
@@ -153,6 +154,12 @@ private:
      * AutomaticWingAlgorithm
      */
     EarlyManeuversGuidanceAlgorithm emGuidance;
+
+    /**
+     * @brief Instance of the Closed Loop Guidance Algorithm used by
+     * AutomaticWingAlgorithm
+     */
+    ClosedLoopGuidanceAlgorithm clGuidance;
 
     /**
      * @brief  starts the selected algorithm

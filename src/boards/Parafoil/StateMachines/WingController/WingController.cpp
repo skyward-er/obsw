@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -135,38 +135,38 @@ State WingController::state_flying(const Event& event)
 State WingController::state_calibration(const Boardcore::Event& event)
 {
     ModuleManager& modules = ModuleManager::getInstance();
+    static uint16_t calibrationTimeoutEventId;
+
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
-            // TODO
-            // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
-            //                                    1);
-            // modules.get<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
-            //                                    0);
-            // EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE,
-            // TOPIC_DPL,
-            //                                        WES_CALIBRATION_TIMEOUT);
+
+            modules.get<Actuators>()->startTwirl();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_WES_CAL_DONE, TOPIC_DPL, WES_CALIBRATION_TIMEOUT);
+
             modules.get<WindEstimation>()
                 ->startWindEstimationSchemeCalibration();
-            return transition(&WingController::state_controlled_descent);
+
+            return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
         }
-        // case DPL_WES_CAL_DONE:
-        // {
-        //     reset();
-        //     // Turn off the cutters
-        //     ModuleManager::getInstance().get<Actuators>()->cuttersOff();
-        //     return transition(&WingController::state_controlled_descent);
-        // }
+        case DPL_WES_CAL_DONE:
+        {
+            modules.get<Actuators>()->stopTwirl();
+
+            return transition(&WingController::state_controlled_descent);
+        }
         default:
         {
             return UNHANDLED;
@@ -191,8 +191,7 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
                      .get<NASController>()
                      ->getNasState()
                      .e});
-            ModuleManager::getInstance().get<Actuators>()->setServosOffset(
-                OFFSET);
+
             startAlgorithm();
             return HANDLED;
         }
@@ -259,52 +258,38 @@ bool WingController::addAlgorithms()
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
 
-    bool result;
-    // We add an AutomaticWingAlgorithm and a FileWingAlgorithm
+    bool result = false;
 
+    // Algorithm 0
+    algorithm = new AutomaticWingAlgorithm(KP, KI, PARAFOIL_LEFT_SERVO,
+                                           PARAFOIL_RIGHT_SERVO, clGuidance);
+    result    = algorithm->init();
+    algorithms.push_back(algorithm);
+    // Algorithm 1
     algorithm = new AutomaticWingAlgorithm(KP, KI, PARAFOIL_LEFT_SERVO,
                                            PARAFOIL_RIGHT_SERVO, emGuidance);
-    // Ensure that the servos are correct
-    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    // Init the algorithm
-    result = algorithm->init();
-
-    // Add the algorithm to the vector
+    result &= algorithm->init();
     algorithms.push_back(algorithm);
 
+    // Algorithm 2
     algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    for (int i = 0; i < 3; i++)
-    {
-        step.servo1Angle = 120;
-        step.servo2Angle = 0;
-        step.timestamp   = 0 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 120;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-    }
-
-    // Ensure that the servos are correct
-    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    // Init the algorithm
-    result = result && algorithm->init();
-
+    step.servo1Angle = 0;
+    step.servo2Angle = 120;
+    step.timestamp   = 0;
+    algorithm->addStep(step);
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp += 1000 * WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+    algorithm->addStep(step);
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp += WingConfig::WING_STRAIGHT_FLIGHT_TIMEOUT;
+    algorithm->addStep(step);
+    result &= algorithm->init();
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
 
-    selectAlgorithm(0);
+    selectAlgorithm(SELECTED_ALGORITHM);
 
     return result;
 }
