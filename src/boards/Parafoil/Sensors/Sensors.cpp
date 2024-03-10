@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -144,6 +144,17 @@ bool Sensors::start()
             {
                 miosix::Lock<FastMutex> l(calibrationMutex);
                 magCalibrator.feed(lastSample);
+
+                // Compute the correction
+                SixParametersCorrector cal = magCalibrator.computeResult();
+
+                // Check result validity and save it
+                if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
+                    !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
+                    !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+                {
+                    magCalibration = cal;
+                }
             }
         },
         MAG_CALIBRATION_PERIOD);
@@ -171,21 +182,11 @@ void Sensors::calibrate()
 
 bool Sensors::writeMagCalibration()
 {
-    // Compute the calibration result in protected area
     {
         miosix::Lock<FastMutex> l(calibrationMutex);
-        SixParametersCorrector cal = magCalibrator.computeResult();
 
-        // Check result validity
-        if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
-            !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
-            !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
-        {
-            magCalibration = cal;
-
-            // Save the calibration to the calibration file
-            return magCalibration.toFile("magCalibration.csv");
-        }
+        // Save the calibration to the calibration file
+        return magCalibration.toFile("/sd/bmx160_magnetometer_correction.csv");
     }
     return false;
 }
