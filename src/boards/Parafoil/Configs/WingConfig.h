@@ -34,7 +34,7 @@ namespace WingConfig
 #if defined(CLOSED_LOOP)
 constexpr int SELECTED_ALGORITHM = 0;
 #elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM = 1;
+constexpr int SELECTED_ALGORITHM   = 1;
 #elif SEQUENCE
 constexpr int SELECTED_ALGORITHM = 2;
 #else
@@ -53,8 +53,8 @@ constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
-constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
-constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 1;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -1;
 
 constexpr int GUIDANCE_CONFIDENCE                = 15;
 constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
@@ -62,14 +62,14 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP = 0.0075;  //[m]
-constexpr float KI = 0.0007;  //[m]
+constexpr float KP = 0.0075;
+constexpr float KI = 0.0007;
 
 constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;  // [meters]
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
 constexpr int ALTITUDE_TRIGGER_PERIOD     = 100;  //[ms]
 
-constexpr float MAX_SERVO_APERTURE = 0.5;  //[%]
+constexpr float MAX_SERVO_APERTURE = 0.8;  //[%]
 
 struct WingConfigStruct
 {

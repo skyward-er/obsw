@@ -108,19 +108,28 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
 
     float targetAngle = guidance.calculateTargetAngle(currentPosition, heading);
 
-    Vector2f relativeVelocity(state.vn - windNED[0], state.ve - windNED[1]);
+    Vector2f relativeVelocity(state.vn, state.ve);
+    // Remove WES for this test
 
     // Compute the angle of the current velocity
     float velocityAngle;
 
-    // In case of a 0 north velocity i force the angle to 90
+    // All angle are computed as angle from the north direction
+
     if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
     {
+        // If we are not moving velocityAngle is 0
         velocityAngle = 0;
+    }
+    else if (relativeVelocity[0] == 0)
+    {
+        // If we are not moving in the N S axis we interpret velocity[1]
+        velocityAngle = (relativeVelocity[1] > 0 ? 1 : -1) * Constants::PI / 2;
     }
     else if (relativeVelocity[1] == 0)
     {
-        velocityAngle = (relativeVelocity[0] > 0 ? 1 : -1) * Constants::PI / 2;
+        // If we are not moving in the E O axis we interpret velocity[0]
+        velocityAngle = (relativeVelocity[0] > 0 ? 0 : 1) * Constants::PI;
     }
     else
     {

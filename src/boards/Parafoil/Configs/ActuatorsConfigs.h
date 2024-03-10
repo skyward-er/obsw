@@ -36,35 +36,23 @@ static TIM_TypeDef* const SERVO_1_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
-constexpr float LEFT_SERVO_ROTATION  = 180;  // [deg]
-constexpr float LEFT_SERVO_MIN_PULSE = 900;  // [us]
-constexpr float LEFT_SERVO_MAX_PULSE =
-    LEFT_SERVO_MIN_PULSE + 10 * LEFT_SERVO_ROTATION;  // [us]
+constexpr float SERVO_ROTATION = 180;
+
+constexpr float LEFT_SERVO_ROTATION  = SERVO_ROTATION;  // [deg]
+constexpr float LEFT_SERVO_MIN_PULSE = 2500;            // [us]
+constexpr float LEFT_SERVO_MAX_PULSE = 500;             // [us]
 
 // Right servo
 static TIM_TypeDef* const SERVO_2_TIMER = TIM3;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
-constexpr float RIGHT_SERVO_ROTATION  = 180;   // [deg]
-constexpr float RIGHT_SERVO_MIN_PULSE = 2100;  // [us]
-constexpr float RIGHT_SERVO_MAX_PULSE =
-    RIGHT_SERVO_MIN_PULSE - 10 * RIGHT_SERVO_ROTATION;  // [us]
+constexpr float RIGHT_SERVO_ROTATION  = SERVO_ROTATION;  // [deg]
+constexpr float RIGHT_SERVO_MIN_PULSE = 500;             // [us]
+constexpr float RIGHT_SERVO_MAX_PULSE = 2500;            // [us]
 
 // Parafoil twirl
 constexpr float SERVO_TWIRL_RADIUS = 0.75;  // [%]
-
-// Buzzer configs
-static TIM_TypeDef* const BUZZER_TIMER = TIM1;
-constexpr Boardcore::TimerUtils::Channel BUZZER_CHANNEL =
-    Boardcore::TimerUtils::Channel::CHANNEL_1;
-constexpr uint32_t BUZZER_FREQUENCY = 1000;
-constexpr float BUZZER_DUTY_CYCLE   = 0.5;
-
-constexpr uint32_t BUZZER_UPDATE_PERIOD = 100;  // [ms]
-
-constexpr uint32_t ROCKET_SS_ARMED_PERIOD = 500;
-constexpr uint32_t ROCKET_SS_LAND_PERIOD  = 1000;  // [ms]
 
 }  // namespace ActuatorsConfigs
 
