@@ -86,46 +86,68 @@ void errorLoop()
  * @details As a side effect, this function also waits for the rocket to be
  * powered on.
  */
-GPSData acquireRocketGpsState(Hub *hub)
+void acquireRocketGpsState(Hub *hub)
 {
+    auto *follower = ModuleManager::getInstance().get<Follower>();
     GPSData rocketGpsState;
     do
     {
         rocketGpsState = hub->getLastRocketGpsState();
-        led2On();
-        Thread::sleep(50);
-        led2Off();
-        Thread::sleep(50);
-    } while (rocketGpsState.fix == 0);
-    return rocketGpsState;
+        if (rocketGpsState.fix != 0)
+        {
+
+            follower->setInitialRocketCoordinates(rocketGpsState);
+        }
+        else
+        {
+            led2On();
+            Thread::sleep(50);
+            led2Off();
+            Thread::sleep(50);
+        }
+    } while (follower->isRocketCoordinatesSet());
+
+    LOG_INFO(Logging::getLogger("automated_antennas"),
+             "Rocket GPS position acquired [{}, {}] [deg]",
+             rocketGpsState.latitude, rocketGpsState.longitude);
 }
 
 /**
  * @brief Acquires the current antenna GPS position from the VN300 IMU.
  */
-GPSData acquireAntennaGpsState(Sensors *sensors)
+void acquireAntennaGpsState(Sensors *sensors)
 {
+    auto *follower = ModuleManager::getInstance().get<Follower>();
     VN300Data vn300Data;
+    GPSData antennaPosition;
     do
     {
         vn300Data = sensors->getVN300LastSample();
-        led3On();
-        Thread::sleep(50);
-        led3Off();
-        Thread::sleep(50);
-    } while (vn300Data.fix_gps == 0);
+        if (vn300Data.fix_gps != 0)
+        {
+            antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
+            antennaPosition.latitude      = vn300Data.latitude;
+            antennaPosition.longitude     = vn300Data.longitude;
+            antennaPosition.height        = vn300Data.altitude;
+            antennaPosition.velocityNorth = vn300Data.nedVelX;
+            antennaPosition.velocityEast  = vn300Data.nedVelY;
+            antennaPosition.velocityDown  = vn300Data.nedVelZ;
+            antennaPosition.satellites    = vn300Data.fix_gps;
+            antennaPosition.fix           = (vn300Data.fix_gps > 0);
+            follower->setAntennaCoordinates(antennaPosition);
+        }
+        else
+        {
+            led3On();
+            Thread::sleep(50);
+            led3Off();
+            Thread::sleep(50);
+        }
+    } while (!follower->isAntennaCoordinatesSet());
 
-    GPSData antennaPosition;
-    antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
-    antennaPosition.latitude      = vn300Data.latitude;
-    antennaPosition.longitude     = vn300Data.longitude;
-    antennaPosition.height        = vn300Data.altitude;
-    antennaPosition.velocityNorth = vn300Data.nedVelX;
-    antennaPosition.velocityEast  = vn300Data.nedVelY;
-    antennaPosition.velocityDown  = vn300Data.nedVelZ;
-    antennaPosition.satellites    = vn300Data.fix_gps;
-    antennaPosition.fix           = (vn300Data.fix_gps > 0);
-    return antennaPosition;
+    LOG_INFO(Logging::getLogger("automated_antennas"),
+             "Antenna GPS position acquired !coord [{}, {}] [deg]",
+             antennaPosition.latitude, antennaPosition.longitude);
 }
 
 /**
@@ -147,19 +169,21 @@ int main()
     PrintLogger logger     = Logging::getLogger("automated_antennas");
     bool ok                = true;
 
-    button.mode(Mode::INPUT);
+    button.mode(Mode::INPUT_PULL_UP);
     // ButtonHandler
     ButtonHandler::getInstance().registerButtonCallback(
         button,
         [&](ButtonEvent bEvent)
         {
-            if (bEvent == ButtonEvent::PRESSED)
+            if (bEvent == ButtonEvent::LONG_PRESS ||
+                bEvent == ButtonEvent::VERY_LONG_PRESS)
             {
                 ModuleManager::getInstance()
                     .get<Actuators>()
                     ->IRQemergencyStop();
             }
         });
+    ButtonHandler::getInstance().start();
 
     TaskScheduler *scheduler  = new TaskScheduler();
     Hub *hub                  = new Hub();
@@ -222,19 +246,14 @@ int main()
     LOG_INFO(logger, "Starting Skylink");
 
     // Wait for antenna GPS fix
-    GPSData antennaGpsState = acquireAntennaGpsState(sensors);
+    acquireAntennaGpsState(sensors);
 
-    LOG_INFO(logger, "Antenna GPS position acquired !coord [{}, {}] [deg]",
-             antennaGpsState.latitude, antennaGpsState.longitude);
-    follower->setAntennaCoordinates(antennaGpsState);
     // Antenna GPS fix LED
     led2On();
 
     // Wait for rocket presence and GPS fix
-    GPSData rocketGpsState = acquireRocketGpsState(hub);
-    LOG_INFO(logger, "Rocket GPS position acquired [{}, {}] [deg]",
-             rocketGpsState.latitude, rocketGpsState.longitude);
-    follower->setInitialRocketCoordinates(rocketGpsState);
+    acquireRocketGpsState(hub);
+
     // Rocket presence and GPS fix LED
     led3On();
 
