@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Emilio Corigliano, Niccolò Betto
+ * Authors: Emilio Corigliano, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,26 +31,10 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "FollowerData.h"
+
 namespace Antennas
 {
-
-struct NEDCoords
-{
-    float n = 0;
-    float e = 0;
-    float d = 0;
-};
-
-/**
- * @brief A structure for storing angles relative to the NED frame.
- */
-struct AntennaAngles
-{
-    float yaw;    //!< Angle between the X axis (N axis) and the target position
-                  //!< on the XY plane (NE plane), positive anti-clockwise [deg]
-    float pitch;  //!< Angle between the XY plane (NE plane) and the target
-                  //!< position [deg]
-};
 
 class Follower : public Boardcore::Algorithm, public Boardcore::Module
 {
@@ -61,16 +45,22 @@ public:
 
     void setAntennaCoordinates(const Boardcore::GPSData& gpsData)
     {
-        antennaCoordinates    = {gpsData.latitude, gpsData.longitude,
-                                 gpsData.height};
+        antennaCoordinates = {gpsData.latitude, gpsData.longitude,
+                              gpsData.height};
+        Boardcore::Logger::getInstance().log(static_cast<LogAntennasCoordinates>(gpsData));
         antennaCoordinatesSet = true;
     };
+
+    bool isRocketCoordinatesSet() { return rocketCoordinatesSet; }
+
+    bool isAntennaCoordinatesSet() { return antennaCoordinatesSet; }
 
     void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
     {
         initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
                                     gpsData.height};
-        rocketCoordinatesSet     = true;
+        Boardcore::Logger::getInstance().log(static_cast<LogRocketCoordinates>(gpsData));
+        rocketCoordinatesSet = true;
     }
 
     Eigen::Vector2f getInitialAntennaRocketDistance()
