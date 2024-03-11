@@ -115,10 +115,12 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 
+// TODO check calibration of gyro
+// TODO check axis of bmx
+
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-    magCalibration.fromFile("magCalibration.csv");
 
     // Init all the sensors
     bmx160Init();

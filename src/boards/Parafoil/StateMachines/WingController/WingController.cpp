@@ -180,7 +180,6 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         case EV_ENTRY:  // start automatic algorithm
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
-            selectAlgorithm(0);
             setEarlyManeuverPoints(
                 convertTargetPositionToNED(targetPositionGEO),
                 {ModuleManager::getInstance()
@@ -403,6 +402,7 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
 
     float distFromCenterline = 20;  // the distance that the M1 and M2 points
                                     // must have from the center line
+                                    // TODO add parameter
 
     // Calculate the angle between the lines <NED Origin, target> and <NED
     // Origin, M1> This angle is the same for M2 since is symmetric to M1
@@ -426,6 +426,9 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
         currentPosNED;
 
     emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+
+    clGuidance.setPoints(targetNED);
+
     WingTargetPositionData data;
 
     data.receivedLat = targetPositionGEO[0];

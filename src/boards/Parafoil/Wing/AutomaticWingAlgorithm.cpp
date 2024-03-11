@@ -65,17 +65,17 @@ void AutomaticWingAlgorithm::step()
             modules.get<WindEstimation>()->getWindEstimationScheme());
 
         // Actuate the result
-        if (result > 0)
+        if (result >= 0 && result <= 1)
         {
             // Activate the servo1 and reset servo2
-            modules.get<Actuators>()->setServoAngle(servo1, result);
-            modules.get<Actuators>()->setServoAngle(servo2, 0);
+            modules.get<Actuators>()->setServo(servo1, result);
+            modules.get<Actuators>()->setServo(servo2, 0);
         }
-        else
+        else if (result < 0 && result <= -1)
         {
             // Activate the servo2 and reset servo1
-            modules.get<Actuators>()->setServoAngle(servo1, 0);
-            modules.get<Actuators>()->setServoAngle(servo2, result * -1);
+            modules.get<Actuators>()->setServo(servo1, 0);
+            modules.get<Actuators>()->setServo(servo2, result * -1);
         }
 
         // Log the servo positions
@@ -116,25 +116,30 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
 
     // All angle are computed as angle from the north direction
 
-    if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
-    {
-        // If we are not moving velocityAngle is 0
-        velocityAngle = 0;
-    }
-    else if (relativeVelocity[0] == 0)
-    {
-        // If we are not moving in the N S axis we interpret velocity[1]
-        velocityAngle = (relativeVelocity[1] > 0 ? 1 : -1) * Constants::PI / 2;
-    }
-    else if (relativeVelocity[1] == 0)
-    {
-        // If we are not moving in the E O axis we interpret velocity[0]
-        velocityAngle = (relativeVelocity[0] > 0 ? 0 : 1) * Constants::PI;
-    }
-    else
-    {
-        velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
-    }
+    // if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
+    // {
+    //     // If we are not moving velocityAngle is 0
+    //     velocityAngle = 0;
+    // }
+    // else if (relativeVelocity[0] == 0)
+    // {
+    //     // If we are not moving in the N S axis we interpret velocity[1]
+    //     velocityAngle = (relativeVelocity[1] > 0 ? 1 : -1) * Constants::PI /
+    //     2;
+    // }
+    // else if (relativeVelocity[1] == 0)
+    // {
+    //     // If we are not moving in the E O axis we interpret velocity[0]
+    //     velocityAngle = (relativeVelocity[0] > 0 ? 0 : 1) * Constants::PI;
+    // }
+    // else
+    // {
+    //     // angle in radiants of the velocity
+    //     velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
+    // }
+
+    // TODO test if this is safe
+    velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
 
     // Compute the angle difference
     float error = angleDiff(targetAngle, velocityAngle);
@@ -147,7 +152,8 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
     result = result * (180.f / Constants::PI);
 
     // Flip the servo orientation
-    result *= -1;
+    // result *= -1;
+    //  TODO check if this is needed
 
     // Logs the outputs
     {
@@ -167,7 +173,7 @@ float AutomaticWingAlgorithm::angleDiff(float a, float b)
 {
     float diff = a - b;
 
-    // Angle difference
+    //  Angle difference
     if (diff < -Constants::PI || Constants::PI < diff)
     {
         diff += Constants::PI;
