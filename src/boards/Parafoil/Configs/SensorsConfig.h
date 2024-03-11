@@ -22,8 +22,6 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
-#include <drivers/usart/USART.h>
-#include <interfaces-impl/hwmapping.h>
 #include <sensors/ADS131M08/ADS131M08Defs.h>
 #include <sensors/BMX160/BMX160Config.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>

@@ -25,6 +25,8 @@
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 
+#include "WingConfig.h"
+
 namespace Parafoil
 {
 
@@ -52,7 +54,7 @@ constexpr float RIGHT_SERVO_MIN_PULSE = 500;             // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE = 2500;            // [us]
 
 // Parafoil twirl
-constexpr float SERVO_TWIRL_RADIUS = 0.75;  // [%]
+constexpr float SERVO_TWIRL_RADIUS = WingConfig::MAX_SERVO_APERTURE;  // [%]
 
 }  // namespace ActuatorsConfigs
 

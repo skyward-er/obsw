@@ -24,7 +24,6 @@
 
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
-#include <interfaces/gpio.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -118,7 +117,6 @@ private:
     // mutexes
     miosix::FastMutex leftServoMutex;
     miosix::FastMutex rightServoMutex;
-    miosix::FastMutex rocketSignalingStateMutex;
 };
 
 }  // namespace Parafoil
