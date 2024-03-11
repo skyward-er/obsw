@@ -21,12 +21,12 @@
  */
 
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
+#include <Groundstation/Automated/Follower/FollowerData.h>
 #include <algorithms/NAS/NASState.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <sensors/SensorData.h>
 #include <sensors/Vectornav/VN300/VN300Data.h>
-#include <Groundstation/Automated/Follower/FollowerData.h>
 #include <tscpp/stream.h>
 
 #include <fstream>
