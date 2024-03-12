@@ -279,6 +279,12 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
         .offset  = 0,
         .gain    = 1.0};
 
+    config.channelsConfig[(int)Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
     config.channelsConfig[(int)Config::Sensors::ADC1_VESSEL_LC_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_32,
@@ -308,6 +314,11 @@ void Sensors::adc1Callback()
                   sample.voltage[2], sample.voltage[3],
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
+
+    /*printf("%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
+             sample.voltage[0], sample.voltage[1], sample.voltage[2],
+             sample.voltage[3], sample.voltage[4], sample.voltage[5],
+             sample.voltage[6], sample.voltage[7]);*/
 
     sdLogger.log(data);
 }
