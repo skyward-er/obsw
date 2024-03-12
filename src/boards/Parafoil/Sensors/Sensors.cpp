@@ -113,6 +113,7 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 //     return data;
 // }
 
+// TODO check used task scheduler
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 
 // TODO check calibration of gyro
@@ -128,6 +129,7 @@ bool Sensors::start()
     lis3mdlInit();
     h3lisInit();
     lps22Init();
+    lps22DevInit();
     ubxGpsInit();
     ads131Init();
     internalADCInit();
@@ -300,8 +302,8 @@ void Sensors::h3lisInit()
         ([&]() -> SensorInfo { return manager->getSensorInfo(h3lis331dl); });
     sensorsInit[sensorsCounter++] = h3lis331Status;
 }
-void Sensors::lps22Init()
 
+void Sensors::lps22Init()
 {
     ModuleManager& modules = ModuleManager::getInstance();
 
@@ -328,6 +330,36 @@ void Sensors::lps22Init()
     auto lps22Status =
         ([&]() -> SensorInfo { return manager->getSensorInfo(lps22df); });
     sensorsInit[sensorsCounter++] = lps22Status;
+}
+
+void Sensors::lps22DevInit()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    miosix::GpioPin cs(GPIOG_BASE, 7);
+    cs.mode(miosix::Mode::OUTPUT);
+    cs.high();
+    // Get the correct SPI configuration
+    SPIBusConfig config = LPS22DF::getDefaultSPIConfig();
+    config.clockDivider = SPI::ClockDivider::DIV_16;
+
+    // Configure the device
+    LPS22DF::Config sensorConfig;
+    sensorConfig.avg = LPS22DF_AVG;
+    sensorConfig.odr = LPS22DF_ODR;
+
+    // Create sensor instance with configured parameters
+    lps22dfDev =
+        new LPS22DF(modules.get<Buses>()->spi1, cs, config, sensorConfig);
+
+    // Emplace the sensor inside the map
+    SensorInfo info("LPS22DFDev", LPS22DF_PERIOD,
+                    bind(&Sensors::lps22DevCallback, this));
+    sensorMap.emplace(make_pair(lps22dfDev, info));
+
+    // used for the sensor state
+    // auto lps22DevStatus =
+    //     ([&]() -> SensorInfo { return manager->getSensorInfo(lps22dfDev); });
+    // sensorsInit[sensorsCounter++] = lps22DevStatus;
 }
 
 void Sensors::ubxGpsInit()
@@ -460,11 +492,21 @@ void Sensors::h3lisCallback()
     H3LIS331DLData lastSample = h3lis331dl->getLastSample();
     Logger::getInstance().log(lastSample);
 }
+
 void Sensors::lps22Callback()
 {
-    LPS22DFData lastSample = lps22df->getLastSample();
+    LPS22DF1_Data lastSample =
+        static_cast<LPS22DF1_Data>(lps22df->getLastSample());
     Logger::getInstance().log(lastSample);
 }
+
+void Sensors::lps22DevCallback()
+{
+    LPS22DF2_Data lastSample =
+        static_cast<LPS22DF2_Data>(lps22dfDev->getLastSample());
+    Logger::getInstance().log(lastSample);
+}
+
 void Sensors::ubxGpsCallback()
 {
     UBXGPSData lastSample = ubxGps->getLastSample();
