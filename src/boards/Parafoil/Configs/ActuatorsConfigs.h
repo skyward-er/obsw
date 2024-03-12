@@ -34,24 +34,24 @@ namespace ActuatorsConfigs
 {
 
 // Left servo
-static TIM_TypeDef* const SERVO_1_TIMER = TIM3;
+static TIM_TypeDef* const SERVO_1_TIMER = TIM4;
 constexpr Boardcore::TimerUtils::Channel SERVO_1_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 constexpr float SERVO_ROTATION = 180;
 
 constexpr float LEFT_SERVO_ROTATION  = SERVO_ROTATION;  // [deg]
-constexpr float LEFT_SERVO_MIN_PULSE = 2500;            // [us]
-constexpr float LEFT_SERVO_MAX_PULSE = 500;             // [us]
+constexpr float LEFT_SERVO_MIN_PULSE = 500;             // [us]
+constexpr float LEFT_SERVO_MAX_PULSE = 2460;            // [us]
 
 // Right servo
-static TIM_TypeDef* const SERVO_2_TIMER = TIM3;
+static TIM_TypeDef* const SERVO_2_TIMER = TIM8;
 constexpr Boardcore::TimerUtils::Channel SERVO_2_PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
 constexpr float RIGHT_SERVO_ROTATION  = SERVO_ROTATION;  // [deg]
-constexpr float RIGHT_SERVO_MIN_PULSE = 500;             // [us]
-constexpr float RIGHT_SERVO_MAX_PULSE = 2500;            // [us]
+constexpr float RIGHT_SERVO_MIN_PULSE = 2460;            // [us]
+constexpr float RIGHT_SERVO_MAX_PULSE = 500;             // [us]
 
 // Parafoil twirl
 constexpr float SERVO_TWIRL_RADIUS = WingConfig::MAX_SERVO_APERTURE;  // [%]
