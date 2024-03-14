@@ -29,6 +29,7 @@
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <common/Events.h>
 #include <common/Radio.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
 // TODO(davide.mor): Remove TimestampTimer
@@ -150,9 +151,12 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 Boardcore::MavlinkStatus Radio::getMavStatus()
 {
-    if(mavDriver) {
+    if (mavDriver)
+    {
         return mavDriver->getStatus();
-    } else {
+    }
+    else
+    {
         return {};
     }
 }
@@ -476,7 +480,7 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             tm.floating_level       = 69.0f;  // Lol
             // TODO(davide.mor): Add the rest of these
 
-            tm.battery_voltage     = 0.0f;
+            tm.battery_voltage     = CpuMeter::getCpuStats().mean;
             tm.current_consumption = sensors->getUmbilicalCurrent().current;
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,

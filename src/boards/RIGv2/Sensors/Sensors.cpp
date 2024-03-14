@@ -60,7 +60,6 @@ bool Sensors::start()
 
 InternalADCData Sensors::getInternalADCLastSample()
 {
-    PauseKernelLock l;
     if (!internalAdc)
     {
         return {};
@@ -70,7 +69,6 @@ InternalADCData Sensors::getInternalADCLastSample()
 
 ADS131M08Data Sensors::getADC1LastSample()
 {
-    PauseKernelLock l;
     if (!adc1)
     {
         return {};
@@ -80,7 +78,6 @@ ADS131M08Data Sensors::getADC1LastSample()
 
 MAX31856Data Sensors::getTc1LastSample()
 {
-    PauseKernelLock l;
     if (!tc1)
     {
         return {};
@@ -91,7 +88,6 @@ MAX31856Data Sensors::getTc1LastSample()
 
 PressureData Sensors::getVesselPress()
 {
-    PauseKernelLock l;
     if (!vesselPressure)
     {
         return {};
@@ -101,7 +97,6 @@ PressureData Sensors::getVesselPress()
 
 PressureData Sensors::getFillingPress()
 {
-    PauseKernelLock l;
     if (!fillingPressure)
     {
         return {};
@@ -111,7 +106,6 @@ PressureData Sensors::getFillingPress()
 
 PressureData Sensors::getTopTankPress()
 {
-    PauseKernelLock l;
     if (!topTankPressure)
     {
         return {};
@@ -121,7 +115,6 @@ PressureData Sensors::getTopTankPress()
 
 PressureData Sensors::getBottomTankPress()
 {
-    PauseKernelLock l;
     if (!bottomTankPressure)
     {
         return {};
@@ -131,7 +124,6 @@ PressureData Sensors::getBottomTankPress()
 
 LoadCellData Sensors::getVesselWeight()
 {
-    PauseKernelLock l;
     if (!vesselWeight)
     {
         return {};
@@ -141,7 +133,6 @@ LoadCellData Sensors::getVesselWeight()
 
 LoadCellData Sensors::getTankWeight()
 {
-    PauseKernelLock l;
     if (!tankWeight)
     {
         return {};
@@ -315,6 +306,12 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
+    LOG_INFO(logger, "{:.4}\t{:.4}\t{:.4}\t{:.4}",
+             (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE) * 1000.0f,
+             (sample.voltage[1] / Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE) * 1000.0f,
+             (sample.voltage[2] / Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE) * 1000.0f,
+             (sample.voltage[3] / Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE) * 1000.0f);
+
     /*printf("%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
              sample.voltage[0], sample.voltage[1], sample.voltage[2],
              sample.voltage[3], sample.voltage[4], sample.voltage[5],
@@ -405,7 +402,7 @@ void Sensors::topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
             auto sample = adc1->getLastSample();
             return sample.getVoltage(Config::Sensors::ADC1_TOP_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE,
+        Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE,
         Config::Sensors::TANK_TOP_MAX_PRESSURE, Config::Sensors::PT_MIN_CURRENT,
         Config::Sensors::PT_MAX_CURRENT);
 
@@ -417,7 +414,7 @@ void Sensors::topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
 void Sensors::topTankPressureCallback()
 {
     PressureData sample = topTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 3, sample.pressure};
+    PTsData data{sample.pressureTimestamp, 3,  sample.pressure};
     sdLogger.log(data);
 }
 
@@ -429,7 +426,7 @@ void Sensors::bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
             auto sample = adc1->getLastSample();
             return sample.getVoltage(Config::Sensors::ADC1_BOTTOM_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE,
+        Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE,
         Config::Sensors::TANK_BOTTOM_MAX_PRESSURE,
         Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT);
 
