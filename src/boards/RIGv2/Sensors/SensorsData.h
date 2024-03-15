@@ -31,6 +31,8 @@ struct ADCsData : Boardcore::ADS131M08Data
 {
     uint8_t adcNumber = 0;
 
+    ADCsData() : ADS131M08Data{}, adcNumber{0} {}
+
     ADCsData(uint64_t time, uint8_t num, float ch1, float ch2, float ch3,
              float ch4, float ch5, float ch6, float ch7, float ch8)
         : ADS131M08Data{time, ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8},
@@ -58,6 +60,8 @@ struct TCsData : Boardcore::MAX31856Data
 {
     uint8_t tcNumber = 0;
 
+    TCsData() : MAX31856Data{}, tcNumber{0} {}
+
     TCsData(uint64_t time, uint8_t num, float temperature,
             float coldJunctionTemperature)
         : MAX31856Data{time, temperature, coldJunctionTemperature},
@@ -82,6 +86,8 @@ struct LCsData : Boardcore::LoadCellData
 {
     uint8_t lcNumber = 0;
 
+    LCsData() : LoadCellData{}, lcNumber{0} {}
+
     LCsData(uint64_t time, uint8_t num, float load)
         : LoadCellData{time, load}, lcNumber{num}
     {
@@ -98,6 +104,8 @@ struct LCsData : Boardcore::LoadCellData
 struct PTsData : Boardcore::PressureData
 {
     uint8_t ptNumber = 0;
+
+    PTsData() : PressureData{}, ptNumber{0} {}
 
     PTsData(uint64_t time, uint8_t num, float pressure)
         : PressureData{time, pressure}, ptNumber{num}
