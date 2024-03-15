@@ -315,10 +315,11 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
-    /*printf("%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
-             sample.voltage[0], sample.voltage[1], sample.voltage[2],
-             sample.voltage[3], sample.voltage[4], sample.voltage[5],
-             sample.voltage[6], sample.voltage[7]);*/
+    // LOG_INFO(logger, "{:.4}\t{:.4}\t{:.4}\t{:.4}",
+    //          (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE) * 1000.0f,
+    //          (sample.voltage[1] / Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE) * 1000.0f,
+    //          (sample.voltage[2] / Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE) * 1000.0f,
+    //          (sample.voltage[3] / Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE) * 1000.0f);
 
     sdLogger.log(data);
 }

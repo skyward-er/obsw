@@ -42,6 +42,8 @@ static constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
 
 static constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
 static constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
+
+static constexpr bool STOP_ON_MASS_STABILIZATION = false;
 }  // namespace TARS1
 }  // namespace Config
 }  // namespace RIGv2
