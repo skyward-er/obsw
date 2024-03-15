@@ -150,24 +150,27 @@ void TARS1::state_refueling(const Event& event)
                 currentMass  = massSample;
             }
 
-            if (std::abs(currentMass - previousMass) <
-                Config::TARS1::MASS_TOLERANCE)
+            if (Config::TARS1::STOP_ON_MASS_STABILIZATION)
             {
-                if (massStableCounter >=
-                    Config::TARS1::NUM_MASS_STABLE_ITERATIONS)
+                if (std::abs(currentMass - previousMass) <
+                    Config::TARS1::MASS_TOLERANCE)
                 {
-                    EventBroker::getInstance().post(TARS_FILLING_DONE,
-                                                    TOPIC_TARS);
-                    break;
+                    if (massStableCounter >=
+                        Config::TARS1::NUM_MASS_STABLE_ITERATIONS)
+                    {
+                        EventBroker::getInstance().post(TARS_FILLING_DONE,
+                                                        TOPIC_TARS);
+                        break;
+                    }
+                    else
+                    {
+                        massStableCounter++;
+                    }
                 }
                 else
                 {
-                    massStableCounter++;
+                    massStableCounter = 0;
                 }
-            }
-            else
-            {
-                massStableCounter = 0;
             }
 
             LOG_INFO(logger, "TARS open venting");
