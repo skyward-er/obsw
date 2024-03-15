@@ -25,6 +25,7 @@
 #include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <common/ReferenceConfig.h>
+#include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
@@ -113,23 +114,25 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 //     return data;
 // }
 
-// TODO check used task scheduler
+// check used task scheduler error due the magnetometer calibration task
 Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 
-// TODO check calibration of gyro
+// check calibration of gyro deemed ok by giuseppe
 // TODO check axis of bmx
 
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-
+    miosix::GpioPin cs(GPIOG_BASE, 7);
+    cs.mode(miosix::Mode::OUTPUT);
+    cs.high();
     // Init all the sensors
     bmx160Init();
     bmx160WithCorrectionInit();
     lis3mdlInit();
     h3lisInit();
     lps22Init();
-    lps22DevInit();
+    // lps22DevInit();
     ubxGpsInit();
     ads131Init();
     internalADCInit();
@@ -164,7 +167,10 @@ bool Sensors::start()
         MAG_CALIBRATION_PERIOD);
 
     // Create sensor manager with populated map and configured scheduler
-    manager = new SensorManager(sensorMap, scheduler);
+    manager                      = new SensorManager(sensorMap, scheduler);
+    miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
+    enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
+                            InterruptTrigger::FALLING_EDGE, 0);
     return manager->start() && result != 0;
 }
 
