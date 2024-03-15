@@ -39,8 +39,8 @@ enum class FlightModeManagerState : uint8_t
     SENSORS_CALIBRATION,
     ALGOS_CALIBRATION,
     TEST_MODE,
-    READY,
-    WING_DESCENT,
+    READY        = 8,
+    WING_DESCENT = 10,
     LANDED,
 };
 

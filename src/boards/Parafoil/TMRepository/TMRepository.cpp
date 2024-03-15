@@ -382,7 +382,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
             auto pressureData = modules.get<Sensors>()->getLPS22LastSample();
 
             tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_name, "MS5803");
+            strcpy(tm.sensor_name, "LPS22");
             tm.pressure = pressureData.pressure;
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
