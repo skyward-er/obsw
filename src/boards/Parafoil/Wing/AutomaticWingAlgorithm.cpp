@@ -76,14 +76,14 @@ void AutomaticWingAlgorithm::step()
         if (result > 0)
         {
             // Activate the servo2 and reset servo1
-            modules.get<Actuators>()->setServo(servo1, 0);
-            modules.get<Actuators>()->setServo(servo2, result);
+            modules.get<Actuators>()->setServoAngle(servo1, 0);
+            modules.get<Actuators>()->setServoAngle(servo2, result);
         }
         else
         {
             // Activate the servo1 and reset servo2
-            modules.get<Actuators>()->setServo(servo1, result * -1);
-            modules.get<Actuators>()->setServo(servo2, 0);
+            modules.get<Actuators>()->setServoAngle(servo1, result * -1);
+            modules.get<Actuators>()->setServoAngle(servo2, 0);
         }
 
         // Log the servo positions
@@ -134,7 +134,7 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
     result = controller->update(error);
 
     // Convert the result from radians back to degrees
-    // result = result * (180.f / Constants::PI);
+    result = result * (180.f / Constants::PI);
 
     // Flip the servo orientation
     // result *= -1;
