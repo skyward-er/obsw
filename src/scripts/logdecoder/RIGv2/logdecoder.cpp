@@ -55,10 +55,13 @@ void registerTypes(Deserializer& ds)
     // Custom types
     ds.registerType<ADCsData>();
     ds.registerType<TCsData>();
+    ds.registerType<LCsData>();
+    ds.registerType<PTsData>();
     ds.registerType<ActuatorsData>();
     ds.registerType<GroundModeManagerData>();
     ds.registerType<TarsActionData>();
     ds.registerType<TarsSampleData>();
+    ds.registerType<VoltageData>();
 }
 
 void showUsage(const string& cmdName)
@@ -82,7 +85,7 @@ bool deserialize(string logName)
 
 bool deserializeAll()
 {
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 300; i++)
     {
         char nextName[11];
         sprintf(nextName, "log%02d.dat", i);

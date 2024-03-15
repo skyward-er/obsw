@@ -171,6 +171,7 @@ int main()
     while (true)
     {
         Thread::sleep(1000);
+        sdLogger.log(sdLogger.getStats());
         sdLogger.log(modules.get<Radio>()->getMavStatus());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
