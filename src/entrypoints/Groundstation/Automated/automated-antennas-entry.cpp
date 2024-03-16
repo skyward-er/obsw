@@ -95,7 +95,6 @@ void acquireRocketGpsState(Hub *hub)
         rocketGpsState = hub->getLastRocketGpsState();
         if (rocketGpsState.fix != 0)
         {
-
             follower->setInitialRocketCoordinates(rocketGpsState);
         }
         else
@@ -105,7 +104,7 @@ void acquireRocketGpsState(Hub *hub)
             led2Off();
             Thread::sleep(50);
         }
-    } while (follower->isRocketCoordinatesSet());
+    } while (!follower->isRocketCoordinatesSet());
 
     LOG_INFO(Logging::getLogger("automated_antennas"),
              "Rocket GPS position acquired [{}, {}] [deg]",
