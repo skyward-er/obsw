@@ -108,7 +108,8 @@ constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
 // Internal ADC & Battery Voltage
 constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
     Boardcore::InternalADC::Channel::CH5;
-constexpr float BATTERY_VOLTAGE_COEFF = 5.98;
+// Internal ADC voltage divider
+constexpr float BATTERY_VOLTAGE_COEFF = (150+40.2)/40.2;
 
 // Sampling periods [ms]
 

@@ -421,7 +421,6 @@ void Sensors::ads131Init()
 void Sensors::internalADCInit()
 {
     internalADC = new InternalADC(ADC3);
-    // internalADC = new InternalADC(ADC3, INTERNAL_ADC_VREF);
 
     internalADC->enableChannel(ADC_BATTERY_VOLTAGE);
     internalADC->enableTemperature();
