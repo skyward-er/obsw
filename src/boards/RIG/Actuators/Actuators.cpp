@@ -193,7 +193,7 @@ void Actuators::setServoPosition(ServosList servo, float position)
 
 void Actuators::checkTimings()
 {
-    uint64_t currentTick = getTick();
+    uint64_t currentTick = Kernel::getOldTick();
 
     // Enter in protected zone where the timings should be checked and changed
     // and the servo should be positioned atomically over all the threads. A
@@ -265,7 +265,7 @@ void Actuators::toggleServo(ServosList servo)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = Kernel::getOldTick();
 
             {
                 RestartKernelLock l(lock);
@@ -282,8 +282,8 @@ void Actuators::toggleServo(ServosList servo)
         }
         else
         {
-            timings[servo] = getTick() + openingTimes[servo];
-            setFlag[servo] = getTick();
+            timings[servo] = Kernel::getOldTick() + openingTimes[servo];
+            setFlag[servo] = Kernel::getOldTick();
 
             {
                 RestartKernelLock l(lock);
@@ -311,7 +311,7 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = Kernel::getOldTick();
 
             {
                 RestartKernelLock l(lock);
@@ -328,8 +328,8 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         }
         else
         {
-            timings[servo] = getTick() + time;
-            setFlag[servo] = getTick();
+            timings[servo] = Kernel::getOldTick() + time;
+            setFlag[servo] = Kernel::getOldTick();
 
             {
                 RestartKernelLock l(lock);
@@ -358,7 +358,7 @@ void Actuators::closeAllServo()
         {
             // Make the timings expire
             timings[i] = 0;
-            setFlag[i] = getTick();
+            setFlag[i] = Kernel::getOldTick();
 
             // Publish the command also into the CAN bus
             ModuleManager::getInstance().get<CanHandler>()->sendCanServoCommand(

@@ -22,6 +22,7 @@
 cmake_minimum_required(VERSION 3.16)
 enable_testing()
 include(skyward-boardcore/cmake/sbs.cmake)
+include(cmake/dependencies.cmake)
 
 # -----------------------------------------------------------------------------#
 #                                    Project                                   #
@@ -40,27 +41,27 @@ sbs_target(test-hil stm32f767zi_compute_unit)
 
 add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(main-entry stm32f767zi_skyward_death_stack_v4)
+sbs_target(main-entry stm32f767zi_death_stack_v4)
 
 add_executable(main-entry-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-roccaraso PRIVATE ROCCARASO)
-sbs_target(main-entry-roccaraso stm32f767zi_skyward_death_stack_v4)
+sbs_target(main-entry-roccaraso stm32f767zi_death_stack_v4)
 
 add_executable(main-entry-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-euroc PRIVATE EUROC)
-sbs_target(main-entry-euroc stm32f767zi_skyward_death_stack_v4)
+sbs_target(main-entry-euroc stm32f767zi_death_stack_v4)
 
 add_executable(payload-entry-roccaraso src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-roccaraso PRIVATE ROCCARASO)
-sbs_target(payload-entry-roccaraso stm32f767zi_skyward_death_stack_v4)
+sbs_target(payload-entry-roccaraso stm32f767zi_death_stack_v4)
 
 add_executable(payload-entry-euroc src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
-sbs_target(payload-entry-euroc stm32f767zi_skyward_death_stack_v4)
+sbs_target(payload-entry-euroc stm32f767zi_death_stack_v4)
 
 add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -68,7 +69,7 @@ sbs_target(motor-entry stm32f767zi_gemini_motor)
 
 add_executable(rig-entry src/entrypoints/RIG/rig-entry.cpp ${RIG_COMPUTER})
 target_include_directories(rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(rig-entry stm32f429zi_skyward_rig)
+sbs_target(rig-entry stm32f429zi_rig)
 
 add_executable(con_rig-entry src/entrypoints/con_RIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -86,4 +87,4 @@ add_executable(nokia-groundstation-entry
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
 )
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(nokia-groundstation-entry stm32f429zi_skyward_groundstation_v2)
+sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
