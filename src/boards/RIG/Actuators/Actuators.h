@@ -133,15 +133,15 @@ private:
     void checkTimings();
 
     // Create the list of timings for every servo
-    uint64_t timings[ServosList::ServosList_ENUM_END] = {0};
+    uint64_t timings[ServosList::ServosList_ENUM_END] = {0};  // [ms]
 
     // This set of flags helps the controller to know when the servo have been
     // set, in order to change slightly their angle after CONSTANT time, to
     // avoid over consumption
-    uint64_t setFlag[ServosList::ServosList_ENUM_END]      = {0};
+    uint64_t setFlag[ServosList::ServosList_ENUM_END]      = {0};  // [ms]
     float openings[ServosList::ServosList_ENUM_END]        = {1};
     uint64_t openingTimes[ServosList::ServosList_ENUM_END] = {
-        100000};  // Default 100s
+        100000};  // Default 100s [ms]
 
     // This set represents the events to throw at opening/closing of valves
     uint8_t openingEvents[ServosList::ServosList_ENUM_END] = {0};

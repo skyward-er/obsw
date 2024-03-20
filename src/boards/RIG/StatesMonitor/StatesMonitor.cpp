@@ -52,7 +52,7 @@ void StatesMonitor::update()
     for (int i = 0; i < Config::StatesMonitor::BOARDS_NUMBER; i++)
     {
         // Check if the time since the last config expires
-        if (getTick() >
+        if (Kernel::getOldTick() >
             updateTimestamps[i] + Config::StatesMonitor::MAX_TIMEOUT)
         {
             boardStatuses[i] = 0;
@@ -70,7 +70,7 @@ void StatesMonitor::setBoardStatus(Common::CanConfig::Board board,
     if (index < Config::StatesMonitor::BOARDS_NUMBER)
     {
         boardStatuses[index]    = status;
-        updateTimestamps[index] = getTick();
+        updateTimestamps[index] = Kernel::getOldTick();
     }
 }
 

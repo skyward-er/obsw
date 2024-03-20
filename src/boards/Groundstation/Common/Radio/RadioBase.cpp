@@ -108,7 +108,7 @@ void RadioBase::run()
         miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
 
         // If enough time has passed, automatically flush.
-        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        if (Kernel::getOldTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
         {
             flush();
         }
@@ -144,7 +144,7 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 
     if (isEndOfTransmissionPacket(msg))
     {
-        last_eot_packet_ts = miosix::getTick();
+        last_eot_packet_ts = Kernel::getOldTick();
         flush();
     }
 }

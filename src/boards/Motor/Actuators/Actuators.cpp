@@ -27,6 +27,7 @@
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
+#include <utils/KernelTime.h>
 
 #include "ActuatorsData.h"
 
@@ -96,8 +97,8 @@ void Actuators::openServoAtomic(ServosList servo, uint32_t time)
         // Open the valve if it's closed
         if (timings[servo] == 0)
         {
-            timings[servo] = getTick() + time;
-            setFlag[servo] = getTick();
+            timings[servo] = Kernel::getOldTick() + time;
+            setFlag[servo] = Kernel::getOldTick();
         }
     }
 }
@@ -112,7 +113,7 @@ void Actuators::closeServo(ServosList servo)
         if (timings[servo] > 0)
         {
             timings[servo] = 0;
-            setFlag[servo] = getTick();
+            setFlag[servo] = Kernel::getOldTick();
         }
     }
 }
@@ -153,7 +154,7 @@ Servo* Actuators::getServo(ServosList servo)
 
 void Actuators::checkTimings()
 {
-    uint64_t currentTick = getTick();
+    uint64_t currentTick = Kernel::getOldTick();
 
     // Enter in protected zone where the timings should be checked and changed
     // and the servo should be positioned atomically over all the threads. A
