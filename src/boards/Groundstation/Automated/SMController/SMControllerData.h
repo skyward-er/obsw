@@ -65,8 +65,8 @@ enum class SMControllerState : uint8_t
 
 struct SMControllerStatus
 {
-    uint64_t timestamp      = 0;
-    SMControllerState state = SMControllerState::INIT;
+    uint64_t timestamp;
+    SMControllerState state;
 
     static std::string header() { return "timestamp,state\n"; }
 
