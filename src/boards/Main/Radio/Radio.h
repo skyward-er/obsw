@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,84 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <Main/Configs/RadioConfig.h>
-#include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
-#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
+
 using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
+                                           Config::Radio::MAV_OUT_QUEUE_SIZE,
+                                           Config::Radio::MAV_MAX_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
 public:
-    Radio(Boardcore::TaskScheduler* sched);
+    Radio() {}
 
-    /**
-     * @brief Starts the MavlinkDriver
-     */
+    bool isStarted(); 
+
     [[nodiscard]] bool start();
 
-    /**
-     * @brief Sends via radio an acknowledge message about the parameter passed
-     * message
-     */
-    void sendAck(const mavlink_message_t& msg);
-
-    /**
-     * @brief Sends via radio an non-acknowledge message about the parameter
-     * passed message
-     */
-    void sendNack(const mavlink_message_t& msg);
-
-    /**
-     * @brief Saves the MavlinkDriver and transceiver status
-     */
-    void logStatus();
-
-    /**
-     * @brief Returns if the radio module is correctly started
-     */
-    bool isStarted();
-
-    Boardcore::SX1278Fsk* transceiver = nullptr;
-    MavDriver* mavDriver              = nullptr;
+    Boardcore::MavlinkStatus getMavStatus();
 
 private:
-    /**
-     * @brief Called by the MavlinkDriver when a message is received
-     */
-    void handleMavlinkMessage(const mavlink_message_t& msg);
+    void sendAck(const mavlink_message_t& msg);
+    void sendNack(const mavlink_message_t& msg);
 
-    /**
-     * @brief Called by the handleMavlinkMessage to handle a command message
-     */
-    void handleCommand(const mavlink_message_t& msg);
-
-    /**
-     * @brief Sends the periodic telemetry
-     */
-    void sendPeriodicMessage();
-
-    /**
-     * @brief Inserts the mavlink message into the queue
-     */
-    void enqueueMsg(const mavlink_message_t& msg);
-
-    // Messages queue
-    mavlink_message_t messageQueue[RadioConfig::MAVLINK_QUEUE_SIZE];
-    uint32_t messageQueueIndex = 0;
-    miosix::FastMutex queueMutex;
+    void handleMessage(const mavlink_message_t& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-    Boardcore::TaskScheduler* scheduler = nullptr;
+
+    std::atomic<bool> started{false};
+    std::unique_ptr<Boardcore::SX1278Fsk> radio;
+    std::unique_ptr<MavDriver> mavDriver;
 };
+
 }  // namespace Main

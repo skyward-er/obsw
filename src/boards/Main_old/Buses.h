@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,34 @@
 
 #pragma once
 
-#include <common/Mavlink.h>
+#include <drivers/i2c/I2C.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <interfaces-impl/hwmapping.h>
 
+#include <utils/ModuleManager/ModuleManager.hpp>
 namespace Main
 {
-
-namespace Config
+class Buses : public Boardcore::Module
 {
+public:
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
+    Boardcore::SPIBus spi6;
 
-namespace Radio
-{
+    Boardcore::I2C i2c1;
 
-static constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
-static constexpr unsigned int MAV_MAX_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+    Boardcore::USART usart1;
+    Boardcore::USART usart2;
+    Boardcore::USART uart4;
 
-static constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
-
-static constexpr uint8_t MAV_SYSTEM_ID    = 171;
-static constexpr uint8_t MAV_COMPONENT_ID = 96;
-
-}
-
-}
-
-}
+    Buses()
+        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
+          i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
+               miosix::interfaces::i2c1::sda::getPin()),
+          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
+    {
+    }
+};
+}  // namespace Main
