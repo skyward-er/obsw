@@ -105,7 +105,17 @@ static constexpr uint32_t PERIOD          = 10;  // [ms] 100Hz
 namespace InternalADC
 {
 static constexpr uint32_t PERIOD = 100;  // [ms] 10Hz
-}
+
+static constexpr Boardcore::InternalADC::Channel VBAT_CH =
+    Boardcore::InternalADC::Channel::CH8;
+static constexpr Boardcore::InternalADC::Channel CAM_VBAT_CH =
+    Boardcore::InternalADC::Channel::CH9;
+static constexpr Boardcore::InternalADC::Channel CUTTER_SENSE_CH =
+    Boardcore::InternalADC::Channel::CH11;
+
+static constexpr float VBAT_SCALE     = 7500.0f / 2400.0f;
+static constexpr float CAM_VBAT_SCALE = 7500.0f / 2400.0f;
+}  // namespace InternalADC
 
 }  // namespace Sensors
 
