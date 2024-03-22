@@ -56,6 +56,63 @@ bool Sensors::start()
     return true;
 }
 
+Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
+{
+    return lps22df ? lps22df->getLastSample() : LPS22DFData{};
+}
+
+Boardcore::LPS28DFWData Sensors::getLPS28DFWLastSample()
+{
+    return lps28dfw ? lps28dfw->getLastSample() : LPS28DFWData{};
+}
+
+Boardcore::H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+{
+    return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
+}
+
+Boardcore::LIS2MDLData Sensors::getLIS2MDLLastSample()
+{
+    return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
+}
+
+Boardcore::UBXGPSData Sensors::getUBXGPSLastSample()
+{
+    return ubxgps ? ubxgps->getLastSample() : UBXGPSData{};
+}
+
+Boardcore::LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+{
+    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+}
+
+Boardcore::ADS131M08Data Sensors::getADS131M08LastSample()
+{
+    return ads131m08 ? ads131m08->getLastSample() : ADS131M08Data{};
+}
+
+Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+{
+    return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
+}
+
+Boardcore::VoltageData Sensors::getBatteryVoltage()
+{
+    auto sample   = getInternalADCLastSample();
+    float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
+                    Config::Sensors::InternalADC::VBAT_SCALE;
+    return {sample.timestamp, voltage};
+}
+
+Boardcore::VoltageData Sensors::getCamBatteryVoltage()
+{
+    auto sample = getInternalADCLastSample();
+    float voltage =
+        sample.voltage[(int)Config::Sensors::InternalADC::CAM_VBAT_CH] *
+        Config::Sensors::InternalADC::CAM_VBAT_SCALE;
+    return {sample.timestamp, voltage};
+}
+
 std::vector<Boardcore::SensorInfo> Sensors::getSensorInfo()
 {
     return {manager->getSensorInfo(lps22df.get()),
@@ -88,12 +145,7 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     map.emplace(lps22df.get(), info);
 }
 
-void Sensors::lps22dfCallback()
-{
-    auto sample = lps22df->getLastSample();
-
-    LOG_INFO(logger, "LPS22DF {}", sample.pressure);
-}
+void Sensors::lps22dfCallback() {}
 
 void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
 {
@@ -114,12 +166,7 @@ void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
     map.emplace(lps28dfw.get(), info);
 }
 
-void Sensors::lps28dfwCallback()
-{
-    auto sample = lps28dfw->getLastSample();
-
-    LOG_INFO(logger, "LPS28DFW {}", sample.pressure);
-}
+void Sensors::lps28dfwCallback() {}
 
 void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 {
@@ -181,13 +228,7 @@ void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
     map.emplace(ubxgps.get(), info);
 }
 
-void Sensors::ubxgpsCallback()
-{
-    auto sample = ubxgps->getLastSample();
-
-    LOG_INFO(logger, "UBXGPS {} {} {} {}", sample.fix, sample.satellites,
-             sample.latitude, sample.longitude);
-}
+void Sensors::ubxgpsCallback() {}
 
 void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
 {
@@ -236,25 +277,44 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
     config.globalChopModeEnabled =
         Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
 
+    // Disable all channels
+    config.channelsConfig[0].enabled = false;
+    config.channelsConfig[1].enabled = false;
+    config.channelsConfig[2].enabled = false;
+    config.channelsConfig[3].enabled = false;
+    config.channelsConfig[4].enabled = false;
+    config.channelsConfig[5].enabled = false;
+    config.channelsConfig[6].enabled = false;
+    config.channelsConfig[7].enabled = false;
+
+    // Enable required channels
+    config.channelsConfig[0].enabled = true;
+    config.channelsConfig[1].enabled = true;
+    config.channelsConfig[2].enabled = true;
+
     ads131m08 = std::make_unique<ADS131M08>(
         modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
         spiConfig, config);
 
-    SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::PERIOD,
-                    [this]() { ads131m08Callback(); }};
+    SensorInfo info{"ADS131M08", 2000, [this]() { ads131m08Callback(); }};
     map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::ads131m08Callback() {}
+void Sensors::ads131m08Callback()
+{
+    auto sample = ads131m08->getLastSample();
+    LOG_ERR(logger, "\n{} {} {}", sample.voltage[0], sample.voltage[1],
+            sample.voltage[2]);
+}
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
 {
     ModuleManager &modules = ModuleManager::getInstance();
 
     internalAdc = std::make_unique<InternalADC>(ADC2);
-    internalAdc->enableChannel(InternalADC::CH8);
-    internalAdc->enableChannel(InternalADC::CH9);
-    internalAdc->enableChannel(InternalADC::CH11);
+    internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
+    internalAdc->enableChannel(Config::Sensors::InternalADC::CAM_VBAT_CH);
+    internalAdc->enableChannel(Config::Sensors::InternalADC::CUTTER_SENSE_CH);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 

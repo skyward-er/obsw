@@ -52,6 +52,18 @@ public:
 
     [[nodiscard]] bool start();
 
+    Boardcore::LPS22DFData getLPS22DFLastSample();
+    Boardcore::LPS28DFWData getLPS28DFWLastSample();
+    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    Boardcore::UBXGPSData getUBXGPSLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
+    Boardcore::InternalADCData getInternalADCLastSample();
+
+    Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::VoltageData getCamBatteryVoltage();
+
     std::vector<Boardcore::SensorInfo> getSensorInfo();
 
 private:
