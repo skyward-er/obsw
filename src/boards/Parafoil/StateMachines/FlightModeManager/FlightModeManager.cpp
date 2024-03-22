@@ -346,16 +346,20 @@ State FlightModeManager::state_ready(const Event& event)
 
 State FlightModeManager::state_wing_descent(const Event& event)
 {
+    static uint16_t controlDelayId;
+
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
-            EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
+            controlDelayId = EventBroker::getInstance().postDelayed(
+                FLIGHT_WING_DESCENT, TOPIC_FLIGHT, CONTROL_DELAY);
             return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(controlDelayId);
             return HANDLED;
         }
         case EV_EMPTY:
