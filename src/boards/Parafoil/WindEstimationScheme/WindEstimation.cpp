@@ -71,8 +71,8 @@ void WindEstimation::startWindEstimationSchemeCalibration()
     {
         calRunning = true;
         nSampleCal = 0;
-        vx         = 0;
-        vy         = 0;
+        vn         = 0;
+        ve         = 0;
         v2         = 0;
         LOG_INFO(logger, "WindEstimationCalibration started");
     }
@@ -88,6 +88,7 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
         miosix::Lock<FastMutex> l(mutex);
         wind = windCalibration;
     }
+    windLogger.cal = true;
     windLogger.vn = windCalibration[0];
     windLogger.ve = windCalibration[1];
     startWindEstimationScheme();
@@ -113,20 +114,20 @@ void WindEstimation::windEstimationSchemeCalibration()
                 calibrationMatrix(nSampleCal, 1) = gpsE;
                 calibrationV2(nSampleCal)        = gpsN * gpsN + gpsE * gpsE;
 
-                vx += gpsN;
-                vy += gpsE;
+                vn += gpsN;
+                ve += gpsE;
                 v2 += gpsN * gpsN + gpsE * gpsE;
                 nSampleCal++;
             }
             else
             {
-                vx = vx / nSampleCal;
-                vy = vy / nSampleCal;
+                vn = vn / nSampleCal;
+                ve = ve / nSampleCal;
                 v2 = v2 / nSampleCal;
                 for (int i = 0; i < nSampleCal; i++)
                 {
-                    calibrationMatrix(i, 0) = calibrationMatrix(i, 0) - vx;
-                    calibrationMatrix(i, 1) = calibrationMatrix(i, 1) - vy;
+                    calibrationMatrix(i, 0) = calibrationMatrix(i, 0) - vn;
+                    calibrationMatrix(i, 1) = calibrationMatrix(i, 1) - ve;
                     calibrationV2(i)        = 0.5f * (calibrationV2(i) - v2);
                 }
                 Eigen::MatrixXf calibrationMatrixT =
@@ -177,11 +178,11 @@ void WindEstimation::windEstimationScheme()
             gpsE = gpsData.velocityEast;
             // update avg
             nSample++;
-            vx = (vx * nSample + gpsN) / (nSample + 1);
-            vy = (vy * nSample + gpsE) / (nSample + 1);
+            vn = (vn * nSample + gpsN) / (nSample + 1);
+            ve = (ve * nSample + gpsE) / (nSample + 1);
             v2 = (v2 * nSample + (gpsN * gpsN + gpsE * gpsE)) / (nSample + 1);
-            phi(0) = gpsN - vx;
-            phi(1) = gpsE - vy;
+            phi(0) = gpsN - vn;
+            phi(1) = gpsE - ve;
             y      = 0.5f * ((gpsN * gpsN + gpsE * gpsE) - v2);
 
             phiT = phi.transpose();
@@ -194,6 +195,7 @@ void WindEstimation::windEstimationScheme()
                 wind          = wind + temp;
                 windLogger.vn = wind[0];
                 windLogger.ve = wind[1];
+                windLogger.cal = false;
             }
             logStatus();
         }

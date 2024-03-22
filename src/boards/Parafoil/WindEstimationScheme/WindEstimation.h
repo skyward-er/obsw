@@ -92,8 +92,8 @@ private:
         calibrationMatrix;
     Eigen::Vector<float, WESConfig::WES_CALIBRATION_SAMPLE_NUMBER>
         calibrationV2;
-    float vx = 0;
-    float vy = 0;
+    float vn = 0;
+    float ve = 0;
     float v2 = 0;
 
     /**
