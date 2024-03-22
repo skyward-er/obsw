@@ -26,6 +26,7 @@
 #include <Main/Sensors/Sensors.h>
 #include <drivers/timer/PWM.h>
 #include <miosix.h>
+#include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -95,6 +96,9 @@ int main()
 
     while (true)
     {
+        gpios::boardLed::high();
+        Thread::sleep(1000);
+        gpios::boardLed::low();
         Thread::sleep(1000);
     }
 
