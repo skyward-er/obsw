@@ -130,7 +130,8 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 
     h3lis331dl = std::make_unique<H3LIS331DL>(
         modules.get<Buses>()->getH3LIS331DL(),
-        sensors::H3LIS331DL::cs::getPin(), Config::Sensors::H3LIS331DL::ODR,
+        sensors::H3LIS331DL::cs::getPin(), spiConfig,
+        Config::Sensors::H3LIS331DL::ODR,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         Config::Sensors::H3LIS331DL::FS);
 
