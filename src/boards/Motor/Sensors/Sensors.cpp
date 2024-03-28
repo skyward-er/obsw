@@ -56,12 +56,19 @@ bool Sensors::start()
 
 std::vector<SensorInfo> Sensors::getSensorInfo()
 {
-    return {manager->getSensorInfo(lps22df.get()),
-            manager->getSensorInfo(h3lis331dl.get()),
-            manager->getSensorInfo(lis2mdl.get()),
-            manager->getSensorInfo(lsm6dsrx.get()),
-            manager->getSensorInfo(ads131m08.get()),
-            manager->getSensorInfo(internalAdc.get())};
+    if (manager)
+    {
+        return {manager->getSensorInfo(lps22df.get()),
+                manager->getSensorInfo(h3lis331dl.get()),
+                manager->getSensorInfo(lis2mdl.get()),
+                manager->getSensorInfo(lsm6dsrx.get()),
+                manager->getSensorInfo(ads131m08.get()),
+                manager->getSensorInfo(internalAdc.get())};
+    }
+    else
+    {
+        return {};
+    }
 }
 
 void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)

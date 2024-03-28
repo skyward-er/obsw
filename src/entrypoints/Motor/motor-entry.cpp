@@ -77,6 +77,12 @@ int main()
         LOG_ERR(logger, "Error failed to start CanHandler module");
     }
 
+    if (!scheduler1->start() || !scheduler2->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start scheduler");
+    }
+
     if (initResult)
     {
         LOG_INFO(logger, "All good!");
