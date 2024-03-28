@@ -25,8 +25,8 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <drivers/timer/PWM.h>
-#include <miosix.h>
 #include <interfaces-impl/hwmapping.h>
+#include <miosix.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -36,69 +36,86 @@ using namespace Main;
 
 int main()
 {
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Main");
-    ModuleManager &modules        = ModuleManager::getInstance();
+    ModuleManager &modules = ModuleManager::getInstance();
+    PrintLogger logger     = Logging::getLogger("main");
 
-    TaskScheduler scheduler(2);
+    // TODO: Move this to a dedicated board scheduler
+    TaskScheduler *scheduler1 = new TaskScheduler(2);
+    TaskScheduler *scheduler2 = new TaskScheduler(3);
 
     Buses *buses           = new Buses();
-    Sensors *sensors       = new Sensors(scheduler);
-    Radio *radio           = new Radio();
+    Sensors *sensors       = new Sensors(*scheduler2);
+    Radio *radio           = new Radio(*scheduler1);
     CanHandler *canHandler = new CanHandler();
 
+    bool initResult = true;
+
+    // Insert modules
     if (!modules.insert<Buses>(buses))
     {
+        initResult = false;
     }
 
     if (!modules.insert<Sensors>(sensors))
     {
+        initResult = false;
     }
 
     if (!modules.insert<Radio>(radio))
     {
+        initResult = false;
     }
 
     if (!modules.insert<CanHandler>(canHandler))
     {
+        initResult = false;
     }
 
-    if (!sensors->start())
-    {
-        LOG_ERR(logger, "Failed to init sensors");
-    }
-    else
-    {
-        LOG_INFO(logger, "Sensors init success!");
-    }
+    // if (!sensors->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error failed to start Sensors module");
+    // }
 
     if (!radio->start())
     {
-        LOG_ERR(logger, "Failed to init radio");
-    }
-    else
-    {
-        LOG_INFO(logger, "Radio init success!");
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Radio module");
     }
 
     if (!canHandler->start())
     {
-        LOG_ERR(logger, "Failed to init can handler");
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start CanHandler module");
+    }
+
+    if (!scheduler1->start() || !scheduler2->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start scheduler");
+    }
+
+    if (initResult)
+    {
+        LOG_INFO(logger, "All good!");
     }
     else
     {
-        LOG_INFO(logger, "Can handler init success!");
+        LOG_ERR(logger, "Init failure!");
     }
 
-    scheduler.start();
-
-    // for(auto &info : sensors->getSensorInfo()) {
-    // }
+    for (auto info : sensors->getSensorInfo())
+    {
+        LOG_INFO(logger, "{} {}", info.isInitialized, info.id);
+    }
 
     while (true)
     {
-        gpios::boardLed::high();
-        Thread::sleep(1000);
         gpios::boardLed::low();
+        canHandler->sendEvent(Common::CanConfig::EventId::ARM);
+        Thread::sleep(1000);
+        gpios::boardLed::high();
+        canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
     }
 

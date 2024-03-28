@@ -42,8 +42,12 @@ static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 static constexpr uint8_t MAV_SYSTEM_ID    = 171;
 static constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-}
+static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
 
-}
+static constexpr unsigned int TELEMETRY_PERIOD   = 250;
 
-}
+}  // namespace Radio
+
+}  // namespace Config
+
+}  // namespace Main

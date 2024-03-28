@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -35,6 +36,8 @@ public:
     CanHandler();
 
     bool start();
+
+    void sendEvent(Common::CanConfig::EventId event);
 
 private:
     void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);

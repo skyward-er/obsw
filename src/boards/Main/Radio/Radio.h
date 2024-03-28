@@ -26,6 +26,7 @@
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -39,7 +40,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
 class Radio : public Boardcore::Module
 {
 public:
-    Radio() {}
+    Radio(Boardcore::TaskScheduler& scheduler) : scheduler{scheduler} {}
 
     bool isStarted();
 
@@ -51,13 +52,27 @@ private:
     void sendAck(const mavlink_message_t& msg);
     void sendNack(const mavlink_message_t& msg);
 
+    void enqueuePacket(const mavlink_message_t &msg);
+    void flushPackets();
+
     void handleMessage(const mavlink_message_t& msg);
 
+    void sendHighRateTelemetry();
+    void sendLowRateTelemetry();
+
+    bool packSystemTm(uint8_t tmId, mavlink_message_t& msg);
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
+
+    Boardcore::CircularBuffer<mavlink_message_t,
+                              Config::Radio::CIRCULAR_BUFFER_SIZE>
+        queuedPackets;
 
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::SX1278Fsk> radio;
     std::unique_ptr<MavDriver> mavDriver;
+
+    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Main
