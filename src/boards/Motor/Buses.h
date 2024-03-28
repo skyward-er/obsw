@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
-#include <miosix.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -34,13 +33,22 @@ namespace Motor
 class Buses : public Boardcore::Module
 {
 public:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
+    Buses() {}
 
-    Boardcore::USART usart2;
+    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
+    Boardcore::SPIBus &getLPS22DF() { return spi1; }
+    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
+    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
+    Boardcore::SPIBus &getADS131M08() { return spi4; }
 
-    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), usart2(USART2, 115200) {}
+    Boardcore::USART &getHILUart() { return usart4; }
+
+private:
+    Boardcore::SPIBus spi1{SPI1};
+    Boardcore::SPIBus spi3{SPI3};
+    Boardcore::SPIBus spi4{SPI4};
+
+    Boardcore::USART usart4{UART4, 460800, 1024};
 };
 
-}  // namespace Motor
+}
