@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,404 +24,183 @@
 
 #include <Motor/Buses.h>
 #include <Motor/Configs/SensorsConfig.h>
-#include <drivers/interrupt/external_interrupts.h>
 #include <interfaces-impl/hwmapping.h>
-#include <logger/Logger.h>
 
-using namespace std;
-using namespace miosix;
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+using namespace Motor;
 using namespace Boardcore;
-using namespace Motor::SensorsConfig;
+using namespace miosix;
 
-namespace Motor
-{
-
-InternalADCData Sensors::getADCData()
-{
-    miosix::PauseKernelLock lock;
-    return adc != nullptr ? adc->getLastSample() : InternalADCData{};
-}
-
-BatteryVoltageSensorData Sensors::getBatteryData()
-{
-    miosix::PauseKernelLock lock;
-    return battery != nullptr ? battery->getLastSample()
-                              : BatteryVoltageSensorData{};
-}
-
-// LSM6DSRXData Sensors::getLSM6DSRXData()
-// {
-//     miosix::PauseKernelLock lock;
-//     return lsm6dsrx != nullptr ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
-// }
-
-H3LIS331DLData Sensors::getH3LIS331DLData()
-{
-    miosix::PauseKernelLock lock;
-    return h3lis331dl != nullptr ? h3lis331dl->getLastSample()
-                                 : H3LIS331DLData{};
-}
-
-LIS2MDLData Sensors::getLIS2MDLData()
-{
-    miosix::PauseKernelLock lock;
-    return lis2mdl != nullptr ? lis2mdl->getLastSample() : LIS2MDLData{};
-}
-
-LPS22DFData Sensors::getLPS22DFData()
-{
-    miosix::PauseKernelLock lock;
-    return lps22df != nullptr ? lps22df->getLastSample() : LPS22DFData{};
-}
-
-ADS131M08Data Sensors::getADS131M08Data()
-{
-    miosix::PauseKernelLock lock;
-    return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
-}
-
-MAX31856Data Sensors::getMAX31856Data()
-{
-    miosix::PauseKernelLock lock;
-    return max31856 != nullptr ? max31856->getLastSample() : MAX31856Data{};
-}
-
-ChamberPressureSensorData Sensors::getChamberPressureSensorData()
-{
-    miosix::PauseKernelLock lock;
-    return chamberPressure != nullptr ? chamberPressure->getLastSample()
-                                      : ChamberPressureSensorData{};
-}
-
-TankPressureSensor1Data Sensors::getTankPressureSensor1Data()
-{
-    miosix::PauseKernelLock lock;
-    return tankPressure1 != nullptr ? tankPressure1->getLastSample()
-                                    : TankPressureSensor1Data{};
-}
-
-TankPressureSensor2Data Sensors::getTankPressureSensor2Data()
-{
-    miosix::PauseKernelLock lock;
-    return tankPressure2 != nullptr ? tankPressure2->getLastSample()
-                                    : TankPressureSensor2Data{};
-}
-
-CurrentData Sensors::getServoCurrentData()
-{
-    miosix::PauseKernelLock lock;
-    return servosCurrent != nullptr ? servosCurrent->getLastSample()
-                                    : CurrentData{};
-}
-
-Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
-
-Sensors::~Sensors() {}
+bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    adcInit();
-    batteryInit();
-    // lsm6dsrxInit();
-    h3lis331dlInit();
-    // lis2mdlInit();
-    lps22dfInit();
-    max31856Init();
-    ads131m08Init();
-    chamberPressureInit();
-    tankPressure1Init();
-    tankPressure2Init();
-    servosCurrentInit();
+    SensorManager::SensorMap_t map;
+    lps22dfInit(map);
+    h3lis331dlInit(map);
+    lis2mdlInit(map);
+    lsm6dsrxInit(map);
+    ads131m08Init(map);
+    internalAdcInit(map);
 
-    sensorManager = new SensorManager(sensorsMap, scheduler);
-
-    return sensorManager->start();
-}
-
-void Sensors::calibrate()
-{
-    if (ads131m08 != nullptr)
+    manager = std::make_unique<SensorManager>(map, &scheduler);
+    if (!manager->start())
     {
-        ads131m08->calibrateOffset(ADS131_SERVO_CURRENT_CH);
-    }
-}
-
-void Sensors::adcInit()
-{
-    adc = new InternalADC(ADC1);
-
-    adc->enableTemperature();
-    adc->enableVbat();
-    adc->enableChannel(ADC_BATTERY_VOLTAGE_CH);
-
-    SensorInfo info("ADC", SAMPLE_PERIOD_ADC,
-                    bind(&Sensors::adcCallback, this));
-
-    sensorsMap.emplace(make_pair(adc, info));
-}
-
-void Sensors::batteryInit()
-{
-    function<ADCData()> getADCVoltage(
-        bind(&InternalADC::getVoltage, adc, ADC_BATTERY_VOLTAGE_CH));
-
-    battery =
-        new BatteryVoltageSensor(getADCVoltage, ADC_BATTERY_VOLTAGE_COEFF);
-
-    SensorInfo info("BATTERY", SAMPLE_PERIOD_ADC,
-                    bind(&Sensors::batteryCallback, this));
-
-    sensorsMap.emplace(make_pair(battery, info));
-}
-
-// void Sensors::lsm6dsrxInit()
-// {
-//     SPIBus& spi1 = ModuleManager::getInstance().get<Buses>()->spi1;
-
-//     lsm6dsrx = new LSM6DSRX(spi1, peripherals::lsm6dsrx::cs::getPin(),
-//                             LSM6_SPI_CONFIG, LSM6_SENSOR_CONFIG);
-
-//     SensorInfo info("LSM6DSRX", SAMPLE_PERIOD_LSM6,
-//                     bind(&Sensors::lsm6dsrxCallback, this));
-
-//     sensorsMap.emplace(make_pair(lsm6dsrx, info));
-// }
-
-void Sensors::h3lis331dlInit()
-{
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    h3lis331dl = new H3LIS331DL(spi3, peripherals::h3lis331dl::cs::getPin(),
-                                H3LIS_ODR, H3LIS_BDU, H3LIS_FSR);
-
-    SensorInfo info("H3LIS331DL", SAMPLE_PERIOD_H3LIS,
-                    bind(&Sensors::h3lis331dlCallback, this));
-
-    sensorsMap.emplace(make_pair(h3lis331dl, info));
-}
-
-void Sensors::lis2mdlInit()
-{
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    lis2mdl = new LIS2MDL(spi3, peripherals::lis2mdl::cs::getPin(),
-                          LIS2_SPI_CONFIG, LIS2_SENSOR_CONFIG);
-
-    SensorInfo info("LIS2MDL", SAMPLE_PERIOD_LIS2,
-                    bind(&Sensors::lis2mdlCallback, this));
-
-    sensorsMap.emplace(make_pair(lis2mdl, info));
-}
-
-void Sensors::lps22dfInit()
-{
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    lps22df = new LPS22DF(spi3, peripherals::lps22df::cs::getPin(),
-                          LPS22_SPI_CONFIG, LPS22_SENSOR_CONFIG);
-
-    SensorInfo info("LPS22", SAMPLE_PERIOD_LPS22,
-                    bind(&Sensors::lps22dfCallback, this));
-
-    sensorsMap.emplace(make_pair(lps22df, info));
-}
-
-void Sensors::max31856Init()
-{
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    max31856 = new MAX31856(spi3, peripherals::max31856::cs::getPin());
-
-    SensorInfo info("MAX31856", SAMPLE_PERIOD_MAX,
-                    bind(&Sensors::max31856Callback, this));
-
-    sensorsMap.emplace(make_pair(max31856, info));
-}
-
-void Sensors::ads131m08Init()
-{
-    SPIBus& spi4 = ModuleManager::getInstance().get<Buses>()->spi4;
-
-    ads131m08 = new ADS131M08(spi4, peripherals::ads131m08::cs::getPin(),
-                              ADS131_SPI_CONFIG, ADS131_SENSOR_CONFIG);
-
-    SensorInfo info("ADS131M08", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::ads131m08Callback, this));
-
-    sensorsMap.emplace(make_pair(ads131m08, info));
-}
-
-void Sensors::chamberPressureInit()
-{
-    if (ads131m08 == nullptr)
-    {
-        return;
+        return false;
     }
 
-    function<ADCData()> getADCVoltage(
-        [&](void)
-        {
-            auto data = ads131m08->getLastSample();
-            return data.getVoltage(ADS131_CHAMBER_PRESSURE_CH);
-        });
-
-    function<float(float)> voltageToPressure(
-        [](float voltage)
-        {
-            float current =
-                voltage / CHAMBER_PRESSURE_SHUNT - CHAMBER_PRESSURE_CURR_MIN;
-            return current * CHAMBER_PRESSURE_COEFF;
-        });
-
-    chamberPressure =
-        new ChamberPressureSensor(getADCVoltage, voltageToPressure);
-
-    SensorInfo info("CHAMBER_PRESSURE", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::chamberPressureCallback, this));
-
-    sensorsMap.emplace(make_pair(chamberPressure, info));
+    started = true;
+    return true;
 }
 
-void Sensors::tankPressure1Init()
+std::vector<SensorInfo> Sensors::getSensorInfo()
 {
-    if (ads131m08 == nullptr)
-    {
-        return;
-    }
-
-    function<ADCData()> getADCVoltage(
-        [&](void)
-        {
-            auto data = ads131m08->getLastSample();
-            return data.getVoltage(ADS131_TANK_PRESSURE_1_CH);
-        });
-
-    function<float(float)> voltageToPressure(
-        [](float voltage)
-        {
-            float current =
-                voltage / TANK_PRESSURE_1_SHUNT - TANK_PRESSURE_1_CURR_MIN;
-            return current * TANK_PRESSURE_1_COEFF;
-        });
-
-    tankPressure1 = new TankPressureSensor1(getADCVoltage, voltageToPressure);
-
-    SensorInfo info("TANK_PRESSURE_1", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::tankPressure1Callback, this));
-
-    sensorsMap.emplace(make_pair(tankPressure1, info));
+    return {manager->getSensorInfo(lps22df.get()),
+            manager->getSensorInfo(h3lis331dl.get()),
+            manager->getSensorInfo(lis2mdl.get()),
+            manager->getSensorInfo(lsm6dsrx.get()),
+            manager->getSensorInfo(ads131m08.get()),
+            manager->getSensorInfo(internalAdc.get())};
 }
 
-void Sensors::tankPressure2Init()
+void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
 {
-    if (ads131m08 == nullptr)
-    {
-        return;
-    }
+    ModuleManager &modules = ModuleManager::getInstance();
 
-    function<ADCData()> getADCVoltage(
-        [&](void)
-        {
-            auto data = ads131m08->getLastSample();
-            return data.getVoltage(ADS131_TANK_PRESSURE_2_CH);
-        });
+    SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    function<float(float)> voltageToPressure(
-        [](float voltage)
-        {
-            float current =
-                voltage / TANK_PRESSURE_2_SHUNT - TANK_PRESSURE_2_CURR_MIN;
-            return current * TANK_PRESSURE_2_COEFF;
-        });
+    LPS22DF::Config config;
+    config.avg = Config::Sensors::LPS22DF::AVG;
+    config.odr = Config::Sensors::LPS22DF::ODR;
 
-    tankPressure2 = new TankPressureSensor2(getADCVoltage, voltageToPressure);
+    lps22df = std::make_unique<LPS22DF>(modules.get<Buses>()->getLPS22DF(),
+                                        sensors::LPS22DF::cs::getPin(),
+                                        spiConfig, config);
 
-    SensorInfo info("TANK_PRESSURE_2", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::tankPressure2Callback, this));
-
-    sensorsMap.emplace(make_pair(tankPressure2, info));
+    SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
+                    [this]() { lps22dfCallback(); }};
+    map.emplace(lps22df.get(), info);
 }
 
-void Sensors::servosCurrentInit()
+void Sensors::lps22dfCallback() {}
+
+void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 {
-    if (ads131m08 == nullptr)
-    {
-        return;
-    }
+    ModuleManager &modules = ModuleManager::getInstance();
 
-    function<ADCData()> getADCVoltage(
-        [&](void)
-        {
-            auto data = ads131m08->getLastSample();
-            return data.getVoltage(ADS131_SERVO_CURRENT_CH);
-        });
+    SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    function<float(float)> voltageToCurrent(
-        [](float voltage) { return voltage * SERVO_CURRENT_COEFF; });
+    h3lis331dl = std::make_unique<H3LIS331DL>(
+        modules.get<Buses>()->getH3LIS331DL(),
+        sensors::H3LIS331DL::cs::getPin(), spiConfig,
+        Config::Sensors::H3LIS331DL::ODR,
+        H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
+        Config::Sensors::H3LIS331DL::FS);
 
-    servosCurrent = new CurrentSensor(getADCVoltage, voltageToCurrent);
-
-    SensorInfo info("SERVOS_CURRENT", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::servosCurrentCallback, this));
-
-    sensorsMap.emplace(make_pair(servosCurrent, info));
+    SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
+                    [this]() { h3lis331dlCallback(); }};
+    map.emplace(h3lis331dl.get(), info);
 }
 
-void Sensors::adcCallback() { Logger::getInstance().log(adc->getLastSample()); }
+void Sensors::h3lis331dlCallback() {}
 
-void Sensors::batteryCallback()
+void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
 {
-    Logger::getInstance().log(battery->getLastSample());
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    LIS2MDL::Config config;
+    config.deviceMode         = LIS2MDL::MD_CONTINUOUS;
+    config.odr                = Config::Sensors::LIS2MDL::ODR;
+    config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
+
+    lis2mdl = std::make_unique<LIS2MDL>(modules.get<Buses>()->getLIS2MDL(),
+                                        sensors::LIS2MDL::cs::getPin(),
+                                        spiConfig, config);
+
+    SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
+                    [this]() { lis2mdlCallback(); }};
+    map.emplace(lis2mdl.get(), info);
 }
 
-// void Sensors::lsm6dsrxCallback()
-// {
-//     Logger::getInstance().log(lsm6dsrx->getLastSample());
-// }
+void Sensors::lis2mdlCallback() {}
 
-void Sensors::h3lis331dlCallback()
+void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
 {
-    Logger::getInstance().log(h3lis331dl->getLastSample());
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_0;
+
+    LSM6DSRXConfig config;
+    config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+
+    config.fsAcc     = Config::Sensors::LSM6DSRX::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX::ACC_OP_MODE;
+
+    config.fsGyr     = Config::Sensors::LSM6DSRX::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX::GYR_OP_MODE;
+
+    config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
+    config.fifoTimestampDecimation =
+        LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
+    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+
+    lsm6dsrx = std::make_unique<LSM6DSRX>(modules.get<Buses>()->getLSM6DSRX(),
+                                          sensors::LSM6DSRX::cs::getPin(),
+                                          spiConfig, config);
+
+    SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
+                    [this]() { lsm6dsrxCallback(); }};
+    map.emplace(lsm6dsrx.get(), info);
 }
 
-void Sensors::lis2mdlCallback()
+void Sensors::lsm6dsrxCallback() {}
+
+void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
 {
-    Logger::getInstance().log(lis2mdl->getLastSample());
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    ADS131M08::Config config;
+    config.oversamplingRatio = Config::Sensors::ADS131M08::OSR;
+    config.globalChopModeEnabled =
+        Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
+
+    ads131m08 = std::make_unique<ADS131M08>(
+        modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
+        spiConfig, config);
+
+    SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::PERIOD,
+                    [this]() { ads131m08Callback(); }};
+    map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::lps22dfCallback()
+void Sensors::ads131m08Callback() {}
+
+void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
 {
-    Logger::getInstance().log(lps22df->getLastSample());
+    ModuleManager &modules = ModuleManager::getInstance();
+
+    internalAdc = std::make_unique<InternalADC>(ADC2);
+    internalAdc->enableChannel(InternalADC::CH9);
+    internalAdc->enableChannel(InternalADC::CH14);
+    internalAdc->enableTemperature();
+    internalAdc->enableVbat();
+
+    SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
+                    [this]() { internalAdcCallback(); }};
+    map.emplace(internalAdc.get(), info);
 }
 
-void Sensors::max31856Callback()
-{
-    Logger::getInstance().log(max31856->getLastSample());
-}
-
-void Sensors::ads131m08Callback()
-{
-    Logger::getInstance().log(ads131m08->getLastSample());
-}
-
-void Sensors::chamberPressureCallback()
-{
-    Logger::getInstance().log(chamberPressure->getLastSample());
-}
-
-void Sensors::tankPressure1Callback()
-{
-    Logger::getInstance().log(tankPressure1->getLastSample());
-}
-
-void Sensors::tankPressure2Callback()
-{
-    Logger::getInstance().log(tankPressure2->getLastSample());
-}
-
-void Sensors::servosCurrentCallback()
-{
-    Logger::getInstance().log(servosCurrent->getLastSample());
-}
-
-}  // namespace Motor
+void Sensors::internalAdcCallback() {}
