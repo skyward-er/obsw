@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Alberto Nidasio
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,25 @@
 
 #pragma once
 
-#include <drivers/canbus/CanProtocol/CanProtocol.h>
-#include <common/CanConfig.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <miosix.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Motor
 {
 
-class CanHandler : public Boardcore::Module
+class Buses : public Boardcore::Module
 {
 public:
-    CanHandler();
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
 
-    bool start();
+    Boardcore::USART usart2;
 
-    void sendEvent(Common::CanConfig::EventId event);
-
-private:
-    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("CanHandler");
-
-    std::unique_ptr<Boardcore::Canbus::CanbusDriver> driver;
-    std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;
+    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), usart2(USART2, 115200) {}
 };
 
-}  // namespace Main
+}  // namespace Motor
