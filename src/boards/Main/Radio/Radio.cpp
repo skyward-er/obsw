@@ -23,6 +23,7 @@
 #include "Radio.h"
 
 #include <Main/Buses.h>
+#include <Main/Sensors/Sensors.h>
 #include <common/Radio.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
@@ -93,6 +94,20 @@ bool Radio::start()
         return false;
     }
 
+    if (scheduler.addTask([this]() { sendHighRateTelemetry(); },
+                          Config::Radio::TELEMETRY_PERIOD))
+    {
+        LOG_ERR(logger, "Failed to add periodic telemetry task");
+        return false;
+    }
+
+    if (scheduler.addTask([this]() { sendLowRateTelemetry(); },
+                          Config::Radio::TELEMETRY_PERIOD * 2))
+    {
+        LOG_ERR(logger, "Failed to add periodic telemetry task");
+        return false;
+    }
+
     started = true;
     return true;
 }
@@ -102,13 +117,35 @@ Boardcore::MavlinkStatus Radio::getMavStatus()
     return mavDriver->getStatus();
 }
 
+void Radio::enqueuePacket(const mavlink_message_t& msg)
+{
+    queuedPackets.put(msg);
+}
+
+void Radio::flushPackets()
+{
+    // Flush all packets of the queue
+    size_t count = queuedPackets.count();
+    for (size_t i = 0; i < count; i++)
+    {
+        try
+        {
+            mavDriver->enqueueMsg(queuedPackets.pop());
+        }
+        catch (...)
+        {
+            // This shouldn't happen, but still try to prevent it
+        }
+    }
+}
+
 void Radio::sendAck(const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
     mavlink_msg_ack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                             Config::Radio::MAV_COMPONENT_ID, &ackMsg, msg.msgid,
                             msg.seq);
-    mavDriver->enqueueMsg(ackMsg);
+    enqueuePacket(ackMsg);
 }
 
 void Radio::sendNack(const mavlink_message_t& msg)
@@ -117,7 +154,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
                              msg.msgid, msg.seq);
-    mavDriver->enqueueMsg(nackMsg);
+    enqueuePacket(nackMsg);
 }
 
 void Radio::handleMessage(const mavlink_message_t& msg)
@@ -125,4 +162,63 @@ void Radio::handleMessage(const mavlink_message_t& msg)
     LOG_INFO(logger, "Radio received data");
 
     sendAck(msg);
+}
+
+void Radio::sendHighRateTelemetry()
+{
+    mavlink_message_t msg;
+    packSystemTm(SystemTMList::MAV_FLIGHT_ID, msg);
+    enqueuePacket(msg);
+    flushPackets();
+}
+
+void Radio::sendLowRateTelemetry()
+{
+    mavlink_message_t msg;
+    packSystemTm(SystemTMList::MAV_STATS_ID, msg);
+    enqueuePacket(msg);
+}
+
+bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+
+    switch (tmId)
+    {
+        case SystemTMList::MAV_FLIGHT_ID:
+        {
+
+            mavlink_rocket_flight_tm_t tm;
+
+            Sensors* sensors = modules.get<Sensors>();
+            auto imu         = sensors->getLSM6DSRXLastSample();
+            auto mag         = sensors->getLIS2MDLLastSample();
+
+            tm.acc_x  = imu.accelerationX;
+            tm.acc_y  = imu.accelerationY;
+            tm.acc_z  = imu.accelerationZ;
+            tm.gyro_x = imu.angularSpeedX;
+            tm.gyro_y = imu.angularSpeedY;
+            tm.gyro_z = imu.angularSpeedZ;
+            tm.mag_x  = mag.magneticFieldX;
+            tm.mag_y  = mag.magneticFieldY;
+            tm.mag_z  = mag.magneticFieldZ;
+
+            mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                                Config::Radio::MAV_COMPONENT_ID,
+                                                &msg, &tm);
+            return true;
+        }
+        case SystemTMList::MAV_STATS_ID:
+        {
+            mavlink_rocket_stats_tm_t tm;
+
+            mavlink_msg_rocket_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+            return true;
+        }
+        default:
+            return false;
+    }
 }
