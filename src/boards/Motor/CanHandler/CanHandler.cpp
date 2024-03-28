@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Alberto Nidasio, Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,243 +22,48 @@
 
 #include "CanHandler.h"
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/Configs/CanHandlerConfig.h>
-#include <Motor/Sensors/Sensors.h>
 #include <common/CanConfig.h>
-#include <common/Events.h>
 
-#include <functional>
-
-using namespace std;
-using namespace placeholders;
+using namespace Motor;
 using namespace Boardcore;
-using namespace Canbus;
+using namespace Boardcore::Canbus;
 using namespace Common;
-using namespace CanConfig;
-using namespace Motor::CanHandlerConfig;
 
-namespace Motor
+CanHandler::CanHandler()
 {
-
-CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
-{
-    // Configure the CAN driver
     CanbusDriver::AutoBitTiming bitTiming;
-    bitTiming.baudRate    = BAUD_RATE;
-    bitTiming.samplePoint = SAMPLE_POINT;
+    bitTiming.baudRate    = CanConfig::BAUD_RATE;
+    bitTiming.samplePoint = CanConfig::SAMPLE_POINT;
+
     CanbusDriver::CanbusConfig config;
 
-    driver = new CanbusDriver(CAN2, config, bitTiming);
+    driver = std::make_unique<CanbusDriver>(CAN1, config, bitTiming);
 
-    // Create the protocol with the defined driver
-    protocol =
-        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1),
-                        miosix::PRIORITY_MAX - 1);
+    protocol = std::make_unique<CanProtocol>(
+        driver.get(),
+        [this](const Canbus::CanMessage &msg) { handleCanMessage(msg); }, 3);
 
-    // Accept messages only from the main and RIG board
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::RIG),
-                        static_cast<uint8_t>(Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
+                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
+    protocol->addFilter(static_cast<uint8_t>(CanConfig::Board::MAIN),
+                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
+
     driver->init();
 }
 
-bool CanHandler::start()
+bool CanHandler::start() { return protocol->start(); }
+
+void CanHandler::sendEvent(Common::CanConfig::EventId event)
 {
-    // 0 if fail
-    auto result1 = scheduler->addTask(
-        [&]()
-        {
-            auto sensors = ModuleManager::getInstance().get<Sensors>();
-
-            protocol->enqueueData(static_cast<uint8_t>(Priority::HIGH),
-                                  static_cast<uint8_t>(PrimaryType::SENSORS),
-                                  static_cast<uint8_t>(Board::MOTOR),
-                                  static_cast<uint8_t>(Board::BROADCAST),
-                                  static_cast<uint8_t>(SensorId::CC_PRESSURE),
-                                  static_cast<PressureData>(
-                                      sensors->getChamberPressureSensorData()));
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::HIGH),
-                static_cast<uint8_t>(PrimaryType::SENSORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::BOTTOM_TANK_PRESSURE),
-                static_cast<PressureData>(
-                    sensors->getTankPressureSensor1Data()));
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::HIGH),
-                static_cast<uint8_t>(PrimaryType::SENSORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::TOP_TANK_PRESSURE),
-                static_cast<PressureData>(
-                    sensors->getTankPressureSensor2Data()));
-        },
-        PRESSURES_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
-
-    auto result2 = scheduler->addTask(
-        [&]()
-        {
-            auto sensors = ModuleManager::getInstance().get<Sensors>();
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::MEDIUM),
-                static_cast<uint8_t>(PrimaryType::SENSORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::TANK_TEMPERATURE),
-                static_cast<TemperatureData>(sensors->getMAX31856Data()));
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::MEDIUM),
-                static_cast<uint8_t>(PrimaryType::SENSORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::MOTOR_ACTUATORS_CURRENT),
-                static_cast<CurrentData>(sensors->getServoCurrentData()));
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::MEDIUM),
-                static_cast<uint8_t>(PrimaryType::SENSORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::MOTOR_BOARD_VOLTAGE),
-                static_cast<BatteryVoltageSensorData>(
-                    sensors->getBatteryData()));
-        },
-        TEMPERATURE_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
-
-    auto result3 = scheduler->addTask(
-        [&]()
-        {
-            protocol->enqueueSimplePacket(
-                static_cast<uint8_t>(Priority::MEDIUM),
-                static_cast<uint8_t>(PrimaryType::STATUS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST), initStatus, initStatus);
-        },
-        STATUS_TRANSMISSION_PERIOD);
-
-    auto result4 = scheduler->addTask(
-        [&]()
-        {
-            ModuleManager &modules = ModuleManager::getInstance();
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::HIGH),
-                static_cast<uint8_t>(PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::MAIN_VALVE),
-                ServoData{TimestampTimer::getTimestamp(), 0, 0,
-                          modules.get<Actuators>()->getServoPosition(
-                              ServosList::MAIN_VALVE)});
-
-            protocol->enqueueData(
-                static_cast<uint8_t>(Priority::HIGH),
-                static_cast<uint8_t>(PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(Board::MOTOR),
-                static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::VENTING_VALVE),
-                ServoData{TimestampTimer::getTimestamp(), 0, 0,
-                          modules.get<Actuators>()->getServoPosition(
-                              ServosList::VENTING_VALVE)});
-        },
-        ACTUATORS_TRANSMISSION_PERIOD, TaskScheduler::Policy::RECOVER);
-
-    return protocol->start() && result1 != 0 && result2 != 0 && result3 != 0 &&
-           result4 != 0;
-}
-
-bool CanHandler::isStarted()
-{
-    return protocol->isStarted() && scheduler->isRunning();
-}
-
-void CanHandler::sendEvent(EventId event)
-{
-    protocol->enqueueEvent(static_cast<uint8_t>(Priority::CRITICAL),
-                           static_cast<uint8_t>(PrimaryType::EVENTS),
-                           static_cast<uint8_t>(Board::MOTOR),
-                           static_cast<uint8_t>(Board::BROADCAST),
+    protocol->enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
+                           static_cast<uint8_t>(CanConfig::Board::MAIN),
+                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                            static_cast<uint8_t>(event));
 }
 
-void CanHandler::setInitStatus(bool initResult) { initStatus = initResult; }
-
-void CanHandler::handleCanMessage(const CanMessage &msg)
+void CanHandler::handleCanMessage(const Canbus::CanMessage &msg)
 {
-    PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
-
-    // Depending on the received message, call the handling method
-    switch (msgType)
-    {
-        case PrimaryType::EVENTS:
-        {
-            handleCanEvent(msg);
-            break;
-        }
-        case PrimaryType::COMMAND:
-        {
-            handleCanCommand(msg);
-            break;
-        }
-        default:
-        {
-            LOG_WARN(logger, "Received unsupported message type: type={}",
-                     msgType);
-            break;
-        }
-    }
+    LOG_INFO(logger, "Received can message {}", msg.getPrimaryType(),
+             msg.getSecondaryType());
 }
-
-void CanHandler::handleCanEvent(const CanMessage &msg)
-{
-    EventId eventId = static_cast<EventId>(msg.getSecondaryType());
-
-    switch (eventId)
-    {
-        case EventId::CALIBRATE:
-        {
-            auto sensors = ModuleManager::getInstance().get<Sensors>();
-            sensors->calibrate();
-
-            break;
-        }
-        default:
-        {
-            LOG_WARN(logger, "Received unsupported event: id={}", eventId);
-            break;
-        }
-    }
-}
-
-void CanHandler::handleCanCommand(const CanMessage &msg)
-{
-    uint64_t payload = msg.payload[0];
-    ServosList servo = static_cast<ServosList>(msg.getSecondaryType());
-    bool targetState = static_cast<uint8_t>(payload);
-    uint32_t delay   = static_cast<uint32_t>(payload >> 8);
-
-    auto actuators = ModuleManager::getInstance().get<Actuators>();
-
-    if (actuators != nullptr)
-    {
-        if (targetState)
-        {
-            // printf("Opening %d for %ld\n", msg.getSecondaryType(), delay);
-            actuators->openServoAtomic(servo, delay);
-        }
-        else
-        {
-            // printf("Closing %d for %ld\n", msg.getSecondaryType(), delay);
-            actuators->closeServo(servo);
-        }
-    }
-}
-
-}  // namespace Motor

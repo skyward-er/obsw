@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,18 @@
 
 #pragma once
 
-#include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
-#include <Motor/Sensors/TankPressureSensor1/TankPressureSensor1.h>
-#include <Motor/Sensors/TankPressureSensor2/TankPressureSensor2.h>
 #include <drivers/adc/InternalADC.h>
+#include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-// #include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/MAX31856/MAX31856.h>
+#include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
-#include <sensors/analog/BatteryVoltageSensor.h>
-#include <sensors/analog/CurrentSensor.h>
-#include <sensors/analog/pressure/AnalogPressureSensor.h>
 
+#include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
+#include <vector>
 
 namespace Motor
 {
@@ -45,80 +41,50 @@ namespace Motor
 class Sensors : public Boardcore::Module
 {
 public:
-    Boardcore::InternalADCData getADCData();
-    Boardcore::BatteryVoltageSensorData getBatteryData();
-    // Boardcore::LSM6DSRXData getLSM6DSRXData();
-    Boardcore::H3LIS331DLData getH3LIS331DLData();
-    Boardcore::LIS2MDLData getLIS2MDLData();
-    Boardcore::LPS22DFData getLPS22DFData();
-    Boardcore::ADS131M08Data getADS131M08Data();
-    Boardcore::MAX31856Data getMAX31856Data();
-    Boardcore::ChamberPressureSensorData getChamberPressureSensorData();
-    Boardcore::TankPressureSensor1Data getTankPressureSensor1Data();
-    Boardcore::TankPressureSensor2Data getTankPressureSensor2Data();
-    Boardcore::CurrentData getServoCurrentData();
+    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
+    {
+    }
 
-    explicit Sensors(Boardcore::TaskScheduler* sched);
 
-    ~Sensors();
+    bool isStarted();
 
-    bool start();
+    [[nodiscard]] bool start();
 
-    void calibrate();
+    std::vector<Boardcore::SensorInfo> getSensorInfo();
 
 private:
-    void adcInit();
-    void adcCallback();
-
-    void batteryInit();
-    void batteryCallback();
-
-    // void lsm6dsrxInit();
-    // void lsm6dsrxCallback();
-
-    void h3lis331dlInit();
-    void h3lis331dlCallback();
-
-    void lis2mdlInit();
-    void lis2mdlCallback();
-
-    void lps22dfInit();
+    void lps22dfInit(Boardcore::SensorManager::SensorMap_t &map);
     void lps22dfCallback();
 
-    void max31856Init();
-    void max31856Callback();
+    void h3lis331dlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void h3lis331dlCallback();
 
-    void ads131m08Init();
+    void lis2mdlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lis2mdlCallback();
+
+    void lsm6dsrxInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lsm6dsrxCallback();
+
+    void ads131m08Init(Boardcore::SensorManager::SensorMap_t &map);
     void ads131m08Callback();
 
-    void chamberPressureInit();
-    void chamberPressureCallback();
+    void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
+    void internalAdcCallback();
 
-    void tankPressure1Init();
-    void tankPressure1Callback();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 
-    void tankPressure2Init();
-    void tankPressure2Callback();
+    std::atomic<bool> started{false};
 
-    void servosCurrentInit();
-    void servosCurrentCallback();
+    std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
+    std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
-    Boardcore::InternalADC* adc              = nullptr;
-    Boardcore::BatteryVoltageSensor* battery = nullptr;
-    // Boardcore::LSM6DSRX* lsm6dsrx                     = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl                 = nullptr;
-    Boardcore::LIS2MDL* lis2mdl                       = nullptr;
-    Boardcore::LPS22DF* lps22df                       = nullptr;
-    Boardcore::MAX31856* max31856                     = nullptr;
-    Boardcore::ADS131M08* ads131m08                   = nullptr;
-    Boardcore::ChamberPressureSensor* chamberPressure = nullptr;
-    Boardcore::TankPressureSensor1* tankPressure1     = nullptr;
-    Boardcore::TankPressureSensor2* tankPressure2     = nullptr;
-    Boardcore::CurrentSensor* servosCurrent           = nullptr;
+    std::unique_ptr<Boardcore::SensorManager> manager;
 
-    Boardcore::SensorManager::SensorMap_t sensorsMap;
-    Boardcore::SensorManager* sensorManager = nullptr;
-    Boardcore::TaskScheduler* scheduler     = nullptr;
+    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Motor
