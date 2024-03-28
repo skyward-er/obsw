@@ -21,8 +21,9 @@
  */
 
 #include <Main/Buses.h>
-#include <Main/Sensors/Sensors.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
+#include <Main/Sensors/Sensors.h>
 #include <drivers/timer/PWM.h>
 #include <miosix.h>
 
@@ -34,29 +35,63 @@ using namespace Main;
 
 int main()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Main");
+    ModuleManager &modules        = ModuleManager::getInstance();
 
     TaskScheduler scheduler(2);
 
-    Buses *buses = new Buses();
-    Sensors *sensors = new Sensors(scheduler);
-    Radio *radio = new Radio();
+    Buses *buses           = new Buses();
+    Sensors *sensors       = new Sensors(scheduler);
+    Radio *radio           = new Radio();
+    CanHandler *canHandler = new CanHandler();
 
-    if(!modules.insert<Buses>(buses)) {
-
+    if (!modules.insert<Buses>(buses))
+    {
     }
 
-    if(!modules.insert<Sensors>(sensors)) {
-
+    if (!modules.insert<Sensors>(sensors))
+    {
     }
 
-    sensors->start();
-    radio->start();
+    if (!modules.insert<Radio>(radio))
+    {
+    }
+
+    if (!modules.insert<CanHandler>(canHandler))
+    {
+    }
+
+    if (!sensors->start())
+    {
+        LOG_ERR(logger, "Failed to init sensors");
+    }
+    else
+    {
+        LOG_INFO(logger, "Sensors init success!");
+    }
+
+    if (!radio->start())
+    {
+        LOG_ERR(logger, "Failed to init radio");
+    }
+    else
+    {
+        LOG_INFO(logger, "Radio init success!");
+    }
+
+    if (!canHandler->start())
+    {
+        LOG_ERR(logger, "Failed to init can handler");
+    }
+    else
+    {
+        LOG_INFO(logger, "Can handler init success!");
+    }
+
     scheduler.start();
 
-    for(auto &info : sensors->getSensorInfo()) {
-        printf("Sensor: %s %d\n", info.id.c_str(), info.isInitialized);
-    }
+    // for(auto &info : sensors->getSensorInfo()) {
+    // }
 
     while (true)
     {
