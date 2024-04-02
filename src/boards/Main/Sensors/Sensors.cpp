@@ -148,7 +148,8 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
                                         spiConfig, config);
 
     SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
-                    [this]() { lps22dfCallback(); }};
+                    [this]() { lps22dfCallback(); },
+                    Config::Sensors::LPS22DF::ENABLED};
     map.emplace(lps22df.get(), info);
 }
 
@@ -169,7 +170,8 @@ void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
         std::make_unique<LPS28DFW>(modules.get<Buses>()->getLPS28DFW(), config);
 
     SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::PERIOD,
-                    [this]() { lps28dfwCallback(); }};
+                    [this]() { lps28dfwCallback(); },
+                    Config::Sensors::LPS28DFW::ENABLED};
     map.emplace(lps28dfw.get(), info);
 }
 
@@ -190,7 +192,8 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
         Config::Sensors::H3LIS331DL::FS);
 
     SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
-                    [this]() { h3lis331dlCallback(); }};
+                    [this]() { h3lis331dlCallback(); },
+                    Config::Sensors::H3LIS331DL::ENABLED};
     map.emplace(h3lis331dl.get(), info);
 }
 
@@ -213,7 +216,8 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
                                         spiConfig, config);
 
     SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
-                    [this]() { lis2mdlCallback(); }};
+                    [this]() { lis2mdlCallback(); },
+                    Config::Sensors::LIS2MDL::ENABLED};
     map.emplace(lis2mdl.get(), info);
 }
 
@@ -231,7 +235,8 @@ void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
                                          spiConfig, 5);
 
     SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::PERIOD,
-                    [this]() { ubxgpsCallback(); }};
+                    [this]() { ubxgpsCallback(); },
+                    Config::Sensors::UBXGPS::ENABLED};
     map.emplace(ubxgps.get(), info);
 }
 
@@ -266,7 +271,8 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
                                           spiConfig, config);
 
     SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
-                    [this]() { lsm6dsrxCallback(); }};
+                    [this]() { lsm6dsrxCallback(); },
+                    Config::Sensors::LSM6DSRX::ENABLED};
     map.emplace(lsm6dsrx.get(), info);
 }
 
@@ -303,16 +309,12 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
         modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
         spiConfig, config);
 
-    SensorInfo info{"ADS131M08", 2000, [this]() { ads131m08Callback(); }};
+    SensorInfo info{"ADS131M08", 2000, [this]() { ads131m08Callback(); },
+                    Config::Sensors::ADS131M08::ENABLED};
     map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::ads131m08Callback()
-{
-    auto sample = ads131m08->getLastSample();
-    LOG_ERR(logger, "\n{} {} {}", sample.voltage[0], sample.voltage[1],
-            sample.voltage[2]);
-}
+void Sensors::ads131m08Callback() {}
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
 {
@@ -326,7 +328,8 @@ void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
     internalAdc->enableVbat();
 
     SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
-                    [this]() { internalAdcCallback(); }};
+                    [this]() { internalAdcCallback(); },
+                    Config::Sensors::InternalADC::ENABLED};
     map.emplace(internalAdc.get(), info);
 }
 

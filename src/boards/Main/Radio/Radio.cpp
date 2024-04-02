@@ -95,14 +95,14 @@ bool Radio::start()
     }
 
     if (scheduler.addTask([this]() { sendHighRateTelemetry(); },
-                          Config::Radio::TELEMETRY_PERIOD))
+                          Config::Radio::TELEMETRY_PERIOD) == 0)
     {
         LOG_ERR(logger, "Failed to add periodic telemetry task");
         return false;
     }
 
     if (scheduler.addTask([this]() { sendLowRateTelemetry(); },
-                          Config::Radio::TELEMETRY_PERIOD * 2))
+                          Config::Radio::TELEMETRY_PERIOD * 2) == 0)
     {
         LOG_ERR(logger, "Failed to add periodic telemetry task");
         return false;
