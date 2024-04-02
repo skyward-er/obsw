@@ -43,6 +43,7 @@ namespace LPS22DF
 static constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 static constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
 static constexpr uint32_t PERIOD             = 20;  // [ms] 50Hz
+static constexpr bool ENABLED                = true;
 }  // namespace LPS22DF
 
 namespace LPS28DFW
@@ -52,6 +53,7 @@ static constexpr Boardcore::LPS28DFW::FullScaleRange FS =
 static constexpr Boardcore::LPS28DFW::AVG AVG = Boardcore::LPS28DFW::AVG_4;
 static constexpr Boardcore::LPS28DFW::ODR ODR = Boardcore::LPS28DFW::ODR_100;
 static constexpr uint32_t PERIOD              = 20;  // [ms] 50Hz
+static constexpr bool ENABLED                 = true;
 }  // namespace LPS28DFW
 
 namespace H3LIS331DL
@@ -61,6 +63,7 @@ static constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
 static constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 static constexpr uint32_t PERIOD = 10;  // [ms] 100Hz
+static constexpr bool ENABLED    = true;
 }  // namespace H3LIS331DL
 
 namespace LIS2MDL
@@ -68,12 +71,14 @@ namespace LIS2MDL
 static constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 static constexpr unsigned int TEMP_DIVIDER   = 5;
 static constexpr uint32_t PERIOD             = 10;  // [ms] 100Hz
+static constexpr bool ENABLED                = true;
 }  // namespace LIS2MDL
 
 namespace UBXGPS
 {
 static constexpr uint32_t PERIOD = 200;  // [ms] 5Hz
-}
+static constexpr bool ENABLED    = true;
+}  // namespace UBXGPS
 
 namespace LSM6DSRX
 {
@@ -92,6 +97,7 @@ static constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 static constexpr uint32_t PERIOD = 20;  // [ms] 50Hz
+static constexpr bool ENABLED    = true;
 }  // namespace LSM6DSRX
 
 namespace ADS131M08
@@ -100,11 +106,13 @@ static constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 static constexpr bool GLOBAL_CHOP_MODE_EN = true;
 static constexpr uint32_t PERIOD          = 10;  // [ms] 100Hz
+static constexpr bool ENABLED             = true;
 }  // namespace ADS131M08
 
 namespace InternalADC
 {
 static constexpr uint32_t PERIOD = 100;  // [ms] 10Hz
+static constexpr bool ENABLED    = true;
 
 static constexpr Boardcore::InternalADC::Channel VBAT_CH =
     Boardcore::InternalADC::Channel::CH8;
