@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
@@ -36,51 +37,49 @@ using namespace Main;
 
 int main()
 {
+    ledOff();
+
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
 
-    // TODO: Move this to a dedicated board scheduler
-    TaskScheduler *scheduler1 = new TaskScheduler(2);
-    TaskScheduler *scheduler2 = new TaskScheduler(3);
+    Buses *buses              = new Buses();
+    BoardScheduler *scheduler = new BoardScheduler();
 
-    Buses *buses           = new Buses();
-    Sensors *sensors       = new Sensors(*scheduler2);
-    Radio *radio           = new Radio(*scheduler1);
+    Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
+    Radio *radio           = new Radio(scheduler->getRadioScheduler());
     CanHandler *canHandler = new CanHandler();
 
-    bool initResult = true;
-
     // Insert modules
-    if (!modules.insert<Buses>(buses))
+    bool initResult = modules.insert<Buses>(buses) &&
+                      modules.insert<BoardScheduler>(scheduler) &&
+                      modules.insert<Sensors>(sensors) &&
+                      modules.insert<Radio>(radio) &&
+                      modules.insert<CanHandler>(canHandler);
+
+    // Status led indicators
+    // led1: Sensors ok
+    // led2: Radio ok
+    // led3: CanBus ok
+    // led4: Everything ok
+
+    if (!sensors->start())
     {
         initResult = false;
+        LOG_ERR(logger, "Error failed to start Sensors module");
     }
-
-    if (!modules.insert<Sensors>(sensors))
+    else
     {
-        initResult = false;
+        led1On();
     }
-
-    if (!modules.insert<Radio>(radio))
-    {
-        initResult = false;
-    }
-
-    if (!modules.insert<CanHandler>(canHandler))
-    {
-        initResult = false;
-    }
-
-    // if (!sensors->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error failed to start Sensors module");
-    // }
 
     if (!radio->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start Radio module");
+    }
+    else
+    {
+        led2On();
     }
 
     if (!canHandler->start())
@@ -88,20 +87,25 @@ int main()
         initResult = false;
         LOG_ERR(logger, "Error failed to start CanHandler module");
     }
+    else
+    {
+        led3On();
+    }
 
-    if (!scheduler1->start() || !scheduler2->start())
+    if (!scheduler->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
-    if (initResult)
+    if (!initResult)
     {
-        LOG_INFO(logger, "All good!");
+        LOG_ERR(logger, "Init failure!");
     }
     else
     {
-        LOG_ERR(logger, "Init failure!");
+        LOG_INFO(logger, "All good!");
+        led4On();
     }
 
     for (auto info : sensors->getSensorInfo())

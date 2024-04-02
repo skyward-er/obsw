@@ -41,6 +41,7 @@ sbs_target(test-hil stm32f767zi_compute_unit)
 
 add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-entry PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20)
 sbs_target(main-entry stm32f767zi_bikeshed)
 
 add_executable(payload-entry-roccaraso src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
