@@ -25,31 +25,23 @@
 #include <con_RIG/BoardScheduler.h>
 #include <con_RIG/Configs/ButtonsConfig.h>
 #include <con_RIG/Radio/Radio.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace std;
 using namespace miosix;
 using namespace Boardcore;
-using namespace con_RIG::Config::Buttons;
+using namespace con_RIG;
 
-namespace con_RIG
-{
-
-Buttons::Buttons(TaskScheduler* sched) : scheduler(sched)
+Buttons::Buttons(TaskScheduler& scheduler) : scheduler(scheduler)
 {
     resetState();
     state.arm_switch = false;
-    remoteArm        = 0;
 }
 
 bool Buttons::start()
 {
-    return scheduler->addTask([&]() { periodicStatusCheck(); },
-                              BUTTON_SAMPLE_PERIOD);
-}
-
-Buttons::~Buttons()
-{
-    // Delete all the buttons
+    return scheduler.addTask([this]() { periodicStatusCheck(); },
+                             Config::Buttons::BUTTON_SAMPLE_PERIOD) != 0;
 }
 
 mavlink_conrig_state_tc_t Buttons::getState() { return state; }
@@ -66,18 +58,9 @@ void Buttons::resetState()
 
 void Buttons::periodicStatusCheck()
 {
-    // TODO: This should be in bsp
-    using GpioIgnitionBtn        = Gpio<GPIOB_BASE, 4>;
-    using GpioFillingValveBtn    = Gpio<GPIOE_BASE, 6>;
-    using GpioVentingValveBtn    = Gpio<GPIOE_BASE, 4>;
-    using GpioReleasePressureBtn = Gpio<GPIOG_BASE, 9>;
-    using GpioQuickConnectorBtn  = Gpio<GPIOD_BASE, 7>;
-    using GpioStartTarsBtn       = Gpio<GPIOD_BASE, 5>;
-    using GpioArmedSwitch        = Gpio<GPIOE_BASE, 2>;
+    state.arm_switch = btns::arm::value();
 
-    state.arm_switch = GpioArmedSwitch::getPin().value();
-
-    if (!GpioIgnitionBtn::getPin().value() && state.arm_switch)
+    if (!btns::ignition::value() && state.arm_switch)
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -89,7 +72,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (GpioFillingValveBtn::getPin().value())
+    else if (btns::filling::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -101,7 +84,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (GpioVentingValveBtn::getPin().value())
+    else if (btns::venting::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -113,7 +96,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (GpioReleasePressureBtn::getPin().value())
+    else if (btns::release::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -125,7 +108,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (GpioQuickConnectorBtn::getPin().value())
+    else if (btns::detach::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -137,7 +120,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (GpioStartTarsBtn::getPin().value())
+    else if (btns::tars::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -164,21 +147,6 @@ void Buttons::periodicStatusCheck()
     //        state.detach_quick_connector, state.startup_tars, state.armed);
 }
 
-// 1 if rocket is armed, 0 if disarmed
-void Buttons::setRemoteArmState(int armed)
-{
-    using armed_led = Gpio<GPIOC_BASE, 13>;
+void Buttons::enableIgnition() { ui::armedLed::high(); }
 
-    if (armed)
-    {
-        remoteArm = true;
-        armed_led::high();
-    }
-    else
-    {
-        remoteArm = false;
-        armed_led::low();
-    }
-}
-
-}  // namespace con_RIG
+void Buttons::disableIgnition() { ui::armedLed::low(); }
