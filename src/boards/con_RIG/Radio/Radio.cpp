@@ -22,69 +22,67 @@
 
 #include "Radio.h"
 
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
+#include <common/Radio.h>
 #include <con_RIG/BoardScheduler.h>
 #include <con_RIG/Buses.h>
 #include <con_RIG/Buttons/Buttons.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
-#include <radio/Xbee/ATCommands.h>
 
 #include <thread>
 
-using namespace std;
 using namespace miosix;
-using namespace placeholders;
 using namespace Boardcore;
-using namespace con_RIG::Config::Radio;
+using namespace con_RIG;
+using namespace Common;
 
-void __attribute__((used)) EXTI1_IRQHandlerImpl()
+SX1278Lora* gRadio{nullptr};
+
+void handleDioIRQ()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
+    SX1278Lora* instance = gRadio;
+    if (instance)
     {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
+        instance->handleDioIRQ();
     }
 }
 
-void __attribute__((used)) EXTI12_IRQHandlerImpl()
+void setIRQRadio(SX1278Lora* radio)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
-    {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
-    }
+    FastInterruptDisableLock dl;
+    gRadio = radio;
 }
 
-void __attribute__((used)) EXTI13_IRQHandlerImpl()
+void __attribute__((used)) MIOSIX_RADIO_DIO0_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO1_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
+
+void Radio::handleMessage(const mavlink_message_t& msg)
 {
     ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<con_RIG::Radio>()->transceiver != nullptr)
-    {
-        modules.get<con_RIG::Radio>()->transceiver->handleDioIRQ();
-    }
-}
-
-namespace con_RIG
-{
-
-void Radio::handleMavlinkMessage(MavDriver* driver,
-                                 const mavlink_message_t& msg)
-{
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_GSE_TM:
         {
-            int arming_state = mavlink_msg_gse_tm_get_arming_state(&msg);
-            ModuleManager::getInstance().get<Buttons>()->setRemoteArmState(
-                arming_state);
-            messageReceived +=
-                arming_state == 1
-                    ? 10
-                    : 2;  // The beep increments in speed as the state is armed
+            int armingState = mavlink_msg_gse_tm_get_arming_state(&msg);
+            if (armingState == 1)
+            {
+                modules.get<Buttons>()->enableIgnition();
+                messageReceived += 10;
+            }
+            else
+            {
+                modules.get<Buttons>()->disableIgnition();
+                messageReceived += 2;
+            }
+
+            break;
         }
+
         case MAVLINK_MSG_ID_ACK_TM:
         {
             int id = mavlink_msg_ack_tm_get_recv_msgid(&msg);
@@ -101,8 +99,11 @@ void Radio::handleMavlinkMessage(MavDriver* driver,
                 buttonState.start_tars_btn       = false;
                 buttonState.arm_switch           = false;
             }
+
+            break;
         }
     }
+
     mavlinkWriteToUsart(msg);
 }
 
@@ -144,7 +145,6 @@ void Radio::loopReadFromUsart()
 {
     mavlink_status_t status;
     mavlink_message_t msg;
-    int chan = 0;  // TODO: what is this?
     uint8_t byte;
 
     while (true)
@@ -152,9 +152,9 @@ void Radio::loopReadFromUsart()
         auto serial = miosix::DefaultConsole::instance().get();
         int len     = serial->readBlock(&byte, 1, 0);
 
-        if (len && mavlink_parse_char(chan, byte, &msg, &status))
+        if (len && mavlink_parse_char(MAVLINK_COMM_0, byte, &msg, &status))
         {
-            if (message_queue_index == MAVLINK_QUEUE_SIZE - 1)
+            if (message_queue_index == Config::Radio::MAVLINK_QUEUE_SIZE - 1)
             {
                 mavlink_message_t nack_msg;
                 mavlink_nack_tm_t nack_tm;
@@ -180,68 +180,63 @@ void Radio::setInternalState(mavlink_conrig_state_tc_t state)
     Lock<FastMutex> lock(internalStateMutex);
     // The OR operator is introduced to make sure that the receiver
     // understood the command
-    buttonState.ignition_btn = state.ignition_btn || buttonState.ignition_btn;
-    buttonState.filling_valve_btn =
-        state.filling_valve_btn || buttonState.filling_valve_btn;
-    buttonState.venting_valve_btn =
-        state.venting_valve_btn || buttonState.venting_valve_btn;
-    buttonState.release_pressure_btn =
-        state.release_pressure_btn || buttonState.release_pressure_btn;
-    buttonState.quick_connector_btn =
-        state.quick_connector_btn || buttonState.quick_connector_btn;
-    buttonState.start_tars_btn =
-        state.start_tars_btn || buttonState.start_tars_btn;
-    buttonState.arm_switch = state.arm_switch || buttonState.arm_switch;
+    buttonState.ignition_btn |= state.ignition_btn;
+    buttonState.filling_valve_btn |= state.filling_valve_btn;
+    buttonState.venting_valve_btn |= state.venting_valve_btn;
+    buttonState.release_pressure_btn |= state.release_pressure_btn;
+    buttonState.quick_connector_btn |= state.quick_connector_btn;
+    buttonState.start_tars_btn |= state.start_tars_btn;
+    buttonState.arm_switch |= state.arm_switch;
 }
 
 bool Radio::start()
 {
-    // TODO: constants should be in bps
-    using dio0 = Gpio<GPIOB_BASE, 1>;
-    using dio1 = Gpio<GPIOD_BASE, 12>;
-    using dio3 = Gpio<GPIOD_BASE, 13>;
-    using txEn = Gpio<GPIOG_BASE, 2>;
-    using rxEn = Gpio<GPIOG_BASE, 3>;
-    using cs   = Gpio<GPIOF_BASE, 6>;
-
     ModuleManager& modules = ModuleManager::getInstance();
 
-    // Config the transceiver
-    SX1278Lora::Config config{};
-    config.power            = 2;
-    config.ocp              = 0;  // Over current protection
-    config.coding_rate      = SX1278Lora::Config::Cr::CR_1;
-    config.spreading_factor = SX1278Lora::Config::Sf::SF_7;
-
+    // Setup the frontend
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(txEn::getPin(), rxEn::getPin());
+        std::make_unique<EbyteFrontend>(radio::txEn::getPin(),
+                                        radio::rxEn::getPin());
 
-    transceiver =
-        new SX1278Lora(modules.get<Buses>()->spi1, cs::getPin(), dio0::getPin(),
-                       dio1::getPin(), dio3::getPin(),
-                       SPI::ClockDivider::DIV_64, std::move(frontend));
+    // Setup transceiver
+    radio = std::make_unique<SX1278Lora>(
+        modules.get<Buses>()->getRadio(), radio::cs::getPin(),
+        radio::dio0::getPin(), radio::dio1::getPin(), radio::dio3::getPin(),
+        SPI::ClockDivider::DIV_64, std::move(frontend));
 
-    SX1278Lora::Error error = transceiver->init(config);
+    // Store the global radio instance
+    setIRQRadio(radio.get());
 
-    // Config mavDriver
-    mavDriver = new MavDriver(transceiver,
-                              bind(&Radio::handleMavlinkMessage, this, _1, _2),
-                              0, MAV_OUT_BUFFER_MAX_AGE);
-
-    // In case of failure the mav driver must be created at least
-    if (error != SX1278Lora::Error::NONE)
+    // Initialize radio
+    auto result = radio->init(RIG_RADIO_CONFIG);
+    if (result != SX1278Lora::Error::NONE)
     {
+        LOG_ERR(logger, "Failed to initialize RIG radio");
         return false;
     }
 
-    scheduler->addTask([&]() { sendMessages(); }, PING_GSE_PERIOD,
-                       TaskScheduler::Policy::RECOVER);
+    // Initialize mavdriver
+    mavDriver = std::make_unique<MavDriver>(
+        radio.get(),
+        [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); },
+        Config::Radio::MAV_SLEEP_AFTER_SEND,
+        Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
-    receiverLooper = std::thread([=]() { loopReadFromUsart(); });
+    if (!mavDriver->start())
+    {
+        LOG_ERR(logger, "Failed to initialize RIG mav driver");
+        return false;
+    }
+
+    scheduler.addTask([this]() { sendMessages(); },
+                      Config::Radio::PING_GSE_PERIOD,
+                      TaskScheduler::Policy::RECOVER);
+
+    receiverLooper = std::thread([this]() { loopReadFromUsart(); });
     beeperLooper   = std::thread(
         [&]()
         {
-            using buzzer = Gpio<GPIOB_BASE, 7>;
             while (true)
             {
                 Thread::sleep(100);
@@ -250,9 +245,9 @@ bool Radio::start()
                 if (messageReceived > 5)
                 {
                     messageReceived = 0;
-                    buzzer::low();
+                    ui::buzzer::low();
                     Thread::sleep(100);
-                    buzzer::high();
+                    ui::buzzer::high();
                 }
             }
         });
@@ -260,14 +255,10 @@ bool Radio::start()
     return mavDriver->start();
 }
 
-bool Radio::isStarted() { return mavDriver->isStarted(); }
-
 MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
-Radio::Radio(TaskScheduler* sched) : scheduler(sched)
+Radio::Radio(TaskScheduler& scheduler) : scheduler{scheduler}
 {
-    Lock<FastMutex> lock(internalStateMutex);
-
     buttonState.ignition_btn         = false;
     buttonState.filling_valve_btn    = false;
     buttonState.venting_valve_btn    = false;
@@ -276,5 +267,3 @@ Radio::Radio(TaskScheduler* sched) : scheduler(sched)
     buttonState.start_tars_btn       = false;
     buttonState.arm_switch           = false;
 }
-
-}  // namespace con_RIG

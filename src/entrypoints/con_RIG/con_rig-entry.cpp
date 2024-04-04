@@ -28,6 +28,7 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 #include <thread>
@@ -115,69 +116,45 @@ void initPins()
 
 int main()
 {
-
-    bool initResult        = true;
-    ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
-
-    initPins();
+    ModuleManager& modules = ModuleManager::getInstance();
 
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
-    Radio* radio     = new Radio(scheduler->getScheduler(PRIORITY_MAX));
-    Buttons* buttons = new Buttons(scheduler->getScheduler(PRIORITY_MAX - 1));
+    Radio* radio              = new Radio(scheduler->getRadioScheduler());
+    Buttons* buttons          = new Buttons(scheduler->getButtonsScheduler());
 
-    if (!modules.insert<BoardScheduler>(scheduler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing BoardScheduler module");
-    }
+    bool initResult = modules.insert<BoardScheduler>(scheduler) &&
+                      modules.insert<Buses>(buses) &&
+                      modules.insert<Radio>(radio) &&
+                      modules.insert<Buttons>(buttons);
 
-    if (!modules.insert<Buses>(buses))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Buses module");
-    }
-
-    if (!modules.insert<Radio>(radio))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Radio module");
-    }
-
-    if (!modules.insert<Buttons>(buttons))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error initializing Buttons module");
-    }
-
-    if (!modules.get<Radio>()->start())
+    if (!radio->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
     }
 
-    if (!modules.get<Buttons>()->start())
+    if (!buttons->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the buttons");
     }
 
-    if (!modules.get<BoardScheduler>()->start())
+    if (!scheduler->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the General Purpose Scheduler");
     }
 
-    if (initResult)
+    if (!initResult)
     {
-        // POST OK
-        // EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        ui::redLed::high();
+        LOG_ERR(logger, "Init failure!");
     }
     else
     {
-        using redLed = Gpio<GPIOG_BASE, 14>;  // Red LED
-        redLed::high();
+        LOG_INFO(logger, "All good!");
     }
 
     // Periodical statistics

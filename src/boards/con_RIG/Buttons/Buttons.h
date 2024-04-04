@@ -35,27 +35,26 @@ class Buttons : public Boardcore::Module
 {
 
 public:
-    explicit Buttons(Boardcore::TaskScheduler* sched);
+    explicit Buttons(Boardcore::TaskScheduler& scheduler);
 
-    ~Buttons();
-
-    bool start();
+    [[nodiscard]] bool start();
 
     mavlink_conrig_state_tc_t getState();
 
-    void resetState();
-
-    void setRemoteArmState(int state);
+    void enableIgnition();
+    void disableIgnition();
 
 private:
-    mavlink_conrig_state_tc_t state;
+    void resetState();
+
     void periodicStatusCheck();
-    std::atomic<bool> remoteArm{false};
+
+    mavlink_conrig_state_tc_t state;
 
     // Counter guard to avoid spurious triggers
     uint8_t guard = 0;
 
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };

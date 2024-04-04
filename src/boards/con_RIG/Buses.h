@@ -33,11 +33,13 @@ namespace con_RIG
 
 struct Buses : public Boardcore::Module
 {
+private:
     Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi2;
 
 public:
-    Buses() : spi1(SPI1), spi2(SPI2) {}
+    Buses() : spi1(SPI1) {}
+
+    Boardcore::SPIBus &getRadio() { return spi1; }
 };
 
 }  // namespace con_RIG
