@@ -21,6 +21,7 @@
  */
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Radio/Radio.h>
 #include <RIGv2/Sensors/Sensors.h>
@@ -45,15 +46,13 @@ int main()
     PrintLogger logger     = Logging::getLogger("main");
     ModuleManager &modules = ModuleManager::getInstance();
 
-    // TODO: Move this to a dedicated board scheduler
-    TaskScheduler *scheduler1 = new TaskScheduler(2);
-    TaskScheduler *scheduler2 = new TaskScheduler(3);
+    Buses *buses              = new Buses();
+    BoardScheduler *scheduler = new BoardScheduler();
 
-    Buses *buses           = new Buses();
-    Sensors *sensors       = new Sensors(*scheduler1);
-    Actuators *actuators   = new Actuators(*scheduler2);
+    Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
+    Actuators *actuators   = new Actuators(scheduler->getActuatorsScheduler());
     GroundModeManager *gmm = new GroundModeManager();
-    TARS1 *tars1           = new TARS1(*scheduler2);
+    TARS1 *tars1           = new TARS1(scheduler->getTars1Scheduler());
     Radio *radio           = new Radio();
 
     Logger &sdLogger    = Logger::getInstance();
@@ -68,44 +67,13 @@ int main()
             sdLogger.log(data);
         });
 
-    bool initResult = true;
-
     // Insert modules
-    if (!modules.insert<Buses>(buses))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert Buses");
-    }
-
-    if (!modules.insert<Actuators>(actuators))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert Actuators");
-    }
-
-    if (!modules.insert<Sensors>(sensors))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert Sensors");
-    }
-
-    if (!modules.insert<Radio>(radio))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert Radio");
-    }
-
-    if (!modules.insert<GroundModeManager>(gmm))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert GroundModeManager");
-    }
-
-    if (!modules.insert<TARS1>(tars1))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to insert TARS1");
-    }
+    bool initResult =
+        modules.insert<Buses>(buses) &&
+        modules.insert<BoardScheduler>(scheduler) &&
+        modules.insert<Actuators>(actuators) &&
+        modules.insert<Sensors>(sensors) && modules.insert<Radio>(radio) &&
+        modules.insert<GroundModeManager>(gmm) && modules.insert<TARS1>(tars1);
 
     // Start modules
     if (!sdLogger.testSDCard())
@@ -150,21 +118,21 @@ int main()
         LOG_ERR(logger, "Error failed to start TARS1 module");
     }
 
-    if (!scheduler1->start() || !scheduler2->start())
+    if (!scheduler->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
-    if (initResult)
-    {
-        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
-        LOG_INFO(logger, "All good!");
-    }
-    else
+    if (!initResult)
     {
         broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
         LOG_ERR(logger, "Init failure!");
+    }
+    else
+    {
+        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
+        LOG_INFO(logger, "All good!");
     }
 
     // Periodic statistics

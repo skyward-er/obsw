@@ -23,6 +23,7 @@
 #include "TARS1.h"
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -35,7 +36,9 @@ using namespace Common;
 using namespace miosix;
 
 TARS1::TARS1(TaskScheduler& scheduler)
-    : FSM(&TARS1::state_ready), scheduler{scheduler}
+    : FSM(&TARS1::state_ready, miosix::STACK_DEFAULT_FOR_PTHREAD,
+          TARS1_PRIORITY),
+      scheduler{scheduler}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
