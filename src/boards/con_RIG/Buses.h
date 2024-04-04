@@ -28,7 +28,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace con_RIG
+namespace ConRIG
 {
 
 struct Buses : public Boardcore::Module
@@ -42,4 +42,4 @@ public:
     Boardcore::SPIBus &getRadio() { return spi1; }
 };
 
-}  // namespace con_RIG
+}  // namespace ConRIG

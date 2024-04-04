@@ -28,7 +28,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace con_RIG
+namespace ConRIG
 {
 
 class Buttons : public Boardcore::Module
@@ -59,4 +59,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };
 
-}  // namespace con_RIG
+}  // namespace ConRIG

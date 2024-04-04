@@ -29,7 +29,7 @@
 
 #pragma once
 
-namespace con_RIG
+namespace ConRIG
 {
 namespace Config
 {
@@ -44,4 +44,4 @@ static constexpr uint8_t GUARD_THRESHOLD =
 }  // namespace Buttons
 }  // namespace Config
 
-}  // namespace con_RIG
+}  // namespace ConRIG
