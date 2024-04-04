@@ -24,7 +24,7 @@
 
 #include <common/MavlinkGemini.h>
 
-namespace con_RIG
+namespace ConRIG
 {
 
 namespace Config
@@ -49,4 +49,4 @@ static constexpr uint32_t MAVLINK_QUEUE_SIZE = 3;
 
 }  // namespace Radio
 }  // namespace Config
-}  // namespace con_RIG
+}  // namespace ConRIG
