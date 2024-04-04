@@ -212,6 +212,12 @@ bool Actuators::start()
     return true;
 }
 
+void Actuators::armLightOn() { relays::armLight::low(); }
+void Actuators::armLightOff() { relays::armLight::high(); }
+
+void Actuators::igniterOn() { relays::ignition::low(); }
+void Actuators::igniterOff() { relays::ignition::high(); }
+
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Wiggle means open the servo for 1s

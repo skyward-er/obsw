@@ -82,6 +82,12 @@ public:
     uint64_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
+    void armLightOn();
+    void armLightOff();
+
+    void igniterOn();
+    void igniterOff();
+
 private:
     ServoInfo *getServo(ServosList servo);
 

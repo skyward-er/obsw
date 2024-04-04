@@ -60,93 +60,66 @@ bool Sensors::start()
 
 InternalADCData Sensors::getInternalADCLastSample()
 {
-    PauseKernelLock l;
-    if (!internalAdc)
-    {
-        return {};
-    }
-    return internalAdc->getLastSample();
+    return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
 ADS131M08Data Sensors::getADC1LastSample()
 {
-    PauseKernelLock l;
-    if (!adc1)
-    {
-        return {};
-    }
-    return adc1->getLastSample();
+    return adc1 ? adc1->getLastSample() : ADS131M08Data{};
 }
 
 MAX31856Data Sensors::getTc1LastSample()
 {
-    PauseKernelLock l;
-    if (!tc1)
-    {
-        return {};
-    }
-
-    return tc1->getLastSample();
+    return tc1 ? tc1->getLastSample() : MAX31856Data{};
 }
 
 PressureData Sensors::getVesselPress()
 {
-    PauseKernelLock l;
-    if (!vesselPressure)
-    {
-        return {};
-    }
-    return vesselPressure->getLastSample();
+    return vesselPressure ? vesselPressure->getLastSample() : PressureData{};
 }
 
 PressureData Sensors::getFillingPress()
 {
-    PauseKernelLock l;
-    if (!fillingPressure)
-    {
-        return {};
-    }
-    return fillingPressure->getLastSample();
+    return fillingPressure ? fillingPressure->getLastSample() : PressureData{};
 }
 
 PressureData Sensors::getTopTankPress()
 {
-    PauseKernelLock l;
-    if (!topTankPressure)
-    {
-        return {};
-    }
-    return topTankPressure->getLastSample();
+    return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
 }
 
 PressureData Sensors::getBottomTankPress()
 {
-    PauseKernelLock l;
-    if (!bottomTankPressure)
-    {
-        return {};
-    }
-    return bottomTankPressure->getLastSample();
+    return bottomTankPressure ? bottomTankPressure->getLastSample()
+                              : PressureData{};
 }
 
 LoadCellData Sensors::getVesselWeight()
 {
-    PauseKernelLock l;
-    if (!vesselWeight)
+    if (vesselWeight)
+    {
+        auto sample = vesselWeight->getLastSample();
+        sample.load -= vesselLcOffset;
+        return sample;
+    }
+    else
     {
         return {};
     }
-    return vesselWeight->getLastSample();
 }
 
 LoadCellData Sensors::getTankWeight()
 {
-    PauseKernelLock l;
-    if (!tankWeight)
+    if (tankWeight)
+    {
+        auto sample = tankWeight->getLastSample();
+        sample.load -= tankLcOffset;
+        return sample;
+    }
+    else
     {
         return {};
     }
-    return tankWeight->getLastSample();
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
@@ -159,9 +132,10 @@ CurrentData Sensors::getServoCurrent()
     auto sample = getADC1LastSample();
 
     float current =
-        (sample.voltage[(int)Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] -
-         Config::Sensors::SERVO_CURRENT_ZERO) *
-        Config::Sensors::SERVO_CURRENT_SCALE;
+        (sample
+             .voltage[(int)Config::Sensors::ADS131M08::SERVO_CURRENT_CHANNEL] -
+         Config::Sensors::ADS131M08::SERVO_CURRENT_ZERO) *
+        Config::Sensors::ADS131M08::SERVO_CURRENT_SCALE;
     // Current reading are flipped
     return {sample.timestamp, -current / 5.0f * 50.0f};
 }
@@ -170,7 +144,10 @@ VoltageData Sensors::getBatteryVoltage()
 {
     auto sample = getInternalADCLastSample();
 
-    float voltage = sample.voltage[14] * Config::Sensors::BATTERY_VOLTAGE_SCALE;
+    float voltage =
+        sample.voltage[(
+            int)Config::Sensors::InternalADC::BATTERY_VOLTAGE_CHANNEL] *
+        Config::Sensors::InternalADC::BATTERY_VOLTAGE_SCALE;
     return {sample.timestamp, voltage};
 }
 
@@ -178,17 +155,14 @@ void Sensors::calibrate()
 {
     Stats vesselStats, tankStats;
 
-    for (unsigned int i = 0; i < Config::Sensors::LC_CALIBRATE_SAMPLE_COUNT;
-         i++)
+    for (unsigned int i = 0;
+         i < Config::Sensors::LoadCell::CALIBRATE_SAMPLE_COUNT; i++)
     {
-        auto sample = getADC1LastSample();
+        // Tank readings WITHOUT offsets
+        vesselStats.add(vesselWeight->getLastSample().load);
+        tankStats.add(tankWeight->getLastSample().load);
 
-        vesselStats.add(
-            sample.voltage[(int)Config::Sensors::ADC1_VESSEL_LC_CHANNEL]);
-        tankStats.add(
-            sample.voltage[(int)Config::Sensors::ADC1_TANK_LC_CHANNEL]);
-
-        Thread::sleep(Config::Sensors::LC_CALIBRATE_SAMPLE_PERIOD);
+        Thread::sleep(Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD);
     }
 
     vesselLcOffset = vesselStats.getStats().mean;
@@ -197,17 +171,24 @@ void Sensors::calibrate()
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
 {
-    return {
-        manager->getSensorInfo(vesselWeight.get()),
-        manager->getSensorInfo(tankWeight.get()),
-        manager->getSensorInfo(vesselPressure.get()),
-        manager->getSensorInfo(fillingPressure.get()),
-        manager->getSensorInfo(topTankPressure.get()),
-        manager->getSensorInfo(bottomTankPressure.get()),
-        manager->getSensorInfo(internalAdc.get()),
-        manager->getSensorInfo(adc1.get()),
-        manager->getSensorInfo(tc1.get()),
-    };
+    if (manager)
+    {
+        return {
+            manager->getSensorInfo(vesselWeight.get()),
+            manager->getSensorInfo(tankWeight.get()),
+            manager->getSensorInfo(vesselPressure.get()),
+            manager->getSensorInfo(fillingPressure.get()),
+            manager->getSensorInfo(topTankPressure.get()),
+            manager->getSensorInfo(bottomTankPressure.get()),
+            manager->getSensorInfo(internalAdc.get()),
+            manager->getSensorInfo(adc1.get()),
+            manager->getSensorInfo(tc1.get()),
+        };
+    }
+    else
+    {
+        return {};
+    }
 }
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
@@ -216,12 +197,15 @@ void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
 
     internalAdc->enableChannel(InternalADC::CH9);
     internalAdc->enableChannel(InternalADC::CH11);
-    internalAdc->enableChannel(InternalADC::CH14);
+    internalAdc->enableChannel(
+        Config::Sensors::InternalADC::BATTERY_VOLTAGE_CHANNEL);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 
-    SensorInfo info("InternalAdc", Config::Sensors::ADC_SAMPLE_PERIOD,
-                    [this]() { internalAdcCallback(); });
+    SensorInfo info(
+        "InternalAdc", Config::Sensors::InternalADC::SAMPLE_PERIOD,
+        [this]() { internalAdcCallback(); },
+        Config::Sensors::InternalADC::ENABLED);
     map.emplace(internalAdc.get(), info);
 }
 
@@ -255,43 +239,44 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
     config.channelsConfig[7].enabled = false;
 
     // Configure all required channels
-    config.channelsConfig[(int)Config::Sensors::ADC1_VESSEL_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::VESSEL_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::FILLING_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::BOTTOM_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::TOP_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC1_FILLING_PT_CHANNEL] = {
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::SERVO_CURRENT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC1_BOTTOM_PT_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::VESSEL_LC_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_32,
+         .offset  = 0,
+         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC1_TOP_PT_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
-
-    config.channelsConfig[(int)Config::Sensors::ADC1_SERVO_CURRENT_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
-
-    config.channelsConfig[(int)Config::Sensors::ADC1_VESSEL_LC_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_32,
-        .offset  = 0,
-        .gain    = 1.0};
-
-    config.channelsConfig[(int)Config::Sensors::ADC1_TANK_LC_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::TANK_LC_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_32,
         .offset  = 0,
@@ -301,7 +286,9 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
                                        sensors::ADS131_1::cs::getPin(),
                                        spiConfig, config);
 
-    SensorInfo info("ADS131M08_1", 500, [this]() { adc1Callback(); });
+    SensorInfo info(
+        "ADS131M08_1", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
+        [this]() { adc1Callback(); }, Config::Sensors::ADS131M08::ENABLED);
     map.emplace(std::make_pair(adc1.get(), info));
 }
 
@@ -316,10 +303,12 @@ void Sensors::adc1Callback()
                   sample.voltage[6], sample.voltage[7]};
 
     // LOG_INFO(logger, "{:.4}\t{:.4}\t{:.4}\t{:.4}",
-    //          (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE) * 1000.0f,
-    //          (sample.voltage[1] / Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE) * 1000.0f,
-    //          (sample.voltage[2] / Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE) * 1000.0f,
-    //          (sample.voltage[3] / Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE) * 1000.0f);
+    //          (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE)
+    //          * 1000.0f, (sample.voltage[1] /
+    //          Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE) * 1000.0f,
+    //          (sample.voltage[2] / Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE)
+    //          * 1000.0f, (sample.voltage[3] /
+    //          Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE) * 1000.0f);
 
     sdLogger.log(data);
 }
@@ -336,8 +325,9 @@ void Sensors::tc1Init(SensorManager::SensorMap_t &map)
                                    sensors::MAX31856_1::cs::getPin(), spiConfig,
                                    MAX31856::ThermocoupleType::K_TYPE);
 
-    SensorInfo info("MAX31856_1", Config::Sensors::TC_SAMPLE_PERIOD,
-                    [this]() { tc1Callback(); });
+    SensorInfo info(
+        "MAX31856_1", Config::Sensors::MAX31856::SAMPLE_PERIOD,
+        [this]() { tc1Callback(); }, Config::Sensors::MAX31856::ENABLED);
     map.emplace(std::make_pair(tc1.get(), info));
 }
 
@@ -356,13 +346,15 @@ void Sensors::vesselPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            return sample.getVoltage(Config::Sensors::ADC1_VESSEL_PT_CHANNEL);
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::VESSEL_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE,
-        Config::Sensors::VESSEL_MAX_PRESSURE, Config::Sensors::PT_MIN_CURRENT,
-        Config::Sensors::PT_MAX_CURRENT);
+        Config::Sensors::Trafag::VESSEL_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::VESSEL_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
 
-    SensorInfo info("VesselPressure", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("VesselPressure", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { vesselPressureCallback(); });
     map.emplace(std::make_pair(vesselPressure.get(), info));
 }
@@ -380,13 +372,16 @@ void Sensors::fillingPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            return sample.getVoltage(Config::Sensors::ADC1_FILLING_PT_CHANNEL);
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::FILLING_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE,
-        Config::Sensors::FILLING_MAX_PRESSURE, Config::Sensors::PT_MIN_CURRENT,
-        Config::Sensors::PT_MAX_CURRENT);
+        Config::Sensors::Trafag::FILLING_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::FILLING_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
 
-    SensorInfo info("FillingPressure", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("FillingPressure",
+                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { fillingPressureCallback(); });
     map.emplace(std::make_pair(fillingPressure.get(), info));
 }
@@ -404,13 +399,16 @@ void Sensors::topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            return sample.getVoltage(Config::Sensors::ADC1_TOP_PT_CHANNEL);
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TOP_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE,
-        Config::Sensors::TANK_TOP_MAX_PRESSURE, Config::Sensors::PT_MIN_CURRENT,
-        Config::Sensors::PT_MAX_CURRENT);
+        Config::Sensors::Trafag::TANK_TOP_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
 
-    SensorInfo info("TopTankPressure", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("TopTankPressure",
+                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { topTankPressureCallback(); });
     map.emplace(std::make_pair(topTankPressure.get(), info));
 }
@@ -428,13 +426,16 @@ void Sensors::bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            return sample.getVoltage(Config::Sensors::ADC1_BOTTOM_PT_CHANNEL);
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::BOTTOM_PT_CHANNEL);
         },
-        Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE,
-        Config::Sensors::TANK_BOTTOM_MAX_PRESSURE,
-        Config::Sensors::PT_MIN_CURRENT, Config::Sensors::PT_MAX_CURRENT);
+        Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
 
-    SensorInfo info("BottomTankPressure", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("BottomTankPressure",
+                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { bottomTankPressureCallback(); });
     map.emplace(std::make_pair(bottomTankPressure.get(), info));
 }
@@ -452,22 +453,20 @@ void Sensors::vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            auto voltage =
-                sample.getVoltage(Config::Sensors::ADC1_VESSEL_LC_CHANNEL);
-            voltage.voltage -= vesselLcOffset;
-
-            return voltage;
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::VESSEL_LC_CHANNEL);
         },
-        Config::Sensors::LC_VESSEL_SCALE);
+        Config::Sensors::LoadCell::VESSEL_SCALE);
 
-    SensorInfo info("VesselWeight", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("VesselWeight", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { vesselWeightCallback(); });
     map.emplace(std::make_pair(vesselWeight.get(), info));
 }
 
 void Sensors::vesselWeightCallback()
 {
-    LoadCellData sample = vesselWeight->getLastSample();
+    // Log CALIBRATED value
+    LoadCellData sample = getVesselWeight();
     LCsData data{sample.loadTimestamp, 1, sample.load};
     sdLogger.log(data);
 }
@@ -478,22 +477,20 @@ void Sensors::tankWeightInit(Boardcore::SensorManager::SensorMap_t &map)
         [this]()
         {
             auto sample = adc1->getLastSample();
-            auto voltage =
-                sample.getVoltage(Config::Sensors::ADC1_TANK_LC_CHANNEL);
-            voltage.voltage -= tankLcOffset;
-
-            return voltage;
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_LC_CHANNEL);
         },
-        Config::Sensors::LC_TANK_SCALE);
+        Config::Sensors::LoadCell::TANK_SCALE);
 
-    SensorInfo info("TankWeight", Config::Sensors::ADC_SAMPLE_PERIOD,
+    SensorInfo info("TankWeight", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
                     [this]() { tankWeightCallback(); });
     map.emplace(std::make_pair(tankWeight.get(), info));
 }
 
 void Sensors::tankWeightCallback()
 {
-    LoadCellData sample = tankWeight->getLastSample();
+    // Log CALIBRATED value
+    LoadCellData sample = getTankWeight();
     LCsData data{sample.loadTimestamp, 2, sample.load};
     sdLogger.log(data);
 }

@@ -23,6 +23,7 @@
 #include "GroundModeManager.h"
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -35,15 +36,9 @@ using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
 
-void armLightOn() { relays::armLight::low(); }
-
-void armLightOff() { relays::armLight::high(); }
-
-void igniterOn() { relays::ignition::low(); }
-
-void igniterOff() { relays::ignition::high(); }
-
-GroundModeManager::GroundModeManager() : FSM(&GroundModeManager::state_idle)
+GroundModeManager::GroundModeManager()
+    : FSM(&GroundModeManager::state_idle, miosix::STACK_DEFAULT_FOR_PTHREAD,
+          GMM_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
 }
@@ -124,7 +119,7 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
-            armLightOff();
+            modules.get<Actuators>()->armLightOff();
             logStatus(GMM_STATE_DISARMED);
             break;
         }
@@ -158,7 +153,7 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
     {
         case EV_ENTRY:
         {
-            armLightOn();
+            modules.get<Actuators>()->armLightOn();
             modules.get<Actuators>()->closeAllServos();
             logStatus(GMM_STATE_ARMED);
             break;
@@ -186,7 +181,7 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
         case EV_ENTRY:
         {
             // Start ignition
-            igniterOn();
+            modules.get<Actuators>()->igniterOn();
 
             // Send event to open the oxidant
             openOxidantDelayEventId = EventBroker::getInstance().postDelayed(
@@ -199,7 +194,7 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
         case MOTOR_OPEN_OXIDANT:
         {
             // Stop ignition
-            igniterOff();
+            modules.get<Actuators>()->igniterOff();
             modules.get<Actuators>()->openServo(ServosList::MAIN_VALVE);
             break;
         }
@@ -208,7 +203,7 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
         case MOTOR_CLOSE_FEED_VALVE:
         {
             // Stop ignition
-            igniterOff();
+            modules.get<Actuators>()->igniterOff();
 
             // Close all of the valves
             modules.get<Actuators>()->closeAllServos();
