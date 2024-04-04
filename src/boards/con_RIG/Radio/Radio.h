@@ -36,34 +36,30 @@
 namespace con_RIG
 {
 
-using MavDriver = Boardcore::MavlinkDriver<Config::Radio::RADIO_PKT_LENGTH,
-                                           Config::Radio::RADIO_OUT_QUEUE_SIZE,
-                                           Config::Radio::RADIO_MAV_MSG_LENGTH>;
+using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
+                                           Config::Radio::MAV_OUT_QUEUE_SIZE,
+                                           Config::Radio::MAV_MAX_LENGTH>;
 
 class Radio : public Boardcore::Module
 {
 public:
-    explicit Radio(Boardcore::TaskScheduler* sched);
+    explicit Radio(Boardcore::TaskScheduler& scheduler);
 
-    bool start();
-
-    bool isStarted();
+    [[nodiscard]] bool start();
 
     Boardcore::MavlinkStatus getMavlinkStatus();
 
-    void sendMessages();
-
-    void loopReadFromUsart();
-
     void setInternalState(mavlink_conrig_state_tc_t state);
 
-    Boardcore::SX1278Lora* transceiver = nullptr;
-    MavDriver* mavDriver               = nullptr;
-
 private:
-    void handleMavlinkMessage(MavDriver* driver, const mavlink_message_t& msg);
+    void sendMessages();
+    void loopReadFromUsart();
+    void handleMessage(const mavlink_message_t& msg);
 
     void mavlinkWriteToUsart(const mavlink_message_t& msg);
+
+    std::unique_ptr<Boardcore::SX1278Lora> radio;
+    std::unique_ptr<MavDriver> mavDriver;
 
     mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
     uint8_t message_queue_index = 0;
@@ -76,7 +72,7 @@ private:
     std::thread receiverLooper;
     std::thread beeperLooper;
     std::atomic<uint8_t> messageReceived{0};
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 

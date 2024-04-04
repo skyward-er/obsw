@@ -36,29 +36,19 @@ namespace con_RIG
 class BoardScheduler : public Boardcore::Module
 {
 public:
-    BoardScheduler();
+    BoardScheduler()
+        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
+    {
+    }
 
-    /**
-     * @brief Get the Scheduler object relative to the requested priority
-     *
-     * @param priority The task scheduler priority
-     * @return Boardcore::TaskScheduler& Reference to the requested task
-     * scheduler.
-     * @note Min priority scheduler is returned in case of non valid priority.
-     */
-    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
+    [[nodiscard]] bool start() { return radio.start() && buttons.start(); }
 
-    [[nodiscard]] bool start();
+    Boardcore::TaskScheduler &getRadioScheduler() { return radio; }
 
-    /**
-     * @brief Returns if all the schedulers are up and running
-     */
-    bool isStarted();
+    Boardcore::TaskScheduler &getButtonsScheduler() { return buttons; }
 
 private:
-    Boardcore::TaskScheduler* scheduler1;
-    Boardcore::TaskScheduler* scheduler2;
-    Boardcore::TaskScheduler* scheduler3;
-    Boardcore::TaskScheduler* scheduler4;
+    Boardcore::TaskScheduler radio;
+    Boardcore::TaskScheduler buttons;
 };
 }  // namespace con_RIG
