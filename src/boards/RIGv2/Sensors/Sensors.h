@@ -64,7 +64,7 @@ public:
     Boardcore::LoadCellData getTankWeight();
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
-    VoltageData getBatteryVoltage();
+    Boardcore::VoltageData getBatteryVoltage();
 
     void calibrate();
 

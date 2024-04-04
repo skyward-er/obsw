@@ -42,8 +42,8 @@ using namespace miosix;
 
 int main()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("main");
+    ModuleManager &modules = ModuleManager::getInstance();
 
     // TODO: Move this to a dedicated board scheduler
     TaskScheduler *scheduler1 = new TaskScheduler(2);
