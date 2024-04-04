@@ -26,7 +26,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace con_RIG
+namespace ConRIG
 {
 
 /**
@@ -51,4 +51,4 @@ private:
     Boardcore::TaskScheduler radio;
     Boardcore::TaskScheduler buttons;
 };
-}  // namespace con_RIG
+}  // namespace ConRIG

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <common/MavlinkGemini.h>
-#include <con_RIG/Configs/RadioConfig.h>
+#include <common/Mavlink.h>
+#include <ConRIG/Configs/RadioConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
@@ -33,7 +33,7 @@
 #include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace con_RIG
+namespace ConRIG
 {
 
 using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
@@ -76,4 +76,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
-}  // namespace con_RIG
+}  // namespace ConRIG

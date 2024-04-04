@@ -24,9 +24,9 @@
 
 #include <common/Mavlink.h>
 #include <common/Radio.h>
-#include <con_RIG/BoardScheduler.h>
-#include <con_RIG/Buses.h>
-#include <con_RIG/Buttons/Buttons.h>
+#include <ConRIG/BoardScheduler.h>
+#include <ConRIG/Buses.h>
+#include <ConRIG/Buttons/Buttons.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
@@ -37,7 +37,7 @@
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace con_RIG;
+using namespace ConRIG;
 using namespace Common;
 
 SX1278Lora* gRadio{nullptr};
