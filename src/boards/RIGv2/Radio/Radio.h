@@ -59,7 +59,8 @@ private:
     void handleCommand(const mavlink_message_t& msg);
     void handleConrigState(const mavlink_message_t& msg);
     
-    bool packSystemTm(uint8_t tmId, mavlink_message_t& msg);
+    bool enqueueSystemTm(uint8_t tmId);
+    bool enqueueSensorTm(uint8_t tmId);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");

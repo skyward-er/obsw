@@ -150,9 +150,12 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 Boardcore::MavlinkStatus Radio::getMavStatus()
 {
-    if(mavDriver) {
+    if (mavDriver)
+    {
         return mavDriver->getStatus();
-    } else {
+    }
+    else
+    {
         return {};
     }
 }
@@ -183,31 +186,24 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
         {
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
-
-            mavlink_message_t tm;
-            if (tmId == MAV_SENSORS_STATE_ID)
+            if (enqueueSystemTm(tmId))
             {
                 sendAck(msg);
-
-                auto sensors = modules.get<Sensors>()->getSensorInfos();
-                for (auto sensor : sensors)
-                {
-                    mavlink_sensor_state_tm_t tm2;
-
-                    strcpy(tm2.sensor_name, sensor.id.c_str());
-                    tm2.state = (sensor.isInitialized ? 1 : 0) |
-                                (sensor.isEnabled ? 2 : 0);
-
-                    mavlink_msg_sensor_state_tm_encode(
-                        Config::Radio::MAV_SYSTEM_ID,
-                        Config::Radio::MAV_COMPONENT_ID, &tm, &tm2);
-                    enqueuePacket(tm);
-                }
             }
-            else if (packSystemTm(tmId, tm))
+            else
+            {
+                sendNack(msg);
+            }
+
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
+        {
+            uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
+            if (enqueueSensorTm(tmId))
             {
                 sendAck(msg);
-                enqueuePacket(tm);
             }
             else
             {
@@ -350,13 +346,35 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     }
 }
 
-bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
+bool Radio::enqueueSystemTm(uint8_t tmId)
 {
     ModuleManager& modules = ModuleManager::getInstance();
     switch (tmId)
     {
+        case MAV_SENSORS_STATE_ID:
+        {
+            auto sensors = modules.get<Sensors>()->getSensorInfos();
+            for (auto sensor : sensors)
+            {
+                mavlink_message_t msg;
+                mavlink_sensor_state_tm_t tm;
+
+                strcpy(tm.sensor_name, sensor.id.c_str());
+                tm.state =
+                    (sensor.isInitialized ? 1 : 0) | (sensor.isEnabled ? 2 : 0);
+
+                mavlink_msg_sensor_state_tm_encode(
+                    Config::Radio::MAV_SYSTEM_ID,
+                    Config::Radio::MAV_COMPONENT_ID, &msg, &tm);
+                enqueuePacket(msg);
+            }
+
+            return true;
+        }
+
         case MAV_SYS_ID:
         {
+            mavlink_message_t msg;
             mavlink_sys_tm_t tm;
 
             tm.timestamp    = TimestampTimer::getTimestamp();
@@ -370,11 +388,13 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
+            enqueuePacket(msg);
             return true;
         }
 
         case MAV_LOGGER_ID:
         {
+            mavlink_message_t msg;
             mavlink_logger_tm_t tm;
 
             LoggerStats stats = Logger::getInstance().getStats();
@@ -394,11 +414,13 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_msg_logger_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                          Config::Radio::MAV_COMPONENT_ID, &msg,
                                          &tm);
+            enqueuePacket(msg);
             return true;
         }
 
         case MAV_MAVLINK_STATS:
         {
+            mavlink_message_t msg;
             mavlink_mavlink_stats_tm_t tm;
 
             MavlinkStatus stats = modules.get<Radio>()->mavDriver->getStatus();
@@ -420,11 +442,13 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_msg_mavlink_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 Config::Radio::MAV_COMPONENT_ID,
                                                 &msg, &tm);
+            enqueuePacket(msg);
             return true;
         }
 
         case MAV_GSE_ID:
         {
+            mavlink_message_t msg;
             mavlink_gse_tm_t tm = {0};
 
             Sensors* sensors     = modules.get<Sensors>();
@@ -460,11 +484,13 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
+            enqueuePacket(msg);
             return true;
         }
 
         case MAV_MOTOR_ID:
         {
+            mavlink_message_t msg;
             mavlink_motor_tm_t tm = {0};
 
             Sensors* sensors = modules.get<Sensors>();
@@ -482,6 +508,196 @@ bool Radio::packSystemTm(uint8_t tmId, mavlink_message_t& msg)
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
                                         &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        default:
+        {
+            return false;
+        }
+    }
+}
+
+bool Radio::enqueueSensorTm(uint8_t tmId)
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    switch (tmId)
+    {
+        case MAV_ADS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_adc_tm_t tm;
+
+            ADS131M08Data data = modules.get<Sensors>()->getADC1LastSample();
+
+            tm.channel_0 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
+            tm.channel_1 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
+            tm.channel_2 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
+            tm.channel_3 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
+            tm.channel_4 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
+            tm.channel_5 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
+            tm.channel_6 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
+            tm.channel_7 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
+            tm.timestamp = data.timestamp;
+            strcpy(tm.sensor_name, "ADS131M08");
+
+            mavlink_msg_adc_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_VESSEL_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            PressureData data = modules.get<Sensors>()->getVesselPress();
+
+            tm.timestamp = data.pressureTimestamp;
+            tm.pressure  = data.pressure;
+            strcpy(tm.sensor_name, "VESSEL_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_FILLING_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            PressureData data = modules.get<Sensors>()->getFillingPress();
+
+            tm.timestamp = data.pressureTimestamp;
+            tm.pressure  = data.pressure;
+            strcpy(tm.sensor_name, "FILLING_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_TANK_BOTTOM_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            PressureData data = modules.get<Sensors>()->getBottomTankPress();
+
+            tm.timestamp = data.pressureTimestamp;
+            tm.pressure  = data.pressure;
+            strcpy(tm.sensor_name, "BOTTOM_TANK_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_TANK_TOP_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            PressureData data = modules.get<Sensors>()->getTopTankPress();
+
+            tm.timestamp = data.pressureTimestamp;
+            tm.pressure  = data.pressure;
+            strcpy(tm.sensor_name, "TOP_TANK_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_TANK_TEMP_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_temp_tm_t tm;
+
+            TemperatureData data = modules.get<Sensors>()->getTc1LastSample();
+
+            tm.timestamp   = data.temperatureTimestamp;
+            tm.temperature = data.temperature;
+            strcpy(tm.sensor_name, "MAX31856");
+
+            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_LOAD_CELL_VESSEL_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_load_tm_t tm;
+
+            LoadCellData data = modules.get<Sensors>()->getVesselWeight();
+
+            tm.timestamp = data.loadTimestamp;
+            tm.load      = data.load;
+            strcpy(tm.sensor_name, "VESSEL_WEIGHT");
+
+            mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_LOAD_CELL_TANK_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_load_tm_t tm;
+
+            LoadCellData data = modules.get<Sensors>()->getTankWeight();
+
+            tm.timestamp = data.loadTimestamp;
+            tm.load      = data.load;
+            strcpy(tm.sensor_name, "TANK_WEIGHT");
+
+            mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_BATTERY_VOLTAGE_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_voltage_tm_t tm;
+
+            VoltageData data = modules.get<Sensors>()->getBatteryVoltage();
+
+            tm.timestamp = data.voltageTimestamp;
+            tm.voltage   = data.voltage;
+            strcpy(tm.sensor_name, "TANK_WEIGHT");
+
+            mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+            enqueuePacket(msg);
             return true;
         }
 
@@ -503,11 +719,8 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     flushPackets();
 
     // Send GSE and motor telemetry
-    mavlink_message_t tm;
-    packSystemTm(MAV_GSE_ID, tm);
-    enqueuePacket(tm);
-    packSystemTm(MAV_MOTOR_ID, tm);
-    enqueuePacket(tm);
+    enqueueSystemTm(MAV_GSE_ID);
+    enqueueSystemTm(MAV_MOTOR_ID);
 
     mavlink_conrig_state_tc_t state;
     mavlink_msg_conrig_state_tc_decode(&msg, &state);
