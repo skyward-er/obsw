@@ -24,9 +24,10 @@
 
 #include <common/Mavlink.h>
 #include <common/Radio.h>
-#include <ConRIG/BoardScheduler.h>
-#include <ConRIG/Buses.h>
-#include <ConRIG/Buttons/Buttons.h>
+#include <con_RIG/BoardScheduler.h>
+#include <con_RIG/Buses.h>
+#include <con_RIG/Buttons/Buttons.h>
+#include <con_RIG/Serial/Serial.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
@@ -69,15 +70,16 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_GSE_TM:
         {
             int armingState = mavlink_msg_gse_tm_get_arming_state(&msg);
+            messagesReceived += 1;
+
+            isArmed = armingState == 1;
             if (armingState == 1)
             {
                 modules.get<Buttons>()->enableIgnition();
-                messageReceived += 10;
             }
             else
             {
                 modules.get<Buttons>()->disableIgnition();
-                messageReceived += 2;
             }
 
             break;
@@ -89,7 +91,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             // we assume this ack is about the last sent message
             if (id == MAVLINK_MSG_ID_CONRIG_STATE_TC)
             {
-                Lock<FastMutex> lock(internalStateMutex);
+                Lock<FastMutex> lock{buttonsMutex};
                 // Reset the internal button state
                 buttonState.ignition_btn         = false;
                 buttonState.filling_valve_btn    = false;
@@ -104,80 +106,76 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         }
     }
 
-    mavlinkWriteToUsart(msg);
+    modules.get<Serial>()->sendMessage(msg);
 }
 
-void Radio::mavlinkWriteToUsart(const mavlink_message_t& msg)
+bool Radio::enqueueMessage(const mavlink_message_t& msg)
 {
-    uint8_t temp_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
-                     MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
-    int len = mavlink_msg_to_send_buffer(temp_buf, &msg);
-
-    auto serial = miosix::DefaultConsole::instance().get();
-    serial->writeBlock(temp_buf, len, 0);
+    Lock<FastMutex> lock{queueMutex};
+    if (messageQueue.isFull())
+    {
+        return false;
+    }
+    else
+    {
+        messageQueue.put(msg);
+        return true;
+    }
 }
 
-void Radio::sendMessages()
+void Radio::sendPeriodicPing()
 {
     mavlink_message_t msg;
 
     {
-        Lock<FastMutex> lock(internalStateMutex);
+        Lock<FastMutex> lock{buttonsMutex};
         mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
                                            &msg, &buttonState);
     }
 
+    // Flush the queue
     {
-        Lock<FastMutex> lock(mutex);
-        for (uint8_t i = 0; i < message_queue_index; i++)
+        Lock<FastMutex> lock{queueMutex};
+        // TODO(davide.mor): Maybe implement a maximum per ping?
+        for (size_t i = 0; i < messageQueue.count(); i++)
         {
-            mavDriver->enqueueMsg(message_queue[i]);
+            try
+            {
+                mavDriver->enqueueMsg(messageQueue.pop());
+            }
+            catch (...)
+            {
+                // This shouldn't happen, but still try to prevent it
+            }
         }
-        message_queue_index = 0;
-
-        // The last is the button state message
-        mavDriver->enqueueMsg(msg);
     }
+
+    // Finally make sure we always send the periodic ping
+    mavDriver->enqueueMsg(msg);
 }
 
-void Radio::loopReadFromUsart()
+void Radio::loopBuzzer()
 {
-    mavlink_status_t status;
-    mavlink_message_t msg;
-    uint8_t byte;
-
     while (true)
     {
-        auto serial = miosix::DefaultConsole::instance().get();
-        int len     = serial->readBlock(&byte, 1, 0);
-
-        if (len && mavlink_parse_char(MAVLINK_COMM_0, byte, &msg, &status))
+        Thread::sleep(100);
+        // Doesn't matter the precision, the important thing is
+        // the beep, this is because an atomic is used
+        if ((!isArmed && messagesReceived > 2) ||
+            (isArmed && messagesReceived > 0))
         {
-            if (message_queue_index == Config::Radio::MAVLINK_QUEUE_SIZE - 1)
-            {
-                mavlink_message_t nack_msg;
-                mavlink_nack_tm_t nack_tm;
-                nack_tm.recv_msgid = msg.msgid;
-                nack_tm.seq_ack    = msg.seq;
-                mavlink_msg_nack_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &nack_msg, &nack_tm);
-                mavlinkWriteToUsart(nack_msg);
-            }
-            else
-            {
-                Lock<FastMutex> lock(mutex);
-                message_queue[message_queue_index] = msg;
-                message_queue_index += 1;
-            }
+            messagesReceived = 0;
+            ui::buzzer::low();
+            Thread::sleep(100);
+            ui::buzzer::high();
         }
     }
 }
 
-void Radio::setInternalState(mavlink_conrig_state_tc_t state)
+void Radio::setButtonsState(mavlink_conrig_state_tc_t state)
 {
-    Lock<FastMutex> lock(internalStateMutex);
+    Lock<FastMutex> lock{buttonsMutex};
     // The OR operator is introduced to make sure that the receiver
     // understood the command
     buttonState.ignition_btn |= state.ignition_btn;
@@ -225,34 +223,21 @@ bool Radio::start()
 
     if (!mavDriver->start())
     {
-        LOG_ERR(logger, "Failed to initialize RIG mav driver");
+        LOG_ERR(logger, "Failed to initialize ConRIG mav driver");
         return false;
     }
 
-    scheduler.addTask([this]() { sendMessages(); },
-                      Config::Radio::PING_GSE_PERIOD,
-                      TaskScheduler::Policy::RECOVER);
+    if (scheduler.addTask([this]() { sendPeriodicPing(); },
+                          Config::Radio::PING_GSE_PERIOD,
+                          TaskScheduler::Policy::RECOVER) == 0)
+    {
+        LOG_ERR(logger, "Failed to add ping task");
+        return false;
+    }
 
-    receiverLooper = std::thread([this]() { loopReadFromUsart(); });
-    beeperLooper   = std::thread(
-        [&]()
-        {
-            while (true)
-            {
-                Thread::sleep(100);
-                // Doesn't matter the precision, the important thing is
-                // the beep, this is because an atomic is used
-                if (messageReceived > 5)
-                {
-                    messageReceived = 0;
-                    ui::buzzer::low();
-                    Thread::sleep(100);
-                    ui::buzzer::high();
-                }
-            }
-        });
+    buzzerLooper = std::thread([this]() { loopBuzzer(); });
 
-    return mavDriver->start();
+    return true;
 }
 
 MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
