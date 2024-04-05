@@ -22,9 +22,9 @@
 
 #include "Buttons.h"
 
-#include <ConRIG/BoardScheduler.h>
-#include <ConRIG/Configs/ButtonsConfig.h>
-#include <ConRIG/Radio/Radio.h>
+#include <con_RIG/BoardScheduler.h>
+#include <con_RIG/Configs/ButtonsConfig.h>
+#include <con_RIG/Radio/Radio.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace std;
@@ -140,7 +140,7 @@ void Buttons::periodicStatusCheck()
     }
 
     // Set the internal button state in Radio module
-    ModuleManager::getInstance().get<Radio>()->setInternalState(state);
+    ModuleManager::getInstance().get<Radio>()->setButtonsState(state);
 
     // printf("%d %d %d %d %d %d %d\n", state.ignition, state.filling_valve,
     //        state.venting_valve, state.release_filling_line_pressure,

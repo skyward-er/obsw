@@ -23,11 +23,12 @@
 #pragma once
 
 #include <common/Mavlink.h>
-#include <ConRIG/Configs/RadioConfig.h>
+#include <con_RIG/Configs/RadioConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/collections/CircularBuffer.h>
 
 #include <cstdint>
 #include <thread>
@@ -49,29 +50,33 @@ public:
 
     Boardcore::MavlinkStatus getMavlinkStatus();
 
-    void setInternalState(mavlink_conrig_state_tc_t state);
+    void setButtonsState(mavlink_conrig_state_tc_t state);
+
+    bool enqueueMessage(const mavlink_message_t& msg);
 
 private:
-    void sendMessages();
-    void loopReadFromUsart();
+    void sendPeriodicPing();
+    void loopBuzzer();
     void handleMessage(const mavlink_message_t& msg);
-
-    void mavlinkWriteToUsart(const mavlink_message_t& msg);
 
     std::unique_ptr<Boardcore::SX1278Lora> radio;
     std::unique_ptr<MavDriver> mavDriver;
 
-    mavlink_message_t message_queue[Config::Radio::MAVLINK_QUEUE_SIZE];
-    uint8_t message_queue_index = 0;
-    miosix::FastMutex mutex;
-    miosix::FastMutex internalStateMutex;
+    Boardcore::CircularBuffer<mavlink_message_t,
+                              Config::Radio::CIRCULAR_BUFFER_SIZE>
+        messageQueue;
+
+    miosix::FastMutex queueMutex;
+    miosix::FastMutex buttonsMutex;
 
     // Button internal state
     mavlink_conrig_state_tc_t buttonState;
 
-    std::thread receiverLooper;
-    std::thread beeperLooper;
-    std::atomic<uint8_t> messageReceived{0};
+    std::thread buzzerLooper;
+
+    std::atomic<uint8_t> messagesReceived{0};
+    std::atomic<bool> isArmed{false};
+
     Boardcore::TaskScheduler& scheduler;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };

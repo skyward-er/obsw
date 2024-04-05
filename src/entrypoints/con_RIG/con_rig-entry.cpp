@@ -25,6 +25,7 @@
 #include <con_RIG/Buttons/Buttons.h>
 #include <con_RIG/Configs/ButtonsConfig.h>
 #include <con_RIG/Radio/Radio.h>
+#include <con_RIG/Serial/Serial.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
@@ -46,17 +47,24 @@ int main()
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
     Radio* radio              = new Radio(scheduler->getRadioScheduler());
+    Serial* serial            = new Serial();
     Buttons* buttons          = new Buttons(scheduler->getButtonsScheduler());
 
-    bool initResult = modules.insert<BoardScheduler>(scheduler) &&
-                      modules.insert<Buses>(buses) &&
-                      modules.insert<Radio>(radio) &&
-                      modules.insert<Buttons>(buttons);
+    bool initResult =
+        modules.insert<BoardScheduler>(scheduler) &&
+        modules.insert<Buses>(buses) && modules.insert<Radio>(radio) &&
+        modules.insert<Serial>(serial) && modules.insert<Buttons>(buttons);
 
     if (!radio->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the radio");
+    }
+
+    if (!serial->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the serial");
     }
 
     if (!buttons->start())
