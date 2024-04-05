@@ -116,7 +116,8 @@ void Radio::enqueuePacket(const mavlink_message_t& msg)
 void Radio::flushPackets()
 {
     // Flush all packets of the queue
-    size_t count = queuedPackets.count();
+    size_t count =
+        std::min(queuedPackets.count(), Config::Radio::MAX_PACKETS_PER_FLUSH);
     for (size_t i = 0; i < count; i++)
     {
         try
@@ -130,7 +131,7 @@ void Radio::flushPackets()
     }
 }
 
-void Radio::sendAck(const mavlink_message_t& msg)
+void Radio::enqueueAck(const mavlink_message_t& msg)
 {
     mavlink_message_t ackMsg;
     mavlink_msg_ack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
@@ -139,7 +140,7 @@ void Radio::sendAck(const mavlink_message_t& msg)
     enqueuePacket(ackMsg);
 }
 
-void Radio::sendNack(const mavlink_message_t& msg)
+void Radio::enqueueNack(const mavlink_message_t& msg)
 {
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
@@ -167,7 +168,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
     {
         case MAVLINK_MSG_ID_PING_TC:
         {
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
@@ -188,11 +189,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
             if (enqueueSystemTm(tmId))
             {
-                sendAck(msg);
+                enqueueAck(msg);
             }
             else
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
 
             break;
@@ -203,11 +204,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
             if (enqueueSensorTm(tmId))
             {
-                sendAck(msg);
+                enqueueAck(msg);
             }
             else
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
 
             break;
@@ -222,16 +223,16 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             {
                 if (modules.get<Actuators>()->wiggleServo(servo))
                 {
-                    sendAck(msg);
+                    enqueueAck(msg);
                 }
                 else
                 {
-                    sendNack(msg);
+                    enqueueNack(msg);
                 }
             }
             else
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
             break;
         }
@@ -245,11 +246,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (modules.get<Actuators>()->setOpeningTime(servo, time))
             {
-                sendAck(msg);
+                enqueueAck(msg);
             }
             else
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
             break;
         }
@@ -264,11 +265,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (modules.get<Actuators>()->setMaxAperture(servo, aperture))
             {
-                sendAck(msg);
+                enqueueAck(msg);
             }
             else
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
             break;
         }
@@ -278,14 +279,14 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint32_t timing = mavlink_msg_set_ignition_time_tc_get_timing(&msg);
             modules.get<GroundModeManager>()->setIgnitionTime(timing);
 
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
         default:
         {
             // Unrecognized packet
-            sendNack(msg);
+            enqueueNack(msg);
             break;
         }
     }
@@ -300,11 +301,11 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             if (!Logger::getInstance().start())
             {
-                sendNack(msg);
+                enqueueNack(msg);
             }
             else
             {
-                sendAck(msg);
+                enqueueAck(msg);
             }
             break;
         }
@@ -312,35 +313,35 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_STOP_LOGGING:
         {
             Logger::getInstance().stop();
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
         case MAV_CMD_CALIBRATE:
         {
             EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_MOTOR);
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
         case MAV_CMD_FORCE_INIT:
         {
             EventBroker::getInstance().post(TMTC_FORCE_INIT, TOPIC_MOTOR);
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
         case MAV_CMD_FORCE_REBOOT:
         {
             EventBroker::getInstance().post(TMTC_RESET_BOARD, TOPIC_MOTOR);
-            sendAck(msg);
+            enqueueAck(msg);
             break;
         }
 
         default:
         {
             // Unrecognized command
-            sendNack(msg);
+            enqueueNack(msg);
             break;
         }
     }
@@ -713,7 +714,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     ModuleManager& modules = ModuleManager::getInstance();
 
     // Acknowledge the state
-    sendAck(msg);
+    enqueueAck(msg);
 
     // Flush all pending packets
     flushPackets();
