@@ -49,8 +49,8 @@ public:
     Boardcore::MavlinkStatus getMavStatus();
 
 private:
-    void sendAck(const mavlink_message_t& msg);
-    void sendNack(const mavlink_message_t& msg);
+    void enqueueAck(const mavlink_message_t& msg);
+    void enqueueNack(const mavlink_message_t& msg);
 
     void enqueuePacket(const mavlink_message_t &msg);
     void flushPackets();
