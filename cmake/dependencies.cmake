@@ -106,6 +106,12 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Wing/WingAlgorithm.cpp
 )
 
+set(GROUNDSTATION_ROVIE
+    src/boards/Groundstation/Rovie/Radio/Radio.cpp
+    src/boards/Groundstation/Rovie/Ports/Ethernet.cpp
+    src/boards/Groundstation/Rovie/Hub.cpp
+)
+
 set(GROUNDSTATION_NOKIA
     src/boards/Groundstation/Nokia/Radio/Radio.cpp
     src/boards/Groundstation/Nokia/Hub.cpp

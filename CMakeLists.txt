@@ -79,6 +79,13 @@ add_executable(con_rig-entry src/entrypoints/ConRIG/con_rig-entry.cpp ${CON_RIG_
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_con_rig)
 
+add_executable(rovie-groundstation-entry 
+    src/entrypoints/Groundstation/rovie-groundstation-entry.cpp 
+    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_ROVIE}
+)
+target_include_directories(rovie-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(rovie-groundstation-entry stm32f767zi_gemini_gs)
+
 add_executable(nokia-groundstation-entry 
     src/entrypoints/Groundstation/nokia-groundstation-entry.cpp 
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
