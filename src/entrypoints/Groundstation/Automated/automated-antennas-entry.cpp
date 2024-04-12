@@ -23,6 +23,7 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
+#include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
@@ -219,6 +220,8 @@ int main()
         }
     }
 
+    printf("RADIO FREQUENCY: %d\n", Common::MAIN_RADIO_CONFIG.freq_rf);
+
     // Starting Modules
     {
 #ifndef NO_SD_LOGGING
@@ -270,7 +273,8 @@ int main()
     }
 
     follower->begin();
-    scheduler->addTask(std::bind(&Follower::update, follower), 200);
+    scheduler->addTask(std::bind(&Follower::update, follower),
+                       Antennas::FollowerConfig::FOLLOWER_PERIOD);
     LOG_INFO(logger, "Follower task started successfully");
 
     while (true)

@@ -34,6 +34,6 @@ namespace Antennas
 namespace FollowerConfig
 {
 
-constexpr uint32_t FOLLOWER_PERIOD = 100;
+constexpr uint32_t FOLLOWER_PERIOD = 100;  // [ms] -> 10 Hz
 }
 }  // namespace Antennas

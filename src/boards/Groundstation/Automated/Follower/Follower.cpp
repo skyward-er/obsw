@@ -23,6 +23,7 @@
 #include "Follower.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <common/ReferenceConfig.h>
@@ -42,7 +43,8 @@ Follower::Follower()
           Common::ReferenceConfig::defaultReferenceValues.refLatitude,
           Common::ReferenceConfig::defaultReferenceValues.refLongitude,
           Common::ReferenceConfig::defaultReferenceValues.refAltitude),
-      targetAngles({0, 0})
+      targetAngles({0, 0}),
+      propagator(Antennas::FollowerConfig::FOLLOWER_PERIOD)
 {
 }
 
@@ -62,18 +64,21 @@ bool Follower::init()
     initialAntennaRocketDistance =
         Aeroutils::geodetic2NED(rocketCoord, antennaCoord);
 
-    return true;
+    auto ret = propagator.init();
+    propagator.begin();
+
+    return ret;
 }
 
 void Follower::step()
 {
-    Hub* hub = static_cast<Hub*>(
-        ModuleManager::getInstance().get<Groundstation::HubBase>());
-    NASState lastRocketNasState = hub->getLastRocketNasState();
+    propagator.update();
+    NASState propagatedRocketNasState = propagator.getRocketNasState();
 
     // Getting the position of the rocket wrt the antennas in NED frame
-    NEDCoords rocketPosition = {lastRocketNasState.n, lastRocketNasState.e,
-                                lastRocketNasState.d};
+    NEDCoords rocketPosition = {propagatedRocketNasState.n,
+                                propagatedRocketNasState.e,
+                                propagatedRocketNasState.d};
 
     // Calculate the antenna target angles from the NED rocket coordinates
     targetAngles = rocketPositionToAntennaAngles(rocketPosition);

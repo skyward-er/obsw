@@ -25,6 +25,7 @@
 #include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <algorithms/Algorithm.h>
 #include <algorithms/NAS/NASState.h>
+#include <algorithms/Propagator/Propagator.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
@@ -55,6 +56,11 @@ public:
     bool isRocketCoordinatesSet() { return rocketCoordinatesSet; }
 
     bool isAntennaCoordinatesSet() { return antennaCoordinatesSet; }
+
+    void setRocketNasState(const Boardcore::NASState& nasState)
+    {
+        propagator.setRocketNasState(nasState);
+    }
 
     void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
     {
@@ -101,6 +107,8 @@ private:
     Eigen::Vector2f
         initialAntennaRocketDistance;  ///< Distance between the antenna and
                                        ///< the rocket while in ramp [m]
+
+    Boardcore::Propagator propagator;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Follower");
 };

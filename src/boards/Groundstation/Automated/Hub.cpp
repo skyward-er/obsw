@@ -170,6 +170,9 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         lastRocketNasState = nasState;
         lastRocketGpsState = gpsState;
 
+        ModuleManager::getInstance().get<Follower>()->setRocketNasState(
+            nasState);
+
         Logger::getInstance().log(nasState);
         Logger::getInstance().log(gpsState);
     }
