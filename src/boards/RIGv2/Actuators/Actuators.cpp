@@ -362,13 +362,13 @@ Actuators::ServoInfo *Actuators::getServo(ServosList servo)
     switch (servo)
     {
         case FILLING_VALVE:
-            return &infos[3];
-        case RELEASE_VALVE:
-            return &infos[2];
-        case DISCONNECT_SERVO:
-            return &infos[1];
-        case MAIN_VALVE:
             return &infos[0];
+        case RELEASE_VALVE:
+            return &infos[1];
+        case DISCONNECT_SERVO:
+            return &infos[2];
+        case MAIN_VALVE:
+            return &infos[3];
         case VENTING_VALVE:
             return &infos[6];
 
