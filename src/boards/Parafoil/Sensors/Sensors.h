@@ -29,15 +29,12 @@
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/SensorData.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
-
-#include "SensorsData.h"
 
 namespace Parafoil
 {
@@ -105,9 +102,6 @@ private:
     void lps22Init();
     void lps22Callback();
 
-    void lps22DevInit();
-    void lps22DevCallback();
-
     void ubxGpsInit();
     void ubxGpsCallback();
 
@@ -124,7 +118,6 @@ private:
     Boardcore::LIS3MDL* lis3mdl         = nullptr;
     Boardcore::H3LIS331DL* h3lis331dl   = nullptr;
     Boardcore::LPS22DF* lps22df         = nullptr;
-    Boardcore::LPS22DF* lps22dfDev      = nullptr;
     Boardcore::UBXGPSSpi* ubxGps        = nullptr;
     Boardcore::ADS131M08* ads131        = nullptr;
     Boardcore::InternalADC* internalADC = nullptr;
@@ -136,7 +129,6 @@ private:
     // Mutexes for sampling
     miosix::FastMutex lis3mdlMutex;
     miosix::FastMutex lps22Mutex;
-    miosix::FastMutex lps22DevMutex;
     miosix::FastMutex h3lisMutex;
     miosix::FastMutex bmx160Mutex;
     miosix::FastMutex bmx160WithCorrectionMutex;
