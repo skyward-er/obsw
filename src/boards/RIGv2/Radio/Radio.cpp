@@ -219,7 +219,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            if (modules.get<GroundModeManager>()->isDisarmed())
+            if (modules.get<GroundModeManager>()->getState() ==
+                GMM_STATE_DISARMED)
             {
                 if (modules.get<Actuators>()->wiggleServo(servo))
                 {
@@ -469,15 +470,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.arming_state =
-                modules.get<GroundModeManager>()->isArmed() ? 1 : 0;
-            tm.ignition_state =
-                modules.get<GroundModeManager>()->isIgniting() ? 1 : 0;
-            tm.tars_state = modules.get<TARS1>()->isRefueling() ? 1 : 0;
+                modules.get<GroundModeManager>()->getState() == GMM_STATE_ARMED
+                    ? 1
+                    : 0;
+            tm.ignition_state = modules.get<GroundModeManager>()->getState() ==
+                                        GMM_STATE_IGNITING
+                                    ? 1
+                                    : 0;
+            tm.tars_state     = modules.get<TARS1>()->isRefueling() ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
-
-            // Temporary hack to tell if the board initialized or not
-            tm.main_board_status =
-                modules.get<GroundModeManager>()->isDisarmed();
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;

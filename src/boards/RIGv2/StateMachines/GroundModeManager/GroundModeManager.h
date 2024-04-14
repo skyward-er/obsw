@@ -40,9 +40,7 @@ class GroundModeManager : public Boardcore::Module,
 public:
     GroundModeManager();
 
-    bool isArmed();
-    bool isDisarmed();
-    bool isIgniting();
+    GroundModeManagerState getState();
 
     void setIgnitionTime(uint32_t time);
 
@@ -53,7 +51,7 @@ private:
     void state_armed(const Boardcore::Event &event);
     void state_igniting(const Boardcore::Event &event);
 
-    void logStatus(GroundModeManagerState newState);
+    void logStatus();
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
