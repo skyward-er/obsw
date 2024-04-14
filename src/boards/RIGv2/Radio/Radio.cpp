@@ -35,6 +35,7 @@
 #include <drivers/timer/TimestampTimer.h>
 
 #include <atomic>
+#include <unordered_map>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -295,6 +296,13 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
+    static const std::unordered_map<uint8_t, Events> cmdToEvent{
+        {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
+        {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
+        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
+        {MAV_CMD_OPEN_NITROGEN, TMTC_OPEN_NITROGEN},
+    };
+
     uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
     {
@@ -318,31 +326,20 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
-        case MAV_CMD_CALIBRATE:
-        {
-            EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_MOTOR);
-            enqueueAck(msg);
-            break;
-        }
-
-        case MAV_CMD_FORCE_INIT:
-        {
-            EventBroker::getInstance().post(TMTC_FORCE_INIT, TOPIC_MOTOR);
-            enqueueAck(msg);
-            break;
-        }
-
-        case MAV_CMD_FORCE_REBOOT:
-        {
-            EventBroker::getInstance().post(TMTC_RESET_BOARD, TOPIC_MOTOR);
-            enqueueAck(msg);
-            break;
-        }
-
         default:
         {
-            // Unrecognized command
-            enqueueNack(msg);
+            auto it = cmdToEvent.find(cmd);
+            if (it != cmdToEvent.end())
+            {
+                EventBroker::getInstance().post(it->second, TOPIC_MOTOR);
+                enqueueAck(msg);
+            }
+            else
+            {
+                // Unrecognized command
+                enqueueNack(msg);
+            }
+
             break;
         }
     }
