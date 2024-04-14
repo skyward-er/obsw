@@ -64,5 +64,11 @@ static constexpr bool RELEASE_FLIPPED    = true;
 static constexpr bool DISCONNECT_FLIPPED = false;
 
 }  // namespace Servos
+
+namespace Actuators
+{
+static constexpr uint32_t NITROGEN_OPENING_TIME = 2000;  // 2s
+}
+
 }  // namespace Config
 }  // namespace RIGv2

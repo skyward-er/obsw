@@ -78,6 +78,10 @@ public:
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint64_t time);
     bool isServoOpen(ServosList servo);
+    void openNitrogen();
+    void openNitrogenWithTime(uint64_t time);
+    void closeNitrogen();
+    bool isNitrogenOpen();
 
     uint64_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
@@ -92,6 +96,9 @@ private:
     ServoInfo *getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
+    void unsafeOpenNitrogen();
+    void unsafeCloseNitrogen();
+
     void updatePositionsTask();
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
@@ -100,8 +107,13 @@ private:
     Boardcore::TaskScheduler &scheduler;
 
     size_t updatePositionTaskId = 0;
+
     miosix::FastMutex infosMutex;
     ServoInfo infos[10] = {};
+    // Timestamp of when the servo should close, 0 if closed
+    long long nitrogenCloseTs = 0;
+    // Timestamp of last servo action (open/close)
+    long long nitrogenLastActionTs = 0;
 };
 
 }  // namespace RIGv2
