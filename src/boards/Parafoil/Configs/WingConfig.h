@@ -43,8 +43,13 @@ constexpr int SELECTED_ALGORITHM = 2;
 constexpr int SELECTED_ALGORITHM = 0;
 #endif
 
+#if defined(JESOLO)
+constexpr float DEFAULT_TARGET_LAT = 45.565835;
+constexpr float DEFAULT_TARGET_LON = 12.577307;
+#else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.5013853;
 constexpr float DEFAULT_TARGET_LON = 9.1544219;
+#endif
 
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
 
