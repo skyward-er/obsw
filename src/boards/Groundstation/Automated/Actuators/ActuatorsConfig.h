@@ -24,25 +24,32 @@
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 
+#include "ActuatorsData.h"
+
 namespace Antennas
 {
 namespace Config
 {
-constexpr int HORIZONTAL_MICROSTEPPING = 4;
-constexpr float HORIZONTAL_STEP_ANGLE  = 1.8;
-constexpr float HORIZONTAL_MULTIPLIER  = 2.2;
-constexpr float MIN_ANGLE_HORIZONTAL   = -180.0;
-constexpr float MAX_ANGLE_HORIZONTAL   = 180.0;
-constexpr float MAX_SPEED_HORIZONTAL   = 0.75;
 
-constexpr int VERTICAL_MICROSTEPPING = 4;
-constexpr float VERTICAL_STEP_ANGLE  = 1.8;
-constexpr float VERTICAL_MULTIPLIER  = 2.2;
-constexpr float MIN_ANGLE_VERTICAL   = 0;
-constexpr float MAX_ANGLE_VERTICAL   = 90.0;
-constexpr float MAX_SPEED_VERTICAL   = 0.75;
+static const Antennas::StepperConfig stepperXConfig{
+    .MICROSTEPPING = 4,
+    .STEP_ANGLE    = 1.8,
+    .MULTIPLIER    = 2.2,
+    .MIN_ANGLE     = -180.0,
+    .MAX_ANGLE     = 180.0,
+    .MAX_SPEED     = 0.75,
+};
 
-namespace StepperConfig
+static const Antennas::StepperConfig stepperYConfig{
+    .MICROSTEPPING = 4,
+    .STEP_ANGLE    = 1.8,
+    .MULTIPLIER    = 2.2,
+    .MIN_ANGLE     = 0,
+    .MAX_ANGLE     = 90.0,
+    .MAX_SPEED     = 0.75,
+};
+
+namespace StepperSettings
 {
 // TIM1_CH4 PA11 AF1
 //      |
@@ -73,6 +80,6 @@ constexpr Boardcore::TimerUtils::TriggerSource SERVO2_PULSE_ITR =
     Boardcore::TimerUtils::TriggerSource::ITR3;
 constexpr Boardcore::TimerUtils::TriggerSource SERVO2_COUNT_ITR =
     Boardcore::TimerUtils::TriggerSource::ITR2;
-}  // namespace StepperConfig
+}  // namespace StepperSettings
 }  // namespace Config
 }  // namespace Antennas

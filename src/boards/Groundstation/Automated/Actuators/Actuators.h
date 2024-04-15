@@ -22,6 +22,7 @@
 #pragma once
 
 #include <common/Mavlink.h>
+#include <logger/Logger.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -130,15 +131,61 @@ public:
     }
 
 private:
-    Boardcore::StepperPWM& getServo(StepperList servo);
+    Boardcore::StepperPWM& getStepper(StepperList stepper)
+    {
+        switch (stepper)
+        {
+            case StepperList::STEPPER_X:
+                return stepperX;
+            case StepperList::STEPPER_Y:
+                return stepperY;
+            default:
+                assert(false && "Non existent stepper");
+                return stepperX;
+        }
+    };
+
+    const StepperConfig& getStepperConfig(StepperList stepper)
+    {
+        switch (stepper)
+        {
+            case StepperList::STEPPER_X:
+                return Antennas::Config::stepperXConfig;
+            case StepperList::STEPPER_Y:
+                return Antennas::Config::stepperYConfig;
+            default:
+                assert(false && "Non existent stepperConfig");
+                return StepperConfig();
+        }
+    };
+
+    void logStepperData(StepperList stepper, Boardcore::StepperData data)
+    {
+        switch (stepper)
+        {
+            case StepperList::STEPPER_X:
+                Boardcore::Logger::getInstance().log(
+                    static_cast<StepperXData>(data));
+                break;
+            case StepperList::STEPPER_Y:
+                Boardcore::Logger::getInstance().log(
+                    static_cast<StepperYData>(data));
+                break;
+            default:
+                assert(false && "Non existent stepper");
+                break;
+        }
+    }
 
     Boardcore::StepperPWM stepperX;
     Boardcore::StepperPWM stepperY;
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]
-    float speedX = Config::MAX_SPEED_HORIZONTAL;  // Speed of the stepper [rps]
-    float speedY = Config::MAX_SPEED_VERTICAL;    // Speed of the stepper [rps]
+    float speedX =
+        Config::stepperXConfig.MAX_SPEED;  // Speed of the stepper [rps]
+    float speedY =
+        Config::stepperYConfig.MAX_SPEED;  // Speed of the stepper [rps]
 
     bool emergencyStop =
         false;  // Whether the system performed an emergency stop
