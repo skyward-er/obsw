@@ -89,8 +89,8 @@ void WindEstimation::stopWindEstimationSchemeCalibration()
         wind = windCalibration;
     }
     windLogger.cal = true;
-    windLogger.vn = windCalibration[0];
-    windLogger.ve = windCalibration[1];
+    windLogger.vn  = windCalibration[0];
+    windLogger.ve  = windCalibration[1];
     startWindEstimationScheme();
     logStatus();
 }
@@ -192,9 +192,9 @@ void WindEstimation::windEstimationScheme()
                    (y - phiT * getWindEstimationScheme());
             {
                 miosix::Lock<FastMutex> l(mutex);
-                wind          = wind + temp;
-                windLogger.vn = wind[0];
-                windLogger.ve = wind[1];
+                wind           = wind + temp;
+                windLogger.vn  = wind[0];
+                windLogger.ve  = wind[1];
                 windLogger.cal = false;
             }
             logStatus();

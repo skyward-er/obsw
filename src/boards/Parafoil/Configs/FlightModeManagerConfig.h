@@ -25,6 +25,6 @@
 namespace Parafoil
 {
 constexpr unsigned int LOGGING_DELAY = 5 * 1000;  // [ms]
-constexpr unsigned int CONTROL_DELAY   = 5 * 1000; // [ms]
+constexpr unsigned int CONTROL_DELAY = 5 * 1000;  // [ms]
 
 }  // namespace Parafoil

@@ -347,7 +347,8 @@ void Sensors::ubxGpsInit()
 
     // Create sensor instance with configured parameters
     ubxGps = new UBXGPSSpi(modules.get<Buses>()->spi1,
-                           miosix::sensors::ubxgps::cs::getPin(), config, UBXGPS_SAMPLE_RATE);
+                           miosix::sensors::ubxgps::cs::getPin(), config,
+                           UBXGPS_SAMPLE_RATE);
 
     // Emplace the sensor inside the map
     SensorInfo info("UBXGPS", UBXGPS_PERIOD,

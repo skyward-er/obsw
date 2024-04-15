@@ -36,7 +36,7 @@ namespace WingConfig
 #if defined(CLOSED_LOOP)
 constexpr int SELECTED_ALGORITHM = 0;
 #elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM   = 1;
+constexpr int SELECTED_ALGORITHM = 1;
 #elif SEQUENCE
 constexpr int SELECTED_ALGORITHM = 2;
 #else
