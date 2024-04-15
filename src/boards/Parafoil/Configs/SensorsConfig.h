@@ -75,8 +75,10 @@ constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_100;
 constexpr uint32_t LPS22DF_PERIOD             = 20;  // [ms] 50Hz
 
 // UBXGPS
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
-constexpr uint32_t UBXGPS_PERIOD     = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
+constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+// The +5 is needed because GPS data must be read faster than it is produced (to
+// not cause delays)
+constexpr uint32_t UBXGPS_PERIOD = 1000 / (UBXGPS_SAMPLE_RATE + 5);  // [ms]
 
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
@@ -84,7 +86,6 @@ constexpr Boardcore::ADS131M08Defs::OversamplingRatio
         Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
 constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
-//
 
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
@@ -109,7 +110,7 @@ constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
 constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
     Boardcore::InternalADC::Channel::CH5;
 // Internal ADC voltage divider
-constexpr float BATTERY_VOLTAGE_COEFF = (150+40.2)/40.2;
+constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 
 // Sampling periods [ms]
 
