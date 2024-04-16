@@ -75,7 +75,7 @@ static constexpr bool ENABLED           = true;
 namespace MAX31856
 {
 static constexpr uint32_t SAMPLE_PERIOD = 100;
-static constexpr bool ENABLED              = true;
+static constexpr bool ENABLED           = true;
 }  // namespace MAX31856
 
 namespace Trafag
@@ -104,20 +104,25 @@ static constexpr unsigned int CALIBRATE_SAMPLE_COUNT  = 10;
 static constexpr unsigned int CALIBRATE_SAMPLE_PERIOD = 40;
 
 // LC Tank sensor calibration data
-// - 1.866kg V: 0.000941
-// - 5.050kg V: 0.002550
-// - 6.916kg V: 0.003559
-static constexpr float TANK_SCALE = 1968.8771f;
+static constexpr float TANK_P0_VOLTAGE = 0.000941;
+static constexpr float TANK_P0_MASS    = 1.866;
+static constexpr float TANK_P1_VOLTAGE = 0.003559;
+static constexpr float TANK_P1_MASS    = 6.916;
+
 // LC Vessel sensor calibration data
 // - 1.866kg V: 0.00027
 // - 5.050kg V: 0.00073
 // - 6.916kg V: 0.00100
-static constexpr float VESSEL_SCALE = 6914.9731f;
-}
+static constexpr float VESSEL_P0_VOLTAGE = 0.00027;
+static constexpr float VESSEL_P0_MASS    = 1.866;
+static constexpr float VESSEL_P1_VOLTAGE = 0.0010;
+static constexpr float VESSEL_P1_MASS    = 6.916;
+}  // namespace LoadCell
 
 namespace InternalADC
 {
-static constexpr Boardcore::InternalADC::Channel BATTERY_VOLTAGE_CHANNEL = Boardcore::InternalADC::CH14;
+static constexpr Boardcore::InternalADC::Channel BATTERY_VOLTAGE_CHANNEL =
+    Boardcore::InternalADC::CH14;
 
 static constexpr float BATTERY_VOLTAGE_SCALE = 4.7917;
 static constexpr uint32_t SAMPLE_PERIOD      = 100;
