@@ -34,8 +34,10 @@ class AnalogLoadCellSensor : public Boardcore::Sensor<Boardcore::LoadCellData>
 {
 public:
     AnalogLoadCellSensor(std::function<Boardcore::ADCData()> getVoltage,
-                         float scale)
-        : getVoltage{getVoltage}, scale{scale}
+                         float p0Voltage, float p0Mass, float p1Voltage,
+                         float p1Mass)
+        : getVoltage{getVoltage}, p0Voltage{p0Voltage}, p0Mass{p0Mass},
+          p1Voltage{p1Voltage}, p1Mass{p1Mass}
     {
     }
 
@@ -47,12 +49,24 @@ private:
     Boardcore::LoadCellData sampleImpl() override
     {
         auto voltage = getVoltage();
-        return {voltage.voltageTimestamp, -voltage.voltage * scale};
+        return {voltage.voltageTimestamp, -voltageToMass(voltage.voltage)};
+    }
+
+    float voltageToMass(float voltage)
+    {
+        // Two point calibration
+        // m = dmass/dvoltage
+        float scale  = (p1Mass - p0Mass) / (p1Voltage - p0Voltage);
+        float offset = p0Mass - scale * p0Voltage;  // Calculate offset
+        return scale * voltage + offset;
     }
 
     std::function<Boardcore::ADCData()> getVoltage;
 
-    float scale;
+    float p0Voltage;
+    float p0Mass;
+    float p1Voltage;
+    float p1Mass;
 };
 
 }  // namespace RIGv2
