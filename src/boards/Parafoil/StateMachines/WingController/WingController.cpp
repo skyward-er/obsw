@@ -23,6 +23,7 @@
 
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
+#include <Parafoil/Configs/ActuatorsConfigs.h>
 #include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -41,6 +42,7 @@
 using namespace Boardcore;
 using namespace Parafoil::WingConfig;
 using namespace Parafoil::WESConfig;
+using namespace Parafoil::ActuatorsConfigs;
 using namespace Common;
 using namespace miosix;
 
@@ -286,6 +288,39 @@ bool WingController::addAlgorithms()
     algorithm->addStep(step);
     result &= algorithm->init();
     // Add the algorithm to the vector
+    algorithms.push_back(algorithm);
+
+    // Algorithm 3 (rotation)
+    algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+    step.timestamp   = 0;
+    step.servo1Angle = LEFT_SERVO_ROTATION / 2;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = 0;
+    step.servo2Angle = RIGHT_SERVO_ROTATION / 2;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = LEFT_SERVO_ROTATION;
+    step.servo2Angle = RIGHT_SERVO_ROTATION;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = 0;
+    step.servo2Angle = RIGHT_SERVO_ROTATION;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += WES_ROTATION_PERIOD;  // us
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    result &= algorithm->init();
     algorithms.push_back(algorithm);
 
     selectAlgorithm(SELECTED_ALGORITHM);

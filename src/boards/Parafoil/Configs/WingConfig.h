@@ -39,6 +39,8 @@ constexpr int SELECTED_ALGORITHM = 0;
 constexpr int SELECTED_ALGORITHM = 1;
 #elif SEQUENCE
 constexpr int SELECTED_ALGORITHM = 2;
+#elif ROTATION
+constexpr int SELECTED_ALGORITHM = 3;
 #else
 constexpr int SELECTED_ALGORITHM = 0;
 #endif

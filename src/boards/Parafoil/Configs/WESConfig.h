@@ -33,6 +33,8 @@ namespace WESConfig
 constexpr uint32_t WES_CALIBRATION_TIMEOUT =
     5 * 1000;  // time needed for the first loop [ms]
 
+constexpr uint32_t WES_ROTATION_PERIOD = 10 * 1000 * 1000;  // [us]
+
 constexpr int WES_CALIBRATION_SAMPLE_NUMBER =
     20;  // number to sample to take in the first loop
 constexpr uint32_t WES_CALIBRATION_UPDATE_PERIOD =
