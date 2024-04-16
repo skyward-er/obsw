@@ -215,6 +215,7 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
         {
             // Disable MOTOR_OPEN_OXIDANT event
             EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
+            break;
         }
 
         case MOTOR_OPEN_OXIDANT:
