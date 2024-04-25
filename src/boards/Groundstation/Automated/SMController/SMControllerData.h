@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,58 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
+
+#include <iostream>
 #include <string>
-#include <vector>
 
-namespace Common
+namespace Antennas
 {
 
-enum Topics : uint8_t
+enum class SMControllerState : uint8_t
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
+    INIT = 0,
+    INIT_ERROR,
+    INIT_DONE,
+    INSERT_INFO,
+    ARMED,
+    ARMED_NF,
+    TEST,
+    TEST_NF,
+    CALIBRATE,
+    FIX_ANTENNAS,
+    FIX_ROCKET,
+    FIX_ROCKET_NF,
+    ACTIVE,
+    ACTIVE_NF,
+    /**
+     * @brief macro state for configuration (init, init_error,
+     * init_done, state_insert_info)
+     */
+    CONFIG,
+    /**
+     * @brief macro state for feedback (armed, test, calibrate,
+     * fix_antennas, fix_rocket, active)
+     */
+    FEEDBACK,
+    /**
+     * @brief macro state for no feedback (armed_nf, test_nf,
+     * fix_rocket_nf, active_nf)
+     */
+    NO_FEEDBACK
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,  TOPIC_ARP, TOPIC_DPL, TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC,
-    TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_MEA
+struct SMControllerStatus
+{
+    uint64_t timestamp;
+    SMControllerState state;
+
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
 };
 
-}  // namespace Common
+}  // namespace Antennas
