@@ -78,3 +78,7 @@ add_executable(test-actuators src/entrypoints/Groundstation/Automated/test-actua
 target_include_directories(test-actuators PRIVATE ${OBSW_INCLUDE_DIRS})
 # target_compile_definitions(test-actuators PRIVATE NO_SD_LOGGING)
 sbs_target(test-actuators stm32f767zi_automated_antennas)
+
+# add_executable(test-smcontroller src/entrypoints/Groundstation/Automated/test-smcontroller.cpp ${GROUNDSTATION_COMMON})
+# target_include_directories(test-smcontroller PRIVATE ${OBSW_INCLUDE_DIRS})
+# sbs_target(test-smcontroller stm32f767zi_nucleo)

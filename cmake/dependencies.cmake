@@ -47,6 +47,7 @@ set(GROUNDSTATION_COMMON
     src/boards/Groundstation/Common/Ports/EthernetBase.cpp
     src/boards/Groundstation/Common/Radio/RadioBase.cpp
     src/boards/Groundstation/Common/HubBase.cpp
+    src/boards/Groundstation/Automated/SMController/SMController.cpp
 )
 
 set(GROUNDSTATION_AUTOMATED
