@@ -94,8 +94,8 @@ private:
         buffer;
     std::thread radioBackupDIO;
 
-    long long int lastManualCommand =
-        0;  // Specifies the last tick [ms] in which a command is executed
+    long long lastManualCommand =
+        0;  // Timestamp of the last command execution [ms]
     Boardcore::Logger& SDlogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
 };
