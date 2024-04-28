@@ -104,6 +104,9 @@ static constexpr unsigned int CALIBRATE_SAMPLE_COUNT  = 10;
 static constexpr unsigned int CALIBRATE_SAMPLE_PERIOD = 40;
 
 // LC Tank sensor calibration data
+// - 1.866kg V: 0.000941
+// - 5.050kg V: 0.002550
+// - 6.916kg V: 0.003559
 static constexpr float TANK_P0_VOLTAGE = 0.000941;
 static constexpr float TANK_P0_MASS    = 1.866;
 static constexpr float TANK_P1_VOLTAGE = 0.003559;
