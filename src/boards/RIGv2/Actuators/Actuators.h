@@ -39,29 +39,38 @@ private:
     struct ServoInfo
     {
         std::unique_ptr<Boardcore::Servo> servo;
-        // How much time to stay open
-        uint64_t openingTime = 100000;  // Default 100s [ms]
-        // What angle is the maximum
-        float maxAperture = 1.0;
         // Hard limit of the aperture
         float limit = 1.0;
         // Should this servo be reversed?
         bool flipped = false;
+        // How much time to stay open
+        uint32_t defaultOpeningTime = 100000;  // Default 100s [ms]
+        // What angle is the maximum
+        float defaultMaxAperture = 1.0;
 
         // What event to fire while opening?
         uint8_t openingEvent = 0;
         // What event to fire while closing?
         uint8_t closingEvent = 0;
+        // How much time to stay open
+        uint32_t openingTimeKey = 0;
+        // What angle is the maximum
+        uint32_t maxApertureKey = 0;
 
         // Timestamp of when the servo should close, 0 if closed
         long long closeTs = 0;
         // Timestamp of last servo action (open/close)
         long long lastActionTs = 0;
 
-        void openServo(uint64_t time);
+        void openServo();
+        void openServoWithTime(uint32_t time);
         void closeServo();
         void unsafeSetServoPosition(float position);
         float getServoPosition();
+        float getMaxAperture();
+        uint32_t getOpeningTime();
+        void setMaxAperture(float aperture);
+        void setOpeningTime(uint32_t time);
     };
 
 public:
@@ -72,18 +81,18 @@ public:
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
     bool openServo(ServosList servo);
-    bool openServoWithTime(ServosList servo, uint64_t time);
+    bool openServoWithTime(ServosList servo, uint32_t time);
     bool closeServo(ServosList servo);
     void closeAllServos();
     bool setMaxAperture(ServosList servo, float aperture);
-    bool setOpeningTime(ServosList servo, uint64_t time);
+    bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
     void openNitrogen();
-    void openNitrogenWithTime(uint64_t time);
+    void openNitrogenWithTime(uint32_t time);
     void closeNitrogen();
     bool isNitrogenOpen();
 
-    uint64_t getServoOpeningTime(ServosList servo);
+    uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
     void armLightOn();

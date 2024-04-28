@@ -22,41 +22,47 @@
 
 #pragma once
 
-#include <RIGv2/Configs/GmmConfig.h>
-#include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
-#include <logger/Logger.h>
+#include <utils/Registry/RegistryFrontend.h>
 
-#include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
 {
 
-class GroundModeManager : public Boardcore::Module,
-                          public Boardcore::FSM<GroundModeManager>
+enum ConfigurationKeys
 {
-public:
-    GroundModeManager();
-
-    GroundModeManagerState getState();
-
-    void setIgnitionTime(uint32_t time);
-
-private:
-    void state_idle(const Boardcore::Event &event);
-    void state_init_err(const Boardcore::Event &event);
-    void state_disarmed(const Boardcore::Event &event);
-    void state_armed(const Boardcore::Event &event);
-    void state_igniting(const Boardcore::Event &event);
-
-    void logStatus();
-
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
-
-    uint16_t openOxidantDelayEventId = -1;
+    CONFIG_ID_FILLING_OPENING_TIME = 1,
+    CONFIG_ID_VENTING_OPENING_TIME = 2,
+    CONFIG_ID_MAIN_OPENING_TIME = 3,
+    CONFIG_ID_RELEASE_OPENING_TIME = 4,
+    CONFIG_ID_DISCONNECT_OPENING_TIME = 5,
+    CONFIG_ID_FILLING_MAX_APERTURE = 6,
+    CONFIG_ID_VENTING_MAX_APERTURE = 7,
+    CONFIG_ID_MAIN_MAX_APERTURE = 8,
+    CONFIG_ID_RELEASE_MAX_APERTURE = 9,
+    CONFIG_ID_DISCONNECT_MAX_APERTURE = 10,
+    CONFIG_ID_IGNITION_TIME = 11,
 };
 
-}  // namespace RIGv2
+const char *configurationIdToName(Boardcore::ConfigurationId id);
+
+class Registry : public Boardcore::Module, public Boardcore::RegistryFrontend {
+public:
+    Registry();
+
+    [[nodiscard]] bool start();
+};
+
+class FileBackend : public Boardcore::RegistryBackend {
+public:
+    FileBackend(std::string path) : path(path) {}
+
+    [[nodiscard]] bool start() override;
+    bool load(std::vector<uint8_t>& buf) override;
+    bool save(std::vector<uint8_t>& buf) override;
+
+private:
+    std::string path;
+};
+
+}

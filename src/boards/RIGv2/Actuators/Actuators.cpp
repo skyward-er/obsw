@@ -24,6 +24,7 @@
 
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/Configs/ActuatorsConfig.h>
+#include <RIGv2/Registry/Registry.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 // TODO(davide.mor): Remove TimestampTimer
@@ -34,7 +35,9 @@ using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
 
-void Actuators::ServoInfo::openServo(uint64_t time)
+void Actuators::ServoInfo::openServo() { openServoWithTime(getOpeningTime()); }
+
+void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {
     long long currentTime = getTime();
 
@@ -93,6 +96,32 @@ float Actuators::ServoInfo::getServoPosition()
     return position;
 }
 
+float Actuators::ServoInfo::getMaxAperture()
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    return modules.get<Registry>()->getOrSetDefaultUnsafe(maxApertureKey,
+                                                          defaultMaxAperture);
+}
+
+uint32_t Actuators::ServoInfo::getOpeningTime()
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    return modules.get<Registry>()->getOrSetDefaultUnsafe(openingTimeKey,
+                                                          defaultOpeningTime);
+}
+
+void Actuators::ServoInfo::setMaxAperture(float aperture)
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    modules.get<Registry>()->setUnsafe(maxApertureKey, aperture);
+}
+
+void Actuators::ServoInfo::setOpeningTime(uint32_t time)
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    modules.get<Registry>()->setUnsafe(openingTimeKey, time);
+}
+
 Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
 {
     // Initialize servos
@@ -140,49 +169,58 @@ Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
         Config::Servos::FREQUENCY);
 
     ServoInfo *info;
-    info               = getServo(ServosList::FILLING_VALVE);
-    info->maxAperture  = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
-    info->openingTime  = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
-    info->limit        = Config::Servos::FILLING_LIMIT;
-    info->flipped      = Config::Servos::FILLING_FLIPPED;
-    info->openingEvent = Common::Events::MOTOR_OPEN_FILLING_VALVE;
-    info->closingEvent = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
+    info                     = getServo(ServosList::FILLING_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
+    info->limit              = Config::Servos::FILLING_LIMIT;
+    info->flipped            = Config::Servos::FILLING_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
+    info->openingTimeKey     = CONFIG_ID_FILLING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_FILLING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info               = getServo(ServosList::RELEASE_VALVE);
-    info->maxAperture  = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
-    info->openingTime  = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
-    info->limit        = Config::Servos::RELEASE_LIMIT;
-    info->flipped      = Config::Servos::RELEASE_FLIPPED;
-    info->openingEvent = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
-    info->closingEvent = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
+    info                     = getServo(ServosList::RELEASE_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
+    info->limit              = Config::Servos::RELEASE_LIMIT;
+    info->flipped            = Config::Servos::RELEASE_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
+    info->openingTimeKey     = CONFIG_ID_RELEASE_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_RELEASE_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info               = getServo(ServosList::DISCONNECT_SERVO);
-    info->maxAperture  = Config::Servos::DEFAULT_DISCONNECT_MAX_APERTURE;
-    info->openingTime  = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
-    info->limit        = 1.0;
-    info->flipped      = Config::Servos::DISCONNECT_FLIPPED;
-    info->openingEvent = Common::Events::MOTOR_DISCONNECT;
+    info                     = getServo(ServosList::DISCONNECT_SERVO);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_DISCONNECT_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
+    info->limit              = 1.0;
+    info->flipped            = Config::Servos::DISCONNECT_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_DISCONNECT;
+    info->openingTimeKey     = CONFIG_ID_DISCONNECT_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_DISCONNECT_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info               = getServo(ServosList::MAIN_VALVE);
-    info->maxAperture  = Config::Servos::DEFAULT_MAIN_MAX_APERTURE;
-    info->openingTime  = Config::Servos::DEFAULT_MAIN_OPENING_TIME;
-    info->limit        = Config::Servos::MAIN_LIMIT;
-    info->flipped      = Config::Servos::MAIN_FLIPPED;
-    info->openingEvent = Common::Events::MOTOR_OPEN_FEED_VALVE;
-    info->closingEvent = Common::Events::MOTOR_CLOSE_FEED_VALVE;
+    info                     = getServo(ServosList::MAIN_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_MAIN_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_MAIN_OPENING_TIME;
+    info->limit              = Config::Servos::MAIN_LIMIT;
+    info->flipped            = Config::Servos::MAIN_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_FEED_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_FEED_VALVE;
+    info->openingTimeKey     = CONFIG_ID_MAIN_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_MAIN_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    // This servo is not yet enabled
-    info               = getServo(ServosList::VENTING_VALVE);
-    info->maxAperture  = Config::Servos::DEFAULT_VENTING_MAX_APERTURE;
-    info->openingTime  = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
-    info->limit        = Config::Servos::VENTING_LIMIT;
-    info->flipped      = Config::Servos::VENTING_FLIPPED;
-    info->openingEvent = Common::Events::MOTOR_OPEN_VENTING_VALVE;
-    info->closingEvent = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
+    info                     = getServo(ServosList::VENTING_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_VENTING_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
+    info->limit              = Config::Servos::VENTING_LIMIT;
+    info->flipped            = Config::Servos::VENTING_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_VENTING_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
+    info->openingTimeKey     = CONFIG_ID_VENTING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_VENTING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 }
 
@@ -236,7 +274,7 @@ bool Actuators::toggleServo(ServosList servo)
     if (info->closeTs == 0)
     {
         // The servo is closed, open it
-        info->openServo(info->openingTime);
+        info->openServo();
     }
     else
     {
@@ -256,11 +294,11 @@ bool Actuators::openServo(ServosList servo)
         return false;
     }
 
-    info->openServo(info->openingTime);
+    info->openServo();
     return true;
 }
 
-bool Actuators::openServoWithTime(ServosList servo, uint64_t time)
+bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     ServoInfo *info = getServo(servo);
@@ -269,7 +307,7 @@ bool Actuators::openServoWithTime(ServosList servo, uint64_t time)
         return false;
     }
 
-    info->openServo(time);
+    info->openServoWithTime(time);
     return true;
 }
 
@@ -304,11 +342,11 @@ bool Actuators::setMaxAperture(ServosList servo, float aperture)
         return false;
     }
 
-    info->maxAperture = aperture;
+    info->setMaxAperture(aperture);
     return true;
 }
 
-bool Actuators::setOpeningTime(ServosList servo, uint64_t time)
+bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     ServoInfo *info = getServo(servo);
@@ -317,7 +355,7 @@ bool Actuators::setOpeningTime(ServosList servo, uint64_t time)
         return false;
     }
 
-    info->openingTime = time;
+    info->setOpeningTime(time);
     return true;
 }
 
@@ -338,7 +376,7 @@ void Actuators::openNitrogen()
     openNitrogenWithTime(Config::Actuators::NITROGEN_OPENING_TIME);
 }
 
-void Actuators::openNitrogenWithTime(uint64_t time)
+void Actuators::openNitrogenWithTime(uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     long long currentTime = getTime();
@@ -359,7 +397,7 @@ bool Actuators::isNitrogenOpen()
     return nitrogenCloseTs != 0;
 }
 
-uint64_t Actuators::getServoOpeningTime(ServosList servo)
+uint32_t Actuators::getServoOpeningTime(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
     ServoInfo *info = getServo(servo);
@@ -368,7 +406,7 @@ uint64_t Actuators::getServoOpeningTime(ServosList servo)
         return 0;
     }
 
-    return info->openingTime;
+    return info->getOpeningTime();
 }
 
 float Actuators::getServoMaxAperture(ServosList servo)
@@ -380,7 +418,7 @@ float Actuators::getServoMaxAperture(ServosList servo)
         return 0;
     }
 
-    return info->maxAperture;
+    return info->getMaxAperture();
 }
 
 Actuators::ServoInfo *Actuators::getServo(ServosList servo)
@@ -438,13 +476,13 @@ void Actuators::updatePositionsTask()
                                    Constants::NS_IN_MS))
             {
                 // We should open the valve all the way
-                unsafeSetServoPosition(idx, infos[idx].maxAperture);
+                unsafeSetServoPosition(idx, infos[idx].getMaxAperture());
             }
             else
             {
                 // Time to wiggle the valve a little
                 unsafeSetServoPosition(
-                    idx, infos[idx].maxAperture *
+                    idx, infos[idx].getMaxAperture() *
                              (1.0 - Config::Servos::SERVO_CONFIDENCE));
             }
         }
@@ -467,9 +505,9 @@ void Actuators::updatePositionsTask()
             else
             {
                 // Time to wiggle the valve a little
-                unsafeSetServoPosition(
-                    idx,
-                    infos[idx].maxAperture * Config::Servos::SERVO_CONFIDENCE);
+                unsafeSetServoPosition(idx,
+                                       infos[idx].getMaxAperture() *
+                                           Config::Servos::SERVO_CONFIDENCE);
             }
         }
     }
