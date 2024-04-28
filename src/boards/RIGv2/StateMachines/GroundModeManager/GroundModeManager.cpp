@@ -24,6 +24,7 @@
 
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
+#include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -47,20 +48,33 @@ GroundModeManager::GroundModeManager()
 
 GroundModeManagerState GroundModeManager::getState()
 {
-    if(testState(&GroundModeManager::state_init_err)) {
+    if (testState(&GroundModeManager::state_init_err))
+    {
         return GMM_STATE_INIT_ERR;
-    } else if(testState(&GroundModeManager::state_disarmed)) {
+    }
+    else if (testState(&GroundModeManager::state_disarmed))
+    {
         return GMM_STATE_DISARMED;
-    } else if(testState(&GroundModeManager::state_armed)) {
+    }
+    else if (testState(&GroundModeManager::state_armed))
+    {
         return GMM_STATE_ARMED;
-    } else if(testState(&GroundModeManager::state_igniting)) {
+    }
+    else if (testState(&GroundModeManager::state_igniting))
+    {
         return GMM_STATE_IGNITING;
-    } else {
+    }
+    else
+    {
         return GMM_STATE_IDLE;
     }
 }
 
-void GroundModeManager::setIgnitionTime(uint32_t time) { ignitionTime = time; }
+void GroundModeManager::setIgnitionTime(uint32_t time)
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    modules.get<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
+}
 
 void GroundModeManager::state_idle(const Boardcore::Event &event)
 {
@@ -124,6 +138,7 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
         case EV_ENTRY:
         {
             modules.get<Actuators>()->armLightOff();
+            modules.get<Registry>()->disarm();
             logStatus();
             break;
         }
@@ -164,6 +179,7 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
         case EV_ENTRY:
         {
             modules.get<Actuators>()->armLightOn();
+            modules.get<Registry>()->arm();
             modules.get<Actuators>()->closeAllServos();
             modules.get<Actuators>()->closeNitrogen();
             logStatus();
@@ -202,6 +218,11 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
         {
             // Start ignition
             modules.get<Actuators>()->igniterOn();
+
+            uint32_t ignitionTime =
+                modules.get<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_IGNITION_TIME,
+                    Config::GroundModeManager::DEFAULT_IGNITION_WAITING_TIME);
 
             // Send event to open the oxidant
             openOxidantDelayEventId = EventBroker::getInstance().postDelayed(

@@ -24,6 +24,7 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Radio/Radio.h>
+#include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
@@ -51,6 +52,7 @@ int main()
 
     Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
     Actuators *actuators   = new Actuators(scheduler->getActuatorsScheduler());
+    Registry *registry     = new Registry();
     GroundModeManager *gmm = new GroundModeManager();
     TARS1 *tars1           = new TARS1(scheduler->getTars1Scheduler());
     Radio *radio           = new Radio();
@@ -73,6 +75,7 @@ int main()
         modules.insert<BoardScheduler>(scheduler) &&
         modules.insert<Actuators>(actuators) &&
         modules.insert<Sensors>(sensors) && modules.insert<Radio>(radio) &&
+        modules.insert<Registry>(registry) &&
         modules.insert<GroundModeManager>(gmm) && modules.insert<TARS1>(tars1);
 
     // Start modules
@@ -86,6 +89,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Failed to start EventBroker");
+    }
+
+    if (!registry->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Registry module");
     }
 
     if (!actuators->start())

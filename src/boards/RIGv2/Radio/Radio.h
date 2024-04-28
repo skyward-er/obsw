@@ -59,6 +59,8 @@ private:
     void handleCommand(const mavlink_message_t& msg);
     void handleConrigState(const mavlink_message_t& msg);
     
+    void enqueueRegistry();
+
     bool enqueueSystemTm(uint8_t tmId);
     bool enqueueSensorTm(uint8_t tmId);
 

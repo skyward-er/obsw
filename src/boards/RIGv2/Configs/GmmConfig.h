@@ -28,9 +28,11 @@ namespace RIGv2
 {
 namespace Config
 {
-namespace Ignition
+namespace GroundModeManager
 {
+
 static constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 5451;  // [ms]
-}
+
+}  // namespace GroundModeManager
 }  // namespace Config
 }  // namespace RIGv2

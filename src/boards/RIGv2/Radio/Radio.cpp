@@ -24,6 +24,7 @@
 
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Buses.h>
+#include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
@@ -303,6 +304,8 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_OPEN_NITROGEN, TMTC_OPEN_NITROGEN},
     };
 
+    ModuleManager& modules = ModuleManager::getInstance();
+
     uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
     {
@@ -326,6 +329,46 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
+        case MAV_CMD_RELOAD_REGISTRY:
+        {
+            if (modules.get<Registry>()->load() == RegistryError::OK)
+            {
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg);
+            }
+            break;
+        }
+
+        case MAV_CMD_COMMIT_REGISTRY:
+        {
+            if (modules.get<Registry>()->save() == RegistryError::OK)
+            {
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg);
+            }
+            break;
+        }
+
+        case MAV_CMD_CLEAR_REGISTRY:
+        {
+            modules.get<Registry>()->clear();
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAV_CMD_FETCH_REGISTRY:
+        {
+            enqueueRegistry();
+            enqueueAck(msg);
+            break;
+        }
+
         default:
         {
             auto it = cmdToEvent.find(cmd);
@@ -343,6 +386,70 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
     }
+}
+
+void Radio::enqueueRegistry()
+{
+    ModuleManager& modules = ModuleManager::getInstance();
+    modules.get<Registry>()->forEach(
+        [this](ConfigurationId id, EntryStructsUnion& value)
+        {
+            mavlink_message_t msg;
+            const char* name = configurationIdToName(id);
+
+            switch (value.getType())
+            {
+                case TypesEnum::UINT32:
+                {
+                    mavlink_message_t msg;
+                    mavlink_registry_int_tm_t tm;
+
+                    tm.timestamp = TimestampTimer::getTimestamp();
+                    tm.key_id    = id;
+                    strcpy(tm.key_name, name);
+                    value.get(tm.value);
+
+                    mavlink_msg_registry_int_tm_encode(
+                        Config::Radio::MAV_SYSTEM_ID,
+                        Config::Radio::MAV_COMPONENT_ID, &msg, &tm);
+                    break;
+                }
+                case TypesEnum::FLOAT:
+                {
+                    mavlink_message_t msg;
+                    mavlink_registry_float_tm_t tm;
+
+                    tm.timestamp = TimestampTimer::getTimestamp();
+                    tm.key_id    = id;
+                    strcpy(tm.key_name, name);
+                    value.get(tm.value);
+
+                    mavlink_msg_registry_float_tm_encode(
+                        Config::Radio::MAV_SYSTEM_ID,
+                        Config::Radio::MAV_COMPONENT_ID, &msg, &tm);
+                    break;
+                }
+                case TypesEnum::COORDINATES:
+                {
+                    mavlink_registry_coord_tm_t tm;
+
+                    tm.timestamp = TimestampTimer::getTimestamp();
+                    tm.key_id    = id;
+                    strcpy(tm.key_name, name);
+                    Coordinates coord;
+                    value.get(coord);
+                    tm.latitude  = coord.latitude;
+                    tm.longitude = coord.longitude;
+
+                    mavlink_msg_registry_coord_tm_encode(
+                        Config::Radio::MAV_SYSTEM_ID,
+                        Config::Radio::MAV_COMPONENT_ID, &msg, &tm);
+                    break;
+                }
+            }
+
+            enqueuePacket(msg);
+        });
 }
 
 bool Radio::enqueueSystemTm(uint8_t tmId)

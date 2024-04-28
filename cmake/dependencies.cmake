@@ -66,6 +66,7 @@ set(RIG_V2_COMPUTER
     src/boards/RIGv2/Radio/Radio.cpp
     src/boards/RIGv2/Sensors/Sensors.cpp
     src/boards/RIGv2/Actuators/Actuators.cpp
+    src/boards/RIGv2/Registry/Registry.cpp
     src/boards/RIGv2/StateMachines/GroundModeManager/GroundModeManager.cpp
     src/boards/RIGv2/StateMachines/TARS1/TARS1.cpp
 )
