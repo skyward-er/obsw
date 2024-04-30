@@ -53,6 +53,10 @@ const char *RIGv2::configurationIdToName(ConfigurationId id)
             return "DisconMaxAperture";
         case CONFIG_ID_IGNITION_TIME:
             return "IgnitionTime";
+        case CONFIG_ID_DEFAULT_OPENING_TIME:
+            return "DefOpeningTime";
+        case CONFIG_ID_DEFAULT_MAX_APERTURE:
+            return "DefMaxAperture";
         default:
             return "<invalid>";
     }
@@ -64,7 +68,7 @@ Registry::Registry()
 }
 
 bool Registry::start() {
-    return RegistryFrontend::start() != RegistryError::OK;
+    return RegistryFrontend::start() == RegistryError::OK;
 }
 
 bool FileBackend::start() {

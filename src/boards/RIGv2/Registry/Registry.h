@@ -42,6 +42,8 @@ enum ConfigurationKeys
     CONFIG_ID_RELEASE_MAX_APERTURE = 9,
     CONFIG_ID_DISCONNECT_MAX_APERTURE = 10,
     CONFIG_ID_IGNITION_TIME = 11,
+    CONFIG_ID_DEFAULT_OPENING_TIME = 12,
+    CONFIG_ID_DEFAULT_MAX_APERTURE = 13,
 };
 
 const char *configurationIdToName(Boardcore::ConfigurationId id);

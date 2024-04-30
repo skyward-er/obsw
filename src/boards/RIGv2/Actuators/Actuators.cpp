@@ -24,7 +24,6 @@
 
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/Configs/ActuatorsConfig.h>
-#include <RIGv2/Registry/Registry.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 // TODO(davide.mor): Remove TimestampTimer
