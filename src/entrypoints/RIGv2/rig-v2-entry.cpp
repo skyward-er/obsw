@@ -97,6 +97,9 @@ int main()
         LOG_ERR(logger, "Error failed to start Registry module");
     }
 
+    // Perform an initial registry load
+    registry->load();
+
     if (!actuators->start())
     {
         initResult = false;

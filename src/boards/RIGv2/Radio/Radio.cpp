@@ -329,7 +329,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
-        case MAV_CMD_RELOAD_REGISTRY:
+        case MAV_CMD_REGISTRY_LOAD:
         {
             if (modules.get<Registry>()->load() == RegistryError::OK)
             {
@@ -342,7 +342,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
-        case MAV_CMD_COMMIT_REGISTRY:
+        case MAV_CMD_REGISTRY_SAVE:
         {
             if (modules.get<Registry>()->save() == RegistryError::OK)
             {
@@ -355,16 +355,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
-        case MAV_CMD_CLEAR_REGISTRY:
+        case MAV_CMD_REGISTRY_CLEAR:
         {
             modules.get<Registry>()->clear();
-            enqueueAck(msg);
-            break;
-        }
-
-        case MAV_CMD_FETCH_REGISTRY:
-        {
-            enqueueRegistry();
             enqueueAck(msg);
             break;
         }
@@ -401,7 +394,6 @@ void Radio::enqueueRegistry()
             {
                 case TypesEnum::UINT32:
                 {
-                    mavlink_message_t msg;
                     mavlink_registry_int_tm_t tm;
 
                     tm.timestamp = TimestampTimer::getTimestamp();
@@ -416,7 +408,6 @@ void Radio::enqueueRegistry()
                 }
                 case TypesEnum::FLOAT:
                 {
-                    mavlink_message_t msg;
                     mavlink_registry_float_tm_t tm;
 
                     tm.timestamp = TimestampTimer::getTimestamp();
@@ -475,6 +466,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 enqueuePacket(msg);
             }
 
+            return true;
+        }
+
+        case MAV_REGISTRY_ID:
+        {
+            enqueueRegistry();
             return true;
         }
 
