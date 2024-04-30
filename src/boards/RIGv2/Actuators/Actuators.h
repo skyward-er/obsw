@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <miosix.h>
@@ -53,9 +54,9 @@ private:
         // What event to fire while closing?
         uint8_t closingEvent = 0;
         // How much time to stay open
-        uint32_t openingTimeKey = 0;
+        uint32_t openingTimeKey = CONFIG_ID_DEFAULT_OPENING_TIME;
         // What angle is the maximum
-        uint32_t maxApertureKey = 0;
+        uint32_t maxApertureKey = CONFIG_ID_DEFAULT_MAX_APERTURE;
 
         // Timestamp of when the servo should close, 0 if closed
         long long closeTs = 0;
