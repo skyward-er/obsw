@@ -22,33 +22,24 @@
 
 #pragma once
 
-#include <miosix.h>
-
 namespace Main
 {
 
 namespace Config
 {
 
-namespace Scheduler {
+namespace FlightModeManager {
 
-// Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ADA related activities (state machines/scheduler)
-static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
-// Used for everything else:
-// - Radio periodic telemetry
-// - CanBus periodic heartbeat
-// - Actuators buzzer
-static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
+// Set at 15 minutes
+static constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 
-// Used for FlightModeManager
-static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+static constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6750;
+
+// Set at 25 seconds.
+static constexpr unsigned int APOGEE_TIMEOUT = 25 * 1000;
 
 }
 
-}  // namespace Config
+}
 
-}  // namespace Main
+}

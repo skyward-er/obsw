@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,41 @@
 
 #pragma once
 
-#include <miosix.h>
-
 namespace Main
 {
 
-namespace Config
+enum class FlightModeManagerState : uint8_t
 {
+    ON_GROUND = 0,
+    INIT,
+    INIT_ERROR,
+    INIT_DONE,
+    CALIBRATE_SENSORS,
+    CALIBRATE_ALGORITHMS,
+    DISARMED,
+    TEST_MODE,
+    ARMED,
+    IGNITION, // < Unused, kept for backward compatibility
+    FLYING,
+    POWERED_ASCENT,
+    UNPOWERED_ASCENT,
+    DROGUE_DESCENT,
+    TERMINAL_DESCENT,
+    LANDED,
+    INVALID
+};
 
-namespace Scheduler {
+struct FlightModeManagerStatus
+{
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::INVALID;
 
-// Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ADA related activities (state machines/scheduler)
-static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
-// Used for everything else:
-// - Radio periodic telemetry
-// - CanBus periodic heartbeat
-// - Actuators buzzer
-static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
+    static std::string header() { return "timestamp,state\n"; }
 
-// Used for FlightModeManager
-static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
-
-}
-
-}  // namespace Config
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
 
 }  // namespace Main
