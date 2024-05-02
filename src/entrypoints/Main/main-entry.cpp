@@ -20,12 +20,15 @@
  * THE SOFTWARE.
  */
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
+#include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
@@ -45,6 +48,7 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
+    Actuators *actuators   = new Actuators(scheduler->getActuatorsScheduler());
     Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
     Radio *radio           = new Radio(scheduler->getRadioScheduler());
     CanHandler *canHandler = new CanHandler();
@@ -61,6 +65,18 @@ int main()
     // led2: Radio ok
     // led3: CanBus ok
     // led4: Everything ok
+
+    if (!EventBroker::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start EventBroker");
+    }
+
+    if (!actuators->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Sensors module");
+    }
 
     if (!sensors->start())
     {
@@ -108,7 +124,7 @@ int main()
         led4On();
     }
 
-    for (auto info : sensors->getSensorInfo())
+    for (auto info : sensors->getSensorInfos())
     {
         LOG_INFO(logger, "{} {}", info.isInitialized, info.id);
     }
@@ -116,9 +132,13 @@ int main()
     while (true)
     {
         gpios::boardLed::low();
+        actuators->statusOn();
+        actuators->setAbkPosition(0.1f);
         canHandler->sendEvent(Common::CanConfig::EventId::ARM);
         Thread::sleep(1000);
         gpios::boardLed::high();
+        actuators->statusOff();
+        actuators->setAbkPosition(0.5f);
         canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
     }

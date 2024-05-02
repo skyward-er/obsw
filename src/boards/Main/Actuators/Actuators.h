@@ -22,10 +22,8 @@
 
 #pragma once
 
-#include <Main/Configs/RadioConfig.h>
+#include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -33,45 +31,41 @@
 namespace Main
 {
 
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           Config::Radio::MAV_OUT_QUEUE_SIZE,
-                                           Config::Radio::MAV_MAX_LENGTH>;
-
-class Radio : public Boardcore::Module
+class Actuators : public Boardcore::Module
 {
 public:
-    Radio(Boardcore::TaskScheduler& scheduler) : scheduler{scheduler} {}
-
-    bool isStarted();
+    Actuators(Boardcore::TaskScheduler &scheduler);
 
     [[nodiscard]] bool start();
 
-    Boardcore::MavlinkStatus getMavStatus();
+    void setAbkPosition(float position);
+    bool wiggleServo(ServosList servo);
+
+    void camOn();
+    void camOff();
+
+    void cutterOn();
+    void currerOff();
+
+    // TODO: This will be made private
+    void statusOn();
+    void statusOff();
+
+    void buzzerOn();
+    void buzzerOff();
 
 private:
-    void enqueueAck(const mavlink_message_t& msg);
-    void enqueueNack(const mavlink_message_t& msg);
+    void setExpPosition(float position);
 
-    void enqueuePacket(const mavlink_message_t &msg);
-    void flushPackets();
+    Boardcore::Servo *getServo(ServosList servo);
 
-    void handleMessage(const mavlink_message_t& msg);
-    void handleCommand(const mavlink_message_t& msg);
+    std::unique_ptr<Boardcore::Servo> servoAbk;
+    std::unique_ptr<Boardcore::Servo> servoExp;
+    std::unique_ptr<Boardcore::PWM> buzzer;
 
-    bool enqueueSystemTm(uint8_t tmId);
-    bool enqueueSensorsTm(uint8_t tmId);
+    Boardcore::TaskScheduler &scheduler;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-
-    Boardcore::CircularBuffer<mavlink_message_t,
-                              Config::Radio::CIRCULAR_BUFFER_SIZE>
-        queuedPackets;
-
-    std::atomic<bool> started{false};
-    std::unique_ptr<Boardcore::SX1278Fsk> radio;
-    std::unique_ptr<MavDriver> mavDriver;
-
-    Boardcore::TaskScheduler& scheduler;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
 };
 
-}  // namespace Main
+}
