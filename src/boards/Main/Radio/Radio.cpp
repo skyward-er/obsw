@@ -22,8 +22,11 @@
 
 #include "Radio.h"
 
+#include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/Actuators/Actuators.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -63,6 +66,8 @@ bool Radio::isStarted() { return started; }
 bool Radio::start()
 {
     ModuleManager& modules = ModuleManager::getInstance();
+    TaskScheduler& scheduler =
+        modules.get<BoardScheduler>()->getRadioScheduler();
 
     // Setup the frontend
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
@@ -171,6 +176,7 @@ void Radio::enqueueNack(const mavlink_message_t& msg)
 
 void Radio::handleMessage(const mavlink_message_t& msg)
 {
+    ModuleManager& modules = ModuleManager::getInstance();
     switch (msg.msgid)
     {
 
@@ -207,6 +213,26 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg);
             if (enqueueSensorsTm(tmId))
             {
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg);
+            }
+
+            break;
+        }
+
+        case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
+
+            if (modules.get<FlightModeManager>()->getState() ==
+                FlightModeManagerState::TEST_MODE)
+            {
+                // If the state is test mode, the wiggle is done
+                modules.get<Actuators>()->wiggleServo(servoId);
                 enqueueAck(msg);
             }
             else
@@ -591,7 +617,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             enqueuePacket(msg);
             return true;
         }
-        
+
         case MAV_H3LIS331DL_ID:
         {
             mavlink_message_t msg;
