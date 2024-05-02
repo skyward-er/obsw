@@ -27,6 +27,7 @@
 #include <scheduler/TaskScheduler.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+#include <atomic>
 
 namespace Main
 {
@@ -34,11 +35,13 @@ namespace Main
 class Actuators : public Boardcore::Module
 {
 public:
-    Actuators(Boardcore::TaskScheduler &scheduler);
+    Actuators() {}
 
     [[nodiscard]] bool start();
 
     void setAbkPosition(float position);
+    void openExpulsion();
+
     bool wiggleServo(ServosList servo);
 
     void camOn();
@@ -47,23 +50,37 @@ public:
     void cutterOn();
     void currerOff();
 
-    // TODO: This will be made private
-    void statusOn();
-    void statusOff();
+    void setBuzzerOff();
+    void setBuzzerArmed();
+    void setBuzzerLand();
 
-    void buzzerOn();
-    void buzzerOff();
+    void setStatusOff();
+    void setStatusErr();
+    void setStatusOk();
 
 private:
     void setExpPosition(float position);
 
     Boardcore::Servo *getServo(ServosList servo);
 
+    void statusOn();
+    void statusOff();
+
+    void buzzerOn();
+    void buzzerOff();
+
+    void updateBuzzer();
+    void updateStatus();
+
     std::unique_ptr<Boardcore::Servo> servoAbk;
     std::unique_ptr<Boardcore::Servo> servoExp;
     std::unique_ptr<Boardcore::PWM> buzzer;
 
-    Boardcore::TaskScheduler &scheduler;
+    std::atomic<uint32_t> buzzerCounter{0};
+    std::atomic<uint32_t> buzzerOverflow{0};
+
+    std::atomic<uint32_t> statusCounter{0};
+    std::atomic<uint32_t> statusOverflow{0};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
 };

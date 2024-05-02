@@ -40,7 +40,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
 class Radio : public Boardcore::Module
 {
 public:
-    Radio(Boardcore::TaskScheduler& scheduler) : scheduler{scheduler} {}
+    Radio() {}
 
     bool isStarted();
 
@@ -70,8 +70,6 @@ private:
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::SX1278Fsk> radio;
     std::unique_ptr<MavDriver> mavDriver;
-
-    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Main

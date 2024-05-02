@@ -40,6 +40,16 @@ static constexpr unsigned int EXP_MAX_PULSE = 2000;
 // Buzzer configs
 static constexpr uint16_t BUZZER_FREQUENCY = 1000;
 static constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+
+static constexpr uint32_t BUZZER_UPDATE_PERIOD = 100;
+static constexpr uint32_t BUZZER_ARM_PERIOD = 500;
+static constexpr uint32_t BUZZER_LAND_PERIOD = 1000;
+
+// Status configs
+static constexpr uint32_t STATUS_UPDATE_PERIOD = 100;
+static constexpr uint32_t STATUS_OK_PERIOD = 1000;
+static constexpr uint32_t STATUS_ERR_PERIOD = 300;
+
 }  // namespace Actuators
 }  // namespace Config
 }  // namespace Main

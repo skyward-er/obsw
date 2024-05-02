@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -29,23 +30,12 @@ using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
 
-Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler} {
-    servoAbk = std::make_unique<Servo>(
-        MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
-        Config::Actuators::ABK_MIN_PULSE, Config::Actuators::ABK_MAX_PULSE);
-
-    servoExp = std::make_unique<Servo>(
-        MIOSIX_EXPULSION_TIM, TimerUtils::Channel::MIOSIX_EXPULSION_CHANNEL,
-        Config::Actuators::EXP_MIN_PULSE, Config::Actuators::EXP_MAX_PULSE);
-
-    buzzer = std::make_unique<PWM>(MIOSIX_BUZZER_TIM,
-                                   Config::Actuators::BUZZER_FREQUENCY);
-    buzzer->setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL,
-                         Config::Actuators::BUZZER_DUTY_CYCLE);
-}
-
 [[nodiscard]] bool Actuators::start()
 {
+    ModuleManager &modules = ModuleManager::getInstance();
+    TaskScheduler &scheduler =
+        modules.get<BoardScheduler>()->getLowPriorityActuatorsScheduler();
+
     servoAbk->enable();
     servoExp->enable();
 
@@ -54,7 +44,15 @@ Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler} {
     statusOff();
     buzzerOff();
 
-    return true;
+    uint8_t result1 = scheduler.addTask([this]() { updateBuzzer(); },
+                                        Config::Actuators::BUZZER_UPDATE_PERIOD,
+                                        TaskScheduler::Policy::RECOVER);
+
+    uint8_t result2 = scheduler.addTask([this]() { updateStatus(); },
+                                        Config::Actuators::STATUS_UPDATE_PERIOD,
+                                        TaskScheduler::Policy::RECOVER);
+
+    return result1 != 0 && result2 != 0;
 }
 
 void Actuators::setAbkPosition(float position)
@@ -62,10 +60,7 @@ void Actuators::setAbkPosition(float position)
     servoAbk->setPosition(position);
 }
 
-void Actuators::setExpPosition(float position)
-{
-    servoExp->setPosition(position);
-}
+void Actuators::openExpulsion() { servoExp->setPosition(1.0f); }
 
 bool Actuators::wiggleServo(ServosList servo)
 {
@@ -80,8 +75,34 @@ bool Actuators::wiggleServo(ServosList servo)
     }
     else
     {
+        // TODO(davide.mor): Send the command via CanBus, maybe someone else has
+        // this servo
         return false;
     }
+}
+
+void Actuators::setStatusOff() { statusOverflow = 0; }
+
+void Actuators::setStatusOk()
+{
+    statusOverflow = Config::Actuators::STATUS_OK_PERIOD;
+}
+
+void Actuators::setStatusErr()
+{
+    statusOverflow = Config::Actuators::STATUS_ERR_PERIOD;
+}
+
+void Actuators::setBuzzerOff() { buzzerOverflow = 0; }
+
+void Actuators::setBuzzerArmed()
+{
+    buzzerOverflow = Config::Actuators::BUZZER_ARM_PERIOD;
+}
+
+void Actuators::setBuzzerLand()
+{
+    buzzerOverflow = Config::Actuators::BUZZER_LAND_PERIOD;
 }
 
 void Actuators::camOn() { gpios::camEnable::high(); }
@@ -116,5 +137,56 @@ Servo *Actuators::getServo(ServosList servo)
             return servoExp.get();
         default:
             return nullptr;
+    }
+}
+
+void Actuators::updateBuzzer()
+{
+    if (buzzerOverflow == 0)
+    {
+        buzzerOff();
+    }
+    else
+    {
+        if (buzzerCounter >= buzzerOverflow)
+        {
+            // Enable the channel for this period
+            buzzerOn();
+            buzzerCounter = 0;
+        }
+        else
+        {
+            buzzerOff();
+            buzzerCounter += Config::Actuators::BUZZER_UPDATE_PERIOD;
+        }
+    }
+}
+
+void Actuators::updateStatus()
+{
+    if (buzzerOverflow == 0)
+    {
+        statusOff();
+    }
+    else
+    {
+        if (buzzerCounter >= buzzerOverflow)
+        {
+            statusOn();
+        }
+        else
+        {
+            statusOff();
+        }
+
+        if (buzzerCounter >= buzzerOverflow * 2)
+        {
+            // Reset the counter
+            buzzerCounter = 0;
+        }
+        else
+        {
+            buzzerCounter += Config::Actuators::BUZZER_UPDATE_PERIOD;
+        }
     }
 }

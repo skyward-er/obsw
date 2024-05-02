@@ -34,9 +34,10 @@ class BoardScheduler : public Boardcore::Module
 {
 public:
     BoardScheduler()
-        : nas(Main::Config::NAS_PRIORITY), ada(Main::Config::ADA_PRIORITY),
-          sensors(Main::Config::SENSORS_PRIORITY),
-          others(Main::Config::OTHERS_PRIORITY)
+        : nas(Main::Config::Scheduler::NAS_PRIORITY),
+          ada(Main::Config::Scheduler::ADA_PRIORITY),
+          sensors(Main::Config::Scheduler::SENSORS_PRIORITY),
+          others(Main::Config::Scheduler::OTHERS_PRIORITY)
     {
     }
 
@@ -55,7 +56,7 @@ public:
 
     Boardcore::TaskScheduler &getCanBusScheduler() { return others; }
 
-    Boardcore::TaskScheduler &getActuatorsScheduler() { return others; }
+    Boardcore::TaskScheduler &getLowPriorityActuatorsScheduler() { return others; }
 
 private:
     Boardcore::TaskScheduler nas;
