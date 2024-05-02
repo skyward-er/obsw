@@ -113,7 +113,7 @@ Boardcore::VoltageData Sensors::getCamBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-std::vector<Boardcore::SensorInfo> Sensors::getSensorInfo()
+std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
