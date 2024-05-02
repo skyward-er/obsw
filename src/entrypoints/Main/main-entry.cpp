@@ -26,6 +26,7 @@
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
 #include <events/EventBroker.h>
@@ -37,6 +38,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
+using namespace Common;
 
 int main()
 {
@@ -48,17 +50,19 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Actuators *actuators   = new Actuators(scheduler->getActuatorsScheduler());
-    Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
-    Radio *radio           = new Radio(scheduler->getRadioScheduler());
+    Actuators *actuators   = new Actuators();
+    Sensors *sensors       = new Sensors();
+    Radio *radio           = new Radio();
     CanHandler *canHandler = new CanHandler();
+    FlightModeManager *fmm = new FlightModeManager();
 
     // Insert modules
     bool initResult = modules.insert<Buses>(buses) &&
                       modules.insert<BoardScheduler>(scheduler) &&
                       modules.insert<Sensors>(sensors) &&
                       modules.insert<Radio>(radio) &&
-                      modules.insert<CanHandler>(canHandler);
+                      modules.insert<CanHandler>(canHandler) &&
+                      modules.insert<FlightModeManager>(fmm);
 
     // Status led indicators
     // led1: Sensors ok
@@ -114,13 +118,23 @@ int main()
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
+    if (!fmm->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start FlightModeManager");
+    }
+
     if (!initResult)
     {
         LOG_ERR(logger, "Init failure!");
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        actuators->setStatusErr();
     }
     else
     {
         LOG_INFO(logger, "All good!");
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        actuators->setStatusOk();
         led4On();
     }
 
@@ -132,12 +146,10 @@ int main()
     while (true)
     {
         gpios::boardLed::low();
-        actuators->statusOn();
         actuators->setAbkPosition(0.1f);
         canHandler->sendEvent(Common::CanConfig::EventId::ARM);
         Thread::sleep(1000);
         gpios::boardLed::high();
-        actuators->statusOff();
         actuators->setAbkPosition(0.5f);
         canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
