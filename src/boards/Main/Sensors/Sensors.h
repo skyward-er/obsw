@@ -44,9 +44,7 @@ namespace Main
 class Sensors : public Boardcore::Module
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
-    {
-    }
+    Sensors() {}
 
     bool isStarted();
 
@@ -105,8 +103,6 @@ private:
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
-
-    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Main
