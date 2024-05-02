@@ -85,6 +85,26 @@ private:
      */
     AntennaAngles rocketPositionToAntennaAngles(const NEDCoords& ned);
 
+    /**
+     * @brief Minimize rotation angle.
+     *
+     * @param angle Angle of movement [deg]
+     * @return The minimized rotation angle [deg]
+     */
+    float minimizeRotation(float angle)
+    {
+        if (angle > 180)
+        {
+            angle -= 360;
+        }
+        else if (angle < -180)
+        {
+            angle += 360;
+        }
+
+        return angle;
+    }
+
     bool antennaCoordinatesSet = false;
     bool rocketCoordinatesSet  = false;
 
