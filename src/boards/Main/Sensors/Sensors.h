@@ -64,7 +64,7 @@ public:
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getCamBatteryVoltage();
 
-    std::vector<Boardcore::SensorInfo> getSensorInfo();
+    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 private:
     void lps22dfInit(Boardcore::SensorManager::SensorMap_t &map);
