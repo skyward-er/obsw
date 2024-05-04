@@ -30,7 +30,6 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <Parafoil/StateMachines/WingController/WingController.h>
 #include <Parafoil/TMRepository/TMRepository.h>
 #include <Parafoil/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
@@ -76,12 +75,8 @@ int main()
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     AltitudeTrigger* altTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    WingController* wingController =
-        new WingController(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     WindEstimation* windEstimation =
         new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-
-    Actuators* actuators = new Actuators();
 
     // Components without a scheduler
     TMRepository* tmRepo   = new TMRepository();
@@ -131,22 +126,10 @@ int main()
         LOG_ERR(logger, "Error inserting the TMRepository module");
     }
 
-    if (!modules.insert<Actuators>(actuators))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Actuators module");
-    }
-
     if (!modules.insert<AltitudeTrigger>(altTrigger))
     {
         initResult = false;
         LOG_ERR(logger, "Error inserting the Altitude Trigger module");
-    }
-
-    if (!modules.insert<WingController>(wingController))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the WingController module");
     }
 
     if (!modules.insert<WindEstimation>(windEstimation))
@@ -202,22 +185,10 @@ int main()
         LOG_ERR(logger, "Error starting the Radio module");
     }
 
-    if (!modules.get<Actuators>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Actuators module");
-    }
-
     if (!modules.get<AltitudeTrigger>()->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the AltitudeTrigger module");
-    }
-
-    if (!modules.get<WingController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the WingController module");
     }
 
     if (!modules.get<WindEstimation>()->start())
@@ -258,13 +229,6 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         LOG_ERR(logger, "Failed to initialize");
     }
-
-    modules.get<WingController>()->selectAlgorithm(
-        WingConfig::SELECTED_ALGORITHM);
-
-    // Log configs
-    WingConfig::WingConfigStruct f;
-    Logger::getInstance().log(f);
 
     // Periodic statistics
     while (true)
