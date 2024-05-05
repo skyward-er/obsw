@@ -38,8 +38,6 @@ class HILSensors : public Sensors
 public:
     explicit HILSensors(Boardcore::TaskScheduler* sched);
 
-    [[nodiscard]] bool start() override;
-
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample() override;
     Boardcore::LPS28DFWData getLPS28DFW_1LastSample() override;
@@ -48,11 +46,9 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample() override;
     Boardcore::UBXGPSData getGPSLastSample() override;
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample() override;
-    Boardcore::ADS131M08Data getADS131M08LastSample() override;
 
     Boardcore::HSCMRNN015PAData getStaticPressureLastSample() override;
     Boardcore::SSCMRNN030PAData getDynamicPressureLastSample() override;
-    Boardcore::PitotData getPitotLastSample() override;
 
 private:
     // Init and callbacks methods
@@ -61,11 +57,11 @@ private:
     void lps22dfInit() override;
     void lps22dfCallback() override;
 
-    void lps28dfw_1Init();
-    void lps28dfw_1Callback();
+    void lps28dfw_1Init() override;
+    void lps28dfw_1Callback() override;
 
-    void lps28dfw_2Init();
-    void lps28dfw_2Callback();
+    void lps28dfw_2Init() override;
+    void lps28dfw_2Callback() override;
 
     void h3lis331dlInit() override;
     void h3lis331dlCallback() override;
@@ -79,17 +75,11 @@ private:
     void lsm6dsrxInit() override;
     void lsm6dsrxCallback() override;
 
-    void ads131m08Init() override;
-    void ads131m08Callback() override;
-
     void staticPressureInit() override;
     void staticPressureCallback() override;
 
     void dynamicPressureInit() override;
     void dynamicPressureCallback() override;
-
-    void pitotInit() override;
-    void pitotCallback() override;
 
     void imuInit() override;
     void imuCallback() override;
@@ -104,10 +94,8 @@ private:
     HILConfig::PayloadHILGps* ubxgps                   = nullptr;
     HILConfig::PayloadHILAccelerometer* lsm6dsrx_accel = nullptr;
     HILConfig::PayloadHILGyroscope* lsm6dsrx_gyro      = nullptr;
-    HILConfig::PayloadHILPitot* pitot                  = nullptr;
     HILConfig::PayloadHILBarometer* staticPressure     = nullptr;
     HILConfig::PayloadHILBarometer* dynamicPressure    = nullptr;
-    // Boardcore::ADS131M08* ads131m08  = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };

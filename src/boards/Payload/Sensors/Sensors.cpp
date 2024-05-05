@@ -543,9 +543,9 @@ void Sensors::pitotInit()
 {
     // create lambda function to read the pressure
     function<float()> getDynamicPressure(
-        [&]() { return dynamicPressure->getLastSample().pressure; });
+        [&]() { return getDynamicPressureLastSample().pressure; });
     function<float()> getStaticPressure(
-        [&]() { return staticPressure->getLastSample().pressure; });
+        [&]() { return getStaticPressureLastSample().pressure; });
 
     pitot = new Pitot(getDynamicPressure, getStaticPressure);
     pitot->setReferenceValues(Common::ReferenceConfig::defaultReferenceValues);

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Payload/Buses.h>
+#include <Payload/Configs/SensorsConfig.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -49,17 +50,21 @@ namespace HILConfig
 
 /** Period of simulation in milliseconds */
 constexpr int SIMULATION_PERIOD = 100;
+constexpr int SIMULATION_FREQ = 1000 / SIMULATION_PERIOD;
 
 /** sample frequency of sensor (samples/second) */
-constexpr int ACCEL_FREQ        = 100;
-constexpr int GYRO_FREQ         = 100;
-constexpr int MAGN_FREQ         = 100;
-constexpr int IMU_FREQ          = 100;
-constexpr int BARO_FREQ         = 50;
+constexpr int ACCEL_FREQ = 1000 / Payload::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int GYRO_FREQ  = 1000 / Payload::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int MAGN_FREQ  = 1000 / Payload::SensorsConfig::LIS2MDL_PERIOD;
+constexpr int IMU_FREQ   = 1000 / Payload::SensorsConfig::IMU_PERIOD;
+constexpr int ANALOG_BARO_FREQ =
+    1000 / Payload::SensorsConfig::ADS131M08_PERIOD;
+constexpr int DIGITAL_BARO_FREQ = 1000 / Payload::SensorsConfig::LPS22DF_PERIOD;
 constexpr int BARO_CHAMBER_FREQ = 50;
 constexpr int PITOT_FREQ        = 20;
-constexpr int TEMP_FREQ         = 10;
-constexpr int GPS_FREQ          = 10;
+constexpr int TEMP_FREQ = 1000 / SIMULATION_PERIOD;  // One sample per iteration
+// Hardcoded to 10 Hz so that we sample at least 1 time every integration step
+constexpr int GPS_FREQ = 1000 / Payload::SensorsConfig::UBXGPS_PERIOD;
 
 /** Number of samples per sensor at each simulator iteration */
 constexpr int N_DATA_ACCEL =
@@ -70,8 +75,10 @@ constexpr int N_DATA_MAGNETO =
     static_cast<int>((MAGN_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_IMU =
     static_cast<int>((IMU_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_BARO =
-    static_cast<int>((BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_ANALOG_BARO =
+    static_cast<int>((ANALOG_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_DIGITAL_BARO =
+    static_cast<int>((DIGITAL_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_BARO_CHAMBER =
     static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_PITOT =
@@ -80,6 +87,46 @@ constexpr int N_DATA_GPS =
     static_cast<int>((GPS_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_TEMP =
     static_cast<int>((TEMP_FREQ * SIMULATION_PERIOD) / 1000.0);
+
+static_assert((ACCEL_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_ACCEL not an integer");
+static_assert((GYRO_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GYRO not an integer");
+static_assert((MAGN_FREQ % SIMULATION_FREQ) == 0, "N_DATA_MAGN not an integer");
+static_assert((IMU_FREQ % SIMULATION_FREQ) == 0, "N_DATA_IMU not an integer");
+static_assert((ANALOG_BARO_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_ANALOG_BARO not an integer");
+static_assert((DIGITAL_BARO_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_DIGITAL_BARO not an integer");
+static_assert((BARO_CHAMBER_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_BARO_CHAMBER not an integer");
+static_assert((PITOT_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_PITOT not an integer");
+static_assert((TEMP_FREQ % SIMULATION_FREQ) == 0, "N_DATA_TEMP not an integer");
+static_assert((GPS_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GPS not an integer");
+
+// Sensors Data
+using PayloadAccelerometerSimulatorData =
+    AccelerometerSimulatorData<N_DATA_ACCEL>;
+using PayloadGyroscopeSimulatorData = GyroscopeSimulatorData<N_DATA_GYRO>;
+using PayloadMagnetometerSimulatorData =
+    MagnetometerSimulatorData<N_DATA_MAGNETO>;
+using PayloadGPSSimulatorData = GPSSimulatorData<N_DATA_GPS>;
+using PayloadBarometerSimulatorData =
+    BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
+using PayloadChamberPressureSimulatorData =
+    BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
+using PayloadPitotSimulatorData       = PitotSimulatorData<N_DATA_PITOT>;
+using PayloadTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
+
+// Sensors
+using PayloadHILAccelerometer    = HILAccelerometer<N_DATA_ACCEL>;
+using PayloadHILGyroscope        = HILGyroscope<N_DATA_GYRO>;
+using PayloadHILMagnetometer     = HILMagnetometer<N_DATA_MAGNETO>;
+using PayloadHILGps              = HILGps<N_DATA_GPS>;
+using PayloadHILBarometer        = HILBarometer<N_DATA_DIGITAL_BARO>;
+using PayloadHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
+using PayloadHILPitot            = HILPitot<N_DATA_PITOT>;
+using PayloadHILTemperature      = HILTemperature<N_DATA_TEMP>;
 
 struct FlagsHIL
 {
@@ -175,61 +222,32 @@ struct NASStateHIL
 
 struct ActuatorsStateHIL
 {
-    float airbrakesPercentage       = 0;  //
-    float expulsionPercentage       = 0;
-    float parafoilLeftPercentage    = 0;
-    float parafoilRightPercentage   = 0;
-    float mainValvePercentage       = 0;  //
-    float ventingValvePercentage    = 0;  //
-    float releaseValvePercentage    = 0;
-    float fillingValvePercentage    = 0;  //
-    float disconnectValvePercentage = 0;  //
+    float parafoilLeftPercentage  = 0;
+    float parafoilRightPercentage = 0;
+    float cutterState             = 0;
 
     ActuatorsStateHIL()
-        : airbrakesPercentage(0.0f), expulsionPercentage(0.0f),
-          parafoilLeftPercentage(0.0f), parafoilRightPercentage(0.0f),
-          mainValvePercentage(0.0f), ventingValvePercentage(0.0f),
-          releaseValvePercentage(0.0f), fillingValvePercentage(0.0f),
-          disconnectValvePercentage(0.0f)
+        : parafoilLeftPercentage(0.0f), parafoilRightPercentage(0.0f),
+          cutterState(0.0f)
     {
     }
 
-    ActuatorsStateHIL(float airbrakesPercentage, float expulsionPercentage,
-                      float parafoilLeftPercentage,
-                      float parafoilRightPercentage, float mainValvePercentage,
-                      float ventingValvePercentage,
-                      float releaseValvePercentage,
-                      float fillingValvePercentage,
-                      float disconnectValvePercentage)
-        : airbrakesPercentage(airbrakesPercentage),
-          expulsionPercentage(expulsionPercentage),
-          parafoilLeftPercentage(parafoilLeftPercentage),
+    ActuatorsStateHIL(float parafoilLeftPercentage,
+                      float parafoilRightPercentage, float cutterState)
+        : parafoilLeftPercentage(parafoilLeftPercentage),
           parafoilRightPercentage(parafoilRightPercentage),
-          mainValvePercentage(mainValvePercentage),
-          ventingValvePercentage(ventingValvePercentage),
-          releaseValvePercentage(releaseValvePercentage),
-          fillingValvePercentage(fillingValvePercentage),
-          disconnectValvePercentage(disconnectValvePercentage)
+          cutterState(cutterState)
     {
     }
 
     void print()
     {
         printf(
-            "airbrakes: %f perc\n"
-            "expulsion: %f perc\n"
             "parafoilLeft: %f perc\n"
             "parafoilRight: %f perc\n"
-            "mainValve: %f perc\n"
-            "ventingValve: %f perc\n"
-            "releaseValve: %f perc\n"
-            "fillingValve: %f perc\n"
-            "disconnectValve: %f perc\n",
-            airbrakesPercentage * 100, expulsionPercentage * 100,
+            "cutterState: %f perc\n",
             parafoilLeftPercentage * 100, parafoilRightPercentage * 100,
-            mainValvePercentage * 100, ventingValvePercentage * 100,
-            releaseValvePercentage * 100, fillingValvePercentage * 100,
-            disconnectValvePercentage * 100);
+            cutterState * 100);
     }
 };
 
@@ -249,19 +267,29 @@ struct GuidanceDataHIL
 {
     float psiRef;
     float deltaA;
+    float currentTargetN;
+    float currentTargetE;
 
-    GuidanceDataHIL(float psiRef, float deltaA) : psiRef(psiRef), deltaA(deltaA)
+    GuidanceDataHIL(float psiRef, float deltaA, float currentTargetN,
+                    float currentTargetE)
+        : psiRef(psiRef), deltaA(deltaA), currentTargetN(currentTargetN),
+          currentTargetE(currentTargetE)
     {
     }
 
-    GuidanceDataHIL() : psiRef(0.0f), deltaA(0.0f) {}
+    GuidanceDataHIL()
+        : psiRef(0.0f), deltaA(0.0f), currentTargetN(0), currentTargetE(0)
+    {
+    }
 
     void print()
     {
         printf(
             "psiRef: %f\n"
-            "deltaA: %f\n",
-            psiRef, deltaA);
+            "deltaA: %f\n"
+            "currentTargetN: %f\n"
+            "currentTargetE: %f\n",
+            psiRef, deltaA, currentTargetN, currentTargetE);
     }
 };
 
@@ -274,28 +302,13 @@ struct GuidanceDataHIL
  */
 struct SimulatorData
 {
-    struct AccelerometerSimulatorData<N_DATA_ACCEL> accelerometer;
-    struct GyroscopeSimulatorData<N_DATA_GYRO> gyro;
-    struct MagnetometerSimulatorData<N_DATA_MAGNETO> magnetometer;
-    struct GPSSimulatorData<N_DATA_GPS> gps;
-    struct BarometerSimulatorData<N_DATA_BARO> barometer1, barometer2,
-        barometer3;
-    struct BarometerSimulatorData<N_DATA_BARO_CHAMBER> pressureChamber;
-    struct PitotSimulatorData<N_DATA_PITOT> pitot;
-    struct TemperatureSimulatorData<N_DATA_TEMP> temperature;
-    struct FlagsHIL flags;
-
-    void print()
-    {
-        printf("%f,%f,%f\n", accelerometer.measures[0][0],
-               accelerometer.measures[0][1], accelerometer.measures[0][2]);
-        printf("%f,%f,%f\n", gyro.measures[0][0],
-               gyro.measures[0][1], gyro.measures[0][2]);
-        printf("%f,%f,%f\n", magnetometer.measures[0][0],
-               magnetometer.measures[0][1], magnetometer.measures[0][2]);
-        printf("%f\n", temperature.measures[0]);
-        flags.print();
-    }
+    PayloadAccelerometerSimulatorData accelerometer;
+    PayloadGyroscopeSimulatorData gyro;
+    PayloadMagnetometerSimulatorData magnetometer;
+    PayloadGPSSimulatorData gps;
+    PayloadBarometerSimulatorData barometer1, barometer2, barometer3;
+    PayloadBarometerSimulatorData staticPitot, dynamicPitot;
+    PayloadTemperatureSimulatorData temperature;
 };
 
 /**
@@ -316,7 +329,7 @@ struct ActuatorData
 
     ActuatorData(NASStateHIL nasState, ActuatorsStateHIL actuatorsState,
                  WESDataHIL wesData, GuidanceDataHIL guidanceData,
-                 FlagsHIL flagsIn, Payload::FlightModeManager* fmm)
+                 Payload::FlightModeManager* fmm)
         : nasState(nasState), actuatorsState(actuatorsState), wesData(wesData),
           guidanceData(guidanceData)
     {
@@ -331,8 +344,8 @@ struct ActuatorData
         flags.flag_ascent =
             (fmm->testState(&Payload::FlightModeManager::state_ascending) ? 1
                                                                           : 0);
-        flags.flag_burning   = flagsIn.flag_burning;
-        flags.flag_airbrakes = flagsIn.flag_airbrakes;
+        flags.flag_burning   = 0; // Hardcoded to 0 since it's the payload
+        flags.flag_airbrakes = 0; // Hardcoded to 0 since it's the payload
         flags.flag_para1 =
             (fmm->testState(&Payload::FlightModeManager::state_drogue_descent)
                  ? 1
@@ -373,15 +386,6 @@ enum PayloadFlightPhases
     PARA2,
     SIMULATION_STOPPED
 };
-
-using PayloadHILAccelerometer = HILAccelerometer<N_DATA_ACCEL>;
-using PayloadHILGyroscope     = HILGyroscope<N_DATA_GYRO>;
-using PayloadHILMagnetometer  = HILMagnetometer<N_DATA_MAGNETO>;
-using PayloadHILGps           = HILGps<N_DATA_GPS>;
-using PayloadHILBarometer     = HILBarometer<N_DATA_BARO>;
-using PayloadHILBarometer     = HILBarometer<N_DATA_BARO_CHAMBER>;
-using PayloadHILPitot         = HILPitot<N_DATA_PITOT>;
-using PayloadHILTemperature   = HILTemperature<N_DATA_TEMP>;
 
 using PayloadHILTransceiver =
     HILTransceiver<PayloadFlightPhases, SimulatorData, ActuatorData>;
@@ -433,8 +437,6 @@ public:
 
     void processFlags(const SimulatorData& simulatorData) override
     {
-        updateSimulatorFlags(simulatorData);
-
         std::vector<PayloadFlightPhases> changed_flags;
 
         // set true when the first packet from the simulator arrives
@@ -594,30 +596,6 @@ private:
         }
 
         prev_flagsFlightPhases = flagsFlightPhases;
-    }
-
-    /**
-     * @brief Updates the flags of the object with the flags sent from matlab
-     * and checks for the apogee
-     */
-    void updateSimulatorFlags(const SimulatorData& simulatorData)
-    {
-        flagsFlightPhases[PayloadFlightPhases::SIM_ASCENT] =
-            simulatorData.flags.flag_ascent;
-        flagsFlightPhases[PayloadFlightPhases::SIM_FLYING] =
-            simulatorData.flags.flag_flight;
-        flagsFlightPhases[PayloadFlightPhases::SIM_BURNING] =
-            simulatorData.flags.flag_burning;
-        flagsFlightPhases[PayloadFlightPhases::SIM_AEROBRAKES] =
-            simulatorData.flags.flag_airbrakes;
-        flagsFlightPhases[PayloadFlightPhases::SIM_PARA1] =
-            simulatorData.flags.flag_para1;
-        flagsFlightPhases[PayloadFlightPhases::SIM_PARA2] =
-            simulatorData.flags.flag_para2;
-
-        flagsFlightPhases[PayloadFlightPhases::SIMULATION_STOPPED] =
-            isSetFalse(PayloadFlightPhases::SIM_FLYING) ||
-            prev_flagsFlightPhases[PayloadFlightPhases::SIMULATION_STOPPED];
     }
 };
 

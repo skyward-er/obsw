@@ -89,7 +89,8 @@ public:
 
     // Processed getters
     virtual Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-    virtual Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
+    virtual Boardcore::BatteryVoltageSensorData
+    getCamBatteryVoltageLastSample();
     virtual Boardcore::CurrentData getCurrentLastSample();
     virtual RotatedIMUData getIMULastSample();
     virtual Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();

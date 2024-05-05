@@ -136,19 +136,13 @@ LSM6DSRXData HILSensors::getLSM6DSRXLastSample()
 
     return lastSample;
 }
-ADS131M08Data HILSensors::getADS131M08LastSample()
-{
-    miosix::PauseKernelLock lock;
-    return ads131m08 != nullptr ? ads131m08->getLastSample() : ADS131M08Data{};
-    return ADS131M08Data{};
-}
 
 Boardcore::HSCMRNN015PAData HILSensors::getStaticPressureLastSample()
 {
     Boardcore::HSCMRNN015PAData data;
     miosix::PauseKernelLock lock;
 
-    auto baro = getLPS22DFLastSample();
+    auto baro              = getLPS22DFLastSample();
     data.pressureTimestamp = baro.pressureTimestamp;
     data.pressure          = baro.pressure;
 
@@ -167,72 +161,7 @@ Boardcore::SSCMRNN030PAData HILSensors::getDynamicPressureLastSample()
     return data;
 }
 
-Boardcore::PitotData HILSensors::getPitotLastSample()
-{
-    Boardcore::PitotData data;
-    miosix::PauseKernelLock lock;
-
-    auto sample    = pitot->getLastSample();
-    data.timestamp = sample.timestamp;
-    data.airspeed  = sample.airspeed;
-    data.deltaP    = sample.deltaP;
-
-    return data;
-}
-
 HILSensors::HILSensors(TaskScheduler* sched) : Payload::Sensors(sched) {}
-
-bool HILSensors::start()
-{
-    // Init all the sensors
-    temperatureInit();
-    LOG_INFO(logger, "temperatureInit\n");
-    lps22dfInit();
-    LOG_INFO(logger, "lps22dfInit\n");
-    lps28dfw_1Init();
-    LOG_INFO(logger, "lps28dfw_1Init\n");
-    lps28dfw_2Init();
-    LOG_INFO(logger, "lps28dfw_2Init\n");
-    h3lis331dlInit();
-    LOG_INFO(logger, "h3lis331dlInit\n");
-    lis2mdlInit();
-    LOG_INFO(logger, "lis2mdlInit\n");
-    ubxgpsInit();
-    LOG_INFO(logger, "ubxgpsInit\n");
-    lsm6dsrxInit();
-    LOG_INFO(logger, "lsm6dsrxInit\n");
-    // ads131m08Init();
-    // LOG_INFO(logger, "ads131m08Init\n");
-    staticPressureInit();
-    LOG_INFO(logger, "staticPressureInit\n");
-    dynamicPressureInit();
-    LOG_INFO(logger, "dynamicPressureInit\n");
-    pitotInit();
-    LOG_INFO(logger, "pitotInit\n");
-    imuInit();
-    LOG_INFO(logger, "imuInit\n");
-
-    // Add the magnetometer calibration to the scheduler
-    size_t result = scheduler->addTask(
-        [&]()
-        {
-            // Gather the last sample data
-            MagnetometerData lastSample = getLIS2MDLLastSample();
-
-            // Feed the data to the calibrator inside a protected area.
-            // Contention is not high and the use of a mutex is suitable to
-            // avoid pausing the kernel for this calibration operation
-            {
-                miosix::Lock<FastMutex> l(calibrationMutex);
-                magCalibrator.feed(lastSample);
-            }
-        },
-        MAG_CALIBRATION_PERIOD);
-
-    // Create sensor manager with populated map and configured scheduler
-    manager = new SensorManager(sensorMap, scheduler);
-    return manager->start() && result != 0;
-}
 
 void HILSensors::temperatureInit()
 {
@@ -290,20 +219,6 @@ void HILSensors::lps28dfw_2Init()
     SensorInfo info("LPS28DFW_2_PayloadHIL", LPS28DFW_PERIOD,
                     bind(&HILSensors::lps28dfw_2Callback, this));
     sensorMap.emplace(make_pair(lps28dfw_2, info));
-}
-
-void HILSensors::pitotInit()
-{
-    // create lambda function to read the pressure
-    pitot = new PayloadHILPitot(&Boardcore::ModuleManager::getInstance()
-                                     .get<PayloadHIL>()
-                                     ->hilTransceiver->getSensorData()
-                                     ->pitot);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("Pitot", 1000 / PITOT_FREQ,
-                    bind(&HILSensors::pitotCallback, this));
-    sensorMap.emplace(make_pair(pitot, info));
 }
 
 void HILSensors::h3lis331dlInit()
@@ -371,58 +286,34 @@ void HILSensors::lsm6dsrxInit()
     sensorMap.emplace(make_pair(lsm6dsrx_gyro, info));
 }
 
-void HILSensors::ads131m08Init()
-{
-    // ModuleManager& modules = ModuleManager::getInstance();
-
-    // Configure the SPI
-    // SPIBusConfig config;
-    // config.clockDivider = SPI::ClockDivider::DIV_32;
-
-    // // Configure the device
-    // ADS131M08::Config sensorConfig;
-    // sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
-    // sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
-
-    // // Create the sensor instance with configured parameters
-    // ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
-    //                           miosix::sensors::ADS131::cs::getPin(), config,
-    //                           sensorConfig);
-
-    // // Emplace the sensor inside the map
-    // SensorInfo info("ADS131M08", ADS131M08_PERIOD,
-    // bind(&HILSensors::ads131m08Callback, this));
-    // sensorMap.emplace(make_pair(ads131m08, info));
-}
-
 void HILSensors::staticPressureInit()
 {
-    // // Create sensor instance with configured parameters
-    // staticPressure =
-    //     new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-    //                                  .get<PayloadHIL>()
-    //                                  ->hilTransceiver->getSensorData()
-    //                                  ->staticPitot);
+    // Create sensor instance with configured parameters
+    staticPressure =
+        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
+                                     .get<PayloadHIL>()
+                                     ->hilTransceiver->getSensorData()
+                                     ->staticPitot);
 
-    // // Emplace the sensor inside the map
-    // SensorInfo info("StaticPitot", 1000 / PITOT_FREQ,
-    //                 bind(&HILSensors::staticPressureCallback, this));
-    // sensorMap.emplace(make_pair(staticPressure, info));
+    // Emplace the sensor inside the map
+    SensorInfo info("StaticPitot", 1000 / PITOT_FREQ,
+                    bind(&HILSensors::staticPressureCallback, this));
+    sensorMap.emplace(make_pair(staticPressure, info));
 }
 
 void HILSensors::dynamicPressureInit()
 {
-    // // Create sensor instance with configured parameters
-    // dynamicPressure = new PayloadHILBarometer(
-    //     N_DATA_PITOT, &Boardcore::ModuleManager::getInstance()
-    //                        .get<PayloadHIL>()
-    //                        ->hilTransceiver->getSensorData()
-    //                        ->dynamicPitot);
+    // Create sensor instance with configured parameters
+    dynamicPressure =
+        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
+                                     .get<PayloadHIL>()
+                                     ->hilTransceiver->getSensorData()
+                                     ->dynamicPitot);
 
-    // // Emplace the sensor inside the map
-    // SensorInfo info("DynamicPitot", 1000 / PITOT_FREQ,
-    //                 bind(&HILSensors::dynamicPressureCallback, this));
-    // sensorMap.emplace(make_pair(dynamicPressure, info));
+    // Emplace the sensor inside the map
+    SensorInfo info("DynamicPitot", 1000 / PITOT_FREQ,
+                    bind(&HILSensors::dynamicPressureCallback, this));
+    sensorMap.emplace(make_pair(dynamicPressure, info));
 }
 
 void HILSensors::imuInit()
@@ -436,18 +327,17 @@ void HILSensors::imuInit()
         bind(&HILSensors::getCalibratedMagnetometerLastSample, this),
         bind(&HILSensors::getLSM6DSRXLastSample, this));
 
-    // Invert the Y axis on the magnetometer
-    // Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    // imu->addMagTransformation(m);
-
     // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
     SensorInfo info("RotatedIMU", IMU_PERIOD,
                     bind(&HILSensors::imuCallback, this));
     sensorMap.emplace(make_pair(imu, info));
 }
 
-void HILSensors::dynamicPressureCallback() { return; }
-void HILSensors::pitotCallback() { return; }
+void HILSensors::dynamicPressureCallback()
+{
+    miosix::PauseKernelLock lock;
+    Logger::getInstance().log(getDynamicPressureLastSample());
+}
 void HILSensors::lps22dfCallback()
 {
     miosix::PauseKernelLock lock;
@@ -484,11 +374,6 @@ void HILSensors::lsm6dsrxCallback()
 {
     miosix::PauseKernelLock lock;
     Logger::getInstance().log(getLSM6DSRXLastSample());
-}
-void HILSensors::ads131m08Callback()
-{
-    miosix::PauseKernelLock lock;
-    Logger::getInstance().log(getADS131M08LastSample());
 }
 void HILSensors::staticPressureCallback()
 {

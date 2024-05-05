@@ -125,15 +125,9 @@ int main()
                                     modules.get<NASController>()->getStatus());
 
             ActuatorsStateHIL actuatorsStateHIL(
-                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
-                actuators->getServoPosition(ServosList::EXPULSION_SERVO),
                 actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
                 actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
-                actuators->getServoPosition(ServosList::MAIN_VALVE),
-                actuators->getServoPosition(ServosList::VENTING_VALVE),
-                actuators->getServoPosition(ServosList::RELEASE_VALVE),
-                actuators->getServoPosition(ServosList::FILLING_VALVE),
-                actuators->getServoPosition(ServosList::DISCONNECT_SERVO));
+                static_cast<float>(miosix::gpios::cut_trigger::value()));
 
             WESDataHIL wesDataHIL(windEstimation->getWindEstimationScheme());
 
@@ -145,13 +139,12 @@ int main()
             auto psiRef = wingController->emGuidance.calculateTargetAngle(
                 {nasStateHIL.n, nasStateHIL.e, nasStateHIL.d}, heading);
 
-            GuidanceDataHIL guidanceData(psiRef, deltaA);
-
-            FlagsHIL flags(hilTransceiver->getSensorData()->flags);
+            GuidanceDataHIL guidanceData(psiRef, deltaA, heading[0],
+                                         heading[1]);
 
             // Returning the feedback for the simulator
             return ActuatorData(nasStateHIL, actuatorsStateHIL, wesDataHIL,
-                                guidanceData, flags, fmm);
+                                guidanceData, fmm);
         };
 
         PayloadHIL* hil = new PayloadHIL(hilTransceiver, hilPhasesManager,
@@ -172,8 +165,8 @@ int main()
             [&]()
             {
                 printf("Flying\n");
-                EventBroker::getInstance().post(
-                    Events::CAN_LIFTOFF, Topics::TOPIC_CAN);
+                EventBroker::getInstance().post(Events::CAN_LIFTOFF,
+                                                Topics::TOPIC_CAN);
             });
 
         hilPhasesManager->registerToFlightPhase(
@@ -181,8 +174,8 @@ int main()
             [&]()
             {
                 printf("ARMED\n");
-                EventBroker::getInstance().post(
-                    Events::CAN_LIFTOFF, Topics::TOPIC_CAN);
+                EventBroker::getInstance().post(Events::CAN_LIFTOFF,
+                                                Topics::TOPIC_CAN);
                 miosix::ledOn();
             });
 
@@ -296,15 +289,15 @@ int main()
         }
 
         // Waiting for start of simulation
-        printf("SimulatorData: %d\n", sizeof(SimulatorData)/sizeof(float));
-        printf("ActuatorData: %d\n", sizeof(ActuatorData)/sizeof(float));
+        printf("SimulatorData: %d\n", sizeof(SimulatorData) / sizeof(float));
+        printf("ActuatorData: %d\n", sizeof(ActuatorData) / sizeof(float));
         ModuleManager::getInstance().get<PayloadHIL>()->waitStartSimulation();
     }
 
-    if (!Logger::getInstance().testSDCard())
+    if (!Logger::getInstance().start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error testing the Logger module");
+        LOG_ERR(logger, "Error starting the Logger module");
     }
 
     if (!EventBroker::getInstance().start())
