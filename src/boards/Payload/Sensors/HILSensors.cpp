@@ -163,6 +163,58 @@ Boardcore::SSCMRNN030PAData HILSensors::getDynamicPressureLastSample()
 
 HILSensors::HILSensors(TaskScheduler* sched) : Payload::Sensors(sched) {}
 
+bool HILSensors::start()
+{
+    // Init all the sensors
+    temperatureInit();
+    LOG_INFO(logger, "temperatureInit\n");
+    lps22dfInit();
+    LOG_INFO(logger, "lps22dfInit\n");
+    lps28dfw_1Init();
+    LOG_INFO(logger, "lps28dfw_1Init\n");
+    lps28dfw_2Init();
+    LOG_INFO(logger, "lps28dfw_2Init\n");
+    h3lis331dlInit();
+    LOG_INFO(logger, "h3lis331dlInit\n");
+    lis2mdlInit();
+    LOG_INFO(logger, "lis2mdlInit\n");
+    ubxgpsInit();
+    LOG_INFO(logger, "ubxgpsInit\n");
+    lsm6dsrxInit();
+    LOG_INFO(logger, "lsm6dsrxInit\n");
+    // ads131m08Init();
+    // LOG_INFO(logger, "ads131m08Init\n");
+    staticPressureInit();
+    LOG_INFO(logger, "staticPressureInit\n");
+    dynamicPressureInit();
+    LOG_INFO(logger, "dynamicPressureInit\n");
+    pitotInit();
+    LOG_INFO(logger, "pitotInit\n");
+    imuInit();
+    LOG_INFO(logger, "imuInit\n");
+
+    // Add the magnetometer calibration to the scheduler
+    size_t result = scheduler->addTask(
+        [&]()
+        {
+            // Gather the last sample data
+            MagnetometerData lastSample = getLIS2MDLLastSample();
+
+            // Feed the data to the calibrator inside a protected area.
+            // Contention is not high and the use of a mutex is suitable to
+            // avoid pausing the kernel for this calibration operation
+            {
+                miosix::Lock<FastMutex> l(calibrationMutex);
+                magCalibrator.feed(lastSample);
+            }
+        },
+        MAG_CALIBRATION_PERIOD);
+
+    // Create sensor manager with populated map and configured scheduler
+    manager = new SensorManager(sensorMap, scheduler);
+    return manager->start() && result != 0;
+}
+
 void HILSensors::temperatureInit()
 {
     temperature =

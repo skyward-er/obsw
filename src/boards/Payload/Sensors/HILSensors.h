@@ -38,6 +38,8 @@ class HILSensors : public Sensors
 public:
     explicit HILSensors(Boardcore::TaskScheduler* sched);
 
+    [[nodiscard]] bool start() override;
+
     // Sensor getters
     Boardcore::LPS22DFData getLPS22DFLastSample() override;
     Boardcore::LPS28DFWData getLPS28DFW_1LastSample() override;
