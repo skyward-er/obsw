@@ -87,17 +87,17 @@ private:
     void imuCallback() override;
 
     // HILSensors instances
-    HILConfig::PayloadHILTemperature* temperature      = nullptr;
-    HILConfig::PayloadHILBarometer* lps22df            = nullptr;
-    HILConfig::PayloadHILBarometer* lps28dfw_1         = nullptr;
-    HILConfig::PayloadHILBarometer* lps28dfw_2         = nullptr;
-    HILConfig::PayloadHILAccelerometer* h3lis331dl     = nullptr;
-    HILConfig::PayloadHILMagnetometer* lis2mdl         = nullptr;
-    HILConfig::PayloadHILGps* ubxgps                   = nullptr;
-    HILConfig::PayloadHILAccelerometer* lsm6dsrx_accel = nullptr;
-    HILConfig::PayloadHILGyroscope* lsm6dsrx_gyro      = nullptr;
-    HILConfig::PayloadHILBarometer* staticPressure     = nullptr;
-    HILConfig::PayloadHILBarometer* dynamicPressure    = nullptr;
+    HILConfig::PayloadHILTemperature* temperature         = nullptr;
+    HILConfig::PayloadHILDigitalBarometer* lps22df        = nullptr;
+    HILConfig::PayloadHILDigitalBarometer* lps28dfw_1     = nullptr;
+    HILConfig::PayloadHILDigitalBarometer* lps28dfw_2     = nullptr;
+    HILConfig::PayloadHILAccelerometer* h3lis331dl        = nullptr;
+    HILConfig::PayloadHILMagnetometer* lis2mdl            = nullptr;
+    HILConfig::PayloadHILGps* ubxgps                      = nullptr;
+    HILConfig::PayloadHILAccelerometer* lsm6dsrx_accel    = nullptr;
+    HILConfig::PayloadHILGyroscope* lsm6dsrx_gyro         = nullptr;
+    HILConfig::PayloadHILAnalogBarometer* staticPressure  = nullptr;
+    HILConfig::PayloadHILAnalogBarometer* dynamicPressure = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };

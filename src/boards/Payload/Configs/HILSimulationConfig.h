@@ -50,7 +50,7 @@ namespace HILConfig
 
 /** Period of simulation in milliseconds */
 constexpr int SIMULATION_PERIOD = 100;
-constexpr int SIMULATION_FREQ = 1000 / SIMULATION_PERIOD;
+constexpr int SIMULATION_FREQ   = 1000 / SIMULATION_PERIOD;
 
 /** sample frequency of sensor (samples/second) */
 constexpr int ACCEL_FREQ = 1000 / Payload::SensorsConfig::LSM6DSRX_PERIOD;
@@ -61,7 +61,6 @@ constexpr int ANALOG_BARO_FREQ =
     1000 / Payload::SensorsConfig::ADS131M08_PERIOD;
 constexpr int DIGITAL_BARO_FREQ = 1000 / Payload::SensorsConfig::LPS22DF_PERIOD;
 constexpr int BARO_CHAMBER_FREQ = 50;
-constexpr int PITOT_FREQ        = 20;
 constexpr int TEMP_FREQ = 1000 / SIMULATION_PERIOD;  // One sample per iteration
 // Hardcoded to 10 Hz so that we sample at least 1 time every integration step
 constexpr int GPS_FREQ = 1000 / Payload::SensorsConfig::UBXGPS_PERIOD;
@@ -81,8 +80,6 @@ constexpr int N_DATA_DIGITAL_BARO =
     static_cast<int>((DIGITAL_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_BARO_CHAMBER =
     static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_PITOT =
-    static_cast<int>((PITOT_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_GPS =
     static_cast<int>((GPS_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_TEMP =
@@ -99,8 +96,6 @@ static_assert((DIGITAL_BARO_FREQ % SIMULATION_FREQ) == 0,
               "N_DATA_DIGITAL_BARO not an integer");
 static_assert((BARO_CHAMBER_FREQ % SIMULATION_FREQ) == 0,
               "N_DATA_BARO_CHAMBER not an integer");
-static_assert((PITOT_FREQ % SIMULATION_FREQ) == 0,
-              "N_DATA_PITOT not an integer");
 static_assert((TEMP_FREQ % SIMULATION_FREQ) == 0, "N_DATA_TEMP not an integer");
 static_assert((GPS_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GPS not an integer");
 
@@ -115,7 +110,6 @@ using PayloadBarometerSimulatorData =
     BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
 using PayloadChamberPressureSimulatorData =
     BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
-using PayloadPitotSimulatorData       = PitotSimulatorData<N_DATA_PITOT>;
 using PayloadTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
 
 // Sensors
@@ -123,9 +117,9 @@ using PayloadHILAccelerometer    = HILAccelerometer<N_DATA_ACCEL>;
 using PayloadHILGyroscope        = HILGyroscope<N_DATA_GYRO>;
 using PayloadHILMagnetometer     = HILMagnetometer<N_DATA_MAGNETO>;
 using PayloadHILGps              = HILGps<N_DATA_GPS>;
-using PayloadHILBarometer        = HILBarometer<N_DATA_DIGITAL_BARO>;
+using PayloadHILDigitalBarometer = HILBarometer<N_DATA_DIGITAL_BARO>;
+using PayloadHILAnalogBarometer  = HILBarometer<N_DATA_ANALOG_BARO>;
 using PayloadHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
-using PayloadHILPitot            = HILPitot<N_DATA_PITOT>;
 using PayloadHILTemperature      = HILTemperature<N_DATA_TEMP>;
 
 struct FlagsHIL
@@ -344,8 +338,8 @@ struct ActuatorData
         flags.flag_ascent =
             (fmm->testState(&Payload::FlightModeManager::state_ascending) ? 1
                                                                           : 0);
-        flags.flag_burning   = 0; // Hardcoded to 0 since it's the payload
-        flags.flag_airbrakes = 0; // Hardcoded to 0 since it's the payload
+        flags.flag_burning   = 0;  // Hardcoded to 0 since it's the payload
+        flags.flag_airbrakes = 0;  // Hardcoded to 0 since it's the payload
         flags.flag_para1 =
             (fmm->testState(&Payload::FlightModeManager::state_drogue_descent)
                  ? 1

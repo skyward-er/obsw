@@ -154,9 +154,9 @@ Boardcore::SSCMRNN030PAData HILSensors::getDynamicPressureLastSample()
     Boardcore::SSCMRNN030PAData data;
     miosix::PauseKernelLock lock;
 
-    // data.pressureTimestamp =
-    // dynamicPressure->getLastSample().pressureTimestamp; data.pressure =
-    // dynamicPressure->getLastSample().pressure;
+    auto baro              = dynamicPressure->getLastSample();
+    data.pressureTimestamp = baro.pressureTimestamp;
+    data.pressure          = baro.pressure;
 
     return data;
 }
@@ -232,10 +232,11 @@ void HILSensors::temperatureInit()
 void HILSensors::lps22dfInit()
 {
     // Create sensor instance with configured parameters
-    lps22df = new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-                                           .get<PayloadHIL>()
-                                           ->hilTransceiver->getSensorData()
-                                           ->barometer1);
+    lps22df =
+        new PayloadHILDigitalBarometer(&Boardcore::ModuleManager::getInstance()
+                                            .get<PayloadHIL>()
+                                            ->hilTransceiver->getSensorData()
+                                            ->barometer1);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS22DF_PayloadHIL", LPS22DF_PERIOD,
@@ -247,10 +248,10 @@ void HILSensors::lps28dfw_1Init()
 {
     // Create sensor instance with configured parameters
     lps28dfw_1 =
-        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-                                     .get<PayloadHIL>()
-                                     ->hilTransceiver->getSensorData()
-                                     ->barometer2);
+        new PayloadHILDigitalBarometer(&Boardcore::ModuleManager::getInstance()
+                                            .get<PayloadHIL>()
+                                            ->hilTransceiver->getSensorData()
+                                            ->barometer2);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_1_PayloadHIL", LPS28DFW_PERIOD,
@@ -262,10 +263,10 @@ void HILSensors::lps28dfw_2Init()
 {
     // Create sensor instance with configured parameters
     lps28dfw_2 =
-        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-                                     .get<PayloadHIL>()
-                                     ->hilTransceiver->getSensorData()
-                                     ->barometer3);
+        new PayloadHILDigitalBarometer(&Boardcore::ModuleManager::getInstance()
+                                            .get<PayloadHIL>()
+                                            ->hilTransceiver->getSensorData()
+                                            ->barometer3);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_2_PayloadHIL", LPS28DFW_PERIOD,
@@ -342,13 +343,13 @@ void HILSensors::staticPressureInit()
 {
     // Create sensor instance with configured parameters
     staticPressure =
-        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-                                     .get<PayloadHIL>()
-                                     ->hilTransceiver->getSensorData()
-                                     ->staticPitot);
+        new PayloadHILAnalogBarometer(&Boardcore::ModuleManager::getInstance()
+                                           .get<PayloadHIL>()
+                                           ->hilTransceiver->getSensorData()
+                                           ->staticPitot);
 
     // Emplace the sensor inside the map
-    SensorInfo info("StaticPitot", 1000 / PITOT_FREQ,
+    SensorInfo info("StaticPitot", 1000 / ANALOG_BARO_FREQ,
                     bind(&HILSensors::staticPressureCallback, this));
     sensorMap.emplace(make_pair(staticPressure, info));
 }
@@ -357,13 +358,13 @@ void HILSensors::dynamicPressureInit()
 {
     // Create sensor instance with configured parameters
     dynamicPressure =
-        new PayloadHILBarometer(&Boardcore::ModuleManager::getInstance()
-                                     .get<PayloadHIL>()
-                                     ->hilTransceiver->getSensorData()
-                                     ->dynamicPitot);
+        new PayloadHILAnalogBarometer(&Boardcore::ModuleManager::getInstance()
+                                           .get<PayloadHIL>()
+                                           ->hilTransceiver->getSensorData()
+                                           ->dynamicPitot);
 
     // Emplace the sensor inside the map
-    SensorInfo info("DynamicPitot", 1000 / PITOT_FREQ,
+    SensorInfo info("DynamicPitot", 1000 / ANALOG_BARO_FREQ,
                     bind(&HILSensors::dynamicPressureCallback, this));
     sensorMap.emplace(make_pair(dynamicPressure, info));
 }
