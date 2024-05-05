@@ -52,6 +52,8 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "interfaces-impl/hwmapping.h"
+
 using namespace Boardcore;
 using namespace Main;
 using namespace Common;
@@ -132,7 +134,8 @@ int main()
                 actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
                 actuators->getServoPosition(ServosList::EXPULSION_SERVO),
                 actuators->getServoPosition(ServosList::MAIN_VALVE),
-                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+                actuators->getServoPosition(ServosList::VENTING_VALVE),
+                static_cast<float>(miosix::gpios::cut_trigger::value())};
 
             // Returning the feedback for the simulator
             return HILConfig::ActuatorData(adaStateHIL, nasStateHIL,

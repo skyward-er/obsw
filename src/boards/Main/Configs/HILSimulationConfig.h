@@ -325,6 +325,7 @@ struct ActuatorsStateHIL
     float expulsionPercentage    = 0;
     float mainValvePercentage    = 0;
     float ventingValvePercentage = 0;
+    float cutterState            = 0;
 
     ActuatorsStateHIL()
         : airbrakesPercentage(0.0f), expulsionPercentage(0.0f),
@@ -333,11 +334,13 @@ struct ActuatorsStateHIL
     }
 
     ActuatorsStateHIL(float airbrakesPercentage, float expulsionPercentage,
-                      float mainValvePercentage, float ventingValvePercentage)
+                      float mainValvePercentage, float ventingValvePercentage,
+                      float cutterState)
         : airbrakesPercentage(airbrakesPercentage),
           expulsionPercentage(expulsionPercentage),
           mainValvePercentage(mainValvePercentage),
-          ventingValvePercentage(ventingValvePercentage)
+          ventingValvePercentage(ventingValvePercentage),
+          cutterState(cutterState)
     {
     }
 
@@ -347,9 +350,11 @@ struct ActuatorsStateHIL
             "airbrakes: %f perc\n"
             "expulsion: %f perc\n"
             "mainValve: %f perc\n"
-            "venting: %f perc\n",
+            "venting: %f perc\n"
+            "cutter: %f\n",
             airbrakesPercentage * 100, expulsionPercentage * 100,
-            mainValvePercentage * 100, ventingValvePercentage * 100);
+            mainValvePercentage * 100, ventingValvePercentage * 100,
+            cutterState);
     }
 };
 
