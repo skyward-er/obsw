@@ -58,6 +58,8 @@
 namespace HILConfig
 {
 
+constexpr bool IS_FULL_HIL = true;
+
 /** Period of simulation in milliseconds */
 constexpr int SIMULATION_PERIOD = 100;
 constexpr int SIMULATION_FREQ   = 1000 / SIMULATION_PERIOD;

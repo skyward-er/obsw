@@ -158,6 +158,12 @@ Boardcore::HSCMRNN015PAData HILSensors::getStaticPressure2LastSample()
 
 Boardcore::PitotData HILSensors::getPitotLastSample()
 {
+    // If performing full hil, use the CAN transmitted pitot sample
+    if (IS_FULL_HIL)
+    {
+        return Sensors::getPitotLastSample();
+    }
+
     miosix::PauseKernelLock lock;
     Boardcore::PitotData data;
 
@@ -171,6 +177,12 @@ Boardcore::PitotData HILSensors::getPitotLastSample()
 
 Boardcore::PressureData HILSensors::getCCPressureLastSample()
 {
+    // If performing full hil, use the CAN transmitted CC sample
+    if (IS_FULL_HIL)
+    {
+        return Sensors::getCCPressureLastSample();
+    }
+
     miosix::PauseKernelLock lock;
     Boardcore::PressureData data;
 
@@ -194,8 +206,6 @@ bool HILSensors::start()
     LOG_INFO(logger, "lps28dfw_1Init\n");
     lps28dfw_2Init();
     LOG_INFO(logger, "lps28dfw_2Init\n");
-    pressureChamberInit();
-    LOG_INFO(logger, "pressureChamberInit\n");
     h3lis331dlInit();
     LOG_INFO(logger, "h3lis331dlInit\n");
     lis2mdlInit();
@@ -214,8 +224,15 @@ bool HILSensors::start()
     LOG_INFO(logger, "staticPressure2Init\n");
     imuInit();
     LOG_INFO(logger, "imuInit\n");
-    pitotInit();
-    LOG_INFO(logger, "pitotInit\n");
+
+    // Initialize the hil pitot and chamber pressure if not in full hil
+    if (!IS_FULL_HIL)
+    {
+        pitotInit();
+        LOG_INFO(logger, "pitotInit\n");
+        pressureChamberInit();
+        LOG_INFO(logger, "pressureChamberInit\n");
+    }
 
     // Create sensor manager with populated map and configured scheduler
     manager = new SensorManager(sensorMap, scheduler);
