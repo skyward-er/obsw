@@ -53,7 +53,7 @@ constexpr Boardcore::LIS2MDL::OperativeMode LIS2MDL_OPERATIVE_MODE =
 constexpr Boardcore::LIS2MDL::ODR LIS2MDL_ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int LIS2MDL_TEMPERATURE_DIVIDER = 5;
 
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
 
 constexpr Boardcore::LSM6DSRXConfig::BDU LSM6DSRX_BDU =
     Boardcore::LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
@@ -89,8 +89,8 @@ constexpr uint32_t LPS28DFW_PERIOD        = 20;  // [ms] 50Hz
 constexpr uint32_t H3LIS331DL_PERIOD      = 10;  // [ms] 100Hz
 constexpr uint32_t LIS2MDL_PERIOD         = 10;  // [ms] 100Hz
 constexpr uint32_t UBXGPS_PERIOD          = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
-constexpr uint32_t LSM6DSRX_PERIOD        = 20;  // [ms] 50Hz
-constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
+constexpr uint32_t LSM6DSRX_PERIOD        = 10;  // [ms] 100Hz
+constexpr uint32_t ADS131M08_PERIOD       = 20;  // [ms] 50Hz
 constexpr uint32_t IMU_PERIOD             = 20;  // [ms] Fake processed IMU 50Hz
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 20;  // [ms] 50Hz
 
