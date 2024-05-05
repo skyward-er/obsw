@@ -68,7 +68,7 @@ int main()
                 [&]()
                 {
                     TimedTrajectoryPoint timedTrajectoryPoint;
-                    timedTrajectoryPoint.timestamp = miosix::getTick();
+                    timedTrajectoryPoint.timestamp = Kernel::getOldTick();
                     return timedTrajectoryPoint;
                 });
 
