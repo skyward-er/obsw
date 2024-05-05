@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <boards/Main/Configs/HILSimulationConfig.h>
+#include <Main/Configs/HILSimulationConfig.h>
 #include <sensors/HILSensors/IncludeHILSensors.h>
 #include <sensors/SensorManager.h>
 
@@ -63,8 +63,6 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample() override;
     Boardcore::UBXGPSData getGPSLastSample() override;
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample() override;
-    Boardcore::ADS131M08Data getADS131M08LastSample() override;
-    Boardcore::MPXH6400AData getDeploymentPressureLastSample() override;
     Boardcore::HSCMRNN015PAData getStaticPressure1LastSample() override;
     Boardcore::HSCMRNN015PAData getStaticPressure2LastSample() override;
 
@@ -99,12 +97,6 @@ private:
     void lsm6dsrxInit() override;
     void lsm6dsrxCallback() override;
 
-    void ads131m08Init() override;
-    void ads131m08Callback() override;
-
-    void deploymentPressureInit() override;
-    void deploymentPressureCallback() override;
-
     void staticPressure1Init() override;
     void staticPressure1Callback() override;
 
@@ -117,17 +109,17 @@ private:
     void pitotInit();
 
     // HILSensors instances
-    HILConfig::MainHILTemperature* temperature      = nullptr;
-    HILConfig::MainHILBarometer* lps22df            = nullptr;
-    HILConfig::MainHILBarometer* lps28dfw_1         = nullptr;
-    HILConfig::MainHILBarometer* lps28dfw_2         = nullptr;
-    HILConfig::MainHILBarometer* pressureChamber    = nullptr;
-    HILConfig::MainHILAccelerometer* h3lis331dl     = nullptr;
-    HILConfig::MainHILMagnetometer* lis2mdl         = nullptr;
-    HILConfig::MainHILGps* ubxgps                   = nullptr;
-    HILConfig::MainHILAccelerometer* lsm6dsrx_accel = nullptr;
-    HILConfig::MainHILGyroscope* lsm6dsrx_gyro      = nullptr;
-    HILConfig::MainHILPitot* pitot                  = nullptr;
+    HILConfig::MainHILTemperature* temperature          = nullptr;
+    HILConfig::MainHILBarometer* lps22df                = nullptr;
+    HILConfig::MainHILBarometer* lps28dfw_1             = nullptr;
+    HILConfig::MainHILBarometer* lps28dfw_2             = nullptr;
+    HILConfig::MainHILChamberBarometer* pressureChamber = nullptr;
+    HILConfig::MainHILAccelerometer* h3lis331dl         = nullptr;
+    HILConfig::MainHILMagnetometer* lis2mdl             = nullptr;
+    HILConfig::MainHILGps* ubxgps                       = nullptr;
+    HILConfig::MainHILAccelerometer* lsm6dsrx_accel     = nullptr;
+    HILConfig::MainHILGyroscope* lsm6dsrx_gyro          = nullptr;
+    HILConfig::MainHILPitot* pitot                      = nullptr;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };

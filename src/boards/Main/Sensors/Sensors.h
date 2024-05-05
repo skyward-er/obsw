@@ -85,7 +85,8 @@ public:
 
     // Processed getters
     virtual Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-    virtual Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
+    virtual Boardcore::BatteryVoltageSensorData
+    getCamBatteryVoltageLastSample();
     virtual Boardcore::CurrentData getCurrentLastSample();
     virtual Boardcore::MPXH6400AData getDeploymentPressureLastSample();
     virtual Boardcore::HSCMRNN015PAData getStaticPressure1LastSample();
@@ -99,7 +100,8 @@ public:
     virtual void setBottomTankPressure(Boardcore::PressureData data);
     virtual void setTopTankPressure(Boardcore::PressureData data);
     virtual void setTankTemperature(Boardcore::TemperatureData data);
-    virtual void setMotorBatteryVoltage(Boardcore::BatteryVoltageSensorData data);
+    virtual void setMotorBatteryVoltage(
+        Boardcore::BatteryVoltageSensorData data);
     virtual void setMotorCurrent(Boardcore::CurrentData data);
 
     // CAN fake sensors getters
@@ -153,16 +155,6 @@ protected:
     virtual void imuInit();
     virtual void imuCallback();
 
-    // Sensors instances
-    Boardcore::LPS22DF* lps22df       = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
-    Boardcore::LIS2MDL* lis2mdl       = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
-    Boardcore::ADS131M08* ads131m08   = nullptr;
-
     // Can sensors
     Boardcore::PitotData canPitot{0, 0, 0};
     Boardcore::PressureData canCCPressure{0, 0};
@@ -172,16 +164,13 @@ protected:
     Boardcore::BatteryVoltageSensorData canMotorBatteryVoltage{};
     Boardcore::CurrentData canMotorCurrent{};
 
-    // Fake processed sensors
-    RotatedIMU* imu                         = nullptr;
-    Boardcore::MPXH6400A* mpxh6400a         = nullptr;
-    Boardcore::HSCMRNN015PA* hscmrnn015pa_1 = nullptr;
-    Boardcore::HSCMRNN015PA* hscmrnn015pa_2 = nullptr;
-
     // Magnetometer live calibration
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     miosix::FastMutex calibrationMutex;
+
+    // Fake processed sensors
+    RotatedIMU* imu = nullptr;
 
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
@@ -198,5 +187,21 @@ protected:
     Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+
+private:
+    // Sensors instances
+    Boardcore::LPS22DF* lps22df       = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
+    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
+    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
+    Boardcore::LIS2MDL* lis2mdl       = nullptr;
+    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
+    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
+    Boardcore::ADS131M08* ads131m08   = nullptr;
+
+    // Fake processed sensors
+    Boardcore::MPXH6400A* mpxh6400a         = nullptr;
+    Boardcore::HSCMRNN015PA* hscmrnn015pa_1 = nullptr;
+    Boardcore::HSCMRNN015PA* hscmrnn015pa_2 = nullptr;
 };
 }  // namespace Main

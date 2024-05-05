@@ -27,6 +27,7 @@
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
+#include <events/EventBroker.h>
 #include <math.h>
 #include <sensors/HILSensors/IncludeHILSensors.h>
 #include <sensors/SensorInfo.h>
@@ -35,6 +36,8 @@
 
 #include <list>
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "SensorsConfig.h"
 
 // ADA
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
@@ -57,17 +60,36 @@ namespace HILConfig
 
 /** Period of simulation in milliseconds */
 constexpr int SIMULATION_PERIOD = 100;
+constexpr int SIMULATION_FREQ   = 1000 / SIMULATION_PERIOD;
 
 /** sample frequency of sensor (samples/second) */
-constexpr int ACCEL_FREQ        = 100;
-constexpr int GYRO_FREQ         = 100;
-constexpr int MAGN_FREQ         = 100;
-constexpr int IMU_FREQ          = 100;
-constexpr int BARO_FREQ         = 50;
+constexpr int ACCEL_FREQ        = 1000 / Main::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int GYRO_FREQ         = 1000 / Main::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int MAGN_FREQ         = 1000 / Main::SensorsConfig::LIS2MDL_PERIOD;
+constexpr int IMU_FREQ          = 1000 / Main::SensorsConfig::IMU_PERIOD;
+constexpr int ANALOG_BARO_FREQ  = 1000 / Main::SensorsConfig::ADS131M08_PERIOD;
+constexpr int DIGITAL_BARO_FREQ = 1000 / Main::SensorsConfig::LPS22DF_PERIOD;
 constexpr int BARO_CHAMBER_FREQ = 50;
 constexpr int PITOT_FREQ        = 20;
-constexpr int TEMP_FREQ         = 10;
-constexpr int GPS_FREQ          = 10;
+constexpr int TEMP_FREQ = 1000 / SIMULATION_PERIOD;  // One sample per iteration
+// Hardcoded to 10 Hz so that we sample at least 1 time every integration step
+constexpr int GPS_FREQ = 1000 / Main::SensorsConfig::UBXGPS_PERIOD;
+
+static_assert((ACCEL_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_ACCEL not an integer");
+static_assert((GYRO_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GYRO not an integer");
+static_assert((MAGN_FREQ % SIMULATION_FREQ) == 0, "N_DATA_MAGN not an integer");
+static_assert((IMU_FREQ % SIMULATION_FREQ) == 0, "N_DATA_IMU not an integer");
+static_assert((ANALOG_BARO_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_ANALOG_BARO not an integer");
+static_assert((DIGITAL_BARO_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_DIGITAL_BARO not an integer");
+static_assert((BARO_CHAMBER_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_BARO_CHAMBER not an integer");
+static_assert((PITOT_FREQ % SIMULATION_FREQ) == 0,
+              "N_DATA_PITOT not an integer");
+static_assert((TEMP_FREQ % SIMULATION_FREQ) == 0, "N_DATA_TEMP not an integer");
+static_assert((GPS_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GPS not an integer");
 
 /** Number of samples per sensor at each simulator iteration */
 constexpr int N_DATA_ACCEL =
@@ -78,8 +100,10 @@ constexpr int N_DATA_MAGNETO =
     static_cast<int>((MAGN_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_IMU =
     static_cast<int>((IMU_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_BARO =
-    static_cast<int>((BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_ANALOG_BARO =
+    static_cast<int>((ANALOG_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_DIGITAL_BARO =
+    static_cast<int>((DIGITAL_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_BARO_CHAMBER =
     static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_PITOT =
@@ -88,6 +112,27 @@ constexpr int N_DATA_GPS =
     static_cast<int>((GPS_FREQ * SIMULATION_PERIOD) / 1000.0);
 constexpr int N_DATA_TEMP =
     static_cast<int>((TEMP_FREQ * SIMULATION_PERIOD) / 1000.0);
+
+// Sensors Data
+using MainAccelerometerSimulatorData = AccelerometerSimulatorData<N_DATA_ACCEL>;
+using MainGyroscopeSimulatorData     = GyroscopeSimulatorData<N_DATA_GYRO>;
+using MainMagnetometerSimulatorData = MagnetometerSimulatorData<N_DATA_MAGNETO>;
+using MainGPSSimulatorData          = GPSSimulatorData<N_DATA_GPS>;
+using MainBarometerSimulatorData = BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
+using MainChamberPressureSimulatorData =
+    BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
+using MainPitotSimulatorData       = PitotSimulatorData<N_DATA_PITOT>;
+using MainTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
+
+// Sensors
+using MainHILAccelerometer    = HILAccelerometer<N_DATA_ACCEL>;
+using MainHILGyroscope        = HILGyroscope<N_DATA_GYRO>;
+using MainHILMagnetometer     = HILMagnetometer<N_DATA_MAGNETO>;
+using MainHILGps              = HILGps<N_DATA_GPS>;
+using MainHILBarometer        = HILBarometer<N_DATA_DIGITAL_BARO>;
+using MainHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
+using MainHILPitot            = HILPitot<N_DATA_PITOT>;
+using MainHILTemperature      = HILTemperature<N_DATA_TEMP>;
 
 struct FlagsHIL
 {
@@ -317,16 +362,14 @@ struct ActuatorsStateHIL
  */
 struct SimulatorData
 {
-    struct AccelerometerSimulatorData<N_DATA_ACCEL> accelerometer;
-    struct GyroscopeSimulatorData<N_DATA_GYRO> gyro;
-    struct MagnetometerSimulatorData<N_DATA_MAGNETO> magnetometer;
-    struct GPSSimulatorData<N_DATA_GPS> gps;
-    struct BarometerSimulatorData<N_DATA_BARO> barometer1, barometer2,
-        barometer3;
-    struct BarometerSimulatorData<N_DATA_BARO_CHAMBER> pressureChamber;
-    struct PitotSimulatorData<N_DATA_PITOT> pitot;
-    struct TemperatureSimulatorData<N_DATA_TEMP> temperature;
-    struct FlagsHIL flags;
+    MainAccelerometerSimulatorData accelerometer;
+    MainGyroscopeSimulatorData gyro;
+    MainMagnetometerSimulatorData magnetometer;
+    MainGPSSimulatorData gps;
+    MainBarometerSimulatorData barometer1, barometer2, barometer3;
+    MainChamberPressureSimulatorData pressureChamber;
+    MainPitotSimulatorData pitot;
+    MainTemperatureSimulatorData temperature;
 };
 
 /**
@@ -421,15 +464,6 @@ enum MainFlightPhases
     SIMULATION_STOPPED
 };
 
-using MainHILAccelerometer = HILAccelerometer<N_DATA_ACCEL>;
-using MainHILGyroscope     = HILGyroscope<N_DATA_GYRO>;
-using MainHILMagnetometer  = HILMagnetometer<N_DATA_MAGNETO>;
-using MainHILGps           = HILGps<N_DATA_GPS>;
-using MainHILBarometer     = HILBarometer<N_DATA_BARO>;
-using MainHILBarometer     = HILBarometer<N_DATA_BARO_CHAMBER>;
-using MainHILPitot         = HILPitot<N_DATA_PITOT>;
-using MainHILTemperature   = HILTemperature<N_DATA_TEMP>;
-
 using MainHILTransceiver =
     HILTransceiver<MainFlightPhases, SimulatorData, ActuatorData>;
 using MainHIL = HIL<MainFlightPhases, SimulatorData, ActuatorData>;
@@ -481,8 +515,6 @@ public:
 
     void processFlags(const SimulatorData& simulatorData) override
     {
-        updateSimulatorFlags(simulatorData);
-
         std::vector<MainFlightPhases> changed_flags;
 
         // set true when the first packet from the simulator arrives
@@ -636,7 +668,7 @@ private:
                 printOutcomes();
                 break;
             default:
-                TRACE("%s invalid event\n", Common::getEventString(e).c_str());
+                TRACE("%s event\n", Common::getEventString(e).c_str());
         }
 
         /* calling the callbacks subscribed to the changed flags */
@@ -651,30 +683,6 @@ private:
         }
 
         prev_flagsFlightPhases = flagsFlightPhases;
-    }
-
-    /**
-     * @brief Updates the flags of the object with the flags sent from matlab
-     * and checks for the apogee
-     */
-    void updateSimulatorFlags(const SimulatorData& simulatorData)
-    {
-        flagsFlightPhases[MainFlightPhases::SIM_ASCENT] =
-            simulatorData.flags.flag_ascent;
-        flagsFlightPhases[MainFlightPhases::SIM_FLYING] =
-            simulatorData.flags.flag_flight;
-        flagsFlightPhases[MainFlightPhases::SIM_BURNING] =
-            simulatorData.flags.flag_burning;
-        flagsFlightPhases[MainFlightPhases::SIM_AEROBRAKES] =
-            simulatorData.flags.flag_airbrakes;
-        flagsFlightPhases[MainFlightPhases::SIM_PARA1] =
-            simulatorData.flags.flag_para1;
-        flagsFlightPhases[MainFlightPhases::SIM_PARA2] =
-            simulatorData.flags.flag_para2;
-
-        flagsFlightPhases[MainFlightPhases::SIMULATION_STOPPED] =
-            isSetFalse(MainFlightPhases::SIM_FLYING) ||
-            prev_flagsFlightPhases[MainFlightPhases::SIMULATION_STOPPED];
     }
 };
 
