@@ -191,7 +191,7 @@ constexpr uint32_t SAMPLE_PERIOD_LSM6   = 10;
 constexpr uint32_t SAMPLE_PERIOD_H3LIS  = 100;
 constexpr uint32_t SAMPLE_PERIOD_LIS2   = 10;
 constexpr uint32_t SAMPLE_PERIOD_LPS22  = 10;
-constexpr uint32_t SAMPLE_PERIOD_ADS131 = 1;
+constexpr uint32_t SAMPLE_PERIOD_ADS131 = 20;
 constexpr uint32_t SAMPLE_PERIOD_MAX    = 10;
 
 }  // namespace SensorsConfig
