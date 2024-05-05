@@ -40,7 +40,7 @@ public:
 
     Boardcore::USART usart2;
 
-    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), usart2(USART2, 460800, 1024)
+    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), usart2(USART2, 256000, 1024)
     {
     }
 };
