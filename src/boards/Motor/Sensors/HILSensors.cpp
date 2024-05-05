@@ -54,8 +54,7 @@ Boardcore::ChamberPressureSensorData HILSensors::getChamberPressureSensorData()
     return convertedSample;
 };
 
-explicit HILSensors::HILSensors(Boardcore::TaskScheduler* sched)
-    : Sensors(sched){};
+HILSensors::HILSensors(Boardcore::TaskScheduler* sched) : Sensors(sched){};
 
 void HILSensors::chamberPressureInit()
 {
@@ -71,5 +70,10 @@ void HILSensors::chamberPressureInit()
 
     sensorsMap.emplace(make_pair(chamberPressure, info));
 };
+
+void HILSensors::chamberPressureCallback()
+{
+    Logger::getInstance().log(getChamberPressureSensorData());
+}
 
 }  // namespace Motor

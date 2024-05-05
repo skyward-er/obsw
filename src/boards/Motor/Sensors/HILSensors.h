@@ -41,9 +41,9 @@ public:
 
     explicit HILSensors(Boardcore::TaskScheduler* sched);
 
-    ~HILSensors();
+    ~HILSensors(){};
 
-    bool start() override;
+    bool start() override { return Sensors::start(); };
 
 protected:
     void chamberPressureInit() override;

@@ -35,7 +35,7 @@ using namespace Boardcore;
 using namespace Motor;
 using namespace HILConfig;
 
-constexpr bool hilSimulationActive = false;
+constexpr bool hilSimulationActive = true;
 
 int main()
 {
