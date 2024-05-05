@@ -22,27 +22,34 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <miosix.h>
+#include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
+#include <sensors/SensorManager.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "Sensors.h"
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Module
+class HILSensors : public Sensors
 {
 public:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
+    Boardcore::ChamberPressureSensorData getChamberPressureSensorData()
+        override;
 
-    Boardcore::USART usart2;
+    explicit HILSensors(Boardcore::TaskScheduler* sched);
 
-    Buses() : spi1(SPI1), spi3(SPI3), spi4(SPI4), usart2(USART2, 460800, 1024)
-    {
-    }
+    ~HILSensors();
+
+    bool start() override;
+
+protected:
+    void chamberPressureInit() override;
+    void chamberPressureCallback() override;
+
+    HILConfig::MotorHILChamberBarometer* chamberPressure = nullptr;
 };
 
 }  // namespace Motor

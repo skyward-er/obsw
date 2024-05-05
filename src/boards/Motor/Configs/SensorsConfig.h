@@ -58,40 +58,40 @@ constexpr float ADC_BATTERY_VOLTAGE_COEFF = (10 + 20) / 10;
 //     Boardcore::SPI::Mode::MODE_0,
 // };
 
-Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS_ODR =
+constexpr Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS_ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_1000;
-Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS_BDU =
+constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS_BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
-Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS_FSR =
+constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS_FSR =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-Boardcore::SPIBusConfig H3LIS_SPI_CONFIG{
-    Boardcore::SPI::ClockDivider::DIV_16,
+const Boardcore::SPIBusConfig H3LIS_SPI_CONFIG{
+    .clockDivider = Boardcore::SPI::ClockDivider::DIV_16,
 };
 
-Boardcore::LIS2MDL::Config LIS2_SENSOR_CONFIG{
+constexpr Boardcore::LIS2MDL::Config LIS2_SENSOR_CONFIG{
     .odr                = Boardcore::LIS2MDL::ODR_100_HZ,
     .deviceMode         = Boardcore::LIS2MDL::MD_CONTINUOUS,
     .temperatureDivider = 100,
 };
-Boardcore::SPIBusConfig LIS2_SPI_CONFIG{
-    Boardcore::SPI::ClockDivider::DIV_16,
-    Boardcore::SPI::Mode::MODE_3,
-    Boardcore::SPI::Order::MSB_FIRST,
-    Boardcore::SPI::Order::LSB_FIRST,
+const Boardcore::SPIBusConfig LIS2_SPI_CONFIG{
+    .clockDivider = Boardcore::SPI::ClockDivider::DIV_16,
+    .mode         = Boardcore::SPI::Mode::MODE_3,
+    .bitOrder     = Boardcore::SPI::Order::MSB_FIRST,
+    .byteOrder    = Boardcore::SPI::Order::LSB_FIRST,
 };
 
-Boardcore::LPS22DF::Config LPS22_SENSOR_CONFIG{
+constexpr Boardcore::LPS22DF::Config LPS22_SENSOR_CONFIG{
     .odr = Boardcore::LPS22DF::ODR_100,
     .avg = Boardcore::LPS22DF::AVG_512,
 };
-Boardcore::SPIBusConfig LPS22_SPI_CONFIG{
-    Boardcore::SPI::ClockDivider::DIV_16,
-    Boardcore::SPI::Mode::MODE_3,
-    Boardcore::SPI::Order::MSB_FIRST,
-    Boardcore::SPI::Order::LSB_FIRST,
+const Boardcore::SPIBusConfig LPS22_SPI_CONFIG{
+    .clockDivider = Boardcore::SPI::ClockDivider::DIV_16,
+    .mode         = Boardcore::SPI::Mode::MODE_3,
+    .bitOrder     = Boardcore::SPI::Order::MSB_FIRST,
+    .byteOrder    = Boardcore::SPI::Order::LSB_FIRST,
 };
 
-Boardcore::ADS131M08::Config ADS131_SENSOR_CONFIG{
+constexpr Boardcore::ADS131M08::Config ADS131_SENSOR_CONFIG{
     .channelsConfig =
         {
             {.enabled = false},
@@ -126,17 +126,17 @@ Boardcore::ADS131M08::Config ADS131_SENSOR_CONFIG{
     .oversamplingRatio = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096,
     .globalChopModeEnabled = true,
 };
-Boardcore::SPIBusConfig ADS131_SPI_CONFIG{
-    Boardcore::SPI::ClockDivider::DIV_8,
-    Boardcore::SPI::Mode::MODE_1,
+const Boardcore::SPIBusConfig ADS131_SPI_CONFIG{
+    .clockDivider = Boardcore::SPI::ClockDivider::DIV_8,
+    .mode         = Boardcore::SPI::Mode::MODE_1,
 };
-Boardcore::ADS131M08Defs::Channel ADS131_CHAMBER_PRESSURE_CH =
+constexpr Boardcore::ADS131M08Defs::Channel ADS131_CHAMBER_PRESSURE_CH =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-Boardcore::ADS131M08Defs::Channel ADS131_TANK_PRESSURE_1_CH =
+constexpr Boardcore::ADS131M08Defs::Channel ADS131_TANK_PRESSURE_1_CH =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
-Boardcore::ADS131M08Defs::Channel ADS131_TANK_PRESSURE_2_CH =
+constexpr Boardcore::ADS131M08Defs::Channel ADS131_TANK_PRESSURE_2_CH =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_7;
-Boardcore::ADS131M08Defs::Channel ADS131_SERVO_CURRENT_CH =
+constexpr Boardcore::ADS131M08Defs::Channel ADS131_SERVO_CURRENT_CH =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 
 // The chamber pressure sensor is a 0-40bar sensor with a 4-20mA output

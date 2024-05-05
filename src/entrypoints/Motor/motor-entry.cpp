@@ -24,6 +24,8 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
+#include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <miosix.h>
@@ -31,6 +33,9 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Motor;
+using namespace HILConfig;
+
+constexpr bool hilSimulationActive = false;
 
 int main()
 {
@@ -39,7 +44,7 @@ int main()
     // Overall status, if at some point it becomes false, there is a problem
     // somewhere
     bool initResult    = true;
-    PrintLogger logger = Logging::getLogger("main");
+    PrintLogger logger = Logging::getLogger("motor");
 
     // Create modules
     BoardScheduler* scheduler = new BoardScheduler();
@@ -47,9 +52,50 @@ int main()
     auto actuators =
         new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX));
     auto sensors =
-        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+        (hilSimulationActive
+             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1))
+             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1)));
     auto canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+
+    // HIL
+    if (hilSimulationActive)
+    {
+        HILConfig::MotorHILTransceiver* hilTransceiver =
+            new HILConfig::MotorHILTransceiver(buses->usart2);
+        HILConfig::MotorHILPhasesManager* hilPhasesManager =
+            new HILConfig::MotorHILPhasesManager(
+                [&]()
+                {
+                    TimedTrajectoryPoint timedTrajectoryPoint;
+                    timedTrajectoryPoint.timestamp = miosix::getTick();
+                    return timedTrajectoryPoint;
+                });
+
+        auto updateActuatorData = [&]()
+        {
+            HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                actuators->getServoPosition(ServosList::MAIN_VALVE),
+                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+
+            // Returning the feedback for the simulator
+            return HILConfig::ActuatorData(actuatorsStateHIL);
+        };
+
+        HILConfig::MotorHIL* hil = new HILConfig::MotorHIL(
+            hilTransceiver, hilPhasesManager, updateActuatorData,
+            HILConfig::SIMULATION_PERIOD);
+
+        if (!modules.insert<HILConfig::MotorHIL>(hil))
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error inserting the HIL module");
+        }
+        else
+        {
+            LOG_INFO(logger, "Inserted the HIL module");
+        }
+    }
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -93,6 +139,18 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the board scheduler module");
+    }
+
+    if (hilSimulationActive)
+    {
+        if (!modules.get<MotorHIL>()->start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error starting the HIL module");
+        }
+
+        // Waiting for start of simulation
+        ModuleManager::getInstance().get<MotorHIL>()->waitStartSimulation();
     }
 
     if (!modules.get<Actuators>()->start())
