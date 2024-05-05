@@ -158,13 +158,11 @@ int main()
         }
 
         hilPhasesManager->registerToFlightPhase(
-            MainFlightPhases::SIM_FLYING,
+            MainFlightPhases::LIFTOFF_PIN_DETACHED,
             [&]()
             {
-                printf("Flying\n");
                 canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
-                EventBroker::getInstance().post(
-                    Events::FLIGHT_LAUNCH_PIN_DETACHED, Topics::TOPIC_FLIGHT);
+                miosix::ledOn();
             });
 
         hilPhasesManager->registerToFlightPhase(
@@ -172,6 +170,7 @@ int main()
             [&]()
             {
                 printf("ARMED\n");
+                // Comment this if we want to trigger liftoff by hand
                 EventBroker::getInstance().post(
                     Events::FLIGHT_LAUNCH_PIN_DETACHED, Topics::TOPIC_FLIGHT);
                 miosix::ledOn();
