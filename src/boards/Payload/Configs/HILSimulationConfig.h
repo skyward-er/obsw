@@ -106,8 +106,10 @@ using PayloadGyroscopeSimulatorData = GyroscopeSimulatorData<N_DATA_GYRO>;
 using PayloadMagnetometerSimulatorData =
     MagnetometerSimulatorData<N_DATA_MAGNETO>;
 using PayloadGPSSimulatorData = GPSSimulatorData<N_DATA_GPS>;
-using PayloadBarometerSimulatorData =
+using PayloadDigitalBarometerSimulatorData =
     BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
+using PayloadAnalogBarometerSimulatorData =
+    BarometerSimulatorData<N_DATA_ANALOG_BARO>;
 using PayloadChamberPressureSimulatorData =
     BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
 using PayloadTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
@@ -300,8 +302,8 @@ struct SimulatorData
     PayloadGyroscopeSimulatorData gyro;
     PayloadMagnetometerSimulatorData magnetometer;
     PayloadGPSSimulatorData gps;
-    PayloadBarometerSimulatorData barometer1, barometer2, barometer3;
-    PayloadBarometerSimulatorData staticPitot, dynamicPitot;
+    PayloadDigitalBarometerSimulatorData barometer1, barometer2, barometer3;
+    PayloadAnalogBarometerSimulatorData staticPitot, dynamicPitot;
     PayloadTemperatureSimulatorData temperature;
 };
 

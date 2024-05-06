@@ -90,7 +90,7 @@ constexpr uint32_t H3LIS331DL_PERIOD      = 10;  // [ms] 100Hz
 constexpr uint32_t LIS2MDL_PERIOD         = 10;  // [ms] 100Hz
 constexpr uint32_t UBXGPS_PERIOD          = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
 constexpr uint32_t LSM6DSRX_PERIOD        = 10;  // [ms] 100Hz
-constexpr uint32_t ADS131M08_PERIOD       = 20;  // [ms] 50Hz
+constexpr uint32_t ADS131M08_PERIOD       = 50;  // [ms] 20Hz
 constexpr uint32_t IMU_PERIOD             = 20;  // [ms] Fake processed IMU 50Hz
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms] 10Hz
 
