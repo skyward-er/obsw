@@ -27,6 +27,12 @@
 namespace RIGv2
 {
 
+namespace Config
+{
+
+namespace Scheduler
+{
+
 // Used for TARS1 task scheduler/FSM
 static const miosix::Priority TARS1_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for Sensors TaskScheduler
@@ -35,4 +41,8 @@ static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for GMM FSM
 static const miosix::Priority GMM_PRIORITY = miosix::PRIORITY_MAX - 1;
 
-}
+}  // namespace Scheduler
+
+}  // namespace Config
+
+}  // namespace RIGv2

@@ -574,10 +574,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 modules.get<GroundModeManager>()->getState() == GMM_STATE_ARMED
                     ? 1
                     : 0;
-            tm.ignition_state = modules.get<GroundModeManager>()->getState() ==
-                                        GMM_STATE_IGNITING
-                                    ? 1
-                                    : 0;
+            tm.ignition_state = modules.get<GroundModeManager>()->getState();
             tm.tars_state     = modules.get<TARS1>()->isRefueling() ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
