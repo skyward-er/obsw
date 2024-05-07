@@ -23,19 +23,21 @@
 #pragma once
 
 #include <RIGv2/Configs/GmmConfig.h>
-#include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
+// #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <diagnostic/PrintLogger.h>
-#include <events/FSM.h>
+#include <events/HSM.h>
 #include <logger/Logger.h>
 
 #include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "GroundModeManagerData.h"
+
 namespace RIGv2
 {
 
 class GroundModeManager : public Boardcore::Module,
-                          public Boardcore::FSM<GroundModeManager>
+                          public Boardcore::HSM<GroundModeManager>
 {
 public:
     GroundModeManager();
@@ -45,18 +47,25 @@ public:
     void setIgnitionTime(uint32_t time);
 
 private:
-    void state_idle(const Boardcore::Event &event);
-    void state_init_err(const Boardcore::Event &event);
-    void state_disarmed(const Boardcore::Event &event);
-    void state_armed(const Boardcore::Event &event);
-    void state_igniting(const Boardcore::Event &event);
+    Boardcore::State state_idle(const Boardcore::Event &event);
+    Boardcore::State state_init(const Boardcore::Event &event);
+    Boardcore::State state_init_error(const Boardcore::Event &event);
+    Boardcore::State state_disarmed(const Boardcore::Event &event);
+    Boardcore::State state_armed(const Boardcore::Event &event);
+    Boardcore::State state_firing(const Boardcore::Event &event);
+    Boardcore::State state_igniting(const Boardcore::Event &event);
+    Boardcore::State state_oxidizer(const Boardcore::Event &event);
+    Boardcore::State state_cooling(const Boardcore::Event &event);
 
-    void logStatus();
+    void updateAndLogStatus(GroundModeManagerState state);
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
 
+    std::atomic<GroundModeManagerState> state{GMM_STATE_IDLE};
+
     uint16_t openOxidantDelayEventId = -1;
+    uint16_t coolingDelayEventId = -1;
 };
 
 }  // namespace RIGv2

@@ -32,10 +32,14 @@ namespace RIGv2
 enum GroundModeManagerState : uint8_t
 {
     GMM_STATE_IDLE = 0,
+    GMM_STATE_INIT,
     GMM_STATE_INIT_ERR,
     GMM_STATE_DISARMED,
     GMM_STATE_ARMED,
+    GMM_STATE_FIRING,
     GMM_STATE_IGNITING,
+    GMM_STATE_OXIDIZER,
+    GMM_STATE_COOLING,
 };
 
 struct GroundModeManagerData

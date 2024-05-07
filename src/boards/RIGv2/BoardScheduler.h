@@ -33,7 +33,11 @@ namespace RIGv2
 class BoardScheduler : public Boardcore::Module
 {
 public:
-    BoardScheduler() : tars1(TARS1_PRIORITY), sensors(SENSORS_PRIORITY) {}
+    BoardScheduler()
+        : tars1(Config::Scheduler::TARS1_PRIORITY),
+          sensors(Config::Scheduler::SENSORS_PRIORITY)
+    {
+    }
 
     [[nodiscard]] bool start() { return tars1.start() && sensors.start(); }
 

@@ -23,52 +23,28 @@
 #include "GroundModeManager.h"
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/Configs/GmmConfig.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
-#include <events/EventBroker.h>
-#include <interfaces-impl/hwmapping.h>
-// TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
-#include "GroundModeManagerData.h"
-
-using namespace Boardcore;
-using namespace miosix;
-using namespace Common;
 using namespace RIGv2;
+using namespace Boardcore;
+using namespace Common;
+using namespace miosix;
 
 GroundModeManager::GroundModeManager()
-    : FSM(&GroundModeManager::state_idle, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          GMM_PRIORITY)
+    : HSM(&GroundModeManager::state_idle, STACK_DEFAULT_FOR_PTHREAD,
+          Config::Scheduler::GMM_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 }
 
-GroundModeManagerState GroundModeManager::getState()
-{
-    if (testState(&GroundModeManager::state_init_err))
-    {
-        return GMM_STATE_INIT_ERR;
-    }
-    else if (testState(&GroundModeManager::state_disarmed))
-    {
-        return GMM_STATE_DISARMED;
-    }
-    else if (testState(&GroundModeManager::state_armed))
-    {
-        return GMM_STATE_ARMED;
-    }
-    else if (testState(&GroundModeManager::state_igniting))
-    {
-        return GMM_STATE_IGNITING;
-    }
-    else
-    {
-        return GMM_STATE_IDLE;
-    }
-}
+GroundModeManagerState GroundModeManager::getState() { return state; }
 
 void GroundModeManager::setIgnitionTime(uint32_t time)
 {
@@ -76,89 +52,162 @@ void GroundModeManager::setIgnitionTime(uint32_t time)
     modules.get<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
 }
 
-void GroundModeManager::state_idle(const Boardcore::Event &event)
+Boardcore::State GroundModeManager::state_idle(const Boardcore::Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus();
-            break;
+            updateAndLogStatus(GMM_STATE_IDLE);
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_top);
+        }
+
+        case EV_INIT:
+        {
+            return transition(&GroundModeManager::state_init);
         }
 
         case TMTC_RESET_BOARD:
         {
             reboot();
-            break;
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+Boardcore::State GroundModeManager::state_init(const Boardcore::Event &event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(GMM_STATE_INIT);
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_idle);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
         }
 
         case FMM_INIT_ERROR:
         {
-            transition(&GroundModeManager::state_init_err);
-            break;
+            return transition(&GroundModeManager::state_init_error);
         }
 
         case FMM_INIT_OK:
         {
-            transition(&GroundModeManager::state_disarmed);
-            break;
+            return transition(&GroundModeManager::state_disarmed);
+        }
+
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
 
-void GroundModeManager::state_init_err(const Boardcore::Event &event)
+Boardcore::State GroundModeManager::state_init_error(
+    const Boardcore::Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus();
-            break;
+            updateAndLogStatus(GMM_STATE_INIT_ERR);
+            return HANDLED;
         }
 
-        case TMTC_RESET_BOARD:
+        case EV_EXIT:
         {
-            reboot();
-            break;
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_idle);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
         }
 
         case TMTC_FORCE_INIT:
         {
-            transition(&GroundModeManager::state_disarmed);
-            break;
+            return transition(&GroundModeManager::state_disarmed);
+        }
+
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
 
-void GroundModeManager::state_disarmed(const Boardcore::Event &event)
+Boardcore::State GroundModeManager::state_disarmed(
+    const Boardcore::Event &event)
 {
     ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
+            updateAndLogStatus(GMM_STATE_DISARMED);
             modules.get<Actuators>()->armLightOff();
             modules.get<Registry>()->disarm();
-            logStatus();
-            break;
+            return HANDLED;
         }
 
-        case TMTC_RESET_BOARD:
+        case EV_EXIT:
         {
-            reboot();
-            break;
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_idle);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
         }
 
         case TMTC_OPEN_NITROGEN:
         {
             modules.get<Actuators>()->openNitrogen();
-            break;
+            return HANDLED;
         }
 
         case TMTC_ARM:
         {
-            transition(&GroundModeManager::state_armed);
-            break;
+            return transition(&GroundModeManager::state_armed);
         }
 
         case TMTC_CALIBRATE:
@@ -166,24 +215,44 @@ void GroundModeManager::state_disarmed(const Boardcore::Event &event)
             modules.get<Sensors>()->calibrate();
 
             // TODO(davide.mor): Also send CAN command
-            break;
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
 
-void GroundModeManager::state_armed(const Boardcore::Event &event)
+Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
 {
     ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
-            modules.get<Actuators>()->armLightOn();
+            updateAndLogStatus(GMM_STATE_ARMED);
             modules.get<Registry>()->arm();
+            modules.get<Actuators>()->armLightOn();
             modules.get<Actuators>()->closeAllServos();
             modules.get<Actuators>()->closeNitrogen();
-            logStatus();
-            break;
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_top);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
         }
 
         case TMTC_OPEN_NITROGEN:
@@ -191,31 +260,95 @@ void GroundModeManager::state_armed(const Boardcore::Event &event)
             modules.get<Actuators>()->openNitrogen();
 
             // Nitrogen causes automatic disarm
-            transition(&GroundModeManager::state_disarmed);
-            break;
+            return transition(&GroundModeManager::state_disarmed);
         }
 
         case TMTC_DISARM:
         {
-            transition(&GroundModeManager::state_disarmed);
-            break;
+            return transition(&GroundModeManager::state_disarmed);
         }
 
         case MOTOR_IGNITION:
         {
-            transition(&GroundModeManager::state_igniting);
-            break;
+            return transition(&GroundModeManager::state_firing);
+        }
+
+        default:
+        {
+            return UNHANDLED;
         }
     }
 }
 
-void GroundModeManager::state_igniting(const Boardcore::Event &event)
+Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
 {
     ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
+            updateAndLogStatus(GMM_STATE_FIRING);
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            // Stop ignition and close all servos
+            modules.get<Actuators>()->igniterOff();
+            modules.get<Actuators>()->closeAllServos();
+
+            // Disable all events
+            EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
+            EventBroker::getInstance().removeDelayed(coolingDelayEventId);
+
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_top);
+        }
+
+        case EV_INIT:
+        {
+            return transition(&GroundModeManager::state_igniting);
+        }
+
+        case TMTC_OPEN_NITROGEN:
+        {
+            // Open nitrogen
+            modules.get<Actuators>()->openNitrogen();
+
+            return transition(&GroundModeManager::state_disarmed);
+        }
+
+        case MOTOR_COOLING_TIMEOUT:  // Normal firing end
+        case TMTC_DISARM:            // Abort signal
+        {
+            // TODO(davide.mor): Set this to a sensible time
+            modules.get<Actuators>()->openNitrogenWithTime(
+                Config::GroundModeManager::NITROGEN_TIME);
+
+            return transition(&GroundModeManager::state_disarmed);
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+Boardcore::State GroundModeManager::state_igniting(
+    const Boardcore::Event &event)
+{
+    ModuleManager &modules = ModuleManager::getInstance();
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(GMM_STATE_IGNITING);
+
             // Start ignition
             modules.get<Actuators>()->igniterOn();
 
@@ -228,53 +361,120 @@ void GroundModeManager::state_igniting(const Boardcore::Event &event)
             openOxidantDelayEventId = EventBroker::getInstance().postDelayed(
                 MOTOR_OPEN_OXIDANT, TOPIC_MOTOR, ignitionTime);
 
-            logStatus();
-            break;
+            return HANDLED;
         }
 
         case EV_EXIT:
         {
-            // Disable MOTOR_OPEN_OXIDANT event
-            EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
-            break;
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_firing);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
         }
 
         case MOTOR_OPEN_OXIDANT:
         {
-            // Stop ignition
             modules.get<Actuators>()->igniterOff();
-            modules.get<Actuators>()->openServo(ServosList::MAIN_VALVE);
-            break;
+            return transition(&GroundModeManager::state_oxidizer);
         }
 
-        case TMTC_OPEN_NITROGEN:
+        default:
         {
-            // Stop ignition and close all servos
-            modules.get<Actuators>()->igniterOff();
-            modules.get<Actuators>()->closeAllServos();
-
-            // Open nitrogen
-            modules.get<Actuators>()->openNitrogen();
-
-            transition(&GroundModeManager::state_disarmed);
-            break;
-        }
-
-        case TMTC_DISARM:  // Abort signal
-        case MOTOR_CLOSE_FEED_VALVE:
-        {
-            // Stop ignition and close all servos
-            modules.get<Actuators>()->igniterOff();
-            modules.get<Actuators>()->closeAllServos();
-
-            transition(&GroundModeManager::state_disarmed);
-            break;
+            return UNHANDLED;
         }
     }
 }
 
-void GroundModeManager::logStatus()
+Boardcore::State GroundModeManager::state_oxidizer(
+    const Boardcore::Event &event)
 {
-    GroundModeManagerData data = {TimestampTimer::getTimestamp(), getState()};
+    ModuleManager &modules = ModuleManager::getInstance();
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(GMM_STATE_OXIDIZER);
+
+            modules.get<Actuators>()->openServo(ServosList::MAIN_VALVE);
+
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_firing);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
+        case MOTOR_CLOSE_FEED_VALVE:
+        {
+            return transition(&GroundModeManager::state_cooling);
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+Boardcore::State GroundModeManager::state_cooling(const Boardcore::Event &event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(GMM_STATE_COOLING);
+
+            coolingDelayEventId = EventBroker::getInstance().postDelayed(
+                MOTOR_COOLING_TIMEOUT, TOPIC_MOTOR,
+                Config::GroundModeManager::MOTOR_COOLING_TIME);
+
+            return HANDLED;
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&GroundModeManager::state_firing);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+void GroundModeManager::updateAndLogStatus(GroundModeManagerState state)
+{
+    this->state = state;
+
+    GroundModeManagerData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
