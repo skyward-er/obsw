@@ -37,7 +37,7 @@ using namespace miosix;
 
 TARS1::TARS1(TaskScheduler& scheduler)
     : FSM(&TARS1::state_ready, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          TARS1_PRIORITY),
+          Config::Scheduler::TARS1_PRIORITY),
       scheduler{scheduler}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
