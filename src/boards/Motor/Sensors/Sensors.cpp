@@ -188,12 +188,37 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
         modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
         spiConfig, config);
 
-    SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::PERIOD,
-                    [this]() { ads131m08Callback(); }};
+    SensorInfo info{"ADS131M08", 1000, [this]() { ads131m08Callback(); }};
     map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::ads131m08Callback() {}
+float voltageToTemp(float voltage)
+{
+    // Two point calibration
+    // m = dmass/dvoltage
+    float scale  = (175 + 40) / (0.996 - 0.1);
+    float offset = -40 - scale * 0.1;  // Calculate offset
+    return scale * voltage + offset;
+}
+
+float voltageToPress(float voltage)
+{
+    // First convert voltage to current
+    float current = (voltage / Config::Sensors::ADS131M08::CH5_SHUNT_RESISTANCE) * 1000.0f;
+
+    // Convert to a value between 0 and 1
+    float value = (current - 4) / (20 - 4);
+
+    // Scale from 0 to maxPressure
+    return value * 40;
+}
+
+void Sensors::ads131m08Callback()
+{
+    auto sample = ads131m08->getLastSample();
+
+    LOG_INFO(logger, "ADC: {}\t{}", voltageToPress(sample.voltage[5]), voltageToPress(sample.voltage[6]));
+}
 
 void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
 {
