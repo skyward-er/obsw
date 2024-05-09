@@ -50,11 +50,11 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors       = new Sensors(scheduler->getSensorsScheduler());
-    Actuators *actuators   = new Actuators(scheduler->getActuatorsScheduler());
+    Sensors *sensors       = new Sensors();
+    Actuators *actuators   = new Actuators();
     Registry *registry     = new Registry();
     GroundModeManager *gmm = new GroundModeManager();
-    TARS1 *tars1           = new TARS1(scheduler->getTars1Scheduler());
+    TARS1 *tars1           = new TARS1();
     Radio *radio           = new Radio();
 
     Logger &sdLogger    = Logger::getInstance();

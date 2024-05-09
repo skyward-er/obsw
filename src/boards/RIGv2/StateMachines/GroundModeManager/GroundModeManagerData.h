@@ -48,10 +48,7 @@ struct GroundModeManagerData
     uint64_t timestamp;
     GroundModeManagerState state;
 
-    GroundModeManagerData()
-        : timestamp{0}, state{GMM_STATE_IDLE}
-    {
-    }
+    GroundModeManagerData() : timestamp{0}, state{GMM_STATE_IDLE} {}
 
     GroundModeManagerData(uint64_t timestamp, GroundModeManagerState state)
         : timestamp{timestamp}, state{state}

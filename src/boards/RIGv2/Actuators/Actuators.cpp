@@ -23,6 +23,7 @@
 #include "Actuators.h"
 
 #include <RIGv2/Actuators/ActuatorsData.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/ActuatorsConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -121,7 +122,7 @@ void Actuators::ServoInfo::setOpeningTime(uint32_t time)
     modules.get<Registry>()->setUnsafe(openingTimeKey, time);
 }
 
-Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
+Actuators::Actuators()
 {
     // Initialize servos
     infos[0].servo = std::make_unique<Servo>(
@@ -225,6 +226,10 @@ Actuators::Actuators(TaskScheduler &scheduler) : scheduler{scheduler}
 
 bool Actuators::start()
 {
+    ModuleManager &modules = ModuleManager::getInstance();
+    TaskScheduler &scheduler =
+        modules.get<BoardScheduler>()->getActuatorsScheduler();
+
     infos[0].servo->enable();
     infos[1].servo->enable();
     infos[2].servo->enable();
@@ -518,10 +523,7 @@ void Actuators::updatePositionsTask()
     }
     else
     {
-        if (nitrogenCloseTs != 0)
-        {
-            nitrogenCloseTs = 0;
-        }
+        nitrogenCloseTs = 0;
 
         unsafeCloseNitrogen();
     }

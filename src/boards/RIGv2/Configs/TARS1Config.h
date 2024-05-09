@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace RIGv2
@@ -30,7 +31,7 @@ namespace Config
 {
 namespace TARS1
 {
-static constexpr uint32_t SAMPLE_PERIOD = 10;
+static constexpr uint32_t SAMPLE_PERIOD      = 10;
 static constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
 static constexpr uint32_t WASHING_OPENING_TIME         = 5000;
