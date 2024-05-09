@@ -22,7 +22,6 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
-#include <Main/Configs/WingConfig.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
