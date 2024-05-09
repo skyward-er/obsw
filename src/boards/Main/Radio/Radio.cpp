@@ -22,10 +22,10 @@
 
 #include "Radio.h"
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/Actuators/Actuators.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
 #include <common/Radio.h>
@@ -402,21 +402,23 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto mag         = sensors->getLIS2MDLLastSample();
             auto gps         = sensors->getUBXGPSLastSample();
 
-            tm.timestamp           = TimestampTimer::getTimestamp();
-            tm.pressure_digi       = pressDigi.pressure;
-            tm.acc_x               = imu.accelerationX;
-            tm.acc_y               = imu.accelerationY;
-            tm.acc_z               = imu.accelerationZ;
-            tm.gyro_x              = imu.angularSpeedX;
-            tm.gyro_y              = imu.angularSpeedY;
-            tm.gyro_z              = imu.angularSpeedZ;
-            tm.mag_x               = mag.magneticFieldX;
-            tm.mag_y               = mag.magneticFieldY;
-            tm.mag_z               = mag.magneticFieldZ;
-            tm.gps_alt             = gps.height;
-            tm.gps_lat             = gps.latitude;
-            tm.gps_lon             = gps.longitude;
-            tm.gps_fix             = gps.fix;
+            tm.timestamp     = TimestampTimer::getTimestamp();
+            tm.pressure_digi = pressDigi.pressure;
+            tm.acc_x         = imu.accelerationX;
+            tm.acc_y         = imu.accelerationY;
+            tm.acc_z         = imu.accelerationZ;
+            tm.gyro_x        = imu.angularSpeedX;
+            tm.gyro_y        = imu.angularSpeedY;
+            tm.gyro_z        = imu.angularSpeedZ;
+            tm.mag_x         = mag.magneticFieldX;
+            tm.mag_y         = mag.magneticFieldY;
+            tm.mag_z         = mag.magneticFieldZ;
+            tm.gps_alt       = gps.height;
+            tm.gps_lat       = gps.latitude;
+            tm.gps_lon       = gps.longitude;
+            tm.gps_fix       = gps.fix;
+            tm.fmm_state     = static_cast<uint8_t>(
+                modules.get<FlightModeManager>()->getState());
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().voltage;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
