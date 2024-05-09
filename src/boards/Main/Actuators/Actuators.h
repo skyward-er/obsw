@@ -26,8 +26,8 @@
 #include <common/Mavlink.h>
 #include <scheduler/TaskScheduler.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <atomic>
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
@@ -83,4 +83,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
 };
 
-}
+}  // namespace Main

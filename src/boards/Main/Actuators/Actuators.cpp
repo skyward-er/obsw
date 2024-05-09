@@ -32,14 +32,17 @@ using namespace miosix;
 
 Actuators::Actuators()
 {
+    // cppcheck-suppress useInitializationList
     servoAbk = std::make_unique<Servo>(
         MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
         Config::Actuators::ABK_MIN_PULSE, Config::Actuators::ABK_MAX_PULSE);
 
+    // cppcheck-suppress useInitializationList
     servoExp = std::make_unique<Servo>(
         MIOSIX_EXPULSION_TIM, TimerUtils::Channel::MIOSIX_EXPULSION_CHANNEL,
         Config::Actuators::EXP_MIN_PULSE, Config::Actuators::EXP_MAX_PULSE);
 
+    // cppcheck-suppress useInitializationList
     buzzer = std::make_unique<PWM>(MIOSIX_BUZZER_TIM,
                                    Config::Actuators::BUZZER_FREQUENCY);
     buzzer->setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL,

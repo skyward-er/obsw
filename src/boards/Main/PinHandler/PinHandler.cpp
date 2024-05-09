@@ -90,18 +90,23 @@ void PinHandler::onExpulsionSenseTransition(PinTransition transition)
              static_cast<int>(transition));
 }
 
-PinData PinHandler::getPinData(PinList pin) {
-    switch(pin) {
+PinData PinHandler::getPinData(PinList pin)
+{
+    switch (pin)
+    {
         case PinList::RAMP_PIN:
-            return PinObserver::getInstance().getPinData(sense::detachRamp::getPin());
+            return PinObserver::getInstance().getPinData(
+                sense::detachRamp::getPin());
         case PinList::DETACH_MAIN_PIN:
-            return PinObserver::getInstance().getPinData(sense::detachMain::getPin());
+            return PinObserver::getInstance().getPinData(
+                sense::detachMain::getPin());
         case PinList::DETACH_PAYLOAD_PIN:
-            return PinObserver::getInstance().getPinData(sense::detachPayload::getPin());
+            return PinObserver::getInstance().getPinData(
+                sense::detachPayload::getPin());
         case PinList::EXPULSION_SENSE:
-            return PinObserver::getInstance().getPinData(sense::expulsionSense::getPin());
+            return PinObserver::getInstance().getPinData(
+                sense::expulsionSense::getPin());
         default:
             return PinData{};
     }
 }
-

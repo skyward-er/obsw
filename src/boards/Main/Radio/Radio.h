@@ -52,7 +52,7 @@ private:
     void enqueueAck(const mavlink_message_t& msg);
     void enqueueNack(const mavlink_message_t& msg);
 
-    void enqueuePacket(const mavlink_message_t &msg);
+    void enqueuePacket(const mavlink_message_t& msg);
     void flushPackets();
 
     void handleMessage(const mavlink_message_t& msg);
