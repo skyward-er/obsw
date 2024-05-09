@@ -33,7 +33,7 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+add_executable(main-entry src/entrypoints/MockupMain/main-entry.cpp ${MOCKUP_MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry PRIVATE)
 sbs_target(main-entry stm32f429zi_skyward_death_stack_x)

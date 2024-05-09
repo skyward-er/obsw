@@ -23,12 +23,12 @@ set(OBSW_INCLUDE_DIRS
     src/boards
 )
 
-set(MAIN_COMPUTER
-    src/boards/Main/Sensors/Sensors.cpp
-    src/boards/Main/BoardScheduler.cpp
-    src/boards/Main/PinHandler/PinHandler.cpp
-    src/boards/Main/Radio/Radio.cpp
-    src/boards/Main/TMRepository/TMRepository.cpp
-    src/boards/Main/StateMachines/NASController/NASController.cpp
-    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
+set(MOCKUP_MAIN_COMPUTER
+    src/boards/MockupMain/Sensors/Sensors.cpp
+    src/boards/MockupMain/BoardScheduler.cpp
+    src/boards/MockupMain/PinHandler/PinHandler.cpp
+    src/boards/MockupMain/Radio/Radio.cpp
+    src/boards/MockupMain/TMRepository/TMRepository.cpp
+    src/boards/MockupMain/StateMachines/NASController/NASController.cpp
+    src/boards/MockupMain/StateMachines/FlightModeManager/FlightModeManager.cpp
 )
