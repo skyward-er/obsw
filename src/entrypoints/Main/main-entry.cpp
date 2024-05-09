@@ -24,6 +24,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -54,6 +55,7 @@ int main()
     Sensors *sensors       = new Sensors();
     Radio *radio           = new Radio();
     CanHandler *canHandler = new CanHandler();
+    PinHandler *pinHandler = new PinHandler();
     FlightModeManager *fmm = new FlightModeManager();
 
     // Insert modules
@@ -61,7 +63,9 @@ int main()
                       modules.insert<BoardScheduler>(scheduler) &&
                       modules.insert<Sensors>(sensors) &&
                       modules.insert<Radio>(radio) &&
+                      modules.insert<Actuators>(actuators) &&
                       modules.insert<CanHandler>(canHandler) &&
+                      modules.insert<PinHandler>(pinHandler) &&
                       modules.insert<FlightModeManager>(fmm);
 
     // Status led indicators
@@ -112,6 +116,12 @@ int main()
         led3On();
     }
 
+    if (!pinHandler->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start PinHandler module");
+    }
+
     if (!scheduler->start())
     {
         initResult = false;
@@ -127,13 +137,13 @@ int main()
     if (!initResult)
     {
         LOG_ERR(logger, "Init failure!");
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusErr();
     }
     else
     {
         LOG_INFO(logger, "All good!");
-        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         actuators->setStatusOk();
         led4On();
     }
@@ -146,11 +156,11 @@ int main()
     while (true)
     {
         gpios::boardLed::low();
-        actuators->setAbkPosition(0.1f);
+        // actuators->setAbkPosition(0.1f);
         canHandler->sendEvent(Common::CanConfig::EventId::ARM);
         Thread::sleep(1000);
         gpios::boardLed::high();
-        actuators->setAbkPosition(0.5f);
+        // actuators->setAbkPosition(0.5f);
         canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
     }
