@@ -96,10 +96,6 @@ int main()
     if (!ok)
     {
         printf("[error] Failed to start RIG radio!\n");
-    }
-
-    if (!ok)
-    {
         errorLoop();
     }
 
