@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <common/CanConfig.h>
+#include <drivers/canbus/CanProtocol/CanProtocol.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -48,4 +48,4 @@ private:
     std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;
 };
 
-}  // namespace Main
+}  // namespace Motor
