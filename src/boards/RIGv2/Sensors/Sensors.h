@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include <RIGv2/Sensors/AnalogLoadCellSensor.h>
 #include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/Sensors/TrafagPressureSensor.h>
-#include <RIGv2/Sensors/AnalogLoadCellSensor.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
@@ -42,9 +42,7 @@ namespace RIGv2
 class Sensors : public Boardcore::Module
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
-    {
-    }
+    Sensors() {}
 
     [[nodiscard]] bool start();
 
@@ -100,7 +98,6 @@ private:
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
-    Boardcore::TaskScheduler &scheduler;
 
     std::atomic<float> vesselLcOffset{0.0f};
     std::atomic<float> tankLcOffset{0.0f};

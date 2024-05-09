@@ -27,9 +27,10 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace ConRIG {
+namespace ConRIG
+{
 
-using SerialMavDriver = 
+using SerialMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
@@ -53,12 +54,12 @@ public:
 private:
     /**
      * @brief Send a nack to the given message.
-    */
+     */
     void sendNack(const mavlink_message_t& msg);
 
     /**
      * @brief Send an ack to the given message.
-    */
+     */
     void sendAck(const mavlink_message_t& msg);
 
     /**
@@ -74,5 +75,5 @@ private:
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("serial");
 };
-    
-}
+
+}  // namespace ConRIG

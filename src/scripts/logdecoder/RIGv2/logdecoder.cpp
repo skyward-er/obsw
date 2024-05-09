@@ -20,8 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/Actuators/ActuatorsData.h>
+#include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <logger/Deserializer.h>

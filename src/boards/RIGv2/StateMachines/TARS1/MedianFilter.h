@@ -23,35 +23,35 @@
 #pragma once
 
 #include <algorithm>
-#include <memory>
 #include <array>
+#include <memory>
 
 namespace RIGv2
 {
 
-template<typename T, size_t Max>
+template <typename T, size_t Max>
 class MedianFilter
 {
 public:
     MedianFilter() {}
 
-    void reset() {
-        idx = 0;
-    }
-    
-    void add(T value) {
+    void reset() { idx = 0; }
+
+    void add(T value)
+    {
         values[idx] = value;
-        idx = (idx + 1) % Max;
+        idx         = (idx + 1) % Max;
     }
-    
-    T calcMedian() {
+
+    T calcMedian()
+    {
         std::sort(values.begin(), values.end());
         return values[idx / 2];
     }
 
 private:
-    size_t idx = 0;
+    size_t idx                = 0;
     std::array<T, Max> values = {0};
 };
 
-}
+}  // namespace RIGv2
