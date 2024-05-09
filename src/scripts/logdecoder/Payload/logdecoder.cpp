@@ -20,17 +20,14 @@
  * THE SOFTWARE.
  */
 
-#include <Main/CanHandler/CanHandlerData.h>
-#include <Main/PinHandler/PinData.h>
-#include <Main/Sensors/RotatedIMU/RotatedIMUData.h>
-#include <Main/Sensors/SensorsData.h>
-#include <Main/StateMachines/ABKController/ABKControllerData.h>
-#include <Main/StateMachines/ADAController/ADAControllerData.h>
-#include <Main/StateMachines/Deployment/DeploymentData.h>
-#include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
-#include <Main/StateMachines/MEAController/MEAControllerData.h>
-#include <Main/StateMachines/NASController/NASControllerData.h>
-#include <algorithms/MEA/MEAData.h>
+#include <Payload/Sensors/RotatedIMU/RotatedIMUData.h>
+#include <Payload/Sensors/SensorData.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
+#include <Payload/StateMachines/NASController/NASControllerData.h>
+#include <Payload/StateMachines/WingController/WingControllerData.h>
+#include <Payload/WindEstimationScheme/WindEstimationData.h>
+#include <Payload/Wing/WingAlgorithmData.h>
+#include <Payload/Wing/WingTargetPositionData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -52,7 +49,7 @@
 
 using namespace tscpp;
 using namespace Boardcore;
-using namespace Main;
+using namespace Payload;
 
 void registerTypes(Deserializer& ds)
 {
@@ -62,23 +59,16 @@ void registerTypes(Deserializer& ds)
     // Custom types
     ds.registerType<FlightModeManagerStatus>();
     ds.registerType<NASControllerStatus>();
-    ds.registerType<MEAControllerStatus>();
-    ds.registerType<MEAState>();
-    ds.registerType<ADAControllerStatus>();
-    ds.registerType<ABKControllerStatus>();
-    ds.registerType<DeploymentStatus>();
     ds.registerType<LPS28DFW_1Data>();
     ds.registerType<LPS28DFW_2Data>();
-    ds.registerType<HSCMRNN015PA_1Data>();
-    ds.registerType<HSCMRNN015PA_2Data>();
     ds.registerType<RotatedIMUData>();
-    ds.registerType<CanPressureSensor>();
-    ds.registerType<CanTemperatureSensor>();
-    ds.registerType<CanCurrentSensor>();
-    ds.registerType<CanVoltageSensor>();
-    ds.registerType<CanActuator>();
     ds.registerType<SensorsCalibrationParameter>();
-    ds.registerType<PinChangeData>();
+    ds.registerType<SensorsCalibrationParameter>();
+    ds.registerType<RotatedIMUData>();
+    ds.registerType<WingControllerStatus>();
+    ds.registerType<WindLogging>();
+    ds.registerType<WingAlgorithmData>();
+    ds.registerType<WingTargetPositionData>();
 }
 
 void showUsage(const string& cmdName)
