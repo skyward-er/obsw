@@ -161,8 +161,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             BMX160Data imu =
                 modules.get<Sensors>()->getBMX160WithCorrectionLastSample();
             UBXGPSData gps = modules.get<Sensors>()->getUbxGpsLastSample();
-            // Eigen::Vector2f wind =
-            //     modules.get<WindEstimation>()->getWindEstimationScheme();
+            Eigen::Vector2f wind{};
 
             // NAS state
             NASState nasState = modules.get<NASController>()->getNasState();
@@ -171,11 +170,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<NASController>()->getStatus().state);
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
-            // tm.wes_state = static_cast<uint8_t>(
-            //     modules.get<WingController>()->getStatus().state);
+            tm.wes_state = 0;
 
-            // tm.wes_n = wind[0];
-            // tm.wes_e = wind[1];
+            tm.wes_n = 0;
+            tm.wes_e = 0;
 
             tm.pressure_digi = lps22df.pressure;
 
@@ -217,10 +215,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.nas_bias_z = nasState.bz;
 
             // Servos
-            // tm.left_servo_angle = modules.get<Actuators>()->getServoAngle(
-            //     ServosList::PARAFOIL_LEFT_SERVO);
-            // tm.right_servo_angle = modules.get<Actuators>()->getServoAngle(
-            //     ServosList::PARAFOIL_RIGHT_SERVO);
+            tm.left_servo_angle  = 0;
+            tm.right_servo_angle = 0;
 
             tm.pin_nosecone = modules.get<PinHandler>()
                                   ->getPinsData()[PinsList::NOSECONE_PIN]
@@ -229,9 +225,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
                                      .batVoltage;
-            // tm.current_consumption =
-            //     modules.get<Sensors>()->getCurrentLastSample().current;
-            tm.temperature  = lps22df.temperature;
+            tm.current_consumption = 0;
+            tm.temperature         = lps22df.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             tm.battery_voltage = modules.get<Sensors>()
@@ -263,8 +258,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.abk_state = 0;
             tm.ada_state = 0;
-            // tm.dpl_state = static_cast<uint8_t>(
-            //     modules.get<WingController>()->getStatus().state);
+            tm.dpl_state = 0;
             tm.fmm_state = static_cast<uint8_t>(
                 modules.get<FlightModeManager>()->getStatus().state);
             tm.nas_state = static_cast<uint8_t>(
