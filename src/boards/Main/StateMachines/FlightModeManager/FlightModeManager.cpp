@@ -39,6 +39,7 @@ FlightModeManager::FlightModeManager()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
 }
@@ -258,6 +259,7 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
         {
             logStatus();
             // TODO(davide.mor): Calibrate sensors
+            Thread::sleep(2000);
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
             return HANDLED;
         }
@@ -301,6 +303,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
 
             // Quick hack to make the state machine go forward
+            Thread::sleep(2000);
             EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 
@@ -523,7 +526,7 @@ State FlightModeManager::state_flying(const Event& event)
 
             // Post mission end timeout
             missionTimeoutEvent = EventBroker::getInstance().postDelayed(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT,
+                FLIGHT_MISSION_TIMEOUT, TOPIC_FMM,
                 Config::FlightModeManager::MISSION_TIMEOUT);
 
             return HANDLED;

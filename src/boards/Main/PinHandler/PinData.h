@@ -22,34 +22,32 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
+#include <cstdint>
+#include <ostream>
 
 namespace Main
 {
-namespace Config
+
+struct PinChangeData
 {
-namespace Actuators
-{
-static constexpr unsigned int ABK_MIN_PULSE = 1950;
-static constexpr unsigned int ABK_MAX_PULSE = 1380;
+    uint64_t timestamp    = 0;
+    uint8_t pinId         = 0;
+    uint32_t changesCount = 0;
 
-// Inverted to invert the servo logic
-static constexpr unsigned int EXP_MIN_PULSE = 900;
-static constexpr unsigned int EXP_MAX_PULSE = 2000;
+    PinChangeData(uint64_t timestamp, uint8_t pinId, uint32_t changesCount)
+        : timestamp(timestamp), pinId(pinId), changesCount(changesCount)
+    {
+    }
 
-// Buzzer configs
-static constexpr uint16_t BUZZER_FREQUENCY = 1000;
-static constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+    PinChangeData() : PinChangeData{0, 0, 0} {}
 
-static constexpr uint32_t BUZZER_UPDATE_PERIOD = 50;
-static constexpr uint32_t BUZZER_ARM_PERIOD    = 500;
-static constexpr uint32_t BUZZER_LAND_PERIOD   = 1000;
+    static std::string header() { return "timestamp,pinId,changesCount\n"; }
 
-// Status configs
-static constexpr uint32_t STATUS_UPDATE_PERIOD = 50;
-static constexpr uint32_t STATUS_OK_PERIOD     = 1000;
-static constexpr uint32_t STATUS_ERR_PERIOD    = 100;
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)pinId << "," << changesCount
+           << "\n";
+    }
+};
 
-}  // namespace Actuators
-}  // namespace Config
-}  // namespace Main
+}
