@@ -22,65 +22,37 @@
 
 #pragma once
 
-#include <actuators/Servo/Servo.h>
-#include <common/Mavlink.h>
-#include <scheduler/TaskScheduler.h>
+#include <utils/PinObserver/PinObserver.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
-#include <atomic>
 
 namespace Main
 {
 
-class Actuators : public Boardcore::Module
+class PinHandler : public Boardcore::Module
 {
 public:
-    Actuators();
+    enum class PinList : uint8_t
+    {
+        RAMP_PIN = 0,
+        DETACH_MAIN_PIN,
+        DETACH_PAYLOAD_PIN,
+        EXPULSION_SENSE
+    };
+
+    PinHandler();
 
     [[nodiscard]] bool start();
 
-    void setAbkPosition(float position);
-    void openExpulsion();
-
-    bool wiggleServo(ServosList servo);
-
-    void camOn();
-    void camOff();
-
-    void cutterOn();
-    void currerOff();
-
-    void setBuzzerOff();
-    void setBuzzerArmed();
-    void setBuzzerLand();
-
-    void setStatusOff();
-    void setStatusErr();
-    void setStatusOk();
-
 private:
-    Boardcore::Servo *getServo(ServosList servo);
+    void onRampPinTransition(Boardcore::PinTransition transition);
+    void onDetachMainTransition(Boardcore::PinTransition transition);
+    void onDetachPayloadTransition(Boardcore::PinTransition transition);
+    void onExpulsionSenseTransition(Boardcore::PinTransition transition);
 
-    void statusOn();
-    void statusOff();
+    Boardcore::PinData getPinData(PinList pin);
 
-    void buzzerOn();
-    void buzzerOff();
-
-    void updateBuzzer();
-    void updateStatus();
-
-    std::unique_ptr<Boardcore::Servo> servoAbk;
-    std::unique_ptr<Boardcore::Servo> servoExp;
-    std::unique_ptr<Boardcore::PWM> buzzer;
-
-    std::atomic<uint32_t> buzzerCounter{0};
-    std::atomic<uint32_t> buzzerOverflow{0};
-
-    std::atomic<uint32_t> statusCounter{0};
-    std::atomic<uint32_t> statusOverflow{0};
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };
 
-}
+}  // namespace Main
