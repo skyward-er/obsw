@@ -40,6 +40,7 @@ enum GroundModeManagerState : uint8_t
     GMM_STATE_IGNITING,
     GMM_STATE_OXIDIZER,
     GMM_STATE_COOLING,
+    GMM_STATE_INVALID,
 };
 
 struct GroundModeManagerData
