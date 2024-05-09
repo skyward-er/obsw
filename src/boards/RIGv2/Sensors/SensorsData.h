@@ -64,8 +64,8 @@ struct TCsData : Boardcore::MAX31856Data
 
     TCsData(uint64_t time, uint8_t num, float temperature,
             float coldJunctionTemperature)
-        : MAX31856Data{time, temperature, coldJunctionTemperature},
-          tcNumber{num}
+        : MAX31856Data{time, temperature, coldJunctionTemperature}, tcNumber{
+                                                                        num}
     {
     }
 

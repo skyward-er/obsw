@@ -22,12 +22,12 @@
 
 #pragma once
 
+#include <RIGv2/Configs/TARS1Config.h>
+#include <RIGv2/StateMachines/TARS1/MedianFilter.h>
+#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <events/FSM.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
-#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
-#include <RIGv2/StateMachines/TARS1/MedianFilter.h>
-#include <RIGv2/Configs/TARS1Config.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -37,7 +37,7 @@ namespace RIGv2
 class TARS1 : public Boardcore::Module, public Boardcore::FSM<TARS1>
 {
 public:
-    TARS1(Boardcore::TaskScheduler &scheduler);
+    TARS1();
 
     [[nodiscard]] bool start();
 
@@ -54,8 +54,6 @@ private:
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tars1");
-
-    Boardcore::TaskScheduler &scheduler;
 
     float previousMass = 0;
     float currentMass  = 0;

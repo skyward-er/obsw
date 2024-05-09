@@ -37,8 +37,8 @@ public:
                          float shuntResistance, float maxPressure,
                          float minCurrent = 4, float maxCurrent = 20)
         : getVoltage{getVoltage}, shuntResistance{shuntResistance},
-          maxPressure{maxPressure}, minCurrent{minCurrent},
-          maxCurrent{maxCurrent}
+          maxPressure{maxPressure}, minCurrent{minCurrent}, maxCurrent{
+                                                                maxCurrent}
     {
     }
 
@@ -49,19 +49,20 @@ public:
 private:
     Boardcore::PressureData sampleImpl() override
     {
-        auto voltage = getVoltage();
+        auto voltage   = getVoltage();
         float pressure = voltageToPressure(voltage.voltage);
 
         return {voltage.voltageTimestamp, pressure};
     }
 
-    float voltageToPressure(float voltage) {
+    float voltageToPressure(float voltage)
+    {
         // First convert voltage to current
         float current = (voltage / shuntResistance) * 1000.0f;
 
         // Convert to a value between 0 and 1
         float value = (current - minCurrent) / (maxCurrent - minCurrent);
-    
+
         // Scale from 0 to maxPressure
         return value * maxPressure;
     }

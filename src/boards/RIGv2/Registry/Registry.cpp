@@ -27,7 +27,7 @@
 using namespace RIGv2;
 using namespace Boardcore;
 
-const char *RIGv2::configurationIdToName(ConfigurationId id)
+const char* RIGv2::configurationIdToName(ConfigurationId id)
 {
     switch (id)
     {
@@ -67,17 +67,17 @@ Registry::Registry()
 {
 }
 
-bool Registry::start() {
+bool Registry::start()
+{
     return RegistryFrontend::start() == RegistryError::OK;
 }
 
-bool FileBackend::start() {
-    return true;
-}
+bool FileBackend::start() { return true; }
 
-bool FileBackend::load(std::vector<uint8_t>& buf) {
+bool FileBackend::load(std::vector<uint8_t>& buf)
+{
     std::ifstream is(path, std::ifstream::ate | std::ifstream::binary);
-    if(!is.good())
+    if (!is.good())
         return false;
 
     size_t size = is.tellg();
@@ -89,9 +89,10 @@ bool FileBackend::load(std::vector<uint8_t>& buf) {
     return is.good();
 }
 
-bool FileBackend::save(std::vector<uint8_t>& buf) {
+bool FileBackend::save(std::vector<uint8_t>& buf)
+{
     std::ofstream os(path, std::ifstream::binary);
-    if(!os.good())
+    if (!os.good())
         return false;
 
     os.write(reinterpret_cast<char*>(buf.data()), buf.size());

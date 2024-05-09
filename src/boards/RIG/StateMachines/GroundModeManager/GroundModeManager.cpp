@@ -156,12 +156,12 @@ void GroundModeManager::state_igniting(const Event& event)
         // {
         //     // Shut down the igniter
         //     miosix::relays::ignition::high();
-        // 
+        //
         //     // Close all the valves
         //     modules.get<Actuators>()->closeAllServo();
-        // 
+        //
         //     EventBroker::getInstance().removeDelayed(oxidantTimeoutEventId);
-        // 
+        //
         //     transition(&GroundModeManager::state_ready);
         //     break;
         // }

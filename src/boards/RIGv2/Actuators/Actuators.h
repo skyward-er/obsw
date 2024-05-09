@@ -75,7 +75,7 @@ private:
     };
 
 public:
-    Actuators(Boardcore::TaskScheduler &scheduler);
+    Actuators();
 
     [[nodiscard]] bool start();
 
@@ -113,8 +113,6 @@ private:
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
-
-    Boardcore::TaskScheduler &scheduler;
 
     size_t updatePositionTaskId = 0;
 

@@ -52,13 +52,13 @@ private:
     void enqueueAck(const mavlink_message_t& msg);
     void enqueueNack(const mavlink_message_t& msg);
 
-    void enqueuePacket(const mavlink_message_t &msg);
+    void enqueuePacket(const mavlink_message_t& msg);
     void flushPackets();
 
     void handleMessage(const mavlink_message_t& msg);
     void handleCommand(const mavlink_message_t& msg);
     void handleConrigState(const mavlink_message_t& msg);
-    
+
     void enqueueRegistry();
 
     bool enqueueSystemTm(uint8_t tmId);

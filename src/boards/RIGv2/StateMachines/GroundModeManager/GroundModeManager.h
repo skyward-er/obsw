@@ -65,7 +65,7 @@ private:
     std::atomic<GroundModeManagerState> state{GMM_STATE_IDLE};
 
     uint16_t openOxidantDelayEventId = -1;
-    uint16_t coolingDelayEventId = -1;
+    uint16_t coolingDelayEventId     = -1;
 };
 
 }  // namespace RIGv2

@@ -22,6 +22,7 @@
 
 #include "Sensors.h"
 
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
@@ -36,6 +37,10 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
+    ModuleManager &modules = ModuleManager::getInstance();
+    TaskScheduler &scheduler =
+        modules.get<BoardScheduler>()->getSensorsScheduler();
+
     SensorManager::SensorMap_t map;
     if (Config::Sensors::InternalADC::ENABLED)
     {
