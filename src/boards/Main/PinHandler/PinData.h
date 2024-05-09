@@ -45,9 +45,8 @@ struct PinChangeData
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)pinId << "," << changesCount
-           << "\n";
+        os << timestamp << "," << (int)pinId << "," << changesCount << "\n";
     }
 };
 
-}
+}  // namespace Main

@@ -44,7 +44,7 @@ static constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
 
-static constexpr unsigned int TELEMETRY_PERIOD   = 250;
+static constexpr unsigned int TELEMETRY_PERIOD = 250;
 
 }  // namespace Radio
 

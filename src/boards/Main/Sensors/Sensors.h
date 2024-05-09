@@ -23,6 +23,7 @@
 #pragma once
 
 #include <diagnostic/PrintLogger.h>
+#include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -32,7 +33,6 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
-#include <drivers/adc/InternalADC.h>
 
 #include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>

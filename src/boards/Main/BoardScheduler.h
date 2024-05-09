@@ -56,7 +56,10 @@ public:
 
     Boardcore::TaskScheduler &getCanBusScheduler() { return others; }
 
-    Boardcore::TaskScheduler &getLowPriorityActuatorsScheduler() { return others; }
+    Boardcore::TaskScheduler &getLowPriorityActuatorsScheduler()
+    {
+        return others;
+    }
 
 private:
     Boardcore::TaskScheduler nas;

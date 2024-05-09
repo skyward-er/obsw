@@ -37,6 +37,7 @@ CanHandler::CanHandler()
 
     CanbusDriver::CanbusConfig config;
 
+    // cppcheck-suppress useInitializationList
     driver = std::make_unique<CanbusDriver>(CAN1, config, bitTiming);
 
     protocol = std::make_unique<CanProtocol>(

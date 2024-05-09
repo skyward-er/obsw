@@ -30,7 +30,8 @@ namespace Main
 namespace Config
 {
 
-namespace Scheduler {
+namespace Scheduler
+{
 
 // Used for NAS related activities (state machines/scheduler)
 static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
@@ -47,7 +48,7 @@ static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
 // Used for FlightModeManager
 static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
 
-}
+}  // namespace Scheduler
 
 }  // namespace Config
 
