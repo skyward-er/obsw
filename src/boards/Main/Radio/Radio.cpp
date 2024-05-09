@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <Main/AltitudeTrigger/AltitudeTrigger.h>
 #include <Main/Buses.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
@@ -318,19 +317,6 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 return sendNack(msg);
             }
             modules.get<NASController>()->setReferenceTemperature(temperature);
-            break;
-        }
-        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
-        {
-            float altitude =
-                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
-
-            if (modules.get<FlightModeManager>()->getStatus().state !=
-                FlightModeManagerState::TEST_MODE)
-            {
-                return sendNack(msg);
-            }
-            modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
             break;
         }
         case MAVLINK_MSG_ID_SET_ORIENTATION_TC:
