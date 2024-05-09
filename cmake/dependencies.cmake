@@ -31,5 +31,4 @@ set(MAIN_COMPUTER
     src/boards/Main/TMRepository/TMRepository.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Main/AltitudeTrigger/AltitudeTrigger.cpp
 )
