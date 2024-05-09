@@ -126,7 +126,7 @@ constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000;  // [ms]
 // LoadCell
 constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1;  // [ms]
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;  
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration
 static constexpr float LOAD_CELL_P0_VOLTAGE = 1;
 static constexpr float LOAD_CELL_P0_MASS    = 1;

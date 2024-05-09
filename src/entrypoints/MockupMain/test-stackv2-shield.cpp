@@ -267,11 +267,11 @@ int testADS(GpioPin cs)
 
         ADS131M08Data data = ads131.getLastSample();
 
-        printf(
-            "% 2.8f\n",
-            // \t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\n",
-            data.voltage[0]/*, data.voltage[1], data.voltage[2], data.voltage[3],
-            data.voltage[4], data.voltage[5], data.voltage[6], data.voltage[7]);*/
+        printf("% 2.8f\n",
+               // \t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\t% 2.8f\n",
+               data.voltage[0] /*, data.voltage[1], data.voltage[2],
+                data.voltage[3], data.voltage[4], data.voltage[5],
+                data.voltage[6], data.voltage[7]);*/
         );
         delayMs(200);
     }

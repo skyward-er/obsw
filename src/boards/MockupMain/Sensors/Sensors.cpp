@@ -508,7 +508,8 @@ void Sensors::ubxGpsCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::ads131Callback() {
+void Sensors::ads131Callback()
+{
     // We don't log the adc in this test
 }
 

@@ -37,4 +37,3 @@ add_executable(main-entry src/entrypoints/MockupMain/main-entry.cpp ${MOCKUP_MAI
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry PRIVATE)
 sbs_target(main-entry stm32f429zi_skyward_death_stack_x)
-
