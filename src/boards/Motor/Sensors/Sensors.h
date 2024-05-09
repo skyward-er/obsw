@@ -45,7 +45,6 @@ public:
     {
     }
 
-
     bool isStarted();
 
     [[nodiscard]] bool start();
