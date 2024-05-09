@@ -36,7 +36,7 @@ enum class FlightModeManagerState : uint8_t
     DISARMED,
     TEST_MODE,
     ARMED,
-    IGNITION, // < Unused, kept for backward compatibility
+    IGNITION,  // < Unused, kept for backward compatibility
     FLYING,
     POWERED_ASCENT,
     UNPOWERED_ASCENT,

@@ -323,8 +323,6 @@ void Sensors::ads131m08Callback() {}
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
     internalAdc->enableChannel(Config::Sensors::InternalADC::CAM_VBAT_CH);
