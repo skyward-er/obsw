@@ -204,7 +204,8 @@ float voltageToTemp(float voltage)
 float voltageToPress(float voltage)
 {
     // First convert voltage to current
-    float current = (voltage / Config::Sensors::ADS131M08::CH5_SHUNT_RESISTANCE) * 1000.0f;
+    float current =
+        (voltage / Config::Sensors::ADS131M08::CH5_SHUNT_RESISTANCE) * 1000.0f;
 
     // Convert to a value between 0 and 1
     float value = (current - 4) / (20 - 4);
@@ -217,13 +218,12 @@ void Sensors::ads131m08Callback()
 {
     auto sample = ads131m08->getLastSample();
 
-    LOG_INFO(logger, "ADC: {}\t{}", voltageToPress(sample.voltage[5]), voltageToPress(sample.voltage[6]));
+    LOG_INFO(logger, "ADC: {}\t{}", voltageToPress(sample.voltage[5]),
+             voltageToPress(sample.voltage[6]));
 }
 
 void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(InternalADC::CH9);
     internalAdc->enableChannel(InternalADC::CH14);
