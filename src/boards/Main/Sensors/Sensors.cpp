@@ -124,6 +124,7 @@ bool Sensors::start()
     ads131Init();
     internalADCInit();
     batteryVoltageInit();
+    loadCellInit();
 
     // Add the magnetometer calibration to the scheduler
     size_t result = scheduler->addTask(
@@ -358,6 +359,24 @@ void Sensors::ads131Init()
 
     // Configure the device
     ADS131M08::Config sensorConfig;
+
+    // Disable all channels
+    sensorConfig.channelsConfig[0].enabled = false;
+    sensorConfig.channelsConfig[1].enabled = false;
+    sensorConfig.channelsConfig[2].enabled = false;
+    sensorConfig.channelsConfig[3].enabled = false;
+    sensorConfig.channelsConfig[4].enabled = false;
+    sensorConfig.channelsConfig[5].enabled = false;
+    sensorConfig.channelsConfig[6].enabled = false;
+    sensorConfig.channelsConfig[7].enabled = false;
+
+    // Configure required channels
+    sensorConfig.channelsConfig[(int)SensorsConfig::LOAD_CELL_ADC_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
     sensorConfig.oversamplingRatio     = ADS131M08_OVERSAMPLING_RATIO;
     sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
 
@@ -488,11 +507,11 @@ void Sensors::ubxGpsCallback()
     UBXGPSData lastSample = ubxGps->getLastSample();
     Logger::getInstance().log(lastSample);
 }
-void Sensors::ads131Callback()
-{
-    ADS131M08Data lastSample = ads131->getLastSample();
-    Logger::getInstance().log(lastSample);
+
+void Sensors::ads131Callback() {
+    // We don't log the adc in this test
 }
+
 void Sensors::internalADCCallback()
 {
     InternalADCData lastSample = internalADC->getLastSample();
