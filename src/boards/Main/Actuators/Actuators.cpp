@@ -30,6 +30,22 @@ using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
 
+Actuators::Actuators()
+{
+    servoAbk = std::make_unique<Servo>(
+        MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
+        Config::Actuators::ABK_MIN_PULSE, Config::Actuators::ABK_MAX_PULSE);
+
+    servoExp = std::make_unique<Servo>(
+        MIOSIX_EXPULSION_TIM, TimerUtils::Channel::MIOSIX_EXPULSION_CHANNEL,
+        Config::Actuators::EXP_MIN_PULSE, Config::Actuators::EXP_MAX_PULSE);
+
+    buzzer = std::make_unique<PWM>(MIOSIX_BUZZER_TIM,
+                                   Config::Actuators::BUZZER_FREQUENCY);
+    buzzer->setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL,
+                         Config::Actuators::BUZZER_DUTY_CYCLE);
+}
+
 [[nodiscard]] bool Actuators::start()
 {
     ModuleManager &modules = ModuleManager::getInstance();
@@ -164,13 +180,13 @@ void Actuators::updateBuzzer()
 
 void Actuators::updateStatus()
 {
-    if (buzzerOverflow == 0)
+    if (statusOverflow == 0)
     {
         statusOff();
     }
     else
     {
-        if (buzzerCounter >= buzzerOverflow)
+        if (statusCounter >= statusOverflow)
         {
             statusOn();
         }
@@ -179,14 +195,14 @@ void Actuators::updateStatus()
             statusOff();
         }
 
-        if (buzzerCounter >= buzzerOverflow * 2)
+        if (statusCounter >= statusOverflow * 2)
         {
             // Reset the counter
-            buzzerCounter = 0;
+            statusCounter = 0;
         }
         else
         {
-            buzzerCounter += Config::Actuators::BUZZER_UPDATE_PERIOD;
+            statusCounter += Config::Actuators::STATUS_UPDATE_PERIOD;
         }
     }
 }

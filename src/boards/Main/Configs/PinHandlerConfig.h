@@ -22,34 +22,30 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
+#include <utils/PinObserver/PinObserver.h>
 
 namespace Main
 {
+
 namespace Config
 {
-namespace Actuators
+
+namespace PinHandler
 {
-static constexpr unsigned int ABK_MIN_PULSE = 1950;
-static constexpr unsigned int ABK_MAX_PULSE = 1380;
 
-// Inverted to invert the servo logic
-static constexpr unsigned int EXP_MIN_PULSE = 900;
-static constexpr unsigned int EXP_MAX_PULSE = 2000;
+static constexpr uint32_t RAMP_PIN_THRESHOLD = 20;
+static constexpr Boardcore::PinTransition RAMP_PIN_TRIGGER =
+    Boardcore::PinTransition::RISING_EDGE;
 
-// Buzzer configs
-static constexpr uint16_t BUZZER_FREQUENCY = 1000;
-static constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+static constexpr uint32_t MAIN_DETACH_PIN_THRESHOLD = 20;
+static constexpr Boardcore::PinTransition MAIN_DETACH_PIN_TRIGGER =
+    Boardcore::PinTransition::RISING_EDGE;
 
-static constexpr uint32_t BUZZER_UPDATE_PERIOD = 50;
-static constexpr uint32_t BUZZER_ARM_PERIOD    = 500;
-static constexpr uint32_t BUZZER_LAND_PERIOD   = 1000;
+static constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD = 20;
+static constexpr uint32_t EXPULSION_PIN_THRESHOLD      = 20;
 
-// Status configs
-static constexpr uint32_t STATUS_UPDATE_PERIOD = 50;
-static constexpr uint32_t STATUS_OK_PERIOD     = 1000;
-static constexpr uint32_t STATUS_ERR_PERIOD    = 100;
+}  // namespace PinHandler
 
-}  // namespace Actuators
 }  // namespace Config
+
 }  // namespace Main
