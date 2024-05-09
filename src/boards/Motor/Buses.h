@@ -51,4 +51,4 @@ private:
     Boardcore::USART usart4{UART4, 460800, 1024};
 };
 
-}
+}  // namespace Motor
