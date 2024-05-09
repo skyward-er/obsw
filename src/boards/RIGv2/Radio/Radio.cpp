@@ -94,10 +94,8 @@ bool Radio::start()
 
     // Initialize mavdriver
     mavDriver = std::make_unique<MavDriver>(
-        radio.get(),
-        [this](MavDriver*, const mavlink_message_t& msg)
-        { handleMessage(msg); },
-        Config::Radio::MAV_SLEEP_AFTER_SEND,
+        radio.get(), [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); }, Config::Radio::MAV_SLEEP_AFTER_SEND,
         Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mavDriver->start())
@@ -570,12 +568,13 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
+            tm.nitrogen_valve_state = actuators->isNitrogenOpen() ? 1 : 0;
             tm.arming_state =
                 modules.get<GroundModeManager>()->getState() == GMM_STATE_ARMED
                     ? 1
                     : 0;
-            tm.ignition_state = modules.get<GroundModeManager>()->getState();
-            tm.tars_state     = modules.get<TARS1>()->isRefueling() ? 1 : 0;
+            tm.gmm_state  = modules.get<GroundModeManager>()->getState();
+            tm.tars_state = modules.get<TARS1>()->isRefueling() ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
@@ -599,7 +598,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.tank_temperature     = sensors->getTc1LastSample().temperature;
             tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
             tm.bottom_tank_pressure = sensors->getBottomTankPress().pressure;
-            tm.floating_level       = 69.0f;  // Lol
             // TODO(davide.mor): Add the rest of these
 
             tm.battery_voltage     = 0.0f;
