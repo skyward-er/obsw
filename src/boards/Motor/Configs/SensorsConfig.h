@@ -84,6 +84,17 @@ namespace ADS131M08
 static constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 static constexpr bool GLOBAL_CHOP_MODE_EN = true;
+
+static constexpr float CH5_SHUNT_RESISTANCE = 29.7;
+static constexpr float CH6_SHUNT_RESISTANCE = 29.7;
+
+static constexpr Boardcore::ADS131M08Defs::Channel TC_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
+static constexpr Boardcore::ADS131M08Defs::Channel BOTTOM_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
+static constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
+
 static constexpr uint32_t PERIOD          = 10;  // [ms] 100Hz
 }  // namespace ADS131M08
 
