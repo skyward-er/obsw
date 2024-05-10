@@ -22,22 +22,58 @@
 
 #include "SMController.h"
 
+#include <Groundstation/Automated/Config/PropagatorConfig.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
 #include "SMControllerData.h"
 
 using namespace Boardcore;
+using namespace Groundstation;
 using namespace Common;
 using namespace miosix;
 
 namespace Antennas
 {
 
-SMController::SMController() : HSM(&SMController::state_config)
+SMController::SMController(TaskScheduler* sched)
+    : HSM(&SMController::state_config), scheduler(sched),
+      propagator(PropagatorConfig::PROPAGATOR_PERIOD), follower()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+}
+
+void SMController::setAntennaCoordinates(
+    const Boardcore::GPSData& antennaCoordinates)
+{
+    if (!testState(&SMController::state_insert_info) &&
+        !testState(&SMController::state_fix_antennas))
+    {
+        LOG_ERR(logger,
+                "Antenna coordinates can only be set in states: "
+                "FIX_ANTENNAS, INSERT_INFO");
+    }
+    else
+    {
+        follower.setAntennaCoordinates(antennaCoordinates);
+    }
+}
+
+void SMController::setInitialRocketCoordinates(
+    const Boardcore::GPSData& rocketCoordinates)
+{
+    if (!testState(&SMController::state_fix_rocket) &&
+        !testState(&SMController::state_fix_rocket_nf))
+    {
+        LOG_ERR(logger,
+                "Rocket coordinates can only be set in the "
+                "FIX_ROCKET or FIX_ROCKET_NF state");
+    }
+    else
+    {
+        follower.setInitialRocketCoordinates(rocketCoordinates);
+    }
 }
 
 // Super state
