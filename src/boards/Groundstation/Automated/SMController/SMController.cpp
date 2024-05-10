@@ -174,6 +174,24 @@ void SMController::update()
             }
             break;
         }
+        // in active state, update the follower and propagator inner states
+        case SMControllerState::ACTIVE:
+        case SMControllerState::ACTIVE_NF:
+        {
+            // retrieve the last NAS Rocket state
+            Hub* hub =
+                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+            NASState nasState = hub->getRocketNasState();
+
+            // update the propagator with the NAS state
+            // and retrieve the propagated state
+            propagator.setRocketNasState(nasState);
+            PropagatorState predicted = propagator.getState();
+
+            // update the follower with the propagated state
+            follower.setLastRocketNasState(predicted.getNasState());
+            break;
+        }
     }
 }
 
