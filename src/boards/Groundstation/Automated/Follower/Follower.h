@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Emilio Corigliano, Niccolò Betto
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Emilio Corigliano, Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,22 +85,25 @@ private:
      */
     AntennaAngles rocketPositionToAntennaAngles(const NEDCoords& ned);
 
+    // max number of retries for GPS data acquisition
+    const uint8_t maxInitRetries = 120;
+
     bool antennaCoordinatesSet = false;
     bool rocketCoordinatesSet  = false;
 
-    const uint8_t maxInitRetries =
-        120;  ///< max number of retries for GPS data acquisition
+    Boardcore::NASState lastRocketNasState;
+    miosix::FastMutex lastRocketNasStateMutex;
 
-    Eigen::Vector3f antennaCoordinates;  ///< GPS coordinates of the antenna
-                                         ///< [lat, lon, alt] [deg, deg, m]
-    Eigen::Vector3f initialRocketCoordinates;  ///< GPS coordinates of the
-                                               ///< rocket while in ramp [lat,
-                                               ///< lon, alt] [deg, deg, m]
-    AntennaAngles
-        targetAngles;  ///< Target yaw and pitch of the system [deg, deg].
-    Eigen::Vector2f
-        initialAntennaRocketDistance;  ///< Distance between the antenna and
-                                       ///< the rocket while in ramp [m]
+    // GPS coordinates of the antenna [lat, lon, alt] [deg, deg, m]
+    Eigen::Vector3f antennaCoordinates;
+    // GPS coordinates of the rocket while in ramp [lat, lon, alt] [deg, deg, m]
+    Eigen::Vector3f initialRocketCoordinates;
+    // Initial distance between the antenna and the rocket while in ramp [lat,
+    // lon, alt] [deg, deg, m]
+    Eigen::Vector2f initialAntennaRocketDistance;
+
+    // Target yaw and pitch of the system [deg, deg]
+    AntennaAngles targetAngles;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Follower");
 };
