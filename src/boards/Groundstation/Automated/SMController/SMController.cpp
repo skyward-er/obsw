@@ -22,9 +22,17 @@
 
 #include "SMController.h"
 
+#include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <Groundstation/Automated/Config/PropagatorConfig.h>
+#include <Groundstation/Automated/Config/SMControllerConfig.h>
+#include <Groundstation/Automated/Hub.h>
+#include <Groundstation/Automated/Leds/Leds.h>
+#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <sensors/Vectornav/VN300/VN300Data.h>
+
+#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "SMControllerData.h"
 
@@ -32,6 +40,7 @@ using namespace Boardcore;
 using namespace Groundstation;
 using namespace Common;
 using namespace miosix;
+using namespace std;
 
 namespace Antennas
 {
@@ -42,6 +51,38 @@ SMController::SMController(TaskScheduler* sched)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+}
+
+bool SMController::start()
+{
+    size_t result;
+    bool ok = true;
+
+    // add the Propagator task
+    result = scheduler->addTask(bind(&Propagator::update, propagator),
+                                PropagatorConfig::PROPAGATOR_PERIOD,
+                                TaskScheduler::Policy::RECOVER);
+    ok &= result == 0;
+
+    // add the Follower task
+    size_t result = scheduler->addTask(bind(&Follower::update, follower),
+                                       FollowerConfig::FOLLOWER_PERIOD,
+                                       TaskScheduler::Policy::RECOVER);
+    ok &= result == 0;
+
+    // add the update task
+    result = scheduler->addTask(bind(&SMController::update, this),
+                                SMControllerConfig::UPDATE_PERIOD,
+                                TaskScheduler::Policy::SKIP);
+    ok &= result == 0;
+
+    return ActiveObject::start() && ok;
+}
+
+void SMController::setRocketNasState(const NASState newRocketNasState)
+{
+    propagator.setRocketNasState(newRocketNasState);
+    follower.setLastRocketNasState(newRocketNasState);
 }
 
 void SMController::setAntennaCoordinates(
@@ -76,8 +117,90 @@ void SMController::setInitialRocketCoordinates(
     }
 }
 
+// bool SMController::trySetRocketCoordinates(
+//     const Boardcore::GPSData& rocketCoordinates)
+// {
+//     if (testState(&SMController::state_fix_rocket) ||
+//         testState(&SMController::state_fix_rocket_nf) &&
+//             rocketCoordinates.fix != 0)
+//     {
+//         follower.setInitialRocketCoordinates(rocketCoordinates);
+//         return true;
+//     }
+//     else
+//     {
+//         return false;
+//     }
+// }
+
+void SMController::update()
+{
+    switch (status.state)
+    {
+        // in fix_antennas state, wait for the GPS fix of ARP
+        case SMControllerState::FIX_ANTENNAS:
+        {
+            VN300Data vn300Data;
+            GPSData antennaPosition;
+
+            auto* sensors = ModuleManager::getInstance().get<Sensors>();
+
+            vn300Data = sensors->getVN300LastSample();
+            if (vn300Data.fix_gps != 0)
+            {
+                // build the GPSData struct with the VN300 data
+                antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
+                antennaPosition.latitude      = vn300Data.latitude;
+                antennaPosition.longitude     = vn300Data.longitude;
+                antennaPosition.height        = vn300Data.altitude;
+                antennaPosition.velocityNorth = vn300Data.nedVelX;
+                antennaPosition.velocityEast  = vn300Data.nedVelY;
+                antennaPosition.velocityDown  = vn300Data.nedVelZ;
+                antennaPosition.satellites    = vn300Data.fix_gps;
+                antennaPosition.fix           = (vn300Data.fix_gps > 0);
+
+                // update follower with coordinates
+                follower.setAntennaCoordinates(antennaPosition);
+
+                LOG_INFO(Logging::getLogger("automated_antennas"),
+                         "Antenna GPS position acquired !coord [{}, {}] [deg]",
+                         antennaPosition.latitude, antennaPosition.longitude);
+
+                // fix found, now move to the next state
+                EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
+            }
+            break;
+        }
+        // in fix_rocket state, wait for the GPS fix of the rocket
+        case SMControllerState::FIX_ROCKET:
+        case SMControllerState::FIX_ROCKET_NF:
+        {
+            GPSData rocketCoordinates;
+
+            Hub* hub =
+                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+
+            rocketCoordinates = hub->getRocketCoordinates();
+            if (rocketCoordinates.fix != 0)
+            {
+                // update follower with the rocket GPS data
+                follower.setInitialRocketCoordinates(rocketCoordinates);
+
+                LOG_INFO(Logging::getLogger("automated_antennas"),
+                         "Rocket GPS position acquired [{}, {}] [deg]",
+                         rocketCoordinates.latitude,
+                         rocketCoordinates.longitude);
+
+                // fix found, now move to the next state
+                EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
+            }
+            break;
+        }
+    }
+}
+
 // Super state
-Boardcore::State SMController::state_config(const Boardcore::Event& event)
+State SMController::state_config(const Event& event)
 {
     switch (event)
     {
@@ -111,7 +234,7 @@ Boardcore::State SMController::state_config(const Boardcore::Event& event)
 }
 
 // Super state
-Boardcore::State SMController::state_feedback(const Boardcore::Event& event)
+State SMController::state_feedback(const Event& event)
 {
     switch (event)
     {
@@ -144,7 +267,7 @@ Boardcore::State SMController::state_feedback(const Boardcore::Event& event)
 }
 
 // Super state
-Boardcore::State SMController::state_no_feedback(const Boardcore::Event& event)
+State SMController::state_no_feedback(const Event& event)
 {
     switch (event)
     {
@@ -176,7 +299,7 @@ Boardcore::State SMController::state_no_feedback(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_init(const Boardcore::Event& event)
+State SMController::state_init(const Event& event)
 {
     switch (event)
     {
@@ -212,17 +335,19 @@ Boardcore::State SMController::state_init(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_init_error(const Boardcore::Event& event)
+State SMController::state_init_error(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::INIT_ERROR);
+            ModuleManager::getInstance().get<Leds>()->start_blinking_red();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            ModuleManager::getInstance().get<Leds>()->stop_blinking_red();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -248,13 +373,14 @@ Boardcore::State SMController::state_init_error(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
+State SMController::state_init_done(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::INIT_DONE);
+            ModuleManager::getInstance().get<Leds>()->turn_on_green();
             return HANDLED;
         }
         case EV_EXIT:
@@ -284,7 +410,7 @@ Boardcore::State SMController::state_init_done(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_insert_info(const Boardcore::Event& event)
+State SMController::state_insert_info(const Event& event)
 {
     switch (event)
     {
@@ -316,7 +442,7 @@ Boardcore::State SMController::state_insert_info(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_armed(const Boardcore::Event& event)
+State SMController::state_armed(const Event& event)
 {
     switch (event)
     {
@@ -352,7 +478,7 @@ Boardcore::State SMController::state_armed(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_test(const Boardcore::Event& event)
+State SMController::state_test(const Event& event)
 {
     switch (event)
     {
@@ -384,7 +510,7 @@ Boardcore::State SMController::state_test(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_calibrate(const Boardcore::Event& event)
+State SMController::state_calibrate(const Event& event)
 {
     switch (event)
     {
@@ -420,17 +546,21 @@ Boardcore::State SMController::state_calibrate(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_fix_antennas(const Boardcore::Event& event)
+State SMController::state_fix_antennas(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ANTENNAS);
+            ModuleManager::getInstance().get<Leds>()->start_blinking_orange();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            auto* leds = ModuleManager::getInstance().get<Leds>();
+            leds->stop_blinking_orange();
+            leds->turn_on_orange();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -456,17 +586,29 @@ Boardcore::State SMController::state_fix_antennas(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_fix_rocket(const Boardcore::Event& event)
+State SMController::state_fix_rocket(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET);
+            ModuleManager::getInstance().get<Leds>()->start_blinking_yellow();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            auto* leds = ModuleManager::getInstance().get<Leds>();
+            leds->stop_blinking_yellow();
+
+            // init the follower before leaving the state
+            // (compute initial arp-rocket distance and bearing)
+            if (!follower.init())
+            {
+                LOG_ERR(logger, "Follower initialization failed");
+            }
+
+            leds->turn_on_yellow();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -492,17 +634,21 @@ Boardcore::State SMController::state_fix_rocket(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_active(const Boardcore::Event& event)
+State SMController::state_active(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::ACTIVE);
+            follower.begin();
+            propagator.begin();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            follower.end();
+            propagator.end();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -524,7 +670,7 @@ Boardcore::State SMController::state_active(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_armed_nf(const Boardcore::Event& event)
+State SMController::state_armed_nf(const Event& event)
 {
     switch (event)
     {
@@ -560,7 +706,7 @@ Boardcore::State SMController::state_armed_nf(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_test_nf(const Boardcore::Event& event)
+State SMController::state_test_nf(const Event& event)
 {
     switch (event)
     {
@@ -592,18 +738,29 @@ Boardcore::State SMController::state_test_nf(const Boardcore::Event& event)
     }
 }
 
-Boardcore::State SMController::state_fix_rocket_nf(
-    const Boardcore::Event& event)
+State SMController::state_fix_rocket_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET_NF);
+            ModuleManager::getInstance().get<Leds>()->start_blinking_yellow();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            auto* leds = ModuleManager::getInstance().get<Leds>();
+            leds->stop_blinking_yellow();
+
+            // init the follower before leaving the state
+            // (compute initial arp-rocket distance and bearing)
+            if (!follower.init())
+            {
+                LOG_ERR(logger, "Follower initialization failed");
+            }
+
+            leds->turn_on_yellow();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -629,17 +786,21 @@ Boardcore::State SMController::state_fix_rocket_nf(
     }
 }
 
-Boardcore::State SMController::state_active_nf(const Boardcore::Event& event)
+State SMController::state_active_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus(SMControllerState::ACTIVE_NF);
+            follower.begin();
+            propagator.begin();
             return HANDLED;
         }
         case EV_EXIT:
         {
+            follower.end();
+            propagator.end();
             return HANDLED;
         }
         case EV_EMPTY:
