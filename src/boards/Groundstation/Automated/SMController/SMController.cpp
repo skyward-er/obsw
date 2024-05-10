@@ -79,12 +79,6 @@ bool SMController::start()
     return ActiveObject::start() && ok;
 }
 
-void SMController::setRocketNasState(const NASState newRocketNasState)
-{
-    propagator.setRocketNasState(newRocketNasState);
-    follower.setLastRocketNasState(newRocketNasState);
-}
-
 void SMController::setAntennaCoordinates(
     const Boardcore::GPSData& antennaCoordinates)
 {
@@ -116,22 +110,6 @@ void SMController::setInitialRocketCoordinates(
         follower.setInitialRocketCoordinates(rocketCoordinates);
     }
 }
-
-// bool SMController::trySetRocketCoordinates(
-//     const Boardcore::GPSData& rocketCoordinates)
-// {
-//     if (testState(&SMController::state_fix_rocket) ||
-//         testState(&SMController::state_fix_rocket_nf) &&
-//             rocketCoordinates.fix != 0)
-//     {
-//         follower.setInitialRocketCoordinates(rocketCoordinates);
-//         return true;
-//     }
-//     else
-//     {
-//         return false;
-//     }
-// }
 
 void SMController::update()
 {
