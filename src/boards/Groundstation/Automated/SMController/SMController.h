@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <algorithms/NAS/NASState.h>
 #include <algorithms/Propagator/Propagator.h>
@@ -76,11 +77,26 @@ public:
     void setInitialRocketCoordinates(
         const Boardcore::GPSData& antennaCoordinates);
 
-    // Starts the FSM thread and adds an update function into the scheduler
+    /**
+     * @brief Starts the FSM thread and adds an update function into the
+     * scheduler
+     */
     bool start() override;
 
-    // Update routine called by the scheduler
+    /**
+     * @brief Update routine called by the scheduler
+     */
     void update();
+
+    /**
+     * @brief move the stepper `stepperId` of `angle` degrees
+     */
+    void moveStepperDeg(StepperList stepperId, float angle);
+
+    /**
+     * @brief move the stepper `stepperId` of `steps` steps
+     */
+    void moveStepperSteps(StepperList stepperId, int16_t steps);
 
 private:
     /**

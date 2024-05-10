@@ -59,20 +59,19 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_stepper_angle_tc_get_angle(&msg);
 
             // The stepper is moved of 'angle' degrees
-            modules.get<Actuators>()->moveDeg(stepperId, angle);
+            modules.get<SMController>()->moveStepperDeg(stepperId, angle);
             sendAck(msg);
             break;
         }
         case MAVLINK_MSG_ID_SET_STEPPER_STEPS_TC:
         {
-            // TODO set in which state we can use this command
 
             StepperList stepperId = static_cast<StepperList>(
                 mavlink_msg_set_stepper_steps_tc_get_stepper_id(&msg));
             int16_t steps = mavlink_msg_set_stepper_steps_tc_get_steps(&msg);
 
             // The stepper is moved of 'steps' steps
-            modules.get<Actuators>()->move(stepperId, steps);
+            modules.get<SMController>()->moveStepperSteps(stepperId, steps);
             sendAck(msg);
             break;
         }
