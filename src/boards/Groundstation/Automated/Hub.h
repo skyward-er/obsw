@@ -25,6 +25,7 @@
 #include <Groundstation/Common/HubBase.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Mavlink.h>
+#include <miosix.h>
 #include <sensors/SensorData.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -59,14 +60,30 @@ public:
     void sendAck(const mavlink_message_t& msg);
 
     /**
-     * @param get rocket NAS state.
+     * @brief Synchronized getter for the last rocket coordinates.
      */
-    Boardcore::NASState getLastRocketNasState();
-    Boardcore::GPSData getLastRocketGpsState();
+    Boardcore::GPSData getRocketCoordinates();
+
+    /**
+     * @brief Synchronized getter for the last rocket NAS state.
+     */
+    Boardcore::NASState getRocketNasState();
 
 private:
+    /**
+     * @brief Synchronized setter for the last rocket NAS state.
+     */
+    void setRocketNasState(const Boardcore::NASState& newRocketNasState);
+
+    /**
+     * @brief Synchronized setter for the last rocket coordinates.
+     */
+    void setRocketCoordinates(const Boardcore::GPSData& newRocketCoordinates);
+
+    Boardcore::GPSData lastRocketCoordinates;
     Boardcore::NASState lastRocketNasState;
-    Boardcore::GPSData lastRocketGpsState;
+    miosix::FastMutex coordinatesMutex;
+    miosix::FastMutex nasStateMutex;
 };
 
 }  // namespace Antennas
