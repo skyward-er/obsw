@@ -105,7 +105,8 @@ int main()
     TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
     Buses* buses           = new Buses();
-    PinHandler* pinHandler = new PinHandler();
+    PinHandler* pinHandler =
+        new PinHandler(*scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // HIL
     if (hilSimulationActive)
@@ -304,6 +305,12 @@ int main()
         LOG_ERR(logger, "Error starting the EventBroker module");
     }
 
+    if (!modules.get<BoardScheduler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the Board Scheduler module");
+    }
+
     if (!modules.get<Sensors>()->start())
     {
         initResult = false;
@@ -374,12 +381,6 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error starting the FlightStatsRecorder module");
-    }
-
-    if (!modules.get<BoardScheduler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
     // Log all the events

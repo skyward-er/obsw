@@ -49,7 +49,7 @@ void PinHandler::onExpulsionPinTransition(PinTransition transition)
 
 bool PinHandler::start()
 {
-    running = PinObserver::getInstance().start();
+    running = pinObserver.start();
     return running;
 }
 
@@ -60,14 +60,15 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
     std::map<PinsList, PinData> data;
 
     data[PinsList::NOSECONE_PIN] =
-        PinObserver::getInstance().getPinData(nosecone_detach::getPin());
+        pinObserver.getPinData(nosecone_detach::getPin());
 
     return data;
 }
 
-PinHandler::PinHandler() : running(false)
+PinHandler::PinHandler(Boardcore::TaskScheduler &scheduler)
+    : pinObserver{scheduler, 20}, running(false)
 {
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver.registerPinCallback(
         nosecone_detach::getPin(),
         std::bind(&PinHandler::onExpulsionPinTransition, this, _1),
         NC_DETACH_PIN_THRESHOLD);

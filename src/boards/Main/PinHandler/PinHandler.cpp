@@ -37,32 +37,32 @@ using namespace Common;
 
 namespace Main
 {
-PinHandler::PinHandler()
+PinHandler::PinHandler(TaskScheduler &scheduler) : pinObserver{scheduler, 20}
 {
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver.registerPinCallback(
         miosix::gpios::liftoff_detach::getPin(),
         bind(&PinHandler::onLaunchPinTransition, this, _1),
         PinHandlerConfig::LAUNCH_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver.registerPinCallback(
         miosix::gpios::nosecone_detach::getPin(),
         bind(&PinHandler::onNoseconeTransition, this, _1),
         PinHandlerConfig::NC_DETACH_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver.registerPinCallback(
         miosix::gpios::cut_sense::getPin(),
         bind(&PinHandler::onCutterSenseTransition, this, _1),
         PinHandlerConfig::CUTTER_SENSE_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver.registerPinCallback(
         miosix::gpios::exp_sense::getPin(),
         bind(&PinHandler::onExpulsionSenseTransition, this, _1),
         PinHandlerConfig::EXPULSION_PIN_THRESHOLD);
 }
 
-bool PinHandler::start() { return PinObserver::getInstance().start(); }
+bool PinHandler::start() { return pinObserver.start(); }
 
-bool PinHandler::isStarted() { return PinObserver::getInstance().isRunning(); }
+bool PinHandler::isStarted() { return pinObserver.isRunning(); }
 
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {
@@ -117,23 +117,21 @@ PinData PinHandler::getPinData(PinList pin)
     {
         case PinList::LAUNCH_PIN:
         {
-            return PinObserver::getInstance().getPinData(
+            return pinObserver.getPinData(
                 miosix::gpios::liftoff_detach::getPin());
         }
         case PinList::NOSECONE_PIN:
         {
-            return PinObserver::getInstance().getPinData(
+            return pinObserver.getPinData(
                 miosix::gpios::nosecone_detach::getPin());
         }
         case PinList::CUTTER_PRESENCE:
         {
-            return PinObserver::getInstance().getPinData(
-                miosix::gpios::cut_sense::getPin());
+            return pinObserver.getPinData(miosix::gpios::cut_sense::getPin());
         }
         case PinList::PIN_EXPULSION:
         {
-            return PinObserver::getInstance().getPinData(
-                miosix::gpios::exp_sense::getPin());
+            return pinObserver.getPinData(miosix::gpios::exp_sense::getPin());
         }
         default:
         {

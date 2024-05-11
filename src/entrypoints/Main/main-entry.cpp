@@ -88,8 +88,9 @@ int main()
     FlightModeManager* fmm = new FlightModeManager();
     Actuators* actuators =
         new Actuators(scheduler->getScheduler(miosix::MAIN_PRIORITY));
-    Deployment* dpl        = new Deployment();
-    PinHandler* pinHandler = new PinHandler();
+    Deployment* dpl = new Deployment();
+    PinHandler* pinHandler =
+        new PinHandler(*scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     AltitudeTrigger* altitudeTrigger =
         new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX));
     MEAController* mea =

@@ -42,7 +42,7 @@ public:
         PIN_END
     };
 
-    PinHandler();
+    explicit PinHandler(Boardcore::TaskScheduler &scheduler);
 
     /**
      * @brief Starts the PinObserver module thread
@@ -80,6 +80,8 @@ public:
     Boardcore::PinData getPinData(PinList pin);
 
 private:
+    Boardcore::PinObserver pinObserver;
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };
 }  // namespace Main
