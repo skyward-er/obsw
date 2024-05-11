@@ -98,7 +98,5 @@ private:
     HILConfig::PayloadHILGyroscope* lsm6dsrx_gyro         = nullptr;
     HILConfig::PayloadHILAnalogBarometer* staticPressure  = nullptr;
     HILConfig::PayloadHILAnalogBarometer* dynamicPressure = nullptr;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };
 }  // namespace Payload

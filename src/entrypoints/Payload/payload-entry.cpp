@@ -289,8 +289,6 @@ int main()
         }
 
         // Waiting for start of simulation
-        printf("SimulatorData: %d\n", sizeof(SimulatorData) / sizeof(float));
-        printf("ActuatorData: %d\n", sizeof(ActuatorData) / sizeof(float));
         ModuleManager::getInstance().get<PayloadHIL>()->waitStartSimulation();
     }
 

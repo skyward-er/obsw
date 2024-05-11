@@ -141,6 +141,30 @@ protected:
     virtual void imuInit();
     virtual void imuCallback();
 
+    // Fake processed sensors
+    RotatedIMU* imu = nullptr;
+
+    // Magnetometer live calibration
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    miosix::FastMutex calibrationMutex;
+
+    // Sensor manager
+    Boardcore::SensorManager* manager = nullptr;
+    Boardcore::SensorManager::SensorMap_t sensorMap;
+    Boardcore::TaskScheduler* scheduler = nullptr;
+    uint8_t sensorsCounter;
+
+    // SD logger
+    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+
+    std::array<std::function<Boardcore::SensorInfo()>,
+               SensorsConfig::NUMBER_OF_SENSORS>
+        sensorsInit;
+
+private:
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
@@ -152,30 +176,8 @@ protected:
     Boardcore::ADS131M08* ads131m08   = nullptr;
 
     // Fake processed sensors
-    RotatedIMU* imu                          = nullptr;
     Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
     Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
     Boardcore::Pitot* pitot                  = nullptr;
-
-    // Magnetometer live calibration
-    Boardcore::SoftAndHardIronCalibration magCalibrator;
-    Boardcore::SixParametersCorrector magCalibration;
-    miosix::FastMutex calibrationMutex;
-
-    // Sensor manager
-    Boardcore::SensorManager* manager = nullptr;
-    Boardcore::SensorManager::SensorMap_t sensorMap;
-    Boardcore::TaskScheduler* scheduler = nullptr;
-
-    uint8_t sensorsCounter;
-
-    // SD logger
-    Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
-
-    std::array<std::function<Boardcore::SensorInfo()>,
-               SensorsConfig::NUMBER_OF_SENSORS>
-        sensorsInit;
 };
 }  // namespace Payload

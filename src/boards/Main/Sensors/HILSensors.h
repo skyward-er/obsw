@@ -120,7 +120,5 @@ private:
     HILConfig::MainHILAccelerometer* lsm6dsrx_accel     = nullptr;
     HILConfig::MainHILGyroscope* lsm6dsrx_gyro          = nullptr;
     HILConfig::MainHILPitot* pitot                      = nullptr;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HILSensors");
 };
 }  // namespace Main
