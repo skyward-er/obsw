@@ -98,6 +98,11 @@ public:
      */
     void moveStepperSteps(StepperList stepperId, int16_t steps);
 
+    /**
+     * @brief Getter for follower target angles
+     */
+    AntennaAngles getTargetAngles() { return follower.getTargetAngles(); }
+
 private:
     /**
      * @brief Logs the current state of the FSM
