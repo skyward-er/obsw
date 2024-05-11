@@ -286,7 +286,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             logStatus(FlightModeManagerState::DISARMED);
             // Stop eventual logging
-            Logger::getInstance().stop();
+
             ModuleManager::getInstance().get<Actuators>()->buzzerOff();
             ModuleManager::getInstance().get<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
@@ -347,7 +347,6 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            Logger::getInstance().start();
             logStatus(FlightModeManagerState::TEST_MODE);
 
             return HANDLED;
@@ -355,7 +354,6 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_EXIT:
         {
             ModuleManager::getInstance().get<Actuators>()->camOff();
-            Logger::getInstance().stop();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -385,7 +383,6 @@ State FlightModeManager::state_test_mode(const Event& event)
         case CAN_EXIT_TEST_MODE:
         case TMTC_EXIT_TEST_MODE:
         {
-            Logger::getInstance().stop();
             if (event != CAN_EXIT_TEST_MODE)
             {
                 ModuleManager::getInstance().get<CanHandler>()->sendEvent(
@@ -407,6 +404,8 @@ State FlightModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::ARMED);
+
+            Logger::getInstance().stop();
             Logger::getInstance().start();
 
             // Starts signaling devices and camera
@@ -418,7 +417,6 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case EV_EXIT:
         {
-            Logger::getInstance().stop();
             return HANDLED;
         }
         case EV_EMPTY:
