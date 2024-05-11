@@ -59,7 +59,7 @@ public:
     /**
      * @brief turn on green led
      */
-    void turn_on_green() { led1On(); }
+    void turn_on_green() { miosix::led1On(); }
 
     /**
      * @brief start blinking yellow led
@@ -72,18 +72,18 @@ public:
     void stop_blinking_yellow()
     {
         yellow_blink = false;
-        Thread::sleep(101);  // to avoid data races with led2On/Off
+        miosix::Thread::sleep(101);  // to avoid data races with led2On/Off
     }
 
     /**
      * @brief turn on yellow led
      */
-    void turn_on_yellow() { led2On(); }
+    void turn_on_yellow() { miosix::led2On(); }
 
     /**
      * @brief turn off yellow led
      */
-    void turn_off_yellow() { led2Off(); }
+    void turn_off_yellow() { miosix::led2Off(); }
 
     /**
      * @brief start blinking orange led
@@ -96,18 +96,18 @@ public:
     void stop_blinking_orange()
     {
         orange_blinking = false;
-        Thread::sleep(101);  // to avoid data races with led3On/Off
+        miosix::Thread::sleep(101);  // to avoid data races with led3On/Off
     }
 
     /**
      * @brief turn on orange led
      */
-    void turn_on_orange() { led3On(); }
+    void turn_on_orange() { miosix::led3On(); }
 
     /**
      * @brief turn off orange led
      */
-    void turn_off_orange() { led3Off(); }
+    void turn_off_orange() { miosix::led3Off(); }
 
     /**
      * @brief Blink the red led in a loop, blocking the thread.
