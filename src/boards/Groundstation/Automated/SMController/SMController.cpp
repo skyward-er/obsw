@@ -220,6 +220,10 @@ void SMController::update()
             follower.setLastRocketNasState(predicted.getNasState());
             break;
         }
+        default:
+        {
+            break;
+        }
     }
 }
 
