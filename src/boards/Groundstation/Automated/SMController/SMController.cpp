@@ -60,15 +60,15 @@ bool SMController::start()
     bool ok = true;
 
     // add the Propagator task
-    result = scheduler->addTask(bind(&Propagator::update, propagator),
+    result = scheduler->addTask(bind(&Propagator::update, &propagator),
                                 PropagatorConfig::PROPAGATOR_PERIOD,
                                 TaskScheduler::Policy::RECOVER);
     ok &= result == 0;
 
     // add the Follower task
-    size_t result = scheduler->addTask(bind(&Follower::update, follower),
-                                       FollowerConfig::FOLLOWER_PERIOD,
-                                       TaskScheduler::Policy::RECOVER);
+    result = scheduler->addTask(bind(&Follower::update, &follower),
+                                FollowerConfig::FOLLOWER_PERIOD,
+                                TaskScheduler::Policy::RECOVER);
     ok &= result == 0;
 
     // add the update task
