@@ -58,22 +58,22 @@ public:
     /**
      * @brief non-blocking action to set a led to blink in a loop
      */
-    void set_blinking(LedColor color);
+    void setBlinking(LedColor color);
 
     /**
      * @brief blocking action to set on a led
      */
-    void set_on(LedColor color);
+    void setOn(LedColor color);
 
     /**
      * @brief blocking action to set off a led
      */
-    void set_off(LedColor color);
+    void setOff(LedColor color);
 
     /**
      * @brief blocking action to blink endlessly a led
      */
-    void endless_blink(LedColor color);
+    void endlessBlink(LedColor color);
 
 protected:
     enum class LedState : uint8_t
@@ -83,21 +83,21 @@ protected:
         BLINKING
     };
 
-    void led_on(LedColor color);
-    void led_off(LedColor color);
-    void led_thread(LedColor color, uint32_t ms_interval);
+    void ledOn(LedColor color);
+    void ledOff(LedColor color);
+    void ledThread(LedColor color, uint32_t ms_interval);
 
-    LedState* led_ref(LedColor color)
+    LedState* ledRef(LedColor color)
     {
         return &led_states[static_cast<uint8_t>(color)];
     }
 
-    std::mutex* mutex_ref(LedColor color)
+    std::mutex* mutexRef(LedColor color)
     {
         return led_mutexes[static_cast<uint8_t>(color)].get();
     }
 
-    std::condition_variable* cv_ref(LedColor color)
+    std::condition_variable* cvRef(LedColor color)
     {
         return led_cvs[static_cast<uint8_t>(color)].get();
     }
