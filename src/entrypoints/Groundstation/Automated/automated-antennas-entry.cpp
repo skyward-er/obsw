@@ -47,7 +47,7 @@
         if (!_fun())                                                \
         {                                                           \
             LOG_ERR(logger, "Failed to start module " name);        \
-            leds->endless_blink(LedColor::RED);                     \
+            leds->endlessBlink(LedColor::RED);                     \
         }                                                           \
         else                                                        \
         {                                                           \
@@ -127,7 +127,7 @@ int main()
         if (!ok)
         {
             LOG_ERR(logger, "Failed to insert all modules!\n");
-            leds->endless_blink(LedColor::RED);
+            leds->endlessBlink(LedColor::RED);
         }
         else
         {
