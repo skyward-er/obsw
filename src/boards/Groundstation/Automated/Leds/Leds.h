@@ -24,6 +24,7 @@
 
 #include <scheduler/TaskScheduler.h>
 
+#include <array>
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -47,7 +48,7 @@ enum class LedColor : uint8_t
 class Leds : public Boardcore::Module
 {
 public:
-    Leds(Boardcore::TaskScheduler* scheduler);
+    explicit Leds(Boardcore::TaskScheduler* scheduler);
 
     /**
      * @brief Start the blinking LED thread
@@ -75,9 +76,9 @@ public:
     void endless_blink(LedColor color);
 
 protected:
-    enum class LedState
+    enum class LedState : uint8_t
     {
-        OFF,
+        OFF = 0,
         ON,
         BLINKING
     };
@@ -88,23 +89,23 @@ protected:
 
     LedState* led_ref(LedColor color)
     {
-        return &leds[static_cast<uint8_t>(color)];
+        return &led_states[static_cast<uint8_t>(color)];
     }
 
     std::mutex* mutex_ref(LedColor color)
     {
-        return &led_mutex[static_cast<uint8_t>(color)];
+        return led_mutexes[static_cast<uint8_t>(color)].get();
     }
 
     std::condition_variable* cv_ref(LedColor color)
     {
-        return &cv[static_cast<uint8_t>(color)];
+        return led_cvs[static_cast<uint8_t>(color)].get();
     }
 
     Boardcore::TaskScheduler* scheduler;
-    LedState leds[4];
-    std::mutex led_mutex[4];
-    std::condition_variable cv[4];
+    std::array<LedState, 4> led_states;
+    std::array<unique_ptr<std::mutex>, 4> led_mutexes;
+    std::array<unique_ptr<std::condition_variable>, 4> led_cvs;
 };
 
 }  // namespace Antennas
