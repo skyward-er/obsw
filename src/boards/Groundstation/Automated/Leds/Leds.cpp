@@ -22,66 +22,163 @@
 
 #include "Leds.h"
 
-#include <miosix.h>
+#include <mutex>
 
+using namespace std;
 using namespace miosix;
 using namespace Boardcore;
 
 namespace Antennas
 {
 
+Leds::Leds(TaskScheduler* scheduler) : scheduler(scheduler)
+{
+    *led_ref(LedColor::RED)    = LedState::OFF;
+    *led_ref(LedColor::YELLOW) = LedState::OFF;
+    *led_ref(LedColor::ORANGE) = LedState::OFF;
+    *led_ref(LedColor::GREEN)  = LedState::OFF;
+}
+
 bool Leds::start()
 {
+    size_t result;
+    bool ok = true;
+
     // turn off all leds
     ledOff();
 
-    if (!ActiveObject::start())
-    {
-        return false;
-    }
+    // start the blinking thread for red led
+    result = scheduler->addTask(
+        std::bind(&Leds::led_thread, this, LedColor::RED, 100), 0,
+        TaskScheduler::Policy::ONE_SHOT);
+    ok &= result != 0;
 
-    return true;
+    // start the blinking thread for yellow led
+    result = scheduler->addTask(
+        std::bind(&Leds::led_thread, this, LedColor::YELLOW, 50), 0,
+        TaskScheduler::Policy::ONE_SHOT);
+    ok &= result != 0;
+
+    // start the blinking thread for orange led
+    result = scheduler->addTask(
+        std::bind(&Leds::led_thread, this, LedColor::ORANGE, 50), 0,
+        TaskScheduler::Policy::ONE_SHOT);
+    ok &= result != 0;
+
+    // start the blinking thread for green led
+    result = scheduler->addTask(
+        std::bind(&Leds::led_thread, this, LedColor::GREEN, 50), 0,
+        TaskScheduler::Policy::ONE_SHOT);
+    ok &= result != 0;
+
+    return ok;
 }
 
-void Leds::run()
+void Leds::led_on(LedColor color)
 {
-    while (!shouldStop())
+#ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
+    switch (color)
     {
-        // we avoid using mutex to avoid waiting for the release of it
-        // data races here are not a problem
-        if (blinking_red)
-        {
+        case LedColor::RED:
             userLed4::high();
-            Thread::sleep(100);
-            userLed4::low();
-            Thread::sleep(100);
-        }
-        else if (yellow_blink)
-        {
+            break;
+        case LedColor::YELLOW:
             led2On();
-            Thread::sleep(50);
-            led2Off();
-            Thread::sleep(50);
-        }
-        else if (orange_blinking)
-        {
+            break;
+        case LedColor::ORANGE:
             led3On();
-            Thread::sleep(50);
-            led3Off();
-            Thread::sleep(50);
-        }
+            break;
+        case LedColor::GREEN:
+            led1On();
+            break;
     }
+#endif
 }
 
-void Leds::errorLoop()
+void Leds::led_off(LedColor color)
+{
+#ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
+    switch (color)
+    {
+        case LedColor::RED:
+            userLed4::low();
+            break;
+        case LedColor::YELLOW:
+            led2Off();
+            break;
+        case LedColor::ORANGE:
+            led3Off();
+            break;
+        case LedColor::GREEN:
+            led1Off();
+            break;
+    }
+#endif
+}
+
+/**
+ * @brief Thread function that actuate leds based on state
+ * @param color led color to actuate
+ * @param blinking_interval blinking time interval [ms]
+ */
+void Leds::led_thread(LedColor color, uint32_t blinking_interval)
 {
     while (true)
     {
-        userLed4::high();
-        Thread::sleep(100);
-        userLed4::low();
-        Thread::sleep(100);
+        unique_lock<mutex> lock(*mutex_ref(color));
+        cv_ref(color)->wait(lock);
+        switch (*led_ref(color))
+        {
+            case LedState::BLINKING:
+            {
+                do
+                {
+                    led_on(color);
+                    Thread::sleep(blinking_interval);
+                    led_off(color);
+                    Thread::sleep(blinking_interval);
+                } while (*led_ref(color) == LedState::BLINKING);
+                break;
+            }
+            case LedState::ON:
+            {
+                led_on(color);
+            }
+            case LedState::OFF:
+            {
+                led_off(color);
+            }
+        }
     }
+}
+
+void Leds::set_blinking(LedColor color)
+{
+    lock_guard<mutex> lock(*mutex_ref(color));
+    *led_ref(color) = LedState::BLINKING;
+    cv_ref(color)->notify_one();
+}
+
+void Leds::set_on(LedColor color)
+{
+    lock_guard<mutex> lock(*mutex_ref(color));
+    *led_ref(color) = LedState::ON;
+    cv_ref(color)->notify_one();
+}
+
+void Leds::set_off(LedColor color)
+{
+    lock_guard<mutex> lock(*mutex_ref(color));
+    *led_ref(color) = LedState::OFF;
+    cv_ref(color)->notify_one();
+}
+
+void Leds::endless_blink(LedColor color)
+{
+    lock_guard<mutex> lock(*mutex_ref(color));
+    *led_ref(color) = LedState::BLINKING;
+    cv_ref(color)->notify_one();
+    Thread::wait();  // wait forever
 }
 
 }  // namespace Antennas

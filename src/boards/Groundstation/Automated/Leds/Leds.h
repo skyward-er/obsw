@@ -22,24 +22,32 @@
 
 #pragma once
 
-#include <ActiveObject.h>
-#include <miosix.h>
+#include <scheduler/TaskScheduler.h>
 
+#include <condition_variable>
+#include <map>
+#include <mutex>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Antennas
 {
 
+enum class LedColor : uint8_t
+{
+    RED = 0,
+    YELLOW,
+    ORANGE,
+    GREEN
+};
+
 /**
  * @brief Utility to handle blinking leds with non-blocking sleep
  * (useful for state machines states that need to blink leds without blocking)
  */
-class Leds : public Boardcore::Module, protected Boardcore::ActiveObject
+class Leds : public Boardcore::Module
 {
 public:
-    Leds() {}
-
-    ~Leds() { ActiveObject::stop(); }
+    Leds(Boardcore::TaskScheduler* scheduler);
 
     /**
      * @brief Start the blinking LED thread
@@ -47,80 +55,56 @@ public:
     bool start();
 
     /**
-     * @brief start blinking red led
+     * @brief non-blocking action to set a led to blink in a loop
      */
-    void start_blinking_red() { blinking_red = true; }
+    void set_blinking(LedColor color);
 
     /**
-     * @brief stop blinking red led
+     * @brief blocking action to set on a led
      */
-    void stop_blinking_red() { blinking_red = false; }
+    void set_on(LedColor color);
 
     /**
-     * @brief turn on green led
+     * @brief blocking action to set off a led
      */
-    void turn_on_green() { miosix::led1On(); }
+    void set_off(LedColor color);
 
     /**
-     * @brief start blinking yellow led
+     * @brief blocking action to blink endlessly a led
      */
-    void start_blinking_yellow() { yellow_blink = true; }
-
-    /**
-     * @brief stop blinking yellow led
-     */
-    void stop_blinking_yellow()
-    {
-        yellow_blink = false;
-        miosix::Thread::sleep(101);  // to avoid data races with led2On/Off
-    }
-
-    /**
-     * @brief turn on yellow led
-     */
-    void turn_on_yellow() { miosix::led2On(); }
-
-    /**
-     * @brief turn off yellow led
-     */
-    void turn_off_yellow() { miosix::led2Off(); }
-
-    /**
-     * @brief start blinking orange led
-     */
-    void start_blinking_orange() { orange_blinking = true; }
-
-    /**
-     * @brief stop blinking orange led
-     */
-    void stop_blinking_orange()
-    {
-        orange_blinking = false;
-        miosix::Thread::sleep(101);  // to avoid data races with led3On/Off
-    }
-
-    /**
-     * @brief turn on orange led
-     */
-    void turn_on_orange() { miosix::led3On(); }
-
-    /**
-     * @brief turn off orange led
-     */
-    void turn_off_orange() { miosix::led3Off(); }
-
-    /**
-     * @brief Blink the red led in a loop, blocking the thread.
-     */
-    static void errorLoop();
+    void endless_blink(LedColor color);
 
 protected:
-    void run() override;
+    enum class LedState
+    {
+        OFF,
+        ON,
+        BLINKING
+    };
 
-private:
-    std::atomic_bool blinking_red{false};
-    std::atomic_bool yellow_blink{false};
-    std::atomic_bool orange_blinking{false};
+    void led_on(LedColor color);
+    void led_off(LedColor color);
+    void led_thread(LedColor color, uint32_t ms_interval);
+
+    LedState* led_ref(LedColor color)
+    {
+        return &leds[static_cast<uint8_t>(color)];
+    }
+
+    std::mutex* mutex_ref(LedColor color)
+    {
+        return &led_mutex[static_cast<uint8_t>(color)];
+    }
+
+    std::condition_variable* cv_ref(LedColor color)
+    {
+        return &cv[static_cast<uint8_t>(color)];
+    }
+
+    Boardcore::TaskScheduler* scheduler;
+    LedState leds[4];
+    std::mutex led_mutex[4];
+    std::condition_variable cv[4];
 };
 
 }  // namespace Antennas
