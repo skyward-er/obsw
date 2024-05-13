@@ -111,9 +111,7 @@ Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-    miosix::GpioPin cs(GPIOG_BASE, 7);
-    cs.mode(miosix::Mode::OUTPUT);
-    cs.high();
+
     // Init all the sensors
     bmx160Init();
     bmx160WithCorrectionInit();
@@ -355,7 +353,7 @@ void Sensors::ads131Init()
 
     // Configure the SPI
     SPIBusConfig config;
-    config.clockDivider = SPI::ClockDivider::DIV_32;
+    config.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Configure the device
     ADS131M08::Config sensorConfig;
@@ -373,7 +371,7 @@ void Sensors::ads131Init()
     // Configure required channels
     sensorConfig.channelsConfig[(int)SensorsConfig::LOAD_CELL_ADC_CHANNEL] = {
         .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .pga     = ADS131M08Defs::PGA::PGA_64,
         .offset  = 0,
         .gain    = 1.0};
 
@@ -446,8 +444,8 @@ void Sensors::loadCellInit()
         LOAD_CELL_P1_MASS);
 
     SensorInfo info("LOAD_CELL", LOAD_CELL_SAMPLE_PERIOD,
-                    bind(&Sensors::batteryVoltageCallback, this));
-    sensorMap.emplace(std::make_pair(batteryVoltage, info));
+                    bind(&Sensors::loadCellCallback, this));
+    sensorMap.emplace(std::make_pair(loadCell, info));
 
     auto loadCellStatus =
         ([&]() -> SensorInfo { return manager->getSensorInfo(loadCell); });

@@ -43,14 +43,14 @@ constexpr Boardcore::BMX160Config::AccelerometerRange BMX160_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int BMX160_ACC_GYRO_ODR = 400;
+constexpr unsigned int BMX160_ACC_GYRO_ODR = 800;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_400;
-constexpr unsigned int BMX160_MAG_ODR = 100;
+    Boardcore::BMX160Config::OutputDataRate::HZ_800;
+constexpr unsigned int BMX160_MAG_ODR = 800;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_100;
+    Boardcore::BMX160Config::OutputDataRate::HZ_800;
 
-constexpr unsigned int BMX160_TEMP_DIVIDER = 1;
+constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
 
 constexpr unsigned int BMX160_FIFO_WATERMARK = 40;
 
@@ -62,20 +62,20 @@ constexpr unsigned int BMX160_MAG_DATA_SIZE    = 8;
 
 // H3LIS331DL
 constexpr Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS331DL_ODR =
-    Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
+    Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_1000;
 constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS331DL_BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS331DL_FSR =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-constexpr uint32_t H3LIS331DL_PERIOD = 10;  // [ms] 100Hz
+constexpr uint32_t H3LIS331DL_PERIOD = 1;  // [ms] 1000Hz
 
 // LPS22DF
 constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
-constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_100;
+constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_50;
 constexpr uint32_t LPS22DF_PERIOD             = 20;  // [ms] 50Hz
 
 // UBXGPS
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
 // The +5 is needed because GPS data must be read faster than it is produced (to
 // not cause delays)
 constexpr uint32_t UBXGPS_PERIOD = 1000 / (UBXGPS_SAMPLE_RATE + 5);  // [ms]
@@ -83,9 +83,9 @@ constexpr uint32_t UBXGPS_PERIOD = 1000 / (UBXGPS_SAMPLE_RATE + 5);  // [ms]
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
     ADS131M08_OVERSAMPLING_RATIO =
-        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
-constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
+constexpr uint32_t ADS131M08_PERIOD       = 1;  // [ms] 1000Hz
 
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
@@ -124,14 +124,14 @@ constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000;  // [ms]
 constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000;  // [ms]
 
 // LoadCell
-constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1;  // [ms]
+constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1;  // [ms] 1000 Hz
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration
-static constexpr float LOAD_CELL_P0_VOLTAGE = 1;
-static constexpr float LOAD_CELL_P0_MASS    = 1;
-static constexpr float LOAD_CELL_P1_VOLTAGE = 1;
-static constexpr float LOAD_CELL_P1_MASS    = 1;
+static constexpr float LOAD_CELL_P0_VOLTAGE = -0.00055;
+static constexpr float LOAD_CELL_P0_MASS    = 0;
+static constexpr float LOAD_CELL_P1_VOLTAGE = -0.00048;
+static constexpr float LOAD_CELL_P1_MASS    = 5;
 
 }  // namespace SensorsConfig
 }  // namespace MockupMain
