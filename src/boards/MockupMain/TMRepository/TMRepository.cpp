@@ -172,8 +172,11 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 modules.get<FlightModeManager>()->getStatus().state);
             tm.wes_state = 0;
 
-            tm.wes_n = 0;
-            tm.wes_e = 0;
+            tm.wes_n = modules.get<Sensors>()->getLoadCellLastSample().load;
+            tm.wes_e = modules.get<Sensors>()
+                           ->getADS131LastSample()
+                           .getVoltage(SensorsConfig::LOAD_CELL_ADC_CHANNEL)
+                           .voltage;
 
             tm.pressure_digi = lps22df.pressure;
 
