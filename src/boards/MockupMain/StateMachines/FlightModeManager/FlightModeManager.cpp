@@ -351,7 +351,6 @@ State FlightModeManager::state_wing_descent(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::WING_DESCENT);
-            EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
