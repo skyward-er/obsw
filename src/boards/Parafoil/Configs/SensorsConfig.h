@@ -75,7 +75,7 @@ constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_100;
 constexpr uint32_t LPS22DF_PERIOD             = 20;  // [ms] 50Hz
 
 // UBXGPS
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
 // The +5 is needed because GPS data must be read faster than it is produced (to
 // not cause delays)
 constexpr uint32_t UBXGPS_PERIOD = 1000 / (UBXGPS_SAMPLE_RATE + 5);  // [ms]
