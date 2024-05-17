@@ -28,7 +28,6 @@ set(OBSW_INCLUDE_DIRS
 set(MAIN_COMPUTER
     src/boards/Main/BoardScheduler.cpp
     src/boards/Main/Sensors/Sensors.cpp
-    src/boards/Main/Sensors/HILSensors.cpp
     src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/TMRepository/TMRepository.cpp

@@ -28,8 +28,8 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
+#include <hil/HIL.h>
 #include <math.h>
-#include <sensors/HILSensors/IncludeHILSensors.h>
 #include <sensors/SensorInfo.h>
 #include <utils/Debug.h>
 #include <utils/Stats/Stats.h>
@@ -60,81 +60,69 @@ namespace HILConfig
 
 constexpr bool IS_FULL_HIL = true;
 
-/** Period of simulation in milliseconds */
+/** Period of simulation [ms] */
 constexpr int SIMULATION_PERIOD = 100;
-constexpr int SIMULATION_FREQ   = 1000 / SIMULATION_PERIOD;
 
-/** sample frequency of sensor (samples/second) */
-constexpr int ACCEL_FREQ        = 1000 / Main::SensorsConfig::LSM6DSRX_PERIOD;
-constexpr int GYRO_FREQ         = 1000 / Main::SensorsConfig::LSM6DSRX_PERIOD;
-constexpr int MAGN_FREQ         = 1000 / Main::SensorsConfig::LIS2MDL_PERIOD;
-constexpr int IMU_FREQ          = 1000 / Main::SensorsConfig::IMU_PERIOD;
-constexpr int ANALOG_BARO_FREQ  = 1000 / Main::SensorsConfig::ADS131M08_PERIOD;
-constexpr int DIGITAL_BARO_FREQ = 1000 / Main::SensorsConfig::LPS22DF_PERIOD;
-constexpr int BARO_CHAMBER_FREQ = 50;
-constexpr int PITOT_FREQ        = 20;
-constexpr int TEMP_FREQ = 1000 / SIMULATION_PERIOD;  // One sample per iteration
-// Hardcoded to 10 Hz so that we sample at least 1 time every integration step
-constexpr int GPS_FREQ = 1000 / Main::SensorsConfig::UBXGPS_PERIOD;
+/** sampling periods of sensors [ms] */
+constexpr int ACCEL_PERIOD        = Main::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int GYRO_PERIOD         = Main::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int MAGN_PERIOD         = Main::SensorsConfig::LIS2MDL_PERIOD;
+constexpr int IMU_PERIOD          = Main::SensorsConfig::IMU_PERIOD;
+constexpr int ANALOG_BARO_PERIOD  = Main::SensorsConfig::ADS131M08_PERIOD;
+constexpr int DIGITAL_BARO_PERIOD = Main::SensorsConfig::LPS22DF_PERIOD;
+constexpr int TEMP_PERIOD         = SIMULATION_PERIOD;  // just one sample
+constexpr int GPS_PERIOD          = Main::SensorsConfig::UBXGPS_PERIOD;
+constexpr int BARO_CHAMBER_PERIOD = 20;
+constexpr int PITOT_PERIOD        = 50;
 
-static_assert((ACCEL_FREQ % SIMULATION_FREQ) == 0,
+static_assert((SIMULATION_PERIOD % ACCEL_PERIOD) == 0,
               "N_DATA_ACCEL not an integer");
-static_assert((GYRO_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GYRO not an integer");
-static_assert((MAGN_FREQ % SIMULATION_FREQ) == 0, "N_DATA_MAGN not an integer");
-static_assert((IMU_FREQ % SIMULATION_FREQ) == 0, "N_DATA_IMU not an integer");
-static_assert((ANALOG_BARO_FREQ % SIMULATION_FREQ) == 0,
+static_assert((SIMULATION_PERIOD % GYRO_PERIOD) == 0,
+              "N_DATA_GYRO not an integer");
+static_assert((SIMULATION_PERIOD % MAGN_PERIOD) == 0,
+              "N_DATA_MAGN not an integer");
+static_assert((SIMULATION_PERIOD % IMU_PERIOD) == 0,
+              "N_DATA_IMU not an integer");
+static_assert((SIMULATION_PERIOD % ANALOG_BARO_PERIOD) == 0,
               "N_DATA_ANALOG_BARO not an integer");
-static_assert((DIGITAL_BARO_FREQ % SIMULATION_FREQ) == 0,
+static_assert((SIMULATION_PERIOD % DIGITAL_BARO_PERIOD) == 0,
               "N_DATA_DIGITAL_BARO not an integer");
-static_assert((BARO_CHAMBER_FREQ % SIMULATION_FREQ) == 0,
+static_assert((SIMULATION_PERIOD % BARO_CHAMBER_PERIOD) == 0,
               "N_DATA_BARO_CHAMBER not an integer");
-static_assert((PITOT_FREQ % SIMULATION_FREQ) == 0,
+static_assert((SIMULATION_PERIOD % PITOT_PERIOD) == 0,
               "N_DATA_PITOT not an integer");
-static_assert((TEMP_FREQ % SIMULATION_FREQ) == 0, "N_DATA_TEMP not an integer");
-static_assert((GPS_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GPS not an integer");
+static_assert((SIMULATION_PERIOD % TEMP_PERIOD) == 0,
+              "N_DATA_TEMP not an integer");
+static_assert((SIMULATION_PERIOD % GPS_PERIOD) == 0,
+              "N_DATA_GPS not an integer");
 
 /** Number of samples per sensor at each simulator iteration */
-constexpr int N_DATA_ACCEL =
-    static_cast<int>((ACCEL_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_GYRO =
-    static_cast<int>((GYRO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_MAGNETO =
-    static_cast<int>((MAGN_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_IMU =
-    static_cast<int>((IMU_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_ANALOG_BARO =
-    static_cast<int>((ANALOG_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_DIGITAL_BARO =
-    static_cast<int>((DIGITAL_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_BARO_CHAMBER =
-    static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_PITOT =
-    static_cast<int>((PITOT_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_GPS =
-    static_cast<int>((GPS_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_TEMP =
-    static_cast<int>((TEMP_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_ACCEL        = SIMULATION_PERIOD / ACCEL_PERIOD;
+constexpr int N_DATA_GYRO         = SIMULATION_PERIOD / GYRO_PERIOD;
+constexpr int N_DATA_MAGNETO      = SIMULATION_PERIOD / MAGN_PERIOD;
+constexpr int N_DATA_IMU          = SIMULATION_PERIOD / IMU_PERIOD;
+constexpr int N_DATA_ANALOG_BARO  = SIMULATION_PERIOD / ANALOG_BARO_PERIOD;
+constexpr int N_DATA_DIGITAL_BARO = SIMULATION_PERIOD / DIGITAL_BARO_PERIOD;
+constexpr int N_DATA_BARO_CHAMBER = SIMULATION_PERIOD / BARO_CHAMBER_PERIOD;
+constexpr int N_DATA_PITOT        = SIMULATION_PERIOD / PITOT_PERIOD;
+constexpr int N_DATA_GPS          = SIMULATION_PERIOD / GPS_PERIOD;
+constexpr int N_DATA_TEMP         = SIMULATION_PERIOD / TEMP_PERIOD;
 
 // Sensors Data
-using MainAccelerometerSimulatorData = AccelerometerSimulatorData<N_DATA_ACCEL>;
-using MainGyroscopeSimulatorData     = GyroscopeSimulatorData<N_DATA_GYRO>;
-using MainMagnetometerSimulatorData = MagnetometerSimulatorData<N_DATA_MAGNETO>;
-using MainGPSSimulatorData          = GPSSimulatorData<N_DATA_GPS>;
-using MainBarometerSimulatorData = BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
+using MainAccelerometerSimulatorData =
+    Boardcore::AccelerometerSimulatorData<N_DATA_ACCEL>;
+using MainGyroscopeSimulatorData =
+    Boardcore::GyroscopeSimulatorData<N_DATA_GYRO>;
+using MainMagnetometerSimulatorData =
+    Boardcore::MagnetometerSimulatorData<N_DATA_MAGNETO>;
+using MainGPSSimulatorData = Boardcore::GPSSimulatorData<N_DATA_GPS>;
+using MainBarometerSimulatorData =
+    Boardcore::BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
 using MainChamberPressureSimulatorData =
-    BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
-using MainPitotSimulatorData       = PitotSimulatorData<N_DATA_PITOT>;
-using MainTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
-
-// Sensors
-using MainHILAccelerometer    = HILAccelerometer<N_DATA_ACCEL>;
-using MainHILGyroscope        = HILGyroscope<N_DATA_GYRO>;
-using MainHILMagnetometer     = HILMagnetometer<N_DATA_MAGNETO>;
-using MainHILGps              = HILGps<N_DATA_GPS>;
-using MainHILBarometer        = HILBarometer<N_DATA_DIGITAL_BARO>;
-using MainHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
-using MainHILPitot            = HILPitot<N_DATA_PITOT>;
-using MainHILTemperature      = HILTemperature<N_DATA_TEMP>;
+    Boardcore::BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
+using MainPitotSimulatorData = Boardcore::PitotSimulatorData<N_DATA_PITOT>;
+using MainTemperatureSimulatorData =
+    Boardcore::TemperatureSimulatorData<N_DATA_TEMP>;
 
 struct FlagsHIL
 {
@@ -472,17 +460,18 @@ enum MainFlightPhases
 };
 
 using MainHILTransceiver =
-    HILTransceiver<MainFlightPhases, SimulatorData, ActuatorData>;
-using MainHIL = HIL<MainFlightPhases, SimulatorData, ActuatorData>;
+    Boardcore::HILTransceiver<MainFlightPhases, SimulatorData, ActuatorData>;
+using MainHIL = Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>;
 
 class MainHILPhasesManager
-    : public HILPhasesManager<MainFlightPhases, SimulatorData, ActuatorData>
+    : public Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
+                                         ActuatorData>
 {
 public:
     explicit MainHILPhasesManager(
         std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-        : HILPhasesManager<MainFlightPhases, SimulatorData, ActuatorData>(
-              getCurrentPosition)
+        : Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
+                                      ActuatorData>(getCurrentPosition)
     {
         flagsFlightPhases = {{MainFlightPhases::SIM_FLYING, false},
                              {MainFlightPhases::SIM_ASCENT, false},

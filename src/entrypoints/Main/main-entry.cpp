@@ -27,6 +27,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Configs/HILSimulationConfig.h>
 #include <Main/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Main/PinHandler/PinHandler.h>
@@ -75,8 +76,10 @@ int main()
     Buses* buses              = new Buses();
     Sensors* sensors =
         (hilSimulationActive
-             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1))
-             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1)));
+             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                              buses, false)
+             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                           buses));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
@@ -162,7 +165,9 @@ int main()
             MainFlightPhases::LIFTOFF_PIN_DETACHED,
             [&]()
             {
-                canHandler->sendCanCommand(ServosList::MAIN_VALVE, 1, 7000);
+                canHandler->sendCanCommand(
+                    ServosList::MAIN_VALVE, 1,
+                    Main::FMMConfig::ENGINE_SHUTDOWN_TIMEOUT);
                 miosix::ledOn();
             });
 
