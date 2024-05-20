@@ -104,7 +104,7 @@ public:
      */
     static Eigen::Matrix3f rotateAroundZ(float angle);
 
-private:
+protected:
     RotatedIMUData sampleImpl() override;
 
     // Functions to sample the under neath sensors

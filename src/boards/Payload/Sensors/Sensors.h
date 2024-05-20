@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <Payload/Buses.h>
 #include <Payload/Configs/SensorsConfig.h>
 #include <Payload/Sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -49,7 +50,7 @@ namespace Payload
 class Sensors : public Boardcore::Module
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler* sched);
+    explicit Sensors(Boardcore::TaskScheduler* sched, Buses* buses);
 
     [[nodiscard]] virtual bool start();
 
@@ -104,41 +105,64 @@ public:
     std::array<Boardcore::SensorInfo, 8> getSensorInfo();
 
 protected:
+    /**
+     * @brief Method to put a sensor in the sensorMap with the relative infos
+     */
+    template <typename T>
+    void registerSensor(Boardcore::Sensor<T>* sensor, const std::string& name,
+                        uint32_t period, std::function<void(void)> callback)
+    {
+        // Emplace the sensor inside the map
+        Boardcore::SensorInfo info(name, period, callback);
+        sensorMap.emplace(std::make_pair(sensor, info));
+    }
+
+    /**
+     * @brief Insert a sensor in the infoGetter.
+     */
+    template <typename T>
+    void addInfoGetter(Boardcore::Sensor<T>* sensor)
+    {
+        // Add the sensor info getter to the array
+        sensorsInit[sensorsId++] = [&]() -> Boardcore::SensorInfo
+        { return manager->getSensorInfo(lps22df); };
+    }
+
     // Init and callbacks methods
-    virtual void lps22dfInit();
+    void lps22dfInit();
     virtual void lps22dfCallback();
 
-    virtual void lps28dfw_1Init();
+    void lps28dfw_1Init();
     virtual void lps28dfw_1Callback();
 
-    virtual void lps28dfw_2Init();
+    void lps28dfw_2Init();
     virtual void lps28dfw_2Callback();
 
-    virtual void h3lis331dlInit();
+    void h3lis331dlInit();
     virtual void h3lis331dlCallback();
 
-    virtual void lis2mdlInit();
+    void lis2mdlInit();
     virtual void lis2mdlCallback();
 
-    virtual void ubxgpsInit();
+    void ubxgpsInit();
     virtual void ubxgpsCallback();
 
-    virtual void lsm6dsrxInit();
+    void lsm6dsrxInit();
     virtual void lsm6dsrxCallback();
 
-    virtual void ads131m08Init();
+    void ads131m08Init();
     virtual void ads131m08Callback();
 
-    virtual void staticPressureInit();
+    void staticPressureInit();
     virtual void staticPressureCallback();
 
-    virtual void dynamicPressureInit();
+    void dynamicPressureInit();
     virtual void dynamicPressureCallback();
 
-    virtual void pitotInit();
+    void pitotInit();
     virtual void pitotCallback();
 
-    virtual void imuInit();
+    void imuInit();
     virtual void imuCallback();
 
     // Fake processed sensors
@@ -153,7 +177,8 @@ protected:
     Boardcore::SensorManager* manager = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorMap;
     Boardcore::TaskScheduler* scheduler = nullptr;
-    uint8_t sensorsCounter;
+    Payload::Buses* buses               = nullptr;
+    uint8_t sensorsId;
 
     // SD logger
     Boardcore::Logger& SDlogger = Boardcore::Logger::getInstance();
@@ -164,7 +189,6 @@ protected:
                SensorsConfig::NUMBER_OF_SENSORS>
         sensorsInit;
 
-private:
     // Sensors instances
     Boardcore::LPS22DF* lps22df       = nullptr;
     Boardcore::LPS28DFW* lps28dfw_1   = nullptr;

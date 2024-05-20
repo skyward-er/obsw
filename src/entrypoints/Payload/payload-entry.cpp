@@ -66,6 +66,9 @@ int main()
     bool initResult    = true;
     PrintLogger logger = Logging::getLogger("Payload");
 
+    // Buses
+    Buses* buses = new Buses();
+
     // Scheduler
     BoardScheduler* scheduler = new BoardScheduler();
 
@@ -76,8 +79,10 @@ int main()
     // Sensors priority (MAX - 1)
     Sensors* sensors =
         (hilSimulationActive
-             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1))
-             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1)));
+             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                              buses, false)
+             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                           buses));
 
     // Other critical components (Max - 2)
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
@@ -104,7 +109,6 @@ int main()
     // Components without a scheduler
     TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
-    Buses* buses           = new Buses();
     PinHandler* pinHandler =
         new PinHandler(*scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 

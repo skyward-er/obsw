@@ -165,12 +165,9 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
     return result;
 }
 
-Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
-
-bool Sensors::start()
+Sensors::Sensors(TaskScheduler* sched, Buses* buses)
+    : scheduler{sched}, buses{buses}, sensorsId(0)
 {
-    // Read the magnetometer calibration from predefined file
-    magCalibration.fromFile("magCalibration.csv");
     // Init all the sensors
     lps22dfInit();
     lps28dfw_1Init();
@@ -179,11 +176,97 @@ bool Sensors::start()
     lis2mdlInit();
     ubxgpsInit();
     lsm6dsrxInit();
-    ads131m08Init();
+    // ads131m08Init();
     staticPressureInit();
     dynamicPressureInit();
     pitotInit();
     imuInit();
+}
+
+bool Sensors::start()
+{
+    // Read the magnetometer calibration from predefined file
+    magCalibration.fromFile("magCalibration.csv");
+
+    if (lps22df)
+    {
+        registerSensor(lps22df, "LPS22DF", LPS22DF_PERIOD,
+                       [this]() { this->lps22dfCallback(); });
+        addInfoGetter(lps22df);
+    }
+
+    if (lps28dfw_1)
+    {
+        registerSensor(lps28dfw_1, "LPS28DFW_1", LPS28DFW_PERIOD,
+                       [this]() { this->lps28dfw_1Callback(); });
+        addInfoGetter(lps28dfw_1);
+    }
+
+    if (lps28dfw_2)
+    {
+        registerSensor(lps28dfw_2, "LPS28DFW_2", LPS28DFW_PERIOD,
+                       [this]() { this->lps28dfw_2Callback(); });
+        addInfoGetter(lps28dfw_2);
+    }
+
+    if (h3lis331dl)
+    {
+        registerSensor(h3lis331dl, "h3lis331dl", H3LIS331DL_PERIOD,
+                       [this]() { this->h3lis331dlCallback(); });
+        addInfoGetter(h3lis331dl);
+    }
+
+    if (lis2mdl)
+    {
+        registerSensor(lis2mdl, "lis2mdl", LIS2MDL_PERIOD,
+                       [this]() { this->lis2mdlCallback(); });
+        addInfoGetter(lis2mdl);
+    }
+
+    if (ubxgps)
+    {
+        registerSensor(ubxgps, "ubxgps", UBXGPS_PERIOD,
+                       [this]() { this->ubxgpsCallback(); });
+        addInfoGetter(ubxgps);
+    }
+
+    if (lsm6dsrx)
+    {
+        registerSensor(lsm6dsrx, "lsm6dsrx", LSM6DSRX_PERIOD,
+                       [this]() { this->lsm6dsrxCallback(); });
+        addInfoGetter(lsm6dsrx);
+    }
+
+    if (ads131m08)
+    {
+        registerSensor(ads131m08, "ads131m08", ADS131M08_PERIOD,
+                       [this]() { this->ads131m08Callback(); });
+        addInfoGetter(ads131m08);
+    }
+
+    if (staticPressure)
+    {
+        registerSensor(staticPressure, "staticPressure", ADS131M08_PERIOD,
+                       [this]() { this->staticPressureCallback(); });
+    }
+
+    if (dynamicPressure)
+    {
+        registerSensor(dynamicPressure, "dynamicPressure", ADS131M08_PERIOD,
+                       [this]() { this->dynamicPressureCallback(); });
+    }
+
+    if (pitot)
+    {
+        registerSensor(pitot, "pitot", ADS131M08_PERIOD,
+                       [this]() { this->pitotCallback(); });
+    }
+
+    if (imu)
+    {
+        registerSensor(imu, "RotatedIMU", IMU_PERIOD,
+                       [this]() { this->imuCallback(); });
+    }
 
     // Add the magnetometer calibration to the scheduler
     size_t result = scheduler->addTask(
@@ -276,8 +359,6 @@ bool Sensors::writeMagCalibration()
 
 void Sensors::lps22dfInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = LPS22DF::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
@@ -288,93 +369,40 @@ void Sensors::lps22dfInit()
     sensorConfig.odr = LPS22DF_ODR;
 
     // Create sensor instance with configured parameters
-    lps22df = new LPS22DF(modules.get<Buses>()->spi3,
-                          miosix::sensors::LPS22DF::cs::getPin(), config,
-                          sensorConfig);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("LPS22DF", LPS22DF_PERIOD,
-                    bind(&Sensors::lps22dfCallback, this));
-    sensorMap.emplace(make_pair(lps22df, info));
-
-    // used for the sensor state
-    auto lps22Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(lps22df); });
-    sensorsInit[sensorsCounter] = lps22Status;
-    sensorsCounter++;
+    lps22df = new LPS22DF(buses->spi3, miosix::sensors::LPS22DF::cs::getPin(),
+                          config, sensorConfig);
 }
 void Sensors::lps28dfw_1Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{false, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_1 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("LPS28DFW_1", LPS28DFW_PERIOD,
-                    bind(&Sensors::lps28dfw_1Callback, this));
-    sensorMap.emplace(make_pair(lps28dfw_1, info));
-
-    // used for the sensor state
-    auto lps28_1Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(lps28dfw_1); });
-    sensorsInit[sensorsCounter] = lps28_1Status;
-    sensorsCounter++;
+    lps28dfw_1 = new LPS28DFW(buses->i2c1, config);
 }
 void Sensors::lps28dfw_2Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{true, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_2 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("LPS28DFW_2", LPS28DFW_PERIOD,
-                    bind(&Sensors::lps28dfw_2Callback, this));
-    sensorMap.emplace(make_pair(lps28dfw_2, info));
-
-    // used for the sensor state
-    auto lps28_2Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(lps28dfw_2); });
-    sensorsInit[sensorsCounter] = lps28_2Status;
-    sensorsCounter++;
+    lps28dfw_2 = new LPS28DFW(buses->i2c1, config);
 }
 void Sensors::h3lis331dlInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = H3LIS331DL::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Create sensor instance with configured parameters
-    h3lis331dl = new H3LIS331DL(
-        modules.get<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
-        config, H3LIS331DL_ODR, H3LIS331DL_BDU, H3LIS331DL_FSR);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("H3LIS331DL", H3LIS331DL_PERIOD,
-                    bind(&Sensors::h3lis331dlCallback, this));
-    sensorMap.emplace(make_pair(h3lis331dl, info));
-
-    // used for the sensor state
-    auto h3lis331Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(h3lis331dl); });
-    sensorsInit[sensorsCounter] = h3lis331Status;
-    sensorsCounter++;
+    h3lis331dl =
+        new H3LIS331DL(buses->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
+                       config, H3LIS331DL_ODR, H3LIS331DL_BDU, H3LIS331DL_FSR);
 }
 void Sensors::lis2mdlInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = LIS2MDL::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
@@ -386,50 +414,23 @@ void Sensors::lis2mdlInit()
     sensorConfig.temperatureDivider = LIS2MDL_TEMPERATURE_DIVIDER;
 
     // Create sensor instance with configured parameters
-    lis2mdl = new LIS2MDL(modules.get<Buses>()->spi3,
-                          miosix::sensors::LIS2MDL::cs::getPin(), config,
-                          sensorConfig);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("LIS2MDL", LIS2MDL_PERIOD,
-                    bind(&Sensors::lis2mdlCallback, this));
-    sensorMap.emplace(make_pair(lis2mdl, info));
-
-    // used for the sensor state
-    auto lis2mdlStatus =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(lis2mdl); });
-    sensorsInit[sensorsCounter] = lis2mdlStatus;
-    sensorsCounter++;
+    lis2mdl = new LIS2MDL(buses->spi3, miosix::sensors::LIS2MDL::cs::getPin(),
+                          config, sensorConfig);
 }
 
 void Sensors::ubxgpsInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = UBXGPSSpi::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_64;
 
     // Create sensor instance with configured parameters
-    ubxgps = new UBXGPSSpi(modules.get<Buses>()->spi4,
-                           miosix::sensors::GPS::cs::getPin(), config, 5);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("UBXGPS", UBXGPS_PERIOD,
-                    bind(&Sensors::ubxgpsCallback, this));
-    sensorMap.emplace(make_pair(ubxgps, info));
-
-    // used for the sensor state
-    auto ubxStatus =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(ubxgps); });
-    sensorsInit[sensorsCounter] = ubxStatus;
-    sensorsCounter++;
+    ubxgps = new UBXGPSSpi(buses->spi4, miosix::sensors::GPS::cs::getPin(),
+                           config, 5);
 }
 
 void Sensors::lsm6dsrxInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the SPI
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_32;
@@ -455,26 +456,13 @@ void Sensors::lsm6dsrxInit()
     sensorConfig.fifoTemperatureBdr      = LSM6DSRX_FIFO_TEMPERATURE_BDR;
 
     // Create sensor instance with configured parameters
-    lsm6dsrx = new LSM6DSRX(modules.get<Buses>()->spi1,
-                            miosix::sensors::LSM6DSRX::cs::getPin(), config,
-                            sensorConfig);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("LSM6DSRX", LSM6DSRX_PERIOD,
-                    bind(&Sensors::lsm6dsrxCallback, this));
-    sensorMap.emplace(make_pair(lsm6dsrx, info));
-
-    // used for the sensor state
-    auto lsm6dsrxStatus =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(lsm6dsrx); });
-    sensorsInit[sensorsCounter] = lsm6dsrxStatus;
-    sensorsCounter++;
+    lsm6dsrx =
+        new LSM6DSRX(buses->spi1, miosix::sensors::LSM6DSRX::cs::getPin(),
+                     config, sensorConfig);
 }
 
 void Sensors::ads131m08Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the SPI
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_32;
@@ -485,20 +473,9 @@ void Sensors::ads131m08Init()
     sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
 
     // Create the sensor instance with configured parameters
-    ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
-                              miosix::sensors::ADS131::cs::getPin(), config,
-                              sensorConfig);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("ADS131M08", ADS131M08_PERIOD,
-                    bind(&Sensors::ads131m08Callback, this));
-    sensorMap.emplace(make_pair(ads131m08, info));
-
-    // used for the sensor state
-    auto ads131m08Status =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(ads131m08); });
-    sensorsInit[sensorsCounter] = ads131m08Status;
-    sensorsCounter++;
+    ads131m08 =
+        new ADS131M08(buses->spi4, miosix::sensors::ADS131::cs::getPin(),
+                      config, sensorConfig);
 }
 
 void Sensors::staticPressureInit()
@@ -513,11 +490,6 @@ void Sensors::staticPressureInit()
         });
 
     staticPressure = new HSCMRNN015PA(readVoltage, ADC_VOLTAGE_RANGE);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("StaticPressure", ADS131M08_PERIOD,
-                    bind(&Sensors::staticPressureCallback, this));
-    sensorMap.emplace(make_pair(staticPressure, info));
 }
 
 void Sensors::dynamicPressureInit()
@@ -532,11 +504,6 @@ void Sensors::dynamicPressureInit()
         });
 
     dynamicPressure = new SSCMRNN030PA(readVoltage, ADC_VOLTAGE_RANGE);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("TotalPressure", ADS131M08_PERIOD,
-                    bind(&Sensors::dynamicPressureCallback, this));
-    sensorMap.emplace(make_pair(dynamicPressure, info));
 }
 
 void Sensors::pitotInit()
@@ -549,11 +516,6 @@ void Sensors::pitotInit()
 
     pitot = new Pitot(getDynamicPressure, getStaticPressure);
     pitot->setReferenceValues(Common::ReferenceConfig::defaultReferenceValues);
-
-    // Emplace the sensor inside the map
-    SensorInfo info("Pitot", ADS131M08_PERIOD,
-                    bind(&Sensors::pitotCallback, this));
-    sensorMap.emplace(make_pair(pitot, info));
 }
 
 void Sensors::pitotSetReferenceAltitude(float altitude)
@@ -601,11 +563,6 @@ void Sensors::imuInit()
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
-
-    // Emplace the sensor inside the map (TODO CHANGE PERIOD INTO NON MAGIC)
-    SensorInfo info("RotatedIMU", IMU_PERIOD,
-                    bind(&Sensors::imuCallback, this));
-    sensorMap.emplace(make_pair(imu, info));
 }
 
 void Sensors::lps22dfCallback()

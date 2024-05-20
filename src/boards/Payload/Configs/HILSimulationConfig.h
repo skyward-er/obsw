@@ -23,20 +23,21 @@
 #pragma once
 
 #include <Payload/Buses.h>
-#include <Payload/Configs/SensorsConfig.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
+#include <hil/HIL.h>
 #include <math.h>
-#include <sensors/HILSensors/IncludeHILSensors.h>
 #include <sensors/SensorInfo.h>
 #include <utils/Debug.h>
 #include <utils/Stats/Stats.h>
 
 #include <list>
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "SensorsConfig.h"
 
 // NAS
 #include <Payload/StateMachines/NASController/NASControllerData.h>
@@ -50,79 +51,64 @@ namespace HILConfig
 
 /** Period of simulation in milliseconds */
 constexpr int SIMULATION_PERIOD = 100;
-constexpr int SIMULATION_FREQ   = 1000 / SIMULATION_PERIOD;
 
 /** sample frequency of sensor (samples/second) */
-constexpr int ACCEL_FREQ = 1000 / Payload::SensorsConfig::LSM6DSRX_PERIOD;
-constexpr int GYRO_FREQ  = 1000 / Payload::SensorsConfig::LSM6DSRX_PERIOD;
-constexpr int MAGN_FREQ  = 1000 / Payload::SensorsConfig::LIS2MDL_PERIOD;
-constexpr int IMU_FREQ   = 1000 / Payload::SensorsConfig::IMU_PERIOD;
-constexpr int ANALOG_BARO_FREQ =
-    1000 / Payload::SensorsConfig::ADS131M08_PERIOD;
-constexpr int DIGITAL_BARO_FREQ = 1000 / Payload::SensorsConfig::LPS22DF_PERIOD;
-constexpr int BARO_CHAMBER_FREQ = 50;
-constexpr int TEMP_FREQ = 1000 / SIMULATION_PERIOD;  // One sample per iteration
-// Hardcoded to 10 Hz so that we sample at least 1 time every integration step
-constexpr int GPS_FREQ = 1000 / Payload::SensorsConfig::UBXGPS_PERIOD;
+constexpr int ACCEL_PERIOD        = Payload::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int GYRO_PERIOD         = Payload::SensorsConfig::LSM6DSRX_PERIOD;
+constexpr int MAGN_PERIOD         = Payload::SensorsConfig::LIS2MDL_PERIOD;
+constexpr int IMU_PERIOD          = Payload::SensorsConfig::IMU_PERIOD;
+constexpr int ANALOG_BARO_PERIOD  = Payload::SensorsConfig::ADS131M08_PERIOD;
+constexpr int DIGITAL_BARO_PERIOD = Payload::SensorsConfig::LPS22DF_PERIOD;
+constexpr int BARO_CHAMBER_PERIOD = 20;
+constexpr int TEMP_PERIOD         = SIMULATION_PERIOD;  // One sample
+constexpr int GPS_PERIOD          = Payload::SensorsConfig::UBXGPS_PERIOD;
+
+static_assert((SIMULATION_PERIOD % ACCEL_PERIOD) == 0,
+              "N_DATA_ACCEL not an integer");
+static_assert((SIMULATION_PERIOD % GYRO_PERIOD) == 0,
+              "N_DATA_GYRO not an integer");
+static_assert((SIMULATION_PERIOD % MAGN_PERIOD) == 0,
+              "N_DATA_MAGN not an integer");
+static_assert((SIMULATION_PERIOD % IMU_PERIOD) == 0,
+              "N_DATA_IMU not an integer");
+static_assert((SIMULATION_PERIOD % ANALOG_BARO_PERIOD) == 0,
+              "N_DATA_ANALOG_BARO not an integer");
+static_assert((SIMULATION_PERIOD % DIGITAL_BARO_PERIOD) == 0,
+              "N_DATA_DIGITAL_BARO not an integer");
+static_assert((SIMULATION_PERIOD % BARO_CHAMBER_PERIOD) == 0,
+              "N_DATA_BARO_CHAMBER not an integer");
+static_assert((SIMULATION_PERIOD % TEMP_PERIOD) == 0,
+              "N_DATA_TEMP not an integer");
+static_assert((SIMULATION_PERIOD % GPS_PERIOD) == 0,
+              "N_DATA_GPS not an integer");
 
 /** Number of samples per sensor at each simulator iteration */
-constexpr int N_DATA_ACCEL =
-    static_cast<int>((ACCEL_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_GYRO =
-    static_cast<int>((GYRO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_MAGNETO =
-    static_cast<int>((MAGN_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_IMU =
-    static_cast<int>((IMU_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_ANALOG_BARO =
-    static_cast<int>((ANALOG_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_DIGITAL_BARO =
-    static_cast<int>((DIGITAL_BARO_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_BARO_CHAMBER =
-    static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_GPS =
-    static_cast<int>((GPS_FREQ * SIMULATION_PERIOD) / 1000.0);
-constexpr int N_DATA_TEMP =
-    static_cast<int>((TEMP_FREQ * SIMULATION_PERIOD) / 1000.0);
-
-static_assert((ACCEL_FREQ % SIMULATION_FREQ) == 0,
-              "N_DATA_ACCEL not an integer");
-static_assert((GYRO_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GYRO not an integer");
-static_assert((MAGN_FREQ % SIMULATION_FREQ) == 0, "N_DATA_MAGN not an integer");
-static_assert((IMU_FREQ % SIMULATION_FREQ) == 0, "N_DATA_IMU not an integer");
-static_assert((ANALOG_BARO_FREQ % SIMULATION_FREQ) == 0,
-              "N_DATA_ANALOG_BARO not an integer");
-static_assert((DIGITAL_BARO_FREQ % SIMULATION_FREQ) == 0,
-              "N_DATA_DIGITAL_BARO not an integer");
-static_assert((BARO_CHAMBER_FREQ % SIMULATION_FREQ) == 0,
-              "N_DATA_BARO_CHAMBER not an integer");
-static_assert((TEMP_FREQ % SIMULATION_FREQ) == 0, "N_DATA_TEMP not an integer");
-static_assert((GPS_FREQ % SIMULATION_FREQ) == 0, "N_DATA_GPS not an integer");
+constexpr int N_DATA_ACCEL        = SIMULATION_PERIOD / ACCEL_PERIOD;
+constexpr int N_DATA_GYRO         = SIMULATION_PERIOD / GYRO_PERIOD;
+constexpr int N_DATA_MAGNETO      = SIMULATION_PERIOD / MAGN_PERIOD;
+constexpr int N_DATA_IMU          = SIMULATION_PERIOD / IMU_PERIOD;
+constexpr int N_DATA_ANALOG_BARO  = SIMULATION_PERIOD / ANALOG_BARO_PERIOD;
+constexpr int N_DATA_DIGITAL_BARO = SIMULATION_PERIOD / DIGITAL_BARO_PERIOD;
+constexpr int N_DATA_BARO_CHAMBER = SIMULATION_PERIOD / BARO_CHAMBER_PERIOD;
+constexpr int N_DATA_GPS          = SIMULATION_PERIOD / GPS_PERIOD;
+constexpr int N_DATA_TEMP         = SIMULATION_PERIOD / TEMP_PERIOD;
 
 // Sensors Data
 using PayloadAccelerometerSimulatorData =
-    AccelerometerSimulatorData<N_DATA_ACCEL>;
-using PayloadGyroscopeSimulatorData = GyroscopeSimulatorData<N_DATA_GYRO>;
+    Boardcore::AccelerometerSimulatorData<N_DATA_ACCEL>;
+using PayloadGyroscopeSimulatorData =
+    Boardcore::GyroscopeSimulatorData<N_DATA_GYRO>;
 using PayloadMagnetometerSimulatorData =
-    MagnetometerSimulatorData<N_DATA_MAGNETO>;
-using PayloadGPSSimulatorData = GPSSimulatorData<N_DATA_GPS>;
+    Boardcore::MagnetometerSimulatorData<N_DATA_MAGNETO>;
+using PayloadGPSSimulatorData = Boardcore::GPSSimulatorData<N_DATA_GPS>;
 using PayloadDigitalBarometerSimulatorData =
-    BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
+    Boardcore::BarometerSimulatorData<N_DATA_DIGITAL_BARO>;
 using PayloadAnalogBarometerSimulatorData =
-    BarometerSimulatorData<N_DATA_ANALOG_BARO>;
+    Boardcore::BarometerSimulatorData<N_DATA_ANALOG_BARO>;
 using PayloadChamberPressureSimulatorData =
-    BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
-using PayloadTemperatureSimulatorData = TemperatureSimulatorData<N_DATA_TEMP>;
-
-// Sensors
-using PayloadHILAccelerometer    = HILAccelerometer<N_DATA_ACCEL>;
-using PayloadHILGyroscope        = HILGyroscope<N_DATA_GYRO>;
-using PayloadHILMagnetometer     = HILMagnetometer<N_DATA_MAGNETO>;
-using PayloadHILGps              = HILGps<N_DATA_GPS>;
-using PayloadHILDigitalBarometer = HILBarometer<N_DATA_DIGITAL_BARO>;
-using PayloadHILAnalogBarometer  = HILBarometer<N_DATA_ANALOG_BARO>;
-using PayloadHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
-using PayloadHILTemperature      = HILTemperature<N_DATA_TEMP>;
+    Boardcore::BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
+using PayloadTemperatureSimulatorData =
+    Boardcore::TemperatureSimulatorData<N_DATA_TEMP>;
 
 struct FlagsHIL
 {
@@ -384,11 +370,13 @@ enum PayloadFlightPhases
 };
 
 using PayloadHILTransceiver =
-    HILTransceiver<PayloadFlightPhases, SimulatorData, ActuatorData>;
-using PayloadHIL = HIL<PayloadFlightPhases, SimulatorData, ActuatorData>;
+    Boardcore::HILTransceiver<PayloadFlightPhases, SimulatorData, ActuatorData>;
+using PayloadHIL =
+    Boardcore::HIL<PayloadFlightPhases, SimulatorData, ActuatorData>;
 
 class PayloadHILPhasesManager
-    : public HILPhasesManager<PayloadFlightPhases, SimulatorData, ActuatorData>
+    : public Boardcore::HILPhasesManager<PayloadFlightPhases, SimulatorData,
+                                         ActuatorData>
 {
 public:
     explicit PayloadHILPhasesManager(
