@@ -56,17 +56,4 @@ public:
     [[nodiscard]] bool start();
 };
 
-class FileBackend : public Boardcore::RegistryBackend
-{
-public:
-    explicit FileBackend(std::string path) : path{std::move(path)} {}
-
-    [[nodiscard]] bool start() override;
-    bool load(std::vector<uint8_t>& buf) override;
-    bool save(std::vector<uint8_t>& buf) override;
-
-private:
-    std::string path;
-};
-
 }  // namespace RIGv2
