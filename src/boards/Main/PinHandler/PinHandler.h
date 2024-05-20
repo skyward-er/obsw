@@ -24,6 +24,7 @@
 
 #include <Main/PinHandler/PinData.h>
 #include <diagnostic/PrintLogger.h>
+#include <scheduler/TaskScheduler.h>
 #include <utils/PinObserver/PinObserver.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -81,5 +82,8 @@ public:
 
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
+
+    Boardcore::TaskScheduler scheduler;
+    Boardcore::PinObserver pin_observer;
 };
 }  // namespace Main

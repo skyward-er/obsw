@@ -24,6 +24,7 @@
 
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
+#include <scheduler/TaskScheduler.h>
 #include <utils/PinObserver/PinObserver.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -61,6 +62,9 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 
     std::atomic<bool> running;
+
+    Boardcore::TaskScheduler scheduler;
+    Boardcore::PinObserver pin_observer;
 };
 
 }  // namespace Payload
