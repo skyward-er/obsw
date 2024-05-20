@@ -82,8 +82,8 @@ void NASController::update()
         RotatedIMUData imuData = modules.get<Sensors>()->getIMULastSample();
         UBXGPSData gpsData     = modules.get<Sensors>()->getGPSLastSample();
 
-        HSCMRNN015PAData baroData =
-            modules.get<Sensors>()->getStaticPressureLastSample();
+        LPS28DFWData baroData =
+            modules.get<Sensors>()->getLPS28DFW_1LastSample();
 
         // NAS prediction
         nas.predictGyro(imuData);

@@ -35,7 +35,7 @@ struct LPS28DFW_1Data : Boardcore::LPS28DFWData
 
     static std::string header()
     {
-        return "pressureTimestamp,pressure,temperatureTimestamp,temperature\n ";
+        return "pressureTimestamp,pressure,temperatureTimestamp,temperature\n";
     }
 
     void print(std::ostream& os) const
@@ -84,7 +84,7 @@ struct SensorsCalibrationParameter
 
     static std::string header()
     {
-        return "timestamp,referencePressure,offsetStatic,offsetDynamic";
+        return "timestamp,referencePressure,offsetStatic,offsetDynamic\n";
     }
 
     void print(std::ostream& os) const

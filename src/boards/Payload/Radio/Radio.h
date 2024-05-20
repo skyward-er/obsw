@@ -99,4 +99,5 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
     Boardcore::TaskScheduler* scheduler = nullptr;
 };
+
 }  // namespace Payload
