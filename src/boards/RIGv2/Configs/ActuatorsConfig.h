@@ -31,10 +31,9 @@ namespace Config
 
 namespace Servos
 {
-
 static constexpr unsigned int MIN_PULSE = 500;
-static constexpr unsigned int MAX_PULSE = 2460;
-static constexpr unsigned int FREQUENCY = 333;
+static constexpr unsigned int MAX_PULSE     = 2460;
+static constexpr unsigned int FREQUENCY     = 333;
 
 static constexpr uint32_t SERVO_TIMINGS_CHECK_PERIOD = 100;
 static constexpr long long SERVO_CONFIDENCE_TIME     = 500;   // 0.5s
@@ -52,13 +51,13 @@ static constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
 static constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
 static constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
 
-static constexpr float FILLING_LIMIT = 0.65f;
-static constexpr float RELEASE_LIMIT = 0.45f;
+static constexpr float FILLING_LIMIT = 0.7f;
+static constexpr float RELEASE_LIMIT = 0.7f;
 static constexpr float VENTING_LIMIT = 0.5f;
 static constexpr float MAIN_LIMIT    = 0.70f;
 
 static constexpr bool FILLING_FLIPPED    = true;
-static constexpr bool VENTING_FLIPPED    = false;
+static constexpr bool VENTING_FLIPPED    = true;
 static constexpr bool MAIN_FLIPPED       = true;
 static constexpr bool RELEASE_FLIPPED    = true;
 static constexpr bool DISCONNECT_FLIPPED = false;
