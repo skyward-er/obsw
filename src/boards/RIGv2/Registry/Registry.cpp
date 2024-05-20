@@ -22,6 +22,8 @@
 
 #include "Registry.h"
 
+#include <utils/Registry/Backend/FileBackend.h>
+
 #include <fstream>
 
 using namespace RIGv2;
@@ -70,31 +72,4 @@ Registry::Registry()
 bool Registry::start()
 {
     return RegistryFrontend::start() == RegistryError::OK;
-}
-
-bool FileBackend::start() { return true; }
-
-bool FileBackend::load(std::vector<uint8_t>& buf)
-{
-    std::ifstream is(path, std::ifstream::ate | std::ifstream::binary);
-    if (!is.good())
-        return false;
-
-    size_t size = is.tellg();
-    is.seekg(0);
-
-    buf.resize(size);
-    is.read(reinterpret_cast<char*>(buf.data()), size);
-
-    return is.good();
-}
-
-bool FileBackend::save(std::vector<uint8_t>& buf)
-{
-    std::ofstream os(path, std::ifstream::binary);
-    if (!os.good())
-        return false;
-
-    os.write(reinterpret_cast<char*>(buf.data()), buf.size());
-    return os.good();
 }
