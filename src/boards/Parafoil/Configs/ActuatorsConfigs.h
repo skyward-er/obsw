@@ -54,7 +54,7 @@ constexpr float RIGHT_SERVO_MIN_PULSE = 2460;            // [us]
 constexpr float RIGHT_SERVO_MAX_PULSE = 500;             // [us]
 
 // Parafoil twirl
-constexpr float SERVO_TWIRL_RADIUS = WingConfig::MAX_SERVO_APERTURE;  // [%]
+constexpr float SERVO_TWIRL_RADIUS = 0.5;  // [%]
 
 }  // namespace ActuatorsConfigs
 
