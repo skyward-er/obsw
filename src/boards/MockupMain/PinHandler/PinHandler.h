@@ -25,7 +25,6 @@
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/PinObserver/PinObserver.h>
-
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace MockupMain
@@ -59,6 +58,8 @@ public:
 
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+
+    Boardcore::PinObserver* pinObserver = new Boardcore::PinObserver(ModuleManager::getInstance().get<BoardScheduler>().getScheduler(miosix::PRIORITY_MAX - 2));
 
     std::atomic<bool> running;
 };

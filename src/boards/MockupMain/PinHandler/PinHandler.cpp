@@ -46,8 +46,7 @@ void PinHandler::onExpulsionPinTransition(PinTransition transition)
 
 bool PinHandler::start()
 {
-    running = PinObserver::getInstance().start();
-    return running;
+    return true;
 }
 
 bool PinHandler::isStarted() { return running; }
@@ -57,14 +56,14 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
     std::map<PinsList, PinData> data;
 
     data[PinsList::NOSECONE_PIN] =
-        PinObserver::getInstance().getPinData(inputs::expulsion::getPin());
+        pinObserver->getPinData(inputs::expulsion::getPin());
 
     return data;
 }
 
 PinHandler::PinHandler() : running(false)
 {
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver->registerPinCallback(
         inputs::expulsion::getPin(),
         std::bind(&PinHandler::onExpulsionPinTransition, this, _1),
         NC_DETACH_PIN_THRESHOLD);
