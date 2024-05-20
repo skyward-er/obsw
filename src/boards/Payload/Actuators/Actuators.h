@@ -23,7 +23,7 @@
 #pragma once
 
 #include <actuators/Servo/Servo.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <interfaces/gpio.h>
 #include <scheduler/TaskScheduler.h>
 

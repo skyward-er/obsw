@@ -26,7 +26,7 @@
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/HubBase.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;

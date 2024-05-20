@@ -23,7 +23,7 @@
 #pragma once
 
 #include <RIG/Configs/RadioConfig.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
 #include <utils/collections/CircularBuffer.h>

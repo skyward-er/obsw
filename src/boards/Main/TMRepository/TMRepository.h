@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <diagnostic/PrintLogger.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>

@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,51 +20,10 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include <ActiveObject.h>
-#include <common/MavlinkGemini.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
-
-#include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
-
-namespace Groundstation
-{
-
-using SerialMavDriver =
-    Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
-
-/**
- * @brief Class responsible for UART communication.
- */
-class Serial : public Boardcore::Module, public Boardcore::Transceiver
-{
-public:
-    Serial() {}
-
-    /**
-     * @brief Initialize the serial module.
-     */
-    [[nodiscard]] bool start();
-
-    /**
-     * @brief Send a mavlink message through this port.
-     */
-    void sendMsg(const mavlink_message_t& msg);
-
-private:
-    /**
-     * @brief Called internally when a message is received.
-     */
-    void handleMsg(const mavlink_message_t& msg);
-
-    ssize_t receive(uint8_t* pkt, size_t max_len) override;
-
-    bool send(uint8_t* pkt, size_t len) override;
-
-    miosix::FastMutex mutex;
-    std::unique_ptr<SerialMavDriver> mav_driver;
-};
-
-}  // namespace Groundstation
+// Ignore warnings as these are auto-generated headers made by a third party
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include <mavlink_lib/gemini/mavlink.h>
+#pragma GCC diagnostic pop

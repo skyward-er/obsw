@@ -23,7 +23,7 @@
 
 #include <actuators/Servo/Servo.h>
 #include <common/Events.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <events/EventBroker.h>
 #include <scheduler/TaskScheduler.h>
 

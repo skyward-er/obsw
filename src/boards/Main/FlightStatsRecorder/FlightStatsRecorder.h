@@ -25,7 +25,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <algorithms/ADA/ADAData.h>
 #include <algorithms/NAS/NASState.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/SensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>

@@ -22,7 +22,7 @@
 
 #include "Radio.h"
 
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <con_RIG/BoardScheduler.h>
 #include <con_RIG/Buses.h>
 #include <con_RIG/Buttons/Buttons.h>

@@ -23,7 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 

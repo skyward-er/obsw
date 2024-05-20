@@ -22,7 +22,7 @@
 #pragma once
 
 #include <Payload/Configs/RadioConfig.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>

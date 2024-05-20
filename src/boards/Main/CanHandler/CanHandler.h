@@ -24,7 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <common/CanConfig.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkGemini.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
