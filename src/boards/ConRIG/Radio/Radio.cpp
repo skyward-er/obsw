@@ -24,10 +24,10 @@
 
 #include <common/Mavlink.h>
 #include <common/Radio.h>
-#include <con_RIG/BoardScheduler.h>
-#include <con_RIG/Buses.h>
-#include <con_RIG/Buttons/Buttons.h>
-#include <con_RIG/Serial/Serial.h>
+#include <ConRIG/BoardScheduler.h>
+#include <ConRIG/Buses.h>
+#include <ConRIG/Buttons/Buttons.h>
+#include <ConRIG/Serial/Serial.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>

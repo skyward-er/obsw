@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  */
 
-#include <con_RIG/BoardScheduler.h>
-#include <con_RIG/Buses.h>
-#include <con_RIG/Buttons/Buttons.h>
-#include <con_RIG/Configs/ButtonsConfig.h>
-#include <con_RIG/Radio/Radio.h>
-#include <con_RIG/Serial/Serial.h>
+#include <ConRIG/BoardScheduler.h>
+#include <ConRIG/Buses.h>
+#include <ConRIG/Buttons/Buttons.h>
+#include <ConRIG/Configs/ButtonsConfig.h>
+#include <ConRIG/Radio/Radio.h>
+#include <ConRIG/Serial/Serial.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>

@@ -22,7 +22,7 @@
 
 #include "Serial.h"
 
-#include <con_RIG/Radio/Radio.h>
+#include <ConRIG/Radio/Radio.h>
 #include <filesystem/console/console_device.h>
 
 using namespace miosix;
