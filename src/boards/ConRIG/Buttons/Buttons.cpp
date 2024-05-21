@@ -22,9 +22,9 @@
 
 #include "Buttons.h"
 
-#include <con_RIG/BoardScheduler.h>
-#include <con_RIG/Configs/ButtonsConfig.h>
-#include <con_RIG/Radio/Radio.h>
+#include <ConRIG/BoardScheduler.h>
+#include <ConRIG/Configs/ButtonsConfig.h>
+#include <ConRIG/Radio/Radio.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace std;

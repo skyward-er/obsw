@@ -70,7 +70,7 @@ add_executable(rig-v2-entry src/entrypoints/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMP
 target_include_directories(rig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v2-entry stm32f767zi_rig_v2)
 
-add_executable(con_rig-entry src/entrypoints/con_RIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
+add_executable(con_rig-entry src/entrypoints/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_con_rig)
 

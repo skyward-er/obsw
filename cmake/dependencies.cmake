@@ -72,9 +72,9 @@ set(RIG_V2_COMPUTER
 )
 
 set(CON_RIG_COMPUTER
-    src/boards/con_RIG/Buttons/Buttons.cpp
-    src/boards/con_RIG/Radio/Radio.cpp
-    src/boards/con_RIG/Serial/Serial.cpp
+    src/boards/ConRIG/Buttons/Buttons.cpp
+    src/boards/ConRIG/Radio/Radio.cpp
+    src/boards/ConRIG/Serial/Serial.cpp
 )
 
 set(PAYLOAD_COMPUTER
