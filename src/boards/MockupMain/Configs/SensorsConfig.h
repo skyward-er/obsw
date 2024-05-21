@@ -128,10 +128,10 @@ constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1;  // [ms] 1000 Hz
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration
-static constexpr float LOAD_CELL_P0_VOLTAGE = -0.00055;
-static constexpr float LOAD_CELL_P0_MASS    = 0;
-static constexpr float LOAD_CELL_P1_VOLTAGE = -0.00048;
-static constexpr float LOAD_CELL_P1_MASS    = 5;
+static constexpr float LOAD_CELL_P0_VOLTAGE = -488.47e-6;
+static constexpr float LOAD_CELL_P0_MASS    = 3.272;
+static constexpr float LOAD_CELL_P1_VOLTAGE = -2.24e-6;
+static constexpr float LOAD_CELL_P1_MASS    = 30.233;
 
 }  // namespace SensorsConfig
 }  // namespace MockupMain
