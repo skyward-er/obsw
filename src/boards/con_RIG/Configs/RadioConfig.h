@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
 
 namespace ConRIG
 {
