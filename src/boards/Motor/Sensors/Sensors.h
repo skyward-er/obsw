@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Motor/Buses.h>
 #include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
 #include <Motor/Sensors/TankPressureSensor1/TankPressureSensor1.h>
 #include <Motor/Sensors/TankPressureSensor2/TankPressureSensor2.h>
@@ -56,7 +57,7 @@ public:
     virtual Boardcore::TankPressureSensor2Data getTankPressureSensor2Data();
     virtual Boardcore::CurrentData getServoCurrentData();
 
-    explicit Sensors(Boardcore::TaskScheduler* sched);
+    explicit Sensors(Boardcore::TaskScheduler* sched, Motor::Buses* buses);
 
     ~Sensors();
 
@@ -65,44 +66,54 @@ public:
     virtual void calibrate();
 
 protected:
-    virtual void adcInit();
+   /**
+     * @brief Method to put a sensor in the sensorMap with the relative infos
+     */
+    template <typename T>
+    void registerSensor(Boardcore::Sensor<T>* sensor, const std::string& name,
+                        uint32_t period, std::function<void(void)> callback)
+    {
+        // Emplace the sensor inside the map
+        Boardcore::SensorInfo info(name, period, callback);
+        sensorsMap.emplace(std::make_pair(sensor, info));
+    }
+
+    // Creation and callbacks methods
+    void adcCreation();
     virtual void adcCallback();
 
-    virtual void batteryInit();
+    void batteryCreation();
     virtual void batteryCallback();
 
-    virtual void h3lis331dlInit();
+    void h3lis331dlCreation();
     virtual void h3lis331dlCallback();
 
-    virtual void lis2mdlInit();
-    virtual void lis2mdlCallback();
-
-    virtual void lps22dfInit();
+    void lps22dfCreation();
     virtual void lps22dfCallback();
 
-    virtual void max31856Init();
+    void max31856Creation();
     virtual void max31856Callback();
 
-    virtual void ads131m08Init();
+    void ads131m08Creation();
     virtual void ads131m08Callback();
 
-    virtual void chamberPressureInit();
+    void chamberPressureCreation();
     virtual void chamberPressureCallback();
 
-    virtual void tankPressure1Init();
+    void tankPressure1Creation();
     virtual void tankPressure1Callback();
 
-    virtual void tankPressure2Init();
+    void tankPressure2Creation();
     virtual void tankPressure2Callback();
 
-    virtual void servosCurrentInit();
+    void servosCurrentCreation();
     virtual void servosCurrentCallback();
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
-    Boardcore::SensorManager* sensorManager = nullptr;
+    Boardcore::SensorManager* manager = nullptr;
     Boardcore::TaskScheduler* scheduler     = nullptr;
+    Motor::Buses* buses                  = nullptr;
 
-private:
     Boardcore::InternalADC* adc                       = nullptr;
     Boardcore::BatteryVoltageSensor* battery          = nullptr;
     Boardcore::H3LIS331DL* h3lis331dl                 = nullptr;

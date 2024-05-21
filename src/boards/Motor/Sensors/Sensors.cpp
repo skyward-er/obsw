@@ -114,28 +114,84 @@ CurrentData Sensors::getServoCurrentData()
                                     : CurrentData{};
 }
 
-Sensors::Sensors(TaskScheduler* sched) : scheduler(sched) {}
+Sensors::Sensors(TaskScheduler* sched, Motor::Buses* buses)
+    : scheduler(sched), buses(buses)
+{
+    // Init all the sensors
+    adcCreation();
+    batteryCreation();
+    h3lis331dlCreation();
+    lps22dfCreation();
+    max31856Creation();
+    ads131m08Creation();
+    chamberPressureCreation();
+    tankPressure1Creation();
+    tankPressure2Creation();
+    servosCurrentCreation();
+}
 
 Sensors::~Sensors() {}
 
 bool Sensors::start()
 {
-    adcInit();
-    batteryInit();
-    // lsm6dsrxInit();
-    h3lis331dlInit();
-    // lis2mdlInit();
-    lps22dfInit();
-    max31856Init();
-    ads131m08Init();
-    chamberPressureInit();
-    tankPressure1Init();
-    tankPressure2Init();
-    servosCurrentInit();
+    if (adc)
+    {
+        registerSensor(adc, "adc", SAMPLE_PERIOD_ADC,
+                       [this]() { this->adcCallback(); });
+    }
 
-    sensorManager = new SensorManager(sensorsMap, scheduler);
+    if (battery)
+    {
+        registerSensor(battery, "battery", SAMPLE_PERIOD_ADC,
+                       [this]() { this->batteryCallback(); });
+    }
 
-    return sensorManager->start();
+    if (h3lis331dl)
+    {
+        registerSensor(h3lis331dl, "h3lis331dl", SAMPLE_PERIOD_H3LIS,
+                       [this]() { this->h3lis331dlCallback(); });
+    }
+
+    if (lps22df)
+    {
+        registerSensor(lps22df, "lps22df", SAMPLE_PERIOD_LPS22,
+                       [this]() { this->lps22dfCallback(); });
+    }
+
+    if (max31856)
+    {
+        registerSensor(max31856, "max31856", SAMPLE_PERIOD_MAX,
+                       [this]() { this->max31856Callback(); });
+    }
+
+    if (ads131m08)
+    {
+        registerSensor(ads131m08, "ads131m08", SAMPLE_PERIOD_ADS131,
+                       [this]() { this->ads131m08Callback(); });
+    }
+    if (chamberPressure)
+    {
+        registerSensor(chamberPressure, "chamberPressure", SAMPLE_PERIOD_ADS131,
+                       [this]() { this->chamberPressureCallback(); });
+    }
+    if (tankPressure1)
+    {
+        registerSensor(tankPressure1, "tankPressure1", SAMPLE_PERIOD_ADS131,
+                       [this]() { this->tankPressure1Callback(); });
+    }
+    if (tankPressure2)
+    {
+        registerSensor(tankPressure2, " tankPressure2", SAMPLE_PERIOD_ADS131,
+                       [this]() { this->tankPressure2Callback(); });
+    }
+    if (servosCurrent)
+    {
+        registerSensor(servosCurrent, "servosCurrent", SAMPLE_PERIOD_ADS131,
+                       [this]() { this->servosCurrentCallback(); });
+    }
+    manager = new SensorManager(sensorsMap, scheduler);
+
+    return manager->start();
 }
 
 void Sensors::calibrate()
@@ -146,112 +202,52 @@ void Sensors::calibrate()
     }
 }
 
-void Sensors::adcInit()
+void Sensors::adcCreation()
 {
     adc = new InternalADC(ADC1);
 
     adc->enableTemperature();
     adc->enableVbat();
     adc->enableChannel(ADC_BATTERY_VOLTAGE_CH);
-
-    SensorInfo info("ADC", SAMPLE_PERIOD_ADC,
-                    bind(&Sensors::adcCallback, this));
-
-    sensorsMap.emplace(make_pair(adc, info));
 }
 
-void Sensors::batteryInit()
+void Sensors::batteryCreation()
 {
     function<ADCData()> getADCVoltage(
         bind(&InternalADC::getVoltage, adc, ADC_BATTERY_VOLTAGE_CH));
 
     battery =
         new BatteryVoltageSensor(getADCVoltage, ADC_BATTERY_VOLTAGE_COEFF);
-
-    SensorInfo info("BATTERY", SAMPLE_PERIOD_ADC,
-                    bind(&Sensors::batteryCallback, this));
-
-    sensorsMap.emplace(make_pair(battery, info));
 }
 
-// void Sensors::lsm6dsrxInit()
-// {
-//     SPIBus& spi1 = ModuleManager::getInstance().get<Buses>()->spi1;
-
-//     lsm6dsrx = new LSM6DSRX(spi1, peripherals::lsm6dsrx::cs::getPin(),
-//                             LSM6_SPI_CONFIG, LSM6_SENSOR_CONFIG);
-
-//     SensorInfo info("LSM6DSRX", SAMPLE_PERIOD_LSM6,
-//                     bind(&Sensors::lsm6dsrxCallback, this));
-
-//     sensorsMap.emplace(make_pair(lsm6dsrx, info));
-// }
-
-void Sensors::h3lis331dlInit()
+void Sensors::h3lis331dlCreation()
 {
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
 
-    h3lis331dl = new H3LIS331DL(spi3, peripherals::h3lis331dl::cs::getPin(),
-                                H3LIS_ODR, H3LIS_BDU, H3LIS_FSR);
-
-    SensorInfo info("H3LIS331DL", SAMPLE_PERIOD_H3LIS,
-                    bind(&Sensors::h3lis331dlCallback, this));
-
-    sensorsMap.emplace(make_pair(h3lis331dl, info));
+    h3lis331dl =
+        new H3LIS331DL(buses->spi3, peripherals::h3lis331dl::cs::getPin(),
+                       H3LIS_ODR, H3LIS_BDU, H3LIS_FSR);
 }
 
-void Sensors::lis2mdlInit()
+void Sensors::lps22dfCreation()
 {
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
 
-    lis2mdl = new LIS2MDL(spi3, peripherals::lis2mdl::cs::getPin(),
-                          LIS2_SPI_CONFIG, LIS2_SENSOR_CONFIG);
-
-    SensorInfo info("LIS2MDL", SAMPLE_PERIOD_LIS2,
-                    bind(&Sensors::lis2mdlCallback, this));
-
-    sensorsMap.emplace(make_pair(lis2mdl, info));
-}
-
-void Sensors::lps22dfInit()
-{
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    lps22df = new LPS22DF(spi3, peripherals::lps22df::cs::getPin(),
+    lps22df = new LPS22DF(buses->spi3, peripherals::lps22df::cs::getPin(),
                           LPS22_SPI_CONFIG, LPS22_SENSOR_CONFIG);
-
-    SensorInfo info("LPS22", SAMPLE_PERIOD_LPS22,
-                    bind(&Sensors::lps22dfCallback, this));
-
-    sensorsMap.emplace(make_pair(lps22df, info));
 }
 
-void Sensors::max31856Init()
+void Sensors::max31856Creation()
 {
-    SPIBus& spi3 = ModuleManager::getInstance().get<Buses>()->spi3;
-
-    max31856 = new MAX31856(spi3, peripherals::max31856::cs::getPin());
-
-    SensorInfo info("MAX31856", SAMPLE_PERIOD_MAX,
-                    bind(&Sensors::max31856Callback, this));
-
-    sensorsMap.emplace(make_pair(max31856, info));
+    max31856 = new MAX31856(buses->spi3, peripherals::max31856::cs::getPin());
 }
 
-void Sensors::ads131m08Init()
+void Sensors::ads131m08Creation()
 {
-    SPIBus& spi4 = ModuleManager::getInstance().get<Buses>()->spi4;
-
-    ads131m08 = new ADS131M08(spi4, peripherals::ads131m08::cs::getPin(),
-                              ADS131_SPI_CONFIG, ADS131_SENSOR_CONFIG);
-
-    SensorInfo info("ADS131M08", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::ads131m08Callback, this));
-
-    sensorsMap.emplace(make_pair(ads131m08, info));
+    ads131m08 =
+        new ADS131M08(buses->spi4, miosix::peripherals::ads131m08::cs::getPin(),
+                      ADS131_SPI_CONFIG, ADS131_SENSOR_CONFIG);
 }
 
-void Sensors::chamberPressureInit()
+void Sensors::chamberPressureCreation()
 {
     if (ads131m08 == nullptr)
     {
@@ -275,14 +271,9 @@ void Sensors::chamberPressureInit()
 
     chamberPressure =
         new ChamberPressureSensor(getADCVoltage, voltageToPressure);
-
-    SensorInfo info("CHAMBER_PRESSURE", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::chamberPressureCallback, this));
-
-    sensorsMap.emplace(make_pair(chamberPressure, info));
 }
 
-void Sensors::tankPressure1Init()
+void Sensors::tankPressure1Creation()
 {
     if (ads131m08 == nullptr)
     {
@@ -305,14 +296,9 @@ void Sensors::tankPressure1Init()
         });
 
     tankPressure1 = new TankPressureSensor1(getADCVoltage, voltageToPressure);
-
-    SensorInfo info("TANK_PRESSURE_1", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::tankPressure1Callback, this));
-
-    sensorsMap.emplace(make_pair(tankPressure1, info));
 }
 
-void Sensors::tankPressure2Init()
+void Sensors::tankPressure2Creation()
 {
     if (ads131m08 == nullptr)
     {
@@ -335,14 +321,9 @@ void Sensors::tankPressure2Init()
         });
 
     tankPressure2 = new TankPressureSensor2(getADCVoltage, voltageToPressure);
-
-    SensorInfo info("TANK_PRESSURE_2", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::tankPressure2Callback, this));
-
-    sensorsMap.emplace(make_pair(tankPressure2, info));
 }
 
-void Sensors::servosCurrentInit()
+void Sensors::servosCurrentCreation()
 {
     if (ads131m08 == nullptr)
     {
@@ -360,11 +341,6 @@ void Sensors::servosCurrentInit()
         [](float voltage) { return voltage * SERVO_CURRENT_COEFF; });
 
     servosCurrent = new CurrentSensor(getADCVoltage, voltageToCurrent);
-
-    SensorInfo info("SERVOS_CURRENT", SAMPLE_PERIOD_ADS131,
-                    bind(&Sensors::servosCurrentCallback, this));
-
-    sensorsMap.emplace(make_pair(servosCurrent, info));
 }
 
 void Sensors::adcCallback() { Logger::getInstance().log(adc->getLastSample()); }
@@ -374,19 +350,9 @@ void Sensors::batteryCallback()
     Logger::getInstance().log(battery->getLastSample());
 }
 
-// void Sensors::lsm6dsrxCallback()
-// {
-//     Logger::getInstance().log(lsm6dsrx->getLastSample());
-// }
-
 void Sensors::h3lis331dlCallback()
 {
     Logger::getInstance().log(h3lis331dl->getLastSample());
-}
-
-void Sensors::lis2mdlCallback()
-{
-    Logger::getInstance().log(lis2mdl->getLastSample());
 }
 
 void Sensors::lps22dfCallback()

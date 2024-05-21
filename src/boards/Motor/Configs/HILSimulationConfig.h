@@ -27,8 +27,8 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
+#include <hil/HIL.h>
 #include <math.h>
-#include <sensors/HILSensors/IncludeHILSensors.h>
 #include <sensors/SensorInfo.h>
 #include <utils/Debug.h>
 #include <utils/Stats/Stats.h>
@@ -41,23 +41,23 @@
 namespace HILConfig
 {
 
-/** Period of simulation in milliseconds */
+/** Period of simulation in [ms] */
 constexpr int SIMULATION_PERIOD = 100;
 
-/** sample frequency of sensor (samples/second) */
-constexpr int BARO_CHAMBER_FREQ =
-    1000 / Motor::SensorsConfig::SAMPLE_PERIOD_ADS131;
+/** sampling periods of sensors [ms] */
+constexpr int BARO_CHAMBER_PERIOD =
+    Motor::SensorsConfig::SAMPLE_PERIOD_ADS131;
+
+static_assert((SIMULATION_PERIOD % BARO_CHAMBER_PERIOD) == 0,
+              "N_DATA_BARO_CHAMBER not an integer");
 
 /** Number of samples per sensor at each simulator iteration */
-constexpr int N_DATA_BARO_CHAMBER =
-    static_cast<int>((BARO_CHAMBER_FREQ * SIMULATION_PERIOD) / 1000.0);
+constexpr int N_DATA_BARO_CHAMBER = SIMULATION_PERIOD / BARO_CHAMBER_PERIOD;
 
 // Sensors Data
 using MotorHILChamberBarometerData =
-    BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
+    Boardcore::BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
 
-// Sensors
-using MotorHILChamberBarometer = HILBarometer<N_DATA_BARO_CHAMBER>;
 
 struct ActuatorsStateHIL
 {
@@ -119,16 +119,16 @@ enum MotorFlightPhases
 };
 
 using MotorHILTransceiver =
-    HILTransceiver<MotorFlightPhases, SimulatorData, ActuatorData>;
-using MotorHIL = HIL<MotorFlightPhases, SimulatorData, ActuatorData>;
+    Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData, ActuatorData>;
+using MotorHIL = Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>;
 
 class MotorHILPhasesManager
-    : public HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>
+    : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>
 {
 public:
     explicit MotorHILPhasesManager(
         std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-        : HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>(
+        :  Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>(
               getCurrentPosition)
     {
         flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};

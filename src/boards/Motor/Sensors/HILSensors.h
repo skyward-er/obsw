@@ -24,9 +24,9 @@
 
 #include <Motor/Configs/HILSimulationConfig.h>
 #include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
-#include <sensors/SensorManager.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <common/CanConfig.h>
+#include <common/ReferenceConfig.h>
+#include <sensors/Sensor.h>
 
 #include "Sensors.h"
 
@@ -36,20 +36,70 @@ namespace Motor
 class HILSensors : public Sensors
 {
 public:
-    Boardcore::ChamberPressureSensorData getChamberPressureSensorData()
-        override;
+    explicit HILSensors(Boardcore::TaskScheduler* sched, Motor::Buses* buses,
+                        bool enableHw)
+        : Sensors{sched, buses}, enableHw{enableHw}
+    {
+        using namespace HILConfig;
+        using namespace Boardcore;
 
-    explicit HILSensors(Boardcore::TaskScheduler* sched);
+        chamberPressure = hillificator<>(chamberPressure, enableHw,
+                                         updateChamberPressureSensorData);
+    }
 
     ~HILSensors(){};
 
-    bool start() override { return Sensors::start(); };
+private:
+    static int getSampleCounter(int nData)
+    {
+        auto ts           = miosix::getTime();
+        auto tsSensorData = Boardcore::ModuleManager::getInstance()
+                                .get<Boardcore::HILTransceiverBase>()
+                                ->getTimestampSimulatorData();
+        auto simulationPeriod = Boardcore::ModuleManager::getInstance()
+                                    .get<HILConfig::MotorHIL>()
+                                    ->getSimulationPeriod();
 
-protected:
-    void chamberPressureInit() override;
-    void chamberPressureCallback() override;
+        assert(ts >= tsSensorData &&
+               "Actual timestamp is lesser then the packet timestamp");
 
-    HILConfig::MotorHILChamberBarometer* chamberPressure = nullptr;
+        // Getting the index floored
+        int sampleCounter = (ts - tsSensorData) * nData / simulationPeriod;
+
+        if (sampleCounter >= nData)
+        {
+            // TODO: Register this as an error
+            return nData - 1;  // Return the last valid index
+        }
+
+        if (sampleCounter < 0)
+        {
+            assert(false && "Calculated a negative index");
+            return 0;
+        }
+
+        return sampleCounter;
+    }
+
+    std::function<Boardcore::ChamberPressureSensorData(void)>
+        updateChamberPressureSensorData = []()
+    {
+        Boardcore::ChamberPressureSensorData data;
+
+        auto* hilTransceiver = static_cast<HILConfig::MotorHILTransceiver*>(
+            Boardcore::ModuleManager::getInstance()
+                .get<Boardcore::HILTransceiverBase>());
+        auto* sensorData = hilTransceiver->getSensorData();
+
+        int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
+
+        data.pressureTimestamp = miosix::getTime();
+        data.pressure = sensorData->pressureChamber.measures[iCC];
+
+        return data;
+    };
+
+    bool enableHw;
 };
 
 }  // namespace Motor
