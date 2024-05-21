@@ -23,7 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 
 #include <memory>

@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
