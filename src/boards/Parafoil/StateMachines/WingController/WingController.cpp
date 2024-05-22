@@ -145,12 +145,9 @@ State WingController::state_calibration(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::CALIBRATION);
 
-            modules.get<Actuators>()->startTwirl();
+            flare();
             calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_WES_CAL_DONE, TOPIC_DPL, WES_CALIBRATION_TIMEOUT);
-
-            modules.get<WindEstimation>()
-                ->startWindEstimationSchemeCalibration();
+                DPL_SERVO_ACTUATION_DETECTED, TOPIC_DPL, 2000);
 
             return HANDLED;
         }
@@ -162,6 +159,34 @@ State WingController::state_calibration(const Boardcore::Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
+        }
+        case DPL_SERVO_ACTUATION_DETECTED:
+        {
+            reset();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_WIGGLE, TOPIC_DPL, 1000);
+
+            return HANDLED;
+        }
+        case DPL_WIGGLE:
+        {
+            flare();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_NC_OPEN, TOPIC_DPL, 2000);
+
+            return HANDLED;
+        }
+        case DPL_NC_OPEN:
+        {
+            reset();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_WES_CAL_DONE, TOPIC_DPL, WES_CALIBRATION_TIMEOUT);
+            modules.get<WindEstimation>()
+                ->startWindEstimationSchemeCalibration();
+
+            modules.get<Actuators>()->startTwirl();
+
+            return HANDLED;
         }
         case DPL_WES_CAL_DONE:
         {
