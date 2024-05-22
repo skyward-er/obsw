@@ -223,7 +223,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         }
         case FMM_ALGOS_CALIBRATE:
         {
-            return transition(&FlightModeManager::state_algos_calibration);
+            return transition(&FlightModeManager::state_ready);
         }
         default:
         {

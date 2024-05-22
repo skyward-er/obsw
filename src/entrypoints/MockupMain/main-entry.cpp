@@ -147,11 +147,11 @@ int main()
         LOG_ERR(logger, "Error starting the Sensors module");
     }
 
-    if (!modules.get<NASController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the NAS module");
-    }
+    // if (!modules.get<NASController>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the NAS module");
+    // }
 
     if (!modules.get<FlightModeManager>()->start())
     {
@@ -165,11 +165,11 @@ int main()
         LOG_ERR(logger, "Error starting the Radio module");
     }
 
-    if (!modules.get<PinHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the PinHandler module");
-    }
+    // if (!modules.get<PinHandler>()->start())
+    // {
+    //     initResult = false;
+    //     LOG_ERR(logger, "Error starting the PinHandler module");
+    // }
 
     if (!modules.get<BoardScheduler>()->start())
     {
@@ -177,14 +177,14 @@ int main()
         LOG_ERR(logger, "Error starting the Board Scheduler module");
     }
 
-    // Log all the events
-    EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
-                         [](uint8_t event, uint8_t topic)
-                         {
-                             EventData ev{TimestampTimer::getTimestamp(), event,
-                                          topic};
-                             Logger::getInstance().log(ev);
-                         });
+    // // Log all the events
+    // EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
+    //                      [](uint8_t event, uint8_t topic)
+    //                      {
+    //                          EventData ev{TimestampTimer::getTimestamp(), event,
+    //                                       topic};
+    //                          Logger::getInstance().log(ev);
+    //                      });
 
     // Check the init result and launch an event
     if (initResult)

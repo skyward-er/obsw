@@ -43,12 +43,12 @@ constexpr Boardcore::BMX160Config::AccelerometerRange BMX160_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int BMX160_ACC_GYRO_ODR = 800;
+constexpr unsigned int BMX160_ACC_GYRO_ODR = 200;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_800;
-constexpr unsigned int BMX160_MAG_ODR = 800;
+    Boardcore::BMX160Config::OutputDataRate::HZ_200;
+constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_800;
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
 constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
 
@@ -72,7 +72,7 @@ constexpr uint32_t H3LIS331DL_PERIOD = 1;  // [ms] 1000Hz
 // LPS22DF
 constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_50;
-constexpr uint32_t LPS22DF_PERIOD             = 20;  // [ms] 50Hz
+constexpr uint32_t LPS22DF_PERIOD             = 50;  // [ms] 20Hz
 
 // UBXGPS
 constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
