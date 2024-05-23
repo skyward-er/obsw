@@ -370,8 +370,8 @@ State SMController::state_init_error(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::INIT_ERROR);
-            ModuleManager::getInstance().get<Leds>()->setBlinking(LedColor::RED,
-                                                                  100);
+            ModuleManager::getInstance().get<Leds>()->setSlowBlink(
+                LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -582,8 +582,8 @@ State SMController::state_fix_antennas(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ANTENNAS);
-            ModuleManager::getInstance().get<Leds>()->setBlinking(
-                LedColor::ORANGE, 50);
+            ModuleManager::getInstance().get<Leds>()->setFastBlink(
+                LedColor::ORANGE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -622,8 +622,8 @@ State SMController::state_fix_rocket(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET);
-            ModuleManager::getInstance().get<Leds>()->setBlinking(
-                LedColor::YELLOW, 50);
+            ModuleManager::getInstance().get<Leds>()->setFastBlink(
+                LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
@@ -775,8 +775,8 @@ State SMController::state_fix_rocket_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET_NF);
-            ModuleManager::getInstance().get<Leds>()->setBlinking(
-                LedColor::YELLOW, 50);
+            ModuleManager::getInstance().get<Leds>()->setFastBlink(
+                LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
