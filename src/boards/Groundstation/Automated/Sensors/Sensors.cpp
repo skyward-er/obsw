@@ -22,6 +22,8 @@
 
 #include "Sensors.h"
 
+#include <Groundstation/Automated/Actuators/Actuators.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace std;
@@ -53,21 +55,29 @@ bool Sensors::start()
 
 bool Sensors::vn300Init()
 {
-    vn300 = new Boardcore::VN300(
-        ModuleManager::getInstance().get<Buses>()->usart2, 115200);
+    // vn300 = new Boardcore::VN300(
+    //     ModuleManager::getInstance().get<Buses>()->usart2, 115200);
 
-    SensorInfo info("VN300", SAMPLE_PERIOD_VN300,
-                    bind(&Sensors::vn300Callback, this));
+    // SensorInfo info("VN300", SAMPLE_PERIOD_VN300,
+    //                 bind(&Sensors::vn300Callback, this));
 
-    sensorsMap.emplace(make_pair(vn300, info));
+    // sensorsMap.emplace(make_pair(vn300, info));
     return true;
 }
 
 void Sensors::vn300Callback()
 {
-    Logger::getInstance().log(vn300->getLastSample());
+    // Logger::getInstance().log(vn300->getLastSample());
 }
 
-VN300Data Sensors::getVN300LastSample() { return vn300->getLastSample(); }
+VN300Data Sensors::getVN300LastSample()
+{
+    auto actuators = ModuleManager::getInstance().get<Actuators>();
+    // return vn300->getLastSample();
+    VN300Data data;
+    data.pitch = actuators->getCurrentDegPosition(StepperList::STEPPER_Y);
+    data.roll  = actuators->getCurrentDegPosition(StepperList::STEPPER_X);
+    return data;
+}
 
 }  // namespace Antennas

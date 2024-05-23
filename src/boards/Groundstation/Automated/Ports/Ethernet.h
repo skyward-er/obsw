@@ -33,6 +33,8 @@ class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
+    void sendMsg(const mavlink_message_t& msg) override;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ethernet");
 };
 
 }  // namespace Antennas

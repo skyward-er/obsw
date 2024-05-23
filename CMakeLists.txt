@@ -38,26 +38,26 @@ target_include_directories(test-hil PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(test-hil PRIVATE HILTest)
 sbs_target(test-hil stm32f767zi_compute_unit)
 
-add_executable(base-groundstation-entry 
-    src/entrypoints/Groundstation/base-groundstation-entry.cpp 
+add_executable(base-groundstation-entry
+    src/entrypoints/Groundstation/base-groundstation-entry.cpp
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_BASE}
 )
 target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)
 
-add_executable(nokia-groundstation-entry 
-    src/entrypoints/Groundstation/nokia-groundstation-entry.cpp 
+add_executable(nokia-groundstation-entry
+    src/entrypoints/Groundstation/nokia-groundstation-entry.cpp
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
 )
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_skyward_groundstation_v2)
 
-add_executable(automated-antennas-entry 
+add_executable(automated-antennas-entry
     src/entrypoints/Groundstation/Automated/automated-antennas-entry.cpp
     ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
 )
 target_include_directories(automated-antennas-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(automated-antennas-entry stm32f767zi_automated_antennas)
+sbs_target(automated-antennas-entry stm32f767zi_nucleo)
 
 add_executable(test-automated-radio
     src/entrypoints/Groundstation/Automated/test-automated-radio.cpp

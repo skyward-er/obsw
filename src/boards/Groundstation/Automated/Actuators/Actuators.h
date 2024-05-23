@@ -130,10 +130,15 @@ public:
     }
 
 private:
-    Boardcore::StepperPWM& getServo(StepperList servo);
+    // Boardcore::StepperPWM& getServo(StepperList servo);
 
-    Boardcore::StepperPWM stepperX;
-    Boardcore::StepperPWM stepperY;
+    // Boardcore::StepperPWM stepperX;
+    // Boardcore::StepperPWM stepperY;
+
+    float positionX    = 0.0f;  // Current position of the stepper [steps]
+    float positionY    = 0.0f;  // Current position of the stepper [steps]
+    float positionDegX = 0.0f;  // Current position of the stepper [deg]
+    float positionDegY = 0.0f;  // Current position of the stepper [deg]
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]

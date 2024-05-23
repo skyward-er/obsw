@@ -26,72 +26,78 @@
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include <interfaces-impl/hwmapping.h>
+// #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Antennas;
 using namespace Boardcore;
 using namespace miosix;
 
-void __attribute__((used)) EXTI6_IRQHandlerImpl()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
+// void __attribute__((used)) EXTI6_IRQHandlerImpl()
+// {
+//     ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+// }
 
-void __attribute__((used)) EXTI4_IRQHandlerImpl()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
+// void __attribute__((used)) EXTI4_IRQHandlerImpl()
+// {
+//     ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+// }
 
-void __attribute__((used)) EXTI5_IRQHandlerImpl()
-{
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
-}
+// void __attribute__((used)) EXTI5_IRQHandlerImpl()
+// {
+//     ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+// }
 
 namespace Antennas
 {
 
 bool RadioMain::start()
 {
-#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(radio::txen::getPin(),
-                                        radio::rxen::getPin());
-#else
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
-#endif
+    // #ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
+    //     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
+    //         std::make_unique<EbyteFrontend>(radio::txen::getPin(),
+    //                                         radio::rxen::getPin());
+    // #else
+    //     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
+    //         std::make_unique<Skyward433Frontend>();
+    // #endif
 
-    std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
-        std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Antennas::Buses>()->radio_bus,
-            radio::cs::getPin(), radio::dio0::getPin(), radio::dio1::getPin(),
-            radio::dio3::getPin(), SPI::ClockDivider::DIV_64,
-            std::move(frontend));
+    //     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
+    //         std::make_unique<Boardcore::SX1278Fsk>(
+    //             ModuleManager::getInstance().get<Antennas::Buses>()->radio_bus,
+    //             radio::cs::getPin(), radio::dio0::getPin(),
+    //             radio::dio1::getPin(), radio::dio3::getPin(),
+    //             SPI::ClockDivider::DIV_64, std::move(frontend));
 
-    // First check if the device is even connected
-    bool present = sx1278->checkVersion();
+    //     // First check if the device is even connected
+    //     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<BoardStatus>()->setMainRadioPresent(
-        present);
+    //     ModuleManager::getInstance().get<BoardStatus>()->setMainRadioPresent(
+    //         present);
 
-    if (present)
-    {
-        // Configure the radio
-        if (sx1278->configure(Common::MAIN_RADIO_CONFIG) !=
-            SX1278Fsk::Error::NONE)
-        {
-            return false;
-        }
+    //     if (present)
+    //     {
+    //         // Configure the radio
+    //         if (sx1278->configure(Common::MAIN_RADIO_CONFIG) !=
+    //             SX1278Fsk::Error::NONE)
+    //         {
+    //             return false;
+    //         }
 
-        // Initialize if only if present
-        if (!RadioBase::start(std::move(sx1278)))
-        {
-            return false;
-        }
-    }
+    //         // Initialize if only if present
+    //         if (!RadioBase::start(std::move(sx1278)))
+    //         {
+    //             return false;
+    //         }
+    //     }
 
     return true;
 }
+
+bool RadioMain::sendMsg(const mavlink_message_t& msg)
+{
+    LOG_DEBUG(logger, "Sending radio message");
+    return true;
+};
 
 }  // namespace Antennas

@@ -31,6 +31,8 @@ class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
+    bool sendMsg(const mavlink_message_t& msg) override;
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 
 }  // namespace Antennas

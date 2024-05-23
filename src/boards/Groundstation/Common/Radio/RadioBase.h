@@ -68,7 +68,7 @@ public:
      *
      * @returns false when the queue is full.
      */
-    bool sendMsg(const mavlink_message_t& msg);
+    virtual bool sendMsg(const mavlink_message_t& msg);
 
     /**
      * @brief Handle generic DIO irq.

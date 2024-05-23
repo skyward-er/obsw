@@ -886,7 +886,7 @@ void SMController::logStatus(SMControllerState state)
         status.state     = state;
     }
 
-    Logger::getInstance().log(status);
+    // Logger::getInstance().log(status);
 }
 
 }  // namespace Antennas

@@ -100,32 +100,32 @@ void BoardStatus::run()
 
         tm.battery_voltage = -420.0;
 
-        if (main_radio_present)
-        {
-            tm.main_radio_present = 1;
+        // if (main_radio_present)
+        // {
+        //     tm.main_radio_present = 1;
 
-            auto stats =
-                ModuleManager::getInstance().get<RadioMain>()->getStats();
-            tm.main_packet_tx_error_count = stats.send_errors;
-            tm.main_tx_bitrate = main_tx_bitrate.update(stats.bits_tx_count);
-            tm.main_packet_rx_success_count = stats.packet_rx_success_count;
-            tm.main_packet_rx_drop_count    = stats.packet_rx_drop_count;
-            tm.main_rx_bitrate = main_rx_bitrate.update(stats.bits_rx_count);
-            tm.main_rx_rssi    = stats.rx_rssi;
+        //     auto stats =
+        //         ModuleManager::getInstance().get<RadioMain>()->getStats();
+        //     tm.main_packet_tx_error_count = stats.send_errors;
+        //     tm.main_tx_bitrate = main_tx_bitrate.update(stats.bits_tx_count);
+        //     tm.main_packet_rx_success_count = stats.packet_rx_success_count;
+        //     tm.main_packet_rx_drop_count    = stats.packet_rx_drop_count;
+        //     tm.main_rx_bitrate = main_rx_bitrate.update(stats.bits_rx_count);
+        //     tm.main_rx_rssi    = stats.rx_rssi;
 
-            last_main_stats = stats;
-        }
+        //     last_main_stats = stats;
+        // }
 
-        if (ethernet_present)
-        {
-            auto stats =
-                ModuleManager::getInstance().get<Ethernet>()->getState();
+        // if (ethernet_present)
+        // {
+        //     auto stats =
+        //         ModuleManager::getInstance().get<Ethernet>()->getState();
 
-            tm.ethernet_present = 1;
-            tm.ethernet_status  = (stats.link_up ? 1 : 0) |
-                                 (stats.full_duplex ? 2 : 0) |
-                                 (stats.based_100mbps ? 4 : 0);
-        }
+        //     tm.ethernet_present = 1;
+        //     tm.ethernet_status  = (stats.link_up ? 1 : 0) |
+        //                          (stats.full_duplex ? 2 : 0) |
+        //                          (stats.based_100mbps ? 4 : 0);
+        // }
 
         mavlink_message_t msg;
         mavlink_msg_arp_tm_encode(SysIDs::MAV_SYSID_ARP,

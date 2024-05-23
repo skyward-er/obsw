@@ -61,7 +61,7 @@ using namespace Common;
 using namespace Boardcore;
 using namespace miosix;
 
-GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
+// GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
 
 /**
  * @brief Automated Antennas (SkyLink) entrypoint.
@@ -81,21 +81,22 @@ int main()
     PrintLogger logger     = Logging::getLogger("automated_antennas");
     bool ok                = true;
 
-    button.mode(Mode::INPUT_PULL_UP);
+    // button.mode(Mode::INPUT_PULL_UP);
     // ButtonHandler
-    ButtonHandler::getInstance().registerButtonCallback(
-        button,
-        [&](ButtonEvent bEvent)
-        {
-            if (bEvent == ButtonEvent::LONG_PRESS ||
-                bEvent == ButtonEvent::VERY_LONG_PRESS)
-            {
-                ModuleManager::getInstance()
-                    .get<Actuators>()
-                    ->IRQemergencyStop();
-            }
-        });
-    ButtonHandler::getInstance().start();
+    // ButtonHandler::getInstance().registerButtonCallback(
+    //     button,
+    //     [&](ButtonEvent bEvent)
+    //     {
+    //         if (bEvent == ButtonEvent::LONG_PRESS ||
+    //             bEvent == ButtonEvent::VERY_LONG_PRESS)
+    //         {
+    //             ModuleManager::getInstance()
+    //                 .get<Actuators>()
+    //                 ->IRQemergencyStop();
+    //         }
+    //     });
+    // ButtonHandler::getInstance().start();
+    LOG_DEBUG(logger, "Starting Automated Antennas");
 
     TaskScheduler *scheduler_low  = new TaskScheduler(0);
     TaskScheduler *scheduler_high = new TaskScheduler();
@@ -111,35 +112,34 @@ int main()
     Ethernet *ethernet            = new Ethernet();
 
     // Inserting Modules
-    {  // TODO remove this scope (improve readability)
-        ok &= modules.insert(sm);
-        ok &= modules.insert<HubBase>(hub);
-        ok &= modules.insert(buses);
-        ok &= modules.insert(serial);
-        ok &= modules.insert(radio_main);
-        ok &= modules.insert(board_status);
-        ok &= modules.insert(actuators);
-        ok &= modules.insert(sensors);
-        ok &= modules.insert(ethernet);
-        ok &= modules.insert(leds);
+    ok &= modules.insert<Leds>(leds);
+    ok &= modules.insert(sm);
+    ok &= modules.insert<HubBase>(hub);
+    ok &= modules.insert(buses);
+    ok &= modules.insert(serial);
+    ok &= modules.insert(radio_main);
+    ok &= modules.insert(board_status);
+    ok &= modules.insert(actuators);
+    ok &= modules.insert(sensors);
+    ok &= modules.insert(ethernet);
 
-        // If insertion failed, stop right here
-        if (!ok)
-        {
-            LOG_ERR(logger, "Failed to insert all modules!\n");
-            leds->endlessBlink(LedColor::RED);
-        }
-        else
-        {
-            LOG_DEBUG(logger, "All modules inserted successfully!\n");
-        }
+    // If insertion failed, stop right here
+    if (!ok)
+    {
+        LOG_ERR(logger, "Failed to insert all modules!\n");
+        leds->endlessBlink(LedColor::RED);
+    }
+    else
+    {
+        LOG_DEBUG(logger, "All modules inserted successfully!\n");
     }
 
     // Starting Modules
-    {  // TODO remove macro used
-#ifndef NO_SD_LOGGING
-        START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
-#endif
+    {
+        // #ifndef NO_SD_LOGGING
+        //         START_MODULE("Logger", [&] { return
+        //         Logger::getInstance().start(); });
+        // #endif
         START_MODULE("Scheduler Low", [&] { return scheduler_low->start(); });
         START_MODULE("Scheduler High", [&] { return scheduler_high->start(); });
         START_MODULE("Serial", [&] { return serial->start(); });
@@ -153,10 +153,10 @@ int main()
     }
     LOG_INFO(logger, "Modules setup successful");
 
-    if (board_status->isMainRadioPresent())
-    {
-        LOG_DEBUG(logger, "Main radio is present\n");
-    }
+    // if (board_status->isMainRadioPresent())
+    // {
+    //     LOG_DEBUG(logger, "Main radio is present\n");
+    // }
 
     LOG_INFO(logger, "Starting ARP");
     EventBroker::getInstance().post(ARP_INIT_OK, TOPIC_ARP);

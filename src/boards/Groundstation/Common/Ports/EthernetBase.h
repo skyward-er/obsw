@@ -45,7 +45,7 @@ public:
 
     void handleINTn();
 
-    void sendMsg(const mavlink_message_t& msg);
+    virtual void sendMsg(const mavlink_message_t& msg);
 
     Boardcore::Wiz5500::PhyState getState();
 
