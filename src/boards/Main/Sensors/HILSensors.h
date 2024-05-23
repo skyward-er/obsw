@@ -65,9 +65,15 @@ public:
         using namespace HILConfig;
         using namespace Boardcore;
 
-        // Creating the fake sensors for the can transmitted samples
-        chamberPressureCreation();
-        pitotCreation();
+        // If full hil, use the can received samples
+        if (!HILConfig::IS_FULL_HIL)
+        {
+            // Creating the fake sensors for the can transmitted samples
+            chamberPressureCreation();
+            pitotCreation();
+
+            chamber = hillificator<>(chamber, enableHw, updateCCData);
+        }
 
         lps28dfw_1 = hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
         lps28dfw_2 = hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
@@ -80,23 +86,27 @@ public:
             hillificator<>(hscmrnn015pa_1, enableHw, updateStaticPressureData);
         hscmrnn015pa_2 =
             hillificator<>(hscmrnn015pa_2, enableHw, updateStaticPressureData);
-        imu     = hillificator<>(imu, enableHw, updateIMUData);
-        chamber = hillificator<>(chamber, enableHw, updateCCData);
+        imu = hillificator<>(imu, enableHw, updateIMUData);
     };
 
     bool start() override
     {
-        // Registering the fake can sensors
-        if (chamber)
+        // If full hil, use the can received samples
+        if (!HILConfig::IS_FULL_HIL)
         {
-            registerSensor(chamber, "chamber", HILConfig::BARO_CHAMBER_PERIOD,
-                           [this]() { this->chamberPressureCallback(); });
-        }
+            // Registering the fake can sensors
+            if (chamber)
+            {
+                registerSensor(chamber, "chamber",
+                               HILConfig::BARO_CHAMBER_PERIOD,
+                               [this]() { this->chamberPressureCallback(); });
+            }
 
-        if (pitot)
-        {
-            registerSensor(pitot, "Pitot", HILConfig::PITOT_PERIOD,
-                           [this]() { this->pitotCallback(); });
+            if (pitot)
+            {
+                registerSensor(pitot, "Pitot", HILConfig::PITOT_PERIOD,
+                               [this]() { this->pitotCallback(); });
+            }
         }
 
         return Sensors::start();
