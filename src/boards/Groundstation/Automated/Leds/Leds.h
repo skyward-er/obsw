@@ -23,11 +23,14 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <scheduler/TaskScheduler.h>
 
 #include <array>
-#include <condition_variable>
 #include <mutex>
 #include <utils/ModuleManager/ModuleManager.hpp>
+
+constexpr uint32_t LED_BLINK_FAST_PERIOD_MS = 50;
+constexpr uint32_t LED_BLINK_SLOW_PERIOD_MS = 100;
 
 namespace Antennas
 {
@@ -40,45 +43,6 @@ enum class LedColor : uint8_t
     GREEN
 };
 
-class LedThread : public Boardcore::ActiveObject
-{
-public:
-    explicit LedThread(LedColor color);
-
-    /**
-     * @brief non-blocking action to set a led to blink in a loop
-     */
-    void setBlinking(uint32_t ms_interval);
-
-    /**
-     * @brief non-blocking action to set on the led
-     */
-    void setOn();
-
-    /**
-     * @brief non-blocking action to set off the led
-     */
-    void setOff();
-
-private:
-    enum class LedState : uint8_t
-    {
-        OFF = 0,
-        ON,
-        BLINKING
-    };
-
-    void ledOn(LedColor color);
-    void ledOff(LedColor color);
-    void run() override;
-
-    LedColor color;
-    LedState state;
-    std::mutex mutex;
-    std::condition_variable cv;
-    uint32_t blinking_interval = 100;  // [ms]
-};
-
 /**
  * @brief Utility to handle blinking leds with non-blocking sleep
  * (useful for state machines states that need to blink leds without blocking)
@@ -86,7 +50,7 @@ private:
 class Leds : public Boardcore::Module
 {
 public:
-    explicit Leds();
+    explicit Leds(Boardcore::TaskScheduler* scheduler);
 
     /**
      * @brief Start all the blinking LED thread
@@ -96,7 +60,12 @@ public:
     /**
      * @brief non-blocking action to set a led to blink in a loop
      */
-    void setBlinking(LedColor color, uint32_t ms_interval);
+    void setFastBlink(LedColor color);
+
+    /**
+     * @brief non-blocking action to set a led to blink in a loop
+     */
+    void setSlowBlink(LedColor color);
 
     /**
      * @brief non-blocking action to set on a led
@@ -114,12 +83,38 @@ public:
     void endlessBlink(LedColor color);
 
 private:
-    LedThread* ledRef(LedColor color)
+    enum class LedState : uint8_t
     {
-        return leds[static_cast<uint8_t>(color)].get();
+        OFF = 0,
+        ON,
+        BLINK_SLOW,
+        BLINK_FAST,
+    };
+
+    void ledOn(LedColor color);
+    void ledOff(LedColor color);
+    void ledToggle(LedColor color);
+
+    /**
+     * @brief Update routine called by the scheduler
+     * @details This function is called by the scheduler to update the leds
+     * state and blink them accordingly
+     */
+    void update();
+
+    LedState* ledRef(LedColor color)
+    {
+        return &leds_state[static_cast<uint8_t>(color)];
     }
 
-    std::array<std::unique_ptr<LedThread>, 4> leds;
+    // scheduler to run the update blink function
+    Boardcore::TaskScheduler* scheduler;
+    // toggles to allow led to blink
+    std::array<bool, 4> led_toggles;
+    // counter to keep track of slow blink
+    std::array<uint32_t, 4> led_steps;
+    // state of the leds
+    std::array<LedState, 4> leds_state;
 };
 
 }  // namespace Antennas
