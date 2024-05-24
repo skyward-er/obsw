@@ -51,10 +51,10 @@ static constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
 static constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
 static constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
 
-static constexpr float FILLING_LIMIT = 0.7f;
-static constexpr float RELEASE_LIMIT = 0.7f;
-static constexpr float VENTING_LIMIT = 0.5f;
-static constexpr float MAIN_LIMIT    = 0.70f;
+static constexpr float FILLING_LIMIT = 0.90f;
+static constexpr float RELEASE_LIMIT = 0.50f;
+static constexpr float VENTING_LIMIT = 0.90f;
+static constexpr float MAIN_LIMIT    = 0.90f;
 
 static constexpr bool FILLING_FLIPPED    = true;
 static constexpr bool VENTING_FLIPPED    = true;
