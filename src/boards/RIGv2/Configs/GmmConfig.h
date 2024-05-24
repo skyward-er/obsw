@@ -31,12 +31,10 @@ namespace Config
 namespace GroundModeManager
 {
 
-static constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 5451;  // [ms]
+static constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 3700;  // [ms]
 
-// TODO(davide.mor): Set this to a sensible time
-static constexpr uint32_t MOTOR_COOLING_TIME = 5000;
-// TODO(davide.mor): Set this to a sensible time
-static constexpr uint32_t NITROGEN_TIME = 5000;
+static constexpr uint32_t MOTOR_COOLING_TIME = 1500;
+static constexpr uint32_t NITROGEN_TIME = 10000;
 
 }  // namespace GroundModeManager
 }  // namespace Config
