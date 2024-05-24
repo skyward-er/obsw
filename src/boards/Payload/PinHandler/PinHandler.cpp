@@ -47,13 +47,8 @@ void PinHandler::onExpulsionPinTransition(PinTransition transition)
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
 }
 
-bool PinHandler::start()
-{
-    running = pinObserver.start();
-    return running;
-}
 
-bool PinHandler::isStarted() { return running; }
+bool PinHandler::isStarted() { return scheduler.isRunning(); }
 
 std::map<PinsList, PinData> PinHandler::getPinsData()
 {
@@ -66,7 +61,7 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 }
 
 PinHandler::PinHandler(Boardcore::TaskScheduler &scheduler)
-    : pinObserver{scheduler, 20}, running(false)
+    : pinObserver{scheduler, 20}, scheduler{scheduler}
 {
     pinObserver.registerPinCallback(
         nosecone_detach::getPin(),

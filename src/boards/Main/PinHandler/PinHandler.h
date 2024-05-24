@@ -45,11 +45,6 @@ public:
     explicit PinHandler(Boardcore::TaskScheduler &scheduler);
 
     /**
-     * @brief Starts the PinObserver module thread
-     */
-    bool start();
-
-    /**
      * @brief Checks if the module has started correctly
      */
     bool isStarted();
@@ -81,6 +76,7 @@ public:
 
 private:
     Boardcore::PinObserver pinObserver;
+    Boardcore::TaskScheduler &scheduler;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };

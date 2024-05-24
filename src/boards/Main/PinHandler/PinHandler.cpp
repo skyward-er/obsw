@@ -37,7 +37,8 @@ using namespace Common;
 
 namespace Main
 {
-PinHandler::PinHandler(TaskScheduler &scheduler) : pinObserver{scheduler, 20}
+PinHandler::PinHandler(TaskScheduler &scheduler)
+    : pinObserver{scheduler, 20}, scheduler{scheduler}
 {
     pinObserver.registerPinCallback(
         miosix::gpios::liftoff_detach::getPin(),
@@ -60,9 +61,7 @@ PinHandler::PinHandler(TaskScheduler &scheduler) : pinObserver{scheduler, 20}
         PinHandlerConfig::EXPULSION_PIN_THRESHOLD);
 }
 
-bool PinHandler::start() { return pinObserver.start(); }
-
-bool PinHandler::isStarted() { return pinObserver.isRunning(); }
+bool PinHandler::isStarted() { return scheduler.isRunning(); }
 
 void PinHandler::onLaunchPinTransition(PinTransition transition)
 {

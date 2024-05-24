@@ -363,12 +363,6 @@ int main()
         LOG_ERR(logger, "Error starting the WindEstimation module");
     }
 
-    if (!modules.get<PinHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the PinHandler module");
-    }
-
     if (!modules.get<VerticalVelocityTrigger>()->start())
     {
         initResult = false;

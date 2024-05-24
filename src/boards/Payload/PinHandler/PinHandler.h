@@ -42,8 +42,6 @@ class PinHandler : public Boardcore::Module
 public:
     explicit PinHandler(Boardcore::TaskScheduler &scheduler);
 
-    bool start();
-
     bool isStarted();
 
     /**
@@ -60,8 +58,7 @@ public:
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
     Boardcore::PinObserver pinObserver;
-
-    std::atomic<bool> running;
+    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Payload
