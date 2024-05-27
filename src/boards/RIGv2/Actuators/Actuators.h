@@ -70,8 +70,8 @@ private:
         float getServoPosition();
         float getMaxAperture();
         uint32_t getOpeningTime();
-        void setMaxAperture(float aperture);
-        void setOpeningTime(uint32_t time);
+        bool setMaxAperture(float aperture);
+        bool setOpeningTime(uint32_t time);
     };
 
 public:
