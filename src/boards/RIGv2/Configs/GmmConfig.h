@@ -34,7 +34,7 @@ namespace GroundModeManager
 static constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 3700;  // [ms]
 
 static constexpr uint32_t MOTOR_COOLING_TIME = 1500;
-static constexpr uint32_t NITROGEN_TIME = 10000;
+static constexpr uint32_t NITROGEN_TIME      = 10000;
 
 }  // namespace GroundModeManager
 }  // namespace Config

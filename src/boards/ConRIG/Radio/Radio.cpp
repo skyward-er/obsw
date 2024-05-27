@@ -22,12 +22,12 @@
 
 #include "Radio.h"
 
-#include <common/Mavlink.h>
-#include <common/Radio.h>
 #include <ConRIG/BoardScheduler.h>
 #include <ConRIG/Buses.h>
 #include <ConRIG/Buttons/Buttons.h>
 #include <ConRIG/Serial/Serial.h>
+#include <common/Mavlink.h>
+#include <common/Radio.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>

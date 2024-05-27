@@ -110,16 +110,26 @@ uint32_t Actuators::ServoInfo::getOpeningTime()
                                                           defaultOpeningTime);
 }
 
-void Actuators::ServoInfo::setMaxAperture(float aperture)
+bool Actuators::ServoInfo::setMaxAperture(float aperture)
 {
     ModuleManager &modules = ModuleManager::getInstance();
-    modules.get<Registry>()->setUnsafe(maxApertureKey, aperture);
+    if (aperture >= 0.0 && aperture <= 1.0)
+    {
+        modules.get<Registry>()->setUnsafe(maxApertureKey, aperture);
+        return true;
+    }
+    else
+    {
+        // What? Who would ever set this to above 100%?
+        return false;
+    }
 }
 
-void Actuators::ServoInfo::setOpeningTime(uint32_t time)
+bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 {
     ModuleManager &modules = ModuleManager::getInstance();
     modules.get<Registry>()->setUnsafe(openingTimeKey, time);
+    return true;
 }
 
 Actuators::Actuators()
@@ -135,7 +145,7 @@ Actuators::Actuators()
         Config::Servos::FREQUENCY);
     infos[2].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::SERVO2_MIN_PULSE, Config::Servos::SERVO2_MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[3].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
@@ -194,7 +204,7 @@ Actuators::Actuators()
     info                     = getServo(ServosList::DISCONNECT_SERVO);
     info->defaultMaxAperture = Config::Servos::DEFAULT_DISCONNECT_MAX_APERTURE;
     info->defaultOpeningTime = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
-    info->limit              = 1.0;
+    info->limit              = Config::Servos::DISCONNECT_LIMIT;
     info->flipped            = Config::Servos::DISCONNECT_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_DISCONNECT;
     info->openingTimeKey     = CONFIG_ID_DISCONNECT_OPENING_TIME;
@@ -346,8 +356,7 @@ bool Actuators::setMaxAperture(ServosList servo, float aperture)
         return false;
     }
 
-    info->setMaxAperture(aperture);
-    return true;
+    return info->setMaxAperture(aperture);
 }
 
 bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
@@ -359,8 +368,7 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
         return false;
     }
 
-    info->setOpeningTime(time);
-    return true;
+    return info->setOpeningTime(time);
 }
 
 bool Actuators::isServoOpen(ServosList servo)

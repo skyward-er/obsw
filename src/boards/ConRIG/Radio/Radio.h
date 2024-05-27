@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <common/Mavlink.h>
 #include <ConRIG/Configs/RadioConfig.h>
+#include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
