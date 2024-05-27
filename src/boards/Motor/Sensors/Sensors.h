@@ -66,7 +66,7 @@ public:
     virtual void calibrate();
 
 protected:
-   /**
+    /**
      * @brief Method to put a sensor in the sensorMap with the relative infos
      */
     template <typename T>
@@ -110,21 +110,21 @@ protected:
     virtual void servosCurrentCallback();
 
     Boardcore::SensorManager::SensorMap_t sensorsMap;
-    Boardcore::SensorManager* manager = nullptr;
-    Boardcore::TaskScheduler* scheduler     = nullptr;
-    Motor::Buses* buses                  = nullptr;
+    std::unique_ptr<Boardcore::SensorManager> manager;
+    Boardcore::TaskScheduler* scheduler = nullptr;
+    Motor::Buses* buses                 = nullptr;
 
-    Boardcore::InternalADC* adc                       = nullptr;
-    Boardcore::BatteryVoltageSensor* battery          = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl                 = nullptr;
-    Boardcore::LIS2MDL* lis2mdl                       = nullptr;
-    Boardcore::LPS22DF* lps22df                       = nullptr;
-    Boardcore::MAX31856* max31856                     = nullptr;
-    Boardcore::ADS131M08* ads131m08                   = nullptr;
-    Boardcore::ChamberPressureSensor* chamberPressure = nullptr;
-    Boardcore::TankPressureSensor1* tankPressure1     = nullptr;
-    Boardcore::TankPressureSensor2* tankPressure2     = nullptr;
-    Boardcore::CurrentSensor* servosCurrent           = nullptr;
+    std::unique_ptr<Boardcore::InternalADC> adc;
+    std::unique_ptr<Boardcore::BatteryVoltageSensor> battery;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::MAX31856> max31856;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
+    std::unique_ptr<Boardcore::ChamberPressureSensor> chamberPressure;
+    std::unique_ptr<Boardcore::TankPressureSensor1> tankPressure1;
+    std::unique_ptr<Boardcore::TankPressureSensor2> tankPressure2;
+    std::unique_ptr<Boardcore::CurrentSensor> servosCurrent;
 };
 
 }  // namespace Motor

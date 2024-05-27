@@ -46,18 +46,16 @@ public:
         using namespace HILConfig;
         using namespace Boardcore;
 
-        lps22df    = hillificator<>(lps22df, enableHw, updateLPS22DFData);
-        lps28dfw_1 = hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
-        lps28dfw_2 = hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
-        h3lis331dl = hillificator<>(h3lis331dl, enableHw, updateH3LIS331DLData);
-        lis2mdl    = hillificator<>(lis2mdl, enableHw, updateLIS2MDLData);
-        ubxgps     = hillificator<>(ubxgps, enableHw, updateUBXGPSData);
-        lsm6dsrx   = hillificator<>(lsm6dsrx, enableHw, updateLSM6DSRXData);
-        staticPressure =
-            hillificator<>(staticPressure, enableHw, updateStaticPressureData);
-        dynamicPressure = hillificator<>(dynamicPressure, enableHw,
-                                         updateDynamicPressureData);
-        imu             = hillificator<>(imu, enableHw, updateIMUData);
+        hillificator<>(lps22df, enableHw, updateLPS22DFData);
+        hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
+        hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
+        hillificator<>(h3lis331dl, enableHw, updateH3LIS331DLData);
+        hillificator<>(lis2mdl, enableHw, updateLIS2MDLData);
+        hillificator<>(ubxgps, enableHw, updateUBXGPSData);
+        hillificator<>(lsm6dsrx, enableHw, updateLSM6DSRXData);
+        hillificator<>(staticPressure, enableHw, updateStaticPressureData);
+        hillificator<>(dynamicPressure, enableHw, updateDynamicPressureData);
+        hillificator<>(imu, enableHw, updateIMUData);
     }
 
 private:

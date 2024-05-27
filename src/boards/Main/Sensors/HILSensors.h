@@ -72,21 +72,19 @@ public:
             chamberPressureCreation();
             pitotCreation();
 
-            chamber = hillificator<>(chamber, enableHw, updateCCData);
+            hillificator<>(chamber, enableHw, updateCCData);
         }
 
-        lps28dfw_1 = hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
-        lps28dfw_2 = hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
-        lps22df    = hillificator<>(lps22df, enableHw, updateLPS22DFData);
-        h3lis331dl = hillificator<>(h3lis331dl, enableHw, updateH3LIS331DLData);
-        lis2mdl    = hillificator<>(lis2mdl, enableHw, updateLIS2MDLData);
-        ubxgps     = hillificator<>(ubxgps, enableHw, updateUBXGPSData);
-        lsm6dsrx   = hillificator<>(lsm6dsrx, enableHw, updateLSM6DSRXData);
-        hscmrnn015pa_1 =
-            hillificator<>(hscmrnn015pa_1, enableHw, updateStaticPressureData);
-        hscmrnn015pa_2 =
-            hillificator<>(hscmrnn015pa_2, enableHw, updateStaticPressureData);
-        imu = hillificator<>(imu, enableHw, updateIMUData);
+        hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
+        hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
+        hillificator<>(lps22df, enableHw, updateLPS22DFData);
+        hillificator<>(h3lis331dl, enableHw, updateH3LIS331DLData);
+        hillificator<>(lis2mdl, enableHw, updateLIS2MDLData);
+        hillificator<>(ubxgps, enableHw, updateUBXGPSData);
+        hillificator<>(lsm6dsrx, enableHw, updateLSM6DSRXData);
+        hillificator<>(hscmrnn015pa_1, enableHw, updateStaticPressureData);
+        hillificator<>(hscmrnn015pa_2, enableHw, updateStaticPressureData);
+        hillificator<>(imu, enableHw, updateIMUData);
     };
 
     bool start() override
@@ -97,7 +95,7 @@ public:
             // Registering the fake can sensors
             if (chamber)
             {
-                registerSensor(chamber, "chamber",
+                registerSensor(chamber.get(), "chamber",
                                HILConfig::BARO_CHAMBER_PERIOD,
                                [this]() { this->chamberPressureCallback(); });
             }
@@ -113,7 +111,10 @@ public:
     }
 
 private:
-    void chamberPressureCreation() { chamber = new MockChamberSensor(); }
+    void chamberPressureCreation()
+    {
+        chamber = std::make_unique<MockChamberSensor>();
+    }
 
     void chamberPressureCallback()
     {
@@ -384,8 +385,8 @@ private:
         return staticPressure;
     };
 
-    MockChamberSensor* chamber = nullptr;
-    Boardcore::Pitot* pitot    = nullptr;
+    std::unique_ptr<MockChamberSensor> chamber;
+    Boardcore::Pitot* pitot = nullptr;
     bool enableHw;
 };
 }  // namespace Main

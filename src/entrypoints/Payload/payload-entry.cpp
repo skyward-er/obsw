@@ -382,13 +382,13 @@ int main()
     }
 
     // Log all the events
-    EventSniffer sniffer(
-        EventBroker::getInstance(), TOPICS_LIST,
-        [](uint8_t event, uint8_t topic)
-        {
-            EventData ev{TimestampTimer::getTimestamp(), event, topic};
-            Logger::getInstance().log(ev);
-        });
+    EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
+                         [](uint8_t event, uint8_t topic)
+                         {
+                             EventData ev{TimestampTimer::getTimestamp(), event,
+                                          topic};
+                             Logger::getInstance().log(ev);
+                         });
 
     // Check the init result and launch an event
     if (initResult)

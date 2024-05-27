@@ -125,7 +125,7 @@ protected:
     {
         // Add the sensor info getter to the array
         sensorsInit[sensorsId++] = [&]() -> Boardcore::SensorInfo
-        { return manager->getSensorInfo(lps22df); };
+        { return manager->getSensorInfo(sensor); };
     }
 
     // Init and callbacks methods
@@ -166,7 +166,7 @@ protected:
     virtual void imuCallback();
 
     // Fake processed sensors
-    RotatedIMU* imu = nullptr;
+    std::unique_ptr<RotatedIMU> imu;
 
     // Magnetometer live calibration
     Boardcore::SoftAndHardIronCalibration magCalibrator;
@@ -174,7 +174,7 @@ protected:
     miosix::FastMutex calibrationMutex;
 
     // Sensor manager
-    Boardcore::SensorManager* manager = nullptr;
+    std::unique_ptr<Boardcore::SensorManager> manager;
     Boardcore::SensorManager::SensorMap_t sensorMap;
     Boardcore::TaskScheduler* scheduler = nullptr;
     Payload::Buses* buses               = nullptr;
@@ -190,18 +190,18 @@ protected:
         sensorsInit;
 
     // Sensors instances
-    Boardcore::LPS22DF* lps22df       = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_1   = nullptr;
-    Boardcore::LPS28DFW* lps28dfw_2   = nullptr;
-    Boardcore::H3LIS331DL* h3lis331dl = nullptr;
-    Boardcore::LIS2MDL* lis2mdl       = nullptr;
-    Boardcore::UBXGPSSpi* ubxgps      = nullptr;
-    Boardcore::LSM6DSRX* lsm6dsrx     = nullptr;
-    Boardcore::ADS131M08* ads131m08   = nullptr;
+    std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw_1;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw_2;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
 
     // Fake processed sensors
-    Boardcore::HSCMRNN015PA* staticPressure  = nullptr;
-    Boardcore::SSCMRNN030PA* dynamicPressure = nullptr;
-    Boardcore::Pitot* pitot                  = nullptr;
+    std::unique_ptr<Boardcore::HSCMRNN015PA> staticPressure;
+    std::unique_ptr<Boardcore::SSCMRNN030PA> dynamicPressure;
+    std::unique_ptr<Boardcore::Pitot> pitot;
 };
 }  // namespace Payload

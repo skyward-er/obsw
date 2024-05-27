@@ -136,60 +136,64 @@ bool Sensors::start()
 {
     if (adc)
     {
-        registerSensor(adc, "adc", SAMPLE_PERIOD_ADC,
+        registerSensor(adc.get(), "adc", SAMPLE_PERIOD_ADC,
                        [this]() { this->adcCallback(); });
     }
 
     if (battery)
     {
-        registerSensor(battery, "battery", SAMPLE_PERIOD_ADC,
+        registerSensor(battery.get(), "battery", SAMPLE_PERIOD_ADC,
                        [this]() { this->batteryCallback(); });
     }
 
     if (h3lis331dl)
     {
-        registerSensor(h3lis331dl, "h3lis331dl", SAMPLE_PERIOD_H3LIS,
+        registerSensor(h3lis331dl.get(), "h3lis331dl", SAMPLE_PERIOD_H3LIS,
                        [this]() { this->h3lis331dlCallback(); });
     }
 
     if (lps22df)
     {
-        registerSensor(lps22df, "lps22df", SAMPLE_PERIOD_LPS22,
+        registerSensor(lps22df.get(), "lps22df", SAMPLE_PERIOD_LPS22,
                        [this]() { this->lps22dfCallback(); });
     }
 
     if (max31856)
     {
-        registerSensor(max31856, "max31856", SAMPLE_PERIOD_MAX,
+        registerSensor(max31856.get(), "max31856", SAMPLE_PERIOD_MAX,
                        [this]() { this->max31856Callback(); });
     }
 
     if (ads131m08)
     {
-        registerSensor(ads131m08, "ads131m08", SAMPLE_PERIOD_ADS131,
+        registerSensor(ads131m08.get(), "ads131m08", SAMPLE_PERIOD_ADS131,
                        [this]() { this->ads131m08Callback(); });
     }
     if (chamberPressure)
     {
-        registerSensor(chamberPressure, "chamberPressure", SAMPLE_PERIOD_ADS131,
+        registerSensor(chamberPressure.get(), "chamberPressure",
+                       SAMPLE_PERIOD_ADS131,
                        [this]() { this->chamberPressureCallback(); });
     }
     if (tankPressure1)
     {
-        registerSensor(tankPressure1, "tankPressure1", SAMPLE_PERIOD_ADS131,
+        registerSensor(tankPressure1.get(), "tankPressure1",
+                       SAMPLE_PERIOD_ADS131,
                        [this]() { this->tankPressure1Callback(); });
     }
     if (tankPressure2)
     {
-        registerSensor(tankPressure2, " tankPressure2", SAMPLE_PERIOD_ADS131,
+        registerSensor(tankPressure2.get(), " tankPressure2",
+                       SAMPLE_PERIOD_ADS131,
                        [this]() { this->tankPressure2Callback(); });
     }
     if (servosCurrent)
     {
-        registerSensor(servosCurrent, "servosCurrent", SAMPLE_PERIOD_ADS131,
+        registerSensor(servosCurrent.get(), "servosCurrent",
+                       SAMPLE_PERIOD_ADS131,
                        [this]() { this->servosCurrentCallback(); });
     }
-    manager = new SensorManager(sensorsMap, scheduler);
+    manager = std::make_unique<SensorManager>(sensorsMap, scheduler);
 
     return manager->start();
 }
@@ -204,7 +208,7 @@ void Sensors::calibrate()
 
 void Sensors::adcCreation()
 {
-    adc = new InternalADC(ADC1);
+    adc = std::make_unique<InternalADC>(ADC1);
 
     adc->enableTemperature();
     adc->enableVbat();
@@ -214,37 +218,39 @@ void Sensors::adcCreation()
 void Sensors::batteryCreation()
 {
     function<ADCData()> getADCVoltage(
-        bind(&InternalADC::getVoltage, adc, ADC_BATTERY_VOLTAGE_CH));
+        bind(&InternalADC::getVoltage, adc.get(), ADC_BATTERY_VOLTAGE_CH));
 
-    battery =
-        new BatteryVoltageSensor(getADCVoltage, ADC_BATTERY_VOLTAGE_COEFF);
+    battery = std::make_unique<BatteryVoltageSensor>(getADCVoltage,
+                                                     ADC_BATTERY_VOLTAGE_COEFF);
 }
 
 void Sensors::h3lis331dlCreation()
 {
 
-    h3lis331dl =
-        new H3LIS331DL(buses->spi3, peripherals::h3lis331dl::cs::getPin(),
-                       H3LIS_ODR, H3LIS_BDU, H3LIS_FSR);
+    h3lis331dl = std::make_unique<H3LIS331DL>(
+        buses->spi3, peripherals::h3lis331dl::cs::getPin(), H3LIS_ODR,
+        H3LIS_BDU, H3LIS_FSR);
 }
 
 void Sensors::lps22dfCreation()
 {
 
-    lps22df = new LPS22DF(buses->spi3, peripherals::lps22df::cs::getPin(),
-                          LPS22_SPI_CONFIG, LPS22_SENSOR_CONFIG);
+    lps22df = std::make_unique<LPS22DF>(buses->spi3,
+                                        peripherals::lps22df::cs::getPin(),
+                                        LPS22_SPI_CONFIG, LPS22_SENSOR_CONFIG);
 }
 
 void Sensors::max31856Creation()
 {
-    max31856 = new MAX31856(buses->spi3, peripherals::max31856::cs::getPin());
+    max31856 = std::make_unique<MAX31856>(buses->spi3,
+                                          peripherals::max31856::cs::getPin());
 }
 
 void Sensors::ads131m08Creation()
 {
-    ads131m08 =
-        new ADS131M08(buses->spi4, miosix::peripherals::ads131m08::cs::getPin(),
-                      ADS131_SPI_CONFIG, ADS131_SENSOR_CONFIG);
+    ads131m08 = std::make_unique<ADS131M08>(
+        buses->spi4, miosix::peripherals::ads131m08::cs::getPin(),
+        ADS131_SPI_CONFIG, ADS131_SENSOR_CONFIG);
 }
 
 void Sensors::chamberPressureCreation()
@@ -269,8 +275,8 @@ void Sensors::chamberPressureCreation()
             return current * CHAMBER_PRESSURE_COEFF;
         });
 
-    chamberPressure =
-        new ChamberPressureSensor(getADCVoltage, voltageToPressure);
+    chamberPressure = std::make_unique<ChamberPressureSensor>(
+        getADCVoltage, voltageToPressure);
 }
 
 void Sensors::tankPressure1Creation()
@@ -295,7 +301,8 @@ void Sensors::tankPressure1Creation()
             return current * TANK_PRESSURE_1_COEFF;
         });
 
-    tankPressure1 = new TankPressureSensor1(getADCVoltage, voltageToPressure);
+    tankPressure1 =
+        std::make_unique<TankPressureSensor1>(getADCVoltage, voltageToPressure);
 }
 
 void Sensors::tankPressure2Creation()
@@ -320,7 +327,8 @@ void Sensors::tankPressure2Creation()
             return current * TANK_PRESSURE_2_COEFF;
         });
 
-    tankPressure2 = new TankPressureSensor2(getADCVoltage, voltageToPressure);
+    tankPressure2 =
+        std::make_unique<TankPressureSensor2>(getADCVoltage, voltageToPressure);
 }
 
 void Sensors::servosCurrentCreation()
@@ -340,7 +348,8 @@ void Sensors::servosCurrentCreation()
     function<float(float)> voltageToCurrent(
         [](float voltage) { return voltage * SERVO_CURRENT_COEFF; });
 
-    servosCurrent = new CurrentSensor(getADCVoltage, voltageToCurrent);
+    servosCurrent =
+        std::make_unique<CurrentSensor>(getADCVoltage, voltageToCurrent);
 }
 
 void Sensors::adcCallback() { Logger::getInstance().log(adc->getLastSample()); }

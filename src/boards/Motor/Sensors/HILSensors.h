@@ -43,8 +43,8 @@ public:
         using namespace HILConfig;
         using namespace Boardcore;
 
-        chamberPressure = hillificator<>(chamberPressure, enableHw,
-                                         updateChamberPressureSensorData);
+        hillificator<>(chamberPressure, enableHw,
+                       updateChamberPressureSensorData);
     }
 
     ~HILSensors(){};
@@ -94,7 +94,7 @@ private:
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
         data.pressureTimestamp = miosix::getTime();
-        data.pressure = sensorData->pressureChamber.measures[iCC];
+        data.pressure          = sensorData->pressureChamber.measures[iCC];
 
         return data;
     };
