@@ -31,9 +31,17 @@ namespace Config
 
 namespace Servos
 {
+
+// Generic pulse width for all servos
 static constexpr unsigned int MIN_PULSE = 500;
-static constexpr unsigned int MAX_PULSE     = 2460;
-static constexpr unsigned int FREQUENCY     = 333;
+static constexpr unsigned int MAX_PULSE = 2460;
+
+// Pulse width specific to SERVO 2 (disconnect servo)
+// TODO(davide.mor): This actually needs tweaking
+static constexpr unsigned int SERVO2_MIN_PULSE = 1000;
+static constexpr unsigned int SERVO2_MAX_PULSE = 2000;
+
+static constexpr unsigned int FREQUENCY = 333;
 
 static constexpr uint32_t SERVO_TIMINGS_CHECK_PERIOD = 100;
 static constexpr long long SERVO_CONFIDENCE_TIME     = 500;   // 0.5s
@@ -51,10 +59,11 @@ static constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
 static constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
 static constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
 
-static constexpr float FILLING_LIMIT = 0.90f;
-static constexpr float RELEASE_LIMIT = 0.50f;
-static constexpr float VENTING_LIMIT = 0.90f;
-static constexpr float MAIN_LIMIT    = 0.90f;
+static constexpr float FILLING_LIMIT    = 0.90f;
+static constexpr float VENTING_LIMIT    = 0.90f;
+static constexpr float MAIN_LIMIT       = 0.90f;
+static constexpr float RELEASE_LIMIT    = 0.50f;
+static constexpr float DISCONNECT_LIMIT = 0.50f;
 
 static constexpr bool FILLING_FLIPPED    = true;
 static constexpr bool VENTING_FLIPPED    = true;
