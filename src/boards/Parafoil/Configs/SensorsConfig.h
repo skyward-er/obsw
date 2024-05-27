@@ -50,7 +50,7 @@ constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
-constexpr unsigned int BMX160_TEMP_DIVIDER = 1;
+constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
 
 constexpr unsigned int BMX160_FIFO_WATERMARK = 40;
 
