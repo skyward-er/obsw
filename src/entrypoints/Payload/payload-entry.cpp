@@ -382,6 +382,7 @@ int main()
     }
 
     // Log all the events
+    // clang-format off
     EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
                          [](uint8_t event, uint8_t topic)
                          {
@@ -389,6 +390,7 @@ int main()
                                           topic};
                              Logger::getInstance().log(ev);
                          });
+    // clang-format on
 
     // Check the init result and launch an event
     if (initResult)

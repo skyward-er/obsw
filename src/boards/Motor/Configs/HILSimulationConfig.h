@@ -45,8 +45,7 @@ namespace HILConfig
 constexpr int SIMULATION_PERIOD = 100;
 
 /** sampling periods of sensors [ms] */
-constexpr int BARO_CHAMBER_PERIOD =
-    Motor::SensorsConfig::SAMPLE_PERIOD_ADS131;
+constexpr int BARO_CHAMBER_PERIOD = Motor::SensorsConfig::SAMPLE_PERIOD_ADS131;
 
 static_assert((SIMULATION_PERIOD % BARO_CHAMBER_PERIOD) == 0,
               "N_DATA_BARO_CHAMBER not an integer");
@@ -57,7 +56,6 @@ constexpr int N_DATA_BARO_CHAMBER = SIMULATION_PERIOD / BARO_CHAMBER_PERIOD;
 // Sensors Data
 using MotorHILChamberBarometerData =
     Boardcore::BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
-
 
 struct ActuatorsStateHIL
 {
@@ -123,13 +121,14 @@ using MotorHILTransceiver =
 using MotorHIL = Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>;
 
 class MotorHILPhasesManager
-    : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>
+    : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+                                         ActuatorData>
 {
 public:
     explicit MotorHILPhasesManager(
         std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-        :  Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData, ActuatorData>(
-              getCurrentPosition)
+        : Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+                                      ActuatorData>(getCurrentPosition)
     {
         flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};
 
