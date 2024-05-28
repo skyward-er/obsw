@@ -75,7 +75,7 @@ static constexpr bool DISCONNECT_FLIPPED = false;
 
 namespace Actuators
 {
-static constexpr uint32_t NITROGEN_OPENING_TIME = 2000;  // 2s
+static constexpr uint32_t NITROGEN_OPENING_TIME = 5000;  // 5s
 }
 
 }  // namespace Config
