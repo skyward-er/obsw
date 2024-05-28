@@ -90,13 +90,21 @@ public:
 
     /**
      * @brief move the stepper `stepperId` of `angle` degrees
+     *
+     * @return `true` In case the stepper is enabled and can perform the
+     * movement
+     * @return `false` otherwise
      */
-    void moveStepperDeg(StepperList stepperId, float angle);
+    bool moveStepperDeg(StepperList stepperId, float angle);
 
     /**
      * @brief move the stepper `stepperId` of `steps` steps
+     *
+     * @return `true` In case the stepper is enabled and can perform the
+     * movement
+     * @return `false` otherwise
      */
-    void moveStepperSteps(StepperList stepperId, int16_t steps);
+    bool moveStepperSteps(StepperList stepperId, int16_t steps);
 
     /**
      * @brief Getter for follower target angles

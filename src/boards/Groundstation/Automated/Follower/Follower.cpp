@@ -138,10 +138,9 @@ void Follower::step()
                                      (360 * FollowerConfig::FOLLOWER_PERIOD));
 
 #ifndef NDEBUG
-    std::cout << "[FOLLOWER] STEPPER "
-              << "Angles: [" << stepperAngles.yaw << ", " << stepperAngles.pitch
-              << "] "
-              << "Speed: [" << horizontalSpeed << ", " << verticalSpeed
+    std::cout << "[FOLLOWER] STEPPER " << "Angles: [" << stepperAngles.yaw
+              << ", " << stepperAngles.pitch << "] " << "Speed: ["
+              << horizontalSpeed << ", " << verticalSpeed
               << "]   VN300 measure: [" << vn300.yaw << ", " << vn300.pitch
               << "]\n";
 #endif
@@ -152,10 +151,13 @@ void Follower::step()
         StepperList::STEPPER_Y, verticalSpeed);
 
     // Actuating steppers
-    ModuleManager::getInstance().get<Actuators>()->moveDeg(
+    bool actuated = true;
+    actuated &= ModuleManager::getInstance().get<Actuators>()->moveDeg(
         StepperList::STEPPER_X, stepperAngles.yaw);
-    ModuleManager::getInstance().get<Actuators>()->moveDeg(
+    actuated &= ModuleManager::getInstance().get<Actuators>()->moveDeg(
         StepperList::STEPPER_Y, stepperAngles.pitch);
+    if (!actuated)
+        LOG_ERR(logger, "Step antenna - At least one stepper did not moved\n");
 }
 
 AntennaAngles Follower::rocketPositionToAntennaAngles(

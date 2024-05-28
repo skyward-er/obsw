@@ -112,30 +112,33 @@ void SMController::setInitialRocketCoordinates(
     }
 }
 
-void SMController::moveStepperDeg(StepperList stepperId, float angle)
+bool SMController::moveStepperDeg(StepperList stepperId, float angle)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+        return false;
     }
     else
     {
-        ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
-                                                               angle);
+        return ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
+                                                                      angle);
     }
 }
 
-void SMController::moveStepperSteps(StepperList stepperId, int16_t steps)
+bool SMController::moveStepperSteps(StepperList stepperId, int16_t steps)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+        return false;
     }
     else
     {
-        ModuleManager::getInstance().get<Actuators>()->move(stepperId, steps);
+        return ModuleManager::getInstance().get<Actuators>()->move(stepperId,
+                                                                   steps);
     }
 }
 

@@ -54,10 +54,10 @@ public:
 
     void setSpeed(StepperList axis, float speed);
 
-    void move(StepperList axis, int16_t steps);
-    void moveDeg(StepperList axis, float degrees);
-    void setPosition(StepperList axis, int16_t steps);
-    void setPositionDeg(StepperList axis, float degrees);
+    bool move(StepperList axis, int16_t steps);
+    bool moveDeg(StepperList axis, float degrees);
+    bool setPosition(StepperList axis, int16_t steps);
+    bool setPositionDeg(StepperList axis, float degrees);
 
     void zeroPosition();
 
