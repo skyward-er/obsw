@@ -170,7 +170,8 @@ bool Actuators::move(StepperList axis, int16_t steps)
             assert(false && "Non existent stepper");
             break;
     }
-    moveDeg(axis, static_cast<float>(steps) * step_angle / microstepping);
+    return moveDeg(axis,
+                   static_cast<float>(steps) * step_angle / microstepping);
 }
 
 bool Actuators::moveDeg(StepperList axis, float degrees)
