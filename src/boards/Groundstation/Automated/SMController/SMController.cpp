@@ -59,22 +59,10 @@ bool SMController::start()
     size_t result;
     bool ok = true;
 
-    // add the Propagator task
-    result = scheduler->addTask(bind(&Propagator::update, &propagator),
-                                PropagatorConfig::PROPAGATOR_PERIOD,
-                                TaskScheduler::Policy::RECOVER);
-    ok &= result != 0;
-
-    // add the Follower task
-    result = scheduler->addTask(bind(&Follower::update, &follower),
-                                FollowerConfig::FOLLOWER_PERIOD,
-                                TaskScheduler::Policy::RECOVER);
-    ok &= result != 0;
-
     // add the update task
     result = scheduler->addTask(bind(&SMController::update, this),
                                 SMControllerConfig::UPDATE_PERIOD,
-                                TaskScheduler::Policy::SKIP);
+                                TaskScheduler::Policy::RECOVER);
     ok &= result != 0;
 
     return ActiveObject::start() && ok;
@@ -218,10 +206,12 @@ void SMController::update()
             // update the propagator with the NAS state
             // and retrieve the propagated state
             propagator.setRocketNasState(nasState);
+            propagator.update();  // step the propagator
             PropagatorState predicted = propagator.getState();
 
             // update the follower with the propagated state
             follower.setLastRocketNasState(predicted.getNasState());
+            follower.update();  // step the follower
             break;
         }
         default:
