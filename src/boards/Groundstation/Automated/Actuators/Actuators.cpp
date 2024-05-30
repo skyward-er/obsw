@@ -204,13 +204,13 @@ ErrorMovement Actuators::moveDeg(StepperList axis, float degrees)
         case StepperList::STEPPER_X:
 
             if (!stepperX.isEnabled())
-                return ErrorMovement::X_DISABLED;
+                return ErrorMovement::DISABLED;
 
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_HORIZONTAL)
             {
                 degrees        = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
-                actuationState = ErrorMovement::X_LIMIT;
+                actuationState = ErrorMovement::LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_HORIZONTAL)
             {
@@ -225,16 +225,13 @@ ErrorMovement Actuators::moveDeg(StepperList axis, float degrees)
         case StepperList::STEPPER_Y:
 
             if (!stepperY.isEnabled())
-                return ErrorMovement::Y_DISABLED;
+                return ErrorMovement::DISABLED;
 
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_VERTICAL)
             {
-                degrees = Config::MAX_ANGLE_VERTICAL - positionDeg;
-                if (actuationState == ErrorMovement::OK)
-                    actuationState = ErrorMovement::Y_LIMIT;
-                else
-                    actuationState = ErrorMovement::XY_LIMIT;
+                degrees        = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                actuationState = ErrorMovement::LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_VERTICAL)
             {
@@ -263,14 +260,14 @@ ErrorMovement Actuators::setPosition(StepperList axis, int16_t steps)
     {
         case StepperList::STEPPER_X:
             if (!stepperX.isEnabled())
-                return ErrorMovement::X_DISABLED;
+                return ErrorMovement::DISABLED;
             microstepping =
                 static_cast<float>(Config::HORIZONTAL_MICROSTEPPING);
             step_angle = Config::HORIZONTAL_STEP_ANGLE;
             break;
         case StepperList::STEPPER_Y:
             if (!stepperY.isEnabled())
-                return ErrorMovement::Y_DISABLED;
+                return ErrorMovement::DISABLED;
             microstepping = static_cast<float>(Config::VERTICAL_MICROSTEPPING);
             step_angle    = Config::VERTICAL_STEP_ANGLE;
             break;

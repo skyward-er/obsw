@@ -46,14 +46,11 @@ namespace Antennas
 enum class ErrorMovement : uint8_t
 {
     OK,              ///< `0`
-    EMERGENCY_STOP,  ///< `1`
-    X_DISABLED,      ///< `2`
-    Y_DISABLED,      ///< `3`
-    X_LIMIT,         ///< `4` The STEPPER_X reached its actuation limits
-    Y_LIMIT,         ///< `5` The STEPPER_Y reached its actuation limits
-    XY_LIMIT,        ///< `6` Both steppers reached their actuation limits
-    NO_STEPPER,      ///< `7` The specified stepper does not exist
-    NOT_TEST         ///< `8` Such movement is allowed only in test
+    LIMIT,           ///< `1` The STEPPER_X reached its actuation limits
+    NOT_TEST,        ///< `2` Such movement is allowed only in test
+    NO_STEPPER,      ///< `3` The specified stepper does not exist
+    DISABLED,        ///< `4`
+    EMERGENCY_STOP,  ///< `5`
 };
 
 class Actuators : public Boardcore::Module
