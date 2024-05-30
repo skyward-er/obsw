@@ -68,6 +68,7 @@ public:
      * @brief Enables the actuators
      */
     void arm();
+
     /**
      * @brief Disables the actuators
      */
