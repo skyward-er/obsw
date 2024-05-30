@@ -23,8 +23,6 @@
 #include "SMController.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Config/FollowerConfig.h>
-#include <Groundstation/Automated/Config/PropagatorConfig.h>
 #include <Groundstation/Automated/Config/SMControllerConfig.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
@@ -48,7 +46,8 @@ namespace Antennas
 
 SMController::SMController(TaskScheduler* sched)
     : HSM(&SMController::state_config), scheduler(sched),
-      propagator(PropagatorConfig::PROPAGATOR_PERIOD), follower()
+      propagator(SMControllerConfig::UPDATE_PERIOD),
+      follower(SMControllerConfig::UPDATE_PERIOD)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
@@ -211,7 +210,39 @@ void SMController::update()
 
             // update the follower with the propagated state
             follower.setLastRocketNasState(predicted.getNasState());
+            VN300Data vn300Data = ModuleManager::getInstance()
+                                      .get<Sensors>()
+                                      ->getVN300LastSample();
+            follower.setLastAntennaAttitude(vn300Data);
             follower.update();  // step the follower
+            FollowerState follow = follower.getState();
+
+            // actuate the steppers
+            auto steppers = ModuleManager::getInstance().get<Actuators>();
+            steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
+            steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
+
+            ErrorMovement actuation =
+                steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
+            if (actuation != ErrorMovement::OK)
+            {
+                LOG_ERR(
+                    logger,
+                    "Step antenna - STEPPER_X could not move or reached move "
+                    "limit. Error: ",
+                    actuation, "\n");
+            }
+
+            actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
+            if (actuation != ErrorMovement::OK)
+            {
+                LOG_ERR(
+                    logger,
+                    "Step antenna - STEPPER_Y could not move or reached move "
+                    "limit. Error: ",
+                    actuation, "\n");
+            }
+
             break;
         }
         default:
