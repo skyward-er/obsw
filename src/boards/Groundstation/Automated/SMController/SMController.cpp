@@ -112,13 +112,13 @@ void SMController::setInitialRocketCoordinates(
     }
 }
 
-bool SMController::moveStepperDeg(StepperList stepperId, float angle)
+ErrorMovement SMController::moveStepperDeg(StepperList stepperId, float angle)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
-        return false;
+        return ErrorMovement::NOT_TEST;
     }
     else
     {
@@ -127,13 +127,14 @@ bool SMController::moveStepperDeg(StepperList stepperId, float angle)
     }
 }
 
-bool SMController::moveStepperSteps(StepperList stepperId, int16_t steps)
+ErrorMovement SMController::moveStepperSteps(StepperList stepperId,
+                                             int16_t steps)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
-        return false;
+        return ErrorMovement::NOT_TEST;
     }
     else
     {

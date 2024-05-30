@@ -94,9 +94,9 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_stepper_angle_tc_get_angle(&msg);
 
             // The stepper is moved of 'angle' degrees
-            bool moved =
+            ErrorMovement moved =
                 modules.get<SMController>()->moveStepperDeg(stepperId, angle);
-            if (moved)
+            if (moved == ErrorMovement::OK)
                 sendAck(msg);
             else
                 sendNack(msg);
@@ -110,9 +110,9 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             int16_t steps = mavlink_msg_set_stepper_steps_tc_get_steps(&msg);
 
             // The stepper is moved of 'steps' steps
-            bool moved =
+            ErrorMovement moved =
                 modules.get<SMController>()->moveStepperSteps(stepperId, steps);
-            if (moved)
+            if (moved == ErrorMovement::OK)
                 sendAck(msg);
             else
                 sendNack(msg);

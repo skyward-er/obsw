@@ -151,7 +151,7 @@ float Actuators::getCurrentDegPosition(StepperList axis)
     return 0;
 }
 
-bool Actuators::move(StepperList axis, int16_t steps)
+ErrorMovement Actuators::move(StepperList axis, int16_t steps)
 {
     float microstepping = 1.0;
     float step_angle    = 1.8;
@@ -174,7 +174,7 @@ bool Actuators::move(StepperList axis, int16_t steps)
                    static_cast<float>(steps) * step_angle / microstepping);
 }
 
-bool Actuators::moveDeg(StepperList axis, float degrees)
+ErrorMovement Actuators::moveDeg(StepperList axis, float degrees)
 {
     if (emergencyStop)
     {
@@ -193,23 +193,24 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
                 break;
         }
 
-        return false;
+        return ErrorMovement::EMERGENCY_STOP;
     }
 
-    bool nominalActuation = true;  //< In case the move command is not limited
-    float positionDeg     = getCurrentDegPosition(axis);
+    ErrorMovement actuationState =
+        ErrorMovement::OK;  //< In case the move command is not limited
+    float positionDeg = getCurrentDegPosition(axis);
     switch (axis)
     {
         case StepperList::STEPPER_X:
 
             if (!stepperX.isEnabled())
-                return false;
+                return ErrorMovement::X_DISABLED;
 
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_HORIZONTAL)
             {
-                degrees          = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
-                nominalActuation = false;
+                degrees        = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
+                actuationState = ErrorMovement::X_LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_HORIZONTAL)
             {
@@ -224,13 +225,16 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
         case StepperList::STEPPER_Y:
 
             if (!stepperY.isEnabled())
-                return false;
+                return ErrorMovement::Y_DISABLED;
 
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_VERTICAL)
             {
-                degrees          = Config::MAX_ANGLE_VERTICAL - positionDeg;
-                nominalActuation = false;
+                degrees = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                if (actuationState == ErrorMovement::OK)
+                    actuationState = ErrorMovement::Y_LIMIT;
+                else
+                    actuationState = ErrorMovement::XY_LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_VERTICAL)
             {
@@ -244,13 +248,13 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
             break;
         default:
             assert(false && "Non existent stepper");
-            nominalActuation = false;
+            actuationState = ErrorMovement::NO_STEPPER;
             break;
     }
-    return nominalActuation;
+    return actuationState;
 }
 
-bool Actuators::setPosition(StepperList axis, int16_t steps)
+ErrorMovement Actuators::setPosition(StepperList axis, int16_t steps)
 {
 
     float microstepping = 1.0;
@@ -259,28 +263,28 @@ bool Actuators::setPosition(StepperList axis, int16_t steps)
     {
         case StepperList::STEPPER_X:
             if (!stepperX.isEnabled())
-                return false;
+                return ErrorMovement::X_DISABLED;
             microstepping =
                 static_cast<float>(Config::HORIZONTAL_MICROSTEPPING);
             step_angle = Config::HORIZONTAL_STEP_ANGLE;
             break;
         case StepperList::STEPPER_Y:
             if (!stepperY.isEnabled())
-                return false;
+                return ErrorMovement::Y_DISABLED;
             microstepping = static_cast<float>(Config::VERTICAL_MICROSTEPPING);
             step_angle    = Config::VERTICAL_STEP_ANGLE;
             break;
         default:
             assert(false && "Non existent stepper");
-            return false;
+            return ErrorMovement::NO_STEPPER;
             break;
     }
     setPositionDeg(axis,
                    static_cast<float>(steps) * step_angle / microstepping);
-    return true;
+    return ErrorMovement::OK;
 }
 
-bool Actuators::setPositionDeg(StepperList axis, float positionDeg)
+ErrorMovement Actuators::setPositionDeg(StepperList axis, float positionDeg)
 {
     return moveDeg(axis, positionDeg - getCurrentDegPosition(axis));
 }

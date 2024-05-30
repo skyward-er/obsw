@@ -152,13 +152,24 @@ void Follower::step()
         StepperList::STEPPER_Y, verticalSpeed);
 
     // Actuating steppers
-    bool actuated = true;
-    actuated &= ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        StepperList::STEPPER_X, stepperAngles.yaw);
-    actuated &= ModuleManager::getInstance().get<Actuators>()->moveDeg(
+    ErrorMovement actuation =
+        ModuleManager::getInstance().get<Actuators>()->moveDeg(
+            StepperList::STEPPER_X, stepperAngles.yaw);
+
+    if (actuation != ErrorMovement::OK)
+        LOG_ERR(logger,
+                "Step antenna - STEPPER_X could not move or reached move "
+                "limit. Error: ",
+                actuation, "\n");
+
+    actuation = ModuleManager::getInstance().get<Actuators>()->moveDeg(
         StepperList::STEPPER_Y, stepperAngles.pitch);
-    if (!actuated)
-        LOG_ERR(logger, "Step antenna - At least one stepper did not moved\n");
+
+    if (actuation != ErrorMovement::OK)
+        LOG_ERR(logger,
+                "Step antenna - STEPPER_X could not move or reached move "
+                "limit. Error: ",
+                actuation, "\n");
 }
 
 AntennaAngles Follower::rocketPositionToAntennaAngles(

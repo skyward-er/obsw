@@ -39,6 +39,23 @@
 
 namespace Antennas
 {
+
+/**
+ * @brief Error handling enum for the stepper movement
+ */
+enum class ErrorMovement : uint8_t
+{
+    OK,              ///< `0`
+    EMERGENCY_STOP,  ///< `1`
+    X_DISABLED,      ///< `2`
+    Y_DISABLED,      ///< `3`
+    X_LIMIT,         ///< `4` The STEPPER_X reached its actuation limits
+    Y_LIMIT,         ///< `5` The STEPPER_Y reached its actuation limits
+    XY_LIMIT,        ///< `6` Both steppers reached their actuation limits
+    NO_STEPPER,      ///< `7` The specified stepper does not exist
+    NOT_TEST         ///< `8` Such movement is allowed only in test
+};
+
 class Actuators : public Boardcore::Module
 {
 public:
@@ -54,10 +71,10 @@ public:
 
     void setSpeed(StepperList axis, float speed);
 
-    bool move(StepperList axis, int16_t steps);
-    bool moveDeg(StepperList axis, float degrees);
-    bool setPosition(StepperList axis, int16_t steps);
-    bool setPositionDeg(StepperList axis, float degrees);
+    ErrorMovement move(StepperList axis, int16_t steps);
+    ErrorMovement moveDeg(StepperList axis, float degrees);
+    ErrorMovement setPosition(StepperList axis, int16_t steps);
+    ErrorMovement setPositionDeg(StepperList axis, float degrees);
 
     void zeroPosition();
 
