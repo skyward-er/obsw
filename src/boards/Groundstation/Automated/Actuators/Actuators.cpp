@@ -196,7 +196,8 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
         return false;
     }
 
-    float positionDeg = getCurrentDegPosition(axis);
+    bool nominalActuation = true;  //< In case the move command is not limited
+    float positionDeg     = getCurrentDegPosition(axis);
     switch (axis)
     {
         case StepperList::STEPPER_X:
@@ -207,7 +208,8 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_HORIZONTAL)
             {
-                degrees = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
+                degrees          = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
+                nominalActuation = false;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_HORIZONTAL)
             {
@@ -227,7 +229,8 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_VERTICAL)
             {
-                degrees = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                degrees          = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                nominalActuation = false;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_VERTICAL)
             {
@@ -241,9 +244,10 @@ bool Actuators::moveDeg(StepperList axis, float degrees)
             break;
         default:
             assert(false && "Non existent stepper");
+            nominalActuation = false;
             break;
     }
-    return false;
+    return nominalActuation;
 }
 
 bool Actuators::setPosition(StepperList axis, int16_t steps)
