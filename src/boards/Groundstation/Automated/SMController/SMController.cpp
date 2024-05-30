@@ -310,6 +310,7 @@ State SMController::state_feedback(const Event& event)
         }
         case TMTC_ARP_DISARM:
         {
+            ModuleManager::getInstance().get<Actuators>()->disarm();
             return transition(&SMController::state_init_done);
         }
         default:
@@ -343,6 +344,7 @@ State SMController::state_no_feedback(const Event& event)
         }
         case TMTC_ARP_DISARM:
         {
+            ModuleManager::getInstance().get<Actuators>()->disarm();
             return transition(&SMController::state_insert_info);
         }
         default:
@@ -455,6 +457,7 @@ State SMController::state_init_done(const Event& event)
         }
         case TMTC_ARP_ARM:
         {
+            ModuleManager::getInstance().get<Actuators>()->arm();
             return transition(&SMController::state_feedback);
         }
         default:
@@ -487,6 +490,7 @@ State SMController::state_insert_info(const Event& event)
         }
         case TMTC_ARP_ARM:
         {
+            ModuleManager::getInstance().get<Actuators>()->arm();
             return transition(&SMController::state_no_feedback);
         }
         default:
