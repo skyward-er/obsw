@@ -74,7 +74,8 @@ int main()
     TMRepository* tmRepo   = new TMRepository();
     FlightModeManager* fmm = new FlightModeManager();
     Buses* buses           = new Buses();
-    PinHandler* pinHandler = new PinHandler();
+    PinHandler* pinHandler =
+        new PinHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))
@@ -181,7 +182,8 @@ int main()
     // EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
     //                      [](uint8_t event, uint8_t topic)
     //                      {
-    //                          EventData ev{TimestampTimer::getTimestamp(), event,
+    //                          EventData ev{TimestampTimer::getTimestamp(),
+    //                          event,
     //                                       topic};
     //                          Logger::getInstance().log(ev);
     //                      });
