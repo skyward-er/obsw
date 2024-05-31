@@ -67,25 +67,26 @@ constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS331DL_BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS331DL_FSR =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-constexpr uint32_t H3LIS331DL_PERIOD = 1;  // [ms] 1000Hz
+constexpr uint32_t H3LIS331DL_PERIOD = 1 * 1000;  // [ns] 1000Hz
 
 // LPS22DF
 constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_50;
-constexpr uint32_t LPS22DF_PERIOD             = 50;  // [ms] 20Hz
+constexpr uint32_t LPS22DF_PERIOD             = 50 * 1000;  // [ns] 20Hz
 
 // UBXGPS
 constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
 // The +5 is needed because GPS data must be read faster than it is produced (to
 // not cause delays)
-constexpr uint32_t UBXGPS_PERIOD = 1000 / (UBXGPS_SAMPLE_RATE + 5);  // [ms]
+constexpr uint32_t UBXGPS_PERIOD =
+    1000 / (UBXGPS_SAMPLE_RATE + 5) * 1000;  // [ns]
 
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
     ADS131M08_OVERSAMPLING_RATIO =
         Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
-constexpr uint32_t ADS131M08_PERIOD       = 1;  // [ms] 1000Hz
+constexpr uint32_t ADS131M08_PERIOD       = 1 * 1000;  // [ns] 1000Hz
 
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
@@ -112,19 +113,18 @@ constexpr Boardcore::InternalADC::Channel ADC_BATTERY_VOLTAGE =
 // Internal ADC voltage divider
 constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 
-// Sampling periods [ms]
-
 // BMX160_SAMPLE_PERIOD: Sample before the fifo is full, but slightly after the
 // watermark level (watermark + 30) ---> high slack due to scheduler
 // imprecision, avoid clearing the fifo before the interrupt
-constexpr unsigned int BMX160_SAMPLE_PERIOD =
-    BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024;  // [ms]
-constexpr unsigned int LIS3MDL_SAMPLE_PERIOD       = 15;
-constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000;  // [ms]
-constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000;  // [ms]
+constexpr unsigned int BMX160_SAMPLE_PERIOD = BMX160_FIFO_FILL_TIME *
+                                              (BMX160_FIFO_WATERMARK + 30) * 4 /
+                                              1024 * 1000;         // [ns]
+constexpr unsigned int LIS3MDL_SAMPLE_PERIOD       = 15 * 1000;    // [ns]
+constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000 * 1000;  // [ns]
+constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000 * 1000;  // [ns]
 
 // LoadCell
-constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1;  // [ms] 1000 Hz
+constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1 * 1000;  // [ns] 1000 Hz
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration
