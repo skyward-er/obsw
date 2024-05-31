@@ -64,19 +64,21 @@ void BoardStatus::run()
     while (!shouldStop())
     {
         miosix::Thread::sleep(Groundstation::RADIO_STATUS_PERIOD);
+        ModuleManager &modules = ModuleManager::getInstance();
 
-        auto vn300 =
-            ModuleManager::getInstance().get<Sensors>()->getVN300LastSample();
+        auto vn300 = modules.get<Sensors>()->getVN300LastSample();
 
-        Actuators *actuators = ModuleManager::getInstance().get<Actuators>();
-        AntennaAngles targetAngles =
-            ModuleManager::getInstance().get<SMController>()->getTargetAngles();
+        Actuators *actuators = modules.get<Actuators>();
+        SMController *sm     = modules.get<SMController>();
+
+        AntennaAngles targetAngles = sm->getTargetAngles();
 
         mavlink_arp_tm_t tm = {0};
-        tm.timestamp    = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
-        tm.yaw          = vn300.yaw;          /*< [deg] Current Yaw*/
-        tm.pitch        = vn300.pitch;        /*< [deg] Current Pitch*/
-        tm.roll         = vn300.roll;         /*< [deg] Current Roll*/
+        tm.timestamp = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
+        tm.state     = static_cast<uint8_t>(sm->getStatus().state); /*<  State*/
+        tm.yaw       = vn300.yaw;             /*< [deg] Current Yaw*/
+        tm.pitch     = vn300.pitch;           /*< [deg] Current Pitch*/
+        tm.roll      = vn300.roll;            /*< [deg] Current Roll*/
         tm.target_yaw   = targetAngles.yaw;   /*< [deg] Target Yaw*/
         tm.target_pitch = targetAngles.pitch; /*< [deg] Target Pitch*/
         tm.stepperX_pos = actuators->getCurrentDegPosition(
