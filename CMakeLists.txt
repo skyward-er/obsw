@@ -22,6 +22,7 @@
 cmake_minimum_required(VERSION 3.16)
 enable_testing()
 include(skyward-boardcore/cmake/sbs.cmake)
+include(cmake/dependencies.cmake)
 
 # -----------------------------------------------------------------------------#
 #                                    Project                                   #
@@ -35,5 +36,4 @@ project(OnBoardSoftware)
 
 add_executable(main-entry src/entrypoints/MockupMain/main-entry.cpp ${MOCKUP_MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(main-entry PRIVATE)
-sbs_target(main-entry stm32f429zi_skyward_death_stack_x)
+sbs_target(main-entry stm32f429zi_death_stack_v2)

@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 
 set(OBSW_INCLUDE_DIRS
+    src
     src/boards
 )
 
