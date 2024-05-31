@@ -59,9 +59,20 @@ public:
     Actuators();
 
     /**
-     * @brief Enables all the servos PWMs
+     * @brief Dummy start for actuators
+     * @note The real enable is done by the `arm()` method
      */
     void start();
+
+    /**
+     * @brief Enables the actuators
+     */
+    void arm();
+
+    /**
+     * @brief Disables the actuators
+     */
+    void disarm();
 
     void IRQemergencyStop();
     void IRQemergencyStopRecovery();
