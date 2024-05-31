@@ -276,9 +276,8 @@ ErrorMovement Actuators::setPosition(StepperList axis, int16_t steps)
             return ErrorMovement::NO_STEPPER;
             break;
     }
-    setPositionDeg(axis,
-                   static_cast<float>(steps) * step_angle / microstepping);
-    return ErrorMovement::OK;
+    return setPositionDeg(
+        axis, static_cast<float>(steps) * step_angle / microstepping);
 }
 
 ErrorMovement Actuators::setPositionDeg(StepperList axis, float positionDeg)

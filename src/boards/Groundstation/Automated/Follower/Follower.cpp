@@ -167,7 +167,7 @@ void Follower::step()
 
     if (actuation != ErrorMovement::OK)
         LOG_ERR(logger,
-                "Step antenna - STEPPER_X could not move or reached move "
+                "Step antenna - STEPPER_Y could not move or reached move "
                 "limit. Error: ",
                 actuation, "\n");
 }
