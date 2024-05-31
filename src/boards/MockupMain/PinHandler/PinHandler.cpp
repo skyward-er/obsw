@@ -62,8 +62,8 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
     return data;
 }
 
-PinHandler::PinHandler(TaskScheduler scheduler)
-    : running(false), pinObserver(scheduler)
+PinHandler::PinHandler(TaskScheduler* scheduler)
+    : running(false), pinObserver(*scheduler)
 {
     pinObserver.registerPinCallback(
         inputs::expulsion::getPin(),

@@ -40,7 +40,7 @@ namespace MockupMain
 class PinHandler : public Boardcore::Module
 {
 public:
-    PinHandler(TaskScheduler scheduler);
+    PinHandler(Boardcore::TaskScheduler* scheduler);
 
     bool start();
 
