@@ -60,13 +60,14 @@ enum class SMControllerState : uint8_t
      * @brief macro state for no feedback (armed_nf, test_nf,
      * fix_rocket_nf, active_nf)
      */
-    NO_FEEDBACK
+    NO_FEEDBACK,
+    INVALID,
 };
 
 struct SMControllerStatus
 {
-    uint64_t timestamp;
-    SMControllerState state;
+    uint64_t timestamp      = 0;
+    SMControllerState state = SMControllerState::INVALID;
 
     static std::string header() { return "timestamp,state\n"; }
 
