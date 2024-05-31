@@ -40,7 +40,7 @@ namespace MockupMain
 class PinHandler : public Boardcore::Module
 {
 public:
-    PinHandler();
+    PinHandler(TaskScheduler scheduler);
 
     bool start();
 
@@ -59,6 +59,8 @@ public:
 
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+
+    Boardcore::PinObserver pinObserver;
 
     std::atomic<bool> running;
 };
