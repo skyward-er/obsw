@@ -38,8 +38,8 @@ static constexpr unsigned int MAX_PULSE = 2460;
 
 // Pulse width specific to SERVO 2 (disconnect servo)
 // TODO(davide.mor): This actually needs tweaking
-static constexpr unsigned int SERVO2_MIN_PULSE = 1000;
-static constexpr unsigned int SERVO2_MAX_PULSE = 2000;
+static constexpr unsigned int SERVO2_MIN_PULSE = 900;
+static constexpr unsigned int SERVO2_MAX_PULSE = 2100;
 
 static constexpr unsigned int FREQUENCY = 333;
 
@@ -51,7 +51,7 @@ static constexpr uint32_t DEFAULT_FILLING_OPENING_TIME    = 15000;  // 15s
 static constexpr uint32_t DEFAULT_VENTING_OPENING_TIME    = 15000;  // 15s
 static constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
 static constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
-static constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 10000;  // 10s
+static constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 2000;   // 2s
 
 static constexpr float DEFAULT_FILLING_MAX_APERTURE    = 1.00f;
 static constexpr float DEFAULT_VENTING_MAX_APERTURE    = 1.00f;
@@ -63,7 +63,7 @@ static constexpr float FILLING_LIMIT    = 0.90f;
 static constexpr float VENTING_LIMIT    = 0.90f;
 static constexpr float MAIN_LIMIT       = 0.90f;
 static constexpr float RELEASE_LIMIT    = 0.50f;
-static constexpr float DISCONNECT_LIMIT = 0.50f;
+static constexpr float DISCONNECT_LIMIT = 1.00f;
 
 static constexpr bool FILLING_FLIPPED    = true;
 static constexpr bool VENTING_FLIPPED    = true;
