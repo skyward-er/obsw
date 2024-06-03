@@ -74,6 +74,7 @@ void SMController::setAntennaCoordinates(
     else
     {
         follower.setAntennaCoordinates(antennaCoordinates);
+        EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
     }
 }
 
@@ -90,6 +91,7 @@ void SMController::setInitialRocketCoordinates(
     else
     {
         follower.setInitialRocketCoordinates(rocketCoordinates);
+        EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
     }
 }
 
