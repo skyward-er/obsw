@@ -25,7 +25,7 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/SMController/SMController.h>
+#include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/HubBase.h>
@@ -69,7 +69,7 @@ void BoardStatus::run()
         auto vn300 = modules.get<Sensors>()->getVN300LastSample();
 
         Actuators *actuators = modules.get<Actuators>();
-        SMController *sm     = modules.get<SMController>();
+        SMA *sm              = modules.get<SMA>();
 
         AntennaAngles targetAngles = sm->getTargetAngles();
 

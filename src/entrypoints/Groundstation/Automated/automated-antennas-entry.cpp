@@ -27,7 +27,7 @@
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/SMController/SMController.h>
+#include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <common/Events.h>
@@ -107,7 +107,7 @@ int main()
     BoardStatus *board_status     = new BoardStatus();
     Actuators *actuators          = new Actuators();
     Sensors *sensors              = new Sensors();
-    SMController *sm              = new SMController(scheduler_high);
+    SMA *sm                       = new SMA(scheduler_high);
     Ethernet *ethernet            = new Ethernet();
 
     // Inserting Modules
@@ -148,7 +148,7 @@ int main()
         START_MODULE("Board Status", [&] { return board_status->start(); });
         START_MODULE("Leds", [&] { return leds->start(); });
         START_MODULE("Sensors", [&] { return sensors->start(); });
-        START_MODULE("SMController", [&] { return sm->start(); });
+        START_MODULE("SMA", [&] { return sm->start(); });
         actuators->start();
     }
     LOG_INFO(logger, "Modules setup successful");
