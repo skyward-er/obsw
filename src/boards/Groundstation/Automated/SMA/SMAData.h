@@ -22,14 +22,59 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include <iostream>
+#include <string>
+
 namespace Antennas
 {
 
-namespace SMControllerConfig
+enum class SMAState : uint8_t
 {
+    INIT = 0,
+    INIT_ERROR,
+    INIT_DONE,
+    INSERT_INFO,
+    ARMED,
+    ARMED_NF,
+    TEST,
+    TEST_NF,
+    CALIBRATE,
+    FIX_ANTENNAS,
+    FIX_ROCKET,
+    FIX_ROCKET_NF,
+    ACTIVE,
+    ACTIVE_NF,
+    /**
+     * @brief macro state for configuration (init, init_error,
+     * init_done, state_insert_info)
+     */
+    CONFIG,
+    /**
+     * @brief macro state for feedback (armed, test, calibrate,
+     * fix_antennas, fix_rocket, active)
+     */
+    FEEDBACK,
+    /**
+     * @brief macro state for no feedback (armed_nf, test_nf,
+     * fix_rocket_nf, active_nf)
+     */
+    NO_FEEDBACK,
+    INVALID,
+};
 
-/// @brief Period of the propagator algorithm [ms].
-constexpr uint32_t UPDATE_PERIOD = 100;  // 10 Hz
+struct SMAStatus
+{
+    uint64_t timestamp = 0;
+    SMAState state     = SMAState::INVALID;
 
-}  // namespace SMControllerConfig
+    static std::string header() { return "timestamp,state\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
 }  // namespace Antennas
