@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/Automated/SMController/SMController.h>
+#include <Groundstation/Automated/SMA/SMA.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <events/EventBroker.h>
@@ -44,22 +44,22 @@
     }
 
 #define TEST_STATE(INITIAL_STATE, EVENT, TOPIC_SM, FINAL_STATE)           \
-    sm->forceState(&SMController::INITIAL_STATE);                         \
+    sm->forceState(&SMA::INITIAL_STATE);                                  \
     EventBroker::getInstance().post(EVENT, TOPIC_SM);                     \
     Thread::sleep(20);                                                    \
     TRACE("Testing %-26s in " #INITIAL_STATE " -> " #FINAL_STATE " ... ", \
           getEventString(EVENT).c_str());                                 \
-    correct = sm->testState(&SMController::FINAL_STATE);                  \
+    correct = sm->testState(&SMA::FINAL_STATE);                           \
     printf(correct ? "OK\n" : "FAIL\n");                                  \
     ok &= correct;
 
 #define TEST_NO_TRANSITION(INITIAL_STATE, EVENT, TOPIC_SM) \
-    sm->forceState(&SMController::INITIAL_STATE);          \
+    sm->forceState(&SMA::INITIAL_STATE);                   \
     EventBroker::getInstance().post(EVENT, TOPIC_SM);      \
     Thread::sleep(20);                                     \
     TRACE("Testing %-26s in " #INITIAL_STATE " -X ... ",   \
           getEventString(EVENT).c_str());                  \
-    correct = sm->testState(&SMController::INITIAL_STATE); \
+    correct = sm->testState(&SMA::INITIAL_STATE);          \
     printf(correct ? "OK\n" : "FAIL\n");                   \
     ok &= correct;
 
@@ -87,7 +87,7 @@ using namespace Boardcore;
 using namespace Common;
 using namespace Antennas;
 
-SMController* sm = new SMController();
+SMA* sm = new SMA();
 
 int main()
 {
@@ -97,7 +97,7 @@ int main()
     std::vector<Events> tmtc_events = TMTC_EVENTS;
 
     sm->start();
-    TRACE("SMController started\n");
+    TRACE("SMA started\n");
 
     // TEST STATE: INIT
     TEST_STATE(state_init, ARP_INIT_OK, TOPIC_ARP, state_init_done);
@@ -195,7 +195,7 @@ int main()
                state_armed_nf);
     TEST_ALL_OTHER(state_active_nf, TMTC_ARP_DISARM, TMTC_ARP_RESET_ALGORITHM);
 
-    TRACE("Testing SMController ... ");
+    TRACE("Testing SMA ... ");
     ok ? printf("OK\n") : printf("FAIL\n");
     return 0;
 }
