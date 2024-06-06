@@ -33,16 +33,19 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "SMControllerData.h"
+#include "SMAData.h"
 
 namespace Antennas
 {
 
-class SMController : public Boardcore::Module,
-                     public Boardcore::HSM<SMController>
+/**
+ * @brief SMA - State Machine for Arp is the state machine which
+ * controls the Autonomous Rocket Pointer system.
+ */
+class SMA : public Boardcore::Module, public Boardcore::HSM<SMA>
 {
 public:
-    explicit SMController(Boardcore::TaskScheduler* scheduler);
+    explicit SMA(Boardcore::TaskScheduler* scheduler);
 
     // FSM States
 
@@ -109,24 +112,23 @@ public:
     /**
      * @brief Getter for the current state of the FSM
      */
-    SMControllerStatus getStatus() { return status; }
+    SMAStatus getStatus() { return status; }
 
 private:
     /**
      * @brief Logs the current state of the FSM
      * @param state The current FSM state
      */
-    void logStatus(SMControllerState state);
+    void logStatus(SMAState state);
 
     // Scheduler to be used for update function
     Boardcore::TaskScheduler* scheduler;
 
-    SMControllerStatus status;
+    SMAStatus status;
     Boardcore::Propagator propagator;
     Boardcore::Follower follower;
 
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("SMController");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("SMA");
 };
 
 }  // namespace Antennas

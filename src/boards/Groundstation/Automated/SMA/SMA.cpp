@@ -20,10 +20,10 @@
  * THE SOFTWARE.
  */
 
-#include "SMController.h"
+#include "SMA.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Config/SMControllerConfig.h>
+#include <Groundstation/Automated/Config/SMAConfig.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
@@ -33,7 +33,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#include "SMControllerData.h"
+#include "SMAData.h"
 
 using namespace Boardcore;
 using namespace Groundstation;
@@ -44,28 +44,26 @@ using namespace std;
 namespace Antennas
 {
 
-SMController::SMController(TaskScheduler* sched)
-    : HSM(&SMController::state_config), scheduler(sched),
-      propagator(SMControllerConfig::UPDATE_PERIOD),
-      follower(SMControllerConfig::UPDATE_PERIOD)
+SMA::SMA(TaskScheduler* sched)
+    : HSM(&SMA::state_config), scheduler(sched),
+      propagator(SMAConfig::UPDATE_PERIOD), follower(SMAConfig::UPDATE_PERIOD)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 }
 
-bool SMController::start()
+bool SMA::start()
 {
-    size_t result = scheduler->addTask(bind(&SMController::update, this),
-                                       SMControllerConfig::UPDATE_PERIOD,
-                                       TaskScheduler::Policy::RECOVER);
+    size_t result =
+        scheduler->addTask(bind(&SMA::update, this), SMAConfig::UPDATE_PERIOD,
+                           TaskScheduler::Policy::RECOVER);
     return HSM::start() && result != 0;
 }
 
-void SMController::setAntennaCoordinates(
-    const Boardcore::GPSData& antennaCoordinates)
+void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 {
-    if (!testState(&SMController::state_insert_info) &&
-        !testState(&SMController::state_fix_antennas))
+    if (!testState(&SMA::state_insert_info) &&
+        !testState(&SMA::state_fix_antennas))
     {
         LOG_ERR(logger,
                 "Antenna coordinates can only be set in states: "
@@ -78,11 +76,11 @@ void SMController::setAntennaCoordinates(
     }
 }
 
-void SMController::setInitialRocketCoordinates(
+void SMA::setInitialRocketCoordinates(
     const Boardcore::GPSData& rocketCoordinates)
 {
-    if (!testState(&SMController::state_fix_rocket) &&
-        !testState(&SMController::state_fix_rocket_nf))
+    if (!testState(&SMA::state_fix_rocket) &&
+        !testState(&SMA::state_fix_rocket_nf))
     {
         LOG_ERR(logger,
                 "Rocket coordinates can only be set in the "
@@ -95,10 +93,9 @@ void SMController::setInitialRocketCoordinates(
     }
 }
 
-ErrorMovement SMController::moveStepperDeg(StepperList stepperId, float angle)
+ErrorMovement SMA::moveStepperDeg(StepperList stepperId, float angle)
 {
-    if (!testState(&SMController::state_test) &&
-        !testState(&SMController::state_test_nf))
+    if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
         return ErrorMovement::NOT_TEST;
@@ -110,11 +107,9 @@ ErrorMovement SMController::moveStepperDeg(StepperList stepperId, float angle)
     }
 }
 
-ErrorMovement SMController::moveStepperSteps(StepperList stepperId,
-                                             int16_t steps)
+ErrorMovement SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
 {
-    if (!testState(&SMController::state_test) &&
-        !testState(&SMController::state_test_nf))
+    if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
         return ErrorMovement::NOT_TEST;
@@ -126,12 +121,12 @@ ErrorMovement SMController::moveStepperSteps(StepperList stepperId,
     }
 }
 
-void SMController::update()
+void SMA::update()
 {
     switch (status.state)
     {
         // in fix_antennas state, wait for the GPS fix of ARP
-        case SMControllerState::FIX_ANTENNAS:
+        case SMAState::FIX_ANTENNAS:
         {
             VN300Data vn300Data;
             GPSData antennaPosition;
@@ -165,8 +160,8 @@ void SMController::update()
             break;
         }
         // in fix_rocket state, wait for the GPS fix of the rocket
-        case SMControllerState::FIX_ROCKET:
-        case SMControllerState::FIX_ROCKET_NF:
+        case SMAState::FIX_ROCKET:
+        case SMAState::FIX_ROCKET_NF:
         {
             GPSData rocketCoordinates;
 
@@ -190,8 +185,8 @@ void SMController::update()
             break;
         }
         // in active state, update the follower and propagator inner states
-        case SMControllerState::ACTIVE:
-        case SMControllerState::ACTIVE_NF:
+        case SMAState::ACTIVE:
+        case SMAState::ACTIVE_NF:
         {
             // retrieve the last NAS Rocket state
             Hub* hub =
@@ -249,13 +244,13 @@ void SMController::update()
 }
 
 // Super state
-State SMController::state_config(const Event& event)
+State SMA::state_config(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::CONFIG);
+            logStatus(SMAState::CONFIG);
             return HANDLED;
         }
         case EV_EXIT:
@@ -264,11 +259,11 @@ State SMController::state_config(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMA::state_top);
         }
         case EV_INIT:
         {
-            return transition(&SMController::state_init);
+            return transition(&SMA::state_init);
         }
         case TMTC_ARP_RESET_BOARD:
         {
@@ -283,13 +278,13 @@ State SMController::state_config(const Event& event)
 }
 
 // Super state
-State SMController::state_feedback(const Event& event)
+State SMA::state_feedback(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::FEEDBACK);
+            logStatus(SMAState::FEEDBACK);
             return HANDLED;
         }
         case EV_EXIT:
@@ -299,15 +294,15 @@ State SMController::state_feedback(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMA::state_top);
         }
         case EV_INIT:
         {
-            return transition(&SMController::state_armed);
+            return transition(&SMA::state_armed);
         }
         case TMTC_ARP_DISARM:
         {
-            return transition(&SMController::state_init_done);
+            return transition(&SMA::state_init_done);
         }
         default:
         {
@@ -317,13 +312,13 @@ State SMController::state_feedback(const Event& event)
 }
 
 // Super state
-State SMController::state_no_feedback(const Event& event)
+State SMA::state_no_feedback(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::NO_FEEDBACK);
+            logStatus(SMAState::NO_FEEDBACK);
             return HANDLED;
         }
         case EV_EXIT:
@@ -333,15 +328,15 @@ State SMController::state_no_feedback(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_top);
+            return tranSuper(&SMA::state_top);
         }
         case EV_INIT:
         {
-            return transition(&SMController::state_armed_nf);
+            return transition(&SMA::state_armed_nf);
         }
         case TMTC_ARP_DISARM:
         {
-            return transition(&SMController::state_insert_info);
+            return transition(&SMA::state_insert_info);
         }
         default:
         {
@@ -350,13 +345,13 @@ State SMController::state_no_feedback(const Event& event)
     }
 }
 
-State SMController::state_init(const Event& event)
+State SMA::state_init(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::INIT);
+            logStatus(SMAState::INIT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -365,7 +360,7 @@ State SMController::state_init(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_config);
+            return tranSuper(&SMA::state_config);
         }
         case EV_INIT:
         {
@@ -373,11 +368,11 @@ State SMController::state_init(const Event& event)
         }
         case ARP_INIT_OK:
         {
-            return transition(&SMController::state_init_done);
+            return transition(&SMA::state_init_done);
         }
         case ARP_INIT_ERROR:
         {
-            return transition(&SMController::state_init_error);
+            return transition(&SMA::state_init_error);
         }
         default:
         {
@@ -386,13 +381,13 @@ State SMController::state_init(const Event& event)
     }
 }
 
-State SMController::state_init_error(const Event& event)
+State SMA::state_init_error(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::INIT_ERROR);
+            logStatus(SMAState::INIT_ERROR);
             ModuleManager::getInstance().get<Leds>()->setSlowBlink(
                 LedColor::RED);
             return HANDLED;
@@ -404,7 +399,7 @@ State SMController::state_init_error(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_config);
+            return tranSuper(&SMA::state_config);
         }
         case EV_INIT:
         {
@@ -412,11 +407,11 @@ State SMController::state_init_error(const Event& event)
         }
         case TMTC_ARP_FORCE_NO_FEEDBACK:
         {
-            return transition(&SMController::state_insert_info);
+            return transition(&SMA::state_insert_info);
         }
         case TMTC_ARP_FORCE_INIT:
         {
-            return transition(&SMController::state_init_done);
+            return transition(&SMA::state_init_done);
         }
         default:
         {
@@ -425,13 +420,13 @@ State SMController::state_init_error(const Event& event)
     }
 }
 
-State SMController::state_init_done(const Event& event)
+State SMA::state_init_done(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::INIT_DONE);
+            logStatus(SMAState::INIT_DONE);
             ModuleManager::getInstance().get<Leds>()->setOn(LedColor::GREEN);
             return HANDLED;
         }
@@ -441,7 +436,7 @@ State SMController::state_init_done(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_config);
+            return tranSuper(&SMA::state_config);
         }
         case EV_INIT:
         {
@@ -449,11 +444,11 @@ State SMController::state_init_done(const Event& event)
         }
         case TMTC_ARP_FORCE_NO_FEEDBACK:
         {
-            return transition(&SMController::state_insert_info);
+            return transition(&SMA::state_insert_info);
         }
         case TMTC_ARP_ARM:
         {
-            return transition(&SMController::state_feedback);
+            return transition(&SMA::state_feedback);
         }
         default:
         {
@@ -462,13 +457,13 @@ State SMController::state_init_done(const Event& event)
     }
 }
 
-State SMController::state_insert_info(const Event& event)
+State SMA::state_insert_info(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::INSERT_INFO);
+            logStatus(SMAState::INSERT_INFO);
             return HANDLED;
         }
         case EV_EXIT:
@@ -477,7 +472,7 @@ State SMController::state_insert_info(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_config);
+            return tranSuper(&SMA::state_config);
         }
         case EV_INIT:
         {
@@ -485,7 +480,7 @@ State SMController::state_insert_info(const Event& event)
         }
         case TMTC_ARP_ARM:
         {
-            return transition(&SMController::state_no_feedback);
+            return transition(&SMA::state_no_feedback);
         }
         default:
         {
@@ -494,13 +489,13 @@ State SMController::state_insert_info(const Event& event)
     }
 }
 
-State SMController::state_armed(const Event& event)
+State SMA::state_armed(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::ARMED);
+            logStatus(SMAState::ARMED);
             ModuleManager::getInstance().get<Actuators>()->arm();
             return HANDLED;
         }
@@ -510,7 +505,7 @@ State SMController::state_armed(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -518,11 +513,11 @@ State SMController::state_armed(const Event& event)
         }
         case TMTC_ARP_FOLLOW:
         {
-            return transition(&SMController::state_fix_antennas);
+            return transition(&SMA::state_fix_antennas);
         }
         case TMTC_ARP_ENTER_TEST_MODE:
         {
-            return transition(&SMController::state_test);
+            return transition(&SMA::state_test);
         }
         default:
         {
@@ -531,13 +526,13 @@ State SMController::state_armed(const Event& event)
     }
 }
 
-State SMController::state_test(const Event& event)
+State SMA::state_test(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::TEST);
+            logStatus(SMAState::TEST);
             return HANDLED;
         }
         case EV_EXIT:
@@ -546,7 +541,7 @@ State SMController::state_test(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -554,11 +549,11 @@ State SMController::state_test(const Event& event)
         }
         case TMTC_ARP_CALIBRATE:
         {
-            return transition(&SMController::state_calibrate);
+            return transition(&SMA::state_calibrate);
         }
         case TMTC_ARP_EXIT_TEST_MODE:
         {
-            return transition(&SMController::state_armed);
+            return transition(&SMA::state_armed);
         }
         default:
         {
@@ -567,13 +562,13 @@ State SMController::state_test(const Event& event)
     }
 }
 
-State SMController::state_calibrate(const Event& event)
+State SMA::state_calibrate(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::CALIBRATE);
+            logStatus(SMAState::CALIBRATE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -582,7 +577,7 @@ State SMController::state_calibrate(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -590,7 +585,7 @@ State SMController::state_calibrate(const Event& event)
         }
         case ARP_CAL_DONE:
         {
-            return transition(&SMController::state_test);
+            return transition(&SMA::state_test);
         }
         default:
         {
@@ -599,13 +594,13 @@ State SMController::state_calibrate(const Event& event)
     }
 }
 
-State SMController::state_fix_antennas(const Event& event)
+State SMA::state_fix_antennas(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::FIX_ANTENNAS);
+            logStatus(SMAState::FIX_ANTENNAS);
             ModuleManager::getInstance().get<Leds>()->setFastBlink(
                 LedColor::ORANGE);
             return HANDLED;
@@ -618,7 +613,7 @@ State SMController::state_fix_antennas(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -626,11 +621,11 @@ State SMController::state_fix_antennas(const Event& event)
         }
         case ARP_FIX_ANTENNAS:
         {
-            return transition(&SMController::state_fix_rocket);
+            return transition(&SMA::state_fix_rocket);
         }
         case TMTC_ARP_RESET_ALGORITHM:
         {
-            return transition(&SMController::state_armed);
+            return transition(&SMA::state_armed);
         }
         default:
         {
@@ -639,13 +634,13 @@ State SMController::state_fix_antennas(const Event& event)
     }
 }
 
-State SMController::state_fix_rocket(const Event& event)
+State SMA::state_fix_rocket(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::FIX_ROCKET);
+            logStatus(SMAState::FIX_ROCKET);
             ModuleManager::getInstance().get<Leds>()->setFastBlink(
                 LedColor::YELLOW);
             return HANDLED;
@@ -667,7 +662,7 @@ State SMController::state_fix_rocket(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -675,11 +670,11 @@ State SMController::state_fix_rocket(const Event& event)
         }
         case ARP_FIX_ROCKET:
         {
-            return transition(&SMController::state_active);
+            return transition(&SMA::state_active);
         }
         case TMTC_ARP_RESET_ALGORITHM:
         {
-            return transition(&SMController::state_armed);
+            return transition(&SMA::state_armed);
         }
         default:
         {
@@ -688,13 +683,13 @@ State SMController::state_fix_rocket(const Event& event)
     }
 }
 
-State SMController::state_active(const Event& event)
+State SMA::state_active(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::ACTIVE);
+            logStatus(SMAState::ACTIVE);
             follower.begin();
             propagator.begin();
             return HANDLED;
@@ -707,7 +702,7 @@ State SMController::state_active(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_feedback);
+            return tranSuper(&SMA::state_feedback);
         }
         case EV_INIT:
         {
@@ -715,7 +710,7 @@ State SMController::state_active(const Event& event)
         }
         case TMTC_ARP_RESET_ALGORITHM:
         {
-            return transition(&SMController::state_armed);
+            return transition(&SMA::state_armed);
         }
         default:
         {
@@ -724,13 +719,13 @@ State SMController::state_active(const Event& event)
     }
 }
 
-State SMController::state_armed_nf(const Event& event)
+State SMA::state_armed_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::ARMED_NF);
+            logStatus(SMAState::ARMED_NF);
             ModuleManager::getInstance().get<Actuators>()->arm();
             return HANDLED;
         }
@@ -740,7 +735,7 @@ State SMController::state_armed_nf(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_no_feedback);
+            return tranSuper(&SMA::state_no_feedback);
         }
         case EV_INIT:
         {
@@ -748,11 +743,11 @@ State SMController::state_armed_nf(const Event& event)
         }
         case TMTC_ARP_FOLLOW:
         {
-            return transition(&SMController::state_fix_rocket_nf);
+            return transition(&SMA::state_fix_rocket_nf);
         }
         case TMTC_ARP_ENTER_TEST_MODE:
         {
-            return transition(&SMController::state_test_nf);
+            return transition(&SMA::state_test_nf);
         }
         default:
         {
@@ -761,13 +756,13 @@ State SMController::state_armed_nf(const Event& event)
     }
 }
 
-State SMController::state_test_nf(const Event& event)
+State SMA::state_test_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::TEST_NF);
+            logStatus(SMAState::TEST_NF);
             return HANDLED;
         }
         case EV_EXIT:
@@ -776,7 +771,7 @@ State SMController::state_test_nf(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_no_feedback);
+            return tranSuper(&SMA::state_no_feedback);
         }
         case EV_INIT:
         {
@@ -784,7 +779,7 @@ State SMController::state_test_nf(const Event& event)
         }
         case TMTC_ARP_EXIT_TEST_MODE:
         {
-            return transition(&SMController::state_armed_nf);
+            return transition(&SMA::state_armed_nf);
         }
         default:
         {
@@ -793,13 +788,13 @@ State SMController::state_test_nf(const Event& event)
     }
 }
 
-State SMController::state_fix_rocket_nf(const Event& event)
+State SMA::state_fix_rocket_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::FIX_ROCKET_NF);
+            logStatus(SMAState::FIX_ROCKET_NF);
             ModuleManager::getInstance().get<Leds>()->setFastBlink(
                 LedColor::YELLOW);
             return HANDLED;
@@ -821,7 +816,7 @@ State SMController::state_fix_rocket_nf(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_no_feedback);
+            return tranSuper(&SMA::state_no_feedback);
         }
         case EV_INIT:
         {
@@ -829,11 +824,11 @@ State SMController::state_fix_rocket_nf(const Event& event)
         }
         case ARP_FIX_ROCKET:
         {
-            return transition(&SMController::state_active_nf);
+            return transition(&SMA::state_active_nf);
         }
         case TMTC_ARP_RESET_ALGORITHM:
         {
-            return transition(&SMController::state_armed_nf);
+            return transition(&SMA::state_armed_nf);
         }
         default:
         {
@@ -842,13 +837,13 @@ State SMController::state_fix_rocket_nf(const Event& event)
     }
 }
 
-State SMController::state_active_nf(const Event& event)
+State SMA::state_active_nf(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMControllerState::ACTIVE_NF);
+            logStatus(SMAState::ACTIVE_NF);
             follower.begin();
             propagator.begin();
             return HANDLED;
@@ -861,7 +856,7 @@ State SMController::state_active_nf(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&SMController::state_no_feedback);
+            return tranSuper(&SMA::state_no_feedback);
         }
         case EV_INIT:
         {
@@ -869,7 +864,7 @@ State SMController::state_active_nf(const Event& event)
         }
         case TMTC_ARP_RESET_ALGORITHM:
         {
-            return transition(&SMController::state_armed_nf);
+            return transition(&SMA::state_armed_nf);
         }
         default:
         {
@@ -878,7 +873,7 @@ State SMController::state_active_nf(const Event& event)
     }
 }
 
-void SMController::logStatus(SMControllerState state)
+void SMA::logStatus(SMAState state)
 {
     {
         PauseKernelLock lock;
