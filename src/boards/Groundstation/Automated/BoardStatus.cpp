@@ -97,6 +97,7 @@ void BoardStatus::run()
         tm.gps_longitude = vn300.longitude; /*< [deg] Longitude*/
         tm.gps_height    = vn300.altitude;  /*< [m] Altitude*/
         tm.gps_fix       = vn300.fix_ins;   /*<  Wether the GPS has a FIX*/
+        tm.log_number   = Logger::getInstance().getCurrentLogNumber(); /*<  Log number*/
 
         tm.battery_voltage = -420.0;
 
