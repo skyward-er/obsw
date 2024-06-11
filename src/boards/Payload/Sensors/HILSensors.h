@@ -25,6 +25,7 @@
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
 #include <hil/HIL.h>
+#include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
 #include <sensors/SensorManager.h>
 #include <sensors/analog/Pitot/Pitot.h>
@@ -40,22 +41,42 @@ class HILSensors : public Sensors
 {
 public:
     explicit HILSensors(Boardcore::TaskScheduler* sched, Payload::Buses* buses,
+                        HILConfig::PayloadHILTransceiver* hilTransceiver,
                         bool enableHw)
         : Sensors{sched, buses}, enableHw{enableHw}
     {
         using namespace HILConfig;
         using namespace Boardcore;
 
-        hillificator<>(lps22df, enableHw, updateLPS22DFData);
-        hillificator<>(lps28dfw_1, enableHw, updateLPS28DFWData);
-        hillificator<>(lps28dfw_2, enableHw, updateLPS28DFWData);
-        hillificator<>(h3lis331dl, enableHw, updateH3LIS331DLData);
-        hillificator<>(lis2mdl, enableHw, updateLIS2MDLData);
-        hillificator<>(ubxgps, enableHw, updateUBXGPSData);
-        hillificator<>(lsm6dsrx, enableHw, updateLSM6DSRXData);
-        hillificator<>(staticPressure, enableHw, updateStaticPressureData);
-        hillificator<>(dynamicPressure, enableHw, updateDynamicPressureData);
-        hillificator<>(imu, enableHw, updateIMUData);
+        hillificator<>(lps22df, enableHw,
+                       [hilTransceiver]()
+                       { return updateLPS22DFData(hilTransceiver); });
+        hillificator<>(lps28dfw_1, enableHw,
+                       [hilTransceiver]()
+                       { return updateLPS28DFWData(hilTransceiver); });
+        hillificator<>(lps28dfw_2, enableHw,
+                       [hilTransceiver]()
+                       { return updateLPS28DFWData(hilTransceiver); });
+        hillificator<>(h3lis331dl, enableHw,
+                       [hilTransceiver]()
+                       { return updateH3LIS331DLData(hilTransceiver); });
+        hillificator<>(lis2mdl, enableHw,
+                       [hilTransceiver]()
+                       { return updateLIS2MDLData(hilTransceiver); });
+        hillificator<>(ubxgps, enableHw,
+                       [hilTransceiver]()
+                       { return updateUBXGPSData(hilTransceiver); });
+        hillificator<>(lsm6dsrx, enableHw,
+                       [hilTransceiver]()
+                       { return updateLSM6DSRXData(hilTransceiver); });
+        hillificator<>(staticPressure, enableHw,
+                       [hilTransceiver]()
+                       { return updateStaticPressureData(hilTransceiver); });
+        hillificator<>(dynamicPressure, enableHw,
+                       [hilTransceiver]()
+                       { return updateDynamicPressureData(hilTransceiver); });
+        hillificator<>(imu, enableHw,
+                       [this]() { return updateIMUData(*this); });
     }
 
 private:
@@ -72,32 +93,30 @@ private:
         assert(ts >= tsSensorData &&
                "Actual timestamp is lesser then the packet timestamp");
 
-        // Getting the index floored
-        int sampleCounter = (ts - tsSensorData) * nData / simulationPeriod;
-
-        if (sampleCounter >= nData)
+        if (ts >= tsSensorData + simulationPeriod)
         {
             // TODO: Register this as an error
             return nData - 1;  // Return the last valid index
         }
 
+        // Getting the index floored
+        int sampleCounter = (ts - tsSensorData) * nData / simulationPeriod;
+
         if (sampleCounter < 0)
         {
-            assert(false && "Calculated a negative index");
+            printf("sampleCounter: %d\n", sampleCounter);
+            assert(sampleCounter < 0 && "Calculated a negative index");
             return 0;
         }
 
         return sampleCounter;
     }
 
-    std::function<Boardcore::LPS28DFWData(void)> updateLPS28DFWData = []()
+    static Boardcore::LPS28DFWData updateLPS28DFWData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::LPS28DFWData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
-
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
@@ -110,13 +129,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::LPS22DFData(void)> updateLPS22DFData = []()
+    static Boardcore::LPS22DFData updateLPS22DFData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::LPS22DFData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
@@ -129,13 +146,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::H3LIS331DLData(void)> updateH3LIS331DLData = []()
+    static Boardcore::H3LIS331DLData updateH3LIS331DLData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::H3LIS331DLData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iAcc = getSampleCounter(sensorData->accelerometer.NDATA);
@@ -148,13 +163,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::LIS2MDLData(void)> updateLIS2MDLData = []()
+    static Boardcore::LIS2MDLData updateLIS2MDLData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::LIS2MDLData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iMag = getSampleCounter(sensorData->magnetometer.NDATA);
@@ -167,13 +180,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::UBXGPSData(void)> updateUBXGPSData = []()
+    static Boardcore::UBXGPSData updateUBXGPSData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::UBXGPSData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iGps = getSampleCounter(sensorData->gps.NDATA);
@@ -198,13 +209,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::LSM6DSRXData(void)> updateLSM6DSRXData = []()
+    static Boardcore::LSM6DSRXData updateLSM6DSRXData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::LSM6DSRXData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iAcc  = getSampleCounter(sensorData->accelerometer.NDATA);
@@ -224,14 +233,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::HSCMRNN015PAData(void)> updateStaticPressureData =
-        []()
+    static Boardcore::HSCMRNN015PAData updateStaticPressureData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::HSCMRNN015PAData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->staticPitot.NDATA);
@@ -242,14 +248,11 @@ private:
         return data;
     };
 
-    std::function<Boardcore::SSCMRNN030PAData(void)> updateDynamicPressureData =
-        []()
+    static Boardcore::SSCMRNN030PAData updateDynamicPressureData(
+        HILConfig::PayloadHILTransceiver* hilTransceiver)
     {
         Boardcore::SSCMRNN030PAData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::PayloadHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->dynamicPitot.NDATA);
@@ -260,10 +263,11 @@ private:
         return data;
     };
 
-    std::function<RotatedIMUData(void)> updateIMUData = [this]()
+    static RotatedIMUData updateIMUData(Payload::Sensors& sensors)
     {
-        return RotatedIMUData{getLSM6DSRXLastSample(), getLSM6DSRXLastSample(),
-                              getCalibratedMagnetometerLastSample()};
+        return RotatedIMUData{sensors.getLSM6DSRXLastSample(),
+                              sensors.getLSM6DSRXLastSample(),
+                              sensors.getCalibratedMagnetometerLastSample()};
     };
 
     bool enableHw;

@@ -76,14 +76,6 @@ int main()
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
 
-    // Sensors priority (MAX - 1)
-    Sensors* sensors =
-        (hilSimulationActive
-             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                              buses, false)
-             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                           buses));
-
     // Other critical components (Max - 2)
     Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
     AltitudeTrigger* altTrigger =
@@ -113,6 +105,10 @@ int main()
         new PinHandler(*scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
 
     // HIL
+
+    // Sensors priority (MAX - 1)
+    Sensors* sensors;
+
     if (hilSimulationActive)
     {
         PayloadHILTransceiver* hilTransceiver =
@@ -192,6 +188,16 @@ int main()
                 EventBroker::getInstance().post(Events::TMTC_ARM,
                                                 Topics::TOPIC_TMTC);
             });
+
+        sensors =
+            new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                           buses, hilTransceiver, false);
+    }
+    else
+    {
+
+        sensors = new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                              buses);
     }
 
     // Insert modules
