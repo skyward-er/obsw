@@ -26,6 +26,7 @@
 #include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
+#include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
 
 #include "Sensors.h"
@@ -37,15 +38,18 @@ class HILSensors : public Sensors
 {
 public:
     explicit HILSensors(Boardcore::TaskScheduler* sched, Motor::Buses* buses,
+                        HILConfig::MotorHILTransceiver* hilTransceiver,
                         bool enableHw)
         : Sensors{sched, buses}, enableHw{enableHw}
     {
         using namespace HILConfig;
         using namespace Boardcore;
 
-        hillificator<>(chamberPressure, enableHw,
-                       updateChamberPressureSensorData);
-    }
+        hillificator<>(
+            chamberPressure, enableHw,
+            [hilTransceiver]()
+            { return updateChamberPressureSensorData(hilTransceiver); });
+    };
 
     ~HILSensors(){};
 
@@ -63,32 +67,30 @@ private:
         assert(ts >= tsSensorData &&
                "Actual timestamp is lesser then the packet timestamp");
 
-        // Getting the index floored
-        int sampleCounter = (ts - tsSensorData) * nData / simulationPeriod;
-
-        if (sampleCounter >= nData)
+        if (ts >= tsSensorData + simulationPeriod)
         {
             // TODO: Register this as an error
             return nData - 1;  // Return the last valid index
         }
 
+        // Getting the index floored
+        int sampleCounter = (ts - tsSensorData) * nData / simulationPeriod;
+
         if (sampleCounter < 0)
         {
-            assert(false && "Calculated a negative index");
+            printf("sampleCounter: %d\n", sampleCounter);
+            assert(sampleCounter < 0 && "Calculated a negative index");
             return 0;
         }
 
         return sampleCounter;
     }
 
-    std::function<Boardcore::ChamberPressureSensorData(void)>
-        updateChamberPressureSensorData = []()
+    static Boardcore::ChamberPressureSensorData updateChamberPressureSensorData(
+        HILConfig::MotorHILTransceiver* hilTransceiver)
     {
         Boardcore::ChamberPressureSensorData data;
 
-        auto* hilTransceiver = static_cast<HILConfig::MotorHILTransceiver*>(
-            Boardcore::ModuleManager::getInstance()
-                .get<Boardcore::HILTransceiverBase>());
         auto* sensorData = hilTransceiver->getSensorData();
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);

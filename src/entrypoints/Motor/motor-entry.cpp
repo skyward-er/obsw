@@ -51,14 +51,10 @@ int main()
     Buses* buses              = new Buses();
     auto actuators =
         new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX));
-    auto sensors =
-        (hilSimulationActive
-             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                              buses, false)
-             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                           buses));
     auto canHandler =
         new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+
+    Sensors* sensors;
 
     // HIL
     if (hilSimulationActive)
@@ -97,6 +93,15 @@ int main()
         {
             LOG_INFO(logger, "Inserted the HIL module");
         }
+
+        sensors =
+            new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                           buses, hilTransceiver, false);
+    }
+    else
+    {
+        sensors = new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                              buses);
     }
 
     // Insert modules
