@@ -74,12 +74,6 @@ int main()
     // Create modules
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
-    Sensors* sensors =
-        (hilSimulationActive
-             ? new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                              buses, false)
-             : new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                           buses));
     NASController* nas =
         new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     ADAController* ada =
@@ -102,6 +96,8 @@ int main()
         new ABKController(scheduler->getScheduler(miosix::PRIORITY_MAX));
     FlightStatsRecorder* recorder =
         new FlightStatsRecorder(scheduler->getScheduler(miosix::MAIN_PRIORITY));
+
+    Sensors* sensors;
 
     // HIL
     if (hilSimulationActive)
@@ -190,6 +186,15 @@ int main()
                 EventBroker::getInstance().post(Events::TMTC_ARM,
                                                 Topics::TOPIC_TMTC);
             });
+
+        sensors =
+            new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                           buses, hilTransceiver, false);
+    }
+    else
+    {
+        sensors = new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
+                              buses);
     }
 
     // Insert modules
