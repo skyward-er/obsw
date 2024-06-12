@@ -380,16 +380,16 @@
             ]
         },
         {
-            "name": "stm32f767zi_bikeshed",
+            "name": "stm32f767zi_lyra_biscotto",
             "cStandard": "c11",
             "cppStandard": "c++14",
             "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
             "defines": [
                 "${defaultDefines}",
-                "_MIOSIX_BOARDNAME=stm32f767zi_bikeshed",
-                "_BOARD_STM32F767ZI_BIKESHED",
+                "_MIOSIX_BOARDNAME=stm32f767zi_lyra_biscotto",
+                "_BOARD_STM32F767ZI_LYRA_BISCOTTO",
                 "_ARCH_CORTEXM7_STM32F7",
-                "STM32F769xx",
+                "STM32F767xx",
                 "HSE_VALUE=25000000",
                 "SYSCLK_FREQ_216MHz=216000000",
                 "__ENABLE_XRAM",
@@ -398,8 +398,8 @@
             "includePath": [
                 "${defaultIncludePaths}",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
-                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_bikeshed/config",
-                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_bikeshed"
+                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_biscotto/config",
+                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_biscotto"
             ]
         }
     ],
