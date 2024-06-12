@@ -52,6 +52,12 @@ public:
 
     Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
 
+    Boardcore::TaskScheduler &getPinObserverScheduler()
+    {
+        // TODO(davide.mor): Does this make sense?
+        return sensors;
+    }
+
     Boardcore::TaskScheduler &getRadioScheduler() { return others; }
 
     Boardcore::TaskScheduler &getCanBusScheduler() { return others; }
