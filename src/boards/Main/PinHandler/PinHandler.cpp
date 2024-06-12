@@ -22,6 +22,7 @@
 
 #include "PinHandler.h"
 
+#include <Main/BoardScheduler.h>
 #include <Main/Configs/PinHandlerConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -34,33 +35,39 @@ using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
 
-PinHandler::PinHandler()
+bool PinHandler::start()
 {
-    PinObserver::getInstance().registerPinCallback(
+    ModuleManager &modules = ModuleManager::getInstance();
+    TaskScheduler &scheduler =
+        modules.get<BoardScheduler>()->getPinObserverScheduler();
+
+    pinObserver = std::make_unique<PinObserver>(scheduler, 20);
+
+    pinObserver->registerPinCallback(
         sense::detachRamp::getPin(),
         [this](PinTransition transition) { onRampPinTransition(transition); },
         Config::PinHandler::RAMP_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver->registerPinCallback(
         sense::detachMain::getPin(),
         [this](PinTransition transition)
         { onDetachMainTransition(transition); },
         Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver->registerPinCallback(
         sense::detachPayload::getPin(),
         [this](PinTransition transition)
         { onDetachPayloadTransition(transition); },
         Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD);
 
-    PinObserver::getInstance().registerPinCallback(
+    pinObserver->registerPinCallback(
         sense::expulsionSense::getPin(),
         [this](PinTransition transition)
         { onExpulsionSenseTransition(transition); },
         Config::PinHandler::EXPULSION_PIN_THRESHOLD);
-}
 
-bool PinHandler::start() { return PinObserver::getInstance().start(); }
+    return true;
+}
 
 void PinHandler::onRampPinTransition(PinTransition transition)
 {
@@ -95,17 +102,13 @@ PinData PinHandler::getPinData(PinList pin)
     switch (pin)
     {
         case PinList::RAMP_PIN:
-            return PinObserver::getInstance().getPinData(
-                sense::detachRamp::getPin());
+            return pinObserver->getPinData(sense::detachRamp::getPin());
         case PinList::DETACH_MAIN_PIN:
-            return PinObserver::getInstance().getPinData(
-                sense::detachMain::getPin());
+            return pinObserver->getPinData(sense::detachMain::getPin());
         case PinList::DETACH_PAYLOAD_PIN:
-            return PinObserver::getInstance().getPinData(
-                sense::detachPayload::getPin());
+            return pinObserver->getPinData(sense::detachPayload::getPin());
         case PinList::EXPULSION_SENSE:
-            return PinObserver::getInstance().getPinData(
-                sense::expulsionSense::getPin());
+            return pinObserver->getPinData(sense::expulsionSense::getPin());
         default:
             return PinData{};
     }

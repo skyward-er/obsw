@@ -24,6 +24,7 @@
 
 #include <utils/PinObserver/PinObserver.h>
 
+#include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
@@ -40,7 +41,7 @@ public:
         EXPULSION_SENSE
     };
 
-    PinHandler();
+    PinHandler() {}
 
     [[nodiscard]] bool start();
 
@@ -51,6 +52,8 @@ private:
     void onExpulsionSenseTransition(Boardcore::PinTransition transition);
 
     Boardcore::PinData getPinData(PinList pin);
+
+    std::unique_ptr<Boardcore::PinObserver> pinObserver;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };
