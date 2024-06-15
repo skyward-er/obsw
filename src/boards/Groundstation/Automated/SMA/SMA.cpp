@@ -63,11 +63,12 @@ bool SMA::start()
 void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 {
     if (!testState(&SMA::state_insert_info) &&
+        !testState(&SMA::state_arm_ready) &&
         !testState(&SMA::state_fix_antennas))
     {
         LOG_ERR(logger,
                 "Antenna coordinates can only be set in states: "
-                "FIX_ANTENNAS, INSERT_INFO");
+                "FIX_ANTENNAS, ARM_READY,  INSERT_INFO");
     }
     else
     {
@@ -336,7 +337,7 @@ State SMA::state_no_feedback(const Event& event)
         }
         case TMTC_ARP_DISARM:
         {
-            return transition(&SMA::state_insert_info);
+            return transition(&SMA::state_arm_ready);
         }
         default:
         {
@@ -464,6 +465,38 @@ State SMA::state_insert_info(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::INSERT_INFO);
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&SMA::state_config);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case ARP_FIX_ANTENNAS:
+        {
+            return transition(&SMA::state_arm_ready);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State SMA::state_arm_ready(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(SMAState::ARM_READY);
             return HANDLED;
         }
         case EV_EXIT:

@@ -119,8 +119,12 @@ int main()
                    TMTC_ARP_FORCE_NO_FEEDBACK);
 
     // TEST STATE: INSERT_INFO
-    TEST_STATE(state_insert_info, TMTC_ARP_ARM, TOPIC_TMTC, state_armed_nf);
-    TEST_ALL_OTHER(state_insert_info, TMTC_ARP_ARM);
+    TEST_STATE(state_insert_info, ARP_FIX_ANTENNAS, TOPIC_ARP, state_arm_ready);
+    TEST_ALL_OTHER(state_insert_info, ARP_FIX_ANTENNAS);
+
+    // TEST STATE: ARM READY
+    TEST_STATE(state_arm_ready, TMTC_ARP_ARM, TOPIC_TMTC, state_armed_nf);
+    TEST_ALL_OTHER(state_arm_ready, TMTC_ARP_ARM);
 
     // TEST STATE: ARMED
     TEST_STATE(state_armed, TMTC_ARP_DISARM, TOPIC_TMTC, state_init_done);
@@ -166,7 +170,7 @@ int main()
     TEST_ALL_OTHER(state_active, TMTC_ARP_DISARM, TMTC_ARP_RESET_ALGORITHM);
 
     // TEST STATE: ARMED_NO_FEEDBACK
-    TEST_STATE(state_armed_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_STATE(state_armed_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_arm_ready);
     TEST_STATE(state_armed_nf, TMTC_ARP_CALIBRATE, TOPIC_TMTC,
                state_fix_rocket_nf);
     TEST_STATE(state_armed_nf, TMTC_ARP_ENTER_TEST_MODE, TOPIC_TMTC,
@@ -177,20 +181,20 @@ int main()
     // TEST STATE: TEST_NO_FEEDBACK
     TEST_STATE(state_test_nf, TMTC_ARP_EXIT_TEST_MODE, TOPIC_TMTC,
                state_armed_nf);
-    TEST_STATE(state_test_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_STATE(state_test_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_arm_ready);
     TEST_ALL_OTHER(state_test_nf, TMTC_ARP_EXIT_TEST_MODE, TMTC_ARP_DISARM);
 
     // TEST STATE: FIX_ROCKET_NO_FEEDBACK
     TEST_STATE(state_fix_rocket_nf, ARP_FIX_ROCKET, TOPIC_ARP, state_active_nf);
     TEST_STATE(state_fix_rocket_nf, TMTC_ARP_DISARM, TOPIC_TMTC,
-               state_insert_info);
+               state_arm_ready);
     TEST_STATE(state_fix_rocket_nf, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
                state_armed_nf);
     TEST_ALL_OTHER(state_fix_rocket_nf, ARP_FIX_ROCKET, TMTC_ARP_DISARM,
                    TMTC_ARP_RESET_ALGORITHM);
 
     // TEST STATE: ACTIVE_NO_FEEDBACK
-    TEST_STATE(state_active_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_insert_info);
+    TEST_STATE(state_active_nf, TMTC_ARP_DISARM, TOPIC_TMTC, state_arm_ready);
     TEST_STATE(state_active_nf, TMTC_ARP_RESET_ALGORITHM, TOPIC_TMTC,
                state_armed_nf);
     TEST_ALL_OTHER(state_active_nf, TMTC_ARP_DISARM, TMTC_ARP_RESET_ALGORITHM);
