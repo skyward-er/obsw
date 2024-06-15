@@ -119,7 +119,7 @@ int main()
                    TMTC_ARP_FORCE_NO_FEEDBACK);
 
     // TEST STATE: INSERT_INFO
-    TEST_STATE(state_insert_info, ARP_FIX_ANTENNAS, TOPIC_ARP, state_armed_nf);
+    TEST_STATE(state_insert_info, ARP_FIX_ANTENNAS, TOPIC_ARP, state_arm_ready);
     TEST_ALL_OTHER(state_insert_info, ARP_FIX_ANTENNAS);
 
     // TEST STATE: ARM READY
