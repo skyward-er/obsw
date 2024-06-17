@@ -59,17 +59,18 @@ CountedPWM countedPwmY(Config::StepperConfig::SERVO2_PULSE_TIM,
                        Config::StepperConfig::SERVO2_COUNT_ITR);
 
 Actuators::Actuators()
-    : stepperX(countedPwmX, stepper1::pulseTimer::getPin(),
-               stepper1::direction::getPin(), Config::MAX_SPEED_HORIZONTAL,
-               Config::HORIZONTAL_STEP_ANGLE, false,
-               Config::HORIZONTAL_MICROSTEPPING,
+    : stepperX(countedPwmX, stepperHorizontal::pulseTimer::getPin(),
+               stepperHorizontal::direction::getPin(),
+               Config::MAX_SPEED_HORIZONTAL, Config::HORIZONTAL_STEP_ANGLE,
+               false, Config::HORIZONTAL_MICROSTEPPING,
                Stepper::PinConfiguration::COMMON_CATHODE,
-               stepper1::enable::getPin()),
-      stepperY(
-          countedPwmY, stepper2::pulseTimer::getPin(),
-          stepper2::direction::getPin(), Config::MAX_SPEED_VERTICAL,
-          Config::VERTICAL_STEP_ANGLE, true, Config::VERTICAL_MICROSTEPPING,
-          Stepper::PinConfiguration::COMMON_CATHODE, stepper2::enable::getPin())
+               stepperHorizontal::enable::getPin()),
+      stepperY(countedPwmY, stepperVertical::pulseTimer::getPin(),
+               stepperVertical::direction::getPin(), Config::MAX_SPEED_VERTICAL,
+               Config::VERTICAL_STEP_ANGLE, true,
+               Config::VERTICAL_MICROSTEPPING,
+               Stepper::PinConfiguration::COMMON_CATHODE,
+               stepperVertical::enable::getPin())
 {
 }
 
