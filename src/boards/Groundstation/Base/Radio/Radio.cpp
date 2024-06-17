@@ -26,6 +26,7 @@
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/DipReader.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Groundstation;
@@ -65,14 +66,16 @@ void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 
 bool RadioMain::start()
 {
-#ifdef SKYWARD_GS_MAIN_USE_BACKUP_RF
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(radio1::txen::getPin(),
-                                        radio1::rxen::getPin());
-#else
-    std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<Skyward433Frontend>();
-#endif
+    DipReader dipSwitch;
+    DipStatus dipStatus = dipSwitch.readDip();
+
+    std::unique_ptr<SX1278::ISX1278Frontend> frontend;
+
+    if (dipStatus.hasBackup)
+        frontend = std::make_unique<EbyteFrontend>(radio1::txen::getPin(),
+                                                   radio1::rxen::getPin());
+    else
+        frontend = std::make_unique<Skyward433Frontend>();
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
