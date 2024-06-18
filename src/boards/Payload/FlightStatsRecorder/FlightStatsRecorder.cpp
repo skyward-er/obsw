@@ -35,7 +35,7 @@ using namespace miosix;
 
 namespace Payload
 {
-FlightStatsRecorder::FlightStatsRecorder(TaskScheduler* sched)
+FlightStatsRecorder::FlightStatsRecorder(TaskScheduler& sched)
     : scheduler(sched)
 {
     // Init the data structure to avoid UB
@@ -58,8 +58,8 @@ FlightStatsRecorder::FlightStatsRecorder(TaskScheduler* sched)
 
 bool FlightStatsRecorder::start()
 {
-    return scheduler->addTask([&]() { update(); }, FSR_UPDATE_PERIOD,
-                              TaskScheduler::Policy::RECOVER);
+    return scheduler.addTask([this] { update(); }, FSR_UPDATE_PERIOD,
+                             TaskScheduler::Policy::RECOVER);
 }
 
 void FlightStatsRecorder::update()

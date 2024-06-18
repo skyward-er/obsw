@@ -61,44 +61,33 @@ int main()
     bool initResult    = true;
     PrintLogger logger = Logging::getLogger("Payload");
 
-    // Scheduler
-    BoardScheduler* scheduler = new BoardScheduler();
+    auto buses     = new Buses();
+    auto scheduler = new BoardScheduler();
 
-    // Nas priority (Max priority)
-    NASController* nas =
-        new NASController(scheduler->getScheduler(miosix::PRIORITY_MAX));
+    // Attitude estimation are critical components
+    auto nas     = new NASController(scheduler->getCriticalScheduler());
+    auto sensors = new Sensors(scheduler->getHighScheduler());
 
-    // Sensors priority (MAX - 1)
-    Sensors* sensors =
-        new Sensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1));
+    // Radio and CAN
+    auto radio      = new Radio(scheduler->getMediumScheduler());
+    auto canHandler = new CanHandler(scheduler->getMediumScheduler());
 
-    // Other critical components (Max - 2)
-    Radio* radio = new Radio(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    AltitudeTrigger* altTrigger =
-        new AltitudeTrigger(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    WingController* wingController =
-        new WingController(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    VerticalVelocityTrigger* verticalVelocityTrigger =
-        new VerticalVelocityTrigger(
-            scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    WindEstimation* windEstimation =
-        new WindEstimation(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
-    CanHandler* canHandler =
-        new CanHandler(scheduler->getScheduler(miosix::PRIORITY_MAX - 2));
+    // Flight algorithms
+    auto altTrigger     = new AltitudeTrigger(scheduler->getMediumScheduler());
+    auto wingController = new WingController(scheduler->getMediumScheduler());
+    auto verticalVelocityTrigger =
+        new VerticalVelocityTrigger(scheduler->getMediumScheduler());
+    auto windEstimation = new WindEstimation(scheduler->getMediumScheduler());
 
-    // Non critical components (Max - 3)
     // Actuators is considered non-critical since the scheduler is only used for
     // the led and buzzer tasks
-    Actuators* actuators =
-        new Actuators(scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
-    FlightStatsRecorder* statesRecorder = new FlightStatsRecorder(
-        scheduler->getScheduler(miosix::PRIORITY_MAX - 3));
+    auto actuators      = new Actuators(scheduler->getLowScheduler());
+    auto statesRecorder = new FlightStatsRecorder(scheduler->getLowScheduler());
 
     // Components without a scheduler
-    TMRepository* tmRepo   = new TMRepository();
-    FlightModeManager* fmm = new FlightModeManager();
-    Buses* buses           = new Buses();
-    PinHandler* pinHandler = new PinHandler();
+    auto tmRepo     = new TMRepository();
+    auto fmm        = new FlightModeManager();
+    auto pinHandler = new PinHandler();
 
     // Insert modules
     if (!modules.insert<BoardScheduler>(scheduler))

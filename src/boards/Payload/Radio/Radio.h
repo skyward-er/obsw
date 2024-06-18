@@ -38,7 +38,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
 class Radio : public Boardcore::Module
 {
 public:
-    Radio(Boardcore::TaskScheduler* sched);
+    Radio(Boardcore::TaskScheduler& sched);
 
     /**
      * @brief Starts the MavlinkDriver
@@ -97,7 +97,7 @@ private:
     miosix::FastMutex queueMutex;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload

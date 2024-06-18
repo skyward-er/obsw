@@ -29,22 +29,21 @@
 
 #include <functional>
 
-using namespace std;
 using namespace Boardcore;
 using namespace Common;
 
 namespace Payload
 {
 
-VerticalVelocityTrigger::VerticalVelocityTrigger(TaskScheduler* sched)
+VerticalVelocityTrigger::VerticalVelocityTrigger(TaskScheduler& sched)
     : running(false), confidence(0), scheduler(sched)
 {
 }
 
 bool VerticalVelocityTrigger::start()
 {
-    return scheduler->addTask(
-        bind(&VerticalVelocityTrigger::update, this),
+    return scheduler.addTask(
+        [this] { update(); },
         FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);
 }
 

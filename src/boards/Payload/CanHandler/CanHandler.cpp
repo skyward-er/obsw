@@ -30,8 +30,6 @@
 
 #include <functional>
 
-using namespace std;
-using namespace placeholders;
 using namespace Boardcore;
 using namespace Canbus;
 using namespace Common;
@@ -41,17 +39,18 @@ using namespace Payload::CanHandlerConfig;
 namespace Payload
 {
 
-CanHandler::CanHandler(TaskScheduler *sched) : scheduler(sched)
+CanHandler::CanHandler(TaskScheduler& sched) : scheduler(sched)
 {
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;
     bitTiming.samplePoint = SAMPLE_POINT;
+
     CanbusDriver::CanbusConfig config;
     driver = new CanbusDriver(CAN2, config, bitTiming);
 
-    protocol =
-        new CanProtocol(driver, bind(&CanHandler::handleCanMessage, this, _1),
-                        miosix::PRIORITY_MAX - 1);
+    protocol = new CanProtocol(
+        driver, [this](auto msg) { handleCanMessage(msg); },
+        miosix::PRIORITY_MAX - 1);
 
     // Accept messages only from the main and RIG board
     protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
@@ -65,7 +64,7 @@ bool CanHandler::start()
 {
     bool result;
     // Add a task to periodically send the pitot data
-    result = scheduler->addTask(  // sensor template
+    result = scheduler.addTask(  // sensor template
                  [&]()
                  {
                      protocol->enqueueData(
@@ -82,7 +81,7 @@ bool CanHandler::start()
 
     result =
         result &&
-        scheduler->addTask(  // status
+        scheduler.addTask(  // status
             [&]()
             {
                 FlightModeManagerState state = ModuleManager::getInstance()
@@ -112,7 +111,7 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
-void CanHandler::handleCanMessage(const CanMessage &msg)
+void CanHandler::handleCanMessage(const CanMessage& msg)
 {
     PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
 
@@ -132,7 +131,7 @@ void CanHandler::handleCanMessage(const CanMessage &msg)
     }
 }
 
-void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage& msg)
 {
     EventId eventId = static_cast<EventId>(msg.getSecondaryType());
 

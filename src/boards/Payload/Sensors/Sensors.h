@@ -49,7 +49,7 @@ namespace Payload
 class Sensors : public Boardcore::Module
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler* sched);
+    explicit Sensors(Boardcore::TaskScheduler& sched);
 
     [[nodiscard]] bool start();
 
@@ -164,7 +164,7 @@ private:
     // Sensor manager
     Boardcore::SensorManager* manager = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorMap;
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 
     uint8_t sensorsCounter;
 

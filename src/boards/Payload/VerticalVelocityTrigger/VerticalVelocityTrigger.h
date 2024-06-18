@@ -44,7 +44,7 @@ public:
      * Default constructor for VerticalVelocityTrigger
      * Sets the trigger to disabled by default
      */
-    VerticalVelocityTrigger(Boardcore::TaskScheduler* sched);
+    explicit VerticalVelocityTrigger(Boardcore::TaskScheduler& sched);
 
     /**
      * Starts the module by inserting it in the BoardScheduler
@@ -84,7 +84,7 @@ private:
     // threshold
     std::atomic<int> confidence;
 
-    Boardcore::TaskScheduler* scheduler;
+    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload
