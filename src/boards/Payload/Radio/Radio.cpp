@@ -73,7 +73,7 @@ void __attribute__((used)) SX1278_IRQ_DIO3()
 namespace Payload
 {
 
-Radio::Radio(TaskScheduler* sched) : scheduler(sched) {}
+Radio::Radio(TaskScheduler& sched) : scheduler(sched) {}
 
 bool Radio::start()
 {
@@ -105,10 +105,10 @@ bool Radio::start()
 
     // Add periodic telemetry send task
     uint8_t result =
-        scheduler->addTask([&]() { this->sendPeriodicMessage(); },
-                           RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
-                           TaskScheduler::Policy::RECOVER);
-    result *= scheduler->addTask(
+        scheduler.addTask([&]() { this->sendPeriodicMessage(); },
+                          RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD,
+                          TaskScheduler::Policy::RECOVER);
+    result *= scheduler.addTask(
         [&]()
         {
             this->enqueueMsg(
@@ -119,8 +119,7 @@ bool Radio::start()
 
     // Config mavDriver
     mavDriver = new MavDriver(
-        transceiver,
-        [=](MavDriver*, const mavlink_message_t& msg)
+        transceiver, [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
         RadioConfig::RADIO_SLEEP_AFTER_SEND,
         RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);
@@ -157,7 +156,7 @@ void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
 bool Radio::isStarted()
 {
-    return mavDriver->isStarted() && scheduler->isRunning();
+    return mavDriver->isStarted() && scheduler.isRunning();
 }
 
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
