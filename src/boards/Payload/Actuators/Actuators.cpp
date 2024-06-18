@@ -35,7 +35,7 @@ using namespace Payload::ActuatorsConfigs;
 namespace Payload
 {
 
-Actuators::Actuators(Boardcore::TaskScheduler* sched) : scheduler(sched)
+Actuators::Actuators(Boardcore::TaskScheduler& sched) : scheduler(sched)
 {
     leftServo  = new Servo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
                            LEFT_SERVO_MAX_PULSE);
@@ -56,8 +56,8 @@ bool Actuators::start()
 
     // Signaling Devices configurations
 
-    return scheduler->addTask([&]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD,
-                              TaskScheduler::Policy::RECOVER) != 0;
+    return scheduler.addTask([this]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD,
+                             TaskScheduler::Policy::RECOVER) != 0;
 }
 
 bool Actuators::setServo(ServosList servoId, float percentage)

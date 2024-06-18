@@ -31,11 +31,11 @@
 
 using namespace Boardcore;
 using namespace Eigen;
-using namespace std;
 using namespace Common;
+
 namespace Payload
 {
-NASController::NASController(TaskScheduler* sched)
+NASController::NASController(TaskScheduler& sched)
     : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
 {
     // Subscribe the class to the topics
@@ -64,9 +64,9 @@ NASController::NASController(TaskScheduler* sched)
 bool NASController::start()
 {
     // Add the task to the scheduler
-    size_t result = scheduler->addTask(bind(&NASController::update, this),
-                                       NASConfig::UPDATE_PERIOD,
-                                       TaskScheduler::Policy::RECOVER);
+    size_t result =
+        scheduler.addTask([this] { update(); }, NASConfig::UPDATE_PERIOD,
+                          TaskScheduler::Policy::RECOVER);
 
     return ActiveObject::start() && result != 0;
 }

@@ -47,7 +47,7 @@ using namespace miosix;
 namespace Payload
 {
 
-WingController::WingController(TaskScheduler* sched)
+WingController::WingController(TaskScheduler& sched)
     : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0),
       scheduler(sched)
 {
@@ -59,8 +59,7 @@ WingController::WingController(TaskScheduler* sched)
 
 bool WingController::start()
 {
-    return scheduler->addTask(std::bind(&WingController::update, this),
-                              WING_UPDATE_PERIOD) &&
+    return scheduler.addTask([this] { update(); }, WING_UPDATE_PERIOD) &&
            addAlgorithms() && HSM::start();
 }
 

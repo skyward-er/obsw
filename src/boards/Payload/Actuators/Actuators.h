@@ -34,7 +34,7 @@ namespace Payload
 
 struct Actuators : public Boardcore::Module
 {
-    explicit Actuators(Boardcore::TaskScheduler* sched);
+    explicit Actuators(Boardcore::TaskScheduler& sched);
 
     [[nodiscard]] bool start();
 
@@ -119,10 +119,10 @@ private:
      */
     void updateBuzzer();
 
-    Boardcore::TaskScheduler* scheduler = nullptr;
-    Boardcore::Servo* leftServo         = nullptr;
-    Boardcore::Servo* rightServo        = nullptr;
-    Boardcore::PWM* buzzer              = nullptr;
+    Boardcore::TaskScheduler& scheduler;
+    Boardcore::Servo* leftServo  = nullptr;
+    Boardcore::Servo* rightServo = nullptr;
+    Boardcore::PWM* buzzer       = nullptr;
 
     // mutexes
     miosix::FastMutex leftServoMutex;

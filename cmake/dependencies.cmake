@@ -73,7 +73,6 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/CanHandler/CanHandler.cpp
     src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/boards/Payload/Sensors/Sensors.cpp
-    src/boards/Payload/BoardScheduler.cpp
     src/boards/Payload/PinHandler/PinHandler.cpp
     src/boards/Payload/Radio/Radio.cpp
     src/boards/Payload/TMRepository/TMRepository.cpp

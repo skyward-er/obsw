@@ -46,7 +46,7 @@ public:
      * @warning With Payload motherboard CanDriver initialization could be
      * blocking
      */
-    explicit CanHandler(Boardcore::TaskScheduler *sched);
+    explicit CanHandler(Boardcore::TaskScheduler& sched);
 
     /**
      * @brief Starts the protocol and adds the periodic messages to the task
@@ -72,19 +72,19 @@ private:
     /**
      * @brief Function called by CanProtocol when a new message is received
      */
-    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleCanMessage(const Boardcore::Canbus::CanMessage& msg);
 
     /**
      * @brief Converts the received CanEvent in Event and post it on TOPIC_CAN
      */
-    void handleCanEvent(const Boardcore::Canbus::CanMessage &msg);
+    void handleCanEvent(const Boardcore::Canbus::CanMessage& msg);
 
-    Boardcore::Canbus::CanbusDriver *driver;
-    Boardcore::Canbus::CanProtocol *protocol;
+    Boardcore::Canbus::CanbusDriver* driver;
+    Boardcore::Canbus::CanProtocol* protocol;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
-    Boardcore::TaskScheduler *scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload
