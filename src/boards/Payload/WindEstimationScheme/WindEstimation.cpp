@@ -33,12 +33,11 @@
 using namespace Payload::WESConfig;
 using namespace Boardcore;
 using namespace Common;
-using namespace miosix;
 
 namespace Payload
 {
 
-WindEstimation::WindEstimation(TaskScheduler* sched)
+WindEstimation::WindEstimation(TaskScheduler& sched)
     : running(false), calRunning(false), scheduler(sched)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
@@ -46,13 +45,12 @@ WindEstimation::WindEstimation(TaskScheduler* sched)
 
 bool WindEstimation::start()
 {
-    scheduler->addTask(
-        std::bind(&WindEstimation::windEstimationSchemeCalibration, this),
-        WES_CALIBRATION_UPDATE_PERIOD);
+    scheduler.addTask([this] { windEstimationSchemeCalibration(); },
+                      WES_CALIBRATION_UPDATE_PERIOD);
 
     // Register the WES task
-    scheduler->addTask(std::bind(&WindEstimation::windEstimationScheme, this),
-                       WES_PREDICTION_UPDATE_PERIOD);
+    scheduler.addTask([this] { windEstimationScheme(); },
+                      WES_PREDICTION_UPDATE_PERIOD);
 
     return true;
 }

@@ -165,7 +165,7 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
     return result;
 }
 
-Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
+Sensors::Sensors(TaskScheduler& sched) : scheduler(sched), sensorsCounter(0) {}
 
 bool Sensors::start()
 {
@@ -186,7 +186,7 @@ bool Sensors::start()
     imuInit();
 
     // Add the magnetometer calibration to the scheduler
-    size_t result = scheduler->addTask(
+    size_t result = scheduler.addTask(
         [&]()
         {
             // Gather the last sample data
@@ -203,7 +203,7 @@ bool Sensors::start()
         MAG_CALIBRATION_PERIOD);
 
     // Create sensor manager with populated map and configured scheduler
-    manager = new SensorManager(sensorMap, scheduler);
+    manager = new SensorManager(sensorMap, &scheduler);
     return manager->start() && result != 0;
 }
 
@@ -211,7 +211,7 @@ void Sensors::stop() { manager->stop(); }
 
 bool Sensors::isStarted()
 {
-    return manager->areAllSensorsInitialized() && scheduler->isRunning();
+    return manager->areAllSensorsInitialized() && scheduler.isRunning();
 }
 
 void Sensors::calibrate()

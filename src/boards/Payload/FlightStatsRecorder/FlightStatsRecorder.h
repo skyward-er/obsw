@@ -37,7 +37,7 @@ namespace Payload
 class FlightStatsRecorder : public Boardcore::Module
 {
 public:
-    FlightStatsRecorder(Boardcore::TaskScheduler* sched);
+    explicit FlightStatsRecorder(Boardcore::TaskScheduler& sched);
 
     /**
      * @brief Adds a task to the scheduler to update the stats
@@ -69,7 +69,7 @@ private:
                    Boardcore::NASState data);
 
     // Update scheduler to update all the data
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 
     // Data structure
     mavlink_payload_stats_tm_t stats;

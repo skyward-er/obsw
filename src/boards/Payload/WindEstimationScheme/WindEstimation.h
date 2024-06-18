@@ -32,6 +32,7 @@
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "WindEstimationData.h"
+
 namespace Payload
 {
 
@@ -45,7 +46,7 @@ public:
     /**
      * @brief Construct a new Wing Controller object
      */
-    explicit WindEstimation(Boardcore::TaskScheduler* sched);
+    explicit WindEstimation(Boardcore::TaskScheduler& sched);
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -125,6 +126,6 @@ private:
     std::atomic<bool> running;
     std::atomic<bool> calRunning;
 
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 };
 }  // namespace Payload

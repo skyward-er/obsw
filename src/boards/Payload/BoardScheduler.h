@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,29 +34,48 @@ namespace Payload
 class BoardScheduler : public Boardcore::Module
 {
 public:
-    BoardScheduler();
+    /**
+     * @brief Returns the scheduler for critical tasks (highest priority)
+     */
+    Boardcore::TaskScheduler& getCriticalScheduler() { return critical; }
 
     /**
-     * @brief Get the Scheduler object relative to the requested priority
-     *
-     * @param priority The task scheduler priority
-     * @return Boardcore::TaskScheduler& Reference to the requested task
-     * scheduler.
-     * @note Min priority scheduler is returned in case of non valid priority.
+     * @brief Returns the scheduler for high priority tasks
      */
-    Boardcore::TaskScheduler* getScheduler(miosix::Priority priority);
+    Boardcore::TaskScheduler& getHighScheduler() { return high; }
 
-    [[nodiscard]] bool start();
+    /**
+     * @brief Returns the scheduler for medium priority tasks
+     */
+    Boardcore::TaskScheduler& getMediumScheduler() { return medium; }
+
+    /**
+     * @brief Returns the scheduler for low priority tasks (lowest priority)
+     */
+    Boardcore::TaskScheduler& getLowScheduler() { return low; }
+
+    /**
+     * @brief Starts all the schedulers
+     */
+    [[nodiscard]] bool start()
+    {
+        return critical.start() && high.start() && medium.start() &&
+               low.start();
+    }
 
     /**
      * @brief Returns if all the schedulers are up and running
      */
-    bool isStarted();
+    bool isStarted()
+    {
+        return critical.isRunning() && high.isRunning() && medium.isRunning() &&
+               low.isRunning();
+    }
 
 private:
-    Boardcore::TaskScheduler* scheduler1;
-    Boardcore::TaskScheduler* scheduler2;
-    Boardcore::TaskScheduler* scheduler3;
-    Boardcore::TaskScheduler* scheduler4;
+    Boardcore::TaskScheduler critical{miosix::PRIORITY_MAX - 1};
+    Boardcore::TaskScheduler high{miosix::PRIORITY_MAX - 2};
+    Boardcore::TaskScheduler medium{miosix::PRIORITY_MAX - 3};
+    Boardcore::TaskScheduler low{miosix::PRIORITY_MAX - 4};
 };
 }  // namespace Payload

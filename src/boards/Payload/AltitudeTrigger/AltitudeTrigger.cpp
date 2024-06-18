@@ -34,7 +34,7 @@ using namespace Common;
 namespace Payload
 {
 
-AltitudeTrigger::AltitudeTrigger(TaskScheduler *sched)
+AltitudeTrigger::AltitudeTrigger(TaskScheduler& sched)
     : running(false), confidence(0),
       deploymentAltitude(WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE),
       scheduler(sched)
@@ -43,8 +43,8 @@ AltitudeTrigger::AltitudeTrigger(TaskScheduler *sched)
 
 bool AltitudeTrigger::start()
 {
-    return (scheduler->addTask(std::bind(&AltitudeTrigger::update, this),
-                               WingConfig::ALTITUDE_TRIGGER_PERIOD) != 0);
+    return (scheduler.addTask([this] { update(); },
+                              WingConfig::ALTITUDE_TRIGGER_PERIOD) != 0);
 }
 
 void AltitudeTrigger::enable()

@@ -33,7 +33,7 @@ namespace Payload
 class AltitudeTrigger : public Boardcore::Module
 {
 public:
-    explicit AltitudeTrigger(Boardcore::TaskScheduler *sched);
+    explicit AltitudeTrigger(Boardcore::TaskScheduler &sched);
 
     /**
      * @brief Adds the update() task to the task scheduler.
@@ -61,21 +61,19 @@ public:
     void setDeploymentAltitude(float altitude);
 
 private:
-    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-    // altitude is reached
+    /**
+     * @brief Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
+     * altitude is reached
+     */
     void update();
 
     bool running;
-
-    // Number of times that the algorithm detects to be below the fixed
-    // altitude
-    int confidence;
-
+    int confidence;  ///< Number of times that the algorithm detects to be below
+                     ///< the fixed altitude
     float deploymentAltitude;
 
     miosix::FastMutex mutex;
-
-    Boardcore::TaskScheduler *scheduler = nullptr;
+    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Payload

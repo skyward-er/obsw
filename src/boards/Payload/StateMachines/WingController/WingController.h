@@ -57,20 +57,23 @@ namespace Payload
 {
 class WingController : public Boardcore::HSM<WingController>,
                        public Boardcore::Module
-
 {
-
 public:
-    Boardcore::State state_idle(const Boardcore::Event& event);
-    Boardcore::State state_flying(const Boardcore::Event& event);
-    Boardcore::State state_calibration(const Boardcore::Event& event);
-    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
-    Boardcore::State state_on_ground(const Boardcore::Event& event);
+    /**
+     * @brief Construct a new Wing Controller object
+     */
+    explicit WingController(Boardcore::TaskScheduler& sched);
 
     /**
      * @brief Destroy the Wing Controller object.
      */
     ~WingController();
+
+    Boardcore::State state_idle(const Boardcore::Event& event);
+    Boardcore::State state_flying(const Boardcore::Event& event);
+    Boardcore::State state_calibration(const Boardcore::Event& event);
+    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
+    Boardcore::State state_on_ground(const Boardcore::Event& event);
 
     /**
      * @brief Method to set the target position.
@@ -87,11 +90,6 @@ public:
     bool selectAlgorithm(unsigned int index);
 
     WingControllerStatus getStatus();
-
-    /**
-     * @brief Construct a new Wing Controller object
-     */
-    explicit WingController(Boardcore::TaskScheduler* sched);
 
     bool start() override;
 
@@ -177,6 +175,6 @@ private:
 
     void update();
 
-    Boardcore::TaskScheduler* scheduler = nullptr;
+    Boardcore::TaskScheduler& scheduler;
 };
 }  // namespace Payload
