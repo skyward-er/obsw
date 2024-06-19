@@ -122,7 +122,7 @@ sbs_target(test-actuators stm32f767zi_automated_antennas)
 
 add_executable(lyra-gs-entry
     src/entrypoints/Groundstation/lyra-gs-entry.cpp
-    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
+    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED} ${GROUNDSTATION_BASE}
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)

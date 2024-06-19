@@ -31,6 +31,15 @@ class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
+
+    RadioMain(bool hasBackup, uint8_t ipConfig)
+        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
+
+    RadioMain() : hasBackup{false}, ipConfig{0} {};
+
+private:
+    bool hasBackup   = false;
+    uint8_t ipConfig = 0;
 };
 
 }  // namespace Antennas

@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 /**
@@ -29,12 +30,7 @@ struct DipStatus
 {
     bool isARP;
     bool hasBackup;
-    bool ip0;
-    bool ip1;
-    bool ip2;
-    bool ip3;
-    bool ip4;
-    bool ip5;
+    uint8_t ipConfig;
 };
 
 /**
@@ -46,6 +42,7 @@ public:
     static DipStatus readDip()
     {
         DipStatus dipReading;
+        dipReading.ipConfig = 0;
 
         // Write to the shift register (CS == Not LD)
         miosix::dipSwitch::sh::low();
@@ -58,12 +55,12 @@ public:
         // Read first register GS(0)/ARP(1)
         dipReading.isARP     = readBit();
         dipReading.hasBackup = readBit();
-        dipReading.ip0       = readBit();
-        dipReading.ip1       = readBit();
-        dipReading.ip2       = readBit();
-        dipReading.ip3       = readBit();
-        dipReading.ip4       = readBit();
-        dipReading.ip5       = readBit();
+        dipReading.ipConfig |= readBit();
+        dipReading.ipConfig |= readBit() << 1;
+        dipReading.ipConfig |= readBit() << 2;
+        dipReading.ipConfig |= readBit() << 3;
+        dipReading.ipConfig |= readBit() << 4;
+        dipReading.ipConfig |= readBit() << 5;
 
         return dipReading;
     }
