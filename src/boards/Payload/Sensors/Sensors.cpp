@@ -30,6 +30,8 @@
 using namespace Boardcore;
 using namespace std;
 using namespace Payload::SensorsConfig;
+namespace sensors = miosix::sensors;
+
 namespace Payload
 {
 LPS22DFData Sensors::getLPS22DFLastSample()
@@ -412,7 +414,7 @@ void Sensors::ubxgpsInit()
 
     // Create sensor instance with configured parameters
     ubxgps = new UBXGPSSpi(modules.get<Buses>()->spi4,
-                           miosix::sensors::GPS::cs::getPin(), config, 5);
+                           miosix::sensors::UBXGps::cs::getPin(), config, 5);
 
     // Emplace the sensor inside the map
     SensorInfo info("UBXGPS", UBXGPS_PERIOD,
@@ -485,9 +487,9 @@ void Sensors::ads131m08Init()
     sensorConfig.globalChopModeEnabled = ADS131M08_GLOBAL_CHOP_MODE;
 
     // Create the sensor instance with configured parameters
-    ads131m08 = new ADS131M08(modules.get<Buses>()->spi4,
-                              miosix::sensors::ADS131::cs::getPin(), config,
-                              sensorConfig);
+    ads131m08 =
+        new ADS131M08(modules.get<Buses>()->spi4,
+                      sensors::ADS131M08::cs::getPin(), config, sensorConfig);
 
     // Emplace the sensor inside the map
     SensorInfo info("ADS131M08", ADS131M08_PERIOD,
