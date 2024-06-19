@@ -30,13 +30,9 @@
 
 #include <functional>
 
-using namespace std::placeholders;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
-
-// TODO change hwmapping for Euroc this is need to have the right name
-using nosecone_detach = gpios::liftoff_detach;
 
 namespace Payload
 {
@@ -60,7 +56,7 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
     std::map<PinsList, PinData> data;
 
     data[PinsList::NOSECONE_PIN] =
-        pin_observer.getPinData(nosecone_detach::getPin());
+        pin_observer.getPinData(sense::detachPayload::getPin());
 
     return data;
 }
@@ -68,8 +64,8 @@ std::map<PinsList, PinData> PinHandler::getPinsData()
 PinHandler::PinHandler() : running(false), scheduler(), pin_observer(scheduler)
 {
     pin_observer.registerPinCallback(
-        nosecone_detach::getPin(),
-        std::bind(&PinHandler::onExpulsionPinTransition, this, _1),
+        sense::detachPayload::getPin(),
+        [this](auto t) { onExpulsionPinTransition(t); },
         NC_DETACH_PIN_THRESHOLD);
 }
 }  // namespace Payload

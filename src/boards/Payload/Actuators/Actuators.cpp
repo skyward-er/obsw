@@ -214,13 +214,13 @@ float Actuators::getServoAngle(ServosList servoId)
     return 0;
 }
 
-void Actuators::cuttersOn() { gpios::cut_trigger::high(); }
+void Actuators::cuttersOn() { gpios::mainDeploy::high(); }
 
-void Actuators::cuttersOff() { gpios::cut_trigger::low(); }
+void Actuators::cuttersOff() { gpios::mainDeploy::low(); }
 
-void Actuators::camOn() { gpios::camera_enable::high(); }
+void Actuators::camOn() { gpios::camEnable::high(); }
 
-void Actuators::camOff() { gpios::camera_enable::low(); }
+void Actuators::camOff() { gpios::camEnable::low(); }
 
 void Actuators::buzzerArmed()
 {
