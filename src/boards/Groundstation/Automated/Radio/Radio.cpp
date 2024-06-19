@@ -26,7 +26,6 @@
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include <Groundstation/DipReader.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
@@ -54,23 +53,20 @@ namespace Antennas
 
 bool RadioMain::start()
 {
-    DipReader dipSwitch;
-    DipStatus dipStatus = dipSwitch.readDip();
+    std::unique_ptr<Boardcore::SX1278Fsk> sx1278;
 
     std::unique_ptr<SX1278::ISX1278Frontend> frontend;
 
-    if (dipStatus.hasBackup)
-        frontend = std::make_unique<EbyteFrontend>(radio1::txen::getPin(),
-                                                   radio1::rxen::getPin());
+    if (hasBackup)
+        frontend = std::make_unique<EbyteFrontend>(radio::txen::getPin(),
+                                                   radio::rxen::getPin());
     else
         frontend = std::make_unique<Skyward433Frontend>();
 
-    std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
-        std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Antennas::Buses>()->radio_bus,
-            radio::cs::getPin(), radio::dio0::getPin(), radio::dio1::getPin(),
-            radio::dio3::getPin(), SPI::ClockDivider::DIV_64,
-            std::move(frontend));
+    sx1278 = std::make_unique<Boardcore::SX1278Fsk>(
+        ModuleManager::getInstance().get<Antennas::Buses>()->radio_bus,
+        radio::cs::getPin(), radio::dio0::getPin(), radio::dio1::getPin(),
+        radio::dio3::getPin(), SPI::ClockDivider::DIV_64, std::move(frontend));
 
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
