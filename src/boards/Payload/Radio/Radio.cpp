@@ -119,7 +119,8 @@ bool Radio::start()
 
     // Config mavDriver
     mavDriver = new MavDriver(
-        transceiver, [=](MavDriver*, const mavlink_message_t& msg)
+        transceiver,
+        [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
         RadioConfig::RADIO_SLEEP_AFTER_SEND,
         RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);

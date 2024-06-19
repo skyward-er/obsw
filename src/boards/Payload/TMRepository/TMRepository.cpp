@@ -234,7 +234,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                   .lastState;
 
             tm.cutter_presence =
-                static_cast<uint8_t>(miosix::gpios::cut_sense::value());
+                static_cast<uint8_t>(adcs::cutterSense::value());
 
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
