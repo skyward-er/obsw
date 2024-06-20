@@ -108,7 +108,8 @@ void RadioBase::run()
         miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
 
         // If enough time has passed, automatically flush.
-        if (Boardcore::Kernel::getOldTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        if (Boardcore::Kernel::getOldTick() >
+            last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
         {
             flush();
         }
