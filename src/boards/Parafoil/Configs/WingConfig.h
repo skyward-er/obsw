@@ -55,7 +55,7 @@ constexpr float DEFAULT_TARGET_LON = 9.1544219;
 
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
 
-constexpr int WING_UPDATE_PERIOD = 500;  // [ms]
+constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
 constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
 constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
