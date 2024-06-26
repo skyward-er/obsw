@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,14 +52,27 @@ using namespace Boardcore;
 using namespace Payload;
 using namespace Common;
 
+/**
+ * Starts a module and checks if it started correctly.
+ * Must be followed by a semicolon or a block of code.
+ * The block of code will be executed only if the module starts correctly.
+ *
+ * @example START_MODULE(Sensors) { miosix::ledOn(); }
+ */
+#define START_MODULE(class)                                      \
+    if (!modules.get<class>()->start())                          \
+    {                                                            \
+        initResult = false;                                      \
+        LOG_ERR(logger, "Error starting the " #class " module"); \
+    }                                                            \
+    else
+
 int main()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
+    miosix::ledOff();
 
-    // Overall status, if at some point it becomes false, there is a problem
-    // somewhere
-    bool initResult    = true;
-    PrintLogger logger = Logging::getLogger("Payload");
+    ModuleManager &modules = ModuleManager::getInstance();
+    PrintLogger logger     = Logging::getLogger("Payload");
 
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
@@ -90,94 +103,22 @@ int main()
     auto pinHandler = new PinHandler();
 
     // Insert modules
-    if (!modules.insert<BoardScheduler>(scheduler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Board Scheduler module");
-    }
+    bool initResult =
+        modules.insert(buses) && modules.insert(scheduler) &&
+        modules.insert(nas) &&
+        modules.insert(sensors) & modules.insert(radio) &&
+        modules.insert(altTrigger) && modules.insert(wingController) &&
+        modules.insert(verticalVelocityTrigger) &&
+        modules.insert(windEstimation) && modules.insert(canHandler) &&
+        modules.insert(actuators) && modules.insert(statesRecorder) &&
+        modules.insert(tmRepo) && modules.insert(fmm) &&
+        modules.insert(pinHandler);
 
-    if (!modules.insert<Buses>(buses))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Buses module");
-    }
-
-    if (!modules.insert<Sensors>(sensors))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Sensor module");
-    }
-
-    if (!modules.insert<NASController>(nas))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the NAS module");
-    }
-
-    if (!modules.insert<FlightModeManager>(fmm))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the FMM module");
-    }
-    if (!modules.insert<Radio>(radio))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Radio module");
-    }
-
-    if (!modules.insert<TMRepository>(tmRepo))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the TMRepository module");
-    }
-
-    if (!modules.insert<Actuators>(actuators))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Actuators module");
-    }
-
-    if (!modules.insert<AltitudeTrigger>(altTrigger))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the Altitude Trigger module");
-    }
-
-    if (!modules.insert<WingController>(wingController))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the WingController module");
-    }
-
-    if (!modules.insert<WindEstimation>(windEstimation))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the WindEstimation module");
-    }
-
-    if (!modules.insert<PinHandler>(pinHandler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the PinHandler module");
-    }
-
-    if (!modules.insert<VerticalVelocityTrigger>(verticalVelocityTrigger))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the VerticalVelocityTrigger module");
-    }
-
-    if (!modules.insert<CanHandler>(canHandler))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the CanHandler module");
-    }
-
-    if (!modules.insert<FlightStatsRecorder>(statesRecorder))
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error inserting the FlightStatsRecorder module");
-    }
+    /* Status led indicators
+    led1: Sensors ok
+    led2: Radio ok
+    led3: CanBus ok
+    led4: Everything ok */
 
     // Start modules
     if (!Logger::getInstance().start())
@@ -192,83 +133,23 @@ int main()
         LOG_ERR(logger, "Error starting the EventBroker module");
     }
 
-    if (!modules.get<Sensors>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Sensors module");
-    }
+    START_MODULE(NASController);
+    START_MODULE(Sensors) { miosix::led1On(); }
+    START_MODULE(Radio) { miosix::led2On(); }
+    START_MODULE(CanHandler) { miosix::led3On(); }
 
-    if (!modules.get<NASController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the NAS module");
-    }
+    START_MODULE(AltitudeTrigger);
+    START_MODULE(WingController);
+    START_MODULE(VerticalVelocityTrigger);
+    START_MODULE(WindEstimation);
 
-    if (!modules.get<FlightModeManager>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the FMM module");
-    }
+    START_MODULE(Actuators);
+    START_MODULE(FlightStatsRecorder);
 
-    if (!modules.get<Radio>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Radio module");
-    }
+    START_MODULE(FlightModeManager);
+    START_MODULE(PinHandler);
 
-    if (!modules.get<Actuators>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Actuators module");
-    }
-
-    if (!modules.get<AltitudeTrigger>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the AltitudeTrigger module");
-    }
-
-    if (!modules.get<WingController>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the WingController module");
-    }
-
-    if (!modules.get<WindEstimation>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the WindEstimation module");
-    }
-
-    if (!modules.get<PinHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the PinHandler module");
-    }
-
-    if (!modules.get<VerticalVelocityTrigger>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the VerticalVelocityTrigger module");
-    }
-
-    if (!modules.get<CanHandler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the CanHandler module");
-    }
-
-    if (!modules.get<FlightStatsRecorder>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the FlightStatsRecorder module");
-    }
-
-    if (!modules.get<BoardScheduler>()->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Board Scheduler module");
-    }
+    START_MODULE(BoardScheduler);
 
     // Log all the events
     EventSniffer sniffer(
@@ -279,14 +160,13 @@ int main()
             Logger::getInstance().log(ev);
         });
 
-    // Check the init result and launch an event
     if (initResult)
     {
         // Post OK
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
 
         // Set the LED status
-        miosix::led1On();
+        miosix::led4On();
     }
     else
     {
