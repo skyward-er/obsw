@@ -164,7 +164,7 @@ int main()
                 canHandler->sendCanCommand(
                     ServosList::MAIN_VALVE, 1,
                     Main::FMMConfig::ENGINE_SHUTDOWN_TIMEOUT);
-                miosix::ledOn();
+                actuators->setCANServoPosition(ServosList::MAIN_VALVE, 1);
             });
 
         hilPhasesManager->registerToFlightPhase(
@@ -175,7 +175,6 @@ int main()
                 // Comment this if we want to trigger liftoff by hand
                 EventBroker::getInstance().post(
                     Events::FLIGHT_LAUNCH_PIN_DETACHED, Topics::TOPIC_FLIGHT);
-                miosix::ledOn();
             });
 
         hilPhasesManager->registerToFlightPhase(
