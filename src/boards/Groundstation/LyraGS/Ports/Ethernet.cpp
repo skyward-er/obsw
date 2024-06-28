@@ -22,14 +22,13 @@
 
 #include "Ethernet.h"
 
-#include <Groundstation/Automated/Buses.h>
+#include <Groundstation/LyraGS/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 
-using namespace Groundstation;
-using namespace GroundstationBase;
-using namespace Antennas;
 using namespace Boardcore;
-using namespace miosix;
+
+namespace LyraGS
+{
 
 void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
@@ -40,7 +39,7 @@ bool Ethernet::start()
 {
     std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
         ModuleManager::getInstance().get<Buses>()->ethernet_bus,
-        ethernet::cs::getPin(), ethernet::intr::getPin(),
+        miosix::ethernet::cs::getPin(), miosix::ethernet::intr::getPin(),
         SPI::ClockDivider::DIV_64);
 
     // First check if the device is even connected
@@ -58,3 +57,4 @@ bool Ethernet::start()
 
     return true;
 }
+}  // namespace LyraGS

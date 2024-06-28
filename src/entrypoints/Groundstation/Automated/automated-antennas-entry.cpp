@@ -21,7 +21,6 @@
  */
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
@@ -30,6 +29,7 @@
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>

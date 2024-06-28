@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Antennas
+namespace LyraGS
 {
 
 /**
@@ -70,10 +70,10 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class BoardStatus : public Boardcore::Module, protected Boardcore::ActiveObject
+class BoardStatus : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
-    BoardStatus() {}
+    explicit BoardStatus(bool isArp) : isArp{isArp} {}
 
     bool start();
 
@@ -83,17 +83,26 @@ public:
     bool isMainRadioPresent();
 
     /**
+     * @brief Check wether the payload radio was found during boot.
+     */
+    bool isPayloadRadioPresent();
+
+    /**
      * @brief Check wether the ethernet was found during boot.
      */
     bool isEthernetPresent();
 
     void setMainRadioPresent(bool present);
+    void setPayloadRadioPresent(bool present);
     void setEthernetPresent(bool present);
 
-protected:
+private:
+    void arpRoutine();
+    void GSRoutine();
     void run() override;
 
-    Groundstation::RadioStats last_main_stats = {0};
+    Groundstation::RadioStats last_main_stats    = {0};
+    Groundstation::RadioStats last_payload_stats = {0};
 
     BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
                       Groundstation::RADIO_STATUS_PERIOD>
@@ -101,9 +110,17 @@ protected:
     BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
                       Groundstation::RADIO_STATUS_PERIOD>
         main_rx_bitrate;
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
+        payload_tx_bitrate;
+    BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
+                      Groundstation::RADIO_STATUS_PERIOD>
+        payload_rx_bitrate;
 
-    bool main_radio_present = false;
-    bool ethernet_present   = false;
+    bool main_radio_present    = false;
+    bool payload_radio_present = false;
+    bool ethernet_present      = false;
+    bool isArp                 = false;
 };
 
-}  // namespace Antennas
+}  // namespace LyraGS

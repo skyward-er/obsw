@@ -20,40 +20,19 @@
  * THE SOFTWARE.
  */
 
-#include "Ethernet.h"
+#pragma once
 
-#include <Groundstation/Automated/Buses.h>
-#include <interfaces-impl/hwmapping.h>
+#include <Groundstation/Common/Ports/EthernetBase.h>
 
-using namespace Groundstation;
-using namespace Antennas;
-using namespace Boardcore;
-using namespace miosix;
+#include <utils/ModuleManager/ModuleManager.hpp>
 
-void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
+namespace LyraGS
 {
-    ModuleManager::getInstance().get<Ethernet>()->handleINTn();
-}
 
-bool Ethernet::start()
+class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
 {
-    std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
-        ModuleManager::getInstance().get<Buses>()->ethernet_bus,
-        ethernet::cs::getPin(), ethernet::intr::getPin(),
-        SPI::ClockDivider::DIV_64);
+public:
+    [[nodiscard]] bool start();
+};
 
-    // First check if the device is even connected
-    bool present = wiz5500->checkVersion();
-
-    if (!present)
-    {
-        return false;
-    }
-
-    if (!EthernetBase::start(std::move(wiz5500)))
-    {
-        return false;
-    }
-
-    return true;
-}
+}  // namespace LyraGS

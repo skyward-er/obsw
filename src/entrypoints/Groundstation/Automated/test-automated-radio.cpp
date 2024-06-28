@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
 #include <miosix.h>
 
 using namespace Groundstation;

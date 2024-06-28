@@ -22,17 +22,39 @@
 
 #pragma once
 
-#include <Groundstation/Common/Ports/EthernetBase.h>
+#include <Groundstation/Common/Radio/RadioBase.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
-namespace GroundstationBase
+namespace LyraGS
 {
 
-class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
+class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
+
+    RadioMain(bool hasBackup, uint8_t ipConfig)
+        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
+
+    RadioMain() : hasBackup{false}, ipConfig{0} {};
+
+private:
+    bool hasBackup   = false;
+    uint8_t ipConfig = 0;
 };
 
-}  // namespace GroundstationBase
+class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
+{
+public:
+    [[nodiscard]] bool start();
+
+    RadioPayload(bool hasBackup, uint8_t ipConfig)
+        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
+
+    RadioPayload() : hasBackup{false}, ipConfig{0} {};
+
+private:
+    bool hasBackup   = false;
+    uint8_t ipConfig = 0;
+};
+
+}  // namespace LyraGS
