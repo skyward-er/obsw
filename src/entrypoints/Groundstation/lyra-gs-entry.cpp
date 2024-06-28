@@ -21,23 +21,19 @@
  */
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/BoardStatus.h>
-#include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
-#include <Groundstation/Automated/Ports/Ethernet.h>
-#include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
-#include <Groundstation/Base/BoardStatus.h>
-#include <Groundstation/Base/Buses.h>
-#include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
-#include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include <Groundstation/DipReader.h>
+#include <Groundstation/LyraGS/Base/Hub.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Buses.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
+#include <drivers/DipSwitch/DipSwitch.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
@@ -49,6 +45,7 @@
 using namespace Boardcore;
 using namespace miosix;
 using namespace Groundstation;
+using namespace LyraGS;
 
 void idleLoop()
 {
@@ -100,27 +97,35 @@ int main()
     ledOff();
 
     // Read dip switch configuration
-    DipStatus dipRead = DipReader::readDip();
+    uint32_t microSecClk = 100;
+    GpioPin sh           = dipSwitch::sh::getPin();
+    GpioPin clk          = dipSwitch::clk::getPin();
+    GpioPin qh           = dipSwitch::qh::getPin();
+
+    DipSwitch dip(sh, clk, qh, microSecClk);
+    DipStatus dipRead = dip.read();
 
     // TODO: Pass to DependencyManager when rebased
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("lyra_gs");
 
+    TaskScheduler *scheduler_low  = new TaskScheduler(0);
+    TaskScheduler *scheduler_high = new TaskScheduler();
+    Buses *buses                  = new Buses();
+    Serial *serial                = new Serial();
+    RadioMain *radio_main         = new LyraGS::RadioMain();
+    BoardStatus *board_status     = new BoardStatus(dipRead.isARP);
+    LyraGS::Ethernet *ethernet    = new LyraGS::Ethernet();
+
     // ARP entry
     if (dipRead.isARP)
     {
-        TaskScheduler *scheduler_low        = new TaskScheduler(0);
-        TaskScheduler *scheduler_high       = new TaskScheduler();
-        Antennas::Leds *leds                = new Antennas::Leds(scheduler_low);
-        Antennas::Hub *hub                  = new Antennas::Hub();
-        Antennas::Buses *buses              = new Antennas::Buses();
-        Serial *serial                      = new Serial();
-        Antennas::RadioMain *radio_main     = new Antennas::RadioMain();
-        Antennas::BoardStatus *board_status = new Antennas::BoardStatus();
-        Antennas::Actuators *actuators      = new Antennas::Actuators();
-        Antennas::Sensors *sensors          = new Antennas::Sensors();
-        Antennas::SMA *sma                  = new Antennas::SMA(scheduler_high);
-        Antennas::Ethernet *ethernet        = new Antennas::Ethernet();
+
+        Antennas::Leds *leds           = new Antennas::Leds(scheduler_low);
+        Antennas::Hub *hub             = new Antennas::Hub();
+        Antennas::Actuators *actuators = new Antennas::Actuators();
+        Antennas::Sensors *sensors     = new Antennas::Sensors();
+        Antennas::SMA *sma             = new Antennas::SMA(scheduler_high);
 
         bool ok = true;
 
@@ -212,17 +217,8 @@ int main()
     // Groundstation entry
     else
     {
-        GroundstationBase::Hub *hub     = new GroundstationBase::Hub();
-        GroundstationBase::Buses *buses = new GroundstationBase::Buses();
-        Serial *serial                  = new Serial();
-        GroundstationBase::Ethernet *ethernet =
-            new GroundstationBase::Ethernet();
-        GroundstationBase::RadioMain *radio_main =
-            new GroundstationBase::RadioMain();
-        GroundstationBase::RadioPayload *radio_payload =
-            new GroundstationBase::RadioPayload();
-        GroundstationBase::BoardStatus *board_status =
-            new GroundstationBase::BoardStatus();
+        GroundstationBase::Hub *hub = new GroundstationBase::Hub();
+        RadioPayload *radio_payload = new RadioPayload();
 
         bool ok = true;
 

@@ -22,11 +22,11 @@
 
 #include "Hub.h"
 
-#include <Groundstation/Base/BoardStatus.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
-#include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Radio/Radio.h>
 
 using namespace Groundstation;
 using namespace GroundstationBase;
@@ -34,19 +34,22 @@ using namespace Boardcore;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    BoardStatus* status = ModuleManager::getInstance().get<BoardStatus>();
+    LyraGS::BoardStatus* status =
+        ModuleManager::getInstance().get<LyraGS::BoardStatus>();
 
     bool send_ok = false;
 
     if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
     {
-        RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
+        LyraGS::RadioMain* radio =
+            ModuleManager::getInstance().get<LyraGS::RadioMain>();
         send_ok |= radio->sendMsg(msg);
     }
 
     if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
     {
-        RadioPayload* radio = ModuleManager::getInstance().get<RadioPayload>();
+        LyraGS::RadioPayload* radio =
+            ModuleManager::getInstance().get<LyraGS::RadioPayload>();
         send_ok |= radio->sendMsg(msg);
     }
 
@@ -61,14 +64,16 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    BoardStatus* status = ModuleManager::getInstance().get<BoardStatus>();
+    LyraGS::BoardStatus* status =
+        ModuleManager::getInstance().get<LyraGS::BoardStatus>();
 
     Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
 
     if (status->isEthernetPresent())
     {
-        Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
+        LyraGS::Ethernet* ethernet =
+            ModuleManager::getInstance().get<LyraGS::Ethernet>();
         ethernet->sendMsg(msg);
     }
 }

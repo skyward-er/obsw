@@ -56,13 +56,6 @@ set(GROUNDSTATION_COMMON
     src/boards/Groundstation/Common/HubBase.cpp
 )
 
-set(GS_COMPUTER
-    src/boards/Gs/Ports/Serial.cpp
-    src/boards/Gs/Radio/Radio.cpp
-    src/boards/Gs/Radio/RadioStatus.cpp
-    src/boards/Gs/Hub.cpp
-)
-
 set(MOTOR_SOURCES
     src/boards/Motor/Actuators/Actuators.cpp
     src/boards/Motor/Sensors/Sensors.cpp
@@ -110,28 +103,19 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp
 )
 
-set(GROUNDSTATION_BASE
-    src/boards/Groundstation/Base/Radio/Radio.cpp
-    src/boards/Groundstation/Base/Ports/Ethernet.cpp
-    src/boards/Groundstation/Base/BoardStatus.cpp
-    src/boards/Groundstation/Base/Hub.cpp
-)
-
 set(GROUNDSTATION_NOKIA
     src/boards/Groundstation/Nokia/Radio/Radio.cpp
     src/boards/Groundstation/Nokia/Hub.cpp
 )
 
-set(GROUNDSTATION_AUTOMATED
-    src/boards/Groundstation/Automated/BoardStatus.cpp
-    src/boards/Groundstation/Automated/Radio/Radio.cpp
-    src/boards/Groundstation/Automated/Ports/Ethernet.cpp
+set (LYRA_GS
+    src/boards/Groundstation/LyraGS/Radio/Radio.cpp
+    src/boards/Groundstation/LyraGS/Ports/Ethernet.cpp
+    src/boards/Groundstation/LyraGS/BoardStatus.cpp
+    src/boards/Groundstation/LyraGS/Base/Hub.cpp
     src/boards/Groundstation/Automated/Hub.cpp
     src/boards/Groundstation/Automated/Leds/Leds.cpp
     src/boards/Groundstation/Automated/SMA/SMA.cpp
-)
-
-set(ANTENNAS
     src/boards/Groundstation/Automated/Actuators/Actuators.cpp
     src/boards/Groundstation/Automated/Sensors/Sensors.cpp
 )
