@@ -126,43 +126,6 @@ using MainPitotSimulatorData = Boardcore::PitotSimulatorData<N_DATA_PITOT>;
 using MainTemperatureSimulatorData =
     Boardcore::TemperatureSimulatorData<N_DATA_TEMP>;
 
-struct FlagsHIL
-{
-    float flag_flight;
-    float flag_ascent;
-    float flag_burning;
-    float flag_airbrakes;
-    float flag_para1;
-    float flag_para2;
-
-    FlagsHIL(float flag_flight, float flag_ascent, float flag_burning,
-             float flag_airbrakes, float flag_para1, float flag_para2)
-        : flag_flight(flag_flight), flag_ascent(flag_ascent),
-          flag_burning(flag_burning), flag_airbrakes(flag_airbrakes),
-          flag_para1(flag_para1), flag_para2(flag_para2)
-    {
-    }
-
-    FlagsHIL()
-        : flag_flight(0.0f), flag_ascent(0.0f), flag_burning(0.0f),
-          flag_airbrakes(0.0f), flag_para1(0.0f), flag_para2(0.0f)
-    {
-    }
-
-    void print()
-    {
-        printf(
-            "flag_flight: %f\n"
-            "flag_ascent: %f\n"
-            "flag_burning: %f\n"
-            "flag_airbrakes: %f\n"
-            "flag_para1: %f\n"
-            "flag_para2: %f\n",
-            flag_flight, flag_ascent, flag_burning, flag_airbrakes, flag_para1,
-            flag_para2);
-    }
-};
-
 /**
  * @brief ADA data sent to the simulator
  */
@@ -379,54 +342,19 @@ struct ActuatorData
     AirBrakesStateHIL airBrakesState;
     MEAStateHIL meaState;
     ActuatorsStateHIL actuatorsState;
-    FlagsHIL flags;
 
     ActuatorData()
-        : adaState(), nasState(), airBrakesState(), meaState(),
-          actuatorsState(), flags()
+        : adaState(), nasState(), airBrakesState(), meaState(), actuatorsState()
     {
     }
 
     ActuatorData(ADAStateHIL adaState, NASStateHIL nasState,
                  AirBrakesStateHIL airBrakesState, MEAStateHIL meaState,
-                 ActuatorsStateHIL actuatorsState, Main::FlightModeManager* fmm)
+                 ActuatorsStateHIL actuatorsState)
         : adaState(adaState), nasState(nasState),
           airBrakesState(airBrakesState), meaState(meaState),
           actuatorsState(actuatorsState)
     {
-        flags.flag_flight =
-            (fmm->testState(&Main::FlightModeManager::state_powered_ascent) ||
-                     fmm->testState(
-                         &Main::FlightModeManager::state_unpowered_ascent) ||
-                     fmm->testState(
-                         &Main::FlightModeManager::state_drogue_descent) ||
-                     fmm->testState(
-                         &Main::FlightModeManager::state_terminal_descent)
-                 ? 1
-                 : 0);
-
-        flags.flag_ascent =
-            (fmm->testState(&Main::FlightModeManager::state_powered_ascent) ||
-                     fmm->testState(
-                         &Main::FlightModeManager::state_unpowered_ascent)
-                 ? 1
-                 : 0);
-        flags.flag_burning =
-            (fmm->testState(&Main::FlightModeManager::state_powered_ascent)
-                 ? 1
-                 : 0);
-        flags.flag_airbrakes =
-            (fmm->testState(&Main::FlightModeManager::state_unpowered_ascent)
-                 ? 1
-                 : 0);
-        flags.flag_para1 =
-            (fmm->testState(&Main::FlightModeManager::state_drogue_descent)
-                 ? 1
-                 : 0);
-        flags.flag_para2 =
-            (fmm->testState(&Main::FlightModeManager::state_terminal_descent)
-                 ? 1
-                 : 0);
     }
 
     void print()
@@ -436,7 +364,6 @@ struct ActuatorData
         airBrakesState.print();
         meaState.print();
         actuatorsState.print();
-        flags.print();
     }
 };
 

@@ -140,7 +140,7 @@ int main()
             // Returning the feedback for the simulator
             return HILConfig::ActuatorData(adaStateHIL, nasStateHIL,
                                            abkStateHIL, meaStateHIL,
-                                           actuatorsStateHIL, fmm);
+                                           actuatorsStateHIL);
         };
 
         HILConfig::MainHIL* hil = new HILConfig::MainHIL(
