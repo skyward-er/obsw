@@ -21,11 +21,10 @@
  */
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Hub.h>
-#include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/Buses.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <miosix.h>
@@ -34,6 +33,7 @@
 
 #define STEPPER_SPEED 0.25
 #define TEST_WAIT 5000
+#define NO_SD_LOGGING
 
 #define START_MODULE(name, lambda)                                  \
     do                                                              \
@@ -54,13 +54,6 @@ using namespace Groundstation;
 using namespace Antennas;
 using namespace Boardcore;
 using namespace miosix;
-
-GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
-
-void __attribute__((used)) EXTI10_IRQHandlerImpl()
-{
-    ModuleManager::getInstance().get<Actuators>()->IRQemergencyStop();
-}
 
 void ledWaitLoop(int ms)
 {
@@ -199,12 +192,9 @@ void test6(Actuators *actuators)
 int main()
 {
     ledOff();
-    button.mode(Mode::INPUT);
-    enableExternalInterrupt(button.getPort(), button.getNumber(),
-                            InterruptTrigger::RISING_EDGE);
 
     Hub *hub             = new Hub();
-    Buses *buses         = new Buses();
+    LyraGS::Buses *buses = new LyraGS::Buses();
     Serial *serial       = new Serial();
     Actuators *actuators = new Actuators();
     Sensors *sensors     = new Sensors();
@@ -252,6 +242,8 @@ int main()
     LOG_INFO(logger, "Modules setup successful");
 
     LOG_INFO(logger, "Starting tests\n");
+
+    actuators->arm();
 
     test1(actuators);
     test2(actuators);
