@@ -454,6 +454,7 @@ enum MainFlightPhases
     ARMED,
     LIFTOFF_PIN_DETACHED,
     LIFTOFF,
+    SHUTDOWN,
     AEROBRAKES,
     APOGEE,
     PARA1,
@@ -615,6 +616,10 @@ private:
                        getCurrentPosition().z, getCurrentPosition().vz);
                 changed_flags.push_back(MainFlightPhases::LIFTOFF);
                 break;
+            case Common::Events::FLIGHT_MOTOR_SHUTDOWN:
+                printf("[HIL] ------- SHUTDOWN -------: %f, %f \n",
+                       getCurrentPosition().z, getCurrentPosition().vz);
+                changed_flags.push_back(MainFlightPhases::SHUTDOWN);
             case Common::Events::ABK_SHADOW_MODE_TIMEOUT:
                 setFlagFlightPhase(MainFlightPhases::AEROBRAKES, true);
                 registerOutcomes(MainFlightPhases::AEROBRAKES);

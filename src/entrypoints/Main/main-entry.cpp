@@ -157,6 +157,13 @@ int main()
             LOG_INFO(logger, "Inserted the HIL module");
         }
 
+        if (!IS_FULL_HIL)
+        {
+            hilPhasesManager->registerToFlightPhase(
+                MainFlightPhases::SHUTDOWN, [&]()
+                { actuators->setCANServoPosition(ServosList::MAIN_VALVE, 0); });
+        }
+
         hilPhasesManager->registerToFlightPhase(
             MainFlightPhases::LIFTOFF_PIN_DETACHED,
             [&]()
@@ -164,7 +171,10 @@ int main()
                 canHandler->sendCanCommand(
                     ServosList::MAIN_VALVE, 1,
                     Main::FMMConfig::ENGINE_SHUTDOWN_TIMEOUT);
-                actuators->setCANServoPosition(ServosList::MAIN_VALVE, 1);
+                if (!IS_FULL_HIL)
+                {
+                    actuators->setCANServoPosition(ServosList::MAIN_VALVE, 1);
+                }
             });
 
         hilPhasesManager->registerToFlightPhase(
