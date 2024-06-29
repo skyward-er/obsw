@@ -27,7 +27,10 @@
 #include <Motor/Configs/HILSimulationConfig.h>
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
+#include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -193,6 +196,17 @@ int main()
     {
         miosix::led2On();
     }
+
+    // Log all the events
+    // clang-format off
+    EventSniffer sniffer(EventBroker::getInstance(), Common::TOPICS_LIST,
+                         [](uint8_t event, uint8_t topic)
+                         {
+                             EventData ev{TimestampTimer::getTimestamp(), event,
+                                          topic};
+                             Logger::getInstance().log(ev);
+                         });
+    // clang-format on
 
     while (true)
     {
