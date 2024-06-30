@@ -120,8 +120,8 @@ constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 constexpr unsigned int BMX160_SAMPLE_PERIOD =
     BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024;  // [ms]
 // BMX160_WITH_CORRECTION_SAMPLE_PERIOD should be lower than the
-// BMX160_SAMPLE_PERIOD and faster then the NAS
-constexpr unsigned int BMX160_WITH_CORRECTION_SAMPLE_PERIOD = 100;  // [ms]
+// BMX160_SAMPLE_PERIOD and faster then the NAS update period.
+constexpr unsigned int BMX160_WITH_CORRECTION_SAMPLE_PERIOD = 10;  // [ms] 100Hz
 
 constexpr unsigned int LIS3MDL_SAMPLE_PERIOD       = 15;
 constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000;  // [ms]

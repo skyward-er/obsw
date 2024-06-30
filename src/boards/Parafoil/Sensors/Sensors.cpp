@@ -244,8 +244,7 @@ void Sensors::bmx160WithCorrectionInit()
     bmx160WithCorrection =
         new BMX160WithCorrection(bmx160, BMX160_AXIS_ROTATION);
 
-    SensorInfo info("BMX160WithCorrection",
-                    BMX160_WITH_CORRECTION_SAMPLE_PERIOD,
+    SensorInfo info("BMX160WithCorrection", BMX160_SAMPLE_PERIOD,
                     bind(&Sensors::bmx160WithCorrectionCallback, this));
 
     sensorMap.emplace(make_pair(bmx160WithCorrection, info));
