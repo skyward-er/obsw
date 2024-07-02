@@ -22,12 +22,6 @@
 
 #include "Radio.h"
 
-#include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/Buses.h>
-#include <RIGv2/Registry/Registry.h>
-#include <RIGv2/Sensors/Sensors.h>
-#include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
-#include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <events/EventBroker.h>
@@ -68,8 +62,6 @@ bool Radio::isStarted() { return started; }
 
 bool Radio::start()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Setup the frontend
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
         std::make_unique<EbyteFrontend>(radio::txEn::getPin(),
@@ -77,7 +69,7 @@ bool Radio::start()
 
     // Setup transceiver
     radio = std::make_unique<SX1278Lora>(
-        modules.get<Buses>()->getRadio(), radio::cs::getPin(),
+        getModule<Buses>()->getRadio(), radio::cs::getPin(),
         radio::dio0::getPin(), radio::dio1::getPin(), radio::dio3::getPin(),
         SPI::ClockDivider::DIV_64, std::move(frontend));
 
@@ -165,7 +157,6 @@ Boardcore::MavlinkStatus Radio::getMavStatus()
 
 void Radio::handleMessage(const mavlink_message_t& msg)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -221,10 +212,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            if (modules.get<GroundModeManager>()->getState() ==
+            if (getModule<GroundModeManager>()->getState() ==
                 GMM_STATE_DISARMED)
             {
-                if (modules.get<Actuators>()->wiggleServo(servo))
+                if (getModule<Actuators>()->wiggleServo(servo))
                 {
                     enqueueAck(msg);
                 }
@@ -247,7 +238,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_set_atomic_valve_timing_tc_get_servo_id(&msg));
 
-            if (modules.get<Actuators>()->setOpeningTime(servo, time))
+            if (getModule<Actuators>()->setOpeningTime(servo, time))
             {
                 enqueueAck(msg);
             }
@@ -266,7 +257,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList servo = static_cast<ServosList>(
                 mavlink_msg_set_valve_maximum_aperture_tc_get_servo_id(&msg));
 
-            if (modules.get<Actuators>()->setMaxAperture(servo, aperture))
+            if (getModule<Actuators>()->setMaxAperture(servo, aperture))
             {
                 enqueueAck(msg);
             }
@@ -280,7 +271,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SET_IGNITION_TIME_TC:
         {
             uint32_t timing = mavlink_msg_set_ignition_time_tc_get_timing(&msg);
-            modules.get<GroundModeManager>()->setIgnitionTime(timing);
+            getModule<GroundModeManager>()->setIgnitionTime(timing);
 
             enqueueAck(msg);
             break;
@@ -303,8 +294,6 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
         {MAV_CMD_OPEN_NITROGEN, TMTC_OPEN_NITROGEN},
     };
-
-    ModuleManager& modules = ModuleManager::getInstance();
 
     uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmd)
@@ -331,7 +320,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_REGISTRY_LOAD:
         {
-            if (modules.get<Registry>()->load() == RegistryError::OK)
+            if (getModule<Registry>()->load() == RegistryError::OK)
             {
                 enqueueAck(msg);
             }
@@ -344,7 +333,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_REGISTRY_SAVE:
         {
-            if (modules.get<Registry>()->save() == RegistryError::OK)
+            if (getModule<Registry>()->save() == RegistryError::OK)
             {
                 enqueueAck(msg);
             }
@@ -357,7 +346,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_REGISTRY_CLEAR:
         {
-            modules.get<Registry>()->clear();
+            getModule<Registry>()->clear();
             enqueueAck(msg);
             break;
         }
@@ -383,8 +372,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
 void Radio::enqueueRegistry()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    modules.get<Registry>()->forEach(
+    getModule<Registry>()->forEach(
         [this](ConfigurationId id, EntryStructsUnion& value)
         {
             mavlink_message_t msg;
@@ -445,12 +433,11 @@ void Radio::enqueueRegistry()
 
 bool Radio::enqueueSystemTm(uint8_t tmId)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (tmId)
     {
         case MAV_SENSORS_STATE_ID:
         {
-            auto sensors = modules.get<Sensors>()->getSensorInfos();
+            auto sensors = getModule<Sensors>()->getSensorInfos();
             for (auto sensor : sensors)
             {
                 mavlink_message_t msg;
@@ -485,7 +472,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
             // What? Why is this here? Of course the radio is started!
             tm.radio           = isStarted() ? 1 : 0;
-            tm.sensors         = modules.get<Sensors>()->isStarted() ? 1 : 0;
+            tm.sensors         = getModule<Sensors>()->isStarted() ? 1 : 0;
             tm.board_scheduler = 0;  // TODO(davide.mor): No BoardScheduler yet
 
             mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -526,7 +513,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_mavlink_stats_tm_t tm;
 
-            MavlinkStatus stats = modules.get<Radio>()->mavDriver->getStatus();
+            MavlinkStatus stats = mavDriver->getStatus();
 
             tm.timestamp               = stats.timestamp;
             tm.n_send_queue            = stats.nSendQueue;
@@ -554,8 +541,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_gse_tm_t tm = {0};
 
-            Sensors* sensors     = modules.get<Sensors>();
-            Actuators* actuators = modules.get<Actuators>();
+            Sensors* sensors     = getModule<Sensors>();
+            Actuators* actuators = getModule<Actuators>();
 
             tm.timestamp        = TimestampTimer::getTimestamp();
             tm.loadcell_rocket  = sensors->getTankWeight().load;
@@ -572,11 +559,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.nitrogen_valve_state = actuators->isNitrogenOpen() ? 1 : 0;
             tm.arming_state =
-                modules.get<GroundModeManager>()->getState() == GMM_STATE_ARMED
+                getModule<GroundModeManager>()->getState() == GMM_STATE_ARMED
                     ? 1
                     : 0;
-            tm.gmm_state  = modules.get<GroundModeManager>()->getState();
-            tm.tars_state = modules.get<TARS1>()->isRefueling() ? 1 : 0;
+            tm.gmm_state  = getModule<GroundModeManager>()->getState();
+            tm.tars_state = getModule<TARS1>()->isRefueling() ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
@@ -594,7 +581,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_motor_tm_t tm = {0};
 
-            Sensors* sensors = modules.get<Sensors>();
+            Sensors* sensors = getModule<Sensors>();
 
             tm.timestamp            = TimestampTimer::getTimestamp();
             tm.tank_temperature     = sensors->getTc1LastSample().temperature;
@@ -621,7 +608,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
 bool Radio::enqueueSensorTm(uint8_t tmId)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (tmId)
     {
         case MAV_ADS_ID:
@@ -629,7 +615,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_adc_tm_t tm;
 
-            ADS131M08Data data = modules.get<Sensors>()->getADC1LastSample();
+            ADS131M08Data data = getModule<Sensors>()->getADC1LastSample();
 
             tm.channel_0 =
                 data.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
@@ -662,7 +648,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = modules.get<Sensors>()->getVesselPress();
+            PressureData data = getModule<Sensors>()->getVesselPress();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -680,7 +666,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = modules.get<Sensors>()->getFillingPress();
+            PressureData data = getModule<Sensors>()->getFillingPress();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -698,7 +684,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = modules.get<Sensors>()->getBottomTankPress();
+            PressureData data = getModule<Sensors>()->getBottomTankPress();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -716,7 +702,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = modules.get<Sensors>()->getTopTankPress();
+            PressureData data = getModule<Sensors>()->getTopTankPress();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -734,7 +720,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_temp_tm_t tm;
 
-            TemperatureData data = modules.get<Sensors>()->getTc1LastSample();
+            TemperatureData data = getModule<Sensors>()->getTc1LastSample();
 
             tm.timestamp   = data.temperatureTimestamp;
             tm.temperature = data.temperature;
@@ -752,7 +738,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data = modules.get<Sensors>()->getVesselWeight();
+            LoadCellData data = getModule<Sensors>()->getVesselWeight();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
@@ -770,7 +756,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data = modules.get<Sensors>()->getTankWeight();
+            LoadCellData data = getModule<Sensors>()->getTankWeight();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
@@ -788,7 +774,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            VoltageData data = modules.get<Sensors>()->getBatteryVoltage();
+            VoltageData data = getModule<Sensors>()->getBatteryVoltage();
 
             tm.timestamp = data.voltageTimestamp;
             tm.voltage   = data.voltage;
@@ -810,8 +796,6 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
 void Radio::handleConrigState(const mavlink_message_t& msg)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Acknowledge the state
     enqueueAck(msg);
 
@@ -854,7 +838,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            modules.get<Actuators>()->toggleServo(ServosList::FILLING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::FILLING_VALVE);
 
             lastManualActuation = currentTime;
         }
@@ -864,7 +848,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The quick conector switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            modules.get<Actuators>()->toggleServo(ServosList::DISCONNECT_SERVO);
+            getModule<Actuators>()->toggleServo(ServosList::DISCONNECT_SERVO);
 
             lastManualActuation = currentTime;
         }
@@ -874,7 +858,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            modules.get<Actuators>()->toggleServo(ServosList::RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::RELEASE_VALVE);
 
             lastManualActuation = currentTime;
         }
@@ -884,7 +868,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The venting switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            modules.get<Actuators>()->toggleServo(ServosList::VENTING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::VENTING_VALVE);
 
             lastManualActuation = currentTime;
         }

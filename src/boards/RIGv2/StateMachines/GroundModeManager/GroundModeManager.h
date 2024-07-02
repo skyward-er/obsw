@@ -24,20 +24,24 @@
 
 #include <RIGv2/Configs/GmmConfig.h>
 // #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
+#include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/Registry/Registry.h>
+#include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "GroundModeManagerData.h"
 
 namespace RIGv2
 {
 
-class GroundModeManager : public Boardcore::Module,
-                          public Boardcore::HSM<GroundModeManager>
+class GroundModeManager
+    : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry>,
+      public Boardcore::HSM<GroundModeManager>
 {
 public:
     GroundModeManager();

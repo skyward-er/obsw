@@ -22,14 +22,19 @@
 
 #pragma once
 
+#include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/Buses.h>
 #include <RIGv2/Configs/RadioConfig.h>
+#include <RIGv2/Registry/Registry.h>
+#include <RIGv2/Sensors/Sensors.h>
+#include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <common/Mavlink.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
 {
@@ -37,7 +42,9 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio : public Boardcore::Module
+class Radio
+    : public Boardcore::InjectableWithDeps<Buses, Registry, Actuators, Sensors,
+                                           GroundModeManager, TARS1>
 {
 public:
     Radio() {}

@@ -23,13 +23,12 @@
 #pragma once
 
 #include <drivers/spi/SPIBus.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace RIGv2
 {
 
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 private:
     Boardcore::SPIBus spi1;

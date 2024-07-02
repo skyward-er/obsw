@@ -24,13 +24,12 @@
 
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace RIGv2
 {
 
-class BoardScheduler : public Boardcore::Module
+class BoardScheduler : public Boardcore::Injectable
 {
 public:
     BoardScheduler()
