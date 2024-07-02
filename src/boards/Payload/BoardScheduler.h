@@ -22,8 +22,7 @@
 #pragma once
 
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
@@ -31,7 +30,7 @@ namespace Payload
  * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
  * There is a task scheduler for every miosix priority
  */
-class BoardScheduler : public Boardcore::Module
+class BoardScheduler : public Boardcore::Injectable
 {
 public:
     /**

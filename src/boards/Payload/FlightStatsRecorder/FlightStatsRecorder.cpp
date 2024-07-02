@@ -64,19 +64,17 @@ bool FlightStatsRecorder::start()
 
 void FlightStatsRecorder::update()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // FMM state
     FlightModeManagerState flightState =
-        modules.get<FlightModeManager>()->getStatus().state;
+        getModule<FlightModeManager>()->getStatus().state;
 
     // Data gathering
-    Sensors* sensor           = modules.get<Sensors>();
+    Sensors* sensor           = getModule<Sensors>();
     AccelerometerData accData = sensor->getIMULastSample();
     PressureData baroData     = sensor->getStaticPressureLastSample();
     PitotData pitotData       = sensor->getPitotLastSample();
     GPSData gpsData           = sensor->getGPSLastSample();
-    NASState nasData          = modules.get<NASController>()->getNasState();
+    NASState nasData          = getModule<NASController>()->getNasState();
 
     // Store the apogee ts
     uint64_t previousApogee = stats.apogee_ts;

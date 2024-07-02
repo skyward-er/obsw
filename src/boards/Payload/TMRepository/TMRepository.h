@@ -23,12 +23,25 @@
 
 #include <common/MavlinkGemini.h>
 #include <diagnostic/PrintLogger.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
-class TMRepository : public Boardcore::Module
+class Sensors;
+class Radio;
+class BoardScheduler;
+class PinHandler;
+class NASController;
+class FlightModeManager;
+class WingController;
+class WindEstimation;
+class Actuators;
+class FlightStatsRecorder;
+
+class TMRepository : public Boardcore::InjectableWithDeps<
+                         Sensors, Radio, BoardScheduler, PinHandler,
+                         NASController, FlightModeManager, WingController,
+                         WindEstimation, Actuators, FlightStatsRecorder>
 {
 public:
     inline TMRepository() {}

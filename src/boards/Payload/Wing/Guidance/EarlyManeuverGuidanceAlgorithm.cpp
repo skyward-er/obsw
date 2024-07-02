@@ -24,7 +24,6 @@
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 
 #include <Eigen/Core>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Payload::WingConfig;
 
@@ -41,8 +40,6 @@ EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
-    using namespace Boardcore;
-
     float altitude = abs(currentPositionNED[2]);
 
     computeActiveTarget(altitude);

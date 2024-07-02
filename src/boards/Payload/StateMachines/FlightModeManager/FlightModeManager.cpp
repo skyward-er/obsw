@@ -163,7 +163,7 @@ State FlightModeManager::state_init_error(const Event& event)
         {
             if (event != CAN_FORCE_INIT)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                getModule<CanHandler>()->sendEvent(
                     CanConfig::EventId::FORCE_INIT);
             }
             return transition(&FlightModeManager::state_init_done);
@@ -216,7 +216,7 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
         case EV_ENTRY:
         {
             logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
-            ModuleManager::getInstance().get<Sensors>()->calibrate();
+            getModule<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
@@ -287,8 +287,8 @@ State FlightModeManager::state_disarmed(const Event& event)
             logStatus(FlightModeManagerState::DISARMED);
             // Stop eventual logging
             // Logger::getInstance().stop();
-            ModuleManager::getInstance().get<Actuators>()->buzzerOff();
-            ModuleManager::getInstance().get<Actuators>()->camOff();
+            getModule<Actuators>()->buzzerOff();
+            getModule<Actuators>()->camOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
@@ -309,8 +309,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             if (event != CAN_ARM)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
-                    CanConfig::EventId::ARM);
+                getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             }
             return transition(&FlightModeManager::state_armed);
         }
@@ -319,7 +318,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             if (event != CAN_ENTER_TEST_MODE)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                getModule<CanHandler>()->sendEvent(
                     CanConfig::EventId::ENTER_TEST_MODE);
             }
             return transition(&FlightModeManager::state_test_mode);
@@ -329,7 +328,7 @@ State FlightModeManager::state_disarmed(const Event& event)
         {
             if (event != CAN_CALIBRATE)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                getModule<CanHandler>()->sendEvent(
                     CanConfig::EventId::CALIBRATE);
             }
             return transition(&FlightModeManager::state_sensors_calibration);
@@ -354,7 +353,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case EV_EXIT:
         {
-            ModuleManager::getInstance().get<Actuators>()->camOff();
+            getModule<Actuators>()->camOff();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             // Logger::getInstance().stop();
             return HANDLED;
@@ -369,12 +368,12 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_START_RECORDING:
         {
-            ModuleManager::getInstance().get<Actuators>()->camOn();
+            getModule<Actuators>()->camOn();
             return HANDLED;
         }
         case TMTC_STOP_RECORDING:
         {
-            ModuleManager::getInstance().get<Actuators>()->camOff();
+            getModule<Actuators>()->camOff();
             return HANDLED;
         }
         case TMTC_RESET_BOARD:
@@ -388,7 +387,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             if (event != CAN_EXIT_TEST_MODE)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
+                getModule<CanHandler>()->sendEvent(
                     CanConfig::EventId::EXIT_TEST_MODE);
             }
             return transition(&FlightModeManager::state_disarmed);
@@ -412,15 +411,15 @@ State FlightModeManager::state_armed(const Event& event)
             // we log again to ensure the both log have the status logged
             logStatus(FlightModeManagerState::ARMED);
             // Starts signaling devices and camera
-            ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
-            ModuleManager::getInstance().get<Actuators>()->camOn();
+            getModule<Actuators>()->buzzerArmed();
+            getModule<Actuators>()->camOn();
             // Post event
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            ModuleManager::getInstance().get<Actuators>()->buzzerOff();
+            getModule<Actuators>()->buzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -437,8 +436,7 @@ State FlightModeManager::state_armed(const Event& event)
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             if (event != CAN_DISARM)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
-                    CanConfig::EventId::DISARM);
+                getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             }
             return transition(&FlightModeManager::state_disarmed);
         }
@@ -447,8 +445,7 @@ State FlightModeManager::state_armed(const Event& event)
         {
             if (event != CAN_LIFTOFF)
             {
-                ModuleManager::getInstance().get<CanHandler>()->sendEvent(
-                    CanConfig::EventId::LIFTOFF);
+                getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             }
             return transition(&FlightModeManager::state_flying);
         }
@@ -538,7 +535,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         {
             logStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            ModuleManager::getInstance().get<AltitudeTrigger>()->enable();
+            getModule<AltitudeTrigger>()->enable();
 
             // ModuleManager::getInstance()
             //     .get<VerticalVelocityTrigger>()
@@ -563,7 +560,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         case TMTC_FORCE_DEPLOYMENT:
         {
-            ModuleManager::getInstance().get<AltitudeTrigger>()->disable();
+            getModule<AltitudeTrigger>()->disable();
             // ModuleManager::getInstance()
             //     .get<VerticalVelocityTrigger>()
             //     ->disable();
@@ -615,12 +612,10 @@ State FlightModeManager::state_landed(const Event& event)
             logStatus(FlightModeManagerState::LANDED);
 
             // Turns off signaling devices
-            ModuleManager::getInstance().get<Actuators>()->buzzerArmed();
-            ModuleManager::getInstance().get<Actuators>()->camOff();
-            ModuleManager::getInstance().get<Actuators>()->disableServo(
-                PARAFOIL_LEFT_SERVO);
-            ModuleManager::getInstance().get<Actuators>()->disableServo(
-                PARAFOIL_RIGHT_SERVO);
+            getModule<Actuators>()->buzzerArmed();
+            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
             // Sends events
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
