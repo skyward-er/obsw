@@ -23,6 +23,7 @@
 #include "SMA.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <Groundstation/Automated/Config/SMAConfig.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
@@ -46,7 +47,10 @@ namespace Antennas
 
 SMA::SMA(TaskScheduler* sched)
     : HSM(&SMA::state_config), scheduler(sched),
-      propagator(SMAConfig::UPDATE_PERIOD), follower(SMAConfig::UPDATE_PERIOD)
+      propagator(SMAConfig::UPDATE_PERIOD),
+      follower(SMAConfig::UPDATE_PERIOD, FollowerConfig::KP_PITCH,
+               FollowerConfig::KP_YAW, FollowerConfig::KI_PITCH,
+               FollowerConfig::KI_YAW)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
