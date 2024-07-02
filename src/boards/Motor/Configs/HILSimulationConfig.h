@@ -117,13 +117,44 @@ enum MotorFlightPhases
     SIMULATION_STARTED
 };
 
-using MotorHILTransceiver =
-    Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData, ActuatorData>;
-using MotorHIL = Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>;
+class MotorHILTransceiver
+    : public Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+                                       ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    MotorHILTransceiver(
+        Boardcore::USART& hilSerial,
+        Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+                                    ActuatorData>* hilPhasesManager)
+        : Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+                                    ActuatorData>(hilSerial, hilPhasesManager)
+    {
+    }
+};
+
+class MotorHIL
+    : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    MotorHIL(Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+                                       ActuatorData>* hilTransceiver,
+             Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+                                         ActuatorData>* hilPhasesManager,
+             std::function<ActuatorData()> updateActuatorData,
+             int simulationPeriod)
+        : HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
+              hilTransceiver, hilPhasesManager, updateActuatorData,
+              simulationPeriod)
+    {
+    }
+};
 
 class MotorHILPhasesManager
     : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                         ActuatorData>
+                                         ActuatorData>,
+      public Boardcore::Module
 {
 public:
     explicit MotorHILPhasesManager(

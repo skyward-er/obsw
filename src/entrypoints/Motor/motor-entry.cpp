@@ -62,8 +62,6 @@ int main()
     // HIL
     if (hilSimulationActive)
     {
-        HILConfig::MotorHILTransceiver* hilTransceiver =
-            new HILConfig::MotorHILTransceiver(buses->usart2);
         HILConfig::MotorHILPhasesManager* hilPhasesManager =
             new HILConfig::MotorHILPhasesManager(
                 [&]()
@@ -72,6 +70,8 @@ int main()
                     timedTrajectoryPoint.timestamp = Kernel::getOldTick();
                     return timedTrajectoryPoint;
                 });
+        HILConfig::MotorHILTransceiver* hilTransceiver =
+            new HILConfig::MotorHILTransceiver(buses->usart2, hilPhasesManager);
 
         auto updateActuatorData = [&]()
         {

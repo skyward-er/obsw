@@ -102,13 +102,13 @@ int main()
     // HIL
     if (hilSimulationActive)
     {
-        HILConfig::MainHILTransceiver* hilTransceiver =
-            new HILConfig::MainHILTransceiver(buses->usart2);
         HILConfig::MainHILPhasesManager* hilPhasesManager =
             new HILConfig::MainHILPhasesManager(
                 [&]() {
                     return Boardcore::TimedTrajectoryPoint(nas->getNasState());
                 });
+        HILConfig::MainHILTransceiver* hilTransceiver =
+            new HILConfig::MainHILTransceiver(buses->usart2, hilPhasesManager);
 
         auto updateActuatorData = [&]()
         {

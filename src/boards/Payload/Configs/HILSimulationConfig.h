@@ -370,14 +370,44 @@ enum PayloadFlightPhases
     SIMULATION_STOPPED
 };
 
-using PayloadHILTransceiver =
-    Boardcore::HILTransceiver<PayloadFlightPhases, SimulatorData, ActuatorData>;
-using PayloadHIL =
-    Boardcore::HIL<PayloadFlightPhases, SimulatorData, ActuatorData>;
+class PayloadHILTransceiver
+    : public Boardcore::HILTransceiver<PayloadFlightPhases, SimulatorData,
+                                       ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    PayloadHILTransceiver(
+        Boardcore::USART& hilSerial,
+        Boardcore::HILPhasesManager<PayloadFlightPhases, SimulatorData,
+                                    ActuatorData>* hilPhasesManager)
+        : Boardcore::HILTransceiver<PayloadFlightPhases, SimulatorData,
+                                    ActuatorData>(hilSerial, hilPhasesManager)
+    {
+    }
+};
+
+class PayloadHIL
+    : public Boardcore::HIL<PayloadFlightPhases, SimulatorData, ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    PayloadHIL(Boardcore::HILTransceiver<PayloadFlightPhases, SimulatorData,
+                                         ActuatorData>* hilTransceiver,
+               Boardcore::HILPhasesManager<PayloadFlightPhases, SimulatorData,
+                                           ActuatorData>* hilPhasesManager,
+               std::function<ActuatorData()> updateActuatorData,
+               int simulationPeriod)
+        : HIL<PayloadFlightPhases, SimulatorData, ActuatorData>(
+              hilTransceiver, hilPhasesManager, updateActuatorData,
+              simulationPeriod)
+    {
+    }
+};
 
 class PayloadHILPhasesManager
     : public Boardcore::HILPhasesManager<PayloadFlightPhases, SimulatorData,
-                                         ActuatorData>
+                                         ActuatorData>,
+      public Boardcore::Module
 {
 public:
     explicit PayloadHILPhasesManager(

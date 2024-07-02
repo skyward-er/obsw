@@ -40,6 +40,7 @@
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "SensorsConfig.h"
+#include "drivers/usart/USART.h"
 
 // ADA
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
@@ -60,7 +61,7 @@
 namespace HILConfig
 {
 
-constexpr bool IS_FULL_HIL = true;
+constexpr bool IS_FULL_HIL = false;
 
 /** Period of simulation [ms] */
 constexpr int SIMULATION_PERIOD = 100;
@@ -389,13 +390,44 @@ enum MainFlightPhases
     SIMULATION_STOPPED
 };
 
-using MainHILTransceiver =
-    Boardcore::HILTransceiver<MainFlightPhases, SimulatorData, ActuatorData>;
-using MainHIL = Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>;
+class MainHILTransceiver
+    : public Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
+                                       ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    MainHILTransceiver(
+        Boardcore::USART& hilSerial,
+        Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
+                                    ActuatorData>* hilPhasesManager)
+        : Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
+                                    ActuatorData>(hilSerial, hilPhasesManager)
+    {
+    }
+};
+
+class MainHIL
+    : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
+      public Boardcore::Module
+{
+public:
+    MainHIL(Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
+                                      ActuatorData>* hilTransceiver,
+            Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
+                                        ActuatorData>* hilPhasesManager,
+            std::function<ActuatorData()> updateActuatorData,
+            int simulationPeriod)
+        : HIL<MainFlightPhases, SimulatorData, ActuatorData>(
+              hilTransceiver, hilPhasesManager, updateActuatorData,
+              simulationPeriod)
+    {
+    }
+};
 
 class MainHILPhasesManager
     : public Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
-                                         ActuatorData>
+                                         ActuatorData>,
+      public Boardcore::Module
 {
 public:
     explicit MainHILPhasesManager(

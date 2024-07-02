@@ -111,11 +111,11 @@ int main()
 
     if (hilSimulationActive)
     {
-        PayloadHILTransceiver* hilTransceiver =
-            new PayloadHILTransceiver(buses->usart2);
         PayloadHILPhasesManager* hilPhasesManager = new PayloadHILPhasesManager(
             [&]()
             { return Boardcore::TimedTrajectoryPoint(nas->getNasState()); });
+        PayloadHILTransceiver* hilTransceiver =
+            new PayloadHILTransceiver(buses->usart2, hilPhasesManager);
 
         auto updateActuatorData = [&]()
         {
