@@ -26,8 +26,7 @@
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
@@ -35,9 +34,24 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
-class Radio : public Boardcore::Module
+class Sensors;
+class Buses;
+class TMRepository;
+class FlightModeManager;
+class Actuators;
+class NASController;
+class WingController;
+class AltitudeTrigger;
+
+class Radio : public Boardcore::InjectableWithDeps<
+                  Sensors, Buses, TMRepository, FlightModeManager, Actuators,
+                  NASController, WingController, AltitudeTrigger>
 {
 public:
+    /**
+     * @note This class may only be instantiated once. The constructed instance
+     * sets itself as the static instance for handling radio interrupts.
+     */
     Radio(Boardcore::TaskScheduler& sched);
 
     /**

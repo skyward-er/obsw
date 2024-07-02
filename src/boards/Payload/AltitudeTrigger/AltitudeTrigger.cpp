@@ -77,9 +77,8 @@ void AltitudeTrigger::update()
     miosix::Lock<miosix::FastMutex> l(mutex);
     if (running)
     {
-        // We multiply by -1 to have a positive height
-        float height =
-            -ModuleManager::getInstance().get<NASController>()->getNasState().d;
+        // NED frame, flip the D sign to get a positive height
+        float height = -getModule<NASController>()->getNasState().d;
 
         if (height < WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE)
         {

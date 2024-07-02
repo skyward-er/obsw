@@ -21,6 +21,7 @@
  */
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
+#include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Radio/RadioData.h>
@@ -44,40 +45,39 @@ using namespace Common;
 #define SX1278_IRQ_DIO1 EXTI4_IRQHandlerImpl
 #define SX1278_IRQ_DIO3 EXTI5_IRQHandlerImpl
 
+static Payload::Radio* staticRadio = nullptr;
+
 void __attribute__((used)) SX1278_IRQ_DIO0()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
+    if (staticRadio && staticRadio->transceiver)
     {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+        staticRadio->transceiver->handleDioIRQ();
     }
 }
 
 void __attribute__((used)) SX1278_IRQ_DIO1()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
+    if (staticRadio && staticRadio->transceiver)
     {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+        staticRadio->transceiver->handleDioIRQ();
     }
 }
 
 void __attribute__((used)) SX1278_IRQ_DIO3()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    if (modules.get<Payload::Radio>()->transceiver)
+    if (staticRadio && staticRadio->transceiver)
     {
-        modules.get<Payload::Radio>()->transceiver->handleDioIRQ();
+        staticRadio->transceiver->handleDioIRQ();
     }
 }
+
 namespace Payload
 {
 
-Radio::Radio(TaskScheduler& sched) : scheduler(sched) {}
+Radio::Radio(TaskScheduler& sched) : scheduler(sched) { staticRadio = this; }
 
 bool Radio::start()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     // Config the transceiver
     SX1278Fsk::Config config = {
         .freq_rf    = 869000000,
@@ -95,7 +95,7 @@ bool Radio::start()
         std::make_unique<Skyward433Frontend>();
 
     transceiver = new SX1278Fsk(
-        modules.get<Buses>()->spi6, miosix::radio::cs::getPin(),
+        getModule<Buses>()->spi6, miosix::radio::cs::getPin(),
         miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
         miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
         std::move(frontend));
@@ -112,7 +112,7 @@ bool Radio::start()
         [&]()
         {
             this->enqueueMsg(
-                modules.get<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
+                getModule<TMRepository>()->packSystemTm(MAV_STATS_ID, 0, 0));
         },
         RadioConfig::RADIO_PERIODIC_TELEMETRY_PERIOD * 2,
         TaskScheduler::Policy::RECOVER);
@@ -162,8 +162,6 @@ bool Radio::isStarted()
 
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_PING_TC:
@@ -185,9 +183,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             {
                 mavlink_message_t msg;
                 mavlink_sensor_state_tm_t tm;
-                auto sensorsState = ModuleManager::getInstance()
-                                        .get<Sensors>()
-                                        ->getSensorInfo();
+                auto sensorsState = getModule<Sensors>()->getSensorInfo();
                 for (SensorInfo i : sensorsState)
                 {
                     strcpy(tm.sensor_name, i.id.c_str());
@@ -211,8 +207,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
                 // Add to the queue the respose
                 mavlink_message_t response =
-                    modules.get<TMRepository>()->packSystemTm(tmId, msg.msgid,
-                                                              msg.seq);
+                    getModule<TMRepository>()->packSystemTm(tmId, msg.msgid,
+                                                            msg.seq);
 
                 // Add the response to the queue
                 enqueueMsg(response);
@@ -233,8 +229,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
             // Add to the queue the respose
             mavlink_message_t response =
-                modules.get<TMRepository>()->packSensorsTm(tmId, msg.msgid,
-                                                           msg.seq);
+                getModule<TMRepository>()->packSensorsTm(tmId, msg.msgid,
+                                                         msg.seq);
 
             // Add the response to the queue
             enqueueMsg(response);
@@ -254,9 +250,8 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
 
             // Add to the queue the respose
-            mavlink_message_t response =
-                modules.get<TMRepository>()->packServoTm(servoId, msg.msgid,
-                                                         msg.seq);
+            mavlink_message_t response = getModule<TMRepository>()->packServoTm(
+                servoId, msg.msgid, msg.seq);
 
             // Add the response to the queue
             mavDriver->enqueueMsg(response);
@@ -277,9 +272,9 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             // Move the servo, if it fails send a nack
-            if (!modules.get<FlightModeManager>()->testState(
+            if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode) ||
-                !modules.get<Actuators>()->setServo(servoId, angle))
+                !getModule<Actuators>()->setServo(servoId, angle))
             {
                 return sendNack(msg);
             }
@@ -292,9 +287,9 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             // Send nack if the FMM is not in test mode
-            if (!modules.get<FlightModeManager>()->testState(
+            if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode) ||
-                !modules.get<Actuators>()->wiggleServo(servoId))
+                !getModule<Actuators>()->wiggleServo(servoId))
             {
                 return sendNack(msg);
             }
@@ -306,9 +301,9 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             ServosList servoId = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
-            if (!modules.get<FlightModeManager>()->testState(
+            if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode) ||
-                !modules.get<Actuators>()->setServo(servoId, 0))
+                !getModule<Actuators>()->setServo(servoId, 0))
             {
                 return sendNack(msg);
             }
@@ -320,7 +315,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float altitude =
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
-            modules.get<NASController>()->setReferenceAltitude(altitude);
+            getModule<NASController>()->setReferenceAltitude(altitude);
 
             RadioSetterParameter log{};
             log.timestamp   = TimestampTimer::getTimestamp();
@@ -333,7 +328,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float temperature =
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
-            modules.get<NASController>()->setReferenceTemperature(temperature);
+            getModule<NASController>()->setReferenceTemperature(temperature);
 
             RadioSetterParameter log{};
             log.timestamp      = TimestampTimer::getTimestamp();
@@ -346,7 +341,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float altitude =
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            modules.get<AltitudeTrigger>()->setDeploymentAltitude(altitude);
+            getModule<AltitudeTrigger>()->setDeploymentAltitude(altitude);
 
             RadioSetterParameter log{};
             log.timestamp   = TimestampTimer::getTimestamp();
@@ -360,7 +355,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float pitch = mavlink_msg_set_orientation_tc_get_pitch(&msg);
             float roll  = mavlink_msg_set_orientation_tc_get_roll(&msg);
 
-            modules.get<NASController>()->setOrientation(yaw, pitch, roll);
+            getModule<NASController>()->setOrientation(yaw, pitch, roll);
 
             RadioSetterParameter log{};
             log.timestamp = TimestampTimer::getTimestamp();
@@ -376,7 +371,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float longitude =
                 mavlink_msg_set_coordinates_tc_get_longitude(&msg);
 
-            modules.get<NASController>()->setCoordinates(
+            getModule<NASController>()->setCoordinates(
                 Eigen::Vector2f(latitude, longitude));
 
             RadioSetterParameter log{};
@@ -392,7 +387,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             float longitude =
                 mavlink_msg_set_coordinates_tc_get_longitude(&msg);
 
-            modules.get<WingController>()->setTargetPosition(
+            getModule<WingController>()->setTargetPosition(
                 Eigen::Vector2f(latitude, longitude));
 
             RadioSetterParameter log{};
@@ -407,7 +402,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             uint8_t algoID =
                 mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
 
-            if (!modules.get<WingController>()->selectAlgorithm(algoID))
+            if (!getModule<WingController>()->selectAlgorithm(algoID))
             {
                 return sendNack(msg);
             }
@@ -423,7 +418,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
             // Send the event only if the flight mode manager is in test mode
-            if (!modules.get<FlightModeManager>()->testState(
+            if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode))
             {
                 return sendNack(msg);
@@ -466,9 +461,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_SAVE_CALIBRATION:
         {
             // Save the sensor calibration and adopt it
-            if (!ModuleManager::getInstance()
-                     .get<Sensors>()
-                     ->writeMagCalibration())
+            if (!getModule<Sensors>()->writeMagCalibration())
             {
                 return sendNack(msg);
             }
@@ -496,8 +489,6 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
 void Radio::sendPeriodicMessage()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Send all the queue messages
     {
         Lock<FastMutex> lock(queueMutex);
@@ -512,7 +503,7 @@ void Radio::sendPeriodicMessage()
     }
 
     mavDriver->enqueueMsg(
-        modules.get<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
+        getModule<TMRepository>()->packSystemTm(MAV_FLIGHT_ID, 0, 0));
 }
 
 void Radio::enqueueMsg(const mavlink_message_t& msg)

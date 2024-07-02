@@ -22,25 +22,25 @@
 
 #pragma once
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <diagnostic/PrintLogger.h>
-#include <logger/Logger.h>
+#include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "WindEstimationData.h"
 
 namespace Payload
 {
+class Sensors;
 
 /**
  * @brief This class implements the wind prediction algorithm, the first part is
  * the initial setup, and then the continuos algoritms runs;
  */
-class WindEstimation : public Boardcore::Module
+class WindEstimation : public Boardcore::InjectableWithDeps<Sensors>
 {
 public:
     /**

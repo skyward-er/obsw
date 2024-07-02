@@ -22,11 +22,8 @@
 
 #include "Actuators.h"
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
 #include <interfaces-impl/hwmapping.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
