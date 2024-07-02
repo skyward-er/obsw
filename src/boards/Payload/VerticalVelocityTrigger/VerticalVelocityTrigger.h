@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include <Payload/BoardScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Payload
 {
+class NASController;
 
 /**
  * This class is used by the FailSafe logic to react to
@@ -37,7 +37,8 @@ namespace Payload
  * - Payload::BoardScheduler
  * - Payload::NASController
  */
-class VerticalVelocityTrigger : public Boardcore::Module
+class VerticalVelocityTrigger
+    : public Boardcore::InjectableWithDeps<NASController>
 {
 public:
     /**

@@ -22,17 +22,22 @@
 
 #pragma once
 
+#include <Payload/Actuators/Actuators.h>
+#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
+#include <Payload/CanHandler/CanHandler.h>
+#include <Payload/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "FlightModeManagerData.h"
 
 namespace Payload
 {
-class FlightModeManager : public Boardcore::HSM<FlightModeManager>,
-                          public Boardcore::Module
+class FlightModeManager
+    : public Boardcore::HSM<FlightModeManager>,
+      public Boardcore::InjectableWithDeps<Sensors, CanHandler, Actuators,
+                                           AltitudeTrigger>
 {
 public:
     FlightModeManager();

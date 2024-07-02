@@ -20,14 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/VerticalVelocityConfig.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
-
-#include <functional>
 
 using namespace Boardcore;
 using namespace Common;
@@ -61,10 +58,7 @@ void VerticalVelocityTrigger::update()
 {
     if (running)
     {
-        float verticalVelocity = -ModuleManager::getInstance()
-                                      .get<NASController>()
-                                      ->getNasState()
-                                      .vd;
+        float verticalVelocity = -getModule<NASController>()->getNasState().vd;
         if (verticalVelocity < FailSafe::FAILSAFE_VERTICAL_VELOCITY_THRESHOLD)
         {
             confidence++;

@@ -22,23 +22,25 @@
 
 #pragma once
 
-#include <Payload/BoardScheduler.h>
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class Sensors;
+class FlightModeManager;
+
 /**
  * @class CanHandler
  *
  * @brief Payload implementation of CanProtocol with methods for ease of use
  *
  */
-class CanHandler : public Boardcore::Module
+class CanHandler
+    : public Boardcore::InjectableWithDeps<Sensors, FlightModeManager>
 {
-
 public:
     /**
      * @brief Creates the protocol and the driver and adds the filters.

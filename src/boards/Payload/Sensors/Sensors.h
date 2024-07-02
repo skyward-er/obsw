@@ -38,15 +38,15 @@
 #include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
 #include <sensors/analog/pressure/honeywell/SSCMRNN030PA.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "SensorData.h"
 
 namespace Payload
 {
+class Buses;
 
-class Sensors : public Boardcore::Module
+class Sensors : public Boardcore::InjectableWithDeps<Buses>
 {
 public:
     explicit Sensors(Boardcore::TaskScheduler& sched);

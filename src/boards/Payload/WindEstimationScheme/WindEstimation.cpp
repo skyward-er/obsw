@@ -22,13 +22,10 @@
 
 #include "WindEstimation.h"
 
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Payload::WESConfig;
 using namespace Boardcore;
@@ -97,8 +94,7 @@ void WindEstimation::windEstimationSchemeCalibration()
 
     if (calRunning)
     {
-        auto gpsData =
-            ModuleManager::getInstance().get<Sensors>()->getGPSLastSample();
+        auto gpsData = getModule<Sensors>()->getGPSLastSample();
         if (gpsData.fix != 0)
         {
             if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
@@ -163,8 +159,7 @@ void WindEstimation::windEstimationScheme()
 {
     if (running)
     {
-        auto gpsData =
-            ModuleManager::getInstance().get<Sensors>()->getGPSLastSample();
+        auto gpsData = getModule<Sensors>()->getGPSLastSample();
         if (gpsData.fix != 0)
         {
             Eigen::Vector2f phi;

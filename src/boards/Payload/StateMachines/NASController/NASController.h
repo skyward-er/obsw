@@ -22,19 +22,20 @@
 
 #pragma once
 
+#include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "NASControllerData.h"
 
 namespace Payload
 {
+
 class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::Module
+                      public Boardcore::InjectableWithDeps<Sensors>
 {
 public:
     NASController(Boardcore::TaskScheduler& sched);
@@ -74,7 +75,7 @@ private:
     void update();
 
     /**
-     * @brief Logs the NAS status updating the FSM state
+     * @brief Logs the current NAS status
      * @param state The current FSM state
      */
     void logStatus(NASControllerState state);
@@ -89,7 +90,7 @@ private:
     // User set (or triac set) initial orientation
     Eigen::Vector3f initialOrientation;
 
-    // Parameters used to decide wether to correct with accelerometer after a
+    // Parameters used to decide whether to correct with accelerometer after a
     // spike is detected
     bool accelerationValid       = true;
     u_int8_t accSampleAfterSpike = 0;

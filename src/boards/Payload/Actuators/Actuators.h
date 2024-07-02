@@ -26,13 +26,12 @@
 #include <common/MavlinkGemini.h>
 #include <interfaces/gpio.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
 
-struct Actuators : public Boardcore::Module
+struct Actuators : public Boardcore::Injectable
 {
     explicit Actuators(Boardcore::TaskScheduler& sched);
 

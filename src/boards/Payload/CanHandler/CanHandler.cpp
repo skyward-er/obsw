@@ -73,9 +73,7 @@ bool CanHandler::start()
                          static_cast<uint8_t>(Board::PAYLOAD),
                          static_cast<uint8_t>(Board::BROADCAST),
                          static_cast<uint8_t>(SensorId::PITOT),
-                         ModuleManager::getInstance()
-                             .get<Sensors>()
-                             ->getPitotLastSample());
+                         getModule<Sensors>()->getPitotLastSample());
                  },
                  PITOT_TRANSMISSION_PERIOD) != 0;
 
@@ -84,10 +82,8 @@ bool CanHandler::start()
         scheduler.addTask(  // status
             [&]()
             {
-                FlightModeManagerState state = ModuleManager::getInstance()
-                                                   .get<FlightModeManager>()
-                                                   ->getStatus()
-                                                   .state;
+                FlightModeManagerState state =
+                    getModule<FlightModeManager>()->getStatus().state;
                 protocol->enqueueSimplePacket(
                     static_cast<uint8_t>(Priority::MEDIUM),
                     static_cast<uint8_t>(PrimaryType::STATUS),

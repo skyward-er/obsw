@@ -25,9 +25,8 @@
 #include <common/MavlinkGemini.h>
 #include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Payload
 {
@@ -38,7 +37,7 @@ namespace Payload
  * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
  * The handlers post an event on the EventBroker.
  */
-class PinHandler : public Boardcore::Module
+class PinHandler : public Boardcore::Injectable
 {
 public:
     PinHandler();

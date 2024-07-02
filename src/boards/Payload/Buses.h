@@ -26,11 +26,11 @@
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
 namespace Payload
 {
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 public:
     Boardcore::SPIBus spi1;

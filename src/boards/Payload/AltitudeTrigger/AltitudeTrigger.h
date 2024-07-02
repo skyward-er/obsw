@@ -22,15 +22,14 @@
 
 #pragma once
 
-#include <Payload/BoardScheduler.h>
-
-#include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class NASController;
 
-class AltitudeTrigger : public Boardcore::Module
+class AltitudeTrigger : public Boardcore::InjectableWithDeps<NASController>
 {
 public:
     explicit AltitudeTrigger(Boardcore::TaskScheduler &sched);

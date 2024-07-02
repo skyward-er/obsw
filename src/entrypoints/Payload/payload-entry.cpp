@@ -45,8 +45,7 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Boardcore;
 using namespace Payload;
@@ -57,22 +56,22 @@ using namespace Common;
  * Must be followed by a semicolon or a block of code.
  * The block of code will be executed only if the module starts correctly.
  *
- * @example START_MODULE(Sensors) { miosix::ledOn(); }
+ * @example START_MODULE(sensors) { miosix::ledOn(); }
  */
-#define START_MODULE(class)                                      \
-    if (!modules.get<class>()->start())                          \
-    {                                                            \
-        initResult = false;                                      \
-        LOG_ERR(logger, "Error starting the " #class " module"); \
-    }                                                            \
+#define START_MODULE(module)                        \
+    if (!module->start())                           \
+    {                                               \
+        initResult = false;                         \
+        LOG_ERR(logger, "Error starting " #module); \
+    }                                               \
     else
 
 int main()
 {
     miosix::ledOff();
 
-    ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger     = Logging::getLogger("Payload");
+    PrintLogger logger = Logging::getLogger("Payload");
+    DependencyManager depman{};
 
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
@@ -86,33 +85,35 @@ int main()
     auto canHandler = new CanHandler(scheduler->getMediumScheduler());
 
     // Flight algorithms
-    auto altTrigger     = new AltitudeTrigger(scheduler->getMediumScheduler());
-    auto wingController = new WingController(scheduler->getMediumScheduler());
+    auto altitudeTrigger = new AltitudeTrigger(scheduler->getMediumScheduler());
+    auto wingController  = new WingController(scheduler->getMediumScheduler());
     auto verticalVelocityTrigger =
         new VerticalVelocityTrigger(scheduler->getMediumScheduler());
     auto windEstimation = new WindEstimation(scheduler->getMediumScheduler());
 
     // Actuators is considered non-critical since the scheduler is only used for
     // the led and buzzer tasks
-    auto actuators      = new Actuators(scheduler->getLowScheduler());
-    auto statesRecorder = new FlightStatsRecorder(scheduler->getLowScheduler());
+    auto actuators     = new Actuators(scheduler->getLowScheduler());
+    auto statsRecorder = new FlightStatsRecorder(scheduler->getLowScheduler());
 
     // Components without a scheduler
-    auto tmRepo     = new TMRepository();
-    auto fmm        = new FlightModeManager();
-    auto pinHandler = new PinHandler();
+    auto tmRepository      = new TMRepository();
+    auto flightModeManager = new FlightModeManager();
+    auto pinHandler        = new PinHandler();
 
     // Insert modules
     bool initResult =
-        modules.insert(buses) && modules.insert(scheduler) &&
-        modules.insert(nas) &&
-        modules.insert(sensors) & modules.insert(radio) &&
-        modules.insert(altTrigger) && modules.insert(wingController) &&
-        modules.insert(verticalVelocityTrigger) &&
-        modules.insert(windEstimation) && modules.insert(canHandler) &&
-        modules.insert(actuators) && modules.insert(statesRecorder) &&
-        modules.insert(tmRepo) && modules.insert(fmm) &&
-        modules.insert(pinHandler);
+        depman.insert(buses) && depman.insert(scheduler) &&
+        depman.insert(nas) && depman.insert(sensors) & depman.insert(radio) &&
+        depman.insert(altitudeTrigger) && depman.insert(wingController) &&
+        depman.insert(verticalVelocityTrigger) &&
+        depman.insert(windEstimation) && depman.insert(canHandler) &&
+        depman.insert(actuators) && depman.insert(statsRecorder) &&
+        depman.insert(tmRepository) && depman.insert(flightModeManager) &&
+        depman.insert(pinHandler);
+
+    // Populate module dependencies
+    initResult &= depman.inject();
 
     /* Status led indicators
     led1: Sensors ok
@@ -133,23 +134,23 @@ int main()
         LOG_ERR(logger, "Error starting the EventBroker module");
     }
 
-    START_MODULE(NASController);
-    START_MODULE(Sensors) { miosix::led1On(); }
-    START_MODULE(Radio) { miosix::led2On(); }
-    START_MODULE(CanHandler) { miosix::led3On(); }
+    START_MODULE(nas);
+    START_MODULE(sensors) { miosix::led1On(); }
+    START_MODULE(radio) { miosix::led2On(); }
+    START_MODULE(canHandler) { miosix::led3On(); }
 
-    START_MODULE(AltitudeTrigger);
-    START_MODULE(WingController);
-    START_MODULE(VerticalVelocityTrigger);
-    START_MODULE(WindEstimation);
+    START_MODULE(altitudeTrigger);
+    START_MODULE(wingController);
+    START_MODULE(verticalVelocityTrigger);
+    START_MODULE(windEstimation);
 
-    START_MODULE(Actuators);
-    START_MODULE(FlightStatsRecorder);
+    START_MODULE(actuators);
+    START_MODULE(statsRecorder);
 
-    START_MODULE(FlightModeManager);
-    START_MODULE(PinHandler);
+    START_MODULE(flightModeManager);
+    START_MODULE(pinHandler);
 
-    START_MODULE(BoardScheduler);
+    START_MODULE(scheduler);
 
     // Log all the events
     EventSniffer sniffer(

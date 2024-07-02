@@ -24,11 +24,12 @@
 
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Payload/Wing/WingAlgorithm.h>
+#include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "WingControllerData.h"
 
@@ -55,8 +56,14 @@
 
 namespace Payload
 {
-class WingController : public Boardcore::HSM<WingController>,
-                       public Boardcore::Module
+class Actuators;
+class NASController;
+class WindEstimation;
+
+class WingController
+    : public Boardcore::HSM<WingController>,
+      public Boardcore::InjectableWithDeps<Actuators, NASController,
+                                           WindEstimation>
 {
 public:
     /**
@@ -93,14 +100,22 @@ public:
 
     bool start() override;
 
+    /**
+     * @brief Override the inject method to inject dependencies into the
+     * algorithms, which are insantiated later than top-level modules.
+     */
+    void inject(Boardcore::DependencyInjector& injector) override;
+
 private:
     /**
-     * @brief Method to add the algorithm in the list
+     * @brief Instantiates the algorithms and adds them to the algorithms
+     * vector.
      *
-     * @param algorithm The algorithm with
-     * all already done (e.g. steps already registered)
+     * @note Algorithms should be instantiated before dependency injection so
+     * that they can be injected with dependencies when the WingController is
+     * injected.
      */
-    bool addAlgorithms();
+    void addAlgorithms();
 
     /**
      * @brief target position getter

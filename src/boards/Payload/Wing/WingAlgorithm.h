@@ -26,10 +26,12 @@
 #include <algorithms/Algorithm.h>
 #include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
-#include <miosix.h>
+#include <utils/DependencyManager/DependencyManager.h>
+
 namespace Payload
 {
-class WingAlgorithm : public Boardcore::Algorithm
+class WingAlgorithm : public Boardcore::Algorithm,
+                      public Boardcore::InjectableWithDeps<Actuators>
 {
 public:
     /**

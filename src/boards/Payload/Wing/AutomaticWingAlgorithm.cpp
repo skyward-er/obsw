@@ -32,8 +32,6 @@
 #include <utils/AeroUtils/AeroUtils.h>
 #include <utils/Constants.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 using namespace Boardcore;
 using namespace Eigen;
 using namespace Payload::WingConfig;
@@ -44,7 +42,7 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                ServosList servo1,
                                                ServosList servo2,
                                                GuidanceAlgorithm& guidance)
-    : WingAlgorithm(servo1, servo2), guidance(guidance)
+    : Super(servo1, servo2), guidance(guidance)
 {
     controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
                                   PI_CONTROLLER_SATURATION_MIN_LIMIT,
@@ -55,46 +53,42 @@ AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
-    if (modules.get<Sensors>()->getGPSLastSample().fix != 0)
+    if (getModule<Sensors>()->getGPSLastSample().fix != 0)
     {
         // The PI calculated result
         float result = algorithmStep(
-            modules.get<NASController>()->getNasState(),
-            modules.get<WindEstimation>()->getWindEstimationScheme());
+            getModule<NASController>()->getNasState(),
+            getModule<WindEstimation>()->getWindEstimationScheme());
 
         // Actuate the result
         if (result > 0)
         {
             // Activate the servo1 and reset servo2
-            modules.get<Actuators>()->setServoAngle(servo1, result);
-            modules.get<Actuators>()->setServoAngle(servo2, 0);
+            getModule<Actuators>()->setServoAngle(servo1, result);
+            getModule<Actuators>()->setServoAngle(servo2, 0);
         }
         else
         {
             // Activate the servo2 and reset servo1
-            modules.get<Actuators>()->setServoAngle(servo1, 0);
-            modules.get<Actuators>()->setServoAngle(servo2, result * -1);
+            getModule<Actuators>()->setServoAngle(servo1, 0);
+            getModule<Actuators>()->setServoAngle(servo2, result * -1);
         }
 
         // Log the servo positions
         {
             miosix::Lock<FastMutex> l(mutex);
 
-            data.timestamp = TimestampTimer::getTimestamp();
-            data.servo1Angle =
-                modules.get<Actuators>()->getServoPosition(servo1);
-            data.servo2Angle =
-                modules.get<Actuators>()->getServoPosition(servo2);
+            data.timestamp   = TimestampTimer::getTimestamp();
+            data.servo1Angle = getModule<Actuators>()->getServoPosition(servo1);
+            data.servo2Angle = getModule<Actuators>()->getServoPosition(servo2);
             SDlogger->log(data);
         }
     }
     else
     {
         // If we loose fix we set both servo at 0
-        modules.get<Actuators>()->setServoAngle(servo1, 0);
-        modules.get<Actuators>()->setServoAngle(servo2, 0);
+        getModule<Actuators>()->setServoAngle(servo1, 0);
+        getModule<Actuators>()->setServoAngle(servo2, 0);
     }
 }
 

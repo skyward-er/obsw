@@ -29,12 +29,16 @@
 #include <scheduler/TaskScheduler.h>
 #include <sensors/SensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
-class FlightStatsRecorder : public Boardcore::Module
+class Sensors;
+class NASController;
+
+class FlightStatsRecorder
+    : public Boardcore::InjectableWithDeps<Sensors, NASController,
+                                           FlightModeManager>
 {
 public:
     explicit FlightStatsRecorder(Boardcore::TaskScheduler& sched);

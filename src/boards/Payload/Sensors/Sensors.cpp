@@ -34,6 +34,7 @@ namespace sensors = miosix::sensors;
 
 namespace Payload
 {
+
 LPS22DFData Sensors::getLPS22DFLastSample()
 {
     miosix::PauseKernelLock lock;
@@ -278,8 +279,6 @@ bool Sensors::writeMagCalibration()
 
 void Sensors::lps22dfInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = LPS22DF::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
@@ -290,7 +289,7 @@ void Sensors::lps22dfInit()
     sensorConfig.odr = LPS22DF_ODR;
 
     // Create sensor instance with configured parameters
-    lps22df = new LPS22DF(modules.get<Buses>()->spi3,
+    lps22df = new LPS22DF(getModule<Buses>()->spi3,
                           miosix::sensors::LPS22DF::cs::getPin(), config,
                           sensorConfig);
 
@@ -307,14 +306,12 @@ void Sensors::lps22dfInit()
 }
 void Sensors::lps28dfw_1Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{false, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_1 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
+    lps28dfw_1 = new LPS28DFW(getModule<Buses>()->i2c1, config);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_1", LPS28DFW_PERIOD,
@@ -329,14 +326,12 @@ void Sensors::lps28dfw_1Init()
 }
 void Sensors::lps28dfw_2Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the sensor
     LPS28DFW::SensorConfig config{true, LPS28DFW_FSR, LPS28DFW_AVG,
                                   LPS28DFW_ODR, false};
 
     // Create sensor instance with configured parameters
-    lps28dfw_2 = new LPS28DFW(modules.get<Buses>()->i2c1, config);
+    lps28dfw_2 = new LPS28DFW(getModule<Buses>()->i2c1, config);
 
     // Emplace the sensor inside the map
     SensorInfo info("LPS28DFW_2", LPS28DFW_PERIOD,
@@ -351,15 +346,13 @@ void Sensors::lps28dfw_2Init()
 }
 void Sensors::h3lis331dlInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = H3LIS331DL::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Create sensor instance with configured parameters
     h3lis331dl = new H3LIS331DL(
-        modules.get<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
+        getModule<Buses>()->spi3, miosix::sensors::H3LIS331DL::cs::getPin(),
         config, H3LIS331DL_ODR, H3LIS331DL_BDU, H3LIS331DL_FSR);
 
     // Emplace the sensor inside the map
@@ -375,8 +368,6 @@ void Sensors::h3lis331dlInit()
 }
 void Sensors::lis2mdlInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = LIS2MDL::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_16;
@@ -388,7 +379,7 @@ void Sensors::lis2mdlInit()
     sensorConfig.temperatureDivider = LIS2MDL_TEMPERATURE_DIVIDER;
 
     // Create sensor instance with configured parameters
-    lis2mdl = new LIS2MDL(modules.get<Buses>()->spi3,
+    lis2mdl = new LIS2MDL(getModule<Buses>()->spi3,
                           miosix::sensors::LIS2MDL::cs::getPin(), config,
                           sensorConfig);
 
@@ -406,14 +397,12 @@ void Sensors::lis2mdlInit()
 
 void Sensors::ubxgpsInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Get the correct SPI configuration
     SPIBusConfig config = UBXGPSSpi::getDefaultSPIConfig();
     config.clockDivider = SPI::ClockDivider::DIV_64;
 
     // Create sensor instance with configured parameters
-    ubxgps = new UBXGPSSpi(modules.get<Buses>()->spi4,
+    ubxgps = new UBXGPSSpi(getModule<Buses>()->spi4,
                            miosix::sensors::UBXGps::cs::getPin(), config, 5);
 
     // Emplace the sensor inside the map
@@ -430,8 +419,6 @@ void Sensors::ubxgpsInit()
 
 void Sensors::lsm6dsrxInit()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the SPI
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_32;
@@ -457,7 +444,7 @@ void Sensors::lsm6dsrxInit()
     sensorConfig.fifoTemperatureBdr      = LSM6DSRX_FIFO_TEMPERATURE_BDR;
 
     // Create sensor instance with configured parameters
-    lsm6dsrx = new LSM6DSRX(modules.get<Buses>()->spi1,
+    lsm6dsrx = new LSM6DSRX(getModule<Buses>()->spi1,
                             miosix::sensors::LSM6DSRX::cs::getPin(), config,
                             sensorConfig);
 
@@ -475,8 +462,6 @@ void Sensors::lsm6dsrxInit()
 
 void Sensors::ads131m08Init()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Configure the SPI
     SPIBusConfig config;
     config.clockDivider = SPI::ClockDivider::DIV_32;
@@ -488,7 +473,7 @@ void Sensors::ads131m08Init()
 
     // Create the sensor instance with configured parameters
     ads131m08 =
-        new ADS131M08(modules.get<Buses>()->spi4,
+        new ADS131M08(getModule<Buses>()->spi4,
                       sensors::ADS131M08::cs::getPin(), config, sensorConfig);
 
     // Emplace the sensor inside the map

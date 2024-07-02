@@ -22,7 +22,6 @@
 #include "WingController.h"
 
 #include <Payload/Actuators/Actuators.h>
-#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -42,7 +41,6 @@ using namespace Boardcore;
 using namespace Payload::WingConfig;
 using namespace Payload::WESConfig;
 using namespace Common;
-using namespace miosix;
 
 namespace Payload
 {
@@ -51,16 +49,33 @@ WingController::WingController(TaskScheduler& sched)
     : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0),
       scheduler(sched)
 {
-
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     this->targetPositionGEO = {DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON};
+
+    // Instantiate the algorithms
+    addAlgorithms();
+}
+
+void WingController::inject(DependencyInjector& injector)
+{
+    for (auto& algorithm : algorithms)
+    {
+        algorithm->inject(injector);
+    }
+    Super::inject(injector);
 }
 
 bool WingController::start()
 {
-    return scheduler.addTask([this] { update(); }, WING_UPDATE_PERIOD) &&
-           addAlgorithms() && HSM::start();
+    bool success = true;
+
+    success &= std::all_of(algorithms.begin(), algorithms.end(),
+                           [](auto& algorithm) { return algorithm->init(); });
+
+    return success &&
+           scheduler.addTask([this] { update(); }, WING_UPDATE_PERIOD) &&
+           HSM::start();
 }
 
 WingController::~WingController()
@@ -85,7 +100,7 @@ State WingController::state_idle(const Boardcore::Event& event)
         }
         case FLIGHT_WING_DESCENT:
         {
-            ModuleManager::getInstance().get<Actuators>()->cuttersOn();
+            getModule<Actuators>()->cuttersOn();
             return transition(&WingController::state_flying);
         }
         case EV_EMPTY:
@@ -133,20 +148,18 @@ State WingController::state_flying(const Event& event)
 
 State WingController::state_calibration(const Boardcore::Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
-            modules.get<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
-                                               1);
-            modules.get<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
-                                               0);
+            getModule<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
+                                             1);
+            getModule<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
+                                             0);
             EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE, TOPIC_DPL,
                                                    WES_CALIBRATION_TIMEOUT);
-            modules.get<WindEstimation>()
-                ->startWindEstimationSchemeCalibration();
+            getModule<WindEstimation>()->startWindEstimationSchemeCalibration();
             return HANDLED;
         }
         case EV_EXIT:
@@ -161,7 +174,7 @@ State WingController::state_calibration(const Boardcore::Event& event)
         {
             reset();
             // Turn off the cutters
-            ModuleManager::getInstance().get<Actuators>()->cuttersOff();
+            getModule<Actuators>()->cuttersOff();
             return transition(&WingController::state_controlled_descent);
         }
         default:
@@ -180,14 +193,8 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
             selectAlgorithm(0);
             setEarlyManeuverPoints(
                 convertTargetPositionToNED(targetPositionGEO),
-                {ModuleManager::getInstance()
-                     .get<NASController>()
-                     ->getNasState()
-                     .n,
-                 ModuleManager::getInstance()
-                     .get<NASController>()
-                     ->getNasState()
-                     .e});
+                {getModule<NASController>()->getNasState().n,
+                 getModule<NASController>()->getNasState().e});
             startAlgorithm();
             return HANDLED;
         }
@@ -214,12 +221,8 @@ State WingController::state_on_ground(const Boardcore::Event& event)
         {
             logStatus(WingControllerState::ON_GROUND);
 
-            ModuleManager::getInstance()
-                .get<WindEstimation>()
-                ->stopWindEstimationScheme();
-            ModuleManager::getInstance()
-                .get<WindEstimation>()
-                ->stopWindEstimationSchemeCalibration();
+            getModule<WindEstimation>()->stopWindEstimationScheme();
+            getModule<WindEstimation>()->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
             return HANDLED;
         }
@@ -238,21 +241,15 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     }
 }
 
-bool WingController::addAlgorithms()
+void WingController::addAlgorithms()
 {
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
-
-    bool result;
-    // We add an AutomaticWingAlgorithm and a FileWingAlgorithm
 
     algorithm = new AutomaticWingAlgorithm(KP, KI, PARAFOIL_LEFT_SERVO,
                                            PARAFOIL_RIGHT_SERVO, emGuidance);
     // Ensure that the servos are correct
     algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    // Init the algorithm
-    result = algorithm->init();
 
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
@@ -282,15 +279,10 @@ bool WingController::addAlgorithms()
     // Ensure that the servos are correct
     algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
 
-    // Init the algorithm
-    result = result && algorithm->init();
-
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
 
     selectAlgorithm(0);
-
-    return result;
 }
 
 bool WingController::selectAlgorithm(unsigned int index)
@@ -358,35 +350,26 @@ void WingController::flare()
 {
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-
-    ModuleManager::getInstance().get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO,
-                                                            1);
-    ModuleManager::getInstance().get<Actuators>()->setServo(
-        PARAFOIL_RIGHT_SERVO, 1);
+    getModule<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 1);
+    getModule<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
 {
     // Set the servo position to reset
-    ModuleManager::getInstance().get<Actuators>()->setServo(PARAFOIL_LEFT_SERVO,
-                                                            0);
-    ModuleManager::getInstance().get<Actuators>()->setServo(
-        PARAFOIL_RIGHT_SERVO, 0);
+    getModule<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0);
+    getModule<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 {
-    if (ModuleManager::getInstance().get<NASController>()->getStatus().state !=
+    if (getModule<NASController>()->getStatus().state !=
         NASControllerState::READY)
     {
         this->targetPositionGEO = targetGEO;
-        setEarlyManeuverPoints(
-            convertTargetPositionToNED(targetPositionGEO),
-            {ModuleManager::getInstance().get<NASController>()->getNasState().n,
-             ModuleManager::getInstance()
-                 .get<NASController>()
-                 ->getNasState()
-                 .e});
+        setEarlyManeuverPoints(convertTargetPositionToNED(targetPositionGEO),
+                               {getModule<NASController>()->getNasState().n,
+                                getModule<NASController>()->getNasState().e});
     }
 }
 
@@ -458,14 +441,10 @@ void WingController::logStatus(WingControllerState state)
 Eigen::Vector2f WingController::convertTargetPositionToNED(
     Eigen::Vector2f targetGEO)
 {
-    return Aeroutils::geodetic2NED(targetGEO, {ModuleManager::getInstance()
-                                                   .get<NASController>()
-                                                   ->getReferenceValues()
-                                                   .refLatitude,
-                                               ModuleManager::getInstance()
-                                                   .get<NASController>()
-                                                   ->getReferenceValues()
-                                                   .refLongitude});
+    return Aeroutils::geodetic2NED(
+        targetGEO,
+        {getModule<NASController>()->getReferenceValues().refLatitude,
+         getModule<NASController>()->getReferenceValues().refLongitude});
 }
 
 }  // namespace Payload

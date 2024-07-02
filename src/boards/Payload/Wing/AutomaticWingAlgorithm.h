@@ -26,14 +26,22 @@
 #include <algorithms/NAS/NASState.h>
 #include <algorithms/PIController.h>
 #include <algorithms/ReferenceValues.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
 
 namespace Payload
 {
-class AutomaticWingAlgorithm : public WingAlgorithm
-{
+class Sensors;
+class NASController;
+class WindEstimation;
+class Actuators;
 
+class AutomaticWingAlgorithm
+    : public Boardcore::InjectableWithDeps<
+          Boardcore::InjectableBase<WingAlgorithm>, Sensors, NASController,
+          WindEstimation, Actuators>
+{
 public:
     /**
      * @brief Construct a new Automatic Wing Algorithm object
