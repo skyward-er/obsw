@@ -37,7 +37,6 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
-#include <utils/ButtonHandler/ButtonHandler.h>
 
 #include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -116,192 +115,167 @@ int main()
     RadioMain *radio_main         = new LyraGS::RadioMain();
     BoardStatus *board_status     = new BoardStatus(dipRead.isARP);
     LyraGS::Ethernet *ethernet    = new LyraGS::Ethernet();
+    RadioPayload *radio_payload   = new RadioPayload();
 
-    // ARP entry
+    bool ok = true;
+
+    ok &= modules.insert(buses);
+    ok &= modules.insert(serial);
+    ok &= modules.insert(radio_main);
+    ok &= modules.insert(board_status);
+    ok &= modules.insert(ethernet);
+    ok &= modules.insert(radio_payload);
+
+    // Inserting Modules
+
+    // ARP modules insertion
     if (dipRead.isARP)
     {
-
-        Antennas::Leds *leds           = new Antennas::Leds(scheduler_low);
-        Antennas::Hub *hub             = new Antennas::Hub();
+        LOG_DEBUG(logger, "[debug] Starting as ARP Ground Station\n");
+        Antennas::Leds *leds = new Antennas::Leds(scheduler_low);
+        HubBase *hub = new Antennas::Hub();  //< TODO: Could it be this??? NAH!
         Antennas::Actuators *actuators = new Antennas::Actuators();
         Antennas::Sensors *sensors     = new Antennas::Sensors();
         Antennas::SMA *sma             = new Antennas::SMA(scheduler_high);
 
-        bool ok = true;
-
-        // Inserting Modules
         ok &= modules.insert(sma);
         ok &= modules.insert<HubBase>(hub);
-        ok &= modules.insert(buses);
-        ok &= modules.insert(serial);
-        ok &= modules.insert(radio_main);
-        ok &= modules.insert(board_status);
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
-        ok &= modules.insert(ethernet);
         ok &= modules.insert(leds);
+    }
+    // Ground station module insertion
+    else
+    {
+        LOG_DEBUG(logger, "[debug] Starting as GS base Ground Station\n");
+        HubBase *hub = new GroundstationBase::Hub();
+        ok &= modules.insert<HubBase>(hub);
+    }
 
-        // If insertion failed, stop right here
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to insert all modules!\n");
-            errorLoop();
-        }
+    // If insertion failed, stop right here
 
-        // Start the modules
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to insert all modules!\n");
+        errorLoop();
+    }
 
-        ok &= scheduler_low->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
-        }
+    LOG_DEBUG(logger, "[debug] All modules inserted correctly!\n");
 
-        ok &= scheduler_high->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start scheduler_high!\n");
-        }
+    // Start the modules
 
-        ok &= serial->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start serial!\n");
-        }
+    ok &= scheduler_low->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
+    }
 
-        ok &= radio_main->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start radio_main!\n");
-        }
+    ok &= scheduler_high->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start scheduler_high!\n");
+    }
 
-        ok &= ethernet->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start ethernet!\n");
-        }
+    ok &= serial->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start serial!\n");
+    }
 
-        ok &= board_status->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start board_status!\n");
-        }
+    ok &= radio_main->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start radio_main!\n");
+    }
 
-        ok &= leds->start();
+    ok &= radio_payload->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start payload radio!\n");
+    }
+
+    ok &= ethernet->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start ethernet!\n");
+    }
+
+    ok &= board_status->start();
+    if (!ok)
+    {
+        LOG_ERR(logger, "[error] Failed to start board_status!\n");
+    }
+
+    // Starting ARP specific modules
+
+    if (dipRead.isARP)
+    {
+        ok &= ModuleManager::getInstance().get<Antennas::Leds>()->start();
         if (!ok)
         {
             LOG_ERR(logger, "[error] Failed to start leds!\n");
         }
 
-        ok &= sensors->start();
+        ok &= ModuleManager::getInstance().get<Antennas::Sensors>()->start();
         if (!ok)
         {
             LOG_ERR(logger, "[error] Failed to start sensors!\n");
         }
 
-        ok &= sma->start();
+        ok &= ModuleManager::getInstance().get<Antennas::SMA>()->start();
         if (!ok)
         {
             LOG_ERR(logger, "[error] Failed to start sma!\n");
         }
+    }
 
-        // Start ARP by posting INIT event
-        led3On();  //< RED led (CU)
-        led1On();  //< GREEN led (CU)
+    if (!ok)
+    {
+        LOG_ERR(logger, "Could not start all modules successfully!\n");
+        errorLoop();
+    }
+
+    LOG_DEBUG(logger, "All modules started successfully!\n");
+
+    // Check presence of radio and ethernet
+
+    if (board_status->isMainRadioPresent())
+    {
+        LOG_INFO(logger, "Main radio detected!\n");
+        led1On();  //< GREEN led on (CU)
+    }
+    else
+        LOG_INFO(logger, "Main NOT detected\n");
+
+    if (board_status->isPayloadRadioPresent())
+    {
+        LOG_INFO(logger, "Payload radio detected!\n");
+        led2On();  //< YELLOW led on (CU)
+    }
+    else
+        LOG_INFO(logger, "Payload NOT detected\n");
+
+    if (board_status->isEthernetPresent())
+    {
+        LOG_INFO(logger, "Ethernet detected!\n");
+        led4On();  //< ORANGE led on (CU)
+    }
+    else
+        LOG_INFO(logger, "Ethernet NOT detected\n");
+
+    if (!ok)
+    {
+        errorLoop();
+    }
+
+    if (dipRead.isARP)
+    {
         LOG_INFO(logger, "Starting ARP");
         EventBroker::getInstance().post(Common::Events::ARP_INIT_OK,
                                         Common::Topics::TOPIC_ARP);
-        idleLoop();
-        return 0;
     }
-
-    // Groundstation entry
-    else
-    {
-        GroundstationBase::Hub *hub = new GroundstationBase::Hub();
-        RadioPayload *radio_payload = new RadioPayload();
-
-        bool ok = true;
-
-        // Inserting modules
-
-        ok &= modules.insert<HubBase>(hub);
-        ok &= modules.insert(buses);
-        ok &= modules.insert(serial);
-        ok &= modules.insert(ethernet);
-        ok &= modules.insert(radio_main);
-        ok &= modules.insert(radio_payload);
-        ok &= modules.insert(board_status);
-
-        // If insertion failed, stop right here
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to insert all modules!\n");
-            errorLoop();
-        }
-
-        LOG_DEBUG(logger, "All modules inserted successfully!\n");
-
-        // Ok now start them
-
-        ok &= serial->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start serial!\n");
-        }
-
-        ok &= ethernet->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start ethernet!\n");
-        }
-
-        ok &= radio_main->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start main radio!\n");
-        }
-
-        ok &= radio_payload->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start payload radio!\n");
-        }
-
-        ok &= board_status->start();
-        if (!ok)
-        {
-            LOG_ERR(logger, "[error] Failed to start board status!\n");
-        }
-
-        LOG_DEBUG(logger, "All modules started successfully!\n");
-
-        if (board_status->isMainRadioPresent())
-        {
-            LOG_ERR(logger, "Main radio detected!\n");
-            led1On();  //< GREEN led on (CU)
-        }
-
-        if (board_status->isPayloadRadioPresent())
-        {
-            LOG_ERR(logger, "Payload radio detected!\n");
-            led2On();  //< YELLOW led on (CU)
-        }
-
-        if (board_status->isEthernetPresent())
-        {
-            LOG_ERR(logger, "Ethernet detected!\n");
-            led4On();  //< ORANGE led on (CU)
-        }
-
-        LOG_DEBUG(logger, "All boards detected!\n");
-
-        if (!ok)
-        {
-            errorLoop();
-        }
-
-        led3On();  //< fix RED led (CU)
-        idleLoop();
-        return 0;
-    }
+    // radioStatLoop(radio_main, radio_payload);
+    led3On();  //< fix RED led (CU)
+    idleLoop();
+    return 0;
 }
