@@ -81,7 +81,7 @@ public:
     /**
      * @brief blocking action to blink endlessly a led
      */
-    void endlessBlink(LedColor color);
+    void endlessBlink(LedColor color, uint32_t period);
 
 private:
     enum class LedState : uint8_t
