@@ -22,8 +22,6 @@
 
 #include "Sensors.h"
 
-#include <RIGv2/BoardScheduler.h>
-#include <RIGv2/Buses.h>
 #include <RIGv2/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 // TODO(davide.mor): Remove TimestampTimer
@@ -39,7 +37,7 @@ bool Sensors::start()
 {
     ModuleManager &modules = ModuleManager::getInstance();
     TaskScheduler &scheduler =
-        modules.get<BoardScheduler>()->getSensorsScheduler();
+        getModule<BoardScheduler>()->getSensorsScheduler();
 
     SensorManager::SensorMap_t map;
     if (Config::Sensors::InternalADC::ENABLED)
@@ -294,7 +292,7 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
         .offset  = 0,
         .gain    = 1.0};
 
-    adc1 = std::make_unique<ADS131M08>(modules.get<Buses>()->getADS131M08_1(),
+    adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_1(),
                                        sensors::ADS131_1::cs::getPin(),
                                        spiConfig, config);
 
@@ -331,10 +329,9 @@ void Sensors::tc1Init(SensorManager::SensorMap_t &map)
     SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    tc1 =
-        std::make_unique<MAX31856>(modules.get<Buses>()->getMAX31856_1(),
-                                   sensors::MAX31856_1::cs::getPin(), spiConfig,
-                                   MAX31856::ThermocoupleType::K_TYPE);
+    tc1 = std::make_unique<MAX31856>(
+        getModule<Buses>()->getMAX31856_1(), sensors::MAX31856_1::cs::getPin(),
+        spiConfig, MAX31856::ThermocoupleType::K_TYPE);
 
     SensorInfo info("MAX31856_1", Config::Sensors::MAX31856::SAMPLE_PERIOD,
                     [this]() { tc1Callback(); });

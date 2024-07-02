@@ -22,9 +22,8 @@
 
 #pragma once
 
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/Registry/RegistryFrontend.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
 {
@@ -48,7 +47,8 @@ enum ConfigurationKeys
 
 const char* configurationIdToName(Boardcore::ConfigurationId id);
 
-class Registry : public Boardcore::Module, public Boardcore::RegistryFrontend
+class Registry : public Boardcore::Injectable,
+                 public Boardcore::RegistryFrontend
 {
 public:
     Registry();

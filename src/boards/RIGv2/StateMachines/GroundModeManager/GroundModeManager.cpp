@@ -22,11 +22,8 @@
 
 #include "GroundModeManager.h"
 
-#include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Configs/GmmConfig.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
-#include <RIGv2/Registry/Registry.h>
-#include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -48,8 +45,7 @@ GroundModeManagerState GroundModeManager::getState() { return state; }
 
 void GroundModeManager::setIgnitionTime(uint32_t time)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-    modules.get<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
 }
 
 Boardcore::State GroundModeManager::state_idle(const Boardcore::Event &event)
@@ -173,14 +169,13 @@ Boardcore::State GroundModeManager::state_init_error(
 Boardcore::State GroundModeManager::state_disarmed(
     const Boardcore::Event &event)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
             updateAndLogStatus(GMM_STATE_DISARMED);
-            modules.get<Actuators>()->armLightOff();
-            modules.get<Registry>()->disarm();
+            getModule<Actuators>()->armLightOff();
+            getModule<Registry>()->disarm();
             return HANDLED;
         }
 
@@ -201,7 +196,7 @@ Boardcore::State GroundModeManager::state_disarmed(
 
         case TMTC_OPEN_NITROGEN:
         {
-            modules.get<Actuators>()->openNitrogen();
+            getModule<Actuators>()->openNitrogen();
             return HANDLED;
         }
 
@@ -212,7 +207,7 @@ Boardcore::State GroundModeManager::state_disarmed(
 
         case TMTC_CALIBRATE:
         {
-            modules.get<Sensors>()->calibrate();
+            getModule<Sensors>()->calibrate();
 
             // TODO(davide.mor): Also send CAN command
             return HANDLED;
@@ -227,16 +222,15 @@ Boardcore::State GroundModeManager::state_disarmed(
 
 Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
             updateAndLogStatus(GMM_STATE_ARMED);
-            modules.get<Registry>()->arm();
-            modules.get<Actuators>()->armLightOn();
-            modules.get<Actuators>()->closeAllServos();
-            modules.get<Actuators>()->closeNitrogen();
+            getModule<Registry>()->arm();
+            getModule<Actuators>()->armLightOn();
+            getModule<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeNitrogen();
             return HANDLED;
         }
 
@@ -257,7 +251,7 @@ Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
 
         case TMTC_OPEN_NITROGEN:
         {
-            modules.get<Actuators>()->openNitrogen();
+            getModule<Actuators>()->openNitrogen();
 
             // Nitrogen causes automatic disarm
             return transition(&GroundModeManager::state_disarmed);
@@ -282,7 +276,6 @@ Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
 
 Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -294,8 +287,8 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
         case EV_EXIT:
         {
             // Stop ignition and close all servos
-            modules.get<Actuators>()->igniterOff();
-            modules.get<Actuators>()->closeAllServos();
+            getModule<Actuators>()->igniterOff();
+            getModule<Actuators>()->closeAllServos();
 
             // Disable all events
             EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
@@ -317,7 +310,7 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
         case TMTC_OPEN_NITROGEN:
         {
             // Open nitrogen
-            modules.get<Actuators>()->openNitrogen();
+            getModule<Actuators>()->openNitrogen();
 
             return transition(&GroundModeManager::state_disarmed);
         }
@@ -326,7 +319,7 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
         case TMTC_DISARM:            // Abort signal
         {
             // TODO(davide.mor): Set this to a sensible time
-            modules.get<Actuators>()->openNitrogenWithTime(
+            getModule<Actuators>()->openNitrogenWithTime(
                 Config::GroundModeManager::NITROGEN_TIME);
 
             return transition(&GroundModeManager::state_disarmed);
@@ -350,10 +343,10 @@ Boardcore::State GroundModeManager::state_igniting(
             updateAndLogStatus(GMM_STATE_IGNITING);
 
             // Start ignition
-            modules.get<Actuators>()->igniterOn();
+            getModule<Actuators>()->igniterOn();
 
             uint32_t ignitionTime =
-                modules.get<Registry>()->getOrSetDefaultUnsafe(
+                getModule<Registry>()->getOrSetDefaultUnsafe(
                     CONFIG_ID_IGNITION_TIME,
                     Config::GroundModeManager::DEFAULT_IGNITION_WAITING_TIME);
 
@@ -381,7 +374,7 @@ Boardcore::State GroundModeManager::state_igniting(
 
         case MOTOR_OPEN_OXIDANT:
         {
-            modules.get<Actuators>()->igniterOff();
+            getModule<Actuators>()->igniterOff();
             return transition(&GroundModeManager::state_oxidizer);
         }
 
@@ -402,7 +395,7 @@ Boardcore::State GroundModeManager::state_oxidizer(
         {
             updateAndLogStatus(GMM_STATE_OXIDIZER);
 
-            modules.get<Actuators>()->openServo(ServosList::MAIN_VALVE);
+            getModule<Actuators>()->openServo(ServosList::MAIN_VALVE);
 
             return HANDLED;
         }

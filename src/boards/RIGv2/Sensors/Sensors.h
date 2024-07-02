@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <RIGv2/BoardScheduler.h>
+#include <RIGv2/Buses.h>
 #include <RIGv2/Sensors/AnalogLoadCellSensor.h>
 #include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/Sensors/TrafagPressureSensor.h>
@@ -39,7 +41,7 @@
 namespace RIGv2
 {
 
-class Sensors : public Boardcore::Module
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
 {
 public:
     Sensors() {}

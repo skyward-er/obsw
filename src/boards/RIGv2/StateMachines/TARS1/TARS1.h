@@ -22,19 +22,23 @@
 
 #pragma once
 
+#include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/TARS1Config.h>
+#include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/TARS1/MedianFilter.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <events/FSM.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace RIGv2
 {
 
-class TARS1 : public Boardcore::Module, public Boardcore::FSM<TARS1>
+class TARS1
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>,
+      public Boardcore::FSM<TARS1>
 {
 public:
     TARS1();

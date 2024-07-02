@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
@@ -29,12 +30,11 @@
 #include <scheduler/TaskScheduler.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace RIGv2
 {
 
-class Actuators : public Boardcore::Module
+class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler, Registry>
 {
 private:
     struct ServoInfo
@@ -63,15 +63,15 @@ private:
         // Timestamp of last servo action (open/close)
         long long lastActionTs = 0;
 
-        void openServo();
+        void openServo(Registry *registry);
         void openServoWithTime(uint32_t time);
         void closeServo();
         void unsafeSetServoPosition(float position);
         float getServoPosition();
-        float getMaxAperture();
-        uint32_t getOpeningTime();
-        bool setMaxAperture(float aperture);
-        bool setOpeningTime(uint32_t time);
+        float getMaxAperture(Registry *registry);
+        uint32_t getOpeningTime(Registry *registry);
+        bool setMaxAperture(Registry *registry, float aperture);
+        bool setOpeningTime(Registry *registry, uint32_t time);
     };
 
 public:

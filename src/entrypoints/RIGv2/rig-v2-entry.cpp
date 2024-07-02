@@ -44,8 +44,8 @@ using namespace miosix;
 
 int main()
 {
-    PrintLogger logger     = Logging::getLogger("main");
-    ModuleManager &modules = ModuleManager::getInstance();
+    PrintLogger logger = Logging::getLogger("main");
+    DependencyManager manager;
 
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
@@ -70,13 +70,20 @@ int main()
         });
 
     // Insert modules
-    bool initResult =
-        modules.insert<Buses>(buses) &&
-        modules.insert<BoardScheduler>(scheduler) &&
-        modules.insert<Actuators>(actuators) &&
-        modules.insert<Sensors>(sensors) && modules.insert<Radio>(radio) &&
-        modules.insert<Registry>(registry) &&
-        modules.insert<GroundModeManager>(gmm) && modules.insert<TARS1>(tars1);
+    bool initResult = manager.insert<Buses>(buses) &&
+                      manager.insert<BoardScheduler>(scheduler) &&
+                      manager.insert<Actuators>(actuators) &&
+                      manager.insert<Sensors>(sensors) &&
+                      manager.insert<Radio>(radio) &&
+                      manager.insert<Registry>(registry) &&
+                      manager.insert<GroundModeManager>(gmm) &&
+                      manager.insert<TARS1>(tars1) && manager.inject();
+
+    if (!initResult)
+    {
+        LOG_ERR(logger, "Failed to inject dependencies");
+        return 0;
+    }
 
     // Start modules
     if (!sdLogger.testSDCard())
@@ -152,7 +159,7 @@ int main()
     {
         Thread::sleep(1000);
         sdLogger.log(sdLogger.getStats());
-        sdLogger.log(modules.get<Radio>()->getMavStatus());
+        sdLogger.log(radio->getMavStatus());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         // TODO: What the fuck is this?

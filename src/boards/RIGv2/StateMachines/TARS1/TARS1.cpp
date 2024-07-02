@@ -22,10 +22,7 @@
 
 #include "TARS1.h"
 
-#include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
-#include <RIGv2/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 // TODO(davide.mor): Remove TimestampTimer
@@ -46,9 +43,7 @@ TARS1::TARS1()
 
 bool TARS1::start()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    TaskScheduler& scheduler =
-        modules.get<BoardScheduler>()->getTars1Scheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getTars1Scheduler();
 
     uint8_t result =
         scheduler.addTask([this]() { sample(); }, Config::TARS1::SAMPLE_PERIOD);
@@ -90,8 +85,7 @@ void TARS1::state_ready(const Event& event)
 
 void TARS1::state_refueling(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    Actuators* actuators   = modules.get<Actuators>();
+    Actuators* actuators = getModule<Actuators>();
 
     switch (event)
     {
@@ -253,7 +247,7 @@ void TARS1::state_refueling(const Event& event)
             logAction(TARS_ACTION_MANUAL_STOP);
 
             // The user requested that we stop
-            modules.get<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeAllServos();
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
@@ -264,7 +258,7 @@ void TARS1::state_refueling(const Event& event)
 void TARS1::sample()
 {
     ModuleManager& modules = ModuleManager::getInstance();
-    Sensors* sensors       = modules.get<Sensors>();
+    Sensors* sensors       = getModule<Sensors>();
 
     pressureFilter.add(sensors->getBottomTankPress().pressure);
     massFilter.add(sensors->getTankWeight().load);
