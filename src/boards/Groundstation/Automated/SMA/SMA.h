@@ -95,12 +95,12 @@ public:
     /**
      * @brief move the stepper `stepperId` of `angle` degrees
      */
-    ErrorMovement moveStepperDeg(StepperList stepperId, float angle);
+    ActuationStatus moveStepperDeg(StepperList stepperId, float angle);
 
     /**
      * @brief move the stepper `stepperId` of `steps` steps
      */
-    ErrorMovement moveStepperSteps(StepperList stepperId, int16_t steps);
+    ActuationStatus moveStepperSteps(StepperList stepperId, int16_t steps);
 
     /**
      * @brief Getter for follower target angles

@@ -55,9 +55,10 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     {
         switch (msg.msgid)
         {
-             case MAVLINK_MSG_ID_ARP_COMMAND_TC:
+            case MAVLINK_MSG_ID_ARP_COMMAND_TC:
             {
-                // Create the map between the commands and the corresponding events
+                // Create the map between the commands and the corresponding
+                // events
                 static const std::map<MavArpCommandList, Events> commandToEvent{
                     {MAV_ARP_CMD_FORCE_INIT, TMTC_ARP_FORCE_INIT},
                     {MAV_ARP_CMD_RESET_ALGORITHM, TMTC_ARP_RESET_ALGORITHM},
@@ -88,7 +89,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 // Acknowledge the message
                 sendAck(msg);
                 break;
-            }           
+            }
             case MAVLINK_MSG_ID_SET_STEPPER_ANGLE_TC:
             {
                 StepperList stepperId = static_cast<StepperList>(
@@ -96,9 +97,9 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 float angle = mavlink_msg_set_stepper_angle_tc_get_angle(&msg);
 
                 // The stepper is moved of 'angle' degrees
-                ErrorMovement moved =
-                    modules.get<SMA>()->moveDeg(stepperId, angle);
-                if (moved == ErrorMovement::OK)
+                ActuationStatus moved =
+                    modules.get<SMA>()->moveStepperDeg(stepperId, angle);
+                if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
                     sendNack(msg);
@@ -112,9 +113,9 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     mavlink_msg_set_stepper_steps_tc_get_steps(&msg);
 
                 // The stepper is moved of 'steps' steps
-                ErrorMovement moved =
-                    modules.get<SMA>()->move(stepperId, steps);
-                if (moved == ErrorMovement::OK)
+                ActuationStatus moved =
+                    modules.get<SMA>()->moveStepperSteps(stepperId, steps);
+                if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
                     sendNack(msg);
