@@ -94,12 +94,12 @@ void SMA::setInitialRocketCoordinates(
     }
 }
 
-ErrorMovement SMA::moveStepperDeg(StepperList stepperId, float angle)
+ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
 {
     if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
-        return ErrorMovement::NOT_TEST;
+        return ActuationStatus::NOT_TEST;
     }
     else
     {
@@ -108,12 +108,12 @@ ErrorMovement SMA::moveStepperDeg(StepperList stepperId, float angle)
     }
 }
 
-ErrorMovement SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
+ActuationStatus SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
 {
     if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
-        return ErrorMovement::NOT_TEST;
+        return ActuationStatus::NOT_TEST;
     }
     else
     {
@@ -214,9 +214,9 @@ void SMA::update()
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
             steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
 
-            ErrorMovement actuation =
+            ActuationStatus actuation =
                 steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
-            if (actuation != ErrorMovement::OK)
+            if (actuation != ActuationStatus::OK)
             {
                 LOG_ERR(
                     logger,
@@ -226,7 +226,7 @@ void SMA::update()
             }
 
             actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
-            if (actuation != ErrorMovement::OK)
+            if (actuation != ActuationStatus::OK)
             {
                 LOG_ERR(
                     logger,

@@ -44,14 +44,15 @@ namespace Antennas
 /**
  * @brief Error handling enum for the stepper movement
  */
-enum class ErrorMovement : uint8_t
+enum class ActuationStatus : uint8_t
 {
     OK,              ///< `0`
-    LIMIT,           ///< `1` The STEPPER_X reached its actuation limits
-    NOT_TEST,        ///< `2` Such movement is allowed only in test
-    NO_STEPPER,      ///< `3` The specified stepper does not exist
-    DISABLED,        ///< `4`
-    EMERGENCY_STOP,  ///< `5`
+    POSITION_LIMIT,  ///< `1` The STEPPER_X reached its actuation limits
+    SPEED_LIMIT,     ///< `2` Stepper reached its velocity limits
+    NOT_TEST,        ///< `3` Such movement is allowed only in test
+    NO_STEPPER,      ///< `4` The specified stepper does not exist
+    DISABLED,        ///< `5`
+    EMERGENCY_STOP,  ///< `6`
 };
 
 class Actuators : public Boardcore::Module
@@ -78,12 +79,11 @@ public:
     void IRQemergencyStop();
     void IRQemergencyStopRecovery();
 
-    void setSpeed(StepperList axis, float speed);
-
-    ErrorMovement move(StepperList axis, int16_t steps);
-    ErrorMovement moveDeg(StepperList axis, float degrees);
-    ErrorMovement setPosition(StepperList axis, int16_t steps);
-    ErrorMovement setPositionDeg(StepperList axis, float degrees);
+    ActuationStatus setSpeed(StepperList axis, float speed);
+    ActuationStatus move(StepperList axis, int16_t steps);
+    ActuationStatus moveDeg(StepperList axis, float degrees);
+    ActuationStatus setPosition(StepperList axis, int16_t steps);
+    ActuationStatus setPositionDeg(StepperList axis, float degrees);
 
     void zeroPosition();
 
