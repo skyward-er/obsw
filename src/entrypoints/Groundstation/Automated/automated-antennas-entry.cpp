@@ -40,21 +40,6 @@
 #include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-#define START_MODULE(name, lambda)                                  \
-    do                                                              \
-    {                                                               \
-        std::function<bool()> _fun = lambda;                        \
-        if (!_fun())                                                \
-        {                                                           \
-            LOG_ERR(logger, "Failed to start module " name);        \
-            leds->endlessBlink(LedColor::RED);                      \
-        }                                                           \
-        else                                                        \
-        {                                                           \
-            LOG_DEBUG(logger, "Successfully started module " name); \
-        }                                                           \
-    } while (0)
-
 using namespace Groundstation;
 using namespace Antennas;
 using namespace Common;
@@ -107,12 +92,12 @@ int main()
     BoardStatus *board_status     = new BoardStatus();
     Actuators *actuators          = new Actuators();
     Sensors *sensors              = new Sensors();
-    SMA *sm                       = new SMA(scheduler_high);
+    SMA *sma                      = new SMA(scheduler_high);
     Ethernet *ethernet            = new Ethernet();
 
     // Inserting Modules
     {  // TODO remove this scope (improve readability)
-        ok &= modules.insert(sm);
+        ok &= modules.insert(sma);
         ok &= modules.insert<HubBase>(hub);
         ok &= modules.insert(buses);
         ok &= modules.insert(serial);
@@ -127,7 +112,7 @@ int main()
         if (!ok)
         {
             LOG_ERR(logger, "Failed to insert all modules!\n");
-            leds->endlessBlink(LedColor::RED);
+            leds->endlessBlink(LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
         }
         else
         {
@@ -136,21 +121,63 @@ int main()
     }
 
     // Starting Modules
-    {  // TODO remove macro used
+    bool init_fatal = false;
+    bool init_error = false;
+
 #ifndef NO_SD_LOGGING
-        START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
-#endif
-        START_MODULE("Scheduler Low", [&] { return scheduler_low->start(); });
-        START_MODULE("Scheduler High", [&] { return scheduler_high->start(); });
-        START_MODULE("Serial", [&] { return serial->start(); });
-        START_MODULE("Main Radio", [&] { return radio_main->start(); });
-        START_MODULE("Ethernet", [&] { return ethernet->start(); });
-        START_MODULE("Board Status", [&] { return board_status->start(); });
-        START_MODULE("Leds", [&] { return leds->start(); });
-        START_MODULE("Sensors", [&] { return sensors->start(); });
-        START_MODULE("SMA", [&] { return sm->start(); });
-        actuators->start();
+    if (!Logger::getInstance().start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Logger\n");
+        init_error = true;
     }
+#endif
+    if (!scheduler_low->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Scheduler Low\n");
+        init_error = true;
+    }
+    if (!scheduler_high->start())
+    {
+        LOG_ERR(logger, "FATAL: Failed to start Scheduler High\n");
+        init_fatal = true;
+    }
+    if (!serial->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Serial\n");
+        init_error = true;
+    }
+    if (!leds->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Leds\n");
+        init_error = true;
+    }
+    if (!radio_main->start())
+    {
+        LOG_ERR(logger, "FATAL: Failed to start Main Radio\n");
+        init_fatal = true;
+    }
+    if (!ethernet->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Ethernet\n");
+        init_error = true;
+    }
+    if (!board_status->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Board Status\n");
+        init_error = true;
+    }
+    if (!sensors->start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Sensors\n");
+        init_error = true;
+    }
+    if (!sma->start())
+    {
+        LOG_ERR(logger, "FATAL: Failed to start SMA\n");
+        init_fatal = true;
+    }
+    actuators->start();
+
     LOG_INFO(logger, "Modules setup successful");
 
     if (board_status->isMainRadioPresent())
@@ -158,8 +185,20 @@ int main()
         LOG_DEBUG(logger, "Main radio is present\n");
     }
 
-    LOG_INFO(logger, "Starting ARP");
-    EventBroker::getInstance().post(ARP_INIT_OK, TOPIC_ARP);
+    // If init fatal and sma not started, blink red endlessly
+    if (init_fatal)
+    {
+        leds->endlessBlink(LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
+    }  // If another module is in error
+    else if (init_error)
+    {
+        EventBroker::getInstance().post(ARP_INIT_ERROR, TOPIC_ARP);
+    }  // If all modules are ok
+    else
+    {
+        LOG_INFO(logger, "Starting ARP");
+        EventBroker::getInstance().post(ARP_INIT_OK, TOPIC_ARP);
+    }
 
     while (true)
     {
