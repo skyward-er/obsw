@@ -335,7 +335,6 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
 Boardcore::State GroundModeManager::state_igniting(
     const Boardcore::Event &event)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -388,7 +387,6 @@ Boardcore::State GroundModeManager::state_igniting(
 Boardcore::State GroundModeManager::state_oxidizer(
     const Boardcore::Event &event)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:

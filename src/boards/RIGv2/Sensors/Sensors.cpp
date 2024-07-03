@@ -35,7 +35,6 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     TaskScheduler &scheduler =
         getModule<BoardScheduler>()->getSensorsScheduler();
 
@@ -227,8 +226,6 @@ void Sensors::internalAdcCallback()
 
 void Sensors::adc1Init(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = {};
     spiConfig.mode         = SPI::Mode::MODE_0;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -324,8 +321,6 @@ void Sensors::adc1Callback()
 
 void Sensors::tc1Init(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 

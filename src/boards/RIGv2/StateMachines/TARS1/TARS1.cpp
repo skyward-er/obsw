@@ -257,8 +257,7 @@ void TARS1::state_refueling(const Event& event)
 
 void TARS1::sample()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-    Sensors* sensors       = getModule<Sensors>();
+    Sensors* sensors = getModule<Sensors>();
 
     pressureFilter.add(sensors->getBottomTankPress().pressure);
     massFilter.add(sensors->getTankWeight().load);
