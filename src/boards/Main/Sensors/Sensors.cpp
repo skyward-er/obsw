@@ -22,8 +22,6 @@
 
 #include "Sensors.h"
 
-#include <Main/BoardScheduler.h>
-#include <Main/Buses.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -37,9 +35,8 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     TaskScheduler &scheduler =
-        modules.get<BoardScheduler>()->getSensorsScheduler();
+        getModule<BoardScheduler>()->getSensorsScheduler();
 
     SensorManager::SensorMap_t map;
     lps22dfInit(map);
@@ -139,8 +136,6 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
 
 void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -148,7 +143,7 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     config.avg = Config::Sensors::LPS22DF::AVG;
     config.odr = Config::Sensors::LPS22DF::ODR;
 
-    lps22df = std::make_unique<LPS22DF>(modules.get<Buses>()->getLPS22DF(),
+    lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->getLPS22DF(),
                                         sensors::LPS22DF::cs::getPin(),
                                         spiConfig, config);
 
@@ -162,8 +157,6 @@ void Sensors::lps22dfCallback() {}
 
 void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     LPS28DFW::SensorConfig config;
     config.sa0  = true;
     config.fsr  = Config::Sensors::LPS28DFW::FS;
@@ -172,7 +165,7 @@ void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
     config.drdy = false;
 
     lps28dfw =
-        std::make_unique<LPS28DFW>(modules.get<Buses>()->getLPS28DFW(), config);
+        std::make_unique<LPS28DFW>(getModule<Buses>()->getLPS28DFW(), config);
 
     SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::PERIOD,
                     [this]() { lps28dfwCallback(); },
@@ -184,15 +177,12 @@ void Sensors::lps28dfwCallback() {}
 
 void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     h3lis331dl = std::make_unique<H3LIS331DL>(
-        modules.get<Buses>()->getH3LIS331DL(),
-        sensors::H3LIS331DL::cs::getPin(), spiConfig,
-        Config::Sensors::H3LIS331DL::ODR,
+        getModule<Buses>()->getH3LIS331DL(), sensors::H3LIS331DL::cs::getPin(),
+        spiConfig, Config::Sensors::H3LIS331DL::ODR,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         Config::Sensors::H3LIS331DL::FS);
 
@@ -206,8 +196,6 @@ void Sensors::h3lis331dlCallback() {}
 
 void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -216,7 +204,7 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     config.odr                = Config::Sensors::LIS2MDL::ODR;
     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
 
-    lis2mdl = std::make_unique<LIS2MDL>(modules.get<Buses>()->getLIS2MDL(),
+    lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
                                         sensors::LIS2MDL::cs::getPin(),
                                         spiConfig, config);
 
@@ -230,12 +218,10 @@ void Sensors::lis2mdlCallback() {}
 
 void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ubxgps = std::make_unique<UBXGPSSpi>(modules.get<Buses>()->getUBXGps(),
+    ubxgps = std::make_unique<UBXGPSSpi>(getModule<Buses>()->getUBXGps(),
                                          sensors::UBXGps::cs::getPin(),
                                          spiConfig, 5);
 
@@ -249,8 +235,6 @@ void Sensors::ubxgpsCallback() {}
 
 void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -271,7 +255,7 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
 
-    lsm6dsrx = std::make_unique<LSM6DSRX>(modules.get<Buses>()->getLSM6DSRX(),
+    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                           sensors::LSM6DSRX::cs::getPin(),
                                           spiConfig, config);
 
@@ -285,8 +269,6 @@ void Sensors::lsm6dsrxCallback() {}
 
 void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
@@ -310,9 +292,9 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
     config.channelsConfig[1].enabled = true;
     config.channelsConfig[2].enabled = true;
 
-    ads131m08 = std::make_unique<ADS131M08>(
-        modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
-        spiConfig, config);
+    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
+                                            sensors::ADS131M08::cs::getPin(),
+                                            spiConfig, config);
 
     SensorInfo info{"ADS131M08", 2000, [this]() { ads131m08Callback(); },
                     Config::Sensors::ADS131M08::ENABLED};

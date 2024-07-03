@@ -22,7 +22,6 @@
 
 #include "Actuators.h"
 
-#include <Main/BoardScheduler.h>
 #include <Main/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -51,9 +50,8 @@ Actuators::Actuators()
 
 [[nodiscard]] bool Actuators::start()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     TaskScheduler &scheduler =
-        modules.get<BoardScheduler>()->getLowPriorityActuatorsScheduler();
+        getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();
 
     servoAbk->enable();
     servoExp->enable();
