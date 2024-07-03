@@ -387,7 +387,7 @@
             "defines": [
                 "${defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_lyra_biscotto",
-                "_BOARD_STM32F767ZI_BIKESHED",
+                "_BOARD_STM32F767ZI_LYRA_BISCOTTO",
                 "_ARCH_CORTEXM7_STM32F7",
                 "STM32F767xx",
                 "HSE_VALUE=25000000",
