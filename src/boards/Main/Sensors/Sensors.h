@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <Main/BoardScheduler.h>
+#include <Main/Buses.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
@@ -33,15 +35,15 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <vector>
 
 namespace Main
 {
 
-class Sensors : public Boardcore::Module
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
 {
 public:
     Sensors() {}

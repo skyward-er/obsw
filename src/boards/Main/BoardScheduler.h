@@ -24,13 +24,12 @@
 
 #include <Main/Configs/SchedulerConfig.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main
 {
 
-class BoardScheduler : public Boardcore::Module
+class BoardScheduler : public Boardcore::Injectable
 {
 public:
     BoardScheduler()

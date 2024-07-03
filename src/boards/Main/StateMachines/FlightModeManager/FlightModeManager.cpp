@@ -22,7 +22,6 @@
 
 #include "FlightModeManager.h"
 
-#include <Main/Actuators/Actuators.h>
 #include <Main/Configs/FlightModeManagerConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <common/Events.h>
@@ -354,15 +353,14 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
 
 State FlightModeManager::state_disarmed(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus();
 
-            modules.get<Actuators>()->camOff();
-            modules.get<Actuators>()->setBuzzerOff();
+            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->setBuzzerOff();
 
             return HANDLED;
         }
@@ -414,7 +412,6 @@ State FlightModeManager::state_disarmed(const Event& event)
 
 State FlightModeManager::state_test_mode(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -442,12 +439,12 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_START_RECORDING:
         {
-            modules.get<Actuators>()->camOn();
+            getModule<Actuators>()->camOn();
             return HANDLED;
         }
         case TMTC_STOP_RECORDING:
         {
-            modules.get<Actuators>()->camOff();
+            getModule<Actuators>()->camOff();
             return HANDLED;
         }
         case TMTC_EXIT_TEST_MODE:
@@ -464,7 +461,6 @@ State FlightModeManager::state_test_mode(const Event& event)
 
 State FlightModeManager::state_armed(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -474,8 +470,8 @@ State FlightModeManager::state_armed(const Event& event)
             Logger::getInstance().stop();
             Logger::getInstance().start();
 
-            modules.get<Actuators>()->camOn();
-            modules.get<Actuators>()->setBuzzerArmed();
+            getModule<Actuators>()->camOn();
+            getModule<Actuators>()->setBuzzerArmed();
 
             return HANDLED;
         }
@@ -515,14 +511,13 @@ State FlightModeManager::state_armed(const Event& event)
 
 State FlightModeManager::state_flying(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
         {
             logStatus();
 
-            modules.get<Actuators>()->setBuzzerOff();
+            getModule<Actuators>()->setBuzzerOff();
 
             // Post mission end timeout
             missionTimeoutEvent = EventBroker::getInstance().postDelayed(
@@ -599,7 +594,6 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
 State FlightModeManager::state_unpowered_ascent(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -628,7 +622,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         case ADA_APOGEE_DETECTED:
         {
             // TODO(davide.mor): Also send this via CanBus
-            modules.get<Actuators>()->openExpulsion();
+            getModule<Actuators>()->openExpulsion();
 
             return transition(&FlightModeManager::state_drogue_descent);
         }
@@ -712,7 +706,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
 State FlightModeManager::state_landed(const Event& event)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (event)
     {
         case EV_ENTRY:
@@ -721,7 +714,7 @@ State FlightModeManager::state_landed(const Event& event)
 
             Logger::getInstance().stop();
 
-            modules.get<Actuators>()->setBuzzerLand();
+            getModule<Actuators>()->setBuzzerLand();
 
             return HANDLED;
         }
