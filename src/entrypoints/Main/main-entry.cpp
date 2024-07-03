@@ -45,8 +45,8 @@ int main()
 {
     ledOff();
 
-    ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger     = Logging::getLogger("main");
+    PrintLogger logger = Logging::getLogger("main");
+    DependencyManager manager;
 
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
@@ -59,14 +59,22 @@ int main()
     FlightModeManager *fmm = new FlightModeManager();
 
     // Insert modules
-    bool initResult = modules.insert<Buses>(buses) &&
-                      modules.insert<BoardScheduler>(scheduler) &&
-                      modules.insert<Sensors>(sensors) &&
-                      modules.insert<Radio>(radio) &&
-                      modules.insert<Actuators>(actuators) &&
-                      modules.insert<CanHandler>(canHandler) &&
-                      modules.insert<PinHandler>(pinHandler) &&
-                      modules.insert<FlightModeManager>(fmm);
+    bool initResult =
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<PinHandler>(pinHandler) &&
+        manager.insert<FlightModeManager>(fmm) && manager.inject();
+
+    manager.graphviz(std::cout);
+
+    if (!initResult)
+    {
+        LOG_ERR(logger, "Failed to inject dependencies");
+        return -1;
+    }
 
     // Status led indicators
     // led1: Sensors ok

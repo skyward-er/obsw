@@ -22,7 +22,6 @@
 
 #include "PinHandler.h"
 
-#include <Main/BoardScheduler.h>
 #include <Main/Configs/PinHandlerConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -37,9 +36,8 @@ using namespace miosix;
 
 bool PinHandler::start()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
     TaskScheduler &scheduler =
-        modules.get<BoardScheduler>()->getPinObserverScheduler();
+        getModule<BoardScheduler>()->getPinObserverScheduler();
 
     pinObserver = std::make_unique<PinObserver>(scheduler, 20);
 

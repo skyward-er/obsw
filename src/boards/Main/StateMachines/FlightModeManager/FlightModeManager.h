@@ -22,17 +22,17 @@
 
 #pragma once
 
+#include <Main/Actuators/Actuators.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "FlightModeManagerData.h"
 
 namespace Main
 {
 
-class FlightModeManager : public Boardcore::Module,
+class FlightModeManager : public Boardcore::InjectableWithDeps<Actuators>,
                           public Boardcore::HSM<FlightModeManager>
 {
 public:

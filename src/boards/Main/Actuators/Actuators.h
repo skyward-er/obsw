@@ -22,17 +22,18 @@
 
 #pragma once
 
+#include <Main/BoardScheduler.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
 
-class Actuators : public Boardcore::Module
+class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
     Actuators();

@@ -26,14 +26,12 @@
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
-
-#include <unordered_map>
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main
 {
 
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 public:
     Buses() {}

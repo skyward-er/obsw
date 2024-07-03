@@ -22,15 +22,16 @@
 
 #pragma once
 
+#include <Main/BoardScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
 
-class PinHandler : public Boardcore::Module
+class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
     enum class PinList : uint8_t

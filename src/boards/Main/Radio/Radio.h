@@ -22,13 +22,16 @@
 
 #pragma once
 
+#include <Main/Actuators/Actuators.h>
+#include <Main/BoardScheduler.h>
+#include <Main/Buses.h>
 #include <Main/Configs/RadioConfig.h>
+#include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
@@ -37,7 +40,9 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio : public Boardcore::Module
+class Radio
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Actuators,
+                                           Sensors, FlightModeManager>
 {
 public:
     Radio() {}
