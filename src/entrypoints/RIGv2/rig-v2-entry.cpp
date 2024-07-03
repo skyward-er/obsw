@@ -79,6 +79,8 @@ int main()
                       manager.insert<GroundModeManager>(gmm) &&
                       manager.insert<TARS1>(tars1) && manager.inject();
 
+    manager.graphviz(std::cout);
+
     if (!initResult)
     {
         LOG_ERR(logger, "Failed to inject dependencies");
