@@ -217,7 +217,6 @@ void SMA::update()
         }
         // in active state, update the follower and propagator inner states
         case SMAState::ACTIVE:
-        case SMAState::ACTIVE_NF:
         {
             // retrieve the last NAS Rocket state
             Hub* hub =
@@ -257,6 +256,64 @@ void SMA::update()
 
             actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
             if (actuation != ActuationStatus::OK)
+            {
+                LOG_ERR(
+                    logger,
+                    "Step antenna - STEPPER_Y could not move or reached move "
+                    "limit. Error: ",
+                    actuation, "\n");
+            }
+
+            break;
+        }
+        case SMAState::ACTIVE_NF:
+        {
+            VN300Data fakeAttitudeData;
+
+            // retrieve the last NAS Rocket state
+            Hub* hub =
+                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+            NASState nasState = hub->getRocketNasState();
+
+            // update the propagator with the NAS state
+            // and retrieve the propagated state
+            propagator.setRocketNasState(nasState);
+            propagator.update();  // step the propagator
+            PropagatorState predicted = propagator.getState();
+
+            auto steppers = ModuleManager::getInstance().get<Actuators>();
+
+            // set the attitude as the current position of the steppers
+            // FIXME this method of setting the attitude is too dirty
+            // if the follower is updated something may break here
+            fakeAttitudeData.pitch =
+                steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
+            fakeAttitudeData.yaw =
+                steppers->getCurrentDegPosition(StepperList::STEPPER_X);
+
+            // update the follower with the propagated state
+            follower.setLastRocketNasState(predicted.getNasState());
+            follower.setLastAntennaAttitude(fakeAttitudeData);
+            follower.update();  // step the follower
+            FollowerState follow = follower.getState();
+
+            // actuate the steppers
+            steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
+            steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
+
+            ErrorMovement actuation =
+                steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
+            if (actuation != ErrorMovement::OK)
+            {
+                LOG_ERR(
+                    logger,
+                    "Step antenna - STEPPER_X could not move or reached move "
+                    "limit. Error: ",
+                    actuation, "\n");
+            }
+
+            actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
+            if (actuation != ErrorMovement::OK)
             {
                 LOG_ERR(
                     logger,
