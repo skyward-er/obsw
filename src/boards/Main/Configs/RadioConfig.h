@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,28 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <common/MavlinkGemini.h>
 
 namespace Main
 {
-namespace RadioConfig
+
+namespace Config
 {
-// Mavlink driver template parameters
-constexpr uint32_t RADIO_PKT_LENGTH     = 255;
-constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
-constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;
+namespace Radio
+{
 
-constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 50;
-constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 10;
+static constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+static constexpr unsigned int MAV_MAX_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-constexpr uint8_t MAV_SYSTEM_ID = 171;
-constexpr uint8_t MAV_COMP_ID   = 96;
+static constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
-constexpr uint32_t MAVLINK_QUEUE_SIZE = 10;
+static constexpr uint8_t MAV_SYSTEM_ID    = 171;
+static constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-}  // namespace RadioConfig
-}  // namespace Main
+}
+
+}
+
+}

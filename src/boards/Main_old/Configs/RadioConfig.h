@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,45 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <Main/Configs/RadioConfig.h>
 #include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278Fsk.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Main
 {
-
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           Config::Radio::MAV_OUT_QUEUE_SIZE,
-                                           Config::Radio::MAV_MAX_LENGTH>;
-
-class Radio : public Boardcore::Module
+namespace RadioConfig
 {
-public:
-    Radio() {}
+// Mavlink driver template parameters
+constexpr uint32_t RADIO_PKT_LENGTH     = 255;
+constexpr uint32_t RADIO_OUT_QUEUE_SIZE = 20;
+constexpr uint32_t RADIO_MAV_MSG_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-    bool isStarted();
+constexpr uint32_t RADIO_PERIODIC_TELEMETRY_PERIOD = 250;
 
-    [[nodiscard]] bool start();
+constexpr uint16_t RADIO_SLEEP_AFTER_SEND = 50;
+constexpr size_t RADIO_OUT_BUFFER_MAX_AGE = 10;
 
-    Boardcore::MavlinkStatus getMavStatus();
+constexpr uint8_t MAV_SYSTEM_ID = 171;
+constexpr uint8_t MAV_COMP_ID   = 96;
 
-private:
-    void sendAck(const mavlink_message_t& msg);
-    void sendNack(const mavlink_message_t& msg);
+constexpr uint32_t MAVLINK_QUEUE_SIZE = 10;
 
-    void handleMessage(const mavlink_message_t& msg);
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-
-    std::atomic<bool> started{false};
-    std::unique_ptr<Boardcore::SX1278Fsk> radio;
-    std::unique_ptr<MavDriver> mavDriver;
-};
-
+}  // namespace RadioConfig
 }  // namespace Main
