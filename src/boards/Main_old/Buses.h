@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,42 +22,34 @@
 
 #pragma once
 
-#include <Main/Configs/RadioConfig.h>
-#include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
-#include <radio/SX1278/SX1278Fsk.h>
+#include <drivers/i2c/I2C.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <interfaces-impl/hwmapping.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
-
 namespace Main
 {
-
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           Config::Radio::MAV_OUT_QUEUE_SIZE,
-                                           Config::Radio::MAV_MAX_LENGTH>;
-
-class Radio : public Boardcore::Module
+class Buses : public Boardcore::Module
 {
 public:
-    Radio() {}
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
+    Boardcore::SPIBus spi6;
 
-    bool isStarted();
+    Boardcore::I2C i2c1;
 
-    [[nodiscard]] bool start();
+    Boardcore::USART usart1;
+    Boardcore::USART usart2;
+    Boardcore::USART uart4;
 
-    Boardcore::MavlinkStatus getMavStatus();
-
-private:
-    void sendAck(const mavlink_message_t& msg);
-    void sendNack(const mavlink_message_t& msg);
-
-    void handleMessage(const mavlink_message_t& msg);
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-
-    std::atomic<bool> started{false};
-    std::unique_ptr<Boardcore::SX1278Fsk> radio;
-    std::unique_ptr<MavDriver> mavDriver;
+    Buses()
+        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
+          i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
+               miosix::interfaces::i2c1::sda::getPin()),
+          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
+    {
+    }
 };
-
 }  // namespace Main
