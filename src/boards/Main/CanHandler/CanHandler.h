@@ -24,13 +24,12 @@
 
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main
 {
 
-class CanHandler : public Boardcore::Module
+class CanHandler : public Boardcore::Injectable
 {
 public:
     CanHandler();
