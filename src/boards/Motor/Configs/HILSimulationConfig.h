@@ -122,33 +122,15 @@ class MotorHILTransceiver
                                        ActuatorData>,
       public Boardcore::Module
 {
-public:
-    MotorHILTransceiver(
-        Boardcore::USART& hilSerial,
-        Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                    ActuatorData>* hilPhasesManager)
-        : Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
-                                    ActuatorData>(hilSerial, hilPhasesManager)
-    {
-    }
+    using Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+                                    ActuatorData>::HILTransceiver;
 };
 
 class MotorHIL
     : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::Module
 {
-public:
-    MotorHIL(Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
-                                       ActuatorData>* hilTransceiver,
-             Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                         ActuatorData>* hilPhasesManager,
-             std::function<ActuatorData()> updateActuatorData,
-             int simulationPeriod)
-        : HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
-              hilTransceiver, hilPhasesManager, updateActuatorData,
-              simulationPeriod)
-    {
-    }
+    using Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>::HIL;
 };
 
 class MotorHILPhasesManager

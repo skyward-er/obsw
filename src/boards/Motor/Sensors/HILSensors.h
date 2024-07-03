@@ -38,17 +38,15 @@ class HILSensors : public Sensors
 {
 public:
     explicit HILSensors(Boardcore::TaskScheduler* sched, Motor::Buses* buses,
-                        HILConfig::MotorHILTransceiver* hilTransceiver,
-                        bool enableHw)
+                        HILConfig::MotorHIL* hil, bool enableHw)
         : Sensors{sched, buses}, enableHw{enableHw}
     {
         using namespace HILConfig;
         using namespace Boardcore;
 
-        hillificator<>(
-            chamberPressure, enableHw,
-            [hilTransceiver]()
-            { return updateChamberPressureSensorData(hilTransceiver); });
+        hillificator<>(chamberPressure, enableHw,
+                       [hil]()
+                       { return updateChamberPressureSensorData(hil); });
     };
 
     ~HILSensors(){};
@@ -59,7 +57,7 @@ private:
         auto ts           = miosix::getTime();
         auto tsSensorData = Boardcore::ModuleManager::getInstance()
                                 .get<HILConfig::MotorHIL>()
-                                ->hilTransceiver->getTimestampSimulatorData();
+                                ->getTimestampSimulatorData();
         auto simulationPeriod = Boardcore::ModuleManager::getInstance()
                                     .get<HILConfig::MotorHIL>()
                                     ->getSimulationPeriod();
@@ -87,11 +85,11 @@ private:
     }
 
     static Boardcore::ChamberPressureSensorData updateChamberPressureSensorData(
-        HILConfig::MotorHILTransceiver* hilTransceiver)
+        HILConfig::MotorHIL* hil)
     {
         Boardcore::ChamberPressureSensorData data;
 
-        auto* sensorData = hilTransceiver->getSensorData();
+        auto* sensorData = hil->getSensorData();
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 

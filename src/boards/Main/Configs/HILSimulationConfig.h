@@ -61,7 +61,7 @@
 namespace HILConfig
 {
 
-constexpr bool IS_FULL_HIL = false;
+constexpr bool IS_FULL_HIL = true;
 
 /** Period of simulation [ms] */
 constexpr int SIMULATION_PERIOD = 100;
@@ -395,33 +395,15 @@ class MainHILTransceiver
                                        ActuatorData>,
       public Boardcore::Module
 {
-public:
-    MainHILTransceiver(
-        Boardcore::USART& hilSerial,
-        Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
-                                    ActuatorData>* hilPhasesManager)
-        : Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
-                                    ActuatorData>(hilSerial, hilPhasesManager)
-    {
-    }
+    using Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
+                                    ActuatorData>::HILTransceiver;
 };
 
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::Module
 {
-public:
-    MainHIL(Boardcore::HILTransceiver<MainFlightPhases, SimulatorData,
-                                      ActuatorData>* hilTransceiver,
-            Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
-                                        ActuatorData>* hilPhasesManager,
-            std::function<ActuatorData()> updateActuatorData,
-            int simulationPeriod)
-        : HIL<MainFlightPhases, SimulatorData, ActuatorData>(
-              hilTransceiver, hilPhasesManager, updateActuatorData,
-              simulationPeriod)
-    {
-    }
+    using Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>::HIL;
 };
 
 class MainHILPhasesManager

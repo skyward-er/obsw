@@ -198,7 +198,7 @@ int main()
 
         sensors =
             new HILSensors(scheduler->getScheduler(miosix::PRIORITY_MAX - 1),
-                           buses, hilTransceiver, false);
+                           buses, hil, false);
     }
     else
     {
