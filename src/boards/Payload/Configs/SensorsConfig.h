@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
+#include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -28,97 +30,137 @@
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <units/Frequency.h>
+
+#include <chrono>
 
 namespace Payload
 {
-namespace SensorsConfig
+namespace Config
 {
-constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
-constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_100;
+namespace Sensors
+{
 
-constexpr Boardcore::LPS28DFW::AVG LPS28DFW_AVG = Boardcore::LPS28DFW::AVG_4;
-constexpr Boardcore::LPS28DFW::ODR LPS28DFW_ODR = Boardcore::LPS28DFW::ODR_100;
-constexpr Boardcore::LPS28DFW::FullScaleRange LPS28DFW_FSR =
-    Boardcore::LPS28DFW::FS_1260;
+// clang-format off
+// Indent to avoid the linter complaining about using namespace
+  using namespace Boardcore::Units::Frequency;
+  using namespace std::chrono_literals;
+// clang-format on
 
-constexpr Boardcore::H3LIS331DLDefs::OutputDataRate H3LIS331DL_ODR =
-    Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
-constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS331DL_BDU =
+namespace LPS22DF
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 50_hz;
+constexpr auto AVG           = Boardcore::LPS22DF::AVG_4;
+constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
+}  // namespace LPS22DF
+
+namespace LPS28DFW
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 50_hz;
+constexpr auto AVG           = Boardcore::LPS28DFW::AVG_4;
+constexpr auto ODR           = Boardcore::LPS28DFW::ODR_100;
+constexpr auto FSR           = Boardcore::LPS28DFW::FS_1260;
+}  // namespace LPS28DFW
+
+namespace H3LIS331DL
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 100_hz;
+constexpr auto ODR = Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
+constexpr auto BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
-constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS331DL_FSR =
-    Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+constexpr auto FSR = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+}  // namespace H3LIS331DL
 
-constexpr Boardcore::LIS2MDL::OperativeMode LIS2MDL_OPERATIVE_MODE =
-    Boardcore::LIS2MDL::MD_CONTINUOUS;
-constexpr Boardcore::LIS2MDL::ODR LIS2MDL_ODR = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr unsigned int LIS2MDL_TEMPERATURE_DIVIDER = 5;
+namespace LIS2MDL
+{
+constexpr auto ENABLED             = true;
+constexpr auto SAMPLING_RATE       = 100_hz;
+constexpr auto OP_MODE             = Boardcore::LIS2MDL::MD_CONTINUOUS;
+constexpr auto ODR                 = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr auto TEMPERATURE_DIVIDER = 5U;
+}  // namespace LIS2MDL
 
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 5;
+namespace UBXGPS
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLE_RATE   = 5;  // KHz
+constexpr auto SAMPLING_RATE = 5_hz;
+}  // namespace UBXGPS
 
-constexpr Boardcore::LSM6DSRXConfig::BDU LSM6DSRX_BDU =
-    Boardcore::LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+namespace LSM6DSRX
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 50_hz;
+constexpr auto OP_MODE = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
+constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
+constexpr auto GYR_FS  = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
+constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
+}  // namespace LSM6DSRX
 
-constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE LSM6DSRX_ACC_FS =
-    Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
-constexpr Boardcore::LSM6DSRXConfig::ACC_ODR LSM6DSRX_ACC_ODR =
-    Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
-constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE LSM6DSRX_OPERATING_MODE =
-    Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL;
-
-constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE LSM6DSRX_GYR_FS =
-    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
-constexpr Boardcore::LSM6DSRXConfig::GYR_ODR LSM6DSRX_GYR_ODR =
-    Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
-
-constexpr Boardcore::LSM6DSRXConfig::FIFO_MODE LSM6DSRX_FIFO_MODE =
-    Boardcore::LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
-constexpr Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION
-    LSM6DSRX_FIFO_TIMESTAMP_DECIMATION =
-        Boardcore::LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
-constexpr Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR
-    LSM6DSRX_FIFO_TEMPERATURE_BDR =
-        Boardcore::LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
-
-constexpr Boardcore::ADS131M08Defs::OversamplingRatio
-    ADS131M08_OVERSAMPLING_RATIO =
-        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
-constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
-
-constexpr uint32_t LPS22DF_PERIOD         = 20;  // [ms] 50Hz
-constexpr uint32_t LPS28DFW_PERIOD        = 20;  // [ms] 50Hz
-constexpr uint32_t H3LIS331DL_PERIOD      = 10;  // [ms] 100Hz
-constexpr uint32_t LIS2MDL_PERIOD         = 10;  // [ms] 100Hz
-constexpr uint32_t UBXGPS_PERIOD          = 1000 / UBXGPS_SAMPLE_RATE;  // [ms]
-constexpr uint32_t LSM6DSRX_PERIOD        = 20;  // [ms] 50Hz
-constexpr uint32_t ADS131M08_PERIOD       = 10;  // [ms] 100Hz
-constexpr uint32_t IMU_PERIOD             = 20;  // [ms] Fake processed IMU 50Hz
-constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms] 10Hz
-
-// ADC sensors configs
-constexpr float ADC_VOLTAGE_RANGE = 1.2f;  // [V] Voltage reading range
-constexpr Boardcore::ADS131M08Defs::Channel BATTERY_VOLTAGE_CHANNEL =
+namespace ADS131M08
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 100_hz;
+constexpr auto OVERSAMPLING_RATIO =
+    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr bool GLOBAL_CHOP_MODE = true;
+// TODO: populate with final channels once sensors are soldered
+constexpr auto STATIC_PRESSURE_CH =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
+constexpr auto DYNAMIC_PRESSURE_CH =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr Boardcore::ADS131M08Defs::Channel DYNAMIC_PRESSURE_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
-constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
-constexpr Boardcore::ADS131M08Defs::Channel CURRENT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-constexpr Boardcore::ADS131M08Defs::Channel CAM_BATTERY_VOLTAGE_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_7;
-// ADC Voltage divider
-constexpr float BATTERY_VOLTAGE_CONVERSION_FACTOR =
-    (20.f / 2.4f) +
-    1;  // 20 kOhm resistor and 2.4 kOhm resistor for voltage divider
-constexpr float CURRENT_CONVERSION_FACTOR =
-    (20.f / 4.f) / (12.f / (12.f + 33.f));
-constexpr float CURRENT_OFFSET = 0.133333333f;  // V in ADC
+}  // namespace ADS131M08
 
-constexpr unsigned int NUMBER_OF_SENSORS = 8;
+namespace InternalADC
+{
+constexpr auto ENABLED        = true;
+constexpr auto SAMPLING_RATE  = 10_hz;
+constexpr auto VBAT_CH        = Boardcore::InternalADC::Channel::CH8;
+constexpr auto CAM_VBAT_CH    = Boardcore::InternalADC::Channel::CH9;
+constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
+constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
+}  // namespace InternalADC
 
-// Calibration samples
-constexpr unsigned int CALIBRATION_SAMPLES = 20;
-constexpr unsigned int CALIBRATION_PERIOD  = 100;
+namespace StaticPressure
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+}  // namespace StaticPressure
 
-}  // namespace SensorsConfig
+namespace DynamicPressure
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+}  // namespace DynamicPressure
+
+namespace Pitot
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+}  // namespace Pitot
+
+namespace IMU
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+}  // namespace IMU
+
+namespace Calibration
+{
+constexpr auto SAMPLE_COUNT  = 20;
+constexpr auto SAMPLE_PERIOD = 100ms;
+}  // namespace Calibration
+
+namespace MagCalibration
+{
+constexpr auto ENABLED       = true;
+constexpr auto SAMPLING_RATE = 10_hz;
+}  // namespace MagCalibration
+
+}  // namespace Sensors
+}  // namespace Config
 }  // namespace Payload

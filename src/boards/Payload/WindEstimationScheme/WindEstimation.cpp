@@ -94,7 +94,7 @@ void WindEstimation::windEstimationSchemeCalibration()
 
     if (calRunning)
     {
-        auto gpsData = getModule<Sensors>()->getGPSLastSample();
+        auto gpsData = getModule<Sensors>()->getUBXGPSLastSample();
         if (gpsData.fix != 0)
         {
             if (nSampleCal < WES_CALIBRATION_SAMPLE_NUMBER)
@@ -159,7 +159,7 @@ void WindEstimation::windEstimationScheme()
 {
     if (running)
     {
-        auto gpsData = getModule<Sensors>()->getGPSLastSample();
+        auto gpsData = getModule<Sensors>()->getUBXGPSLastSample();
         if (gpsData.fix != 0)
         {
             Eigen::Vector2f phi;

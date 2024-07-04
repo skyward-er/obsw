@@ -53,7 +53,7 @@ AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
 
 void AutomaticWingAlgorithm::step()
 {
-    if (getModule<Sensors>()->getGPSLastSample().fix != 0)
+    if (getModule<Sensors>()->getUBXGPSLastSample().fix != 0)
     {
         // The PI calculated result
         float result = algorithmStep(

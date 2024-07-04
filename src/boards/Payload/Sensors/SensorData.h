@@ -1,6 +1,6 @@
 
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,67 +20,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
-#include <sensors/LPS28DFW/LPS28DFWData.h>
+
 namespace Payload
 {
-struct LPS28DFW_1Data : Boardcore::LPS28DFWData
-{
-    explicit LPS28DFW_1Data(const Boardcore::LPS28DFWData& data)
-        : Boardcore::LPS28DFWData(data)
-    {
-    }
-
-    LPS28DFW_1Data() {}
-
-    static std::string header()
-    {
-        return "pressureTimestamp,pressure,temperatureTimestamp,temperature\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << pressureTimestamp << "," << pressure << ","
-           << temperatureTimestamp << "," << temperature << "\n";
-    }
-};
-
-struct LPS28DFW_2Data : Boardcore::LPS28DFWData
-{
-    explicit LPS28DFW_2Data(const Boardcore::LPS28DFWData& data)
-        : Boardcore::LPS28DFWData(data)
-    {
-    }
-
-    LPS28DFW_2Data() {}
-
-    static std::string header()
-    {
-        return "pressureTimestamp,pressure,temperatureTimestamp,temperature\n ";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << pressureTimestamp << "," << pressure << ","
-           << temperatureTimestamp << "," << temperature << "\n";
-    }
-};
 
 struct SensorsCalibrationParameter
 {
-    uint64_t timestamp;
-    float referencePressure;
-    float offsetStatic;
-    float offsetDynamic;
-
-    SensorsCalibrationParameter(uint64_t timestamp, float referencePressure,
-                                float offsetStatic, float offsetDynamic)
-        : timestamp(timestamp), referencePressure(referencePressure),
-          offsetStatic(offsetStatic), offsetDynamic(offsetDynamic)
-    {
-    }
-
-    SensorsCalibrationParameter() : SensorsCalibrationParameter(0, 0, 0, 0) {}
+    uint64_t timestamp      = 0;
+    float referencePressure = 0;
+    float offsetStatic      = 0;
+    float offsetDynamic     = 0;
 
     static std::string header()
     {
