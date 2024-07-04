@@ -157,10 +157,10 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Last samples
-            LPS28DFWData lps28dfw1 =
-                getModule<Sensors>()->getLPS28DFW_1LastSample();
+            LPS28DFWData lps28dfw =
+                getModule<Sensors>()->getLPS28DFWLastSample();
             RotatedIMUData imu = getModule<Sensors>()->getIMULastSample();
-            UBXGPSData gps     = getModule<Sensors>()->getGPSLastSample();
+            UBXGPSData gps     = getModule<Sensors>()->getUBXGPSLastSample();
             Eigen::Vector2f wind =
                 getModule<WindEstimation>()->getWindEstimationScheme();
 
@@ -177,7 +177,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.wes_n = wind[0];
             tm.wes_e = wind[1];
 
-            tm.pressure_digi = lps28dfw1.pressure;
+            tm.pressure_digi = lps28dfw.pressure;
             tm.pressure_static =
                 getModule<Sensors>()->getStaticPressureLastSample().pressure;
             // Pitot
@@ -235,9 +235,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             tm.battery_voltage =
                 getModule<Sensors>()->getBatteryVoltageLastSample().batVoltage;
-            tm.current_consumption =
-                getModule<Sensors>()->getCurrentLastSample().current;
-            tm.temperature  = lps28dfw1.temperature;
+            tm.current_consumption = 0;
+            tm.temperature         = lps28dfw.temperature;
             tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             tm.cam_battery_voltage = getModule<Sensors>()
@@ -334,7 +333,7 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         {
             mavlink_gps_tm_t tm;
 
-            UBXGPSData gpsData = getModule<Sensors>()->getGPSLastSample();
+            UBXGPSData gpsData = getModule<Sensors>()->getUBXGPSLastSample();
 
             tm.timestamp = gpsData.gpsTimestamp;
             strcpy(tm.sensor_name, "UBXGPS");
@@ -488,27 +487,15 @@ mavlink_message_t TMRepository::packSensorsTm(SensorsTMList sensorId,
         case SensorsTMList::MAV_LPS28DFW_ID:
         {
             mavlink_pressure_tm_t tm;
-            LPS28DFWData pressure1 =
-                getModule<Sensors>()->getLPS28DFW_1LastSample();
+            LPS28DFWData pressure =
+                getModule<Sensors>()->getLPS28DFWLastSample();
 
-            tm.timestamp = pressure1.pressureTimestamp;
-            tm.pressure  = pressure1.pressure;
+            tm.timestamp = pressure.pressureTimestamp;
+            tm.pressure  = pressure.pressure;
             strcpy(tm.sensor_name, "LPS28DFW");
 
             mavlink_msg_pressure_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                            RadioConfig::MAV_COMP_ID, &msg, &tm);
-            break;
-        }
-        case SensorsTMList::MAV_CURRENT_SENSE_ID:
-        {
-            mavlink_current_tm_t tm;
-            CurrentData current = getModule<Sensors>()->getCurrentLastSample();
-            tm.current          = current.current;
-            strcpy(tm.sensor_name, "CURRENT");
-            tm.timestamp = current.currentTimestamp;
-
-            mavlink_msg_current_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-                                          RadioConfig::MAV_COMP_ID, &msg, &tm);
             break;
         }
         case SensorsTMList::MAV_BATTERY_VOLTAGE_ID:

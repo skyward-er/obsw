@@ -35,6 +35,7 @@ using namespace Common;
 
 namespace Payload
 {
+
 NASController::NASController(TaskScheduler& sched)
     : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
 {
@@ -78,8 +79,8 @@ void NASController::update()
     {
         // Get the IMU data
         RotatedIMUData imuData = getModule<Sensors>()->getIMULastSample();
-        UBXGPSData gpsData     = getModule<Sensors>()->getGPSLastSample();
-        LPS28DFWData baroData = getModule<Sensors>()->getLPS28DFW_1LastSample();
+        UBXGPSData gpsData     = getModule<Sensors>()->getUBXGPSLastSample();
+        LPS28DFWData baroData  = getModule<Sensors>()->getLPS28DFWLastSample();
 
         // NAS prediction
         nas.predictGyro(imuData);
@@ -166,7 +167,7 @@ void NASController::calibrate()
     reference.refAltitude = Aeroutils::relAltitude(pressure.getStats().mean);
 
     // If in this moment the GPS has fix i use that position as starting
-    UBXGPSData gps = getModule<Sensors>()->getGPSLastSample();
+    UBXGPSData gps = getModule<Sensors>()->getUBXGPSLastSample();
     if (gps.fix != 0)
     {
         // We don't set the altitude with the GPS because of not precise
