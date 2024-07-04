@@ -78,7 +78,7 @@ int main()
 
     // Attitude estimation are critical components
     auto nas     = new NASController(scheduler->getCriticalScheduler());
-    auto sensors = new Sensors(scheduler->getHighScheduler());
+    auto sensors = new Sensors(scheduler->getHighScheduler(), *buses);
 
     // Radio and CAN
     auto radio      = new Radio(scheduler->getMediumScheduler());

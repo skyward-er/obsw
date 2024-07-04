@@ -73,7 +73,7 @@ void FlightStatsRecorder::update()
     AccelerometerData accData = sensor->getIMULastSample();
     PressureData baroData     = sensor->getStaticPressureLastSample();
     PitotData pitotData       = sensor->getPitotLastSample();
-    GPSData gpsData           = sensor->getGPSLastSample();
+    GPSData gpsData           = sensor->getUBXGPSLastSample();
     NASState nasData          = getModule<NASController>()->getNasState();
 
     // Store the apogee ts
