@@ -176,6 +176,7 @@ Boardcore::State GroundModeManager::state_disarmed(
             updateAndLogStatus(GMM_STATE_DISARMED);
             getModule<Actuators>()->armLightOff();
             getModule<Registry>()->disarm();
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return HANDLED;
         }
 
@@ -228,6 +229,7 @@ Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
         {
             updateAndLogStatus(GMM_STATE_ARMED);
             getModule<Registry>()->arm();
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             getModule<Actuators>()->armLightOn();
             getModule<Actuators>()->closeAllServos();
             getModule<Actuators>()->closeNitrogen();

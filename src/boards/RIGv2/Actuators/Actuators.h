@@ -23,6 +23,7 @@
 #pragma once
 
 #include <RIGv2/BoardScheduler.h>
+#include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
 #include <common/Mavlink.h>
@@ -34,10 +35,11 @@
 namespace RIGv2
 {
 
-class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler, Registry>
+class Actuators
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>
 {
 private:
-    struct ServoInfo
+    struct ServoInfo : public Boardcore::InjectableWithDeps<Registry>
     {
         std::unique_ptr<Boardcore::Servo> servo;
         // Hard limit of the aperture
@@ -63,15 +65,14 @@ private:
         // Timestamp of last servo action (open/close)
         long long lastActionTs = 0;
 
-        void openServo(Registry *registry);
         void openServoWithTime(uint32_t time);
         void closeServo();
         void unsafeSetServoPosition(float position);
         float getServoPosition();
-        float getMaxAperture(Registry *registry);
-        uint32_t getOpeningTime(Registry *registry);
-        bool setMaxAperture(Registry *registry, float aperture);
-        bool setOpeningTime(Registry *registry, uint32_t time);
+        float getMaxAperture();
+        uint32_t getOpeningTime();
+        bool setMaxAperture(float aperture);
+        bool setOpeningTime(uint32_t time);
     };
 
 public:
@@ -88,6 +89,7 @@ public:
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
+    bool isCanServoOpen(ServosList servo);
     void openNitrogen();
     void openNitrogenWithTime(uint32_t time);
     void closeNitrogen();
@@ -101,6 +103,10 @@ public:
 
     void igniterOn();
     void igniterOff();
+
+    void setCanServoAperture(ServosList servo, float aperture);
+
+    void inject(Boardcore::DependencyInjector &injector) override;
 
 private:
     ServoInfo *getServo(ServosList servo);
@@ -122,6 +128,9 @@ private:
     long long nitrogenCloseTs = 0;
     // Timestamp of last servo action (open/close)
     long long nitrogenLastActionTs = 0;
+
+    float mainAperture    = 0.0f;
+    float ventingAperture = 0.0f;
 };
 
 }  // namespace RIGv2

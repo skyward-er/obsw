@@ -60,11 +60,18 @@ public:
     Boardcore::PressureData getFillingPress();
     Boardcore::PressureData getTopTankPress();
     Boardcore::PressureData getBottomTankPress();
+    Boardcore::PressureData getCCPress();
+    Boardcore::TemperatureData getTankTemp();
     Boardcore::LoadCellData getVesselWeight();
     Boardcore::LoadCellData getTankWeight();
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
     Boardcore::VoltageData getBatteryVoltage();
+
+    void setCanTopTankPress(Boardcore::PressureData data);
+    void setCanBottomTankPress(Boardcore::PressureData data);
+    void setCanCCPress(Boardcore::PressureData data);
+    void setCanTankTemp(Boardcore::TemperatureData data);
 
     void calibrate();
 
@@ -105,6 +112,13 @@ private:
     std::atomic<float> tankLcOffset{0.0f};
 
     std::atomic<bool> started{false};
+
+    std::atomic<bool> useCanData{false};
+    miosix::FastMutex canMutex;
+    Boardcore::PressureData canCCPressure;
+    Boardcore::PressureData canBottomTankPressure;
+    Boardcore::PressureData canTopTankPressure;
+    Boardcore::TemperatureData canTankTemperature;
 
     // Analog sensors
     std::unique_ptr<TrafagPressureSensor> vesselPressure;

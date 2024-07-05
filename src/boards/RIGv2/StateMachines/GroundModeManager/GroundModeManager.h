@@ -25,6 +25,7 @@
 #include <RIGv2/Configs/GmmConfig.h>
 // #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
@@ -40,7 +41,8 @@ namespace RIGv2
 {
 
 class GroundModeManager
-    : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry>,
+    : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry,
+                                           CanHandler>,
       public Boardcore::HSM<GroundModeManager>
 {
 public:
