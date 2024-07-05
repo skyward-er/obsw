@@ -23,6 +23,7 @@
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
+#include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Radio/Radio.h>
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
@@ -53,6 +54,7 @@ int main()
     Sensors *sensors       = new Sensors();
     Actuators *actuators   = new Actuators();
     Registry *registry     = new Registry();
+    CanHandler *canHandler = new CanHandler();
     GroundModeManager *gmm = new GroundModeManager();
     TARS1 *tars1           = new TARS1();
     Radio *radio           = new Radio();
@@ -75,6 +77,7 @@ int main()
                       manager.insert<Actuators>(actuators) &&
                       manager.insert<Sensors>(sensors) &&
                       manager.insert<Radio>(radio) &&
+                      manager.insert<CanHandler>(canHandler) &&
                       manager.insert<Registry>(registry) &&
                       manager.insert<GroundModeManager>(gmm) &&
                       manager.insert<TARS1>(tars1) && manager.inject();
@@ -125,6 +128,12 @@ int main()
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start Sensors module");
+    }
+
+    if (!canHandler->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start CanHandler module");
     }
 
     if (!gmm->start())

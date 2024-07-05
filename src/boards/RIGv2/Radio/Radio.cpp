@@ -541,8 +541,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_gse_tm_t tm = {0};
 
-            Sensors* sensors     = getModule<Sensors>();
-            Actuators* actuators = getModule<Actuators>();
+            Sensors* sensors       = getModule<Sensors>();
+            Actuators* actuators   = getModule<Actuators>();
+            CanHandler* canHandler = getModule<CanHandler>();
 
             tm.timestamp        = TimestampTimer::getTimestamp();
             tm.loadcell_rocket  = sensors->getTankWeight().load;
@@ -564,6 +565,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     : 0;
             tm.gmm_state  = getModule<GroundModeManager>()->getState();
             tm.tars_state = getModule<TARS1>()->isRefueling() ? 1 : 0;
+
+            // TODO(davide.mor): This should be updated with the new telemetry
+            tm.main_board_status =
+                canHandler->getCanStatus().isMainConnected() ? 1 : 0;
+            tm.motor_board_status =
+                canHandler->getCanStatus().isMotorConnected() ? 1 : 0;
+            tm.payload_board_status =
+                canHandler->getCanStatus().isPayloadConnected() ? 1 : 0;
+
             // TODO(davide.mor): Add the rest of these
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
@@ -581,12 +591,17 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_motor_tm_t tm = {0};
 
-            Sensors* sensors = getModule<Sensors>();
+            Sensors* sensors     = getModule<Sensors>();
+            Actuators* actuators = getModule<Actuators>();
 
             tm.timestamp            = TimestampTimer::getTimestamp();
             tm.tank_temperature     = sensors->getTc1LastSample().temperature;
             tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
             tm.bottom_tank_pressure = sensors->getBottomTankPress().pressure;
+            tm.main_valve_state =
+                actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
+            tm.venting_valve_state =
+                actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
             // TODO(davide.mor): Add the rest of these
 
             tm.battery_voltage     = 0.0f;

@@ -96,13 +96,56 @@ PressureData Sensors::getFillingPress()
 
 PressureData Sensors::getTopTankPress()
 {
-    return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
+    if (useCanData)
+    {
+        Lock<FastMutex> lock{canMutex};
+        return canTopTankPressure;
+    }
+    else
+    {
+        return topTankPressure ? topTankPressure->getLastSample()
+                               : PressureData{};
+    }
 }
 
 PressureData Sensors::getBottomTankPress()
 {
-    return bottomTankPressure ? bottomTankPressure->getLastSample()
-                              : PressureData{};
+    if (useCanData)
+    {
+        Lock<FastMutex> lock{canMutex};
+        return canBottomTankPressure;
+    }
+    else
+    {
+        return bottomTankPressure ? bottomTankPressure->getLastSample()
+                                  : PressureData{};
+    }
+}
+
+PressureData Sensors::getCCPress()
+{
+    if (useCanData)
+    {
+        Lock<FastMutex> lock{canMutex};
+        return canCCPressure;
+    }
+    else
+    {
+        return PressureData{};
+    }
+}
+
+TemperatureData Sensors::getTankTemp()
+{
+    if (useCanData)
+    {
+        Lock<FastMutex> lock{canMutex};
+        return canTankTemperature;
+    }
+    else
+    {
+        return getTc1LastSample();
+    }
 }
 
 LoadCellData Sensors::getVesselWeight()
@@ -160,6 +203,34 @@ VoltageData Sensors::getBatteryVoltage()
             int)Config::Sensors::InternalADC::BATTERY_VOLTAGE_CHANNEL] *
         Config::Sensors::InternalADC::BATTERY_VOLTAGE_SCALE;
     return {sample.timestamp, voltage};
+}
+
+void Sensors::setCanTopTankPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canTopTankPressure = data;
+    useCanData         = true;
+}
+
+void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canBottomTankPressure = data;
+    useCanData            = true;
+}
+
+void Sensors::setCanCCPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canCCPressure = data;
+    useCanData    = true;
+}
+
+void Sensors::setCanTankTemp(Boardcore::TemperatureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canTankTemperature = data;
+    useCanData         = true;
 }
 
 void Sensors::calibrate()

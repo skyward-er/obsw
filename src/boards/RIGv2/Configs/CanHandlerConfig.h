@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,23 @@
 
 #pragma once
 
-#include <RIGv2/Configs/SchedulerConfig.h>
-#include <scheduler/TaskScheduler.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <chrono>
 
 namespace RIGv2
 {
 
-class BoardScheduler : public Boardcore::Injectable
+namespace Config
 {
-public:
-    BoardScheduler()
-        : tars1(Config::Scheduler::TARS1_PRIORITY),
-          sensors(Config::Scheduler::SENSORS_PRIORITY)
-    {
-    }
 
-    [[nodiscard]] bool start() { return tars1.start() && sensors.start(); }
+namespace CanHandler
+{
 
-    Boardcore::TaskScheduler &getTars1Scheduler() { return tars1; }
+using namespace std::chrono_literals;
 
-    Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
+static constexpr std::chrono::nanoseconds STATUS_PERIOD = 2s;
 
-    Boardcore::TaskScheduler &getActuatorsScheduler() { return sensors; }
+}  // namespace CanHandler
 
-    Boardcore::TaskScheduler &getCanBusScheduler() { return sensors; }
-
-private:
-    Boardcore::TaskScheduler tars1;
-    Boardcore::TaskScheduler sensors;
-};
+}  // namespace Config
 
 }  // namespace RIGv2
