@@ -61,7 +61,7 @@
 namespace HILConfig
 {
 
-constexpr bool IS_FULL_HIL = true;
+constexpr bool IS_FULL_HIL = false;
 
 /** Period of simulation [ms] */
 constexpr int SIMULATION_PERIOD = 100;
@@ -331,6 +331,7 @@ struct SimulatorData
     MainChamberPressureSimulatorData pressureChamber;
     MainPitotSimulatorData pitot;
     MainTemperatureSimulatorData temperature;
+    float signal;
 };
 
 /**
@@ -456,6 +457,16 @@ public:
     void processFlags(const SimulatorData& simulatorData) override
     {
         std::vector<MainFlightPhases> changed_flags;
+
+        if(simulatorData.signal == 1)
+        {
+            miosix::reboot();
+        }
+        
+        if(simulatorData.signal == 2)
+        {
+            Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
+        }
 
         // set true when the first packet from the simulator arrives
         if (isSetTrue(MainFlightPhases::SIMULATION_STARTED))
