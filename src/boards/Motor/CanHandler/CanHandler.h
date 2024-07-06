@@ -22,30 +22,40 @@
 
 #pragma once
 
+#include <Motor/BoardScheduler.h>
+#include <Motor/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <atomic>
 
 namespace Motor
 {
 
-class CanHandler : public Boardcore::Module
+class Actuators;
+
+class CanHandler
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
 {
 public:
     CanHandler();
 
     bool start();
 
-    void sendEvent(Common::CanConfig::EventId event);
+    void setInitStatus(uint8_t status);
 
 private:
-    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
+    void handleCommand(const Boardcore::Canbus::CanMessage &msg);
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("CanHandler");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
-    std::unique_ptr<Boardcore::Canbus::CanbusDriver> driver;
-    std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;
+    std::atomic<uint8_t> initStatus{0};
+
+    Boardcore::Canbus::CanbusDriver driver;
+    Boardcore::Canbus::CanProtocol protocol;
 };
 
 }  // namespace Motor
