@@ -22,32 +22,33 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
+#include <Motor/Configs/SchedulerConfig.h>
+#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Injectable
+class BoardScheduler : public Boardcore::Injectable
 {
 public:
-    Buses() {}
+    BoardScheduler()
+        : sensors(Config::Scheduler::SENSORS_PRIORITY),
+          actuators(Config::Scheduler::ACTUATORS_PRIORITY)
+    {
+    }
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
-    Boardcore::SPIBus &getLPS22DF() { return spi1; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
-    Boardcore::SPIBus &getADS131M08() { return spi4; }
+    [[nodiscard]] bool start() { return sensors.start() && actuators.start(); }
 
-    Boardcore::USART &getHILUart() { return usart4; }
+    Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
+
+    Boardcore::TaskScheduler &getActuatorsScheduler() { return actuators; }
+
+    Boardcore::TaskScheduler &getCanBusScheduler() { return actuators; }
 
 private:
-    Boardcore::SPIBus spi1{SPI1};
-    Boardcore::SPIBus spi3{SPI3};
-    Boardcore::SPIBus spi4{SPI4};
-
-    Boardcore::USART usart4{UART4, 460800, 1024};
+    Boardcore::TaskScheduler sensors;
+    Boardcore::TaskScheduler actuators;
 };
 
 }  // namespace Motor

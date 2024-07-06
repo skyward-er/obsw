@@ -20,14 +20,15 @@
  * THE SOFTWARE.
  */
 
+#include <Motor/Actuators/Actuators.h>
+#include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Boardcore;
 using namespace Motor;
@@ -35,34 +36,24 @@ using namespace miosix;
 
 int main()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger     = Logging::getLogger("main");
+    PrintLogger logger = Logging::getLogger("main");
+    DependencyManager manager;
 
-    // TODO: Move this to a dedicated board scheduler
-    TaskScheduler *scheduler1 = new TaskScheduler(2);
-    TaskScheduler *scheduler2 = new TaskScheduler(3);
+    Buses *buses              = new Buses();
+    BoardScheduler *scheduler = new BoardScheduler();
 
-    Buses *buses           = new Buses();
-    Sensors *sensors       = new Sensors(*scheduler2);
+    Sensors *sensors       = new Sensors();
+    Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
-    bool initResult = true;
+    bool initResult = manager.insert<Buses>(buses) &&
+                      manager.insert<BoardScheduler>(scheduler) &&
+                      manager.insert<Sensors>(sensors) &&
+                      manager.insert<Actuators>(actuators) &&
+                      manager.insert<CanHandler>(canHandler) &&
+                      manager.inject();
 
-    // Insert modules
-    if (!modules.insert<Buses>(buses))
-    {
-        initResult = false;
-    }
-
-    if (!modules.insert<Sensors>(sensors))
-    {
-        initResult = false;
-    }
-
-    if (!modules.insert<CanHandler>(canHandler))
-    {
-        initResult = false;
-    }
+    manager.graphviz(std::cout);
 
     // Start modules
     if (!sensors->start())
@@ -71,13 +62,19 @@ int main()
         LOG_ERR(logger, "Error failed to start Sensors module");
     }
 
+    if (!actuators->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Actuators module");
+    }
+
     if (!canHandler->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start CanHandler module");
     }
 
-    if (!scheduler1->start() || !scheduler2->start())
+    if (!scheduler->start())
     {
         initResult = false;
         LOG_ERR(logger, "Error failed to start scheduler");
@@ -85,26 +82,27 @@ int main()
 
     if (initResult)
     {
+        canHandler->setInitStatus(2);
         LOG_INFO(logger, "All good!");
     }
     else
     {
+        canHandler->setInitStatus(1);
         LOG_ERR(logger, "Init failure!");
     }
 
     for (auto info : sensors->getSensorInfo())
     {
-        LOG_INFO(logger, "{} {}", info.isInitialized, info.id);
+        LOG_INFO(logger, "Sensor {} {}", info.id, info.isInitialized);
     }
 
     while (true)
     {
         gpios::boardLed::low();
-        canHandler->sendEvent(Common::CanConfig::EventId::ARM);
         Thread::sleep(1000);
         gpios::boardLed::high();
-        canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
+        LOG_INFO(logger, "Vbat {}", sensors->getBatteryVoltage().voltage);
     }
 
     return 0;

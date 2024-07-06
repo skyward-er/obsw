@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,37 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <interfaces-impl/hwmapping.h>
+#include <units/Frequency.h>
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Injectable
+namespace Config
 {
-public:
-    Buses() {}
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
-    Boardcore::SPIBus &getLPS22DF() { return spi1; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
-    Boardcore::SPIBus &getADS131M08() { return spi4; }
+namespace Servos
+{
 
-    Boardcore::USART &getHILUart() { return usart4; }
+using namespace Boardcore::Units::Frequency;
 
-private:
-    Boardcore::SPIBus spi1{SPI1};
-    Boardcore::SPIBus spi3{SPI3};
-    Boardcore::SPIBus spi4{SPI4};
+// Generic pulse width for all servos
+constexpr unsigned int MIN_PULSE = 500;
+constexpr unsigned int MAX_PULSE = 2460;
 
-    Boardcore::USART usart4{UART4, 460800, 1024};
-};
+constexpr unsigned int FREQUENCY = 333;
 
+constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
+constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
+constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
+
+constexpr float VENTING_LIMIT = 0.90f;
+constexpr float MAIN_LIMIT    = 0.90f;
+
+constexpr bool VENTING_FLIPPED = true;
+constexpr bool MAIN_FLIPPED    = true;
+
+}  // namespace Servos
+
+}  // namespace Config
 }  // namespace Motor

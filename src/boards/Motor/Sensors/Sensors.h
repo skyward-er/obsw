@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <Motor/BoardScheduler.h>
+#include <Motor/Buses.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -30,24 +32,33 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <vector>
 
 namespace Motor
 {
 
-class Sensors : public Boardcore::Module
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
 {
 public:
-    explicit Sensors(Boardcore::TaskScheduler &scheduler) : scheduler{scheduler}
-    {
-    }
-
-    bool isStarted();
+    Sensors() {}
 
     [[nodiscard]] bool start();
+
+    Boardcore::InternalADCData getInternalADCLastSample();
+    Boardcore::ADS131M08Data getADC1LastSample();
+    Boardcore::LPS22DFData getLPS22DFLastSample();
+    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+
+    Boardcore::PressureData getTopTankPress();
+    Boardcore::PressureData getBottomTopTankPress();
+    Boardcore::PressureData getCCPress();
+    Boardcore::TemperatureData getTankTemp();
+    Boardcore::VoltageData getBatteryVoltage();
 
     std::vector<Boardcore::SensorInfo> getSensorInfo();
 
@@ -72,8 +83,6 @@ private:
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 
-    std::atomic<bool> started{false};
-
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
@@ -82,8 +91,6 @@ private:
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
-
-    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Motor

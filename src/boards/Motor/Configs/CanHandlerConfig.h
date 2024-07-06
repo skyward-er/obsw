@@ -22,32 +22,32 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <units/Frequency.h>
+
+#include <chrono>
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Injectable
+namespace Config
 {
-public:
-    Buses() {}
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
-    Boardcore::SPIBus &getLPS22DF() { return spi1; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
-    Boardcore::SPIBus &getADS131M08() { return spi4; }
+namespace CanHandler
+{
 
-    Boardcore::USART &getHILUart() { return usart4; }
+using namespace std::chrono_literals;
+using namespace Boardcore::Units::Frequency;
 
-private:
-    Boardcore::SPIBus spi1{SPI1};
-    Boardcore::SPIBus spi3{SPI3};
-    Boardcore::SPIBus spi4{SPI4};
+constexpr std::chrono::nanoseconds STATUS_PERIOD = 2s;
 
-    Boardcore::USART usart4{UART4, 460800, 1024};
-};
+constexpr Hertz PRESSURE_PERIOD = 50_hz;
+
+constexpr Hertz ACTUATORS_PERIOD = 50_hz;
+
+constexpr Hertz TEMPERATURE_PERIOD = 10_hz;
+
+}  // namespace CanHandler
+
+}  // namespace Config
 
 }  // namespace Motor
