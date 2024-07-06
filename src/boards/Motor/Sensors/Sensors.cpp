@@ -26,16 +26,15 @@
 #include <Motor/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 using namespace Motor;
 using namespace Boardcore;
 using namespace miosix;
 
-bool Sensors::isStarted() { return started; }
-
 bool Sensors::start()
 {
+    TaskScheduler &scheduler =
+        getModule<BoardScheduler>()->getSensorsScheduler();
+
     SensorManager::SensorMap_t map;
     lps22dfInit(map);
     h3lis331dlInit(map);
@@ -50,8 +49,95 @@ bool Sensors::start()
         return false;
     }
 
-    started = true;
     return true;
+}
+
+Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+{
+    if (internalAdc)
+    {
+        return internalAdc->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::ADS131M08Data Sensors::getADC1LastSample()
+{
+    if (ads131m08)
+    {
+        return ads131m08->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
+{
+    if (lps22df)
+    {
+        return lps22df->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+{
+    if (h3lis331dl)
+    {
+        return h3lis331dl->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::LIS2MDLData Sensors::getLIS2MDLLastSample()
+{
+    if (lis2mdl)
+    {
+        return lis2mdl->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+{
+    if (lsm6dsrx)
+    {
+        return lsm6dsrx->getLastSample();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+Boardcore::PressureData Sensors::getTopTankPress() { return {}; }
+
+Boardcore::PressureData Sensors::getBottomTopTankPress() { return {}; }
+
+Boardcore::PressureData Sensors::getCCPress() { return {}; }
+
+Boardcore::TemperatureData Sensors::getTankTemp() { return {}; }
+
+Boardcore::VoltageData Sensors::getBatteryVoltage()
+{
+    auto sample   = getInternalADCLastSample();
+    float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
+                    Config::Sensors::InternalADC::VBAT_SCALE;
+    return {sample.timestamp, voltage};
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfo()
@@ -73,8 +159,6 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
 
 void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -82,7 +166,7 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     config.avg = Config::Sensors::LPS22DF::AVG;
     config.odr = Config::Sensors::LPS22DF::ODR;
 
-    lps22df = std::make_unique<LPS22DF>(modules.get<Buses>()->getLPS22DF(),
+    lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->getLPS22DF(),
                                         sensors::LPS22DF::cs::getPin(),
                                         spiConfig, config);
 
@@ -91,19 +175,19 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     map.emplace(lps22df.get(), info);
 }
 
-void Sensors::lps22dfCallback() {}
+void Sensors::lps22dfCallback()
+{
+    //
+}
 
 void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     h3lis331dl = std::make_unique<H3LIS331DL>(
-        modules.get<Buses>()->getH3LIS331DL(),
-        sensors::H3LIS331DL::cs::getPin(), spiConfig,
-        Config::Sensors::H3LIS331DL::ODR,
+        getModule<Buses>()->getH3LIS331DL(), sensors::H3LIS331DL::cs::getPin(),
+        spiConfig, Config::Sensors::H3LIS331DL::ODR,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         Config::Sensors::H3LIS331DL::FS);
 
@@ -112,12 +196,13 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
     map.emplace(h3lis331dl.get(), info);
 }
 
-void Sensors::h3lis331dlCallback() {}
+void Sensors::h3lis331dlCallback()
+{
+    //
+}
 
 void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -126,7 +211,7 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     config.odr                = Config::Sensors::LIS2MDL::ODR;
     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
 
-    lis2mdl = std::make_unique<LIS2MDL>(modules.get<Buses>()->getLIS2MDL(),
+    lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
                                         sensors::LIS2MDL::cs::getPin(),
                                         spiConfig, config);
 
@@ -135,12 +220,13 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     map.emplace(lis2mdl.get(), info);
 }
 
-void Sensors::lis2mdlCallback() {}
+void Sensors::lis2mdlCallback()
+{
+    //
+}
 
 void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -161,7 +247,7 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
 
-    lsm6dsrx = std::make_unique<LSM6DSRX>(modules.get<Buses>()->getLSM6DSRX(),
+    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                           sensors::LSM6DSRX::cs::getPin(),
                                           spiConfig, config);
 
@@ -170,12 +256,13 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
     map.emplace(lsm6dsrx.get(), info);
 }
 
-void Sensors::lsm6dsrxCallback() {}
+void Sensors::lsm6dsrxCallback()
+{
+    //
+}
 
 void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
 {
-    ModuleManager &modules = ModuleManager::getInstance();
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
@@ -184,42 +271,17 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
     config.globalChopModeEnabled =
         Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
 
-    ads131m08 = std::make_unique<ADS131M08>(
-        modules.get<Buses>()->getADS131M08(), sensors::ADS131M08::cs::getPin(),
-        spiConfig, config);
+    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
+                                            sensors::ADS131M08::cs::getPin(),
+                                            spiConfig, config);
 
     SensorInfo info{"ADS131M08", 1000, [this]() { ads131m08Callback(); }};
     map.emplace(ads131m08.get(), info);
 }
 
-float voltageToTemp(float voltage)
-{
-    // Two point calibration
-    // m = dmass/dvoltage
-    float scale  = (175 + 40) / (0.996 - 0.1);
-    float offset = -40 - scale * 0.1;  // Calculate offset
-    return scale * voltage + offset;
-}
-
-float voltageToPress(float voltage)
-{
-    // First convert voltage to current
-    float current =
-        (voltage / Config::Sensors::ADS131M08::CH5_SHUNT_RESISTANCE) * 1000.0f;
-
-    // Convert to a value between 0 and 1
-    float value = (current - 4) / (20 - 4);
-
-    // Scale from 0 to maxPressure
-    return value * 40;
-}
-
 void Sensors::ads131m08Callback()
 {
-    auto sample = ads131m08->getLastSample();
-
-    LOG_INFO(logger, "ADC: {}\t{}", voltageToPress(sample.voltage[5]),
-             voltageToPress(sample.voltage[6]));
+    //
 }
 
 void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
@@ -235,4 +297,7 @@ void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
     map.emplace(internalAdc.get(), info);
 }
 
-void Sensors::internalAdcCallback() {}
+void Sensors::internalAdcCallback()
+{
+    //
+}

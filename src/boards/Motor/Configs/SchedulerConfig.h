@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,25 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <miosix.h>
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Injectable
+namespace Config
 {
-public:
-    Buses() {}
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
-    Boardcore::SPIBus &getLPS22DF() { return spi1; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
-    Boardcore::SPIBus &getADS131M08() { return spi4; }
+namespace Scheduler
+{
 
-    Boardcore::USART &getHILUart() { return usart4; }
+// Used for Sensors TaskScheduler
+static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
+// Used for CAN periodic tasks and actuators
+static const miosix::Priority ACTUATORS_PRIORITY = miosix::PRIORITY_MAX - 1;
+// Used for CanHandler
+static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
+}  // namespace Scheduler
 
-private:
-    Boardcore::SPIBus spi1{SPI1};
-    Boardcore::SPIBus spi3{SPI3};
-    Boardcore::SPIBus spi4{SPI4};
-
-    Boardcore::USART usart4{UART4, 460800, 1024};
-};
+}  // namespace Config
 
 }  // namespace Motor

@@ -27,6 +27,7 @@
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <units/Units.h>
 
 namespace Motor
 {
@@ -39,69 +40,86 @@ namespace Sensors
 
 namespace LPS22DF
 {
-static constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
-static constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
-static constexpr uint32_t PERIOD             = 20;  // [ms] 50Hz
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
+constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
+constexpr Hertz PERIOD                = 50_hz;  // [ms] 50Hz
 }  // namespace LPS22DF
 
 namespace H3LIS331DL
 {
-static constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
-static constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
+constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-static constexpr uint32_t PERIOD = 10;  // [ms] 100Hz
+constexpr Hertz PERIOD = 100_hz;
 }  // namespace H3LIS331DL
 
 namespace LIS2MDL
 {
-static constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
-static constexpr unsigned int TEMP_DIVIDER   = 5;
-static constexpr uint32_t PERIOD             = 10;  // [ms] 100Hz
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr unsigned int TEMP_DIVIDER   = 5;
+constexpr Hertz PERIOD                = 100_hz;
 }  // namespace LIS2MDL
 
 namespace LSM6DSRX
 {
-static constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
     Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
-static constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
+constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
     Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
-static constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-static constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
+constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
     Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
-static constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
+constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
     Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
-static constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-static constexpr uint32_t PERIOD = 20;  // [ms] 50Hz
+constexpr Hertz PERIOD = 50_hz;
 }  // namespace LSM6DSRX
 
 namespace ADS131M08
 {
-static constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
-static constexpr bool GLOBAL_CHOP_MODE_EN = true;
+constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
-static constexpr float CH5_SHUNT_RESISTANCE = 29.7;
-static constexpr float CH6_SHUNT_RESISTANCE = 29.7;
+constexpr float CH5_SHUNT_RESISTANCE = 29.7;
+constexpr float CH6_SHUNT_RESISTANCE = 29.7;
 
-static constexpr Boardcore::ADS131M08Defs::Channel TC_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel TC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
-static constexpr Boardcore::ADS131M08Defs::Channel BOTTOM_PT_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel BOTTOM_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-static constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
 
-static constexpr uint32_t PERIOD = 10;  // [ms] 100Hz
+constexpr Hertz PERIOD = 100_hz;
 }  // namespace ADS131M08
 
 namespace InternalADC
 {
-static constexpr uint32_t PERIOD = 100;  // [ms] 10Hz
-}
+using namespace Boardcore::Units::Frequency;
+
+constexpr Boardcore::InternalADC::Channel VBAT_CH =
+    Boardcore::InternalADC::Channel::CH14;
+
+constexpr float VBAT_SCALE = 9040.0f / 3000.0f;
+
+constexpr Hertz PERIOD = 10_hz;
+}  // namespace InternalADC
 
 }  // namespace Sensors
 
