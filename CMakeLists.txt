@@ -42,3 +42,8 @@ add_executable(parafoil-guided-jesolo src/entrypoints/Parafoil/parafoil-entry.cp
 target_include_directories(parafoil-guided-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-guided-jesolo PRIVATE CLOSED_LOOP JESOLO)
 sbs_target(parafoil-guided-jesolo stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-t-approach-jesolo src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-t-approach-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-t-approach-jesolo PRIVATE EARLY_MANEUVER JESOLO)
+sbs_target(parafoil-t-approach-jesolo stm32f429zi_skyward_death_stack_x)
