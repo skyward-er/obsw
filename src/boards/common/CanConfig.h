@@ -24,8 +24,9 @@
 
 #include <common/Events.h>
 #include <common/Topics.h>
-#include <stdint.h>
+#include <drivers/canbus/CanDriver/CanDriver.h>
 
+#include <cstdint>
 #include <map>
 
 namespace Common
@@ -36,6 +37,11 @@ namespace CanConfig
 
 constexpr uint32_t BAUD_RATE = 250 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
+
+constexpr Boardcore::Canbus::CanbusDriver::AutoBitTiming BIT_TIMING = {
+    .baudRate = BAUD_RATE, .samplePoint = SAMPLE_POINT};
+
+constexpr Boardcore::Canbus::CanbusDriver::CanbusConfig CONFIG;
 
 enum class Priority : uint8_t
 {
