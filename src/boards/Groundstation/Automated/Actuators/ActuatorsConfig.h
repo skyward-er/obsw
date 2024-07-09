@@ -34,7 +34,6 @@ namespace Config
 static const Antennas::StepperConfig stepperXConfig{
     .MICROSTEPPING = 4,
     .STEP_ANGLE    = 1.8,
-    .MULTIPLIER    = 2.2,
     .MIN_ANGLE     = -180.0,
     .MAX_ANGLE     = 180.0,
     .MAX_SPEED     = 0.75,
@@ -43,7 +42,6 @@ static const Antennas::StepperConfig stepperXConfig{
 static const Antennas::StepperConfig stepperYConfig{
     .MICROSTEPPING = 4,
     .STEP_ANGLE    = 1.8,
-    .MULTIPLIER    = 2.2,
     .MIN_ANGLE     = 0,
     .MAX_ANGLE     = 90.0,
     .MAX_SPEED     = 0.75,

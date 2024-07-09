@@ -135,9 +135,10 @@ int16_t Actuators::getCurrentPosition(StepperList axis)
 float Actuators::getCurrentDegPosition(StepperList axis)
 {
     const auto *config = getStepperConfig(axis);
+    auto multiplier    = getStepperMultiplier(axis);
     auto *stepper      = getStepper(axis);
 
-    return stepper->getCurrentDegPosition() / config->MULTIPLIER;
+    return stepper->getCurrentDegPosition() / multiplier;
 }
 
 ActuationStatus Actuators::move(StepperList axis, int16_t steps)
@@ -195,6 +196,7 @@ ActuationStatus Actuators::moveDeg(StepperList axis, float degrees)
         ActuationStatus::OK;  //< In case the move command is not limited
 
     const auto *config = getStepperConfig(axis);
+    auto multiplier    = getStepperMultiplier(axis);
     float positionDeg  = getCurrentDegPosition(axis);
 
     // POSITION_LIMIT POSITION IN ACCEPTABLE RANGE
@@ -209,7 +211,7 @@ ActuationStatus Actuators::moveDeg(StepperList axis, float degrees)
     }
 
     // Moving stepper of the angle 'degrees'
-    stepper->moveDeg(degrees * config->MULTIPLIER);
+    stepper->moveDeg(degrees * multiplier);
     logStepperData(axis, stepper->getState(degrees));
     return actuationState;
 }
@@ -217,6 +219,29 @@ ActuationStatus Actuators::moveDeg(StepperList axis, float degrees)
 ActuationStatus Actuators::setPositionDeg(StepperList axis, float positionDeg)
 {
     return moveDeg(axis, positionDeg - getCurrentDegPosition(axis));
+}
+
+void Actuators::setMultipliers(StepperList axis, float multiplier)
+{
+    switch (axis)
+    {
+        case StepperList::STEPPER_X:
+            multiplierX     = multiplier;
+            multiplierX_set = true;
+            break;
+        case StepperList::STEPPER_Y:
+            multiplierY     = multiplier;
+            multiplierY_set = true;
+            break;
+        default:
+            assert(false && "Non existent stepper");
+            break;
+    }
+}
+
+bool Actuators::areMultipliersSet()
+{
+    return multiplierX_set && multiplierY_set;
 }
 
 void Actuators::IRQemergencyStop()
