@@ -122,9 +122,9 @@ int main()
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
     ok &= modules.insert(radio_main);
-    ok &= modules.insert(board_status);
     ok &= modules.insert(ethernet);
     ok &= modules.insert(radio_payload);
+    ok &= modules.insert(board_status);
 
     // Inserting Modules
 
@@ -164,46 +164,45 @@ int main()
 
     // Start the modules
 
-    ok &= scheduler_low->start();
-    if (!ok)
+    if (!scheduler_low->start())
     {
         LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
+        ok = false;
     }
 
-    ok &= scheduler_high->start();
-    if (!ok)
+    if (!scheduler_high->start())
     {
         LOG_ERR(logger, "[error] Failed to start scheduler_high!\n");
+        ok = false;
     }
 
-    ok &= serial->start();
-    if (!ok)
+    if (!serial->start())
     {
         LOG_ERR(logger, "[error] Failed to start serial!\n");
+        ok = false;
     }
 
-    ok &= radio_main->start();
-    if (!ok)
+    if (!radio_main->start())
     {
         LOG_ERR(logger, "[error] Failed to start radio_main!\n");
+        ok = false;
     }
 
-    ok &= radio_payload->start();
-    if (!ok)
+    if (!radio_payload->start())
     {
         LOG_ERR(logger, "[error] Failed to start payload radio!\n");
     }
 
-    ok &= ethernet->start();
-    if (!ok)
+    if (!ethernet->start())
     {
         LOG_ERR(logger, "[error] Failed to start ethernet!\n");
+        ok = false;
     }
 
-    ok &= board_status->start();
-    if (!ok)
+    if (!board_status->start())
     {
         LOG_ERR(logger, "[error] Failed to start board_status!\n");
+        ok = false;
     }
 
     // Starting ARP specific modules
@@ -245,7 +244,7 @@ int main()
         led1On();  //< GREEN led on (CU)
     }
     else
-        LOG_INFO(logger, "Main NOT detected\n");
+        LOG_ERR(logger, "Main NOT detected\n");
 
     if (board_status->isPayloadRadioPresent())
     {
@@ -253,7 +252,7 @@ int main()
         led2On();  //< YELLOW led on (CU)
     }
     else
-        LOG_INFO(logger, "Payload NOT detected\n");
+        LOG_ERR(logger, "Payload NOT detected\n");
 
     if (board_status->isEthernetPresent())
     {
@@ -261,7 +260,7 @@ int main()
         led4On();  //< ORANGE led on (CU)
     }
     else
-        LOG_INFO(logger, "Ethernet NOT detected\n");
+        LOG_ERR(logger, "Ethernet NOT detected\n");
 
     if (!ok)
     {
@@ -274,7 +273,6 @@ int main()
         EventBroker::getInstance().post(Common::Events::ARP_INIT_OK,
                                         Common::Topics::TOPIC_ARP);
     }
-    // radioStatLoop(radio_main, radio_payload);
     led3On();  //< fix RED led (CU)
     idleLoop();
     return 0;
