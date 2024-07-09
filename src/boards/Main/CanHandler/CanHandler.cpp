@@ -246,7 +246,8 @@ void CanHandler::handleCanSensor(const CanMessage &msg)
         }
         case SensorId::MOTOR_BOARD_VOLTAGE:
         {
-            BatteryVoltageSensorData data = voltageDataFromCanMessage(msg);
+            BatteryVoltageSensorData data =
+                batteryVoltageDataFromCanMessage(msg);
             modules.get<Sensors>()->setMotorBatteryVoltage(data);
 
             // Log the data
