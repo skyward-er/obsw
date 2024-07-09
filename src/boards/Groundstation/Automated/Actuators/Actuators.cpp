@@ -134,9 +134,8 @@ int16_t Actuators::getCurrentPosition(StepperList axis)
 
 float Actuators::getCurrentDegPosition(StepperList axis)
 {
-    const auto *config = getStepperConfig(axis);
-    auto multiplier    = getStepperMultiplier(axis);
-    auto *stepper      = getStepper(axis);
+    auto multiplier = getStepperMultiplier(axis);
+    auto *stepper   = getStepper(axis);
 
     return stepper->getCurrentDegPosition() / multiplier;
 }
