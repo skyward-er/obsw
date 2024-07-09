@@ -147,9 +147,7 @@ void SMA::update()
         // and multipliers set
         case SMAState::INSERT_INFO:
         {
-            auto* actuators = ModuleManager::getInstance().get<Actuators>();
-
-            if (actuators->areMultipliersSet() && antennaCoordinatesSet)
+            if (antennaCoordinatesSet)
             {
                 EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
             }

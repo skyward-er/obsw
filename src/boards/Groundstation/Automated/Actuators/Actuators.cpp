@@ -225,22 +225,15 @@ void Actuators::setMultipliers(StepperList axis, float multiplier)
     switch (axis)
     {
         case StepperList::STEPPER_X:
-            multiplierX     = multiplier;
-            multiplierX_set = true;
+            multiplierX = multiplier;
             break;
         case StepperList::STEPPER_Y:
-            multiplierY     = multiplier;
-            multiplierY_set = true;
+            multiplierY = multiplier;
             break;
         default:
             assert(false && "Non existent stepper");
             break;
     }
-}
-
-bool Actuators::areMultipliersSet()
-{
-    return multiplierX_set && multiplierY_set;
 }
 
 void Actuators::IRQemergencyStop()
