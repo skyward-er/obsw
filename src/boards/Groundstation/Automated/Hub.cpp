@@ -121,6 +121,17 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     sendNack(msg);
                 break;
             }
+            case MAVLINK_MSG_ID_SET_STEPPER_MULTIPLIER_TC:
+            {
+                StepperList stepperId = static_cast<StepperList>(
+                    mavlink_msg_set_stepper_multiplier_tc_get_stepper_id(&msg));
+                float multiplier =
+                    mavlink_msg_set_stepper_multiplier_tc_get_multiplier(&msg);
+
+                modules.get<SMA>()->setMultipliers(stepperId, multiplier);
+                sendAck(msg);
+                break;
+            }
             case MAVLINK_MSG_ID_SET_ROCKET_COORDINATES_ARP_TC:
             {
                 float latitude =

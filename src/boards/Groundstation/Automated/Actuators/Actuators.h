@@ -85,6 +85,9 @@ public:
     ActuationStatus setPosition(StepperList axis, int16_t steps);
     ActuationStatus setPositionDeg(StepperList axis, float degrees);
 
+    void setMultipliers(StepperList axis, float multiplier);
+    bool areMultipliersSet();
+
     void zeroPosition();
 
     int16_t getCurrentPosition(StepperList axis);
@@ -159,6 +162,20 @@ private:
         }
     };
 
+    float getStepperMultiplier(StepperList stepper) const
+    {
+        switch (stepper)
+        {
+            case StepperList::STEPPER_X:
+                return multiplierX;
+            case StepperList::STEPPER_Y:
+                return multiplierY;
+            default:
+                assert(false && "Non existent stepperConfig");
+                return 0;
+        }
+    };
+
     void logStepperData(StepperList stepper, Boardcore::StepperData data)
     {
         switch (stepper)
@@ -179,6 +196,12 @@ private:
 
     Boardcore::StepperPWM stepperX;
     Boardcore::StepperPWM stepperY;
+
+    // Flags indicating if the multipliers have been set
+    bool multiplierX_set = false;
+    bool multiplierY_set = false;
+    float multiplierX;  // Multiplier for the stepper X
+    float multiplierY;  // Multiplier for the stepper Y
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]
