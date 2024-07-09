@@ -83,7 +83,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 }
                 else
                 {
-                    return sendNack(msg);
+                    return sendNack(msg, 301);
                 }
 
                 // Acknowledge the message
@@ -102,7 +102,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
-                    sendNack(msg);
+                    sendNack(msg, 302);
                 break;
             }
             case MAVLINK_MSG_ID_SET_STEPPER_STEPS_TC:
@@ -118,7 +118,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
-                    sendNack(msg);
+                    sendNack(msg, 303);
                 break;
             }
             case MAVLINK_MSG_ID_SET_STEPPER_MULTIPLIER_TC:
@@ -212,7 +212,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     }
                     default:
                     {
-                        sendNack(msg);
+                        sendNack(msg, 304);
                         return;
                     }
                 }
@@ -225,7 +225,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             }
             default:
             {
-                sendNack(msg);
+                sendNack(msg, 305);
                 return;
             }
         }
@@ -235,7 +235,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     // If both of the sends went wrong, just send a nack
     if (!send_ok)
     {
-        sendNack(msg);
+        sendNack(msg, 306);
     }
 }
 

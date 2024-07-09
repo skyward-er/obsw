@@ -146,7 +146,7 @@ void BoardStatus::GSRoutine()
 
     miosix::Thread::sleep(RADIO_STATUS_PERIOD);
 
-    mavlink_receiver_tm_t tm = {0};
+    mavlink_arp_tm_t tm = {0};
     tm.timestamp             = TimestampTimer::getTimestamp();
     tm.battery_voltage       = -420.0;
 
@@ -161,7 +161,6 @@ void BoardStatus::GSRoutine()
         tm.main_packet_rx_drop_count    = stats.packet_rx_drop_count;
         tm.main_rx_bitrate = main_rx_bitrate.update(stats.bits_rx_count);
         tm.main_rx_rssi    = stats.rx_rssi;
-        tm.main_rx_fei     = stats.rx_fei;
 
         last_main_stats = stats;
     }
@@ -178,7 +177,6 @@ void BoardStatus::GSRoutine()
         tm.payload_packet_rx_drop_count    = stats.packet_rx_drop_count;
         tm.payload_rx_bitrate = payload_rx_bitrate.update(stats.bits_rx_count);
         tm.payload_rx_rssi    = stats.rx_rssi;
-        tm.payload_rx_fei     = stats.rx_fei;
 
         last_payload_stats = stats;
     }
@@ -194,7 +192,7 @@ void BoardStatus::GSRoutine()
     }
 
     mavlink_message_t msg;
-    mavlink_msg_receiver_tm_encode(GS_SYSTEM_ID, GS_COMPONENT_ID, &msg, &tm);
+    mavlink_msg_arp_tm_encode(GS_SYSTEM_ID, GS_COMPONENT_ID, &msg, &tm);
 
     ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
 }

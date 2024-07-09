@@ -52,7 +52,7 @@ protected:
      * @brief Used internally to signal to the gs computer that something went
      * wrong, and the packet could not be delivered.
      */
-    void sendNack(const mavlink_message_t& msg);
+    void sendNack(const mavlink_message_t& msg, const uint16_t errId);
 };
 
 }  // namespace Groundstation
