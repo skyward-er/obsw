@@ -144,8 +144,11 @@ int main()
                                          heading[1]);
 
             // Returning the feedback for the simulator
-            return ActuatorData(nasStateHIL, actuatorsStateHIL, wesDataHIL,
-                                guidanceData, fmm);
+            return ActuatorData(
+                nasStateHIL, actuatorsStateHIL, wesDataHIL, guidanceData,
+                (fmm->testState(&Payload::FlightModeManager::state_ascending)
+                     ? 3
+                     : 0));
         };
 
         PayloadHIL* hil = new PayloadHIL(hilTransceiver, hilPhasesManager,

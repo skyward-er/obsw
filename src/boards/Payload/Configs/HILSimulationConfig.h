@@ -292,6 +292,7 @@ struct SimulatorData
     PayloadDigitalBarometerSimulatorData barometer1, barometer2, barometer3;
     PayloadAnalogBarometerSimulatorData staticPitot, dynamicPitot;
     PayloadTemperatureSimulatorData temperature;
+    float signal;
 };
 
 /**
@@ -303,40 +304,15 @@ struct ActuatorData
     ActuatorsStateHIL actuatorsState;
     WESDataHIL wesData;
     GuidanceDataHIL guidanceData;
-    FlagsHIL flags;
+    float signal;
 
-    ActuatorData()
-        : nasState(), actuatorsState(), wesData(), guidanceData(), flags()
-    {
-    }
+    ActuatorData() : nasState(), actuatorsState(), wesData(), guidanceData() {}
 
     ActuatorData(NASStateHIL nasState, ActuatorsStateHIL actuatorsState,
-                 WESDataHIL wesData, GuidanceDataHIL guidanceData,
-                 Payload::FlightModeManager* fmm)
+                 WESDataHIL wesData, GuidanceDataHIL guidanceData, float signal)
         : nasState(nasState), actuatorsState(actuatorsState), wesData(wesData),
-          guidanceData(guidanceData)
+          guidanceData(guidanceData), signal(signal)
     {
-        flags.flag_flight =
-            (fmm->testState(&Payload::FlightModeManager::state_ascending) ||
-                     fmm->testState(
-                         &Payload::FlightModeManager::state_drogue_descent) ||
-                     fmm->testState(
-                         &Payload::FlightModeManager::state_wing_descent)
-                 ? 1
-                 : 0);
-        flags.flag_ascent =
-            (fmm->testState(&Payload::FlightModeManager::state_ascending) ? 1
-                                                                          : 0);
-        flags.flag_burning   = 0;  // Hardcoded to 0 since it's the payload
-        flags.flag_airbrakes = 0;  // Hardcoded to 0 since it's the payload
-        flags.flag_para1 =
-            (fmm->testState(&Payload::FlightModeManager::state_drogue_descent)
-                 ? 1
-                 : 0);
-        flags.flag_para2 =
-            (fmm->testState(&Payload::FlightModeManager::state_wing_descent)
-                 ? 1
-                 : 0);
     }
 
     void print()
@@ -345,7 +321,6 @@ struct ActuatorData
         actuatorsState.print();
         wesData.print();
         guidanceData.print();
-        flags.print();
     }
 };
 
@@ -435,6 +410,40 @@ public:
     void processFlags(const SimulatorData& simulatorData) override
     {
         std::vector<PayloadFlightPhases> changed_flags;
+
+        if (simulatorData.signal == 1)
+        {
+            miosix::reboot();
+        }
+
+        if (simulatorData.signal == 2)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
+        }
+
+        if (simulatorData.signal == 3)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LAUNCH, Common::TOPIC_TMTC);
+        }
+
+        if (simulatorData.signal == 1)
+        {
+            miosix::reboot();
+        }
+
+        if (simulatorData.signal == 2)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
+        }
+
+        if (simulatorData.signal == 3)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LAUNCH, Common::TOPIC_TMTC);
+        }
 
         // set true when the first packet from the simulator arrives
         if (isSetTrue(PayloadFlightPhases::SIMULATION_STARTED))

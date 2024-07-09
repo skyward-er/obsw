@@ -93,6 +93,7 @@ struct ActuatorsStateHIL
 struct SimulatorData
 {
     MotorHILChamberBarometerData pressureChamber;
+    float signal;
 };
 
 /**
@@ -169,6 +170,23 @@ public:
         updateSimulatorFlags(simulatorData);
 
         std::vector<MotorFlightPhases> changed_flags;
+
+        if (simulatorData.signal == 1)
+        {
+            miosix::reboot();
+        }
+
+        if (simulatorData.signal == 2)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
+        }
+
+        if (simulatorData.signal == 3)
+        {
+            Boardcore::EventBroker::getInstance().post(
+                Common::TMTC_FORCE_LAUNCH, Common::TOPIC_TMTC);
+        }
 
         // set true when the first packet from the simulator arrives
         if (isSetTrue(MotorFlightPhases::SIMULATION_STARTED))
