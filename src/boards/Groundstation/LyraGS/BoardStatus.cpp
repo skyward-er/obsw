@@ -147,8 +147,8 @@ void BoardStatus::GSRoutine()
     miosix::Thread::sleep(RADIO_STATUS_PERIOD);
 
     mavlink_arp_tm_t tm = {0};
-    tm.timestamp             = TimestampTimer::getTimestamp();
-    tm.battery_voltage       = -420.0;
+    tm.timestamp        = TimestampTimer::getTimestamp();
+    tm.battery_voltage  = -420.0;
 
     if (main_radio_present)
     {
