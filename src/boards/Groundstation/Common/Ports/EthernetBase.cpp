@@ -79,8 +79,20 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
     // Setup ip and other stuff
     this->wiz5500->setSubnetMask(SUBNET);
     this->wiz5500->setGatewayIp(GATEWAY);
-    this->wiz5500->setSourceIp(genNewRandomIp());
-    this->wiz5500->setSourceMac(genNewRandomMac());
+
+    // Set with the dipswitch offset
+    if (!randomIp)
+    {
+        WizIp ip = IP_BASE;
+        ip.d = 1 + ipOffset;  // Add to the ip the offset set on the dipswitch
+        this->wiz5500->setSourceIp(ip);
+        this->wiz5500->setSourceMac(genNewRandomMac());
+    }
+    else
+    {
+        this->wiz5500->setSourceIp(genNewRandomIp());
+        this->wiz5500->setSourceMac(genNewRandomMac());
+    }
 
     this->wiz5500->setOnIpConflict(
         [this]() { this->wiz5500->setSourceIp(genNewRandomIp()); });

@@ -32,6 +32,11 @@ namespace LyraGS
 class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
 {
 public:
+    Ethernet() : EthernetBase(), Module() {}
+    Ethernet(bool randomIp, uint8_t ipOffset)
+        : EthernetBase(randomIp, ipOffset), Module()
+    {
+    }
     [[nodiscard]] bool start();
 };
 
