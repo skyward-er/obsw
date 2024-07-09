@@ -80,6 +80,8 @@ public:
 
     /**
      * @brief blocking action to blink endlessly a led
+     * @note this method does not need any previous call to start()
+     * and can be called as soon as the Leds object is created
      */
     void endlessBlink(LedColor color, uint32_t period);
 
