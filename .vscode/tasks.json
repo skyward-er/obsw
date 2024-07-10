@@ -2,102 +2,45 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "CLEAN",
+      "label": "Clean Build Artifacts",
       "type": "shell",
       "windows": {
-        "command": "sh sbs -c"
+        "command": "sh sbs -c ; sbs -c"
       },
       "linux": {
-        "command": "./sbs -c"
+        "command": "./sbs -c ; ./sbs -c"
       },
       "problemMatcher": "$gcc"
     },
     {
-      "label": "BUILD all",
+      "label": "Build Main (Debug)",
       "type": "shell",
       "windows": {
-        "command": "sh sbs"
+        "command": "sh sbs -d -b main-entry"
       },
       "linux": {
-        "command": "./sbs"
+        "command": "./sbs -d -b main-entry"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
       },
       "problemMatcher": "$gcc"
     },
     {
-      "label": "BUILD current-entrypoint",
+      "label": "Build Payload (Debug)",
       "type": "shell",
       "windows": {
-        "command": "sh sbs -v -n -b ${fileBasenameNoExtension}"
+        "command": "sh sbs -d -b payload-entry"
       },
       "linux": {
-        "command": "./sbs -v -b ${fileBasenameNoExtension}"
+        "command": "./sbs -d -b payload-entry"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
       },
       "problemMatcher": "$gcc"
-    },
-    {
-      "label": "RUN current-entrypoint",
-      "type": "shell",
-      "windows": {
-        "command": "ST-LINK_CLI.exe -P bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.bin 0x8000000 -V -Rst"
-      },
-      "linux": {
-        "command": "st-flash write bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.bin 0x8000000"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "BUILD+RUN current-entrypoint",
-      "type": "shell",
-      "windows": {
-        "command": "ST-LINK_CLI.exe -P bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.bin 0x8000000 -V -Rst"
-      },
-      "linux": {
-        "command": "sleep 1;st-flash write bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.bin 0x8000000"
-      },
-      "problemMatcher": [],
-      "dependsOn": [
-        "BUILD current-entrypoint"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "BUILD tests-catch",
-      "type": "shell",
-      "windows": {
-        "command": "sh sbs -v -n -b tests-catch"
-      },
-      "linux": {
-        "command": "./sbs -v -b tests-catch"
-      },
-      "problemMatcher": "$gcc"
-    },
-    {
-      "label": "RUN tests-catch",
-      "type": "shell",
-      "windows": {
-        "command": "ST-LINK_CLI.exe -P bin/tests-catch/tests-catch.bin 0x8000000 -V"
-      },
-      "linux": {
-        "command": "st-flash write bin/tests-catch/tests-catch.bin 0x8000000"
-      },
-      "problemMatcher": []
-    },
-    {
-      "type": "shell",
-      "label": "arm-miosix-eabi-g++ build active file",
-      "command": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
-      "args": [
-        "-g",
-        "${file}",
-        "-o",
-        "${fileDirname}/${fileBasenameNoExtension}"
-      ],
-      "options": {
-        "cwd": "/opt/arm-miosix-eabi/bin"
-      }
     }
   ]
 }

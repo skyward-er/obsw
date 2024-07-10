@@ -2,32 +2,74 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "cwd": "${workspaceRoot}",
-            "executable": "${workspaceFolder}/bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.elf",
-            "name": "ST-LINK V2 (current entrypoint)",
-            "request": "attach",
+            "name": "(gdb) Launch Main",
             "type": "cortex-debug",
-            "servertype": "openocd",
-            "device": "STM32F429ZI",
+            "request": "launch",
+            "servertype": "stutil",
+            "device": "STM32F767ZI",
+            "executable": "${workspaceFolder}/build/main-entry",
+            "cwd": "${workspaceRoot}",
             "armToolchainPath": "/opt/arm-miosix-eabi/bin",
             "toolchainPrefix": "arm-miosix-eabi",
-            "configFiles": [
-                "${workspaceFolder}/data/gdb/stm32f4-stlinv2.cfg"
-            ]
+            "internalConsoleOptions": "neverOpen",
+            "presentation": {
+                "hidden": false,
+                "group": "Main",
+                "order": 1,
+            },
+            "preLaunchTask": "Build Main (Debug)",
         },
         {
-            "cwd": "${workspaceRoot}",
-            "executable": "${workspaceFolder}/bin/${fileBasenameNoExtension}/${fileBasenameNoExtension}.elf",
-            "name": "ST-LINK V1 (current entrypoint)",
-            "request": "attach",
+            "name": "(gdb) Attach Main",
             "type": "cortex-debug",
-            "servertype": "openocd",
-            "device": "STM32F429ZI",
+            "request": "attach",
+            "servertype": "stutil",
+            "device": "STM32F767ZI",
+            "executable": "${workspaceFolder}/build/main-entry",
+            "cwd": "${workspaceRoot}",
             "armToolchainPath": "/opt/arm-miosix-eabi/bin",
             "toolchainPrefix": "arm-miosix-eabi",
-            "configFiles": [
-                "${workspaceFolder}/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_death_stack/death_stack.cfg"
-            ]
-        }
+            "internalConsoleOptions": "neverOpen",
+            "presentation": {
+                "hidden": false,
+                "group": "Main",
+                "order": 2,
+            },
+        },
+        {
+            "name": "(gdb) Launch Payload",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "stutil",
+            "device": "STM32F767ZI",
+            "executable": "${workspaceFolder}/build/payload-entry",
+            "cwd": "${workspaceRoot}",
+            "armToolchainPath": "/opt/arm-miosix-eabi/bin",
+            "toolchainPrefix": "arm-miosix-eabi",
+            "internalConsoleOptions": "neverOpen",
+            "presentation": {
+                "hidden": false,
+                "group": "Payload",
+                "order": 1,
+            },
+            "preLaunchTask": "Build Payload (Debug)",
+        },
+        {
+            "name": "(gdb) Attach Payload",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "stutil",
+            "device": "STM32F767ZI",
+            "executable": "${workspaceFolder}/build/payload-entry",
+            "cwd": "${workspaceRoot}",
+            "armToolchainPath": "/opt/arm-miosix-eabi/bin",
+            "toolchainPrefix": "arm-miosix-eabi",
+            "internalConsoleOptions": "neverOpen",
+            "presentation": {
+                "hidden": false,
+                "group": "Payload",
+                "order": 2,
+            },
+        },
     ]
 }
