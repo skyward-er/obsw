@@ -173,5 +173,6 @@
     "cmake.configureSettings": {
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
-    }
+    },
+    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build"
 }
