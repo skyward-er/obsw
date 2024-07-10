@@ -22,18 +22,19 @@
 
 #include "Ethernet.h"
 
+#include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
 
-namespace LyraGS
-{
-
 void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
     ModuleManager::getInstance().get<Ethernet>()->handleINTn();
 }
+
+namespace LyraGS
+{
 
 bool Ethernet::start()
 {
@@ -54,6 +55,8 @@ bool Ethernet::start()
     {
         return false;
     }
+
+    ModuleManager::getInstance().get<BoardStatus>()->setEthernetPresent(true);
 
     return true;
 }
