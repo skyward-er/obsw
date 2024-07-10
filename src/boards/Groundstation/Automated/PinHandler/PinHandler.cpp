@@ -59,7 +59,7 @@ void PinHandler::onArmTransition(PinTransition transition)
     if (transition == Boardcore::PinTransition::RISING_EDGE)
     {
         EventBroker::getInstance().post(Common::Events::TMTC_ARP_ARM,
-                                        Common::Topics::TOPIC_ARP);
+                                        Common::Topics::TOPIC_TMTC);
 
         // Log the event
         PinData data = getPinData(PinList::ARM_SWITCH);
@@ -70,7 +70,7 @@ void PinHandler::onArmTransition(PinTransition transition)
     else
     {
         EventBroker::getInstance().post(Common::Events::TMTC_ARP_DISARM,
-                                        Common::Topics::TOPIC_ARP);
+                                        Common::Topics::TOPIC_TMTC);
 
         // Log the event
         PinData data = getPinData(PinList::ARM_SWITCH);
@@ -93,7 +93,19 @@ void PinHandler::onActiveTransition(PinTransition transition)
                           PinList::ACTIVE_SWITCH, data.changesCount};
         Logger::getInstance().log(log);
     }
-    // TODO: Is needed an exiting transition with the command box?
+
+    else
+    {
+        EventBroker::getInstance().post(
+            Common::Events::TMTC_ARP_RESET_ALGORITHM,
+            Common::Topics::TOPIC_ARP);
+
+        // Log the event
+        PinData data = getPinData(PinList::ACTIVE_SWITCH);
+        PinChangeData log{TimestampTimer::getTimestamp(),
+                          PinList::ACTIVE_SWITCH, data.changesCount};
+        Logger::getInstance().log(log);
+    }
 }
 
 PinData PinHandler::getPinData(PinList pin)
