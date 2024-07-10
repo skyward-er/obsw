@@ -118,4 +118,5 @@ set (LYRA_GS
     src/boards/Groundstation/Automated/SMA/SMA.cpp
     src/boards/Groundstation/Automated/Actuators/Actuators.cpp
     src/boards/Groundstation/Automated/Sensors/Sensors.cpp
+    src/boards/Groundstation/Automated/PinHandler/PinHandler.cpp
 )
