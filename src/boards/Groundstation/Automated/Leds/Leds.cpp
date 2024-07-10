@@ -128,7 +128,7 @@ void Leds::ledOn(LedColor color)
             break;
         case LedColor::YELLOW:
             miosix::led2On();
-            miosix::commBox::ledTimY2::high();
+            miosix::commBox::ledTimY1::high();
 
             break;
         case LedColor::ORANGE:
