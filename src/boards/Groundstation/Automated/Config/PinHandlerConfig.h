@@ -28,8 +28,8 @@ namespace Antennas
 {
 namespace PinHandlerConfig
 {
-constexpr unsigned int ARM_SWITCH_THRESHOLD    = 2;
-constexpr unsigned int ACTIVE_SWITCH_THRESHOLD = 2;
+constexpr unsigned int ARM_SWITCH_THRESHOLD    = 1;
+constexpr unsigned int ACTIVE_SWITCH_THRESHOLD = 1;
 }  // namespace PinHandlerConfig
 
 }  // namespace Antennas
