@@ -30,26 +30,35 @@
 
 namespace Payload
 {
+
+/**
+ * @brief Manages all the buses of the payload board.
+ * It provides access to the buses used by the sensors and other peripherals.
+ */
 class Buses : public Boardcore::Injectable
 {
 public:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
+    Boardcore::SPIBus& LPS22DF() { return spi1; }
+    Boardcore::SPIBus& H3LIS331DL() { return spi1; }
+    Boardcore::SPIBus& LIS2MDL() { return spi3; }
+    Boardcore::SPIBus& LSM6DSRX() { return spi3; }
+    Boardcore::SPIBus& UBXGPS() { return spi3; }
+    Boardcore::SPIBus& ADS131M08() { return spi4; }
+    Boardcore::SPIBus& radio() { return spi6; }
 
-    Boardcore::I2C i2c1;
+    Boardcore::USART& HILUart() { return usart4; }
 
-    Boardcore::USART usart1;
-    Boardcore::USART usart2;
-    Boardcore::USART uart4;
+    Boardcore::I2C& LPS28DFW() { return i2c1; }
 
-    Buses()
-        : spi1(SPI1), spi3(SPI3), spi4(SPI4), spi6(SPI6),
-          i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
-               miosix::interfaces::i2c1::sda::getPin()),
-          usart1(USART1, 115200), usart2(USART2, 115200), uart4(UART4, 115200)
-    {
-    }
+private:
+    Boardcore::SPIBus spi1{SPI1};
+    Boardcore::SPIBus spi3{SPI3};
+    Boardcore::SPIBus spi4{SPI4};
+    Boardcore::SPIBus spi6{SPI6};
+
+    Boardcore::USART usart4{UART4, 460800, 1024};
+
+    Boardcore::I2C i2c1{I2C1, miosix::interfaces::i2c1::scl::getPin(),
+                        miosix::interfaces::i2c1::sda::getPin()};
 };
 }  // namespace Payload
