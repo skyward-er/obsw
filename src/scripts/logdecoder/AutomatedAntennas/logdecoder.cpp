@@ -21,7 +21,8 @@
  */
 
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
-#include <Groundstation/Automated/Follower/FollowerData.h>
+#include <Groundstation/Automated/PinHandler/PinData.h>
+#include <Groundstation/Automated/SMA/SMAData.h>
 #include <algorithms/NAS/NASState.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
@@ -59,8 +60,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<VN300Data>();
     ds.registerType<NASState>();
     ds.registerType<GPSData>();
-    ds.registerType<LogAntennasCoordinates>();
-    ds.registerType<LogRocketCoordinates>();
+    ds.registerType<SMAStatus>();
+    ds.registerType<PinChangeData>();
 }
 
 void showUsage(const string& cmdName)
