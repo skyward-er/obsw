@@ -95,7 +95,7 @@ bool Radio::start()
         std::make_unique<Skyward433Frontend>();
 
     transceiver = new SX1278Fsk(
-        getModule<Buses>()->spi6, miosix::radio::cs::getPin(),
+        getModule<Buses>()->radio(), miosix::radio::cs::getPin(),
         miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
         miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
         std::move(frontend));
