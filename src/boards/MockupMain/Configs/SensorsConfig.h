@@ -1,6 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
- *
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Angelo Prete
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -29,12 +28,22 @@
 #include <sensors/LIS3MDL/LIS3MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/calibration/AxisOrientation.h>
+#include <units/Frequency.h>
+
+#include <chrono>
 
 namespace MockupMain
 {
 namespace SensorsConfig
 {
-constexpr unsigned int NUMBER_OF_SENSORS  = 10;
+
+// clang-format off
+// Indent to avoid the linter complaining about using namespace
+  using namespace Boardcore::Units::Frequency;
+  using namespace std::chrono_literals;
+// clang-format on
+
+constexpr unsigned int NUMBER_OF_SENSORS  = 7;
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms]
 
 // BMX160
@@ -43,9 +52,9 @@ constexpr Boardcore::BMX160Config::AccelerometerRange BMX160_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int BMX160_ACC_GYRO_ODR = 200;
+constexpr unsigned int BMX160_ACC_GYRO_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_200;
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
 constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
@@ -67,26 +76,25 @@ constexpr Boardcore::H3LIS331DLDefs::BlockDataUpdate H3LIS331DL_BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange H3LIS331DL_FSR =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-constexpr uint32_t H3LIS331DL_PERIOD = 1 * 1000;  // [ns] 1000Hz
+constexpr auto H3LIS331DL_PERIOD = 800_hz;
 
 // LPS22DF
 constexpr Boardcore::LPS22DF::AVG LPS22DF_AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR LPS22DF_ODR = Boardcore::LPS22DF::ODR_50;
-constexpr uint32_t LPS22DF_PERIOD             = 50 * 1000;  // [ns] 20Hz
+constexpr auto LPS22DF_PERIOD                 = 20_hz;
 
 // UBXGPS
-constexpr uint8_t UBXGPS_SAMPLE_RATE = 10;
+constexpr auto UBXGPS_SAMPLE_RATE = 5;
 // The +5 is needed because GPS data must be read faster than it is produced (to
 // not cause delays)
-constexpr uint32_t UBXGPS_PERIOD =
-    1000 / (UBXGPS_SAMPLE_RATE + 5) * 1000;  // [ns]
+constexpr auto UBXGPS_PERIOD = 10_hz;
 
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
     ADS131M08_OVERSAMPLING_RATIO =
         Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
-constexpr uint32_t ADS131M08_PERIOD       = 1 * 1000;  // [ns] 1000Hz
+constexpr auto ADS131M08_PERIOD           = 1000_hz;
 
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
@@ -116,15 +124,14 @@ constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 // BMX160_SAMPLE_PERIOD: Sample before the fifo is full, but slightly after the
 // watermark level (watermark + 30) ---> high slack due to scheduler
 // imprecision, avoid clearing the fifo before the interrupt
-constexpr unsigned int BMX160_SAMPLE_PERIOD = BMX160_FIFO_FILL_TIME *
-                                              (BMX160_FIFO_WATERMARK + 30) * 4 /
-                                              1024 * 1000;         // [ns]
-constexpr unsigned int LIS3MDL_SAMPLE_PERIOD       = 15 * 1000;    // [ns]
-constexpr unsigned int INTERNAL_ADC_SAMPLE_PERIOD  = 1000 * 1000;  // [ns]
-constexpr unsigned int INTERNAL_TEMP_SAMPLE_PERIOD = 2000 * 1000;  // [ns]
+constexpr auto BMX160_SAMPLE_PERIOD = std::chrono::milliseconds(
+    BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024);  // [ms]
+constexpr auto LIS3MDL_SAMPLE_PERIOD       = 6_hz;
+constexpr auto INTERNAL_ADC_SAMPLE_PERIOD  = 1_hz;
+constexpr auto INTERNAL_TEMP_SAMPLE_PERIOD = 2_hz;
 
 // LoadCell
-constexpr unsigned int LOAD_CELL_SAMPLE_PERIOD = 1 * 1000;  // [ns] 1000 Hz
+constexpr auto LOAD_CELL_SAMPLE_PERIOD = 1000_hz;
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration

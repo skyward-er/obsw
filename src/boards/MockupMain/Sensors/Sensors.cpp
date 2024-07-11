@@ -113,12 +113,12 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
 
     // Init all the sensors
-    // bmx160Init();
+    bmx160Init();
     // bmx160WithCorrectionInit();
-    // lis3mdlInit();
+    lis3mdlInit();
     h3lisInit();
     lps22Init();
-    // ubxGpsInit();
+    ubxGpsInit();
     ads131Init();
     // internalADCInit();
     // batteryVoltageInit();
