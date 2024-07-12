@@ -35,6 +35,6 @@ constexpr uint16_t SEND_PORT = 42069;
 constexpr Boardcore::WizMac MAC_BASE = {0x69, 0x69, 0x69, 0x69, 0, 0};
 constexpr Boardcore::WizIp IP_BASE   = {192, 168, 1, 0};
 constexpr Boardcore::WizIp GATEWAY   = {192, 168, 1, 1};
-constexpr Boardcore::WizIp SUBNET    = {0, 0, 0, 0};
+constexpr Boardcore::WizIp SUBNET    = {255, 255, 255, 0};
 
 }  // namespace Groundstation

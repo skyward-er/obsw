@@ -32,14 +32,12 @@ class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
 public:
     [[nodiscard]] bool start();
 
-    RadioMain(bool hasBackup, uint8_t ipConfig)
-        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
+    explicit RadioMain(bool hasBackup) : hasBackup{hasBackup} {};
 
-    RadioMain() : hasBackup{false}, ipConfig{0} {};
+    RadioMain() : hasBackup{false} {};
 
 private:
-    bool hasBackup   = false;
-    uint8_t ipConfig = 0;
+    bool hasBackup = false;
 };
 
 class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
@@ -47,14 +45,12 @@ class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
 public:
     [[nodiscard]] bool start();
 
-    RadioPayload(bool hasBackup, uint8_t ipConfig)
-        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
+    explicit RadioPayload(bool hasBackup) : hasBackup{hasBackup} {};
 
-    RadioPayload() : hasBackup{false}, ipConfig{0} {};
+    RadioPayload() : hasBackup{false} {};
 
 private:
-    bool hasBackup   = false;
-    uint8_t ipConfig = 0;
+    bool hasBackup = false;
 };
 
 }  // namespace LyraGS
