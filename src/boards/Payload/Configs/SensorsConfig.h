@@ -157,7 +157,8 @@ constexpr auto SAMPLE_PERIOD = 100ms;
 
 namespace MagCalibration
 {
-constexpr auto ENABLED       = true;
+constexpr auto FILE_ENABLED  = true;  ///< Load calibration data from SD card
+constexpr auto TASK_ENABLED  = true;  ///< Enable the calibration task
 constexpr auto SAMPLING_RATE = 10_hz;
 }  // namespace MagCalibration
 

@@ -99,7 +99,7 @@ int main()
 
     // Attitude estimation
     auto nas     = new NASController();
-    auto sensors = new Sensors(*buses);
+    auto sensors = new Sensors();
 
     // Radio and CAN
     auto radio      = new Radio();

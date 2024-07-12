@@ -44,24 +44,15 @@
 
 namespace Payload
 {
-class Buses;
 class BoardScheduler;
+class Buses;
 
 /**
  * @brief Manages all the sensors of the payload board.
  */
-class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler>
+class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses>
 {
 public:
-    /**
-     * @brief Constructs a new Sensors object. Requires a `Buses` object to be
-     * passed to the constructor instead of using dependency injection because
-     * the `Buses` module would not be injected yet at the time of construction.
-     *
-     * @param buses The `Buses` object to retrieve bus instances for the sensors
-     */
-    explicit Sensors(Buses& buses);
-
     [[nodiscard]] bool start();
 
     /**
@@ -120,45 +111,58 @@ private:
      * after they are created but before they are inserted into the manager.
      */
 
-    void lps22dfCreate(Buses& buses);
+    void lps22dfCreate();
     void lps22dfInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void lps28dfwCreate(Buses& buses);
+    void lps28dfwCreate();
     void lps28dfwInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void h3lis331dlCreate(Buses& buses);
+    void h3lis331dlCreate();
     void h3lis331dlInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void lis2mdlCreate(Buses& buses);
+    void lis2mdlCreate();
     void lis2mdlInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void ubxgpsCreate(Buses& buses);
+    void ubxgpsCreate();
     void ubxgpsInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void lsm6dsrxCreate(Buses& buses);
+    void lsm6dsrxCreate();
     void lsm6dsrxInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void ads131m08Create(Buses& buses);
+    void ads131m08Create();
     void ads131m08Insert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void internalAdcCreate(Buses& buses);
+    void internalAdcCreate();
     void internalAdcInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void staticPressureCreate(Buses& buses);
+    void staticPressureCreate();
     void staticPressureInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void dynamicPressureCreate(Buses& buses);
+    void dynamicPressureCreate();
     void dynamicPressureInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void pitotCreate(Buses& buses);
+    void pitotCreate();
     void pitotInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void imuCreate(Buses& buses);
+    void imuCreate();
     void imuInsert(Boardcore::SensorManager::SensorMap_t& map);
 
     bool magCalibrationInit(Boardcore::TaskScheduler& scheduler);
 
 protected:
+    /**
+     * @brief A function that is called after all sensors have been created but
+     * before they are inserted into the sensor manager.
+     *
+     * It can be overridden by subclasses to perform additional setup on the
+     * sensors.
+     *
+     * @return Whether the additional setup was successful. If false is
+     * returned, initialization will stop immediately after returning from this
+     * function and the sensors will not be started.
+     */
+    virtual bool postSensorCreationHook() { return true; }
+
     // Hardware sensor instances
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
@@ -176,12 +180,11 @@ protected:
     std::unique_ptr<Payload::RotatedIMU> imu;
 
 private:
-    Boardcore::SoftAndHardIronCalibration magCalibrator;
-    Boardcore::SixParametersCorrector magCalibration;
+    std::unique_ptr<Boardcore::SensorManager> manager;
 
     miosix::FastMutex calibrationMutex;
-
-    std::unique_ptr<Boardcore::SensorManager> manager;
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 };
