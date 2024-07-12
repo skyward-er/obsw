@@ -22,23 +22,30 @@
 
 #pragma once
 
-#include <Payload/Sensors/Sensors.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include "NASControllerData.h"
 
 namespace Payload
 {
+class BoardScheduler;
+class Sensors;
 
-class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::InjectableWithDeps<Sensors>
+class NASController
+    : public Boardcore::FSM<NASController>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
 {
 public:
-    NASController(Boardcore::TaskScheduler& sched);
+    /**
+     * @brief Initializes the NAS controller.
+     *
+     * Sets the initial FSM state to idle, subscribes to NAS and flight events
+     * and initializes the NAS algorithm.
+     */
+    NASController();
 
     /**
      * @brief Starts the FSM thread and adds the update function into the
@@ -84,9 +91,6 @@ private:
     NASControllerStatus status;
     Boardcore::NAS nas;
 
-    // Scheduler to be used for update function
-    Boardcore::TaskScheduler& scheduler;
-
     // User set (or triac set) initial orientation
     Eigen::Vector3f initialOrientation;
 
@@ -97,4 +101,5 @@ private:
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };
+
 }  // namespace Payload

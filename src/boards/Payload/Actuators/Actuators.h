@@ -25,15 +25,15 @@
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkGemini.h>
 #include <interfaces/gpio.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class BoardScheduler;
 
-struct Actuators : public Boardcore::Injectable
+struct Actuators : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
-    explicit Actuators(Boardcore::TaskScheduler& sched);
+    Actuators();
 
     [[nodiscard]] bool start();
 
@@ -118,7 +118,6 @@ private:
      */
     void updateBuzzer();
 
-    Boardcore::TaskScheduler& scheduler;
     Boardcore::Servo* leftServo  = nullptr;
     Boardcore::Servo* rightServo = nullptr;
     Boardcore::PWM* buzzer       = nullptr;

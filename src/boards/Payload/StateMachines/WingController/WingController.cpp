@@ -22,6 +22,7 @@
 #include "WingController.h"
 
 #include <Payload/Actuators/Actuators.h>
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -45,9 +46,8 @@ using namespace Common;
 namespace Payload
 {
 
-WingController::WingController(TaskScheduler& sched)
-    : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0),
-      scheduler(sched)
+WingController::WingController()
+    : HSM(&WingController::state_idle), running(false), selectedAlgorithm(0)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
@@ -68,7 +68,8 @@ void WingController::inject(DependencyInjector& injector)
 
 bool WingController::start()
 {
-    bool success = true;
+    auto& scheduler = getModule<BoardScheduler>()->wingController();
+    bool success    = true;
 
     success &= std::all_of(algorithms.begin(), algorithms.end(),
                            [](auto& algorithm) { return algorithm->init(); });

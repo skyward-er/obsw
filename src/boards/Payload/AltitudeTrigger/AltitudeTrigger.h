@@ -22,17 +22,18 @@
 
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class BoardScheduler;
 class NASController;
 
-class AltitudeTrigger : public Boardcore::InjectableWithDeps<NASController>
+class AltitudeTrigger
+    : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
 {
 public:
-    explicit AltitudeTrigger(Boardcore::TaskScheduler &sched);
+    explicit AltitudeTrigger();
 
     /**
      * @brief Adds the update() task to the task scheduler.
@@ -72,7 +73,6 @@ private:
     float deploymentAltitude;
 
     miosix::FastMutex mutex;
-    Boardcore::TaskScheduler &scheduler;
 };
 
 }  // namespace Payload

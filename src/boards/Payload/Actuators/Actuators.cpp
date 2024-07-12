@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfigs.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -32,7 +33,7 @@ using namespace Payload::ActuatorsConfigs;
 namespace Payload
 {
 
-Actuators::Actuators(Boardcore::TaskScheduler& sched) : scheduler(sched)
+Actuators::Actuators()
 {
     leftServo  = new Servo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
                            LEFT_SERVO_MAX_PULSE);
@@ -45,6 +46,8 @@ Actuators::Actuators(Boardcore::TaskScheduler& sched) : scheduler(sched)
 
 bool Actuators::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->actuators();
+
     // Servos
     enableServo(PARAFOIL_LEFT_SERVO);
     setServo(PARAFOIL_LEFT_SERVO, 0);

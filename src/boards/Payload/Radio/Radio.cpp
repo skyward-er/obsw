@@ -74,10 +74,12 @@ void __attribute__((used)) SX1278_IRQ_DIO3()
 namespace Payload
 {
 
-Radio::Radio(TaskScheduler& sched) : scheduler(sched) { staticRadio = this; }
+Radio::Radio() { staticRadio = this; }
 
 bool Radio::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->radio();
+
     // Config the transceiver
     SX1278Fsk::Config config = {
         .freq_rf    = 869000000,
@@ -155,10 +157,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
 
 void Radio::logStatus() { Logger::getInstance().log(mavDriver->getStatus()); }
 
-bool Radio::isStarted()
-{
-    return mavDriver->isStarted() && scheduler.isRunning();
-}
+bool Radio::isStarted() { return mavDriver->isStarted(); }
 
 void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 {
@@ -519,4 +518,5 @@ void Radio::enqueueMsg(const mavlink_message_t& msg)
         }
     }
 }
+
 }  // namespace Payload

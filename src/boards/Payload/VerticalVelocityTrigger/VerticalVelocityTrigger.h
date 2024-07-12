@@ -28,6 +28,7 @@
 
 namespace Payload
 {
+class BoardScheduler;
 class NASController;
 
 /**
@@ -38,14 +39,14 @@ class NASController;
  * - Payload::NASController
  */
 class VerticalVelocityTrigger
-    : public Boardcore::InjectableWithDeps<NASController>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
 {
 public:
     /**
      * Default constructor for VerticalVelocityTrigger
      * Sets the trigger to disabled by default
      */
-    explicit VerticalVelocityTrigger(Boardcore::TaskScheduler& sched);
+    VerticalVelocityTrigger();
 
     /**
      * Starts the module by inserting it in the BoardScheduler
@@ -84,8 +85,6 @@ private:
     // Number of times that the algorithm detects to be slower than the velocity
     // threshold
     std::atomic<int> confidence;
-
-    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload

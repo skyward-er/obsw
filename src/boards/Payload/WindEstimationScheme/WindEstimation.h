@@ -24,7 +24,6 @@
 
 #include <Payload/Configs/WESConfig.h>
 #include <diagnostic/PrintLogger.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -34,22 +33,24 @@
 
 namespace Payload
 {
+class BoardScheduler;
 class Sensors;
 
 /**
  * @brief This class implements the wind prediction algorithm, the first part is
  * the initial setup, and then the continuos algoritms runs;
  */
-class WindEstimation : public Boardcore::InjectableWithDeps<Sensors>
+class WindEstimation
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
 {
 public:
     /**
-     * @brief Construct a new Wing Controller object
+     * @brief Construct a new Wing Estimation object
      */
-    explicit WindEstimation(Boardcore::TaskScheduler& sched);
+    WindEstimation();
 
     /**
-     * @brief Destroy the Wing Controller object.
+     * @brief Stops the wind estimation scheme and calibration tasks.
      */
     ~WindEstimation();
 
@@ -125,7 +126,6 @@ private:
      */
     std::atomic<bool> running;
     std::atomic<bool> calRunning;
-
-    Boardcore::TaskScheduler& scheduler;
 };
+
 }  // namespace Payload

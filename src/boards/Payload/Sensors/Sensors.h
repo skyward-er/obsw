@@ -45,11 +45,12 @@
 namespace Payload
 {
 class Buses;
+class BoardScheduler;
 
 /**
  * @brief Manages all the sensors of the payload board.
  */
-class Sensors : public Boardcore::Injectable
+class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
     /**
@@ -57,10 +58,9 @@ public:
      * passed to the constructor instead of using dependency injection because
      * the `Buses` module would not be injected yet at the time of construction.
      *
-     * @param sched The task scheduler to be used for sensor sampling
      * @param buses The `Buses` object to retrieve bus instances for the sensors
      */
-    explicit Sensors(Boardcore::TaskScheduler& sched, Buses& buses);
+    explicit Sensors(Buses& buses);
 
     [[nodiscard]] bool start();
 
@@ -156,7 +156,7 @@ private:
     void imuCreate(Buses& buses);
     void imuInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    bool magCalibrationInit();
+    bool magCalibrationInit(Boardcore::TaskScheduler& scheduler);
 
 protected:
     // Hardware sensor instances
@@ -180,11 +180,10 @@ private:
     Boardcore::SixParametersCorrector magCalibration;
 
     miosix::FastMutex calibrationMutex;
-    miosix::FastMutex pitotMutex;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
-    Boardcore::TaskScheduler& scheduler;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 };
+
 }  // namespace Payload

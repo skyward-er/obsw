@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/NASConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/NASController/NASController.h>
@@ -36,8 +37,8 @@ using namespace Common;
 namespace Payload
 {
 
-NASController::NASController(TaskScheduler& sched)
-    : FSM(&NASController::state_idle), nas(NASConfig::config), scheduler(sched)
+NASController::NASController()
+    : FSM(&NASController::state_idle), nas(NASConfig::config)
 {
     // Subscribe the class to the topics
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
@@ -64,6 +65,8 @@ NASController::NASController(TaskScheduler& sched)
 
 bool NASController::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->nasController();
+
     // Add the task to the scheduler
     size_t result =
         scheduler.addTask([this] { update(); }, NASConfig::UPDATE_PERIOD,
@@ -362,4 +365,5 @@ void NASController::logStatus(NASControllerState state)
     // Log the status
     Logger::getInstance().log(status);
 }
+
 }  // namespace Payload

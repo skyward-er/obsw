@@ -26,22 +26,25 @@
 #include <algorithms/ADA/ADAData.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/MavlinkGemini.h>
-#include <scheduler/TaskScheduler.h>
 #include <sensors/SensorData.h>
 #include <sensors/analog/Pitot/PitotData.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class BoardScheduler;
 class Sensors;
 class NASController;
 
 class FlightStatsRecorder
-    : public Boardcore::InjectableWithDeps<Sensors, NASController,
-                                           FlightModeManager>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           NASController, FlightModeManager>
 {
 public:
-    explicit FlightStatsRecorder(Boardcore::TaskScheduler& sched);
+    /**
+     * @brief Initialises the FlightStatsRecorder to empty values
+     */
+    FlightStatsRecorder();
 
     /**
      * @brief Adds a task to the scheduler to update the stats
@@ -71,9 +74,6 @@ private:
                      Boardcore::PitotData data);
     void updateNAS(FlightModeManagerState flightState,
                    Boardcore::NASState data);
-
-    // Update scheduler to update all the data
-    Boardcore::TaskScheduler& scheduler;
 
     // Data structure
     mavlink_payload_stats_tm_t stats;

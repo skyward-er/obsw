@@ -34,15 +34,16 @@ using namespace Common;
 namespace Payload
 {
 
-AltitudeTrigger::AltitudeTrigger(TaskScheduler& sched)
+AltitudeTrigger::AltitudeTrigger()
     : running(false), confidence(0),
-      deploymentAltitude(WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE),
-      scheduler(sched)
+      deploymentAltitude(WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE)
 {
 }
 
 bool AltitudeTrigger::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->altitudeTrigger();
+
     return (scheduler.addTask([this] { update(); },
                               WingConfig::ALTITUDE_TRIGGER_PERIOD) != 0);
 }
@@ -97,4 +98,5 @@ void AltitudeTrigger::update()
         }
     }
 }
+
 }  // namespace Payload

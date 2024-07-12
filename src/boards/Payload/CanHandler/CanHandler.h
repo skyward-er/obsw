@@ -24,11 +24,11 @@
 
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
+class BoardScheduler;
 class Sensors;
 class FlightModeManager;
 
@@ -38,8 +38,8 @@ class FlightModeManager;
  * @brief Payload implementation of CanProtocol with methods for ease of use
  *
  */
-class CanHandler
-    : public Boardcore::InjectableWithDeps<Sensors, FlightModeManager>
+class CanHandler : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                                        FlightModeManager>
 {
 public:
     /**
@@ -48,7 +48,7 @@ public:
      * @warning With Payload motherboard CanDriver initialization could be
      * blocking
      */
-    explicit CanHandler(Boardcore::TaskScheduler& sched);
+    CanHandler();
 
     /**
      * @brief Starts the protocol and adds the periodic messages to the task
@@ -85,8 +85,6 @@ private:
     Boardcore::Canbus::CanProtocol* protocol;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
-
-    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload

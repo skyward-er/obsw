@@ -22,6 +22,7 @@
 
 #include "Sensors.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <common/ReferenceConfig.h>
 #include <interfaces-impl/hwmapping.h>
@@ -65,7 +66,7 @@ void logSample(LSM6DSRX* sensor)
 namespace Payload
 {
 
-Sensors::Sensors(TaskScheduler& sched, Buses& buses) : scheduler(sched)
+Sensors::Sensors(Buses& buses)
 {
     lps22dfCreate(buses);
     lps28dfwCreate(buses);
@@ -83,6 +84,8 @@ Sensors::Sensors(TaskScheduler& sched, Buses& buses) : scheduler(sched)
 
 bool Sensors::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->sensors();
+
     // Read the magnetometer calibration from predefined file
     magCalibration.fromFile("/sd/magCalibration.csv");
 
@@ -101,7 +104,7 @@ bool Sensors::start()
     pitotInsert(map);
     imuInsert(map);
 
-    bool initResult = magCalibrationInit();
+    bool initResult = magCalibrationInit(scheduler);
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
     initResult &= manager->start();
@@ -109,10 +112,7 @@ bool Sensors::start()
     return initResult;
 }
 
-bool Sensors::isStarted()
-{
-    return manager->areAllSensorsInitialized() && scheduler.isRunning();
-}
+bool Sensors::isStarted() { return manager->areAllSensorsInitialized(); }
 
 void Sensors::calibrate()
 {
@@ -684,7 +684,7 @@ void Sensors::imuInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-bool Sensors::magCalibrationInit()
+bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
 {
     if (!config::MagCalibration::ENABLED)
     {
