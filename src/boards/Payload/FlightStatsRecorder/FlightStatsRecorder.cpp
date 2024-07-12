@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/FlightStatsRecorderConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
@@ -35,8 +36,7 @@ using namespace miosix;
 
 namespace Payload
 {
-FlightStatsRecorder::FlightStatsRecorder(TaskScheduler& sched)
-    : scheduler(sched)
+FlightStatsRecorder::FlightStatsRecorder()
 {
     // Init the data structure to avoid UB
     stats.max_airspeed_pitot = 0;
@@ -58,6 +58,8 @@ FlightStatsRecorder::FlightStatsRecorder(TaskScheduler& sched)
 
 bool FlightStatsRecorder::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->flightStatsRecorder();
+
     return scheduler.addTask([this] { update(); }, FSR_UPDATE_PERIOD,
                              TaskScheduler::Policy::RECOVER);
 }

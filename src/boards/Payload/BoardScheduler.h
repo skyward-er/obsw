@@ -26,32 +26,24 @@
 
 namespace Payload
 {
+
 /**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
+ * @brief The class that manages the task schedulers of the board.
+ * It takes care of handing out task schedulers to modules.
  */
 class BoardScheduler : public Boardcore::Injectable
 {
 public:
-    /**
-     * @brief Returns the scheduler for critical tasks (highest priority)
-     */
-    Boardcore::TaskScheduler& getCriticalScheduler() { return critical; }
-
-    /**
-     * @brief Returns the scheduler for high priority tasks
-     */
-    Boardcore::TaskScheduler& getHighScheduler() { return high; }
-
-    /**
-     * @brief Returns the scheduler for medium priority tasks
-     */
-    Boardcore::TaskScheduler& getMediumScheduler() { return medium; }
-
-    /**
-     * @brief Returns the scheduler for low priority tasks (lowest priority)
-     */
-    Boardcore::TaskScheduler& getLowScheduler() { return low; }
+    Boardcore::TaskScheduler& nasController() { return critical; }
+    Boardcore::TaskScheduler& sensors() { return high; }
+    Boardcore::TaskScheduler& radio() { return medium; }
+    Boardcore::TaskScheduler& canHandler() { return medium; }
+    Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
+    Boardcore::TaskScheduler& wingController() { return medium; }
+    Boardcore::TaskScheduler& verticalVelocityTrigger() { return medium; }
+    Boardcore::TaskScheduler& windEstimation() { return medium; }
+    Boardcore::TaskScheduler& actuators() { return low; }
+    Boardcore::TaskScheduler& flightStatsRecorder() { return low; }
 
     /**
      * @brief Starts all the schedulers

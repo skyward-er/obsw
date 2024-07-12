@@ -56,20 +56,24 @@
 
 namespace Payload
 {
+class BoardScheduler;
 class Actuators;
 class NASController;
 class WindEstimation;
 
 class WingController
     : public Boardcore::HSM<WingController>,
-      public Boardcore::InjectableWithDeps<Actuators, NASController,
-                                           WindEstimation>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
+                                           NASController, WindEstimation>
 {
 public:
     /**
-     * @brief Construct a new Wing Controller object
+     * @brief Initializes the wing controller.
+     *
+     * Sets the initial FSM state to idle, subscribes to DPL and flight events
+     * and instantiates the wing algorithms.
      */
-    explicit WingController(Boardcore::TaskScheduler& sched);
+    WingController();
 
     /**
      * @brief Destroy the Wing Controller object.
@@ -189,7 +193,6 @@ private:
     void reset();
 
     void update();
-
-    Boardcore::TaskScheduler& scheduler;
 };
+
 }  // namespace Payload

@@ -22,6 +22,7 @@
 
 #include "CanHandler.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/CanHandlerConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -39,7 +40,7 @@ using namespace Payload::CanHandlerConfig;
 namespace Payload
 {
 
-CanHandler::CanHandler(TaskScheduler& sched) : scheduler(sched)
+CanHandler::CanHandler()
 {
     CanbusDriver::AutoBitTiming bitTiming;
     bitTiming.baudRate    = BAUD_RATE;
@@ -62,6 +63,8 @@ CanHandler::CanHandler(TaskScheduler& sched) : scheduler(sched)
 
 bool CanHandler::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->canHandler();
+
     bool result;
     // Add a task to periodically send the pitot data
     result = scheduler.addTask(  // sensor template
