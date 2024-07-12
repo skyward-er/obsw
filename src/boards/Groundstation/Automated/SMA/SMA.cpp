@@ -857,8 +857,7 @@ State SMA::state_armed_nf(const Event& event)
             logStatus(SMAState::ARMED_NF);
             ModuleManager::getInstance().get<Actuators>()->arm();
             ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
-            ModuleManager::getInstance().get<Leds>()->setSlowBlink(
-                LedColor::YELLOW);
+            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::YELLOW);
             ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
