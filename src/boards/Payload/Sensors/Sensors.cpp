@@ -66,28 +66,29 @@ void logSample(LSM6DSRX* sensor)
 namespace Payload
 {
 
-Sensors::Sensors(Buses& buses)
-{
-    lps22dfCreate(buses);
-    lps28dfwCreate(buses);
-    h3lis331dlCreate(buses);
-    lis2mdlCreate(buses);
-    ubxgpsCreate(buses);
-    lsm6dsrxCreate(buses);
-    ads131m08Create(buses);
-    internalAdcCreate(buses);
-    staticPressureCreate(buses);
-    dynamicPressureCreate(buses);
-    pitotCreate(buses);
-    imuCreate(buses);
-}
-
 bool Sensors::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->sensors();
+    bool initResult = true;
 
-    // Read the magnetometer calibration from predefined file
-    magCalibration.fromFile("/sd/magCalibration.csv");
+    lps22dfCreate();
+    lps28dfwCreate();
+    h3lis331dlCreate();
+    lis2mdlCreate();
+    ubxgpsCreate();
+    lsm6dsrxCreate();
+    ads131m08Create();
+    internalAdcCreate();
+    staticPressureCreate();
+    dynamicPressureCreate();
+    pitotCreate();
+    imuCreate();
+
+    // Return immediately if the hook fails as we cannot know what the hook does
+    if (!postSensorCreationHook())
+    {
+        return false;
+    }
 
     // Insert all sensors in the sensor map
     SensorManager::SensorMap_t map;
@@ -104,7 +105,7 @@ bool Sensors::start()
     pitotInsert(map);
     imuInsert(map);
 
-    bool initResult = magCalibrationInit(scheduler);
+    initResult &= magCalibrationInit(scheduler);
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
     initResult &= manager->start();
@@ -112,7 +113,10 @@ bool Sensors::start()
     return initResult;
 }
 
-bool Sensors::isStarted() { return manager->areAllSensorsInitialized(); }
+bool Sensors::isStarted()
+{
+    return manager && manager->areAllSensorsInitialized();
+}
 
 void Sensors::calibrate()
 {
@@ -318,7 +322,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
     }
 }
 
-void Sensors::lps22dfCreate(Buses& buses)
+void Sensors::lps22dfCreate()
 {
     if (!config::LPS22DF::ENABLED)
     {
@@ -333,8 +337,9 @@ void Sensors::lps22dfCreate(Buses& buses)
         .avg = config::LPS22DF::AVG,
     };
 
-    lps22df = std::make_unique<LPS22DF>(
-        buses.LPS22DF(), hwmap::LPS22DF::cs::getPin(), spiConfig, sensorConfig);
+    lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->LPS22DF(),
+                                        hwmap::LPS22DF::cs::getPin(), spiConfig,
+                                        sensorConfig);
 }
 
 void Sensors::lps22dfInsert(SensorManager::SensorMap_t& map)
@@ -347,7 +352,7 @@ void Sensors::lps22dfInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::lps28dfwCreate(Buses& buses)
+void Sensors::lps28dfwCreate()
 {
     if (!config::LPS28DFW::ENABLED)
     {
@@ -362,7 +367,8 @@ void Sensors::lps28dfwCreate(Buses& buses)
         .drdy = false,
     };
 
-    lps28dfw = std::make_unique<LPS28DFW>(buses.LPS28DFW(), config);
+    lps28dfw =
+        std::make_unique<LPS28DFW>(getModule<Buses>()->LPS28DFW(), config);
 }
 
 void Sensors::lps28dfwInsert(SensorManager::SensorMap_t& map)
@@ -375,7 +381,7 @@ void Sensors::lps28dfwInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::h3lis331dlCreate(Buses& buses)
+void Sensors::h3lis331dlCreate()
 {
     if (!config::H3LIS331DL::ENABLED)
     {
@@ -386,8 +392,8 @@ void Sensors::h3lis331dlCreate(Buses& buses)
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     h3lis331dl = std::make_unique<H3LIS331DL>(
-        buses.H3LIS331DL(), hwmap::H3LIS331DL::cs::getPin(), spiConfig,
-        config::H3LIS331DL::ODR, config::H3LIS331DL::BDU,
+        getModule<Buses>()->H3LIS331DL(), hwmap::H3LIS331DL::cs::getPin(),
+        spiConfig, config::H3LIS331DL::ODR, config::H3LIS331DL::BDU,
         config::H3LIS331DL::FSR);
 }
 
@@ -401,7 +407,7 @@ void Sensors::h3lis331dlInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::lis2mdlCreate(Buses& buses)
+void Sensors::lis2mdlCreate()
 {
     if (!config::LIS2MDL::ENABLED)
     {
@@ -417,8 +423,9 @@ void Sensors::lis2mdlCreate(Buses& buses)
         .temperatureDivider = config::LIS2MDL::TEMPERATURE_DIVIDER,
     };
 
-    lis2mdl = std::make_unique<LIS2MDL>(
-        buses.LIS2MDL(), hwmap::LIS2MDL::cs::getPin(), spiConfig, sensorConfig);
+    lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->LIS2MDL(),
+                                        hwmap::LIS2MDL::cs::getPin(), spiConfig,
+                                        sensorConfig);
 }
 
 void Sensors::lis2mdlInsert(SensorManager::SensorMap_t& map)
@@ -431,7 +438,7 @@ void Sensors::lis2mdlInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::ubxgpsCreate(Buses& buses)
+void Sensors::ubxgpsCreate()
 {
     if (!config::UBXGPS::ENABLED)
     {
@@ -442,7 +449,7 @@ void Sensors::ubxgpsCreate(Buses& buses)
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
     ubxgps = std::make_unique<UBXGPSSpi>(
-        buses.UBXGPS(), hwmap::UBXGps::cs::getPin(), spiConfig,
+        getModule<Buses>()->UBXGPS(), hwmap::UBXGps::cs::getPin(), spiConfig,
         static_cast<uint8_t>(config::UBXGPS::SAMPLE_RATE));
 }
 
@@ -456,7 +463,7 @@ void Sensors::ubxgpsInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::lsm6dsrxCreate(Buses& buses)
+void Sensors::lsm6dsrxCreate()
 {
     if (!config::LSM6DSRX::ENABLED)
     {
@@ -489,7 +496,7 @@ void Sensors::lsm6dsrxCreate(Buses& buses)
         .fifoWatermark = 0,
     };
 
-    lsm6dsrx = std::make_unique<LSM6DSRX>(buses.LSM6DSRX(),
+    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->LSM6DSRX(),
                                           hwmap::LSM6DSRX::cs::getPin(),
                                           spiConfig, sensorConfig);
 }
@@ -504,7 +511,7 @@ void Sensors::lsm6dsrxInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::ads131m08Create(Buses& buses)
+void Sensors::ads131m08Create()
 {
     if (!config::ADS131M08::ENABLED)
     {
@@ -530,7 +537,7 @@ void Sensors::ads131m08Create(Buses& buses)
     channels[(uint8_t)config::ADS131M08::STATIC_PRESSURE_CH].enabled  = true;
     channels[(uint8_t)config::ADS131M08::DYNAMIC_PRESSURE_CH].enabled = true;
 
-    ads131m08 = std::make_unique<ADS131M08>(buses.ADS131M08(),
+    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->ADS131M08(),
                                             hwmap::ADS131M08::cs::getPin(),
                                             spiConfig, sensorConfig);
 }
@@ -545,7 +552,7 @@ void Sensors::ads131m08Insert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::internalAdcCreate(Buses& buses)
+void Sensors::internalAdcCreate()
 {
     if (!config::InternalADC::ENABLED)
     {
@@ -570,7 +577,7 @@ void Sensors::internalAdcInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::staticPressureCreate(Buses& buses)
+void Sensors::staticPressureCreate()
 {
     if (!(config::StaticPressure::ENABLED && config::ADS131M08::ENABLED))
     {
@@ -598,7 +605,7 @@ void Sensors::staticPressureInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::dynamicPressureCreate(Buses& buses)
+void Sensors::dynamicPressureCreate()
 {
     if (!(config::DynamicPressure::ENABLED && config::ADS131M08::ENABLED))
     {
@@ -626,7 +633,7 @@ void Sensors::dynamicPressureInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::pitotCreate(Buses& buses)
+void Sensors::pitotCreate()
 {
     if (!(config::Pitot::ENABLED && config::StaticPressure::ENABLED &&
           config::DynamicPressure::ENABLED && config::ADS131M08::ENABLED))
@@ -655,7 +662,7 @@ void Sensors::pitotInsert(SensorManager::SensorMap_t& map)
     }
 }
 
-void Sensors::imuCreate(Buses& buses)
+void Sensors::imuCreate()
 {
     if (!(config::IMU::ENABLED && config::LSM6DSRX::ENABLED &&
           config::LIS2MDL::ENABLED))
@@ -686,30 +693,42 @@ void Sensors::imuInsert(SensorManager::SensorMap_t& map)
 
 bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
 {
-    if (!config::MagCalibration::ENABLED)
+    bool initResult = true;
+
+    if (config::MagCalibration::FILE_ENABLED)
     {
-        // Nothing to do if mag calibration is disabled
-        return true;
+        // Read the magnetometer calibration data from file
+        bool loaded = magCalibration.fromFile("/sd/magCalibration.csv");
+        // Log the error but don't fail initialization
+        if (!loaded)
+        {
+            LOG_WARN(logger, "Failed to load magnetometer calibration data");
+        }
     }
 
-    // Add the magnetometer calibration task to the scheduler
-    size_t result = scheduler.addTask(
-        [this]
-        {
-            // Gather the last sample data
-            auto sample = getLIS2MDLLastSample();
-
-            // Feed the data to the calibrator inside a protected area.
-            // Contention is not high and the use of a mutex is suitable to
-            // avoid pausing the kernel for this calibration operation
+    if (config::MagCalibration::TASK_ENABLED)
+    {
+        // Add the magnetometer calibration task to the scheduler
+        auto taskId = scheduler.addTask(
+            [this]
             {
-                miosix::Lock<FastMutex> l(calibrationMutex);
-                magCalibrator.feed(sample);
-            }
-        },
-        config::MagCalibration::SAMPLING_RATE);
+                // Gather the last sample data
+                auto sample = getLIS2MDLLastSample();
 
-    return result != 0;
+                // Feed the data to the calibrator inside a protected area.
+                // Contention is not high and the use of a mutex is suitable to
+                // avoid pausing the kernel for this calibration operation
+                {
+                    miosix::Lock<FastMutex> l(calibrationMutex);
+                    magCalibrator.feed(sample);
+                }
+            },
+            config::MagCalibration::SAMPLING_RATE);
+
+        initResult &= taskId != 0;
+    }
+
+    return initResult;
 }
 
 }  // namespace Payload
