@@ -22,6 +22,7 @@
 
 #include "WindEstimation.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
@@ -34,14 +35,15 @@ using namespace Common;
 namespace Payload
 {
 
-WindEstimation::WindEstimation(TaskScheduler& sched)
-    : running(false), calRunning(false), scheduler(sched)
+WindEstimation::WindEstimation() : running(false), calRunning(false)
 {
     funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
 }
 
 bool WindEstimation::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->windEstimation();
+
     scheduler.addTask([this] { windEstimationSchemeCalibration(); },
                       WES_CALIBRATION_UPDATE_PERIOD);
 

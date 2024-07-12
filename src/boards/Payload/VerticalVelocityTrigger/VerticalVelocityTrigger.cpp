@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/VerticalVelocityConfig.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
@@ -32,13 +33,15 @@ using namespace Common;
 namespace Payload
 {
 
-VerticalVelocityTrigger::VerticalVelocityTrigger(TaskScheduler& sched)
-    : running(false), confidence(0), scheduler(sched)
+VerticalVelocityTrigger::VerticalVelocityTrigger()
+    : running(false), confidence(0)
 {
 }
 
 bool VerticalVelocityTrigger::start()
 {
+    auto& scheduler = getModule<BoardScheduler>()->verticalVelocityTrigger();
+
     return scheduler.addTask(
         [this] { update(); },
         FailSafe::FAILSAFE_VERTICAL_VELOCITY_TRIGGER_PERIOD);

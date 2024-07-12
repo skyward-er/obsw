@@ -25,7 +25,6 @@
 #include <common/MavlinkGemini.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
@@ -34,6 +33,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            RadioConfig::RADIO_OUT_QUEUE_SIZE,
                                            RadioConfig::RADIO_MAV_MSG_LENGTH>;
 
+class BoardScheduler;
 class Sensors;
 class Buses;
 class TMRepository;
@@ -43,16 +43,17 @@ class NASController;
 class WingController;
 class AltitudeTrigger;
 
-class Radio : public Boardcore::InjectableWithDeps<
-                  Sensors, Buses, TMRepository, FlightModeManager, Actuators,
-                  NASController, WingController, AltitudeTrigger>
+class Radio
+    : public Boardcore::InjectableWithDeps<
+          BoardScheduler, Sensors, Buses, TMRepository, FlightModeManager,
+          Actuators, NASController, WingController, AltitudeTrigger>
 {
 public:
     /**
      * @note This class may only be instantiated once. The constructed instance
      * sets itself as the static instance for handling radio interrupts.
      */
-    Radio(Boardcore::TaskScheduler& sched);
+    Radio();
 
     /**
      * @brief Starts the MavlinkDriver
@@ -111,7 +112,6 @@ private:
     miosix::FastMutex queueMutex;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
-    Boardcore::TaskScheduler& scheduler;
 };
 
 }  // namespace Payload

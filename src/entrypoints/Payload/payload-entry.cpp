@@ -73,44 +73,46 @@ int main()
     PrintLogger logger = Logging::getLogger("Payload");
     DependencyManager depman{};
 
+    // Core components
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-    // Attitude estimation are critical components
-    auto nas     = new NASController(scheduler->getCriticalScheduler());
-    auto sensors = new Sensors(scheduler->getHighScheduler(), *buses);
+    // Global state machine
+    auto flightModeManager = new FlightModeManager();
+
+    // Attitude estimation
+    auto nas     = new NASController();
+    auto sensors = new Sensors(*buses);
 
     // Radio and CAN
-    auto radio      = new Radio(scheduler->getMediumScheduler());
-    auto canHandler = new CanHandler(scheduler->getMediumScheduler());
+    auto radio      = new Radio();
+    auto canHandler = new CanHandler();
 
     // Flight algorithms
-    auto altitudeTrigger = new AltitudeTrigger(scheduler->getMediumScheduler());
-    auto wingController  = new WingController(scheduler->getMediumScheduler());
-    auto verticalVelocityTrigger =
-        new VerticalVelocityTrigger(scheduler->getMediumScheduler());
-    auto windEstimation = new WindEstimation(scheduler->getMediumScheduler());
+    auto altitudeTrigger         = new AltitudeTrigger();
+    auto wingController          = new WingController();
+    auto verticalVelocityTrigger = new VerticalVelocityTrigger();
+    auto windEstimation          = new WindEstimation();
 
-    // Actuators is considered non-critical since the scheduler is only used for
-    // the led and buzzer tasks
-    auto actuators     = new Actuators(scheduler->getLowScheduler());
-    auto statsRecorder = new FlightStatsRecorder(scheduler->getLowScheduler());
+    // Actuators
+    auto actuators  = new Actuators();
+    auto pinHandler = new PinHandler();
 
-    // Components without a scheduler
-    auto tmRepository      = new TMRepository();
-    auto flightModeManager = new FlightModeManager();
-    auto pinHandler        = new PinHandler();
+    // Statistics
+    auto statsRecorder = new FlightStatsRecorder();
+    auto tmRepository  = new TMRepository();
 
     // Insert modules
     bool initResult =
         depman.insert(buses) && depman.insert(scheduler) &&
-        depman.insert(nas) && depman.insert(sensors) & depman.insert(radio) &&
-        depman.insert(altitudeTrigger) && depman.insert(wingController) &&
+        depman.insert(flightModeManager) && depman.insert(nas) &&
+        depman.insert(sensors) & depman.insert(radio) &&
+        depman.insert(canHandler) && depman.insert(altitudeTrigger) &&
+        depman.insert(wingController) &&
         depman.insert(verticalVelocityTrigger) &&
-        depman.insert(windEstimation) && depman.insert(canHandler) &&
-        depman.insert(actuators) && depman.insert(statsRecorder) &&
-        depman.insert(tmRepository) && depman.insert(flightModeManager) &&
-        depman.insert(pinHandler);
+        depman.insert(windEstimation) && depman.insert(actuators) &&
+        depman.insert(pinHandler) && depman.insert(statsRecorder) &&
+        depman.insert(tmRepository);
 
     // Populate module dependencies
     initResult &= depman.inject();
