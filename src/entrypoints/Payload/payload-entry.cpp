@@ -52,18 +52,35 @@ using namespace Payload;
 using namespace Common;
 
 /**
- * Starts a module and checks if it started correctly.
+ * @brief Starts a module and checks if it started correctly.
  * Must be followed by a semicolon or a block of code.
- * The block of code will be executed only if the module starts correctly.
+ * The block of code will be executed only if the module started correctly.
  *
  * @example START_MODULE(sensors) { miosix::ledOn(); }
  */
-#define START_MODULE(module)                        \
-    if (!module->start())                           \
-    {                                               \
-        initResult = false;                         \
-        LOG_ERR(logger, "Error starting " #module); \
-    }                                               \
+#define START_MODULE(module)                         \
+    LOG_DEBUG(logger, "Starting " #module);          \
+    if (!module->start())                            \
+    {                                                \
+        initResult = false;                          \
+        LOG_ERR(logger, "Failed to start " #module); \
+    }                                                \
+    else
+
+/**
+ * @brief Starts a singleton and checks if it started correctly.
+ * Must be followed by a semicolon or a block of code.
+ * The block of code will be executed only if the singleton started correctly.
+ *
+ * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
+ */
+#define START_SINGLETON(singleton)                      \
+    LOG_DEBUG(logger, "Starting " #singleton);          \
+    if (!singleton::getInstance().start())              \
+    {                                                   \
+        initResult = false;                             \
+        LOG_ERR(logger, "Failed to start " #singleton); \
+    }                                                   \
     else
 
 int main()
@@ -123,38 +140,26 @@ int main()
     led3: CanBus ok
     led4: Everything ok */
 
-    // Start modules
-    if (!Logger::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the Logger module");
-    }
-
-    if (!EventBroker::getInstance().start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the EventBroker module");
-    }
-
-    START_MODULE(nas);
+    // Start global modules
+    START_SINGLETON(Logger);
+    START_SINGLETON(EventBroker);
+    // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
     START_MODULE(radio) { miosix::led2On(); }
     START_MODULE(canHandler) { miosix::led3On(); }
-
+    START_MODULE(flightModeManager);
+    START_MODULE(nas);
     START_MODULE(altitudeTrigger);
     START_MODULE(wingController);
     START_MODULE(verticalVelocityTrigger);
     START_MODULE(windEstimation);
-
     START_MODULE(actuators);
-    START_MODULE(statsRecorder);
-
-    START_MODULE(flightModeManager);
     START_MODULE(pinHandler);
-
+    START_MODULE(statsRecorder);
     START_MODULE(scheduler);
 
-    // Log all the events
+    // Log all posted events
+    LOG_DEBUG(logger, "Starting EventSniffer");
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
         [](uint8_t event, uint8_t topic)
@@ -165,19 +170,18 @@ int main()
 
     if (initResult)
     {
-        // Post OK
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-
-        // Set the LED status
+        // Turn on the initialization led
         miosix::led4On();
+        LOG_INFO(logger, "Initialization successful");
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        LOG_ERR(logger, "Failed to initialize");
+        LOG_ERR(logger, "Initialization failed");
     }
 
-    // Periodic statistics
+    // Collect CPU and stack usage statistics
     while (true)
     {
         Thread::sleep(1000);
