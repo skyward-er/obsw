@@ -145,8 +145,8 @@ int main()
     START_SINGLETON(EventBroker);
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
-    START_MODULE(radio) { miosix::led2On(); }
-    START_MODULE(canHandler) { miosix::led3On(); }
+    // START_MODULE(radio) { miosix::led2On(); }
+    // START_MODULE(canHandler) { miosix::led3On(); }
     START_MODULE(flightModeManager);
     START_MODULE(nas);
     START_MODULE(altitudeTrigger);
