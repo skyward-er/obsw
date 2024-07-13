@@ -153,7 +153,11 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     map.emplace(lps22df.get(), info);
 }
 
-void Sensors::lps22dfCallback() {}
+void Sensors::lps22dfCallback()
+{
+    auto lastSample = getLPS22DFLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
 {
@@ -173,7 +177,11 @@ void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
     map.emplace(lps28dfw.get(), info);
 }
 
-void Sensors::lps28dfwCallback() {}
+void Sensors::lps28dfwCallback()
+{
+    auto lastSample = getLPS28DFWLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
 {
@@ -192,7 +200,11 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
     map.emplace(h3lis331dl.get(), info);
 }
 
-void Sensors::h3lis331dlCallback() {}
+void Sensors::h3lis331dlCallback()
+{
+    auto lastSample = getH3LIS331DLLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
 {
@@ -214,7 +226,11 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     map.emplace(lis2mdl.get(), info);
 }
 
-void Sensors::lis2mdlCallback() {}
+void Sensors::lis2mdlCallback()
+{
+    auto lastSample = getLIS2MDLLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
 {
@@ -231,7 +247,11 @@ void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
     map.emplace(ubxgps.get(), info);
 }
 
-void Sensors::ubxgpsCallback() {}
+void Sensors::ubxgpsCallback()
+{
+    auto lastSample = getUBXGPSLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
 {
@@ -265,7 +285,11 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
     map.emplace(lsm6dsrx.get(), info);
 }
 
-void Sensors::lsm6dsrxCallback() {}
+void Sensors::lsm6dsrxCallback()
+{
+    auto lastSample = getLSM6DSRXLastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
 {
@@ -301,7 +325,11 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
     map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::ads131m08Callback() {}
+void Sensors::ads131m08Callback()
+{
+    auto lastSample = getADS131M08LastSample();
+    Logger::getInstance().log(lastSample);
+}
 
 void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
 {
@@ -318,4 +346,8 @@ void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
     map.emplace(internalAdc.get(), info);
 }
 
-void Sensors::internalAdcCallback() {}
+void Sensors::internalAdcCallback()
+{
+    auto lastSample = getInternalADCLastSample();
+    Logger::getInstance().log(lastSample);
+}
