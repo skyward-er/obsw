@@ -58,14 +58,13 @@ CanHandler::CanHandler()
                         static_cast<uint8_t>(Board::BROADCAST));
     protocol->addFilter(static_cast<uint8_t>(Board::RIG),
                         static_cast<uint8_t>(Board::BROADCAST));
-    driver->init();
 }
 
 bool CanHandler::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->canHandler();
-
     bool result;
+
     // Add a task to periodically send the pitot data
     result = scheduler.addTask(  // sensor template
                  [&]()
@@ -96,6 +95,9 @@ bool CanHandler::start()
                     ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
             },
             STATUS_TRANSMISSION_PERIOD) != 0;
+
+    driver->init();
+
     return protocol->start() && result;
 }
 
