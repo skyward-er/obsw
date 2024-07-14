@@ -287,8 +287,8 @@ State FlightModeManager::state_disarmed(const Event& event)
             logStatus(FlightModeManagerState::DISARMED);
             // Stop eventual logging
             // Logger::getInstance().stop();
-            getModule<Actuators>()->buzzerOff();
-            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->setBuzzerOff();
+            getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
@@ -353,7 +353,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case EV_EXIT:
         {
-            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             // Logger::getInstance().stop();
             return HANDLED;
@@ -368,12 +368,12 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_START_RECORDING:
         {
-            getModule<Actuators>()->camOn();
+            getModule<Actuators>()->cameraOn();
             return HANDLED;
         }
         case TMTC_STOP_RECORDING:
         {
-            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->cameraOff();
             return HANDLED;
         }
         case TMTC_RESET_BOARD:
@@ -411,15 +411,15 @@ State FlightModeManager::state_armed(const Event& event)
             // we log again to ensure the both log have the status logged
             logStatus(FlightModeManagerState::ARMED);
             // Starts signaling devices and camera
-            getModule<Actuators>()->buzzerArmed();
-            getModule<Actuators>()->camOn();
+            getModule<Actuators>()->setBuzzerArmed();
+            getModule<Actuators>()->cameraOn();
             // Post event
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            getModule<Actuators>()->buzzerOff();
+            getModule<Actuators>()->setBuzzerOff();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -612,8 +612,8 @@ State FlightModeManager::state_landed(const Event& event)
             logStatus(FlightModeManagerState::LANDED);
 
             // Turns off signaling devices
-            getModule<Actuators>()->buzzerArmed();
-            getModule<Actuators>()->camOff();
+            getModule<Actuators>()->setBuzzerArmed();
+            getModule<Actuators>()->cameraOff();
             getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
             getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
             // Sends events
