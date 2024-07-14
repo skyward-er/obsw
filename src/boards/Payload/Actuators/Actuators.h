@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Federico Lolli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,114 +23,109 @@
 #pragma once
 
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkGemini.h>
-#include <interfaces/gpio.h>
+#include <common/Mavlink.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
 class BoardScheduler;
 
-struct Actuators : public Boardcore::InjectableWithDeps<BoardScheduler>
+class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
+public:
+    /**
+     * @brief A small struct to hold a servo along with per-servo data.
+     */
+    struct ServoActuator
+    {
+        std::unique_ptr<Boardcore::Servo> servo;
+        float fullRangeAngle;  ///< The full range of the servo [degrees]
+        miosix::FastMutex mutex;
+    };
+
     Actuators();
 
     [[nodiscard]] bool start();
 
     /**
-     * @brief Moves the specified servo to the given position.
-     *
-     * @param servoId Servo to move.
-     * @param percentage Angle to set [0-1].
-     * @return True if the the angle was set.
+     * @brief Moves the specified servo to the specified position.
+     * @param percentage Position to set in the range [0-1]
+     * @return Whether the position was set
      */
-    bool setServo(ServosList servoId, float percentage);
+    bool setServoPosition(ServosList servoId, float position);
 
     /**
-     * @brief Moves the specified servo to the given position.
-     *
-     * @param servoId Servo to move.
-     * @param angle Angle to set [degree].
-     * @return True if the the angle was set.
+     * @brief Moves the specified servo to the specified angle.
+     * @param angle Angle to set in the range [0-180] [degrees]
+     * @return Whether the angle was set
      */
     bool setServoAngle(ServosList servoId, float angle);
 
     /**
-     * @brief Wiggles the servo for few seconds.
-     *
-     * @param servoId Servo to move.
-     * @return true
-     * @return false
-     */
-    bool wiggleServo(ServosList servoId);
-
-    /**
-     * @brief Enables the specified servo.
-     *
-     * @param servoId Servo to enable.
-     * @return True if the servo was enabled.
-     * @return False if the servoId is invalid.
-     */
-    bool enableServo(ServosList servoId);
-
-    /**
-     * @brief Disables the specified servo.
-     *
-     * @param servoId Servo to disable.
-     * @return True if the servo was disabled.
-     * @return False if the servoId is invalid.
-     */
-    bool disableServo(ServosList servoId);
-
-    /**
-     * @brief Returns the current position of the specified servo.
-     *
-     * @param servoId Servo to read.
-     * @return float current Servo position in range [0-1], 0 if the servoId is
-     * invalid.
+     * @brief Returns the current position of the specified servo in range
+     * [0-1], or a negative value (-1) if the servo is invalid.
      */
     float getServoPosition(ServosList servoId);
 
     /**
-     * @brief Returns the current angle of the specified servo.
-     *
-     * @param servoId Servo to read.
-     * @return float current Servo angle in range [0-180], 0 if the servoId is
-     * invalid.
+     * @brief Returns the current angle of the specified servo in range [0-180],
+     * or a negative value (-1) if the servo is invalid.
      */
     float getServoAngle(ServosList servoId);
+
+    /**
+     * @brief Wiggles the specified servo. This function is blocking, it
+     * sleeps the caller thread between the two movements.
+     * @return Whether the servo was wiggled
+     */
+    bool wiggleServo(ServosList servoId);
+
+    /**
+     * @brief Disables the specified servo.
+     * @return Whether the servo was disabled
+     */
+    bool disableServo(ServosList servoId);
+
+private:
+    ServoActuator* getServoActuator(ServosList servoId);
+
+public:
+    void setBuzzerOff();
+    void setBuzzerOnLand();
+    void setBuzzerArmed();
+
+    void setStatusOff();
+    void setStatusOk();
+    void setStatusError();
+
+    void cameraOn();
+    void cameraOff();
 
     void cuttersOn();
     void cuttersOff();
 
-    void camOn();
-    void camOff();
+private:
+    void statusOn();
+    void statusOff();
 
-    void buzzerArmed();
-    void buzzerError();
-    void buzzerLanded();
+    void buzzerOn();
     void buzzerOff();
 
-private:
-    void toggleLed();
-    /**
-     * @brief Automatic called method to update the buzzer status
-     */
+    // Periodic task functions that update the buzzer and status LED
     void updateBuzzer();
+    void updateStatusLed();
 
-    Boardcore::Servo* leftServo  = nullptr;
-    Boardcore::Servo* rightServo = nullptr;
-    Boardcore::PWM* buzzer       = nullptr;
+    ServoActuator leftServo;
+    ServoActuator rightServo;
+    std::unique_ptr<Boardcore::PWM> buzzer;
 
-    // mutexes
-    miosix::FastMutex leftServoMutex;
-    miosix::FastMutex rightServoMutex;
-    miosix::FastMutex rocketSignalingStateMutex;
+    std::atomic<uint32_t> buzzerCounter{0};
+    std::atomic<uint32_t> buzzerThreshold{0};
 
-    // Counter that enables and disables the buzzer
-    uint32_t buzzerCounter = 0;
-    // Upper limit of the buzzer counter
-    uint32_t buzzerCounterOverflow = 0;
+    std::atomic<uint32_t> statusLedCounter{0};
+    std::atomic<uint32_t> statusLedThreshold{0};
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
 };
 
 }  // namespace Payload

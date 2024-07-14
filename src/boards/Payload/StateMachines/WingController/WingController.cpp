@@ -154,10 +154,10 @@ State WingController::state_calibration(const Boardcore::Event& event)
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
-            getModule<Actuators>()->setServo(ServosList::PARAFOIL_LEFT_SERVO,
-                                             1);
-            getModule<Actuators>()->setServo(ServosList::PARAFOIL_RIGHT_SERVO,
-                                             0);
+            getModule<Actuators>()->setServoPosition(
+                ServosList::PARAFOIL_LEFT_SERVO, 1);
+            getModule<Actuators>()->setServoPosition(
+                ServosList::PARAFOIL_RIGHT_SERVO, 0);
             EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE, TOPIC_DPL,
                                                    WES_CALIBRATION_TIMEOUT);
             getModule<WindEstimation>()->startWindEstimationSchemeCalibration();
@@ -351,15 +351,15 @@ void WingController::flare()
 {
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    getModule<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 1);
-    getModule<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 1);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 1);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 1);
 }
 
 void WingController::reset()
 {
     // Set the servo position to reset
-    getModule<Actuators>()->setServo(PARAFOIL_LEFT_SERVO, 0);
-    getModule<Actuators>()->setServo(PARAFOIL_RIGHT_SERVO, 0);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 0);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0);
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f targetGEO)

@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Alberto Nidasio, Federico Lolli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,245 +23,263 @@
 #include "Actuators.h"
 
 #include <Payload/BoardScheduler.h>
-#include <Payload/Configs/ActuatorsConfigs.h>
+#include <Payload/Configs/ActuatorsConfig.h>
+#include <drivers/timer/PWM.h>
+#include <drivers/timer/TimerUtils.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Payload::ActuatorsConfigs;
+namespace config = Payload::Config::Actuators;
 
 namespace Payload
 {
 
 Actuators::Actuators()
 {
-    leftServo  = new Servo(SERVO_1_TIMER, SERVO_1_PWM_CH, LEFT_SERVO_MIN_PULSE,
-                           LEFT_SERVO_MAX_PULSE);
-    rightServo = new Servo(SERVO_2_TIMER, SERVO_2_PWM_CH, RIGHT_SERVO_MIN_PULSE,
-                           RIGHT_SERVO_MAX_PULSE);
-    buzzer     = new PWM(BUZZER_TIMER, BUZZER_FREQUENCY);
-    buzzer->setDutyCycle(BUZZER_CHANNEL, BUZZER_DUTY_CYCLE);
-    camOff();
+    // Left servo is servo 1
+    leftServo.servo = std::make_unique<Servo>(
+        MIOSIX_PARAFOIL_SERVO_1_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
+        config::LeftServo::MIN_PULSE.count(),
+        config::LeftServo::MAX_PULSE.count());
+    leftServo.fullRangeAngle = config::LeftServo::ROTATION;
+
+    // Right servo is servo 2
+    rightServo.servo = std::make_unique<Servo>(
+        MIOSIX_PARAFOIL_SERVO_2_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_2_CHANNEL,
+        config::RightServo::MIN_PULSE.count(),
+        config::RightServo::MAX_PULSE.count());
+    rightServo.fullRangeAngle = config::RightServo::ROTATION;
+
+    buzzer =
+        std::make_unique<PWM>(MIOSIX_BUZZER_TIM, config::Buzzer::FREQUENCY);
+    buzzer->setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL,
+                         config::Buzzer::DUTY_CYCLE);
 }
 
 bool Actuators::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->actuators();
 
-    // Servos
-    enableServo(PARAFOIL_LEFT_SERVO);
-    setServo(PARAFOIL_LEFT_SERVO, 0);
-    enableServo(PARAFOIL_RIGHT_SERVO);
-    setServo(PARAFOIL_RIGHT_SERVO, 0);
+    leftServo.servo->enable();
+    rightServo.servo->enable();
 
-    // Signaling Devices configurations
+    leftServo.servo->setPosition(0);
+    rightServo.servo->setPosition(0);
 
-    return scheduler.addTask([this]() { updateBuzzer(); }, BUZZER_UPDATE_PERIOD,
-                             TaskScheduler::Policy::RECOVER) != 0;
+    cameraOff();
+    cuttersOff();
+    buzzerOff();
+    statusOff();
+
+    uint8_t buzzerTaskId = scheduler.addTask([this]() { updateBuzzer(); },
+                                             config::Buzzer::UPDATE_PERIOD,
+                                             TaskScheduler::Policy::RECOVER);
+
+    uint8_t statusTaskId = scheduler.addTask([this]() { updateStatusLed(); },
+                                             config::StatusLed::UPDATE_PERIOD,
+                                             TaskScheduler::Policy::RECOVER);
+
+    return buzzerTaskId != 0 && statusTaskId != 0;
 }
 
-bool Actuators::setServo(ServosList servoId, float percentage)
+bool Actuators::setServoPosition(ServosList servoId, float position)
 {
-    switch (servoId)
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
     {
-        case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            leftServo->setPosition(percentage);
-            Logger::getInstance().log(leftServo->getState());
-            break;
-        }
-        case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            rightServo->setPosition(percentage);
-            Logger::getInstance().log(rightServo->getState());
-            break;
-        }
-        default:
-        {
-            return false;
-        }
+        return false;
     }
 
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    actuator->servo->setPosition(position);
+    Logger::getInstance().log(actuator->servo->getState());
     return true;
 }
 
 bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
-    switch (servoId)
-    {
-        case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            leftServo->setPosition(angle / LEFT_SERVO_ROTATION);
-            Logger::getInstance().log(leftServo->getState());
-            break;
-        }
-        case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            rightServo->setPosition(angle / RIGHT_SERVO_ROTATION);
-            Logger::getInstance().log(rightServo->getState());
-            break;
-        }
-        default:
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool Actuators::wiggleServo(ServosList servoId)
-{
-
-    if (!setServo(servoId, 1))
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
     {
         return false;
     }
-    Thread::sleep(1000);
-    return setServo(servoId, 0);
-}
 
-bool Actuators::enableServo(ServosList servoId)
-{
-    switch (servoId)
-    {
-        case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            leftServo->enable();
-            break;
-        }
-        case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            rightServo->enable();
-            break;
-        }
-        default:
-            return false;
-    }
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    return true;
-}
-
-bool Actuators::disableServo(ServosList servoId)
-{
-    switch (servoId)
-    {
-        case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            leftServo->disable();
-            break;
-        }
-        case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            rightServo->disable();
-            break;
-        }
-        default:
-            return false;
-    }
+    actuator->servo->setPosition(angle / actuator->fullRangeAngle);
+    Logger::getInstance().log(actuator->servo->getState());
 
     return true;
 }
 
 float Actuators::getServoPosition(ServosList servoId)
 {
-
-    switch (servoId)
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
     {
-        case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            return leftServo->getPosition();
-        }
-        case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            return rightServo->getPosition();
-        }
-        default:
-            return 0;
+        return -1.f;
     }
 
-    return 0;
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    return actuator->servo->getPosition();
 }
 
 float Actuators::getServoAngle(ServosList servoId)
 {
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+    {
+        return -1.f;
+    }
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    return actuator->servo->getPosition() * actuator->fullRangeAngle;
+}
+
+bool Actuators::wiggleServo(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+    {
+        return false;
+    }
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    actuator->servo->setPosition(1.0f);
+    Thread::sleep(1000);
+    actuator->servo->setPosition(0.0f);
+
+    return true;
+}
+
+bool Actuators::disableServo(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+    {
+        return false;
+    }
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    actuator->servo->disable();
+
+    return true;
+}
+
+Actuators::ServoActuator* Actuators::getServoActuator(ServosList servoId)
+{
     switch (servoId)
     {
         case PARAFOIL_LEFT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> ll(leftServoMutex);
-            return leftServo->getPosition() * LEFT_SERVO_ROTATION;
-        }
+            assert(leftServo.servo);
+            return &leftServo;
         case PARAFOIL_RIGHT_SERVO:
-        {
-            miosix::Lock<miosix::FastMutex> lr(rightServoMutex);
-            return rightServo->getPosition() * RIGHT_SERVO_ROTATION;
-        }
+            assert(rightServo.servo);
+            return &rightServo;
         default:
-            return 0;
+            return nullptr;
     }
-
-    return 0;
 }
+
+void Actuators::setStatusOff() { statusLedThreshold = 0; }
+
+void Actuators::setStatusOk()
+{
+    statusLedThreshold = config::StatusLed::OK_PERIOD.count();
+}
+
+void Actuators::setStatusError()
+{
+    statusLedThreshold = config::StatusLed::ERROR_PERIOD.count();
+}
+
+void Actuators::setBuzzerOff() { buzzerThreshold = 0; }
+
+void Actuators::setBuzzerOnLand()
+{
+    buzzerThreshold = config::Buzzer::ON_LAND_PERIOD.count();
+}
+
+void Actuators::setBuzzerArmed()
+{
+    buzzerThreshold = config::Buzzer::ARMED_PERIOD.count();
+}
+
+void Actuators::cameraOn() { gpios::camEnable::high(); }
+
+void Actuators::cameraOff() { gpios::camEnable::low(); }
 
 void Actuators::cuttersOn() { gpios::mainDeploy::high(); }
 
 void Actuators::cuttersOff() { gpios::mainDeploy::low(); }
 
-void Actuators::camOn() { gpios::camEnable::high(); }
+void Actuators::statusOn() { gpios::statusLed::high(); }
 
-void Actuators::camOff() { gpios::camEnable::low(); }
+void Actuators::statusOff() { gpios::statusLed::low(); }
 
-void Actuators::buzzerArmed()
+void Actuators::buzzerOn()
 {
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    // Set the counter with respect to the update function period
-    buzzerCounterOverflow = ROCKET_SS_ARMED_PERIOD / BUZZER_UPDATE_PERIOD;
-}
-
-void Actuators::buzzerLanded()
-{
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    buzzerCounterOverflow = ROCKET_SS_LAND_PERIOD / BUZZER_UPDATE_PERIOD;
+    buzzer->enableChannel(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL);
 }
 
 void Actuators::buzzerOff()
 {
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    buzzerCounterOverflow = 0;
+    buzzer->disableChannel(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL);
 }
 
 void Actuators::updateBuzzer()
 {
-    miosix::Lock<miosix::FastMutex> l(rocketSignalingStateMutex);
-    if (buzzerCounterOverflow == 0)
+    if (buzzerThreshold == 0)
     {
-        // The buzzer is deactivated thus the channel is disabled
-        buzzer->disableChannel(BUZZER_CHANNEL);
+        buzzerOff();
+        return;
+    }
+
+    if (buzzerCounter >= buzzerThreshold)
+    {
+        // Enable the buzzer for this period to emit a short beep
+        buzzerOn();
+        buzzerCounter = 0;
     }
     else
     {
-        if (buzzerCounter >= buzzerCounterOverflow)
-        {
-            // Enable the channel for this period
-            buzzer->enableChannel(BUZZER_CHANNEL);
-            buzzerCounter = 0;
-        }
-        else
-        {
-            buzzer->disableChannel(BUZZER_CHANNEL);
-            buzzerCounter++;
-        }
+        buzzerOff();
+        buzzerCounter += config::Buzzer::UPDATE_PERIOD.count();
+    }
+}
+
+void Actuators::updateStatusLed()
+{
+    if (statusLedThreshold == 0)
+    {
+        statusOff();
+        return;
+    }
+
+    if (statusLedCounter >= statusLedThreshold)
+    {
+        statusOn();
+    }
+    else
+    {
+        statusOff();
+    }
+
+    if (statusLedCounter >= statusLedThreshold * 2)
+    {
+        statusLedCounter = 0;
+    }
+    else
+    {
+        statusLedCounter += config::StatusLed::UPDATE_PERIOD.count();
     }
 }
 

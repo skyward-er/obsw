@@ -173,13 +173,23 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led
         miosix::led4On();
+        actuators->setStatusOk();
         LOG_INFO(logger, "Initialization successful");
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        actuators->setStatusError();
         LOG_ERR(logger, "Initialization failed");
     }
+
+    auto toggleBoardLed = [on = false]() mutable
+    {
+        if ((on = !on))
+            miosix::gpios::boardLed::low();
+        else
+            miosix::gpios::boardLed::high();
+    };
 
     // Collect CPU and stack usage statistics
     while (true)
@@ -188,6 +198,7 @@ int main()
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
+        toggleBoardLed();
     }
 
     return 0;
