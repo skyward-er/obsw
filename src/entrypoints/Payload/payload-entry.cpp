@@ -27,9 +27,11 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
+#include <Payload/Configs/HILSimulationConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
+#include <Payload/Sensors/HILSensors.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
@@ -47,6 +49,13 @@
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <iostream>
+
+using namespace Boardcore;
+using namespace Payload;
+using namespace Common;
+using namespace HILConfig;
+
+constexpr bool hilSimulationActive = true;
 
 /**
  * @brief Starts a module and checks if it started correctly.
@@ -102,6 +111,8 @@ using namespace Common;
 
 int main()
 {
+    bool initResult = true;
+
     miosix::ledOff();
     std::cout << "Payload " << FLAVOR << " Entrypoint "
               << "(" << BUILD_TYPE << ")"
@@ -123,7 +134,8 @@ int main()
     auto nas = new NASController();
 
     // Sensors
-    auto sensors    = new Sensors();
+    auto sensors =
+        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
     auto pinHandler = new PinHandler();
 
     // Radio and CAN
@@ -141,16 +153,25 @@ int main()
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
 
+    // HIL
+    HILConfig::PayloadHIL* hil = nullptr;
+    if (hilSimulationActive)
+    {
+        hil        = new HILConfig::PayloadHIL();
+        initResult = initResult && depman.insert(hil);
+    }
+
     std::cout << "Injecting module dependencies" << std::endl;
+
     // Insert modules
-    bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
-                      depman.insert(flightModeManager) && depman.insert(nas) &&
-                      depman.insert(sensors) && depman.insert(pinHandler) &&
-                      depman.insert(radio) && depman.insert(canHandler) &&
-                      depman.insert(altitudeTrigger) &&
-                      depman.insert(wingController) &&
-                      depman.insert(windEstimation) &&
-                      depman.insert(actuators) && depman.insert(statsRecorder);
+    initResult = initResult && depman.insert(buses) &&
+                 depman.insert(scheduler) && depman.insert(flightModeManager) &&
+                 depman.insert(nas) && depman.insert(sensors) &&
+                 depman.insert(pinHandler) && depman.insert(radio) &&
+                 depman.insert(canHandler) && depman.insert(altitudeTrigger) &&
+                 depman.insert(wingController) &&
+                 depman.insert(windEstimation) && depman.insert(actuators) &&
+                 depman.insert(statsRecorder);
 
     // Populate module dependencies
     initResult &= depman.inject();
@@ -167,6 +188,33 @@ int main()
     {
         initResult = false;
         std::cerr << "No SD card detected, Logger will not work" << std::endl;
+    }
+
+    if (hilSimulationActive)
+    {
+        START_MODULE(hil);
+
+        hil->registerToFlightPhase(PayloadFlightPhases::ARMED,
+                                   [&]()
+                                   {
+                                       printf("ARMED\n");
+                                       EventBroker::getInstance().post(
+                                           Events::CAN_LIFTOFF,
+                                           Topics::TOPIC_CAN);
+                                       miosix::ledOn();
+                                   });
+
+        hil->registerToFlightPhase(PayloadFlightPhases::CALIBRATION_OK,
+                                   [&]()
+                                   {
+                                       TRACE("ARM COMMAND SENT\n");
+                                       EventBroker::getInstance().post(
+                                           Events::TMTC_ARM,
+                                           Topics::TOPIC_TMTC);
+                                   });
+
+        printf("started HIL\n");
+        hil->waitStartSimulation();
     }
 
     // Start global modules
