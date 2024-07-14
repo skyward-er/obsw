@@ -30,7 +30,7 @@ void HubBase::sendNack(const mavlink_message_t& msg)
 {
     mavlink_message_t nack_msg;
     mavlink_msg_nack_tm_pack(GS_SYSTEM_ID, GS_COMPONENT_ID, &nack_msg,
-                             msg.msgid, msg.seq);
+                             msg.msgid, msg.seq, 0);
 
     dispatchIncomingMsg(nack_msg);
 }
