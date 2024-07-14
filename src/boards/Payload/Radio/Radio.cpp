@@ -273,7 +273,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
             // Move the servo, if it fails send a nack
             if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode) ||
-                !getModule<Actuators>()->setServo(servoId, angle))
+                !getModule<Actuators>()->setServoPosition(servoId, angle))
             {
                 return sendNack(msg);
             }
@@ -302,7 +302,7 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
 
             if (!getModule<FlightModeManager>()->testState(
                     &FlightModeManager::state_test_mode) ||
-                !getModule<Actuators>()->setServo(servoId, 0))
+                !getModule<Actuators>()->setServoPosition(servoId, 0))
             {
                 return sendNack(msg);
             }
