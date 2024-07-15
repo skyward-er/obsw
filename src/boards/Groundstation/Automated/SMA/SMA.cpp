@@ -589,6 +589,7 @@ State SMA::state_arm_ready(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::ARM_READY);
+            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
             ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
             ModuleManager::getInstance().get<Leds>()->setSlowBlink(
                 LedColor::YELLOW);
@@ -927,7 +928,6 @@ State SMA::state_fix_rocket_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FIX_ROCKET_NF);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::RED);
             ModuleManager::getInstance().get<Leds>()->setFastBlink(
                 LedColor::BLUE);
             return HANDLED;
