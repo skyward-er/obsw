@@ -139,7 +139,7 @@ void Radio::enqueueNack(const mavlink_message_t& msg)
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
+                             msg.msgid, msg.seq, 0);
     enqueuePacket(nackMsg);
 }
 
@@ -444,8 +444,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 mavlink_sensor_state_tm_t tm;
 
                 strcpy(tm.sensor_name, sensor.id.c_str());
-                tm.state =
-                    (sensor.isInitialized ? 1 : 0) | (sensor.isEnabled ? 2 : 0);
+                tm.initialized = sensor.isInitialized ? 1 : 0;
+                tm.enabled     = sensor.isEnabled ? 1 : 0;
 
                 mavlink_msg_sensor_state_tm_encode(
                     Config::Radio::MAV_SYSTEM_ID,
@@ -470,10 +470,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp    = TimestampTimer::getTimestamp();
             tm.logger       = Logger::getInstance().isStarted() ? 1 : 0;
             tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
-            // What? Why is this here? Of course the radio is started!
-            tm.radio           = isStarted() ? 1 : 0;
-            tm.sensors         = getModule<Sensors>()->isStarted() ? 1 : 0;
-            tm.board_scheduler = 0;  // TODO(davide.mor): No BoardScheduler yet
+            tm.radio        = isStarted() ? 1 : 0;
+            tm.sensors      = getModule<Sensors>()->isStarted() ? 1 : 0;
+            tm.actuators    = getModule<Actuators>()->isStarted() ? 1 : 0;
+            tm.pin_handler  = 0;  // No pin_handler
+            tm.can_handler  = getModule<CanHandler>()->isStarted() ? 1 : 0;
+            tm.scheduler    = getModule<BoardScheduler>()->isStarted() ? 1 : 0;
 
             mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -508,7 +510,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_MAVLINK_STATS:
+        case MAV_MAVLINK_STATS_ID:
         {
             mavlink_message_t msg;
             mavlink_mavlink_stats_tm_t tm;
@@ -541,15 +543,26 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_gse_tm_t tm = {0};
 
-            Sensors* sensors       = getModule<Sensors>();
-            Actuators* actuators   = getModule<Actuators>();
-            CanHandler* canHandler = getModule<CanHandler>();
+            Sensors* sensors     = getModule<Sensors>();
+            Actuators* actuators = getModule<Actuators>();
 
-            tm.timestamp        = TimestampTimer::getTimestamp();
-            tm.loadcell_rocket  = sensors->getTankWeight().load;
-            tm.loadcell_vessel  = sensors->getVesselWeight().load;
-            tm.filling_pressure = sensors->getFillingPress().pressure;
-            tm.vessel_pressure  = sensors->getVesselPress().pressure;
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // Sensors
+            tm.loadcell_rocket     = sensors->getTankWeight().load;
+            tm.loadcell_vessel     = sensors->getVesselWeight().load;
+            tm.filling_pressure    = sensors->getFillingPress().pressure;
+            tm.vessel_pressure     = sensors->getVesselPress().pressure;
+            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
+            tm.current_consumption = sensors->getServoCurrent().current;
+            tm.umbilical_current_consumption =
+                sensors->getUmbilicalCurrent().current;
+
+            // Log data
+            tm.log_good   = 0;  // TODO
+            tm.log_number = 0;  // TODO
+
+            // Valve states
             tm.filling_valve_state =
                 actuators->isServoOpen(ServosList::FILLING_VALVE) ? 1 : 0;
             tm.venting_valve_state =
@@ -559,25 +572,24 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.nitrogen_valve_state = actuators->isNitrogenOpen() ? 1 : 0;
+
+            // Internal states
+            tm.gmm_state  = getModule<GroundModeManager>()->getState();
+            tm.tars_state = getModule<TARS1>()->isRefueling() ? 1 : 0;
             tm.arming_state =
                 getModule<GroundModeManager>()->getState() == GMM_STATE_ARMED
                     ? 1
                     : 0;
-            tm.gmm_state  = getModule<GroundModeManager>()->getState();
-            tm.tars_state = getModule<TARS1>()->isRefueling() ? 1 : 0;
 
-            // TODO(davide.mor): This should be updated with the new telemetry
-            tm.main_board_status =
-                canHandler->getCanStatus().isMainConnected() ? 1 : 0;
-            tm.motor_board_status =
-                canHandler->getCanStatus().isMotorConnected() ? 1 : 0;
-            tm.payload_board_status =
-                canHandler->getCanStatus().isPayloadConnected() ? 1 : 0;
-
-            // TODO(davide.mor): Add the rest of these
-
-            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
-            tm.current_consumption = sensors->getServoCurrent().current;
+            // Can data
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+            tm.main_board_state    = canStatus.getMainState();
+            tm.payload_board_state = canStatus.getPayloadState();
+            tm.motor_board_state   = canStatus.getMotorState();
+            tm.main_can_status     = canStatus.isMainConnected() ? 1 : 0;
+            tm.payload_can_status  = canStatus.isPayloadConnected() ? 1 : 0;
+            tm.motor_can_status    = canStatus.isMotorConnected() ? 1 : 0;
 
             mavlink_msg_gse_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -594,18 +606,27 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             Sensors* sensors     = getModule<Sensors>();
             Actuators* actuators = getModule<Actuators>();
 
-            tm.timestamp            = TimestampTimer::getTimestamp();
-            tm.tank_temperature     = sensors->getTc1LastSample().temperature;
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // Sensors (either CAN or local)
             tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
             tm.bottom_tank_pressure = sensors->getBottomTankPress().pressure;
+            tm.combustion_chamber_pressure = sensors->getCCPress().pressure;
+            tm.tank_temperature = sensors->getTc1LastSample().temperature;
+            tm.battery_voltage  = sensors->getMotorBatteryVoltage().voltage;
+
+            // Log data
+            tm.log_good   = 0;  // TODO
+            tm.log_number = 0;  // TODO
+
+            // Valve states
             tm.main_valve_state =
                 actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.venting_valve_state =
                 actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
-            // TODO(davide.mor): Add the rest of these
 
-            tm.battery_voltage     = 0.0f;
-            tm.current_consumption = sensors->getUmbilicalCurrent().current;
+            // HIL metadata
+            tm.hil_state = 0;  // TODO
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -625,7 +646,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 {
     switch (tmId)
     {
-        case MAV_ADS_ID:
+        case MAV_ADS131M08_ID:
         {
             mavlink_message_t msg;
             mavlink_adc_tm_t tm;

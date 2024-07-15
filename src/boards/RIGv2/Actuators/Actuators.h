@@ -80,6 +80,8 @@ public:
 
     [[nodiscard]] bool start();
 
+    bool isStarted();
+
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
     bool openServo(ServosList servo);
@@ -120,7 +122,7 @@ private:
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
-    size_t updatePositionTaskId = 0;
+    std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
     ServoInfo infos[10] = {};

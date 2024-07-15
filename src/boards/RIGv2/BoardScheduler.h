@@ -38,7 +38,25 @@ public:
     {
     }
 
-    [[nodiscard]] bool start() { return tars1.start() && sensors.start(); }
+    [[nodiscard]] bool start()
+    {
+        if (!tars1.start())
+        {
+            LOG_ERR(logger, "Failed to start TARS1 scheduler");
+            return false;
+        }
+
+        if (!sensors.start())
+        {
+            LOG_ERR(logger, "Failed to start sensors scheduler");
+            return false;
+        }
+
+        started = true;
+        return true;
+    }
+
+    bool isStarted() { return started; }
 
     Boardcore::TaskScheduler &getTars1Scheduler() { return tars1; }
 
@@ -49,6 +67,11 @@ public:
     Boardcore::TaskScheduler &getCanBusScheduler() { return sensors; }
 
 private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("boardscheduler");
+
+    std::atomic<bool> started{false};
+
     Boardcore::TaskScheduler tars1;
     Boardcore::TaskScheduler sensors;
 };
