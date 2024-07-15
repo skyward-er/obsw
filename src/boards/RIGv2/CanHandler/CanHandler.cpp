@@ -23,7 +23,6 @@
 #include "CanHandler.h"
 
 #include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/Configs/CanHandlerConfig.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 
@@ -51,6 +50,8 @@ CanHandler::CanHandler()
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
 }
 
+bool CanHandler::isStarted() { return started; }
+
 bool CanHandler::start()
 {
     driver.init();
@@ -61,7 +62,20 @@ bool CanHandler::start()
     uint8_t result = scheduler.addTask([this]() { periodicMessage(); },
                                        Config::CanHandler::STATUS_PERIOD);
 
-    return result != 0 && protocol.start();
+    if (result != 0)
+    {
+        LOG_ERR(logger, "Failed to add periodicMessageTask");
+        return false;
+    }
+
+    if (!protocol.start())
+    {
+        LOG_ERR(logger, "Failed to start CanProtocol");
+        return false;
+    }
+
+    started = true;
+    return true;
 }
 
 void CanHandler::sendEvent(CanConfig::EventId event)
@@ -158,29 +172,41 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
     {
         case CanConfig::SensorId::CC_PRESSURE:
         {
-            PressureData data = pressureDataFromCanMessage(msg);
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
             sensors->setCanCCPress(data);
             break;
         }
 
         case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
         {
-            PressureData data = pressureDataFromCanMessage(msg);
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
             sensors->setCanBottomTankPress(data);
             break;
         }
 
         case CanConfig::SensorId::TOP_TANK_PRESSURE:
         {
-            PressureData data = pressureDataFromCanMessage(msg);
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
             sensors->setCanTopTankPress(data);
             break;
         }
 
         case CanConfig::SensorId::TANK_TEMPERATURE:
         {
-            TemperatureData data = temperatureDataFromCanMessage(msg);
+            CanTemperatureData data = temperatureDataFromCanMessage(msg);
+            sdLogger.log(data);
             sensors->setCanTankTemp(data);
+            break;
+        }
+
+        case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
+        {
+            CanVoltageData data = voltageDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanMotorBatteryVoltage(data);
             break;
         }
 
@@ -196,6 +222,8 @@ void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
     ServosList servo = static_cast<ServosList>(msg.getSecondaryType());
     ServoData data   = servoDataFromCanMessage(msg);
 
+    // TODO: Update with new message
+
     getModule<Actuators>()->setCanServoAperture(servo, data.position);
 }
 
@@ -203,34 +231,41 @@ void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
 {
     CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
 
-    bool armed = msg.payload[0] != 0;
+    bool armed    = (msg.payload[0] >> 8) != 0;
+    uint8_t state = msg.payload[0] & 0xff;
 
     Lock<FastMutex> lock{statusMutex};
+
+    // TODO: Update with new message
 
     switch (source)
     {
         case CanConfig::Board::MAIN:
         {
-            status.mainCounter = 4;
-            status.mainArmed   = armed;
+            status.mainLastStatus = getTime();
+            status.mainArmed      = armed;
+            status.mainState      = state;
             break;
         }
 
         case CanConfig::Board::PAYLOAD:
         {
-            status.payloadCounter = 4;
-            status.payloadArmed   = armed;
+            status.payloadLastStatus = getTime();
+            status.payloadArmed      = armed;
+            status.payloadState      = state;
             break;
         }
 
         case CanConfig::Board::MOTOR:
         {
-            status.motorCounter = 4;
+            status.motorLastStatus = getTime();
+            status.motorState      = state;
             break;
         }
 
         default:
         {
+            LOG_WARN(logger, "Received unsupported status: {}", source);
         }
     }
 }
@@ -239,16 +274,13 @@ void CanHandler::periodicMessage()
 {
     GroundModeManagerState state = getModule<GroundModeManager>()->getState();
 
+    uint64_t payload =
+        static_cast<uint8_t>(state) |
+        ((state == GroundModeManagerState::GMM_STATE_ARMED) ? 1 : 0) << 8;
+
     protocol.enqueueSimplePacket(
         static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
         static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
         static_cast<uint8_t>(CanConfig::Board::RIG),
-        static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
-        (state == GroundModeManagerState::GMM_STATE_ARMED) ? 1 : 0);
-
-    // Update status counters
-    Lock<FastMutex> lock{statusMutex};
-    status.mainCounter    = std::max(0, status.mainCounter - 1);
-    status.payloadCounter = std::max(0, status.payloadCounter - 1);
-    status.motorCounter   = std::max(0, status.motorCounter - 1);
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00, payload);
 }

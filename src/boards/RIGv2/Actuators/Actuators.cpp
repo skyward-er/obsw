@@ -227,6 +227,8 @@ Actuators::Actuators()
     info->unsafeSetServoPosition(0.0f);
 }
 
+bool Actuators::isStarted() { return started; }
+
 bool Actuators::start()
 {
     TaskScheduler &scheduler =
@@ -243,16 +245,17 @@ bool Actuators::start()
     infos[8].servo->enable();
     infos[9].servo->enable();
 
-    updatePositionTaskId =
+    uint8_t result =
         scheduler.addTask([this]() { updatePositionsTask(); },
                           Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
 
-    if (updatePositionTaskId == 0)
+    if (result == 0)
     {
         LOG_ERR(logger, "Failed to add updatePositionsTask");
         return false;
     }
 
+    started = true;
     return true;
 }
 

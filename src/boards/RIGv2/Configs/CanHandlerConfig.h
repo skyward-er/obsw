@@ -35,7 +35,8 @@ namespace CanHandler
 
 using namespace std::chrono_literals;
 
-static constexpr std::chrono::nanoseconds STATUS_PERIOD = 2s;
+static constexpr std::chrono::nanoseconds STATUS_PERIOD  = 2s;
+static constexpr std::chrono::nanoseconds STATUS_TIMEOUT = 3s;
 
 }  // namespace CanHandler
 

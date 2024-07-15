@@ -24,13 +24,13 @@
 
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
-#include <RIGv2/Sensors/AnalogLoadCellSensor.h>
 #include <RIGv2/Sensors/SensorsData.h>
-#include <RIGv2/Sensors/TrafagPressureSensor.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/TrafagPressureSensor.h>
+#include <sensors/analog/TwoPointAnalogLoadCell.h>
 
 #include <atomic>
 #include <functional>
@@ -67,11 +67,13 @@ public:
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
     Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::VoltageData getMotorBatteryVoltage();
 
     void setCanTopTankPress(Boardcore::PressureData data);
     void setCanBottomTankPress(Boardcore::PressureData data);
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
+    void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
 
     void calibrate();
 
@@ -108,9 +110,6 @@ private:
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
-    std::atomic<float> vesselLcOffset{0.0f};
-    std::atomic<float> tankLcOffset{0.0f};
-
     std::atomic<bool> started{false};
 
     std::atomic<bool> useCanData{false};
@@ -119,14 +118,15 @@ private:
     Boardcore::PressureData canBottomTankPressure;
     Boardcore::PressureData canTopTankPressure;
     Boardcore::TemperatureData canTankTemperature;
+    Boardcore::VoltageData canMotorBatteryVoltage;
 
     // Analog sensors
-    std::unique_ptr<TrafagPressureSensor> vesselPressure;
-    std::unique_ptr<TrafagPressureSensor> fillingPressure;
-    std::unique_ptr<TrafagPressureSensor> topTankPressure;
-    std::unique_ptr<TrafagPressureSensor> bottomTankPressure;
-    std::unique_ptr<AnalogLoadCellSensor> vesselWeight;
-    std::unique_ptr<AnalogLoadCellSensor> tankWeight;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> vesselPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> fillingPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> bottomTankPressure;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> vesselWeight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> tankWeight;
 
     // Digital sensors
     std::unique_ptr<Boardcore::ADS131M08> adc1;

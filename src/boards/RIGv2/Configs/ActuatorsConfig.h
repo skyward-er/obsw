@@ -23,6 +23,7 @@
 #pragma once
 
 #include <interfaces-impl/hwmapping.h>
+#include <units/Frequency.h>
 
 namespace RIGv2
 {
@@ -32,44 +33,46 @@ namespace Config
 namespace Servos
 {
 
+using namespace Boardcore::Units::Frequency;
+
 // Generic pulse width for all servos
-static constexpr unsigned int MIN_PULSE = 500;
-static constexpr unsigned int MAX_PULSE = 2460;
+constexpr unsigned int MIN_PULSE = 500;
+constexpr unsigned int MAX_PULSE = 2460;
 
 // Pulse width specific to SERVO 2 (disconnect servo)
 // TODO(davide.mor): This actually needs tweaking
-static constexpr unsigned int SERVO2_MIN_PULSE = 900;
-static constexpr unsigned int SERVO2_MAX_PULSE = 2100;
+constexpr unsigned int SERVO2_MIN_PULSE = 900;
+constexpr unsigned int SERVO2_MAX_PULSE = 2100;
 
-static constexpr unsigned int FREQUENCY = 333;
+constexpr unsigned int FREQUENCY = 333;
 
-static constexpr uint32_t SERVO_TIMINGS_CHECK_PERIOD = 100;
-static constexpr long long SERVO_CONFIDENCE_TIME     = 500;   // 0.5s
-static constexpr float SERVO_CONFIDENCE              = 0.02;  // 2%
+constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
+constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
+constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
 
-static constexpr uint32_t DEFAULT_FILLING_OPENING_TIME    = 15000;  // 15s
-static constexpr uint32_t DEFAULT_VENTING_OPENING_TIME    = 15000;  // 15s
-static constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
-static constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
-static constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 2000;   // 2s
+constexpr uint32_t DEFAULT_FILLING_OPENING_TIME    = 15000;  // 15s
+constexpr uint32_t DEFAULT_VENTING_OPENING_TIME    = 15000;  // 15s
+constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
+constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
+constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 2000;   // 2s
 
-static constexpr float DEFAULT_FILLING_MAX_APERTURE    = 1.00f;
-static constexpr float DEFAULT_VENTING_MAX_APERTURE    = 1.00f;
-static constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
-static constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
-static constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
+constexpr float DEFAULT_FILLING_MAX_APERTURE    = 1.00f;
+constexpr float DEFAULT_VENTING_MAX_APERTURE    = 1.00f;
+constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
+constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
+constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
 
-static constexpr float FILLING_LIMIT    = 0.90f;
-static constexpr float VENTING_LIMIT    = 0.90f;
-static constexpr float MAIN_LIMIT       = 0.90f;
-static constexpr float RELEASE_LIMIT    = 0.50f;
-static constexpr float DISCONNECT_LIMIT = 1.00f;
+constexpr float FILLING_LIMIT    = 0.90f;
+constexpr float VENTING_LIMIT    = 0.90f;
+constexpr float MAIN_LIMIT       = 0.90f;
+constexpr float RELEASE_LIMIT    = 0.50f;
+constexpr float DISCONNECT_LIMIT = 1.00f;
 
-static constexpr bool FILLING_FLIPPED    = true;
-static constexpr bool VENTING_FLIPPED    = true;
-static constexpr bool MAIN_FLIPPED       = true;
-static constexpr bool RELEASE_FLIPPED    = true;
-static constexpr bool DISCONNECT_FLIPPED = false;
+constexpr bool FILLING_FLIPPED    = true;
+constexpr bool VENTING_FLIPPED    = true;
+constexpr bool MAIN_FLIPPED       = true;
+constexpr bool RELEASE_FLIPPED    = true;
+constexpr bool DISCONNECT_FLIPPED = false;
 
 }  // namespace Servos
 

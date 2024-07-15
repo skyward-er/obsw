@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
 #include <cstddef>
 #include <cstdint>
 
@@ -31,20 +33,23 @@ namespace Config
 {
 namespace TARS1
 {
-static constexpr uint32_t SAMPLE_PERIOD      = 10;
-static constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-static constexpr uint32_t WASHING_OPENING_TIME         = 5000;
-static constexpr uint32_t WASHING_TIME_DELAY           = 1000;
-static constexpr uint32_t FILLING_OPENING_TIME         = 900000;
-static constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
+using namespace Boardcore::Units::Frequency;
 
-static constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
+constexpr Hertz SAMPLE_PERIOD         = 100_hz;
+constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-static constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
-static constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
+constexpr uint32_t WASHING_OPENING_TIME         = 5000;
+constexpr uint32_t WASHING_TIME_DELAY           = 1000;
+constexpr uint32_t FILLING_OPENING_TIME         = 900000;
+constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
 
-static constexpr bool STOP_ON_MASS_STABILIZATION = false;
+constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
+
+constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
+constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
+
+constexpr bool STOP_ON_MASS_STABILIZATION = false;
 }  // namespace TARS1
 }  // namespace Config
 }  // namespace RIGv2

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Configs/RadioConfig.h>
@@ -44,8 +45,9 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
 class Radio
-    : public Boardcore::InjectableWithDeps<Buses, Registry, Actuators, Sensors,
-                                           CanHandler, GroundModeManager, TARS1>
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Registry,
+                                           Actuators, Sensors, CanHandler,
+                                           GroundModeManager, TARS1>
 {
 public:
     Radio() {}

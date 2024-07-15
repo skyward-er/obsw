@@ -152,9 +152,7 @@ LoadCellData Sensors::getVesselWeight()
 {
     if (vesselWeight)
     {
-        auto sample = vesselWeight->getLastSample();
-        sample.load -= vesselLcOffset;
-        return sample;
+        return vesselWeight->getLastSample();
     }
     else
     {
@@ -166,9 +164,7 @@ LoadCellData Sensors::getTankWeight()
 {
     if (tankWeight)
     {
-        auto sample = tankWeight->getLastSample();
-        sample.load -= tankLcOffset;
-        return sample;
+        return tankWeight->getLastSample();
     }
     else
     {
@@ -178,7 +174,7 @@ LoadCellData Sensors::getTankWeight()
 
 CurrentData Sensors::getUmbilicalCurrent()
 {
-    return {TimestampTimer::getTimestamp(), 0.0};
+    return {TimestampTimer::getTimestamp(), -1.0};
 }
 
 CurrentData Sensors::getServoCurrent()
@@ -203,6 +199,19 @@ VoltageData Sensors::getBatteryVoltage()
             int)Config::Sensors::InternalADC::BATTERY_VOLTAGE_CHANNEL] *
         Config::Sensors::InternalADC::BATTERY_VOLTAGE_SCALE;
     return {sample.timestamp, voltage};
+}
+
+VoltageData Sensors::getMotorBatteryVoltage()
+{
+    if (useCanData)
+    {
+        Lock<FastMutex> lock{canMutex};
+        return canMotorBatteryVoltage;
+    }
+    else
+    {
+        return VoltageData{};
+    }
 }
 
 void Sensors::setCanTopTankPress(Boardcore::PressureData data)
@@ -233,6 +242,13 @@ void Sensors::setCanTankTemp(Boardcore::TemperatureData data)
     useCanData         = true;
 }
 
+void Sensors::setCanMotorBatteryVoltage(Boardcore::VoltageData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canMotorBatteryVoltage = data;
+    useCanData             = true;
+}
+
 void Sensors::calibrate()
 {
     Stats vesselStats, tankStats;
@@ -247,8 +263,8 @@ void Sensors::calibrate()
         Thread::sleep(Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD);
     }
 
-    vesselLcOffset = vesselStats.getStats().mean;
-    tankLcOffset   = tankStats.getStats().mean;
+    vesselWeight->updateOffset(vesselStats.getStats().mean);
+    tankWeight->updateOffset(tankStats.getStats().mean);
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
@@ -522,7 +538,7 @@ void Sensors::bottomTankPressureCallback()
 
 void Sensors::vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map)
 {
-    vesselWeight = std::make_unique<AnalogLoadCellSensor>(
+    vesselWeight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC1LastSample();
@@ -541,15 +557,14 @@ void Sensors::vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map)
 
 void Sensors::vesselWeightCallback()
 {
-    // Log CALIBRATED value
-    LoadCellData sample = getVesselWeight();
+    LoadCellData sample = vesselWeight->getLastSample();
     LCsData data{sample.loadTimestamp, 1, sample.load};
     sdLogger.log(data);
 }
 
 void Sensors::tankWeightInit(Boardcore::SensorManager::SensorMap_t &map)
 {
-    tankWeight = std::make_unique<AnalogLoadCellSensor>(
+    tankWeight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC1LastSample();
@@ -568,8 +583,7 @@ void Sensors::tankWeightInit(Boardcore::SensorManager::SensorMap_t &map)
 
 void Sensors::tankWeightCallback()
 {
-    // Log CALIBRATED value
-    LoadCellData sample = getTankWeight();
+    LoadCellData sample = tankWeight->getLastSample();
     LCsData data{sample.loadTimestamp, 2, sample.load};
     sdLogger.log(data);
 }

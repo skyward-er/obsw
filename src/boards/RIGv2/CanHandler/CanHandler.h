@@ -23,6 +23,7 @@
 #pragma once
 
 #include <RIGv2/BoardScheduler.h>
+#include <RIGv2/Configs/CanHandlerConfig.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/Mavlink.h>
@@ -42,21 +43,41 @@ class CanHandler
 public:
     struct CanStatus
     {
-        int mainCounter    = 0;
-        int payloadCounter = 0;
-        int motorCounter   = 0;
+        long long mainLastStatus    = 0;
+        long long payloadLastStatus = 0;
+        long long motorLastStatus   = 0;
+
+        uint8_t mainState    = 0;
+        uint8_t payloadState = 0;
+        uint8_t motorState   = 0;
 
         bool mainArmed    = false;
         bool payloadArmed = false;
 
-        bool isMainConnected() { return mainCounter == 0; }
+        bool isMainConnected()
+        {
+            return miosix::getTime() <=
+                   (mainLastStatus +
+                    Config::CanHandler::STATUS_TIMEOUT.count());
+        }
+        bool isPayloadConnected()
+        {
+            return miosix::getTime() <=
+                   (payloadLastStatus +
+                    Config::CanHandler::STATUS_TIMEOUT.count());
+        }
+        bool isMotorConnected()
+        {
+            return miosix::getTime() <=
+                   (motorLastStatus +
+                    Config::CanHandler::STATUS_TIMEOUT.count());
+        }
 
-        bool isPayloadConnected() { return payloadCounter == 0; }
-
-        bool isMotorConnected() { return motorCounter == 0; }
+        uint8_t getMainState() { return mainState; }
+        uint8_t getPayloadState() { return payloadState; }
+        uint8_t getMotorState() { return motorState; }
 
         bool isMainArmed() { return mainArmed; }
-
         bool isPayloadArmed() { return payloadArmed; }
     };
 
@@ -83,13 +104,16 @@ private:
 
     void periodicMessage();
 
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+
+    std::atomic<bool> started{false};
+
     Boardcore::Canbus::CanbusDriver driver;
     Boardcore::Canbus::CanProtocol protocol;
 
     miosix::FastMutex statusMutex;
     CanStatus status;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 };
 
 }  // namespace RIGv2
