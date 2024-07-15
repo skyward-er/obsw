@@ -22,10 +22,6 @@
 
 #include "Radio.h"
 
-#include <ConRIG/BoardScheduler.h>
-#include <ConRIG/Buses.h>
-#include <ConRIG/Buttons/Buttons.h>
-#include <ConRIG/Serial/Serial.h>
 #include <common/Mavlink.h>
 #include <common/Radio.h>
 #include <diagnostic/SkywardStack.h>
@@ -64,7 +60,6 @@ void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
 
 void Radio::handleMessage(const mavlink_message_t& msg)
 {
-    ModuleManager& modules = ModuleManager::getInstance();
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_GSE_TM:
@@ -75,11 +70,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             isArmed = armingState == 1;
             if (armingState == 1)
             {
-                modules.get<Buttons>()->enableIgnition();
+                getModule<Buttons>()->enableIgnition();
             }
             else
             {
-                modules.get<Buttons>()->disableIgnition();
+                getModule<Buttons>()->disableIgnition();
             }
 
             break;
@@ -106,7 +101,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         }
     }
 
-    modules.get<Serial>()->sendMessage(msg);
+    getModule<Serial>()->sendMessage(msg);
 }
 
 bool Radio::enqueueMessage(const mavlink_message_t& msg)
@@ -189,8 +184,6 @@ void Radio::setButtonsState(mavlink_conrig_state_tc_t state)
 
 bool Radio::start()
 {
-    ModuleManager& modules = ModuleManager::getInstance();
-
     // Setup the frontend
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
         std::make_unique<EbyteFrontend>(radio::txEn::getPin(),
@@ -198,7 +191,7 @@ bool Radio::start()
 
     // Setup transceiver
     radio = std::make_unique<SX1278Lora>(
-        modules.get<Buses>()->getRadio(), radio::cs::getPin(),
+        getModule<Buses>()->getRadio(), radio::cs::getPin(),
         radio::dio0::getPin(), radio::dio1::getPin(), radio::dio3::getPin(),
         SPI::ClockDivider::DIV_64, std::move(frontend));
 
@@ -227,6 +220,8 @@ bool Radio::start()
         return false;
     }
 
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+
     if (scheduler.addTask([this]() { sendPeriodicPing(); },
                           Config::Radio::PING_GSE_PERIOD,
                           TaskScheduler::Policy::RECOVER) == 0)
@@ -242,7 +237,7 @@ bool Radio::start()
 
 MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
-Radio::Radio(TaskScheduler& scheduler) : scheduler{scheduler}
+Radio::Radio()
 {
     buttonState.ignition_btn         = false;
     buttonState.filling_valve_btn    = false;

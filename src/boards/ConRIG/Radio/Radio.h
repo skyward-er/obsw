@@ -22,17 +22,21 @@
 
 #pragma once
 
+#include <ConRIG/BoardScheduler.h>
+#include <ConRIG/Buses.h>
+#include <ConRIG/Buttons/Buttons.h>
 #include <ConRIG/Configs/RadioConfig.h>
+#include <ConRIG/Serial/Serial.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
 
 #include <cstdint>
 #include <thread>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace ConRIG
 {
@@ -41,10 +45,11 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio : public Boardcore::Module
+class Radio : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                   Buttons, Serial>
 {
 public:
-    explicit Radio(Boardcore::TaskScheduler& scheduler);
+    Radio();
 
     [[nodiscard]] bool start();
 
@@ -77,7 +82,6 @@ private:
     std::atomic<uint8_t> messagesReceived{0};
     std::atomic<bool> isArmed{false};
 
-    Boardcore::TaskScheduler& scheduler;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 };
 

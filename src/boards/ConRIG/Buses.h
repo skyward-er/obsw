@@ -25,13 +25,12 @@
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <miosix.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace ConRIG
 {
 
-struct Buses : public Boardcore::Module
+struct Buses : public Boardcore::Injectable
 {
 private:
     Boardcore::SPIBus spi1;

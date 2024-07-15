@@ -23,8 +23,7 @@
 #pragma once
 
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace ConRIG
 {
@@ -33,7 +32,7 @@ namespace ConRIG
  * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
  * There is a task scheduler for every miosix priority
  */
-class BoardScheduler : public Boardcore::Module
+class BoardScheduler : public Boardcore::Injectable
 {
 public:
     BoardScheduler()
@@ -41,13 +40,32 @@ public:
     {
     }
 
-    [[nodiscard]] bool start() { return radio.start() && buttons.start(); }
+    [[nodiscard]] bool start()
+    {
+
+        if (!radio.start())
+        {
+            LOG_ERR(logger, "Failed to start radio scheduler");
+            return false;
+        }
+
+        if (!buttons.start())
+        {
+            LOG_ERR(logger, "Failed to start buttons scheduler");
+            return false;
+        }
+
+        return true;
+    }
 
     Boardcore::TaskScheduler &getRadioScheduler() { return radio; }
 
     Boardcore::TaskScheduler &getButtonsScheduler() { return buttons; }
 
 private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("boardscheduler");
+
     Boardcore::TaskScheduler radio;
     Boardcore::TaskScheduler buttons;
 };

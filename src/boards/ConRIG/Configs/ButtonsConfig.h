@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
 namespace ConRIG
 {
 namespace Config
@@ -36,9 +38,11 @@ namespace Config
 namespace Buttons
 {
 
-static constexpr uint32_t BUTTON_SAMPLE_PERIOD = 20;  // 50Hz
+using namespace Boardcore::Units::Frequency;
 
-static constexpr uint8_t GUARD_THRESHOLD =
+constexpr Hertz BUTTON_SAMPLE_PERIOD = 50_hz;
+
+constexpr uint8_t GUARD_THRESHOLD =
     5;  // 5 samples to trigger the guard and activate a single button
 
 }  // namespace Buttons
