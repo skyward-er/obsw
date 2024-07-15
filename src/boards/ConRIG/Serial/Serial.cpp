@@ -58,7 +58,7 @@ void Serial::sendNack(const mavlink_message_t& msg)
     mavlink_message_t nack;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nack, msg.msgid,
-                             msg.seq);
+                             msg.seq, 100);
     sendMessage(nack);
 }
 
