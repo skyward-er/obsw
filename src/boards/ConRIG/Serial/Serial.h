@@ -24,11 +24,12 @@
 
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace ConRIG
 {
+
+class Radio;
 
 using SerialMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
@@ -36,7 +37,8 @@ using SerialMavDriver =
 /**
  * @brief Class responsible for UART communication.
  */
-class Serial : public Boardcore::Module, public Boardcore::Transceiver
+class Serial : public Boardcore::InjectableWithDeps<Radio>,
+               public Boardcore::Transceiver
 {
 public:
     Serial() {}

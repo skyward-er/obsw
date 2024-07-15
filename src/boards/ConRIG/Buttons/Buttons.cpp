@@ -32,7 +32,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIG;
 
-Buttons::Buttons(TaskScheduler& scheduler) : scheduler(scheduler)
+Buttons::Buttons()
 {
     resetState();
     state.arm_switch = false;
@@ -40,6 +40,8 @@ Buttons::Buttons(TaskScheduler& scheduler) : scheduler(scheduler)
 
 bool Buttons::start()
 {
+    TaskScheduler &scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+
     return scheduler.addTask([this]() { periodicStatusCheck(); },
                              Config::Buttons::BUTTON_SAMPLE_PERIOD) != 0;
 }
@@ -140,11 +142,7 @@ void Buttons::periodicStatusCheck()
     }
 
     // Set the internal button state in Radio module
-    ModuleManager::getInstance().get<Radio>()->setButtonsState(state);
-
-    // printf("%d %d %d %d %d %d %d\n", state.ignition, state.filling_valve,
-    //        state.venting_valve, state.release_filling_line_pressure,
-    //        state.detach_quick_connector, state.startup_tars, state.armed);
+    getModule<Radio>()->setButtonsState(state);
 }
 
 void Buttons::enableIgnition() { ui::armedLed::high(); }

@@ -31,9 +31,10 @@
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
+#include <iostream>
 #include <thread>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -41,19 +42,28 @@ using namespace ConRIG;
 
 int main()
 {
-    PrintLogger logger     = Logging::getLogger("main");
-    ModuleManager& modules = ModuleManager::getInstance();
+    PrintLogger logger = Logging::getLogger("main");
+    DependencyManager manager;
 
-    BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
-    Radio* radio              = new Radio(scheduler->getRadioScheduler());
+    BoardScheduler* scheduler = new BoardScheduler();
+    Radio* radio              = new Radio();
     Serial* serial            = new Serial();
-    Buttons* buttons          = new Buttons(scheduler->getButtonsScheduler());
+    Buttons* buttons          = new Buttons();
 
-    bool initResult =
-        modules.insert<BoardScheduler>(scheduler) &&
-        modules.insert<Buses>(buses) && modules.insert<Radio>(radio) &&
-        modules.insert<Serial>(serial) && modules.insert<Buttons>(buttons);
+    bool initResult = manager.insert<BoardScheduler>(scheduler) &&
+                      manager.insert<Buses>(buses) &&
+                      manager.insert<Radio>(radio) &&
+                      manager.insert<Serial>(serial) &&
+                      manager.insert<Buttons>(buttons) && manager.inject();
+
+    manager.graphviz(std::cout);
+
+    if (!initResult)
+    {
+        LOG_ERR(logger, "Failed to inject dependencies");
+        return 0;
+    }
 
     if (!radio->start())
     {

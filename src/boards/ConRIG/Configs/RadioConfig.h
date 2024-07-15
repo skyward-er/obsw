@@ -23,6 +23,7 @@
 #pragma once
 
 #include <common/Mavlink.h>
+#include <units/Frequency.h>
 
 namespace ConRIG
 {
@@ -32,20 +33,22 @@ namespace Config
 namespace Radio
 {
 
-static constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
-static constexpr unsigned int MAV_MAX_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+using namespace Boardcore::Units::Frequency;
 
-static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 3;
+constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-static constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
+constexpr unsigned int CIRCULAR_BUFFER_SIZE = 3;
+
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
 // Mavlink ids
-static constexpr uint8_t MAV_SYSTEM_ID    = 171;
-static constexpr uint8_t MAV_COMPONENT_ID = 96;
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 // Periodic telemetries frequency
-constexpr uint32_t PING_GSE_PERIOD = 500;  // [ms]
+constexpr Hertz PING_GSE_PERIOD = 2_hz;
 
 }  // namespace Radio
 }  // namespace Config

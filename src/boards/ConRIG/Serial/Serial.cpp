@@ -73,7 +73,7 @@ void Serial::sendAck(const mavlink_message_t& msg)
 
 void Serial::handleMessage(const mavlink_message_t& msg)
 {
-    if (!ModuleManager::getInstance().get<Radio>()->enqueueMessage(msg))
+    if (!getModule<Radio>()->enqueueMessage(msg))
     {
         sendNack(msg);
     }

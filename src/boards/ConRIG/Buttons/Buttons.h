@@ -22,20 +22,22 @@
 
 #pragma once
 
+#include <ConRIG/BoardScheduler.h>
 #include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace ConRIG
 {
 
-class Buttons : public Boardcore::Module
+class Radio;
+
+class Buttons : public Boardcore::InjectableWithDeps<BoardScheduler, Radio>
 {
 
 public:
-    explicit Buttons(Boardcore::TaskScheduler& scheduler);
+    Buttons();
 
     [[nodiscard]] bool start();
 
@@ -53,8 +55,6 @@ private:
 
     // Counter guard to avoid spurious triggers
     uint8_t guard = 0;
-
-    Boardcore::TaskScheduler& scheduler;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };
