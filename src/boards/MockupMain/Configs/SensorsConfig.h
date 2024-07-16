@@ -43,7 +43,7 @@ namespace SensorsConfig
   using namespace std::chrono_literals;
 // clang-format on
 
-constexpr unsigned int NUMBER_OF_SENSORS  = 7;
+constexpr unsigned int NUMBER_OF_SENSORS  = 6;
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms]
 
 // BMX160
@@ -52,14 +52,14 @@ constexpr Boardcore::BMX160Config::AccelerometerRange BMX160_ACC_FSR_ENUM =
     Boardcore::BMX160Config::AccelerometerRange::G_16;
 constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
-constexpr unsigned int BMX160_ACC_GYRO_ODR = 100;
+constexpr unsigned int BMX160_ACC_GYRO_ODR = 50;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_100;
+    Boardcore::BMX160Config::OutputDataRate::HZ_50;
 constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
-constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
+constexpr unsigned int BMX160_TEMP_DIVIDER = 0;
 
 constexpr unsigned int BMX160_FIFO_WATERMARK = 40;
 
@@ -87,12 +87,12 @@ constexpr auto LPS22DF_PERIOD                 = 20_hz;
 constexpr auto UBXGPS_SAMPLE_RATE = 5;
 // The +5 is needed because GPS data must be read faster than it is produced (to
 // not cause delays)
-constexpr auto UBXGPS_PERIOD = 10_hz;
+constexpr auto UBXGPS_PERIOD = 6_hz;
 
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
     ADS131M08_OVERSAMPLING_RATIO =
-        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096;
+        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_1024;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
 constexpr auto ADS131M08_PERIOD           = 1000_hz;
 
@@ -111,7 +111,7 @@ static const Boardcore::AxisOrthoOrientation BMX160_AXIS_ROTATION = {
     Boardcore::Direction::NEGATIVE_Y, Boardcore::Direction::NEGATIVE_Z};
 
 // LIS magnetometer
-constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR = Boardcore::LIS3MDL::ODR_80_HZ;
+constexpr Boardcore::LIS3MDL::ODR MAG_LIS_ODR = Boardcore::LIS3MDL::ODR_155_HZ;
 constexpr Boardcore::LIS3MDL::FullScale MAG_LIS_FULLSCALE =
     Boardcore::LIS3MDL::FS_4_GAUSS;
 
@@ -126,9 +126,9 @@ constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 // imprecision, avoid clearing the fifo before the interrupt
 constexpr auto BMX160_SAMPLE_PERIOD = std::chrono::milliseconds(
     BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024);  // [ms]
-constexpr auto LIS3MDL_SAMPLE_PERIOD       = 6_hz;
+constexpr auto LIS3MDL_SAMPLE_PERIOD       = 100_hz;
 constexpr auto INTERNAL_ADC_SAMPLE_PERIOD  = 1_hz;
-constexpr auto INTERNAL_TEMP_SAMPLE_PERIOD = 2_hz;
+constexpr auto INTERNAL_TEMP_SAMPLE_PERIOD = 1_hz;
 
 // LoadCell
 constexpr auto LOAD_CELL_SAMPLE_PERIOD = 1000_hz;

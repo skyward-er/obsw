@@ -113,7 +113,7 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
 
     // Init all the sensors
-    bmx160Init();
+    // bmx160Init();
     // bmx160WithCorrectionInit();
     lis3mdlInit();
     h3lisInit();
@@ -124,40 +124,41 @@ bool Sensors::start()
     // batteryVoltageInit();
     loadCellInit();
 
-    // Add the magnetometer calibration to the scheduler
-    size_t result = scheduler->addTask(
-        [&]()
-        {
-            // Gather the last sample data
-            MagnetometerData lastSample = getBMX160LastSample();
-
-            // Feed the data to the calibrator inside a protected area.
-            // Contention is not high and the use of a mutex is suitable to
-            // avoid pausing the kernel for this calibration operation
+    /*
+        // Add the magnetometer calibration to the scheduler
+        size_t result = scheduler->addTask(
+            [&]()
             {
-                miosix::Lock<FastMutex> l(calibrationMutex);
-                magCalibrator.feed(lastSample);
+                // Gather the last sample data
+                MagnetometerData lastSample = getBMX160LastSample();
 
-                // Compute the correction
-                SixParametersCorrector cal = magCalibrator.computeResult();
-
-                // Check result validity and save it
-                if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
-                    !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
-                    !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+                // Feed the data to the calibrator inside a protected area.
+                // Contention is not high and the use of a mutex is suitable to
+                // avoid pausing the kernel for this calibration operation
                 {
-                    magCalibration = cal;
-                }
-            }
-        },
-        MAG_CALIBRATION_PERIOD);
+                    miosix::Lock<FastMutex> l(calibrationMutex);
+                    magCalibrator.feed(lastSample);
 
+                    // Compute the correction
+                    SixParametersCorrector cal = magCalibrator.computeResult();
+
+                    // Check result validity and save it
+                    if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
+                        !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
+                        !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+                    {
+                        magCalibration = cal;
+                    }
+                }
+            },
+            MAG_CALIBRATION_PERIOD);
+    */
     // Create sensor manager with populated map and configured scheduler
-    manager                      = new SensorManager(sensorMap, scheduler);
-    miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
+    manager = new SensorManager(sensorMap, scheduler);
+    /*miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
     enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
-                            InterruptTrigger::FALLING_EDGE, 0);
-    return manager->start() && result != 0;
+                            InterruptTrigger::FALLING_EDGE, 0);*/
+    return manager->start();
 }
 
 void Sensors::stop() { manager->stop(); }
@@ -277,7 +278,7 @@ void Sensors::h3lisInit()
 
     // Get the correct SPI configuration
     SPIBusConfig config = H3LIS331DL::getDefaultSPIConfig();
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    config.clockDivider = SPI::ClockDivider::DIV_4;
 
     // Create sensor instance with configured parameters
     h3lis331dl = new H3LIS331DL(
@@ -301,7 +302,7 @@ void Sensors::lps22Init()
 
     // Get the correct SPI configuration
     SPIBusConfig config = LPS22DF::getDefaultSPIConfig();
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    config.clockDivider = SPI::ClockDivider::DIV_4;
 
     // Configure the device
     LPS22DF::Config sensorConfig;
@@ -330,7 +331,7 @@ void Sensors::ubxGpsInit()
 
     // Get the correct SPI configuration
     SPIBusConfig config = UBXGPSSpi::getDefaultSPIConfig();
-    config.clockDivider = SPI::ClockDivider::DIV_64;
+    config.clockDivider = SPI::ClockDivider::DIV_16;
 
     // Create sensor instance with configured parameters
     ubxGps = new UBXGPSSpi(modules.get<Buses>()->spi1,
@@ -353,7 +354,7 @@ void Sensors::ads131Init()
 
     // Configure the SPI
     SPIBusConfig config;
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    config.clockDivider = SPI::ClockDivider::DIV_4;
 
     // Configure the device
     ADS131M08::Config sensorConfig;
