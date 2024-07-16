@@ -809,6 +809,29 @@
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/stm32f429zi_skyward_groundstation_v2",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/config/arch/cortexM4_stm32f4/stm32f429zi_skyward_groundstation_v2"
             ]
+        },
+        {
+            "name": "stm32f429zi_death_stack_v2",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "defines": [
+                "${defaultDefines}",
+                "_MIOSIX_BOARDNAME=stm32f429zi_death_stack_v2",
+                "_BOARD_STM32F429ZI_DEATH_STACK_V2",
+                "_ARCH_CORTEXM4_STM32F4",
+                "STM32F429xx",
+                "HSE_VALUE=8000000",
+                "SYSCLK_FREQ_168MHz=168000000",
+                "__ENABLE_XRAM",
+                "V_DDA_VOLTAGE=3.3f"
+            ],
+            "includePath": [
+                "${defaultIncludePaths}",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM4_stm32f4/common",
+                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f429zi_death_stack_v2/config",
+                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f429zi_death_stack_v2"
+            ]
         }
     ],
     "version": 4
