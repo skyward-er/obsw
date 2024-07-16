@@ -260,7 +260,6 @@ int testADS(GpioPin cs)
     // ads131.calibrateOffset(ADS131M08Defs::Channel::CHANNEL_6);
     // ads131.calibrateOffset(ADS131M08Defs::Channel::CHANNEL_7);
 
-    int i = 10;
     while (true)
     {
         ads131.sample();
