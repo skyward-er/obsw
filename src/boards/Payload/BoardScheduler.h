@@ -36,6 +36,7 @@ class BoardScheduler : public Boardcore::Injectable
 public:
     Boardcore::TaskScheduler& nasController() { return critical; }
     Boardcore::TaskScheduler& sensors() { return high; }
+    Boardcore::TaskScheduler& pinHandler() { return high; }
     Boardcore::TaskScheduler& radio() { return medium; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
     Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
@@ -69,4 +70,5 @@ private:
     Boardcore::TaskScheduler medium{miosix::PRIORITY_MAX - 3};
     Boardcore::TaskScheduler low{miosix::PRIORITY_MAX - 4};
 };
+
 }  // namespace Payload
