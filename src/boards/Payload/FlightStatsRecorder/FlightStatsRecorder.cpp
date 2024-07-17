@@ -72,7 +72,7 @@ void FlightStatsRecorder::update()
 
     // Data gathering
     Sensors* sensor           = getModule<Sensors>();
-    AccelerometerData accData = sensor->getIMULastSample();
+    AccelerometerData accData = sensor->getIMULastSample().accData;
     PressureData baroData     = sensor->getStaticPressureLastSample();
     PitotData pitotData       = sensor->getPitotLastSample();
     GPSData gpsData           = sensor->getUBXGPSLastSample();
