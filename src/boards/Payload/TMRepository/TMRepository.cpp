@@ -159,8 +159,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             // Last samples
             LPS28DFWData lps28dfw =
                 getModule<Sensors>()->getLPS28DFWLastSample();
-            RotatedIMUData imu = getModule<Sensors>()->getIMULastSample();
-            UBXGPSData gps     = getModule<Sensors>()->getUBXGPSLastSample();
+            IMUData imu    = getModule<Sensors>()->getIMULastSample();
+            UBXGPSData gps = getModule<Sensors>()->getUBXGPSLastSample();
             Eigen::Vector2f wind =
                 getModule<WindEstimation>()->getWindEstimationScheme();
 
@@ -188,17 +188,17 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.altitude_agl = -nasState.d;
 
             // IMU
-            tm.acc_x  = imu.accelerationX;
-            tm.acc_y  = imu.accelerationY;
-            tm.acc_z  = imu.accelerationZ;
-            tm.gyro_x = imu.angularSpeedX;
-            tm.gyro_y = imu.angularSpeedY;
-            tm.gyro_z = imu.angularSpeedZ;
+            tm.acc_x  = imu.accData.accelerationX;
+            tm.acc_y  = imu.accData.accelerationY;
+            tm.acc_z  = imu.accData.accelerationZ;
+            tm.gyro_x = imu.gyroData.angularSpeedX;
+            tm.gyro_y = imu.gyroData.angularSpeedY;
+            tm.gyro_z = imu.gyroData.angularSpeedZ;
 
             // Magnetometer
-            tm.mag_x = imu.magneticFieldX;
-            tm.mag_y = imu.magneticFieldY;
-            tm.mag_z = imu.magneticFieldZ;
+            tm.mag_x = imu.magData.magneticFieldX;
+            tm.mag_y = imu.magData.magneticFieldY;
+            tm.mag_z = imu.magData.magneticFieldZ;
 
             // GPS
             tm.gps_fix = gps.fix;

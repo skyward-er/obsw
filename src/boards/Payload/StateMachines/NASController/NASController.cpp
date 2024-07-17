@@ -81,24 +81,24 @@ void NASController::update()
     if (this->testState(&NASController::state_active))
     {
         // Get the IMU data
-        RotatedIMUData imuData = getModule<Sensors>()->getIMULastSample();
-        UBXGPSData gpsData     = getModule<Sensors>()->getUBXGPSLastSample();
-        LPS28DFWData baroData  = getModule<Sensors>()->getLPS28DFWLastSample();
+        IMUData imuData       = getModule<Sensors>()->getIMULastSample();
+        UBXGPSData gpsData    = getModule<Sensors>()->getUBXGPSLastSample();
+        LPS28DFWData baroData = getModule<Sensors>()->getLPS28DFWLastSample();
 
         // NAS prediction
-        nas.predictGyro(imuData);
-        nas.predictAcc(imuData);
+        nas.predictGyro(imuData.gyroData);
+        nas.predictAcc(imuData.accData);
 
         // NAS correction
-        nas.correctMag(imuData);
+        nas.correctMag(imuData.magData);
         nas.correctGPS(gpsData);
         nas.correctBaro(baroData.pressure);
         // Correct with accelerometer if the acceleration is in specs
-        Vector3f acceleration  = static_cast<AccelerometerData>(imuData);
+        Vector3f acceleration  = imuData.accData;
         float accelerationNorm = acceleration.norm();
         if (accelerationValid)
         {
-            nas.correctAcc(imuData);
+            nas.correctAcc(imuData.accData);
         }
         if ((accelerationNorm <
                  (9.8 + (NASConfig::ACCELERATION_THRESHOLD) / 2) &&

@@ -89,7 +89,7 @@ public:
     Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
     Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
     Boardcore::PitotData getPitotLastSample();
-    RotatedIMUData getIMULastSample();
+    IMUData getIMULastSample();
 
     // Processed values
     Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();

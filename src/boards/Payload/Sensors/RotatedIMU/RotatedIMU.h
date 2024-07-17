@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Matteo Pignataro, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,9 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
-#include <Payload/Sensors/RotatedIMU/RotatedIMUData.h>
+#include <Payload/Sensors/RotatedIMU/IMUData.h>
 #include <sensors/Sensor.h>
 
 #include <Eigen/Eigen>
@@ -29,33 +30,23 @@
 
 namespace Payload
 {
+
 /**
- * @brief Creates a "fake" sensor which allows the user
- * to transform the values with transformation matrices.
- * The default configuration (thus the reset one)
- * comprehends identity matrices as transformation ones.
- *
- * @warning This is NOT a thread safe class
+ * @brief A software IMU sensor that allows applying transformations to the data
+ * after sampling via a callback. Defaults to identity transformations.
  */
-class RotatedIMU : public Boardcore::Sensor<RotatedIMUData>
+class RotatedIMU : public Boardcore::Sensor<IMUData>
 {
 public:
+    using SampleIMUFunction = std::function<IMUData()>;
+
     /**
      * @brief Construct a new Rotated IMU object
      *
-     * @param accSampleFunction Function to call to retrieve an accelerometer
-     * sample
-     * @param magSampleFunction Function to call to retrieve a magnetometer
-     * sample
-     * @param gyroSampleFunction Function to call to retrieve a gyroscope sample
+     * @param sampleFunction Callback to retrieve accelerometer, magnetometer
+     * and gyroscope data
      */
-    RotatedIMU(
-        std::function<Boardcore::AccelerometerData()> accSampleFunction = []()
-        { return Boardcore::AccelerometerData{}; },
-        std::function<Boardcore::MagnetometerData()> magSampleFunction = []()
-        { return Boardcore::MagnetometerData{}; },
-        std::function<Boardcore::GyroscopeData()> gyroSampleFunction = []()
-        { return Boardcore::GyroscopeData{}; });
+    RotatedIMU(SampleIMUFunction sampleFunction);
 
     /**
      * @brief Multiplies the current accelerometer transformation
@@ -65,13 +56,6 @@ public:
     void addAccTransformation(const Eigen::Matrix3f& t);
 
     /**
-     * @brief Multiplies the current magnetometer transformation
-     * @param transformation Transformation matrix to be multiplied to the
-     * current one
-     */
-    void addMagTransformation(const Eigen::Matrix3f& t);
-
-    /**
      * @brief Multiplies the current gyroscope transformation
      * @param transformation Transformation matrix to be multiplied to the
      * current one
@@ -79,12 +63,16 @@ public:
     void addGyroTransformation(const Eigen::Matrix3f& t);
 
     /**
+     * @brief Multiplies the current magnetometer transformation
+     * @param transformation Transformation matrix to be multiplied to the
+     * current one
+     */
+    void addMagTransformation(const Eigen::Matrix3f& t);
+
+    /**
      * @brief Resets all the transformations to the original (Identity) ones
      */
     void resetTransformations();
-
-    bool init() override { return true; }
-    bool selfTest() override { return true; }
 
     /**
      * @brief Creates a rotation matrix around the X axis
@@ -104,17 +92,17 @@ public:
      */
     static Eigen::Matrix3f rotateAroundZ(float angle);
 
-private:
-    RotatedIMUData sampleImpl() override;
+    bool init() override { return true; }
+    bool selfTest() override { return true; }
 
-    // Functions to sample the under neath sensors
-    std::function<Boardcore::AccelerometerData()> accSample;
-    std::function<Boardcore::MagnetometerData()> magSample;
-    std::function<Boardcore::GyroscopeData()> gyroSample;
+private:
+    IMUData sampleImpl() override;
+
+    SampleIMUFunction sampleImu;
 
     // Transformation matrices
-    Eigen::Matrix3f accT;
-    Eigen::Matrix3f magT;
-    Eigen::Matrix3f gyroT;
+    Eigen::Matrix3f accT  = Eigen::Matrix3f::Identity();
+    Eigen::Matrix3f gyroT = Eigen::Matrix3f::Identity();
+    Eigen::Matrix3f magT  = Eigen::Matrix3f::Identity();
 };
 }  // namespace Payload
