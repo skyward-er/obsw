@@ -47,13 +47,6 @@ public:
 
     bool selfTest() override { return true; }
 
-private:
-    Boardcore::LoadCellData sampleImpl() override
-    {
-        auto voltage = getVoltage();
-        return {voltage.voltageTimestamp, -voltageToMass(voltage.voltage)};
-    }
-
     float voltageToMass(float voltage)
     {
         // Two point calibration
@@ -61,6 +54,13 @@ private:
         float scale  = (p1Mass - p0Mass) / (p1Voltage - p0Voltage);
         float offset = p0Mass - scale * p0Voltage;  // Calculate offset
         return scale * voltage + offset;
+    }
+
+private:
+    Boardcore::LoadCellData sampleImpl() override
+    {
+        auto voltage = getVoltage();
+        return {voltage.voltageTimestamp, -voltageToMass(voltage.voltage)};
     }
 
     std::function<Boardcore::ADCData()> getVoltage;
