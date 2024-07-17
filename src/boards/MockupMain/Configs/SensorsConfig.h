@@ -1,5 +1,6 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
  * Author: Angelo Prete
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -92,9 +93,9 @@ constexpr auto UBXGPS_PERIOD = 6_hz;
 // ADS
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio
     ADS131M08_OVERSAMPLING_RATIO =
-        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_1024;
+        Boardcore::ADS131M08Defs::OversamplingRatio::OSR_512;
 constexpr bool ADS131M08_GLOBAL_CHOP_MODE = true;
-constexpr auto ADS131M08_PERIOD           = 1000_hz;
+constexpr auto ADS131M08_PERIOD           = 1600_hz;
 
 // UNUSED - How many bytes go into the fifo each second
 constexpr unsigned int BMX160_FIFO_FILL_RATE =
@@ -131,7 +132,7 @@ constexpr auto INTERNAL_ADC_SAMPLE_PERIOD  = 1_hz;
 constexpr auto INTERNAL_TEMP_SAMPLE_PERIOD = 1_hz;
 
 // LoadCell
-constexpr auto LOAD_CELL_SAMPLE_PERIOD = 1000_hz;
+constexpr auto LOAD_CELL_SAMPLE_PERIOD = ADS131M08_PERIOD;
 constexpr Boardcore::ADS131M08Defs::Channel LOAD_CELL_ADC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 // TODO set calibration

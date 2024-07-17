@@ -60,9 +60,8 @@ public:
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 
-    Boardcore::PinObserver pinObserver;
-
     std::atomic<bool> running;
+    Boardcore::PinObserver pinObserver;
 };
 
 }  // namespace MockupMain
