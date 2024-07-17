@@ -227,7 +227,7 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                 ServosList::PARAFOIL_RIGHT_SERVO);
 
             tm.pin_nosecone = getModule<PinHandler>()
-                                  ->getPinsData()[PinsList::NOSECONE_PIN]
+                                  ->getPinData()[PinsList::NOSECONE_PIN]
                                   .lastState;
 
             tm.cutter_presence =
@@ -288,16 +288,16 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.last_change_timestamp =
                 getModule<PinHandler>()
-                    ->getPinsData()[PinsList::NOSECONE_PIN]
+                    ->getPinData()[PinsList::NOSECONE_PIN]
                     .lastStateTimestamp; /*<  Last change timestamp of pin*/
             tm.pin_id =
                 PinsList::NOSECONE_PIN; /*<  A member of the PinsList enum*/
             tm.changes_counter =
                 getModule<PinHandler>()
-                    ->getPinsData()[PinsList::NOSECONE_PIN]
+                    ->getPinData()[PinsList::NOSECONE_PIN]
                     .changesCount; /*<  Number of changes of pin*/
             tm.current_state = getModule<PinHandler>()
-                                   ->getPinsData()[PinsList::NOSECONE_PIN]
+                                   ->getPinData()[PinsList::NOSECONE_PIN]
                                    .lastState; /*<  Current state of pin*/
 
             mavlink_msg_pin_tm_encode(RadioConfig::MAV_SYSTEM_ID,

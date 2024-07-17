@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
 #include <diagnostic/PrintLogger.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>
 
 namespace Payload
 {
+class BoardScheduler;
 
 /**
  * @brief This class contains the handlers for the detach pins on the rocket.
@@ -37,33 +37,29 @@ namespace Payload
  * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
  * The handlers post an event on the EventBroker.
  */
-class PinHandler : public Boardcore::Injectable
+class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
-    PinHandler();
-
     bool start();
 
     bool isStarted();
 
     /**
-     * @brief Called when the deployment servo actuation is detected via the
-     * optical sensor.
+     * @brief Returns information about all pins handled by this class
      */
-    void onExpulsionPinTransition(Boardcore::PinTransition transition);
-
-    /**
-     * @brief Returns a vector with all the pins data.
-     */
-    std::map<PinsList, Boardcore::PinData> getPinsData();
+    std::map<PinsList, Boardcore::PinData> getPinData();
 
 private:
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+    /**
+     * @brief Detach pin transition handler.
+     */
+    void onDetachPinTransition(Boardcore::PinTransition transition);
 
-    std::atomic<bool> running;
+    std::unique_ptr<Boardcore::PinObserver> pinObserver;
 
-    Boardcore::TaskScheduler scheduler;
-    Boardcore::PinObserver pin_observer;
+    bool started = false;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };
 
 }  // namespace Payload
