@@ -94,7 +94,8 @@ namespace LSM6DSRX
 {
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = 50_hz;
-constexpr auto OP_MODE = Boardcore::LSM6DSRXConfig::OPERATING_MODE::NORMAL;
+constexpr auto OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
 constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
 constexpr auto GYR_FS  = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
@@ -117,12 +118,13 @@ constexpr auto DYNAMIC_PRESSURE_CH =
 
 namespace InternalADC
 {
-constexpr auto ENABLED        = true;
-constexpr auto SAMPLING_RATE  = 10_hz;
-constexpr auto VBAT_CH        = Boardcore::InternalADC::Channel::CH8;
-constexpr auto CAM_VBAT_CH    = Boardcore::InternalADC::Channel::CH9;
-constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
-constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
+constexpr auto ENABLED         = true;
+constexpr auto SAMPLING_RATE   = 10_hz;
+constexpr auto VBAT_CH         = Boardcore::InternalADC::Channel::CH8;
+constexpr auto CAM_VBAT_CH     = Boardcore::InternalADC::Channel::CH9;
+constexpr auto CUTTER_SENSE_CH = Boardcore::InternalADC::Channel::CH11;
+constexpr auto VBAT_SCALE      = 7500.0f / 2400.0f;
+constexpr auto CAM_VBAT_SCALE  = 7500.0f / 2400.0f;
 }  // namespace InternalADC
 
 namespace StaticPressure
