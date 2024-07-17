@@ -44,7 +44,7 @@ namespace SensorsConfig
   using namespace std::chrono_literals;
 // clang-format on
 
-constexpr unsigned int NUMBER_OF_SENSORS  = 6;
+constexpr unsigned int NUMBER_OF_SENSORS  = 8;
 constexpr uint32_t MAG_CALIBRATION_PERIOD = 100;  // [ms]
 
 // BMX160
@@ -55,8 +55,8 @@ constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 constexpr unsigned int BMX160_ACC_GYRO_ODR = 50;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_50;
-constexpr unsigned int BMX160_MAG_ODR = 100;
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
+constexpr unsigned int BMX160_MAG_ODR = 50;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
@@ -125,8 +125,10 @@ constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 // BMX160_SAMPLE_PERIOD: Sample before the fifo is full, but slightly after the
 // watermark level (watermark + 30) ---> high slack due to scheduler
 // imprecision, avoid clearing the fifo before the interrupt
-constexpr auto BMX160_SAMPLE_PERIOD = std::chrono::milliseconds(
-    BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024);  // [ms]
+constexpr auto BMX160_SAMPLE_PERIOD = 50_hz;
+/*std::chrono::milliseconds(
+    BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024);  //
+   [ms]*/
 constexpr auto LIS3MDL_SAMPLE_PERIOD       = 100_hz;
 constexpr auto INTERNAL_ADC_SAMPLE_PERIOD  = 1_hz;
 constexpr auto INTERNAL_TEMP_SAMPLE_PERIOD = 1_hz;
