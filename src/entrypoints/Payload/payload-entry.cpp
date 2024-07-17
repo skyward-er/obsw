@@ -98,8 +98,11 @@ int main()
     auto flightModeManager = new FlightModeManager();
 
     // Attitude estimation
-    auto nas     = new NASController();
-    auto sensors = new Sensors();
+    auto nas = new NASController();
+
+    // Sensors
+    auto sensors    = new Sensors();
+    auto pinHandler = new PinHandler();
 
     // Radio and CAN
     auto radio      = new Radio();
@@ -112,8 +115,7 @@ int main()
     auto windEstimation          = new WindEstimation();
 
     // Actuators
-    auto actuators  = new Actuators();
-    auto pinHandler = new PinHandler();
+    auto actuators = new Actuators();
 
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
@@ -123,13 +125,12 @@ int main()
     bool initResult =
         depman.insert(buses) && depman.insert(scheduler) &&
         depman.insert(flightModeManager) && depman.insert(nas) &&
-        depman.insert(sensors) & depman.insert(radio) &&
-        depman.insert(canHandler) && depman.insert(altitudeTrigger) &&
-        depman.insert(wingController) &&
+        depman.insert(sensors) && depman.insert(pinHandler) &&
+        depman.insert(radio) && depman.insert(canHandler) &&
+        depman.insert(altitudeTrigger) && depman.insert(wingController) &&
         depman.insert(verticalVelocityTrigger) &&
         depman.insert(windEstimation) && depman.insert(actuators) &&
-        depman.insert(pinHandler) && depman.insert(statsRecorder) &&
-        depman.insert(tmRepository);
+        depman.insert(statsRecorder) && depman.insert(tmRepository);
 
     // Populate module dependencies
     initResult &= depman.inject();
@@ -145,6 +146,7 @@ int main()
     START_SINGLETON(EventBroker);
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
+    START_MODULE(pinHandler);
     // START_MODULE(radio) { miosix::led2On(); }
     // START_MODULE(canHandler) { miosix::led3On(); }
     START_MODULE(flightModeManager);
@@ -154,8 +156,8 @@ int main()
     START_MODULE(verticalVelocityTrigger);
     START_MODULE(windEstimation);
     START_MODULE(actuators);
-    START_MODULE(pinHandler);
     START_MODULE(statsRecorder);
+
     START_MODULE(scheduler);
 
     // Log all posted events

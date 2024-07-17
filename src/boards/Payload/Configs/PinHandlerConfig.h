@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,18 @@
 
 namespace Payload
 {
+namespace Config
+{
+namespace PinHandler
+{
 
-constexpr unsigned int NC_DETACH_PIN_THRESHOLD = 20;
-constexpr Boardcore::PinTransition NC_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+namespace NoseconeDetach
+{
+constexpr auto DETECTION_THRESHOLD   = 20;
+constexpr auto PERIOD                = 20;  // [ms]
+constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
+}  // namespace NoseconeDetach
 
+}  // namespace PinHandler
+}  // namespace Config
 }  // namespace Payload

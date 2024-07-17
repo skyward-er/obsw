@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
- * Authors: Luca Erbetta, Luca Conterio, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,62 @@
 
 #include "PinHandler.h"
 
+#include <Payload/BoardScheduler.h>
 #include <Payload/Configs/PinHandlerConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
-#include <miosix.h>
 
 #include <functional>
 
-using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
+namespace config = Payload::Config::PinHandler;
+namespace hwmap  = miosix::sense;
 
 namespace Payload
 {
 
-void PinHandler::onExpulsionPinTransition(PinTransition transition)
-{
-    if (transition == NC_DETACH_PIN_TRIGGER)
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
-}
-
 bool PinHandler::start()
 {
-    running = scheduler.start();
-    return running;
+    auto& scheduler = getModule<BoardScheduler>()->pinHandler();
+
+    pinObserver = std::make_unique<PinObserver>(scheduler,
+                                                config::NoseconeDetach::PERIOD);
+
+    bool pinResult = pinObserver->registerPinCallback(
+        hwmap::detachPayload::getPin(),
+        [this](auto t) { onDetachPinTransition(t); },
+        config::NoseconeDetach::DETECTION_THRESHOLD);
+
+    if (!pinResult)
+    {
+        return false;
+    }
+
+    started = true;
+
+    return true;
 }
 
-bool PinHandler::isStarted() { return running; }
+bool PinHandler::isStarted() { return started; }
 
-std::map<PinsList, PinData> PinHandler::getPinsData()
+std::map<PinsList, PinData> PinHandler::getPinData()
 {
     std::map<PinsList, PinData> data;
 
     data[PinsList::NOSECONE_PIN] =
-        pin_observer.getPinData(sense::detachPayload::getPin());
+        pinObserver->getPinData(hwmap::detachPayload::getPin());
 
     return data;
 }
 
-PinHandler::PinHandler() : running(false), scheduler(), pin_observer(scheduler)
+void PinHandler::onDetachPinTransition(PinTransition transition)
 {
-    pin_observer.registerPinCallback(
-        sense::detachPayload::getPin(),
-        [this](auto t) { onExpulsionPinTransition(t); },
-        NC_DETACH_PIN_THRESHOLD);
+    if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
+    {
+        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+    }
 }
+
 }  // namespace Payload
