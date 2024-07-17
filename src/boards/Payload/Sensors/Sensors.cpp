@@ -235,9 +235,9 @@ PitotData Sensors::getPitotLastSample()
     return pitot ? pitot->getLastSample() : PitotData{};
 }
 
-RotatedIMUData Sensors::getIMULastSample()
+IMUData Sensors::getIMULastSample()
 {
-    return imu ? imu->getLastSample() : RotatedIMUData{};
+    return imu ? imu->getLastSample() : IMUData{};
 }
 
 BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
@@ -670,15 +670,31 @@ void Sensors::imuCreate()
         return;
     }
 
-    // TODO: rewrite RotatedIMU completely
     imu = std::make_unique<RotatedIMU>(
-        [lsm6dsrx = lsm6dsrx.get()] { return lsm6dsrx->getLastSample(); },
-        [this] { return getCalibratedMagnetometerLastSample(); },
-        [lsm6dsrx = lsm6dsrx.get()] { return lsm6dsrx->getLastSample(); });
+        [this]
+        {
+            auto lsm6dsrxSample = getLSM6DSRXLastSample();
+            auto magSample      = getCalibratedMagnetometerLastSample();
 
+            return IMUData{
+                .accData  = lsm6dsrxSample,
+                .gyroData = lsm6dsrxSample,
+                .magData  = magSample,
+            };
+        });
+
+    // Accelerometer
+    imu->addAccTransformation(RotatedIMU::rotateAroundZ(-90));
+    imu->addAccTransformation(RotatedIMU::rotateAroundX(-90));
+    // Gyroscope
+    imu->addGyroTransformation(RotatedIMU::rotateAroundZ(-90));
+    imu->addGyroTransformation(RotatedIMU::rotateAroundX(-90));
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     imu->addMagTransformation(m);
+    // Magnetometer
+    imu->addMagTransformation(RotatedIMU::rotateAroundY(-90));
+    imu->addMagTransformation(RotatedIMU::rotateAroundZ(90));
 }
 
 void Sensors::imuInsert(SensorManager::SensorMap_t& map)

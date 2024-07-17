@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,11 @@
 
 #include <sensors/SensorData.h>
 
-struct RotatedIMUData : public Boardcore::AccelerometerData,
-                        public Boardcore::MagnetometerData,
-                        public Boardcore::GyroscopeData
+struct IMUData
 {
-    RotatedIMUData()
-        : AccelerometerData{0, 0.0, 0.0, 0.0},
-          MagnetometerData{0, 0.0, 0.0, 0.0}, GyroscopeData{0, 0.0, 0.0, 0.0}
-
-    {
-    }
-
-    RotatedIMUData(AccelerometerData acc, GyroscopeData gyr,
-                   MagnetometerData mag)
-        : AccelerometerData(acc), MagnetometerData(mag), GyroscopeData(gyr)
-    {
-    }
+    Boardcore::AccelerometerData accData;
+    Boardcore::GyroscopeData gyroData;
+    Boardcore::MagnetometerData magData;
 
     static std::string header()
     {
@@ -50,11 +39,12 @@ struct RotatedIMUData : public Boardcore::AccelerometerData,
 
     void print(std::ostream& os) const
     {
-        os << accelerationTimestamp << "," << accelerationX << ","
-           << accelerationY << "," << accelerationZ << ","
-           << angularSpeedTimestamp << "," << angularSpeedX << ","
-           << angularSpeedY << "," << angularSpeedZ << ","
-           << magneticFieldTimestamp << "," << magneticFieldX << ","
-           << magneticFieldY << "," << magneticFieldZ << "\n";
+        os << accData.accelerationTimestamp << "," << accData.accelerationX
+           << "," << accData.accelerationY << "," << accData.accelerationZ
+           << "," << gyroData.angularSpeedTimestamp << ","
+           << gyroData.angularSpeedX << "," << gyroData.angularSpeedY << ","
+           << gyroData.angularSpeedZ << "," << magData.magneticFieldTimestamp
+           << "," << magData.magneticFieldX << "," << magData.magneticFieldY
+           << "," << magData.magneticFieldZ << "\n";
     }
 };

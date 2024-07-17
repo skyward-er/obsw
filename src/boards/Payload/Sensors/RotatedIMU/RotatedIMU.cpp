@@ -28,52 +28,41 @@ using namespace Boardcore;
 namespace Payload
 {
 
-RotatedIMU::RotatedIMU(std::function<AccelerometerData()> accSampleFunction,
-                       std::function<MagnetometerData()> magSampleFunction,
-                       std::function<GyroscopeData()> gyroSampleFunction)
-    : accSample(accSampleFunction), magSample(magSampleFunction),
-      gyroSample(gyroSampleFunction), accT(Matrix3f::Identity()),
-      magT(Matrix3f::Identity()), gyroT(Matrix3f::Identity())
+RotatedIMU::RotatedIMU(SampleIMUFunction sampleImuFunction)
+    : sampleImu(std::move(sampleImuFunction))
 {
 }
 
 void RotatedIMU::addAccTransformation(const Matrix3f& t) { accT = t * accT; }
-void RotatedIMU::addMagTransformation(const Matrix3f& t) { magT = t * magT; }
 void RotatedIMU::addGyroTransformation(const Matrix3f& t) { gyroT = t * gyroT; }
+void RotatedIMU::addMagTransformation(const Matrix3f& t) { magT = t * magT; }
 
 void RotatedIMU::resetTransformations()
 {
     accT  = Matrix3f::Identity();
-    magT  = Matrix3f::Identity();
     gyroT = Matrix3f::Identity();
+    magT  = Matrix3f::Identity();
 }
 
-RotatedIMUData RotatedIMU::sampleImpl()
+IMUData RotatedIMU::sampleImpl()
 {
-    AccelerometerData acc = accSample();
-    GyroscopeData gyro    = gyroSample();
-    MagnetometerData mag  = magSample();
+    auto imuData         = sampleImu();
+    Vector3f rotatedAcc  = accT * static_cast<Vector3f>(imuData.accData);
+    Vector3f rotatedGyro = gyroT * static_cast<Vector3f>(imuData.gyroData);
+    Vector3f rotatedMag  = magT * static_cast<Vector3f>(imuData.magData);
 
-    Vector3f accResult  = accT * static_cast<Vector3f>(acc);
-    Vector3f gyroResult = gyroT * static_cast<Vector3f>(gyro);
-    Vector3f magResult  = magT * static_cast<Vector3f>(mag);
+    auto acc                  = AccelerometerData{rotatedAcc};
+    acc.accelerationTimestamp = imuData.accData.accelerationTimestamp;
 
-    float timestamp           = acc.accelerationTimestamp;
-    acc                       = AccelerometerData{accResult};
-    acc.accelerationTimestamp = timestamp;
+    auto gyro                  = GyroscopeData{rotatedGyro};
+    gyro.angularSpeedTimestamp = imuData.gyroData.angularSpeedTimestamp;
 
-    timestamp                  = gyro.angularSpeedTimestamp;
-    gyro                       = GyroscopeData{gyroResult};
-    gyro.angularSpeedTimestamp = timestamp;
-
-    timestamp                  = mag.magneticFieldTimestamp;
-    mag                        = MagnetometerData{magResult};
-    mag.magneticFieldTimestamp = timestamp;
+    auto mag                   = MagnetometerData{rotatedMag};
+    mag.magneticFieldTimestamp = imuData.magData.magneticFieldTimestamp;
 
     return {acc, gyro, mag};
 }
 
-// Static functions
 Matrix3f RotatedIMU::rotateAroundX(float angle)
 {
     Matrix3f rotation;
