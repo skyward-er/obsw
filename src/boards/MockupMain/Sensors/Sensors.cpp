@@ -99,7 +99,7 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
 LoadCellData Sensors::getLoadCellLastSample()
 {
     miosix::Lock<FastMutex> l(loadCellMutex);
-    return loadCell != nullptr ? loadCell->getLastSample() : LoadCellData{};
+    return loadCell != nullptr ? loadCellLastSample : LoadCellData{};
 }
 
 // check used task scheduler error due the magnetometer calibration task
@@ -113,15 +113,15 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
 
     // Init all the sensors
-    // bmx160Init();
+    bmx160Init();
     // bmx160WithCorrectionInit();
-    lis3mdlInit();
+    // lis3mdlInit();
     h3lisInit();
     lps22Init();
     ubxGpsInit();
     ads131Init();
-    // internalADCInit();
-    // batteryVoltageInit();
+    internalADCInit();
+    batteryVoltageInit();
     loadCellInit();
 
     /*
@@ -195,10 +195,10 @@ void Sensors::bmx160Init()
     ModuleManager& modules = ModuleManager::getInstance();
 
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_4;
 
     BMX160Config config;
-    config.fifoMode      = BMX160Config::FifoMode::HEADER;
+    config.fifoMode      = BMX160Config::FifoMode::DISABLED;
     config.fifoWatermark = BMX160_FIFO_WATERMARK;
     config.fifoInterrupt = BMX160Config::FifoInterruptPin::PIN_INT1;
 
@@ -444,13 +444,14 @@ void Sensors::loadCellInit()
         LOAD_CELL_P0_VOLTAGE, LOAD_CELL_P0_MASS, LOAD_CELL_P1_VOLTAGE,
         LOAD_CELL_P1_MASS);
 
-    SensorInfo info("LOAD_CELL", LOAD_CELL_SAMPLE_PERIOD,
-                    bind(&Sensors::loadCellCallback, this));
-    sensorMap.emplace(std::make_pair(loadCell, info));
+    /* SensorInfo info("LOAD_CELL", LOAD_CELL_SAMPLE_PERIOD,
+                     bind(&Sensors::loadCellCallback, this));
+     sensorMap.emplace(std::make_pair(loadCell, info));*/
 
-    auto loadCellStatus =
-        ([&]() -> SensorInfo { return manager->getSensorInfo(loadCell); });
-    sensorsInit[sensorsCounter++] = loadCellStatus;
+    /*auto loadCellStatus =
+        ([&]() -> SensorInfo { return manager->getSensorInfo(loadCell); });*/
+
+    // sensorsInit[sensorsCounter++] = loadCellStatus;
 
     LOG_INFO(logger, "Load cell setup done!");
 }
@@ -509,7 +510,16 @@ void Sensors::ubxGpsCallback()
 
 void Sensors::ads131Callback()
 {
-    // We don't log the adc in this test
+    ADS131M08Data lastVoltageSample = ads131->getLastSample();
+    {
+        miosix::Lock<FastMutex> l(loadCellMutex);
+        loadCellLastSample.loadTimestamp = lastVoltageSample.timestamp;
+        loadCellLastSample.load          = loadCell->voltageToMass(
+                     lastVoltageSample.getVoltage(LOAD_CELL_ADC_CHANNEL).voltage);
+    }
+    Logger::getInstance().log(loadCellLastSample);
+    // Logger::getInstance().log(lastVoltageSample);
+    //  We don't log the adc in this test
 }
 
 void Sensors::internalADCCallback()
@@ -524,8 +534,8 @@ void Sensors::batteryVoltageCallback()
 }
 void Sensors::loadCellCallback()
 {
-    LoadCellData lastSample = loadCell->getLastSample();
-    Logger::getInstance().log(lastSample);
+    // LoadCellData lastSample = loadCell->getLastSample();
+    // Logger::getInstance().log(lastSample);
 }
 
 }  // namespace MockupMain

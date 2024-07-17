@@ -133,6 +133,8 @@ private:
     Boardcore::BatteryVoltageSensor* batteryVoltage       = nullptr;
     Boardcore::AnalogLoadCellSensor* loadCell             = nullptr;
 
+    Boardcore::LoadCellData loadCellLastSample;
+
     // Mutexes for sampling
     miosix::FastMutex lis3mdlMutex;
     miosix::FastMutex lps22Mutex;

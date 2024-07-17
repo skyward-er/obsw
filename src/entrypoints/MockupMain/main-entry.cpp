@@ -46,8 +46,6 @@ using namespace Common;
 
 int main()
 {
-    Thread::sleep(500);  // wait 500 ms to separate the mcu startup and the ubx
-                         // serial communication
 
     ModuleManager& modules = ModuleManager::getInstance();
 
@@ -203,7 +201,7 @@ int main()
     // Periodic statistics
     while (true)
     {
-        Thread::sleep(1000);
+        Thread::sleep(5000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         Logger::getInstance().logStats();
