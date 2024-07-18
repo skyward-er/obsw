@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Angelo Prete
+ * Authors: Matteo Pignataro, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -166,10 +166,10 @@ bool Sensors::start()
         MAG_CALIBRATION_PERIOD);
 
     // Create sensor manager with populated map and configured scheduler
-    manager                      = new SensorManager(sensorMap, scheduler);
-    miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
-    enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
-                            InterruptTrigger::FALLING_EDGE, 0);
+    manager = new SensorManager(sensorMap, scheduler);
+    // miosix::GpioPin interruptPin = miosix::sensors::bmx160::intr::getPin();
+    // enableExternalInterrupt(interruptPin.getPort(), interruptPin.getNumber(),
+    //                         InterruptTrigger::FALLING_EDGE, 0);
     return manager->start() && result != 0;
 }
 
@@ -207,10 +207,10 @@ void Sensors::bmx160Init()
     ModuleManager& modules = ModuleManager::getInstance();
 
     SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_8;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_4;
 
     BMX160Config config;
-    config.fifoMode      = BMX160Config::FifoMode::HEADER;
+    config.fifoMode      = BMX160Config::FifoMode::DISABLED;
     config.fifoWatermark = BMX160_FIFO_WATERMARK;
     config.fifoInterrupt = BMX160Config::FifoInterruptPin::PIN_INT1;
 

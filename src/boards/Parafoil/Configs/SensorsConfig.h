@@ -45,10 +45,10 @@ constexpr Boardcore::BMX160Config::GyroscopeRange BMX160_GYRO_FSR_ENUM =
     Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 constexpr unsigned int BMX160_ACC_GYRO_ODR = 400;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_400;
+    Boardcore::BMX160Config::OutputDataRate::HZ_200;
 constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_100;
+    Boardcore::BMX160Config::OutputDataRate::HZ_200;
 
 constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
 
@@ -117,8 +117,8 @@ constexpr float BATTERY_VOLTAGE_COEFF = (150 + 40.2) / 40.2;
 // BMX160_SAMPLE_PERIOD: Sample before the fifo is full, but slightly after the
 // watermark level (watermark + 30) ---> high slack due to scheduler
 // imprecision, avoid clearing the fifo before the interrupt
-constexpr unsigned int BMX160_SAMPLE_PERIOD =
-    BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024;  // [ms]
+constexpr unsigned int BMX160_SAMPLE_PERIOD = 10;
+// BMX160_FIFO_FILL_TIME * (BMX160_FIFO_WATERMARK + 30) * 4 / 1024;  // [ms]
 // BMX160_WITH_CORRECTION_SAMPLE_PERIOD should be lower than the
 // BMX160_SAMPLE_PERIOD and faster then the NAS update period.
 constexpr unsigned int BMX160_WITH_CORRECTION_SAMPLE_PERIOD = 10;  // [ms] 100Hz
