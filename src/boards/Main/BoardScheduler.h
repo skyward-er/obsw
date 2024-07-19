@@ -42,8 +42,35 @@ public:
 
     [[nodiscard]] bool start()
     {
-        return nas.start() && ada.start() && sensors.start() && others.start();
+        if (!nas.start())
+        {
+            LOG_ERR(logger, "Failed to start NAS scheduler");
+            return false;
+        }
+
+        if (!ada.start())
+        {
+            LOG_ERR(logger, "Failed to start ADA scheduler");
+            return false;
+        }
+
+        if (!sensors.start())
+        {
+            LOG_ERR(logger, "Failed to start Sensors scheduler");
+            return false;
+        }
+
+        if (!others.start())
+        {
+            LOG_ERR(logger, "Failed to start others scheduler");
+            return false;
+        }
+
+        started = true;
+        return true;
     }
+
+    bool isStarted() { return started; }
 
     Boardcore::TaskScheduler &getNasScheduler() { return nas; }
 
@@ -67,6 +94,11 @@ public:
     }
 
 private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("boardscheduler");
+
+    std::atomic<bool> started{false};
+
     Boardcore::TaskScheduler nas;
     Boardcore::TaskScheduler ada;
     Boardcore::TaskScheduler sensors;

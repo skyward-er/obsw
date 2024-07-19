@@ -46,17 +46,21 @@ public:
 
     [[nodiscard]] bool start();
 
+    bool isStarted();
+
+    Boardcore::PinData getPinData(PinList pin);
+
 private:
     void onRampPinTransition(Boardcore::PinTransition transition);
     void onDetachMainTransition(Boardcore::PinTransition transition);
     void onDetachPayloadTransition(Boardcore::PinTransition transition);
     void onExpulsionSenseTransition(Boardcore::PinTransition transition);
 
-    Boardcore::PinData getPinData(PinList pin);
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
+
+    std::atomic<bool> started{false};
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };
 
 }  // namespace Main

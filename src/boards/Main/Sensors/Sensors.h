@@ -64,36 +64,60 @@ public:
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getCamBatteryVoltage();
 
+    Boardcore::PressureData getTopTankPress();
+    Boardcore::PressureData getBottomTankPress();
+    Boardcore::PressureData getCCPress();
+    Boardcore::TemperatureData getTankTemp();
+    Boardcore::VoltageData getMotorBatteryVoltage();
+
+    void setCanTopTankPress(Boardcore::PressureData data);
+    void setCanBottomTankPress(Boardcore::PressureData data);
+    void setCanCCPress(Boardcore::PressureData data);
+    void setCanTankTemp(Boardcore::TemperatureData data);
+    void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
+
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
+protected:
+    virtual bool postSensorCreationHook() { return true; }
+
 private:
-    void lps22dfInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lps22dfInit();
     void lps22dfCallback();
 
-    void lps28dfwInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lps28dfwInit();
     void lps28dfwCallback();
 
-    void h3lis331dlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void h3lis331dlInit();
     void h3lis331dlCallback();
 
-    void lis2mdlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lis2mdlInit();
     void lis2mdlCallback();
 
-    void ubxgpsInit(Boardcore::SensorManager::SensorMap_t &map);
+    void ubxgpsInit();
     void ubxgpsCallback();
 
-    void lsm6dsrxInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lsm6dsrxInit();
     void lsm6dsrxCallback();
 
-    void ads131m08Init(Boardcore::SensorManager::SensorMap_t &map);
+    void ads131m08Init();
     void ads131m08Callback();
 
-    void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
+    void internalAdcInit();
     void internalAdcCallback();
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+    bool sensorManagerInit();
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};
+
+    miosix::FastMutex canMutex;
+    Boardcore::PressureData canCCPressure;
+    Boardcore::PressureData canBottomTankPressure;
+    Boardcore::PressureData canTopTankPressure;
+    Boardcore::TemperatureData canTankTemperature;
+    Boardcore::VoltageData canMotorBatteryVoltage;
 
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
