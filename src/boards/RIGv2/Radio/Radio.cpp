@@ -559,8 +559,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 sensors->getUmbilicalCurrent().current;
 
             // Log data
-            tm.log_good   = 0;  // TODO
-            tm.log_number = 0;  // TODO
+            LoggerStats stats = sdLogger.getStats();
+            tm.log_number     = stats.logNumber;
+            tm.log_good       = stats.lastWriteError == 0;
 
             // Valve states
             tm.filling_valve_state =
@@ -615,18 +616,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.tank_temperature = sensors->getTc1LastSample().temperature;
             tm.battery_voltage  = sensors->getMotorBatteryVoltage().voltage;
 
-            // Log data
-            tm.log_good   = 0;  // TODO
-            tm.log_number = 0;  // TODO
-
             // Valve states
             tm.main_valve_state =
                 actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.venting_valve_state =
                 actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
 
-            // HIL metadata
-            tm.hil_state = 0;  // TODO
+            // Can data
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+
+            tm.log_number = canStatus.getMotorLogNumber();
+            tm.log_good   = canStatus.isMotorLogGood() ? 1 : 0;
+            tm.hil_state  = canStatus.isMotorHil() ? 1 : 0;
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,

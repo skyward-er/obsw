@@ -80,32 +80,34 @@ public:
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 private:
-    void vesselPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void vesselPressureInit();
     void vesselPressureCallback();
 
-    void fillingPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void fillingPressureInit();
     void fillingPressureCallback();
 
-    void topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void topTankPressureInit();
     void topTankPressureCallback();
 
-    void bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map);
+    void bottomTankPressureInit();
     void bottomTankPressureCallback();
 
-    void vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map);
+    void vesselWeightInit();
     void vesselWeightCallback();
 
-    void tankWeightInit(Boardcore::SensorManager::SensorMap_t &map);
+    void tankWeightInit();
     void tankWeightCallback();
 
-    void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
+    void internalAdcInit();
     void internalAdcCallback();
 
-    void adc1Init(Boardcore::SensorManager::SensorMap_t &map);
+    void adc1Init();
     void adc1Callback();
 
-    void tc1Init(Boardcore::SensorManager::SensorMap_t &map);
+    void tc1Init();
     void tc1Callback();
+
+    bool sensorManagerInit();
 
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");

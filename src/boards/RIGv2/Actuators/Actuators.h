@@ -106,7 +106,7 @@ public:
     void igniterOn();
     void igniterOff();
 
-    void setCanServoAperture(ServosList servo, float aperture);
+    void setCanServoOpen(ServosList servo, bool open);
 
     void inject(Boardcore::DependencyInjector &injector) override;
 
@@ -131,8 +131,8 @@ private:
     // Timestamp of last servo action (open/close)
     long long nitrogenLastActionTs = 0;
 
-    float mainAperture    = 0.0f;
-    float ventingAperture = 0.0f;
+    bool canMainOpen    = false;
+    bool canVentingOpen = false;
 };
 
 }  // namespace RIGv2
