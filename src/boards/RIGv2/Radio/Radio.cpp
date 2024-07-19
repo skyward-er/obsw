@@ -306,6 +306,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
+                Logger::getInstance().resetStats();
                 enqueueAck(msg);
             }
             break;
