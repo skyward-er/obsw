@@ -33,7 +33,7 @@ namespace Config
 namespace Radio
 {
 
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
 constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;

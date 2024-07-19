@@ -34,7 +34,7 @@ namespace Config
 namespace TARS1
 {
 
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz SAMPLE_PERIOD         = 100_hz;
 constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
