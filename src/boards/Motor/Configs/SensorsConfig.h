@@ -40,7 +40,7 @@ namespace Sensors
 
 namespace LPS22DF
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
@@ -51,7 +51,7 @@ constexpr bool ENABLED = true;
 
 namespace H3LIS331DL
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
@@ -63,7 +63,7 @@ constexpr bool ENABLED = true;
 
 namespace LIS2MDL
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int TEMP_DIVIDER   = 5;
@@ -73,7 +73,7 @@ constexpr bool ENABLED                = true;
 
 namespace LSM6DSRX
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
     Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
@@ -95,7 +95,7 @@ constexpr bool ENABLED = true;
 
 namespace ADS131M08
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
@@ -129,7 +129,7 @@ constexpr float ENGINE_MAX_PRESSURE   = 40;   // bar
 
 namespace InternalADC
 {
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::InternalADC::Channel VBAT_CH =
     Boardcore::InternalADC::Channel::CH14;

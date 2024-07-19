@@ -34,7 +34,7 @@ namespace Config
 namespace Servos
 {
 
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 // Generic pulse width for all servos
 constexpr unsigned int MIN_PULSE = 500;
