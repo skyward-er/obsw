@@ -33,6 +33,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -64,6 +65,10 @@ public:
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getCamBatteryVoltage();
 
+    Boardcore::PressureData getStaticPressure1();
+    Boardcore::PressureData getStaticPressure2();
+    Boardcore::PressureData getDplBayPressure();
+
     Boardcore::PressureData getTopTankPress();
     Boardcore::PressureData getBottomTankPress();
     Boardcore::PressureData getCCPress();
@@ -80,6 +85,28 @@ public:
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
+
+    miosix::FastMutex canMutex;
+    Boardcore::PressureData canCCPressure;
+    Boardcore::PressureData canBottomTankPressure;
+    Boardcore::PressureData canTopTankPressure;
+    Boardcore::TemperatureData canTankTemperature;
+    Boardcore::VoltageData canMotorBatteryVoltage;
+
+    // Digital sensors
+    std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
+    std::unique_ptr<Boardcore::InternalADC> internalAdc;
+
+    // Analog sensors
+    std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
+    std::unique_ptr<Boardcore::MPXH6115A> staticPressure2;
+    std::unique_ptr<Boardcore::MPXH6115A> dplBayPressure;
 
 private:
     void lps22dfInit();
@@ -106,27 +133,20 @@ private:
     void internalAdcInit();
     void internalAdcCallback();
 
+    void staticPressure1Init();
+    void staticPressure1Callback();
+
+    void staticPressure2Init();
+    void staticPressure2Callback();
+
+    void dplBayPressureInit();
+    void dplBayPressureCallback();
+
     bool sensorManagerInit();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};
-
-    miosix::FastMutex canMutex;
-    Boardcore::PressureData canCCPressure;
-    Boardcore::PressureData canBottomTankPressure;
-    Boardcore::PressureData canTopTankPressure;
-    Boardcore::TemperatureData canTankTemperature;
-    Boardcore::VoltageData canMotorBatteryVoltage;
-
-    std::unique_ptr<Boardcore::LPS22DF> lps22df;
-    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
-    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
-    std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
-    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
-    std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 };
