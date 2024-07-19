@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include <Main/BoardScheduler.h>
+#include <Main/Configs/CanHandlerConfig.h>
+#include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -29,22 +32,88 @@
 namespace Main
 {
 
-class CanHandler : public Boardcore::Injectable
+class FlightModeManager;
+class Actuators;
+
+class CanHandler
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
+                                           FlightModeManager>
 {
 public:
+    struct CanStatus
+    {
+        long long rigLastStatus     = 0;
+        long long payloadLastStatus = 0;
+        long long motorLastStatus   = 0;
+
+        uint8_t rigState     = 0;
+        uint8_t payloadState = 0;
+        uint8_t motorState   = 0;
+
+        bool rigArmed     = false;
+        bool payloadArmed = false;
+
+        uint16_t motorLogNumber = 0;
+        bool motorLogGood       = true;
+        bool motorHil           = false;
+
+        bool isRigConnected()
+        {
+            return miosix::getTime() <=
+                   (rigLastStatus + Config::CanHandler::STATUS_TIMEOUT.count());
+        }
+        bool isPayloadConnected()
+        {
+            return miosix::getTime() <=
+                   (payloadLastStatus +
+                    Config::CanHandler::STATUS_TIMEOUT.count());
+        }
+        bool isMotorConnected()
+        {
+            return miosix::getTime() <=
+                   (motorLastStatus +
+                    Config::CanHandler::STATUS_TIMEOUT.count());
+        }
+
+        uint8_t getRigState() { return rigState; }
+        uint8_t getPayloadState() { return payloadState; }
+        uint8_t getMotorState() { return motorState; }
+
+        bool isRigArmed() { return rigArmed; }
+        bool isPayloadArmed() { return payloadArmed; }
+
+        uint16_t getMotorLogNumber() { return motorLogNumber; }
+        bool isMotorLogGood() { return motorLogGood; }
+        bool isMotorHil() { return motorHil; }
+    };
+
     CanHandler();
 
-    bool start();
+    [[nodiscard]] bool start();
+
+    bool isStarted();
 
     void sendEvent(Common::CanConfig::EventId event);
 
+    CanStatus getCanStatus();
+
 private:
-    void handleCanMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
+    void handleSensor(const Boardcore::Canbus::CanMessage &msg);
+    void handleActuator(const Boardcore::Canbus::CanMessage &msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage &msg);
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("CanHandler");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
 
-    std::unique_ptr<Boardcore::Canbus::CanbusDriver> driver;
-    std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;
+    std::atomic<bool> started{false};
+
+    Boardcore::Canbus::CanbusDriver driver;
+    Boardcore::Canbus::CanProtocol protocol;
+
+    miosix::FastMutex statusMutex;
+    CanStatus status;
 };
 
 }  // namespace Main

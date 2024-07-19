@@ -35,22 +35,55 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    TaskScheduler &scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
-
-    SensorManager::SensorMap_t map;
-    lps22dfInit(map);
-    lps28dfwInit(map);
-    h3lis331dlInit(map);
-    lis2mdlInit(map);
-    ubxgpsInit(map);
-    lsm6dsrxInit(map);
-    ads131m08Init(map);
-    internalAdcInit(map);
-
-    manager = std::make_unique<SensorManager>(map, &scheduler);
-    if (!manager->start())
+    if (Config::Sensors::LPS22DF::ENABLED)
     {
+        lps22dfInit();
+    }
+
+    if (Config::Sensors::LPS28DFW::ENABLED)
+    {
+        lps28dfwInit();
+    }
+
+    if (Config::Sensors::H3LIS331DL::ENABLED)
+    {
+        h3lis331dlInit();
+    }
+
+    if (Config::Sensors::LIS2MDL::ENABLED)
+    {
+        lis2mdlInit();
+    }
+
+    if (Config::Sensors::UBXGPS::ENABLED)
+    {
+        ubxgpsInit();
+    }
+
+    if (Config::Sensors::LSM6DSRX::ENABLED)
+    {
+        lsm6dsrxInit();
+    }
+
+    if (Config::Sensors::ADS131M08::ENABLED)
+    {
+        ads131m08Init();
+    }
+
+    if (Config::Sensors::InternalADC::ENABLED)
+    {
+        internalAdcInit();
+    }
+
+    if (!postSensorCreationHook())
+    {
+        LOG_ERR(logger, "Failed to call postSensorCreationHook");
+        return false;
+    }
+
+    if (!sensorManagerInit())
+    {
+        LOG_ERR(logger, "Failed to init SensorManager");
         return false;
     }
 
@@ -115,6 +148,66 @@ Boardcore::VoltageData Sensors::getCamBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
+PressureData Sensors::getTopTankPress()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canTopTankPressure;
+}
+
+PressureData Sensors::getBottomTankPress()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canBottomTankPressure;
+}
+
+PressureData Sensors::getCCPress()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canCCPressure;
+}
+
+TemperatureData Sensors::getTankTemp()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canTankTemperature;
+}
+
+VoltageData Sensors::getMotorBatteryVoltage()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canMotorBatteryVoltage;
+}
+
+void Sensors::setCanTopTankPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canTopTankPressure = data;
+}
+
+void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canBottomTankPressure = data;
+}
+
+void Sensors::setCanCCPress(Boardcore::PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canCCPressure = data;
+}
+
+void Sensors::setCanTankTemp(Boardcore::TemperatureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canTankTemperature = data;
+}
+
+void Sensors::setCanMotorBatteryVoltage(Boardcore::VoltageData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canMotorBatteryVoltage = data;
+}
+
 std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
@@ -134,7 +227,7 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
     }
 }
 
-void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
+void Sensors::lps22dfInit()
 {
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
@@ -146,11 +239,6 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->getLPS22DF(),
                                         sensors::LPS22DF::cs::getPin(),
                                         spiConfig, config);
-
-    SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
-                    [this]() { lps22dfCallback(); },
-                    Config::Sensors::LPS22DF::ENABLED};
-    map.emplace(lps22df.get(), info);
 }
 
 void Sensors::lps22dfCallback()
@@ -159,7 +247,7 @@ void Sensors::lps22dfCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
+void Sensors::lps28dfwInit()
 {
     LPS28DFW::SensorConfig config;
     config.sa0  = true;
@@ -170,11 +258,6 @@ void Sensors::lps28dfwInit(SensorManager::SensorMap_t &map)
 
     lps28dfw =
         std::make_unique<LPS28DFW>(getModule<Buses>()->getLPS28DFW(), config);
-
-    SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::PERIOD,
-                    [this]() { lps28dfwCallback(); },
-                    Config::Sensors::LPS28DFW::ENABLED};
-    map.emplace(lps28dfw.get(), info);
 }
 
 void Sensors::lps28dfwCallback()
@@ -183,7 +266,7 @@ void Sensors::lps28dfwCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
+void Sensors::h3lis331dlInit()
 {
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
@@ -193,11 +276,6 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
         spiConfig, Config::Sensors::H3LIS331DL::ODR,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         Config::Sensors::H3LIS331DL::FS);
-
-    SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
-                    [this]() { h3lis331dlCallback(); },
-                    Config::Sensors::H3LIS331DL::ENABLED};
-    map.emplace(h3lis331dl.get(), info);
 }
 
 void Sensors::h3lis331dlCallback()
@@ -206,7 +284,7 @@ void Sensors::h3lis331dlCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
+void Sensors::lis2mdlInit()
 {
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
@@ -219,11 +297,6 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
                                         sensors::LIS2MDL::cs::getPin(),
                                         spiConfig, config);
-
-    SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
-                    [this]() { lis2mdlCallback(); },
-                    Config::Sensors::LIS2MDL::ENABLED};
-    map.emplace(lis2mdl.get(), info);
 }
 
 void Sensors::lis2mdlCallback()
@@ -232,7 +305,7 @@ void Sensors::lis2mdlCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
+void Sensors::ubxgpsInit()
 {
     SPIBusConfig spiConfig = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
@@ -240,11 +313,6 @@ void Sensors::ubxgpsInit(SensorManager::SensorMap_t &map)
     ubxgps = std::make_unique<UBXGPSSpi>(getModule<Buses>()->getUBXGps(),
                                          sensors::UBXGps::cs::getPin(),
                                          spiConfig, 5);
-
-    SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::PERIOD,
-                    [this]() { ubxgpsCallback(); },
-                    Config::Sensors::UBXGPS::ENABLED};
-    map.emplace(ubxgps.get(), info);
 }
 
 void Sensors::ubxgpsCallback()
@@ -253,7 +321,7 @@ void Sensors::ubxgpsCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
+void Sensors::lsm6dsrxInit()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -278,11 +346,6 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
     lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                           sensors::LSM6DSRX::cs::getPin(),
                                           spiConfig, config);
-
-    SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
-                    [this]() { lsm6dsrxCallback(); },
-                    Config::Sensors::LSM6DSRX::ENABLED};
-    map.emplace(lsm6dsrx.get(), info);
 }
 
 void Sensors::lsm6dsrxCallback()
@@ -291,7 +354,7 @@ void Sensors::lsm6dsrxCallback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
+void Sensors::ads131m08Init()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -319,10 +382,6 @@ void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
                                             sensors::ADS131M08::cs::getPin(),
                                             spiConfig, config);
-
-    SensorInfo info{"ADS131M08", 2000, [this]() { ads131m08Callback(); },
-                    Config::Sensors::ADS131M08::ENABLED};
-    map.emplace(ads131m08.get(), info);
 }
 
 void Sensors::ads131m08Callback()
@@ -331,7 +390,7 @@ void Sensors::ads131m08Callback()
     Logger::getInstance().log(lastSample);
 }
 
-void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
@@ -339,15 +398,77 @@ void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
     internalAdc->enableChannel(Config::Sensors::InternalADC::CUTTER_SENSE_CH);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
-
-    SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
-                    [this]() { internalAdcCallback(); },
-                    Config::Sensors::InternalADC::ENABLED};
-    map.emplace(internalAdc.get(), info);
 }
 
 void Sensors::internalAdcCallback()
 {
     auto lastSample = getInternalADCLastSample();
     Logger::getInstance().log(lastSample);
+}
+
+bool Sensors::sensorManagerInit()
+{
+    TaskScheduler &scheduler =
+        getModule<BoardScheduler>()->getSensorsScheduler();
+
+    SensorManager::SensorMap_t map;
+
+    if (lps22df)
+    {
+        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
+                        [this]() { lps22dfCallback(); }};
+        map.emplace(lps22df.get(), info);
+    }
+
+    if (lps28dfw)
+    {
+        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::PERIOD,
+                        [this]() { lps28dfwCallback(); }};
+        map.emplace(lps28dfw.get(), info);
+    }
+
+    if (h3lis331dl)
+    {
+        SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
+                        [this]() { h3lis331dlCallback(); }};
+        map.emplace(h3lis331dl.get(), info);
+    }
+
+    if (lis2mdl)
+    {
+        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
+                        [this]() { lis2mdlCallback(); }};
+        map.emplace(lis2mdl.get(), info);
+    }
+
+    if (ubxgps)
+    {
+        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::PERIOD,
+                        [this]() { ubxgpsCallback(); }};
+        map.emplace(ubxgps.get(), info);
+    }
+
+    if (lsm6dsrx)
+    {
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
+                        [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx.get(), info);
+    }
+
+    if (ads131m08)
+    {
+        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { ads131m08Callback(); }};
+        map.emplace(ads131m08.get(), info);
+    }
+
+    if (internalAdc)
+    {
+        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
+                        [this]() { internalAdcCallback(); }};
+        map.emplace(internalAdc.get(), info);
+    }
+
+    manager = std::make_unique<SensorManager>(map, &scheduler);
+    return manager->start();
 }

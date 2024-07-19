@@ -24,6 +24,7 @@
 
 #include <common/Events.h>
 #include <common/Radio.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
@@ -76,8 +77,7 @@ bool Radio::start()
     setIRQRadio(radio.get());
 
     // Initialize radio
-    auto result = radio->init(MAIN_RADIO_CONFIG);
-    if (result != SX1278Fsk::Error::NONE)
+    if (radio->init(MAIN_RADIO_CONFIG) != SX1278Fsk::Error::NONE)
     {
         LOG_ERR(logger, "Failed to initialize Main radio");
         return false;
@@ -98,21 +98,27 @@ bool Radio::start()
     }
 
     // High rate periodic telemetry
-    if (scheduler.addTask(
-            [this]()
-            {
-                enqueueSystemTm(SystemTMList::MAV_FLIGHT_ID);
-                flushPackets();
-            },
-            Config::Radio::TELEMETRY_PERIOD) == 0)
+    uint8_t result = scheduler.addTask(
+        [this]()
+        {
+            enqueueSystemTm(SystemTMList::MAV_MOTOR_ID);
+            enqueueSystemTm(SystemTMList::MAV_FLIGHT_ID);
+            flushPackets();
+        },
+        Config::Radio::HIGH_RATE_TELEMETRY_PERIOD);
+
+    if (result == 0)
     {
         LOG_ERR(logger, "Failed to add periodic telemetry task");
         return false;
     }
 
-    if (scheduler.addTask([this]()
-                          { enqueueSystemTm(SystemTMList::MAV_STATS_ID); },
-                          Config::Radio::TELEMETRY_PERIOD * 2) == 0)
+    // Low rate periodic telemetry
+    result = scheduler.addTask([this]()
+                               { enqueueSystemTm(SystemTMList::MAV_STATS_ID); },
+                               Config::Radio::LOW_RATE_TELEMETRY_PERIOD);
+
+    if (result == 0)
     {
         LOG_ERR(logger, "Failed to add periodic telemetry task");
         return false;
@@ -163,7 +169,7 @@ void Radio::enqueueNack(const mavlink_message_t& msg)
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq);
+                             msg.msgid, msg.seq, 0);
     enqueuePacket(nackMsg);
 }
 
@@ -221,7 +227,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             if (getModule<FlightModeManager>()->getState() ==
-                FlightModeManagerState::TEST_MODE)
+                FlightModeManagerState::FMM_STATE_TEST_MODE)
             {
                 // If the state is test mode, the wiggle is done
                 getModule<Actuators>()->wiggleServo(servoId);
@@ -250,10 +256,10 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
         {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
         {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
-        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
-        {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
+        // {MAV_CMD_FORCE_ENGINE_SHUTDOWN, ...},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
         {MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT},
+        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
         {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
         {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
         {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
@@ -268,6 +274,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             if (Logger::getInstance().start())
             {
+                Logger::getInstance().resetStats();
                 enqueueAck(msg);
             }
             else
@@ -313,8 +320,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 mavlink_sensor_state_tm_t tm;
 
                 strcpy(tm.sensor_name, sensor.id.c_str());
-                tm.state =
-                    (sensor.isInitialized ? 1 : 0) | (sensor.isEnabled ? 2 : 0);
+                tm.initialized = sensor.isInitialized ? 1 : 0;
+                tm.enabled     = sensor.isEnabled ? 1 : 0;
 
                 mavlink_msg_sensor_state_tm_encode(
                     Config::Radio::MAV_SYSTEM_ID,
@@ -322,6 +329,28 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 enqueuePacket(msg);
             }
 
+            return true;
+        }
+
+        case MAV_SYS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_sys_tm_t tm;
+
+            tm.timestamp    = TimestampTimer::getTimestamp();
+            tm.logger       = Logger::getInstance().isStarted() ? 1 : 0;
+            tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
+            tm.radio        = isStarted() ? 1 : 0;
+            tm.sensors      = getModule<Sensors>()->isStarted() ? 1 : 0;
+            tm.actuators    = getModule<Actuators>()->isStarted() ? 1 : 0;
+            tm.pin_handler  = getModule<PinHandler>()->isStarted() ? 1 : 0;
+            tm.can_handler  = getModule<CanHandler>()->isStarted() ? 1 : 0;
+            tm.scheduler    = getModule<BoardScheduler>()->isStarted() ? 1 : 0;
+
+            mavlink_msg_sys_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
             return true;
         }
 
@@ -334,16 +363,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             LoggerStats stats = Logger::getInstance().getStats();
 
             tm.timestamp          = stats.timestamp;
-            tm.average_write_time = stats.averageWriteTime;
+            tm.log_number         = stats.logNumber;
+            tm.too_large_samples  = stats.tooLargeSamples;
+            tm.dropped_samples    = stats.droppedSamples;
+            tm.queued_samples     = stats.queuedSamples;
             tm.buffers_filled     = stats.buffersFilled;
             tm.buffers_written    = stats.buffersWritten;
-            tm.dropped_samples    = stats.droppedSamples;
-            tm.last_write_error   = stats.lastWriteError;
-            tm.log_number         = stats.logNumber;
-            tm.max_write_time     = stats.maxWriteTime;
-            tm.queued_samples     = stats.queuedSamples;
-            tm.too_large_samples  = stats.tooLargeSamples;
             tm.writes_failed      = stats.writesFailed;
+            tm.last_write_error   = stats.lastWriteError;
+            tm.average_write_time = stats.averageWriteTime;
+            tm.max_write_time     = stats.maxWriteTime;
 
             mavlink_msg_logger_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                          Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -352,7 +381,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_MAVLINK_STATS:
+        case MAV_MAVLINK_STATS_ID:
         {
             mavlink_message_t msg;
             mavlink_mavlink_stats_tm_t tm;
@@ -386,33 +415,78 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors = getModule<Sensors>();
-            auto pressDigi   = sensors->getLPS22DFLastSample();
-            auto imu         = sensors->getLSM6DSRXLastSample();
-            auto mag         = sensors->getLIS2MDLLastSample();
-            auto gps         = sensors->getUBXGPSLastSample();
+            Sensors* sensors       = getModule<Sensors>();
+            PinHandler* pinHandler = getModule<PinHandler>();
 
-            tm.timestamp     = TimestampTimer::getTimestamp();
-            tm.pressure_digi = pressDigi.pressure;
-            tm.acc_x         = imu.accelerationX;
-            tm.acc_y         = imu.accelerationY;
-            tm.acc_z         = imu.accelerationZ;
-            tm.gyro_x        = imu.angularSpeedX;
-            tm.gyro_y        = imu.angularSpeedY;
-            tm.gyro_z        = imu.angularSpeedZ;
-            tm.mag_x         = mag.magneticFieldX;
-            tm.mag_y         = mag.magneticFieldY;
-            tm.mag_z         = mag.magneticFieldZ;
-            tm.gps_alt       = gps.height;
-            tm.gps_lat       = gps.latitude;
-            tm.gps_lon       = gps.longitude;
-            tm.gps_fix       = gps.fix;
-            tm.fmm_state     = static_cast<uint8_t>(
-                getModule<FlightModeManager>()->getState());
+            auto pressDigi = sensors->getLPS22DFLastSample();
+            auto imu       = sensors->getLSM6DSRXLastSample();
+            auto mag       = sensors->getLIS2MDLLastSample();
+            auto gps       = sensors->getUBXGPSLastSample();
+
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.pressure_ada    = -1.0f;  // TODO
+            tm.pressure_digi   = pressDigi.pressure;
+            tm.pressure_static = -1.0f;  // TODO
+            tm.pressure_dpl    = -1.0f;  // TODO
+            tm.airspeed_pitot  = -1.0f;  // TODO
+            tm.altitude_agl    = -1.0f;  // TODO
+            tm.ada_vert_speed  = -1.0f;  // TODO
+            tm.mea_mass        = -1.0f;  // TODO
+
+            // Sensors
+            tm.acc_x   = imu.accelerationX;
+            tm.acc_y   = imu.accelerationY;
+            tm.acc_z   = imu.accelerationZ;
+            tm.gyro_x  = imu.angularSpeedX;
+            tm.gyro_y  = imu.angularSpeedY;
+            tm.gyro_z  = imu.angularSpeedZ;
+            tm.mag_x   = mag.magneticFieldX;
+            tm.mag_y   = mag.magneticFieldY;
+            tm.mag_z   = mag.magneticFieldZ;
+            tm.gps_alt = gps.height;
+            tm.gps_lat = gps.latitude;
+            tm.gps_lon = gps.longitude;
+            tm.gps_fix = gps.fix;
+
+            // Algorithms
+            tm.abk_angle  = -1.0f;  // TODO
+            tm.nas_n      = -1.0f;  // TODO
+            tm.nas_e      = -1.0f;  // TODO
+            tm.nas_d      = -1.0f;  // TODO
+            tm.nas_vn     = -1.0f;  // TODO
+            tm.nas_ve     = -1.0f;  // TODO
+            tm.nas_vd     = -1.0f;  // TODO
+            tm.nas_qx     = -1.0f;  // TODO
+            tm.nas_qy     = -1.0f;  // TODO
+            tm.nas_qz     = -1.0f;  // TODO
+            tm.nas_qw     = -1.0f;  // TODO
+            tm.nas_bias_x = -1.0f;  // TODO
+            tm.nas_bias_y = -1.0f;  // TODO
+            tm.nas_bias_z = -1.0f;  // TODO
+
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().voltage;
-            tm.logger_error = Logger::getInstance().getStats().lastWriteError;
-            tm.temperature  = pressDigi.temperature;
+            tm.temperature         = pressDigi.temperature;
+
+            tm.ada_state = 255;  // TODO
+            tm.fmm_state = static_cast<uint8_t>(
+                getModule<FlightModeManager>()->getState());
+            tm.dpl_state = 255;  // TODO
+            tm.abk_state = 255;  // TODO
+            tm.nas_state = 255;  // TODO
+            tm.mea_state = 255;  // TODO
+
+            tm.pin_launch =
+                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState
+                    ? 1
+                    : 0;
+            tm.pin_nosecone =
+                pinHandler->getPinData(PinHandler::PinList::DETACH_MAIN_PIN)
+                        .lastState
+                    ? 1
+                    : 0;
+            tm.pin_expulsion   = 255;  // TODO
+            tm.cutter_presence = 255;  // TODO
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 Config::Radio::MAV_COMPONENT_ID,
@@ -425,10 +499,87 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_stats_tm_t tm;
 
+            tm.liftoff_ts           = 0;      // TODO
+            tm.liftoff_max_acc      = -1.0f;  // TODO
+            tm.liftoff_max_acc_ts   = 0;      // TODO
+            tm.dpl_ts               = 0;      // TODO
+            tm.dpl_max_acc          = -1.0f;  // TODO
+            tm.max_z_speed          = -1.0f;  // TODO
+            tm.max_z_speed_ts       = 0;      // TODO
+            tm.max_airspeed_pitot   = -1.0f;
+            tm.max_speed_altitude   = -1.0f;
+            tm.apogee_lat           = -1.0f;  // TODO
+            tm.apogee_lon           = -1.0f;  // TODO
+            tm.apogee_alt           = -1.0f;  // TODO
+            tm.min_pressure         = -1.0f;  // TODO
+            tm.ada_min_pressure     = -1.0f;  // TODO
+            tm.dpl_bay_max_pressure = -1.0f;  // TODO
+
+            // Cpu stuff
+            CpuMeterData cpuStats = CpuMeter::getCpuStats();
+            CpuMeter::resetCpuStats();
+            tm.cpu_load  = cpuStats.mean;
+            tm.free_heap = cpuStats.freeHeap;
+
+            // Log stuff
+            LoggerStats loggerStats = Logger::getInstance().getStats();
+            tm.log_good             = (loggerStats.lastWriteError == 0) ? 1 : 0;
+            tm.log_number           = loggerStats.logNumber;
+
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+            tm.payload_board_state = canStatus.getPayloadState();
+            tm.motor_board_state   = canStatus.getMotorState();
+
+            tm.payload_can_status = canStatus.isPayloadConnected() ? 1 : 0;
+            tm.motor_can_status   = canStatus.isMotorConnected() ? 1 : 0;
+            tm.rig_can_status     = canStatus.isRigConnected() ? 1 : 0;
+
+            tm.hil_state = 0;  // TODO
+
             mavlink_msg_rocket_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                Config::Radio::MAV_COMPONENT_ID,
                                                &msg, &tm);
             enqueuePacket(msg);
+            return true;
+        }
+        case MAV_MOTOR_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_motor_tm_t tm;
+
+            Sensors* sensors     = getModule<Sensors>();
+            Actuators* actuators = getModule<Actuators>();
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // Sensors (either CAN or local)
+            tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
+            tm.bottom_tank_pressure = -1.0f;  // TODO
+            tm.combustion_chamber_pressure = sensors->getCCPress().pressure;
+            tm.tank_temperature            = -1.0f;  // TODO
+            tm.battery_voltage = sensors->getMotorBatteryVoltage().voltage;
+
+            // Valve states
+            tm.main_valve_state =
+                actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
+            tm.venting_valve_state =
+                actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
+
+            // Can data
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+
+            tm.log_number = canStatus.getMotorLogNumber();
+            tm.log_good   = canStatus.isMotorLogGood() ? 1 : 0;
+            tm.hil_state  = canStatus.isMotorHil() ? 1 : 0;
+
+            mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                        Config::Radio::MAV_COMPONENT_ID, &msg,
+                                        &tm);
+            enqueuePacket(msg);
+            return true;
+
             return true;
         }
         default:
@@ -467,7 +618,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_ADS_ID:
+        case MAV_ADS131M08_ID:
         {
             mavlink_message_t msg;
             mavlink_adc_tm_t tm;
