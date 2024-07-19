@@ -38,7 +38,7 @@ namespace Config
 namespace Buttons
 {
 
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz BUTTON_SAMPLE_PERIOD = 50_hz;
 

@@ -33,7 +33,7 @@ namespace Config
 namespace CanHandler
 {
 
-using namespace std::chrono_literals;
+/* linter off */ using namespace std::chrono_literals;
 
 static constexpr std::chrono::nanoseconds STATUS_PERIOD  = 1000ms;
 static constexpr std::chrono::nanoseconds STATUS_TIMEOUT = 1500ms;
