@@ -44,7 +44,9 @@ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
-constexpr Hertz PERIOD                = 50_hz;  // [ms] 50Hz
+
+constexpr Hertz PERIOD = 50_hz;  // [ms] 50Hz
+constexpr bool ENABLED = true;
 }  // namespace LPS22DF
 
 namespace H3LIS331DL
@@ -56,6 +58,7 @@ constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 constexpr Hertz PERIOD = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace H3LIS331DL
 
 namespace LIS2MDL
@@ -65,6 +68,7 @@ using namespace Boardcore::Units::Frequency;
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int TEMP_DIVIDER   = 5;
 constexpr Hertz PERIOD                = 100_hz;
+constexpr bool ENABLED                = true;
 }  // namespace LIS2MDL
 
 namespace LSM6DSRX
@@ -86,6 +90,7 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr Hertz PERIOD = 50_hz;
+constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
 namespace ADS131M08
@@ -99,15 +104,28 @@ constexpr bool GLOBAL_CHOP_MODE_EN = true;
 constexpr float CH5_SHUNT_RESISTANCE = 29.7;
 constexpr float CH6_SHUNT_RESISTANCE = 29.7;
 
-constexpr Boardcore::ADS131M08Defs::Channel TC_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel TANK_TC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
-constexpr Boardcore::ADS131M08Defs::Channel BOTTOM_PT_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel TANK_TOP_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
 constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
 
 constexpr Hertz PERIOD = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace ADS131M08
+
+namespace Trafag
+{
+constexpr float TANK_TOP_SHUNT_RESISTANCE = ADS131M08::CH5_SHUNT_RESISTANCE;
+constexpr float ENGINE_SHUNT_RESISTANCE   = ADS131M08::CH6_SHUNT_RESISTANCE;
+
+constexpr float MIN_CURRENT = 4;
+constexpr float MAX_CURRENT = 20;
+
+constexpr float TANK_TOP_MAX_PRESSURE = 100;  // bar
+constexpr float ENGINE_MAX_PRESSURE   = 40;   // bar
+}  // namespace Trafag
 
 namespace InternalADC
 {
@@ -119,6 +137,7 @@ constexpr Boardcore::InternalADC::Channel VBAT_CH =
 constexpr float VBAT_SCALE = 9040.0f / 3000.0f;
 
 constexpr Hertz PERIOD = 10_hz;
+constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
 }  // namespace Sensors

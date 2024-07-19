@@ -32,6 +32,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/TrafagPressureSensor.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
@@ -48,47 +49,63 @@ public:
     [[nodiscard]] bool start();
 
     Boardcore::InternalADCData getInternalADCLastSample();
-    Boardcore::ADS131M08Data getADC1LastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
 
     Boardcore::PressureData getTopTankPress();
-    Boardcore::PressureData getBottomTopTankPress();
     Boardcore::PressureData getCCPress();
     Boardcore::TemperatureData getTankTemp();
     Boardcore::VoltageData getBatteryVoltage();
 
     std::vector<Boardcore::SensorInfo> getSensorInfo();
 
+protected:
+    virtual bool postSensorCreationHook() { return true; }
+
 private:
-    void lps22dfInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lps22dfInit();
     void lps22dfCallback();
 
-    void h3lis331dlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void h3lis331dlInit();
     void h3lis331dlCallback();
 
-    void lis2mdlInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lis2mdlInit();
     void lis2mdlCallback();
 
-    void lsm6dsrxInit(Boardcore::SensorManager::SensorMap_t &map);
+    void lsm6dsrxInit();
     void lsm6dsrxCallback();
 
-    void ads131m08Init(Boardcore::SensorManager::SensorMap_t &map);
+    void ads131m08Init();
     void ads131m08Callback();
 
-    void internalAdcInit(Boardcore::SensorManager::SensorMap_t &map);
+    void internalAdcInit();
     void internalAdcCallback();
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
+    void topTankPressureInit();
+    void topTankPressureCallback();
 
+    void ccPressureInit();
+    void ccPressureCallback();
+
+    bool sensorManagerInit();
+
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+
+    // Digital sensors
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+
+    // Analog sensors
+    std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 };

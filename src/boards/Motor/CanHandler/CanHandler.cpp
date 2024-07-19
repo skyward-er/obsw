@@ -52,17 +52,24 @@ bool CanHandler::start()
     TaskScheduler &scheduler =
         getModule<BoardScheduler>()->getCanBusScheduler();
 
-    uint8_t result;
-
-    result = scheduler.addTask(
+    uint8_t result = scheduler.addTask(
         [this]()
         {
-            protocol.enqueueSimplePacket(
+            LoggerStats stats = sdLogger.getStats();
+
+            protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
                 static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0,
-                initStatus);
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
+                DeviceStatus{
+                    TimestampTimer::getTimestamp(),
+                    static_cast<int16_t>(stats.logNumber),
+                    static_cast<uint8_t>(initStatus),
+                    false,
+                    false,  // TODO: HIL
+                    stats.lastWriteError == 0,
+                });
         },
         Config::CanHandler::STATUS_PERIOD);
 
@@ -84,14 +91,6 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::CC_PRESSURE),
                 static_cast<PressureData>(sensors->getCCPress()));
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::BOTTOM_TANK_PRESSURE),
-                static_cast<PressureData>(sensors->getBottomTopTankPress()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -122,14 +121,13 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::SensorId::TANK_TEMPERATURE),
                 static_cast<TemperatureData>(sensors->getTankTemp()));
 
-            /*protocol.enqueueData(
-                    static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
-                    static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                    static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                    static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                    static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
-                    static_cast<VoltageData>(
-                        sensors->getBatteryVoltage()));*/
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
+                static_cast<VoltageData>(sensors->getBatteryVoltage()));
         },
         Config::CanHandler::TEMPERATURE_PERIOD);
 
@@ -150,8 +148,10 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::MAIN_VALVE),
-                ServoData{TimestampTimer::getTimestamp(), 0, 0,
-                          actuators->getServoPosition(ServosList::MAIN_VALVE)});
+                ServoFeedback{
+                    TimestampTimer::getTimestamp(),
+                    actuators->getServoPosition(ServosList::MAIN_VALVE),
+                    actuators->isServoOpen(ServosList::MAIN_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -159,9 +159,10 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::VENTING_VALVE),
-                ServoData{
-                    TimestampTimer::getTimestamp(), 0, 0,
-                    actuators->getServoPosition(ServosList::VENTING_VALVE)});
+                ServoFeedback{
+                    TimestampTimer::getTimestamp(),
+                    actuators->getServoPosition(ServosList::VENTING_VALVE),
+                    actuators->isServoOpen(ServosList::VENTING_VALVE)});
         },
         Config::CanHandler::ACTUATORS_PERIOD);
 
@@ -211,22 +212,17 @@ void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
 
 void CanHandler::handleCommand(const Boardcore::Canbus::CanMessage &msg)
 {
-    ServosList servo = static_cast<ServosList>(msg.getSecondaryType());
+    ServosList servo     = static_cast<ServosList>(msg.getSecondaryType());
+    ServoCommand command = servoCommandFromCanMessage(msg);
+    sdLogger.log(command);
 
-    uint64_t payload         = msg.payload[0];
-    uint32_t openingTime     = static_cast<uint32_t>(payload);
-    uint32_t maxApertureBits = static_cast<uint32_t>(payload >> 32);
-
-    float maxAperture = 0.0f;
-    std::memcpy(&maxAperture, &maxApertureBits, sizeof(maxApertureBits));
-
-    if (openingTime == 0)
+    if (command.openingTime == 0)
     {
         getModule<Actuators>()->closeServo(servo);
     }
     else
     {
-        getModule<Actuators>()->openServoWithApertureAndTime(servo, maxAperture,
-                                                             openingTime);
+        getModule<Actuators>()->openServoWithApertureAndTime(
+            servo, command.aperture, command.openingTime);
     }
 }

@@ -38,7 +38,22 @@ public:
     {
     }
 
-    [[nodiscard]] bool start() { return sensors.start() && actuators.start(); }
+    [[nodiscard]] bool start()
+    {
+        if (!sensors.start())
+        {
+            LOG_ERR(logger, "Failed to start sensors scheduler");
+            return false;
+        }
+
+        if (!actuators.start())
+        {
+            LOG_ERR(logger, "Failed to start actuators scheduler");
+            return false;
+        }
+
+        return true;
+    }
 
     Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
 
@@ -47,6 +62,9 @@ public:
     Boardcore::TaskScheduler &getCanBusScheduler() { return actuators; }
 
 private:
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("boardscheduler");
+
     Boardcore::TaskScheduler sensors;
     Boardcore::TaskScheduler actuators;
 };

@@ -50,6 +50,7 @@ private:
     void handleEvent(const Boardcore::Canbus::CanMessage &msg);
     void handleCommand(const Boardcore::Canbus::CanMessage &msg);
 
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
     std::atomic<uint8_t> initStatus{0};

@@ -55,6 +55,12 @@ int main()
 
     manager.graphviz(std::cout);
 
+    if (!initResult)
+    {
+        LOG_ERR(logger, "Failed to inject dependencies");
+        return 0;
+    }
+
     // Start modules
     if (!sensors->start())
     {
@@ -80,6 +86,14 @@ int main()
         LOG_ERR(logger, "Error failed to start scheduler");
     }
 
+    if (!Logger::getInstance().start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start SD");
+    }
+
+    Logger::getInstance().resetStats();
+
     if (initResult)
     {
         canHandler->setInitStatus(2);
@@ -91,18 +105,12 @@ int main()
         LOG_ERR(logger, "Init failure!");
     }
 
-    for (auto info : sensors->getSensorInfo())
-    {
-        LOG_INFO(logger, "Sensor {} {}", info.id, info.isInitialized);
-    }
-
     while (true)
     {
         gpios::boardLed::low();
         Thread::sleep(1000);
         gpios::boardLed::high();
         Thread::sleep(1000);
-        LOG_INFO(logger, "Vbat {}", sensors->getBatteryVoltage().voltage);
     }
 
     return 0;

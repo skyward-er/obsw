@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,35 @@
 
 #pragma once
 
-#include <units/Frequency.h>
-
-#include <chrono>
+#include <cstdint>
+#include <ostream>
 
 namespace Motor
 {
-
-namespace Config
+struct ActuatorsData
 {
+    uint64_t timestamp;
+    uint8_t servoIdx;
+    float position;
 
-namespace CanHandler
-{
+    ActuatorsData()
+    {
+        timestamp = 0;
+        servoIdx  = 0;
+        position  = 0;
+    }
 
-using namespace std::chrono_literals;
-using namespace Boardcore::Units::Frequency;
+    ActuatorsData(uint64_t time, uint8_t servoIdx, float pos)
+        : timestamp(time), servoIdx(servoIdx), position(pos)
+    {
+    }
 
-constexpr std::chrono::nanoseconds STATUS_PERIOD = 1000ms;
+    static std::string header() { return "timestamp,servoIdx,position\n"; }
 
-constexpr Hertz PRESSURE_PERIOD = 50_hz;
-
-constexpr Hertz ACTUATORS_PERIOD = 50_hz;
-
-constexpr Hertz TEMPERATURE_PERIOD = 10_hz;
-
-}  // namespace CanHandler
-
-}  // namespace Config
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)servoIdx << "," << position << "\n";
+    }
+};
 
 }  // namespace Motor

@@ -64,6 +64,7 @@ public:
     bool openServoWithApertureAndTime(ServosList servo, float aperture,
                                       uint32_t time);
     bool closeServo(ServosList servo);
+    bool isServoOpen(ServosList servo);
     float getServoPosition(ServosList servo);
 
 private:
@@ -73,6 +74,7 @@ private:
 
     void updatePositionsTask();
 
+    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;
