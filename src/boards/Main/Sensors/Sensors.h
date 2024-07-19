@@ -24,8 +24,11 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <algorithms/ReferenceValues.h>
+#include <common/ReferenceConfig.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
+#include <miosix.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -36,10 +39,13 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
+#include <utils/AeroUtils/AeroUtils.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
 #include <vector>
+
+#include "RotatedIMU/RotatedIMU.h"
 
 namespace Main
 {
@@ -47,7 +53,7 @@ namespace Main
 class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
 {
 public:
-    Sensors() {}
+    Sensors() : reference{Common::ReferenceConfig::defaultReferenceValues} {}
 
     bool isStarted();
 
@@ -61,6 +67,8 @@ public:
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
+    RotatedIMUData getRotatedIMULastSample();
+    MagnetometerData Sensors::getCalibratedMagnetometerLastSample();
 
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getCamBatteryVoltage();
@@ -74,6 +82,26 @@ public:
     Boardcore::PressureData getCanCCPress();
     Boardcore::TemperatureData getCanTankTemp();
     Boardcore::VoltageData getCanMotorBatteryVoltage();
+
+    Boardcore::ReferenceValues getReferenceValues()
+    {
+        miosix::Lock<miosix::FastMutex> l(referenceMutex);
+        return reference;
+    }
+
+    void setRefAtmosphere(float refTemperature, float refPressure)
+    {
+        float mslTemperature = Boardcore::Aeroutils::relTemperature(
+            -reference.refAltitude, refTemperature);
+        float mslPressure = Boardcore::Aeroutils::relPressure(
+            -reference.refAltitude, refPressure, refTemperature);
+
+        miosix::Lock<miosix::FastMutex> l(referenceMutex);
+        reference.refTemperature = refTemperature;
+        reference.refPressure    = refPressure;
+        reference.mslTemperature = mslTemperature;
+        reference.mslPressure    = mslPressure;
+    }
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -138,12 +166,27 @@ private:
 
     void staticPressure1Init();
     void staticPressure1Callback();
+    void rotatedIMUInit(Boardcore::SensorManager::SensorMap_t &map);
+    void rotatedIMUCallback();
 
     void staticPressure2Init();
     void staticPressure2Callback();
 
     void dplBayPressureInit();
     void dplBayPressureCallback();
+
+    miosix::FastMutex referenceMutex;
+    Boardcore::ReferenceValues reference;
+
+    std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
+    std::unique_ptr<Boardcore::InternalADC> internalAdc;
+    std::unique_ptr<RotatedIMU> imu;
 
     bool sensorManagerInit();
 

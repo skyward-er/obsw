@@ -35,6 +35,9 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
+    // Read the magnetometer calibration from predefined file
+    magCalibration.fromFile("/sd/magCalibration.csv");
+
     if (Config::Sensors::LPS22DF::ENABLED)
     {
         lps22dfInit();
@@ -78,6 +81,10 @@ bool Sensors::start()
         internalAdcInit();
     }
 
+    if(Config::Sensors::RotatedIMU::ENABLED){
+        rotatedIMUInit();
+    }
+
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -92,6 +99,70 @@ bool Sensors::start()
 
     started = true;
     return true;
+}
+
+void Sensors::calibrate()
+{
+    // Create the stats to calibrate the barometers
+    Stats staticPressure1Stats;
+    Stats staticPressure2Stats;
+    Stats deploymentPressureStats;
+    Stats gyroStats;
+
+    // Add N samples to the stats
+    for (unsigned int i = 0; i < SensorsConfig::CALIBRATION_SAMPLES; i++)
+    {
+        staticPressure1Stats.add(getStaticPressure1LastSample().pressure);
+        staticPressure2Stats.add(getStaticPressure2LastSample().pressure);
+        deploymentPressureStats.add(getDeploymentPressureLastSample().pressure);
+
+        // Calibrate gyroscope
+
+        // Delay for the expected period
+        miosix::Thread::sleep(SensorsConfig::CALIBRATION_PERIOD);
+    }
+
+    // Compute the difference between the mean value from LPS28DFW
+    float refPressure = reference.refPressure;
+
+    hscmrnn015pa_1->updateOffset(staticPressure1Stats.getStats().mean -
+                                 refPressure);
+    hscmrnn015pa_2->updateOffset(staticPressure2Stats.getStats().mean -
+                                 refPressure);
+    mpxh6400a->updateOffset(deploymentPressureStats.getStats().mean -
+                            refPressure);
+
+    // Log the offsets
+    SensorsCalibrationParameter cal{};
+    cal.timestamp     = TimestampTimer::getTimestamp();
+    cal.offsetStatic1 = staticPressure1Stats.getStats().mean - refPressure;
+    cal.offsetStatic2 = staticPressure2Stats.getStats().mean - refPressure;
+    cal.offsetDeployment =
+        deploymentPressureStats.getStats().mean - refPressure;
+    cal.referencePressure = refPressure;
+
+    Logger::getInstance().log(cal);
+}
+
+bool Sensors::writeMagCalibration()
+{
+    // Compute the calibration result in protected area
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        SixParametersCorrector cal = magCalibrator.computeResult();
+
+        // Check result validity
+        if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
+            !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
+            !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+        {
+            magCalibration = cal;
+
+            // Save the calibration to the calibration file
+            return magCalibration.toFile("/sd/magCalibration.csv");
+        }
+        return false;
+    }
 }
 
 Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
@@ -133,6 +204,10 @@ Boardcore::InternalADCData Sensors::getInternalADCLastSample()
 {
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
+RotatedIMUData Sensors::getRotatedIMULastSample()
+{
+    return imu ? imu->getLastSample() : RotatedIMUData{};
+}
 
 Boardcore::VoltageData Sensors::getBatteryVoltage()
 {
@@ -149,6 +224,24 @@ Boardcore::VoltageData Sensors::getCamBatteryVoltage()
         sample.voltage[(int)Config::Sensors::InternalADC::CAM_VBAT_CH] *
         Config::Sensors::InternalADC::CAM_VBAT_SCALE;
     return {sample.timestamp, voltage};
+}
+
+MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
+{
+    // Do not need to pause the kernel, the last sample getter is already
+    // protected
+    MagnetometerData lastSample = getLIS2MDLLastSample();
+    MagnetometerData result;
+
+    // Correct the result and copy the timestamp
+    {
+        miosix::Lock<FastMutex> l(calibrationMutex);
+        result =
+            static_cast<MagnetometerData>(magCalibration.correct(lastSample));
+    }
+
+    result.magneticFieldTimestamp = lastSample.magneticFieldTimestamp;
+    return result;
 }
 
 PressureData Sensors::getStaticPressure1()
@@ -241,6 +334,7 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
                 manager->getSensorInfo(staticPressure1.get()),
                 manager->getSensorInfo(staticPressure2.get()),
                 manager->getSensorInfo(dplBayPressure.get())};
+                manager->getSensorInfo(imu.get())};
     }
     else
     {
@@ -565,4 +659,40 @@ bool Sensors::sensorManagerInit()
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
     return manager->start();
+}
+
+void Sensors::rotatedIMUInit(Boardcore::SensorManager::SensorMap_t &map)
+{
+    // Register the IMU as the fake sensor, passing as parameters the methods to
+    // retrieve real data. The sensor is not synchronized, but the sampling
+    // thread is always the same.
+    imu = new RotatedIMU([this]() { return getLSM6DSRXLastSample(); },
+                         [this]()
+                         { return getCalibratedMagnetometerLastSample(); },
+                         [this]() { return getLSM6DSRXLastSample(); });
+
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    imu->addMagTransformation(m);
+    imu->addMagTransformation(imu->rotateAroundY(-90));
+    imu->addMagTransformation(imu->rotateAroundZ(90));
+
+    // Accelerometer
+    imu->addAccTransformation(imu->rotateAroundZ(-90));
+    imu->addAccTransformation(imu->rotateAroundX(-90));
+
+    // Gyroscope
+    imu->addGyroTransformation(imu->rotateAroundZ(-90));
+    imu->addGyroTransformation(imu->rotateAroundX(-90));
+
+    // Emplace the sensor inside the map
+    SensorInfo info("RotatedIMU", Config::Sensors::InternalADC::PERIOD,
+                    [this]() { rotatedIMUCallback(); });
+    sensorMap.emplace(make_pair(imu, info));
+}
+
+void Sensors::rotatedIMUCallback()
+{
+    auto lastSample = getRotatedIMULastSample();
+    Logger::getInstance().log(lastSample);
 }

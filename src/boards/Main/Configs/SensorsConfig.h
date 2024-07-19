@@ -162,6 +162,12 @@ constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
+namespace RotatedIMU
+{
+static constexpr uint32_t PERIOD = 20;  // [ms] 50Hz
+static constexpr bool ENABLED    = true;
+}  // namespace RotatedIMU
+
 }  // namespace Sensors
 
 }  // namespace Config

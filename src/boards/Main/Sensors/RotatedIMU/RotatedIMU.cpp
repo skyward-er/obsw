@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Main/Sensors/RotatedIMU/RotatedIMU.h>
+#include "RotatedIMU.h"
 
 using namespace Eigen;
 using namespace Boardcore;

@@ -21,11 +21,12 @@
  */
 #pragma once
 
-#include <Main/Sensors/RotatedIMU/RotatedIMUData.h>
 #include <sensors/Sensor.h>
 
 #include <Eigen/Eigen>
 #include <functional>
+
+#include "RotatedIMUData.h"
 
 namespace Main
 {
