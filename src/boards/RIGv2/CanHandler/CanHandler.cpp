@@ -25,6 +25,8 @@
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <common/CanConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 
 using namespace miosix;
 using namespace RIGv2;
@@ -32,12 +34,8 @@ using namespace Boardcore;
 using namespace Boardcore::Canbus;
 using namespace Common;
 
-static constexpr CanbusDriver::CanbusConfig CONFIG;
-static constexpr CanbusDriver::AutoBitTiming BIT_TIMING = {
-    .baudRate = CanConfig::BAUD_RATE, .samplePoint = CanConfig::SAMPLE_POINT};
-
 CanHandler::CanHandler()
-    : driver(CAN1, CONFIG, BIT_TIMING),
+    : driver(CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING),
       protocol(
           &driver, [this](const CanMessage &msg) { handleMessage(msg); },
           Config::Scheduler::CAN_PRIORITY)
@@ -59,10 +57,31 @@ bool CanHandler::start()
     TaskScheduler &scheduler =
         getModule<BoardScheduler>()->getCanBusScheduler();
 
-    uint8_t result = scheduler.addTask([this]() { periodicMessage(); },
-                                       Config::CanHandler::STATUS_PERIOD);
+    uint8_t result = scheduler.addTask(
+        [this]()
+        {
+            LoggerStats stats = sdLogger.getStats();
 
-    if (result != 0)
+            GroundModeManagerState state =
+                getModule<GroundModeManager>()->getState();
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
+                static_cast<uint8_t>(CanConfig::Board::RIG),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
+                DeviceStatus{
+                    TimestampTimer::getTimestamp(),
+                    static_cast<int16_t>(stats.logNumber),
+                    static_cast<uint8_t>(state),
+                    state == GroundModeManagerState::GMM_STATE_ARMED,
+                    false,
+                    stats.lastWriteError == 0,
+                });
+        },
+        Config::CanHandler::STATUS_PERIOD);
+
+    if (result == 0)
     {
         LOG_ERR(logger, "Failed to add periodicMessageTask");
         return false;
@@ -88,20 +107,16 @@ void CanHandler::sendEvent(CanConfig::EventId event)
 }
 
 void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
-                                      uint32_t openingTime)
+                                      uint16_t openingTime)
 {
-    uint32_t maxApertureBits = 0;
-    std::memcpy(&maxApertureBits, &maxAperture, sizeof(maxAperture));
 
-    uint64_t payload = (static_cast<uint64_t>(openingTime) << 32) |
-                       static_cast<uint64_t>(maxApertureBits);
-
-    protocol.enqueueSimplePacket(
+    protocol.enqueueData(
         static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::RIG),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-        static_cast<uint8_t>(servo), payload);
+        static_cast<uint8_t>(servo),
+        ServoCommand{TimestampTimer::getTimestamp(), maxAperture, openingTime});
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()
@@ -219,47 +234,46 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
 
 void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
 {
-    ServosList servo = static_cast<ServosList>(msg.getSecondaryType());
-    ServoData data   = servoDataFromCanMessage(msg);
+    ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
+    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    sdLogger.log(data);
 
-    // TODO: Update with new message
-
-    getModule<Actuators>()->setCanServoAperture(servo, data.position);
+    getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
 void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
 {
     CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
-
-    bool armed    = (msg.payload[0] >> 8) != 0;
-    uint8_t state = msg.payload[0] & 0xff;
+    CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);
 
     Lock<FastMutex> lock{statusMutex};
-
-    // TODO: Update with new message
 
     switch (source)
     {
         case CanConfig::Board::MAIN:
         {
             status.mainLastStatus = getTime();
-            status.mainArmed      = armed;
-            status.mainState      = state;
+            status.mainArmed      = deviceStatus.armed;
+            status.mainState      = deviceStatus.state;
             break;
         }
 
         case CanConfig::Board::PAYLOAD:
         {
             status.payloadLastStatus = getTime();
-            status.payloadArmed      = armed;
-            status.payloadState      = state;
+            status.payloadArmed      = deviceStatus.armed;
+            status.payloadState      = deviceStatus.state;
             break;
         }
 
         case CanConfig::Board::MOTOR:
         {
             status.motorLastStatus = getTime();
-            status.motorState      = state;
+            status.motorState      = deviceStatus.state;
+
+            status.motorLogNumber = deviceStatus.logNumber;
+            status.motorLogGood   = deviceStatus.logGood;
+            status.motorHil       = deviceStatus.hil;
             break;
         }
 
@@ -268,19 +282,4 @@ void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
             LOG_WARN(logger, "Received unsupported status: {}", source);
         }
     }
-}
-
-void CanHandler::periodicMessage()
-{
-    GroundModeManagerState state = getModule<GroundModeManager>()->getState();
-
-    uint64_t payload =
-        static_cast<uint8_t>(state) |
-        ((state == GroundModeManagerState::GMM_STATE_ARMED) ? 1 : 0) << 8;
-
-    protocol.enqueueSimplePacket(
-        static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
-        static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
-        static_cast<uint8_t>(CanConfig::Board::RIG),
-        static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00, payload);
 }

@@ -400,11 +400,11 @@ bool Actuators::isCanServoOpen(ServosList servo)
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
     {
-        return mainAperture > 0.05f;
+        return canMainOpen;
     }
     else if (servo == ServosList::VENTING_VALVE)
     {
-        return ventingAperture > 0.05f;
+        return canVentingOpen;
     }
     else
     {
@@ -462,16 +462,16 @@ float Actuators::getServoMaxAperture(ServosList servo)
     return info->getMaxAperture();
 }
 
-void Actuators::setCanServoAperture(ServosList servo, float aperture)
+void Actuators::setCanServoOpen(ServosList servo, bool open)
 {
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
     {
-        mainAperture = aperture;
+        canMainOpen = open;
     }
     else if (servo == ServosList::VENTING_VALVE)
     {
-        ventingAperture = aperture;
+        canVentingOpen = open;
     }
 }
 

@@ -43,6 +43,10 @@ namespace ADS131M08
 
 using namespace Boardcore::Units::Frequency;
 
+constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
+    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr bool GLOBAL_CHOP_MODE_EN = true;
+
 constexpr float CH1_SHUNT_RESISTANCE = 29.4048;
 constexpr float CH2_SHUNT_RESISTANCE = 29.5830;
 constexpr float CH3_SHUNT_RESISTANCE = 29.4973;
@@ -75,8 +79,8 @@ constexpr Boardcore::ADS131M08Defs::Channel TANK_LC_CHANNEL =
 constexpr float SERVO_CURRENT_SCALE = 4.5466;
 constexpr float SERVO_CURRENT_ZERO  = 2.520 / SERVO_CURRENT_SCALE;
 
-constexpr Hertz SAMPLE_PERIOD = 100_hz;
-constexpr bool ENABLED        = true;
+constexpr Hertz PERIOD = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace ADS131M08
 
 namespace MAX31856
@@ -84,15 +88,12 @@ namespace MAX31856
 
 using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz SAMPLE_PERIOD = 10_hz;
-constexpr bool ENABLED        = true;
+constexpr Hertz PERIOD = 10_hz;
+constexpr bool ENABLED = true;
 }  // namespace MAX31856
 
 namespace Trafag
 {
-
-using namespace Boardcore::Units::Frequency;
-
 constexpr float FILLING_SHUNT_RESISTANCE     = ADS131M08::CH2_SHUNT_RESISTANCE;
 constexpr float TANK_TOP_SHUNT_RESISTANCE    = ADS131M08::CH4_SHUNT_RESISTANCE;
 constexpr float TANK_BOTTOM_SHUNT_RESISTANCE = ADS131M08::CH3_SHUNT_RESISTANCE;
@@ -109,9 +110,6 @@ constexpr float VESSEL_MAX_PRESSURE      = 400;  // bar
 
 namespace LoadCell
 {
-
-using namespace Boardcore::Units::Frequency;
-
 constexpr unsigned int CALIBRATE_SAMPLE_COUNT  = 10;
 constexpr unsigned int CALIBRATE_SAMPLE_PERIOD = 40;
 
@@ -143,7 +141,7 @@ constexpr Boardcore::InternalADC::Channel BATTERY_VOLTAGE_CHANNEL =
     Boardcore::InternalADC::CH14;
 
 constexpr float BATTERY_VOLTAGE_SCALE = 4.7917;
-constexpr Hertz SAMPLE_PERIOD         = 10_hz;
+constexpr Hertz PERIOD                = 10_hz;
 constexpr bool ENABLED                = true;
 }  // namespace InternalADC
 

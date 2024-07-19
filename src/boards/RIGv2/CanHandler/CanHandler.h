@@ -54,6 +54,10 @@ public:
         bool mainArmed    = false;
         bool payloadArmed = false;
 
+        uint16_t motorLogNumber = 0;
+        bool motorLogGood       = true;
+        bool motorHil           = false;
+
         bool isMainConnected()
         {
             return miosix::getTime() <=
@@ -79,6 +83,10 @@ public:
 
         bool isMainArmed() { return mainArmed; }
         bool isPayloadArmed() { return payloadArmed; }
+
+        uint16_t getMotorLogNumber() { return motorLogNumber; }
+        bool isMotorLogGood() { return motorLogGood; }
+        bool isMotorHil() { return motorHil; }
     };
 
     CanHandler();
@@ -90,7 +98,7 @@ public:
     void sendEvent(Common::CanConfig::EventId event);
 
     void sendServoOpenCommand(ServosList servo, float maxAperture,
-                              uint32_t openingTime);
+                              uint16_t openingTime);
     void sendServoCloseCommand(ServosList servo);
 
     CanStatus getCanStatus();
@@ -101,8 +109,6 @@ private:
     void handleSensor(const Boardcore::Canbus::CanMessage &msg);
     void handleActuator(const Boardcore::Canbus::CanMessage &msg);
     void handleStatus(const Boardcore::Canbus::CanMessage &msg);
-
-    void periodicMessage();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();

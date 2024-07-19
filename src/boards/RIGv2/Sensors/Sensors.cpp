@@ -35,33 +35,30 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    TaskScheduler &scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
-
-    SensorManager::SensorMap_t map;
     if (Config::Sensors::InternalADC::ENABLED)
     {
-        internalAdcInit(map);
+        internalAdcInit();
     }
+
     if (Config::Sensors::ADS131M08::ENABLED)
     {
-        adc1Init(map);
+        adc1Init();
+        vesselPressureInit();
+        fillingPressureInit();
+        topTankPressureInit();
+        bottomTankPressureInit();
+        vesselWeightInit();
+        tankWeightInit();
     }
+
     if (Config::Sensors::MAX31856::ENABLED)
     {
-        tc1Init(map);
+        tc1Init();
     }
-    vesselPressureInit(map);
-    fillingPressureInit(map);
-    topTankPressureInit(map);
-    bottomTankPressureInit(map);
-    vesselWeightInit(map);
-    tankWeightInit(map);
 
-    manager = std::make_unique<SensorManager>(map, &scheduler);
-    if (!manager->start())
+    if (!sensorManagerInit())
     {
-        LOG_ERR(logger, "Failed to start SensorManager");
+        LOG_ERR(logger, "Failed to init SensorManager");
         return false;
     }
 
@@ -289,7 +286,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     }
 }
 
-void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC1);
 
@@ -299,10 +296,6 @@ void Sensors::internalAdcInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::InternalADC::BATTERY_VOLTAGE_CHANNEL);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
-
-    SensorInfo info("InternalAdc", Config::Sensors::InternalADC::SAMPLE_PERIOD,
-                    [this]() { internalAdcCallback(); });
-    map.emplace(internalAdc.get(), info);
 }
 
 void Sensors::internalAdcCallback()
@@ -311,7 +304,7 @@ void Sensors::internalAdcCallback()
     sdLogger.log(sample);
 }
 
-void Sensors::adc1Init(SensorManager::SensorMap_t &map)
+void Sensors::adc1Init()
 {
     SPIBusConfig spiConfig = {};
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -319,8 +312,9 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio     = ADS131M08Defs::OversamplingRatio::OSR_8192;
-    config.globalChopModeEnabled = true;
+    config.oversamplingRatio = Config::Sensors::ADS131M08::OSR;
+    config.globalChopModeEnabled =
+        Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     config.channelsConfig[0].enabled = false;
@@ -379,10 +373,6 @@ void Sensors::adc1Init(SensorManager::SensorMap_t &map)
     adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_1(),
                                        sensors::ADS131_1::cs::getPin(),
                                        spiConfig, config);
-
-    SensorInfo info("ADS131M08_1", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { adc1Callback(); });
-    map.emplace(std::make_pair(adc1.get(), info));
 }
 
 void Sensors::adc1Callback()
@@ -395,18 +385,10 @@ void Sensors::adc1Callback()
                   sample.voltage[4], sample.voltage[5],
                   sample.voltage[6], sample.voltage[7]};
 
-    // LOG_INFO(logger, "{:.4}\t{:.4}\t{:.4}\t{:.4}",
-    //          (sample.voltage[0] / Config::Sensors::ADC1_CH1_SHUNT_RESISTANCE)
-    //          * 1000.0f, (sample.voltage[1] /
-    //          Config::Sensors::ADC1_CH2_SHUNT_RESISTANCE) * 1000.0f,
-    //          (sample.voltage[2] / Config::Sensors::ADC1_CH3_SHUNT_RESISTANCE)
-    //          * 1000.0f, (sample.voltage[3] /
-    //          Config::Sensors::ADC1_CH4_SHUNT_RESISTANCE) * 1000.0f);
-
     sdLogger.log(data);
 }
 
-void Sensors::tc1Init(SensorManager::SensorMap_t &map)
+void Sensors::tc1Init()
 {
     SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -414,10 +396,6 @@ void Sensors::tc1Init(SensorManager::SensorMap_t &map)
     tc1 = std::make_unique<MAX31856>(
         getModule<Buses>()->getMAX31856_1(), sensors::MAX31856_1::cs::getPin(),
         spiConfig, MAX31856::ThermocoupleType::K_TYPE);
-
-    SensorInfo info("MAX31856_1", Config::Sensors::MAX31856::SAMPLE_PERIOD,
-                    [this]() { tc1Callback(); });
-    map.emplace(std::make_pair(tc1.get(), info));
 }
 
 void Sensors::tc1Callback()
@@ -429,7 +407,7 @@ void Sensors::tc1Callback()
     sdLogger.log(data);
 }
 
-void Sensors::vesselPressureInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::vesselPressureInit()
 {
     vesselPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
@@ -442,10 +420,6 @@ void Sensors::vesselPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::Trafag::VESSEL_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-
-    SensorInfo info("VesselPressure", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { vesselPressureCallback(); });
-    map.emplace(std::make_pair(vesselPressure.get(), info));
 }
 
 void Sensors::vesselPressureCallback()
@@ -455,7 +429,7 @@ void Sensors::vesselPressureCallback()
     sdLogger.log(data);
 }
 
-void Sensors::fillingPressureInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::fillingPressureInit()
 {
     fillingPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
@@ -468,11 +442,6 @@ void Sensors::fillingPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::Trafag::FILLING_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-
-    SensorInfo info("FillingPressure",
-                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { fillingPressureCallback(); });
-    map.emplace(std::make_pair(fillingPressure.get(), info));
 }
 
 void Sensors::fillingPressureCallback()
@@ -482,7 +451,7 @@ void Sensors::fillingPressureCallback()
     sdLogger.log(data);
 }
 
-void Sensors::topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::topTankPressureInit()
 {
     topTankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
@@ -495,11 +464,6 @@ void Sensors::topTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-
-    SensorInfo info("TopTankPressure",
-                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { topTankPressureCallback(); });
-    map.emplace(std::make_pair(topTankPressure.get(), info));
 }
 
 void Sensors::topTankPressureCallback()
@@ -509,7 +473,7 @@ void Sensors::topTankPressureCallback()
     sdLogger.log(data);
 }
 
-void Sensors::bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::bottomTankPressureInit()
 {
     bottomTankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
@@ -522,11 +486,6 @@ void Sensors::bottomTankPressureInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-
-    SensorInfo info("BottomTankPressure",
-                    Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { bottomTankPressureCallback(); });
-    map.emplace(std::make_pair(bottomTankPressure.get(), info));
 }
 
 void Sensors::bottomTankPressureCallback()
@@ -536,7 +495,7 @@ void Sensors::bottomTankPressureCallback()
     sdLogger.log(data);
 }
 
-void Sensors::vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::vesselWeightInit()
 {
     vesselWeight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
@@ -549,10 +508,6 @@ void Sensors::vesselWeightInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::LoadCell::VESSEL_P0_MASS,
         Config::Sensors::LoadCell::VESSEL_P1_VOLTAGE,
         Config::Sensors::LoadCell::VESSEL_P1_MASS);
-
-    SensorInfo info("VesselWeight", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { vesselWeightCallback(); });
-    map.emplace(std::make_pair(vesselWeight.get(), info));
 }
 
 void Sensors::vesselWeightCallback()
@@ -562,7 +517,7 @@ void Sensors::vesselWeightCallback()
     sdLogger.log(data);
 }
 
-void Sensors::tankWeightInit(Boardcore::SensorManager::SensorMap_t &map)
+void Sensors::tankWeightInit()
 {
     tankWeight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
@@ -575,10 +530,6 @@ void Sensors::tankWeightInit(Boardcore::SensorManager::SensorMap_t &map)
         Config::Sensors::LoadCell::TANK_P0_MASS,
         Config::Sensors::LoadCell::TANK_P1_VOLTAGE,
         Config::Sensors::LoadCell::TANK_P1_MASS);
-
-    SensorInfo info("TankWeight", Config::Sensors::ADS131M08::SAMPLE_PERIOD,
-                    [this]() { tankWeightCallback(); });
-    map.emplace(std::make_pair(tankWeight.get(), info));
 }
 
 void Sensors::tankWeightCallback()
@@ -586,4 +537,79 @@ void Sensors::tankWeightCallback()
     LoadCellData sample = tankWeight->getLastSample();
     LCsData data{sample.loadTimestamp, 2, sample.load};
     sdLogger.log(data);
+}
+
+bool Sensors::sensorManagerInit()
+{
+    TaskScheduler &scheduler =
+        getModule<BoardScheduler>()->getSensorsScheduler();
+
+    SensorManager::SensorMap_t map;
+
+    if (internalAdc)
+    {
+        SensorInfo info("InternalAdc", Config::Sensors::InternalADC::PERIOD,
+                        [this]() { internalAdcCallback(); });
+        map.emplace(internalAdc.get(), info);
+    }
+
+    if (adc1)
+    {
+        SensorInfo info("ADS131M08_1", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { adc1Callback(); });
+        map.emplace(std::make_pair(adc1.get(), info));
+    }
+
+    if (tc1)
+    {
+        SensorInfo info("MAX31856_1", Config::Sensors::MAX31856::PERIOD,
+                        [this]() { tc1Callback(); });
+        map.emplace(std::make_pair(tc1.get(), info));
+    }
+
+    if (vesselPressure)
+    {
+        SensorInfo info("VesselPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { vesselPressureCallback(); });
+        map.emplace(std::make_pair(vesselPressure.get(), info));
+    }
+
+    if (fillingPressure)
+    {
+        SensorInfo info("FillingPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { fillingPressureCallback(); });
+        map.emplace(std::make_pair(fillingPressure.get(), info));
+    }
+
+    if (topTankPressure)
+    {
+        SensorInfo info("TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { topTankPressureCallback(); });
+        map.emplace(std::make_pair(topTankPressure.get(), info));
+    }
+
+    if (bottomTankPressure)
+    {
+        SensorInfo info("BottomTankPressure",
+                        Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { bottomTankPressureCallback(); });
+        map.emplace(std::make_pair(bottomTankPressure.get(), info));
+    }
+
+    if (vesselWeight)
+    {
+        SensorInfo info("VesselWeight", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { vesselWeightCallback(); });
+        map.emplace(std::make_pair(vesselWeight.get(), info));
+    }
+
+    if (tankWeight)
+    {
+        SensorInfo info("TankWeight", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { tankWeightCallback(); });
+        map.emplace(std::make_pair(tankWeight.get(), info));
+    }
+
+    manager = std::make_unique<SensorManager>(map, &scheduler);
+    return manager->start();
 }
