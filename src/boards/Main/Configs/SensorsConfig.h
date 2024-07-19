@@ -124,6 +124,22 @@ constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
+// ADC channels definitions for various sensors
+constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_1_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
+constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_2_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
+constexpr Boardcore::ADS131M08Defs::Channel DPL_BAY_PRESSURE_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
+
+constexpr float CHANNEL_0_SCALE = (38300.0f + 13000.0f) / 13000.0f;
+constexpr float CHANNEL_1_SCALE = (38300.0f + 13000.0f) / 13000.0f;
+constexpr float CHANNEL_2_SCALE = (38300.0f + 13000.0f) / 13000.0f;
+
+constexpr float STATIC_PRESSURE_1_SCALE = CHANNEL_0_SCALE;
+constexpr float STATIC_PRESSURE_2_SCALE = CHANNEL_1_SCALE;
+constexpr float DPL_BAY_PRESSURE_SCALE = CHANNEL_2_SCALE;
+
 constexpr Hertz PERIOD = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08

@@ -422,12 +422,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto imu       = sensors->getLSM6DSRXLastSample();
             auto mag       = sensors->getLIS2MDLLastSample();
             auto gps       = sensors->getUBXGPSLastSample();
+            auto pressStatic = sensors->getStaticPressure1();
+            auto pressDpl = sensors->getDplBayPressure();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_ada    = -1.0f;  // TODO
             tm.pressure_digi   = pressDigi.pressure;
-            tm.pressure_static = -1.0f;  // TODO
-            tm.pressure_dpl    = -1.0f;  // TODO
+            tm.pressure_static = pressStatic.pressure;
+            tm.pressure_dpl    = pressDpl.pressure;
             tm.airspeed_pitot  = -1.0f;  // TODO
             tm.altitude_agl    = -1.0f;  // TODO
             tm.ada_vert_speed  = -1.0f;  // TODO
