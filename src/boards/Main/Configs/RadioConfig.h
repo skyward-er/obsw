@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
+#include <units/Frequency.h>
 
 namespace Main
 {
@@ -32,19 +33,21 @@ namespace Config
 
 namespace Radio
 {
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-static constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
-static constexpr unsigned int MAV_MAX_LENGTH = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-static constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-static constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
-static constexpr uint8_t MAV_SYSTEM_ID    = 171;
-static constexpr uint8_t MAV_COMPONENT_ID = 96;
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-static constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
+constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
 
-static constexpr unsigned int TELEMETRY_PERIOD = 250;
+constexpr Hertz LOW_RATE_TELEMETRY_PERIOD  = 2_hz;
+constexpr Hertz HIGH_RATE_TELEMETRY_PERIOD = 4_hz;
 
 }  // namespace Radio
 
