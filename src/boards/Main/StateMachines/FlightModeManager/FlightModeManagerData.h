@@ -25,31 +25,31 @@
 namespace Main
 {
 
-enum class FlightModeManagerState : uint8_t
+enum FlightModeManagerState : uint8_t
 {
-    ON_GROUND = 0,
-    INIT,
-    INIT_ERROR,
-    INIT_DONE,
-    CALIBRATE_SENSORS,
-    CALIBRATE_ALGORITHMS,
-    DISARMED,
-    TEST_MODE,
-    ARMED,
-    IGNITION,  // < Unused, kept for backward compatibility
-    FLYING,
-    POWERED_ASCENT,
-    UNPOWERED_ASCENT,
-    DROGUE_DESCENT,
-    TERMINAL_DESCENT,
-    LANDED,
-    INVALID
+    FMM_STATE_ON_GROUND = 0,
+    FMM_STATE_INIT,
+    FMM_STATE_INIT_ERROR,
+    FMM_STATE_INIT_DONE,
+    FMM_STATE_CALIBRATE_SENSORS,
+    FMM_STATE_CALIBRATE_ALGORITHMS,
+    FMM_STATE_DISARMED,
+    FMM_STATE_TEST_MODE,
+    FMM_STATE_ARMED,
+    FMM_STATE_IGNITION,  // < Unused, kept for backward compatibility
+    FMM_STATE_FLYING,
+    FMM_STATE_POWERED_ASCENT,
+    FMM_STATE_UNPOWERED_ASCENT,
+    FMM_STATE_DROGUE_DESCENT,
+    FMM_STATE_TERMINAL_DESCENT,
+    FMM_STATE_LANDED,
+    FMM_STATE_INVALID
 };
 
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
+    FlightModeManagerState state = FlightModeManagerState::FMM_STATE_INVALID;
 
     static std::string header() { return "timestamp,state\n"; }
 

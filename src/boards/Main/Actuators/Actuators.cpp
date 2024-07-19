@@ -48,7 +48,9 @@ Actuators::Actuators()
                          Config::Actuators::BUZZER_DUTY_CYCLE);
 }
 
-[[nodiscard]] bool Actuators::start()
+bool Actuators::isStarted() { return started; }
+
+bool Actuators::start()
 {
     TaskScheduler &scheduler =
         getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();
@@ -57,19 +59,32 @@ Actuators::Actuators()
     servoExp->enable();
 
     camOff();
-    currerOff();
+    cutterOff();
     statusOff();
     buzzerOff();
 
-    uint8_t result1 = scheduler.addTask([this]() { updateBuzzer(); },
-                                        Config::Actuators::BUZZER_UPDATE_PERIOD,
-                                        TaskScheduler::Policy::RECOVER);
+    uint8_t result = scheduler.addTask([this]() { updateBuzzer(); },
+                                       Config::Actuators::BUZZER_UPDATE_PERIOD,
+                                       TaskScheduler::Policy::RECOVER);
 
-    uint8_t result2 = scheduler.addTask([this]() { updateStatus(); },
-                                        Config::Actuators::STATUS_UPDATE_PERIOD,
-                                        TaskScheduler::Policy::RECOVER);
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add updateBuzzer task");
+        return false;
+    }
 
-    return result1 != 0 && result2 != 0;
+    result = scheduler.addTask([this]() { updateStatus(); },
+                               Config::Actuators::STATUS_UPDATE_PERIOD,
+                               TaskScheduler::Policy::RECOVER);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add updateStatus task");
+        return false;
+    }
+
+    started = true;
+    return true;
 }
 
 void Actuators::setAbkPosition(float position)
@@ -98,6 +113,23 @@ bool Actuators::wiggleServo(ServosList servo)
     }
 }
 
+bool Actuators::isCanServoOpen(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    if (servo == ServosList::MAIN_VALVE)
+    {
+        return canMainOpen;
+    }
+    else if (servo == ServosList::VENTING_VALVE)
+    {
+        return canVentingOpen;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void Actuators::setStatusOff() { statusOverflow = 0; }
 
 void Actuators::setStatusOk()
@@ -122,13 +154,26 @@ void Actuators::setBuzzerLand()
     buzzerOverflow = Config::Actuators::BUZZER_LAND_PERIOD;
 }
 
+void Actuators::setCanServoOpen(ServosList servo, bool open)
+{
+    Lock<FastMutex> lock(infosMutex);
+    if (servo == ServosList::MAIN_VALVE)
+    {
+        canMainOpen = open;
+    }
+    else if (servo == ServosList::VENTING_VALVE)
+    {
+        canVentingOpen = open;
+    }
+}
+
 void Actuators::camOn() { gpios::camEnable::high(); }
 
 void Actuators::camOff() { gpios::camEnable::low(); }
 
 void Actuators::cutterOn() { gpios::mainDeploy::high(); }
 
-void Actuators::currerOff() { gpios::mainDeploy::low(); }
+void Actuators::cutterOff() { gpios::mainDeploy::low(); }
 
 void Actuators::statusOn() { gpios::statusLed::high(); }
 
@@ -174,7 +219,7 @@ void Actuators::updateBuzzer()
         else
         {
             buzzerOff();
-            buzzerCounter += Config::Actuators::BUZZER_UPDATE_PERIOD;
+            buzzerCounter += 1;
         }
     }
 }
@@ -203,7 +248,7 @@ void Actuators::updateStatus()
         }
         else
         {
-            statusCounter += Config::Actuators::STATUS_UPDATE_PERIOD;
+            statusCounter += 1;
         }
     }
 }

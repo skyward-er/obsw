@@ -32,12 +32,12 @@ namespace FlightModeManager
 {
 
 // Set at 15 minutes
-static constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
+constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 
-static constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6750;
+constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6750;
 
 // Set at 25 seconds.
-static constexpr unsigned int APOGEE_TIMEOUT = 25 * 1000;
+constexpr unsigned int APOGEE_TIMEOUT = 25 * 1000;
 
 }  // namespace FlightModeManager
 

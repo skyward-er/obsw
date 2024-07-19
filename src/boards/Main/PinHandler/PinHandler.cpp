@@ -34,6 +34,8 @@ using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
 
+bool PinHandler::isStarted() { return started; }
+
 bool PinHandler::start()
 {
     TaskScheduler &scheduler =
@@ -64,6 +66,7 @@ bool PinHandler::start()
         { onExpulsionSenseTransition(transition); },
         Config::PinHandler::EXPULSION_PIN_THRESHOLD);
 
+    started = true;
     return true;
 }
 

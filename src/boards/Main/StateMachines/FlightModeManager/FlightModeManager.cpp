@@ -47,67 +47,67 @@ FlightModeManagerState FlightModeManager::getState()
 {
     if (testState(&FlightModeManager::state_on_ground))
     {
-        return FlightModeManagerState::ON_GROUND;
+        return FlightModeManagerState::FMM_STATE_ON_GROUND;
     }
     else if (testState(&FlightModeManager::state_init))
     {
-        return FlightModeManagerState::INIT;
+        return FlightModeManagerState::FMM_STATE_INIT;
     }
     else if (testState(&FlightModeManager::state_init_error))
     {
-        return FlightModeManagerState::INIT_ERROR;
+        return FlightModeManagerState::FMM_STATE_INIT_ERROR;
     }
     else if (testState(&FlightModeManager::state_init_done))
     {
-        return FlightModeManagerState::INIT_DONE;
+        return FlightModeManagerState::FMM_STATE_INIT_DONE;
     }
     else if (testState(&FlightModeManager::state_calibrate_sensors))
     {
-        return FlightModeManagerState::CALIBRATE_SENSORS;
+        return FlightModeManagerState::FMM_STATE_CALIBRATE_SENSORS;
     }
     else if (testState(&FlightModeManager::state_calibrate_algorithms))
     {
-        return FlightModeManagerState::CALIBRATE_ALGORITHMS;
+        return FlightModeManagerState::FMM_STATE_CALIBRATE_ALGORITHMS;
     }
     else if (testState(&FlightModeManager::state_disarmed))
     {
-        return FlightModeManagerState::DISARMED;
+        return FlightModeManagerState::FMM_STATE_DISARMED;
     }
     else if (testState(&FlightModeManager::state_test_mode))
     {
-        return FlightModeManagerState::TEST_MODE;
+        return FlightModeManagerState::FMM_STATE_TEST_MODE;
     }
     else if (testState(&FlightModeManager::state_armed))
     {
-        return FlightModeManagerState::ARMED;
+        return FlightModeManagerState::FMM_STATE_ARMED;
     }
     else if (testState(&FlightModeManager::state_flying))
     {
-        return FlightModeManagerState::FLYING;
+        return FlightModeManagerState::FMM_STATE_FLYING;
     }
     else if (testState(&FlightModeManager::state_powered_ascent))
     {
-        return FlightModeManagerState::POWERED_ASCENT;
+        return FlightModeManagerState::FMM_STATE_POWERED_ASCENT;
     }
     else if (testState(&FlightModeManager::state_unpowered_ascent))
     {
-        return FlightModeManagerState::UNPOWERED_ASCENT;
+        return FlightModeManagerState::FMM_STATE_UNPOWERED_ASCENT;
     }
     else if (testState(&FlightModeManager::state_drogue_descent))
     {
-        return FlightModeManagerState::DROGUE_DESCENT;
+        return FlightModeManagerState::FMM_STATE_DROGUE_DESCENT;
     }
     else if (testState(&FlightModeManager::state_terminal_descent))
     {
-        return FlightModeManagerState::TERMINAL_DESCENT;
+        return FlightModeManagerState::FMM_STATE_TERMINAL_DESCENT;
     }
     else if (testState(&FlightModeManager::state_landed))
     {
-        return FlightModeManagerState::LANDED;
+        return FlightModeManagerState::FMM_STATE_LANDED;
     }
     else
     {
-        return FlightModeManagerState::INVALID;
+        return FlightModeManagerState::FMM_STATE_INVALID;
     }
 }
 
@@ -117,7 +117,7 @@ State FlightModeManager::state_on_ground(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_ON_GROUND);
             return HANDLED;
         }
         case EV_EXIT:
@@ -150,7 +150,7 @@ State FlightModeManager::state_init(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_INIT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -186,7 +186,7 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_INIT_ERROR);
             return HANDLED;
         }
         case EV_EXIT:
@@ -223,7 +223,7 @@ State FlightModeManager::state_init_done(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_INIT_DONE);
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
@@ -256,7 +256,7 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_CALIBRATE_SENSORS);
             // TODO(davide.mor): Calibrate sensors
             Thread::sleep(2000);
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
@@ -291,7 +291,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_CALIBRATE_ALGORITHMS);
 
             // Reset readiness status
             nasReady = false;
@@ -357,7 +357,7 @@ State FlightModeManager::state_disarmed(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_DISARMED);
 
             getModule<Actuators>()->camOff();
             getModule<Actuators>()->setBuzzerOff();
@@ -416,7 +416,7 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_TEST_MODE);
             // TODO(davide.mor): Start algorithms
             return HANDLED;
         }
@@ -465,7 +465,7 @@ State FlightModeManager::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_ARMED);
 
             Logger::getInstance().stop();
             Logger::getInstance().start();
@@ -515,7 +515,7 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_FLYING);
 
             getModule<Actuators>()->setBuzzerOff();
 
@@ -556,7 +556,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_POWERED_ASCENT);
 
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
@@ -598,7 +598,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_UNPOWERED_ASCENT);
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 TMTC_FORCE_APOGEE, TOPIC_TMTC,
@@ -639,7 +639,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_DROGUE_DESCENT);
 
             // TODO(davide.mor): Perform venting?
 
@@ -675,7 +675,7 @@ State FlightModeManager::state_terminal_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_TERMINAL_DESCENT);
 
             // TODO(davide.mor): Actuate cutters?
 
@@ -710,7 +710,7 @@ State FlightModeManager::state_landed(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus();
+            updateAndLogStatus(FMM_STATE_LANDED);
 
             Logger::getInstance().stop();
 
@@ -742,11 +742,10 @@ State FlightModeManager::state_landed(const Event& event)
     }
 }
 
-void FlightModeManager::logStatus()
+void FlightModeManager::updateAndLogStatus(FlightModeManagerState state)
 {
-    FlightModeManagerStatus status;
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = getState();
+    this->state = state;
 
-    Logger::getInstance().log(status);
+    FlightModeManagerStatus data = {TimestampTimer::getTimestamp(), state};
+    sdLogger.log(data);
 }

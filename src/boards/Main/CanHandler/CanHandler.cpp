@@ -22,51 +22,244 @@
 
 #include "CanHandler.h"
 
+#include <Main/Configs/SchedulerConfig.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/CanConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 
+using namespace miosix;
 using namespace Main;
 using namespace Boardcore;
 using namespace Boardcore::Canbus;
 using namespace Common;
 
 CanHandler::CanHandler()
+    : driver(CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING),
+      protocol(
+          &driver, [this](const CanMessage &msg) { handleMessage(msg); },
+          Config::Scheduler::OTHERS_PRIORITY)
 {
-    CanbusDriver::AutoBitTiming bitTiming;
-    bitTiming.baudRate    = CanConfig::BAUD_RATE;
-    bitTiming.samplePoint = CanConfig::SAMPLE_POINT;
-
-    CanbusDriver::CanbusConfig config;
-
-    // cppcheck-suppress useInitializationList
-    driver = std::make_unique<CanbusDriver>(CAN1, config, bitTiming);
-
-    protocol = std::make_unique<CanProtocol>(
-        driver.get(),
-        [this](const Canbus::CanMessage &msg) { handleCanMessage(msg); }, 3);
-
-    protocol->addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
-                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
-                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
-
-    driver->init();
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
+                       static_cast<uint8_t>(CanConfig::Board::BROADCAST));
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
+                       static_cast<uint8_t>(CanConfig::Board::BROADCAST));
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                       static_cast<uint8_t>(CanConfig::Board::BROADCAST));
 }
 
-bool CanHandler::start() { return protocol->start(); }
+bool CanHandler::isStarted() { return started; }
+
+bool CanHandler::start()
+{
+    driver.init();
+
+    TaskScheduler &scheduler =
+        getModule<BoardScheduler>()->getCanBusScheduler();
+
+    uint8_t result = scheduler.addTask(
+        [this]()
+        {
+            LoggerStats stats = sdLogger.getStats();
+
+            FlightModeManagerState state =
+                getModule<FlightModeManager>()->getState();
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
+                static_cast<uint8_t>(CanConfig::Board::MAIN),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
+                DeviceStatus{
+                    TimestampTimer::getTimestamp(),
+                    static_cast<int16_t>(stats.logNumber),
+                    static_cast<uint8_t>(state),
+                    state == FlightModeManagerState::FMM_STATE_ARMED,
+                    false,  // TODO: HIL
+                    stats.lastWriteError == 0,
+                });
+        },
+        Config::CanHandler::STATUS_PERIOD);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add periodicMessageTask");
+        return false;
+    }
+
+    if (!protocol.start())
+    {
+        LOG_ERR(logger, "Failed to start CanProtocol");
+        return false;
+    }
+
+    started = true;
+    return true;
+}
 
 void CanHandler::sendEvent(Common::CanConfig::EventId event)
 {
-    protocol->enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
-                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
-                           static_cast<uint8_t>(CanConfig::Board::MAIN),
-                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                           static_cast<uint8_t>(event));
+    protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+                          static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
+                          static_cast<uint8_t>(CanConfig::Board::MAIN),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event));
 }
 
-void CanHandler::handleCanMessage(const Canbus::CanMessage &msg)
+CanHandler::CanStatus CanHandler::getCanStatus()
 {
-    LOG_INFO(logger, "Received can message {} {} {}", msg.getSource(),
-             msg.getPrimaryType(), msg.getSecondaryType());
+    Lock<FastMutex> lock{statusMutex};
+    return status;
+}
+
+void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
+{
+    CanConfig::PrimaryType type =
+        static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
+
+    switch (type)
+    {
+        case CanConfig::PrimaryType::EVENTS:
+        {
+            handleEvent(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::SENSORS:
+        {
+            handleSensor(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::STATUS:
+        {
+            handleStatus(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::ACTUATORS:
+        {
+            handleActuator(msg);
+            break;
+        }
+
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported message type: {}", type);
+            break;
+        }
+    }
+}
+
+void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
+{
+    CanConfig::EventId event =
+        static_cast<CanConfig::EventId>(msg.getSecondaryType());
+    LOG_WARN(logger, "Received unrecognized event: {}", event);
+}
+
+void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
+{
+    CanConfig::SensorId sensor =
+        static_cast<CanConfig::SensorId>(msg.getSecondaryType());
+
+    Sensors *sensors = getModule<Sensors>();
+    switch (sensor)
+    {
+        case CanConfig::SensorId::CC_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanCCPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanBottomTankPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::TOP_TANK_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanTopTankPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::TANK_TEMPERATURE:
+        {
+            CanTemperatureData data = temperatureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanTankTemp(data);
+            break;
+        }
+
+        case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
+        {
+            CanVoltageData data = voltageDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanMotorBatteryVoltage(data);
+            break;
+        }
+
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported sensor data: {}", sensor);
+        }
+    }
+}
+
+void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
+{
+    ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
+    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    sdLogger.log(data);
+
+    getModule<Actuators>()->setCanServoOpen(servo, data.open);
+}
+
+void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
+{
+    CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
+    CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);
+
+    Lock<FastMutex> lock{statusMutex};
+
+    switch (source)
+    {
+        case CanConfig::Board::RIG:
+        {
+            status.rigLastStatus = getTime();
+            status.rigArmed      = deviceStatus.armed;
+            status.rigState      = deviceStatus.state;
+            break;
+        }
+
+        case CanConfig::Board::PAYLOAD:
+        {
+            status.payloadLastStatus = getTime();
+            status.payloadArmed      = deviceStatus.armed;
+            status.payloadState      = deviceStatus.state;
+            break;
+        }
+
+        case CanConfig::Board::MOTOR:
+        {
+            status.motorLastStatus = getTime();
+            status.motorState      = deviceStatus.state;
+
+            status.motorLogNumber = deviceStatus.logNumber;
+            status.motorLogGood   = deviceStatus.logGood;
+            status.motorHil       = deviceStatus.hil;
+            break;
+        }
+
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported status: {}", source);
+        }
+    }
 }

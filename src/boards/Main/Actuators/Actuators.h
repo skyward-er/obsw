@@ -40,16 +40,20 @@ public:
 
     [[nodiscard]] bool start();
 
+    bool isStarted();
+
     void setAbkPosition(float position);
     void openExpulsion();
 
     bool wiggleServo(ServosList servo);
 
+    bool isCanServoOpen(ServosList servo);
+
     void camOn();
     void camOff();
 
     void cutterOn();
-    void currerOff();
+    void cutterOff();
 
     void setBuzzerOff();
     void setBuzzerArmed();
@@ -58,6 +62,8 @@ public:
     void setStatusOff();
     void setStatusErr();
     void setStatusOk();
+
+    void setCanServoOpen(ServosList servo, bool open);
 
 private:
     Boardcore::Servo *getServo(ServosList servo);
@@ -71,6 +77,10 @@ private:
     void updateBuzzer();
     void updateStatus();
 
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
+
+    std::atomic<bool> started{false};
+
     std::unique_ptr<Boardcore::Servo> servoAbk;
     std::unique_ptr<Boardcore::Servo> servoExp;
     std::unique_ptr<Boardcore::PWM> buzzer;
@@ -81,7 +91,9 @@ private:
     std::atomic<uint32_t> statusCounter{0};
     std::atomic<uint32_t> statusOverflow{0};
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
+    miosix::FastMutex infosMutex;
+    bool canMainOpen    = false;
+    bool canVentingOpen = false;
 };
 
 }  // namespace Main

@@ -71,7 +71,10 @@ private:
 
     Boardcore::State state_landed(const Boardcore::Event& event);
 
-    void logStatus();
+    void updateAndLogStatus(FlightModeManagerState state);
+
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
 
     bool nasReady = false;
     bool adaReady = false;
@@ -80,8 +83,7 @@ private:
     uint16_t engineShutdownEvent = 0;
     uint16_t apogeeTimeoutEvent  = 0;
 
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("FlightModeManager");
+    std::atomic<FlightModeManagerState> state{FMM_STATE_INVALID};
 };
 
 }  // namespace Main

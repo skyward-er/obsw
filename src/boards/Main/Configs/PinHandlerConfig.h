@@ -33,16 +33,16 @@ namespace Config
 namespace PinHandler
 {
 
-static constexpr uint32_t RAMP_PIN_THRESHOLD = 20;
-static constexpr Boardcore::PinTransition RAMP_PIN_TRIGGER =
+constexpr uint32_t RAMP_PIN_THRESHOLD = 20;
+constexpr Boardcore::PinTransition RAMP_PIN_TRIGGER =
     Boardcore::PinTransition::RISING_EDGE;
 
-static constexpr uint32_t MAIN_DETACH_PIN_THRESHOLD = 20;
-static constexpr Boardcore::PinTransition MAIN_DETACH_PIN_TRIGGER =
+constexpr uint32_t MAIN_DETACH_PIN_THRESHOLD = 20;
+constexpr Boardcore::PinTransition MAIN_DETACH_PIN_TRIGGER =
     Boardcore::PinTransition::RISING_EDGE;
 
-static constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD = 20;
-static constexpr uint32_t EXPULSION_PIN_THRESHOLD      = 20;
+constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD = 20;
+constexpr uint32_t EXPULSION_PIN_THRESHOLD      = 20;
 
 }  // namespace PinHandler
 

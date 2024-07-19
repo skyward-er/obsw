@@ -22,37 +22,24 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
-#include <units/Frequency.h>
+#include <chrono>
 
 namespace Main
 {
+
 namespace Config
 {
-namespace Actuators
+
+namespace CanHandler
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr unsigned int ABK_MIN_PULSE = 1950;
-constexpr unsigned int ABK_MAX_PULSE = 1380;
+/* linter off */ using namespace std::chrono_literals;
 
-// Inverted to invert the servo logic
-constexpr unsigned int EXP_MIN_PULSE = 900;
-constexpr unsigned int EXP_MAX_PULSE = 2000;
+static constexpr std::chrono::nanoseconds STATUS_PERIOD  = 1000ms;
+static constexpr std::chrono::nanoseconds STATUS_TIMEOUT = 1500ms;
 
-// Buzzer configs
-constexpr uint16_t BUZZER_FREQUENCY = 1000;
-constexpr float BUZZER_DUTY_CYCLE   = 0.5;
+}  // namespace CanHandler
 
-constexpr Hertz BUZZER_UPDATE_PERIOD  = 20_hz;
-constexpr uint32_t BUZZER_ARM_PERIOD  = 10;  // 10 * 50ms = 500ms
-constexpr uint32_t BUZZER_LAND_PERIOD = 20;  // 20 * 50ms = 1000ms
-
-// Status configs
-constexpr Hertz STATUS_UPDATE_PERIOD = 20_hz;
-constexpr uint32_t STATUS_OK_PERIOD  = 20;  // 20 * 50ms = 1000ms
-constexpr uint32_t STATUS_ERR_PERIOD = 2;   // 2 * 50ms = 10ms
-
-}  // namespace Actuators
 }  // namespace Config
+
 }  // namespace Main

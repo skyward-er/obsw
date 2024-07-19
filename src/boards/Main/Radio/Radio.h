@@ -25,7 +25,9 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/RadioConfig.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Mavlink.h>
@@ -42,7 +44,8 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
 
 class Radio
     : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Actuators,
-                                           Sensors, FlightModeManager>
+                                           PinHandler, CanHandler, Sensors,
+                                           FlightModeManager>
 {
 public:
     Radio() {}
@@ -66,7 +69,7 @@ private:
     bool enqueueSystemTm(uint8_t tmId);
     bool enqueueSensorsTm(uint8_t tmId);
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 
     Boardcore::CircularBuffer<mavlink_message_t,
                               Config::Radio::CIRCULAR_BUFFER_SIZE>
