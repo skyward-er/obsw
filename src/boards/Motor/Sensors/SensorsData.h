@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,29 @@
 
 #pragma once
 
-#include <units/Frequency.h>
-
-#include <chrono>
+#include <sensors/ADS131M08/ADS131M08Data.h>
+#include <sensors/MAX31856/MAX31856Data.h>
 
 namespace Motor
 {
-
-namespace Config
+struct PTsData : Boardcore::PressureData
 {
+    uint8_t ptNumber = 0;
 
-namespace CanHandler
-{
+    PTsData() : PressureData{}, ptNumber{0} {}
 
-using namespace std::chrono_literals;
-using namespace Boardcore::Units::Frequency;
+    PTsData(uint64_t time, uint8_t num, float pressure)
+        : PressureData{time, pressure}, ptNumber{num}
+    {
+    }
 
-constexpr std::chrono::nanoseconds STATUS_PERIOD = 1000ms;
+    static std::string header() { return "timestamp,ptNumber,pressure\n"; }
 
-constexpr Hertz PRESSURE_PERIOD = 50_hz;
-
-constexpr Hertz ACTUATORS_PERIOD = 50_hz;
-
-constexpr Hertz TEMPERATURE_PERIOD = 10_hz;
-
-}  // namespace CanHandler
-
-}  // namespace Config
+    void print(std::ostream& os) const
+    {
+        os << pressureTimestamp << "," << (int)ptNumber << "," << pressure
+           << "\n";
+    }
+};
 
 }  // namespace Motor

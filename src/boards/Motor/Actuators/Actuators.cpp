@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Motor/Actuators/ActuatorsData.h>
 #include <Motor/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -162,6 +163,18 @@ float Actuators::getServoPosition(ServosList servo)
     return info->getServoPosition();
 }
 
+bool Actuators::isServoOpen(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ServoInfo *info = getServo(servo);
+    if (info == nullptr)
+    {
+        return false;
+    }
+
+    return info->closeTs != 0;
+}
+
 Actuators::ServoInfo *Actuators::getServo(ServosList servo)
 {
     switch (servo)
@@ -182,7 +195,12 @@ void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
 {
     infos[idx].unsafeSetServoPosition(position);
 
-    // TODO: Log the update
+    // Log the update
+    ActuatorsData data;
+    data.timestamp = TimestampTimer::getTimestamp();
+    data.servoIdx  = idx;
+    data.position  = position;
+    sdLogger.log(data);
 }
 
 void Actuators::updatePositionsTask()
