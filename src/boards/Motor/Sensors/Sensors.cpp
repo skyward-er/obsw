@@ -24,6 +24,7 @@
 
 #include <Motor/Buses.h>
 #include <Motor/Configs/SensorsConfig.h>
+#include <Motor/Sensors/SensorsData.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Motor;
@@ -32,107 +33,96 @@ using namespace miosix;
 
 bool Sensors::start()
 {
-    TaskScheduler &scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
-
-    SensorManager::SensorMap_t map;
-    lps22dfInit(map);
-    h3lis331dlInit(map);
-    lis2mdlInit(map);
-    lsm6dsrxInit(map);
-    ads131m08Init(map);
-    internalAdcInit(map);
-
-    manager = std::make_unique<SensorManager>(map, &scheduler);
-    if (!manager->start())
+    if (Config::Sensors::LPS22DF::ENABLED)
     {
+        lps22dfInit();
+    }
+
+    if (Config::Sensors::H3LIS331DL::ENABLED)
+    {
+        h3lis331dlInit();
+    }
+
+    if (Config::Sensors::LIS2MDL::ENABLED)
+    {
+        lis2mdlInit();
+    }
+
+    if (Config::Sensors::LSM6DSRX::ENABLED)
+    {
+        lsm6dsrxInit();
+    }
+
+    if (Config::Sensors::ADS131M08::ENABLED)
+    {
+        ads131m08Init();
+        topTankPressureInit();
+        ccPressureInit();
+    }
+
+    if (Config::Sensors::InternalADC::ENABLED)
+    {
+        internalAdcInit();
+    }
+
+    if (!postSensorCreationHook())
+    {
+        LOG_ERR(logger, "Failed to call postSensorCreationHook");
+        return false;
+    }
+
+    if (!sensorManagerInit())
+    {
+        LOG_ERR(logger, "Failed to init SensorManager");
         return false;
     }
 
     return true;
 }
 
-Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+InternalADCData Sensors::getInternalADCLastSample()
 {
-    if (internalAdc)
-    {
-        return internalAdc->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-Boardcore::ADS131M08Data Sensors::getADC1LastSample()
+ADS131M08Data Sensors::getADS131M08LastSample()
 {
-    if (ads131m08)
-    {
-        return ads131m08->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return ads131m08 ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
-Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
+LPS22DFData Sensors::getLPS22DFLastSample()
 {
-    if (lps22df)
-    {
-        return lps22df->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return lps22df ? lps22df->getLastSample() : LPS22DFData{};
 }
 
-Boardcore::H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+H3LIS331DLData Sensors::getH3LIS331DLLastSample()
 {
-    if (h3lis331dl)
-    {
-        return h3lis331dl->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
 }
 
-Boardcore::LIS2MDLData Sensors::getLIS2MDLLastSample()
+LIS2MDLData Sensors::getLIS2MDLLastSample()
 {
-    if (lis2mdl)
-    {
-        return lis2mdl->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
 }
 
-Boardcore::LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+LSM6DSRXData Sensors::getLSM6DSRXLastSample()
 {
-    if (lsm6dsrx)
-    {
-        return lsm6dsrx->getLastSample();
-    }
-    else
-    {
-        return {};
-    }
+    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
 
-Boardcore::PressureData Sensors::getTopTankPress() { return {}; }
+PressureData Sensors::getTopTankPress()
+{
+    return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
+}
 
-Boardcore::PressureData Sensors::getBottomTopTankPress() { return {}; }
+PressureData Sensors::getCCPress()
+{
+    return ccPressure ? ccPressure->getLastSample() : PressureData{};
+}
 
-Boardcore::PressureData Sensors::getCCPress() { return {}; }
+TemperatureData Sensors::getTankTemp() { return {}; }
 
-Boardcore::TemperatureData Sensors::getTankTemp() { return {}; }
-
-Boardcore::VoltageData Sensors::getBatteryVoltage()
+VoltageData Sensors::getBatteryVoltage()
 {
     auto sample   = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
@@ -149,7 +139,9 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
                 manager->getSensorInfo(lis2mdl.get()),
                 manager->getSensorInfo(lsm6dsrx.get()),
                 manager->getSensorInfo(ads131m08.get()),
-                manager->getSensorInfo(internalAdc.get())};
+                manager->getSensorInfo(internalAdc.get()),
+                manager->getSensorInfo(topTankPressure.get()),
+                manager->getSensorInfo(ccPressure.get())};
     }
     else
     {
@@ -157,8 +149,11 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
     }
 }
 
-void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
+void Sensors::lps22dfInit()
 {
+    if (!Config::Sensors::LPS22DF::ENABLED)
+        return;
+
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -169,19 +164,15 @@ void Sensors::lps22dfInit(SensorManager::SensorMap_t &map)
     lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->getLPS22DF(),
                                         sensors::LPS22DF::cs::getPin(),
                                         spiConfig, config);
-
-    SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
-                    [this]() { lps22dfCallback(); }};
-    map.emplace(lps22df.get(), info);
 }
 
-void Sensors::lps22dfCallback()
-{
-    //
-}
+void Sensors::lps22dfCallback() { sdLogger.log(lps22df->getLastSample()); }
 
-void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
+void Sensors::h3lis331dlInit()
 {
+    if (!Config::Sensors::H3LIS331DL::ENABLED)
+        return;
+
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -190,19 +181,18 @@ void Sensors::h3lis331dlInit(SensorManager::SensorMap_t &map)
         spiConfig, Config::Sensors::H3LIS331DL::ODR,
         H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE,
         Config::Sensors::H3LIS331DL::FS);
-
-    SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
-                    [this]() { h3lis331dlCallback(); }};
-    map.emplace(h3lis331dl.get(), info);
 }
 
 void Sensors::h3lis331dlCallback()
 {
-    //
+    sdLogger.log(h3lis331dl->getLastSample());
 }
 
-void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
+void Sensors::lis2mdlInit()
 {
+    if (!Config::Sensors::LIS2MDL::ENABLED)
+        return;
+
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -214,19 +204,15 @@ void Sensors::lis2mdlInit(SensorManager::SensorMap_t &map)
     lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
                                         sensors::LIS2MDL::cs::getPin(),
                                         spiConfig, config);
-
-    SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
-                    [this]() { lis2mdlCallback(); }};
-    map.emplace(lis2mdl.get(), info);
 }
 
-void Sensors::lis2mdlCallback()
-{
-    //
-}
+void Sensors::lis2mdlCallback() { sdLogger.log(lis2mdl->getLastSample()); }
 
-void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
+void Sensors::lsm6dsrxInit()
 {
+    if (!Config::Sensors::LSM6DSRX::ENABLED)
+        return;
+
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -250,54 +236,188 @@ void Sensors::lsm6dsrxInit(SensorManager::SensorMap_t &map)
     lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                           sensors::LSM6DSRX::cs::getPin(),
                                           spiConfig, config);
-
-    SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
-                    [this]() { lsm6dsrxCallback(); }};
-    map.emplace(lsm6dsrx.get(), info);
 }
 
-void Sensors::lsm6dsrxCallback()
-{
-    //
-}
+void Sensors::lsm6dsrxCallback() { sdLogger.log(lsm6dsrx->getLastSample()); }
 
-void Sensors::ads131m08Init(SensorManager::SensorMap_t &map)
+void Sensors::ads131m08Init()
 {
+    if (!Config::Sensors::ADS131M08::ENABLED)
+        return;
+
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    ADS131M08::Config config;
+    ADS131M08::Config config = {};
+    // Setup global configurations
     config.oversamplingRatio = Config::Sensors::ADS131M08::OSR;
     config.globalChopModeEnabled =
         Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
 
+    // Disable all channels
+    config.channelsConfig[0].enabled = false;
+    config.channelsConfig[1].enabled = false;
+    config.channelsConfig[2].enabled = false;
+    config.channelsConfig[3].enabled = false;
+    config.channelsConfig[4].enabled = false;
+    config.channelsConfig[5].enabled = false;
+    config.channelsConfig[6].enabled = false;
+    config.channelsConfig[7].enabled = false;
+
+    // Configure all required channels
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::ENGINE_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
+
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
                                             sensors::ADS131M08::cs::getPin(),
                                             spiConfig, config);
-
-    SensorInfo info{"ADS131M08", 1000, [this]() { ads131m08Callback(); }};
-    map.emplace(ads131m08.get(), info);
 }
 
-void Sensors::ads131m08Callback()
-{
-    //
-}
+void Sensors::ads131m08Callback() { sdLogger.log(ads131m08->getLastSample()); }
 
-void Sensors::internalAdcInit(SensorManager::SensorMap_t &map)
+void Sensors::internalAdcInit()
 {
+    if (!Config::Sensors::InternalADC::ENABLED)
+        return;
+
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(InternalADC::CH9);
     internalAdc->enableChannel(InternalADC::CH14);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
-
-    SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
-                    [this]() { internalAdcCallback(); }};
-    map.emplace(internalAdc.get(), info);
 }
 
 void Sensors::internalAdcCallback()
 {
-    //
+    sdLogger.log(internalAdc->getLastSample());
+}
+
+void Sensors::topTankPressureInit()
+{
+    if (!Config::Sensors::ADS131M08::ENABLED)
+        return;
+
+    topTankPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL);
+        },
+        Config::Sensors::Trafag::TANK_TOP_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+}
+
+void Sensors::topTankPressureCallback()
+{
+    PressureData sample = topTankPressure->getLastSample();
+    PTsData data{sample.pressureTimestamp, 0, sample.pressure};
+    sdLogger.log(data);
+}
+
+void Sensors::ccPressureInit()
+{
+    if (!Config::Sensors::ADS131M08::ENABLED)
+        return;
+
+    ccPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::ENGINE_PT_CHANNEL);
+        },
+        Config::Sensors::Trafag::ENGINE_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::ENGINE_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+}
+
+void Sensors::ccPressureCallback()
+{
+    PressureData sample = topTankPressure->getLastSample();
+    PTsData data{sample.pressureTimestamp, 1, sample.pressure};
+    sdLogger.log(data);
+}
+
+bool Sensors::sensorManagerInit()
+{
+    TaskScheduler &scheduler =
+        getModule<BoardScheduler>()->getSensorsScheduler();
+
+    SensorManager::SensorMap_t map;
+
+    if (lps22df)
+    {
+        SensorInfo lps22dfInfo{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
+                               [this]() { lps22dfCallback(); }};
+        map.emplace(lps22df.get(), lps22dfInfo);
+    }
+
+    if (h3lis331dl)
+    {
+        SensorInfo h3lis331dlInfo{"H3LIS331DL",
+                                  Config::Sensors::H3LIS331DL::PERIOD,
+                                  [this]() { h3lis331dlCallback(); }};
+        map.emplace(h3lis331dl.get(), h3lis331dlInfo);
+    }
+
+    if (lis2mdl)
+    {
+        SensorInfo lis2mdlInfo{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
+                               [this]() { lis2mdlCallback(); }};
+        map.emplace(lis2mdl.get(), lis2mdlInfo);
+    }
+
+    if (lsm6dsrx)
+    {
+        SensorInfo lsm6dsrxInfo{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
+                                [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx.get(), lsm6dsrxInfo);
+    }
+
+    if (ads131m08)
+    {
+        SensorInfo ads131m08Info{"ADS131M08",
+                                 Config::Sensors::ADS131M08::PERIOD,
+                                 [this]() { ads131m08Callback(); }};
+        map.emplace(ads131m08.get(), ads131m08Info);
+    }
+
+    if (internalAdc)
+    {
+        SensorInfo internalAdcInfo{"InternalADC",
+                                   Config::Sensors::InternalADC::PERIOD,
+                                   [this]() { internalAdcCallback(); }};
+        map.emplace(internalAdc.get(), internalAdcInfo);
+    }
+
+    if (topTankPressure)
+    {
+        SensorInfo info("TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { topTankPressureCallback(); });
+        map.emplace(std::make_pair(topTankPressure.get(), info));
+    }
+
+    if (ccPressure)
+    {
+        SensorInfo info("CCPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { ccPressureCallback(); });
+        map.emplace(std::make_pair(ccPressure.get(), info));
+    }
+
+    manager = std::make_unique<SensorManager>(map, &scheduler);
+    return manager->start();
 }
