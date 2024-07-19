@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,56 +22,31 @@
 
 #pragma once
 
-#include <cstdint>
-#include <ostream>
-#include <string>
+#include <stdint.h>
+
+#include <iostream>
 
 namespace Main
 {
-
-enum class ADAControllerState : uint8_t
+enum class ABKControllerState : uint8_t
 {
-    INIT = 0,
-    CALIBRATING,
-    READY,
-    ARMED,
-    SHADOW_MODE,
-    ACTIVE_ASCENT,
-    ACTIVE_DROGUE_DESCENT,
-    ACTIVE_TERMINAL_DESCENT,
+    UNINIT = 0,
+    INIT,
+    IDLE,
+    ACTIVE,
     END
 };
 
-struct ADAControllerStatus
+struct ABKControllerStatus
 {
     uint64_t timestamp       = 0;
-    ADAControllerState state = ADAControllerState::INIT;
+    ABKControllerState state = ABKControllerState::UNINIT;
 
     static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << static_cast<int>(state) << "\n";
+        os << timestamp << "," << (int)state << "\n";
     }
 };
-
-struct ADAControllerSampleData
-{
-    uint64_t timestamp               = 0;
-    unsigned int detectedApogees     = 0;
-    unsigned int detectedDeployments = 0;
-    ADAControllerState state         = ADAControllerState::INIT;
-
-    static std::string header()
-    {
-        return "timestamp,detectedApogees,detectedDeployments,state\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << detectedApogees << "," << detectedDeployments
-           << "," << static_cast<int>(state) << "\n";
-    }
-};
-
 }  // namespace Main
