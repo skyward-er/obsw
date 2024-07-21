@@ -424,10 +424,11 @@ void Sensors::staticPressure1Init()
     staticPressure1 = std::make_unique<MPXH6115A>(
         [this]()
         {
-            auto sample = getADS131M08LastSample();
+            auto sample  = getADS131M08LastSample();
             auto voltage = sample.getVoltage(
                 Config::Sensors::ADS131M08::STATIC_PRESSURE_1_CHANNEL);
-            voltage.voltage *= Config::Sensors::ADS131M08::STATIC_PRESSURE_1_SCALE;
+            voltage.voltage *=
+                Config::Sensors::ADS131M08::STATIC_PRESSURE_1_SCALE;
 
             return voltage;
         });
@@ -443,10 +444,11 @@ void Sensors::staticPressure2Init()
     staticPressure2 = std::make_unique<MPXH6115A>(
         [this]()
         {
-            auto sample = getADS131M08LastSample();
+            auto sample  = getADS131M08LastSample();
             auto voltage = sample.getVoltage(
                 Config::Sensors::ADS131M08::STATIC_PRESSURE_2_CHANNEL);
-            voltage.voltage *= Config::Sensors::ADS131M08::STATIC_PRESSURE_2_SCALE;
+            voltage.voltage *=
+                Config::Sensors::ADS131M08::STATIC_PRESSURE_2_SCALE;
 
             return voltage;
         });
@@ -462,10 +464,11 @@ void Sensors::dplBayPressureInit()
     dplBayPressure = std::make_unique<MPXH6115A>(
         [this]()
         {
-            auto sample = getADS131M08LastSample();
+            auto sample  = getADS131M08LastSample();
             auto voltage = sample.getVoltage(
                 Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_CHANNEL);
-            voltage.voltage *= Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_SCALE;
+            voltage.voltage *=
+                Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_SCALE;
 
             return voltage;
         });

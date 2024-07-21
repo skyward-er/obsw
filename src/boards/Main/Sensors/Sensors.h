@@ -33,9 +33,9 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
@@ -108,6 +108,8 @@ protected:
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure2;
     std::unique_ptr<Boardcore::MPXH6115A> dplBayPressure;
 
+    std::unique_ptr<Boardcore::SensorManager> manager;
+
 private:
     void lps22dfInit();
     void lps22dfCallback();
@@ -147,8 +149,6 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};
-
-    std::unique_ptr<Boardcore::SensorManager> manager;
 };
 
 }  // namespace Main

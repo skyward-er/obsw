@@ -46,6 +46,7 @@ public:
     void openExpulsion();
 
     bool wiggleServo(ServosList servo);
+    float getServoPosition(ServosList servo);
 
     bool isCanServoOpen(ServosList servo);
 
@@ -81,6 +82,7 @@ private:
 
     std::atomic<bool> started{false};
 
+    miosix::FastMutex servosMutex;
     std::unique_ptr<Boardcore::Servo> servoAbk;
     std::unique_ptr<Boardcore::Servo> servoExp;
     std::unique_ptr<Boardcore::PWM> buzzer;
@@ -91,7 +93,7 @@ private:
     std::atomic<uint32_t> statusCounter{0};
     std::atomic<uint32_t> statusOverflow{0};
 
-    miosix::FastMutex infosMutex;
+    miosix::FastMutex canServosMutex;
     bool canMainOpen    = false;
     bool canVentingOpen = false;
 };

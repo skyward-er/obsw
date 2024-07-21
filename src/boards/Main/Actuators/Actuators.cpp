@@ -89,13 +89,19 @@ bool Actuators::start()
 
 void Actuators::setAbkPosition(float position)
 {
+    Lock<FastMutex> lock{servosMutex};
     servoAbk->setPosition(position);
 }
 
-void Actuators::openExpulsion() { servoExp->setPosition(1.0f); }
+void Actuators::openExpulsion()
+{
+    Lock<FastMutex> lock{servosMutex};
+    servoExp->setPosition(1.0f);
+}
 
 bool Actuators::wiggleServo(ServosList servo)
 {
+    Lock<FastMutex> lock{servosMutex};
     Servo *info = getServo(servo);
     if (info != nullptr)
     {
@@ -113,9 +119,16 @@ bool Actuators::wiggleServo(ServosList servo)
     }
 }
 
+float Actuators::getServoPosition(ServosList servo)
+{
+    Lock<FastMutex> lock{servosMutex};
+    Servo *info = getServo(servo);
+    return info ? info->getPosition() : 0.0f;
+}
+
 bool Actuators::isCanServoOpen(ServosList servo)
 {
-    Lock<FastMutex> lock(infosMutex);
+    Lock<FastMutex> lock{canServosMutex};
     if (servo == ServosList::MAIN_VALVE)
     {
         return canMainOpen;
@@ -156,7 +169,7 @@ void Actuators::setBuzzerLand()
 
 void Actuators::setCanServoOpen(ServosList servo, bool open)
 {
-    Lock<FastMutex> lock(infosMutex);
+    Lock<FastMutex> lock{canServosMutex};
     if (servo == ServosList::MAIN_VALVE)
     {
         canMainOpen = open;
