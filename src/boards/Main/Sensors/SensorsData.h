@@ -25,11 +25,17 @@
 #include <sensors/SensorData.h>
 #include <sensors/analog/pressure/nxp/MPXH6115AData.h>
 
-namespace Main 
+namespace Main
 {
 
-struct StaticPressureData1 : Boardcore::MPXH6115AData {};
-struct StaticPressureData2 : Boardcore::MPXH6115AData {};
-struct DplBayPressureData : Boardcore::MPXH6115AData {};
+struct StaticPressureData1 : Boardcore::MPXH6115AData
+{
+};
+struct StaticPressureData2 : Boardcore::MPXH6115AData
+{
+};
+struct DplBayPressureData : Boardcore::MPXH6115AData
+{
+};
 
-}
+}  // namespace Main
