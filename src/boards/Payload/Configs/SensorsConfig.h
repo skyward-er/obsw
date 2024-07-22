@@ -41,11 +41,8 @@ namespace Config
 namespace Sensors
 {
 
-// clang-format off
-// Indent to avoid the linter complaining about using namespace
-  using namespace Boardcore::Units::Frequency;
-  using namespace std::chrono_literals;
-// clang-format on
+/* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace std::chrono_literals;
 
 namespace LPS22DF
 {
@@ -109,11 +106,6 @@ constexpr auto SAMPLING_RATE = 100_hz;
 constexpr auto OVERSAMPLING_RATIO =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE = true;
-// TODO: populate with final channels once sensors are soldered
-constexpr auto STATIC_PRESSURE_CH =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr auto DYNAMIC_PRESSURE_CH =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 }  // namespace ADS131M08
 
 namespace InternalADC
@@ -131,12 +123,16 @@ namespace StaticPressure
 {
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
+constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
 }  // namespace StaticPressure
 
 namespace DynamicPressure
 {
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
+constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
 }  // namespace DynamicPressure
 
 namespace Pitot

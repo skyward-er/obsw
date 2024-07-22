@@ -35,8 +35,7 @@
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
 #include <sensors/analog/Pitot/Pitot.h>
-#include <sensors/analog/pressure/honeywell/HSCMRNN015PA.h>
-#include <sensors/analog/pressure/honeywell/SSCMRNN030PA.h>
+#include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -75,7 +74,6 @@ public:
      */
     bool writeMagCalibration();
 
-    // Hardware Sensors
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -85,15 +83,14 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    // Software Sensors
-    Boardcore::HSCMRNN015PAData getStaticPressureLastSample();
-    Boardcore::SSCMRNN030PAData getDynamicPressureLastSample();
+    Boardcore::PressureData getStaticPressure();
+    Boardcore::PressureData getDynamicPressure();
+
     Boardcore::PitotData getPitotLastSample();
     IMUData getIMULastSample();
 
-    // Processed values
-    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
-    Boardcore::BatteryVoltageSensorData getCamBatteryVoltageLastSample();
+    Boardcore::BatteryVoltageSensorData getBatteryVoltage();
+    Boardcore::BatteryVoltageSensorData getCamBatteryVoltage();
     Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
     void pitotSetReferenceAltitude(float altitude);
@@ -163,7 +160,6 @@ protected:
      */
     virtual bool postSensorCreationHook() { return true; }
 
-    // Hardware sensor instances
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
@@ -173,9 +169,8 @@ protected:
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
-    // Software sensor instances
-    std::unique_ptr<Boardcore::HSCMRNN015PA> staticPressure;
-    std::unique_ptr<Boardcore::SSCMRNN030PA> dynamicPressure;
+    std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
+    std::unique_ptr<Boardcore::MPXH6115A> dynamicPressure;
     std::unique_ptr<Boardcore::Pitot> pitot;
     std::unique_ptr<Payload::RotatedIMU> imu;
 

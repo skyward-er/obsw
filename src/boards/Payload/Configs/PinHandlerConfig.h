@@ -24,6 +24,8 @@
 
 #include <utils/PinObserver/PinObserver.h>
 
+#include <chrono>
+
 namespace Payload
 {
 namespace Config
@@ -31,12 +33,24 @@ namespace Config
 namespace PinHandler
 {
 
+/* linter-off */ using namespace std::chrono_literals;
+
+namespace PinObserver
+{
+constexpr auto PERIOD = 20ms;
+}
+
 namespace NoseconeDetach
 {
 constexpr auto DETECTION_THRESHOLD   = 20;
-constexpr auto PERIOD                = 20;  // [ms]
 constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
 }  // namespace NoseconeDetach
+
+namespace ExpulsionSense
+{
+constexpr auto DETECTION_THRESHOLD   = 20;
+constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
+}  // namespace ExpulsionSense
 
 }  // namespace PinHandler
 }  // namespace Config

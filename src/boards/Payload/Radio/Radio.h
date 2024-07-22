@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,97 +19,83 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #pragma once
 
 #include <Payload/Configs/RadioConfig.h>
-#include <common/MavlinkGemini.h>
+#include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
-using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                                           RadioConfig::RADIO_OUT_QUEUE_SIZE,
-                                           RadioConfig::RADIO_MAV_MSG_LENGTH>;
+using MavDriver =
+    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
+                             Config::Radio::MavlinkDriver::PKT_QUEUE_SIZE,
+                             Config::Radio::MavlinkDriver::MSG_LENGTH>;
 
 class BoardScheduler;
 class Sensors;
 class Buses;
-class TMRepository;
 class FlightModeManager;
 class Actuators;
 class NASController;
 class WingController;
 class AltitudeTrigger;
+class PinHandler;
+class CanHandler;
 
-class Radio
-    : public Boardcore::InjectableWithDeps<
-          BoardScheduler, Sensors, Buses, TMRepository, FlightModeManager,
-          Actuators, NASController, WingController, AltitudeTrigger>
+class Radio : public Boardcore::InjectableWithDeps<
+                  BoardScheduler, Sensors, Buses, FlightModeManager, Actuators,
+                  NASController, WingController, AltitudeTrigger, PinHandler,
+                  CanHandler>
 {
 public:
     /**
-     * @note This class may only be instantiated once. The constructed instance
-     * sets itself as the static instance for handling radio interrupts.
+     * @brief Unsets the static instance for handling radio interrupts, if the
+     * current one was set by this radio instance.
      */
-    Radio();
+    ~Radio();
 
     /**
-     * @brief Starts the MavlinkDriver
+     * @brief Initializes the radio and Mavlink driver, and sets the static
+     * instance for handling radio interrupts.
      */
     [[nodiscard]] bool start();
 
-    /**
-     * @brief Sends via radio an acknowledge message about the parameter passed
-     * message
-     */
-    void sendAck(const mavlink_message_t& msg);
+    bool isStarted();
+
+private:
+    void handleMessage(const mavlink_message_t& msg);
+    void handleCommand(const mavlink_message_t& msg);
+
+    void enqueueAck(const mavlink_message_t& msg);
+    void enqueueNack(const mavlink_message_t& msg);
+
+    bool enqueueSystemTm(SystemTMList tmId);
+    bool enqueueSensorsTm(SensorsTMList sensorId);
+
+    void enqueueHighRateTelemetry();
+    void enqueueLowRateTelemetry();
+
+    void enqueueMessage(const mavlink_message_t& msg);
+    void flushMessageQueue();
 
     /**
-     * @brief Sends via radio an non-acknowledge message about the parameter
-     * passed message
-     */
-    void sendNack(const mavlink_message_t& msg);
-
-    /**
-     * @brief Saves the MavlinkDriver and transceiver status
+     * @brief Logs the status of MavlinkDriver and the transceiver
      */
     void logStatus();
 
-    /**
-     * @brief Returns if the radio module is correctly started
-     */
-    bool isStarted();
+    std::unique_ptr<Boardcore::SX1278Fsk> transceiver;
+    std::unique_ptr<MavDriver> mavDriver;
 
-    Boardcore::SX1278Fsk* transceiver = nullptr;
-    MavDriver* mavDriver              = nullptr;
-
-private:
-    /**
-     * @brief Called by the MavlinkDriver when a message is received
-     */
-    void handleMavlinkMessage(const mavlink_message_t& msg);
-
-    /**
-     * @brief Called by the handleMavlinkMessage to handle a command message
-     */
-    void handleCommand(const mavlink_message_t& msg);
-
-    /**
-     * @brief Sends the periodic telemetry
-     */
-    void sendPeriodicMessage();
-
-    /**
-     * @brief Inserts the mavlink message into the queue
-     */
-    void enqueueMsg(const mavlink_message_t& msg);
-
-    // Messages queue
-    mavlink_message_t messageQueue[RadioConfig::MAVLINK_QUEUE_SIZE];
+    std::array<mavlink_message_t, Config::Radio::MESSAGE_QUEUE_SIZE>
+        messageQueue;
     uint32_t messageQueueIndex = 0;
     miosix::FastMutex queueMutex;
+
+    std::atomic<bool> started{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Radio");
 };
