@@ -145,8 +145,7 @@ void NASController::calibrate()
                      magData.magneticFieldZ);
 
         // Static pressure barometer
-        HSCMRNN015PAData barometerData =
-            getModule<Sensors>()->getStaticPressureLastSample();
+        PressureData barometerData = getModule<Sensors>()->getStaticPressure();
         pressure.add(barometerData.pressure);
 
         miosix::Thread::sleep(NASConfig::CALIBRATION_SLEEP_TIME);

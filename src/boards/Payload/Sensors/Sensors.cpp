@@ -132,8 +132,8 @@ void Sensors::calibrate()
     for (auto i = 0; i < config::Calibration::SAMPLE_COUNT; i++)
     {
         lps28dfwStats.add(getLPS28DFWLastSample().pressure);
-        staticPressureStats.add(getStaticPressureLastSample().pressure);
-        dynamicPressureStats.add(getDynamicPressureLastSample().pressure);
+        staticPressureStats.add(getStaticPressure().pressure);
+        dynamicPressureStats.add(getDynamicPressure().pressure);
 
         auto wakeup = start + config::Calibration::SAMPLE_PERIOD;
         miosix::Thread::nanoSleepUntil(wakeup.time_since_epoch().count());
@@ -218,16 +218,14 @@ InternalADCData Sensors::getInternalADCLastSample()
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-HSCMRNN015PAData Sensors::getStaticPressureLastSample()
+PressureData Sensors::getStaticPressure()
 {
-    return staticPressure ? staticPressure->getLastSample()
-                          : HSCMRNN015PAData{};
+    return staticPressure ? staticPressure->getLastSample() : PressureData{};
 }
 
-SSCMRNN030PAData Sensors::getDynamicPressureLastSample()
+PressureData Sensors::getDynamicPressure()
 {
-    return dynamicPressure ? dynamicPressure->getLastSample()
-                           : SSCMRNN030PAData{};
+    return dynamicPressure ? dynamicPressure->getLastSample() : PressureData{};
 }
 
 PitotData Sensors::getPitotLastSample()
@@ -240,7 +238,7 @@ IMUData Sensors::getIMULastSample()
     return imu ? imu->getLastSample() : IMUData{};
 }
 
-BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
+BatteryVoltageSensorData Sensors::getBatteryVoltage()
 {
     auto sample = getInternalADCLastSample();
 
@@ -254,7 +252,7 @@ BatteryVoltageSensorData Sensors::getBatteryVoltageLastSample()
     return data;
 }
 
-BatteryVoltageSensorData Sensors::getCamBatteryVoltageLastSample()
+BatteryVoltageSensorData Sensors::getCamBatteryVoltage()
 {
     auto sample = getInternalADCLastSample();
 
@@ -307,14 +305,20 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
 {
     if (manager)
     {
-        return {manager->getSensorInfo(lps22df.get()),
-                manager->getSensorInfo(lps28dfw.get()),
-                manager->getSensorInfo(h3lis331dl.get()),
-                manager->getSensorInfo(lis2mdl.get()),
-                manager->getSensorInfo(ubxgps.get()),
-                manager->getSensorInfo(lsm6dsrx.get()),
-                manager->getSensorInfo(ads131m08.get()),
-                manager->getSensorInfo(internalAdc.get())};
+        return {
+            manager->getSensorInfo(lps22df.get()),
+            manager->getSensorInfo(lps28dfw.get()),
+            manager->getSensorInfo(h3lis331dl.get()),
+            manager->getSensorInfo(lis2mdl.get()),
+            manager->getSensorInfo(ubxgps.get()),
+            manager->getSensorInfo(lsm6dsrx.get()),
+            manager->getSensorInfo(ads131m08.get()),
+            manager->getSensorInfo(internalAdc.get()),
+            manager->getSensorInfo(staticPressure.get()),
+            manager->getSensorInfo(dynamicPressure.get()),
+            manager->getSensorInfo(pitot.get()),
+            manager->getSensorInfo(imu.get()),
+        };
     }
     else
     {
@@ -534,8 +538,8 @@ void Sensors::ads131m08Create()
         channel.enabled = false;
     }
     // Enable required channels
-    channels[(uint8_t)config::ADS131M08::STATIC_PRESSURE_CH].enabled  = true;
-    channels[(uint8_t)config::ADS131M08::DYNAMIC_PRESSURE_CH].enabled = true;
+    channels[(uint8_t)config::StaticPressure::ADC_CH].enabled  = true;
+    channels[(uint8_t)config::DynamicPressure::ADC_CH].enabled = true;
 
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->ADS131M08(),
                                             hwmap::ADS131M08::cs::getPin(),
@@ -587,12 +591,14 @@ void Sensors::staticPressureCreate()
 
     auto readVoltage = [this]
     {
-        auto sample = ads131m08->getLastSample();
-        return sample.getVoltage(config::ADS131M08::STATIC_PRESSURE_CH);
+        auto sample  = getADS131M08LastSample();
+        auto voltage = sample.getVoltage(config::StaticPressure::ADC_CH);
+        voltage.voltage *= config::StaticPressure::SCALE;
+
+        return voltage;
     };
 
-    // TODO: use updated static pressure driver
-    staticPressure = std::make_unique<HSCMRNN015PA>(readVoltage, 1.2);
+    staticPressure = std::make_unique<MPXH6115A>(readVoltage);
 }
 
 void Sensors::staticPressureInsert(SensorManager::SensorMap_t& map)
@@ -615,12 +621,14 @@ void Sensors::dynamicPressureCreate()
 
     auto readVoltage = [this]
     {
-        auto sample = ads131m08->getLastSample();
-        return sample.getVoltage(config::ADS131M08::DYNAMIC_PRESSURE_CH);
+        auto sample  = getADS131M08LastSample();
+        auto voltage = sample.getVoltage(config::DynamicPressure::ADC_CH);
+        voltage.voltage *= config::DynamicPressure::SCALE;
+
+        return voltage;
     };
 
-    // TODO: use updated dynamic pressure driver
-    dynamicPressure = std::make_unique<SSCMRNN030PA>(readVoltage, 1.2);
+    dynamicPressure = std::make_unique<MPXH6115A>(readVoltage);
 }
 
 void Sensors::dynamicPressureInsert(SensorManager::SensorMap_t& map)

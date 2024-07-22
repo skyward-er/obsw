@@ -31,6 +31,12 @@ namespace Payload
 {
 class BoardScheduler;
 
+enum class PinList : uint8_t
+{
+    DETACH_PAYLOAD_PIN = 2,
+    EXPULSION_SENSE    = 3,
+};
+
 /**
  * @brief This class contains the handlers for the detach pins on the rocket.
  *
@@ -40,24 +46,22 @@ class BoardScheduler;
 class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
-    bool start();
+    [[nodiscard]] bool start();
 
     bool isStarted();
 
     /**
-     * @brief Returns information about all pins handled by this class
+     * @brief Returns information about the specified pin.
      */
-    std::map<PinsList, Boardcore::PinData> getPinData();
+    Boardcore::PinData getPinData(PinList pin);
 
 private:
-    /**
-     * @brief Detach pin transition handler.
-     */
-    void onDetachPinTransition(Boardcore::PinTransition transition);
+    void onDetachPayloadTransition(Boardcore::PinTransition transition);
+    void onExpulsionSenseTransition(Boardcore::PinTransition transition);
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
 
-    bool started = false;
+    std::atomic<bool> started{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 };

@@ -40,43 +40,67 @@ namespace Payload
 
 bool PinHandler::start()
 {
+    using namespace std::chrono;
+
     auto& scheduler = getModule<BoardScheduler>()->pinHandler();
 
-    pinObserver = std::make_unique<PinObserver>(scheduler,
-                                                config::NoseconeDetach::PERIOD);
+    pinObserver = std::make_unique<PinObserver>(
+        scheduler, milliseconds{config::PinObserver::PERIOD}.count());
 
-    bool pinResult = pinObserver->registerPinCallback(
+    bool detachPayloadResult = pinObserver->registerPinCallback(
         hwmap::detachPayload::getPin(),
-        [this](auto t) { onDetachPinTransition(t); },
+        [this](auto t) { onDetachPayloadTransition(t); },
         config::NoseconeDetach::DETECTION_THRESHOLD);
 
-    if (!pinResult)
+    if (!detachPayloadResult)
     {
+        LOG_ERR(logger,
+                "Failed to register pin callback for the detach payload pin");
+        return false;
+    }
+
+    bool expSenseResult = pinObserver->registerPinCallback(
+        hwmap::expulsionSense::getPin(),
+        [this](auto t) { onExpulsionSenseTransition(t); },
+        config::ExpulsionSense::DETECTION_THRESHOLD);
+
+    if (!expSenseResult)
+    {
+        LOG_ERR(logger,
+                "Failed to register pin callback for the expulsion sense pin");
         return false;
     }
 
     started = true;
-
     return true;
 }
 
 bool PinHandler::isStarted() { return started; }
 
-std::map<PinsList, PinData> PinHandler::getPinData()
+void PinHandler::onDetachPayloadTransition(PinTransition transition)
 {
-    std::map<PinsList, PinData> data;
-
-    data[PinsList::NOSECONE_PIN] =
-        pinObserver->getPinData(hwmap::detachPayload::getPin());
-
-    return data;
+    // TODO: send event
+    LOG_INFO(logger, "onDetachPayloadTransition {}",
+             static_cast<int>(transition));
 }
 
-void PinHandler::onDetachPinTransition(PinTransition transition)
+void PinHandler::onExpulsionSenseTransition(PinTransition transition)
 {
-    if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
+    // TODO: send event
+    LOG_INFO(logger, "onExpulsionSenseTransition {}",
+             static_cast<int>(transition));
+}
+
+PinData PinHandler::getPinData(PinList pin)
+{
+    switch (pin)
     {
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+        case PinList::DETACH_PAYLOAD_PIN:
+            return pinObserver->getPinData(hwmap::detachPayload::getPin());
+        case PinList::EXPULSION_SENSE:
+            return pinObserver->getPinData(hwmap::expulsionSense::getPin());
+        default:
+            return PinData{};
     }
 }
 

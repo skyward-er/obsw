@@ -31,10 +31,7 @@ namespace Config
 namespace Actuators
 {
 
-// clang-format off
-// Indent to avoid the linter complaining about using namespace
-  using namespace std::chrono;
-// clang-format on
+/* linter off */ using namespace std::chrono_literals;
 
 namespace LeftServo
 {
