@@ -85,7 +85,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/Sensors/Sensors.cpp
     src/boards/Payload/PinHandler/PinHandler.cpp
     src/boards/Payload/Radio/Radio.cpp
-    src/boards/Payload/TMRepository/TMRepository.cpp
+    src/boards/Payload/Radio/MessageHandler.cpp
     src/boards/Payload/StateMachines/NASController/NASController.cpp
     src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Payload/StateMachines/WingController/WingController.cpp

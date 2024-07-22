@@ -33,7 +33,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/TMRepository/TMRepository.h>
 #include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
@@ -119,18 +118,17 @@ int main()
 
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
-    auto tmRepository  = new TMRepository();
 
     // Insert modules
-    bool initResult =
-        depman.insert(buses) && depman.insert(scheduler) &&
-        depman.insert(flightModeManager) && depman.insert(nas) &&
-        depman.insert(sensors) && depman.insert(pinHandler) &&
-        depman.insert(radio) && depman.insert(canHandler) &&
-        depman.insert(altitudeTrigger) && depman.insert(wingController) &&
-        depman.insert(verticalVelocityTrigger) &&
-        depman.insert(windEstimation) && depman.insert(actuators) &&
-        depman.insert(statsRecorder) && depman.insert(tmRepository);
+    bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
+                      depman.insert(flightModeManager) && depman.insert(nas) &&
+                      depman.insert(sensors) && depman.insert(pinHandler) &&
+                      depman.insert(radio) && depman.insert(canHandler) &&
+                      depman.insert(altitudeTrigger) &&
+                      depman.insert(wingController) &&
+                      depman.insert(verticalVelocityTrigger) &&
+                      depman.insert(windEstimation) &&
+                      depman.insert(actuators) && depman.insert(statsRecorder);
 
     // Populate module dependencies
     initResult &= depman.inject();
@@ -147,7 +145,7 @@ int main()
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
     START_MODULE(pinHandler);
-    // START_MODULE(radio) { miosix::led2On(); }
+    START_MODULE(radio) { miosix::led2On(); }
     // START_MODULE(canHandler) { miosix::led3On(); }
     START_MODULE(flightModeManager);
     START_MODULE(nas);
