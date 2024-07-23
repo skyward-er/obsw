@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,25 @@
 
 namespace Payload
 {
-
-namespace CanHandlerConfig
+namespace Config
+{
+namespace CanHandler
 {
 
-constexpr unsigned int PITOT_TRANSMISSION_PERIOD  = 50;    // ms
-constexpr unsigned int STATUS_TRANSMISSION_PERIOD = 1000;  // ms
+/* linter-off */ using namespace std::chrono_literals;
 
-}  // namespace CanHandlerConfig
+namespace Status
+{
+constexpr auto PERIOD = 1000ms;
+// Time after which a board is reported as disconnected in CAN telemetry
+constexpr auto TIMEOUT = 1500ms;
+}  // namespace Status
 
+namespace Pitot
+{
+constexpr auto PERIOD = 50ms;
+}
+
+}  // namespace CanHandler
+}  // namespace Config
 }  // namespace Payload
