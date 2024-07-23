@@ -34,7 +34,7 @@
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <iostream>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -45,7 +45,6 @@ int main()
 {
     ledOff();
 
-    PrintLogger logger = Logging::getLogger("main");
     DependencyManager manager;
 
     Buses *buses              = new Buses();
@@ -72,7 +71,7 @@ int main()
 
     if (!initResult)
     {
-        LOG_ERR(logger, "Failed to inject dependencies");
+        std::cout << "Failed to inject dependencies" << std::endl;
         return -1;
     }
 
@@ -85,19 +84,19 @@ int main()
     if (!EventBroker::getInstance().start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start EventBroker");
+        std::cout << "Error failed to start EventBroker" << std::endl;
     }
 
     if (!actuators->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
+        std::cout << "Error failed to start Actuators module" << std::endl;
     }
 
     if (!sensors->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
+        std::cout << "Error failed to start Sensors module" << std::endl;
     }
     else
     {
@@ -107,7 +106,7 @@ int main()
     if (!radio->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Radio module");
+        std::cout << "Error failed to start Radio module" << std::endl;
     }
     else
     {
@@ -117,7 +116,7 @@ int main()
     if (!canHandler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start CanHandler module");
+        std::cout << "Error failed to start CanHandler module" << std::endl;
     }
     else
     {
@@ -127,49 +126,47 @@ int main()
     if (!pinHandler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start PinHandler module");
+        std::cout << "Error failed to start PinHandler module" << std::endl;
     }
 
     if (!scheduler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start scheduler");
+        std::cout << "Error failed to start scheduler" << std::endl;
     }
 
     if (!fmm->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start FlightModeManager");
+        std::cout << "Error failed to start FlightModeManager" << std::endl;
     }
 
     if (!initResult)
     {
-        LOG_ERR(logger, "Init failure!");
+        std::cout << "Init failure" << std::endl;
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusErr();
     }
     else
     {
-        LOG_INFO(logger, "All good!");
+        std::cout << "All good!" << std::endl;
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         actuators->setStatusOk();
         led4On();
     }
 
+    std::cout << "Sensor status:" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
-        LOG_INFO(logger, "{} {}", info.isInitialized, info.id);
+        std::cout << "- " << info.id << " status: " << info.isInitialized
+                  << std::endl;
     }
 
     while (true)
     {
         gpios::boardLed::low();
-        // actuators->setAbkPosition(0.1f);
-        canHandler->sendEvent(Common::CanConfig::EventId::ARM);
         Thread::sleep(1000);
         gpios::boardLed::high();
-        // actuators->setAbkPosition(0.5f);
-        canHandler->sendEvent(Common::CanConfig::EventId::DISARM);
         Thread::sleep(1000);
     }
 

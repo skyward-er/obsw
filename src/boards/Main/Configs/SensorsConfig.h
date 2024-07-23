@@ -138,7 +138,7 @@ constexpr float CHANNEL_2_SCALE = (38300.0f + 13000.0f) / 13000.0f;
 
 constexpr float STATIC_PRESSURE_1_SCALE = CHANNEL_0_SCALE;
 constexpr float STATIC_PRESSURE_2_SCALE = CHANNEL_1_SCALE;
-constexpr float DPL_BAY_PRESSURE_SCALE = CHANNEL_2_SCALE;
+constexpr float DPL_BAY_PRESSURE_SCALE  = CHANNEL_2_SCALE;
 
 constexpr Hertz PERIOD = 100_hz;
 constexpr bool ENABLED = true;
