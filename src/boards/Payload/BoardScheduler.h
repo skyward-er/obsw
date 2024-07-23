@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -51,24 +52,49 @@ public:
      */
     [[nodiscard]] bool start()
     {
-        return critical.start() && high.start() && medium.start() &&
-               low.start();
+        if (!critical.start())
+        {
+            LOG_ERR(logger, "Critical priority scheduler failed to start");
+            return false;
+        }
+
+        if (!high.start())
+        {
+            LOG_ERR(logger, "High priority scheduler failed to start");
+            return false;
+        }
+
+        if (!medium.start())
+        {
+            LOG_ERR(logger, "Medium priority scheduler failed to start");
+            return false;
+        }
+
+        if (!low.start())
+        {
+            LOG_ERR(logger, "Low priority scheduler failed to start");
+            return false;
+        }
+
+        started = true;
+        return true;
     }
 
     /**
      * @brief Returns if all the schedulers are up and running
      */
-    bool isStarted()
-    {
-        return critical.isRunning() && high.isRunning() && medium.isRunning() &&
-               low.isRunning();
-    }
+    bool isStarted() { return started; }
 
 private:
     Boardcore::TaskScheduler critical{miosix::PRIORITY_MAX - 1};
     Boardcore::TaskScheduler high{miosix::PRIORITY_MAX - 2};
     Boardcore::TaskScheduler medium{miosix::PRIORITY_MAX - 3};
     Boardcore::TaskScheduler low{miosix::PRIORITY_MAX - 4};
+
+    std::atomic<bool> started{false};
+
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("BoardScheduler");
 };
 
 }  // namespace Payload

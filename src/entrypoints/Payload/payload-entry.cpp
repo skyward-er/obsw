@@ -20,7 +20,8 @@
  * THE SOFTWARE.
  */
 
-// #define DEFAULT_STDOUT_LOG_LEVEL LOGL_WARNING
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_INFO
+
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
@@ -89,6 +90,9 @@ int main()
     PrintLogger logger = Logging::getLogger("Payload");
     DependencyManager depman{};
 
+    LOG_INFO(logger, "Starting Payload board");
+
+    LOG_INFO(logger, "Instantiating modules");
     // Core components
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
@@ -119,6 +123,7 @@ int main()
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
 
+    LOG_INFO(logger, "Injecting module dependencies");
     // Insert modules
     bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
                       depman.insert(flightModeManager) && depman.insert(nas) &&
@@ -139,6 +144,7 @@ int main()
     led3: CanBus ok
     led4: Everything ok */
 
+    LOG_INFO(logger, "Starting modules");
     // Start global modules
     START_SINGLETON(Logger);
     START_SINGLETON(EventBroker);

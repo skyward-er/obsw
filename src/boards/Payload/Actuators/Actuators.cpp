@@ -74,16 +74,29 @@ bool Actuators::start()
     buzzerOff();
     statusOff();
 
-    uint8_t buzzerTaskId = scheduler.addTask([this]() { updateBuzzer(); },
-                                             config::Buzzer::UPDATE_PERIOD,
-                                             TaskScheduler::Policy::RECOVER);
+    auto buzzerTaskId = scheduler.addTask([this]() { updateBuzzer(); },
+                                          config::Buzzer::UPDATE_PERIOD,
+                                          TaskScheduler::Policy::RECOVER);
+    if (buzzerTaskId == 0)
+    {
+        LOG_ERR(logger, "Failed to start buzzer task");
+        return false;
+    }
 
-    uint8_t statusTaskId = scheduler.addTask([this]() { updateStatusLed(); },
-                                             config::StatusLed::UPDATE_PERIOD,
-                                             TaskScheduler::Policy::RECOVER);
+    auto statusTaskId = scheduler.addTask([this]() { updateStatusLed(); },
+                                          config::StatusLed::UPDATE_PERIOD,
+                                          TaskScheduler::Policy::RECOVER);
+    if (statusTaskId == 0)
+    {
+        LOG_ERR(logger, "Failed to start status LED task");
+        return false;
+    }
 
-    return buzzerTaskId != 0 && statusTaskId != 0;
+    started = true;
+    return true;
 }
+
+bool Actuators::isStarted() { return started; }
 
 bool Actuators::setServoPosition(ServosList servoId, float position)
 {

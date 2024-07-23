@@ -248,7 +248,7 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
             tm.radio        = isStarted() ? 1 : 0;
             tm.sensors      = getModule<Sensors>()->isStarted() ? 1 : 0;
-            tm.actuators    = 0;  // TODO: implement isStarted
+            tm.actuators    = getModule<Actuators>()->isStarted() ? 1 : 0;
             tm.pin_handler  = getModule<PinHandler>()->isStarted() ? 1 : 0;
             tm.can_handler  = getModule<CanHandler>()->isStarted() ? 1 : 0;
             tm.scheduler    = getModule<BoardScheduler>()->isStarted() ? 1 : 0;

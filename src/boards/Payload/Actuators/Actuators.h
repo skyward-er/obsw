@@ -47,6 +47,8 @@ public:
 
     [[nodiscard]] bool start();
 
+    bool isStarted();
+
     /**
      * @brief Moves the specified servo to the specified position.
      * @param percentage Position to set in the range [0-1]
@@ -124,6 +126,8 @@ private:
 
     std::atomic<uint32_t> statusLedCounter{0};
     std::atomic<uint32_t> statusLedThreshold{0};
+
+    std::atomic<bool> started{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuators");
 };
