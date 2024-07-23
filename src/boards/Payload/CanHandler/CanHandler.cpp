@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "CanHandler.h"
 
+#include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/CanHandlerConfig.h>
 #include <Payload/Sensors/Sensors.h>
@@ -29,79 +30,140 @@
 #include <common/Events.h>
 #include <events/EventBroker.h>
 
-#include <functional>
-
 using namespace Boardcore;
-using namespace Canbus;
+using namespace Boardcore::Canbus;
 using namespace Common;
-using namespace CanConfig;
-using namespace Payload::CanHandlerConfig;
+using namespace Common::CanConfig;
+namespace config = Payload::Config::CanHandler;
 
 namespace Payload
 {
 
-CanHandler::CanHandler()
+using namespace std::chrono;
+
+bool CanStatus::isMainConnected()
 {
-    CanbusDriver::AutoBitTiming bitTiming;
-    bitTiming.baudRate    = BAUD_RATE;
-    bitTiming.samplePoint = SAMPLE_POINT;
+    return miosix::getTime() <=
+           mainLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+}
 
-    CanbusDriver::CanbusConfig config;
-    driver = new CanbusDriver(CAN2, config, bitTiming);
+bool CanStatus::isRigConnected()
+{
+    return miosix::getTime() <=
+           rigLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+}
 
-    protocol = new CanProtocol(
-        driver, [this](auto msg) { handleCanMessage(msg); },
-        miosix::PRIORITY_MAX - 1);
-
-    // Accept messages only from the main and RIG board
-    protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
-                        static_cast<uint8_t>(Board::BROADCAST));
-    protocol->addFilter(static_cast<uint8_t>(Board::RIG),
-                        static_cast<uint8_t>(Board::BROADCAST));
+bool CanStatus::isMotorConnected()
+{
+    return miosix::getTime() <=
+           motorLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
 }
 
 bool CanHandler::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->canHandler();
-    bool result;
 
-    // Add a task to periodically send the pitot data
-    result = scheduler.addTask(  // sensor template
-                 [&]()
-                 {
-                     protocol->enqueueData(
-                         static_cast<uint8_t>(Priority::MEDIUM),
-                         static_cast<uint8_t>(PrimaryType::SENSORS),
-                         static_cast<uint8_t>(Board::PAYLOAD),
-                         static_cast<uint8_t>(Board::BROADCAST),
-                         static_cast<uint8_t>(SensorId::PITOT),
-                         getModule<Sensors>()->getPitotLastSample());
-                 },
-                 PITOT_TRANSMISSION_PERIOD) != 0;
+    // Create CanbusDriver
+    driver = std::make_unique<CanbusDriver>(CAN1, CanConfig::CONFIG,
+                                            CanConfig::BIT_TIMING);
 
-    result =
-        result &&
-        scheduler.addTask(  // status
-            [&]()
-            {
-                FlightModeManagerState state =
-                    getModule<FlightModeManager>()->getStatus().state;
-                protocol->enqueueSimplePacket(
-                    static_cast<uint8_t>(Priority::MEDIUM),
-                    static_cast<uint8_t>(PrimaryType::STATUS),
-                    static_cast<uint8_t>(Board::PAYLOAD),
-                    static_cast<uint8_t>(Board::BROADCAST),
-                    static_cast<uint8_t>(state),
-                    ((state == FlightModeManagerState::ARMED) ? 0x01 : 0x00));
-            },
-            STATUS_TRANSMISSION_PERIOD) != 0;
+    // Create CanProtocol
+    protocol = std::make_unique<CanProtocol>(
+        driver.get(), [this](const auto& msg) { handleMessage(msg); },
+        BoardScheduler::Priority::MEDIUM);
 
+    // Add MAIN filter
+    bool filterAdded =
+        protocol->addFilter(static_cast<uint8_t>(Board::MAIN),
+                            static_cast<uint8_t>(Board::BROADCAST));
+    if (!filterAdded)
+    {
+        LOG_ERR(logger, "Failed to add MAIN filter");
+        return false;
+    }
+
+    // Add RIG filter
+    filterAdded = protocol->addFilter(static_cast<uint8_t>(Board::RIG),
+                                      static_cast<uint8_t>(Board::BROADCAST));
+    if (!filterAdded)
+    {
+        LOG_ERR(logger, "Failed to add RIG filter");
+        return false;
+    }
+
+    // Add MOTOR filter
+    filterAdded = protocol->addFilter(static_cast<uint8_t>(Board::MOTOR),
+                                      static_cast<uint8_t>(Board::BROADCAST));
+    if (!filterAdded)
+    {
+        LOG_ERR(logger, "Failed to add MOTOR filter");
+        return false;
+    }
+
+    // Initialize CanbusDriver
+    LOG_DEBUG(logger, "Initializing CanbusDriver, this may take a while...");
     driver->init();
 
-    return protocol->start() && result;
+    // Add the status task
+    auto statusTask = scheduler.addTask(
+        [this]
+        {
+            auto logStats = Logger::getInstance().getStats();
+            auto state    = getModule<FlightModeManager>()->getStatus().state;
+            auto status   = DeviceStatus{
+                  .timestamp = TimestampTimer::getTimestamp(),
+                  .logNumber = static_cast<int16_t>(logStats.logNumber),
+                  .state     = static_cast<uint8_t>(state),
+                  .armed     = state == FlightModeManagerState::ARMED,
+                  .hil       = false,  // TODO: hil
+                  .logGood   = logStats.lastWriteError == 0,
+            };
+
+            protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),
+                                  static_cast<uint8_t>(PrimaryType::STATUS),
+                                  static_cast<uint8_t>(Board::PAYLOAD),
+                                  static_cast<uint8_t>(Board::BROADCAST), 0x00,
+                                  status);
+        },
+        config::Status::PERIOD);
+
+    if (statusTask == 0)
+    {
+        LOG_ERR(logger, "Failed to add periodic status task");
+        return false;
+    }
+
+    // Add the pitot task
+    auto pitotTask = scheduler.addTask(
+        [this]()
+        {
+            protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),
+                                  static_cast<uint8_t>(PrimaryType::SENSORS),
+                                  static_cast<uint8_t>(Board::PAYLOAD),
+                                  static_cast<uint8_t>(Board::BROADCAST),
+                                  static_cast<uint8_t>(SensorId::PITOT),
+                                  getModule<Sensors>()->getPitotLastSample());
+        },
+        config::Pitot::PERIOD);
+
+    if (pitotTask == 0)
+    {
+        LOG_ERR(logger, "Failed to add periodic pitot task");
+        return false;
+    }
+
+    bool protocolStarted = protocol->start();
+    if (!protocolStarted)
+    {
+        LOG_ERR(logger, "Failed to start CanProtocol");
+        return false;
+    }
+
+    started = true;
+    return true;
 }
 
-bool CanHandler::isStarted() { return protocol->isStarted(); }
+bool CanHandler::isStarted() { return started; }
 
 void CanHandler::sendEvent(EventId event)
 {
@@ -112,38 +174,90 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
-void CanHandler::handleCanMessage(const CanMessage& msg)
+CanStatus CanHandler::getCanStatus()
 {
-    PrimaryType msgType = static_cast<PrimaryType>(msg.getPrimaryType());
+    miosix::Lock<miosix::FastMutex> lock(statusMutex);
+    return status;
+}
 
-    switch (msgType)
+void CanHandler::handleMessage(const CanMessage& msg)
+{
+    auto type = static_cast<PrimaryType>(msg.getPrimaryType());
+    switch (type)
     {
         case PrimaryType::EVENTS:
         {
-            handleCanEvent(msg);
+            handleEvent(msg);
             break;
         }
+
+        case PrimaryType::STATUS:
+        {
+            handleStatus(msg);
+            break;
+        }
+
         default:
         {
-            LOG_WARN(logger, "Received unsupported message type: type={}",
-                     msgType);
             break;
         }
     }
 }
 
-void CanHandler::handleCanEvent(const Boardcore::Canbus::CanMessage& msg)
+void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage& msg)
 {
-    EventId eventId = static_cast<EventId>(msg.getSecondaryType());
+    auto canEvent = static_cast<EventId>(msg.getSecondaryType());
+    auto event    = eventToEvent.find(canEvent);
 
-    auto it = eventToEvent.find(eventId);
-
-    if (it != eventToEvent.end())
+    if (event == eventToEvent.end())
     {
-        EventBroker::getInstance().post(it->second, TOPIC_CAN);
+        return;
     }
-    else
-        LOG_WARN(logger, "Received unsupported event: id={}", eventId);
+
+    EventBroker::getInstance().post(event->second, TOPIC_CAN);
+}
+
+void CanHandler::handleStatus(const CanMessage& msg)
+{
+    auto board        = static_cast<Board>(msg.getSource());
+    auto deviceStatus = deviceStatusFromCanMessage(msg);
+
+    miosix::Lock<miosix::FastMutex> lock(statusMutex);
+
+    switch (board)
+    {
+        case Board::MAIN:
+        {
+            status.mainLastStatus = miosix::getTime();
+            status.mainState      = deviceStatus.state;
+            status.mainArmed      = deviceStatus.armed;
+            break;
+        }
+
+        case Board::RIG:
+        {
+            status.rigLastStatus = miosix::getTime();
+            status.rigState      = deviceStatus.state;
+            status.rigArmed      = deviceStatus.armed;
+            break;
+        }
+
+        case Board::MOTOR:
+        {
+            status.motorLastStatus = miosix::getTime();
+            status.motorState      = deviceStatus.state;
+
+            status.motorLogNumber = deviceStatus.logNumber;
+            status.motorLogGood   = deviceStatus.logGood;
+            status.motorHil       = deviceStatus.hil;
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }
 
 }  // namespace Payload

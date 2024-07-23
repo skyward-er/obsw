@@ -431,13 +431,15 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             tm.log_good             = (loggerStats.lastWriteError == 0) ? 1 : 0;
             tm.log_number           = loggerStats.logNumber;
 
-            tm.main_board_state  = 0;  // TODO
-            tm.motor_board_state = 0;  // TODO
-            tm.main_can_status   = 0;  // TODO
-            tm.motor_can_status  = 0;  // TODO
-            tm.rig_can_status    = 0;  // TODO
+            auto canStatus       = getModule<CanHandler>()->getCanStatus();
+            tm.main_board_state  = canStatus.mainState;
+            tm.motor_board_state = canStatus.motorState;
 
-            tm.hil_state = 0;  // TODO
+            tm.main_can_status  = canStatus.isMainConnected() ? 1 : 0;
+            tm.rig_can_status   = canStatus.isRigConnected() ? 1 : 0;
+            tm.motor_can_status = canStatus.isMotorConnected() ? 1 : 0;
+
+            tm.hil_state = 0;  // TODO: hil
 
             mavlink_msg_payload_stats_tm_encode(config::Mavlink::SYSTEM_ID,
                                                 config::Mavlink::COMPONENT_ID,
