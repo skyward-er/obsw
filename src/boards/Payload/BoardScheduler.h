@@ -35,6 +35,20 @@ namespace Payload
 class BoardScheduler : public Boardcore::Injectable
 {
 public:
+    /**
+     * @brief Priority levels for the board schedulers
+     */
+    struct Priority
+    {
+        enum
+        {
+            LOW      = miosix::PRIORITY_MAX - 4,
+            MEDIUM   = miosix::PRIORITY_MAX - 3,
+            HIGH     = miosix::PRIORITY_MAX - 2,
+            CRITICAL = miosix::PRIORITY_MAX - 1,
+        };
+    };
+
     Boardcore::TaskScheduler& nasController() { return critical; }
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& pinHandler() { return high; }
@@ -86,10 +100,10 @@ public:
     bool isStarted() { return started; }
 
 private:
-    Boardcore::TaskScheduler critical{miosix::PRIORITY_MAX - 1};
-    Boardcore::TaskScheduler high{miosix::PRIORITY_MAX - 2};
-    Boardcore::TaskScheduler medium{miosix::PRIORITY_MAX - 3};
-    Boardcore::TaskScheduler low{miosix::PRIORITY_MAX - 4};
+    Boardcore::TaskScheduler critical{Priority::CRITICAL};
+    Boardcore::TaskScheduler high{Priority::HIGH};
+    Boardcore::TaskScheduler medium{Priority::MEDIUM};
+    Boardcore::TaskScheduler low{Priority::LOW};
 
     std::atomic<bool> started{false};
 

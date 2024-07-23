@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,60 +31,57 @@ namespace Payload
 class BoardScheduler;
 class Sensors;
 class FlightModeManager;
+class Actuators;
 
-/**
- * @class CanHandler
- *
- * @brief Payload implementation of CanProtocol with methods for ease of use
- *
- */
-class CanHandler : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                                        FlightModeManager>
+struct CanStatus
+{
+    int64_t mainLastStatus  = 0;  ///< Timestamp of last main status message
+    int64_t rigLastStatus   = 0;  ///< Timestamp of last rig status message
+    int64_t motorLastStatus = 0;  ///< Timestamp of last motor status message
+
+    uint8_t mainState  = 0;
+    uint8_t rigState   = 0;
+    uint8_t motorState = 0;
+
+    bool mainArmed = false;
+    bool rigArmed  = false;
+
+    int16_t motorLogNumber = 0;
+    bool motorLogGood      = true;
+    bool motorHil          = false;
+
+    bool isMainConnected();
+    bool isRigConnected();
+    bool isMotorConnected();
+};
+
+class CanHandler
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           FlightModeManager, Actuators>
 {
 public:
-    /**
-     * @brief Creates the protocol and the driver and adds the filters.
-     *
-     * @warning With Payload motherboard CanDriver initialization could be
-     * blocking
-     */
-    CanHandler();
+    [[nodiscard]] bool start();
 
-    /**
-     * @brief Starts the protocol and adds the periodic messages to the task
-     * scheduler.
-     *
-     * @return true if the protocol started correctly and the tasks were
-     * successfully inserted
-     */
-    bool start();
-
-    /**
-     * @return true if the protocol is started
-     */
     bool isStarted();
 
-    /**
-     * @brief Compile the the ID of the message and send the event trough
-     * CanProtocol
-     */
     void sendEvent(Common::CanConfig::EventId event);
 
+    CanStatus getCanStatus();
+
 private:
-    /**
-     * @brief Function called by CanProtocol when a new message is received
-     */
-    void handleCanMessage(const Boardcore::Canbus::CanMessage& msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage &msg);
 
-    /**
-     * @brief Converts the received CanEvent in Event and post it on TOPIC_CAN
-     */
-    void handleCanEvent(const Boardcore::Canbus::CanMessage& msg);
+    std::unique_ptr<Boardcore::Canbus::CanbusDriver> driver;
+    std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;
 
-    Boardcore::Canbus::CanbusDriver* driver;
-    Boardcore::Canbus::CanProtocol* protocol;
+    CanStatus status;
+    miosix::FastMutex statusMutex;
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
+    std::atomic<bool> started{false};
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("CanHandler");
 };
 
 }  // namespace Payload
