@@ -22,6 +22,7 @@
 
 #include "Actuators.h"
 
+#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -64,7 +65,7 @@ bool Actuators::start()
     buzzerOff();
 
     uint8_t result = scheduler.addTask([this]() { updateBuzzer(); },
-                                       Config::Actuators::BUZZER_UPDATE_PERIOD,
+                                       Config::Actuators::BUZZER_UPDATE_RATE,
                                        TaskScheduler::Policy::RECOVER);
 
     if (result == 0)
@@ -74,7 +75,7 @@ bool Actuators::start()
     }
 
     result = scheduler.addTask([this]() { updateStatus(); },
-                               Config::Actuators::STATUS_UPDATE_PERIOD,
+                               Config::Actuators::STATUS_UPDATE_RATE,
                                TaskScheduler::Policy::RECOVER);
 
     if (result == 0)
@@ -119,6 +120,11 @@ bool Actuators::wiggleServo(ServosList servo)
     }
 }
 
+void Actuators::wiggleCanServo(ServosList servo)
+{
+    getModule<CanHandler>()->sendServoOpenCommand(servo, 1.0, 1000);
+}
+
 float Actuators::getServoPosition(ServosList servo)
 {
     Lock<FastMutex> lock{servosMutex};
@@ -147,24 +153,24 @@ void Actuators::setStatusOff() { statusOverflow = 0; }
 
 void Actuators::setStatusOk()
 {
-    statusOverflow = Config::Actuators::STATUS_OK_PERIOD;
+    statusOverflow = Config::Actuators::STATUS_OK_RATE;
 }
 
 void Actuators::setStatusErr()
 {
-    statusOverflow = Config::Actuators::STATUS_ERR_PERIOD;
+    statusOverflow = Config::Actuators::STATUS_ERR_RATE;
 }
 
 void Actuators::setBuzzerOff() { buzzerOverflow = 0; }
 
 void Actuators::setBuzzerArmed()
 {
-    buzzerOverflow = Config::Actuators::BUZZER_ARM_PERIOD;
+    buzzerOverflow = Config::Actuators::BUZZER_ARM_RATE;
 }
 
 void Actuators::setBuzzerLand()
 {
-    buzzerOverflow = Config::Actuators::BUZZER_LAND_PERIOD;
+    buzzerOverflow = Config::Actuators::BUZZER_LAND_RATE;
 }
 
 void Actuators::setCanServoOpen(ServosList servo, bool open)
@@ -184,9 +190,13 @@ void Actuators::camOn() { gpios::camEnable::high(); }
 
 void Actuators::camOff() { gpios::camEnable::low(); }
 
+bool Actuators::getCamState() { return gpios::camEnable::value() != 0; }
+
 void Actuators::cutterOn() { gpios::mainDeploy::high(); }
 
 void Actuators::cutterOff() { gpios::mainDeploy::low(); }
+
+bool Actuators::getCutterState() { return gpios::mainDeploy::value() != 0; }
 
 void Actuators::statusOn() { gpios::statusLed::high(); }
 

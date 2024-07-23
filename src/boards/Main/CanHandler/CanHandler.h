@@ -26,6 +26,7 @@
 #include <Main/Configs/CanHandlerConfig.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
+#include <common/Mavlink.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -94,6 +95,10 @@ public:
     bool isStarted();
 
     void sendEvent(Common::CanConfig::EventId event);
+
+    void sendServoOpenCommand(ServosList servo, float maxAperture,
+                              uint16_t openingTime);
+    void sendServoCloseCommand(ServosList servo);
 
     CanStatus getCanStatus();
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,55 @@
 
 #pragma once
 
+#include <cstdint>
+#include <ostream>
+#include <string>
+
 namespace Main
 {
 
-enum class FlightModeManagerState : uint8_t
+enum class ADAControllerState : uint8_t
 {
-    ON_GROUND = 0,
-    INIT,
-    INIT_ERROR,
-    INIT_DONE,
-    CALIBRATE_SENSORS,
-    CALIBRATE_ALGORITHMS,
-    DISARMED,
-    TEST_MODE,
+    INIT = 0,
+    CALIBRATING,
+    READY,
     ARMED,
-    IGNITION,  // < Unused, kept for backward compatibility
-    FLYING,
-    POWERED_ASCENT,
-    UNPOWERED_ASCENT,
-    DROGUE_DESCENT,
-    TERMINAL_DESCENT,
-    LANDED,
-    INVALID
+    SHADOW_MODE,
+    ACTIVE_ASCENT,
+    ACTIVE_DROGUE_DESCENT,
+    ACTIVE_TERMINAL_DESCENT,
+    END
 };
 
-struct FlightModeManagerStatus
+struct ADAControllerStatus
 {
-    uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
+    uint64_t timestamp       = 0;
+    ADAControllerState state = ADAControllerState::INIT;
 
     static std::string header() { return "timestamp,state\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)state << "\n";
+        os << timestamp << "," << static_cast<int>(state) << "\n";
+    }
+};
+
+struct ADAControllerSampleData
+{
+    uint64_t timestamp               = 0;
+    unsigned int detectedApogees     = 0;
+    unsigned int detectedDeployments = 0;
+    ADAControllerState state         = ADAControllerState::INIT;
+
+    static std::string header()
+    {
+        return "timestamp,detectedApogees,detectedDeployments,state\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << detectedApogees << "," << detectedDeployments
+           << "," << static_cast<int>(state) << "\n";
     }
 };
 

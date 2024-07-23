@@ -73,12 +73,12 @@ bool CanHandler::start()
                     TimestampTimer::getTimestamp(),
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(state),
-                    state == FlightModeManagerState::FMM_STATE_ARMED,
+                    state == FlightModeManagerState::ARMED,
                     false,  // TODO: HIL
                     stats.lastWriteError == 0,
                 });
         },
-        Config::CanHandler::STATUS_PERIOD);
+        Config::CanHandler::STATUS_RATE);
 
     if (result == 0)
     {
@@ -103,6 +103,25 @@ void CanHandler::sendEvent(Common::CanConfig::EventId event)
                           static_cast<uint8_t>(CanConfig::Board::MAIN),
                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                           static_cast<uint8_t>(event));
+}
+
+void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
+                                      uint16_t openingTime)
+{
+
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::MAIN),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(servo),
+        ServoCommand{TimestampTimer::getTimestamp(), maxAperture, openingTime});
+}
+
+void CanHandler::sendServoCloseCommand(ServosList servo)
+{
+    // Closing a servo means opening it for 0s
+    sendServoOpenCommand(servo, 0.0f, 0);
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()
@@ -173,19 +192,20 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
             break;
         }
 
-        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanBottomTankPress(data);
-            break;
-        }
+            /* No longer exists
+            case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
+            {
+                CanPressureData data = pressureDataFromCanMessage(msg);
+                sdLogger.log(data);
+                sensors->setCanBottomTankPress(data);
+                break;
+            }*/
 
         case CanConfig::SensorId::TOP_TANK_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanTopTankPress(data);
+            sensors->setCanTopTankPress1(data);
             break;
         }
 

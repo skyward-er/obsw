@@ -44,14 +44,14 @@ constexpr unsigned int EXP_MAX_PULSE = 2000;
 constexpr uint16_t BUZZER_FREQUENCY = 1000;
 constexpr float BUZZER_DUTY_CYCLE   = 0.5;
 
-constexpr Hertz BUZZER_UPDATE_PERIOD  = 20_hz;
-constexpr uint32_t BUZZER_ARM_PERIOD  = 10;  // 10 * 50ms = 500ms
-constexpr uint32_t BUZZER_LAND_PERIOD = 20;  // 20 * 50ms = 1000ms
+constexpr Hertz BUZZER_UPDATE_RATE  = 20_hz;
+constexpr uint32_t BUZZER_ARM_RATE  = 10;  // 10 * 50ms = 500ms
+constexpr uint32_t BUZZER_LAND_RATE = 20;  // 20 * 50ms = 1000ms
 
 // Status configs
-constexpr Hertz STATUS_UPDATE_PERIOD = 20_hz;
-constexpr uint32_t STATUS_OK_PERIOD  = 20;  // 20 * 50ms = 1000ms
-constexpr uint32_t STATUS_ERR_PERIOD = 2;   // 2 * 50ms = 10ms
+constexpr Hertz STATUS_UPDATE_RATE = 20_hz;
+constexpr uint32_t STATUS_OK_RATE  = 20;  // 20 * 50ms = 1000ms
+constexpr uint32_t STATUS_ERR_RATE = 2;   // 2 * 50ms = 10ms
 
 }  // namespace Actuators
 }  // namespace Config

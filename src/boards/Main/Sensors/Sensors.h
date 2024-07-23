@@ -69,27 +69,28 @@ public:
     Boardcore::PressureData getStaticPressure2();
     Boardcore::PressureData getDplBayPressure();
 
-    Boardcore::PressureData getTopTankPress();
-    Boardcore::PressureData getBottomTankPress();
-    Boardcore::PressureData getCCPress();
-    Boardcore::TemperatureData getTankTemp();
-    Boardcore::VoltageData getMotorBatteryVoltage();
+    Boardcore::PressureData getCanTopTankPress1();
+    Boardcore::PressureData getCanTopTankPress2();
+    Boardcore::PressureData getCanCCPress();
+    Boardcore::TemperatureData getCanTankTemp();
+    Boardcore::VoltageData getCanMotorBatteryVoltage();
 
-    void setCanTopTankPress(Boardcore::PressureData data);
-    void setCanBottomTankPress(Boardcore::PressureData data);
+    std::vector<Boardcore::SensorInfo> getSensorInfos();
+
+    // Methods for CanHandler
+    void setCanTopTankPress1(Boardcore::PressureData data);
+    void setCanTopTankPress2(Boardcore::PressureData data);
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
-
-    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
     miosix::FastMutex canMutex;
     Boardcore::PressureData canCCPressure;
-    Boardcore::PressureData canBottomTankPressure;
-    Boardcore::PressureData canTopTankPressure;
+    Boardcore::PressureData canTopTankPressure1;
+    Boardcore::PressureData canTopTankPressure2;
     Boardcore::TemperatureData canTankTemperature;
     Boardcore::VoltageData canMotorBatteryVoltage;
 

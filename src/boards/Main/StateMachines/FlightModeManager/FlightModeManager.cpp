@@ -43,73 +43,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
 }
 
-FlightModeManagerState FlightModeManager::getState()
-{
-    if (testState(&FlightModeManager::state_on_ground))
-    {
-        return FlightModeManagerState::FMM_STATE_ON_GROUND;
-    }
-    else if (testState(&FlightModeManager::state_init))
-    {
-        return FlightModeManagerState::FMM_STATE_INIT;
-    }
-    else if (testState(&FlightModeManager::state_init_error))
-    {
-        return FlightModeManagerState::FMM_STATE_INIT_ERROR;
-    }
-    else if (testState(&FlightModeManager::state_init_done))
-    {
-        return FlightModeManagerState::FMM_STATE_INIT_DONE;
-    }
-    else if (testState(&FlightModeManager::state_calibrate_sensors))
-    {
-        return FlightModeManagerState::FMM_STATE_CALIBRATE_SENSORS;
-    }
-    else if (testState(&FlightModeManager::state_calibrate_algorithms))
-    {
-        return FlightModeManagerState::FMM_STATE_CALIBRATE_ALGORITHMS;
-    }
-    else if (testState(&FlightModeManager::state_disarmed))
-    {
-        return FlightModeManagerState::FMM_STATE_DISARMED;
-    }
-    else if (testState(&FlightModeManager::state_test_mode))
-    {
-        return FlightModeManagerState::FMM_STATE_TEST_MODE;
-    }
-    else if (testState(&FlightModeManager::state_armed))
-    {
-        return FlightModeManagerState::FMM_STATE_ARMED;
-    }
-    else if (testState(&FlightModeManager::state_flying))
-    {
-        return FlightModeManagerState::FMM_STATE_FLYING;
-    }
-    else if (testState(&FlightModeManager::state_powered_ascent))
-    {
-        return FlightModeManagerState::FMM_STATE_POWERED_ASCENT;
-    }
-    else if (testState(&FlightModeManager::state_unpowered_ascent))
-    {
-        return FlightModeManagerState::FMM_STATE_UNPOWERED_ASCENT;
-    }
-    else if (testState(&FlightModeManager::state_drogue_descent))
-    {
-        return FlightModeManagerState::FMM_STATE_DROGUE_DESCENT;
-    }
-    else if (testState(&FlightModeManager::state_terminal_descent))
-    {
-        return FlightModeManagerState::FMM_STATE_TERMINAL_DESCENT;
-    }
-    else if (testState(&FlightModeManager::state_landed))
-    {
-        return FlightModeManagerState::FMM_STATE_LANDED;
-    }
-    else
-    {
-        return FlightModeManagerState::FMM_STATE_INVALID;
-    }
-}
+FlightModeManagerState FlightModeManager::getState() { return state; }
 
 State FlightModeManager::state_on_ground(const Event& event)
 {
@@ -117,7 +51,7 @@ State FlightModeManager::state_on_ground(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_ON_GROUND);
+            updateAndLogStatus(FlightModeManagerState::ON_GROUND);
             return HANDLED;
         }
         case EV_EXIT:
@@ -150,7 +84,7 @@ State FlightModeManager::state_init(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_INIT);
+            updateAndLogStatus(FlightModeManagerState::INIT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -186,7 +120,7 @@ State FlightModeManager::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_INIT_ERROR);
+            updateAndLogStatus(FlightModeManagerState::INIT_ERROR);
             return HANDLED;
         }
         case EV_EXIT:
@@ -207,7 +141,7 @@ State FlightModeManager::state_init_error(const Event& event)
         }
         case TMTC_FORCE_INIT:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::FORCE_INIT);
             return transition(&FlightModeManager::state_init_done);
         }
         default:
@@ -223,7 +157,7 @@ State FlightModeManager::state_init_done(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_INIT_DONE);
+            updateAndLogStatus(FlightModeManagerState::INIT_DONE);
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
@@ -256,7 +190,7 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_CALIBRATE_SENSORS);
+            updateAndLogStatus(FlightModeManagerState::CALIBRATE_SENSORS);
             // TODO(davide.mor): Calibrate sensors
             Thread::sleep(2000);
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
@@ -291,7 +225,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_CALIBRATE_ALGORITHMS);
+            updateAndLogStatus(FlightModeManagerState::CALIBRATE_ALGORITHMS);
 
             // Reset readiness status
             nasReady = false;
@@ -303,7 +237,6 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
 
             // Quick hack to make the state machine go forward
             Thread::sleep(2000);
-            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 
             return HANDLED;
@@ -357,10 +290,12 @@ State FlightModeManager::state_disarmed(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_DISARMED);
+            updateAndLogStatus(FlightModeManagerState::DISARMED);
 
             getModule<Actuators>()->camOff();
             getModule<Actuators>()->setBuzzerOff();
+
+            EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
 
             return HANDLED;
         }
@@ -390,17 +325,18 @@ State FlightModeManager::state_disarmed(const Event& event)
         }
         case TMTC_CALIBRATE:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             return transition(&FlightModeManager::state_calibrate_sensors);
         }
         case TMTC_ENTER_TEST_MODE:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_TEST_MODE);
             return transition(&FlightModeManager::state_test_mode);
         }
         case TMTC_ARM:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             return transition(&FlightModeManager::state_armed);
         }
         default:
@@ -416,7 +352,7 @@ State FlightModeManager::state_test_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_TEST_MODE);
+            updateAndLogStatus(FlightModeManagerState::TEST_MODE);
             // TODO(davide.mor): Start algorithms
             return HANDLED;
         }
@@ -449,7 +385,8 @@ State FlightModeManager::state_test_mode(const Event& event)
         }
         case TMTC_EXIT_TEST_MODE:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EXIT_TEST_MODE);
             return transition(&FlightModeManager::state_disarmed);
         }
         default:
@@ -465,13 +402,16 @@ State FlightModeManager::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_ARMED);
+            updateAndLogStatus(FlightModeManagerState::ARMED);
 
             Logger::getInstance().stop();
             Logger::getInstance().start();
+            Logger::getInstance().resetStats();
 
             getModule<Actuators>()->camOn();
             getModule<Actuators>()->setBuzzerArmed();
+
+            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
 
             return HANDLED;
         }
@@ -493,13 +433,13 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case TMTC_DISARM:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return transition(&FlightModeManager::state_disarmed);
         }
         case TMTC_FORCE_LAUNCH:
         case FLIGHT_LAUNCH_PIN_DETACHED:
         {
-            // TODO(davide.mor): Also send this via CanBus
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             return transition(&FlightModeManager::state_flying);
         }
         default:
@@ -515,7 +455,7 @@ State FlightModeManager::state_flying(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_FLYING);
+            updateAndLogStatus(FlightModeManagerState::FLYING);
 
             getModule<Actuators>()->setBuzzerOff();
 
@@ -556,7 +496,9 @@ State FlightModeManager::state_powered_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_POWERED_ASCENT);
+            updateAndLogStatus(FlightModeManagerState::POWERED_ASCENT);
+
+            EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
 
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
@@ -581,8 +523,8 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         case MEA_SHUTDOWN_DETECTED:
         case MOTOR_CLOSE_FEED_VALVE:
         {
-            // TODO(davide.mor): Actually shutdown the motor via CanBus
-
+            getModule<CanHandler>()->sendServoCloseCommand(
+                ServosList::MAIN_VALVE);
             return transition(&FlightModeManager::state_unpowered_ascent);
         }
         default:
@@ -598,7 +540,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_UNPOWERED_ASCENT);
+            updateAndLogStatus(FlightModeManagerState::UNPOWERED_ASCENT);
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 TMTC_FORCE_APOGEE, TOPIC_TMTC,
@@ -621,9 +563,6 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         case TMTC_FORCE_APOGEE:
         case ADA_APOGEE_DETECTED:
         {
-            // TODO(davide.mor): Also send this via CanBus
-            getModule<Actuators>()->openExpulsion();
-
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
@@ -639,9 +578,19 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_DROGUE_DESCENT);
+            updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            // TODO(davide.mor): Perform venting?
+            getModule<Actuators>()->openExpulsion();
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::APOGEE_DETECTED);
+
+            EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
+                                            TOPIC_FLIGHT);
+
+            // TODO: We need a way to signal a full vent, the current setup
+            // doesn't allow to vent for more than 60s
+            getModule<CanHandler>()->sendServoOpenCommand(
+                ServosList::VENTING_VALVE, 1.0f, 60000);
 
             return HANDLED;
         }
@@ -675,7 +624,10 @@ State FlightModeManager::state_terminal_descent(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_TERMINAL_DESCENT);
+            updateAndLogStatus(FlightModeManagerState::TERMINAL_DESCENT);
+
+            EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
+                                            TOPIC_FLIGHT);
 
             // TODO(davide.mor): Actuate cutters?
 
@@ -710,8 +662,10 @@ State FlightModeManager::state_landed(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FMM_STATE_LANDED);
+            updateAndLogStatus(FlightModeManagerState::LANDED);
 
+            EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
+                                            TOPIC_FLIGHT);
             Logger::getInstance().stop();
 
             getModule<Actuators>()->setBuzzerLand();

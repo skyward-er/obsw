@@ -46,8 +46,8 @@ constexpr uint8_t MAV_COMPONENT_ID = 96;
 
 constexpr unsigned int CIRCULAR_BUFFER_SIZE = 8;
 
-constexpr Hertz LOW_RATE_TELEMETRY_PERIOD  = 2_hz;
-constexpr Hertz HIGH_RATE_TELEMETRY_PERIOD = 4_hz;
+constexpr Hertz LOW_RATE_TELEMETRY  = 2_hz;
+constexpr Hertz HIGH_RATE_TELEMETRY = 4_hz;
 
 }  // namespace Radio
 

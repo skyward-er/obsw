@@ -33,7 +33,10 @@
 namespace Main
 {
 
-class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler>
+class CanHandler;
+
+class Actuators
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>
 {
 public:
     Actuators();
@@ -48,13 +51,16 @@ public:
     bool wiggleServo(ServosList servo);
     float getServoPosition(ServosList servo);
 
+    void wiggleCanServo(ServosList servo);
     bool isCanServoOpen(ServosList servo);
 
     void camOn();
     void camOff();
+    bool getCamState();
 
     void cutterOn();
     void cutterOff();
+    bool getCutterState();
 
     void setBuzzerOff();
     void setBuzzerArmed();
@@ -64,6 +70,7 @@ public:
     void setStatusErr();
     void setStatusOk();
 
+    // Methods for CanHandler
     void setCanServoOpen(ServosList servo, bool open);
 
 private:

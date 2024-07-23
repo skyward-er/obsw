@@ -27,6 +27,7 @@
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
@@ -56,16 +57,18 @@ int main()
     CanHandler *canHandler = new CanHandler();
     PinHandler *pinHandler = new PinHandler();
     FlightModeManager *fmm = new FlightModeManager();
+    ADAController *ada     = new ADAController();
 
     // Insert modules
-    bool initResult =
-        manager.insert<Buses>(buses) &&
-        manager.insert<BoardScheduler>(scheduler) &&
-        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
-        manager.insert<Actuators>(actuators) &&
-        manager.insert<CanHandler>(canHandler) &&
-        manager.insert<PinHandler>(pinHandler) &&
-        manager.insert<FlightModeManager>(fmm) && manager.inject();
+    bool initResult = manager.insert<Buses>(buses) &&
+                      manager.insert<BoardScheduler>(scheduler) &&
+                      manager.insert<Sensors>(sensors) &&
+                      manager.insert<Radio>(radio) &&
+                      manager.insert<Actuators>(actuators) &&
+                      manager.insert<CanHandler>(canHandler) &&
+                      manager.insert<PinHandler>(pinHandler) &&
+                      manager.insert<FlightModeManager>(fmm) &&
+                      manager.insert<ADAController>(ada) && manager.inject();
 
     manager.graphviz(std::cout);
 
@@ -133,6 +136,12 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start scheduler" << std::endl;
+    }
+
+    if (!ada->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start ADAController" << std::endl;
     }
 
     if (!fmm->start())
