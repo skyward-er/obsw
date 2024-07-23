@@ -38,7 +38,7 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Main/Actuators/Actuators.cpp
     # src/boards/Main/Sensors/RotatedIMU/RotatedIMU.cpp
-    # src/boards/Main/StateMachines/ADAController/ADAController.cpp
+    src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
     # src/boards/Main/AltitudeTrigger/AltitudeTrigger.cpp
     # src/boards/Main/StateMachines/ABKController/ABKController.cpp

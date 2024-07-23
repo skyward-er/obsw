@@ -22,41 +22,37 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
+#include <cstdint>
+
 namespace Main
 {
 
-enum class FlightModeManagerState : uint8_t
+namespace Config
 {
-    ON_GROUND = 0,
-    INIT,
-    INIT_ERROR,
-    INIT_DONE,
-    CALIBRATE_SENSORS,
-    CALIBRATE_ALGORITHMS,
-    DISARMED,
-    TEST_MODE,
-    ARMED,
-    IGNITION,  // < Unused, kept for backward compatibility
-    FLYING,
-    POWERED_ASCENT,
-    UNPOWERED_ASCENT,
-    DROGUE_DESCENT,
-    TERMINAL_DESCENT,
-    LANDED,
-    INVALID
-};
 
-struct FlightModeManagerStatus
+namespace ADA
 {
-    uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
 
-    static std::string header() { return "timestamp,state\n"; }
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
+constexpr Hertz SAMPLE_RATE         = 50_hz;
+constexpr float SAMPLE_RATE_SECONDS = 0.02;  // [s]
+
+constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
+constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+
+constexpr unsigned int SHADOW_MODE_TIMEOUT = 18000;  // [ms]
+
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
+constexpr unsigned int APOGEE_N_SAMPLES      = 5;
+
+constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 350;  // [m]
+constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
+
+}  // namespace ADA
+
+}  // namespace Config
 
 }  // namespace Main

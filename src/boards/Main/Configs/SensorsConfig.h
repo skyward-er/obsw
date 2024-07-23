@@ -46,7 +46,7 @@ namespace LPS22DF
 constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
 
-constexpr Hertz PERIOD = 50_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LPS22DF
 
@@ -58,7 +58,7 @@ constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
 constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_4;
 constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
 
-constexpr Hertz PERIOD = 50_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LPS28DFW
 
@@ -71,7 +71,7 @@ constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 
-constexpr Hertz PERIOD = 100_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace H3LIS331DL
 
@@ -82,7 +82,7 @@ namespace LIS2MDL
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int TEMP_DIVIDER   = 5;
 
-constexpr Hertz PERIOD = 100_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
@@ -90,7 +90,7 @@ namespace UBXGPS
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz PERIOD = 5_hz;
+constexpr Hertz RATE   = 5_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
@@ -112,7 +112,7 @@ constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
 constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Hertz PERIOD = 50_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
@@ -140,7 +140,7 @@ constexpr float STATIC_PRESSURE_1_SCALE = CHANNEL_0_SCALE;
 constexpr float STATIC_PRESSURE_2_SCALE = CHANNEL_1_SCALE;
 constexpr float DPL_BAY_PRESSURE_SCALE  = CHANNEL_2_SCALE;
 
-constexpr Hertz PERIOD = 100_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08
 
@@ -158,7 +158,7 @@ constexpr Boardcore::InternalADC::Channel CUTTER_SENSE_CH =
 constexpr float VBAT_SCALE     = 7500.0f / 2400.0f;
 constexpr float CAM_VBAT_SCALE = 7500.0f / 2400.0f;
 
-constexpr Hertz PERIOD = 10_hz;
+constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/CanHandler/CanHandler.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -32,8 +33,9 @@
 namespace Main
 {
 
-class FlightModeManager : public Boardcore::InjectableWithDeps<Actuators>,
-                          public Boardcore::HSM<FlightModeManager>
+class FlightModeManager
+    : public Boardcore::InjectableWithDeps<Actuators, CanHandler>,
+      public Boardcore::HSM<FlightModeManager>
 {
 public:
     FlightModeManager();
@@ -83,7 +85,7 @@ private:
     uint16_t engineShutdownEvent = 0;
     uint16_t apogeeTimeoutEvent  = 0;
 
-    std::atomic<FlightModeManagerState> state{FMM_STATE_INVALID};
+    std::atomic<FlightModeManagerState> state{FlightModeManagerState::INVALID};
 };
 
 }  // namespace Main
