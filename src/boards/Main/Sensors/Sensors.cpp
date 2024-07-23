@@ -166,46 +166,46 @@ PressureData Sensors::getDplBayPressure()
     return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getTopTankPress()
+PressureData Sensors::getCanTopTankPress1()
 {
     Lock<FastMutex> lock{canMutex};
-    return canTopTankPressure;
+    return canTopTankPressure1;
 }
 
-PressureData Sensors::getBottomTankPress()
+PressureData Sensors::getCanTopTankPress2()
 {
     Lock<FastMutex> lock{canMutex};
-    return canBottomTankPressure;
+    return canTopTankPressure2;
 }
 
-PressureData Sensors::getCCPress()
+PressureData Sensors::getCanCCPress()
 {
     Lock<FastMutex> lock{canMutex};
     return canCCPressure;
 }
 
-TemperatureData Sensors::getTankTemp()
+TemperatureData Sensors::getCanTankTemp()
 {
     Lock<FastMutex> lock{canMutex};
     return canTankTemperature;
 }
 
-VoltageData Sensors::getMotorBatteryVoltage()
+VoltageData Sensors::getCanMotorBatteryVoltage()
 {
     Lock<FastMutex> lock{canMutex};
     return canMotorBatteryVoltage;
 }
 
-void Sensors::setCanTopTankPress(Boardcore::PressureData data)
+void Sensors::setCanTopTankPress1(Boardcore::PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canTopTankPressure = data;
+    canTopTankPressure1 = data;
 }
 
-void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
+void Sensors::setCanTopTankPress2(Boardcore::PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canBottomTankPressure = data;
+    canTopTankPressure2 = data;
 }
 
 void Sensors::setCanCCPress(Boardcore::PressureData data)
@@ -488,77 +488,77 @@ bool Sensors::sensorManagerInit()
 
     if (lps22df)
     {
-        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
+        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::RATE,
                         [this]() { lps22dfCallback(); }};
         map.emplace(lps22df.get(), info);
     }
 
     if (lps28dfw)
     {
-        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::PERIOD,
+        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::RATE,
                         [this]() { lps28dfwCallback(); }};
         map.emplace(lps28dfw.get(), info);
     }
 
     if (h3lis331dl)
     {
-        SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::PERIOD,
+        SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::RATE,
                         [this]() { h3lis331dlCallback(); }};
         map.emplace(h3lis331dl.get(), info);
     }
 
     if (lis2mdl)
     {
-        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
+        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
                         [this]() { lis2mdlCallback(); }};
         map.emplace(lis2mdl.get(), info);
     }
 
     if (ubxgps)
     {
-        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::PERIOD,
+        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::RATE,
                         [this]() { ubxgpsCallback(); }};
         map.emplace(ubxgps.get(), info);
     }
 
     if (lsm6dsrx)
     {
-        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
                         [this]() { lsm6dsrxCallback(); }};
         map.emplace(lsm6dsrx.get(), info);
     }
 
     if (ads131m08)
     {
-        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::RATE,
                         [this]() { ads131m08Callback(); }};
         map.emplace(ads131m08.get(), info);
     }
 
     if (staticPressure1)
     {
-        SensorInfo info{"StaticPressure1", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"StaticPressure1", Config::Sensors::ADS131M08::RATE,
                         [this]() { staticPressure1Callback(); }};
         map.emplace(staticPressure1.get(), info);
     }
 
     if (staticPressure2)
     {
-        SensorInfo info{"StaticPressure2", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"StaticPressure2", Config::Sensors::ADS131M08::RATE,
                         [this]() { staticPressure2Callback(); }};
         map.emplace(staticPressure2.get(), info);
     }
 
     if (dplBayPressure)
     {
-        SensorInfo info{"DplBayPressure", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"DplBayPressure", Config::Sensors::ADS131M08::RATE,
                         [this]() { dplBayPressureCallback(); }};
         map.emplace(dplBayPressure.get(), info);
     }
 
     if (internalAdc)
     {
-        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::PERIOD,
+        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
                         [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), info);
     }

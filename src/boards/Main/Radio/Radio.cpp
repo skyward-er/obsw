@@ -105,7 +105,7 @@ bool Radio::start()
             enqueueSystemTm(SystemTMList::MAV_FLIGHT_ID);
             flushPackets();
         },
-        Config::Radio::HIGH_RATE_TELEMETRY_PERIOD);
+        Config::Radio::HIGH_RATE_TELEMETRY);
 
     if (result == 0)
     {
@@ -116,7 +116,7 @@ bool Radio::start()
     // Low rate periodic telemetry
     result = scheduler.addTask([this]()
                                { enqueueSystemTm(SystemTMList::MAV_STATS_ID); },
-                               Config::Radio::LOW_RATE_TELEMETRY_PERIOD);
+                               Config::Radio::LOW_RATE_TELEMETRY);
 
     if (result == 0)
     {
@@ -227,7 +227,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             if (getModule<FlightModeManager>()->getState() ==
-                FlightModeManagerState::FMM_STATE_TEST_MODE)
+                FlightModeManagerState::TEST_MODE)
             {
                 // If the state is test mode, the wiggle is done
                 getModule<Actuators>()->wiggleServo(servoId);
@@ -556,11 +556,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
-            tm.bottom_tank_pressure = -1.0f;  // TODO
-            tm.combustion_chamber_pressure = sensors->getCCPress().pressure;
-            tm.tank_temperature            = -1.0f;  // TODO
-            tm.battery_voltage = sensors->getMotorBatteryVoltage().voltage;
+            tm.top_tank_pressure    = sensors->getCanTopTankPress1().pressure;
+            tm.bottom_tank_pressure = -1.0f;  // Doesn't exist
+            tm.combustion_chamber_pressure = sensors->getCanCCPress().pressure;
+            tm.tank_temperature = sensors->getCanTankTemp().temperature;
+            tm.battery_voltage  = sensors->getCanMotorBatteryVoltage().voltage;
 
             // Valve states
             tm.main_valve_state =
