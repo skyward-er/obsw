@@ -181,6 +181,8 @@ private:
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
 
+    std::atomic<bool> started{false};
+
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 };
 

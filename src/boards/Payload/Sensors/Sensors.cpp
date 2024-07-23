@@ -69,7 +69,6 @@ namespace Payload
 bool Sensors::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->sensors();
-    bool initResult = true;
 
     lps22dfCreate();
     lps28dfwCreate();
@@ -87,6 +86,7 @@ bool Sensors::start()
     // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
     {
+        LOG_ERR(logger, "Sensors post-creation hook failed");
         return false;
     }
 
@@ -105,18 +105,27 @@ bool Sensors::start()
     pitotInsert(map);
     imuInsert(map);
 
-    initResult &= magCalibrationInit(scheduler);
+    bool magInit = magCalibrationInit(scheduler);
+    if (!magInit)
+    {
+        LOG_ERR(logger, "Magnetometer calibration initialization failed");
+        return false;
+    }
 
-    manager = std::make_unique<SensorManager>(map, &scheduler);
-    initResult &= manager->start();
+    manager             = std::make_unique<SensorManager>(map, &scheduler);
+    bool managerStarted = manager->start();
 
-    return initResult;
+    if (!managerStarted)
+    {
+        LOG_ERR(logger, "Sensor manager failed to start");
+        return false;
+    }
+
+    started = true;
+    return true;
 }
 
-bool Sensors::isStarted()
-{
-    return manager && manager->areAllSensorsInitialized();
-}
+bool Sensors::isStarted() { return started; }
 
 void Sensors::calibrate()
 {
@@ -727,7 +736,8 @@ bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
         // Log the error but don't fail initialization
         if (!loaded)
         {
-            LOG_WARN(logger, "Failed to load magnetometer calibration data");
+            LOG_WARN(logger,
+                     "Failed to load magnetometer calibration data from file");
         }
     }
 
@@ -737,12 +747,8 @@ bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
         auto taskId = scheduler.addTask(
             [this]
             {
-                // Gather the last sample data
                 auto sample = getLIS2MDLLastSample();
 
-                // Feed the data to the calibrator inside a protected area.
-                // Contention is not high and the use of a mutex is suitable to
-                // avoid pausing the kernel for this calibration operation
                 {
                     miosix::Lock<FastMutex> l(calibrationMutex);
                     magCalibrator.feed(sample);
@@ -750,7 +756,11 @@ bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
             },
             config::MagCalibration::SAMPLING_RATE);
 
-        initResult &= taskId != 0;
+        if (taskId == 0)
+        {
+            LOG_ERR(logger, "Failed to add magnetometer calibration task");
+            initResult &= false;
+        }
     }
 
     return initResult;
