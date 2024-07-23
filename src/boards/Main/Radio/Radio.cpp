@@ -418,12 +418,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             Sensors* sensors       = getModule<Sensors>();
             PinHandler* pinHandler = getModule<PinHandler>();
 
-            auto pressDigi = sensors->getLPS22DFLastSample();
-            auto imu       = sensors->getLSM6DSRXLastSample();
-            auto mag       = sensors->getLIS2MDLLastSample();
-            auto gps       = sensors->getUBXGPSLastSample();
+            auto pressDigi   = sensors->getLPS22DFLastSample();
+            auto imu         = sensors->getLSM6DSRXLastSample();
+            auto mag         = sensors->getLIS2MDLLastSample();
+            auto gps         = sensors->getUBXGPSLastSample();
             auto pressStatic = sensors->getStaticPressure1();
-            auto pressDpl = sensors->getDplBayPressure();
+            auto pressDpl    = sensors->getDplBayPressure();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_ada    = -1.0f;  // TODO
