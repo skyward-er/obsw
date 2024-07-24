@@ -47,9 +47,7 @@
 #include <events/utils/EventSniffer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-using namespace Boardcore;
-using namespace Payload;
-using namespace Common;
+#include <iostream>
 
 /**
  * @brief Starts a module and checks if it started correctly.
@@ -58,13 +56,13 @@ using namespace Common;
  *
  * @example START_MODULE(sensors) { miosix::ledOn(); }
  */
-#define START_MODULE(module)                         \
-    LOG_DEBUG(logger, "Starting " #module);          \
-    if (!module->start())                            \
-    {                                                \
-        initResult = false;                          \
-        LOG_ERR(logger, "Failed to start " #module); \
-    }                                                \
+#define START_MODULE(module)                                  \
+    std::cout << "Starting " #module << std::endl;            \
+    if (!module->start())                                     \
+    {                                                         \
+        initResult = false;                                   \
+        std::cerr << "Failed to start " #module << std::endl; \
+    }                                                         \
     else
 
 /**
@@ -74,25 +72,46 @@ using namespace Common;
  *
  * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
  */
-#define START_SINGLETON(singleton)                      \
-    LOG_DEBUG(logger, "Starting " #singleton);          \
-    if (!singleton::getInstance().start())              \
-    {                                                   \
-        initResult = false;                             \
-        LOG_ERR(logger, "Failed to start " #singleton); \
-    }                                                   \
+#define START_SINGLETON(singleton)                               \
+    std::cout << "Starting " #singleton << std::endl;            \
+    if (!singleton::getInstance().start())                       \
+    {                                                            \
+        initResult = false;                                      \
+        std::cerr << "Failed to start " #singleton << std::endl; \
+    }                                                            \
     else
+
+#if defined(DEBUG)
+#define BUILD_TYPE "Debug"
+#else
+#define BUILD_TYPE "Release"
+#endif
+
+#if defined(EUROC)
+#define FLAVOR "EUROC"
+#elif defined(ROCCARASO)
+#define FLAVOR "ROCCARASO"
+#else
+#define FLAVOR "MILAN"
+#endif
+
+using namespace Boardcore;
+using namespace Payload;
+using namespace Common;
 
 int main()
 {
     miosix::ledOff();
+    std::cout << "Payload " << FLAVOR << " Entrypoint "
+              << "(" << BUILD_TYPE << ")"
+              << " by Skyward Experimental Rocketry" << std::endl;
 
-    PrintLogger logger = Logging::getLogger("Payload");
+    // Unused but needed to set the log level properly
+    auto logger = Logging::getLogger("Payload");
     DependencyManager depman{};
 
-    LOG_INFO(logger, "Starting Payload board");
+    std::cout << "Instantiating modules" << std::endl;
 
-    LOG_INFO(logger, "Instantiating modules");
     // Core components
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
@@ -123,7 +142,7 @@ int main()
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
 
-    LOG_INFO(logger, "Injecting module dependencies");
+    std::cout << "Injecting module dependencies" << std::endl;
     // Insert modules
     bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
                       depman.insert(flightModeManager) && depman.insert(nas) &&
@@ -144,7 +163,7 @@ int main()
     led3: CanBus ok
     led4: Everything ok */
 
-    LOG_INFO(logger, "Starting modules");
+    std::cout << "Starting modules" << std::endl;
     // Start global modules
     START_SINGLETON(Logger);
     START_SINGLETON(EventBroker);
@@ -165,7 +184,7 @@ int main()
     START_MODULE(scheduler);
 
     // Log all posted events
-    LOG_DEBUG(logger, "Starting EventSniffer");
+    std::cout << "Starting event sniffer" << std::endl;
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
         [](uint8_t event, uint8_t topic)
@@ -177,16 +196,16 @@ int main()
     if (initResult)
     {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-        // Turn on the initialization led
+        // Turn on the initialization led on the CU
         miosix::led4On();
         actuators->setStatusOk();
-        LOG_INFO(logger, "Initialization successful");
+        std::cout << "Initialization successful" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusError();
-        LOG_ERR(logger, "Initialization failed");
+        std::cout << "Initialization failed" << std::endl;
     }
 
     auto toggleBoardLed = [on = false]() mutable
@@ -200,11 +219,11 @@ int main()
     // Collect CPU and stack usage statistics
     while (true)
     {
-        Thread::sleep(1000);
         Logger::getInstance().log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
         toggleBoardLed();
+        Thread::sleep(1000);
     }
 
     return 0;
