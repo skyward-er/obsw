@@ -49,44 +49,86 @@
 
 #include <iostream>
 
+#if defined(DEBUG)
+// Use the logger to print initialization messages in debug mode
+
+// Main logging
+#define LOG_ACTION(msg) LOG_INFO(logger, msg)
+#define LOG_RESULT(success) ((void)0)
+
+// Module start logging
+#define LOG_START(msg) LOG_INFO(logger, msg)
+#define LOG_START_RESULT(success, ...) \
+    if (!success)                      \
+    {                                  \
+        LOG_ERR(logger, __VA_ARGS__);  \
+    }
+
+// Final status logging
+#define LOG_SUCCESS(msg) LOG_INFO(logger, msg)
+#define LOG_FAILURE(msg) LOG_ERR(logger, msg)
+
+#else
+// Print initialization messages directly in release mode
+
+// Main logging
+#define LOG_ACTION(msg) std::cout << msg << "... " << std::flush
+#define LOG_RESULT(success) \
+    std::cout << (success ? "Ok" : "Failed") << std::endl
+
+// Module start logging
+#define LOG_START(msg) std::cout << msg << "... " << std::flush
+#define LOG_START_RESULT(success, ...) \
+    std::cout << (success ? "Ok" : "Failed") << std::endl
+
+// Final status logging
+#define LOG_SUCCESS(msg) std::cout << msg << std::endl
+#define LOG_FAILURE(msg) std::cout << msg << std::endl
+
+#endif
+
 /**
  * @brief Starts a module and checks if it started correctly.
  * Must be followed by a semicolon or a block of code.
  * The block of code will be executed only if the module started correctly.
+ * The macro also defines a boolean variable of the same name as the module
+ * followed by "Started" with the result of the start operation, e.g.
+ * `sensorsStarted`.
  *
  * @example START_MODULE(sensors) { miosix::ledOn(); }
  */
-#define START_MODULE(module)                                  \
-    std::cout << "Starting " #module << std::endl;            \
-    if (!module->start())                                     \
-    {                                                         \
-        initResult = false;                                   \
-        std::cerr << "Failed to start " #module << std::endl; \
-    }                                                         \
-    else
+#define START_MODULE(module)                                       \
+    LOG_START("Starting " #module);                                \
+    bool module##Started = module->start();                        \
+    initResult &= module##Started;                                 \
+    LOG_START_RESULT(module##Started, "Failed to start " #module); \
+    if (module##Started)
 
 /**
  * @brief Starts a singleton and checks if it started correctly.
  * Must be followed by a semicolon or a block of code.
  * The block of code will be executed only if the singleton started correctly.
+ * The macro also defines a boolean variable of the same name as the singleton
+ * followed by "Started" with the result of the start operation, e.g.
+ * `LoggerStarted`.
  *
  * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
  */
-#define START_SINGLETON(singleton)                               \
-    std::cout << "Starting " #singleton << std::endl;            \
-    if (!singleton::getInstance().start())                       \
-    {                                                            \
-        initResult = false;                                      \
-        std::cerr << "Failed to start " #singleton << std::endl; \
-    }                                                            \
-    else
+#define START_SINGLETON(singleton)                                       \
+    LOG_START("Starting " #singleton);                                   \
+    bool singleton##Started = singleton::getInstance().start();          \
+    initResult &= singleton##Started;                                    \
+    LOG_START_RESULT(singleton##Started, "Failed to start " #singleton); \
+    if (singleton##Started)
 
+// Build type string for printing during startup
 #if defined(DEBUG)
 #define BUILD_TYPE "Debug"
 #else
 #define BUILD_TYPE "Release"
 #endif
 
+// Build flavor string for printing during startup
 #if defined(EUROC)
 #define FLAVOR "EUROC"
 #elif defined(ROCCARASO)
@@ -110,8 +152,7 @@ int main()
     auto logger = Logging::getLogger("Payload");
     DependencyManager depman{};
 
-    std::cout << "Instantiating modules" << std::endl;
-
+    LOG_ACTION("Instantiating modules");
     // Core components
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
@@ -142,7 +183,9 @@ int main()
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
 
-    std::cout << "Injecting module dependencies" << std::endl;
+    LOG_RESULT(true);
+
+    LOG_ACTION("Injecting module dependencies");
     // Insert modules
     bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
                       depman.insert(flightModeManager) && depman.insert(nas) &&
@@ -156,6 +199,7 @@ int main()
 
     // Populate module dependencies
     initResult &= depman.inject();
+    LOG_RESULT(initResult);
 
     /* Status led indicators
     led1: Sensors ok
@@ -163,7 +207,6 @@ int main()
     led3: CanBus ok
     led4: Everything ok */
 
-    std::cout << "Starting modules" << std::endl;
     // Start global modules
     START_SINGLETON(Logger);
     START_SINGLETON(EventBroker);
@@ -184,7 +227,7 @@ int main()
     START_MODULE(scheduler);
 
     // Log all posted events
-    std::cout << "Starting event sniffer" << std::endl;
+    LOG_ACTION("Starting event sniffer");
     EventSniffer sniffer(
         EventBroker::getInstance(), TOPICS_LIST,
         [](uint8_t event, uint8_t topic)
@@ -192,6 +235,7 @@ int main()
             EventData ev{TimestampTimer::getTimestamp(), event, topic};
             Logger::getInstance().log(ev);
         });
+    LOG_RESULT(true);
 
     if (initResult)
     {
@@ -199,13 +243,13 @@ int main()
         // Turn on the initialization led on the CU
         miosix::led4On();
         actuators->setStatusOk();
-        std::cout << "Initialization successful" << std::endl;
+        LOG_SUCCESS("Initialization successful");
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusError();
-        std::cout << "Initialization failed" << std::endl;
+        LOG_FAILURE("Initialization failed");
     }
 
     auto toggleBoardLed = [on = false]() mutable
