@@ -47,7 +47,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 {
     switch (msg.msgid)
     {
-
         case MAVLINK_MSG_ID_PING_TC:
         {
             return enqueueAck(msg);
@@ -370,8 +369,8 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             tm.wes_n      = -1.0;   // TODO
             tm.wes_e      = -1.0;   // TODO
 
-            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
-            tm.cam_battery_voltage = sensors->getCamBatteryVoltage().voltage;
+            tm.battery_voltage     = sensors->getBatteryVoltage().batVoltage;
+            tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
             tm.temperature         = pressDigi.temperature;
 
             // State machines
@@ -416,16 +415,15 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             tm.apogee_alt         = -1.0f;  // TODO
             tm.min_pressure       = -1.0f;  // TODO
 
-            // Cpu stuff
-            CpuMeterData cpuStats = CpuMeter::getCpuStats();
-            CpuMeter::resetCpuStats();
-            tm.cpu_load  = cpuStats.mean;
-            tm.free_heap = cpuStats.freeHeap;
+            // CPU stats
+            auto cpuStats = CpuMeter::getCpuStats();
+            tm.cpu_load   = cpuStats.mean;
+            tm.free_heap  = cpuStats.freeHeap;
 
-            // Log stuff
-            LoggerStats loggerStats = Logger::getInstance().getStats();
-            tm.log_good             = (loggerStats.lastWriteError == 0) ? 1 : 0;
-            tm.log_number           = loggerStats.logNumber;
+            // Logger stats
+            auto loggerStats = Logger::getInstance().getStats();
+            tm.log_good      = (loggerStats.lastWriteError == 0) ? 1 : 0;
+            tm.log_number    = loggerStats.logNumber;
 
             auto canStatus       = getModule<CanHandler>()->getCanStatus();
             tm.main_board_state  = canStatus.mainState;
