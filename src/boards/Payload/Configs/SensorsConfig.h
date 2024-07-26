@@ -46,7 +46,7 @@ namespace Sensors
 
 namespace LPS22DF
 {
-constexpr auto ENABLED       = true;
+constexpr auto ENABLED       = false;
 constexpr auto SAMPLING_RATE = 50_hz;
 constexpr auto AVG           = Boardcore::LPS22DF::AVG_4;
 constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
