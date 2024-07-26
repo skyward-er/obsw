@@ -47,6 +47,10 @@ void Serial::sendMsg(const mavlink_message_t& msg)
 
 void Serial::handleMsg(const mavlink_message_t& msg)
 {
+    // Patch for serial communication reception from payload
+    if (msg.msgid == MAVLINK_MSG_ID_PAYLOAD_FLIGHT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_PAYLOAD_STATS_TM)
+        getModule<HubBase>()->dispatchIncomingMsg(msg);
     // Dispatch the message through the hub.
     getModule<HubBase>()->dispatchOutgoingMsg(msg);
 }
