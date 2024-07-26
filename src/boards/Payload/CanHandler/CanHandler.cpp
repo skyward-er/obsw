@@ -109,7 +109,7 @@ bool CanHandler::start()
         [this]
         {
             auto logStats = Logger::getInstance().getStats();
-            auto state    = getModule<FlightModeManager>()->getStatus().state;
+            auto state    = getModule<FlightModeManager>()->getState();
             auto status   = DeviceStatus{
                   .timestamp = TimestampTimer::getTimestamp(),
                   .logNumber = static_cast<int16_t>(logStats.logNumber),

@@ -36,11 +36,14 @@ class BoardScheduler : public Boardcore::Injectable
 {
 public:
     /**
-     * @brief Priority levels for the board schedulers
+     * @brief Enclosing struct to avoid polluting the BoardScheduler namespace.
      */
     struct Priority
     {
-        enum
+        /**
+         * @brief Priority levels for the board schedulers.
+         */
+        enum PriorityLevel
         {
             LOW      = miosix::PRIORITY_MAX - 4,
             MEDIUM   = miosix::PRIORITY_MAX - 3,
@@ -60,6 +63,11 @@ public:
     Boardcore::TaskScheduler& windEstimation() { return medium; }
     Boardcore::TaskScheduler& actuators() { return low; }
     Boardcore::TaskScheduler& flightStatsRecorder() { return low; }
+
+    static Priority::PriorityLevel flightModeManagerPriority()
+    {
+        return Priority::MEDIUM;
+    }
 
     /**
      * @brief Starts all the schedulers
