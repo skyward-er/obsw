@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,21 @@
 
 #pragma once
 
+#include <chrono>
+
 namespace Payload
 {
-constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;  // [ms]
-constexpr unsigned int APOGEE_TIMEOUT  = 32 * 1000;       // [ms]
-constexpr unsigned int LOGGING_DELAY   = 30 * 1000;       // [ms]
+namespace Config
+{
+namespace FlightModeManager
+{
+
+/* linter-off */ using namespace std::chrono_literals;
+
+constexpr auto MISSION_TIMEOUT = 15min;
+constexpr auto APOGEE_TIMEOUT  = 32s;
+constexpr auto LOG_STOP_DELAY  = 30s;
+
+}  // namespace FlightModeManager
+}  // namespace Config
 }  // namespace Payload

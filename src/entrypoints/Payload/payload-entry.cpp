@@ -207,8 +207,13 @@ int main()
     led3: CanBus ok
     led4: Everything ok */
 
+    // Check SD card presence for logging
+    LOG_START("Testing Logger SD card");
+    bool sdCardOk = Logger::getInstance().testSDCard();
+    initResult &= sdCardOk;
+    LOG_START_RESULT(sdCardOk, "No SD card detected, Logger will not work");
+
     // Start global modules
-    START_SINGLETON(Logger);
     START_SINGLETON(EventBroker);
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }

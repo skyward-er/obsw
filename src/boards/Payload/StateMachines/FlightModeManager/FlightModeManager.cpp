@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,25 @@
 
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
+#include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/Sensors/Sensors.h>
-#include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
-using namespace miosix;
 using namespace Boardcore;
 using namespace Common;
+using namespace std::chrono;
+namespace config = Payload::Config::FlightModeManager;
 
 namespace Payload
 {
+
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_on_ground)
+    : HSM(&FlightModeManager::OnGround, miosix::STACK_DEFAULT_FOR_PTHREAD,
+          BoardScheduler::flightModeManagerPriority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
@@ -53,13 +56,14 @@ FlightModeManager::~FlightModeManager()
     EventBroker::getInstance().unsubscribe(this);
 }
 
-FlightModeManagerStatus FlightModeManager::getStatus()
+FlightModeManagerState FlightModeManager::getState() { return state; }
+
+bool FlightModeManager::isTestMode() const
 {
-    PauseKernelLock lock;
-    return status;
+    return state == FlightModeManagerState::ON_GROUND_TEST_MODE;
 }
 
-State FlightModeManager::state_on_ground(const Event& event)
+State FlightModeManager::OnGround(const Event& event)
 {
     switch (event)
     {
@@ -67,33 +71,40 @@ State FlightModeManager::state_on_ground(const Event& event)
         {
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
             return tranSuper(&FlightModeManager::state_top);
         }
+
         case EV_INIT:
         {
-            return transition(&FlightModeManager::state_init);
+            return transition(&FlightModeManager::OnGroundInit);
         }
+
         case TMTC_START_LOGGING:
         {
             Logger::getInstance().start();
             return HANDLED;
         }
+
         case TMTC_STOP_LOGGING:
         {
             Logger::getInstance().stop();
             return HANDLED;
         }
+
         case TMTC_RESET_BOARD:
         {
-            reboot();
-            return HANDLED;
+            miosix::reboot();
+            __builtin_unreachable();
         }
+
         default:
         {
             return UNHANDLED;
@@ -101,35 +112,41 @@ State FlightModeManager::state_on_ground(const Event& event)
     }
 }
 
-State FlightModeManager::state_init(const Event& event)
+State FlightModeManager::OnGroundInit(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::INIT);
+            updateState(FlightModeManagerState::ON_GROUND_INIT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FMM_INIT_OK:
         {
-            return transition(&FlightModeManager::state_init_done);
+            return transition(&FlightModeManager::OnGroundInitDone);
         }
+
         case FMM_INIT_ERROR:
         {
-            return transition(&FlightModeManager::state_init_error);
+            return transition(&FlightModeManager::OnGroundInitError);
         }
+
         default:
         {
             return UNHANDLED;
@@ -137,37 +154,41 @@ State FlightModeManager::state_init(const Event& event)
     }
 }
 
-State FlightModeManager::state_init_error(const Event& event)
+State FlightModeManager::OnGroundInitError(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::INIT_ERROR);
+            updateState(FlightModeManagerState::ON_GROUND_INIT_ERROR);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
-        case CAN_FORCE_INIT:
+
         case TMTC_FORCE_INIT:
         {
-            if (event != CAN_FORCE_INIT)
-            {
-                getModule<CanHandler>()->sendEvent(
-                    CanConfig::EventId::FORCE_INIT);
-            }
-            return transition(&FlightModeManager::state_init_done);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::FORCE_INIT);
+            // Fallthrough
         }
+        case CAN_FORCE_INIT:
+        {
+            return transition(&FlightModeManager::OnGroundInitDone);
+        }
+
         default:
         {
             return UNHANDLED;
@@ -175,33 +196,37 @@ State FlightModeManager::state_init_error(const Event& event)
     }
 }
 
-State FlightModeManager::state_init_done(const Event& event)
+State FlightModeManager::OnGroundInitDone(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            // We turn off the led if we are coming from init_error
-            logStatus(FlightModeManagerState::INIT_DONE);
+            updateState(FlightModeManagerState::ON_GROUND_INIT_DONE);
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FMM_CALIBRATE:
         {
-            return transition(&FlightModeManager::state_sensors_calibration);
+            return transition(&FlightModeManager::OnGroundSensorCalibration);
         }
+
         default:
         {
             return UNHANDLED;
@@ -209,33 +234,38 @@ State FlightModeManager::state_init_done(const Event& event)
     }
 }
 
-State FlightModeManager::state_sensors_calibration(const Event& event)
+State FlightModeManager::OnGroundSensorCalibration(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::SENSORS_CALIBRATION);
+            updateState(FlightModeManagerState::ON_GROUND_SENSOR_CALIBRATION);
             getModule<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FMM_ALGOS_CALIBRATE:
         {
-            return transition(&FlightModeManager::state_algos_calibration);
+            return transition(&FlightModeManager::OnGroundAlgorithmCalibration);
         }
+
         default:
         {
             return UNHANDLED;
@@ -243,34 +273,39 @@ State FlightModeManager::state_sensors_calibration(const Event& event)
     }
 }
 
-State FlightModeManager::state_algos_calibration(const Event& event)
+State FlightModeManager::OnGroundAlgorithmCalibration(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::ALGOS_CALIBRATION);
-            // EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
+            updateState(
+                FlightModeManagerState::ON_GROUND_ALGORITHM_CALIBRATION);
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case NAS_READY:
         {
             EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
-            return transition(&FlightModeManager::state_disarmed);
+            return transition(&FlightModeManager::OnGroundDisarmed);
         }
+
         default:
         {
             return UNHANDLED;
@@ -278,61 +313,65 @@ State FlightModeManager::state_algos_calibration(const Event& event)
     }
 }
 
-State FlightModeManager::state_disarmed(const Event& event)
+State FlightModeManager::OnGroundDisarmed(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::DISARMED);
-            // Stop eventual logging
-            // Logger::getInstance().stop();
+            updateState(FlightModeManagerState::ON_GROUND_DISARMED);
             getModule<Actuators>()->setBuzzerOff();
             getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
-        case CAN_ARM:
+
         case TMTC_ARM:
         {
-            if (event != CAN_ARM)
-            {
-                getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
-            }
-            return transition(&FlightModeManager::state_armed);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
+            // Fallthrough
         }
-        case CAN_ENTER_TEST_MODE:
+        case CAN_ARM:
+        {
+            return transition(&FlightModeManager::Armed);
+        }
+
         case TMTC_ENTER_TEST_MODE:
         {
-            if (event != CAN_ENTER_TEST_MODE)
-            {
-                getModule<CanHandler>()->sendEvent(
-                    CanConfig::EventId::ENTER_TEST_MODE);
-            }
-            return transition(&FlightModeManager::state_test_mode);
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_TEST_MODE);
+            // Fallthrough
         }
-        case CAN_CALIBRATE:
+        case CAN_ENTER_TEST_MODE:
+        {
+            return transition(&FlightModeManager::OnGroundTestMode);
+        }
+
         case TMTC_CALIBRATE:
         {
-            if (event != CAN_CALIBRATE)
-            {
-                getModule<CanHandler>()->sendEvent(
-                    CanConfig::EventId::CALIBRATE);
-            }
-            return transition(&FlightModeManager::state_sensors_calibration);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
+            // Fallthrough
         }
+        case CAN_CALIBRATE:
+        {
+            return transition(&FlightModeManager::OnGroundSensorCalibration);
+        }
+
         default:
         {
             return UNHANDLED;
@@ -340,58 +379,66 @@ State FlightModeManager::state_disarmed(const Event& event)
     }
 }
 
-State FlightModeManager::state_test_mode(const Event& event)
+State FlightModeManager::OnGroundTestMode(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             Logger::getInstance().start();
-            logStatus(FlightModeManagerState::TEST_MODE);
+            updateState(FlightModeManagerState::ON_GROUND_TEST_MODE);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
-            // Logger::getInstance().stop();
+            Logger::getInstance().stop();
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_on_ground);
+            return tranSuper(&FlightModeManager::OnGround);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case TMTC_START_RECORDING:
         {
             getModule<Actuators>()->cameraOn();
             return HANDLED;
         }
+
         case TMTC_STOP_RECORDING:
         {
             getModule<Actuators>()->cameraOff();
             return HANDLED;
         }
+
         case TMTC_RESET_BOARD:
         {
             Logger::getInstance().stop();
-            reboot();
-            return HANDLED;
+            miosix::reboot();
+            __builtin_unreachable();
         }
-        case CAN_EXIT_TEST_MODE:
+
         case TMTC_EXIT_TEST_MODE:
         {
-            if (event != CAN_EXIT_TEST_MODE)
-            {
-                getModule<CanHandler>()->sendEvent(
-                    CanConfig::EventId::EXIT_TEST_MODE);
-            }
-            return transition(&FlightModeManager::state_disarmed);
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EXIT_TEST_MODE);
+            // Fallthrough
         }
+        case CAN_EXIT_TEST_MODE:
+        {
+            return transition(&FlightModeManager::OnGroundDisarmed);
+        }
+
         default:
         {
             return UNHANDLED;
@@ -399,56 +446,58 @@ State FlightModeManager::state_test_mode(const Event& event)
     }
 }
 
-State FlightModeManager::state_armed(const Event& event)
+State FlightModeManager::Armed(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::ARMED);
-            Logger::getInstance().stop();
             Logger::getInstance().start();
-            // we log again to ensure the both log have the status logged
-            logStatus(FlightModeManagerState::ARMED);
-            // Starts signaling devices and camera
+            updateState(FlightModeManagerState::ARMED);
+
             getModule<Actuators>()->setBuzzerArmed();
             getModule<Actuators>()->cameraOn();
-            // Post event
+
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             getModule<Actuators>()->setBuzzerOff();
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
             return tranSuper(&FlightModeManager::state_top);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
-        case CAN_DISARM:
+
         case TMTC_DISARM:
         {
-            EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
-            if (event != CAN_DISARM)
-            {
-                getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
-            }
-            return transition(&FlightModeManager::state_disarmed);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
+            // Fallthrough
         }
-        case CAN_LIFTOFF:
+        case CAN_DISARM:
+        {
+            return transition(&FlightModeManager::OnGroundDisarmed);
+        }
+
         case TMTC_FORCE_LAUNCH:
         {
-            if (event != CAN_LIFTOFF)
-            {
-                getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
-            }
-            return transition(&FlightModeManager::state_flying);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
+            // Fallthrough
         }
+        case CAN_LIFTOFF:
+        {
+            return transition(&FlightModeManager::Flying);
+        }
+
         default:
         {
             return UNHANDLED;
@@ -456,35 +505,43 @@ State FlightModeManager::state_armed(const Event& event)
     }
 }
 
-State FlightModeManager::state_flying(const Event& event)
+State FlightModeManager::Flying(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             EventBroker::getInstance().postDelayed(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT, MISSION_TIMEOUT);
+                FLIGHT_MISSION_TIMEOUT, TOPIC_FLIGHT,
+                milliseconds{config::MISSION_TIMEOUT}.count());
             EventBroker::getInstance().postDelayed(
-                FLIGHT_NC_DETACHED, TOPIC_FLIGHT, APOGEE_TIMEOUT);
+                FLIGHT_NC_DETACHED, TOPIC_FLIGHT,
+                milliseconds{config::APOGEE_TIMEOUT}.count());
+
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
             return tranSuper(&FlightModeManager::state_top);
         }
+
         case EV_INIT:
         {
-            return transition(&FlightModeManager::state_ascending);
+            return transition(&FlightModeManager::FlyingAscending);
         }
+
         case TMTC_FORCE_LANDING:
         case FLIGHT_MISSION_TIMEOUT:
         {
-            return transition(&FlightModeManager::state_landed);
+            return transition(&FlightModeManager::Landed);
         }
+
         default:
         {
             return UNHANDLED;
@@ -492,34 +549,39 @@ State FlightModeManager::state_flying(const Event& event)
     }
 }
 
-State FlightModeManager::state_ascending(const Event& event)
+State FlightModeManager::FlyingAscending(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::ASCENDING);
+            updateState(FlightModeManagerState::FLYING_ASCENDING);
             EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return tranSuper(&FlightModeManager::Flying);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case CAN_APOGEE_DETECTED:
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:
         {
-            return transition(&FlightModeManager::state_drogue_descent);
+            return transition(&FlightModeManager::FlyingDrogueDescent);
         }
+
         default:
         {
             return UNHANDLED;
@@ -527,45 +589,41 @@ State FlightModeManager::state_ascending(const Event& event)
     }
 }
 
-State FlightModeManager::state_drogue_descent(const Event& event)
+State FlightModeManager::FlyingDrogueDescent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::DROGUE_DESCENT);
-
+            updateState(FlightModeManagerState::FLYING_DROGUE_DESCENT);
             getModule<AltitudeTrigger>()->enable();
-
-            // ModuleManager::getInstance()
-            //     .get<VerticalVelocityTrigger>()
-            //     ->enable();
-
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return tranSuper(&FlightModeManager::Flying);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         case TMTC_FORCE_DEPLOYMENT:
         {
             getModule<AltitudeTrigger>()->disable();
-            // ModuleManager::getInstance()
-            //     .get<VerticalVelocityTrigger>()
-            //     ->disable();
-            return transition(&FlightModeManager::state_wing_descent);
+            return transition(&FlightModeManager::FlyingWingDescent);
         }
+
         default:
         {
             return UNHANDLED;
@@ -573,29 +631,33 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     }
 }
 
-State FlightModeManager::state_wing_descent(const Event& event)
+State FlightModeManager::FlyingWingDescent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
+            updateState(FlightModeManagerState::FLYING_WING_DESCENT);
+            // Send the event to the WingController
             EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
-
-            logStatus(FlightModeManagerState::WING_DESCENT);
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
-            return tranSuper(&FlightModeManager::state_flying);
+            return tranSuper(&FlightModeManager::Flying);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         default:
         {
             return UNHANDLED;
@@ -603,50 +665,55 @@ State FlightModeManager::state_wing_descent(const Event& event)
     }
 }
 
-State FlightModeManager::state_landed(const Event& event)
+State FlightModeManager::Landed(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            logStatus(FlightModeManagerState::LANDED);
+            updateState(FlightModeManagerState::LANDED);
 
-            // Turns off signaling devices
-            getModule<Actuators>()->setBuzzerArmed();
+            getModule<Actuators>()->setBuzzerOnLand();
             getModule<Actuators>()->cameraOff();
             getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
             getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
-            // Sends events
+
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
-            EventBroker::getInstance().postDelayed(FMM_STOP_LOGGING, TOPIC_FMM,
-                                                   LOGGING_DELAY);
-
+            EventBroker::getInstance().postDelayed(
+                FMM_STOP_LOGGING, TOPIC_FMM,
+                milliseconds{config::LOG_STOP_DELAY}.count());
             return HANDLED;
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
             return tranSuper(&FlightModeManager::state_top);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FMM_STOP_LOGGING:
         {
             Logger::getInstance().stop();
             return HANDLED;
         }
+
         case TMTC_RESET_BOARD:
         {
             Logger::getInstance().stop();
-            reboot();
-            return HANDLED;
+            miosix::reboot();
+            __builtin_unreachable();
         }
+
         default:
         {
             return UNHANDLED;
@@ -654,11 +721,14 @@ State FlightModeManager::state_landed(const Event& event)
     }
 }
 
-void FlightModeManager::logStatus(FlightModeManagerState state)
+void FlightModeManager::updateState(FlightModeManagerState newState)
 {
-    status.timestamp = TimestampTimer::getTimestamp();
-    status.state     = state;
+    state = newState;
 
+    auto status = FlightModeManagerStatus{
+        .timestamp = TimestampTimer::getTimestamp(),
+        .state     = newState,
+    };
     Logger::getInstance().log(status);
 }
 

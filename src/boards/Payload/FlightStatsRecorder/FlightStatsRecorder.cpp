@@ -67,8 +67,7 @@ bool FlightStatsRecorder::start()
 void FlightStatsRecorder::update()
 {
     // FMM state
-    FlightModeManagerState flightState =
-        getModule<FlightModeManager>()->getStatus().state;
+    auto flightState = getModule<FlightModeManager>()->getState();
 
     // Data gathering
     Sensors* sensor           = getModule<Sensors>();
@@ -110,7 +109,7 @@ void FlightStatsRecorder::updateAcc(FlightModeManagerState flightState,
     Vector3f accelerations = static_cast<Vector3f>(data);
     float norm             = accelerations.norm();
 
-    if (flightState == FlightModeManagerState::ASCENDING)
+    if (flightState == FlightModeManagerState::FLYING_ASCENDING)
     {
         Lock<FastMutex> l(mutex);
 
@@ -121,7 +120,7 @@ void FlightStatsRecorder::updateAcc(FlightModeManagerState flightState,
         stats.liftoff_max_acc_ts =
             changed ? data.accelerationTimestamp : stats.liftoff_max_acc_ts;
     }
-    else if (flightState >= FlightModeManagerState::DROGUE_DESCENT)
+    else if (flightState >= FlightModeManagerState::FLYING_DROGUE_DESCENT)
     {
         Lock<FastMutex> l(mutex);
 
@@ -159,7 +158,7 @@ void FlightStatsRecorder::updatePitot(FlightModeManagerState flightState,
 void FlightStatsRecorder::updateNAS(FlightModeManagerState flightState,
                                     NASState state)
 {
-    if (flightState == FlightModeManagerState::ASCENDING)
+    if (flightState == FlightModeManagerState::FLYING_ASCENDING)
     {
         Lock<FastMutex> l(mutex);
 

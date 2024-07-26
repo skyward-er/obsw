@@ -86,9 +86,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            bool testMode = getModule<FlightModeManager>()->getStatus().state ==
-                            FlightModeManagerState::TEST_MODE;
-
+            bool testMode = getModule<FlightModeManager>()->isTestMode();
             // Perform the wiggle in test mode only
             if (!testMode)
             {
@@ -107,9 +105,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
-            bool testMode = getModule<FlightModeManager>()->getStatus().state ==
-                            FlightModeManagerState::TEST_MODE;
-
+            bool testMode = getModule<FlightModeManager>()->isTestMode();
             // Raw events are allowed in test mode only
             if (!testMode)
             {
@@ -380,7 +376,7 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
 
             // State machines
             tm.fmm_state = static_cast<uint8_t>(
-                getModule<FlightModeManager>()->getStatus().state);
+                getModule<FlightModeManager>()->getState());
             tm.nas_state = 255;  // TODO
             tm.wes_state = 255;  // TODO
 
