@@ -36,7 +36,7 @@ static const Antennas::StepperConfig stepperXConfig{
     .STEP_ANGLE    = 1.8,
     .MIN_ANGLE     = -180.0,
     .MAX_ANGLE     = 180.0,
-    .MAX_SPEED     = 0.75,
+    .MAX_SPEED     = 0.1,
 };
 
 static const Antennas::StepperConfig stepperYConfig{
