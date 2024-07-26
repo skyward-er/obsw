@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,6 @@
 
 #pragma once
 
-#include <Payload/Actuators/Actuators.h>
-#include <Payload/AltitudeTrigger/AltitudeTrigger.h>
-#include <Payload/CanHandler/CanHandler.h>
-#include <Payload/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -34,6 +30,14 @@
 
 namespace Payload
 {
+class Sensors;
+class CanHandler;
+class Actuators;
+class AltitudeTrigger;
+
+/**
+ * @brief State machine that manages the flight modes of the Payload.
+ */
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
       public Boardcore::InjectableWithDeps<Sensors, CanHandler, Actuators,
@@ -43,89 +47,115 @@ public:
     FlightModeManager();
     ~FlightModeManager();
 
-    bool startModule() { return start(); }
-    FlightModeManagerStatus getStatus();
+    /**
+     * @brief Returns the current state of the FlightModeManager.
+     */
+    FlightModeManagerState getState();
+
+    bool isTestMode() const;
 
     /**
-     * @brief Super state for when the payload is on ground.
+     * @brief Super state for when the Payload is on the ground.
      */
-    // Super state for when the payload is on ground.
-    Boardcore::State state_on_ground(const Boardcore::Event& event);
+    Boardcore::State OnGround(const Boardcore::Event& event);
 
     /**
-     * @brief Super state for when the payload is on ground.
+     * @brief The Payload is initializing.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_init(const Boardcore::Event& event);
+    Boardcore::State OnGroundInit(const Boardcore::Event& event);
 
     /**
-     * @brief State in which the init has failed
+     * @brief Initialization has failed.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_init_error(const Boardcore::Event& event);
+    Boardcore::State OnGroundInitError(const Boardcore::Event& event);
 
     /**
-     * @brief State in which the init is done and a calibration event is
-     * thrown
+     * @brief Initialization completed successfully.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_init_done(const Boardcore::Event& event);
+    Boardcore::State OnGroundInitDone(const Boardcore::Event& event);
 
     /**
-     * @brief Calibration of all sensors.
+     * @brief Sensors are being calibrated.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_sensors_calibration(const Boardcore::Event& event);
+    Boardcore::State OnGroundSensorCalibration(const Boardcore::Event& event);
 
     /**
-     * @brief Calibration of all algorithms.
+     * @brief Algorithms are being calibrated.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_algos_calibration(const Boardcore::Event& event);
+    Boardcore::State OnGroundAlgorithmCalibration(
+        const Boardcore::Event& event);
 
     /**
-     * @brief State in which the electronics is ready to be armed
+     * @brief The Payload is disarmed on the ground, ready to be armed.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_disarmed(const Boardcore::Event& event);
+    Boardcore::State OnGroundDisarmed(const Boardcore::Event& event);
 
     /**
-     * @brief The rocket will accept specific telecommands otherwise considered
-     * risky.
+     * @brief The Payload is in test mode, allowing execution of test commands
+     * that wouldn't be safe to perform in flight mode.
+     *
+     * Super state: OnGround
      */
-    Boardcore::State state_test_mode(const Boardcore::Event& event);
+    Boardcore::State OnGroundTestMode(const Boardcore::Event& event);
 
     /**
-     * @brief Super state in which the algorithms start to run (NAS) and the
-     * electronics is ready to fly
+     * @brief Super state for when the Payload is armed and ready to fly.
+     * Algorithms start to run (NAS) and the detach event is awaited to enter
+     * the flying state.
      */
-    Boardcore::State state_armed(const Boardcore::Event& event);
+    Boardcore::State Armed(const Boardcore::Event& event);
 
     /**
-     * @brief Super state for when the payload is in the air.
+     * @brief Super state for when the Payload is flying after lift-off.
      */
-    Boardcore::State state_flying(const Boardcore::Event& event);
+    Boardcore::State Flying(const Boardcore::Event& event);
 
     /**
-     * @brief Ascending phase of the trajectory.
+     * @brief Ascending phase of the flight.
+     *
+     * Super state: Flying
      */
-    Boardcore::State state_ascending(const Boardcore::Event& event);
+    Boardcore::State FlyingAscending(const Boardcore::Event& event);
 
     /**
-     * @brief State in which the apogee/expulsion has occurred
+     * @brief Apogee has been reached, expulsion charge has been fired and the
+     * drogue parachute was deployed.
+     *
+     * Super state: Flying
      */
-    Boardcore::State state_drogue_descent(const Boardcore::Event& event);
+    Boardcore::State FlyingDrogueDescent(const Boardcore::Event& event);
 
     /**
-     * @brief State in which the parafoil wing is opened and starts guiding
-     * itself
+     * @brief The parafoil wing is deployed by firing cutters and the wing
+     * controller is activated.
+     *
+     * Super state: Flying
      */
-    Boardcore::State state_wing_descent(const Boardcore::Event& event);
+    Boardcore::State FlyingWingDescent(const Boardcore::Event& event);
 
     /**
-     * @brief The rocket ended the flight and closes the log.
+     * @brief The Payload has landed.
      */
-    Boardcore::State state_landed(const Boardcore::Event& event);
+    Boardcore::State Landed(const Boardcore::Event& event);
 
 private:
-    void logStatus(FlightModeManagerState state);
+    void updateState(FlightModeManagerState newState);
 
-    FlightModeManagerStatus status;
+    std::atomic<FlightModeManagerState> state{
+        FlightModeManagerState::ON_GROUND};
 
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("fmm");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("FMM");
 };
 }  // namespace Payload

@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
+#include <cstdint>
+#include <ostream>
 #include <string>
 
 namespace Payload
@@ -32,25 +31,25 @@ namespace Payload
 
 enum class FlightModeManagerState : uint8_t
 {
-    INVALID = 0,
-    INIT,
-    INIT_ERROR,
-    INIT_DONE,
-    SENSORS_CALIBRATION,
-    ALGOS_CALIBRATION,
-    DISARMED,
-    TEST_MODE,
+    ON_GROUND = 0,
+    ON_GROUND_INIT,
+    ON_GROUND_INIT_ERROR,
+    ON_GROUND_INIT_DONE,
+    ON_GROUND_SENSOR_CALIBRATION,
+    ON_GROUND_ALGORITHM_CALIBRATION,
+    ON_GROUND_DISARMED,
+    ON_GROUND_TEST_MODE,
     ARMED,
-    ASCENDING,
-    DROGUE_DESCENT,
-    WING_DESCENT,
+    FLYING_ASCENDING,
+    FLYING_DROGUE_DESCENT,
+    FLYING_WING_DESCENT,
     LANDED,
 };
 
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
+    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
 
