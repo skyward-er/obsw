@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Author: Davide Mor, Emilio Corigliano, Giuseppe Brentino
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,10 @@ namespace Config
 namespace Sensors
 {
 
+/**
+ * Since it isn't used for nas or calibration, the AVG is left the minimum and
+ * ODR is left to 100Hz which is the double
+ */
 namespace LPS22DF
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
@@ -50,18 +54,30 @@ constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LPS22DF
 
+/**
+ * Higher resolution (lower FSR = 1260hPa)
+ *
+ * Since it is used for calibration purposes, the AVG is set to 64 but it is ok
+ * to set it to 8. The current consumption in the AVG_64 472.8 uA, at AVG_8 is
+ * 111.5 uA and AVG_4 is 87.8 uA.
+ */
 namespace LPS28DFW
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
-constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_4;
+constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_8;
 constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
 
 constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LPS28DFW
 
+/**
+ * Since the last year we reached a peak of 20g max, we leave the FS to 100 g
+ *
+ * TODO: discuss with Annalisa. Maybe considering to use up to 400Hz (ODR).
+ * Check also the current consumption
+ * 200 Hz with 400 ODR
+ */
 namespace H3LIS331DL
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
@@ -75,6 +91,9 @@ constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace H3LIS331DL
 
+/**
+ * Warning: both ODR and Sampling rate is at 100Hz! Could lead to aliasing
+ */
 namespace LIS2MDL
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
@@ -86,14 +105,23 @@ constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
+/**
+ * 10Hz now,
+ */
 namespace UBXGPS
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz RATE   = 5_hz;
+constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
+/**
+ * 416 ODR and 100 Hz frequency se serve a recovery (con fifo serve solo in
+ * postprocess) 104 ODR and 50 Hz frequency basta per GNC
+ *
+ * 2000 DPS ma se a roccaraso gira poco possiamo metterlo a 1000 DPS.
+ */
 namespace LSM6DSRX
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
@@ -106,13 +134,13 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
-    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
+    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
 constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
     Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
 constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Hertz RATE   = 50_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
@@ -162,10 +190,13 @@ constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
+/**
+ * Same frequency of the accelerometer (lsm6dsrx)
+ */
 namespace RotatedIMU
 {
-static constexpr uint32_t PERIOD = 20;  // [ms] 50Hz
-static constexpr bool ENABLED    = true;
+constexpr uint32_t RATE = LSM6DSRX::RATE;
+constexpr bool ENABLED  = true;
 }  // namespace RotatedIMU
 
 }  // namespace Sensors
