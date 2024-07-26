@@ -54,8 +54,12 @@ void Serial::sendMsg(const mavlink_message_t& msg)
 
 void Serial::handleMsg(const mavlink_message_t& msg)
 {
+    // Patch for serial communication reception from payload
+    if (msg.sysid == MAV_SYSID_PAYLOAD)
+        ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchOutgoingMsg(msg);
+    else
+        ModuleManager::getInstance().get<HubBase>()->dispatchOutgoingMsg(msg);
 }
 
 ssize_t Serial::receive(uint8_t* pkt, size_t max_len)
