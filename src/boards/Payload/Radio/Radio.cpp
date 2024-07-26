@@ -34,13 +34,14 @@ namespace
 {
 
 // Static radio instance that will handle the radio interrupts
-SX1278Fsk* staticTransceiver = nullptr;
+std::atomic<SX1278Fsk*> staticTransceiver{nullptr};
 
 inline void handleDioIRQ()
 {
-    if (staticTransceiver)
+    auto transceiver = staticTransceiver.load();
+    if (transceiver)
     {
-        staticTransceiver->handleDioIRQ();
+        transceiver->handleDioIRQ();
     }
 }
 
@@ -55,10 +56,8 @@ namespace Payload
 
 Radio::~Radio()
 {
-    if (staticTransceiver == transceiver.get())
-    {
-        staticTransceiver = nullptr;
-    }
+    auto transceiverPtr = transceiver.get();
+    staticTransceiver.compare_exchange_strong(transceiverPtr, nullptr);
 }
 
 bool Radio::start()
@@ -77,15 +76,15 @@ bool Radio::start()
         miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
         std::move(frontend));
 
-    // Set the static instance for handling radio interrupts
-    staticTransceiver = transceiver.get();
-
     // Configure the radio
     if (transceiver->init(PAYLOAD_RADIO_CONFIG) != SX1278Fsk::Error::NONE)
     {
         LOG_ERR(logger, "Failed to initialize the radio");
         return false;
     }
+
+    // Set the static instance for handling radio interrupts
+    staticTransceiver = transceiver.get();
 
     // Initialize the Mavlink driver
     mavDriver = std::make_unique<MavDriver>(
