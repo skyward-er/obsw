@@ -26,6 +26,7 @@
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
+#include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
@@ -67,6 +68,8 @@ public:
     bool isStarted();
 
 private:
+    void initMavlinkOverSerial();
+
     void handleMessage(const mavlink_message_t& msg);
     void handleCommand(const mavlink_message_t& msg);
 
@@ -89,6 +92,9 @@ private:
 
     std::unique_ptr<Boardcore::SX1278Fsk> transceiver;
     std::unique_ptr<MavDriver> mavDriver;
+
+    std::unique_ptr<Boardcore::SerialTransceiver> serialTransceiver;
+    std::unique_ptr<MavDriver> serialMavDriver;
 
     std::array<mavlink_message_t, Config::Radio::MESSAGE_QUEUE_SIZE>
         messageQueue;

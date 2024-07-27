@@ -26,6 +26,7 @@
 #include <common/Radio.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
 namespace config = Payload::Config::Radio;
@@ -62,9 +63,6 @@ Radio::~Radio()
 
 bool Radio::start()
 {
-    using namespace Units::Frequency;
-    using namespace std::chrono;
-
     auto& scheduler = getModule<BoardScheduler>()->radio();
 
     // Initialize the radio
@@ -98,6 +96,11 @@ bool Radio::start()
     {
         LOG_ERR(logger, "Failed to initialize the Mavlink driver");
         return false;
+    }
+
+    if (config::MAVLINK_OVER_HIL_SERIAL_ENABLED)
+    {
+        initMavlinkOverSerial();
     }
 
     // Add the high rate telemetry task
@@ -144,6 +147,33 @@ void Radio::enqueueAck(const mavlink_message_t& msg)
     enqueueMessage(ackMsg);
 }
 
+void Radio::initMavlinkOverSerial()
+{
+    // Send Mavlink messages over the HIL USART when HIL is not active
+    // TODO: hil - don't use serial if hil is active
+
+    // TODO: disable serial mavlink when FMM is in FLYING super state
+    serialTransceiver =
+        std::make_unique<SerialTransceiver>(getModule<Buses>()->HILUart());
+
+    serialMavDriver = std::make_unique<MavDriver>(
+        serialTransceiver.get(),
+        [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); },
+        milliseconds{config::MavlinkDriver::SLEEP_AFTER_SEND}.count(),
+        milliseconds{config::MavlinkDriver::MAX_PKT_AGE}.count());
+
+    if (!serialMavDriver->start())
+    {
+        LOG_ERR(logger,
+                "Failed to initialize mavlink driver over HIL serial, "
+                "continuing without it");
+
+        serialMavDriver.reset();
+        serialTransceiver.reset();
+    }
+}
+
 void Radio::enqueueNack(const mavlink_message_t& msg)
 {
     mavlink_message_t nackMsg;
@@ -176,6 +206,10 @@ void Radio::flushMessageQueue()
     for (uint32_t i = 0; i < messageQueueIndex; i++)
     {
         mavDriver->enqueueMsg(messageQueue[i]);
+        if (serialMavDriver)
+        {
+            serialMavDriver->enqueueMsg(messageQueue[i]);
+        }
     }
 
     // Reset the index
