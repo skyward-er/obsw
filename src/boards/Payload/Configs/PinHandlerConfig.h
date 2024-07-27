@@ -40,17 +40,17 @@ namespace PinObserver
 constexpr auto PERIOD = 20ms;
 }
 
+namespace RampDetach
+{
+constexpr auto DETECTION_THRESHOLD   = 20;
+constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::FALLING_EDGE;
+}  // namespace RampDetach
+
 namespace NoseconeDetach
 {
 constexpr auto DETECTION_THRESHOLD   = 20;
 constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
 }  // namespace NoseconeDetach
-
-namespace ExpulsionSense
-{
-constexpr auto DETECTION_THRESHOLD   = 20;
-constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
-}  // namespace ExpulsionSense
 
 }  // namespace PinHandler
 }  // namespace Config

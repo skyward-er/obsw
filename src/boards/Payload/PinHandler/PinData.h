@@ -22,48 +22,25 @@
 
 #pragma once
 
-#include <common/Mavlink.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/DependencyManager/DependencyManager.h>
-#include <utils/PinObserver/PinObserver.h>
+#include <cstdint>
+#include <iostream>
 
 namespace Payload
 {
-class BoardScheduler;
 
-enum class PinList : uint8_t
+struct PinChangeData
 {
-    RAMP_DETACH_PIN     = 0,
-    NOSECONE_DETACH_PIN = 1,
-};
+    uint64_t timestamp    = 0;
+    uint8_t pinID         = 0;
+    uint32_t changesCount = 0;
 
-/**
- * @brief This class contains the handlers for the detach pins on the rocket.
- *
- * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
- * The handlers post an event on the EventBroker.
- */
-class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
-{
-public:
-    [[nodiscard]] bool start();
+    static std::string header() { return "timestamp,pinID,changesCount\n"; }
 
-    bool isStarted();
-
-    /**
-     * @brief Returns information about the specified pin.
-     */
-    Boardcore::PinData getPinData(PinList pin);
-
-private:
-    void onRampDetachTransition(Boardcore::PinTransition transition);
-    void onNoseconeDetachTransition(Boardcore::PinTransition transition);
-
-    std::unique_ptr<Boardcore::PinObserver> pinObserver;
-
-    std::atomic<bool> started{false};
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)pinID << "," << (int)changesCount
+           << "\n";
+    }
 };
 
 }  // namespace Payload

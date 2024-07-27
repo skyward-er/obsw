@@ -381,12 +381,12 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
 
             // Pins
             tm.pin_launch =
-                pinHandler->getPinData(PinList::DETACH_PAYLOAD_PIN).lastState
+                pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState ? 1
+                                                                           : 0;
+            tm.pin_nosecone =
+                pinHandler->getPinData(PinList::NOSECONE_DETACH_PIN).lastState
                     ? 1
                     : 0;
-            tm.pin_nosecone =
-                pinHandler->getPinData(PinList::EXPULSION_SENSE).lastState ? 1
-                                                                           : 0;
             tm.cutter_presence = 255;  // TODO
 
             mavlink_msg_payload_flight_tm_encode(config::Mavlink::SYSTEM_ID,

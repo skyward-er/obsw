@@ -25,10 +25,11 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/PinHandlerConfig.h>
 #include <common/Events.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
-#include <functional>
+#include "PinData.h"
 
 using namespace Boardcore;
 using namespace Common;
@@ -47,27 +48,27 @@ bool PinHandler::start()
     pinObserver = std::make_unique<PinObserver>(
         scheduler, milliseconds{config::PinObserver::PERIOD}.count());
 
-    bool detachPayloadResult = pinObserver->registerPinCallback(
-        hwmap::detachPayload::getPin(),
-        [this](auto t) { onDetachPayloadTransition(t); },
-        config::NoseconeDetach::DETECTION_THRESHOLD);
+    bool rampPinDetachResult = pinObserver->registerPinCallback(
+        hwmap::detachRamp::getPin(),
+        [this](auto t) { onRampDetachTransition(t); },
+        config::RampDetach::DETECTION_THRESHOLD);
 
-    if (!detachPayloadResult)
+    if (!rampPinDetachResult)
     {
         LOG_ERR(logger,
-                "Failed to register pin callback for the detach payload pin");
+                "Failed to register pin callback for the detach ramp pin");
         return false;
     }
 
-    bool expSenseResult = pinObserver->registerPinCallback(
-        hwmap::expulsionSense::getPin(),
-        [this](auto t) { onExpulsionSenseTransition(t); },
-        config::ExpulsionSense::DETECTION_THRESHOLD);
+    bool noseconeDetachResult = pinObserver->registerPinCallback(
+        hwmap::detachPayload::getPin(),
+        [this](auto t) { onNoseconeDetachTransition(t); },
+        config::NoseconeDetach::DETECTION_THRESHOLD);
 
-    if (!expSenseResult)
+    if (!noseconeDetachResult)
     {
         LOG_ERR(logger,
-                "Failed to register pin callback for the expulsion sense pin");
+                "Failed to register pin callback for the detach payload pin");
         return false;
     }
 
@@ -77,28 +78,47 @@ bool PinHandler::start()
 
 bool PinHandler::isStarted() { return started; }
 
-void PinHandler::onDetachPayloadTransition(PinTransition transition)
+void PinHandler::onRampDetachTransition(PinTransition transition)
 {
-    // TODO: send event
-    LOG_INFO(logger, "onDetachPayloadTransition {}",
-             static_cast<int>(transition));
+    if (transition == config::RampDetach::TRIGGERING_TRANSITION)
+    {
+        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
+                                        TOPIC_FLIGHT);
+
+        auto pinData       = getPinData(PinList::RAMP_DETACH_PIN);
+        auto pinChangeData = PinChangeData{
+            .timestamp    = TimestampTimer::getTimestamp(),
+            .pinID        = static_cast<uint8_t>(PinList::RAMP_DETACH_PIN),
+            .changesCount = pinData.changesCount,
+        };
+        Logger::getInstance().log(pinChangeData);
+    }
 }
 
-void PinHandler::onExpulsionSenseTransition(PinTransition transition)
+void PinHandler::onNoseconeDetachTransition(PinTransition transition)
 {
-    // TODO: send event
-    LOG_INFO(logger, "onExpulsionSenseTransition {}",
-             static_cast<int>(transition));
+    if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
+    {
+        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+
+        auto pinData       = getPinData(PinList::NOSECONE_DETACH_PIN);
+        auto pinChangeData = PinChangeData{
+            .timestamp    = TimestampTimer::getTimestamp(),
+            .pinID        = static_cast<uint8_t>(PinList::NOSECONE_DETACH_PIN),
+            .changesCount = pinData.changesCount,
+        };
+        Logger::getInstance().log(pinChangeData);
+    }
 }
 
 PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
     {
-        case PinList::DETACH_PAYLOAD_PIN:
+        case PinList::RAMP_DETACH_PIN:
+            return pinObserver->getPinData(hwmap::detachRamp::getPin());
+        case PinList::NOSECONE_DETACH_PIN:
             return pinObserver->getPinData(hwmap::detachPayload::getPin());
-        case PinList::EXPULSION_SENSE:
-            return pinObserver->getPinData(hwmap::expulsionSense::getPin());
         default:
             return PinData{};
     }
