@@ -494,6 +494,7 @@ State FlightModeManager::Armed(const Event& event)
             // Fallthrough
         }
         case CAN_LIFTOFF:
+        case FLIGHT_LAUNCH_PIN_DETACHED:
         {
             return transition(&FlightModeManager::Flying);
         }
