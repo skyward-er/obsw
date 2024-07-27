@@ -27,6 +27,8 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "SensorsData.h"
+
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
@@ -436,7 +438,7 @@ void Sensors::staticPressure1Init()
 
 void Sensors::staticPressure1Callback()
 {
-    // TODO
+    Logger::getInstance().log(StaticPressureData1{getStaticPressure1()});
 }
 
 void Sensors::staticPressure2Init()
@@ -456,7 +458,7 @@ void Sensors::staticPressure2Init()
 
 void Sensors::staticPressure2Callback()
 {
-    // TODO
+    Logger::getInstance().log(StaticPressureData2{getStaticPressure2()});
 }
 
 void Sensors::dplBayPressureInit()
@@ -476,7 +478,7 @@ void Sensors::dplBayPressureInit()
 
 void Sensors::dplBayPressureCallback()
 {
-    // TODO
+    Logger::getInstance().log(DplBayPressureData{getDplBayPressure()});
 }
 
 bool Sensors::sensorManagerInit()
