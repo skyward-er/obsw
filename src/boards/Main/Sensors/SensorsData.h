@@ -28,14 +28,32 @@
 namespace Main
 {
 
-struct StaticPressureData1 : Boardcore::MPXH6115AData
+struct StaticPressureData1 : Boardcore::PressureData
 {
+    StaticPressureData1(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    StaticPressureData1() {}
 };
-struct StaticPressureData2 : Boardcore::MPXH6115AData
+struct StaticPressureData2 : Boardcore::PressureData
 {
+    StaticPressureData2(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    StaticPressureData2() {}
 };
-struct DplBayPressureData : Boardcore::MPXH6115AData
+struct DplBayPressureData : Boardcore::PressureData
 {
+    DplBayPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    DplBayPressureData() {}
 };
 
 }  // namespace Main

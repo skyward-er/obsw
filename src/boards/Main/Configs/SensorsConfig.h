@@ -39,6 +39,10 @@ namespace Config
 namespace Sensors
 {
 
+// TODO: Choose these parameters
+constexpr int CALIBRATION_SAMPLES = 10;
+constexpr int CALIBRATION_PERIOD  = 20;
+
 /**
  * Since it isn't used for nas or calibration, the AVG is left the minimum and
  * ODR is left to 100Hz which is the double
@@ -63,6 +67,8 @@ constexpr bool ENABLED = true;
  */
 namespace LPS28DFW
 {
+/* linter off */ using namespace Boardcore::Units::Frequency;
+
 constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
 constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_8;
 constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
@@ -195,8 +201,10 @@ constexpr bool ENABLED = true;
  */
 namespace RotatedIMU
 {
-constexpr uint32_t RATE = LSM6DSRX::RATE;
-constexpr bool ENABLED  = true;
+/* linter off */ using namespace Boardcore::Units::Frequency;
+
+constexpr Hertz RATE   = LSM6DSRX::RATE;
+constexpr bool ENABLED = true;
 }  // namespace RotatedIMU
 
 }  // namespace Sensors

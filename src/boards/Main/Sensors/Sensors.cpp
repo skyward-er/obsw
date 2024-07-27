@@ -27,6 +27,8 @@
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "SensorsData.h"
+
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
@@ -81,7 +83,8 @@ bool Sensors::start()
         internalAdcInit();
     }
 
-    if(Config::Sensors::RotatedIMU::ENABLED){
+    if (Config::Sensors::RotatedIMU::ENABLED)
+    {
         rotatedIMUInit();
     }
 
@@ -110,27 +113,27 @@ void Sensors::calibrate()
     Stats gyroStats;
 
     // Add N samples to the stats
-    for (unsigned int i = 0; i < SensorsConfig::CALIBRATION_SAMPLES; i++)
+    for (unsigned int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES; i++)
     {
-        staticPressure1Stats.add(getStaticPressure1LastSample().pressure);
-        staticPressure2Stats.add(getStaticPressure2LastSample().pressure);
-        deploymentPressureStats.add(getDeploymentPressureLastSample().pressure);
+        staticPressure1Stats.add(getStaticPressure1().pressure);
+        staticPressure2Stats.add(getStaticPressure2().pressure);
+        deploymentPressureStats.add(getDplBayPressure().pressure);
 
         // Calibrate gyroscope
 
         // Delay for the expected period
-        miosix::Thread::sleep(SensorsConfig::CALIBRATION_PERIOD);
+        miosix::Thread::sleep(Config::Sensors::CALIBRATION_PERIOD);
     }
 
     // Compute the difference between the mean value from LPS28DFW
     float refPressure = reference.refPressure;
 
-    hscmrnn015pa_1->updateOffset(staticPressure1Stats.getStats().mean -
+    staticPressure1->updateOffset(staticPressure1Stats.getStats().mean -
+                                  refPressure);
+    staticPressure2->updateOffset(staticPressure2Stats.getStats().mean -
+                                  refPressure);
+    dplBayPressure->updateOffset(deploymentPressureStats.getStats().mean -
                                  refPressure);
-    hscmrnn015pa_2->updateOffset(staticPressure2Stats.getStats().mean -
-                                 refPressure);
-    mpxh6400a->updateOffset(deploymentPressureStats.getStats().mean -
-                            refPressure);
 
     // Log the offsets
     SensorsCalibrationParameter cal{};
@@ -152,9 +155,9 @@ bool Sensors::writeMagCalibration()
         SixParametersCorrector cal = magCalibrator.computeResult();
 
         // Check result validity
-        if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
-            !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
-            !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+        if (!std::isnan(cal.getb()[0]) && !std::isnan(cal.getb()[1]) &&
+            !std::isnan(cal.getb()[2]) && !std::isnan(cal.getA()[0]) &&
+            !std::isnan(cal.getA()[1]) && !std::isnan(cal.getA()[2]))
         {
             magCalibration = cal;
 
@@ -246,17 +249,23 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
 
 PressureData Sensors::getStaticPressure1()
 {
-    return staticPressure1 ? staticPressure1->getLastSample() : PressureData{};
+    return staticPressure1 ? static_cast<Boardcore::PressureData>(
+                                 staticPressure1->getLastSample())
+                           : PressureData{};
 }
 
 PressureData Sensors::getStaticPressure2()
 {
-    return staticPressure2 ? staticPressure2->getLastSample() : PressureData{};
+    return staticPressure2 ? static_cast<Boardcore::PressureData>(
+                                 staticPressure2->getLastSample())
+                           : PressureData{};
 }
 
 PressureData Sensors::getDplBayPressure()
 {
-    return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
+    return dplBayPressure ? static_cast<Boardcore::PressureData>(
+                                dplBayPressure->getLastSample())
+                          : PressureData{};
 }
 
 PressureData Sensors::getCanTopTankPress1()
@@ -333,7 +342,7 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
                 manager->getSensorInfo(internalAdc.get()),
                 manager->getSensorInfo(staticPressure1.get()),
                 manager->getSensorInfo(staticPressure2.get()),
-                manager->getSensorInfo(dplBayPressure.get())};
+                manager->getSensorInfo(dplBayPressure.get()),
                 manager->getSensorInfo(imu.get())};
     }
     else
@@ -530,7 +539,7 @@ void Sensors::staticPressure1Init()
 
 void Sensors::staticPressure1Callback()
 {
-    // TODO
+    Logger::getInstance().log(StaticPressureData1{getStaticPressure1()});
 }
 
 void Sensors::staticPressure2Init()
@@ -550,7 +559,7 @@ void Sensors::staticPressure2Init()
 
 void Sensors::staticPressure2Callback()
 {
-    // TODO
+    Logger::getInstance().log(StaticPressureData2{getStaticPressure2()});
 }
 
 void Sensors::dplBayPressureInit()
@@ -570,7 +579,37 @@ void Sensors::dplBayPressureInit()
 
 void Sensors::dplBayPressureCallback()
 {
-    // TODO
+    Logger::getInstance().log(DplBayPressureData{getDplBayPressure()});
+}
+
+void Sensors::rotatedIMUInit()
+{
+    // Register the IMU as the fake sensor, passing as parameters the methods to
+    // retrieve real data. The sensor is not synchronized, but the sampling
+    // thread is always the same.
+    imu = std::make_unique<RotatedIMU>(
+        [this]() { return getLSM6DSRXLastSample(); },
+        [this]() { return getCalibratedMagnetometerLastSample(); },
+        [this]() { return getLSM6DSRXLastSample(); });
+
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    imu->addMagTransformation(m);
+    imu->addMagTransformation(imu->rotateAroundY(-90));
+    imu->addMagTransformation(imu->rotateAroundZ(90));
+
+    // Accelerometer
+    imu->addAccTransformation(imu->rotateAroundZ(-90));
+    imu->addAccTransformation(imu->rotateAroundX(-90));
+
+    // Gyroscope
+    imu->addGyroTransformation(imu->rotateAroundZ(-90));
+    imu->addGyroTransformation(imu->rotateAroundX(-90));
+}
+
+void Sensors::rotatedIMUCallback()
+{
+    Logger::getInstance().log(getRotatedIMULastSample());
 }
 
 bool Sensors::sensorManagerInit()
@@ -657,42 +696,13 @@ bool Sensors::sensorManagerInit()
         map.emplace(internalAdc.get(), info);
     }
 
+    if (imu)
+    {
+        SensorInfo info{"RotatedIMU", Config::Sensors::RotatedIMU::RATE,
+                        [this]() { rotatedIMUCallback(); }};
+        map.emplace(imu.get(), info);
+    }
+
     manager = std::make_unique<SensorManager>(map, &scheduler);
     return manager->start();
-}
-
-void Sensors::rotatedIMUInit(Boardcore::SensorManager::SensorMap_t &map)
-{
-    // Register the IMU as the fake sensor, passing as parameters the methods to
-    // retrieve real data. The sensor is not synchronized, but the sampling
-    // thread is always the same.
-    imu = new RotatedIMU([this]() { return getLSM6DSRXLastSample(); },
-                         [this]()
-                         { return getCalibratedMagnetometerLastSample(); },
-                         [this]() { return getLSM6DSRXLastSample(); });
-
-    // Invert the Y axis on the magnetometer
-    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    imu->addMagTransformation(m);
-    imu->addMagTransformation(imu->rotateAroundY(-90));
-    imu->addMagTransformation(imu->rotateAroundZ(90));
-
-    // Accelerometer
-    imu->addAccTransformation(imu->rotateAroundZ(-90));
-    imu->addAccTransformation(imu->rotateAroundX(-90));
-
-    // Gyroscope
-    imu->addGyroTransformation(imu->rotateAroundZ(-90));
-    imu->addGyroTransformation(imu->rotateAroundX(-90));
-
-    // Emplace the sensor inside the map
-    SensorInfo info("RotatedIMU", Config::Sensors::InternalADC::PERIOD,
-                    [this]() { rotatedIMUCallback(); });
-    sensorMap.emplace(make_pair(imu, info));
-}
-
-void Sensors::rotatedIMUCallback()
-{
-    auto lastSample = getRotatedIMULastSample();
-    Logger::getInstance().log(lastSample);
 }

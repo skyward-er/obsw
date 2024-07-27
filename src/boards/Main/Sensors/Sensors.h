@@ -39,6 +39,7 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
+#include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/AeroUtils/AeroUtils.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -50,6 +51,40 @@
 namespace Main
 {
 
+struct SensorsCalibrationParameter
+{
+    uint64_t timestamp;
+    float referencePressure;
+    float offsetStatic1;
+    float offsetStatic2;
+    float offsetDeployment;
+
+    SensorsCalibrationParameter(uint64_t timestamp, float referencePressure,
+                                float offsetStatic1, float offsetStatic2,
+                                float offsetDeployment)
+        : timestamp(timestamp), referencePressure(referencePressure),
+          offsetStatic1(offsetStatic1), offsetStatic2(offsetStatic2),
+          offsetDeployment(offsetDeployment)
+    {
+    }
+
+    SensorsCalibrationParameter() : SensorsCalibrationParameter(0, 0, 0, 0, 0)
+    {
+    }
+
+    static std::string header()
+    {
+        return "timestamp,referencePressure,offsetStatic1,offsetStatic2,"
+               "offsetDeployment\n";
+    }
+
+    void print(std::ostream &os) const
+    {
+        os << timestamp << "," << referencePressure << "," << offsetStatic1
+           << "," << offsetStatic2 << "," << offsetDeployment << "\n";
+    }
+};
+
 class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
 {
 public:
@@ -58,6 +93,8 @@ public:
     bool isStarted();
 
     [[nodiscard]] bool start();
+
+    void calibrate();
 
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
@@ -68,7 +105,7 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
     RotatedIMUData getRotatedIMULastSample();
-    MagnetometerData Sensors::getCalibratedMagnetometerLastSample();
+    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
 
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getCamBatteryVoltage();
@@ -103,6 +140,8 @@ public:
         reference.mslPressure    = mslPressure;
     }
 
+    bool writeMagCalibration();
+
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     // Methods for CanHandler
@@ -131,6 +170,7 @@ protected:
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+    std::unique_ptr<Main::RotatedIMU> imu;
 
     // Analog sensors
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
@@ -166,7 +206,8 @@ private:
 
     void staticPressure1Init();
     void staticPressure1Callback();
-    void rotatedIMUInit(Boardcore::SensorManager::SensorMap_t &map);
+
+    void rotatedIMUInit();
     void rotatedIMUCallback();
 
     void staticPressure2Init();
@@ -178,15 +219,10 @@ private:
     miosix::FastMutex referenceMutex;
     Boardcore::ReferenceValues reference;
 
-    std::unique_ptr<Boardcore::LPS22DF> lps22df;
-    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
-    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
-    std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
-    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
-    std::unique_ptr<Boardcore::InternalADC> internalAdc;
-    std::unique_ptr<RotatedIMU> imu;
+    // Magnetometer live calibration
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    miosix::FastMutex calibrationMutex;
 
     bool sensorManagerInit();
 
