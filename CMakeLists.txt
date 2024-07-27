@@ -47,3 +47,8 @@ add_executable(parafoil-t-approach-jesolo src/entrypoints/Parafoil/parafoil-entr
 target_include_directories(parafoil-t-approach-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-t-approach-jesolo PRIVATE EARLY_MANEUVER JESOLO)
 sbs_target(parafoil-t-approach-jesolo stm32f429zi_skyward_death_stack_x)
+
+add_executable(parafoil-t-approach-milano src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-t-approach-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-t-approach-milano PRIVATE EARLY_MANEUVER MILANO)
+sbs_target(parafoil-t-approach-milano stm32f429zi_skyward_death_stack_x)

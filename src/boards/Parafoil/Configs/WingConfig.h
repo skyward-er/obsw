@@ -36,7 +36,7 @@ namespace WingConfig
 #if defined(CLOSED_LOOP)
 constexpr int SELECTED_ALGORITHM = 0;
 #elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM   = 1;
+constexpr int SELECTED_ALGORITHM = 1;
 #elif SEQUENCE
 constexpr int SELECTED_ALGORITHM = 2;
 #elif ROTATION
@@ -46,8 +46,8 @@ constexpr int SELECTED_ALGORITHM = 0;
 #endif
 
 #if defined(JESOLO)
-constexpr float DEFAULT_TARGET_LAT = 45.565835;
-constexpr float DEFAULT_TARGET_LON = 12.577307;
+constexpr float DEFAULT_TARGET_LAT = 45.565264;
+constexpr float DEFAULT_TARGET_LON = 12.577050;
 #else  // Milan
 constexpr float DEFAULT_TARGET_LAT = 45.5013853;
 constexpr float DEFAULT_TARGET_LON = 9.1544219;
@@ -66,7 +66,7 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP = 1.3537;
+constexpr float KP = 0.9;
 constexpr float KI = 0.0111;
 
 constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;  // [meters]
