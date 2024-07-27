@@ -96,8 +96,7 @@ bool Radio::start()
 
     // Config mavDriver
     mavDriver = new MavDriver(
-        transceiver,
-        [=](MavDriver*, const mavlink_message_t& msg)
+        transceiver, [=](MavDriver*, const mavlink_message_t& msg)
         { this->handleMavlinkMessage(msg); },
         RadioConfig::RADIO_SLEEP_AFTER_SEND,
         RadioConfig::RADIO_OUT_BUFFER_MAX_AGE);
@@ -120,7 +119,7 @@ void Radio::sendNack(const mavlink_message_t& msg)
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(RadioConfig::MAV_SYSTEM_ID,
                              RadioConfig::MAV_COMP_ID, &nackMsg, msg.msgid,
-                             msg.seq);
+                             msg.seq, 0);
     enqueueMsg(nackMsg);
 }
 
@@ -238,14 +237,13 @@ void Radio::handleMavlinkMessage(const mavlink_message_t& msg)
                 for (SensorInfo i : sensorsState)
                 {
                     strcpy(tm.sensor_name, i.id.c_str());
-                    tm.state = 0;
                     if (i.isEnabled)
                     {
-                        tm.state += 1;
+                        tm.enabled = 1;
                     }
                     if (i.isInitialized)
                     {
-                        tm.state += 2;
+                        tm.initialized = 1;
                     }
                     mavlink_msg_sensor_state_tm_encode(
                         RadioConfig::MAV_SYSTEM_ID, RadioConfig::MAV_COMP_ID,
@@ -494,7 +492,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
         {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
         {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
-        {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
+        // {MAV_CMD_FORCE_APOGEE, TMTC_FORCE_APOGEE},
         {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
         {MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT},
         {MAV_CMD_START_LOGGING, TMTC_START_LOGGING},
