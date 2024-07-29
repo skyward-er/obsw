@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Nicclò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,72 +30,74 @@
 
 using namespace Boardcore;
 using namespace Common;
+namespace config = Payload::Config;
 
 namespace Payload
 {
-
-AltitudeTrigger::AltitudeTrigger()
-    : running(false), confidence(0),
-      deploymentAltitude(WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE)
-{
-}
 
 bool AltitudeTrigger::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->altitudeTrigger();
 
-    return (scheduler.addTask([this] { update(); },
-                              WingConfig::ALTITUDE_TRIGGER_PERIOD) != 0);
+    auto task = scheduler.addTask([this] { update(); },
+                                  config::AltitudeTrigger::UPDATE_RATE);
+
+    if (task == 0)
+    {
+        return false;
+    }
+
+    started = true;
+    return true;
 }
+
+bool AltitudeTrigger::isStarted() { return started; }
 
 void AltitudeTrigger::enable()
 {
-    miosix::Lock<miosix::FastMutex> l(mutex);
+    if (running)
+    {
+        return;
+    }
+
     confidence = 0;
     running    = true;
 }
 
+void AltitudeTrigger::disable() { running = false; }
+
+bool AltitudeTrigger::isEnabled() { return running; }
+
 void AltitudeTrigger::setDeploymentAltitude(float altitude)
 {
-    miosix::Lock<miosix::FastMutex> l(mutex);
-    deploymentAltitude = altitude;
-}
-
-void AltitudeTrigger::disable()
-{
-    miosix::Lock<miosix::FastMutex> l(mutex);
-    running = false;
-}
-
-bool AltitudeTrigger::isActive()
-{
-    miosix::Lock<miosix::FastMutex> l(mutex);
-    return running;
+    targetAltitude = altitude;
 }
 
 void AltitudeTrigger::update()
 {
-    miosix::Lock<miosix::FastMutex> l(mutex);
-    if (running)
+    if (!running)
     {
-        // NED frame, flip the D sign to get a positive height
-        float height = -getModule<NASController>()->getNasState().d;
+        return;
+    }
 
-        if (height < WingConfig::ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE)
-        {
-            confidence++;
-        }
-        else
-        {
-            confidence = 0;
-        }
-        if (confidence >= WingConfig ::ALTITUDE_TRIGGER_CONFIDENCE)
-        {
-            confidence = 0;
-            EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
-                                            TOPIC_FLIGHT);
-            running = false;
-        }
+    // NED frame, flip the D sign to get a positive height
+    float height = -getModule<NASController>()->getNasState().d;
+
+    if (height < targetAltitude)
+    {
+        confidence++;
+    }
+    else
+    {
+        confidence = 0;
+    }
+
+    if (confidence >= config::AltitudeTrigger::CONFIDENCE)
+    {
+        confidence = 0;
+        EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
+                                        TOPIC_FLIGHT);
+        running = false;
     }
 }
 

@@ -83,6 +83,7 @@ private:
 
         void enqueueAck(const mavlink_message_t& msg);
         void enqueueNack(const mavlink_message_t& msg);
+        void enqueueWack(const mavlink_message_t& msg);
 
         bool enqueueSystemTm(SystemTMList tmId);
         bool enqueueSensorsTm(SensorsTMList sensorId);

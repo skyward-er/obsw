@@ -25,7 +25,7 @@
 
 #include <Eigen/Core>
 
-using namespace Payload::WingConfig;
+using namespace Payload::Config::Wing;
 
 namespace Payload
 {

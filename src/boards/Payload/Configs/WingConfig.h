@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2022-2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Nicclò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,14 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
 namespace Payload
 {
-
-namespace WingConfig
+namespace Config
 {
-// Algorithm configuration
-
+namespace Wing
+{
 #if defined(EUROC)
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
@@ -54,12 +55,18 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP                                   = 0.4;   //[m]
-constexpr float KI                                   = 0.08;  //[m]
-constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 400;   // [meters]
+constexpr float KP = 0.4;   //[m]
+constexpr float KI = 0.08;  //[m]
+}  // namespace Wing
 
-constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
-constexpr int ALTITUDE_TRIGGER_PERIOD     = 100;  //[ms]
-}  // namespace WingConfig
+namespace AltitudeTrigger
+{
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
+constexpr auto DEPLOYMENT_ALTITUDE = 400;  // [meters]
+constexpr auto CONFIDENCE          = 10;   // [samples]
+constexpr auto UPDATE_RATE         = 10_hz;
+}  // namespace AltitudeTrigger
+
+}  // namespace Config
 }  // namespace Payload
