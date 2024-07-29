@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Nicclò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/Configs/WingConfig.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
@@ -33,30 +34,15 @@ class AltitudeTrigger
     : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
 {
 public:
-    explicit AltitudeTrigger();
-
-    /**
-     * @brief Adds the update() task to the task scheduler.
-     */
     bool start();
+    bool isStarted();
 
-    /**
-     * @brief Enable the AltitudeTrigger.
-     */
     void enable();
-
-    /**
-     * @brief Disable the AltitudeTrigger.
-     */
     void disable();
+    bool isEnabled();
 
     /**
-     * @return The status of the AltitudeTrigger
-     */
-    bool isActive();
-
-    /**
-     * @return Set the altitude of the AltitudeTrigger
+     * @return Set the deployment altitude.
      */
     void setDeploymentAltitude(float altitude);
 
@@ -67,12 +53,14 @@ private:
      */
     void update();
 
-    bool running;
-    int confidence;  ///< Number of times that the algorithm detects to be below
-                     ///< the fixed altitude
-    float deploymentAltitude;
+    std::atomic<bool> started{false};
+    std::atomic<bool> running{false};
 
-    miosix::FastMutex mutex;
+    std::atomic<float> targetAltitude{
+        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE};
+
+    int confidence = 0;  ///< Number of consecutive readings that are below the
+                         ///< target altitude
 };
 
 }  // namespace Payload

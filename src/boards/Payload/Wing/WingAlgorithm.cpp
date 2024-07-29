@@ -26,7 +26,7 @@
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
-using namespace Payload::WingConfig;
+using namespace Payload::Config::Wing;
 using namespace Common;
 
 namespace Payload

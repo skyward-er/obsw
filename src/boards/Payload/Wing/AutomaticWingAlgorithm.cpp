@@ -34,7 +34,7 @@
 
 using namespace Boardcore;
 using namespace Eigen;
-using namespace Payload::WingConfig;
+using namespace Payload::Config::Wing;
 
 namespace Payload
 {
