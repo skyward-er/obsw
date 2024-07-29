@@ -219,11 +219,14 @@ void SMA::update()
             // retrieve the last NAS Rocket state
             Hub* hub =
                 static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
-            NASState nasState = hub->getRocketNasState();
+            if (hub->hasNasSet())
+            {
+                NASState nasState = hub->getRocketNasState();
 
-            // update the propagator with the NAS state
-            // and retrieve the propagated state
-            propagator.setRocketNasState(nasState);
+                // update the propagator with the NAS state
+                // and retrieve the propagated state
+                propagator.setRocketNasState(nasState);
+            }
             propagator.update();  // step the propagator
             PropagatorState predicted = propagator.getState();
 
@@ -271,11 +274,14 @@ void SMA::update()
             // retrieve the last NAS Rocket state
             Hub* hub =
                 static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
-            NASState nasState = hub->getRocketNasState();
+            if (hub->hasNasSet())
+            {
+                NASState nasState = hub->getRocketNasState();
 
-            // update the propagator with the NAS state
-            // and retrieve the propagated state
-            propagator.setRocketNasState(nasState);
+                // update the propagator with the NAS state
+                // and retrieve the propagated state
+                propagator.setRocketNasState(nasState);
+            }
             propagator.update();  // step the propagator
             PropagatorState predicted = propagator.getState();
 

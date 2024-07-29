@@ -69,6 +69,8 @@ public:
      */
     Boardcore::NASState getRocketNasState();
 
+    bool hasNasSet();
+
 private:
     /**
      * @brief Synchronized setter for the last rocket NAS state.
@@ -84,6 +86,7 @@ private:
     Boardcore::NASState lastRocketNasState;
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
+    bool flagNasSet = false;
 };
 
 }  // namespace Antennas
