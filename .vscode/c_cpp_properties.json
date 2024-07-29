@@ -424,6 +424,17 @@
                 "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_motor/config",
                 "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_motor"
             ]
+        },
+        {
+            "name": "logdecoder",
+            "includePath": [
+                "${defaultIncludePaths}"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cppStandard": "c++20"
         }
     ],
     "version": 4
