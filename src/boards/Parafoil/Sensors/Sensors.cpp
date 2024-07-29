@@ -123,9 +123,7 @@ Sensors::Sensors(TaskScheduler* sched) : scheduler(sched), sensorsCounter(0) {}
 bool Sensors::start()
 {
     // Read the magnetometer calibration from predefined file
-    miosix::GpioPin cs(GPIOG_BASE, 7);
-    cs.mode(miosix::Mode::OUTPUT);
-    cs.high();
+
     // Init all the sensors
     bmx160Init();
     bmx160WithCorrectionInit();
@@ -133,7 +131,7 @@ bool Sensors::start()
     h3lisInit();
     lps22Init();
     ubxGpsInit();
-    ads131Init();
+    // ads131Init();
     internalADCInit();
     batteryVoltageInit();
 

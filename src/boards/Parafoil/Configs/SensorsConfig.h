@@ -48,7 +48,7 @@ constexpr Boardcore::BMX160Config::OutputDataRate BMX160_ACC_GYRO_ODR_ENUM =
     Boardcore::BMX160Config::OutputDataRate::HZ_200;
 constexpr unsigned int BMX160_MAG_ODR = 100;
 constexpr Boardcore::BMX160Config::OutputDataRate BMX160_MAG_ODR_ENUM =
-    Boardcore::BMX160Config::OutputDataRate::HZ_200;
+    Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
 constexpr unsigned int BMX160_TEMP_DIVIDER = 1000;
 
