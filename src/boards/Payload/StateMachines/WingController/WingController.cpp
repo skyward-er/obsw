@@ -39,7 +39,7 @@
 #include <events/EventBroker.h>
 
 using namespace Boardcore;
-using namespace Payload::WingConfig;
+using namespace Payload::Config::Wing;
 using namespace Payload::WESConfig;
 using namespace Common;
 

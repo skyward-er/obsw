@@ -99,6 +99,24 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             return enqueueAck(msg);
         }
 
+        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
+        {
+            float altitude =
+                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+
+            parent.getModule<AltitudeTrigger>()->setDeploymentAltitude(
+                altitude);
+
+            if (altitude < 0 || altitude > 3000)
+            {
+                return enqueueWack(msg);
+            }
+            else
+            {
+                return enqueueAck(msg);
+            }
+        }
+
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
@@ -211,6 +229,15 @@ void Radio::MavlinkBackend::enqueueNack(const mavlink_message_t& msg)
                              config::Mavlink::COMPONENT_ID, &nackMsg, msg.msgid,
                              msg.seq, 0);
     enqueueMessage(nackMsg);
+}
+
+void Radio::MavlinkBackend::enqueueWack(const mavlink_message_t& msg)
+{
+    mavlink_message_t wackMsg;
+    mavlink_msg_wack_tm_pack(config::Mavlink::SYSTEM_ID,
+                             config::Mavlink::COMPONENT_ID, &wackMsg, msg.msgid,
+                             msg.seq, 0);
+    enqueueMessage(wackMsg);
 }
 
 bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
