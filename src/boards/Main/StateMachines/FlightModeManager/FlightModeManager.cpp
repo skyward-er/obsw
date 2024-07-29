@@ -237,6 +237,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
 
             // Quick hack to make the state machine go forward
             Thread::sleep(2000);
+            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 
             return HANDLED;
@@ -543,7 +544,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
             updateAndLogStatus(FlightModeManagerState::UNPOWERED_ASCENT);
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
-                TMTC_FORCE_APOGEE, TOPIC_TMTC,
+                TMTC_FORCE_EXPULSION, TOPIC_TMTC,
                 Config::FlightModeManager::APOGEE_TIMEOUT);
 
             return HANDLED;
@@ -560,8 +561,8 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         {
             return HANDLED;
         }
-        case TMTC_FORCE_APOGEE:
         case ADA_APOGEE_DETECTED:
+        case TMTC_FORCE_EXPULSION:
         {
             return transition(&FlightModeManager::state_drogue_descent);
         }
@@ -578,6 +579,8 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+            LOG_INFO(logger, "Expelled");
+
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
             getModule<Actuators>()->openExpulsion();
