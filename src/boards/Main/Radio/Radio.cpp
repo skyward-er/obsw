@@ -417,6 +417,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             Sensors* sensors       = getModule<Sensors>();
             PinHandler* pinHandler = getModule<PinHandler>();
+            FlightModeManager *fmm = getModule<FlightModeManager>();
+            ADAController *ada     = getModule<ADAController>();
+            NASController *nas     = getModule<NASController>();
 
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto imu         = sensors->getLSM6DSRXLastSample();
@@ -424,15 +427,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto gps         = sensors->getUBXGPSLastSample();
             auto pressStatic = sensors->getStaticPressure1LastSample();
             auto pressDpl    = sensors->getDplBayPressureLastSample();
+            auto adaState    = ada->getADAState();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.pressure_ada    = -1.0f;  // TODO
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
+
+            tm.pressure_ada    = adaState.x0;
+            tm.ada_vert_speed  = adaState.verticalSpeed;
+            
             tm.airspeed_pitot  = -1.0f;  // TODO
             tm.altitude_agl    = -1.0f;  // TODO
-            tm.ada_vert_speed  = -1.0f;  // TODO
             tm.mea_mass        = -1.0f;  // TODO
 
             // Sensors
@@ -471,12 +477,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 sensors->getCamBatteryVoltageLastSample().voltage;
             tm.temperature = pressDigi.temperature;
 
-            tm.ada_state = 255;  // TODO
-            tm.fmm_state = static_cast<uint8_t>(
-                getModule<FlightModeManager>()->getState());
+            tm.ada_state = static_cast<uint8_t>(ada->getState());
+            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
             tm.dpl_state = 255;  // TODO
             tm.abk_state = 255;  // TODO
-            tm.nas_state = 255;  // TODO
+            tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.mea_state = 255;  // TODO
 
             tm.pin_launch =

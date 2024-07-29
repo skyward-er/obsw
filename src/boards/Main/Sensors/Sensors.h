@@ -87,7 +87,7 @@ public:
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
-    TaskScheduler &getSensorsScheduler();
+    Boardcore::TaskScheduler &getSensorsScheduler();
 
     miosix::FastMutex canMutex;
     Boardcore::PressureData canCCPressure;
