@@ -56,7 +56,7 @@ private:
     Boardcore::SPIBus spi4{SPI4};
     Boardcore::SPIBus spi6{SPI6};
 
-    Boardcore::USART usart4{UART4, 460800, 1024};
+    Boardcore::USART usart4{UART4, 256000, 1024};
 
     Boardcore::I2C i2c1{I2C1, miosix::interfaces::i2c1::scl::getPin(),
                         miosix::interfaces::i2c1::sda::getPin()};

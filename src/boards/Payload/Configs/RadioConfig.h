@@ -38,10 +38,10 @@ namespace Radio
 
 constexpr auto LOW_RATE_TELEMETRY         = 2_hz;
 constexpr auto HIGH_RATE_TELEMETRY        = 4_hz;
-constexpr auto MESSAGE_QUEUE_SIZE         = 10;
+constexpr auto MESSAGE_QUEUE_SIZE         = 16;
 constexpr auto MESSAGE_QUEUE_FLUSH_PERIOD = 200ms;
 
-constexpr bool MAVLINK_OVER_HIL_SERIAL_ENABLED = false;
+constexpr bool MAVLINK_OVER_HIL_SERIAL_ENABLED = true;
 
 namespace Mavlink
 {

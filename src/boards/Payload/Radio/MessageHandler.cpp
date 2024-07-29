@@ -43,7 +43,7 @@ namespace config = Payload::Config::Radio;
 namespace Payload
 {
 
-void Radio::handleMessage(const mavlink_message_t& msg)
+void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 {
     switch (msg.msgid)
     {
@@ -85,7 +85,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            bool testMode = getModule<FlightModeManager>()->isTestMode();
+            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
             // Perform the wiggle in test mode only
             if (!testMode)
             {
@@ -95,7 +95,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             auto servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            getModule<Actuators>()->wiggleServo(servo);
+            parent.getModule<Actuators>()->wiggleServo(servo);
             return enqueueAck(msg);
         }
 
@@ -104,7 +104,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
             uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
 
-            bool testMode = getModule<FlightModeManager>()->isTestMode();
+            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
             // Raw events are allowed in test mode only
             if (!testMode)
             {
@@ -122,40 +122,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
     }
 }
 
-void Radio::handleCommand(const mavlink_message_t& msg)
+void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
 {
-    // Command-to-event look-up table, uses operator[] to retrieve an event from
-    // a command
-    static struct
-    {
-        Events operator[](MavCommandList command)
-        {
-#define MAP_CMD(command, event) \
-    case command:               \
-        return event
-
-            switch (command)
-            {
-                MAP_CMD(MAV_CMD_ARM, TMTC_ARM);
-                MAP_CMD(MAV_CMD_DISARM, TMTC_DISARM);
-                MAP_CMD(MAV_CMD_CALIBRATE, TMTC_CALIBRATE);
-                MAP_CMD(MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT);
-                MAP_CMD(MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH);
-                MAP_CMD(MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING);
-                MAP_CMD(MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION);
-                MAP_CMD(MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT);
-                MAP_CMD(MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD);
-                MAP_CMD(MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE);
-                MAP_CMD(MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE);
-                MAP_CMD(MAV_CMD_START_RECORDING, TMTC_START_RECORDING);
-                MAP_CMD(MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING);
-                default:
-                    return LAST_EVENT;
-            }
-#undef MAP_CMD
-        }
-    } commandToEvent;  // Command-to-event look-up table
-
     auto command = static_cast<MavCommandList>(
         mavlink_msg_command_tc_get_command_id(&msg));
 
@@ -181,7 +149,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_SAVE_CALIBRATION:
         {
-            bool magResult = getModule<Sensors>()->writeMagCalibration();
+            bool magResult = parent.getModule<Sensors>()->writeMagCalibration();
             if (magResult)
             {
                 return enqueueAck(msg);
@@ -195,7 +163,26 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         default:
         {
             // Map the command to an event and post it, if it exists
-            auto event = commandToEvent[command];
+            auto event = [command]
+            {
+                switch (command)
+                {  // clang-format off
+                    case MAV_CMD_ARM:              return TMTC_ARM;
+                    case MAV_CMD_DISARM:           return TMTC_DISARM;
+                    case MAV_CMD_CALIBRATE:        return TMTC_CALIBRATE;
+                    case MAV_CMD_FORCE_INIT:       return TMTC_FORCE_INIT;
+                    case MAV_CMD_FORCE_LAUNCH:     return TMTC_FORCE_LAUNCH;
+                    case MAV_CMD_FORCE_LANDING:    return TMTC_FORCE_LANDING;
+                    case MAV_CMD_FORCE_EXPULSION:  return TMTC_FORCE_EXPULSION;
+                    case MAV_CMD_FORCE_DEPLOYMENT: return TMTC_FORCE_DEPLOYMENT;
+                    case MAV_CMD_FORCE_REBOOT:     return TMTC_RESET_BOARD;
+                    case MAV_CMD_ENTER_TEST_MODE:  return TMTC_ENTER_TEST_MODE;
+                    case MAV_CMD_EXIT_TEST_MODE:   return TMTC_EXIT_TEST_MODE;
+                    case MAV_CMD_START_RECORDING:  return TMTC_START_RECORDING;
+                    case MAV_CMD_STOP_RECORDING:   return TMTC_STOP_RECORDING;
+                    default:                       return LAST_EVENT;
+                }  // clang-format on
+            }();
 
             if (event == LAST_EVENT)
             {
@@ -208,21 +195,39 @@ void Radio::handleCommand(const mavlink_message_t& msg)
     }
 }
 
-bool Radio::enqueueSystemTm(SystemTMList tmId)
+void Radio::MavlinkBackend::enqueueAck(const mavlink_message_t& msg)
+{
+    mavlink_message_t ackMsg;
+    mavlink_msg_ack_tm_pack(config::Mavlink::SYSTEM_ID,
+                            config::Mavlink::COMPONENT_ID, &ackMsg, msg.msgid,
+                            msg.seq);
+    enqueueMessage(ackMsg);
+}
+
+void Radio::MavlinkBackend::enqueueNack(const mavlink_message_t& msg)
+{
+    mavlink_message_t nackMsg;
+    mavlink_msg_nack_tm_pack(config::Mavlink::SYSTEM_ID,
+                             config::Mavlink::COMPONENT_ID, &nackMsg, msg.msgid,
+                             msg.seq, 0);
+    enqueueMessage(nackMsg);
+}
+
+bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 {
     switch (tmId)
     {
         case MAV_SENSORS_STATE_ID:
         {
-            auto sensors = getModule<Sensors>()->getSensorInfo();
+            auto sensors = parent.getModule<Sensors>()->getSensorInfo();
             for (auto sensor : sensors)
             {
                 mavlink_message_t msg;
                 mavlink_sensor_state_tm_t tm;
 
                 strcpy(tm.sensor_name, sensor.id.c_str());
-                tm.initialized = sensor.isInitialized ? 1 : 0;
-                tm.enabled     = sensor.isEnabled ? 1 : 0;
+                tm.initialized = sensor.isInitialized;
+                tm.enabled     = sensor.isEnabled;
 
                 mavlink_msg_sensor_state_tm_encode(
                     config::Mavlink::SYSTEM_ID, config::Mavlink::COMPONENT_ID,
@@ -239,14 +244,14 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             mavlink_sys_tm_t tm;
 
             tm.timestamp    = TimestampTimer::getTimestamp();
-            tm.logger       = Logger::getInstance().isStarted() ? 1 : 0;
-            tm.event_broker = EventBroker::getInstance().isRunning() ? 1 : 0;
-            tm.radio        = isStarted() ? 1 : 0;
-            tm.sensors      = getModule<Sensors>()->isStarted() ? 1 : 0;
-            tm.actuators    = getModule<Actuators>()->isStarted() ? 1 : 0;
-            tm.pin_handler  = getModule<PinHandler>()->isStarted() ? 1 : 0;
-            tm.can_handler  = getModule<CanHandler>()->isStarted() ? 1 : 0;
-            tm.scheduler    = getModule<BoardScheduler>()->isStarted() ? 1 : 0;
+            tm.logger       = Logger::getInstance().isStarted();
+            tm.event_broker = EventBroker::getInstance().isRunning();
+            tm.radio        = parent.isStarted();
+            tm.sensors      = parent.getModule<Sensors>()->isStarted();
+            tm.actuators    = parent.getModule<Actuators>()->isStarted();
+            tm.pin_handler  = parent.getModule<PinHandler>()->isStarted();
+            tm.can_handler  = parent.getModule<CanHandler>()->isStarted();
+            tm.scheduler    = parent.getModule<BoardScheduler>()->isStarted();
 
             mavlink_msg_sys_tm_encode(config::Mavlink::SYSTEM_ID,
                                       config::Mavlink::COMPONENT_ID, &msg, &tm);
@@ -260,7 +265,7 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             mavlink_logger_tm_t tm;
 
             // Get the logger stats
-            LoggerStats stats = Logger::getInstance().getStats();
+            auto stats = Logger::getInstance().getStats();
 
             tm.timestamp          = stats.timestamp;
             tm.log_number         = stats.logNumber;
@@ -287,7 +292,7 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             mavlink_mavlink_stats_tm_t tm;
 
             // Get the mavlink stats
-            MavlinkStatus stats = mavDriver->getStatus();
+            auto stats = driver->getStatus();
 
             tm.timestamp               = stats.timestamp;
             tm.n_send_queue            = stats.nSendQueue;
@@ -315,8 +320,8 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_payload_flight_tm_t tm;
 
-            Sensors* sensors       = getModule<Sensors>();
-            PinHandler* pinHandler = getModule<PinHandler>();
+            auto* sensors    = parent.getModule<Sensors>();
+            auto* pinHandler = parent.getModule<PinHandler>();
 
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
@@ -347,9 +352,9 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
             tm.gps_fix = gps.fix;
 
             // Servos
-            tm.left_servo_angle = getModule<Actuators>()->getServoAngle(
+            tm.left_servo_angle = parent.getModule<Actuators>()->getServoAngle(
                 ServosList::PARAFOIL_LEFT_SERVO);
-            tm.right_servo_angle = getModule<Actuators>()->getServoAngle(
+            tm.right_servo_angle = parent.getModule<Actuators>()->getServoAngle(
                 ServosList::PARAFOIL_RIGHT_SERVO);
 
             // Algorithms
@@ -375,18 +380,15 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
 
             // State machines
             tm.fmm_state = static_cast<uint8_t>(
-                getModule<FlightModeManager>()->getState());
+                parent.getModule<FlightModeManager>()->getState());
             tm.nas_state = 255;  // TODO
             tm.wes_state = 255;  // TODO
 
             // Pins
             tm.pin_launch =
-                pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState ? 1
-                                                                           : 0;
+                pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState;
             tm.pin_nosecone =
-                pinHandler->getPinData(PinList::NOSECONE_DETACH_PIN).lastState
-                    ? 1
-                    : 0;
+                pinHandler->getPinData(PinList::NOSECONE_DETACH_PIN).lastState;
             tm.cutter_presence = 255;  // TODO
 
             mavlink_msg_payload_flight_tm_encode(config::Mavlink::SYSTEM_ID,
@@ -422,16 +424,16 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
 
             // Logger stats
             auto loggerStats = Logger::getInstance().getStats();
-            tm.log_good      = (loggerStats.lastWriteError == 0) ? 1 : 0;
+            tm.log_good      = (loggerStats.lastWriteError == 0);
             tm.log_number    = loggerStats.logNumber;
 
-            auto canStatus       = getModule<CanHandler>()->getCanStatus();
+            auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
             tm.main_board_state  = canStatus.mainState;
             tm.motor_board_state = canStatus.motorState;
 
-            tm.main_can_status  = canStatus.isMainConnected() ? 1 : 0;
-            tm.rig_can_status   = canStatus.isRigConnected() ? 1 : 0;
-            tm.motor_can_status = canStatus.isMotorConnected() ? 1 : 0;
+            tm.main_can_status  = canStatus.isMainConnected();
+            tm.rig_can_status   = canStatus.isRigConnected();
+            tm.motor_can_status = canStatus.isMotorConnected();
 
             tm.hil_state = 0;  // TODO: hil
 
@@ -447,7 +449,7 @@ bool Radio::enqueueSystemTm(SystemTMList tmId)
     }
 }
 
-bool Radio::enqueueSensorsTm(SensorsTMList tmId)
+bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
 {
     switch (tmId)
     {
@@ -456,7 +458,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_gps_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getUBXGPSLastSample();
+            auto sample = parent.getModule<Sensors>()->getUBXGPSLastSample();
 
             tm.fix          = sample.fix;
             tm.height       = sample.height;
@@ -482,7 +484,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_adc_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getADS131M08LastSample();
+            auto sample = parent.getModule<Sensors>()->getADS131M08LastSample();
 
             tm.channel_0 =
                 sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
@@ -514,7 +516,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            auto data = getModule<Sensors>()->getBatteryVoltage();
+            auto data = parent.getModule<Sensors>()->getBatteryVoltage();
 
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
@@ -532,7 +534,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getLPS28DFWLastSample();
+            auto sample = parent.getModule<Sensors>()->getLPS28DFWLastSample();
 
             tm.pressure  = sample.pressure;
             tm.timestamp = sample.pressureTimestamp;
@@ -551,7 +553,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getLPS22DFLastSample();
+            auto sample = parent.getModule<Sensors>()->getLPS22DFLastSample();
 
             tm.pressure  = sample.pressure;
             tm.timestamp = sample.pressureTimestamp;
@@ -570,7 +572,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_imu_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getLIS2MDLLastSample();
+            auto sample = parent.getModule<Sensors>()->getLIS2MDLLastSample();
 
             tm.acc_x     = 0;
             tm.acc_y     = 0;
@@ -595,7 +597,7 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_imu_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getLSM6DSRXLastSample();
+            auto sample = parent.getModule<Sensors>()->getLSM6DSRXLastSample();
 
             tm.mag_x     = 0;
             tm.mag_y     = 0;
@@ -620,7 +622,8 @@ bool Radio::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_imu_tm_t tm;
 
-            auto sample = getModule<Sensors>()->getH3LIS331DLLastSample();
+            auto sample =
+                parent.getModule<Sensors>()->getH3LIS331DLLastSample();
 
             tm.mag_x     = 0;
             tm.mag_y     = 0;
