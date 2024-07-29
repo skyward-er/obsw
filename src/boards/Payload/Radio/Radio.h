@@ -68,38 +68,54 @@ public:
     bool isStarted();
 
 private:
+    struct MavlinkBackend
+    {
+        Radio& parent;  // Reference to the parent Radio instance
+
+        std::unique_ptr<MavDriver> driver;
+
+        std::array<mavlink_message_t, Config::Radio::MESSAGE_QUEUE_SIZE> queue;
+        size_t index = 0;
+        miosix::FastMutex mutex;
+
+        void handleMessage(const mavlink_message_t& msg);
+        void handleCommand(const mavlink_message_t& msg);
+
+        void enqueueAck(const mavlink_message_t& msg);
+        void enqueueNack(const mavlink_message_t& msg);
+
+        bool enqueueSystemTm(SystemTMList tmId);
+        bool enqueueSensorsTm(SensorsTMList sensorId);
+
+        /**
+         * @brief Enqueues a message in the message queue.
+         */
+        void enqueueMessage(const mavlink_message_t& msg);
+
+        /**
+         * @brief Flushes the message queue to the driver.
+         */
+        void flushQueue();
+
+        /**
+         * @brief Logs the status of MavlinkDriver and the transceiver
+         */
+        void logStatus();
+    };
+
     void initMavlinkOverSerial();
 
-    void handleMessage(const mavlink_message_t& msg);
-    void handleCommand(const mavlink_message_t& msg);
-
-    void enqueueAck(const mavlink_message_t& msg);
-    void enqueueNack(const mavlink_message_t& msg);
-
-    bool enqueueSystemTm(SystemTMList tmId);
-    bool enqueueSensorsTm(SensorsTMList sensorId);
+    void handleRadioMessage(const mavlink_message_t& msg);
+    void handleSerialMessage(const mavlink_message_t& msg);
 
     void enqueueHighRateTelemetry();
     void enqueueLowRateTelemetry();
 
-    void enqueueMessage(const mavlink_message_t& msg);
-    void flushMessageQueue();
-
-    /**
-     * @brief Logs the status of MavlinkDriver and the transceiver
-     */
-    void logStatus();
-
     std::unique_ptr<Boardcore::SX1278Fsk> transceiver;
-    std::unique_ptr<MavDriver> mavDriver;
+    MavlinkBackend radioMavlink{.parent = *this};
 
     std::unique_ptr<Boardcore::SerialTransceiver> serialTransceiver;
-    std::unique_ptr<MavDriver> serialMavDriver;
-
-    std::array<mavlink_message_t, Config::Radio::MESSAGE_QUEUE_SIZE>
-        messageQueue;
-    uint32_t messageQueueIndex = 0;
-    miosix::FastMutex queueMutex;
+    MavlinkBackend serialMavlink{.parent = *this};
 
     std::atomic<bool> started{false};
 
