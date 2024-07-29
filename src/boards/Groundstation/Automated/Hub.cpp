@@ -340,12 +340,16 @@ GPSData Hub::getRocketCoordinates()
 NASState Hub::getRocketNasState()
 {
     Lock<FastMutex> lock(nasStateMutex);
+    flagNasSet = false;
     return lastRocketNasState;
 }
+
+bool Hub::hasNasSet() { return flagNasSet; }
 
 void Hub::setRocketNasState(const NASState& newRocketNasState)
 {
     Lock<FastMutex> lock(nasStateMutex);
+    flagNasSet         = true;
     lastRocketNasState = newRocketNasState;
 }
 
