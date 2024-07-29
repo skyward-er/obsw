@@ -116,7 +116,7 @@ ADAState ADAController::getADAState()
 
 void ADAController::update()
 {
-    PressureData baro = getModule<Sensors>()->getStaticPressure1();
+    PressureData baro = getModule<Sensors>()->getStaticPressure1LastSample();
 
     // TODO(davide.mor): What about testing?
     ADAControllerState curState = state;
@@ -195,7 +195,8 @@ void ADAController::calibrate()
 
     for (int i = 0; i < Config::ADA::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        PressureData baro = getModule<Sensors>()->getStaticPressure1();
+        PressureData baro =
+            getModule<Sensors>()->getStaticPressure1LastSample();
         baroStats.add(baro.pressure);
 
         Thread::sleep(Config::ADA::CALIBRATION_SLEEP_TIME);

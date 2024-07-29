@@ -136,7 +136,7 @@ Boardcore::InternalADCData Sensors::getInternalADCLastSample()
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-Boardcore::VoltageData Sensors::getBatteryVoltage()
+Boardcore::VoltageData Sensors::getBatteryVoltageLastSample()
 {
     auto sample   = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
@@ -144,7 +144,7 @@ Boardcore::VoltageData Sensors::getBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-Boardcore::VoltageData Sensors::getCamBatteryVoltage()
+Boardcore::VoltageData Sensors::getCamBatteryVoltageLastSample()
 {
     auto sample = getInternalADCLastSample();
     float voltage =
@@ -153,46 +153,46 @@ Boardcore::VoltageData Sensors::getCamBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-PressureData Sensors::getStaticPressure1()
+PressureData Sensors::getStaticPressure1LastSample()
 {
     return staticPressure1 ? staticPressure1->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getStaticPressure2()
+PressureData Sensors::getStaticPressure2LastSample()
 {
     return staticPressure2 ? staticPressure2->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getDplBayPressure()
+PressureData Sensors::getDplBayPressureLastSample()
 {
     return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getCanTopTankPress1()
+PressureData Sensors::getCanTopTankPress1LastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canTopTankPressure1;
 }
 
-PressureData Sensors::getCanTopTankPress2()
+PressureData Sensors::getCanTopTankPress2LastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canTopTankPressure2;
 }
 
-PressureData Sensors::getCanCCPress()
+PressureData Sensors::getCanCCPressLastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canCCPressure;
 }
 
-TemperatureData Sensors::getCanTankTemp()
+TemperatureData Sensors::getCanTankTempLastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canTankTemperature;
 }
 
-VoltageData Sensors::getCanMotorBatteryVoltage()
+VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canMotorBatteryVoltage;
@@ -248,6 +248,11 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
     {
         return {};
     }
+}
+
+TaskScheduler &Sensors::getSensorsScheduler()
+{
+    return getModule<BoardScheduler>()->getSensorsScheduler();
 }
 
 void Sensors::lps22dfInit()
@@ -438,7 +443,8 @@ void Sensors::staticPressure1Init()
 
 void Sensors::staticPressure1Callback()
 {
-    Logger::getInstance().log(StaticPressureData1{getStaticPressure1()});
+    Logger::getInstance().log(
+        StaticPressureData1{getStaticPressure1LastSample()});
 }
 
 void Sensors::staticPressure2Init()
@@ -458,7 +464,8 @@ void Sensors::staticPressure2Init()
 
 void Sensors::staticPressure2Callback()
 {
-    Logger::getInstance().log(StaticPressureData2{getStaticPressure2()});
+    Logger::getInstance().log(
+        StaticPressureData2{getStaticPressure2LastSample()});
 }
 
 void Sensors::dplBayPressureInit()
@@ -478,14 +485,12 @@ void Sensors::dplBayPressureInit()
 
 void Sensors::dplBayPressureCallback()
 {
-    Logger::getInstance().log(DplBayPressureData{getDplBayPressure()});
+    Logger::getInstance().log(
+        DplBayPressureData{getDplBayPressureLastSample()});
 }
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler &scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
-
     SensorManager::SensorMap_t map;
 
     if (lps22df)
@@ -565,6 +570,6 @@ bool Sensors::sensorManagerInit()
         map.emplace(internalAdc.get(), info);
     }
 
-    manager = std::make_unique<SensorManager>(map, &scheduler);
+    manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
 }

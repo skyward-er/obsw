@@ -422,8 +422,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
             auto gps         = sensors->getUBXGPSLastSample();
-            auto pressStatic = sensors->getStaticPressure1();
-            auto pressDpl    = sensors->getDplBayPressure();
+            auto pressStatic = sensors->getStaticPressure1LastSample();
+            auto pressDpl    = sensors->getDplBayPressureLastSample();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_ada    = -1.0f;  // TODO
@@ -466,9 +466,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nas_bias_y = -1.0f;  // TODO
             tm.nas_bias_z = -1.0f;  // TODO
 
-            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
-            tm.cam_battery_voltage = sensors->getCamBatteryVoltage().voltage;
-            tm.temperature         = pressDigi.temperature;
+            tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
+            tm.cam_battery_voltage =
+                sensors->getCamBatteryVoltageLastSample().voltage;
+            tm.temperature = pressDigi.temperature;
 
             tm.ada_state = 255;  // TODO
             tm.fmm_state = static_cast<uint8_t>(
@@ -556,11 +557,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.top_tank_pressure    = sensors->getCanTopTankPress1().pressure;
+            tm.top_tank_pressure =
+                sensors->getCanTopTankPress1LastSample().pressure;
             tm.bottom_tank_pressure = -1.0f;  // Doesn't exist
-            tm.combustion_chamber_pressure = sensors->getCanCCPress().pressure;
-            tm.tank_temperature = sensors->getCanTankTemp().temperature;
-            tm.battery_voltage  = sensors->getCanMotorBatteryVoltage().voltage;
+            tm.combustion_chamber_pressure =
+                sensors->getCanCCPressLastSample().pressure;
+            tm.tank_temperature =
+                sensors->getCanTankTempLastSample().temperature;
+            tm.battery_voltage =
+                sensors->getCanMotorBatteryVoltageLastSample().voltage;
 
             // Valve states
             tm.main_valve_state =
@@ -658,7 +663,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            auto data = getModule<Sensors>()->getBatteryVoltage();
+            auto data = getModule<Sensors>()->getBatteryVoltageLastSample();
 
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
