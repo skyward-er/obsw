@@ -132,10 +132,7 @@ void ADAController::update()
         curState == ADAControllerState::ACTIVE_TERMINAL_DESCENT)
     {
         // Perform baro correction
-        if (lastBaroTimestamp != baro.pressureTimestamp)
-        {
-            ada.update(baro.pressure);
-        }
+        ada.update(baro.pressure);
     }
 
     // Then run detections
@@ -315,6 +312,7 @@ void ADAController::state_shadow_mode(const Event& event)
         case EV_EXIT:
         {
             EventBroker::getInstance().removeDelayed(shadowModeTimeoutEvent);
+            break;
         }
 
         case ADA_SHADOW_MODE_TIMEOUT:
