@@ -62,18 +62,18 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    Boardcore::VoltageData getBatteryVoltage();
-    Boardcore::VoltageData getCamBatteryVoltage();
+    Boardcore::VoltageData getBatteryVoltageLastSample();
+    Boardcore::VoltageData getCamBatteryVoltageLastSample();
 
-    Boardcore::PressureData getStaticPressure1();
-    Boardcore::PressureData getStaticPressure2();
-    Boardcore::PressureData getDplBayPressure();
+    Boardcore::PressureData getStaticPressure1LastSample();
+    Boardcore::PressureData getStaticPressure2LastSample();
+    Boardcore::PressureData getDplBayPressureLastSample();
 
-    Boardcore::PressureData getCanTopTankPress1();
-    Boardcore::PressureData getCanTopTankPress2();
-    Boardcore::PressureData getCanCCPress();
-    Boardcore::TemperatureData getCanTankTemp();
-    Boardcore::VoltageData getCanMotorBatteryVoltage();
+    Boardcore::PressureData getCanTopTankPress1LastSample();
+    Boardcore::PressureData getCanTopTankPress2LastSample();
+    Boardcore::PressureData getCanCCPressLastSample();
+    Boardcore::TemperatureData getCanTankTempLastSample();
+    Boardcore::VoltageData getCanMotorBatteryVoltageLastSample();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -86,6 +86,8 @@ public:
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
+
+    TaskScheduler &getSensorsScheduler();
 
     miosix::FastMutex canMutex;
     Boardcore::PressureData canCCPressure;
