@@ -32,12 +32,12 @@ set(HIL
 
 set(MAIN_COMPUTER
     src/boards/Main/Sensors/Sensors.cpp
-    # src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/CanHandler/CanHandler.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Main/Actuators/Actuators.cpp
     # src/boards/Main/Sensors/RotatedIMU/RotatedIMU.cpp
+    src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
     # src/boards/Main/AltitudeTrigger/AltitudeTrigger.cpp

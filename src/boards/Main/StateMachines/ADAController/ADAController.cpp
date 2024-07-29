@@ -114,11 +114,15 @@ ADAState ADAController::getADAState()
     return ada.getState();
 }
 
+ADAControllerState ADAController::getState()
+{
+    return state;
+}
+
 void ADAController::update()
 {
     PressureData baro = getModule<Sensors>()->getStaticPressure1LastSample();
 
-    // TODO(davide.mor): What about testing?
     ADAControllerState curState = state;
 
     // Lock ADA for the whole duration of the update
@@ -225,6 +229,7 @@ void ADAController::state_init(const Event& event)
             updateAndLogStatus(ADAControllerState::INIT);
             break;
         }
+        
         case ADA_CALIBRATE:
         {
             transition(&ADAController::state_calibrating);
@@ -240,10 +245,10 @@ void ADAController::state_calibrating(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ADAControllerState::CALIBRATING);
-
             calibrate();
             break;
         }
+        
         case ADA_READY:
         {
             transition(&ADAController::state_ready);
@@ -261,11 +266,14 @@ void ADAController::state_ready(const Event& event)
             updateAndLogStatus(ADAControllerState::READY);
             break;
         }
+        
         case ADA_CALIBRATE:
         {
             transition(&ADAController::state_calibrating);
             break;
         }
+        
+        case ADA_FORCE_START:
         case FLIGHT_ARMED:
         {
             transition(&ADAController::state_armed);
@@ -283,11 +291,19 @@ void ADAController::state_armed(const Event& event)
             updateAndLogStatus(ADAControllerState::ARMED);
             break;
         }
+        
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
+            break;
+        }
+        
         case FLIGHT_DISARMED:
         {
             transition(&ADAController::state_ready);
             break;
         }
+
         case FLIGHT_LIFTOFF:
         {
             transition(&ADAController::state_shadow_mode);
@@ -316,6 +332,12 @@ void ADAController::state_shadow_mode(const Event& event)
             break;
         }
 
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
+            break;
+        }
+
         case ADA_SHADOW_MODE_TIMEOUT:
         {
             transition(&ADAController::state_active_ascent);
@@ -337,6 +359,12 @@ void ADAController::state_active_ascent(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ADAControllerState::ACTIVE_ASCENT);
+            break;
+        }
+
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
             break;
         }
 
@@ -364,6 +392,12 @@ void ADAController::state_active_drogue_descent(const Event& event)
             break;
         }
 
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
+            break;
+        }
+
         case FLIGHT_DPL_ALT_DETECTED:
         {
             transition(&ADAController::state_active_terminal_descent);
@@ -387,6 +421,13 @@ void ADAController::state_active_terminal_descent(const Event& event)
             updateAndLogStatus(ADAControllerState::ACTIVE_TERMINAL_DESCENT);
             break;
         }
+        
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
+            break;
+        }
+
         case FLIGHT_LANDING_DETECTED:
         {
             transition(&ADAController::state_end);

@@ -28,6 +28,7 @@
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
@@ -58,6 +59,7 @@ int main()
     PinHandler *pinHandler = new PinHandler();
     FlightModeManager *fmm = new FlightModeManager();
     ADAController *ada     = new ADAController();
+    NASController *nas     = new NASController();
 
     // Insert modules
     bool initResult = manager.insert<Buses>(buses) &&
@@ -68,7 +70,9 @@ int main()
                       manager.insert<CanHandler>(canHandler) &&
                       manager.insert<PinHandler>(pinHandler) &&
                       manager.insert<FlightModeManager>(fmm) &&
-                      manager.insert<ADAController>(ada) && manager.inject();
+                      manager.insert<ADAController>(ada) && 
+                      manager.insert<NASController>(nas) && 
+                      manager.inject();
 
     manager.graphviz(std::cout);
 
@@ -142,6 +146,12 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start ADAController" << std::endl;
+    }
+
+    if (!nas->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start NASController" << std::endl;
     }
 
     if (!fmm->start())
