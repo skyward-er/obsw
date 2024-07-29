@@ -23,27 +23,24 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
-#include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/ADAController/ADAControllerData.h>
-#include <algorithms/ADA/ADA.h>
+#include <Main/StateMachines/NASController/NASControllerData.h>
+#include <algorithms/NAS/NAS.h>
+#include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main
 {
 
-class ADAController
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>,
-      public Boardcore::FSM<ADAController>
+class NASController : public Boardcore::FSM<NASController>,
+                      public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
-    ADAController();
+    NASController();
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ADAState getADAState();
-
-    ADAControllerState getState();
+    NASControllerState getState();
 
 private:
     void update();
@@ -53,28 +50,17 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_armed(const Boardcore::Event& event);
-    void state_shadow_mode(const Boardcore::Event& event);
-    void state_active_ascent(const Boardcore::Event& event);
-    void state_active_drogue_descent(const Boardcore::Event& event);
-    void state_active_terminal_descent(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
-    void updateAndLogStatus(ADAControllerState state);
+    void updateAndLogStatus(NASControllerState state);
 
-    std::atomic<ADAControllerState> state{ADAControllerState::INIT};
+    std::atomic<NASControllerState> state{NASControllerState::INIT};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ada");
 
-    uint16_t shadowModeTimeoutEvent = 0;
-
-    miosix::FastMutex adaMutex;
-    Boardcore::ADA ada;
-
-    uint64_t lastBaroTimestamp       = 0;
-    unsigned int detectedApogees     = 0;
-    unsigned int detectedDeployments = 0;
+    Boardcore::NAS nas;
 };
 
 }  // namespace Main

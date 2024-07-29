@@ -235,11 +235,6 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
 
-            // Quick hack to make the state machine go forward
-            Thread::sleep(2000);
-            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
-            EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
-
             return HANDLED;
         }
         case EV_EXIT:
@@ -354,12 +349,14 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FlightModeManagerState::TEST_MODE);
-            // TODO(davide.mor): Start algorithms
+            EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_ADA);
+            EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            // TODO(davide.mor): Stop algorithms
+            EventBroker::getInstance().post(ADA_FORCE_STOP, TOPIC_ADA);
+            EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             return HANDLED;
         }
         case EV_EMPTY:
