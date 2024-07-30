@@ -90,7 +90,6 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/boards/Payload/StateMachines/WingController/WingController.cpp
     src/boards/Payload/AltitudeTrigger/AltitudeTrigger.cpp
-    src/boards/Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.cpp
     src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
     src/boards/Payload/Wing/FileWingAlgorithm.cpp
