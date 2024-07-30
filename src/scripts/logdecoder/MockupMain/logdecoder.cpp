@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <MockupMain/PinHandler/PinHandlerData.h>
 #include <MockupMain/Sensors/AnalogLoadCellSensor.h>
 #include <MockupMain/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <MockupMain/StateMachines/NASController/NASControllerData.h>
@@ -66,6 +67,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<ModemStatusFrameLog>();
     ds.registerType<TXStatusFrameLog>();
     ds.registerType<RXPacketFrameLog>();
+    ds.registerType<PinHandlerData>();
 }
 
 void showUsage(const string& cmdName)

@@ -164,11 +164,11 @@ int main()
         LOG_ERR(logger, "Error starting the Radio module");
     }
 
-    // if (!modules.get<PinHandler>()->start())
-    // {
-    //     initResult = false;
-    //     LOG_ERR(logger, "Error starting the PinHandler module");
-    // }
+    if (!modules.get<PinHandler>()->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error starting the PinHandler module");
+    }
 
     if (!modules.get<BoardScheduler>()->start())
     {

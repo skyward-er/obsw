@@ -19,16 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #include "PinHandler.h"
 
 #include <MockupMain/Configs/PinHandlerConfig.h>
 #include <common/Events.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 #include <functional>
+
+#include "PinHandlerData.h"
 
 using namespace std::placeholders;
 using namespace miosix;
@@ -40,8 +42,11 @@ namespace MockupMain
 
 void PinHandler::onExpulsionPinTransition(PinTransition transition)
 {
-    if (transition == NC_DETACH_PIN_TRIGGER)
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+    PinHandlerData data;
+    data.timestamp = TimestampTimer::getTimestamp();
+    data.numberTransition =
+        pinObserver.getPinData(inputs::expulsion::getPin()).changesCount;
+    Logger::getInstance().log(data);
 }
 
 bool PinHandler::start()
