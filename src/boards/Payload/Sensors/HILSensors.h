@@ -215,9 +215,9 @@ private:
         return data;
     };
 
-    Boardcore::HSCMRNN015PAData updateStaticPressureData()
+    Boardcore::MPXH6115AData updateStaticPressureData()
     {
-        Boardcore::HSCMRNN015PAData data;
+        Boardcore::MPXH6115AData data;
 
         auto* sensorData = getModule<HILConfig::PayloadHIL>()->getSensorData();
 
@@ -229,9 +229,9 @@ private:
         return data;
     };
 
-    Boardcore::SSCMRNN030PAData updateDynamicPressureData()
+    Boardcore::MPXH6115AData updateDynamicPressureData()
     {
-        Boardcore::SSCMRNN030PAData data;
+        Boardcore::MPXH6115AData data;
 
         auto* sensorData = getModule<HILConfig::PayloadHIL>()->getSensorData();
 
@@ -243,10 +243,10 @@ private:
         return data;
     };
 
-    RotatedIMUData updateIMUData()
+    IMUData updateIMUData()
     {
-        return RotatedIMUData{getLSM6DSRXLastSample(), getLSM6DSRXLastSample(),
-                              getCalibratedMagnetometerLastSample()};
+        return IMUData{getLSM6DSRXLastSample(), getLSM6DSRXLastSample(),
+                       getCalibratedMagnetometerLastSample()};
     };
 
     bool enableHw;

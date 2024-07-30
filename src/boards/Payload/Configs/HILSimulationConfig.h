@@ -579,10 +579,10 @@ public:
 private:
     ActuatorData updateActuatorData()
     {
-        auto nas = getModule<Payload::NASController>();
-        auto wes = getModule<Payload::WindEstimation>();
-        auto fmm = getModule<Payload::FlightModeManager>();
-        // auto wing      = getModule<Payload::WingController>();
+        auto nas       = getModule<Payload::NASController>();
+        auto wes       = getModule<Payload::WindEstimation>();
+        auto fmm       = getModule<Payload::FlightModeManager>();
+        auto wing      = getModule<Payload::WingController>();
         auto actuators = getModule<Payload::Actuators>();
 
         NASStateHIL nasStateHIL(nas->getNasState(), nas->getStatus());
@@ -599,17 +599,16 @@ private:
             actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO);
 
         Eigen::Vector2f heading;
-        // TODO: calculate this
-        auto psiRef = 0 /* wing->emGuidance.calculateTargetAngle(
-            {nasStateHIL.n, nasStateHIL.e, nasStateHIL.d}, heading) */
-            ;
+
+        auto psiRef = wing->emGuidance.calculateTargetAngle(
+            {nasStateHIL.n, nasStateHIL.e, nasStateHIL.d}, heading);
 
         GuidanceDataHIL guidanceData(psiRef, deltaA, heading[0], heading[1]);
 
         // Returning the feedback for the simulator
         return ActuatorData(
             nasStateHIL, actuatorsStateHIL, wesDataHIL, guidanceData,
-            (fmm->testState(&Payload::FlightModeManager::state_ascending) ? 3
+            (fmm->testState(&Payload::FlightModeManager::FlyingAscending) ? 3
                                                                           : 0));
     };
 };
