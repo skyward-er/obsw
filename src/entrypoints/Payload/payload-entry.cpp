@@ -34,7 +34,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/VerticalVelocityTrigger/VerticalVelocityTrigger.h>
 #include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -132,10 +131,9 @@ int main()
     auto canHandler = new CanHandler();
 
     // Flight algorithms
-    auto altitudeTrigger         = new AltitudeTrigger();
-    auto wingController          = new WingController();
-    auto verticalVelocityTrigger = new VerticalVelocityTrigger();
-    auto windEstimation          = new WindEstimation();
+    auto altitudeTrigger = new AltitudeTrigger();
+    auto wingController  = new WingController();
+    auto windEstimation  = new WindEstimation();
 
     // Actuators
     auto actuators = new Actuators();
@@ -151,7 +149,6 @@ int main()
                       depman.insert(radio) && depman.insert(canHandler) &&
                       depman.insert(altitudeTrigger) &&
                       depman.insert(wingController) &&
-                      depman.insert(verticalVelocityTrigger) &&
                       depman.insert(windEstimation) &&
                       depman.insert(actuators) && depman.insert(statsRecorder);
 
@@ -183,7 +180,6 @@ int main()
     START_MODULE(nas);
     START_MODULE(altitudeTrigger);
     START_MODULE(wingController);
-    START_MODULE(verticalVelocityTrigger);
     START_MODULE(windEstimation);
     START_MODULE(actuators);
     START_MODULE(statsRecorder);
