@@ -23,7 +23,6 @@
 #pragma once
 
 #include <Payload/Configs/SensorsConfig.h>
-#include <Payload/Sensors/RotatedIMU/RotatedIMU.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -31,6 +30,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
@@ -87,7 +87,7 @@ public:
     Boardcore::PressureData getDynamicPressure();
 
     Boardcore::PitotData getPitotLastSample();
-    IMUData getIMULastSample();
+    Boardcore::IMUData getIMULastSample();
 
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
     Boardcore::BatteryVoltageSensorData getCamBatteryVoltage();
@@ -172,7 +172,7 @@ protected:
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
     std::unique_ptr<Boardcore::MPXH6115A> dynamicPressure;
     std::unique_ptr<Boardcore::Pitot> pitot;
-    std::unique_ptr<Payload::RotatedIMU> imu;
+    std::unique_ptr<Boardcore::RotatedIMU> imu;
 
 private:
     std::unique_ptr<Boardcore::SensorManager> manager;
