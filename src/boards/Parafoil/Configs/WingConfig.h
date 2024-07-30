@@ -67,7 +67,7 @@ constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
 constexpr float KP = 0.9;
-constexpr float KI = 0.0111;
+constexpr float KI = 0.05;
 
 constexpr float ALTITUDE_TRIGGER_DEPLOYMENT_ALTITUDE = 300;  // [meters]
 constexpr int ALTITUDE_TRIGGER_CONFIDENCE = 10;   // [number of sample]
