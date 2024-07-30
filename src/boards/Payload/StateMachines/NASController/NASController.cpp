@@ -86,19 +86,19 @@ void NASController::update()
         LPS28DFWData baroData = getModule<Sensors>()->getLPS28DFWLastSample();
 
         // NAS prediction
-        nas.predictGyro(imuData.gyroData);
-        nas.predictAcc(imuData.accData);
+        nas.predictGyro(imuData);
+        nas.predictAcc(imuData);
 
         // NAS correction
-        nas.correctMag(imuData.magData);
+        nas.correctMag(imuData);
         nas.correctGPS(gpsData);
         nas.correctBaro(baroData.pressure);
         // Correct with accelerometer if the acceleration is in specs
-        Vector3f acceleration  = imuData.accData;
+        Vector3f acceleration  = static_cast<AccelerometerData>(imuData);
         float accelerationNorm = acceleration.norm();
         if (accelerationValid)
         {
-            nas.correctAcc(imuData.accData);
+            nas.correctAcc(imuData);
         }
         if ((accelerationNorm <
                  (9.8 + (NASConfig::ACCELERATION_THRESHOLD) / 2) &&

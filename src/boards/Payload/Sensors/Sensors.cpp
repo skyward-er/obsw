@@ -695,9 +695,9 @@ void Sensors::imuCreate()
             auto magSample      = getCalibratedMagnetometerLastSample();
 
             return IMUData{
-                .accData  = lsm6dsrxSample,
-                .gyroData = lsm6dsrxSample,
-                .magData  = magSample,
+                lsm6dsrxSample,
+                lsm6dsrxSample,
+                magSample,
             };
         });
 
