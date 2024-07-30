@@ -21,7 +21,6 @@
  */
 
 #include <Payload/PinHandler/PinData.h>
-#include <Payload/Sensors/RotatedIMU/IMUData.h>
 #include <Payload/Sensors/SensorData.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Payload/StateMachines/NASController/NASControllerData.h>
@@ -61,7 +60,6 @@ void registerTypes(Deserializer& ds)
     ds.registerType<FlightModeManagerStatus>();
     ds.registerType<NASControllerStatus>();
     ds.registerType<WingControllerStatus>();
-    ds.registerType<IMUData>();
     ds.registerType<SensorsCalibrationParameter>();
     ds.registerType<PinChangeData>();
 }
