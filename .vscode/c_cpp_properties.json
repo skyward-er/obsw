@@ -428,9 +428,12 @@
         {
             "name": "logdecoder",
             "includePath": [
-                "${defaultIncludePaths}"
+                "${defaultIncludePaths}",
+                "${workspaceFolder}/skyward-boardcore/libs/miosix-host"
             ],
-            "defines": [],
+            "defines": [
+                "COMPILE_FOR_HOST"
+            ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "intelliSenseMode": "linux-gcc-x64",
