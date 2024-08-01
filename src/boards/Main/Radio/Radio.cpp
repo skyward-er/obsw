@@ -248,25 +248,45 @@ void Radio::handleMessage(const mavlink_message_t& msg)
     }
 }
 
+Events cmdToEvent(uint8_t id)
+{
+    switch (id)
+    {
+        case MAV_CMD_ARM:
+            return TMTC_ARM;
+        case MAV_CMD_DISARM:
+            return TMTC_DISARM;
+        case MAV_CMD_CALIBRATE:
+            return TMTC_CALIBRATE;
+        case MAV_CMD_FORCE_INIT:
+            return TMTC_FORCE_INIT;
+        case MAV_CMD_FORCE_LAUNCH:
+            return TMTC_FORCE_LAUNCH;
+        case MAV_CMD_FORCE_ENGINE_SHUTDOWN:
+            return TMTC_FORCE_ENGINE_SHUTDOWN;
+        case MAV_CMD_FORCE_EXPULSION:
+            return TMTC_FORCE_EXPULSION;
+        case MAV_CMD_FORCE_DEPLOYMENT:
+            return TMTC_FORCE_DEPLOYMENT;
+        case MAV_CMD_FORCE_LANDING:
+            return TMTC_FORCE_LANDING;
+        case MAV_CMD_FORCE_REBOOT:
+            return TMTC_RESET_BOARD;
+        case MAV_CMD_ENTER_TEST_MODE:
+            return TMTC_ENTER_TEST_MODE;
+        case MAV_CMD_EXIT_TEST_MODE:
+            return TMTC_EXIT_TEST_MODE;
+        case MAV_CMD_START_RECORDING:
+            return TMTC_START_RECORDING;
+        case MAV_CMD_STOP_RECORDING:
+            return TMTC_STOP_RECORDING;
+        default:
+            return LAST_EVENT;
+    }
+}
+
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
-    static const std::map<uint8_t, Events> cmdToEvent{
-        {MAV_CMD_ARM, TMTC_ARM},
-        {MAV_CMD_DISARM, TMTC_DISARM},
-        {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
-        {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
-        {MAV_CMD_FORCE_LAUNCH, TMTC_FORCE_LAUNCH},
-        // {MAV_CMD_FORCE_ENGINE_SHUTDOWN, ...},
-        {MAV_CMD_FORCE_EXPULSION, TMTC_FORCE_EXPULSION},
-        {MAV_CMD_FORCE_DEPLOYMENT, TMTC_FORCE_DEPLOYMENT},
-        {MAV_CMD_FORCE_LANDING, TMTC_FORCE_LANDING},
-        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
-        {MAV_CMD_ENTER_TEST_MODE, TMTC_ENTER_TEST_MODE},
-        {MAV_CMD_EXIT_TEST_MODE, TMTC_EXIT_TEST_MODE},
-        {MAV_CMD_START_RECORDING, TMTC_START_RECORDING},
-        {MAV_CMD_STOP_RECORDING, TMTC_STOP_RECORDING},
-    };
-
     uint8_t cmdId = mavlink_msg_command_tc_get_command_id(&msg);
     switch (cmdId)
     {
@@ -293,10 +313,10 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         default:
         {
             // Try to map the command to an event
-            auto it = cmdToEvent.find(cmdId);
-            if (it != cmdToEvent.end())
+            auto ev = cmdToEvent(cmdId);
+            if (ev != LAST_EVENT)
             {
-                EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+                EventBroker::getInstance().post(ev, TOPIC_TMTC);
                 enqueueAck(msg);
             }
             else
@@ -417,9 +437,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             Sensors* sensors       = getModule<Sensors>();
             PinHandler* pinHandler = getModule<PinHandler>();
-            FlightModeManager *fmm = getModule<FlightModeManager>();
-            ADAController *ada     = getModule<ADAController>();
-            NASController *nas     = getModule<NASController>();
+            FlightModeManager* fmm = getModule<FlightModeManager>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
 
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto imu         = sensors->getLSM6DSRXLastSample();
@@ -434,12 +454,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
 
-            tm.pressure_ada    = adaState.x0;
-            tm.ada_vert_speed  = adaState.verticalSpeed;
-            
-            tm.airspeed_pitot  = -1.0f;  // TODO
-            tm.altitude_agl    = -1.0f;  // TODO
-            tm.mea_mass        = -1.0f;  // TODO
+            tm.pressure_ada   = adaState.x0;
+            tm.ada_vert_speed = adaState.verticalSpeed;
+
+            tm.airspeed_pitot = -1.0f;  // TODO
+            tm.altitude_agl   = -1.0f;  // TODO
+            tm.mea_mass       = -1.0f;  // TODO
 
             // Sensors
             tm.acc_x   = imu.accelerationX;

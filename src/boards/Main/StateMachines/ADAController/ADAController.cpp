@@ -114,10 +114,7 @@ ADAState ADAController::getADAState()
     return ada.getState();
 }
 
-ADAControllerState ADAController::getState()
-{
-    return state;
-}
+ADAControllerState ADAController::getState() { return state; }
 
 void ADAController::update()
 {
@@ -179,7 +176,7 @@ void ADAController::update()
         if (detectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {
             // TODO(davide.mor): Rename this event
-            EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
+            EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
         }
     }
@@ -229,7 +226,7 @@ void ADAController::state_init(const Event& event)
             updateAndLogStatus(ADAControllerState::INIT);
             break;
         }
-        
+
         case ADA_CALIBRATE:
         {
             transition(&ADAController::state_calibrating);
@@ -248,7 +245,7 @@ void ADAController::state_calibrating(const Event& event)
             calibrate();
             break;
         }
-        
+
         case ADA_READY:
         {
             transition(&ADAController::state_ready);
@@ -266,13 +263,13 @@ void ADAController::state_ready(const Event& event)
             updateAndLogStatus(ADAControllerState::READY);
             break;
         }
-        
+
         case ADA_CALIBRATE:
         {
             transition(&ADAController::state_calibrating);
             break;
         }
-        
+
         case ADA_FORCE_START:
         case FLIGHT_ARMED:
         {
@@ -291,13 +288,13 @@ void ADAController::state_armed(const Event& event)
             updateAndLogStatus(ADAControllerState::ARMED);
             break;
         }
-        
+
         case ADA_FORCE_STOP:
         {
             transition(&ADAController::state_ready);
             break;
         }
-        
+
         case FLIGHT_DISARMED:
         {
             transition(&ADAController::state_ready);
@@ -421,7 +418,7 @@ void ADAController::state_active_terminal_descent(const Event& event)
             updateAndLogStatus(ADAControllerState::ACTIVE_TERMINAL_DESCENT);
             break;
         }
-        
+
         case ADA_FORCE_STOP:
         {
             transition(&ADAController::state_ready);
