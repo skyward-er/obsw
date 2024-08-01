@@ -47,7 +47,7 @@ private:
     Boardcore::SPIBus spi3{SPI3};
     Boardcore::SPIBus spi4{SPI4};
 
-    Boardcore::USART usart4{UART4, 460800, 1024};
+    Boardcore::USART usart4{UART4, 256000, 1024};
 };
 
 }  // namespace Motor
