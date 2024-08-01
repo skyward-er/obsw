@@ -162,6 +162,14 @@ constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
+namespace IMU
+{
+/* linter off */ using namespace Boardcore::Units::Frequency;
+
+constexpr Hertz RATE   = 50_hz;
+constexpr bool ENABLED = true;
+}  // namespace IMU
+
 }  // namespace Sensors
 
 }  // namespace Config
