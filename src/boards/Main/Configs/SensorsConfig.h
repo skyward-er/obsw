@@ -39,6 +39,12 @@ namespace Config
 namespace Sensors
 {
 
+namespace VN100
+{
+static constexpr uint32_t PERIOD = 10;  // [ms] 100Hz
+static constexpr bool ENABLED    = true;
+}  // namespace VN100
+
 namespace LPS22DF
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;

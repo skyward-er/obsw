@@ -38,6 +38,7 @@ public:
 
     Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
     Boardcore::SPIBus &getLPS22DF() { return spi1; }
+    Boardcore::SPIBus &getVN100() { return spi1; }
     Boardcore::SPIBus &getLIS2MDL() { return spi3; }
     Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
     Boardcore::SPIBus &getUBXGps() { return spi3; }

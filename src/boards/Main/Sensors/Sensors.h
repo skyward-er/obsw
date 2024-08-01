@@ -35,6 +35,7 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/VN100/VN100Spi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -53,6 +54,7 @@ public:
 
     [[nodiscard]] bool start();
 
+    Boardcore::VN100SpiData getVN100LastSample();
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -105,6 +107,7 @@ protected:
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+    std::unique_ptr<Boardcore::VN100Spi> vn100;
 
     // Analog sensors
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
@@ -114,6 +117,9 @@ protected:
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
+    void vn100Init();
+    void vn100Callback();
+
     void lps22dfInit();
     void lps22dfCallback();
 

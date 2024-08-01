@@ -80,6 +80,11 @@ bool Sensors::start()
         internalAdcInit();
     }
 
+    if (Config::Sensors::VN100::ENABLED)
+    {
+        vn100Init();
+    }
+
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -94,6 +99,11 @@ bool Sensors::start()
 
     started = true;
     return true;
+}
+
+Boardcore::VN100SpiData Sensors::getVN100LastSample()
+{
+    return vn100 ? vn100->getLastSample() : Boardcore::VN100SpiData{};
 }
 
 Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
@@ -253,6 +263,23 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
 TaskScheduler &Sensors::getSensorsScheduler()
 {
     return getModule<BoardScheduler>()->getSensorsScheduler();
+}
+
+void Sensors::vn100Init()
+{
+    SPIBusConfig busConfiguration;
+    busConfiguration.clockDivider = SPI::ClockDivider::DIV_16;
+    busConfiguration.mode         = SPI::Mode::MODE_3;
+
+    vn100 = std::make_unique<VN100Spi>(getModule<Buses>()->getVN100(),
+                                       sensors::VN100::cs::getPin(),
+                                       busConfiguration, 200);
+}
+
+void Sensors::vn100Callback()
+{
+    auto lastSample = getVN100LastSample();
+    Logger::getInstance().log(lastSample);
 }
 
 void Sensors::lps22dfInit()
