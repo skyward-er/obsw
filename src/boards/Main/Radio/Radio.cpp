@@ -442,8 +442,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             NASController* nas     = getModule<NASController>();
 
             auto pressDigi   = sensors->getLPS22DFLastSample();
-            auto imu         = sensors->getLSM6DSRXLastSample();
-            auto mag         = sensors->getLIS2MDLLastSample();
+            auto imu         = sensors->getIMULastSample();
             auto gps         = sensors->getUBXGPSLastSample();
             auto pressStatic = sensors->getStaticPressure1LastSample();
             auto pressDpl    = sensors->getDplBayPressureLastSample();
@@ -468,9 +467,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gyro_x  = imu.angularSpeedX;
             tm.gyro_y  = imu.angularSpeedY;
             tm.gyro_z  = imu.angularSpeedZ;
-            tm.mag_x   = mag.magneticFieldX;
-            tm.mag_y   = mag.magneticFieldY;
-            tm.mag_z   = mag.magneticFieldZ;
+            tm.mag_x   = imu.magneticFieldX;
+            tm.mag_y   = imu.magneticFieldY;
+            tm.mag_z   = imu.magneticFieldZ;
             tm.gps_alt = gps.height;
             tm.gps_lat = gps.latitude;
             tm.gps_lon = gps.longitude;

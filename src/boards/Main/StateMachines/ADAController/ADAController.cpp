@@ -132,8 +132,16 @@ void ADAController::update()
         curState == ADAControllerState::ACTIVE_DROGUE_DESCENT ||
         curState == ADAControllerState::ACTIVE_TERMINAL_DESCENT)
     {
-        // Perform baro correction
-        ada.update(baro.pressure);
+        if (baro.pressureTimestamp > lastBaroTimestamp)
+        {
+            // Barometer is valid, correct with it
+            ada.update(baro.pressure);
+        }
+        else
+        {
+            // Do not perform correction
+            ada.update();
+        }
     }
 
     // Then run detections
