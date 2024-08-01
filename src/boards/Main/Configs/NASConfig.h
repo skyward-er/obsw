@@ -23,10 +23,10 @@
 #pragma once
 
 #include <algorithms/NAS/NASConfig.h>
-#include <units/Frequency.h>
 #include <common/ReferenceConfig.h>
+#include <units/Frequency.h>
 
-namespace Main 
+namespace Main
 {
 
 namespace Config
@@ -40,28 +40,27 @@ namespace NAS
 constexpr Hertz SAMPLE_RATE = 50_hz;
 
 static const Boardcore::NASConfig CONFIG = {
-    .T = 0.02, // [s]
-    .SIGMA_BETA = 0.0001,
-    .SIGMA_W = 0.3, 
-    .SIGMA_ACC = 0.1, 
-    .SIGMA_MAG = 0.1, 
-    .SIGMA_GPS = 10.0, 
-    .SIGMA_BAR = 4.3, 
-    .SIGMA_POS = 10.0, 
-    .SIGMA_VEL = 10.0, 
-    .SIGMA_PITOT = 10.0, 
-    .P_POS = 1.0, 
-    .P_POS_VERTICAL = 10.0, 
-    .P_VEL = 1.0, 
-    .P_VEL_VERTICAL = 10.0, 
-    .P_ATT = 0.01, 
-    .P_BIAS = 0.01, 
-    .SATS_NUM = 6.0,
-    .NED_MAG = Common::ReferenceConfig::nedMag
-};
+    .T              = 0.02,  // [s]
+    .SIGMA_BETA     = 0.0001,
+    .SIGMA_W        = 0.3,
+    .SIGMA_ACC      = 0.1,
+    .SIGMA_MAG      = 0.1,
+    .SIGMA_GPS      = 10.0,
+    .SIGMA_BAR      = 4.3,
+    .SIGMA_POS      = 10.0,
+    .SIGMA_VEL      = 10.0,
+    .SIGMA_PITOT    = 10.0,
+    .P_POS          = 1.0,
+    .P_POS_VERTICAL = 10.0,
+    .P_VEL          = 1.0,
+    .P_VEL_VERTICAL = 10.0,
+    .P_ATT          = 0.01,
+    .P_BIAS         = 0.01,
+    .SATS_NUM       = 6.0,
+    .NED_MAG        = Common::ReferenceConfig::nedMag};
 
-}
+}  // namespace NAS
 
-}
+}  // namespace Config
 
-}
+}  // namespace Main

@@ -84,6 +84,7 @@ private:
     uint16_t missionTimeoutEvent = 0;
     uint16_t engineShutdownEvent = 0;
     uint16_t apogeeTimeoutEvent  = 0;
+    uint16_t cutterTimeoutEvent  = 0;
 
     std::atomic<FlightModeManagerState> state{FlightModeManagerState::INVALID};
 };

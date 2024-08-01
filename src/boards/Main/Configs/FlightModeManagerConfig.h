@@ -39,6 +39,8 @@ constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6750;
 // Set at 25 seconds.
 constexpr unsigned int APOGEE_TIMEOUT = 25 * 1000;
 
+constexpr unsigned int CUT_DURATION = 500;  // [ms]
+
 }  // namespace FlightModeManager
 
 }  // namespace Config

@@ -51,4 +51,4 @@ struct NASControllerStatus
     }
 };
 
-}
+}  // namespace Main

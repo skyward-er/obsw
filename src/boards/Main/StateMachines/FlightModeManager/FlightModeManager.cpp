@@ -459,7 +459,7 @@ State FlightModeManager::state_flying(const Event& event)
 
             // Post mission end timeout
             missionTimeoutEvent = EventBroker::getInstance().postDelayed(
-                FLIGHT_MISSION_TIMEOUT, TOPIC_FMM,
+                FMM_MISSION_TIMEOUT, TOPIC_FMM,
                 Config::FlightModeManager::MISSION_TIMEOUT);
 
             return HANDLED;
@@ -477,7 +477,7 @@ State FlightModeManager::state_flying(const Event& event)
         {
             return transition(&FlightModeManager::state_powered_ascent);
         }
-        case FLIGHT_MISSION_TIMEOUT:
+        case FMM_MISSION_TIMEOUT:
         {
             return transition(&FlightModeManager::state_landed);
         }
@@ -500,7 +500,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
-                MOTOR_CLOSE_FEED_VALVE, TOPIC_FMM,
+                FMM_ENGINE_TIMEOUT, TOPIC_FMM,
                 Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT);
 
             return HANDLED;
@@ -519,7 +519,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
             return HANDLED;
         }
         case MEA_SHUTDOWN_DETECTED:
-        case MOTOR_CLOSE_FEED_VALVE:
+        case FMM_ENGINE_TIMEOUT:
         {
             getModule<CanHandler>()->sendServoCloseCommand(
                 ServosList::MAIN_VALVE);
@@ -541,7 +541,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
             updateAndLogStatus(FlightModeManagerState::UNPOWERED_ASCENT);
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
-                TMTC_FORCE_EXPULSION, TOPIC_TMTC,
+                FMM_APOGEE_TIMEOUT, TOPIC_FMM,
                 Config::FlightModeManager::APOGEE_TIMEOUT);
 
             return HANDLED;
@@ -560,6 +560,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         }
         case ADA_APOGEE_DETECTED:
         case TMTC_FORCE_EXPULSION:
+        case FMM_APOGEE_TIMEOUT:
         {
             return transition(&FlightModeManager::state_drogue_descent);
         }
@@ -607,7 +608,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             return HANDLED;
         }
         case TMTC_FORCE_DEPLOYMENT:
-        case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
+        case ADA_DEPLOY_ALTITUDE_DETECTED:
         {
             return transition(&FlightModeManager::state_terminal_descent);
         }
@@ -629,26 +630,44 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                             TOPIC_FLIGHT);
 
-            // TODO(davide.mor): Actuate cutters?
+            getModule<Actuators>()->cutterOn();
+            cutterTimeoutEvent = EventBroker::getInstance().postDelayed(
+                FMM_CUTTER_TIMEOUT, TOPIC_FMM,
+                Config::FlightModeManager::CUT_DURATION);
 
             return HANDLED;
         }
+
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(cutterTimeoutEvent);
+
+            // Make sure the cutters are off
+            getModule<Actuators>()->cutterOff();
             return HANDLED;
         }
+
         case EV_EMPTY:
         {
             return tranSuper(&FlightModeManager::state_flying);
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
+        case FMM_CUTTER_TIMEOUT:
+        {
+            getModule<Actuators>()->cutterOff();
+            return HANDLED;
+        }
+
         case TMTC_FORCE_LANDING:
         {
             return transition(&FlightModeManager::state_landed);
         }
+
         default:
         {
             return UNHANDLED;

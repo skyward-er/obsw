@@ -27,9 +27,9 @@
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
-#include <drivers/timer/TimestampTimer.h>
 
 using namespace Main;
 using namespace Boardcore;
@@ -59,9 +59,10 @@ NASController::NASController()
 
 bool NASController::start()
 {
-    TaskScheduler &scheduler = getModule<BoardScheduler>()->getNasScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
-    size_t result = scheduler.addTask([this]() { update(); }, Config::NAS::SAMPLE_RATE);
+    size_t result =
+        scheduler.addTask([this]() { update(); }, Config::NAS::SAMPLE_RATE);
 
     if (result == 0)
     {
@@ -78,14 +79,24 @@ bool NASController::start()
     return true;
 }
 
-NASControllerState NASController::getState()
+NASControllerState NASController::getState() { return state; }
+
+Boardcore::NASState NASController::getNASState()
 {
-    return state;
+    Lock<FastMutex> lock{nasMutex};
+    return nas.getState();
 }
 
 void NASController::update()
 {
-    // TODO:
+    NASControllerState curState = state;
+
+    Lock<FastMutex> lock{nasMutex};
+
+    if (curState == NASControllerState::ACTIVE)
+    {
+        // TODO:
+    }
 }
 
 void NASController::calibrate()
@@ -95,8 +106,8 @@ void NASController::calibrate()
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
-
-void NASController::state_init(const Event& event) {
+void NASController::state_init(const Event& event)
+{
     switch (event)
     {
         case EV_ENTRY:
@@ -113,7 +124,8 @@ void NASController::state_init(const Event& event) {
     }
 }
 
-void NASController::state_calibrating(const Event& event) {
+void NASController::state_calibrating(const Event& event)
+{
     switch (event)
     {
         case EV_ENTRY:
@@ -131,7 +143,8 @@ void NASController::state_calibrating(const Event& event) {
     }
 }
 
-void NASController::state_ready(const Event& event) {
+void NASController::state_ready(const Event& event)
+{
     switch (event)
     {
         case EV_ENTRY:
@@ -139,13 +152,13 @@ void NASController::state_ready(const Event& event) {
             updateAndLogStatus(NASControllerState::READY);
             break;
         }
-        
+
         case NAS_CALIBRATE:
         {
             transition(&NASController::state_calibrating);
             break;
         }
-        
+
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
@@ -155,7 +168,8 @@ void NASController::state_ready(const Event& event) {
     }
 }
 
-void NASController::state_active(const Event& event) {
+void NASController::state_active(const Event& event)
+{
     switch (event)
     {
         case EV_ENTRY:
@@ -177,7 +191,8 @@ void NASController::state_active(const Event& event) {
     }
 }
 
-void NASController::state_end(const Event& event) {
+void NASController::state_end(const Event& event)
+{
     switch (event)
     {
         case EV_ENTRY:
