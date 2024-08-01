@@ -80,6 +80,11 @@ bool Sensors::start()
         internalAdcInit();
     }
 
+    if (Config::Sensors::IMU::ENABLED)
+    {
+        rotatedImuInit();
+    }
+
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -168,6 +173,11 @@ PressureData Sensors::getDplBayPressureLastSample()
     return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
 }
 
+IMUData Sensors::getIMULastSample()
+{
+    return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
+}
+
 PressureData Sensors::getCanTopTankPress1LastSample()
 {
     Lock<FastMutex> lock{canMutex};
@@ -242,7 +252,8 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
                 manager->getSensorInfo(internalAdc.get()),
                 manager->getSensorInfo(staticPressure1.get()),
                 manager->getSensorInfo(staticPressure2.get()),
-                manager->getSensorInfo(dplBayPressure.get())};
+                manager->getSensorInfo(dplBayPressure.get()),
+                manager->getSensorInfo(rotatedImu.get())};
     }
     else
     {
@@ -250,7 +261,7 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
     }
 }
 
-TaskScheduler &Sensors::getSensorsScheduler()
+TaskScheduler& Sensors::getSensorsScheduler()
 {
     return getModule<BoardScheduler>()->getSensorsScheduler();
 }
@@ -373,7 +384,14 @@ void Sensors::lsm6dsrxInit()
 
 void Sensors::lsm6dsrxCallback()
 {
-    Logger::getInstance().log(getLSM6DSRXLastSample());
+    if (!lsm6dsrx)
+        return;
+
+    // For every instance inside the fifo log the sample
+    for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
+    {
+        Logger::getInstance().log(lsm6dsrx->getLastFifo().at(i));
+    }
 }
 
 void Sensors::ads131m08Init()
@@ -489,6 +507,36 @@ void Sensors::dplBayPressureCallback()
         DplBayPressureData{getDplBayPressureLastSample()});
 }
 
+void Sensors::rotatedImuInit()
+{
+    rotatedImu = std::make_unique<RotatedIMU>(
+        [this]()
+        {
+            auto imu6 = getLSM6DSRXLastSample();
+            auto mag  = getLIS2MDLLastSample();
+
+            return IMUData{imu6, imu6, mag};
+        });
+
+    // Accelerometer
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(+90));
+    // Gyroscope
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    rotatedImu->addMagTransformation(m);
+    // Magnetometer
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
+}
+
+void Sensors::rotatedImuCallback()
+{
+    Logger::getInstance().log(getIMULastSample());
+}
+
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
@@ -568,6 +616,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
                         [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), info);
+    }
+
+    if (rotatedImu)
+    {
+        SensorInfo info{"RotatedIMU", Config::Sensors::IMU::RATE,
+                        [this]() { rotatedImuCallback(); }};
+        map.emplace(rotatedImu.get(), info);
     }
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());

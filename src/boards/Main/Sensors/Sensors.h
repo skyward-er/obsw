@@ -33,6 +33,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
@@ -68,6 +69,8 @@ public:
     Boardcore::PressureData getStaticPressure1LastSample();
     Boardcore::PressureData getStaticPressure2LastSample();
     Boardcore::PressureData getDplBayPressureLastSample();
+
+    Boardcore::IMUData getIMULastSample();
 
     Boardcore::PressureData getCanTopTankPress1LastSample();
     Boardcore::PressureData getCanTopTankPress2LastSample();
@@ -111,6 +114,9 @@ protected:
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure2;
     std::unique_ptr<Boardcore::MPXH6115A> dplBayPressure;
 
+    // Virtual sensors
+    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
+
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
@@ -146,6 +152,9 @@ private:
 
     void dplBayPressureInit();
     void dplBayPressureCallback();
+
+    void rotatedImuInit();
+    void rotatedImuCallback();
 
     bool sensorManagerInit();
 
