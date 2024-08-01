@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
+#include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
@@ -32,13 +33,16 @@
 namespace Main
 {
 
-class NASController : public Boardcore::FSM<NASController>,
-                      public Boardcore::InjectableWithDeps<BoardScheduler>
+class NASController
+    : public Boardcore::FSM<NASController>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
 {
 public:
     NASController();
 
     [[nodiscard]] bool start() override;
+
+    Boardcore::NASState getNASState();
 
     NASControllerState getState();
 
@@ -60,6 +64,7 @@ private:
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ada");
 
+    miosix::FastMutex nasMutex;
     Boardcore::NAS nas;
 };
 
